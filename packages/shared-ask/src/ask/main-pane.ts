@@ -21,7 +21,9 @@ export async function mainPaneFor(ctx: PlanContext, set: FileSet): Promise<MainP
   if (selection.file !== null) {
     return selection.view === 'diff'
       ? diffPane(ctx, [selection.file])
-      : filePane(ctx, selection.file, { blame: ctx.spec.class === 'who-why' });
+      : filePane(ctx, selection.file, {
+          blame: ctx.spec.class === 'who-why' || selection.view === 'blame',
+        });
   }
   return classPane(ctx, set);
 }

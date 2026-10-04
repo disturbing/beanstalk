@@ -30,7 +30,7 @@ compact JSON with a `summary` and handles (`beans/<task>`, `file:<path>@<sha>`, 
 
 | Tool | Answer |
 |---|---|
-| `ask_repo(question, ref?)` | Ask's view: spec, resolved files, main-pane handle, beans, decisions, `preview_url` |
+| `ask_repo(question, ref?)` | Ask's view: spec, resolved files, main-pane handle, beans, decisions, the `picks` that ordered it (route, files, sections; by Jev or the rules, as on the web's Plot), `preview_url` |
 | `work_overlaps(paths)` | Beans in flight, on the sprout, or green in the last 15 min on those paths: title, intent, slot, status, files, overlap |
 | `change_status(bean)` | Status, phase, slot, checks, reworks, card, recent steps, `next` |
 | `checks_get(bean)` | Latest check's failures (file, test, `inherited`, `protected`), history, `blamed_by` |

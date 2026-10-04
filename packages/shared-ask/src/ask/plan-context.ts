@@ -5,6 +5,7 @@
 import type { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
 
 import type { BeanRecord, DecisionRecord, ForgeSource } from '../forge/forge-source';
+import type { Picker } from '../pick/picker';
 import type { RaceEvent } from '../race/race-events';
 import type { RaceState } from '../race/race-state';
 import { reduceRace } from '../race/reduce-race';
@@ -18,7 +19,8 @@ const EVENTS_PAGE = 5000;
 export type Selection = {
   readonly file: string | null;
   readonly bean: TaskId | null;
-  readonly view: 'diff' | 'file' | null;
+  /** `blame`: the file with each line attributed to the bean that last changed it. */
+  readonly view: 'diff' | 'file' | 'blame' | null;
 };
 
 export type RangeWindow = {
@@ -36,6 +38,7 @@ export type PlanContext = {
   readonly spec: ViewSpec;
   readonly removals: Removals;
   readonly selection: Selection;
+  readonly picker: Picker;
   readonly refName: LineRef;
   readonly tree: RepoTree;
   readonly treePaths: ReadonlySet<string>;
@@ -57,6 +60,7 @@ export async function loadPlanContext(input: {
   readonly spec: ViewSpec;
   readonly removals: Removals;
   readonly selection: Selection;
+  readonly picker: Picker;
 }): Promise<PlanContext> {
   const { source, run, spec } = input;
   const refName = spec.range.ref;

@@ -13,7 +13,13 @@
     // Ask's classifier, as in packages/web: keywords unless an AI binding is added.
     "ASK_CLASSIFIER": "keywords",
     "ASK_AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+    // Who orders what ask_repo returns, as in packages/web: "jev" (Jev on Workers AI through
+    // the AI Gateway in JEV_GATEWAY) or "rules". Answers carry the receipts either way.
+    "PICKER": "jev",
+    "JEV_GATEWAY": "default",
   },
+  // Workers AI, for Jev; billed to the account, no API key involved.
+  "ai": { "binding": "AI", "remote": true },
   // Every read goes through the gateway over RPC; the token check too (`verifyViewToken`).
   "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
 }

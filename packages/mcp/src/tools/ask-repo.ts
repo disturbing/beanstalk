@@ -44,6 +44,13 @@ export type AskAnswer = {
     readonly outcome: string | null;
     readonly text: string | null;
   }[];
+  /** Where the answer was decided: the route, the files and the sections, and by whom. */
+  readonly picks: readonly {
+    readonly decision: string;
+    readonly chosen: readonly string[];
+    readonly by: string;
+    readonly confidence: number | null;
+  }[];
   readonly preview_url: string;
 };
 
@@ -57,6 +64,7 @@ export async function askRepo(
     run: ctx.run,
     question,
     classifier: ctx.classifier,
+    picker: ctx.picker,
     removed: [],
     ref,
     selection: { file: null, bean: null, view: null },
@@ -85,6 +93,12 @@ export async function askRepo(
           }))
         : [],
     ),
+    picks: answer.picks.map((receipt) => ({
+      decision: receipt.decision,
+      chosen: receipt.chosen,
+      by: receipt.by,
+      confidence: receipt.confidence,
+    })),
     preview_url: previewUrl(ctx.webUrl, ctx.run, { kind: 'ask', question, ref }),
   };
 }

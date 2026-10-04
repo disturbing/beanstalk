@@ -7,6 +7,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
+import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
 import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
 
 import type { AppEnv } from './app-env';
@@ -50,6 +51,13 @@ function serveMcp(c: Context<AppEnv>): Promise<Response> {
       name: c.env.ASK_CLASSIFIER,
       model: c.env.ASK_AI_MODEL,
       ai: Reflect.get(c.env, 'AI'),
+    }),
+    picker: pickerFrom({
+      name: c.env.PICKER,
+      ai: Reflect.get(c.env, 'AI'),
+      gateway: c.env.JEV_GATEWAY,
+      onError: (decision, error) =>
+        log.warn('jev pick fell back to the rule', { run, decision, error }),
     }),
     webUrl: c.env.WEB_URL,
   });

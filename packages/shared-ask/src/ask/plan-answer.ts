@@ -5,8 +5,12 @@
 import type { RunId } from '@beanstalk/shared-race/ids';
 
 import type { ForgeSource } from '../forge/forge-source';
+import type { PickReceipt, Picker } from '../pick/picker';
+import { rulesPicker } from '../pick/picker';
 import { isInFlight } from '../race/race-counters';
 import type { Answer, FileBadges, TreeModel } from './answer';
+import type { SectionId } from './answer-picks';
+import { pickRoute, pickSections } from './answer-picks';
 import { applyRemovals, chipsFor, parseRemovals } from './chips';
 import type { Classification, Classifier } from './classifier';
 import type { FileSet } from './file-set';
@@ -28,12 +32,24 @@ export type AskInput = {
   /** The line picked in the ref selector, overriding the question's. */
   readonly ref: LineRef | null;
   readonly selection: Selection;
+  /** Orders what the answer shows (`docs/claude-opus/14` §5); the rules when absent. */
+  readonly picker?: Picker;
 };
 
 export async function planAnswer(input: AskInput): Promise<Answer> {
+  const picker = input.picker ?? rulesPicker;
   const classification = await classify(input);
+  const routed =
+    input.question.trim() === ''
+      ? null
+      : await pickRoute({
+          picker,
+          question: input.question,
+          spec: classification.spec,
+          classifiedBy: classification.by,
+        });
   const removals = parseRemovals(input.removed);
-  const parsed = applyRemovals(classification.spec, removals);
+  const parsed = applyRemovals(routed?.spec ?? classification.spec, removals);
   const spec =
     input.ref === null ? parsed : { ...parsed, range: { ...parsed.range, ref: input.ref } };
   const ctx = await loadPlanContext({
@@ -42,14 +58,23 @@ export async function planAnswer(input: AskInput): Promise<Answer> {
     spec,
     removals,
     selection: input.selection,
+    picker,
   });
   const set = await fileSetFor(ctx);
   const [main, rail] = await Promise.all([mainPaneFor(ctx, set), railFor(ctx, set)]);
+  const available: readonly SectionId[] = ['main', ...rail.map((block) => block.kind)];
+  const sections = await pickSections({
+    picker,
+    question: input.question,
+    cls: spec.class,
+    available,
+  });
+  const picks: readonly (PickReceipt | null)[] = [routed?.receipt ?? null, set.receipt, sections];
   return {
     question: input.question,
     spec,
     view: CATALOG[spec.class].view,
-    classifiedBy: classification.by,
+    classifiedBy: routed?.receipt.by === 'jev' ? 'jev' : classification.by,
     chips: chipsFor(spec, set.ranked, set.files),
     ref: { name: ctx.state.meta?.policy === 'queue' ? 'stalk' : ctx.refName, sha: ctx.tree.sha },
     policy: ctx.state.meta?.policy ?? null,
@@ -59,6 +84,10 @@ export async function planAnswer(input: AskInput): Promise<Answer> {
     main,
     rail,
     headline: headline(ctx, set),
+    sections: available
+      .filter((id) => sections.chosen.includes(id))
+      .toSorted((a, b) => sections.chosen.indexOf(a) - sections.chosen.indexOf(b)),
+    picks: picks.filter((receipt): receipt is PickReceipt => receipt !== null),
   };
 }
 

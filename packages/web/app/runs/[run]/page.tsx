@@ -3,23 +3,34 @@ import { notFound } from 'next/navigation';
 
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 
-import { AnswerPanel } from '../../../components/explorer/answer-panel';
-import type { Suggestion } from '../../../components/explorer/ask-bar';
-import { AskBar } from '../../../components/explorer/ask-bar';
-import styles from '../../../components/explorer/explorer.module.css';
-import { readExplorerState } from '../../../components/explorer/explorer-url';
-import { FileTree } from '../../../components/explorer/file-tree';
-import { MainPane } from '../../../components/explorer/main-pane';
-import { RailBlocks } from '../../../components/explorer/rail-blocks';
-import { RunHeader } from '../../../components/explorer/run-header';
+import type { Answer } from '@beanstalk/shared-ask/ask/answer';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
+import { classifyByKeywords } from '@beanstalk/shared-ask/ask/classifier';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
-import { CATALOG } from '@beanstalk/shared-ask/ask/view-spec';
 import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import { forgeForRun } from '../../../src/forge/sources';
-import { raceMoments } from '../../../src/race/race-moments';
+import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
+import {
+  isFinished,
+  leadDecision,
+  leadFacts,
+  leadKey,
+  suggestDecision,
+  suggestions,
+} from '@beanstalk/shared-ask/pick/lead';
+import type { Picker } from '@beanstalk/shared-ask/pick/picker';
+import { busiestMoment } from '@beanstalk/shared-ask/plot/busiest-moment';
+import type { PlotFocus } from '@beanstalk/shared-ask/plot/plot-model';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
-import { recordedRun } from '../../../src/recorded/recorded-runs';
+import { PlotDetail } from '../../../components/plot/plot-detail';
+import type { PlotState } from '../../../components/plot/plot-url';
+import { readPlotState } from '../../../components/plot/plot-url';
+import type { PlotAnswerView } from '../../../components/plot/plot-workspace';
+import { PlotWorkspace } from '../../../components/plot/plot-workspace';
+import { forgeForRun } from '../../../src/forge/sources';
+import { isRecordedRun } from '../../../src/recorded/recorded-runs';
+import { pagePicker } from '../../../src/server/picker';
+import { plotPageData } from '../../../src/server/plot-page-data';
 import { runMeta } from '../../../src/server/run-meta';
 
 type PageProps = {
@@ -32,90 +43,118 @@ export async function generateMetadata({ params }: PageProps) {
   return { title: `race-${run}` };
 }
 
-/** The demo questions for the recorded v2 run (`docs/claude-opus/13` §3, `12` beat 3). */
-const V2_SUGGESTIONS: readonly Suggestion[] = [
-  { q: 'what changed recently on coupons?' },
-  { q: 'who changed tax rounding and why?' },
-  { q: 'why did the sprout go red?' },
-  { q: 'what did we decide about money formatting?' },
-  { q: "what's being worked on in billing right now?", at: 600 },
-  { q: "what's on sprout but not on stalk?", at: 600 },
-  { q: 'what tests cover checkout?' },
-  { q: 'show bean t032' },
-];
-
-export default async function ExplorerPage({ params, searchParams }: PageProps) {
+/** The repository's home: the Plot (`docs/claude-opus/14`). */
+export default async function PlotPage({ params, searchParams }: PageProps) {
   const parsedRun = RunId.safeParse((await params).run);
   if (!parsedRun.success) notFound();
   const run = parsedRun.data;
-  const state = readExplorerState(await searchParams);
-  const recorded = recordedRun(run);
-  const source = forgeForRun(env.GATEWAY, run, state.at === null ? {} : { asOf: state.at });
-  const answer = await planAnswer({
+  const recorded = isRecordedRun(run);
+  const data = await plotPageData(forgeForRun(env.GATEWAY, run), run).catch(notFoundOr);
+  const url = withMoment(readPlotState(await searchParams), data.events, recorded);
+  const picker = pagePicker();
+  const answer = needsAnswer(url) ? await answerFor({ run, url, picker }) : null;
+  const visible =
+    url.t === null ? data.events : data.events.filter((event) => event.t <= (url.t ?? 0));
+  const state = reduceRace(visible, data.options);
+  const now = url.t ?? state.endedAt ?? state.clock;
+  const finished = isFinished(state, now);
+  const facts = leadFacts(state, now);
+  const items = suggestions(state, now);
+  const [lead, suggest] = await Promise.all([
+    answer === null || url.q === ''
+      ? picker.decide(leadDecision(facts, finished))
+      : Promise.resolve(null),
+    picker.decide(suggestDecision(items, !finished)),
+  ]);
+  const meta = runMeta(run, reduceRace(data.events, data.options));
+  return (
+    <main>
+      <PlotWorkspace
+        run={run}
+        label={meta.label}
+        mode={recorded ? 'replay' : 'live'}
+        events={data.events}
+        options={data.options}
+        titles={data.titles}
+        beds={data.beds}
+        stats={data.stats}
+        url={url}
+        initialT={url.t}
+        answer={answer === null || url.q === '' ? null : answerView(answer)}
+        suggestions={items}
+        receipts={[suggest, ...(answer?.picks ?? [])]}
+        initialLead={lead === null ? null : { key: leadKey(facts, finished), receipt: lead }}
+        picker={picker.name}
+      >
+        {answer === null ? undefined : <PlotDetail run={run} url={url} answer={answer} />}
+      </PlotWorkspace>
+    </main>
+  );
+}
+
+function needsAnswer(url: PlotState): boolean {
+  return url.q !== '' || url.bean !== null || url.file !== null;
+}
+
+async function answerFor(input: {
+  readonly run: RunId;
+  readonly url: PlotState;
+  readonly picker: Picker;
+}): Promise<Answer> {
+  const { run, url } = input;
+  const source: ForgeSource = forgeForRun(env.GATEWAY, run, url.t === null ? {} : { asOf: url.t });
+  return planAnswer({
     source,
     run,
-    question: state.q,
+    question: url.q,
     classifier: classifierFrom({
       name: env.ASK_CLASSIFIER,
       model: env.ASK_AI_MODEL,
       ai: Reflect.get(env, 'AI'),
     }),
-    removed: state.removed,
-    ref: state.ref,
+    removed: url.removed,
+    ref: null,
     selection: {
-      file: state.file,
-      bean: TaskId.safeParse(state.bean).data ?? null,
-      view: state.view,
+      file: url.file,
+      bean: TaskId.safeParse(url.bean).data ?? null,
+      view: url.file === null ? null : 'blame',
     },
-  }).catch((error: unknown) => {
-    if (isForgeError(error, 'not_found')) notFound();
-    throw error;
-  });
-  const events = recorded?.events ?? [];
-  const race = reduceRace(events);
-  const meta = recorded === undefined ? { label: 'Live run', detail: '' } : runMeta(run, race);
-  const suggestions =
-    recorded?.label === 'Beanstalk v2'
-      ? V2_SUGGESTIONS
-      : Object.values(CATALOG).map((entry) => ({ q: entry.example }));
-  return (
-    <main className={styles.page}>
-      <RunHeader run={run} label={meta.label} detail={meta.detail} current="repository" />
-      <AskBar
-        run={run}
-        state={state}
-        policy={answer.policy}
-        moments={recorded === undefined ? null : raceMoments(events)}
-        endedAt={race.endedAt}
-        suggestions={suggestions}
-      />
-      <AnswerPanel run={run} state={state} answer={answer} />
-      <div className={styles.panes}>
-        <nav className={`${styles.pane} ${styles.treePane}`} aria-label="Repository files">
-          <div className={styles.paneHead}>
-            <span className={styles.paneTitle}>
-              {answer.tree.mode === 'filtered' ? 'In this answer' : 'Files'}
-            </span>
-            <span className={styles.paneSub} title={`${answer.ref.name} at ${answer.ref.sha}`}>
-              {answer.tree.files.length} at {answer.ref.name} {answer.ref.sha.slice(0, 7)}
-            </span>
-          </div>
-          <div className={styles.paneBody}>
-            <FileTree run={run} state={state} tree={answer.tree} selected={state.file} />
-          </div>
-        </nav>
-        <section className={styles.pane} aria-label="Main view">
-          <MainPane
-            run={run}
-            state={state}
-            main={answer.main}
-            railBean={answer.rail.find((block) => block.kind === 'checks')?.bean ?? null}
-          />
-        </section>
-        <aside className={styles.railPane} aria-label="Context">
-          <RailBlocks run={run} state={state} blocks={answer.rail} />
-        </aside>
-      </div>
-    </main>
+    picker: input.picker,
+  }).catch(notFoundOr);
+}
+
+/** Folds the Plot to the answer: matched files as columns, or every area for swarm questions. */
+function answerView(answer: Answer): PlotAnswerView {
+  const beans = answer.rail.flatMap((block) =>
+    block.kind === 'beans' || block.kind === 'promotion' ? block.beans.map((bean) => bean.id) : [],
   );
+  const mainBeans = answer.main.kind === 'beans' ? answer.main.beans.map((bean) => bean.id) : [];
+  const layout =
+    answer.spec.class === 'in-flight' || answer.spec.class === 'agent-activity' ? 'beds' : 'files';
+  const focus: PlotFocus = {
+    files: answer.tree.matched,
+    beans: [...new Set([...beans, ...mainBeans])],
+    layout,
+  };
+  return {
+    headline: answer.headline,
+    focus,
+    chips: answer.chips
+      .filter((chip) => chip.kind !== 'file')
+      .map((chip) => ({ id: chip.id, label: chip.label })),
+    routeReceipt: answer.picks.find((receipt) => receipt.decision === 'route') ?? null,
+    filesReceipt: answer.picks.find((receipt) => receipt.decision === 'files') ?? null,
+  };
+}
+
+/** "What is the swarm doing now?" on a finished recording opens at its busiest moment. */
+function withMoment(url: PlotState, events: readonly RaceEvent[], recorded: boolean): PlotState {
+  if (!recorded || url.t !== null || url.q === '') return url;
+  if (classifyByKeywords(url.q, 'sprout').class !== 'in-flight') return url;
+  return { ...url, t: busiestMoment(events) };
+}
+
+function notFoundOr(error: unknown): never {
+  if (isForgeError(error, 'not_found')) notFound();
+  throw error;
 }

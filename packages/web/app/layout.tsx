@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
-import '@fontsource-variable/bricolage-grotesque/standard.css';
+import '@fontsource-variable/familjen-grotesk';
+// oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
+import '@fontsource-variable/newsreader/opsz.css';
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
 import '@fontsource-variable/jetbrains-mono';
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
@@ -21,8 +23,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#eef3f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a1a2b' },
+    { media: '(prefers-color-scheme: light)', color: '#edf1ec' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e1712' },
   ],
 };
 

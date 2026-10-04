@@ -40,7 +40,7 @@ export function readExplorerState(params: SearchParams): ExplorerState {
   };
 }
 
-/** The explorer URL for a run with some state changed. */
+/** The Files explorer's URL for a run with some state changed. */
 export function explorerHref(
   run: string,
   state: ExplorerState,
@@ -56,7 +56,7 @@ export function explorerHref(
   if (next.view !== null) params.set('view', next.view);
   if (next.at !== null) params.set('at', String(Math.round(next.at)));
   const query = params.toString();
-  return `/runs/${run}${query === '' ? '' : `?${query}`}`;
+  return `/runs/${run}/files${query === '' ? '' : `?${query}`}`;
 }
 
 /** A fresh question: keeps the line and the moment, drops removals and selection. */

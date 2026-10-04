@@ -54,8 +54,7 @@ export function MainPane(props: {
             </span>
           </div>
           <FileView
-            run={run}
-            state={state}
+            beanHref={(bean) => explorerHref(run, state, { bean, file: null, view: null })}
             text={main.file.text}
             highlights={main.highlights}
             blame={main.blame}

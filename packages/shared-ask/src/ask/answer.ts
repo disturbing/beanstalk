@@ -8,6 +8,8 @@ import type { BeanDetail, BeanRecord, DecisionRecord, TestRecord } from '../forg
 import type { BatchId, TicketId } from '../race/race-events';
 import type { BeanStep, Lane, PolicyKind } from '../race/race-state';
 import type { RepoDiff, RepoFile } from '../repo/repo-types';
+import type { PickReceipt } from '../pick/picker';
+import type { SectionId } from './answer-picks';
 import type { ClassifierName } from './classifier';
 import type { MatchReason, RankedFile } from './resolve-files';
 import type { LineRef, ViewConfig, ViewSpec } from './view-spec';
@@ -130,4 +132,8 @@ export type Answer = {
   readonly main: MainPane;
   readonly rail: readonly RailBlock[];
   readonly headline: string;
+  /** The main pane and rail blocks in the order the picker chose. */
+  readonly sections: readonly SectionId[];
+  /** Every pick the answer made, with what was chosen and by whom. */
+  readonly picks: readonly PickReceipt[];
 };

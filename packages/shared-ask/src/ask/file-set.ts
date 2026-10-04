@@ -5,9 +5,12 @@
  */
 import type { TaskId } from '@beanstalk/shared-race/ids';
 
+import type { PickReceipt } from '../pick/picker';
+
 import { isInFlight } from '../race/race-counters';
 import { isTestFile } from '../repo/imports';
 import { compareText } from '../repo/paths';
+import { pickFiles } from './answer-picks';
 import { loadCorpus } from './corpus';
 import type { PlanContext } from './plan-context';
 import { filesChanged } from './plan-context';
@@ -20,10 +23,27 @@ export type FileSet = {
   readonly ranked: readonly RankedFile[];
   /** Set when the class found nothing in the entities' files and fell back to them. */
   readonly widened: boolean;
+  /** The picker's choice among the resolver's files, when there was one to make. */
+  readonly receipt: PickReceipt | null;
 };
 
 export async function fileSetFor(ctx: PlanContext): Promise<FileSet> {
+  const picked = await pickedFeatureFiles(ctx);
+  const set = await fileSetFrom(ctx, picked.ranked);
+  return { ...set, receipt: picked.receipt };
+}
+
+async function pickedFeatureFiles(ctx: PlanContext) {
   const ranked = await rankFeature(ctx);
+  const feature = ctx.spec.entities.feature;
+  if (feature === null) return { ranked, receipt: null };
+  return pickFiles({ picker: ctx.picker, feature, ranked });
+}
+
+async function fileSetFrom(
+  ctx: PlanContext,
+  ranked: readonly RankedFile[],
+): Promise<Omit<FileSet, 'receipt'>> {
   if (ctx.spec.class === 'tests-for') return testFileSet(ctx, ranked);
   const entity = entityFiles(ctx, ranked);
   const scope = await classScope(ctx);
@@ -178,7 +198,10 @@ export function testPathOf(failingTest: string): string {
  * Tests for the named code: the code the resolver matched by name or content, then the
  * tests it matched, then every test that imports that code or sits beside it.
  */
-async function testFileSet(ctx: PlanContext, ranked: readonly RankedFile[]): Promise<FileSet> {
+async function testFileSet(
+  ctx: PlanContext,
+  ranked: readonly RankedFile[],
+): Promise<Omit<FileSet, 'receipt'>> {
   const named = entityFiles(ctx, ranked) ?? [];
   const code = named.filter(
     (path) =>

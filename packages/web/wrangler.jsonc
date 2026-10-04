@@ -15,7 +15,15 @@
     // "workers-ai", which also needs an `ai` binding named AI (see README).
     "ASK_CLASSIFIER": "keywords",
     "ASK_AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+    // Who decides what the Plot shows (docs/claude-opus/14 §5): "jev" (TypeSafe's Jev on
+    // Workers AI, through the AI Gateway named in JEV_GATEWAY; unified billing) or "rules".
+    // Any Jev failure falls back to the rules, and every pick leaves a receipt.
+    "PICKER": "jev",
+    "JEV_GATEWAY": "default",
   },
+  // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
+  // Billed to the account; no API key is involved. `remote` makes local dev call it too.
+  "ai": { "binding": "AI", "remote": true },
   // DEMO_PASSWORD gates decisions (cookie after the login form). Locally it comes from
   // .dev.vars (see .dev.vars.example); remotely from `wrangler secret put DEMO_PASSWORD`.
   "secrets": { "required": ["DEMO_PASSWORD"] },

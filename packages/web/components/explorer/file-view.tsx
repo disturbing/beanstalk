@@ -3,16 +3,14 @@ import Link from 'next/link';
 import type { BlameLine } from '@beanstalk/shared-ask/ask/answer';
 import { textLines } from '@beanstalk/shared-ask/repo/file-diff';
 import styles from './explorer.module.css';
-import type { ExplorerState } from './explorer-url';
-import { explorerHref } from './explorer-url';
 
 /**
  * A file at the ref: line numbers, the lines the question's range changed highlighted, and
  * optionally blame by bean (which bean last changed each run of lines).
  */
 export function FileView(props: {
-  readonly run: string;
-  readonly state: ExplorerState;
+  /** Where a bean in the blame column links to. */
+  readonly beanHref: (bean: string) => string;
   readonly text: string;
   readonly highlights: readonly number[];
   readonly blame: readonly BlameLine[] | null;
@@ -28,12 +26,7 @@ export function FileView(props: {
             return (
               <tr key={number} className={marked.has(number) ? styles.lineHl : undefined}>
                 {props.blame === null ? null : (
-                  <BlameCell
-                    run={props.run}
-                    state={props.state}
-                    blame={props.blame}
-                    index={index}
-                  />
+                  <BlameCell beanHref={props.beanHref} blame={props.blame} index={index} />
                 )}
                 <td className={styles.lineNo}>{number}</td>
                 <td className={styles.text}>
@@ -51,8 +44,7 @@ export function FileView(props: {
 
 /** The bean of a run of lines, printed once at the top of the run. */
 function BlameCell(props: {
-  readonly run: string;
-  readonly state: ExplorerState;
+  readonly beanHref: (bean: string) => string;
   readonly blame: readonly BlameLine[];
   readonly index: number;
 }) {
@@ -63,9 +55,7 @@ function BlameCell(props: {
   if (current.task === null) return <td className={`${styles.blame} ${styles.blameBase}`}>base</td>;
   return (
     <td className={styles.blame}>
-      <Link
-        href={explorerHref(props.run, props.state, { bean: current.task, file: null, view: null })}
-      >
+      <Link href={props.beanHref(current.task)}>
         {current.task}
         {current.idx === null ? '' : ` #${current.idx}`}
       </Link>

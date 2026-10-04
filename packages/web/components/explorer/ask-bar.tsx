@@ -27,7 +27,7 @@ export function AskBar(props: {
   const { run, state } = props;
   return (
     <div className={styles.askWrap}>
-      <form action={`/runs/${run}`} method="get" className={styles.ask} role="search">
+      <form action={`/runs/${run}/files`} method="get" className={styles.ask} role="search">
         <div className={styles.askForm}>
           <label htmlFor={INPUT_ID} className={styles.askLabel}>
             <AskGlyph />

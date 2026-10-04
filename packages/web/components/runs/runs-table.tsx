@@ -83,7 +83,7 @@ function RunRow({ run }: { readonly run: RunListing }) {
       </td>
       <td className={styles.links}>
         <Link href={`/runs/${run.run}`}>Repository</Link>
-        <Link href={`/runs/${run.run}/race`}>Race canvas</Link>
+        <Link href={`/runs/${run.run}/race`}>Engine</Link>
       </td>
     </tr>
   );

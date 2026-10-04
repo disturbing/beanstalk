@@ -1,63 +1,56 @@
 /*
- * beanstalk's canvas: a cyanotype field notebook. Prussian ink on cool paper by day, a
- * developed print (pale lines on deep blue) by night. Status colours are the only greens,
- * reds and ambers on the page, so a verified bead or a red check is never mistaken for
- * decoration. Typography: Bricolage Grotesque throughout; JetBrains Mono only for code.
+ * beanstalk: a greenhouse. Daylight on sage glass, the same house at night. Colour carries
+ * meaning (docs/claude-opus/14 §6): leaf green is the stalk, lime the sprout, violet the
+ * agents, amber a check, red a failure, blue a pick. Typography: Familjen Grotesk for the
+ * interface, Newsreader for sentences written for people, JetBrains Mono only for code.
  */
 
 :root {
   color-scheme: light;
-  --paper: #eef3f7;
-  --sheet: #ffffff;
-  --sheet-2: #f5f8fb;
-  --wash: #e3ecf5;
-  --wash-strong: #cfdeec;
-  --rule: #d3dde7;
-  --rule-strong: #aebfd0;
-  --ink: #0d2238;
-  --ink-2: #3a526d;
-  --ink-3: #566c83;
-  --accent: #1f5fbf;
+  --paper: #edf1ec;
+  --sheet: #f8faf7;
+  --sheet-2: #f2f5f1;
+  --wash: #e3e9e3;
+  --wash-strong: #d3dcd4;
+  --rule: #d3dcd4;
+  --rule-strong: #b1bfb4;
+  --ink: #15231a;
+  --ink-2: #45574b;
+  --ink-3: #5f6f64;
+  --accent: #2f66b3;
   --accent-ink: #ffffff;
-  --focus: #1f5fbf;
-
-  /* status: reserved meanings, always paired with a shape or a word */
-  --good: #1b7a43;
-  --good-fill: #2f9a5b;
-  --good-wash: #e2f3e8;
+  --focus: #2f66b3;
+  --good: #2d7a45;
+  --good-fill: #2d7a45;
+  --good-wash: #e1f0e3;
   --warn: #8a5a00;
-  --warn-fill: #e0a21c;
-  --warn-wash: #fbf0d6;
-  --bad: #b9312a;
-  --bad-fill: #d4473c;
-  --bad-wash: #fbe6e3;
-  --human: #6a3dbf;
-  --human-fill: #7a4fd0;
-  --human-wash: #efe8fb;
+  --warn-fill: #c98d12;
+  --warn-wash: #fbf1d9;
+  --bad: #b8392a;
+  --bad-fill: #c2412e;
+  --bad-wash: #fbe6e1;
+  --human: #6a4bc4;
+  --human-fill: #6a4bc4;
+  --human-wash: #ece7fb;
   --human-ink: #ffffff;
-  --neutral: #687b90;
-  --sprout: #6aa21b;
-
-  /* series (validated: scripts/validate_palette.js, light vs #ffffff) */
-  --series-v2: #2f6fd0;
-  --series-queue: #d4622a;
-
-  /* heat: one hue, more exposure is deeper blue */
-  --heat-0: #f5f8fb;
-  --heat-1: #cfe0f6;
-  --heat-2: #9cc0ee;
-  --heat-3: #5d93de;
-
-  --code-add: #e4f4e9;
-  --code-add-ink: #1b6b3c;
-  --code-del: #fbe9e7;
+  --neutral: #6b7b70;
+  --sprout: #93c13c;
+  --series-v2: #2d7a45;
+  --series-queue: #c2622a;
+  --heat-0: #f2f5f1;
+  --heat-1: #d6e9d6;
+  --heat-2: #a6cfa9;
+  --heat-3: #5fa26b;
+  --code-add: #e3f2e5;
+  --code-add-ink: #1d6b37;
+  --code-del: #fbe8e4;
   --code-del-ink: #9b2c25;
-  --code-hl: #fff5d1;
-
-  --shadow: 0 1px 0 rgba(13, 34, 56, 0.04), 0 8px 24px -16px rgba(13, 34, 56, 0.25);
+  --code-hl: #fbf1d0;
+  --shadow: 0 1px 0 rgba(21, 35, 26, 0.04), 0 8px 24px -14px rgba(21, 35, 26, 0.22);
 
   --font-sans:
-    'Bricolage Grotesque Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'Familjen Grotesk Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --step--1: 0.8125rem;
@@ -76,91 +69,91 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --paper: #0a1a2b;
-    --sheet: #0f2236;
-    --sheet-2: #12283f;
-    --wash: #173352;
-    --wash-strong: #1f4166;
-    --rule: #21405f;
-    --rule-strong: #2f557b;
-    --ink: #e6eef7;
-    --ink-2: #b6c6d8;
-    --ink-3: #8fa5bc;
-    --accent: #7fb2ff;
-    --accent-ink: #08182a;
-    --focus: #9cc4ff;
-    --good: #5fd394;
-    --good-fill: #43b977;
-    --good-wash: #12382a;
-    --warn: #f2c04e;
-    --warn-fill: #e3a72a;
-    --warn-wash: #3a2e10;
-    --bad: #ff8a7d;
-    --bad-fill: #e45a4d;
-    --bad-wash: #3e1d1d;
-    --human: #c0a6ff;
-    --human-fill: #9a77f0;
-    --human-wash: #2a2147;
+    --paper: #0e1712;
+    --sheet: #132019;
+    --sheet-2: #16251c;
+    --wash: #1d2d23;
+    --wash-strong: #26382d;
+    --rule: #26382d;
+    --rule-strong: #37503f;
+    --ink: #e2ebe3;
+    --ink-2: #a8b8ac;
+    --ink-3: #8a9b8f;
+    --accent: #7fa9e6;
+    --accent-ink: #0b1626;
+    --focus: #9cc0f0;
+    --good: #5cb873;
+    --good-fill: #5cb873;
+    --good-wash: #173322;
+    --warn: #e6b44c;
+    --warn-fill: #e6b44c;
+    --warn-wash: #33280f;
+    --bad: #ef7a66;
+    --bad-fill: #ef6d58;
+    --bad-wash: #3a1b16;
+    --human: #a28ef2;
+    --human-fill: #a28ef2;
+    --human-wash: #251f3e;
     --human-ink: #150b30;
-    --neutral: #91a4b9;
-    --sprout: #b3e06a;
-    --series-v2: #4a8be8;
-    --series-queue: #d9692f;
-    --heat-0: #12283f;
-    --heat-1: #1b3d63;
-    --heat-2: #275a91;
-    --heat-3: #3f80cf;
-    --code-add: #123726;
-    --code-add-ink: #8fe0b2;
-    --code-del: #3d1c1c;
+    --neutral: #8a9b8f;
+    --sprout: #b6dc63;
+    --series-v2: #5cb873;
+    --series-queue: #e08046;
+    --heat-0: #16251c;
+    --heat-1: #1d3a26;
+    --heat-2: #2b5a37;
+    --heat-3: #4b8c58;
+    --code-add: #173322;
+    --code-add-ink: #9fe0b5;
+    --code-del: #3a1c17;
     --code-del-ink: #ffb3aa;
-    --code-hl: #3b3315;
-    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.6);
+    --code-hl: #3a3216;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.65);
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --paper: #0a1a2b;
-  --sheet: #0f2236;
-  --sheet-2: #12283f;
-  --wash: #173352;
-  --wash-strong: #1f4166;
-  --rule: #21405f;
-  --rule-strong: #2f557b;
-  --ink: #e6eef7;
-  --ink-2: #b6c6d8;
-  --ink-3: #8fa5bc;
-  --accent: #7fb2ff;
-  --accent-ink: #08182a;
-  --focus: #9cc4ff;
-  --good: #5fd394;
-  --good-fill: #43b977;
-  --good-wash: #12382a;
-  --warn: #f2c04e;
-  --warn-fill: #e3a72a;
-  --warn-wash: #3a2e10;
-  --bad: #ff8a7d;
-  --bad-fill: #e45a4d;
-  --bad-wash: #3e1d1d;
-  --human: #c0a6ff;
-  --human-fill: #9a77f0;
-  --human-wash: #2a2147;
+  --paper: #0e1712;
+  --sheet: #132019;
+  --sheet-2: #16251c;
+  --wash: #1d2d23;
+  --wash-strong: #26382d;
+  --rule: #26382d;
+  --rule-strong: #37503f;
+  --ink: #e2ebe3;
+  --ink-2: #a8b8ac;
+  --ink-3: #8a9b8f;
+  --accent: #7fa9e6;
+  --accent-ink: #0b1626;
+  --focus: #9cc0f0;
+  --good: #5cb873;
+  --good-fill: #5cb873;
+  --good-wash: #173322;
+  --warn: #e6b44c;
+  --warn-fill: #e6b44c;
+  --warn-wash: #33280f;
+  --bad: #ef7a66;
+  --bad-fill: #ef6d58;
+  --bad-wash: #3a1b16;
+  --human: #a28ef2;
+  --human-fill: #a28ef2;
+  --human-wash: #251f3e;
   --human-ink: #150b30;
-  --neutral: #91a4b9;
-  --sprout: #b3e06a;
-  --series-v2: #4a8be8;
-  --series-queue: #d9692f;
-  --heat-0: #12283f;
-  --heat-1: #1b3d63;
-  --heat-2: #275a91;
-  --heat-3: #3f80cf;
-  --code-add: #123726;
-  --code-add-ink: #8fe0b2;
-  --code-del: #3d1c1c;
+  --neutral: #8a9b8f;
+  --sprout: #b6dc63;
+  --series-v2: #5cb873;
+  --series-queue: #e08046;
+  --heat-0: #16251c;
+  --heat-1: #1d3a26;
+  --heat-2: #2b5a37;
+  --heat-3: #4b8c58;
+  --code-add: #173322;
+  --code-add-ink: #9fe0b5;
+  --code-del: #3a1c17;
   --code-del-ink: #ffb3aa;
-  --code-hl: #3b3315;
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.6);
+  --code-hl: #3a3216;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.65);
 }
 
 *,

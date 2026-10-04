@@ -15,8 +15,9 @@
   "dependencies": {
     "@beanstalk/shared-ask": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
-    "@fontsource-variable/bricolage-grotesque": "catalog:",
+    "@fontsource-variable/familjen-grotesk": "catalog:",
     "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource-variable/newsreader": "catalog:",
     "diff": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

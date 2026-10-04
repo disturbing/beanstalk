@@ -7,6 +7,7 @@ import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
 import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
 
 import type { Classifier } from '@beanstalk/shared-ask/ask/classifier';
+import type { Picker } from '@beanstalk/shared-ask/pick/picker';
 import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
 import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
@@ -24,6 +25,8 @@ export type ToolContext = {
   readonly gateway: GatewayRpc;
   readonly source: ForgeSource;
   readonly classifier: Classifier;
+  /** Orders what an answer shows, as the web app does (`docs/claude-opus/14` §5). */
+  readonly picker: Picker;
   /** The web app's origin, for `preview_url`. */
   readonly webUrl: string;
   snapshot(): Promise<RunSnapshot>;

@@ -413,3 +413,66 @@ Today is 2026-10-04 and the deadline is 2026-10-14, which leaves 10 days. Estima
 - **`13-ask-explorer-design.md`** made a GitHub-style three-pane explorer the base layout ("familiar first"). I now think the familiar parts (tree, file, diff) belong in the **pane as detail views**, and the home should be the Plot. The reason is that today's explorer is exactly what reads as a debugger: equal panes and chips of filenames.
 - **`claude-12` and Codex `03`** put a spatial map (canvas, tldraw) at the centre. I rank that third for this deadline, because it hides time, and time is the swarm's main axis. It stays the roadmap's bold extension (concept B).
 - This should be noted in `docs/claude-README.md` once the owner decides (§9.1). This session was asked to write only this doc and the prototype.
+
+## 10. Built into the app (2026-10-04, second round)
+
+Coop's decisions:
+1. The Plot is the repository home, and the race canvas becomes the developer view.
+2. Jev runs live through Cloudflare.
+3. "Bean", "sprout" and "stalk" stay on screen.
+4. Align the most useful and impressive GitHub components.
+
+### What changed against the roadmap in §8
+
+- **No new gateway RPCs were needed.**
+  - The Plot is derived in the browser from the run's events, reduced at the playhead, plus the per-file line counts that `repoLog` already serves.
+  - The journey comes from `BeanStep`s (`shared-ask/plot/journey.ts`).
+  - Blame by bean already existed in `shared-ask/ask/blame.ts`. `Selection.view = 'blame'` now turns it on for any file.
+  - `repoPlot` and `repoBlame` remain an optimisation for runs with thousands of events.
+- **Jev runs through Workers AI, not a TypeSafe key.**
+  - Cloudflare lists Jev as the third-party model `typesafe/jev`.
+  - The web Worker calls `env.AI.run('typesafe/jev', { state, questions }, { gateway: { id: JEV_GATEWAY } })`. The AI binding is `remote` in dev, billing goes to account `2c7358a6…`, and no secret is needed.
+  - Measured in local dev against the real service: about 350–450 ms per pick once warm. The first call after start-up took over 1.5 s and fell back to the rule.
+  - Confidence on the lead pick was 0.19, so Jev's probabilities are flat, as in earlier tests. It ranks well enough to choose the top item; ties follow the rule.
+- **One question per decision.** A single Choice question returns probabilities over every candidate. The order is Jev's choice first, then the rest by probability, with ties in the rule's order.
+
+### Where the code lives
+
+| Piece | Path |
+|---|---|
+| Picker (rules, Jev, receipts) | `packages/shared-ask/src/pick/picker.ts`, `picker-from-env.ts` |
+| Headline and suggestions (facts computed, then picked) | `packages/shared-ask/src/pick/lead.ts` |
+| Answer picks (`route`, `files`, `sections`), wired into `planAnswer` | `packages/shared-ask/src/ask/answer-picks.ts` |
+| Plot model (columns, rows, folds, buds, overlaps) | `packages/shared-ask/src/plot/plot-model.ts` |
+| Journey sentences, busiest moment | `packages/shared-ask/src/plot/journey.ts`, `busiest-moment.ts` |
+| Page and server action (lead re-picks when the facts change) | `packages/web/app/runs/[run]/page.tsx`, `packages/web/src/server/plot-actions.ts` |
+| UI | `packages/web/components/plot/*` (greenhouse tokens are now global in `app/globals.css`; fonts are Familjen Grotesk and Newsreader) |
+| Files explorer (moved), Engine view (kept) | `/runs/:run/files`, `/runs/:run/race` |
+| MCP `ask_repo` returns `picks` | `packages/mcp/src/tools/ask-repo.ts` (same picker config, `AI` binding added) |
+
+Phases from §8 that are done: phase 1 (the Plot as home), phase 2 (Ask reshapes the page, with receipts, also over MCP) and most of phase 3. Live runs reuse the race canvas's SSE feed, so buds and leaves update as events arrive, and the lead is re-picked once per new set of facts. Phase 4's switch to Jev is done; its 60-question eval is not.
+
+### Decision 4: which GitHub components, by usefulness to a swarm and impact in a demo
+
+| GitHub component (map) | In the Plot | Why it earned a place |
+|---|---|---|
+| Commits, history, network graph (01) | The rows and the stalk: every landing, in order, sprout and stalk shown separately | The most useful view for a swarm; GitHub has no time × area view |
+| Blame (01) | Blame **by bean**: open any file from a column head or an answer | High impact: a line links to an intent, not just a commit |
+| Files changed / compare (02) | Diffs per bean (the journey) and per file (answers) | Familiar detail, kept exact |
+| Checks, Actions run, logs (03) | The journey's pre-land checks, the red-validation story (suspects, culprit, inherited reds, time to green), red ticks on the scrubber | Shows "is it green" with a cause attached |
+| Merge box / review decision (02) | Decision stories: two specs, failing tests, outcome | The one place a human acts |
+| Issues / Projects in progress (02) | The tip: buds in flight with agent, state and footprint; crowd counts in area headers | Most impressive live; replaces boards |
+| Insights: pulse, contributors (04) | "Where the agents' time went", spend, beans to the stalk per hour, red validations | Cheap, and makes waiting time visible |
+| Notifications (04) | The lead and "What happened", ranked by the picker | Attention, ranked |
+| Code search (04) | Ask, with the resolver's files ranked by the picker | Already the entry point |
+
+Left out on purpose: wiki, discussions, releases and packages, security alerts and settings. None of them carries swarm signal in these runs. The **spatial map** (concept B) did not earn its place either. The Plot's columns already are the map at area level, and a separate canvas would duplicate them while hiding time. It stays a post-deadline idea.
+
+### Next
+
+- **Phase 4 eval:** label 60 questions and 20 lead situations, and compare Jev against the rules on top-1 agreement and latency. Keep Jev only on the decisions where it wins.
+- **Phase 5:**
+  - a "list" toggle that turns the Plot into an accessible table;
+  - time bucketing past 200 rows;
+  - a warm-up call at boot so the first pick stays within budget;
+  - an `AI Gateway` id other than `default` if Coop wants separate logs and limits.
