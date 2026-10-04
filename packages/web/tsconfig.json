@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2024", "esnext.disposable", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "types": ["./worker-configuration.d.ts", "vinext/types", "vite/client"],
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": ["app", "components", "src", "scripts", "*.ts", "worker-configuration.d.ts"]
+}

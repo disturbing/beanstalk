@@ -1,0 +1,86 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet);
+  min-height: 52px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brand:hover .wordmark {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.wordmark {
+  font-size: var(--step-1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-stretch: 88%;
+}
+
+.nav {
+  display: flex;
+  gap: 16px;
+  font-size: var(--step--1);
+}
+
+.nav a {
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.nav a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--step--1);
+}
+
+.signIn {
+  color: var(--human);
+  font-weight: 600;
+}
+
+.textButton {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.textButton:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 560px) {
+  .header {
+    gap: 10px 14px;
+  }
+
+  .tools {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

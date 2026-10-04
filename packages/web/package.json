@@ -1,0 +1,37 @@
+{
+  "name": "@beanstalk/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite build && wrangler dev --config dist/server/wrangler.json",
+    "deploy": "vite build && wrangler deploy --config dist/server/wrangler.json",
+    "types": "wrangler types --strict-vars false",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "fixtures": "node scripts/build-fixtures.ts"
+  },
+  "dependencies": {
+    "@beanstalk/shared-race": "workspace:*",
+    "@fontsource-variable/bricolage-grotesque": "catalog:",
+    "@fontsource-variable/jetbrains-mono": "catalog:",
+    "diff": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-server-dom-webpack": "catalog:",
+    "vinext": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitejs/plugin-rsc": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

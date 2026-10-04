@@ -1,0 +1,3 @@
+# Copy to .dev.vars (git-ignored) for `pnpm -F @beanstalk/web dev`; never commit real values.
+# The password of the login form that unlocks decision cards (also signs the session cookie).
+DEMO_PASSWORD=

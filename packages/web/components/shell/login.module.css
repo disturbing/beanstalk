@@ -1,0 +1,71 @@
+.page {
+  padding: 48px var(--gutter);
+  display: flex;
+  justify-content: center;
+}
+
+.panel {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.title {
+  font-size: var(--step-3);
+  font-weight: 750;
+  font-stretch: 85%;
+}
+
+.lede,
+.note {
+  color: var(--ink-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 650;
+}
+
+.input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rule-strong);
+  background: var(--sheet-2);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--bad-fill);
+}
+
+.error {
+  color: var(--bad);
+  font-size: var(--step--1);
+}
+
+.button {
+  margin-top: 4px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--human-fill);
+  color: var(--human-ink);
+  font-weight: 650;
+  cursor: pointer;
+}

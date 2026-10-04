@@ -1,0 +1,160 @@
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+
+.title {
+  font-size: var(--step-0);
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tableToggle {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  font-size: var(--step--1);
+}
+
+.plot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.mark {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.markLabel,
+.axisLabel {
+  fill: var(--ink-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playhead {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+
+.crosshair {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+
+.endDot {
+  stroke: var(--sheet);
+  stroke-width: 2;
+}
+
+.endLabel {
+  fill: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  paint-order: stroke;
+  stroke: var(--sheet);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.markLabel {
+  paint-order: stroke;
+  stroke: var(--sheet);
+  stroke-width: 3px;
+}
+
+.readout {
+  position: absolute;
+  top: 8px;
+  min-width: 170px;
+  padding: 8px 10px;
+  border-radius: var(--radius-small);
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  box-shadow: var(--shadow);
+  font-size: var(--step--1);
+  pointer-events: none;
+}
+
+.readoutTime {
+  color: var(--ink-3);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.readoutRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.readoutRow strong {
+  min-width: 2ch;
+  font-size: var(--step-0);
+  font-variant-numeric: tabular-nums;
+}
+
+.readoutRow span {
+  color: var(--ink-2);
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: var(--step--1);
+  width: 100%;
+  max-width: 520px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.table thead th {
+  color: var(--ink-3);
+  font-weight: 600;
+}

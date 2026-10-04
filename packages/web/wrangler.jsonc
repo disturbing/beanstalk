@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-web",
+  // vinext's Workers entry; the app's routes live in app/ (App Router).
+  "main": "vinext/server/fetch-handler",
+  "compatibility_date": "2026-10-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "assets": { "directory": "dist/client", "not_found_handling": "none", "binding": "ASSETS" },
+  // Live runs, decisions and the repository views come from the gateway over RPC (never HTTP).
+  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  "vars": {
+    "LOG_LEVEL": "info",
+    // How Ask turns a question into a view spec: "keywords" (deterministic, the default) or
+    // "workers-ai", which also needs an `ai` binding named AI (see README).
+    "ASK_CLASSIFIER": "keywords",
+    "ASK_AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+  },
+  // DEMO_PASSWORD gates decisions (cookie after the login form). Locally it comes from
+  // .dev.vars (see .dev.vars.example); remotely from `wrangler secret put DEMO_PASSWORD`.
+  "secrets": { "required": ["DEMO_PASSWORD"] },
+}

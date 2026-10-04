@@ -1,0 +1,6 @@
+# The root .gitignore drops .dev.vars.*; the placeholder file is meant to be committed.
+!.dev.vars.example
+# vinext and Vite build output.
+.vinext/
+next-env.d.ts
+.next/

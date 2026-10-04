@@ -1,0 +1,305 @@
+/*
+ * beanstalk's canvas: a cyanotype field notebook. Prussian ink on cool paper by day, a
+ * developed print (pale lines on deep blue) by night. Status colours are the only greens,
+ * reds and ambers on the page, so a verified bead or a red check is never mistaken for
+ * decoration. Typography: Bricolage Grotesque throughout; JetBrains Mono only for code.
+ */
+
+:root {
+  color-scheme: light;
+  --paper: #eef3f7;
+  --sheet: #ffffff;
+  --sheet-2: #f5f8fb;
+  --wash: #e3ecf5;
+  --wash-strong: #cfdeec;
+  --rule: #d3dde7;
+  --rule-strong: #aebfd0;
+  --ink: #0d2238;
+  --ink-2: #3a526d;
+  --ink-3: #566c83;
+  --accent: #1f5fbf;
+  --accent-ink: #ffffff;
+  --focus: #1f5fbf;
+
+  /* status: reserved meanings, always paired with a shape or a word */
+  --good: #1b7a43;
+  --good-fill: #2f9a5b;
+  --good-wash: #e2f3e8;
+  --warn: #8a5a00;
+  --warn-fill: #e0a21c;
+  --warn-wash: #fbf0d6;
+  --bad: #b9312a;
+  --bad-fill: #d4473c;
+  --bad-wash: #fbe6e3;
+  --human: #6a3dbf;
+  --human-fill: #7a4fd0;
+  --human-wash: #efe8fb;
+  --human-ink: #ffffff;
+  --neutral: #687b90;
+  --sprout: #6aa21b;
+
+  /* series (validated: scripts/validate_palette.js, light vs #ffffff) */
+  --series-v2: #2f6fd0;
+  --series-queue: #d4622a;
+
+  /* heat: one hue, more exposure is deeper blue */
+  --heat-0: #f5f8fb;
+  --heat-1: #cfe0f6;
+  --heat-2: #9cc0ee;
+  --heat-3: #5d93de;
+
+  --code-add: #e4f4e9;
+  --code-add-ink: #1b6b3c;
+  --code-del: #fbe9e7;
+  --code-del-ink: #9b2c25;
+  --code-hl: #fff5d1;
+
+  --shadow: 0 1px 0 rgba(13, 34, 56, 0.04), 0 8px 24px -16px rgba(13, 34, 56, 0.25);
+
+  --font-sans:
+    'Bricolage Grotesque Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: 1.3125rem;
+  --step-3: 1.75rem;
+  --step-4: 2.5rem;
+  --step-5: 3.5rem;
+
+  --gutter: 16px;
+  --radius: 10px;
+  --radius-small: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #0a1a2b;
+    --sheet: #0f2236;
+    --sheet-2: #12283f;
+    --wash: #173352;
+    --wash-strong: #1f4166;
+    --rule: #21405f;
+    --rule-strong: #2f557b;
+    --ink: #e6eef7;
+    --ink-2: #b6c6d8;
+    --ink-3: #8fa5bc;
+    --accent: #7fb2ff;
+    --accent-ink: #08182a;
+    --focus: #9cc4ff;
+    --good: #5fd394;
+    --good-fill: #43b977;
+    --good-wash: #12382a;
+    --warn: #f2c04e;
+    --warn-fill: #e3a72a;
+    --warn-wash: #3a2e10;
+    --bad: #ff8a7d;
+    --bad-fill: #e45a4d;
+    --bad-wash: #3e1d1d;
+    --human: #c0a6ff;
+    --human-fill: #9a77f0;
+    --human-wash: #2a2147;
+    --human-ink: #150b30;
+    --neutral: #91a4b9;
+    --sprout: #b3e06a;
+    --series-v2: #4a8be8;
+    --series-queue: #d9692f;
+    --heat-0: #12283f;
+    --heat-1: #1b3d63;
+    --heat-2: #275a91;
+    --heat-3: #3f80cf;
+    --code-add: #123726;
+    --code-add-ink: #8fe0b2;
+    --code-del: #3d1c1c;
+    --code-del-ink: #ffb3aa;
+    --code-hl: #3b3315;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0a1a2b;
+  --sheet: #0f2236;
+  --sheet-2: #12283f;
+  --wash: #173352;
+  --wash-strong: #1f4166;
+  --rule: #21405f;
+  --rule-strong: #2f557b;
+  --ink: #e6eef7;
+  --ink-2: #b6c6d8;
+  --ink-3: #8fa5bc;
+  --accent: #7fb2ff;
+  --accent-ink: #08182a;
+  --focus: #9cc4ff;
+  --good: #5fd394;
+  --good-fill: #43b977;
+  --good-wash: #12382a;
+  --warn: #f2c04e;
+  --warn-fill: #e3a72a;
+  --warn-wash: #3a2e10;
+  --bad: #ff8a7d;
+  --bad-fill: #e45a4d;
+  --bad-wash: #3e1d1d;
+  --human: #c0a6ff;
+  --human-fill: #9a77f0;
+  --human-wash: #2a2147;
+  --human-ink: #150b30;
+  --neutral: #91a4b9;
+  --sprout: #b3e06a;
+  --series-v2: #4a8be8;
+  --series-queue: #d9692f;
+  --heat-0: #12283f;
+  --heat-1: #1b3d63;
+  --heat-2: #275a91;
+  --heat-3: #3f80cf;
+  --code-add: #123726;
+  --code-add-ink: #8fe0b2;
+  --code-del: #3d1c1c;
+  --code-del-ink: #ffb3aa;
+  --code-hl: #3b3315;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 12px 32px -18px rgba(0, 0, 0, 0.6);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.45;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -48px;
+  z-index: 50;
+  padding: 8px 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: var(--radius-small);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--sheet-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: var(--step--1);
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+@media (max-width: 380px) {
+  .theme-toggle__label {
+    display: none;
+  }
+}

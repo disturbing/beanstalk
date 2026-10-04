@@ -1,0 +1,28 @@
+.page {
+  padding: 22px var(--gutter) 40px;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: var(--step-4);
+  font-weight: 750;
+  font-stretch: 80%;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.lede {
+  color: var(--ink-2);
+  font-size: var(--step-1);
+  max-width: 78ch;
+}
