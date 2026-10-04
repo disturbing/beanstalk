@@ -39,6 +39,18 @@ function missing(): Promise<RpcResult<never>> {
   });
 }
 
+const TREE_ROOT = [
+  { name: 'README.md', path: 'README.md', type: 'blob' as const, sha: 'a'.repeat(40) },
+  { name: 'src', path: 'src', type: 'tree' as const, sha: 'b'.repeat(40) },
+];
+const TREE_SRC = [
+  { name: 'app.ts', path: 'src/app.ts', type: 'blob' as const, sha: 'c'.repeat(40) },
+];
+
+function treeLevel(path: string) {
+  return path === '' ? TREE_ROOT : TREE_SRC;
+}
+
 /** A gateway binding answering from the recorded run, in the RPC's shapes. */
 function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding {
   const rpc: GatewayRpc = {
@@ -81,14 +93,8 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding {
         error: { code: 'unknown_card', status: 404, message: 'card D009 is not open' },
       }),
     viewToken: () => missing(),
-    repoTree: (_run, ref, path = '') => {
-      const entries =
-        path === ''
-          ? [
-              { name: 'README.md', path: 'README.md', type: 'blob' as const, sha: 'a'.repeat(40) },
-              { name: 'src', path: 'src', type: 'tree' as const, sha: 'b'.repeat(40) },
-            ]
-          : [{ name: 'app.ts', path: 'src/app.ts', type: 'blob' as const, sha: 'c'.repeat(40) }];
+    repoTree: (_run, ref, path = '', recursive = false) => {
+      const entries = recursive ? [...TREE_ROOT, ...TREE_SRC] : treeLevel(path);
       return ok({ ref, commit: firstLanding.sha, path, entries, truncated: false });
     },
     repoFile: () => missing(),
@@ -183,6 +189,29 @@ describe('the gateway adapter', () => {
   it('walks the tree one directory level at a time', async () => {
     const tree = await source.repoTree(run, 'sprout');
     expect(tree.files.map((file) => file.path)).toEqual(['README.md', 'src/app.ts']);
+  });
+
+  it('walks the tree level by level when the whole tree comes back truncated', async () => {
+    const calls: string[] = [];
+    const truncating = gatewaySource(
+      fakeBinding({
+        repoTree: (_run, ref, path = '', recursive = false) => {
+          calls.push(recursive ? 'whole' : `level:${path}`);
+          if (recursive)
+            return ok({ ref, commit: firstLanding.sha, path, entries: [], truncated: true });
+          return ok({
+            ref,
+            commit: firstLanding.sha,
+            path,
+            entries: treeLevel(path),
+            truncated: false,
+          });
+        },
+      }),
+    );
+    const tree = await truncating.repoTree(run, 'sprout');
+    expect(tree.files.map((file) => file.path)).toEqual(['README.md', 'src/app.ts']);
+    expect(calls).toEqual(['whole', 'level:', 'level:src']);
   });
 
   it('turns the patch text into hunks with line numbers', async () => {

@@ -159,12 +159,17 @@ function toListing(item: ReturnType<typeof RunListItem.parse>): RunListing {
   };
 }
 
+type TreeWalk = { readonly commit: string; readonly files: readonly TreeFile[] };
+
+/** The whole tree at a ref in one recursive call; level by level when the gateway truncates it. */
+async function walkTree(binding: GatewayBinding, run: RunId, ref: RefName): Promise<TreeWalk> {
+  const whole = unwrap(await binding.repoTree(run, ref, '', true), RepoTreeLevel);
+  if (!whole.truncated) return { commit: whole.commit, files: filesOf(whole.entries) };
+  return walkLevels(binding, run, ref);
+}
+
 /** The whole tree at a ref, one directory level per call, levels in parallel. */
-async function walkTree(
-  binding: GatewayBinding,
-  run: RunId,
-  ref: RefName,
-): Promise<{ readonly commit: string; readonly files: readonly TreeFile[] }> {
+async function walkLevels(binding: GatewayBinding, run: RunId, ref: RefName): Promise<TreeWalk> {
   const files: TreeFile[] = [];
   let commit = '';
   let level: readonly string[] = [''];
@@ -175,14 +180,16 @@ async function walkTree(
     );
     commit = answers[0]?.commit ?? commit;
     const entries = answers.flatMap((answer) => answer.entries);
-    files.push(
-      ...entries
-        .filter((entry) => entry.type !== 'tree' && entry.type !== 'gitlink')
-        .map((entry) => ({ path: entry.path, size: 0 })),
-    );
+    files.push(...filesOf(entries));
     level = entries.filter((entry) => entry.type === 'tree').map((entry) => entry.path);
   }
   return { commit, files };
+}
+
+function filesOf(entries: readonly { readonly path: string; readonly type: string }[]): TreeFile[] {
+  return entries
+    .filter((entry) => entry.type !== 'tree' && entry.type !== 'gitlink')
+    .map((entry) => ({ path: entry.path, size: 0 }));
 }
 
 function toDiff(answer: ReturnType<typeof RepoDiffAnswer.parse>): RepoDiff {
@@ -235,7 +242,13 @@ function toRecords(
     const bean = state.beans[summary.bean];
     return bean === undefined
       ? []
-      : [beanRecord(bean, { title: summary.title, intent: '', tests: [] }, summary.files)];
+      : [
+          beanRecord(
+            bean,
+            { title: summary.title, intent: summary.intent ?? '', tests: [] },
+            summary.files,
+          ),
+        ];
   });
 }
 

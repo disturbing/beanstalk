@@ -125,7 +125,12 @@ export const RepoGrepAnswer = z.object({
 });
 
 export const BeanSummaries = z.array(
-  z.object({ bean: z.string(), title: z.string(), files: z.array(z.string()) }),
+  z.object({
+    bean: z.string(),
+    title: z.string(),
+    intent: z.string().optional(),
+    files: z.array(z.string()),
+  }),
 );
 
 export const BeanDetailAnswer = z.object({
