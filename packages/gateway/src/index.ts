@@ -64,8 +64,13 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     return this.#rpc().viewToken(run);
   }
 
-  repoTree(run: string, ref: string, path?: string): Promise<RpcResult<RepoTree>> {
-    return this.#rpc().repoTree(run, ref, path);
+  repoTree(
+    run: string,
+    ref: string,
+    path?: string,
+    recursive?: boolean,
+  ): Promise<RpcResult<RepoTree>> {
+    return this.#rpc().repoTree(run, ref, path, recursive);
   }
 
   repoFile(run: string, ref: string, path: string): Promise<RpcResult<RepoFile>> {

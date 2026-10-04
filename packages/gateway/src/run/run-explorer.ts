@@ -147,6 +147,7 @@ function summary(
     head_sha: task?.headSha ?? null,
     landed_sha: task?.landedSha ?? null,
     cards: [...bean.cards],
+    intent: input.env.tasks.get(bean.id)?.prompt ?? '',
   };
 }
 
@@ -248,6 +249,8 @@ function requested(event: LoggedEvent, card: string): DecisionRecord {
           ),
         )
       : {},
+    failing: strings(event.fields, 'failing'),
+    attempts: number(event.fields, 'attempts') ?? 0,
     status: 'open',
     winner: null,
     loser: null,

@@ -69,17 +69,17 @@ const bugRule = (id: string): FailRule => ({
   name: `${id} works`,
 });
 
-/** t002's bug breaks t001's acceptance test once both are on the sprout. */
+/** t002's bug breaks t001's acceptance test once both are on the sprout (the test imports both). */
 const BREAKS_T001: FailRule = {
   markers: ['impl:t001', 'BUG:t002'],
   file: 'tests/t001.test.ts',
   name: 't001 keeps working',
-  reads: ['src/t001/index.ts'],
+  reads: ['src/t001/index.ts', 'src/t002/index.ts'],
 };
 
 describe('v2.2: the adaptive re-check', () => {
   it('lands an overlapping bean without a re-check while recent pre-land checks are calm', () => {
-    const run = runV2(overlapScenario());
+    const run = runV2(overlapScenario({ config: { recheck: 'adaptive' } }));
 
     expect(wellFormedProblems(run.events)).toEqual([]);
     expect(eventsOf(run.events, 'preland.recheck')).toEqual([]);
@@ -97,7 +97,9 @@ describe('v2.2: the adaptive re-check', () => {
         ? soloTask('t003', { writes: { 'src/t003/index.ts': '// impl:t003 BUG:t003\n' } })
         : task,
     );
-    const run = runV2(overlapScenario({ tasks, rules: [bugRule('t003')] }));
+    const run = runV2(
+      overlapScenario({ tasks, rules: [bugRule('t003')], config: { recheck: 'adaptive' } }),
+    );
 
     expect(eventsOf(run.events, 'preland.check', { task: 't003', green: false })).toHaveLength(1);
     expect(eventsOf(run.events, 'preland.recheck', { task: 't007' })).toHaveLength(1);
@@ -193,7 +195,7 @@ describe('v2.2: a red check that belongs to the sprout', () => {
     tasks: [soloTask('t001'), soloTask('t002'), soloTask('t003')],
     rules: [CLASH],
     durations: { t001: 10_000, t002: 12_000, t003: 100_000 },
-    config: { agents: 3, inherited_reds: inheritedReds },
+    config: { agents: 3, inherited_reds: inheritedReds ? 'validation' : 'off' },
   });
 
   it('lets an innocent bean wait out the red and land after the revert, without a rework', () => {
@@ -210,7 +212,7 @@ describe('v2.2: a red check that belongs to the sprout', () => {
     expect(Number(checks[1]?.t)).toBeGreaterThan(Number(revert?.t));
     expect(eventsOf(run.events, 'rework.start', { task: 't003' })).toEqual([]);
     expect(run.state.tasks['t003']?.status).toBe('green');
-    expect(stats(run)).toMatchObject({ inherited_reds: true, inherited_red_waits: 1 });
+    expect(stats(run)).toMatchObject({ inherited_reds: 'validation', inherited_red_waits: 1 });
   });
 
   it('spends a rework round on the same red when the rule is off', () => {
@@ -223,7 +225,90 @@ describe('v2.2: a red check that belongs to the sprout', () => {
         failing: ['tests/clash.test.ts > both features together'],
       }),
     ]);
-    expect(stats(run)).toMatchObject({ inherited_reds: false, inherited_red_waits: 0 });
+    expect(stats(run)).toMatchObject({ inherited_reds: 'off', inherited_red_waits: 0 });
+  });
+});
+
+describe('v2.3: the sprout window', () => {
+  const eight = ['t001', 't002', 't003', 't004', 't005', 't006', 't007', 't008'];
+  const together = Object.fromEntries(eight.map((id, index) => [id, 10_000 + index * 500]));
+
+  it('holds green beans beyond the window, and opens it by 2 per green validation', () => {
+    const run = runV2({
+      tasks: eight.map((id) => soloTask(id)),
+      durations: together,
+      config: { agents: 8 },
+    });
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    const wait = eventsOf(run.events, 'window.wait')[0];
+    expect(wait).toMatchObject({ window: 4 });
+    expect(Number(wait?.['unvalidated'])).toBeLessThanOrEqual(4);
+    const firstResize = eventsOf(run.events, 'window.resize')[0];
+    expect(firstResize).toMatchObject({ previous: 4, window: 6, reason: 'green' });
+    const early = eventsOf(run.events, 'land').filter((land) => land.t < Number(firstResize?.t));
+    expect(early.every((land) => Number(land['unvalidated']) <= 4)).toBe(true);
+    expect(Object.values(run.state.tasks).every((task) => task.status === 'green')).toBe(true);
+  });
+
+  it('lands every green bean at once when the window is off (v2.2)', () => {
+    const run = runV2({
+      tasks: eight.map((id) => soloTask(id)),
+      durations: together,
+      config: { agents: 8, window: 'off' },
+    });
+
+    expect(eventsOf(run.events, 'window.wait')).toEqual([]);
+    expect(
+      Math.max(...eventsOf(run.events, 'land').map((land) => Number(land['unvalidated']))),
+    ).toBe(8);
+  });
+});
+
+describe('v2.3: reds the bean did not cause, before any validation sees them', () => {
+  /** t001 and t002 clash; t003 and t004 are innocent; CI is slow, so validations lag. */
+  const CLASH: FailRule = {
+    markers: ['impl:t001', 'impl:t002'],
+    file: 'tests/clash.test.ts',
+    name: 'both features together',
+    reads: ['src/t001/index.ts', 'src/t002/index.ts'],
+  };
+  const slowCi = (config: Partial<RunConfigInput>): RaceScenario => ({
+    tasks: ['t001', 't002', 't003', 't004'].map((id) => soloTask(id)),
+    rules: [CLASH],
+    durations: { t001: 10_000, t002: 12_000, t003: 90_000, t004: 92_000 },
+    config: { agents: 4, ci_seconds: 300, preland_seconds: 60, ...config },
+  });
+
+  it('clears a failing test the bean did not touch by its read set: no rework round', () => {
+    const run = runV2(slowCi({ early_tickets: false }));
+
+    const firstRed = eventsOf(run.events, 'ci.end', { purpose: 'validate', green: false })[0];
+    const inherited = eventsOf(run.events, 'preland.check', { task: 't003', inherited: true });
+    expect(Number(inherited[0]?.t)).toBeLessThan(Number(firstRed?.t));
+    expect(eventsOf(run.events, 'rework.start', { task: 't003' })).toEqual([]);
+    expect(run.state.tasks['t003']?.status).toBe('green');
+  });
+
+  it('opens the ticket when two beans see the same red sprout, before the validation', () => {
+    const run = runV2(slowCi({}));
+
+    const opened = eventsOf(run.events, 'ticket.open')[0];
+    const firstRed = eventsOf(run.events, 'ci.end', { purpose: 'validate', green: false })[0];
+    expect(opened).toMatchObject({ early: true, failing: ['tests/clash.test.ts'] });
+    expect(Number(opened?.t)).toBeLessThan(firstRed?.t ?? Infinity);
+    expect(stats(run)).toMatchObject({ early_tickets_opened: 1 });
+    expect(eventsOf(run.events, 'rework.start', { task: 't004' })).toEqual([]);
+    expect(run.state.tasks['t004']?.status).toBe('green');
+    expect(eventsOf(run.events, 'final.check')[0]).toMatchObject({ correct: true });
+  });
+
+  it('waits for the validation when the read set cannot clear the bean (v2.2)', () => {
+    const run = runV2(slowCi({ inherited_reds: 'validation', early_tickets: false }));
+
+    expect(
+      eventsOf(run.events, 'rework.start', { task: 't003', reason: 'preland-red' }).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -255,6 +340,26 @@ describe('v2.2: a red validation is confirmed before revert-first', () => {
       flakes_suspected: 0,
       revert_first: 1,
     });
+  });
+
+  it('never takes a red re-run for a flake because a newer ticket covers its failures', () => {
+    // Two validations of the red sprout overlap: the first one's confirmation opens a ticket
+    // while the second one's re-run is still running. That re-run is red again, not a flake.
+    const run = runV2({
+      tasks: [soloTask('t001'), soloTask('t002'), soloTask('t003')],
+      rules: [CLASH],
+      durations: { t001: 20_000, t002: 22_000, t003: 26_000 },
+      config: {
+        agents: 3,
+        recheck: 'adaptive',
+        window: 'off',
+        inherited_reds: 'validation',
+        early_tickets: false,
+      },
+    });
+
+    expect(eventsOf(run.events, 'flake.suspected')).toEqual([]);
+    expect(eventsOf(run.events, 'final.check')[0]).toMatchObject({ correct: true });
   });
 
   it('records a flake when the re-run fails a different test, and promotes instead of reverting', () => {

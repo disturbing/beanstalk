@@ -48,9 +48,12 @@ describe('RunConfig', () => {
       decision_mode: 'oracle',
       human_timeout_seconds: null,
       decision_outcome: 'reexecute',
-      recheck: 'adaptive',
+      recheck: 'sampled',
       recheck_fallback: 'file',
+      window: 'aimd',
       flake_confirm: true,
+      inherited_reds: 'readset',
+      early_tickets: true,
     });
     expect(releasesOnCheck(config)).toBe(false);
     expect(releasesOnCheck({ ...config, policy: 'beanstalk-v2' })).toBe(true);

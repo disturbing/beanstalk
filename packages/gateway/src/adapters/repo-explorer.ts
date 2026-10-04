@@ -20,8 +20,9 @@ import { GatewayError, UpstreamError } from '../errors';
 import { changeStats, diffText } from '../git/diff-text';
 import { artifactsCode, artifactsPort, isUnder } from './artifacts';
 
-/** Entries of one directory listing. */
+/** Entries of one directory listing, and of a recursive one. */
 const MAX_TREE_ENTRIES = 1000;
+const MAX_RECURSIVE_ENTRIES = 5000;
 /** Bytes of a file returned (or searched). */
 const MAX_FILE_BYTES = 256 * 1024;
 /** Characters of a diff's patch text. */
@@ -47,7 +48,7 @@ export type ResolvedRef = { readonly commit: string; readonly tree: string };
 export type RepoExplorer = {
   /** The commit and root tree a ref names; null when it names nothing. */
   resolve(ref: string): Promise<ResolvedRef | null>;
-  tree(ref: string, path: string): Promise<RepoTree>;
+  tree(ref: string, path: string, recursive?: boolean): Promise<RepoTree>;
   file(ref: string, path: string): Promise<RepoFile>;
   diff(from: string, to: string, paths: readonly string[] | null): Promise<RepoDiff>;
   log(ref: string, paths: readonly string[] | null, limit: number): Promise<RepoLog>;
@@ -69,7 +70,10 @@ export function repoExplorer(binding: Artifacts, repo: string): RepoExplorer {
   };
   return {
     resolve: (ref) => open((handle) => resolveRef(handle, ref)),
-    tree: (ref, path) => open((handle) => readDirectory(handle, ref, path)),
+    tree: (ref, path, recursive = false) =>
+      open((handle) =>
+        recursive ? readRecursive(handle, ref, path) : readDirectory(handle, ref, path),
+      ),
     file: (ref, path) => open((handle) => readOne(handle, ref, path)),
     diff: (from, to, paths) =>
       open(async (handle) => {
@@ -155,6 +159,43 @@ async function readDirectory(handle: ArtifactsRepo, ref: string, path: string): 
     path,
     entries: listed.slice(0, MAX_TREE_ENTRIES),
     truncated: listed.length > MAX_TREE_ENTRIES,
+  };
+}
+
+/**
+ * Every entry under `path` at a ref in one answer, sorted by path: each level's directories
+ * are read in parallel batches, so the whole tree costs one call per level, not per directory.
+ */
+async function readRecursive(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoTree> {
+  const resolved = await required(handle, ref);
+  const root = await subtree(handle, resolved.tree, path);
+  if (root === null) throw new GatewayError(`no directory ${path} at ${ref}`, 'not_found', 404);
+  const listed: RepoTreeEntry[] = [];
+  let level = [{ tree: root, prefix: path === '' ? '' : `${path}/` }];
+  while (level.length > 0 && listed.length <= MAX_RECURSIVE_ENTRIES) {
+    const next: { tree: string; prefix: string }[] = [];
+    for (let start = 0; start < level.length; start += READ_CONCURRENCY) {
+      const batch = level.slice(start, start + READ_CONCURRENCY);
+      // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
+      const read = await Promise.all(
+        batch.map(async (dir) => (await handle.readTree(dir.tree)) ?? []),
+      );
+      batch.forEach((dir, index) => {
+        for (const entry of read[index] ?? []) {
+          const entryPath = `${dir.prefix}${entry.name}`;
+          listed.push({ name: entry.name, path: entryPath, type: entry.type, sha: entry.hash });
+          if (entry.type === 'tree') next.push({ tree: entry.hash, prefix: `${entryPath}/` });
+        }
+      });
+    }
+    level = next;
+  }
+  return {
+    ref,
+    commit: resolved.commit,
+    path,
+    entries: listed.toSorted((a, b) => (a.path < b.path ? -1 : 1)).slice(0, MAX_RECURSIVE_ENTRIES),
+    truncated: listed.length > MAX_RECURSIVE_ENTRIES || level.length > 0,
   };
 }
 

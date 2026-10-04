@@ -55,11 +55,13 @@ PROBE_MODEL = "haiku"       # the one-turn auth probe a claude race makes before
 POLICIES = ("queue", "beanstalk-v2")
 V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_seconds": 30.0,
                "decision_oracle": "landed"}  # the local harness's defaults (policy_beanstalk_v2.py, _preland.py)
-# v2.2 knobs: sent only when set in the environment, so the gateway's v2.2 defaults apply otherwise
-# (adaptive re-check, the agent released during its check, flake-confirmed reverts, re-executed losers)
+# v2.2/v2.3 knobs: sent only when set in the environment, so the gateway's defaults apply otherwise
+# (sprout window, sampled re-check, the agent released during its check, flake-confirmed reverts,
+# read-set inherited reds, early tickets, re-executed losers)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
-           "release_on_check": ("RELEASE_ON_CHECK", bool), "flake_confirm": ("FLAKE_CONFIRM", bool),
-           "inherited_reds": ("INHERITED_REDS", bool),
+           "window": ("WINDOW", str), "release_on_check": ("RELEASE_ON_CHECK", bool),
+           "flake_confirm": ("FLAKE_CONFIRM", bool), "inherited_reds": ("INHERITED_REDS", str),
+           "early_tickets": ("EARLY_TICKETS", bool),
            "decision_outcome": ("DECISION_OUTCOME", str), "decision_mode": ("DECISION_MODE", str),
            "human_timeout_seconds": ("HUMAN_TIMEOUT_SECONDS", float)}
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"

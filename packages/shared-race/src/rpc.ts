@@ -149,12 +149,24 @@ export type V2PolicyView = {
   /** Tests suspected flaky this run, with how often. */
   readonly flakes: Readonly<Record<string, number>>;
   readonly recent_checks: { readonly count: number; readonly reds: number };
+  /**
+   * v2.3's sprout window: at most `size` beans above the stalk (`window: aimd`; null when
+   * off), and the green beans waiting for room, oldest first.
+   */
+  readonly window: {
+    readonly size: number;
+    readonly unvalidated: number;
+    readonly waiting: readonly string[];
+  } | null;
+  /** `recheck: sampled`: re-checking every overlap, or skipping (sampling 1 in 4). */
+  readonly recheck_mode: 'checking' | 'skipping';
   readonly settings: {
     readonly recheck: string;
     readonly recheck_fallback: string;
     readonly release_on_check: boolean;
     readonly flake_confirm: boolean;
-    readonly inherited_reds: boolean;
+    readonly inherited_reds: 'readset' | 'validation' | 'off';
+    readonly early_tickets: boolean;
     readonly decision_outcome: 'reexecute' | 'decline';
     readonly decision_mode: 'oracle' | 'human';
   };
@@ -219,7 +231,10 @@ export type RepoTreeEntry = {
   readonly sha: string;
 };
 
-/** One directory level at a ref (at most 1,000 entries). */
+/**
+ * One directory level at a ref (at most 1,000 entries), or with `recursive` every entry
+ * under the path, sorted by path (at most 5,000).
+ */
 export type RepoTree = {
   readonly ref: RepoRef;
   readonly commit: string;
@@ -300,6 +315,8 @@ export type BeanSummary = {
   readonly landed_sha: string | null;
   /** Decision cards it took part in. */
   readonly cards: readonly string[];
+  /** The task's prompt: what the bean is for (the gateway always sets it since v2.3). */
+  readonly intent?: string;
 };
 
 export type BeanInvocation = {
@@ -351,6 +368,9 @@ export type DecisionRecord = {
   readonly task: string;
   readonly against: readonly string[];
   readonly specs: Readonly<Record<string, string>>;
+  /** The failing tests of the red check that raised the card, and the reds it took. */
+  readonly failing: readonly string[];
+  readonly attempts: number;
   readonly status: 'open' | 'decided' | 'done';
   readonly winner: string | null;
   readonly loser: string | null;
@@ -393,7 +413,12 @@ export type GatewayRpc = {
     text?: string,
   ): Promise<RpcResult<{ readonly accepted: true }>>;
   viewToken(run: string): Promise<RpcResult<ViewToken>>;
-  repoTree(run: string, ref: RepoRef, path?: string): Promise<RpcResult<RepoTree>>;
+  repoTree(
+    run: string,
+    ref: RepoRef,
+    path?: string,
+    recursive?: boolean,
+  ): Promise<RpcResult<RepoTree>>;
   repoFile(run: string, ref: RepoRef, path: string): Promise<RpcResult<RepoFile>>;
   repoDiff(
     run: string,

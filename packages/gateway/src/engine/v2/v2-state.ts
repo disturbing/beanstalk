@@ -42,6 +42,8 @@ export type Ticket = {
   revertIdx: number | null;
   closedAt: Seconds | null;
   closedHow: string | null;
+  /** v2.3: opened from inherited pre-land reds, before any validation (`early_tickets`). */
+  early: boolean;
 };
 
 /** `first_bad`: a K-ary search over sprout indexes (`lo` good, `hi` bad) with CI probes. */
@@ -103,6 +105,8 @@ export type LandingStep =
       kind: 'check';
       /** Inside the turn (the locked fallback, or `preland_mode: locked`). */
       isInTurn: boolean;
+      /** A re-check after the sprout moved under an overlapping change (`recheck: sampled` counts it). */
+      isRecheck: boolean;
       head0: Sha;
       candidate: Sha;
       files: string[];
@@ -123,6 +127,11 @@ export type LandingStep =
   | { kind: 'queued-locked' }
   /** The check failed only with the sprout's own reds (`inherited_reds`): wait for it to move. */
   | { kind: 'inherited'; head: Sha; failing: string[] }
+  /** v2.3: green, waiting for room in the sprout window (`land` null: the locked path). */
+  | {
+      kind: 'window-wait';
+      land: { head0: Sha; candidate: Sha; files: string[]; mine: string[] | null } | null;
+    }
   | { kind: 'resquash'; head0: Sha; head: Sha; candidate: Sha; mine: string[] | null; jobId: JobId }
   | {
       /** The `hunk` rule: comparing the lines the bean and the meanwhile landings changed. */
@@ -307,15 +316,21 @@ export type V2Stats = {
   reexecutions: number;
   adoptions_in_place: number;
   inherited_reds: number;
+  window_waits: number;
+  recheck_samples: number;
+  early_tickets: number;
+  confirmed_by_sighting: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
 export type V2Settings = {
-  readonly recheck: 'file' | 'never' | 'hunk' | 'adaptive';
+  readonly recheck: 'file' | 'never' | 'hunk' | 'adaptive' | 'sampled';
   readonly recheckFallback: 'file' | 'hunk';
+  readonly window: 'aimd' | 'off';
   readonly releaseOnCheck: boolean;
   readonly flakeConfirm: boolean;
-  readonly inheritedReds: boolean;
+  readonly inheritedReds: 'readset' | 'validation' | 'off';
+  readonly earlyTickets: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
 };
@@ -340,6 +355,12 @@ export type V2State = {
   confirming: Record<string, CheckResult>;
   /** Files that failed a validation (a first run or its re-run), by sprout index. */
   redValidations: Record<string, string[]>;
+  /** Inherited pre-land reds by sprout index and failing file: the beans that saw them. */
+  sightings: Record<string, Record<string, string[]>>;
+  /** v2.3's sprout window: its size, and the green beans waiting for room (oldest first). */
+  window: { size: number; waiting: TaskId[] };
+  /** `recheck: sampled`: re-checking or skipping, the green re-checks in a row, the skips. */
+  recheckMeter: { mode: 'checking' | 'skipping'; greenStreak: number; skips: number };
   /** Tests suspected flaky this run (a red that did not repeat), with how often. */
   flakes: Record<string, number>;
   tickets: Record<string, Ticket>;

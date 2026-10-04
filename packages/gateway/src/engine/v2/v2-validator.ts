@@ -7,12 +7,17 @@
  * v2.2 flake rule (E3, `flake_confirm`): a red that would open a ticket (and so a revert)
  * is first run again on the same commit. Only the same failing test file failing again
  * confirms it; otherwise the test is recorded as flaky and the validation counts as green.
+ * v2.3 (`early_tickets`): a bean's inherited pre-land red of the same file on the same
+ * sprout commit is the second observation, and confirms the red without the re-run.
+ *
+ * Every verdict also sizes the sprout window (`v2-backpressure`).
  */
 import { markAborted } from '../abort';
 import { ciAvailable, requestCi } from '../ci';
 import { emit, requireTask, startJob } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { STALK_REF } from '../refs';
+import { onSproutGreen, onSproutRed } from './v2-backpressure';
 import { awaitOutcome, requireCommit } from './v2-sprout';
 import type { V2State, V2Step } from './v2-state';
 import { activeTickets, closeTicket, openTicket } from './v2-tickets';
@@ -45,7 +50,8 @@ export function onValidated(step: V2Step, idx: number, result: CheckResult): voi
   recordRed(state, idx, result);
   const needsConfirmation =
     !result.green && ctx.env.config.flake_confirm && newFailures(state, idx, result).length > 0;
-  if (!needsConfirmation) {
+  if (!needsConfirmation || isSighted(step, idx, result)) {
+    if (needsConfirmation) state.stats.confirmed_by_sighting += 1;
     settle(step, idx, result);
     return;
   }
@@ -70,7 +76,9 @@ export function onConfirmed(step: V2Step, idx: number, rerun: CheckResult): void
   delete state.confirming[idx];
   if (first === undefined) return;
   recordRed(state, idx, rerun);
-  const files = newFailures(state, idx, first);
+  // The re-run is compared with the first run itself: a ticket opened meanwhile may cover
+  // the same files, and a red it covers is still red, never a flake.
+  const files = first.failingFiles === null ? [] : [...first.failingFiles];
   const isRepeated =
     first.failingFiles === null
       ? rerun.failingFiles === null
@@ -89,6 +97,25 @@ export function onConfirmed(step: V2Step, idx: number, rerun: CheckResult): void
     flaky: files,
   });
   settle(step, idx, 'green');
+}
+
+/**
+ * v2.3: a bean's inherited pre-land red on sprout@idx confirms the red validation of `idx`
+ * that waits for its flake re-run; the red settles now (the re-run's result is ignored).
+ */
+export function confirmBySighting(step: V2Step, idx: number): void {
+  const first = step.state.confirming[idx];
+  if (first === undefined || !isSighted(step, idx, first)) return;
+  delete step.state.confirming[idx];
+  step.state.stats.confirmed_by_sighting += 1;
+  settle(step, idx, first);
+}
+
+/** A bean's inherited pre-land red on sprout@idx saw one of the validation's new failures. */
+function isSighted(step: V2Step, idx: number, result: CheckResult): boolean {
+  if (!step.ctx.env.config.early_tickets) return false;
+  const seen = step.state.sightings[idx] ?? {};
+  return newFailures(step.state, idx, result).some((path) => (seen[path]?.length ?? 0) > 0);
 }
 
 /** Remembers what failed a validation at `idx`, for `inherited_reds` (`v2-landing`). */
@@ -124,6 +151,12 @@ function settle(step: V2Step, idx: number, result: CheckResult | 'green'): void 
   const { state } = step;
   state.validating = state.validating.filter((validating) => validating !== idx);
   const isGreen = result === 'green' || result.green;
+  if (idx > state.greenIdx) {
+    // One red episode halves the window once: a red whose failures a ticket already covers
+    // is the same episode seen again.
+    if (isGreen) onSproutGreen(step, idx);
+    else if (newFailures(state, idx, result).length > 0) onSproutRed(step, idx);
+  }
   state.validated[idx] = isGreen;
   state.stats.validations += 1;
   if (result === 'green' || result.green) {
@@ -157,7 +190,7 @@ function onRed(step: V2Step, idx: number, result: CheckResult): void {
 }
 
 /** Failing files at `idx` that no active ticket or pending revert covers yet. */
-function newFailures(state: V2State, idx: number, result: CheckResult): string[] {
+export function newFailures(state: V2State, idx: number, result: CheckResult): string[] {
   if (idx <= state.greenIdx) return [];
   const active = activeTickets(state);
   if (result.failingFiles === null) return active.length > 0 ? [] : [SUITE_CRASHED];

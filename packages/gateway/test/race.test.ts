@@ -228,7 +228,7 @@ describe('a v2 race over HTTP', () => {
     }>(await call('GET', `/v1/runs/${run.run}/summary`, { token: ADMIN }));
     expect(summary).toMatchObject({
       policy: 'beanstalk',
-      beanstalk: { variant: 'v2.2', landings: 2 },
+      beanstalk: { variant: 'v2.3', landings: 2 },
     });
   });
 });

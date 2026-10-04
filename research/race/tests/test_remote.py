@@ -490,12 +490,14 @@ class CommandLine(unittest.TestCase):
     def test_v22_knobs_are_sent_only_when_set(self) -> None:
         self.assertNotIn("release_on_check", v2_settings({}, env={}))
         settings = v2_settings({}, env={"RELEASE_ON_CHECK": "0", "PRELAND_RECHECK": "file", "FLAKE_CONFIRM": "true",
-                                        "INHERITED_REDS": "off", "DECISION_OUTCOME": "decline",
-                                        "HUMAN_TIMEOUT_SECONDS": "90"})
+                                        "INHERITED_REDS": "validation", "WINDOW": "off", "EARLY_TICKETS": "0",
+                                        "DECISION_OUTCOME": "decline", "HUMAN_TIMEOUT_SECONDS": "90"})
         self.assertEqual({k: settings[k] for k in ("release_on_check", "recheck", "flake_confirm", "inherited_reds",
-                                                   "decision_outcome", "human_timeout_seconds")},
+                                                   "window", "early_tickets", "decision_outcome",
+                                                   "human_timeout_seconds")},
                          {"release_on_check": False, "recheck": "file", "flake_confirm": True,
-                          "inherited_reds": False, "decision_outcome": "decline", "human_timeout_seconds": 90.0})
+                          "inherited_reds": "validation", "window": "off", "early_tickets": False,
+                          "decision_outcome": "decline", "human_timeout_seconds": 90.0})
 
     def test_v2_settings_resolve_flag_then_env_then_harness_default(self) -> None:
         self.assertEqual(v2_settings({}, {}), {"preland_mode": "locked", "preland_seconds": 0.0,

@@ -81,23 +81,38 @@ export const RunConfig = z
     decision_outcome: z.enum(['reexecute', 'decline']).default('reexecute'),
     /**
      * v2: whether a bean whose check passed on a sprout that has since moved is checked again
-     * when the beans that landed meanwhile share a file with it (`PRELAND_RECHECK`). `adaptive`
-     * (v2.2) skips that re-check while recent pre-land reds are rare.
+     * when the beans that landed meanwhile share a file with it (`PRELAND_RECHECK`). `sampled`
+     * (v2.3) re-checks until 5 re-checks in a row are green, then skips all but 1 in 4; a red
+     * re-check or a red sprout starts it re-checking again. `adaptive` (v2.2) skips while recent
+     * pre-land reds are rare.
      */
-    recheck: z.enum(['file', 'never', 'hunk', 'adaptive']).default('adaptive'),
-    /** v2: what `adaptive` does once pre-land reds appear (`PRELAND_ADAPT_FALLBACK`). */
+    recheck: z.enum(['file', 'never', 'hunk', 'adaptive', 'sampled']).default('sampled'),
+    /** v2: what `sampled` and `adaptive` do when they re-check (`PRELAND_ADAPT_FALLBACK`). */
     recheck_fallback: z.enum(['file', 'hunk']).default('file'),
+    /**
+     * v2.3: at most W beans land above the last validated sprout commit; a green bean beyond
+     * the window waits. W starts at 4, grows by 2 per green validation (to 16) and halves on a
+     * red sprout (to 2). `off` lands every green bean at once (v2.2).
+     */
+    window: z.enum(['aimd', 'off']).default('aimd'),
     /** v2: free the agent while its bean is checked; reworks resume its session on a free slot. */
     release_on_check: z.boolean().optional(),
     /** v2: re-run a red validation before revert-first; revert only if the same test file fails again. */
     flake_confirm: z.boolean().default(true),
     /**
-     * v2 (E6): a pre-land red whose failing tests already failed in a validation of the sprout
-     * it was checked on (no green validation or revert since) is the sprout's, not the bean's.
-     * The bean waits for the sprout to move and checks again without spending a rework round
-     * (at most 3 times).
+     * v2: a pre-land red that is the sprout's, not the bean's, costs no rework round: the bean
+     * waits for the sprout to move and checks again (at most 3 times). `validation` (E6, v2.2):
+     * every failing test already failed a validation of the sprout it was checked on.
+     * `readset` (v2.3) also clears a failing test the bean did not touch: neither the test file
+     * nor any file it imports changed in the bean.
      */
-    inherited_reds: z.boolean().default(true),
+    inherited_reds: z.enum(['readset', 'validation', 'off']).default('readset'),
+    /**
+     * v2.3: two beans' inherited reds on the same sprout commit (or one and a red validation)
+     * prove the sprout red: revert-first starts at once, without the validation queue or its
+     * flake re-run.
+     */
+    early_tickets: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

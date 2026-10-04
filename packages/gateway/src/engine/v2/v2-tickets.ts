@@ -38,7 +38,7 @@ export function activeTickets(state: V2State): Ticket[] {
 /** `open_ticket` (with v2's revert-first): a red validation at `idx` with new failures. */
 export function openTicket(
   step: V2Step,
-  red: { idx: number; result: CheckResult; files: readonly string[] },
+  red: { idx: number; result: CheckResult; files: readonly string[]; early?: boolean },
 ): void {
   const { ctx, state } = step;
   state.ticketSeq += 1;
@@ -131,7 +131,7 @@ export function onLeaveOneOutBuilt(
     awaitOutcome(step.state, candidate.ciId, {
       kind: 'loo-check',
       ticket: wait.ticket,
-      commit: wait.commit,
+      commit: candidate.commit,
     });
   }
 }
@@ -210,7 +210,7 @@ export function onTicketRevertJob(
 function newTicket(
   step: V2Step,
   id: string,
-  red: { idx: number; result: CheckResult; files: readonly string[] },
+  red: { idx: number; result: CheckResult; files: readonly string[]; early?: boolean },
 ): Ticket {
   const files = new Set(red.files);
   const tests = red.result.failingTests
@@ -233,6 +233,7 @@ function newTicket(
     revertIdx: null,
     closedAt: null,
     closedHow: null,
+    early: red.early === true,
   };
 }
 
@@ -253,6 +254,7 @@ function ticketOpened(step: V2Step, ticket: Ticket): void {
       return { idx, sha: commit.sha, task: commit.task, kind: commit.kind };
     }),
     concurrent: ticket.concurrent.map((idx) => ({ idx, task: requireCommit(state, idx).task })),
+    ...(ticket.early ? { early: true } : {}),
   });
 }
 

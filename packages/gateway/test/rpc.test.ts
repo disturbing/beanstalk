@@ -120,11 +120,22 @@ describe('RPC for the web app: the repo explorer', () => {
 
     const root = await gateway.repoTree(run.run, 'sprout');
     const lib = await gateway.repoTree(run.run, 'sprout', 'src/lib');
+    const whole = await gateway.repoTree(run.run, 'sprout', '', true);
     const file = await gateway.repoFile(run.run, 'stalk', 'src/lib/money.ts');
     const grep = await gateway.repoGrep(run.run, 'sprout', 'toFixed|money\\(', ['src']);
 
     expect(root).toMatchObject({ ok: true, value: { commit: NEXT, truncated: false } });
-    if (!root.ok || !lib.ok || !file.ok || !grep.ok) throw new Error('explorer failed');
+    if (!root.ok || !lib.ok || !whole.ok || !file.ok || !grep.ok)
+      throw new Error('explorer failed');
+    expect(whole.value.entries.map((entry) => entry.path)).toEqual([
+      'README.md',
+      'src',
+      'src/cart',
+      'src/cart/index.ts',
+      'src/lib',
+      'src/lib/money.ts',
+    ]);
+    expect(whole.value.truncated).toBe(false);
     expect(root.value.entries.map((entry) => [entry.path, entry.type])).toEqual([
       ['src', 'tree'],
       ['README.md', 'blob'],
@@ -218,7 +229,15 @@ describe('RPC for the web app: beans and decisions', () => {
 
     expect(beans).toMatchObject({
       ok: true,
-      value: [{ bean: 't001', branch: 'beans/t001', title: 'Task t001', agent: 'a0' }],
+      value: [
+        {
+          bean: 't001',
+          branch: 'beans/t001',
+          title: 'Task t001',
+          agent: 'a0',
+          intent: 'Implement t001.',
+        },
+      ],
     });
     if (!detail.ok) throw new Error('no detail');
     expect(detail.value).toMatchObject({

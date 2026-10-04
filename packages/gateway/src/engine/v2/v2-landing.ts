@@ -5,15 +5,18 @@
  * 1. Squash the bean onto the sprout head it sees (`head0`) and run the suite on that tree
  *    in the agent's sandbox, outside the turn, in parallel with every other bean. With
  *    `release_on_check` the bean's agent is free from the moment the bean is submitted.
- * 2. Green: take the turn. The sprout did not move: land. It moved: squash again; land
- *    without re-checking when the commits that landed meanwhile share no file with the
- *    bean, or when the re-check rule lets it through (`recheck`: `adaptive` while pre-land
- *    reds are rare, `hunk` when the changed lines are apart, `never`); otherwise check
- *    again. After three re-checks the check runs inside the turn.
+ * 2. Green: take the turn, when the sprout window has room (`window: aimd`, v2.3); else wait,
+ *    oldest first. The sprout did not move: land. It moved: squash again; land without
+ *    re-checking when the commits that landed meanwhile share no file with the bean, or when
+ *    the re-check rule lets it through (`recheck`: `sampled` once re-checks keep coming back
+ *    green, `adaptive` while pre-land reds are rare, `hunk` when the changed lines are apart,
+ *    `never`); otherwise check again. After three re-checks the check runs inside the turn.
  * 3. Red or a conflict: the bean goes back to its author (`v2-repair`), until `max_rework`.
- *    A red that only repeats what a validation of that sprout already failed is the
- *    sprout's (`inherited_reds`, E6): the bean waits for the sprout to move and checks
- *    again, without spending a round (at most three times).
+ *    A red that is the sprout's (`inherited_reds`) costs no round: the bean waits for the
+ *    sprout to move and checks again (at most three times). It is the sprout's when a
+ *    validation already failed the same tests (E6), or (v2.3, `readset`) when the bean
+ *    touched neither a failing test nor anything it imports. Two beans' inherited reds on one
+ *    sprout commit prove the sprout red: revert-first starts at once (`early_tickets`).
  */
 import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
 import { prelandSeconds, unionPaths } from '@beanstalk/shared-race/run-config';
@@ -31,6 +34,15 @@ import { holderOf, release } from '../slots';
 import { recordLanding, taskBranch } from '../tasks';
 import { releaseAgent, requestAgent } from './v2-agents';
 import { settleCarried } from './v2-amendments';
+import {
+  isSproutRepairing,
+  isWindowOn,
+  logWindowWait,
+  onSproutRed,
+  recordRecheck,
+  sampledRecheck,
+  windowAdmits,
+} from './v2-backpressure';
 import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
 import { startRepair } from './v2-repair';
 import {
@@ -41,8 +53,9 @@ import {
   unvalidatedCount,
 } from './v2-sprout';
 import type { LandingFlow, LandingStep, V2State, V2Step } from './v2-state';
-import { activeTickets } from './v2-tickets';
+import { openTicket } from './v2-tickets';
 import { releaseTurn, requestTurn } from './v2-turn';
+import { confirmBySighting, newFailures } from './v2-validator';
 
 /** Re-checks in one attempt before the check moves inside the turn (`rechecks >= 3`). */
 const MAX_RECHECKS = 3;
@@ -58,6 +71,9 @@ const ADAPT_RED_SHARE = 0.1;
 const HUNK_MARGIN = 3;
 /** Inherited reds a bean waits out before its red checks cost rounds again (E6). */
 const MAX_INHERITED_WAITS = 3;
+/** Files every test depends on: a bean that changed one may break any test it does not import. */
+const GLOBAL_FILE =
+  /(^|\/)(package\.json|pnpm-lock\.yaml|package-lock\.json|yarn\.lock|\.npmrc|tsconfig[^/]*\.json|(vitest|vite|jest)\.(config|workspace)\.[cm]?[jt]s)$/;
 
 type CheckStep = Extract<LandingStep, { kind: 'check' }>;
 type Candidate = Pick<CheckStep, 'head0' | 'candidate' | 'files' | 'mine'>;
@@ -127,6 +143,7 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
     case 'queued-land':
     case 'queued-locked':
     case 'inherited':
+    case 'window-wait':
     case 'diffs':
     case 'awaiting-agent':
     case 'rework':
@@ -302,7 +319,14 @@ function startCheck(
     { kind: 'policy' },
   );
   awaitOutcome(step.state, jobId, { kind: 'landing', task: flow.task });
-  flow.step = { kind: 'check', ...check, jobId, startedAt: step.ctx.now, result: null };
+  flow.step = {
+    kind: 'check',
+    ...check,
+    isRecheck: flow.rechecks > 0,
+    jobId,
+    startedAt: step.ctx.now,
+    result: null,
+  };
 }
 
 function onChecked(step: V2Step, flow: LandingFlow, check: CheckStep, result: JobResult): void {
@@ -321,8 +345,11 @@ function onChecked(step: V2Step, flow: LandingFlow, check: CheckStep, result: Jo
 function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   const result = check.result;
   if (result === null) throw new EngineInvariantError('a check finished without a result');
-  const inherited = inheritedFailures(step, flow, { head: check.head0, result });
+  if (check.isRecheck) recordRecheck(step.state, result.green);
+  const red = { head: check.head0, result, mine: check.mine };
+  const inherited = inheritedFailures(step, flow, red);
   logCheck(step, flow.task, check, { result, isInherited: inherited !== null });
+  if (inherited !== null) sightInherited(step, flow, { ...red, failing: inherited });
   if (check.isInTurn) {
     if (result.green) {
       publish(step, flow, { head: check.head0, sha: check.candidate, files: check.files });
@@ -345,8 +372,44 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     return;
   }
   const { head0, candidate, files, mine } = check;
+  if (isWindowFull(step, false)) {
+    waitForWindow(step, flow, { head0, candidate, files, mine });
+    return;
+  }
   flow.step = { kind: 'queued-land', head0, candidate, files, mine };
   requestTurn(step, { kind: 'landing', task: flow.task });
+}
+
+/** v2.3: the window has no room for this bean (`isCounted`: it already queues for the turn). */
+function isWindowFull(step: V2Step, isCounted: boolean): boolean {
+  return isWindowOn(step) && !windowAdmits(step.state, isCounted);
+}
+
+/** A green bean waits for room in the window (`land` null: it checks inside the turn). */
+function waitForWindow(
+  step: V2Step,
+  flow: LandingFlow,
+  land: Extract<LandingStep, { kind: 'window-wait' }>['land'],
+): void {
+  flow.step = { kind: 'window-wait', land };
+  logWindowWait(step, flow.task);
+}
+
+/**
+ * Beans that waited for the window go to the turn, oldest first, while it has room (each is
+ * checked against the window again when the turn comes).
+ */
+export function admitWaiting(step: V2Step): void {
+  const { state } = step;
+  if (!isWindowOn(step)) return;
+  while (state.window.waiting.length > 0 && windowAdmits(state, false)) {
+    const task = state.window.waiting.shift();
+    const flow = task === undefined ? undefined : state.landings[task];
+    if (flow?.step.kind !== 'window-wait') continue;
+    const { land } = flow.step;
+    flow.step = land === null ? { kind: 'queued-locked' } : { kind: 'queued-land', ...land };
+    requestTurn(step, { kind: 'landing', task: flow.task });
+  }
 }
 
 function logCheck(
@@ -383,23 +446,87 @@ function logCheck(
 function inheritedFailures(
   step: V2Step,
   flow: LandingFlow,
-  check: { head: Sha; result: CheckResult },
+  check: { head: Sha; result: CheckResult; mine: string[] | null },
 ): string[] | null {
   const { state } = step;
+  const mode = step.ctx.env.config.inherited_reds;
   const failing = check.result.failingFiles;
-  const isCandidate =
-    step.ctx.env.config.inherited_reds &&
-    !check.result.green &&
-    flow.inheritedWaits < MAX_INHERITED_WAITS &&
-    failing !== null &&
-    failing.length > 0;
-  if (!isCandidate) return null;
-  for (let idx = sproutIndex(state, check.head); idx >= 0; idx -= 1) {
-    const red = state.redValidations[idx] ?? [];
-    if (failing.every((path) => red.includes(path))) return [...failing];
-    if (state.validated[idx] === true || state.commits[idx]?.kind === 'revert') return null;
+  if (
+    mode === 'off' ||
+    check.result.green ||
+    flow.inheritedWaits >= MAX_INHERITED_WAITS ||
+    failing === null ||
+    failing.length === 0
+  ) {
+    return null;
   }
-  return null;
+  const isInherited =
+    mode === 'validation'
+      ? failedValidation(state, check.head, failing)
+      : failing.every(
+          (path) => isUntouched(path, check) || failedValidation(state, check.head, [path]),
+        );
+  return isInherited ? [...failing] : null;
+}
+
+/**
+ * E6: every one of `files` already failed one validation of the sprout at or below `head`,
+ * with no green validation and no revert since.
+ */
+function failedValidation(state: V2State, head: Sha, files: readonly string[]): boolean {
+  for (let idx = sproutIndex(state, head); idx >= 0; idx -= 1) {
+    const red = state.redValidations[idx] ?? [];
+    if (files.every((path) => red.includes(path))) return true;
+    if (state.validated[idx] === true || state.commits[idx]?.kind === 'revert') return false;
+  }
+  return false;
+}
+
+/**
+ * v2.3 (`readset`): the bean changed neither the failing test file nor any file it imports
+ * (its read set at the checked tree), nor a file every test depends on. Unknown read sets or
+ * changes never clear a failure.
+ */
+function isUntouched(test: string, check: { result: CheckResult; mine: string[] | null }): boolean {
+  const reads = check.result.readSets[test];
+  const mine = check.mine;
+  if (mine === null || reads === undefined || mine.some((path) => GLOBAL_FILE.test(path))) {
+    return false;
+  }
+  const changed = new Set(mine);
+  return !changed.has(test) && !reads.some((path) => changed.has(path));
+}
+
+/**
+ * v2.3 (`early_tickets`): an inherited red sights a red sprout at the commit it was checked
+ * on. Two beans' sightings of one test file there, or one and a red validation of that
+ * commit, prove it: a validation waiting for its flake re-run settles now, and revert-first
+ * starts at once, with read-set suspects among the commits since the last green validation.
+ */
+function sightInherited(
+  step: V2Step,
+  flow: LandingFlow,
+  red: { head: Sha; result: CheckResult; failing: readonly string[] },
+): void {
+  const { state } = step;
+  const idx = sproutIndex(state, red.head);
+  if (!step.ctx.env.config.early_tickets || idx <= state.greenIdx) return;
+  const seen = state.sightings[idx] ?? {};
+  for (const path of red.failing) {
+    const beans = seen[path] ?? [];
+    if (!beans.includes(flow.task)) seen[path] = [...beans, flow.task];
+  }
+  state.sightings[idx] = seen;
+  confirmBySighting(step, idx);
+  const validated = state.redValidations[idx] ?? [];
+  const proven = Object.entries(seen)
+    .filter(([path, beans]) => beans.length >= 2 || validated.includes(path))
+    .map(([path]) => path);
+  const files = newFailures(state, idx, { ...red.result, failingFiles: proven });
+  if (files.length === 0) return;
+  state.stats.early_tickets += 1;
+  onSproutRed(step, idx);
+  openTicket(step, { idx, result: red.result, files, early: true });
 }
 
 /** The bean waits for the sprout to move (`wakeInherited`); no round is spent. */
@@ -427,22 +554,18 @@ export function wakeInherited(step: V2Step): void {
   }
 }
 
-/** A red validation is being confirmed, bisected, reverted, or has an open ticket. */
-function isSproutRepairing(state: V2State): boolean {
-  return (
-    Object.keys(state.confirming).length > 0 ||
-    Object.keys(state.bisects).length > 0 ||
-    Object.keys(state.reverts).length > 0 ||
-    activeTickets(state).length > 0
-  );
-}
-
 /** Holding the turn after a green check: land as is, or squash onto the moved sprout. */
 function landInTurn(
   step: V2Step,
   flow: LandingFlow,
   queued: Extract<LandingStep, { kind: 'queued-land' }>,
 ): void {
+  if (isWindowFull(step, true)) {
+    const { head0, candidate, files, mine } = queued;
+    waitForWindow(step, flow, { head0, candidate, files, mine });
+    releaseTurn(step);
+    return;
+  }
   const head = step.state.sprout;
   if (head === queued.head0) {
     publish(step, flow, { head, sha: queued.candidate, files: queued.files });
@@ -520,6 +643,10 @@ function recheckRule(step: V2Step): 'skip' | 'file' | 'hunk' {
         return 'skip';
       }
       return config.recheck_fallback;
+    case 'sampled':
+      if (sampledRecheck(step.state) === 'recheck') return config.recheck_fallback;
+      step.state.stats.preland_skipped_rechecks += 1;
+      return 'skip';
     default:
       return assertNever(config.recheck);
   }
@@ -612,6 +739,11 @@ function recheck(step: V2Step, flow: LandingFlow, head0: Sha): void {
 
 /** The locked path (fallback or `preland_mode: locked`): squash and check inside the turn. */
 function squashInTurn(step: V2Step, flow: LandingFlow): void {
+  if (isWindowFull(step, true)) {
+    waitForWindow(step, flow, null);
+    releaseTurn(step);
+    return;
+  }
   const head = step.state.sprout;
   flow.step = { kind: 'locked-squash', head, jobId: squash(step, flow.task, head) };
 }

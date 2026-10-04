@@ -15,7 +15,9 @@ const V20: Partial<RunConfigInput> = {
   recheck: 'file',
   release_on_check: false,
   flake_confirm: false,
-  inherited_reds: false,
+  inherited_reds: 'off',
+  window: 'off',
+  early_tickets: false,
   decision_outcome: 'decline',
 };
 
@@ -42,7 +44,7 @@ const BREAKS_T001: FailRule = {
   markers: ['impl:t001', 'BUG:t002'],
   file: 'tests/t001.test.ts',
   name: 't001 keeps working',
-  reads: ['src/t001/index.ts'],
+  reads: ['src/t001/index.ts', 'src/t002/index.ts'],
 };
 
 /** A bean that also appends to the changelog (merged with the union driver). */
@@ -131,7 +133,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 and v2.3', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -181,6 +183,13 @@ describe('v2: a clean landing', () => {
       'flaky_tests',
       'inherited_reds',
       'inherited_red_waits',
+      'window',
+      'window_size',
+      'window_waits',
+      'recheck_samples',
+      'early_tickets',
+      'early_tickets_opened',
+      'confirmed_by_sighting',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -199,19 +208,22 @@ describe('v2: a clean landing', () => {
     expect(stats).toMatchObject({
       landings: 1,
       preland_checks: 1,
-      preland_recheck_rule: 'adaptive',
+      preland_recheck_rule: 'sampled',
       release_on_check: true,
       flake_confirm: true,
-      inherited_reds: true,
+      inherited_reds: 'readset',
       inherited_red_waits: 0,
+      window: 'aimd',
+      window_size: 6,
+      early_tickets: true,
       decision_outcome: 'reexecute',
-      variant: 'v2.2',
+      variant: 'v2.3',
     });
     expect(summaryOf(run)['policy_rows']).toEqual([
       [
         'Variant',
-        'v2.2: pre-land check, adaptive re-check, agent released during checks, ' +
-          'flake-confirmed revert-first, inherited reds waited out, cards that re-execute the loser',
+        'v2.3: pre-land check, sprout window, sampled re-check, agent released during checks, ' +
+          'read-set inherited reds, early revert-first, cards that re-execute the loser',
       ],
       ['Informed reworks / decision cards / revert-first tickets', '0 / 0 / 0'],
       [
@@ -221,12 +233,16 @@ describe('v2: a clean landing', () => {
       ['Validation re-runs / suspected flakes', '0 / 0'],
       ['Inherited reds waited out (no rework round spent)', '0'],
       [
+        'Sprout window at the end / window waits / early tickets / re-check samples',
+        '6 / 0 / 0 / 0',
+      ],
+      [
         'Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place',
         '0 / 0 / 0 / 0 / 0 / 0',
       ],
       ['Pre-land checks (red) / reworks / drops', '1 (0) / 0 / 0'],
       ['Pre-land check minutes', expect.stringMatching(/^1\.0[23]$/)],
-      ['Re-check rule / skipped (adaptive) / hunk-disjoint / hunk-overlap', 'adaptive / 0 / 0 / 0'],
+      ['Re-check rule / skipped (adaptive) / hunk-disjoint / hunk-overlap', 'sampled / 0 / 0 / 0'],
       [
         'Pre-land mode / latency s / optimistic landings / rechecks / locked fallbacks',
         'optimistic / 60.0 / 0 / 0 / 0',

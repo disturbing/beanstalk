@@ -303,6 +303,8 @@ export type RaceEventFields = {
     readonly method: string;
     readonly suspects: Json;
     readonly concurrent: Json;
+    /** v2.3: opened from inherited pre-land reds (`early_tickets`), before any validation. */
+    readonly early?: true;
   };
   'ticket.bisect': {
     readonly ticket: string;
@@ -354,6 +356,15 @@ export type RaceEventFields = {
     readonly check_seconds: number;
     /** v2.2: the red was the sprout's (`inherited_reds`); the bean waits, no rework round. */
     readonly inherited?: true;
+  };
+  /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
+  'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
+  /** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */
+  'window.resize': {
+    readonly window: number;
+    readonly previous: number;
+    readonly reason: 'green' | 'red';
+    readonly trunk_idx: number;
   };
   'preland.optimistic': TaskRef & {
     readonly checked_on: string;

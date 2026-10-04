@@ -74,9 +74,9 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       );
     },
     viewToken: (run) => forRun(run, (id) => viewToken(deps, id)),
-    repoTree: (run, ref, path = '') =>
+    repoTree: (run, ref, path = '', recursive = false) =>
       explore<RepoTree>(run, { ref, paths: path === '' ? [] : [path] }, (id) =>
-        explorer(runRepoName(id)).tree(ref, path),
+        explorer(runRepoName(id)).tree(ref, path, recursive),
       ),
     repoFile: (run, ref, path) =>
       explore<RepoFile>(run, { ref, paths: [path] }, (id) =>

@@ -9,7 +9,7 @@ The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 o
 
 It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)).
 
-The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.2 rules by default (see [The v2.2 rules](#the-v22-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
+The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.3 rules by default (see [The v2.2 and v2.3 rules](#the-v22-and-v23-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
 
 ## Names
 
@@ -79,7 +79,7 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
-- the v2.2 rules, all on by default: `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 rules](#the-v22-rules)).
+- the v2.2 and v2.3 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 and v2.3 rules](#the-v22-and-v23-rules)).
 
 ## Driver contract (for the Python driver)
 
@@ -185,16 +185,18 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
 - **Error budget.** The error-budget controller is not built; v2 reports `error_budget: 999`.
 
-## The v2.2 rules
+## The v2.2 and v2.3 rules
 
-The experiments validated these rules (`docs/claude-opus/11-experiments-summary.md`). Each one is a `RunConfig` field and is on by default for `beanstalk-v2`:
+The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summary.md`). v2.3 answers v2.2's first real race (cloud run `qpucqup50w`, 12 Sonnet agents, seed 7). There, 24 beans were green and 16 dropped, 11 of them innocent beans that spent their rework rounds on reds that were not theirs. Each rule is a `RunConfig` field, on by default for `beanstalk-v2`:
 
 | Rule | Config (default) | What the engine does | From |
 |---|---|---|---|
-| Adaptive re-check | `recheck: adaptive` (`file`, `hunk`, `never`), `recheck_fallback: file` (`hunk`) | A green bean whose files overlap commits that landed during its check normally checks again. `adaptive` skips that re-check while the last 20 pre-land checks hold at least 5 outcomes and under 10% red; otherwise it applies the fallback rule. Skips are counted as `preland_skipped_rechecks`, as the harness counts them. `hunk` re-checks only when changed line ranges in a shared file are within 3 lines (a `line-ranges` runner job) | E2, v2.1/v2.2 |
+| Sprout window | `window: aimd` (`off`) | At most W commits sit above the last validated sprout commit. A green bean beyond the window waits, oldest first (`window.wait`), and is checked against the window again when its turn comes. W starts at 4, grows by 2 per green validation (to 16) and halves on a red sprout (to 2), once per red episode (`window.resize`). A red whose failures an open ticket already covers does not halve it again. Every bisection stays within W. When nothing can make room (no validation, nothing to repair), one bean at a time goes through | v2.3 |
+| Re-check that measures what it skips | `recheck: sampled` (`adaptive`, `file`, `hunk`, `never`), `recheck_fallback: file` (`hunk`) | A green bean whose files overlap commits that landed during its check checks again. `sampled` re-checks until 5 re-checks in a row come back green, then skips all but 1 in 4. A red re-check or a red sprout starts it re-checking again. v2.2's `adaptive` judged by first checks on a calm base, which lag the contention. It skips while the last 20 pre-land checks hold at least 5 outcomes and under 10% red. `hunk` re-checks only when changed line ranges in a shared file are within 3 lines | v2.3; E2 |
 | Release the agent during its check | `release_on_check: true` | The agent's slot is free once its bean is submitted. A red check or a conflict queues a rework for the next free slot, preferring the author's slot, and reworks go before new tasks. The rework resumes the author's session | E5 |
-| Flake confirmation | `flake_confirm: true` | Before revert-first, a red validation runs again on the same commit. If the same failing test file fails again, the red stands. Otherwise the engine logs `flake.suspected`, records the test as flaky and counts the validation green. Pre-land reds are never re-run | E3 |
-| Inherited reds | `inherited_reds: true` | A pre-land red is inherited when every failing file already failed a validation of the sprout the bean was checked on, or of an earlier commit with no green validation or revert since. The red belongs to the sprout, not the bean. `preland.check` carries `inherited: true`, and the bean waits for the sprout to move, or for its repair to end, then checks again without spending a rework round (at most 3 times) | E6 |
+| Flake confirmation | `flake_confirm: true` | Before revert-first, a red validation runs again on the same commit. If a file that failed the first run fails again, the red stands. Otherwise the engine logs `flake.suspected`, records the test as flaky and counts the validation green. Pre-land reds are never re-run | E3 |
+| Inherited reds | `inherited_reds: readset` (`validation`, `off`) | A pre-land red that is the sprout's, not the bean's, costs no rework round. `preland.check` carries `inherited: true`, and the bean waits for the sprout to move, or for its repair to end, then checks again (at most 3 times). A failing test is the sprout's when it already failed a validation of the sprout the bean was checked on (`validation`, E6). Under `readset`, it is also the sprout's when the bean changed neither the test file nor any file in its import closure, as the runner reports it. A bean that changed a file every test depends on is never cleared this way: `package.json`, a lockfile, `tsconfig*.json`, a vitest/vite/jest config | v2.3; E6 |
+| Early tickets | `early_tickets: true` | An inherited red is a sighting of a red sprout at the commit it was checked on. Two beans' sightings of one test file there, or one sighting and a red validation of that commit, prove it red. Revert-first starts at once (`ticket.open` with `early: true`), with read-set suspects among the commits since the last green validation, without waiting for the validation queue. A sighting also confirms a red validation that waits for its flake re-run | v2.3 |
 | Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below | E6 |
 
 A decided card works in one of two ways:
@@ -210,16 +212,46 @@ A decided card works in one of two ways:
 
 Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route. With `human_timeout_seconds` set, the oracle answers after the timeout, and `decision.made` says `oracle: "timeout:<oracle>"`.
 
-**Events.** Two new types, `spec.amended` and `flake.suspected`, plus optional fields on existing ones: `decision.made.outcome` and `.text`, `rework.start.card`, `preland.check.inherited`. `summary.json` adds the v2.2 keys after the harness's v2 keys, and the matching rows after `Variant`.
+**Events.** New types:
+
+- `spec.amended` and `flake.suspected` (v2.2);
+- `window.wait` and `window.resize` (v2.3).
+
+Optional fields on existing types:
+
+- `decision.made.outcome` and `.text`;
+- `rework.start.card`;
+- `preland.check.inherited`;
+- `ticket.open.early`.
+
+`summary.json` adds the v2.2 and v2.3 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
 **Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
 
 ```json
-{"recheck": "file", "release_on_check": false, "flake_confirm": false,
- "inherited_reds": false, "decision_outcome": "decline"}
+{"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
+ "inherited_reds": "off", "early_tickets": false, "decision_outcome": "decline"}
 ```
 
-`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`, and any other run reports `"v2.2"`. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with any v2.3 rule on reports `"v2.3"`, and any other run `"v2.2"`. These settings run v2.2 again:
+
+```json
+{"recheck": "adaptive", "window": "off", "inherited_reds": "validation", "early_tickets": false}
+```
+
+v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+
+**Fixed in v2.3.** Two bugs from v2.2 and v2:
+
+- A red validation whose re-run was red again was taken for a flake when a ticket opened meanwhile covered its failures. The engine then promoted a red commit to the stalk.
+- The leave-one-out culprit search gave every probe the commit of the probe built last. One probe's result was then lost, and the ticket never finished.
+
+**The burst scenario.** `src/engine/v2/v2-burst.test.ts` replays the shape of the race:
+- twelve agents released during their checks, with initial runs of 15–35 s and a tail of slower beans;
+- two CI slots;
+- four coupled pairs that each break a module test together.
+
+v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land reworks. v2.3 drops none and finishes sooner.
 
 **Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
 
@@ -249,7 +281,12 @@ export type GatewayRpc = {
     text?: string,
   ): Promise<RpcResult<{ readonly accepted: true }>>;
   viewToken(run: string): Promise<RpcResult<ViewToken>>;
-  repoTree(run: string, ref: RepoRef, path?: string): Promise<RpcResult<RepoTree>>;
+  repoTree(
+    run: string,
+    ref: RepoRef,
+    path?: string,
+    recursive?: boolean,
+  ): Promise<RpcResult<RepoTree>>;
   repoFile(run: string, ref: RepoRef, path: string): Promise<RpcResult<RepoFile>>;
   repoDiff(
     run: string,
@@ -298,14 +335,14 @@ Anything unexpected throws. The value types (`RunView`, `RepoTree`, `BeanDetail`
 | `runEvents(run, after, limit)` | `events.jsonl` lines after sequence number `after`, and `next_after` | 5,000 per page |
 | `decide(run, card, winner, actor, text?)` | The only write: answers an open card, as the admin route does. `actor` names who decided (an email or a handle); the log records `human:<actor>`, and a leading `human:` is not doubled. `text` is the decision's wording | `text` 2,000 chars |
 | `viewToken(run)` | A one-hour view token, and `live_path` for the live socket | |
-| `repoTree(run, ref, path?)` | One directory level at a ref | 1,000 entries |
+| `repoTree(run, ref, path?, recursive?)` | One directory level at a ref. With `recursive`, every entry under the path in one call, sorted by path (one Artifacts read per level, in parallel batches) | 1,000 entries; 5,000 recursive |
 | `repoFile(run, ref, path)` | A file at a ref. Binary files have no `content` | 256 KiB |
 | `repoDiff(run, fromRef, toRef, paths?)` | Changed files with line counts, and a unified patch | 200 files, 100 KB of patch |
 | `repoLog(run, ref, paths, limit)` | History at a ref, newest first. With `paths`, only commits whose change against their first parent touches them | 100 commits; 200 scanned when filtering |
 | `repoGrep(run, ref, pattern, paths?)` | Matching lines of text files at a ref. `pattern` is a JavaScript regular expression of 1 to 200 characters, tested line by line | 300 files, 200 matches |
-| `beansByPath(run, paths)` | Beans whose files lie under `paths` (every bean for `[]`). A bean's files are those of its landing, or else of its last commit, plus its acceptance tests | 200 beans |
+| `beansByPath(run, paths)` | Beans whose files lie under `paths` (every bean for `[]`). A bean's files are those of its landing, or else of its last commit, plus its acceptance tests. Each bean carries its `intent` (the task's prompt) | 200 beans |
 | `beanDetail(run, bean)` | One bean's story from the event log: status, agent, intent, files, acceptance tests (amended or not), invocations, pre-land checks (`inherited` included), reworks and decisions | |
-| `decisions(run, paths?)` | Decision cards, open and decided, with outcome, text, who answered and the amendment. With `paths`, only cards whose beans or amendments touch them | |
+| `decisions(run, paths?)` | Decision cards, open and decided, with the failing tests and reds that raised them, outcome, text, who answered and the amendment. With `paths`, only cards whose beans or amendments touch them | |
 | `testsFor(run, paths)` | Acceptance tests whose static import closure covers the paths, with their owner's status. Relative imports only, read at the sprout (the stalk for the queue), at most 5,000 files listed | |
 
 Refs are `sprout`, `stalk`, `beans/<task>` or a 40-hex sha (`REPO_REF_PATTERN`). Paths are relative and inside the repo, at most 100 per call. When a bound is hit, the answer says `truncated: true`.
@@ -340,7 +377,8 @@ The tests cover:
 - the engine with a toy git and scripted agents, through the discrete-event simulator (`src/engine/testing/simulator.ts`):
   - queue races;
   - v2 races for a clean landing, an optimistic landing, a re-check, a conflict, an informed rework, decision cards, revert-first with and without bisection, and the leave-one-out search;
-  - each v2.2 rule (`src/engine/v2/v2-rules.test.ts`);
+  - each v2.2 and v2.3 rule (`src/engine/v2/v2-rules.test.ts`);
+  - the v2.2 burst and a calm race, v2.2 against v2.3 (`src/engine/v2/v2-burst.test.ts`);
 - determinism, and replay parity with the pre-v2.2 engine;
 - the shell end to end: routes, auth, the git proxy and full races over HTTP (`SELF.fetch`), and every RPC method through the default entrypoint (`test/rpc.test.ts`, with `exports.default` from `cloudflare:workers`).
 

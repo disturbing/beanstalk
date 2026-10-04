@@ -4,8 +4,9 @@
  * rules the experiments validated (`docs/claude-opus/11-experiments-summary.md`):
  *
  * 1. Beans start first-in, first-out from the sprout head; no predicted placement.
- * 2-3. Each bean is checked on its agent's sandbox and lands optimistically; a moved sprout
- *    forces a re-check only by the `recheck` rule (v2.2: adaptive) (`v2-landing`).
+ * 2-3. Each bean is checked on its agent's sandbox and lands optimistically, while the sprout
+ *    window has room (v2.3, `v2-backpressure`); a moved sprout forces a re-check only by the
+ *    `recheck` rule (v2.3: sampled; v2.2: adaptive) (`v2-landing`).
  *    With `release_on_check` (v2.2) the agent takes the next task meanwhile (`v2-agents`).
  * 4-5. Red checks go back to the author with the culprits' context; a stuck pair becomes a
  *    decision card, whose loser is re-executed under the decided spec (v2.2) or declined
@@ -41,8 +42,10 @@ import {
   startAuthor,
   startReexecution,
 } from './v2-decisions';
+import { WINDOW_START } from './v2-backpressure';
 import { parseTimerKey } from './v2-flows';
 import {
+  admitWaiting,
   attempt,
   onLandingJob,
   onLandingJobFailed,
@@ -81,6 +84,9 @@ const V20_VARIANT_ROW = 'v2: pre-land check, informed author repair, decision ca
 const V22_VARIANT_ROW =
   'v2.2: pre-land check, adaptive re-check, agent released during checks, ' +
   'flake-confirmed revert-first, inherited reds waited out, cards that re-execute the loser';
+const V23_VARIANT_ROW =
+  'v2.3: pre-land check, sprout window, sampled re-check, agent released during checks, ' +
+  'read-set inherited reds, early revert-first, cards that re-execute the loser';
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -101,9 +107,11 @@ function initialV2State(ctx: StepContext): V2State {
     settings: {
       recheck: config.recheck,
       recheckFallback: config.recheck_fallback,
+      window: config.window,
       releaseOnCheck: releasesOnCheck(config),
       flakeConfirm: config.flake_confirm,
       inheritedReds: config.inherited_reds,
+      earlyTickets: config.early_tickets,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
     },
@@ -116,6 +124,9 @@ function initialV2State(ctx: StepContext): V2State {
     validated: {},
     confirming: {},
     redValidations: {},
+    sightings: {},
+    window: { size: WINDOW_START, waiting: [] },
+    recheckMeter: { mode: 'checking', greenStreak: 0, skips: 0 },
     flakes: {},
     tickets: {},
     ticketSeq: 0,
@@ -187,6 +198,10 @@ function initialStats(): V2State['stats'] {
     reexecutions: 0,
     adoptions_in_place: 0,
     inherited_reds: 0,
+    window_waits: 0,
+    recheck_samples: 0,
+    early_tickets: 0,
+    confirmed_by_sighting: 0,
   };
 }
 
@@ -227,6 +242,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
 function dispatch(step: V2Step): void {
   const { ctx, state } = step;
   wakeInherited(step);
+  admitWaiting(step);
   assignAgents(step);
   while (state.unstarted.length > 0) {
     const slot = freeAskingSlot(ctx);
@@ -426,12 +442,31 @@ function isFinished(step: V2Step): boolean {
 function isV20(settings: V2Settings): boolean {
   return (
     settings.recheck === 'file' &&
+    settings.window === 'off' &&
     !settings.releaseOnCheck &&
     !settings.flakeConfirm &&
-    !settings.inheritedReds &&
+    settings.inheritedReds === 'off' &&
+    !settings.earlyTickets &&
     settings.decisionOutcome === 'decline'
   );
 }
+
+/** `v2` (the harness's rules), `v2.3` when a v2.3 rule is on, else `v2.2`. */
+function variantOf(settings: V2Settings): 'v2' | 'v2.2' | 'v2.3' {
+  if (isV20(settings)) return 'v2';
+  const isV23 =
+    settings.window === 'aimd' ||
+    settings.recheck === 'sampled' ||
+    settings.inheritedReds === 'readset' ||
+    settings.earlyTickets;
+  return isV23 ? 'v2.3' : 'v2.2';
+}
+
+const VARIANT_ROWS: Readonly<Record<'v2' | 'v2.2' | 'v2.3', string>> = {
+  v2: V20_VARIANT_ROW,
+  'v2.2': V22_VARIANT_ROW,
+  'v2.3': V23_VARIANT_ROW,
+};
 
 /** `policy_summary` of v2 (the beanstalk block, in the harness's key and row order, then v2.2's). */
 function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
@@ -489,6 +524,13 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     flaky_tests: { ...state.flakes },
     inherited_reds: settings.inheritedReds,
     inherited_red_waits: stats.inherited_reds,
+    window: settings.window,
+    window_size: settings.window === 'aimd' ? state.window.size : null,
+    window_waits: stats.window_waits,
+    recheck_samples: stats.recheck_samples,
+    early_tickets: settings.earlyTickets,
+    early_tickets_opened: stats.early_tickets,
+    confirmed_by_sighting: stats.confirmed_by_sighting,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -505,7 +547,7 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     final_green_idx: state.greenIdx,
     open_tickets_at_end: activeTickets(state).length,
     ticket_details: ticketDetails(state, nowSeconds),
-    variant: isV20(settings) ? 'v2' : 'v2.2',
+    variant: variantOf(settings),
   };
   return {
     key: 'beanstalk',
@@ -537,7 +579,7 @@ function summaryRows(
 ): (readonly [string, Json])[] {
   const { stats, settings } = state;
   return [
-    ['Variant', isV20(settings) ? V20_VARIANT_ROW : V22_VARIANT_ROW],
+    ['Variant', VARIANT_ROWS[variantOf(settings)]],
     [
       'Informed reworks / decision cards / revert-first tickets',
       `${stats.informed_reworks} / ${stats.cards} / ${stats.revert_first}`,
@@ -553,7 +595,12 @@ function summaryRows(
     ],
     [
       'Inherited reds waited out (no rework round spent)',
-      settings.inheritedReds ? String(stats.inherited_reds) : 'off',
+      settings.inheritedReds === 'off' ? 'off' : String(stats.inherited_reds),
+    ],
+    [
+      'Sprout window at the end / window waits / early tickets / re-check samples',
+      `${settings.window === 'aimd' ? state.window.size : 'off'} / ${stats.window_waits} / ` +
+        `${stats.early_tickets} / ${stats.recheck_samples}`,
     ],
     [
       'Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place',
@@ -645,12 +692,22 @@ function v2View(state: V2State): V2PolicyView {
     })),
     flakes: { ...state.flakes },
     recent_checks: { count: state.recentChecks.length, reds },
+    window:
+      state.settings.window === 'aimd'
+        ? {
+            size: state.window.size,
+            unvalidated: state.commits.length - 1 - state.greenIdx,
+            waiting: [...state.window.waiting],
+          }
+        : null,
+    recheck_mode: state.recheckMeter.mode,
     settings: {
       recheck: state.settings.recheck,
       recheck_fallback: state.settings.recheckFallback,
       release_on_check: state.settings.releaseOnCheck,
       flake_confirm: state.settings.flakeConfirm,
       inherited_reds: state.settings.inheritedReds,
+      early_tickets: state.settings.earlyTickets,
       decision_outcome: state.settings.decisionOutcome,
       decision_mode: state.settings.decisionMode,
     },
