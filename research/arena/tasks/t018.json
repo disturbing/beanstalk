@@ -1,0 +1,24 @@
+{
+  "id": "t018",
+  "title": "Shipping emails should include the tracking number",
+  "prompt": "Customers keep writing to ask where their parcel is. The \"order shipped\" email should tell them: add a line `Tracking number: <number>` after the existing sentence in the message body, using the tracking number recorded when the order was shipped.",
+  "acceptance_tests": {
+    "src/notifications/tracking-email.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\n\ndescribe('shipped email', () => {\n  it('includes the tracking number', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    app.call('POST', `/orders/${order.id}/ship`, { token: admin.token, body: { trackingNumber: 'TRK-9981' } });\n    const mail = app.mailer.sent.at(-1)!;\n    assert.match(mail.subject, /has shipped/);\n    assert.equal(mail.body, `Your order ${order.number} is on its way.\\nTracking number: TRK-9981`);\n  });\n\n  it('is what the customer sees in their notification list', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    app.call('POST', `/orders/${order.id}/ship`, { token: admin.token, body: { trackingNumber: 'ZZ-42' } });\n    const list = app.call('GET', '/notifications', { token }).body as { kind: string; body: string }[];\n    assert.match(list[0].body, /Tracking number: ZZ-42$/);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/notifications/templates.ts",
+    "src/notifications/tracking-email.test.ts"
+  ],
+  "oracle_modules": [
+    "src/notifications"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t011",
+      "type": "semantic",
+      "note": "tracking-email reads order.trackingNumber in the shipped-email template; tracking-on-shipment moves the tracking number to the shipment and removes it from the order. Merges cleanly, the email then prints an undefined tracking number."
+    }
+  ]
+}

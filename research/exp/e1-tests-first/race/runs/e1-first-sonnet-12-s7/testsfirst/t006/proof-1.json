@@ -1,0 +1,63 @@
+{
+ "task": "t006",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/payment-terms.test.ts"
+ ],
+ "results": {
+  "src/billing/payment-terms.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 6,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > defaults to 30",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 30"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > is overridden by PAYMENT_TERMS_DAYS",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 45"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > rejects a non-numeric PAYMENT_TERMS_DAYS",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > uses the configured payment terms",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 2592000000\n- 5184000000"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > supports short terms",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '2026-10-15T12:00:00.000Z'\n- '2026-09-22T12:00:00.000Z'\n        ^"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > is still 30 days with the default configuration",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > follows PAYMENT_TERMS_DAYS loaded through loadConfig",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '2026-10-15T12:00:00.000Z'\n- '2026-09-29T12:00:00.000Z'\n        ^"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

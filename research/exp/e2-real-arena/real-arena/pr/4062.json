@@ -1,0 +1,13 @@
+{
+ "number": 4062,
+ "sha": "44ddc319a2fbbfcbcecbaf4c974975ab2d6b6e98",
+ "title": "docs: add inspect.software health badge",
+ "body": "This PR adds the [inspect.software](https://inspect.software) health badge to the README.\r\n\r\n**Why this PR?**\r\nYour project ranks in the upper rating bands of our open-source health index (which measures maintainability, responsiveness, and security). This badge makes that standing objectively visible to your users. Our index is a free public good, and scores cannot be bought.\r\n\r\n**Technical details:**\r\n- **No tracking:** Static SVG served via GitHub's CDN. No JavaScript, no third-party tracking.\r\n- **No maintenance:** The badge updates automatically after every inspection.\r\n- **Transparent:** Links directly to [your full report](https://inspect.software/software/markedjs/marked), based on our open [methodology](https://inspect.software/methodology).\r\n\r\nIf you prefer to keep your README minimal, feel free to close this PR without replying. Your report will remain publicly available and up-to-date either way.\r\n",
+ "author": "Nayjest",
+ "created_at": "2026-08-19T16:58:45Z",
+ "merged_at": "2026-09-04T05:22:39Z",
+ "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+ "pr_head_sha": "bec0be2db9407609b7f8402eac2d674536a9ef29",
+ "commits": 1,
+ "linked_issues": []
+}

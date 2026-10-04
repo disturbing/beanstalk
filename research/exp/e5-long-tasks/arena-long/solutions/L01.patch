@@ -1,0 +1,113 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..414c612 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Order confirmation emails list every line item.
+ - `GET /inventory/low-stock` for admins.
++- `GET /invoices` lists the signed-in customer's invoices.
+ 
+ ### Changed
+ 
+diff --git a/README.md b/README.md
+index 91d422c..3ccef1d 100644
+--- a/README.md
++++ b/README.md
+@@ -26,7 +26,7 @@ Routes are registered in one place, `src/routes.ts`.
+ | GET, POST, PATCH, DELETE | `/cart`, `/cart/items`, `/cart/items/:productId` | user |
+ | POST | `/checkout`, `/orders/:id/cancel` | user |
+ | GET | `/orders`, `/orders/:id`, `/orders/:id/invoice`, `/orders/:id/shipment` | user |
+-| GET | `/invoices/:id` | user |
++| GET | `/invoices`, `/invoices/:id` | user |
+ | POST | `/invoices/:id/pay`, `/orders/:id/ship` | admin |
+ | POST | `/shipping/quote` | user |
+ | GET, PUT | `/inventory/:productId`, `/inventory/low-stock` | admin |
+diff --git a/src/billing/handlers.ts b/src/billing/handlers.ts
+index 82d2c80..eb4734b 100644
+--- a/src/billing/handlers.ts
++++ b/src/billing/handlers.ts
+@@ -1,8 +1,14 @@
+-import { notFound } from '../lib/errors.ts';
++import { badRequest, notFound } from '../lib/errors.ts';
++import { paginate } from '../lib/pagination.ts';
+ import { ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+-import type { Invoice, User } from '../types.ts';
+-import { getInvoice as loadInvoice, invoiceForOrder as loadInvoiceForOrder, markPaid } from './service.ts';
++import type { Invoice, InvoiceStatus, User } from '../types.ts';
++import {
++  getInvoice as loadInvoice,
++  invoiceForOrder as loadInvoiceForOrder,
++  listInvoices,
++  markPaid,
++} from './service.ts';
+ 
+ /** Customers only see their own invoices; admins see all. Anything else looks like a 404. */
+ function visibleTo(user: User, invoice: Invoice): Invoice {
+@@ -16,3 +22,12 @@ export const invoiceForOrder: Handler = (req, ctx) =>
+   ok(visibleTo(req.user!, loadInvoiceForOrder(ctx, req.params.id)));
+ 
+ export const payInvoice: Handler = (req, ctx) => ok(markPaid(ctx, req.params.id));
++
++const STATUSES = ['open', 'paid', 'void'];
++
++export const list: Handler = (req, ctx) => {
++  const status = req.query.status;
++  if (status !== undefined && !STATUSES.includes(status)) throw badRequest('status must be open, paid or void');
++  const invoices = listInvoices(ctx, req.user!.id, status as InvoiceStatus | undefined);
++  return ok(paginate(invoices, req.query, ctx.config.pageSize));
++};
+diff --git a/src/billing/service.ts b/src/billing/service.ts
+index 04b3139..059ff7a 100644
+--- a/src/billing/service.ts
++++ b/src/billing/service.ts
+@@ -1,5 +1,5 @@
+ import { badRequest, conflict, notFound } from '../lib/errors.ts';
+-import type { AppContext, Coupon, Invoice } from '../types.ts';
++import type { AppContext, Coupon, Invoice, InvoiceStatus } from '../types.ts';
+ import { buildInvoice } from './invoice.ts';
+ import type { InvoiceInput } from './invoice.ts';
+ 
+@@ -14,9 +14,14 @@ export function issueInvoice(ctx: AppContext, request: InvoiceRequest): Invoice
+   const { couponCode, ...rest } = request;
+   const coupon = couponCode ? findCoupon(ctx, couponCode) : undefined;
+   if (couponCode && !coupon) throw badRequest('unknown coupon code');
++  if (coupon && coupon.maxRedemptions !== null && coupon.redemptions >= coupon.maxRedemptions) {
++    throw conflict('coupon has been fully redeemed');
++  }
+   const draft = buildInvoice(ctx, { ...rest, coupon });
+   const id = ctx.store.nextId('inv');
+-  const invoice = ctx.store.invoices.insert({ ...draft, id, number: `INV-${id.slice(4)}` });
++  const year = ctx.clock.now().getUTCFullYear();
++  const sequence = ctx.store.nextId(`inv${year}`).split('_')[1];
++  const invoice = ctx.store.invoices.insert({ ...draft, id, number: `INV-${year}-${sequence}` });
+   if (coupon) ctx.store.coupons.update(coupon.id, { redemptions: coupon.redemptions + 1 });
+   return invoice;
+ }
+@@ -31,6 +36,13 @@ export function invoiceForOrder(ctx: AppContext, orderId: string): Invoice {
+   return invoice;
+ }
+ 
++/** A user's invoices, newest first, optionally only those with `status`. */
++export function listInvoices(ctx: AppContext, userId: string, status?: InvoiceStatus): Invoice[] {
++  return ctx.store.invoices
++    .find((i) => i.userId === userId && (status === undefined || i.status === status))
++    .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt) || b.id.localeCompare(a.id));
++}
++
+ export function markPaid(ctx: AppContext, id: string): Invoice {
+   const invoice = getInvoice(ctx, id);
+   if (invoice.status !== 'open') throw conflict(`invoice ${invoice.number} is ${invoice.status}`);
+diff --git a/src/routes.ts b/src/routes.ts
+index 80658b8..6c2567f 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -41,6 +41,7 @@ export function registerRoutes(router: Router): void {
+ 
+   // billing
+   router.add('GET', '/orders/:id/invoice', 'user', billing.invoiceForOrder);
++  router.add('GET', '/invoices', 'user', billing.list);
+   router.add('GET', '/invoices/:id', 'user', billing.getInvoice);
+   router.add('POST', '/invoices/:id/pay', 'admin', billing.payInvoice);
+ 

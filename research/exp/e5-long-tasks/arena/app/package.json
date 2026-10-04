@@ -1,0 +1,13 @@
+{
+  "name": "beanstalk-shop",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Beanstalk Shop: a small online shop API (arena demo repo)",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=25"
+  }
+}

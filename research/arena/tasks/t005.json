@@ -1,0 +1,29 @@
+{
+  "id": "t005",
+  "title": "Show thousands separators in displayed amounts",
+  "prompt": "Large amounts are hard to read in emails and invoices (\"$1234567.89\"). Format money with a comma between groups of thousands: `$1,234,567.89`, `-$1,234.50`, `€12,000.00`. Amounts below 1,000 look exactly as they do today.",
+  "acceptance_tests": {
+    "src/lib/money-format.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { formatMoney } from './money.ts';\n\ndescribe('formatMoney digit grouping', () => {\n  it('groups thousands with commas', () => {\n    assert.equal(formatMoney(123456789), '$1,234,567.89');\n    assert.equal(formatMoney(100000), '$1,000.00');\n    assert.equal(formatMoney(1200000, 'EUR'), '€12,000.00');\n  });\n\n  it('keeps the sign in front and small amounts unchanged', () => {\n    assert.equal(formatMoney(-123450), '-$1,234.50');\n    assert.equal(formatMoney(99999), '$999.99');\n    assert.equal(formatMoney(5), '$0.05');\n    assert.equal(formatMoney(0, 'GBP'), '£0.00');\n  });\n});\n",
+    "src/orders/confirmation-grouping.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, US_ADDRESS } from '../lib/testing.ts';\n\ndescribe('order confirmation with digit grouping', () => {\n  it('groups thousands in line items and the total', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 150000, quantity: 2, address: US_ADDRESS, stock: 5 });\n    const body = app.mailer.sent[0].body;\n    assert.match(body, /2 x Product \\d+ - \\$3,000\\.00/);\n    assert.match(body, /Total: \\$3,195\\.00$/);\n  });\n\n  it('leaves small orders unchanged', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 4000, address: US_ADDRESS });\n    assert.match(app.mailer.sent[0].body, /Total: \\$42\\.60$/);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/lib/money-format.test.ts",
+    "src/lib/money.ts",
+    "src/orders/confirmation-grouping.test.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/lib",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t031",
+      "type": "semantic",
+      "note": "money-grouping changes formatMoney to print $1,000.00; invoice-text's test asserts amounts printed as $1000.00. Merges cleanly, the text invoice test then fails."
+    }
+  ]
+}

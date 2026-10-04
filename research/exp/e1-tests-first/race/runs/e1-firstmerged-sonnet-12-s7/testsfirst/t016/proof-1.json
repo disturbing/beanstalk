@@ -1,0 +1,51 @@
+{
+ "task": "t016",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-number.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-number.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 5,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-number.test.ts",
+     "name": "invoice numbers > start at 0001 for the year of issue and count up",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'INV-0001',\n+   'INV-0002',\n+   'INV-0003'\n-   'INV-2026-0001',\n-   'INV-2026-0002',\n-   'INV-2026-0003'\n  ]"
+    },
+    {
+     "file": "src/billing/invoice-number.test.ts",
+     "name": "invoice numbers > restart at 0001 in the new year",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0001'\n- 'INV-2026-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-number.test.ts",
+     "name": "invoice numbers > switch year at midnight UTC",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0001'\n- 'INV-2026-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-number.test.ts",
+     "name": "invoice numbers > use the UTC year, not a local one",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0001'\n- 'INV-2026-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-number.test.ts",
+     "name": "invoice numbers > leave invoice ids unique and unaffected by the restart",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0002'\n- 'INV-2027-0001'\n       ^"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

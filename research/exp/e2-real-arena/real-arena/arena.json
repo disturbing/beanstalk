@@ -1,0 +1,15 @@
+{
+  "name": "marked",
+  "upstream": "https://github.com/markedjs/marked",
+  "build": ["node", "esbuild.config.js"],
+  "test_args": ["test/run-spec-tests.js", "test/unit/*.test.js", "test/cjs-test.cjs", "test/umd-test.js"],
+  "test_concurrency": 4,
+  "junit_mapper": "marked-specs",
+  "spec_reader": "test/run-spec-tests.js",
+  "import_aliases": {"lib/marked.esm.js": "src/marked.ts", "lib/marked.umd.js": "src/marked.ts"},
+  "deps": "../deps/node_modules",
+  "path_prepend": ["../deps/bin"],
+  "agent_test_hint": "Run the tests with `run-tests` (it builds lib/ from src/ with esbuild, then runs the spec tests under test/specs/, the unit tests and the bundle checks with node --test; `run-tests test/unit/Lexer.test.js` runs one file).",
+  "agent_allowed_bash": ["run-tests", "node esbuild.config.js"],
+  "env": {}
+}

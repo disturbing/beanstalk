@@ -1,0 +1,51 @@
+{
+ "task": "t030",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/empty-cart.test.ts"
+ ],
+ "results": {
+  "src/orders/empty-cart.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 4,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > is rejected with 400 &quot;cart is empty&quot;",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'nothing to ship'\n- 'cart is empty'"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > is rejected as empty even when a coupon code is given",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'unknown coupon code'\n- 'cart is empty'"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > creates no invoice and no order",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1 !== 0"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > does not use up an invoice number or order number",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'BS-0003'\n- 'BS-0001'\n         ^"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > still lets a customer with items check out",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

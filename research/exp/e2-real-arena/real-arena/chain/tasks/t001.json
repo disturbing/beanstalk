@@ -1,0 +1,33 @@
+{
+  "id": "t001",
+  "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+  "prompt": "## Description\n\nWhile checking marked against the CommonMark spec I noticed that text following the closing delimiter of an HTML block on the *same line* is dropped from the block for type 3 (`<?...?>`), type 4 (`<!...>`), and type 5 (`<![CDATA[...]]>`).\n\nCommonMark ends these blocks on the line containing the closing delimiter, and the entire line — including anything after the delimiter — is part of the raw HTML block. marked already handles this for type 2 comments (spec [example 177](https://spec.commonmark.org/0.31.2/#example-177) shows `*bar*` keeping `*bar*` as raw text), but rules 3–5 stopped right at the delimiter, so the trailing text got split off and reparsed.\n\nFor example:\n\n```\n<?php echo '>'; ?>*not emphasis*\n```\n\nrendered as:\n\n```html\n<?php echo '>'; ?><p><em>not emphasis</em></p>\n```\n\ninstead of leaving `*not emphasis*` inside the HTML block like the reference does.\n\n## Fix\n\nThe comment rule (2) already consumes the rest of the closing line with a trailing `[^\\n]*`. I applied the same to rules 3, 4, and 5 so they consume to the end of the closing line before the newline.\n\n## Tests\n\nAdded `test/specs/new/html_block_trailing_text.md` covering all three block types. It fails on `master` and passes with this change. Full CommonMark/GFM spec suites, unit tests, lint, types, and the ReDoS check are all green, and the CommonMark conformance score is unchanged.",
+  "acceptance_tests": {
+    "test/specs/new/html_block_trailing_text.html": "<?php echo '>'; ?>*not emphasis*\n<p><em>emphasis</em></p>\n<!DOCTYPE html>*not emphasis*\n<p><em>emphasis</em></p>\n<![CDATA[ raw ]]>*not emphasis*\n<p><em>emphasis</em></p>\n",
+    "test/specs/new/html_block_trailing_text.md": "---\ngfm: false\n---\n<?php echo '>'; ?>*not emphasis*\n*emphasis*\n\n<!DOCTYPE html>*not emphasis*\n*emphasis*\n\n<![CDATA[ raw ]]>*not emphasis*\n*emphasis*\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/html_block_trailing_text.html",
+    "test/specs/new/html_block_trailing_text.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 3991,
+    "sha": "bbb84c88cf3a187c93fbc8966002164d229eba62",
+    "url": "https://github.com/markedjs/marked/pull/3991",
+    "author": "sarathfrancis90",
+    "merged_at": "2026-06-30T04:22:44Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 6,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

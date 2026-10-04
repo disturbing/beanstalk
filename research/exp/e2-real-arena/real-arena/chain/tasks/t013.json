@@ -1,0 +1,33 @@
+{
+  "id": "t013",
+  "title": "fix: reject invalid characters in HTML tag names",
+  "prompt": "Per CommonMark (Raw HTML, and HTML blocks type 7) and GFM, an HTML tag name is `[A-Za-z][A-Za-z0-9-]*`. The block and inline tag regexes used `[\\w-]` (and `[\\w:-]` for the inline closing tag), so `_` — and `:` on closing tags — were accepted. As a result sequences like `<bar_baz>`, `<em_>…</em_>` and `</a:b>` were emitted as raw HTML instead of being escaped as text.\n\nThis also removes an inconsistency where the inline opening-tag rule rejected `:` but the closing-tag rule accepted it.\n\nExample:\n\n```\nfoo <bar_baz> qux\n```\n\nbefore: `<p>foo <bar_baz> qux</p>` — after: `<p>foo &lt;bar_baz&gt; qux</p>` (matching commonmark.js).\n\nAttribute names still accept `_`/`:` — only tag names are affected. Added a `test/specs/new` case covering inline open/close and block tags with `_`/`:`. Full spec and unit suites pass.",
+  "acceptance_tests": {
+    "test/specs/new/html_invalid_tag_name.html": "<p>foo &lt;bar_baz&gt; qux</p>\n<p>foo &lt;/a:b&gt; qux</p>\n<p>&lt;div_&gt;</p>\n",
+    "test/specs/new/html_invalid_tag_name.md": "foo <bar_baz> qux\n\nfoo </a:b> qux\n\n<div_>\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/html_invalid_tag_name.html",
+    "test/specs/new/html_invalid_tag_name.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4083,
+    "sha": "300bb1dce07bc262d74778b28bd6644770269be0",
+    "url": "https://github.com/markedjs/marked/pull/4083",
+    "author": "spokodev",
+    "merged_at": "2026-09-04T05:10:05Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 8,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

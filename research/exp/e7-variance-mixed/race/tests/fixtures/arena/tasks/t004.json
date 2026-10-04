@@ -1,0 +1,23 @@
+{
+  "id": "t004",
+  "title": "Show the subtotal on invoices",
+  "prompt": "Invoices need a summary line under the items showing the order subtotal before any discounts, formatted like \"Subtotal: $12.34\". Expose it as invoiceSummary(items) next to the existing invoice line helper.",
+  "acceptance_tests": {
+    "test/acceptance/t004.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { invoiceSummary } from \"../../src/invoice/index.ts\";\n\ntest(\"invoice summary shows the pre-discount subtotal\", () => {\n  assert.equal(invoiceSummary([{ sku: \"lamp\", priceCents: 5000, qty: 3 }]), \"Subtotal: $150.00\");\n  assert.equal(invoiceSummary([{ sku: \"mug\", priceCents: 1250, qty: 2 }]), \"Subtotal: $25.00\");\n});\n"
+  },
+  "oracle_paths": [
+    "src/invoice/index.ts"
+  ],
+  "oracle_modules": [
+    "src/invoice"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t003",
+      "type": "semantic",
+      "note": "reuses the cart total, which t003 starts discounting"
+    }
+  ]
+}

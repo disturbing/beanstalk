@@ -1,0 +1,13 @@
+diff --git a/src/shipping/service.ts b/src/shipping/service.ts
+index 6c40f3f..53406fb 100644
+--- a/src/shipping/service.ts
++++ b/src/shipping/service.ts
+@@ -35,7 +35,7 @@ export function markShipped(ctx: AppContext, orderId: string, trackingNumber: st
+     method,
+     cost: order.shippingCost,
+     status: 'shipped',
+-    signatureRequired: order.total >= ctx.config.signatureThreshold,
++    signatureRequired: order.total - order.shippingCost >= ctx.config.signatureThreshold,
+     shippedAt: now,
+   });
+   const updated = ctx.store.orders.update(orderId, { status: 'shipped', trackingNumber, updatedAt: now });

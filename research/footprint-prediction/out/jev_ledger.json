@@ -1,0 +1,9 @@
+{
+ "cap": 1000,
+ "calls": 3,
+ "failures": 3,
+ "by_corpus": {
+  "workers-sdk": 2,
+  "probe": 1
+ }
+}

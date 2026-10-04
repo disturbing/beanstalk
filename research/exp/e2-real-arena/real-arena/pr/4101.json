@@ -1,0 +1,20 @@
+{
+ "number": 4101,
+ "sha": "1b89557177fe5a7d5d430fdc76e7c8a7c0adf6d7",
+ "title": "fix: keep text after empty nested blockquote",
+ "body": "## Description\n\nSince 18.0.9 (#4030), text after an empty nested blockquote was dropped. In `Tokenizer.blockquote()`, the nested-blockquote continuation path appended every leftover line to `raw` even when the re-tokenized nested quote did not consume them. The lexer then skipped that source, so following paragraphs (and later `>` quotes) vanished.\n\nThis only merges original continuation lines that `newToken` actually consumed into outer `raw`/`text` (leftover count from `newText.substring(newToken.raw.length)`, same idea as the adjacent list branch). Unconsumed lines stay out of this token so the outer lexer can still parse them. Fully consumed continuations stay unchanged.\n\nFixes #4098.\n\n## Checklist\n\n- [x] Spec fixtures for `>>\\\\ntext`, `>>>\\\\ntext`, `> quote\\\\n>>\\\\ntext`, and `>>\\\\ntext\\\\n> more`\n- [x] `npm test` green (specs, unit, lint)",
+ "author": "Yahiro025",
+ "created_at": "2026-09-20T02:43:03Z",
+ "merged_at": "2026-09-22T05:44:51Z",
+ "pr_base_sha": "4eb2d97ca61e2f558aa0fb5860509f5399d74338",
+ "pr_head_sha": "af4122c41c70d2ce801acc6e51d029bf9f8a4128",
+ "commits": 1,
+ "linked_issues": [
+  {
+   "number": 4098,
+   "title": "Text after an empty nested blockquote is dropped (18.0.9+)",
+   "body": "**Marked version:** 18.0.9 through 18.0.13 (18.0.8 is fine)\n\n**Describe the bug**\nText on the line after an empty nested blockquote is dropped from the output, with default options.\n\n**To Reproduce**\n1. [Marked Demo](https://marked.js.org/demo/?outputType=html&text=%3E%3E%0Atext)\n2. [CommonMark Demo](https://spec.commonmark.org/dingus/?text=%3E%3E%0Atext)\n\n`marked.parse('>>\\ntext')` in 18.0.8, matching the dingus:\n\n```html\n<blockquote>\n<blockquote>\n</blockquote>\n</blockquote>\n<p>text</p>\n```\n\nIn 18.0.9 to 18.0.13:\n\n```html\n<blockquote>\n<blockquote>\n</blockquote>\n</blockquote>\n```\n\nSame for `>>>\\ntext` and `> quote\\n>>\\ntext`. With `>>\\ntext\\n> more`, the following `> more` blockquote disappears as well.\n\n**Expected behavior**\nThe empty nested blockquote closes and `text` becomes a paragraph after it, as in CommonMark and 18.0.8.\n\nThis looks like it comes from #4030: the continuation branch in `Tokenizer.blockquote()` now appends every continuation line to `raw`, also when the re-tokenized nested blockquote did not consume them, so the lexer skips past text no token holds. Reverting that commit brings the paragraph back. I have a small fix with a spec test in `test/specs/new/` and would be glad to open a PR if that is welcome.\n",
+   "is_pr": false
+  }
+ ]
+}

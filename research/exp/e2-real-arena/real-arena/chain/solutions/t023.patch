@@ -1,0 +1,160 @@
+diff --git a/src/Tokenizer.ts b/src/Tokenizer.ts
+index 369bb15f..b73d8777 100644
+--- a/src/Tokenizer.ts
++++ b/src/Tokenizer.ts
+@@ -75,6 +75,43 @@ function indentCodeCompensation(raw: string, text: string, rules: Rules) {
+     .join('\n');
+ }
+ 
++function isLabelEndInsideToken(src: string, label: string, labelStart: number, rules: Rules) {
++  if (!label.includes('<')) {
++    return false;
++  }
++
++  for (let i = 0; i < label.length; i++) {
++    if (label[i] === '\\') {
++      i++;
++      continue;
++    }
++
++    if (label[i] === '`') {
++      const code = rules.inline.code.exec(label.slice(i));
++      if (code) {
++        i += code[0].length - 1;
++        continue;
++      }
++    }
++
++    if (label[i] !== '<') {
++      continue;
++    }
++
++    const tokenSrc = src.slice(labelStart + i);
++    const token = rules.inline.tag.exec(tokenSrc) || rules.inline.autolink.exec(tokenSrc);
++    if (!token) {
++      continue;
++    }
++
++    if (token[0].length > label.length - i) {
++      return true;
++    }
++    i += token[0].length - 1;
++  }
++  return false;
++}
++
+ /**
+  * Tokenizer
+  */
+@@ -683,6 +720,11 @@ export class _Tokenizer<ParserOutput = string, RendererOutput = string> {
+   link(src: string): Tokens.Link | Tokens.Image | undefined {
+     const cap = this.rules.inline.link.exec(src);
+     if (cap) {
++      const labelStart = cap[0].charAt(0) === '!' ? 2 : 1;
++      if (!this.options.pedantic && isLabelEndInsideToken(src, cap[1], labelStart, this.rules)) {
++        return;
++      }
++
+       const trimmedUrl = cap[2].trim();
+       if (!this.options.pedantic && this.rules.other.startAngleBracket.test(trimmedUrl)) {
+         // commonmark requires matching angle brackets
+@@ -745,6 +787,11 @@ export class _Tokenizer<ParserOutput = string, RendererOutput = string> {
+     let cap;
+     if ((cap = this.rules.inline.reflink.exec(src))
+       || (cap = this.rules.inline.nolink.exec(src))) {
++      const labelStart = cap[0].charAt(0) === '!' ? 2 : 1;
++      if (!this.options.pedantic && isLabelEndInsideToken(src, cap[1], labelStart, this.rules)) {
++        return;
++      }
++
+       const linkString = (cap[2] || cap[1]).replace(this.rules.other.multipleSpaceGlobal, ' ');
+       const link = links[linkString.toLowerCase()];
+       if (!link) {
+diff --git a/test/specs/commonmark/commonmark.0.31.2.json b/test/specs/commonmark/commonmark.0.31.2.json
+index ef561efa..f53265d3 100644
+--- a/test/specs/commonmark/commonmark.0.31.2.json
++++ b/test/specs/commonmark/commonmark.0.31.2.json
+@@ -4192,8 +4192,7 @@
+     "example": 524,
+     "start_line": 7937,
+     "end_line": 7941,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo`](/uri)`\n",
+@@ -4209,8 +4208,7 @@
+     "example": 526,
+     "start_line": 7951,
+     "end_line": 7955,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo][bar]\n\n[bar]: /url \"title\"\n",
+@@ -4291,8 +4289,7 @@
+     "example": 536,
+     "start_line": 8089,
+     "end_line": 8095,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo`][ref]`\n\n[ref]: /uri\n",
+@@ -4308,8 +4305,7 @@
+     "example": 538,
+     "start_line": 8107,
+     "end_line": 8113,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo][BaR]\n\n[bar]: /url \"title\"\n",
+diff --git a/test/specs/gfm/commonmark.0.31.2.json b/test/specs/gfm/commonmark.0.31.2.json
+index 6e763b84..715f559f 100644
+--- a/test/specs/gfm/commonmark.0.31.2.json
++++ b/test/specs/gfm/commonmark.0.31.2.json
+@@ -4192,8 +4192,7 @@
+     "example": 524,
+     "start_line": 7937,
+     "end_line": 7941,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo`](/uri)`\n",
+@@ -4209,8 +4208,7 @@
+     "example": 526,
+     "start_line": 7951,
+     "end_line": 7955,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo][bar]\n\n[bar]: /url \"title\"\n",
+@@ -4291,8 +4289,7 @@
+     "example": 536,
+     "start_line": 8089,
+     "end_line": 8095,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo`][ref]`\n\n[ref]: /uri\n",
+@@ -4308,8 +4305,7 @@
+     "example": 538,
+     "start_line": 8107,
+     "end_line": 8113,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo][BaR]\n\n[bar]: /url \"title\"\n",

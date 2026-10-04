@@ -1,0 +1,61 @@
+diff --git a/src/billing/discounts.ts b/src/billing/discounts.ts
+index 67579c9..4b0170d 100644
+--- a/src/billing/discounts.ts
++++ b/src/billing/discounts.ts
+@@ -12,7 +12,9 @@ export function validateCoupon(coupon: Coupon, subtotal: Cents, currency: Curren
+ 
+ /** How much `coupon` takes off a cart worth `subtotal`. */
+ export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
+-  return coupon.kind === 'percent' ? percentOf(subtotal, coupon.value) : coupon.value;
++  if (coupon.kind === 'fixed') return coupon.value;
++  const discount = percentOf(subtotal, coupon.value);
++  return coupon.maxDiscount == null ? discount : Math.min(discount, coupon.maxDiscount);
+ }
+ 
+ /** Spread a cart-level discount over the lines in proportion to their value. */
+diff --git a/src/db/migrations/0006_coupon_max_discount.ts b/src/db/migrations/0006_coupon_max_discount.ts
+new file mode 100644
+index 0000000..032292f
+--- /dev/null
++++ b/src/db/migrations/0006_coupon_max_discount.ts
+@@ -0,0 +1,9 @@
++import type { Migration } from '../migrate.ts';
++
++export const migration0006: Migration = {
++  version: 6,
++  name: 'coupon_max_discount',
++  up(store) {
++    store.coupons.addColumn('maxDiscount', null);
++  },
++};
+diff --git a/src/db/migrations/index.ts b/src/db/migrations/index.ts
+index b374227..32cc0fd 100644
+--- a/src/db/migrations/index.ts
++++ b/src/db/migrations/index.ts
+@@ -4,6 +4,7 @@ import { migration0002 } from './0002_seed_coupons.ts';
+ import { migration0003 } from './0003_product_weight.ts';
+ import { migration0004 } from './0004_order_shipping.ts';
+ import { migration0005 } from './0005_user_roles.ts';
++import { migration0006 } from './0006_coupon_max_discount.ts';
+ 
+ /** Every migration, in order. Add new ones at the end. */
+ export const migrations: Migration[] = [
+@@ -12,4 +13,5 @@ export const migrations: Migration[] = [
+   migration0003,
+   migration0004,
+   migration0005,
++  migration0006,
+ ];
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..3a0d685 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -99,6 +99,8 @@ export interface Coupon {
+   /** Percent (0-100) for `percent`, cents for `fixed`. */
+   value: number;
+   minSubtotal: Cents;
++  /** Upper bound for the discount of a `percent` coupon. Absent or null: no cap. */
++  maxDiscount?: Cents | null;
+   expiresAt: string | null;
+   maxRedemptions: number | null;
+   redemptions: number;

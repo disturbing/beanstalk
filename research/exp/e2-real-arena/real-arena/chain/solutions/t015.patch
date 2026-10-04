@@ -1,0 +1,113 @@
+diff --git a/src/Renderer.ts b/src/Renderer.ts
+index 890ac2c4..b04adc3a 100644
+--- a/src/Renderer.ts
++++ b/src/Renderer.ts
+@@ -157,18 +157,22 @@ export class _Renderer<ParserOutput = string, RendererOutput = string> {
+     return `<del>${this.parser.parseInline(tokens)}</del>` as RendererOutput;
+   }
+ 
+-  link({ href, title, tokens }: Tokens.Link): RendererOutput {
+-    const text = this.parser.parseInline(tokens) as string;
++  link({ href, title, text, tokens, autolink }: Tokens.Link): RendererOutput {
++    // References are not resolved inside an autolink, so every `&` there is
++    // literal. Elsewhere only an `&` that cannot start one needs escaping.
++    const parsedText = autolink
++      ? escapeHtmlEntities(text, true)
++      : this.parser.parseInline(tokens) as string;
+     const cleanHref = cleanUrl(href);
+     if (cleanHref === null) {
+-      return text as RendererOutput;
++      return parsedText as RendererOutput;
+     }
+-    href = cleanHref;
++    href = escapeHtmlEntities(cleanHref, autolink);
+     let out = '<a href="' + href + '"';
+     if (title) {
+       out += ' title="' + (escapeHtmlEntities(title)) + '"';
+     }
+-    out += '>' + text + '</a>';
++    out += '>' + parsedText + '</a>';
+     return out as RendererOutput;
+   }
+ 
+@@ -182,7 +186,7 @@ export class _Renderer<ParserOutput = string, RendererOutput = string> {
+     }
+     href = cleanHref;
+ 
+-    let out = `<img src="${href}" alt="${escapeHtmlEntities(text)}"`;
++    let out = `<img src="${escapeHtmlEntities(href)}" alt="${escapeHtmlEntities(text)}"`;
+     if (title) {
+       out += ` title="${escapeHtmlEntities(title)}"`;
+     }
+diff --git a/src/Tokenizer.ts b/src/Tokenizer.ts
+index 16834b86..d1e6f4c7 100644
+--- a/src/Tokenizer.ts
++++ b/src/Tokenizer.ts
+@@ -937,6 +937,7 @@ export class _Tokenizer<ParserOutput = string, RendererOutput = string> {
+         raw: cap[0],
+         text,
+         href,
++        autolink: true,
+         tokens: [
+           {
+             type: 'text',
+@@ -974,6 +975,7 @@ export class _Tokenizer<ParserOutput = string, RendererOutput = string> {
+         raw: cap[0],
+         text,
+         href,
++        autolink: true,
+         tokens: [
+           {
+             type: 'text',
+diff --git a/src/Tokens.ts b/src/Tokens.ts
+index 35c05869..afc5dd75 100644
+--- a/src/Tokens.ts
++++ b/src/Tokens.ts
+@@ -136,6 +136,11 @@ export namespace Tokens {
+     title?: string | null;
+     text: string;
+     tokens: Token[];
++    /**
++     * Set for autolinks and extended (GFM) urls, where character references are
++     * not resolved, so the destination and text are literal.
++     */
++    autolink?: boolean;
+   }
+ 
+   export interface List {
+diff --git a/test/unit/Lexer.test.js b/test/unit/Lexer.test.js
+index 8064ff59..0afbd256 100644
+--- a/test/unit/Lexer.test.js
++++ b/test/unit/Lexer.test.js
+@@ -2042,6 +2042,7 @@ paragraph
+                 raw: '<https://example.com>',
+                 text: 'https://example.com',
+                 href: 'https://example.com',
++                autolink: true,
+                 tokens: [
+                   {
+                     type: 'text',
+@@ -2064,6 +2065,7 @@ paragraph
+                 raw: '<test@example.com>',
+                 text: 'test@example.com',
+                 href: 'mailto:test@example.com',
++                autolink: true,
+                 tokens: [
+                   {
+                     type: 'text',
+@@ -2085,6 +2087,7 @@ paragraph
+                 raw: 'https://example.com',
+                 text: 'https://example.com',
+                 href: 'https://example.com',
++                autolink: true,
+                 tokens: [
+                   {
+                     type: 'text',
+@@ -2107,6 +2110,7 @@ paragraph
+                 raw: 'test@example.com',
+                 text: 'test@example.com',
+                 href: 'mailto:test@example.com',
++                autolink: true,
+                 tokens: [
+                   {
+                     type: 'text',

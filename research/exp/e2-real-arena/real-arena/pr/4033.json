@@ -1,0 +1,20 @@
+{
+ "number": 4033,
+ "sha": "641e5df93577d7b29614900b10bc771c250a249b",
+ "title": "docs: explain partial extensions in use",
+ "body": "**Marked version:** 58ed4af62e7383ca770ac68aa987ca39887f33f3\n\n**Markdown flavor:** n/a\n\n## Description\n\n- Fixes #4016.\n- Adds source-level documentation to `Marked#use`, `marked.use`, and the named `use` export.\n- Explains that `renderer`, `tokenizer`, and `hooks` can be partial when registered through `use`, because they are merged with built-in and previously registered behavior.\n- Documents the default, instance, and inline parse APIs with the recommended per-call pattern: create separate `Marked` instances and configure each through `use` instead of passing hooks, renderers, or tokenizers on every call.\n\nThe named `use` export now aliases the documented implementation function so generated declarations expose the same IntelliSense text for both `marked.use` and `import { use }`.\n\n## Contributor\n\n- [x] no tests required for this documentation-only PR.\n- [x] If submitting new feature, it has been documented in the appropriate places. (Not a new feature.)\n\nVerification:\n\n- `npm test` (build, 1,767 spec tests, 190 unit tests, UMD, CJS, package/type checks, and lint)\n- `npm run test:types`\n- `npm run test:lint`\n- Generated-declaration inspection for default, instance, inline, and named APIs\n- `git diff --check`\n- `npm run build:reset`\n\nNote: `docs/CONTRIBUTING.md` still mentions `npm run test:all`, but that script is not present in `package.json`; `npm test` is the current full pipeline.\n",
+ "author": "ColumbusLabs",
+ "created_at": "2026-07-30T16:21:55Z",
+ "merged_at": "2026-08-04T04:32:04Z",
+ "pr_base_sha": "58ed4af62e7383ca770ac68aa987ca39887f33f3",
+ "pr_head_sha": "7208a550515d70a0ddf5481d7e88c4ce76507d20",
+ "commits": 2,
+ "linked_issues": [
+  {
+   "number": 4016,
+   "title": "Comment source code functions for intellisense",
+   "body": "In trying to supply a custom `processAllTokens` hook:\n```js\nmarked.marked.lexer(stringToParse, { hooks: { processAllTokens: tokens => tokens } })\n```\n\nTypescript wanted `hooks` to include all the other *possible* functions the Hooks object can have.\n> Type '{ processAllTokens: (tokens: TokensList | Token[]) => Token[]; }' is missing the following properties from type '_Hooks<string, string>': options, preprocess, postprocess, emStrongMask, and 2 more.\n\nI eventually determined `marked.use({ hooks: {` works because it combines the hooks object, making it partial. However, this would've been easier if `marked.use` mentioned how this works in the intellisense, or if other options did. It's harder to connect the meaning of functions across the app. I think I could've saved a lot of time if the documentation included the source code functions.\n\n(Very excellent software, by the way. I will be using this in my own project.)",
+   "is_pr": false
+  }
+ ]
+}

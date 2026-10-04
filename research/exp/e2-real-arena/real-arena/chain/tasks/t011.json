@@ -1,0 +1,33 @@
+{
+  "id": "t011",
+  "title": "fix: place task checkboxes after list loose is finalized",
+  "prompt": "## Summary\n- Finalize `list.loose` (including spacer-based detection) before placing task checkboxes in `Tokenizer.list()`.\n- Nested loose task lists no longer leave early item checkboxes outside `<p>` while later items nest correctly.\n- Adds a regression fixture for the nested loose task list case from #4045.\n\nFixes #4045\n\n## Test plan\n- [x] `npm run build`\n- [x] `npm run test:specs` (1781 passed, including new `list_loose_nested_tasks` and existing task/list fixtures)\n- [x] Manually confirmed loose items render checkboxes inside `<p>`; tight nested items stay without `<p>`",
+  "acceptance_tests": {
+    "test/specs/new/list_loose_nested_tasks.html": "<ul>\n<li><p><input disabled=\"\" type=\"checkbox\"> Prepare the project</p>\n<ul>\n<li><input disabled=\"\" type=\"checkbox\"> Install dependencies</li>\n<li><input checked=\"\" disabled=\"\" type=\"checkbox\"> Update Marked</li>\n<li><input disabled=\"\" type=\"checkbox\"> Check the rendering</li>\n</ul>\n</li>\n<li><p><input checked=\"\" disabled=\"\" type=\"checkbox\"> Run the tests</p>\n<ul>\n<li><p><input checked=\"\" disabled=\"\" type=\"checkbox\"> Test lists</p>\n</li>\n<li><p><input disabled=\"\" type=\"checkbox\"> Test tables</p>\n<ul>\n<li><input disabled=\"\" type=\"checkbox\"> Test nested cases</li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n",
+    "test/specs/new/list_loose_nested_tasks.md": "* [ ] Prepare the project\n\n  * [ ] Install dependencies\n  * [x] Update Marked\n  * [ ] Check the rendering\n* [x] Run the tests\n\n  * [x] Test lists\n  * [ ] Test tables\n\n    * [ ] Test nested cases\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/new/list_loose_nested_tasks.html",
+    "test/specs/new/list_loose_nested_tasks.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4046,
+    "sha": "b8cf7dc5929331d3014555babc33bcda0dae4999",
+    "url": "https://github.com/markedjs/marked/pull/4046",
+    "author": "Hashim1999164",
+    "merged_at": "2026-08-15T18:57:46Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 21,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

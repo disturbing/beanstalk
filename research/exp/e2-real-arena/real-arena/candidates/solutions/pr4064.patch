@@ -1,0 +1,88 @@
+diff --git a/src/rules.ts b/src/rules.ts
+index cc2e62bc..9cf9a4ae 100644
+--- a/src/rules.ts
++++ b/src/rules.ts
+@@ -386,7 +386,14 @@ const tag = edit(
+   .replace('attribute', /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/)
+   .getRegex();
+ 
+-const _inlineLabel = /(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/;
++// One matched pair of brackets, holding no bracket of its own.
++const _inlineLabelBrackets = /\[(?:\\[\s\S]|[^\[\]\\])*\]/;
++// CommonMark lets the brackets in a link label nest to any depth, which a regex
++// cannot follow, so it stops at a fixed one. Two levels is what the spec suite
++// asks for: a third and a fourth flip no further example.
++const _inlineLabel = edit(/(?:\[(?:brackets|\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/)
++  .replace('brackets', _inlineLabelBrackets)
++  .getRegex();
+ 
+ const link = edit(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/)
+   .replace('label', _inlineLabel)
+diff --git a/test/specs/commonmark/commonmark.0.31.2.json b/test/specs/commonmark/commonmark.0.31.2.json
+index 6e14498b..ef4639de 100644
+--- a/test/specs/commonmark/commonmark.0.31.2.json
++++ b/test/specs/commonmark/commonmark.0.31.2.json
+@@ -4096,8 +4096,7 @@
+     "example": 512,
+     "start_line": 7840,
+     "end_line": 7844,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[link] bar](/uri)\n",
+@@ -4163,8 +4162,7 @@
+     "example": 520,
+     "start_line": 7900,
+     "end_line": 7904,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "*[foo*](/uri)\n",
+@@ -4230,8 +4228,7 @@
+     "example": 528,
+     "start_line": 8004,
+     "end_line": 8010,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[link \\[bar][ref]\n\n[ref]: /uri\n",
+diff --git a/test/specs/gfm/commonmark.0.31.2.json b/test/specs/gfm/commonmark.0.31.2.json
+index c8ffbc14..3c9ec725 100644
+--- a/test/specs/gfm/commonmark.0.31.2.json
++++ b/test/specs/gfm/commonmark.0.31.2.json
+@@ -4096,8 +4096,7 @@
+     "example": 512,
+     "start_line": 7840,
+     "end_line": 7844,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[link] bar](/uri)\n",
+@@ -4163,8 +4162,7 @@
+     "example": 520,
+     "start_line": 7900,
+     "end_line": 7904,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "*[foo*](/uri)\n",
+@@ -4230,8 +4228,7 @@
+     "example": 528,
+     "start_line": 8004,
+     "end_line": 8010,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[link \\[bar][ref]\n\n[ref]: /uri\n",

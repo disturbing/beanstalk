@@ -1,0 +1,33 @@
+{
+  "id": "t003",
+  "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+  "prompt": "**Markdown flavor:** CommonMark\n\nA line that's only tabs (or tabs mixed with spaces) is a blank line in CommonMark, so it should separate paragraphs. Marked only treats a *spaces*-only line as blank, so when the blank line between two paragraphs happens to contain a tab, that line gets swallowed as a lazy continuation and the two paragraphs merge into one.\n\nWith a single tab on the middle line:\n\n```\nfoo\n\t\nbar\n```\n\nmarked currently returns one paragraph (`<p>foo\\tbar</p>`) instead of `<p>foo</p>\\n<p>bar</p>`. A space-only middle line already works, which is what made this easy to miss.\n\nThe paragraph rule's continuation lookahead was checking for `` +\\n`` (spaces only); I widened it to `[ \\t]+\\n` so a tab-only line counts as blank too. GFM and pedantic paragraphs build on the same base rule, so they pick up the fix as well. Added a spec test under `test/specs/new`.",
+  "acceptance_tests": {
+    "test/specs/new/blank_line_with_tabs.html": "<p>foo</p>\n<p>bar</p>\n<p>baz</p>\n<p>qux</p>\n",
+    "test/specs/new/blank_line_with_tabs.md": "---\ngfm: false\n---\nfoo\n\t\nbar\n\nbaz\n\t \t\nqux\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/blank_line_with_tabs.html",
+    "test/specs/new/blank_line_with_tabs.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4007,
+    "sha": "bc2f121456d152fafd7d2cbd2c21b273ca4c6862",
+    "url": "https://github.com/markedjs/marked/pull/4007",
+    "author": "sarathfrancis90",
+    "merged_at": "2026-07-14T03:07:07Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

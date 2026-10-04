@@ -1,0 +1,63 @@
+{
+ "task": "t009",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/line-quantity.test.ts"
+ ],
+ "results": {
+  "src/orders/line-quantity.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 5,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > defaults maxLineQuantity to 10 and reads MAX_LINE_QUANTITY",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 10"
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > allows exactly the default limit of 10 units",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > rejects 11 units of one product with a 400 and the limit message",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > names the offending product when another line is fine",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > does not add quantities across different products",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > honours MAX_LINE_QUANTITY",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-quantity.test.ts",
+     "name": "per-line quantity limit > reserves no stock, creates no invoice and keeps the cart when refused",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,5560 @@
+{
+ "opus-queue-sonnet-12-s11": {
+  "per_vendor": {
+   "claude": {
+    "tasks_authored": 40,
+    "green": 34,
+    "accepted": 34,
+    "dropped": 6,
+    "no_rework": 25,
+    "conflict_events": 22,
+    "tasks_with_conflict": 14,
+    "red_events": 14,
+    "tasks_with_red": 8,
+    "reds_own_tests": 6,
+    "reds_other_tests": 8,
+    "reworks_of_authored": 30,
+    "tasks_reworked": 15,
+    "invocations": 70,
+    "initial_invocations": 40,
+    "rework_invocations": 30,
+    "cost_usd": 4.1012592,
+    "cost_per_initial": 0.05927493500000001,
+    "cost_per_rework": 0.05767539333333334,
+    "initial_wall_median_s": 15.4775,
+    "initial_turns_median": 9.0,
+    "rework_wall_median_s": 14.122,
+    "non_success_invocations": 0,
+    "timeouts": 0,
+    "tests_edited_by_agent": 3,
+    "hot_files_per_change": 0.575,
+    "files_per_change": 2.05,
+    "tokens": {
+     "input_tokens": 734,
+     "output_tokens": 131830,
+     "cache_creation_input_tokens": 445305,
+     "cache_read_input_tokens": 5001356
+    },
+    "cost_source": [
+     "reported",
+     "reported-delta"
+    ],
+    "first_try_checked": 40,
+    "first_try_own_pass": 40,
+    "first_try_suite_pass": 40
+   }
+  },
+  "rework_outcomes": {
+   "claude": {
+    "landed": 9,
+    "same-vendor rework": 30,
+    "collided again": 21
+   }
+  },
+  "tasks": {
+   "t001": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.039357600000000006,
+    "first_wall": 11.443,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 0.212,
+    "land_t": 72.16
+   },
+   "t002": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.072747,
+    "first_wall": 20.876,
+    "first_turns": 13,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/catalog/handlers.ts",
+     "src/lib/pagination.ts",
+     "src/orders/handlers.ts"
+    ],
+    "start_t": 0.238,
+    "land_t": 132.702
+   },
+   "t003": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.12030260000000001,
+    "first_wall": 38.484,
+    "first_turns": 12,
+    "rework_cost": 0.03767680000000001,
+    "files": 3,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/billing/tax.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.266,
+    "land_t": 802.179
+   },
+   "t004": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0376336,
+    "first_wall": 11.686,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/invoice.ts"
+    ],
+    "start_t": 0.295,
+    "land_t": 130.229
+   },
+   "t005": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0393606,
+    "first_wall": 13.743,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/lib/money.ts"
+    ],
+    "start_t": 0.325,
+    "land_t": 130.246
+   },
+   "t006": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.047947800000000006,
+    "first_wall": 12.556,
+    "first_turns": 10,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/config.ts"
+    ],
+    "start_t": 0.359,
+    "land_t": 130.241
+   },
+   "t007": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.08637620000000001,
+    "first_wall": 24.856,
+    "first_turns": 16,
+    "rework_cost": 0,
+    "files": 5,
+    "initial_files": [
+     "src/db/migrations/0006_order_note.ts",
+     "src/db/migrations/index.ts",
+     "src/orders/checkout.ts",
+     "src/orders/handlers.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.394,
+    "land_t": 190.924
+   },
+   "t008": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0418672,
+    "first_wall": 11.624,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/inventory/stock.ts"
+    ],
+    "start_t": 0.43,
+    "land_t": 130.235
+   },
+   "t009": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.06759480000000001,
+    "first_wall": 19.785,
+    "first_turns": 11,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/config.ts",
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 0.468,
+    "land_t": 132.696
+   },
+   "t010": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 3,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.0926678,
+    "first_wall": 25.746,
+    "first_turns": 14,
+    "rework_cost": 0.245517,
+    "files": 5,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/db/migrations/0006_user_tax_exempt.ts",
+     "src/db/migrations/index.ts",
+     "src/types.ts",
+     "src/users/service.ts"
+    ],
+    "start_t": 0.516,
+    "land_t": null
+   },
+   "t011": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.10771939999999999,
+    "first_wall": 26.982,
+    "first_turns": 16,
+    "rework_cost": 0.22755460000000002,
+    "files": 6,
+    "initial_files": [
+     "src/db/migrations/0006_shipment_tracking.ts",
+     "src/db/migrations/index.ts",
+     "src/orders/checkout.ts",
+     "src/shipping/handlers.ts",
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.561,
+    "land_t": 1658.173
+   },
+   "t012": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.028204600000000003,
+    "first_wall": 8.611,
+    "first_turns": 5,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/auth/sessions.ts"
+    ],
+    "start_t": 0.608,
+    "land_t": 69.711
+   },
+   "t013": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0852828,
+    "first_wall": 22.477,
+    "first_turns": 15,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/billing/service.ts",
+     "src/notifications/templates.ts",
+     "src/types.ts"
+    ],
+    "start_t": 9.3,
+    "land_t": 251.911
+   },
+   "t014": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0598476,
+    "first_wall": 20.502,
+    "first_turns": 11,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/auth/guard.ts",
+     "src/auth/sessions.ts"
+    ],
+    "start_t": 11.737,
+    "land_t": 251.917
+   },
+   "t015": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0414228,
+    "first_wall": 12.301,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/billing/coupons.ts",
+     "src/billing/discounts.ts",
+     "src/billing/invoice.ts"
+    ],
+    "start_t": 12.109,
+    "land_t": 132.714
+   },
+   "t016": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.038878800000000005,
+    "first_wall": 12.698,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 12.168,
+    "land_t": 190.912
+   },
+   "t017": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.029883600000000003,
+    "first_wall": 8.994,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/tax.ts"
+    ],
+    "start_t": 12.993,
+    "land_t": 132.708
+   },
+   "t018": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0393356,
+    "first_wall": 11.036,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/notifications/templates.ts"
+    ],
+    "start_t": 14.149,
+    "land_t": 190.918
+   },
+   "t019": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0800296,
+    "first_wall": 22.199,
+    "first_turns": 12,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/orders/handlers.ts",
+     "src/orders/service.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 20.331,
+    "land_t": 252.379
+   },
+   "t020": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0357172,
+    "first_wall": 11.349,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/users/service.ts"
+    ],
+    "start_t": 21.197,
+    "land_t": 251.922
+   },
+   "t021": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.04472720000000001,
+    "first_wall": 14.804,
+    "first_turns": 9,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/catalog/handlers.ts"
+    ],
+    "start_t": 22.09,
+    "land_t": 251.927
+   },
+   "t022": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 3,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.10536980000000001,
+    "first_wall": 29.257,
+    "first_turns": 14,
+    "rework_cost": 0.142012,
+    "files": 3,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/billing/service.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 24.49,
+    "land_t": null
+   },
+   "t023": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 3,
+    "reds": 3,
+    "first_cost": 0.070095,
+    "first_wall": 20.271,
+    "first_turns": 9,
+    "rework_cost": 0.1314434,
+    "files": 2,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/lib/money.ts"
+    ],
+    "start_t": 24.945,
+    "land_t": null
+   },
+   "t024": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 2,
+    "first_cost": 0.0862884,
+    "first_wall": 28.273,
+    "first_turns": 12,
+    "rework_cost": 0.2958268,
+    "files": 4,
+    "initial_files": [
+     "src/billing/discounts.ts",
+     "src/db/migrations/0006_coupon_max_discount.ts",
+     "src/db/migrations/index.ts",
+     "src/types.ts"
+    ],
+    "start_t": 25.271,
+    "land_t": null
+   },
+   "t025": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 3,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.045947800000000004,
+    "first_wall": 14.006,
+    "first_turns": 6,
+    "rework_cost": 0.13873220000000003,
+    "files": 1,
+    "initial_files": [
+     "src/notifications/templates.ts"
+    ],
+    "start_t": 25.338,
+    "land_t": null
+   },
+   "t026": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0359842,
+    "first_wall": 11.698,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/discounts.ts"
+    ],
+    "start_t": 26.348,
+    "land_t": 252.355
+   },
+   "t027": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.033625999999999996,
+    "first_wall": 11.778,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/users/service.ts"
+    ],
+    "start_t": 27.632,
+    "land_t": 252.37
+   },
+   "t028": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.0695978,
+    "first_wall": 18.584,
+    "first_turns": 13,
+    "rework_cost": 0.04595039999999999,
+    "files": 3,
+    "initial_files": [
+     "src/config.ts",
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "start_t": 31.858,
+    "land_t": 985.051
+   },
+   "t029": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 2,
+    "reds": 0,
+    "first_cost": 0.07630980000000001,
+    "first_wall": 25.711,
+    "first_turns": 13,
+    "rework_cost": 0.0673666,
+    "files": 2,
+    "initial_files": [
+     "src/inventory/stock.ts",
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 32.321,
+    "land_t": 1658.178
+   },
+   "t030": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.035913400000000005,
+    "first_wall": 10.088,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 32.646,
+    "land_t": 252.388
+   },
+   "t031": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.0639912,
+    "first_wall": 16.634,
+    "first_turns": 11,
+    "rework_cost": 0.08109140000000001,
+    "files": 2,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 37.1,
+    "land_t": 1780.608
+   },
+   "t032": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 3,
+    "reds": 4,
+    "first_cost": 0.0548024,
+    "first_wall": 16.406,
+    "first_turns": 9,
+    "rework_cost": 0.16686159999999994,
+    "files": 2,
+    "initial_files": [
+     "src/orders/checkout.ts",
+     "src/types.ts"
+    ],
+    "start_t": 38.132,
+    "land_t": null
+   },
+   "t033": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0533598,
+    "first_wall": 16.151,
+    "first_turns": 9,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/shipping/service.ts"
+    ],
+    "start_t": 38.835,
+    "land_t": 618.561
+   },
+   "t034": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.0321716,
+    "first_wall": 9.121,
+    "first_turns": 5,
+    "rework_cost": 0.028222999999999998,
+    "files": 1,
+    "initial_files": [
+     "src/inventory/stock.ts"
+    ],
+    "start_t": 39.428,
+    "land_t": 985.046
+   },
+   "t035": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.07130500000000001,
+    "first_wall": 16.506,
+    "first_turns": 9,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/cart/service.ts"
+    ],
+    "start_t": 39.497,
+    "land_t": 618.567
+   },
+   "t036": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.1114974,
+    "first_wall": 25.481,
+    "first_turns": 18,
+    "rework_cost": 0,
+    "files": 4,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/billing/service.ts",
+     "src/routes.ts",
+     "src/types.ts"
+    ],
+    "start_t": 42.62,
+    "land_t": 618.578
+   },
+   "t037": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.041173799999999997,
+    "first_wall": 13.956,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/catalog/service.ts"
+    ],
+    "start_t": 42.826,
+    "land_t": 618.572
+   },
+   "t038": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.035051,
+    "first_wall": 9.141,
+    "first_turns": 5,
+    "rework_cost": 0.037889400000000004,
+    "files": 1,
+    "initial_files": [
+     "src/billing/discounts.ts"
+    ],
+    "start_t": 45.308,
+    "land_t": 1229.755
+   },
+   "t039": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.0711816,
+    "first_wall": 21.175,
+    "first_turns": 11,
+    "rework_cost": 0.0426556,
+    "files": 3,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/billing/service.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 48.67,
+    "land_t": 1352.08
+   },
+   "t040": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.040427000000000005,
+    "first_wall": 12.981,
+    "first_turns": 7,
+    "rework_cost": 0.041461,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 50.564,
+    "land_t": 1229.761
+   }
+  },
+  "fleet": {},
+  "policy": "queue",
+  "pairs": {
+   "same-claude": {
+    "conflict": 7,
+    "clean": 522,
+    "entangled": 32,
+    "n": 529,
+    "rate": 0.013232514177693762,
+    "lo": 0.006424213599033135,
+    "hi": 0.027059658531070827,
+    "overlap": 62,
+    "overlap_rate": 0.11720226843100189,
+    "overlap_lo": 0.0925108879564837,
+    "overlap_hi": 0.14741332216524855,
+    "overlap_conflict": 6
+   }
+  },
+  "adjusted": null,
+  "collision_share": {
+   "events_cross": 0.0,
+   "events_same": 21.999999999999996,
+   "unattributed": 0,
+   "share_cross": 0.0,
+   "exposure_share_cross": 0.0,
+   "exposure_pairs": 561
+  },
+  "pair_rows": [
+   {
+    "i": "t012",
+    "j": "t001",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t008",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/config.ts"
+    ]
+   },
+   {
+    "i": "t005",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t008",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t005",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t004",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t002",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/handlers.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t007",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t004",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t018",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/notifications/templates.ts"
+    ]
+   },
+   {
+    "i": "t007",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/auth/sessions.ts"
+    ]
+   },
+   {
+    "i": "t001",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/catalog/handlers.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t016",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/users/service.ts"
+    ]
+   },
+   {
+    "i": "t021",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/handlers.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/handlers.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t002",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t033",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t004",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t018",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts",
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t030",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t008",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t005",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/tax.ts"
+    ]
+   },
+   {
+    "i": "t015",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t016",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/inventory/stock.ts"
+    ]
+   },
+   {
+    "i": "t006",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/config.ts"
+    ]
+   },
+   {
+    "i": "t005",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/config.ts"
+    ]
+   },
+   {
+    "i": "t002",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/shipping/service.ts"
+    ]
+   },
+   {
+    "i": "t035",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t034",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t016",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t027",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t028",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t004",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t018",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t028",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t004",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t018",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t030",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/billing/service.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t028",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t002",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/db/migrations/index.ts",
+     "src/orders/checkout.ts",
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t033",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/shipping/service.ts"
+    ]
+   },
+   {
+    "i": "t035",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t034",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t028",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t038",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t039",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/inventory/stock.ts"
+    ]
+   },
+   {
+    "i": "t006",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t002",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t013",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t033",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/inventory/stock.ts"
+    ]
+   },
+   {
+    "i": "t028",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t039",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t007",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t030",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t036",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t028",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t039",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t011",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   }
+  ]
+ }
+}

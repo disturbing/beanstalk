@@ -1,0 +1,63 @@
+{
+ "task": "t036",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-refunds.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-refunds.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 6,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > refunds the line net minus its discount share plus its tax",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 201"
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > refunds identical amounts for three identical lines",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(amounts[0] > 0)"
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > keeps the refund on the invoice in a refunds list",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 201"
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > refunds a line only once",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 201"
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > rejects refunds on invoices that are not paid",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 409"
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > answers 404 for a product that is not on the invoice",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/invoice-refunds.test.ts",
+     "name": "POST /invoices/:id/refunds > is admin only",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 403"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

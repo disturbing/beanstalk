@@ -1,0 +1,1234 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 40 tasks, policy=beanstalk, agent=replay (replay control: reference patches, synthetic timings)",
+  "policy": "beanstalk",
+  "agent": "replay",
+  "model": "replay",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 8,
+    "ci_seconds": 4.5,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 7,
+    "budget_usd": 25.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": true,
+    "snapshot": "green",
+    "queue_hold": null,
+    "error_budget": 3,
+    "footprint": "predictor",
+    "tasks": 40,
+    "protect_tests": "own"
+  },
+  "aborted": null,
+  "wall_seconds": 184.73,
+  "tasks": 40,
+  "tasks_green": 24,
+  "tasks_landed": 24,
+  "tasks_dropped": 16,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {
+    "replay could not repair the pre-land failure (limitation of replay agents)": 12,
+    "replay could not resolve the conflict (limitation of replay agents)": 4
+  },
+  "changes_green_per_hour": 467.715,
+  "wall_to_all_green_seconds": null,
+  "task_start_to_green_seconds": {
+    "median": 31.27,
+    "p90": 54.48,
+    "mean": 36.3
+  },
+  "agent_minutes": {
+    "busy": 5.89,
+    "blocked": 16.12,
+    "idle": 2.63
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.43,
+      "blocked": 1.9,
+      "idle": 0.75
+    },
+    "a1": {
+      "busy": 0.86,
+      "blocked": 2.1,
+      "idle": 0.12
+    },
+    "a2": {
+      "busy": 0.46,
+      "blocked": 2.29,
+      "idle": 0.33
+    },
+    "a3": {
+      "busy": 0.68,
+      "blocked": 2.14,
+      "idle": 0.25
+    },
+    "a4": {
+      "busy": 1.03,
+      "blocked": 2.03,
+      "idle": 0.02
+    },
+    "a5": {
+      "busy": 0.46,
+      "blocked": 2.18,
+      "idle": 0.44
+    },
+    "a6": {
+      "busy": 1.07,
+      "blocked": 1.7,
+      "idle": 0.3
+    },
+    "a7": {
+      "busy": 0.9,
+      "blocked": 1.76,
+      "idle": 0.42
+    }
+  },
+  "invocations": {
+    "initial": 40,
+    "rework": 18
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 40,
+      "cost_usd": 0.0,
+      "turns": 40,
+      "wall_s": 123.685,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 18,
+      "cost_usd": 0.0,
+      "turns": 18,
+      "wall_s": 229.466,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0.0,
+  "cost_by_kind": {
+    "initial": 0.0,
+    "rework": 0.0
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    },
+    "rework": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": null,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0.0
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "validate": 22
+  },
+  "ci_runs_total": 22,
+  "ci_minutes": {
+    "validate": 3.39
+  },
+  "ci_minutes_total": 3.39,
+  "textual_conflicts": 6,
+  "red_validations": 0,
+  "final": {
+    "sha": "afc65c6594201686b4e92c7b40ab163ef2baefe0",
+    "suite_green": true,
+    "suite_tests": 158,
+    "suite_failures": 0,
+    "acceptance_run_green": false,
+    "tasks_accepted": 24,
+    "tasks_total": 40,
+    "green_tasks_accepted": 24,
+    "green_tasks": 24,
+    "correct": true,
+    "all_tasks_accepted": false,
+    "failing_files": [
+      "src/billing/coupon-expiry.test.ts",
+      "src/billing/coupon-max-discount.test.ts",
+      "src/billing/coupons.test.ts",
+      "src/billing/invoice-line.test.ts",
+      "src/billing/invoice-list.test.ts",
+      "src/billing/invoice-overdue.test.ts",
+      "src/billing/invoice-text.test.ts",
+      "src/billing/quebec-tax.test.ts",
+      "src/billing/tax-rounding.test.ts",
+      "src/db/coupon-max-discount-migration.test.ts",
+      "src/db/order-note-migration.test.ts",
+      "src/db/shipment-tracking-migration.test.ts",
+      "src/inventory/atomic-reserve.test.ts",
+      "src/notifications/tracking-email.test.ts",
+      "src/orders/checkout-rollback.test.ts",
+      "src/orders/order-note.test.ts",
+      "src/orders/total-with-shipping.test.ts",
+      "src/shipping/shipment-tracking.test.ts",
+      "src/users/email-case.test.ts"
+    ],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.7083,
+      "recall": 0.4965,
+      "f1": 0.5583,
+      "tasks": 24,
+      "micro_recall": 0.4359,
+      "micro_precision": 0.7083
+    },
+    "vs_oracle": {
+      "precision": 0.7083,
+      "recall": 0.4965,
+      "f1": 0.5583,
+      "tasks": 24,
+      "micro_recall": 0.4359,
+      "micro_precision": 0.7083
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.001,
+      "landed_at": 18.665,
+      "green_at": 25.098,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 6.091,
+      "landed_at": 25.47,
+      "green_at": 37.375,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.013,
+      "landed_at": 20.573,
+      "green_at": 27.394,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "dropped",
+      "agent": "a4",
+      "started_at": 8.009,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t005": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.013,
+      "landed_at": 4.419,
+      "green_at": 10.363,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/lib"
+      ],
+      "actual_modules": [
+        "src/lib"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 18.811,
+      "landed_at": 35.537,
+      "green_at": 45.599,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t007": {
+      "status": "dropped",
+      "agent": "a3",
+      "started_at": 22.719,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "src/db",
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t008": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.013,
+      "landed_at": 22.54,
+      "green_at": 32.399,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/inventory"
+      ],
+      "actual_modules": [
+        "src/inventory"
+      ],
+      "oracle_modules": [
+        "src/inventory"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t009": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 24.13,
+      "landed_at": 46.654,
+      "green_at": 55.378,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t010": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 0.013,
+      "landed_at": 7.839,
+      "green_at": 18.901,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing",
+        "src/db",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/db",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t011": {
+      "status": "dropped",
+      "agent": "a6",
+      "started_at": 25.66,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/db",
+        "src/orders",
+        "src/shipping"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t012": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 0.013,
+      "landed_at": 15.008,
+      "green_at": 25.098,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "src/auth"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t013": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 0.013,
+      "landed_at": 5.97,
+      "green_at": 12.155,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/notifications"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t014": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 30.965,
+      "landed_at": 86.183,
+      "green_at": 95.944,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/auth"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t015": {
+      "status": "dropped",
+      "agent": "a7",
+      "started_at": 35.993,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t016": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 46.855,
+      "landed_at": 72.506,
+      "green_at": 82.517,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t017": {
+      "status": "dropped",
+      "agent": "a3",
+      "started_at": 51.857,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t018": {
+      "status": "dropped",
+      "agent": "a6",
+      "started_at": 63.396,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/notifications"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t019": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 0.013,
+      "landed_at": 10.86,
+      "green_at": 20.963,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t020": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 68.556,
+      "landed_at": 114.101,
+      "green_at": 123.885,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth",
+        "src/users"
+      ],
+      "oracle_modules": [
+        "src/auth",
+        "src/users"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t021": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 20.7,
+      "landed_at": 37.635,
+      "green_at": 49.954,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/catalog"
+      ],
+      "oracle_modules": [
+        "src/catalog"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t022": {
+      "status": "dropped",
+      "agent": "a2",
+      "started_at": 73.197,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t023": {
+      "status": "dropped",
+      "agent": "a4",
+      "started_at": 73.605,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src/billing",
+        "src/lib"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t024": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 37.871,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/db"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t025": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 15.255,
+      "landed_at": 30.333,
+      "green_at": 40.636,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/notifications"
+      ],
+      "actual_modules": [
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src/notifications"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t026": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 86.484,
+      "landed_at": 127.435,
+      "green_at": 138.799,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t027": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 78.421,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/users"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t028": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 93.049,
+      "landed_at": 134.441,
+      "green_at": 145.547,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src",
+        "src/shipping"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/shipping"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t029": {
+      "status": "dropped",
+      "agent": "a7",
+      "started_at": 11.026,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t030": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 35.8,
+      "landed_at": 100.136,
+      "green_at": 117.91,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t031": {
+      "status": "dropped",
+      "agent": "a7",
+      "started_at": 115.189,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t032": {
+      "status": "dropped",
+      "agent": "a6",
+      "started_at": 115.841,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t033": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 4.597,
+      "landed_at": 24.013,
+      "green_at": 32.399,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/shipping"
+      ],
+      "actual_modules": [
+        "src/shipping"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/shipping"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t034": {
+      "status": "dropped",
+      "agent": "a4",
+      "started_at": 36.175,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/inventory"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/inventory"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t035": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 101.217,
+      "landed_at": 141.155,
+      "green_at": 151.955,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/cart",
+        "src/inventory"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/cart",
+        "src/inventory"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t036": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 128.239,
+      "landed_at": 159.869,
+      "green_at": 171.057,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t037": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 131.548,
+      "landed_at": 166.624,
+      "green_at": 176.17,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/catalog"
+      ],
+      "oracle_modules": [
+        "src/catalog"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t038": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 135.109,
+      "landed_at": 170.744,
+      "green_at": 181.271,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t039": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 135.322,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t040": {
+      "status": "dropped",
+      "agent": "a4",
+      "started_at": 136.071,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not repair the pre-land failure (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    }
+  },
+  "beanstalk": {
+    "placements_disjoint": 17,
+    "placements_overlap": 23,
+    "placement_overlap_modules": 23,
+    "landings": 24,
+    "fixer_landings": 0,
+    "reverts": 0,
+    "validations": 22,
+    "validations_green": 22,
+    "validations_red": 0,
+    "stale_reds": 0,
+    "tickets": 0,
+    "tickets_closed": 0,
+    "tickets_escalated": 0,
+    "tickets_by_method": {},
+    "trunk_bisect_runs": 0,
+    "pauses": 0,
+    "paused_seconds": 0.0,
+    "fixers_without_change": 0,
+    "preland_checks": 36,
+    "preland_red": 12,
+    "preland_seconds": 165.58,
+    "preland_reworks": 12,
+    "preland_drops": 0,
+    "mean_suspects_per_ticket": null,
+    "final_trunk_idx": 23,
+    "final_green_idx": 23,
+    "open_tickets_at_end": 0,
+    "ticket_details": [],
+    "variant": "preland"
+  },
+  "policy_rows": [
+    [
+      "Variant",
+      "pre-land check (repair before landing, same session)"
+    ],
+    [
+      "Pre-land checks (red) / reworks / drops",
+      "36 (12) / 12 / 0"
+    ],
+    [
+      "Pre-land check minutes",
+      "2.76"
+    ],
+    [
+      "Placements disjoint / overlapping",
+      "17 / 23"
+    ],
+    [
+      "Fast-trunk landings (task / fixer / revert)",
+      "24 / 0 / 0"
+    ],
+    [
+      "Validations (green / red)",
+      "22 / 0"
+    ],
+    [
+      "Repair tickets (closed / escalated / by method)",
+      "0 / 0 / {}"
+    ],
+    [
+      "Error-budget pauses / paused minutes",
+      "0 / 0.0"
+    ]
+  ]
+}

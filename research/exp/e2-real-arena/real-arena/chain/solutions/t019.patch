@@ -1,0 +1,27 @@
+diff --git a/src/Tokenizer.ts b/src/Tokenizer.ts
+index d1e6f4c7..369bb15f 100644
+--- a/src/Tokenizer.ts
++++ b/src/Tokenizer.ts
+@@ -138,8 +138,8 @@ export class _Tokenizer<ParserOutput = string, RendererOutput = string> {
+         const trimmed = rtrim(text, '#');
+         if (this.options.pedantic) {
+           text = trimmed.trim();
+-        } else if (!trimmed || this.rules.other.endingSpaceChar.test(trimmed)) {
+-          // CommonMark requires space before trailing #s
++        } else if (!trimmed || this.rules.other.endingSpaceTabChar.test(trimmed)) {
++          // CommonMark requires a space or tab before trailing #s
+           text = trimmed.trim();
+         }
+       }
+diff --git a/src/rules.ts b/src/rules.ts
+index 9d7c9491..0fbf5c6c 100644
+--- a/src/rules.ts
++++ b/src/rules.ts
+@@ -48,6 +48,7 @@ export const other = {
+   endingHash: /#$/,
+   startingSpaceChar: /^ /,
+   endingSpaceChar: / $/,
++  endingSpaceTabChar: /[ \t]$/,
+   nonSpaceChar: /[^ ]/,
+   newLineCharGlobal: /\n/g,
+   tabCharGlobal: /\t/g,

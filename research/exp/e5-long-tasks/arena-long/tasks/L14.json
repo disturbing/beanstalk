@@ -1,0 +1,41 @@
+{
+  "id": "L14",
+  "title": "Require a signature for high-value deliveries + Free standard shipping on orders over $75",
+  "prompt": "Two related tickets in shipping are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Require a signature for high-value deliveries\n\nParcels worth $250 or more should be delivered against a signature. When an order is shipped, record `signatureRequired` on its shipment: true if the order's `total` is at least `signatureThreshold`, false otherwise. The threshold is a shop setting, 25000 cents by default and overridable with the `SIGNATURE_THRESHOLD` environment variable. The shipment endpoint returns the new field.\n\n### Ticket 2: Free standard shipping on orders over $75\n\nMarketing wants free standard shipping for orders whose goods come to $75.00 or more (price times quantity, before any discount and before tax). Express shipping is never free. When the threshold is met, the standard shipping charged on the order, and the standard quote returned by `POST /shipping/quote` for the cart, is 0; delivery time estimates do not change. The threshold is an exported constant, `FREE_SHIPPING_THRESHOLD` (in cents), in shipping/service.ts for now.\n",
+  "acceptance_tests": {
+    "src/shipping/signature.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { defaultConfig, loadConfig } from '../config.ts';\nimport { createTestApp, placeOrder, signUp, US_ADDRESS } from '../lib/testing.ts';\n\nfunction shipmentFor(price: number) {\n  const app = createTestApp();\n  const { order, token } = placeOrder(app, { price, address: US_ADDRESS });\n  const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n  app.call('POST', `/orders/${order.id}/ship`, { token: admin.token, body: { trackingNumber: 'TRK-1' } });\n  const res = app.call('GET', `/orders/${order.id}/shipment`, { token });\n  return res.body as { signatureRequired: boolean };\n}\n\ndescribe('signature on delivery', () => {\n  it('has a $250 default threshold that can be overridden', () => {\n    assert.equal(defaultConfig.signatureThreshold, 25000);\n    assert.equal(loadConfig({ SIGNATURE_THRESHOLD: '10000' }).signatureThreshold, 10000);\n  });\n\n  it('is not required just under the threshold', () => {\n    assert.equal(shipmentFor(23400).signatureRequired, false);\n  });\n\n  it('is required for high-value orders', () => {\n    assert.equal(shipmentFor(30000).signatureRequired, true);\n  });\n});\n",
+    "src/shipping/free-shipping.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, placeOrder, signUp, US_ADDRESS } from '../lib/testing.ts';\nimport type { ShippingQuote } from '../types.ts';\nimport { FREE_SHIPPING_THRESHOLD } from './service.ts';\n\nfunction quoteFor(price: number, quantity: number, method: 'standard' | 'express' = 'standard') {\n  const app = createTestApp();\n  const { token } = signUp(app.ctx, 'a@example.com', { address: US_ADDRESS });\n  const product = addProduct(app.ctx, { price });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity } });\n  return app.call('POST', '/shipping/quote', { token, body: { addressIndex: 0, method } }).body as ShippingQuote;\n}\n\ndescribe('free shipping', () => {\n  it('has a $75 threshold', () => {\n    assert.equal(FREE_SHIPPING_THRESHOLD, 7500);\n  });\n\n  it('makes standard shipping free at the threshold', () => {\n    assert.equal(quoteFor(2500, 3).cost, 0);\n    assert.equal(quoteFor(7499, 1).cost, 500);\n    assert.equal(quoteFor(7500, 1).cost, 0);\n  });\n\n  it('never makes express shipping free', () => {\n    assert.deepEqual(quoteFor(10000, 1, 'express'), { method: 'express', cost: 1000, etaDays: 2 });\n  });\n\n  it('applies to the shipping charged at checkout', () => {\n    const app = createTestApp();\n    assert.equal(placeOrder(app, { price: 8000, address: US_ADDRESS }).order.shippingCost, 0);\n    assert.equal(placeOrder(app, { email: 'b@example.com', price: 7000, address: US_ADDRESS }).order.shippingCost, 500);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/config.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/service.ts",
+    "src/shipping/signature.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/shipping"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "members": [
+    "t028",
+    "t033"
+  ],
+  "couplings": [
+    {
+      "with": "L07",
+      "type": "semantic",
+      "members": [
+        "t028",
+        "t032"
+      ],
+      "note": "t028 x t032: signature compares order.total with a threshold and its test sits just under it ($234.00 + 6.5% tax = $249.21); total-with-shipping adds $5 shipping to order.total. Merges cleanly, the order then crosses the threshold."
+    }
+  ],
+  "theme": "shipping"
+}

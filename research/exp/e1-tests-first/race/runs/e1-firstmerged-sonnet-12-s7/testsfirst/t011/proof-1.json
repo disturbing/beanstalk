@@ -1,0 +1,57 @@
+{
+ "task": "t011",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/shipping/tracking.test.ts"
+ ],
+ "results": {
+  "src/shipping/tracking.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 4,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > returns the updated order without a tracking number from POST /orders/:id/ship",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!('trackingNumber' in body))"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > serves the tracking number from GET /orders/:id/shipment",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > stores the tracking number on the shipment and not on the order",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'TRK-300'"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > does not put a tracking number on newly placed orders",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!('trackingNumber' in order))"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > still requires a tracking number to ship",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking number migration > copies order tracking numbers to existing shipments and drops the order column",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0 !== 1"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

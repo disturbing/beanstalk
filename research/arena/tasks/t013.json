@@ -1,0 +1,24 @@
+{
+  "id": "t013",
+  "title": "Customers should get a receipt when their invoice is paid",
+  "prompt": "Customers have no confirmation that we received their payment. When an invoice is marked as paid, email the customer a receipt: the subject is \"Payment received for order <order number>\" and the body is \"We have received your payment for order <order number>. Thank you!\".\n\nIt is an ordinary notification, so it also appears in the customer's notification list, with the kind `payment_received`.",
+  "acceptance_tests": {
+    "src/billing/payment-receipt.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport type { Notification } from '../types.ts';\nimport { markPaid } from './service.ts';\n\ndescribe('payment receipts', () => {\n  it('emails the customer when an invoice is paid', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { email: 'carol@example.com' });\n    const before = app.mailer.sent.length;\n    markPaid(app.ctx, order.invoiceId!);\n    assert.equal(app.mailer.sent.length, before + 1);\n    assert.deepEqual(app.mailer.sent.at(-1), {\n      to: 'carol@example.com',\n      subject: `Payment received for order ${order.number}`,\n      body: `We have received your payment for order ${order.number}. Thank you!`,\n    });\n  });\n\n  it('is sent when an admin pays over HTTP, and only then', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const sentBefore = app.mailer.sent.length;\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token });\n    assert.equal(app.mailer.sent.length, sentBefore, 'customers cannot pay for themselves');\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token: admin.token });\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token: admin.token });\n    assert.equal(app.mailer.sent.length, sentBefore + 1, 'a second attempt fails and sends nothing');\n  });\n\n  it('shows up in the notification list as payment_received', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    markPaid(app.ctx, order.invoiceId!);\n    const list = app.call('GET', '/notifications', { token }).body as Notification[];\n    assert.ok(list.some((n) => n.kind === 'payment_received'));\n  });\n});\n",
+    "src/notifications/receipt-template.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\nimport { renderNotification } from './templates.ts';\n\ndescribe('payment receipt template', () => {\n  it('names the order', () => {\n    const { order } = placeOrder(createTestApp());\n    assert.deepEqual(renderNotification('payment_received', order, 'USD'), {\n      subject: `Payment received for order ${order.number}`,\n      body: `We have received your payment for order ${order.number}. Thank you!`,\n    });\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/service.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/templates.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "src",
+    "src/billing",
+    "src/notifications"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

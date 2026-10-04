@@ -1,0 +1,27 @@
+# Cloned source corpora (large; platform is private)
+corpora/
+# Outputs derived from private corpora never leave this machine
+**/out/private/
+contention-sim/params/private/
+# Race working directories (agent worktrees, logs with transcripts)
+race/runs/*/work/
+# Tooling
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Extracted corpora (regenerate with common/corpus.py; platform is private)
+data/
+
+# Experiment run working dirs, clones and regenerable outputs (lead, 2026-10-04)
+**/runs/*/work/
+exp/e2-real-arena/real-arena.git/
+exp/e2-real-arena/survey-clones/
+exp/e2-real-arena/upstream/
+exp/e2-real-arena/deps/
+contention-replay/out/**/pairs.jsonl
+footprint-prediction/out/**/predictions.jsonl
+footprint-prediction/out/**/jev_inputs.jsonl
+scale-replay/out/run.log

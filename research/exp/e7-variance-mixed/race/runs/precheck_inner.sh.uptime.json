@@ -1,0 +1,38 @@
+{
+ "start_uptime": "14:25  up 1 day,  6:22, 12 users, load averages: 4.86 7.75 19.00",
+ "start_at": "14:25:26",
+ "end_uptime": "14:26  up 1 day,  6:24, 12 users, load averages: 7.61 8.23 18.19",
+ "end_at": "14:26:48",
+ "samples": [
+  {
+   "at": "14:25:26",
+   "load1": 4.9,
+   "load5": 7.7,
+   "load15": 19.0,
+   "race_py_procs": 0
+  },
+  {
+   "at": "14:25:56",
+   "load1": 8.0,
+   "load5": 8.3,
+   "load15": 18.8,
+   "race_py_procs": 1
+  },
+  {
+   "at": "14:26:26",
+   "load1": 8.2,
+   "load5": 8.4,
+   "load15": 18.5,
+   "race_py_procs": 1
+  },
+  {
+   "at": "14:26:48",
+   "load1": 7.6,
+   "load5": 8.2,
+   "load15": 18.2,
+   "race_py_procs": 1
+  }
+ ],
+ "load1_mean": 7.2,
+ "load1_max": 8.2
+}

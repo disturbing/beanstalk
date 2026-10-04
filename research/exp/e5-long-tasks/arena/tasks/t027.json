@@ -1,0 +1,24 @@
+{
+  "id": "t027",
+  "title": "Customers can register twice with different capitalisation",
+  "prompt": "\"Ada@Example.com\" and \"ada@example.com\" are treated as two different customers, so one person can end up with two accounts, and a customer who signed up as \"Ada@Example.com\" cannot log in by typing their address in lower case.\n\nTreat email addresses case-insensitively: store them lower-cased, and look them up regardless of case (whitespace around an address is still ignored). Registering an address that exists in another capitalisation must fail with the usual 409.",
+  "acceptance_tests": {
+    "src/users/email-case.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp } from '../lib/testing.ts';\nimport type { User } from '../types.ts';\n\nconst body = { name: 'Ada', password: 'correct horse' };\n\ndescribe('email case', () => {\n  it('stores addresses in lower case', () => {\n    const app = createTestApp();\n    const res = app.call('POST', '/users', { body: { ...body, email: '  Ada@Example.COM ' } });\n    assert.equal(res.status, 201);\n    assert.equal((res.body as User).email, 'ada@example.com');\n  });\n\n  it('refuses a second account that differs only in case', () => {\n    const app = createTestApp();\n    app.call('POST', '/users', { body: { ...body, email: 'Ada@Example.com' } });\n    assert.equal(app.call('POST', '/users', { body: { ...body, email: 'ada@example.com' } }).status, 409);\n    assert.equal(app.ctx.store.users.all().length, 1);\n  });\n\n  it('lets customers log in with any capitalisation', () => {\n    const app = createTestApp();\n    app.call('POST', '/users', { body: { ...body, email: 'Ada@Example.com' } });\n    for (const email of ['ada@example.com', 'ADA@EXAMPLE.COM', ' Ada@Example.com ']) {\n      assert.equal(app.call('POST', '/auth/login', { body: { email, password: body.password } }).status, 200, email);\n    }\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/users/email-case.test.ts",
+    "src/users/service.ts"
+  ],
+  "oracle_modules": [
+    "src/users"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t020",
+      "type": "textual",
+      "note": "Both change the first lines of registerUser() in users/service.ts: one modifies the email normalisation line, the other adds password checks right after it."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "pr3999",
+  "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+  "prompt": "**Marked version:**\n\n18.0.5 / master\n\n**Markdown flavor:** Markdown.pl  / pedantic\n\n## Description\n\n- [Fixes 3938](https://github.com/markedjs/marked/issues/3938)\n- Inspired by the fix in [markedjs/marked#3959](https://github.com/markedjs/marked/compare/master...waiter:marked:fix_strong?expand=1), this implementation further optimizes emphasis and strong parsing for broader edge cases, such as:\n\n```\n**foo:**bar\n\n**foo**bar\n\n*foo:*bar\n\n_foo:_bar\n\n__foo:__bar\n\naa**\"A\"**and**\"B\"**aa\n\naa**'A'**and**'B'**aa\n\n**'test'**  \n```\n<img width=\"1103\" height=\"466\" alt=\"image\" src=\"https://github.com/user-attachments/assets/9bdd20f9-2730-4877-9e61-ad12dae4e042\" />",
+  "acceptance_tests": {
+    "test/specs/original/strong_punctuation.html": "<p><strong>foo:</strong>bar</p>\n\n<p><strong>foo</strong>bar</p>\n\n<p><em>foo:</em>bar</p>\n\n<p><em>foo:</em>bar</p>\n\n<p><strong>foo:</strong>bar</p>\n\n<p>a<strong>b:</strong>c</p>\n\n<p><strong>foo.</strong>bar</p>\n\n<p><strong>foo,</strong>bar</p>\n\n<p>aa<strong>bb</strong>cc</p>\n\n<p>aa<strong>&quot;A&quot;</strong>and<strong>&quot;B&quot;</strong>aa</p>\n\n<p>aa<strong>&#39;A&#39;</strong>and<strong>&#39;B&#39;</strong>aa</p>\n\n<p>We can compare <strong>&quot;direction&quot;</strong> and <strong>&quot;distance&quot;</strong> in two ways</p>\n\n<p>aa<strong>“A”</strong>and<strong>“B”</strong>aa</p>\n\n<p>aa<strong>‘A’</strong>and<strong>‘B’</strong>aa</p>\n\n<p>aa<strong>«A»</strong>bb</p>\n\n<p>aa<strong>‹A›</strong>bb</p>\n\n<p><strong>(A)</strong></p>\n\n<p>aa<strong>(A)</strong>bb</p>\n\n<p>aa<strong>[A]</strong>bb</p>\n\n<p>aa<strong>{A}</strong>bb</p>\n\n<p>aa<strong>「A」</strong>bb</p>\n\n<p>aa<strong>（A）</strong>bb</p>\n\n<p>aa<strong>【A】</strong>bb</p>\n\n<p>aa**”A”**bb</p>\n\n<p>aa**’A’**bb</p>\n\n<p><strong>&quot;a</strong>b</p>\n\n<p><strong>&quot;:</strong>x</p>\n\n<p>a<strong>&quot;b</strong>c</p>\n\n<p><strong>&quot;A&quot;</strong></p>\n\n<p><strong>&quot;&quot;</strong></p>\n\n<p>x<strong>&quot;y:&quot;</strong>z</p>\n\n<p><strong>foo:</strong></p>\n\n<p><strong>:</strong></p>\n\n<hr>\n\n<p>aa<strong>(A)</strong>and<strong>&quot;B&quot;</strong>cc</p>\n\n<p><strong>foo</strong>bar</p>\n\n<p><strong>foo.</strong>bar</p>\n\n<p><strong>foo,</strong>bar</p>\n\n<p><strong>(A)</strong></p>\n\n<p><strong>«A»</strong></p>\n\n<p><strong>「A」</strong></p>\n\n<p><strong>&quot;A&quot;</strong></p>\n\n<p><strong>&quot;&quot;</strong></p>\n\n<p><strong>&quot;a</strong>b</p>\n\n<p><strong>&quot;:</strong>x</p>\n\n<p><em>&quot;a</em>b</p>\n\n<p><strong>foo:</strong></p>\n\n<p><strong>:</strong></p>\n\n<p>aa__bb__cc</p>\n\n<p>a__b:__c</p>\n\n<p>aa__(A)__bb</p>\n\n<p>aa__&quot;A&quot;__bb</p>\n\n<p>aa_bb_cc</p>\n\n<p>a_&quot;b_c</p>\n",
+    "test/specs/original/strong_punctuation.md": "---\npedantic: true\n---\n\n**foo:**bar\n\n**foo**bar\n\n*foo:*bar\n\n_foo:_bar\n\n__foo:__bar\n\na**b:**c\n\n**foo.**bar\n\n**foo,**bar\n\naa**bb**cc\n\naa**\"A\"**and**\"B\"**aa\n\naa**'A'**and**'B'**aa\n\nWe can compare **\"direction\"** and **\"distance\"** in two ways\n\naa**“A”**and**“B”**aa\n\naa**‘A’**and**‘B’**aa\n\naa**«A»**bb\n\naa**‹A›**bb\n\n**(A)**\n\naa**(A)**bb\n\naa**[A]**bb\n\naa**{A}**bb\n\naa**「A」**bb\n\naa**（A）**bb\n\naa**【A】**bb\n\naa**”A”**bb\n\naa**’A’**bb\n\n**\"a**b\n\n**\":**x\n\na**\"b**c\n\n**\"A\"**\n\n**\"\"**\n\nx**\"y:\"**z\n\n**foo:**\n\n**:**\n\n****\n\naa**(A)**and**\"B\"**cc\n\n__foo__bar\n\n__foo.__bar\n\n__foo,__bar\n\n__(A)__\n\n__«A»__\n\n__「A」__\n\n__\"A\"__\n\n__\"\"__\n\n__\"a__b\n\n__\":__x\n\n_\"a_b\n\n__foo:__\n\n__:__\n\naa__bb__cc\n\na__b:__c\n\naa__(A)__bb\n\naa__\"A\"__bb\n\naa_bb_cc\n\na_\"b_c\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/original/strong_punctuation.html",
+    "test/specs/original/strong_punctuation.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 3999,
+    "sha": "823093f3d4a70be748eed48d0d0475836cebdedb",
+    "url": "https://github.com/markedjs/marked/pull/3999",
+    "author": "waiter",
+    "merged_at": "2026-08-04T04:29:40Z",
+    "pr_base_sha": "5ddfd8a5eba524b826b7a048cb9d20dcb57a13bd",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 53,
+    "notes": []
+  }
+}

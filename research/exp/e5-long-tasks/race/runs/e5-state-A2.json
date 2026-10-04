@@ -1,0 +1,15 @@
+{
+ "e5-long-r2-queue": {
+  "attempts": 1,
+  "verdict": "CLEAN",
+  "last_start": "2026-10-03T18:01:01+0800",
+  "cost_usd": 4.3963,
+  "aborted": null,
+  "infra": 0,
+  "last_end": "2026-10-03T18:20:37+0800"
+ },
+ "e5-long-r2-v2": {
+  "attempts": 0,
+  "verdict": null
+ }
+}

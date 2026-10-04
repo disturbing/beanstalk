@@ -1,0 +1,25 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..15c32e2 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -17,6 +17,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Cart totals no longer double count quantities after a line is edited.
+ - Session cleanup runs when a user logs out.
++- Quebec orders are charged the full 14.975% sales tax.
+ 
+ ## 0.4.0 - 2026-09-12
+ 
+diff --git a/src/billing/tax.ts b/src/billing/tax.ts
+index 21eeca6..d977dc1 100644
+--- a/src/billing/tax.ts
++++ b/src/billing/tax.ts
+@@ -13,7 +13,7 @@ const RATES: Record<string, Record<string, number>> = {
+     NU: 0.05,
+     ON: 0.13,
+     PE: 0.15,
+-    QC: 0.14,
++    QC: 0.14975,
+     SK: 0.11,
+     YT: 0.05,
+   },

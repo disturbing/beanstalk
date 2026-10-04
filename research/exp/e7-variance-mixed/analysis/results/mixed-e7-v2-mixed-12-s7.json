@@ -1,0 +1,3185 @@
+{
+ "e7-v2-mixed-12-s7": {
+  "per_vendor": {
+   "claude": {
+    "tasks_authored": 20,
+    "green": 18,
+    "accepted": 18,
+    "dropped": 2,
+    "no_rework": 13,
+    "conflict_events": 11,
+    "tasks_with_conflict": 7,
+    "red_events": 8,
+    "tasks_with_red": 6,
+    "reds_own_tests": 1,
+    "reds_other_tests": 7,
+    "reworks_of_authored": 18,
+    "tasks_reworked": 7,
+    "invocations": 38,
+    "initial_invocations": 20,
+    "rework_invocations": 18,
+    "cost_usd": 3.0417255,
+    "cost_per_initial": 0.061937215000000004,
+    "cost_per_rework": 0.10016562222222221,
+    "initial_wall_median_s": 21.967,
+    "initial_turns_median": 11.5,
+    "rework_wall_median_s": 16.918,
+    "non_success_invocations": 0,
+    "timeouts": 0,
+    "tests_edited_by_agent": 1,
+    "hot_files_per_change": 0.85,
+    "files_per_change": 2.45,
+    "tokens": {
+     "input_tokens": 458,
+     "output_tokens": 77754,
+     "cache_creation_input_tokens": 471390,
+     "cache_read_input_tokens": 3542125
+    },
+    "cost_source": [
+     "reported",
+     "reported-delta"
+    ],
+    "first_try_checked": 20,
+    "first_try_own_pass": 20,
+    "first_try_suite_pass": 18
+   },
+   "codex": {
+    "tasks_authored": 20,
+    "green": 18,
+    "accepted": 18,
+    "dropped": 2,
+    "no_rework": 13,
+    "conflict_events": 10,
+    "tasks_with_conflict": 7,
+    "red_events": 5,
+    "tasks_with_red": 5,
+    "reds_own_tests": 1,
+    "reds_other_tests": 4,
+    "reworks_of_authored": 15,
+    "tasks_reworked": 7,
+    "invocations": 35,
+    "initial_invocations": 20,
+    "rework_invocations": 15,
+    "cost_usd": 1.50840175,
+    "cost_per_initial": 0.0415907375,
+    "cost_per_rework": 0.0451058,
+    "initial_wall_median_s": 41.7705,
+    "initial_turns_median": 7.0,
+    "rework_wall_median_s": 48.259,
+    "non_success_invocations": 0,
+    "timeouts": 0,
+    "tests_edited_by_agent": 0,
+    "hot_files_per_change": 0.35,
+    "files_per_change": 1.65,
+    "tokens": {
+     "input_tokens": 728243,
+     "cache_read_input_tokens": 2692864,
+     "cache_creation_input_tokens": 0,
+     "output_tokens": 26149
+    },
+    "cost_source": [
+     "estimated"
+    ],
+    "first_try_checked": 20,
+    "first_try_own_pass": 19,
+    "first_try_suite_pass": 17
+   }
+  },
+  "rework_outcomes": {
+   "claude": {
+    "collided again": 12,
+    "same-vendor rework": 18,
+    "dropped": 1,
+    "landed": 5
+   },
+   "codex": {
+    "collided again": 8,
+    "same-vendor rework": 15,
+    "dropped": 2,
+    "landed": 5
+   }
+  },
+  "tasks": {
+   "t001": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0310186,
+    "first_wall": 12.405,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 0.487,
+    "land_t": 73.392
+   },
+   "t002": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.04358075,
+    "first_wall": 46.964,
+    "first_turns": 8,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/catalog/handlers.ts",
+     "src/lib/pagination.ts",
+     "src/orders/handlers.ts"
+    ],
+    "start_t": 0.515,
+    "land_t": 107.948
+   },
+   "t003": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0713395,
+    "first_wall": 27.263,
+    "first_turns": 12,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/billing/tax.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.544,
+    "land_t": 88.438
+   },
+   "t004": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0336745,
+    "first_wall": 33.775,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/invoice.ts"
+    ],
+    "start_t": 0.572,
+    "land_t": 270.099
+   },
+   "t005": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0316101,
+    "first_wall": 13.051,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/lib/money.ts"
+    ],
+    "start_t": 0.603,
+    "land_t": 74.167
+   },
+   "t006": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.032714,
+    "first_wall": 30.945,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/config.ts"
+    ],
+    "start_t": 0.635,
+    "land_t": 152.51
+   },
+   "t007": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.07831450000000001,
+    "first_wall": 28.49,
+    "first_turns": 16,
+    "rework_cost": 0.3186997,
+    "files": 5,
+    "initial_files": [
+     "src/db/migrations/0006_order_note.ts",
+     "src/db/migrations/index.ts",
+     "src/orders/checkout.ts",
+     "src/orders/handlers.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.679,
+    "land_t": null
+   },
+   "t008": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.02494875,
+    "first_wall": 35.481,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/inventory/stock.ts"
+    ],
+    "start_t": 0.717,
+    "land_t": 96.682
+   },
+   "t009": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0481043,
+    "first_wall": 15.982,
+    "first_turns": 10,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/config.ts",
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 0.763,
+    "land_t": 77.216
+   },
+   "t010": {
+    "vendor": "codex",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.05032725,
+    "first_wall": 50.764,
+    "first_turns": 8,
+    "rework_cost": 0.143994,
+    "files": 5,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/db/migrations/0006_user_tax_exempt.ts",
+     "src/db/migrations/index.ts",
+     "src/types.ts",
+     "src/users/service.ts"
+    ],
+    "start_t": 0.808,
+    "land_t": null
+   },
+   "t011": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0895756,
+    "first_wall": 26.522,
+    "first_turns": 15,
+    "rework_cost": 0,
+    "files": 6,
+    "initial_files": [
+     "src/db/migrations/0006_shipment_tracking.ts",
+     "src/db/migrations/index.ts",
+     "src/orders/checkout.ts",
+     "src/shipping/handlers.ts",
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "start_t": 0.853,
+    "land_t": 270.035
+   },
+   "t012": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.023872,
+    "first_wall": 31.181,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/auth/sessions.ts"
+    ],
+    "start_t": 0.914,
+    "land_t": 92.582
+   },
+   "t013": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0716775,
+    "first_wall": 23.39,
+    "first_turns": 15,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/billing/service.ts",
+     "src/notifications/templates.ts",
+     "src/types.ts"
+    ],
+    "start_t": 73.423,
+    "land_t": 157.403
+   },
+   "t014": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.050945800000000006,
+    "first_wall": 20.544,
+    "first_turns": 11,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/auth/guard.ts",
+     "src/auth/sessions.ts"
+    ],
+    "start_t": 74.199,
+    "land_t": 155.543
+   },
+   "t015": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.0370986,
+    "first_wall": 13.653,
+    "first_turns": 7,
+    "rework_cost": 0.044993899999999996,
+    "files": 3,
+    "initial_files": [
+     "src/billing/coupons.ts",
+     "src/billing/discounts.ts",
+     "src/billing/invoice.ts"
+    ],
+    "start_t": 77.248,
+    "land_t": 332.218
+   },
+   "t016": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.044902000000000004,
+    "first_wall": 18.014,
+    "first_turns": 9,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 88.534,
+    "land_t": 270.672
+   },
+   "t017": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.048717,
+    "first_wall": 25.121,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/tax.ts"
+    ],
+    "start_t": 92.614,
+    "land_t": 178.312
+   },
+   "t018": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0351675,
+    "first_wall": 28.276,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/notifications/templates.ts"
+    ],
+    "start_t": 96.717,
+    "land_t": 271.356
+   },
+   "t019": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.046796,
+    "first_wall": 57.716,
+    "first_turns": 8,
+    "rework_cost": 0,
+    "files": 3,
+    "initial_files": [
+     "src/orders/handlers.ts",
+     "src/orders/service.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 107.98,
+    "land_t": 270.475
+   },
+   "t020": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.05484775,
+    "first_wall": 33.876,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/users/service.ts"
+    ],
+    "start_t": 152.545,
+    "land_t": 271.55
+   },
+   "t021": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.042666100000000005,
+    "first_wall": 17.808,
+    "first_turns": 10,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/catalog/handlers.ts"
+    ],
+    "start_t": 155.576,
+    "land_t": 270.946
+   },
+   "t022": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0843876,
+    "first_wall": 26.441,
+    "first_turns": 14,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 157.438,
+    "land_t": 333.152
+   },
+   "t023": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 1,
+    "reds": 0,
+    "first_cost": 0.0445455,
+    "first_wall": 43.333,
+    "first_turns": 7,
+    "rework_cost": 0.046408,
+    "files": 2,
+    "initial_files": [
+     "src/billing/invoice.ts",
+     "src/lib/money.ts"
+    ],
+    "start_t": 178.346,
+    "land_t": 404.098
+   },
+   "t024": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.0814742,
+    "first_wall": 31.63,
+    "first_turns": 17,
+    "rework_cost": 0.24760810000000005,
+    "files": 5,
+    "initial_files": [
+     "src/billing/discounts.ts",
+     "src/db/migrations/0007_coupon_max_discount.ts",
+     "src/db/migrations/index.ts",
+     "src/lib/testing.ts",
+     "src/types.ts"
+    ],
+    "start_t": 270.077,
+    "land_t": 534.384
+   },
+   "t025": {
+    "vendor": "codex",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 3,
+    "reworks": 3,
+    "reds": 0,
+    "first_cost": 0.05958925,
+    "first_wall": 46.892,
+    "first_turns": 7,
+    "rework_cost": 0.109474,
+    "files": 1,
+    "initial_files": [
+     "src/notifications/templates.ts"
+    ],
+    "start_t": 270.165,
+    "land_t": null
+   },
+   "t026": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.0416885,
+    "first_wall": 43.141,
+    "first_turns": 8,
+    "rework_cost": 0.09160599999999999,
+    "files": 1,
+    "initial_files": [
+     "src/billing/discounts.ts"
+    ],
+    "start_t": 270.549,
+    "land_t": 523.176
+   },
+   "t027": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.0394654,
+    "first_wall": 16.146,
+    "first_turns": 7,
+    "rework_cost": 0.20236340000000003,
+    "files": 1,
+    "initial_files": [
+     "src/users/service.ts"
+    ],
+    "start_t": 270.807,
+    "land_t": 508.381
+   },
+   "t028": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.0818021,
+    "first_wall": 27.567,
+    "first_turns": 19,
+    "rework_cost": 0.2801082,
+    "files": 5,
+    "initial_files": [
+     "src/config.ts",
+     "src/db/migrations/0007_shipment_signature.ts",
+     "src/db/migrations/index.ts",
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "start_t": 271.1,
+    "land_t": 719.975
+   },
+   "t029": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": false,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.07613475,
+    "first_wall": 51.858,
+    "first_turns": 9,
+    "rework_cost": 0.105513,
+    "files": 1,
+    "initial_files": [
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 271.488,
+    "land_t": 602.271
+   },
+   "t030": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": false,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.02987775,
+    "first_wall": 48.288,
+    "first_turns": 8,
+    "rework_cost": 0.0704765,
+    "files": 1,
+    "initial_files": [
+     "src/orders/checkout.ts"
+    ],
+    "start_t": 271.63,
+    "land_t": 518.873
+   },
+   "t031": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": false,
+    "conflicts": 2,
+    "reworks": 3,
+    "reds": 1,
+    "first_cost": 0.1062899,
+    "first_wall": 39.14,
+    "first_turns": 18,
+    "rework_cost": 0.3459637,
+    "files": 2,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 332.258,
+    "land_t": 604.804
+   },
+   "t032": {
+    "vendor": "claude",
+    "status": "dropped",
+    "accepted": false,
+    "first_own_pass": true,
+    "first_suite_pass": false,
+    "conflicts": 1,
+    "reworks": 3,
+    "reds": 3,
+    "first_cost": 0.0783513,
+    "first_wall": 30.807,
+    "first_turns": 14,
+    "rework_cost": 0.36324419999999996,
+    "files": 2,
+    "initial_files": [
+     "src/orders/checkout.ts",
+     "src/types.ts"
+    ],
+    "start_t": 333.191,
+    "land_t": null
+   },
+   "t033": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0310955,
+    "first_wall": 40.4,
+    "first_turns": 8,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/shipping/service.ts"
+    ],
+    "start_t": 404.134,
+    "land_t": 505.377
+   },
+   "t034": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.021805,
+    "first_wall": 29.057,
+    "first_turns": 6,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/inventory/stock.ts"
+    ],
+    "start_t": 505.414,
+    "land_t": 595.428
+   },
+   "t035": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0556086,
+    "first_wall": 18.243,
+    "first_turns": 11,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/cart/service.ts"
+    ],
+    "start_t": 508.418,
+    "land_t": 587.936
+   },
+   "t036": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": false,
+    "first_suite_pass": false,
+    "conflicts": 1,
+    "reworks": 2,
+    "reds": 1,
+    "first_cost": 0.045949,
+    "first_wall": 67.193,
+    "first_turns": 9,
+    "rework_cost": 0.1091155,
+    "files": 4,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/billing/service.ts",
+     "src/routes.ts",
+     "src/types.ts"
+    ],
+    "start_t": 518.911,
+    "land_t": 854.095
+   },
+   "t037": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0486585,
+    "first_wall": 49.885,
+    "first_turns": 10,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/catalog/service.ts"
+    ],
+    "start_t": 523.244,
+    "land_t": 634.083
+   },
+   "t038": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0352813,
+    "first_wall": 11.514,
+    "first_turns": 8,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/coupons.ts"
+    ],
+    "start_t": 534.423,
+    "land_t": 607.15
+   },
+   "t039": {
+    "vendor": "claude",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0788313,
+    "first_wall": 24.059,
+    "first_turns": 13,
+    "rework_cost": 0,
+    "files": 2,
+    "initial_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "start_t": 571.743,
+    "land_t": 717.673
+   },
+   "t040": {
+    "vendor": "codex",
+    "status": "green",
+    "accepted": true,
+    "first_own_pass": true,
+    "first_suite_pass": true,
+    "conflicts": 0,
+    "reworks": 0,
+    "reds": 0,
+    "first_cost": 0.0378255,
+    "first_wall": 39.961,
+    "first_turns": 7,
+    "rework_cost": 0,
+    "files": 1,
+    "initial_files": [
+     "src/billing/service.ts"
+    ],
+    "start_t": 572.387,
+    "land_t": 673.478
+   }
+  },
+  "fleet": {
+   "a0": "claude",
+   "a1": "codex",
+   "a2": "claude",
+   "a3": "codex",
+   "a4": "claude",
+   "a5": "codex",
+   "a6": "claude",
+   "a7": "codex",
+   "a8": "claude",
+   "a9": "codex",
+   "a10": "claude",
+   "a11": "codex"
+  },
+  "policy": "v2",
+  "codex_models": {
+   "models": {
+    "gpt-6.1-sol (effort model default)": 35
+   },
+   "rollouts_missing": 0
+  },
+  "pairs": {
+   "same-claude": {
+    "conflict": 2,
+    "clean": 54,
+    "entangled": 4,
+    "n": 56,
+    "rate": 0.03571428571428571,
+    "lo": 0.009849218502577639,
+    "hi": 0.12119005852210082,
+    "overlap": 8,
+    "overlap_rate": 0.14285714285714285,
+    "overlap_lo": 0.0742070004258528,
+    "overlap_hi": 0.25736167420851525,
+    "overlap_conflict": 2
+   },
+   "cross": {
+    "conflict": 3,
+    "clean": 132,
+    "entangled": 10,
+    "n": 135,
+    "rate": 0.022222222222222223,
+    "lo": 0.007585775259412838,
+    "hi": 0.06329787920725997,
+    "overlap": 16,
+    "overlap_rate": 0.11851851851851852,
+    "overlap_lo": 0.07428284793141758,
+    "overlap_hi": 0.18386456610011193,
+    "overlap_conflict": 2
+   },
+   "same-codex": {
+    "conflict": 2,
+    "clean": 49,
+    "entangled": 4,
+    "n": 51,
+    "rate": 0.0392156862745098,
+    "lo": 0.010820856268751206,
+    "hi": 0.13216548986265267,
+    "overlap": 4,
+    "overlap_rate": 0.0784313725490196,
+    "overlap_lo": 0.030921696126931505,
+    "overlap_hi": 0.1850019822486082,
+    "overlap_conflict": 1
+   },
+   "same (all)": {
+    "conflict": 4,
+    "clean": 103,
+    "n": 107,
+    "rate": 0.037383177570093455,
+    "lo": 0.014631662528342755,
+    "hi": 0.09220187289518053,
+    "overlap": 12,
+    "overlap_rate": 0.11214953271028037,
+    "overlap_lo": 0.06532817353470435,
+    "overlap_hi": 0.18585549757794648,
+    "overlap_conflict": 3
+   },
+   "fisher_p_cross_vs_same": 0.702742878376229,
+   "fisher_p_overlap_cross_vs_same": 0.9999999999997919
+  },
+  "adjusted": null,
+  "collision_share": {
+   "events_cross": 8.9,
+   "events_same": 12.1,
+   "unattributed": 0,
+   "share_cross": 0.4238095238095238,
+   "exposure_share_cross": 0.5576923076923077,
+   "exposure_pairs": 260
+  },
+  "pair_rows": [
+   {
+    "i": "t001",
+    "j": "t005",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t009",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t003",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t012",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t012",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t012",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t012",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t008",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t008",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t002",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t002",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t002",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/config.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t006",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t006",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t006",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t006",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t014",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t014",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/auth/sessions.ts"
+    ]
+   },
+   {
+    "i": "t008",
+    "j": "t014",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t014",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t014",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t013",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t013",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t013",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t013",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t013",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t017",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t017",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t017",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t017",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t003",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t011",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t011",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t011",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t011",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t011",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t011",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t001",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t005",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t009",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t004",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t004",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t004",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t004",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t004",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t004",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t019",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t019",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t019",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t019",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t012",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t016",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t016",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t021",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t021",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t021",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t021",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t018",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t018",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/notifications/templates.ts"
+    ]
+   },
+   {
+    "i": "t017",
+    "j": "t018",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t018",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t018",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t018",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t014",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t020",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t020",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t020",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t020",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t020",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t003",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t012",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t008",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t002",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t006",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t014",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t013",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t019",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t015",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t015",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t017",
+    "j": "t022",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t022",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t022",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t022",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t016",
+    "j": "t022",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t022",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t022",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t022",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t022",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t011",
+    "j": "t023",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t023",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t019",
+    "j": "t023",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t023",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t023",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t023",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "conflict",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t023",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t023",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/invoice.ts"
+    ]
+   },
+   {
+    "i": "t022",
+    "j": "t023",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t027",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t027",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/users/service.ts"
+    ]
+   },
+   {
+    "i": "t015",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t022",
+    "j": "t027",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t027",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t027",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t022",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t030",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t030",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t030",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t026",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t026",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t022",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t026",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t026",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t026",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t026",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t004",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t019",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t016",
+    "j": "t024",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t021",
+    "j": "t024",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t024",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t022",
+    "j": "t024",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t024",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t024",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/discounts.ts"
+    ]
+   },
+   {
+    "i": "t030",
+    "j": "t035",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t035",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t035",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t034",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t034",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t034",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t022",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/orders/checkout.ts"
+    ]
+   },
+   {
+    "i": "t026",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t029",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t029",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t022",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t023",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t027",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t031",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t031",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t038",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t038",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t038",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t037",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t037",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t037",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t040",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t040",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t040",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t040",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t035",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t039",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t039",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t038",
+    "j": "t039",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t039",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t039",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t018",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t020",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t015",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t022",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t023",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": []
+   },
+   {
+    "i": "t033",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": [
+     "src/shipping/service.ts"
+    ]
+   },
+   {
+    "i": "t027",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t030",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "entangled",
+    "shared_files": [
+     "src/db/migrations/index.ts",
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t035",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t038",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t028",
+    "vi": "codex",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t039",
+    "j": "t028",
+    "vi": "claude",
+    "vj": "claude",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t026",
+    "j": "t036",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t024",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "entangled",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   },
+   {
+    "i": "t035",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t034",
+    "j": "t036",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t029",
+    "j": "t036",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t031",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t038",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t037",
+    "j": "t036",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": []
+   },
+   {
+    "i": "t040",
+    "j": "t036",
+    "vi": "codex",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/billing/service.ts"
+    ]
+   },
+   {
+    "i": "t039",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "conflict",
+    "shared_files": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ]
+   },
+   {
+    "i": "t028",
+    "j": "t036",
+    "vi": "claude",
+    "vj": "codex",
+    "status": "clean",
+    "shared_files": [
+     "src/types.ts"
+    ]
+   }
+  ]
+ }
+}

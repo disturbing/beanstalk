@@ -1,0 +1,80 @@
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..085d046 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -17,6 +17,8 @@ export interface InvoiceInput {
+   address: Address;
+   items: InvoiceItem[];
+   coupon?: Coupon;
++  /** Skip sales tax entirely, e.g. for wholesale accounts. */
++  taxExempt?: boolean;
+ }
+ 
+ export type InvoiceDraft = Omit<Invoice, 'id' | 'number'>;
+@@ -32,7 +34,7 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+   const lineDiscounts = allocateDiscount(nets, discount);
+ 
+   const lines: InvoiceLine[] = input.items.map((item, i) => {
+-    const taxRate = taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
++    const taxRate = input.taxExempt ? 0 : taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
+     return {
+       productId: item.productId,
+       description: item.description,
+diff --git a/src/db/migrations/0006_user_tax_exempt.ts b/src/db/migrations/0006_user_tax_exempt.ts
+new file mode 100644
+index 0000000..28c7ab6
+--- /dev/null
++++ b/src/db/migrations/0006_user_tax_exempt.ts
+@@ -0,0 +1,9 @@
++import type { Migration } from '../migrate.ts';
++
++export const migration0006: Migration = {
++  version: 6,
++  name: 'user_tax_exempt',
++  up(store) {
++    store.users.addColumn('taxExempt', false);
++  },
++};
+diff --git a/src/db/migrations/index.ts b/src/db/migrations/index.ts
+index b374227..30712ef 100644
+--- a/src/db/migrations/index.ts
++++ b/src/db/migrations/index.ts
+@@ -4,6 +4,7 @@ import { migration0002 } from './0002_seed_coupons.ts';
+ import { migration0003 } from './0003_product_weight.ts';
+ import { migration0004 } from './0004_order_shipping.ts';
+ import { migration0005 } from './0005_user_roles.ts';
++import { migration0006 } from './0006_user_tax_exempt.ts';
+ 
+ /** Every migration, in order. Add new ones at the end. */
+ export const migrations: Migration[] = [
+@@ -12,4 +13,5 @@ export const migrations: Migration[] = [
+   migration0003,
+   migration0004,
+   migration0005,
++  migration0006,
+ ];
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..77fb338 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -28,6 +28,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+     userId: user.id,
+     address,
+     couponCode: input.couponCode,
++    taxExempt: user.taxExempt,
+     items: priced.lines.map((line) => ({
+       productId: line.productId,
+       description: line.name,
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..79a206d 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -44,6 +44,8 @@ export interface User {
+   role: Role;
+   passwordHash: string;
+   passwordSalt: string;
++  /** Wholesale accounts with a resale certificate are never charged sales tax. */
++  taxExempt?: boolean;
+   addresses: Address[];
+   createdAt: string;
+ }

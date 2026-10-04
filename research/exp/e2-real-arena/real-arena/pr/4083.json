@@ -1,0 +1,13 @@
+{
+ "number": 4083,
+ "sha": "300bb1dce07bc262d74778b28bd6644770269be0",
+ "title": "fix: reject invalid characters in HTML tag names",
+ "body": "Per CommonMark (Raw HTML, and HTML blocks type 7) and GFM, an HTML tag name is `[A-Za-z][A-Za-z0-9-]*`. The block and inline tag regexes used `[\\w-]` (and `[\\w:-]` for the inline closing tag), so `_` \u2014 and `:` on closing tags \u2014 were accepted. As a result sequences like `<bar_baz>`, `<em_>\u2026</em_>` and `</a:b>` were emitted as raw HTML instead of being escaped as text.\n\nThis also removes an inconsistency where the inline opening-tag rule rejected `:` but the closing-tag rule accepted it.\n\nExample:\n\n```\nfoo <bar_baz> qux\n```\n\nbefore: `<p>foo <bar_baz> qux</p>` \u2014 after: `<p>foo &lt;bar_baz&gt; qux</p>` (matching commonmark.js).\n\nAttribute names still accept `_`/`:` \u2014 only tag names are affected. Added a `test/specs/new` case covering inline open/close and block tags with `_`/`:`. Full spec and unit suites pass.\n",
+ "author": "spokodev",
+ "created_at": "2026-09-03T09:04:21Z",
+ "merged_at": "2026-09-04T05:10:05Z",
+ "pr_base_sha": "c6119b3ce089dbbe158d92dd5de8269d718e70e4",
+ "pr_head_sha": "662436f83edd783e5a544d9924445c889b054e9e",
+ "commits": 1,
+ "linked_issues": []
+}

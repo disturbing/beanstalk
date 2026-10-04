@@ -1,0 +1,79 @@
+15:29:26 driver F: queue:claude:13:1 v2:claude:13:1 queue:mixed:7:0 v2:mixed:7:0 queue:claude:3:1:rerun v2:claude:3:1:rerun; waiting for pids []
+15:29:26 QUEUED e7-queue-claude-12-s13-shuf attempt 1 harness 03e808196e80 spent $22.39
+16:15:25 END e7-queue-claude-12-s13-shuf attempt 1 exit 0 cost $4.39 aborted=None
+         start: 15:48  up 1 day,  7:45, 12 users, load averages: 9.69 31.40 63.60
+         end:   16:15  up 1 day,  8:12, 12 users, load averages: 5.97 7.05 17.34
+16:15:25 yielding the slot for 0 s
+16:15:25 QUEUED e7-v2-claude-12-s13-shuf attempt 1 harness 03e808196e80 spent $26.78
+17:15:47 END e7-v2-claude-12-s13-shuf attempt 1 exit 0 cost $4.48 aborted=None
+         start: 17:01  up 1 day,  8:59, 12 users, load averages: 14.03 16.97 20.04
+         end:   17:15  up 1 day,  9:13, 12 users, load averages: 5.93 34.92 38.63
+17:15:47 yielding the slot for 0 s
+17:15:48 QUEUED e7-queue-mixed-12-s7 attempt 1 harness c1ae2b416fb1 spent $31.25
+18:44:10 END e7-queue-mixed-12-s7 attempt 1 exit 0 cost $4.00 aborted=None
+         start: 18:20  up 1 day, 10:17, 12 users, load averages: 8.14 4.90 4.99
+         end:   18:44  up 1 day, 10:41, 12 users, load averages: 8.54 4.40 4.10
+18:44:10 yielding the slot for 0 s
+18:44:10 QUEUED e7-v2-mixed-12-s7 attempt 1 harness c1ae2b416fb1 spent $35.26
+19:08:18 END e7-v2-mixed-12-s7 attempt 1 exit 0 cost $4.55 aborted=None
+         start: 18:52  up 1 day, 10:50, 12 users, load averages: 29.10 32.63 18.12
+         end:   19:08  up 1 day, 11:05, 12 users, load averages: 3.34 6.75 10.75
+19:08:18 yielding the slot for 0 s
+19:08:18 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:09:00 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 1/24): the API is not usable; releasing the slot, retrying in 5 min
+19:14:00 yielding the slot for 0 s
+19:14:00 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:14:43 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 2/24): the API is not usable; releasing the slot, retrying in 5 min
+19:19:43 yielding the slot for 0 s
+19:19:43 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:20:25 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 3/24): the API is not usable; releasing the slot, retrying in 5 min
+19:25:25 yielding the slot for 0 s
+19:25:25 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:26:08 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 4/24): the API is not usable; releasing the slot, retrying in 5 min
+19:31:08 yielding the slot for 0 s
+19:31:08 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:31:50 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 5/24): the API is not usable; releasing the slot, retrying in 5 min
+19:36:50 yielding the slot for 0 s
+19:36:50 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:37:33 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 6/24): the API is not usable; releasing the slot, retrying in 5 min
+19:42:33 yielding the slot for 0 s
+19:42:33 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:43:15 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 7/24): the API is not usable; releasing the slot, retrying in 5 min
+19:48:15 yielding the slot for 0 s
+19:48:15 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:48:58 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 8/24): the API is not usable; releasing the slot, retrying in 5 min
+19:53:58 yielding the slot for 0 s
+19:53:58 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+19:54:40 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 9/24): the API is not usable; releasing the slot, retrying in 5 min
+19:59:40 yielding the slot for 0 s
+19:59:40 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:00:23 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 10/24): the API is not usable; releasing the slot, retrying in 5 min
+20:05:23 yielding the slot for 0 s
+20:05:23 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:06:05 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 11/24): the API is not usable; releasing the slot, retrying in 5 min
+20:11:05 yielding the slot for 0 s
+20:11:05 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:11:48 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 12/24): the API is not usable; releasing the slot, retrying in 5 min
+20:16:48 yielding the slot for 0 s
+20:16:48 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:17:31 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 13/24): the API is not usable; releasing the slot, retrying in 5 min
+20:22:31 yielding the slot for 0 s
+20:22:31 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:23:13 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 14/24): the API is not usable; releasing the slot, retrying in 5 min
+20:28:13 yielding the slot for 0 s
+20:28:13 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:28:56 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 15/24): the API is not usable; releasing the slot, retrying in 5 min
+20:33:56 yielding the slot for 0 s
+20:33:56 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+20:34:38 PRE-FLIGHT FAILED for e7-queue-claude-12-s3-shuf (wait 16/24): the API is not usable; releasing the slot, retrying in 5 min
+20:39:38 yielding the slot for 0 s
+20:39:38 QUEUED e7-queue-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $39.81
+21:07:41 END e7-queue-claude-12-s3-shuf attempt 1 exit 0 cost $4.35 aborted=None
+         start: 20:39  up 1 day, 12:36, 12 users, load averages: 1.02 1.39 1.52
+         end:   21:07  up 1 day, 13:05, 12 users, load averages: 7.11 6.22 5.32
+21:07:41 yielding the slot for 0 s
+21:07:41 QUEUED e7-v2-claude-12-s3-shuf attempt 1 harness c1ae2b416fb1 spent $44.16
+21:20:09 END e7-v2-claude-12-s3-shuf attempt 1 exit 0 cost $3.99 aborted=None
+         start: 21:07  up 1 day, 13:05, 12 users, load averages: 7.11 6.22 5.32
+         end:   21:20  up 1 day, 13:17, 12 users, load averages: 2.50 12.95 13.26
+21:20:09 driver F done

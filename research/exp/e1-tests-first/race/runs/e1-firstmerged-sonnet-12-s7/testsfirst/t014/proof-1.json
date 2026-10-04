@@ -1,0 +1,51 @@
+{
+ "task": "t014",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/auth/sliding-sessions.test.ts"
+ ],
+ "results": {
+  "src/auth/sliding-sessions.test.ts": {
+   "status": "fails-first",
+   "why": "3 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 3,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding session expiry > keeps an active customer logged in past the original expiry",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n401 !== 200"
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding session expiry > moves expiresAt to a full lifetime from now on each authenticated request",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '2026-09-15T13:00:00.000Z'\n- '2026-09-15T13:30:00.000Z'\n                 ^"
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding session expiry > expires a full lifetime after the last request",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n401 !== 200"
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding session expiry > does not revive a session that has already expired",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding session expiry > does not extend the session on unauthenticated or invalid-token requests",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

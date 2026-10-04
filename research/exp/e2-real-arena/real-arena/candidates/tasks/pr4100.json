@@ -1,0 +1,35 @@
+{
+  "id": "pr4100",
+  "title": "fix: load CLI configs with top-level await",
+  "prompt": "The CLI cannot load an ESM config containing top-level `await` on Node.js versions that support synchronous `require(esm)`. For example:\n\n```js\n// config.mjs\nexport default await Promise.resolve({ breaks: true });\n```\n\n`marked --config config.mjs --string text` exits with `ERR_REQUIRE_ASYNC_MODULE` on Node 24.19.0. The config loader only falls back to `import()` for `ERR_REQUIRE_ESM`, so it never reaches the existing asynchronous import path.\n\nTreat `ERR_REQUIRE_ASYNC_MODULE` as another reason to use that path. Other loading errors continue to propagate, and the existing JSON/CommonJS loading path is unchanged.\n\nValidation:\n- Added a CLI regression test using a config with top-level `await`; it fails before the fix and passes after it.\n- Full `npm test` passes on Node 24.19.0, including specs, unit tests, UMD/CJS, types, and lint.",
+  "acceptance_tests": {
+    "test/unit/bin.pr4100.test.js": "import { main } from '../../bin/main.js';\nimport { htmlIsEqual } from '@markedjs/testutils';\nimport { resolve } from 'node:path';\nimport { describe, it, mock } from 'node:test';\nimport assert from 'node:assert';\nimport { exec } from 'node:child_process';\nimport { promisify } from 'node:util';\n\nconst execAsync = promisify(exec);\n\nfunction createMocks() {\n  const mocks = {\n    stdout: '',\n    stderr: '',\n    code: null,\n    stdin: {\n      data: null,\n      error: null,\n      end: null,\n    },\n    process: {\n      cwd: mock.fn(() => '/cwd'),\n      env: [],\n      argv: [],\n      stdout: {\n        write: mock.fn((str) => { mocks.stdout += str; }),\n      },\n      stderr: {\n        write: mock.fn((str) => { mocks.stderr += str; }),\n      },\n      stdin: {\n        setEncoding: mock.fn(),\n        on: mock.fn((method, func) => {\n          mocks.stdin[method] = func;\n        }),\n        resume: mock.fn(),\n      },\n      exit: mock.fn((code) => { mocks.code = code; }),\n    },\n  };\n\n  return mocks;\n}\n\nfunction testInput({ args = [], stdin = '', stdinError = '', stdout = '', stderr = '', code = 0 } = {}) {\n  return async() => {\n    const mocks = createMocks();\n    mocks.process.argv = ['node', 'marked', ...args];\n    const mainPromise = main(mocks.process);\n    if (typeof mocks.stdin.end === 'function') {\n      if (stdin) {\n        mocks.stdin.data(stdin);\n      }\n      if (stdinError) {\n        mocks.stdin.error(stdinError);\n      }\n      mocks.stdin.end();\n    }\n    await mainPromise;\n\n    assert.ok(await htmlIsEqual(mocks.stdout, stdout));\n    assert.strictEqual(mocks.stderr, stderr);\n    assert.strictEqual(mocks.code, code);\n  };\n}\n\nfunction fixturePath(filePath) {\n  return resolve(import.meta.dirname, './fixtures', filePath);\n}\n\nfunction execMarked({ args = '', stdin = '', stdout = '', stderr = '' }) {\n  const execPath = resolve(import.meta.dirname, '../../bin/marked');\n  return async() => {\n    let command = '';\n\n    if (stdin) {\n      command += `node -e \"process.stdout.write('${stdin}')\" | `;\n    }\n    command += `node ${execPath}`;\n    if (args) {\n      command += ` ${args}`;\n    }\n    const res = await execAsync(command);\n\n    assert.ok(await htmlIsEqual(res.stdout, stdout));\n    assert.strictEqual(res.stderr, stderr);\n  };\n}\n\ndescribe('bin/marked', () => {\n\n  describe('config', () => {\n\n    it('config with top-level await', testInput({\n      args: ['--config', fixturePath('bin-config-await.mjs'), '-s', 'line1\\nline2'],\n      stdout: '<p>line1<br>line2</p>',\n    }));\n  });\n});\n",
+    "test/unit/fixtures/bin-config-await.mjs": "export default await Promise.resolve({\n  breaks: true,\n});\n"
+  },
+  "oracle_paths": [
+    "bin/main.js",
+    "test/unit/bin.pr4100.test.js",
+    "test/unit/fixtures/bin-config-await.mjs"
+  ],
+  "oracle_modules": [
+    "bin",
+    "test/unit"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4100,
+    "sha": "c61543ed0f16121ace9255626abcafe9514cb1b0",
+    "url": "https://github.com/markedjs/marked/pull/4100",
+    "author": "pengboyu-dev",
+    "merged_at": "2026-09-29T03:03:58Z",
+    "pr_base_sha": "4eb2d97ca61e2f558aa0fb5860509f5399d74338",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": [
+      "test/unit/bin.test.js: 1 added/modified case(s) extracted to test/unit/bin.pr4100.test.js"
+    ]
+  }
+}

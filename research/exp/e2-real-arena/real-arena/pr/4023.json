@@ -1,0 +1,13 @@
+{
+ "number": 4023,
+ "sha": "e1b6139fec38345460f0df901723d8cdbade4fbf",
+ "title": "fix: fall back to default checkbox renderer when extension returns false",
+ "body": "**Markdown flavor:** GitHub Flavored Markdown\n\nA renderer extension named after a built-in token can return `false` to fall back to the default renderer \u2014 that's the documented contract in USING_PRO, and it works for `code`, `heading`, `text` and the rest. It doesn't work for `checkbox`: the checkbox silently disappears instead.\n\n```js\nconst marked = new Marked({\n  extensions: [{\n    name: 'checkbox',\n    renderer(token) {\n      return token.checked ? false : '<span class=\"todo\"></span> ';\n    },\n  }],\n});\n\nmarked.parse('- [x] one\\n- [ ] two\\n');\n```\n\nI expected the checked item to fall back to the default `<input checked=\"\" disabled=\"\" type=\"checkbox\">`, but it renders as just `<li>one</li>`. The unchecked item never returns `false`, and it renders fine, so only the fallback path is broken.\n\n`Parser` decides whether a `false` return should fall through to the built-in renderer by testing the token type against a hardcoded list of built-in type names. `checkbox` was added to both parse switches in #3755 but never to either list, so the fallback branch is unreachable for it and the `ret || ''` path wins.\n\nAdded `checkbox` to the block and inline lists. Both matter in practice: a tight list puts the checkbox token at block level while a loose list puts it inline, so there's a test for each.\n\n## Contributor\n\n- [x] Tests added (checkbox extension fallback, tight and loose list)\n- [x] No new feature to document\n",
+ "author": "sarathfrancis90",
+ "created_at": "2026-07-18T07:28:04Z",
+ "merged_at": "2026-07-24T04:37:40Z",
+ "pr_base_sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+ "pr_head_sha": "d080051e3240bec2c33157032407137105aec039",
+ "commits": 1,
+ "linked_issues": []
+}

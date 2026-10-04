@@ -1,0 +1,96 @@
+[
+ {
+  "task": "L02",
+  "members": 3,
+  "wall_s": 63.4,
+  "turns": 27,
+  "cost_usd": 0.1818,
+  "output_tokens": 7652,
+  "tools": {
+   "Bash": 7,
+   "Edit": 18,
+   "Write": 1
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 14,
+  "changed": [
+   "src/catalog/handlers.ts",
+   "src/db/migrations/index.ts",
+   "src/lib/pagination.test.ts",
+   "src/lib/pagination.ts",
+   "src/orders/checkout.ts",
+   "src/orders/handlers.ts",
+   "src/orders/service.ts",
+   "src/routes.ts",
+   "src/types.ts",
+   "src/catalog/total-count.test.ts",
+   "src/db/migrations/0006_order_note.ts",
+   "src/db/order-note-migration.test.ts",
+   "src/orders/order-note.test.ts",
+   "src/orders/reorder.test.ts"
+  ],
+  "infra_error": null
+ },
+ {
+  "task": "L11",
+  "members": 3,
+  "wall_s": 50.2,
+  "turns": 25,
+  "cost_usd": 0.1412,
+  "output_tokens": 5853,
+  "tools": {
+   "Bash": 4,
+   "Read": 8,
+   "Grep": 3,
+   "Edit": 9
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 7,
+  "changed": [
+   "src/billing/handlers.ts",
+   "src/billing/service.ts",
+   "src/billing/tax.ts",
+   "src/routes.ts",
+   "src/types.ts",
+   "src/billing/line-refunds.test.ts",
+   "src/billing/quebec-tax.test.ts"
+  ],
+  "infra_error": null
+ },
+ {
+  "task": "L08",
+  "members": 3,
+  "wall_s": 43.9,
+  "turns": 19,
+  "cost_usd": 0.1236,
+  "output_tokens": 5399,
+  "tools": {
+   "Bash": 5,
+   "Write": 1,
+   "Edit": 12
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 12,
+  "changed": [
+   "src/catalog/handlers.ts",
+   "src/catalog/service.ts",
+   "src/db/migrations/index.ts",
+   "src/orders/checkout.ts",
+   "src/shipping/handlers.ts",
+   "src/shipping/service.ts",
+   "src/types.ts",
+   "src/catalog/filter-products.test.ts",
+   "src/catalog/hidden-product.test.ts",
+   "src/db/migrations/0006_shipment_tracking.ts",
+   "src/db/shipment-tracking-migration.test.ts",
+   "src/shipping/shipment-tracking.test.ts"
+  ],
+  "infra_error": null
+ }
+]

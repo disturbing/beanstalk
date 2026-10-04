@@ -1,0 +1,86 @@
+diff --git a/src/db/migrations/0006_order_note.ts b/src/db/migrations/0006_order_note.ts
+new file mode 100644
+index 0000000..ecfdafd
+--- /dev/null
++++ b/src/db/migrations/0006_order_note.ts
+@@ -0,0 +1,9 @@
++import type { Migration } from '../migrate.ts';
++
++export const migration0006: Migration = {
++  version: 6,
++  name: 'order_note',
++  up(store) {
++    store.orders.addColumn('note', '');
++  },
++};
+diff --git a/src/db/migrations/index.ts b/src/db/migrations/index.ts
+index b374227..10ae27c 100644
+--- a/src/db/migrations/index.ts
++++ b/src/db/migrations/index.ts
+@@ -4,6 +4,7 @@ import { migration0002 } from './0002_seed_coupons.ts';
+ import { migration0003 } from './0003_product_weight.ts';
+ import { migration0004 } from './0004_order_shipping.ts';
+ import { migration0005 } from './0005_user_roles.ts';
++import { migration0006 } from './0006_order_note.ts';
+ 
+ /** Every migration, in order. Add new ones at the end. */
+ export const migrations: Migration[] = [
+@@ -12,4 +13,5 @@ export const migrations: Migration[] = [
+   migration0003,
+   migration0004,
+   migration0005,
++  migration0006,
+ ];
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..6b6ea6b 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -11,12 +11,15 @@ export interface CheckoutInput {
+   addressIndex: number;
+   couponCode?: string;
+   method?: ShippingMethod;
++  note?: string;
+ }
+ 
+ /** Turn the user's cart into a confirmed order: reserve stock, invoice it, quote shipping, notify. */
+ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Order {
+   const address = user.addresses[input.addressIndex];
+   if (!address) throw badRequest('choose a saved shipping address');
++  const note = input.note?.trim() ?? '';
++  if (note.length > 200) throw badRequest('note must be at most 200 characters');
+   const cart = getCart(ctx, user.id);
+   const priced = priceCart(ctx, cart);
+ 
+@@ -60,6 +63,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+     shippingAddress: address,
+     invoiceId: invoice.id,
+     trackingNumber: null,
++    note,
+     createdAt: now,
+     updatedAt: now,
+   });
+diff --git a/src/orders/handlers.ts b/src/orders/handlers.ts
+index c1230fa..e06a1de 100644
+--- a/src/orders/handlers.ts
++++ b/src/orders/handlers.ts
+@@ -16,6 +16,7 @@ export const checkout: Handler = (req, ctx) => {
+   const order = placeOrder(ctx, req.user!, {
+     addressIndex: requireInt(body, 'addressIndex'),
+     couponCode: optionalString(body, 'couponCode'),
++    note: optionalString(body, 'note'),
+     method: method as ShippingMethod | undefined,
+   });
+   return created(order);
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..d11c3e2 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -194,6 +194,8 @@ export interface Order {
+   shippingAddress: Address;
+   invoiceId: string | null;
+   trackingNumber: string | null;
++  /** Free-text delivery instructions from the customer. */
++  note: string;
+   createdAt: string;
+   updatedAt: string;
+ }

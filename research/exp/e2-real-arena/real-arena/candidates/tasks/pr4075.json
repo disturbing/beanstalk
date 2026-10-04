@@ -1,0 +1,33 @@
+{
+  "id": "pr4075",
+  "title": "fix: drop the leading whitespace after a hard line break",
+  "prompt": "**Marked version:** 18.0.11 (53cb13f1)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\nCommonMark ignores leading spaces at the start of the line following a hard line break. The `br` rule is:\n\n```js\nconst br = /^( {2,}|\\)\\n(?!\\s*$)/;\n```\n\nIt consumes the break itself but not the next line's indentation, so that indentation stays on the following text token and is rendered.\n\n## Expectation\n\n```\nfoo··\n·····bar\n```\n\ngives `<p>foo<br />\\nbar</p>`.\n\n## Result\n\n`<p>foo<br>     bar</p>`. The five spaces survive.\n\n## What was attempted\n\nAppending ` *` to the rule, so the break consumes the indentation that follows it.\n\nThis one is easy to measure wrongly, which is worth writing down. Neither of the comparisons normally used here can see it:\n\n- marked's own suite compares through `htmlIsEqual`, which leaves `ignoreWhitespaces` at its default of `true`, so the difference is invisible and examples 636 and 637 already report as passing with no `shouldFail` flag.\n- An exact string comparison fails both before and after the change, because marked emits `<br>` where the spec's reference output has `<br />` followed by a newline.\n\nUnder the spec's own `test/normalize.py`, which normalises the self-closing slash but keeps a single space that begins a text node after a tag, the whole-spec count goes from 28 to 26. The two that move are exactly 636 and 637, and nothing else changes, in both the CommonMark and GFM runs.\n\nCredit where it is due: I originally measured this with the two comparisons above, concluded it was not a bug, and said so in #4050. @exit0-run showed the `normalize.py` measurement and was right.",
+  "acceptance_tests": {
+    "test/specs/new/hardbreak_leading_whitespace.html": "<p>foo<br>bar</p>\n<p>foo<br>bar</p>\n<p>foo<br>bar</p>\n<p>foo<br>bar</p>\n<p>foo\n\tbar</p>\n<p>foo\nbar</p>\n",
+    "test/specs/new/hardbreak_leading_whitespace.md": "---\nrenderExact: true\n---\nfoo  \n     bar\n\nfoo\\\n     bar\n\nfoo  \n\tbar\n\nfoo  \n  \t bar\n\nfoo\n\tbar\n\nfoo\nbar\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/hardbreak_leading_whitespace.html",
+    "test/specs/new/hardbreak_leading_whitespace.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4075,
+    "sha": "123ce04b813e0cd87a6dcb2326112ffb54022069",
+    "url": "https://github.com/markedjs/marked/pull/4075",
+    "author": "Kjubikstronk",
+    "merged_at": "2026-09-08T15:29:34Z",
+    "pr_base_sha": "53cb13f13fc13d433269248c5caa255ffa1361ee",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": []
+  }
+}

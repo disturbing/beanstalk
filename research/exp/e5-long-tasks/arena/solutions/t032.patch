@@ -1,0 +1,38 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..262fb45 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- The order `total` includes shipping.
+ 
+ ### Fixed
+ 
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..b430702 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -55,7 +55,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+     discount: invoice.discount,
+     tax: invoice.tax,
+     shippingCost: shipping.cost,
+-    total: invoice.total,
++    total: invoice.total + shipping.cost,
+     couponCode: invoice.couponCode,
+     shippingAddress: address,
+     invoiceId: invoice.id,
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..63fa961 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -188,7 +188,7 @@ export interface Order {
+   discount: Cents;
+   tax: Cents;
+   shippingCost: Cents;
+-  /** Goods after discount, plus tax. Shipping is tracked separately in `shippingCost`. */
++  /** Everything payable: goods after discount, plus tax, plus shipping. */
+   total: Cents;
+   couponCode: string | null;
+   shippingAddress: Address;

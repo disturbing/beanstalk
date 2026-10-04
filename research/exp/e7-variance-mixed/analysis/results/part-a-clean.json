@@ -1,0 +1,769 @@
+{
+ "runs": {
+  "queue": {
+   "7": {
+    "run": "opus-queue-sonnet-12-landed",
+    "path": "/Users/coop/Workspace/beanstalk/research/race/runs/opus-queue-sonnet-12-landed",
+    "t20": 5.249233333333334,
+    "cost20": 3.0340751,
+    "t30": 10.368316666666667,
+    "cost30": 3.9815536,
+    "t35": 15.4601,
+    "cost35": 4.4166853,
+    "done": 16.472333333333335,
+    "greens": 37,
+    "cost": 4.4167,
+    "red": 7,
+    "dropped": 3,
+    "conflicts": 26,
+    "initial": 40,
+    "rework": 30,
+    "red_caught": 7,
+    "ci_minutes": 25.39,
+    "preland_minutes": null,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 12.664833333333332,
+    "suite_seconds_median": 0.85,
+    "suite_seconds_p90": 1.42,
+    "startup_ms_median": 332.0,
+    "overhead_ms_median": 1162.0,
+    "uptime": null,
+    "flag": ""
+   },
+   "11": {
+    "run": "opus-queue-sonnet-12-s11",
+    "path": "/Users/coop/Workspace/beanstalk/research/race/runs/opus-queue-sonnet-12-s11",
+    "t20": 4.206316666666667,
+    "cost20": 2.6508008000000003,
+    "t30": 20.496016666666666,
+    "cost30": 3.774105,
+    "t35": null,
+    "cost35": null,
+    "done": 34.74466666666667,
+    "greens": 34,
+    "cost": 4.1013,
+    "red": 14,
+    "dropped": 6,
+    "conflicts": 22,
+    "initial": 40,
+    "rework": 30,
+    "red_caught": 14,
+    "ci_minutes": 52.73,
+    "preland_minutes": null,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 21.1295,
+    "suite_seconds_median": 0.98,
+    "suite_seconds_p90": 1.41,
+    "startup_ms_median": 294.0,
+    "overhead_ms_median": 1024.5,
+    "uptime": null,
+    "flag": ""
+   },
+   "3": {
+    "run": "flagged-highload-e7-queue-claude-12-s3-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/flagged-highload-e7-queue-claude-12-s3-shuf",
+    "t20": 12.458166666666667,
+    "cost20": 3.385225,
+    "t30": 15.724516666666666,
+    "cost30": 3.709043,
+    "t35": 24.75235,
+    "cost35": 4.3815665,
+    "done": 25.824,
+    "greens": 36,
+    "cost": 4.3816,
+    "red": 7,
+    "dropped": 4,
+    "conflicts": 23,
+    "initial": 40,
+    "rework": 26,
+    "red_caught": 7,
+    "ci_minutes": 33.9,
+    "preland_minutes": null,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 17.333666666666666,
+    "suite_seconds_median": 17.55,
+    "suite_seconds_p90": 27.75,
+    "startup_ms_median": 15688.0,
+    "overhead_ms_median": 58750.5,
+    "uptime": null,
+    "flag": "concurrent + very high load"
+   },
+   "5": {
+    "run": "e7-queue-claude-12-s5-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/e7-queue-claude-12-s5-shuf",
+    "t20": 6.642966666666666,
+    "cost20": 2.7324437,
+    "t30": 11.9657,
+    "cost30": 3.8936215,
+    "t35": 24.87118333333333,
+    "cost35": 4.77303,
+    "done": 27.9695,
+    "greens": 36,
+    "cost": 4.8657,
+    "red": 10,
+    "dropped": 4,
+    "conflicts": 22,
+    "initial": 40,
+    "rework": 28,
+    "red_caught": 10,
+    "ci_minutes": 40.51,
+    "preland_minutes": null,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 18.970666666666666,
+    "suite_seconds_median": 3.07,
+    "suite_seconds_p90": 9.3,
+    "startup_ms_median": 739.5,
+    "overhead_ms_median": 3504.5,
+    "uptime": {
+     "start_uptime": "13:26  up 1 day,  5:23, 12 users, load averages: 163.31 154.78 238.33",
+     "end_uptime": "13:54  up 1 day,  5:51, 12 users, load averages: 10.22 27.40 69.12",
+     "load1_mean": 56.8,
+     "load1_max": 195.1
+    },
+    "flag": ""
+   },
+   "13": {
+    "run": "e7-queue-claude-12-s13-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/e7-queue-claude-12-s13-shuf",
+    "t20": 4.30825,
+    "cost20": 2.785497,
+    "t30": 11.64235,
+    "cost30": 3.6875370000000003,
+    "t35": 27.0182,
+    "cost35": 4.3926404,
+    "done": 27.012666666666668,
+    "greens": 35,
+    "cost": 4.3926,
+    "red": 12,
+    "dropped": 5,
+    "conflicts": 23,
+    "initial": 40,
+    "rework": 30,
+    "red_caught": 12,
+    "ci_minutes": 39.54,
+    "preland_minutes": null,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 12.787666666666667,
+    "suite_seconds_median": 1.77,
+    "suite_seconds_p90": 3.5,
+    "startup_ms_median": 473.5,
+    "overhead_ms_median": 2984.5,
+    "uptime": {
+     "start_uptime": "15:48  up 1 day,  7:45, 12 users, load averages: 9.69 31.40 63.60",
+     "end_uptime": "16:15  up 1 day,  8:12, 12 users, load averages: 5.97 7.05 17.34",
+     "load1_mean": 12.8,
+     "load1_max": 45.1
+    },
+    "flag": ""
+   }
+  },
+  "v2": {
+   "7": {
+    "run": "opus-v2fair-sonnet-12-s7",
+    "path": "/Users/coop/Workspace/beanstalk/research/race/runs/opus-v2fair-sonnet-12-s7",
+    "t20": 7.347133333333333,
+    "cost20": 4.7947154,
+    "t30": 9.662166666666668,
+    "cost30": 5.2102276,
+    "t35": 11.31115,
+    "cost35": 5.289905,
+    "done": 11.304166666666667,
+    "greens": 35,
+    "cost": 5.2899,
+    "red": 1,
+    "dropped": 5,
+    "conflicts": 21,
+    "initial": 40,
+    "rework": 37,
+    "red_caught": 17,
+    "ci_minutes": 18.24,
+    "preland_minutes": 83.87,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 6.0906666666666665,
+    "suite_seconds_median": 0.58,
+    "suite_seconds_p90": 1.23,
+    "startup_ms_median": 228.0,
+    "overhead_ms_median": 1094.0,
+    "uptime": null,
+    "flag": ""
+   },
+   "11": {
+    "run": "opus-v2fair-sonnet-12-s11",
+    "path": "/Users/coop/Workspace/beanstalk/research/race/runs/opus-v2fair-sonnet-12-s11",
+    "t20": 9.395833333333334,
+    "cost20": 5.3217550000000005,
+    "t30": 10.9274,
+    "cost30": 5.5377454,
+    "t35": null,
+    "cost35": null,
+    "done": 14.034333333333333,
+    "greens": 34,
+    "cost": 5.6229,
+    "red": 2,
+    "dropped": 6,
+    "conflicts": 16,
+    "initial": 40,
+    "rework": 36,
+    "red_caught": 23,
+    "ci_minutes": 19.24,
+    "preland_minutes": 95.36,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 6.467333333333333,
+    "suite_seconds_median": 0.71,
+    "suite_seconds_p90": 1.46,
+    "startup_ms_median": 266.5,
+    "overhead_ms_median": 1570.5,
+    "uptime": null,
+    "flag": ""
+   },
+   "3": {
+    "run": "flagged-highload-e7-v2-claude-12-s3-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/flagged-highload-e7-v2-claude-12-s3-shuf",
+    "t20": 13.450833333333332,
+    "cost20": 2.7498138,
+    "t30": 19.85905,
+    "cost30": 4.0766396,
+    "t35": null,
+    "cost35": null,
+    "done": 22.005666666666666,
+    "greens": 34,
+    "cost": 4.1857,
+    "red": 0,
+    "dropped": 6,
+    "conflicts": 15,
+    "initial": 40,
+    "rework": 25,
+    "red_caught": 14,
+    "ci_minutes": 29.97,
+    "preland_minutes": 98.95,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 9.498166666666666,
+    "suite_seconds_median": 19.39,
+    "suite_seconds_p90": 26.16,
+    "startup_ms_median": 13586.0,
+    "overhead_ms_median": 53084.0,
+    "uptime": null,
+    "flag": "concurrent + very high load"
+   },
+   "5": {
+    "run": "e7-v2-claude-12-s5-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/e7-v2-claude-12-s5-shuf",
+    "t20": 7.638416666666667,
+    "cost20": 3.0154709,
+    "t30": 10.935766666666666,
+    "cost30": 5.4737929,
+    "t35": 13.16835,
+    "cost35": 5.5993071,
+    "done": 14.367166666666666,
+    "greens": 37,
+    "cost": 5.5993,
+    "red": 2,
+    "dropped": 3,
+    "conflicts": 15,
+    "initial": 40,
+    "rework": 29,
+    "red_caught": 16,
+    "ci_minutes": 23.39,
+    "preland_minutes": 87.13,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 6.667166666666666,
+    "suite_seconds_median": 2.89,
+    "suite_seconds_p90": 6.3,
+    "startup_ms_median": 589.0,
+    "overhead_ms_median": 4734.0,
+    "uptime": {
+     "start_uptime": "14:26  up 1 day,  6:24, 12 users, load averages: 7.61 8.23 18.19",
+     "end_uptime": "14:41  up 1 day,  6:38, 12 users, load averages: 44.25 60.11 50.53",
+     "load1_mean": 65.1,
+     "load1_max": 159.0
+    },
+    "flag": ""
+   },
+   "13": {
+    "run": "e7-v2-claude-12-s13-shuf",
+    "path": "/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/runs/e7-v2-claude-12-s13-shuf",
+    "t20": 5.418316666666667,
+    "cost20": 2.7282207,
+    "t30": 9.009733333333333,
+    "cost30": 3.9916128,
+    "t35": 10.784016666666668,
+    "cost35": 4.4757847,
+    "done": 13.798333333333334,
+    "greens": 37,
+    "cost": 4.4758,
+    "red": 0,
+    "dropped": 3,
+    "conflicts": 11,
+    "initial": 40,
+    "rework": 22,
+    "red_caught": 12,
+    "ci_minutes": 18.8,
+    "preland_minutes": 82.33,
+    "correct": true,
+    "aborted": null,
+    "p90_start_to_green": 7.607833333333334,
+    "suite_seconds_median": 2.35,
+    "suite_seconds_p90": 7.9,
+    "startup_ms_median": 510.5,
+    "overhead_ms_median": 4430.5,
+    "uptime": {
+     "start_uptime": "17:01  up 1 day,  8:59, 12 users, load averages: 14.03 16.97 20.04",
+     "end_uptime": "17:15  up 1 day,  9:13, 12 users, load averages: 5.93 34.92 38.63",
+     "load1_mean": 54.2,
+     "load1_max": 173.0
+    },
+    "flag": ""
+   }
+  }
+ },
+ "analysis": {
+  "aggregate": {
+   "queue": {
+    "t20": {
+     "n": 4,
+     "of": 4,
+     "mean": 5.1016916666666665,
+     "min": 4.206316666666667,
+     "max": 6.642966666666666,
+     "median": 4.778741666666667,
+     "sd": 1.1296818487308058
+    },
+    "t30": {
+     "n": 4,
+     "of": 4,
+     "mean": 13.618095833333333,
+     "min": 10.368316666666667,
+     "max": 20.496016666666666,
+     "median": 11.804025,
+     "sd": 4.6368395561938796
+    },
+    "t35": {
+     "n": 3,
+     "of": 4,
+     "mean": 22.449827777777774,
+     "min": 15.4601,
+     "max": 27.0182,
+     "median": 24.87118333333333,
+     "sd": 6.147734619135313
+    },
+    "done": {
+     "n": 4,
+     "of": 4,
+     "mean": 26.549791666666668,
+     "min": 16.472333333333335,
+     "max": 34.74466666666667,
+     "median": 27.491083333333336,
+     "sd": 7.548531153874806
+    },
+    "cost": {
+     "n": 4,
+     "of": 4,
+     "mean": 4.444075,
+     "min": 4.1013,
+     "max": 4.8657,
+     "median": 4.40465,
+     "sd": 0.31552147708198897
+    },
+    "red": {
+     "n": 4,
+     "of": 4,
+     "mean": 10.75,
+     "min": 7,
+     "max": 14,
+     "median": 11.0,
+     "sd": 2.9860788111948193
+    },
+    "red_caught": {
+     "n": 4,
+     "of": 4,
+     "mean": 10.75,
+     "min": 7,
+     "max": 14,
+     "median": 11.0,
+     "sd": 2.9860788111948193
+    },
+    "ci_minutes": {
+     "n": 4,
+     "of": 4,
+     "mean": 39.5425,
+     "min": 25.39,
+     "max": 52.73,
+     "median": 40.025,
+     "sd": 11.182418864747762
+    },
+    "preland_minutes": {
+     "n": 0,
+     "of": 4
+    },
+    "greens": {
+     "n": 4,
+     "of": 4,
+     "mean": 35.5,
+     "min": 34,
+     "max": 37,
+     "median": 35.5,
+     "sd": 1.2909944487358056
+    },
+    "dropped": {
+     "n": 4,
+     "of": 4,
+     "mean": 4.5,
+     "min": 3,
+     "max": 6,
+     "median": 4.5,
+     "sd": 1.2909944487358056
+    },
+    "conflicts": {
+     "n": 4,
+     "of": 4,
+     "mean": 23.25,
+     "min": 22,
+     "max": 26,
+     "median": 22.5,
+     "sd": 1.8929694486000912
+    },
+    "rework": {
+     "n": 4,
+     "of": 4,
+     "mean": 29.5,
+     "min": 28,
+     "max": 30,
+     "median": 30.0,
+     "sd": 1.0
+    }
+   },
+   "v2": {
+    "t20": {
+     "n": 4,
+     "of": 4,
+     "mean": 7.449925,
+     "min": 5.418316666666667,
+     "max": 9.395833333333334,
+     "median": 7.492775,
+     "sd": 1.6289144541631038
+    },
+    "t30": {
+     "n": 4,
+     "of": 4,
+     "mean": 10.133766666666666,
+     "min": 9.009733333333333,
+     "max": 10.935766666666666,
+     "median": 10.294783333333335,
+     "sd": 0.9589778173003136
+    },
+    "t35": {
+     "n": 3,
+     "of": 4,
+     "mean": 11.754505555555555,
+     "min": 10.784016666666668,
+     "max": 13.16835,
+     "median": 11.31115,
+     "sd": 1.2524713460165833
+    },
+    "done": {
+     "n": 4,
+     "of": 4,
+     "mean": 13.376,
+     "min": 11.304166666666667,
+     "max": 14.367166666666666,
+     "median": 13.916333333333334,
+     "sd": 1.400794172894367
+    },
+    "cost": {
+     "n": 4,
+     "of": 4,
+     "mean": 5.246975,
+     "min": 4.4758,
+     "max": 5.6229,
+     "median": 5.4446,
+     "sd": 0.5360366739630168
+    },
+    "red": {
+     "n": 4,
+     "of": 4,
+     "mean": 1.25,
+     "min": 0,
+     "max": 2,
+     "median": 1.5,
+     "sd": 0.9574271077563381
+    },
+    "red_caught": {
+     "n": 4,
+     "of": 4,
+     "mean": 17.0,
+     "min": 12,
+     "max": 23,
+     "median": 16.5,
+     "sd": 4.546060565661952
+    },
+    "ci_minutes": {
+     "n": 4,
+     "of": 4,
+     "mean": 19.9175,
+     "min": 18.24,
+     "max": 23.39,
+     "median": 19.02,
+     "sd": 2.3508916748048323
+    },
+    "preland_minutes": {
+     "n": 4,
+     "of": 4,
+     "mean": 87.1725,
+     "min": 82.33,
+     "max": 95.36,
+     "median": 85.5,
+     "sd": 5.813583949108615
+    },
+    "greens": {
+     "n": 4,
+     "of": 4,
+     "mean": 35.75,
+     "min": 34,
+     "max": 37,
+     "median": 36.0,
+     "sd": 1.5
+    },
+    "dropped": {
+     "n": 4,
+     "of": 4,
+     "mean": 4.25,
+     "min": 3,
+     "max": 6,
+     "median": 4.0,
+     "sd": 1.5
+    },
+    "conflicts": {
+     "n": 4,
+     "of": 4,
+     "mean": 15.75,
+     "min": 11,
+     "max": 21,
+     "median": 15.5,
+     "sd": 4.112987559751022
+    },
+    "rework": {
+     "n": 4,
+     "of": 4,
+     "mean": 31.0,
+     "min": 22,
+     "max": 37,
+     "median": 32.5,
+     "sd": 6.97614984548545
+    }
+   }
+  },
+  "paired": {
+   "t20": {
+    "ratio_queue_over_v2": {
+     "n": 4,
+     "geo_mean": 0.6857802359523175,
+     "lo": 0.5168138260695664,
+     "hi": 0.8315677170036831,
+     "min": 0.4476789356984479,
+     "max": 0.8696784892156969,
+     "wins": 0,
+     "t_lo": 0.4285812371841147,
+     "t_hi": 1.0973287937492744
+    },
+    "per_seed": {
+     "5": 0.8696784892156969,
+     "7": 0.7144600615205932,
+     "11": 0.4476789356984479,
+     "13": 0.7951270228453486
+    }
+   },
+   "t30": {
+    "ratio_queue_over_v2": {
+     "n": 4,
+     "geo_mean": 1.2988260350969087,
+     "lo": 1.0835808011487555,
+     "hi": 1.639217897870211,
+     "min": 1.0730840218722508,
+     "max": 1.8756535558931369,
+     "wins": 4,
+     "t_lo": 0.8604616226511803,
+     "t_hi": 1.9605163380185093
+    },
+    "per_seed": {
+     "5": 1.0941802586619442,
+     "7": 1.0730840218722508,
+     "11": 1.8756535558931369,
+     "13": 1.292196957364628
+    }
+   },
+   "t35": {
+    "ratio_queue_over_v2": {
+     "n": 3,
+     "geo_mean": 1.863154324450336,
+     "lo": 1.4679329046960539,
+     "hi": 2.3590152647053966,
+     "min": 1.3668017840803102,
+     "max": 2.5053930121893355,
+     "wins": 3,
+     "t_lo": 0.8772008828480973,
+     "t_hi": 3.9572965606774377
+    },
+    "per_seed": {
+     "5": 1.8887091650307997,
+     "7": 1.3668017840803102,
+     "11": null,
+     "13": 2.5053930121893355
+    }
+   },
+   "done": {
+    "ratio_queue_over_v2": {
+     "n": 4,
+     "geo_mean": 1.9256033511509387,
+     "lo": 1.5688182554347896,
+     "hi": 2.33131342623316,
+     "min": 1.4571913011426465,
+     "max": 2.47569056836805,
+     "wins": 4,
+     "t_lo": 1.363487037463602,
+     "t_hi": 2.719459858497341
+    },
+    "per_seed": {
+     "5": 1.9467651937867592,
+     "7": 1.4571913011426465,
+     "11": 2.47569056836805,
+     "13": 1.9576760478318638
+    }
+   },
+   "p90_start_to_green": {
+    "ratio_queue_over_v2": {
+     "n": 4,
+     "geo_mean": 2.387495463672746,
+     "lo": 1.8695301876034405,
+     "hi": 3.0489663268636327,
+     "min": 1.6808552588340964,
+     "max": 3.2671116379754666,
+     "wins": 4,
+     "t_lo": 1.479481281590713,
+     "t_hi": 3.8527926375176933
+    },
+    "per_seed": {
+     "5": 2.8453865960052998,
+     "7": 2.0793837565674256,
+     "11": 3.2671116379754666,
+     "13": 1.6808552588340964
+    }
+   },
+   "cost": {
+    "ratio_v2_over_queue": {
+     "n": 4,
+     "geo_mean": 1.1779624631134433,
+     "lo": 1.0609603437622153,
+     "hi": 1.3122791192910637,
+     "min": 1.0189409461366843,
+     "max": 1.3710043157047764,
+     "wins": 4,
+     "t_lo": 0.9696517689870198,
+     "t_hi": 1.4310246305783467
+    },
+    "per_seed": {
+     "5": 1.1507696734282837,
+     "7": 1.1977041682704284,
+     "11": 1.3710043157047764,
+     "13": 1.0189409461366843
+    }
+   },
+   "red": {
+    "diff_queue_minus_v2": {
+     "n": 4,
+     "mean": 9.5,
+     "lo": 7.0,
+     "hi": 12.0,
+     "min": 6,
+     "max": 12
+    },
+    "per_seed": {
+     "5": [
+      10,
+      2
+     ],
+     "7": [
+      7,
+      1
+     ],
+     "11": [
+      14,
+      2
+     ],
+     "13": [
+      12,
+      0
+     ]
+    }
+   }
+  },
+  "unpaired": {
+   "t20": {
+    "n": [
+     4,
+     4
+    ],
+    "ratio": 0.6847977216772875,
+    "lo": 0.5320188707082141,
+    "hi": 0.8977254496017724
+   },
+   "t30": {
+    "n": [
+     4,
+     4
+    ],
+    "ratio": 1.3438335696170889,
+    "lo": 1.043277887466744,
+    "hi": 1.811739238455879
+   },
+   "t35": {
+    "n": [
+     3,
+     3
+    ],
+    "ratio": 1.9098912899120004,
+    "lo": 1.335208088733091,
+    "hi": 2.3999252820046726
+   },
+   "done": {
+    "n": [
+     4,
+     4
+    ],
+    "ratio": 1.9848827501993622,
+    "lo": 1.4489909281837958,
+    "hi": 2.4709087171052633
+   },
+   "cost": {
+    "n": [
+     4,
+     4
+    ],
+    "ratio": 1.1806675179874329,
+    "lo": 1.052066275963113,
+    "hi": 1.2997607557062996
+   }
+  },
+  "permutation_p": {
+   "t20": 0.05714285714285714,
+   "t30": 0.08571428571428572,
+   "t35": 0.1,
+   "done": 0.02857142857142857,
+   "cost": 0.05714285714285714
+  },
+  "pairs": [
+   5,
+   7,
+   11,
+   13
+  ]
+ }
+}

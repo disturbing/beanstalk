@@ -1,0 +1,155 @@
+--- race/race.py (as copied at 12:43)
++++ exp/e5-long-tasks/race/race.py
+@@ -105,6 +105,11 @@
+                    help="claude rework resumes the author's session (--resume) with the follow-up prompt")
+     c.add_argument("--codex-price", default="1.25,0.125,10",
+                    help="codex cost estimate, USD per MTok: input,cached_input,output")
++    e = ap.add_argument_group("E5 emulated drift")
++    e.add_argument("--drift-factor", type=float, default=1.0,
++                   help="hold every agent invocation (initial, rework, fixer) until F x its real wall time has passed, "
++                        "with the agent slot busy: the same work, written F times slower (default 1 = off)")
++    e.add_argument("--drift-seconds", type=float, default=0.0, help="plus a fixed extra hold per agent invocation")
+     r = ap.add_argument_group("replay")
+     r.add_argument("--replay-median", type=float, default=20.0, help="median seconds per initial invocation")
+     r.add_argument("--replay-sigma", type=float, default=0.5, help="lognormal sigma")
+--- race/harness/core.py
++++ exp/e5-long-tasks/race/harness/core.py
+@@ -68,6 +68,8 @@
+     shuffle: bool = False
+     force: bool = False
+     codex_price: tuple = (1.25, 0.125, 10.0)
++    drift_factor: float = 1.0           # E5 (emulated drift): each agent invocation takes this many times its real wall time
++    drift_seconds: float = 0.0          # E5: plus a fixed extra delay per agent invocation (the agent slot stays busy)
+ 
+     def union(self) -> bool:
+         if self.merge_drivers == "auto":
+@@ -412,7 +414,37 @@
+             if self.events:
+                 self.log("abort", reason=reason)
+         self.poke()
++
++    # ---- E5: emulated drift and machine load -------------------------------------------------------------------
++
++    def drift_delay(self, spec: InvocationSpec, res: InvocationResult) -> float:
++        """Extra seconds an agent invocation is held before its result is used (``--drift-factor``, ``--drift-seconds``).
++        Only real agent work is stretched (initial, rework, fixer), never classifiers; an invocation that never ran
++        (infra error) is not stretched."""
++        cfg = self.cfg
++        if spec.kind not in ("initial", "rework", "fixer") or res.infra_error or cfg.agent == "none":
++            return 0.0
++        return max(0.0, (cfg.drift_factor - 1.0) * res.wall_ms / 1000.0) + max(0.0, cfg.drift_seconds)
+ 
++    @staticmethod
++    def machine_load() -> dict:
++        """``uptime`` and the load averages (the machine is shared; races are timed under whatever load it has)."""
++        import subprocess
++        try:
++            up = subprocess.run(["uptime"], capture_output=True, text=True, timeout=10).stdout.strip()
++        except Exception:  # noqa: BLE001
++            up = ""
++        try:
++            la = [round(x, 2) for x in os.getloadavg()]
++        except OSError:
++            la = []
++        return {"uptime": up, "loadavg": la}
++
++    async def load_sampler(self, every: float = 30.0) -> None:
++        while True:
++            await asyncio.sleep(every)
++            self.log("load.sample", **self.machine_load())
++
+     # ---- budget and invocations ---------------------------------------------------------------------------
+ 
+     def committed_cost(self) -> float:
+@@ -449,14 +481,28 @@
+             if self.committed_cost() >= self.cfg.budget_usd:
+                 self.abort(f"budget: ${self.committed_cost():.2f} of ${self.cfg.budget_usd:.2f} (mid-invocation)")
+ 
++        drift = 0.0
++        res = None
+         try:
+             res = await adapter.run(spec, progress)
++            drift = self.drift_delay(spec, res)
++            if drift > 0:
++                # E5 emulated drift: the work is done, the bean is "submitted" later; the agent slot stays busy
++                # and the trunk moves meanwhile, exactly as if the same change had taken this much longer to write
++                self.log("invocation.drift", inv=spec.inv_id, kind=spec.kind, task=spec.task_id, agent=spec.agent_id,
++                         real_wall_seconds=round(res.wall_ms / 1000, 2), drift_seconds=round(drift, 2))
++                await asyncio.sleep(drift)
+         except asyncio.CancelledError:
+-            # killed by an abort: charge what the stream showed so far (estimated, conservative)
+-            est = self.inflight_cost.get(spec.inv_id, 0.0)
++            # killed by an abort: charge what the stream showed so far (estimated, conservative); an invocation that had
++            # already reported (cancelled during the emulated-drift hold) is charged its reported cost
++            if res is not None:
++                est, src = res.cost_usd, "reported"
++            else:
++                est = self.inflight_cost.get(spec.inv_id, 0.0)
++                src = "estimated" if est else "none"
+             self.spent += est
+             self.log("invocation.end", inv=spec.inv_id, kind=spec.kind, task=spec.task_id, agent=spec.agent_id,
+-                     ok=False, killed=True, cost_usd=round(est, 6), cost_source="estimated" if est else "none",
++                     ok=False, killed=True, cost_usd=round(est, 6), cost_source=src,
+                      spent_usd=round(self.spent, 4))
+             raise
+         finally:
+@@ -482,7 +528,7 @@
+         ev.pop("adapter", None)
+         ev.pop("model", None)
+         self.log("invocation.end", inv=spec.inv_id, kind=spec.kind, task=spec.task_id, agent=spec.agent_id,
+-                 spent_usd=round(self.spent, 4), **ev)
++                 spent_usd=round(self.spent, 4), drift_seconds=round(drift, 2), **ev)
+         if res.init:
+             self.log("invocation.init", inv=spec.inv_id, **res.init)
+         self.invocations.append({"inv": spec.inv_id, "kind": spec.kind, "task": spec.task_id,
+@@ -809,7 +855,9 @@
+         self.race_t0 = self.now()
+         for a in self.agents:
+             a.since, a.totals = self.race_t0, {"busy": 0.0, "blocked": 0.0, "idle": 0.0}
++        self.spawn(self.load_sampler(), "load-sampler")
+         self.log("race.start", policy=self.policy, agent=cfg.agent, model=getattr(self.adapter, "model", None),
++                 drift_factor=cfg.drift_factor, drift_seconds=cfg.drift_seconds, **self.machine_load(),
+                  agents=cfg.agents, ci_seconds=cfg.ci_seconds, ci_slots=cfg.ci_slots, batch=cfg.batch,
+                  tasks=[t.id for t in self.tasks], budget_usd=cfg.budget_usd, seed=cfg.seed, base=self.base_sha,
+                  union_merge=cfg.union(), snapshot=cfg.snapshot, queue_hold=cfg.queue_hold, protect_tests=cfg.protect_tests,
+@@ -847,7 +895,8 @@
+         killed = await self.registry.kill_all()
+         self.ended_at = self.now()
+         self.close_agent_clock()
+-        self.log("race.end", aborted=self.aborted, killed_processes=killed, spent_usd=round(self.spent, 4))
++        self.log("race.end", aborted=self.aborted, killed_processes=killed, spent_usd=round(self.spent, 4),
++                 **self.machine_load())
+         try:
+             self.final = await self.final_check()
+         except Exception as e:  # noqa: BLE001
+--- race/harness/ci.py (as copied at 12:43)
++++ exp/e5-long-tasks/race/harness/ci.py   (E2's fix, copied from research/race at 17:10 before any later v2 race)
+@@ -77,12 +77,17 @@
+         self.seq = 0
+         self.total_seconds = 0.0
+         self.busy_by_purpose: dict[str, float] = {}
++        self.gitdirs: dict[int, str] = {}
+         self.ready = False
+ 
+     async def setup(self, commit: str) -> None:
+         os.makedirs(os.path.join(self.dir, "results"), exist_ok=True)
+         for i in range(self.slots):
+-            await self.git.add_worktree(os.path.join(self.dir, f"slot-{i}"), commit)
++            wt = os.path.join(self.dir, f"slot-{i}")
++            await self.git.add_worktree(wt, commit)
++            # the slot's own admin dir: a second CI (v2's pre-land slots) also names its worktrees slot-N and git
++            # de-duplicates admin names (slot-01, ...), so the lock path must not be guessed from N (fix from E2)
++            self.gitdirs[i] = await self.git.git_dir(wt)
+             self.free.put_nowait(i)
+         self.ready = True
+ 
+@@ -107,7 +112,8 @@
+             if on_start:
+                 on_start(slot)
+             # a slot belongs to one run at a time: any index.lock now is left by a cancelled run's git
+-            lock = os.path.join(self.git.repo, ".git", "worktrees", f"slot-{slot}", "index.lock")
++            lock = os.path.join(self.gitdirs.get(slot) or os.path.join(self.git.repo, ".git", "worktrees",
++                                                                       f"slot-{slot}"), "index.lock")
+             if os.path.exists(lock):
+                 os.remove(lock)
+             await self.git.checkout_detached(wt, sha)

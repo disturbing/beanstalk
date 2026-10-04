@@ -1,0 +1,1260 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 40 tasks, policy=queue, agent=claude (haiku)",
+  "policy": "queue",
+  "agent": "claude",
+  "model": "haiku",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 8,
+    "ci_seconds": 60.0,
+    "ci_slots": 2,
+    "batch": 4,
+    "seed": 7,
+    "budget_usd": 25.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": true,
+    "snapshot": null,
+    "queue_hold": false,
+    "error_budget": null,
+    "footprint": "predictor",
+    "tasks": 40,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 1177.71,
+  "tasks": 40,
+  "tasks_green": 35,
+  "tasks_landed": 35,
+  "tasks_dropped": 5,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 25
+  },
+  "drops_by_reason": {
+    "ejected (conflict)": 3,
+    "ejected (red)": 2
+  },
+  "changes_green_per_hour": 106.987,
+  "wall_to_all_green_seconds": null,
+  "task_start_to_green_seconds": {
+    "median": 157.07,
+    "p90": 606.39,
+    "mean": 274.38
+  },
+  "agent_minutes": {
+    "busy": 57.59,
+    "blocked": 0.12,
+    "idle": 99.32
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 14.3,
+      "blocked": 0.01,
+      "idle": 5.32
+    },
+    "a1": {
+      "busy": 8.52,
+      "blocked": 0.02,
+      "idle": 11.08
+    },
+    "a2": {
+      "busy": 8.86,
+      "blocked": 0.02,
+      "idle": 10.75
+    },
+    "a3": {
+      "busy": 5.72,
+      "blocked": 0.02,
+      "idle": 13.89
+    },
+    "a4": {
+      "busy": 5.59,
+      "blocked": 0.02,
+      "idle": 14.03
+    },
+    "a5": {
+      "busy": 4.73,
+      "blocked": 0.01,
+      "idle": 14.89
+    },
+    "a6": {
+      "busy": 5.03,
+      "blocked": 0.01,
+      "idle": 14.59
+    },
+    "a7": {
+      "busy": 4.84,
+      "blocked": 0.02,
+      "idle": 14.77
+    }
+  },
+  "invocations": {
+    "initial": 40,
+    "rework": 28
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 40,
+      "cost_usd": 2.4615,
+      "turns": 584,
+      "wall_s": 1754.775,
+      "input_tokens": 4200,
+      "output_tokens": 172438,
+      "cache_read_input_tokens": 8868593,
+      "cache_creation_input_tokens": 546617,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 28,
+      "cost_usd": 4.4644,
+      "turns": 389,
+      "wall_s": 1700.333,
+      "input_tokens": 3084,
+      "output_tokens": 164812,
+      "cache_read_input_tokens": 18339103,
+      "cache_creation_input_tokens": 1030141,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 6.9259,
+  "cost_by_kind": {
+    "initial": 2.4615,
+    "rework": 4.4644
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 4200,
+      "output_tokens": 172438,
+      "cache_read_input_tokens": 8868593,
+      "cache_creation_input_tokens": 546617
+    },
+    "rework": {
+      "input_tokens": 3084,
+      "output_tokens": 164812,
+      "cache_read_input_tokens": 18339103,
+      "cache_creation_input_tokens": 1030141
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": 245.0,
+    "wall_minus_api_ms_median": 1474.5,
+    "cost_per_agent_invocation_mean": 0.1019
+  },
+  "subscription": {
+    "invocations_on_overage": 68,
+    "last_rate_limit": {
+      "status": "rejected",
+      "rateLimitType": "five_hour",
+      "resetsAt": 1790995200,
+      "overageStatus": "allowed",
+      "isUsingOverage": true
+    },
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "batch": 19,
+    "bisect": 7,
+    "batch-cancelled": 3
+  },
+  "ci_runs_total": 29,
+  "ci_minutes": {
+    "batch": 19.24,
+    "bisect": 7.11,
+    "batch-cancelled": 0.46
+  },
+  "ci_minutes_total": 26.81,
+  "textual_conflicts": 27,
+  "red_validations": 6,
+  "final": {
+    "sha": "a3517391e36c54afba12890d28512234a3341644",
+    "suite_green": true,
+    "suite_tests": 193,
+    "suite_failures": 0,
+    "acceptance_run_green": false,
+    "tasks_accepted": 35,
+    "tasks_total": 40,
+    "green_tasks_accepted": 35,
+    "green_tasks": 35,
+    "correct": true,
+    "all_tasks_accepted": false,
+    "failing_files": [
+      "src/billing/line-refunds.test.ts",
+      "src/billing/tax-exempt.test.ts",
+      "src/db/shipment-tracking-migration.test.ts",
+      "src/db/user-tax-exempt-migration.test.ts",
+      "src/orders/total-with-shipping.test.ts",
+      "src/shipping/shipment-tracking.test.ts",
+      "src/shipping/signature.test.ts"
+    ],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.6571,
+      "recall": 0.4809,
+      "f1": 0.5333,
+      "tasks": 35,
+      "micro_recall": 0.451,
+      "micro_precision": 0.6571
+    },
+    "vs_oracle": {
+      "precision": 0.6857,
+      "recall": 0.4809,
+      "f1": 0.5429,
+      "tasks": 35,
+      "micro_recall": 0.4528,
+      "micro_precision": 0.6857
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": 139.495,
+      "green_at": 139.495,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.002,
+      "landed_at": 139.495,
+      "green_at": 139.495,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.002,
+      "landed_at": 139.495,
+      "green_at": 139.495,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.002,
+      "landed_at": 141.408,
+      "green_at": 141.408,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t005": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 0.002,
+      "landed_at": 78.72,
+      "green_at": 78.72,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/lib"
+      ],
+      "actual_modules": [
+        "src/lib"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 0.002,
+      "landed_at": 139.495,
+      "green_at": 139.495,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t007": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 0.002,
+      "landed_at": 141.408,
+      "green_at": 141.408,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src",
+        "src/db",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/db",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t008": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 0.002,
+      "landed_at": 80.87,
+      "green_at": 80.87,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/inventory"
+      ],
+      "actual_modules": [
+        "src/inventory"
+      ],
+      "oracle_modules": [
+        "src/inventory"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t009": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 18.304,
+      "landed_at": 141.408,
+      "green_at": 141.408,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t010": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 20.44,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 3,
+      "conflicts": 3,
+      "reds": 1,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/db",
+        "src/orders"
+      ],
+      "invocations": 4,
+      "drop_reason": "ejected (conflict) after 3 reworks",
+      "tamper": [
+        "src/db/order-note-migration.test.ts",
+        "src/db/order-note-migration.test.ts",
+        "src/db/order-note-migration.test.ts"
+      ],
+      "final_acceptance": false
+    },
+    "t011": {
+      "status": "dropped",
+      "agent": "a4",
+      "started_at": 24.015,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 3,
+      "conflicts": 4,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/db",
+        "src/orders",
+        "src/shipping"
+      ],
+      "invocations": 4,
+      "drop_reason": "ejected (conflict) after 3 reworks",
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": false
+    },
+    "t012": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 42.541,
+      "landed_at": 141.408,
+      "green_at": 141.408,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "src/auth"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t013": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 44.146,
+      "landed_at": 202.185,
+      "green_at": 202.185,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/notifications"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t014": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 53.971,
+      "landed_at": 202.185,
+      "green_at": 202.185,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/auth"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t015": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 64.465,
+      "landed_at": 262.993,
+      "green_at": 262.993,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t016": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 66.91,
+      "landed_at": 202.185,
+      "green_at": 202.185,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t017": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 68.647,
+      "landed_at": 200.091,
+      "green_at": 200.091,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t018": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 68.873,
+      "landed_at": 202.185,
+      "green_at": 202.185,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src/notifications"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t019": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 83.621,
+      "landed_at": 262.993,
+      "green_at": 262.993,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t020": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 84.884,
+      "landed_at": 260.7,
+      "green_at": 260.7,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/users"
+      ],
+      "oracle_modules": [
+        "src/auth",
+        "src/users"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t021": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 92.255,
+      "landed_at": 506.476,
+      "green_at": 506.476,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/catalog"
+      ],
+      "oracle_modules": [
+        "src/catalog"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t022": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 92.33,
+      "landed_at": 1116.775,
+      "green_at": 1116.775,
+      "reworks": 3,
+      "conflicts": 3,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 4,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t023": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 93.23,
+      "landed_at": 689.389,
+      "green_at": 689.389,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing",
+        "src/lib"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/billing",
+        "src/lib"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t024": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 96.391,
+      "landed_at": 872.378,
+      "green_at": 872.378,
+      "reworks": 3,
+      "conflicts": 3,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing",
+        "src/db"
+      ],
+      "oracle_modules": [
+        "src",
+        "src/billing",
+        "src/db"
+      ],
+      "invocations": 4,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t025": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 104.247,
+      "landed_at": 750.476,
+      "green_at": 750.476,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/notifications"
+      ],
+      "actual_modules": [
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src/notifications"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t026": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 106.957,
+      "landed_at": 262.993,
+      "green_at": 262.993,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t027": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 125.157,
+      "landed_at": 262.993,
+      "green_at": 262.993,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/users"
+      ],
+      "oracle_modules": [
+        "src/users"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t028": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 125.687,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 3,
+      "conflicts": 2,
+      "reds": 2,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/shipping"
+      ],
+      "invocations": 4,
+      "drop_reason": "ejected (red) after 3 reworks",
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts",
+        "src/db/order-note-migration.test.ts",
+        "src/db/order-note-migration.test.ts",
+        "src/db/order-note-migration.test.ts"
+      ],
+      "final_acceptance": false
+    },
+    "t029": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 133.699,
+      "landed_at": 689.389,
+      "green_at": 689.389,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "final_acceptance": true
+    },
+    "t030": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 149.79,
+      "landed_at": 321.501,
+      "green_at": 321.501,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t031": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 152.039,
+      "landed_at": 506.476,
+      "green_at": 506.476,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t032": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 157.184,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 3,
+      "conflicts": 1,
+      "reds": 3,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/orders"
+      ],
+      "invocations": 4,
+      "drop_reason": "ejected (red) after 3 reworks",
+      "tamper": [
+        "src/orders/confirmation-grouping.test.ts",
+        "src/orders/confirmation-grouping.test.ts",
+        "src/orders/confirmation-grouping.test.ts"
+      ],
+      "final_acceptance": false
+    },
+    "t033": {
+      "status": "green",
+      "agent": "a6",
+      "started_at": 161.265,
+      "landed_at": 321.501,
+      "green_at": 321.501,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/shipping"
+      ],
+      "actual_modules": [
+        "src/shipping"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/shipping"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t034": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 164.431,
+      "landed_at": 321.501,
+      "green_at": 321.501,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/inventory"
+      ],
+      "actual_modules": [
+        "src/inventory"
+      ],
+      "oracle_modules": [
+        "src/inventory"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t035": {
+      "status": "green",
+      "agent": "a7",
+      "started_at": 172.859,
+      "landed_at": 445.705,
+      "green_at": 445.705,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/cart"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/cart",
+        "src/inventory"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t036": {
+      "status": "dropped",
+      "agent": "a0",
+      "started_at": 173.769,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 3,
+      "conflicts": 4,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 4,
+      "drop_reason": "ejected (conflict) after 3 reworks",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t037": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 187.668,
+      "landed_at": 321.501,
+      "green_at": 321.501,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/catalog"
+      ],
+      "oracle_modules": [
+        "src/catalog"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t038": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 193.626,
+      "landed_at": 689.389,
+      "green_at": 689.389,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/cart"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t039": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 198.194,
+      "landed_at": 811.399,
+      "green_at": 811.399,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t040": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 233.97,
+      "landed_at": 689.389,
+      "green_at": 689.389,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "queue": {
+    "batches": 22,
+    "batches_green": 13,
+    "batches_red": 6,
+    "batches_cancelled": 3,
+    "bisections": 5,
+    "bisect_runs": 7,
+    "ejections_conflict": 27,
+    "ejections_red": 6,
+    "requeued_without_agent": 0,
+    "held_behind_inflight": 9,
+    "mean_batch_size": 2.182
+  },
+  "policy_rows": [
+    [
+      "Batches (green / red / cancelled)",
+      "13 / 6 / 3"
+    ],
+    [
+      "Bisections / bisect CI runs",
+      "5 / 7"
+    ],
+    [
+      "Ejections (conflict / red)",
+      "27 / 6"
+    ],
+    [
+      "PRs held behind in-flight conflicts",
+      9
+    ],
+    [
+      "Mean batch size",
+      2.182
+    ]
+  ]
+}

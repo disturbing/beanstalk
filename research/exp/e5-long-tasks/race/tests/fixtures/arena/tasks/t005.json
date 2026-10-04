@@ -1,0 +1,24 @@
+{
+  "id": "t005",
+  "title": "Fall back to the email address when a user has no display name",
+  "prompt": "Users who never set a display name show up blank in the header. Show their email address instead when the name is missing or empty. Add a changelog entry.",
+  "acceptance_tests": {
+    "test/acceptance/t005.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { displayName } from \"../../src/users/index.ts\";\n\ntest(\"display name falls back to the email\", () => {\n  assert.equal(displayName({ id: \"u2\", email: \"grace@example.com\" }), \"grace@example.com\");\n  assert.equal(displayName({ id: \"u3\", name: \"  \", email: \"lin@example.com\" }), \"lin@example.com\");\n});\n"
+  },
+  "oracle_paths": [
+    "src/users/index.ts",
+    "CHANGELOG.md"
+  ],
+  "oracle_modules": [
+    "src/users"
+  ],
+  "kind": "bugfix",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t001",
+      "type": "textual",
+      "note": "both append to CHANGELOG.md (dissolved by merge=union)"
+    }
+  ]
+}

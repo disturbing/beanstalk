@@ -1,0 +1,48 @@
+{
+  "id": "L10",
+  "title": "Customers should get a receipt when their invoice is paid + Finance needs a list of overdue invoices + Expired coupons are still accepted at checkout",
+  "prompt": "Three related tickets in invoices, payments and coupons are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Customers should get a receipt when their invoice is paid\n\nCustomers have no confirmation that we received their payment. When an invoice is marked as paid, email the customer a receipt: the subject is \"Payment received for order <order number>\" and the body is \"We have received your payment for order <order number>. Thank you!\".\n\nIt is an ordinary notification, so it also appears in the customer's notification list, with the kind `payment_received`.\n\n### Ticket 2: Finance needs a list of overdue invoices\n\nFinance chases late payers by hand. Add `GET /invoices/overdue` (admin only) returning every invoice that is still `open` and whose due date has passed, the one that fell due longest ago first. Each entry is the invoice plus a `daysOverdue` field: the whole days since the due date, and at least 1 for anything that is overdue. Paid and void invoices never appear.\n\n### Ticket 3: Expired coupons are still accepted at checkout\n\nCoupons carry an optional expiry timestamp (`expiresAt`), but checkout never looks at it: a customer applied a coupon that expired weeks ago and still got the discount.\n\nReject a coupon with a 400 and the message \"coupon has expired\" once the current time has reached its expiry time. Coupons without an expiry, and coupons that expire in the future, keep working.\n",
+  "acceptance_tests": {
+    "src/billing/payment-receipt.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport type { Notification } from '../types.ts';\nimport { markPaid } from './service.ts';\n\ndescribe('payment receipts', () => {\n  it('emails the customer when an invoice is paid', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { email: 'carol@example.com' });\n    const before = app.mailer.sent.length;\n    markPaid(app.ctx, order.invoiceId!);\n    assert.equal(app.mailer.sent.length, before + 1);\n    assert.deepEqual(app.mailer.sent.at(-1), {\n      to: 'carol@example.com',\n      subject: `Payment received for order ${order.number}`,\n      body: `We have received your payment for order ${order.number}. Thank you!`,\n    });\n  });\n\n  it('is sent when an admin pays over HTTP, and only then', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const sentBefore = app.mailer.sent.length;\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token });\n    assert.equal(app.mailer.sent.length, sentBefore, 'customers cannot pay for themselves');\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token: admin.token });\n    app.call('POST', `/invoices/${order.invoiceId}/pay`, { token: admin.token });\n    assert.equal(app.mailer.sent.length, sentBefore + 1, 'a second attempt fails and sends nothing');\n  });\n\n  it('shows up in the notification list as payment_received', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    markPaid(app.ctx, order.invoiceId!);\n    const list = app.call('GET', '/notifications', { token }).body as Notification[];\n    assert.ok(list.some((n) => n.kind === 'payment_received'));\n  });\n});\n",
+    "src/notifications/receipt-template.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\nimport { renderNotification } from './templates.ts';\n\ndescribe('payment receipt template', () => {\n  it('names the order', () => {\n    const { order } = placeOrder(createTestApp());\n    assert.deepEqual(renderNotification('payment_received', order, 'USD'), {\n      subject: `Payment received for order ${order.number}`,\n      body: `We have received your payment for order ${order.number}. Thank you!`,\n    });\n  });\n});\n",
+    "src/billing/invoice-overdue.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport { markPaid, voidInvoice } from './service.ts';\n\nconst DAY = 24 * 60 * 60 * 1000;\n\ndescribe('overdue invoices', () => {\n  it('lists open invoices past their due date, longest overdue first', () => {\n    const app = createTestApp();\n    app.ctx.config.sessionTtlSeconds = 90 * 24 * 60 * 60;\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const early = placeOrder(app, { email: 'a@example.com' }).order.invoiceId;\n    app.clock.advance(5 * DAY);\n    const later = placeOrder(app, { email: 'b@example.com' }).order.invoiceId;\n    const paid = placeOrder(app, { email: 'c@example.com' }).order.invoiceId!;\n    const voided = placeOrder(app, { email: 'd@example.com' }).order.invoiceId!;\n    markPaid(app.ctx, paid);\n    voidInvoice(app.ctx, voided);\n    app.clock.advance(24 * DAY);\n    assert.deepEqual(app.call('GET', '/invoices/overdue', { token: admin.token }).body, []);\n    app.clock.advance(7 * DAY + 60_000);\n    const overdue = app.call('GET', '/invoices/overdue', { token: admin.token }).body as { id: string; daysOverdue: number }[];\n    assert.deepEqual(overdue.map((i) => i.id), [early, later]);\n    assert.deepEqual(overdue.map((i) => i.daysOverdue), [6, 1]);\n  });\n\n  it('is for admins only and is not mistaken for an invoice id', () => {\n    const app = createTestApp();\n    const customer = signUp(app.ctx, 'buyer@example.com');\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    assert.equal(app.call('GET', '/invoices/overdue', { token: customer.token }).status, 403);\n    assert.equal(app.call('GET', '/invoices/overdue', { token: admin.token }).status, 200);\n  });\n});\n",
+    "src/billing/coupon-expiry.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, errorMessage, tryCheckout } from '../lib/testing.ts';\n\ndescribe('coupon expiry', () => {\n  it('rejects a coupon whose expiry has passed', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'OLDIE', expiresAt: '2026-09-01T00:00:00.000Z' });\n    const { res } = tryCheckout(app, { couponCode: 'OLDIE' });\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'coupon has expired');\n    assert.equal(app.ctx.store.coupons.require('OLDIE').redemptions, 0);\n  });\n\n  it('rejects it exactly at the expiry time', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'NOW', expiresAt: '2026-09-15T12:00:00.000Z' });\n    assert.equal(tryCheckout(app, { couponCode: 'NOW' }).res.status, 400);\n  });\n\n  it('accepts coupons that expire later or never', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'SOON', expiresAt: '2026-09-15T12:00:01.000Z' });\n    assert.equal(tryCheckout(app, { couponCode: 'SOON' }).res.status, 201);\n    assert.equal(tryCheckout(app, { email: 'b@example.com', couponCode: 'WELCOME10' }).res.status, 201);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/billing/coupon-expiry.test.ts",
+    "src/billing/handlers.ts",
+    "src/billing/invoice-overdue.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/service.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/templates.ts",
+    "src/routes.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing",
+    "src/notifications"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "members": [
+    "t013",
+    "t039",
+    "t040"
+  ],
+  "couplings": [
+    {
+      "with": "L01",
+      "type": "textual",
+      "members": [
+        "t040",
+        "t001"
+      ],
+      "note": "t040 x t001: Both add a coupon check immediately after the unknown-coupon check in issueInvoice (billing/service.ts)."
+    }
+  ],
+  "theme": "invoices, payments and coupons"
+}

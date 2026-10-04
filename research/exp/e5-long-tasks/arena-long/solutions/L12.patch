@@ -1,0 +1,94 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..153481c 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Order confirmation emails list every line item.
+ - `GET /inventory/low-stock` for admins.
++- `GET /invoices/:id/text` returns a plain-text invoice.
+ 
+ ### Changed
+ 
+diff --git a/README.md b/README.md
+index 91d422c..f900c74 100644
+--- a/README.md
++++ b/README.md
+@@ -26,7 +26,7 @@ Routes are registered in one place, `src/routes.ts`.
+ | GET, POST, PATCH, DELETE | `/cart`, `/cart/items`, `/cart/items/:productId` | user |
+ | POST | `/checkout`, `/orders/:id/cancel` | user |
+ | GET | `/orders`, `/orders/:id`, `/orders/:id/invoice`, `/orders/:id/shipment` | user |
+-| GET | `/invoices/:id` | user |
++| GET | `/invoices/:id`, `/invoices/:id/text` | user |
+ | POST | `/invoices/:id/pay`, `/orders/:id/ship` | admin |
+ | POST | `/shipping/quote` | user |
+ | GET, PUT | `/inventory/:productId`, `/inventory/low-stock` | admin |
+diff --git a/src/billing/handlers.ts b/src/billing/handlers.ts
+index 82d2c80..32892a3 100644
+--- a/src/billing/handlers.ts
++++ b/src/billing/handlers.ts
+@@ -1,7 +1,8 @@
+ import { notFound } from '../lib/errors.ts';
+-import { ok } from '../router.ts';
++import { json, ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { Invoice, User } from '../types.ts';
++import { renderInvoiceText } from './render.ts';
+ import { getInvoice as loadInvoice, invoiceForOrder as loadInvoiceForOrder, markPaid } from './service.ts';
+ 
+ /** Customers only see their own invoices; admins see all. Anything else looks like a 404. */
+@@ -16,3 +17,8 @@ export const invoiceForOrder: Handler = (req, ctx) =>
+   ok(visibleTo(req.user!, loadInvoiceForOrder(ctx, req.params.id)));
+ 
+ export const payInvoice: Handler = (req, ctx) => ok(markPaid(ctx, req.params.id));
++
++export const invoiceText: Handler = (req, ctx) =>
++  json(200, renderInvoiceText(visibleTo(req.user!, loadInvoice(ctx, req.params.id))), {
++    'content-type': 'text/plain; charset=utf-8',
++  });
+diff --git a/src/billing/render.ts b/src/billing/render.ts
+new file mode 100644
+index 0000000..198a838
+--- /dev/null
++++ b/src/billing/render.ts
+@@ -0,0 +1,15 @@
++import { formatMoney } from '../lib/money.ts';
++import type { Invoice } from '../types.ts';
++
++/** A plain-text invoice, suitable for email bodies and printing. */
++export function renderInvoiceText(invoice: Invoice): string {
++  const money = (cents: number) => formatMoney(cents, invoice.currency);
++  const lines = [`Invoice ${invoice.number}`];
++  for (const line of invoice.lines) {
++    lines.push(`${line.quantity} x ${line.description} - ${money(line.net)}`);
++  }
++  lines.push(`Subtotal: ${money(invoice.subtotal)}`);
++  if (invoice.discount > 0) lines.push(`Discount: -${money(invoice.discount)}`);
++  lines.push(`Tax: ${money(invoice.tax)}`, `Total: ${money(invoice.total)}`);
++  return lines.join('\n');
++}
+diff --git a/src/notifications/templates.ts b/src/notifications/templates.ts
+index a3a2e52..4721ad7 100644
+--- a/src/notifications/templates.ts
++++ b/src/notifications/templates.ts
+@@ -20,7 +20,7 @@ export function renderNotification(kind: NotificationKind, order: Order, currenc
+     case 'order_shipped':
+       return {
+         subject: `Order ${order.number} has shipped`,
+-        body: `Your order ${order.number} is on its way.`,
++        body: `Your order ${order.number} is on its way.\nTracking number: ${order.trackingNumber}`,
+       };
+     case 'order_cancelled':
+       return {
+diff --git a/src/routes.ts b/src/routes.ts
+index 80658b8..2a1d649 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -42,6 +42,7 @@ export function registerRoutes(router: Router): void {
+   // billing
+   router.add('GET', '/orders/:id/invoice', 'user', billing.invoiceForOrder);
+   router.add('GET', '/invoices/:id', 'user', billing.getInvoice);
++  router.add('GET', '/invoices/:id/text', 'user', billing.invoiceText);
+   router.add('POST', '/invoices/:id/pay', 'admin', billing.payInvoice);
+ 
+   // shipping

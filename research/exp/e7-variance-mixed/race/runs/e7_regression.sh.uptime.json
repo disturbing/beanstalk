@@ -1,0 +1,73 @@
+{
+ "start_uptime": "14:29  up 1 day,  6:26, 12 users, load averages: 22.43 13.25 18.46",
+ "start_at": "14:29:26",
+ "end_uptime": "14:33  up 1 day,  6:30, 12 users, load averages: 109.57 59.32 36.73",
+ "end_at": "14:33:12",
+ "samples": [
+  {
+   "at": "14:29:26",
+   "load1": 22.4,
+   "load5": 13.2,
+   "load15": 18.5,
+   "race_py_procs": 3
+  },
+  {
+   "at": "14:29:56",
+   "load1": 52.4,
+   "load5": 21.7,
+   "load15": 21.4,
+   "race_py_procs": 2
+  },
+  {
+   "at": "14:30:26",
+   "load1": 47.2,
+   "load5": 23.5,
+   "load15": 22.0,
+   "race_py_procs": 2
+  },
+  {
+   "at": "14:30:56",
+   "load1": 36.7,
+   "load5": 23.1,
+   "load15": 21.9,
+   "race_py_procs": 2
+  },
+  {
+   "at": "14:31:26",
+   "load1": 61.9,
+   "load5": 29.7,
+   "load15": 24.3,
+   "race_py_procs": 2
+  },
+  {
+   "at": "14:31:56",
+   "load1": 115.3,
+   "load5": 45.0,
+   "load15": 30.0,
+   "race_py_procs": 3
+  },
+  {
+   "at": "14:32:27",
+   "load1": 104.3,
+   "load5": 49.1,
+   "load15": 32.0,
+   "race_py_procs": 3
+  },
+  {
+   "at": "14:32:57",
+   "load1": 119.4,
+   "load5": 58.5,
+   "load15": 36.1,
+   "race_py_procs": 3
+  },
+  {
+   "at": "14:33:12",
+   "load1": 109.6,
+   "load5": 59.3,
+   "load15": 36.7,
+   "race_py_procs": 2
+  }
+ ],
+ "load1_mean": 74.4,
+ "load1_max": 119.4
+}

@@ -1,0 +1,7 @@
+[race-slot] slot 2 acquired 14:29:26: python3 e7_driver.py --in-slot --no-hold --label D cmd:/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/e7_regression.sh
+14:29:26 driver D: cmd:/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race/e7_regression.sh; waiting for pids []
+14:29:26 QUEUED cmd e7_regression.sh
+14:33:12 END cmd e7_regression.sh exit 0
+         start: 14:29  up 1 day,  6:26, 12 users, load averages: 22.43 13.25 18.46
+         end:   14:33  up 1 day,  6:30, 12 users, load averages: 109.57 59.32 36.73
+14:33:12 driver D done

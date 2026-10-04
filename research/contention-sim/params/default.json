@@ -1,0 +1,165 @@
+{
+  "name": "default",
+  "description": "Literature- and assumption-based defaults for the contention simulator. Every value is either cited in 'sources' or marked as an assumption there. Results produced from this file are simulated, not measured.",
+  "test_minutes": 10.0,
+  "test_jitter_sigma": 0.1,
+  "ci_slots_per_agent": 0.1,
+  "ci_slots_min": 2,
+  "flake_rate": 0.02,
+  "work_median_min": 20.0,
+  "work_sigma": 0.7,
+  "r_conf": 0.3,
+  "r_fix": 0.4,
+  "p_self": 0.15,
+  "fixer_pool": 0,
+  "conflict_model": "per_file",
+  "p_per_file": 0.06,
+  "p_per_file_diss": 0.3,
+  "p_file": 0.11,
+  "p_module": 0.002,
+  "p_disjoint": 0.0,
+  "dissolvable_share": 0.15,
+  "merge_drivers": true,
+  "q_sem": 0.01,
+  "dependency_rate": 0.05,
+  "dep_window": 20,
+  "placement_model": "pair",
+  "flag_recall": 0.6,
+  "flag_clean": 0.25,
+  "flag_points": {
+    "predicted-best": [
+      0.6,
+      0.15
+    ],
+    "predicted-typical": [
+      0.6,
+      0.25
+    ],
+    "module-level": [
+      0.9,
+      0.6
+    ],
+    "file-oracle": [
+      1.0,
+      0.05
+    ],
+    "hot-file-rule": [
+      0.3,
+      0.02
+    ]
+  },
+  "prediction_model": "perturb",
+  "recall": 0.8,
+  "precision": 0.6,
+  "commit_round_s": 10.0,
+  "commit_per_change_s": 1.0,
+  "batch_k": 4,
+  "spec_depth": 20,
+  "aimd_k_start": 4,
+  "aimd_k_min": 1,
+  "aimd_k_max": 32,
+  "queue_agents": "bound",
+  "requeue": "front",
+  "queue_suspects": false,
+  "snapshot": "head",
+  "green_mode": "prefix",
+  "a_suspect": 0.7,
+  "budget": true,
+  "budget_open_reds": 3,
+  "budget_max_age_min": 30.0,
+  "placement_fallback": "least-overlap",
+  "place_window": 128,
+  "footprint": {
+    "model": "parametric",
+    "gen_seed": 7,
+    "n_changes": 5000,
+    "n_modules": 120,
+    "module_zipf": 1.2,
+    "module_size_median": 30,
+    "module_size_sigma": 1.3,
+    "mods_per_change_mean": 2.5,
+    "files_per_module_mean": 4.5,
+    "diss_file_share": 0.1,
+    "zipf_s": 1.0,
+    "block_len": 20
+  },
+  "scenarios": {
+    "aidev-upper": {
+      "p_per_file": 0.35,
+      "p_file": 0.417,
+      "note": "Upper scenario: per-file rate chosen so pairs that share a file conflict about 40% of the time, the cross-agent co-active pair rate of Xu et al. (41.7%). Treated as an upper bound, not a default (orchestrator guidance 2026-10-03)."
+    },
+    "intra-agent": {
+      "p_per_file": 0.15,
+      "p_file": 0.198,
+      "note": "Pairs from one agent (Xu et al. 19.8%) applied to file-sharing pairs."
+    },
+    "brun-high-semantic": {
+      "q_sem": 0.05,
+      "note": "Semantic breaks near the top of Brun et al.'s 3-28% of merges followed by test failures."
+    }
+  },
+  "sanity_targets": {
+    "pair_conflict_rate": {
+      "target": "0.97-1.18% (workers-sdk, codex); 4.08% (platform)",
+      "model_raw": 0.0151,
+      "model_with_drivers": 0.0125,
+      "source": "step-1 preliminary measurements, 600 sampled pairs within 20 changes per corpus (orchestrator message 2026-10-03)"
+    },
+    "conflict_given_shared_file": {
+      "target": "~9-13%",
+      "model_raw": 0.0999,
+      "model_with_drivers": 0.0824,
+      "source": "same"
+    },
+    "per_change_collision_with_19_predecessors": {
+      "target": "~16% workers-sdk, ~29% codex, ~50% platform",
+      "model_raw": 0.2188,
+      "model_with_drivers": 0.1889,
+      "source": "same"
+    },
+    "file_sharing_pair_share": {
+      "target": "6.2% workers-sdk, 10.1% codex (pairs within 20 consecutive changes)",
+      "model": 0.146,
+      "source": "local measurement of data/<corpus>/corpus.jsonl while building this model"
+    },
+    "module_sharing_pair_share_noncommutative": {
+      "target": "36% workers-sdk (.changeset excluded), 37% codex",
+      "model": 0.3724,
+      "source": "same"
+    },
+    "cursor_lock_collapse": {
+      "target": "20 agents slow to the throughput of 1-3 with locks",
+      "check": "experiments.py 'lock-collapse' rows: beanstalk with placement_fallback=wait at N=20",
+      "source": "Cursor, 2026-01-14, https://cursor.com/blog/scaling-agents"
+    }
+  },
+  "sources": {
+    "test_minutes": "10-minute CI: lhorie's merge-queue arithmetic (HN 36708767), 'CI of 10 min gives a budget of 6 serial merges/hour' (docs/claude-02 section B1). Chromium CQ's median under 40 min is a slower reference.",
+    "ci_slots": "Assumption from the study brief: R = max(2, N/10); experiments.py adds a fixed-R variant to show CI saturation. At N = 1,000, R = 100 jobs stays under the Cloudflare account cap of 1,500 vCPU, about 375-750 jobs (docs/claude-opus/01-evidence.md section 4).",
+    "flake_rate": "Assumption (study brief default 2%). Flakes are first-order at scale: Chromium has about 20,000 flaky tests and retries failed shards (docs/claude-02 section B1).",
+    "p_self": "Study brief default 15% per change version. Together with semantic breaks and conflicts it gives the simulated main-branch failure rate of roughly 25-30%, close to CircleCI's main-branch success rate of 70.8% (2026 State of Software Delivery; docs/claude-02 section A4).",
+    "work_time": "Assumption: lognormal, median 20 min, sigma 0.7 (study brief: median 20 min). AIDev's median review turnaround for accepted Codex PRs is 0.3 h (arXiv 2507.15003; docs/claude-02 section A1).",
+    "r_conf_r_fix": "Study brief defaults: rework after a conflict 0.3x, fix after a red 0.4x the original work time (assumption).",
+    "p_per_file": "Per shared non-dissolvable file, so P(conflict) = 1 - (1 - p)^shared_files compounds with overlap. 0.06 reproduces step 1's preliminary ~9-13% conflict rate given a shared file and ~1% pairwise rate (orchestrator message 2026-10-03). The literature's 41.7% cross-agent rate (Xu et al., arXiv 2607.04697, 115 co-active cross-agent pairs), 19.8% intra-agent rate and AgenticFlict's 27.67% of 107k agent PRs (arXiv 2604.03551) are co-active-pair or per-PR rates in small repos; they are kept as the 'aidev-upper' and 'intra-agent' scenarios, not the default.",
+    "p_per_file_diss": "Assumption: lockfile and changelog edits collide often (0.3 per shared file) but merge drivers dissolve them. Xu et al.: 84.4% of conflicted files are source files, so at most ~15.6% of conflicts are in other categories; diss_file_share = 0.1 marks 10% of files dissolvable.",
+    "p_module": "Assumption: shared module, no shared file. Textual conflicts need a shared path, so this only covers renames and moves (Xu et al.: 26.8% of conflict reports are modify/delete). Step 1 measures it.",
+    "merge_drivers": "On for every policy (thesis section 2: commutative merge drivers for hot files).",
+    "q_sem": "Unknown for real repos; swept over {0, 0.05, 0.1, 0.2} by experiments.py. Default 0.01 per co-active pair that shares a non-commutative module. Anchors: Uber SubmitQueue (EuroSys'19) reports a 40% mainline-break probability with 16 concurrent potentially conflicting changes, i.e. 0.4-3.3% per pair depending on whether all 120 pairs or one change's 15 partners are meant; Brun et al. (FSE 2011, 3,562 merges) saw test failures after 3-28% of merges. With 37% of co-active pairs sharing a module, q_sem = 0.01 breaks about 7% of changes against 19 concurrent predecessors.",
+    "dependency_rate": "Assumption 5%: share of tasks that need an earlier task (within 20) in their base. Step 1 measures it (dependency_rate).",
+    "recall_precision": "Module-level placement only (placement_model=module): module recall 0.8, precision 0.6, assumed. Step 2 measures micro recall 0.47-0.58 at the F1-optimal threshold (title only).",
+    "commit_round": "Assumption: a committer or queue merge round costs 10 s plus 1 s per change. The thesis's illustrative model assumes about one change per 3 s round (docs/claude-opus/02 section 4). The same mechanical step is charged to the queue's candidate build.",
+    "batching": "bors-ng bisects failed batches in halves; Mergify splits failed batches and fills batches by priority; GitHub's merge queue groups 1-100 PRs (docs/claude-02 section B1). batch_k = 4 is the default; experiments.py sweeps k over {1, 4, 16}.",
+    "aimd": "Zuul's dependent pipeline window starts at 20, grows by one per successful merge and halves per failure (docs/claude-02 section B1). Here the AIMD variant adapts the batch size k (start 4, +1 per green batch, halve per red, range 1-32).",
+    "spec_depth": "Speculative train depth min(R, 20). GitLab merge trains default to 20 parallel pipelines per train; GitHub's merge queue allows build concurrency 1-100 (docs/claude-02 section B1).",
+    "queue_agents": "Study brief: in the queue the author agent stays bound to its PR until it lands and handles ejections. 'released' is a fairness variant (authors move on; ejections become tickets for any free agent).",
+    "requeue": "A good queue keeps an ejected PR's position (front), so the PR is re-tested soon after rework rather than after the whole queue.",
+    "budget": "Error budget B = 3 open reds, A = 30 min (thesis section 3, step 7: 'at most 3 open reds, none older than 30 minutes').",
+    "a_suspect": "Assumption 0.7: the read/write-set suspect set contains the true culprit. The thesis leaves this untested (section 7, 'Read sets are noisy').",
+    "snapshot": "Thesis section 2: each task runs on a fork of the fast trunk at T0 (head). 'green' (fork from the newest validated commit) is the thesis's answer to red-trunk poisoning (section 7) and a sensitivity row.",
+    "green_mode": "prefix is the study brief: green moves to a fast-trunk commit whose full suite passed. quarantine is an extension (not in the brief): green moves to the tested head minus known culprits and the commits built on them, as a queue's ejection would.",
+    "placement": "Pair-level placement (default; orchestrator guidance 2026-10-03 after step 2): when candidate t is checked against a held task r, the pair is flagged with probability flag_recall if it would textually conflict under the interaction model, otherwise with probability flag_clean (one latent draw per pair). Hard placement (placement_fallback=wait) never starts a flagged task; soft (least-overlap, the default) takes the task with the fewest flags, so no agent idles. Default operating point 'predicted-typical' (0.60, 0.25). flag_points are the measured step-2 operating points at conflict recall 0.60: codex title+body clean-flag 0.15 (best case), workers-sdk directory-level kNN 0.21 and platform 0.29 (typical); the module-level combined predictor at its tuned threshold flags 0.87-0.93 of conflicting and 0.53-0.90 of clean pairs; a file-level oracle flags all conflicting and 0.04-0.06 of clean pairs; 'hot-file-rule' (0.30, 0.02) is an ASSUMED scenario that serialises only the few files that dominate conflicts (in platform one file has 31% of conflicting pairs). Module-level placement on perturbed module sets (placement_model=module, spec's rho/pi model) is kept as a variant; step 2 found module footprints too coarse to place on (a perfect module oracle still flags 33-74% of clean pairs).",
+    "review": "Human review is excluded from both policies: modelling it only for the queue would hand Beanstalk an advantage the baseline could also take (Duckbill's unreviewed lane merges in 1 h against 26 h; Pragmatic Engineer 2026-09-08, docs/claude-opus/01-evidence.md finding 2).",
+    "footprint": "Parametric fallback tuned to the local public corpora (data/codex, data/workers-sdk): 2.5 modules and 4.5 files per module per change, Zipf module popularity, popular modules larger, Zipf file popularity (s = 1.0) inside modules. See sanity_targets for the pair statistics it implies."
+  }
+}

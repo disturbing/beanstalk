@@ -1,0 +1,75 @@
+{
+ "task": "t023",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/tax-rounding.test.ts"
+ ],
+ "results": {
+  "src/billing/tax-rounding.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 8,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "applyRateToTotal > shares add up to the total rounded once",
+     "status": "fail",
+     "message": "applyRateToTotal is exported from lib/money.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "applyRateToTotal > rounds half up once on the total",
+     "status": "fail",
+     "message": "applyRateToTotal is exported from lib/money.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "applyRateToTotal > keeps each share within a cent of its exact proportional share",
+     "status": "fail",
+     "message": "applyRateToTotal is exported from lib/money.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "applyRateToTotal > gives a single amount its own rounded tax",
+     "status": "fail",
+     "message": "applyRateToTotal is exported from lib/money.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "applyRateToTotal > handles zero rate, zero amounts and no amounts",
+     "status": "fail",
+     "message": "applyRateToTotal is exported from lib/money.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "invoice tax is rounded once per rate > rounds the tax of same-rate lines on their combined total",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n393 !== 392"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "invoice tax is rounded once per rate > rounds each rate independently",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n262 !== 261"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "invoice tax is rounded once per rate > uses the taxable amount after discounts",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n354 !== 353"
+    },
+    {
+     "file": "src/billing/tax-rounding.test.ts",
+     "name": "invoice tax is rounded once per rate > leaves single-line invoices unchanged",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

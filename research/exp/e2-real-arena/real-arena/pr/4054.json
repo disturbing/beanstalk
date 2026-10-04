@@ -1,0 +1,13 @@
+{
+ "number": 4054,
+ "sha": "ca00e952fc86ab19eb288167f883ce976e562dc3",
+ "title": "docs: replace nonexistent test:all script with npm test",
+ "body": "## Problem\n\nThe contributor checklist in `docs/CONTRIBUTING.md` tells contributors to run `npm run test:all`, but no script named `test:all` exists in `package.json`. Following the documented step fails:\n\n```\n$ npm run test:all\nnpm error Missing script: \"test:all\"\nnpm error\nnpm error Did you mean one of these?\nnpm error   npm install # Install a package\nnpm error   npm run test:cjs # run the \"test:cjs\" package script\n```\n\n## Solution\n\nReplace `npm run test:all` with `npm test` in the checklist. The `test` script in `package.json` runs the full suite (`build:reset`, `build:docs`, `test:specs`, `test:unit`, `test:umd`, `test:cjs`, `test:types`, `test:lint`), which is the complete check a contributor needs before submitting.\n\n## Verification\n\n- Confirmed `test:all` does not exist in `package.json` (`rg '\"test' package.json` lists all test scripts; none is `test:all`).\n- Confirmed `npm run test:all` fails with \"Missing script\".\n- Confirmed `npm test` is the full-suite script defined in `package.json`.\n",
+ "author": "JiuYue0820",
+ "created_at": "2026-08-17T10:14:27Z",
+ "merged_at": "2026-08-17T22:17:31Z",
+ "pr_base_sha": "b8cf7dc5929331d3014555babc33bcda0dae4999",
+ "pr_head_sha": "2c39d0bf31a66f8da841f1a66e5e59358ea3deab",
+ "commits": 1,
+ "linked_issues": []
+}

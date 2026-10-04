@@ -1,0 +1,75 @@
+{
+ "task": "t022",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-list.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-list.test.ts": {
+   "status": "fails-first",
+   "why": "9 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 9,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > lists the signed-in user's invoices, newest first",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > returns full invoices",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ {\n+   error: {\n+     code: 'not_found',\n+     message: 'no route for GET /invoices'\n- [\n-   {\n-     couponCode: null,\n-     currency: 'USD',\n-     discount: 0,\n-     dueAt: '2026-10-15T12:00:00.000Z',\n-     id: 'inv_0001',\n-     issue"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > only includes the user's own invoices, even for admins",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > returns an empty array when the user has no invoices",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > requires a signed-in user",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 401"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > filters by each status, newest first",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > rejects any other status with 400",
+     "status": "fail",
+     "message": "status=&quot;refunded&quot;\n\n404 !== 400"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > applies limit and offset to the newest-first list",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > pages within a status filter and reports the total count",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

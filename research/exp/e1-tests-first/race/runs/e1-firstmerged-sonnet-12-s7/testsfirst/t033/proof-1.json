@@ -1,0 +1,27 @@
+{
+ "task": "t033",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/shipping/free-shipping.test.ts"
+ ],
+ "results": {
+  "src/shipping/free-shipping.test.ts": {
+   "status": "fails-first",
+   "why": "the export 'FREE_SHIPPING_THRESHOLD' named by the issue does not exist yet",
+   "tests": 1,
+   "failing": 1,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "src/shipping/free-shipping.test.ts",
+     "status": "fail",
+     "message": "test failed"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

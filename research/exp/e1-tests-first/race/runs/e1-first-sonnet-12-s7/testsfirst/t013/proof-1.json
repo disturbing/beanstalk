@@ -1,0 +1,51 @@
+{
+ "task": "t013",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/payment-receipt.test.ts"
+ ],
+ "results": {
+  "src/billing/payment-receipt.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 4,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/payment-receipt.test.ts",
+     "name": "payment receipt > emails the customer a receipt when the invoice is marked paid",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0 !== 1"
+    },
+    {
+     "file": "src/billing/payment-receipt.test.ts",
+     "name": "payment receipt > lists the receipt as a payment_received notification",
+     "status": "fail",
+     "message": "expected a payment_received notification"
+    },
+    {
+     "file": "src/billing/payment-receipt.test.ts",
+     "name": "payment receipt > sends the receipt when an admin pays through the route",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   'Payment received for order BS-0001'\n- ]"
+    },
+    {
+     "file": "src/billing/payment-receipt.test.ts",
+     "name": "payment receipt > does not send a second receipt when the invoice is already paid",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/payment-receipt.test.ts",
+     "name": "payment receipt > only notifies the customer who owns the order",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(kinds(a.token).includes('payment_received'))"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

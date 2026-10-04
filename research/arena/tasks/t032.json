@@ -1,0 +1,28 @@
+{
+  "id": "t032",
+  "title": "The order total shown to customers leaves out shipping",
+  "prompt": "Customers complain that the total in their confirmation email is lower than the amount they are asked to pay. The order `total` only covers goods and tax; shipping sits in a separate `shippingCost` field and is never added.\n\nMake `total` the full amount payable: goods after discount, plus tax, plus shipping. `subtotal`, `discount`, `tax` and `shippingCost` keep their meaning. The invoice stays as it is (it does not include shipping), and the confirmation email must show the new order total.",
+  "acceptance_tests": {
+    "src/orders/total-with-shipping.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS, placeOrder, US_ADDRESS } from '../lib/testing.ts';\n\ndescribe('order total', () => {\n  it('includes shipping on top of goods and tax', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.equal(order.shippingCost, 500);\n    assert.equal(order.total, order.subtotal - order.discount + order.tax + order.shippingCost);\n    assert.equal(order.total, 10000 + 650 + 500);\n  });\n\n  it('works with discounts and cross-border shipping', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS, couponCode: 'WELCOME10' });\n    assert.equal(order.shippingCost, 1200);\n    assert.equal(order.total, 9000 + 1170 + 1200);\n  });\n\n  it('leaves the invoice without shipping', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.equal(app.ctx.store.invoices.require(order.invoiceId!).total, 10650);\n  });\n\n  it('shows the new total in the confirmation email', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.match(app.mailer.sent[0].body, /Total: \\$111\\.50$/);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/orders/checkout.ts",
+    "src/orders/total-with-shipping.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/orders"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t028",
+      "type": "semantic",
+      "note": "total-with-shipping redefines Order.total to include shipping; signature compares order.total with a threshold and its test sits just under it. Merges cleanly, the shipping amount then pushes the order over the threshold."
+    }
+  ]
+}

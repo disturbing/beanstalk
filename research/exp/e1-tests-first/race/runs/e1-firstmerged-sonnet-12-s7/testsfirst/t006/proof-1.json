@@ -1,0 +1,69 @@
+{
+ "task": "t006",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/payment-terms.test.ts"
+ ],
+ "results": {
+  "src/billing/payment-terms.test.ts": {
+   "status": "fails-first",
+   "why": "7 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 7,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > defaults to 30",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 30"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > is overridden by PAYMENT_TERMS_DAYS",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 60"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > keeps the default when PAYMENT_TERMS_DAYS is empty",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 30"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "paymentTermsDays config > rejects a non-numeric PAYMENT_TERMS_DAYS",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > is 30 days after issue by default",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > uses the configured paymentTermsDays",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n30 !== 45"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > is due on the issue date when terms are 0",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '2026-10-15T12:00:00.000Z'\n- '2026-09-15T12:00:00.000Z'\n        ^"
+    },
+    {
+     "file": "src/billing/payment-terms.test.ts",
+     "name": "invoice due date > uses the terms from a config loaded with PAYMENT_TERMS_DAYS",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n30 !== 14"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,4 @@
+{"seq": 1, "t": 0.22, "ts": "2026-10-03T04:43:36.746+00:00", "type": "footprint.predicted", "task": "t001", "method": "predictor", "selected": ["src/orders"], "probs": {"src/orders": 0.1295, "src/db": 0.0879}}
+{"seq": 2, "t": 0.22, "ts": "2026-10-03T04:43:36.746+00:00", "type": "footprint.predicted", "task": "t002", "method": "predictor", "selected": ["src/orders"], "probs": {"src/orders": 0.0651, "src/db": 0.052, "src/lib": 0.0292}}
+{"seq": 3, "t": 0.221, "ts": "2026-10-03T04:43:36.747+00:00", "type": "footprint.predicted", "task": "t003", "method": "predictor", "selected": ["src/billing"], "probs": {"src/billing": 0.2431, "src/shipping": 0.0501}}
+{"seq": 4, "t": 0.221, "ts": "2026-10-03T04:43:36.747+00:00", "type": "footprint.predicted", "task": "t004", "method": "predictor", "selected": ["src/billing"], "probs": {"src/billing": 0.4254, "src/shipping": 0.0296}}

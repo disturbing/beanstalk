@@ -1,0 +1,93 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..3923161 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- Invoice tax is rounded once per tax rate instead of once per line.
+ 
+ ### Fixed
+ 
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..dc0ff48 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -1,4 +1,4 @@
+-import { applyRate, sumCents } from '../lib/money.ts';
++import { applyRateToTotal, sumCents } from '../lib/money.ts';
+ import type { Address, AppContext, Cents, Coupon, Invoice, InvoiceLine, TaxClass } from '../types.ts';
+ import { allocateDiscount, couponDiscount, validateCoupon } from './discounts.ts';
+ import { taxRateFor } from './tax.ts';
+@@ -23,6 +23,19 @@ export type InvoiceDraft = Omit<Invoice, 'id' | 'number'>;
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
++/** Tax per line, rounded once for each distinct rate over the lines that share it. */
++function taxByRate(taxable: Cents[], rates: number[]): Cents[] {
++  const taxes = taxable.map(() => 0);
++  for (const rate of new Set(rates)) {
++    const indexes = rates.flatMap((r, i) => (r === rate ? [i] : []));
++    const shares = applyRateToTotal(indexes.map((i) => taxable[i]), rate);
++    indexes.forEach((lineIndex, k) => {
++      taxes[lineIndex] = shares[k];
++    });
++  }
++  return taxes;
++}
++
+ /** Price an order: line nets, the coupon, tax per line, and the due date. Pure apart from the clock. */
+ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft {
+   const nets = input.items.map((item) => item.quantity * item.unitPrice);
+@@ -31,19 +44,18 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+   const discount = coupon ? couponDiscount(coupon, subtotal) : 0;
+   const lineDiscounts = allocateDiscount(nets, discount);
+ 
+-  const lines: InvoiceLine[] = input.items.map((item, i) => {
+-    const taxRate = taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
+-    return {
+-      productId: item.productId,
+-      description: item.description,
+-      quantity: item.quantity,
+-      unitPrice: item.unitPrice,
+-      net: nets[i],
+-      discount: lineDiscounts[i],
+-      taxRate,
+-      tax: applyRate(nets[i] - lineDiscounts[i], taxRate),
+-    };
+-  });
++  const rates = input.items.map((item) => taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate));
++  const lineTaxes = taxByRate(nets.map((net, i) => net - lineDiscounts[i]), rates);
++  const lines: InvoiceLine[] = input.items.map((item, i) => ({
++    productId: item.productId,
++    description: item.description,
++    quantity: item.quantity,
++    unitPrice: item.unitPrice,
++    net: nets[i],
++    discount: lineDiscounts[i],
++    taxRate: rates[i],
++    tax: lineTaxes[i],
++  }));
+ 
+   const tax = sumCents(lines.map((line) => line.tax));
+   const issuedAt = ctx.clock.now();
+diff --git a/src/lib/money.ts b/src/lib/money.ts
+index cad3d01..1269e21 100644
+--- a/src/lib/money.ts
++++ b/src/lib/money.ts
+@@ -44,6 +44,14 @@ export function allocate(total: Cents, weights: number[]): Cents[] {
+   return parts;
+ }
+ 
++/**
++ * Apply `rate` to a group of amounts as one sum: round once, then spread the rounded
++ * result over the amounts so the parts add up to it exactly.
++ */
++export function applyRateToTotal(amounts: Cents[], rate: number): Cents[] {
++  return allocate(applyRate(sumCents(amounts), rate), amounts);
++}
++
+ export function formatMoney(amount: Cents, currency: Currency = 'USD'): string {
+   const sign = amount < 0 ? '-' : '';
+   const abs = Math.abs(amount);

@@ -1,0 +1,25 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..b4a9f90 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- Amounts of 1,000 or more are shown with thousands separators.
+ 
+ ### Fixed
+ 
+diff --git a/src/lib/money.ts b/src/lib/money.ts
+index cad3d01..d6d48a8 100644
+--- a/src/lib/money.ts
++++ b/src/lib/money.ts
+@@ -47,7 +47,7 @@ export function allocate(total: Cents, weights: number[]): Cents[] {
+ export function formatMoney(amount: Cents, currency: Currency = 'USD'): string {
+   const sign = amount < 0 ? '-' : '';
+   const abs = Math.abs(amount);
+-  const whole = Math.floor(abs / 100);
++  const whole = Math.floor(abs / 100).toLocaleString('en-US');
+   const fraction = String(abs % 100).padStart(2, '0');
+   return `${sign}${SYMBOLS[currency]}${whole}.${fraction}`;
+ }

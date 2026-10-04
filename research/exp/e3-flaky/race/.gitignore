@@ -1,0 +1,4 @@
+# Unit-test and scratch runs (real runs keep events/summaries; work/ is ignored by research/.gitignore)
+runs/_test-*/
+runs/dev*/
+tests/tmp/

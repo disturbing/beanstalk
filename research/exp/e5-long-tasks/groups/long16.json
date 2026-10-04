@@ -1,0 +1,138 @@
+[
+ {
+  "id": "L01",
+  "members": [
+   "t001",
+   "t016",
+   "t022"
+  ],
+  "theme": "invoicing and coupons"
+ },
+ {
+  "id": "L02",
+  "members": [
+   "t002",
+   "t007",
+   "t019"
+  ],
+  "theme": "order handling and lists"
+ },
+ {
+  "id": "L03",
+  "members": [
+   "t003",
+   "t004",
+   "t024"
+  ],
+  "theme": "invoice tax and coupon limits"
+ },
+ {
+  "id": "L04",
+  "members": [
+   "t005",
+   "t027"
+  ],
+  "theme": "customer accounts and money formatting"
+ },
+ {
+  "id": "L05",
+  "members": [
+   "t006",
+   "t015",
+   "t023"
+  ],
+  "theme": "invoice and coupon internals"
+ },
+ {
+  "id": "L06",
+  "members": [
+   "t008",
+   "t025"
+  ],
+  "theme": "stock checks and notification templates"
+ },
+ {
+  "id": "L07",
+  "members": [
+   "t009",
+   "t010",
+   "t032"
+  ],
+  "theme": "checkout, tax and order totals"
+ },
+ {
+  "id": "L08",
+  "members": [
+   "t011",
+   "t021",
+   "t037"
+  ],
+  "theme": "shipments and the catalog"
+ },
+ {
+  "id": "L09",
+  "members": [
+   "t012",
+   "t014",
+   "t020"
+  ],
+  "theme": "sessions and accounts"
+ },
+ {
+  "id": "L10",
+  "members": [
+   "t013",
+   "t039",
+   "t040"
+  ],
+  "theme": "invoices, payments and coupons"
+ },
+ {
+  "id": "L11",
+  "members": [
+   "t017",
+   "t036"
+  ],
+  "theme": "tax and refunds"
+ },
+ {
+  "id": "L12",
+  "members": [
+   "t018",
+   "t031"
+  ],
+  "theme": "customer-facing emails and invoice text"
+ },
+ {
+  "id": "L13",
+  "members": [
+   "t026",
+   "t038"
+  ],
+  "theme": "billing discounts"
+ },
+ {
+  "id": "L14",
+  "members": [
+   "t028",
+   "t033"
+  ],
+  "theme": "shipping"
+ },
+ {
+  "id": "L15",
+  "members": [
+   "t029",
+   "t030"
+  ],
+  "theme": "checkout"
+ },
+ {
+  "id": "L16",
+  "members": [
+   "t034",
+   "t035"
+  ],
+  "theme": "stock and carts"
+ }
+]

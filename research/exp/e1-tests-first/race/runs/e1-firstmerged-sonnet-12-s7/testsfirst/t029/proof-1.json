@@ -1,0 +1,51 @@
+{
+ "task": "t029",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/failed-checkout-stock.test.ts"
+ ],
+ "results": {
+  "src/orders/failed-checkout-stock.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 4,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart as they were > releases stock when the coupon code is unknown",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    id: 'prd_0001',\n    onHand: 10,\n+   reserved: 3\n-   reserved: 0\n  }"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart as they were > releases stock when the cart is below the coupon minimum",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    id: 'prd_0001',\n    onHand: 10,\n+   reserved: 2\n-   reserved: 0\n  }"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart as they were > does not accumulate reservations over repeated failed attempts",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n409 !== 400"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart as they were > reserves nothing when a later line cannot be covered",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n4 !== 0"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart as they were > does not count a coupon redemption or create an order on failure",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

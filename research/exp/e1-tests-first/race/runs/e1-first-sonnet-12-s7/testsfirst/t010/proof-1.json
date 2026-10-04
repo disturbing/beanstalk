@@ -1,0 +1,69 @@
+{
+ "task": "t010",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/tax-exempt.test.ts"
+ ],
+ "results": {
+  "src/billing/tax-exempt.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 6,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > defaults taxExempt to false for new users",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- false"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > charges no tax on any line, whatever the class or destination",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(invoice.lines.every((l) => l.taxRate === 0 && l.tax === 0))"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > charges no tax on an unknown region either",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n700 !== 0"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > still taxes non-exempt customers",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > keeps tax at zero when a coupon applies",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0.13 !== 0"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > buildInvoice taxes a non-exempt user normally",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "taxExempt migration > is registered after the existing migrations and backfills false",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(last.version > 5)"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "taxExempt migration > gives users inserted after migration a false flag",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- false"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

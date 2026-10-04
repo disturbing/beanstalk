@@ -1,0 +1,19 @@
+{"ts": "2026-10-03T13:34:00", "kind": "smoke (run-tests visible to a Haiku agent)", "cost_usd": 0.0086737, "ok": true}
+{"ts": "2026-10-03T15:37:00", "kind": "authcheck (manual)", "cost_usd": 0.0039, "ok": true}
+{"ts": "2026-10-03T16:56:19", "kind": "authcheck", "cost_usd": 0.003941, "ok": true}
+{"ts": "2026-10-03T18:47:24", "kind": "authcheck", "cost_usd": 0.003941, "ok": true}
+{"ts": "2026-10-03T19:08:06", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T19:18:07", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T19:28:08", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T19:38:09", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T19:48:10", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T19:58:11", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T20:08:12", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T20:18:13", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T20:28:14", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T20:38:15", "kind": "authcheck", "cost_usd": 0.0, "ok": false}
+{"ts": "2026-10-03T20:48:16", "kind": "authcheck", "cost_usd": 0.003941, "ok": true}
+{"ts": "2026-10-03T20:54:20", "kind": "authcheck", "cost_usd": 0.003901, "ok": true}
+{"ts": "2026-10-03T20:59:39", "kind": "authcheck", "cost_usd": 0.003941, "ok": true}
+{"ts": "2026-10-03T21:04:59", "kind": "authcheck", "cost_usd": 0.003936, "ok": true}
+{"ts": "2026-10-03T22:32:19", "kind": "authcheck", "cost_usd": 0.0039510000000000005, "ok": true}

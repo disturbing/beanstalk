@@ -1,0 +1,24 @@
+{
+  "id": "t040",
+  "title": "Expired coupons are still accepted at checkout",
+  "prompt": "Coupons carry an optional expiry timestamp (`expiresAt`), but checkout never looks at it: a customer applied a coupon that expired weeks ago and still got the discount.\n\nReject a coupon with a 400 and the message \"coupon has expired\" once the current time has reached its expiry time. Coupons without an expiry, and coupons that expire in the future, keep working.",
+  "acceptance_tests": {
+    "src/billing/coupon-expiry.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, errorMessage, tryCheckout } from '../lib/testing.ts';\n\ndescribe('coupon expiry', () => {\n  it('rejects a coupon whose expiry has passed', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'OLDIE', expiresAt: '2026-09-01T00:00:00.000Z' });\n    const { res } = tryCheckout(app, { couponCode: 'OLDIE' });\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'coupon has expired');\n    assert.equal(app.ctx.store.coupons.require('OLDIE').redemptions, 0);\n  });\n\n  it('rejects it exactly at the expiry time', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'NOW', expiresAt: '2026-09-15T12:00:00.000Z' });\n    assert.equal(tryCheckout(app, { couponCode: 'NOW' }).res.status, 400);\n  });\n\n  it('accepts coupons that expire later or never', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'SOON', expiresAt: '2026-09-15T12:00:01.000Z' });\n    assert.equal(tryCheckout(app, { couponCode: 'SOON' }).res.status, 201);\n    assert.equal(tryCheckout(app, { email: 'b@example.com', couponCode: 'WELCOME10' }).res.status, 201);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/coupon-expiry.test.ts",
+    "src/billing/service.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t001",
+      "type": "textual",
+      "note": "Both add a coupon check immediately after the unknown-coupon check in issueInvoice (billing/service.ts)."
+    }
+  ]
+}

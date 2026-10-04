@@ -1,0 +1,13 @@
+{
+ "number": 4067,
+ "sha": "7f7a49670c14acc6f11efcb18ecc69d17962477a",
+ "title": "fix: support GFM protocol autolinks",
+ "body": "**Marked version:** master\n\n**Markdown flavor:** GitHub Flavored Markdown\n\n## Description\n\n- Addresses the protocol-autolink subgroup of #4050 (GFM 0.29 examples 633\u2013635).\n- Recognizes mailto: and xmpp: extended autolinks using the GFM email grammar.\n- Supports one optional XMPP resource segment and stops before a second slash.\n- Leaves the bare-email domain fix in #4063 untouched.\n\nAI disclosure: OpenAI Codex assisted with implementation and validation; I reviewed and own the contribution.\n\n## Contributor\n\n- [x] Tests exist to ensure functionality and minimize regression.\n- [x] This is existing GFM behavior, so no feature documentation is required.\n\n## Testing\n\n- npm test\n- npm run rules\n\n## Committer\n\nIn most cases, this should be a different person than the contributor.\n\n- [ ] CI is green (no forced merge required).\n- [ ] Squash and Merge PR following conventional commit guidelines.",
+ "author": "evgenyponomarev",
+ "created_at": "2026-08-21T14:57:55Z",
+ "merged_at": "2026-09-21T03:01:28Z",
+ "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+ "pr_head_sha": "fc9bdcafa3959af65e77b3a529098e72d57214fb",
+ "commits": 1,
+ "linked_issues": []
+}

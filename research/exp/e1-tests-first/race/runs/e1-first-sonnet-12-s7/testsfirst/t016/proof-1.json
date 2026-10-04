@@ -1,0 +1,51 @@
+{
+ "task": "t016",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-numbers.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-numbers.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 5,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-numbers.test.ts",
+     "name": "invoice numbers > use the year of issue and a four-digit sequence starting at 0001",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0001'\n- 'INV-2026-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-numbers.test.ts",
+     "name": "invoice numbers > restart at 0001 in a new year",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0003'\n- 'INV-2027-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-numbers.test.ts",
+     "name": "invoice numbers > switch year at midnight UTC",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0001'\n- 'INV-2026-0001'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-numbers.test.ts",
+     "name": "invoice numbers > keep the sequence zero-padded to four digits as it grows",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0010'\n- 'INV-2026-0010'\n       ^"
+    },
+    {
+     "file": "src/billing/invoice-numbers.test.ts",
+     "name": "invoice numbers > do not change invoice ids",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'INV-0002'\n- 'INV-2027-0001'\n       ^"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

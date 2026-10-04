@@ -1,0 +1,24 @@
+{
+  "id": "t034",
+  "title": "Stock reservations should be all or nothing",
+  "prompt": "If a cart has three lines and the third is out of stock, checkout fails with a 409, but the first two lines stay reserved, so the stock of those products leaks away with every failed attempt.\n\nReserving a group of lines in inventory/stock.ts must be all or nothing: if any line cannot be covered, nothing at all is reserved and the error names the first line that is short.",
+  "acceptance_tests": {
+    "src/inventory/atomic-reserve.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, signUp } from '../lib/testing.ts';\nimport { getStock, reserve } from './stock.ts';\n\ndescribe('atomic reservations', () => {\n  it('reserve nothing when one line is short', () => {\n    const app = createTestApp();\n    const a = addProduct(app.ctx, { stock: 5 });\n    const b = addProduct(app.ctx, { stock: 5 });\n    const c = addProduct(app.ctx, { stock: 1 });\n    const lines = [a, b, c].map((p) => ({ productId: p.id, quantity: 2 }));\n    assert.throws(() => reserve(app.ctx, lines), new RegExp(`not enough stock for ${c.id}`));\n    assert.deepEqual([a, b, c].map((p) => getStock(app.ctx, p.id).reserved), [0, 0, 0]);\n  });\n\n  it('name the first short line', () => {\n    const app = createTestApp();\n    const ok = addProduct(app.ctx, { stock: 5 });\n    const short1 = addProduct(app.ctx, { stock: 0 });\n    const short2 = addProduct(app.ctx, { stock: 0 });\n    const lines = [ok, short1, short2].map((p) => ({ productId: p.id, quantity: 1 }));\n    assert.throws(() => reserve(app.ctx, lines), new RegExp(short1.id));\n  });\n\n  it('reserve every line when all are covered', () => {\n    const app = createTestApp();\n    const a = addProduct(app.ctx, { stock: 5 });\n    const b = addProduct(app.ctx, { stock: 5 });\n    reserve(app.ctx, [{ productId: a.id, quantity: 3 }, { productId: b.id, quantity: 5 }]);\n    assert.deepEqual([a, b].map((p) => getStock(app.ctx, p.id).reserved), [3, 5]);\n  });\n\n  it('keep stock intact across a failed checkout', () => {\n    const app = createTestApp();\n    const { token } = signUp(app.ctx);\n    const plenty = addProduct(app.ctx, { stock: 10 });\n    const scarce = addProduct(app.ctx, { stock: 5 });\n    app.call('POST', '/cart/items', { token, body: { productId: plenty.id, quantity: 2 } });\n    app.call('POST', '/cart/items', { token, body: { productId: scarce.id, quantity: 2 } });\n    app.ctx.store.stock.update(scarce.id, { onHand: 1 });\n    assert.equal(app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }).status, 409);\n    assert.equal(getStock(app.ctx, plenty.id).reserved, 0);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/inventory/atomic-reserve.test.ts",
+    "src/inventory/stock.ts"
+  ],
+  "oracle_modules": [
+    "src/inventory"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t008",
+      "type": "textual",
+      "note": "Both change the line loop inside reserve() in inventory/stock.ts: one splits it into a check pass and a reserve pass, the other adds a quantity check at the top of the loop body."
+    }
+  ]
+}

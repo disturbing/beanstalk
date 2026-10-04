@@ -1,0 +1,18 @@
+{
+  "id": "t025",
+  "title": "Replace the notification switch with a template table",
+  "prompt": "renderNotification in notifications/templates.ts is a switch with one branch per kind, and every new notification kind means editing that function. Turn it into a table: export a `templates` record, keyed by notification kind, whose values are render functions taking `(order, currency)` and returning `{ subject, body }`. renderNotification should just look the kind up in it. The text produced for the existing kinds must not change.",
+  "acceptance_tests": {
+    "src/notifications/templates.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\nimport { renderNotification, templates } from './templates.ts';\n\ndescribe('notification templates', () => {\n  it('has one render function per kind', () => {\n    assert.deepEqual(Object.keys(templates).sort(), ['order_cancelled', 'order_confirmed', 'order_shipped']);\n    for (const render of Object.values(templates)) assert.equal(typeof render, 'function');\n  });\n\n  it('renders exactly what renderNotification does', () => {\n    const { order } = placeOrder(createTestApp());\n    for (const kind of ['order_confirmed', 'order_shipped', 'order_cancelled'] as const) {\n      assert.deepEqual(templates[kind](order, 'USD'), renderNotification(kind, order, 'USD'));\n    }\n  });\n\n  it('keeps the wording of the existing messages', () => {\n    const { order } = placeOrder(createTestApp(), { price: 1500 });\n    assert.equal(renderNotification('order_shipped', order, 'USD').subject, `Order ${order.number} has shipped`);\n    assert.equal(renderNotification('order_cancelled', order, 'USD').body, `Your order ${order.number} was cancelled. Any payment will be refunded.`);\n    assert.equal(renderNotification('order_confirmed', order, 'USD').body.split('\\n')[0], 'Thanks for your order!');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/notifications/templates.test.ts",
+    "src/notifications/templates.ts"
+  ],
+  "oracle_modules": [
+    "src/notifications"
+  ],
+  "kind": "refactor",
+  "difficulty": 1,
+  "couplings": []
+}

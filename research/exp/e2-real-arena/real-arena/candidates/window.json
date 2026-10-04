@@ -1,0 +1,829 @@
+{
+ "upstream": "https://github.com/markedjs/marked",
+ "base": "d2af54e66184f2c4a1eaf107035ef319ee82b8a7",
+ "end": "c18a64fa5e8c97cb92a8ea709a4542ea94b1c740",
+ "base_date": "2026-06-29T19:48:09-06:00",
+ "end_date": "2026-10-02T08:33:24-06:00",
+ "window_commits": 84,
+ "qualifying": 41,
+ "candidates": 28,
+ "excluded": [
+  {
+   "pr": 4004,
+   "sha": "3f144a0e93b515877d5f55b92039d87eea9a6b04",
+   "title": "fix: keep empty list after blockquote as a sibling block",
+   "author": "spokodev",
+   "merged_at": "2026-07-14T22:08:05Z",
+   "url": "https://github.com/markedjs/marked/pull/4004",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 7
+  },
+  {
+   "pr": 4014,
+   "sha": "f945fc5e106c9bbeac833c60edc543aa5ab3222c",
+   "title": "fix: Avoid O(n^2) backtracking in HTML block close and tilde interrupt regexes",
+   "author": "hong4rc",
+   "merged_at": "2026-07-14T22:08:51Z",
+   "url": "https://github.com/markedjs/marked/pull/4014",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 8
+  },
+  {
+   "pr": 4039,
+   "sha": "81bd7505338f83ad118401f53ab6b0e86b8d895f",
+   "title": "fix: parse EOF backtick fences after paragraphs",
+   "author": "deepakganesh78",
+   "merged_at": "2026-08-05T04:18:30Z",
+   "url": "https://github.com/markedjs/marked/pull/4039",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts",
+    "test/specs/redos/quadratic_tilde_paragraph_interrupt.cjs"
+   ],
+   "seq": 14
+  },
+  {
+   "pr": 4044,
+   "sha": "681373ccc058b5dc93c1f63291d755d7d714c2fa",
+   "title": "fix: keep the em/strong mask the same length as the source",
+   "author": "Jaybhade",
+   "merged_at": "2026-08-05T14:51:05Z",
+   "url": "https://github.com/markedjs/marked/pull/4044",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 15
+  },
+  {
+   "pr": 4040,
+   "sha": "0653c24b59edfe03e327cbb68ea8318cd0b93641",
+   "title": "fix: inlineTokens rebuilds the reflink-mask preamble per call",
+   "author": "susyimes",
+   "merged_at": "2026-08-22T16:06:37Z",
+   "url": "https://github.com/markedjs/marked/pull/4040",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 18
+  },
+  {
+   "pr": 4059,
+   "sha": "b699db3c6de018ccdbf93ac28b0f0677c627c576",
+   "title": "fix: keep emphasis in the text of a rejected reference link",
+   "author": "luantaraschi",
+   "merged_at": "2026-08-24T15:00:46Z",
+   "url": "https://github.com/markedjs/marked/pull/4059",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 19
+  },
+  {
+   "pr": 4077,
+   "sha": "aed933680dc146d868cb4573f393367abde04aae",
+   "title": "fix: case fold reference link labels",
+   "author": "gyanu2507",
+   "merged_at": "2026-09-08T15:30:30Z",
+   "url": "https://github.com/markedjs/marked/pull/4077",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 29
+  },
+  {
+   "pr": 4076,
+   "sha": "cead8de96f2ee32d79e1de187bd099929f7409a8",
+   "title": "fix: decode numeric character references in text",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-21T02:50:50Z",
+   "url": "https://github.com/markedjs/marked/pull/4076",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Tokenizer.ts"
+   ],
+   "seq": 35
+  },
+  {
+   "pr": 4091,
+   "sha": "c7ee43abecd6a9e024f8bb6818be2da05e5793cb",
+   "title": "fix: strip whitespace when normalizing link reference labels",
+   "author": "NgoQuocViet2001",
+   "merged_at": "2026-09-21T02:53:06Z",
+   "url": "https://github.com/markedjs/marked/pull/4091",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/helpers.ts"
+   ],
+   "seq": 36
+  },
+  {
+   "pr": 4095,
+   "sha": "7d05530733fa3f3ec2ed912ff695d05af6d81b8a",
+   "title": "fix: allow indented lines in setext heading text",
+   "author": "giaBaoJS",
+   "merged_at": "2026-09-21T02:56:08Z",
+   "url": "https://github.com/markedjs/marked/pull/4095",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 37
+  },
+  {
+   "pr": 4067,
+   "sha": "7f7a49670c14acc6f11efcb18ecc69d17962477a",
+   "title": "fix: support GFM protocol autolinks",
+   "author": "evgenyponomarev",
+   "merged_at": "2026-09-21T03:01:28Z",
+   "url": "https://github.com/markedjs/marked/pull/4067",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 38
+  },
+  {
+   "pr": 4101,
+   "sha": "1b89557177fe5a7d5d430fdc76e7c8a7c0adf6d7",
+   "title": "fix: keep text after empty nested blockquote",
+   "author": "Yahiro025",
+   "merged_at": "2026-09-22T05:44:51Z",
+   "url": "https://github.com/markedjs/marked/pull/4101",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Tokenizer.ts"
+   ],
+   "seq": 39
+  },
+  {
+   "pr": 4070,
+   "sha": "4ee44f7f2167bec4079255e32b520dd47f16486c",
+   "title": "perf: fast-fail link tokenizing when no ')' remains ahead",
+   "author": "koding88",
+   "merged_at": "2026-09-29T22:56:59Z",
+   "url": "https://github.com/markedjs/marked/pull/4070",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 41
+  }
+ ],
+ "rows": [
+  {
+   "pr": 3991,
+   "sha": "bbb84c88cf3a187c93fbc8966002164d229eba62",
+   "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+   "author": "sarathfrancis90",
+   "merged_at": "2026-06-30T04:22:44Z",
+   "url": "https://github.com/markedjs/marked/pull/3991",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 1
+  },
+  {
+   "pr": 4003,
+   "sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+   "title": "fix: Fix ordered lists after blockquotes",
+   "author": "cyphercodes",
+   "merged_at": "2026-06-30T04:23:31Z",
+   "url": "https://github.com/markedjs/marked/pull/4003",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 2
+  },
+  {
+   "pr": 4013,
+   "sha": "a0098085f4ff80392cc5221ed803083d3b576904",
+   "title": "fix: Avoid O(n^2) backtracking in inline link href regex",
+   "author": "hong4rc",
+   "merged_at": "2026-07-09T17:04:40Z",
+   "url": "https://github.com/markedjs/marked/pull/4013",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 3
+  },
+  {
+   "pr": 4007,
+   "sha": "bc2f121456d152fafd7d2cbd2c21b273ca4c6862",
+   "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+   "author": "sarathfrancis90",
+   "merged_at": "2026-07-14T03:07:07Z",
+   "url": "https://github.com/markedjs/marked/pull/4007",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 4
+  },
+  {
+   "pr": 4015,
+   "sha": "f056437b389407ab3a29fe9cb61a989f043edb3e",
+   "title": "fix: Recognize setext headings whose first line starts with #",
+   "author": "hong4rc",
+   "merged_at": "2026-07-14T22:06:37Z",
+   "url": "https://github.com/markedjs/marked/pull/4015",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 5
+  },
+  {
+   "pr": 4012,
+   "sha": "0de7188bf1f30511490c961d53865390e7ede956",
+   "title": "fix: preserve code spans adjacent to tildes",
+   "author": "Hona",
+   "merged_at": "2026-07-14T22:07:23Z",
+   "url": "https://github.com/markedjs/marked/pull/4012",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 6
+  },
+  {
+   "pr": 4004,
+   "sha": "3f144a0e93b515877d5f55b92039d87eea9a6b04",
+   "title": "fix: keep empty list after blockquote as a sibling block",
+   "author": "spokodev",
+   "merged_at": "2026-07-14T22:08:05Z",
+   "url": "https://github.com/markedjs/marked/pull/4004",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 7
+  },
+  {
+   "pr": 4014,
+   "sha": "f945fc5e106c9bbeac833c60edc543aa5ab3222c",
+   "title": "fix: Avoid O(n^2) backtracking in HTML block close and tilde interrupt regexes",
+   "author": "hong4rc",
+   "merged_at": "2026-07-14T22:08:51Z",
+   "url": "https://github.com/markedjs/marked/pull/4014",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 8
+  },
+  {
+   "pr": 4017,
+   "sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+   "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer",
+   "author": "hong4rc",
+   "merged_at": "2026-07-15T03:05:12Z",
+   "url": "https://github.com/markedjs/marked/pull/4017",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Lexer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 9
+  },
+  {
+   "pr": 4023,
+   "sha": "e1b6139fec38345460f0df901723d8cdbade4fbf",
+   "title": "fix: fall back to default checkbox renderer when extension returns false",
+   "author": "sarathfrancis90",
+   "merged_at": "2026-07-24T04:37:40Z",
+   "url": "https://github.com/markedjs/marked/pull/4023",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Parser.ts"
+   ],
+   "notes": [
+    "test/unit/marked.test.js: 2 added/modified case(s) extracted to test/unit/marked.pr4023.test.js"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 10
+  },
+  {
+   "pr": 3999,
+   "sha": "823093f3d4a70be748eed48d0d0475836cebdedb",
+   "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+   "author": "waiter",
+   "merged_at": "2026-08-04T04:29:40Z",
+   "url": "https://github.com/markedjs/marked/pull/3999",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 11
+  },
+  {
+   "pr": 4008,
+   "sha": "e8544e6a6702125f4ea3f74eb81c90a2f8203c38",
+   "title": "fix: an unmatched strong run before emphasis stays literal",
+   "author": "spokodev",
+   "merged_at": "2026-08-04T04:30:18Z",
+   "url": "https://github.com/markedjs/marked/pull/4008",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 12
+  },
+  {
+   "pr": 4030,
+   "sha": "452f1ed6a7429e05f00d788bcd9867440d7dc750",
+   "title": "fix: Fix spurious deeper nesting in a blockquote continuation",
+   "author": "spokodev",
+   "merged_at": "2026-08-04T04:31:16Z",
+   "url": "https://github.com/markedjs/marked/pull/4030",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 13
+  },
+  {
+   "pr": 4039,
+   "sha": "81bd7505338f83ad118401f53ab6b0e86b8d895f",
+   "title": "fix: parse EOF backtick fences after paragraphs",
+   "author": "deepakganesh78",
+   "merged_at": "2026-08-05T04:18:30Z",
+   "url": "https://github.com/markedjs/marked/pull/4039",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts",
+    "test/specs/redos/quadratic_tilde_paragraph_interrupt.cjs"
+   ],
+   "seq": 14
+  },
+  {
+   "pr": 4044,
+   "sha": "681373ccc058b5dc93c1f63291d755d7d714c2fa",
+   "title": "fix: keep the em/strong mask the same length as the source",
+   "author": "Jaybhade",
+   "merged_at": "2026-08-05T14:51:05Z",
+   "url": "https://github.com/markedjs/marked/pull/4044",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 15
+  },
+  {
+   "pr": 4046,
+   "sha": "b8cf7dc5929331d3014555babc33bcda0dae4999",
+   "title": "fix: place task checkboxes after list loose is finalized",
+   "author": "Hashim1999164",
+   "merged_at": "2026-08-15T18:57:46Z",
+   "url": "https://github.com/markedjs/marked/pull/4046",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 16
+  },
+  {
+   "pr": 4051,
+   "sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+   "title": "fix: do not nest a link inside a link",
+   "author": "hdimer",
+   "merged_at": "2026-08-18T16:36:02Z",
+   "url": "https://github.com/markedjs/marked/pull/4051",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Lexer.ts",
+    "src/Tokenizer.ts",
+    "test/specs/commonmark/commonmark.0.31.2.json",
+    "test/specs/gfm/commonmark.0.31.2.json"
+   ],
+   "notes": [
+    "test/specs/commonmark/commonmark.0.31.2.json: examples [518, 519, 532] copied to test/specs/commonmark/pr4051.json; the shared file's edit is in the solution",
+    "test/specs/gfm/commonmark.0.31.2.json: examples [518, 519, 532] copied to test/specs/gfm/pr4051.json; the shared file's edit is in the solution",
+    "test/unit/marked.test.js: 1 added/modified case(s) extracted to test/unit/marked.pr4051.test.js"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 17
+  },
+  {
+   "pr": 4040,
+   "sha": "0653c24b59edfe03e327cbb68ea8318cd0b93641",
+   "title": "fix: inlineTokens rebuilds the reflink-mask preamble per call",
+   "author": "susyimes",
+   "merged_at": "2026-08-22T16:06:37Z",
+   "url": "https://github.com/markedjs/marked/pull/4040",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 18
+  },
+  {
+   "pr": 4059,
+   "sha": "b699db3c6de018ccdbf93ac28b0f0677c627c576",
+   "title": "fix: keep emphasis in the text of a rejected reference link",
+   "author": "luantaraschi",
+   "merged_at": "2026-08-24T15:00:46Z",
+   "url": "https://github.com/markedjs/marked/pull/4059",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 19
+  },
+  {
+   "pr": 4083,
+   "sha": "300bb1dce07bc262d74778b28bd6644770269be0",
+   "title": "fix: reject invalid characters in HTML tag names",
+   "author": "spokodev",
+   "merged_at": "2026-09-04T05:10:05Z",
+   "url": "https://github.com/markedjs/marked/pull/4083",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 20
+  },
+  {
+   "pr": 4074,
+   "sha": "0244f08d6253993fff0755c3edece62002692b31",
+   "title": "fix: remove up to the fence indentation from each content line",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-04T05:10:40Z",
+   "url": "https://github.com/markedjs/marked/pull/4074",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 21
+  },
+  {
+   "pr": 4053,
+   "sha": "8f432f0ef219439cb1b5efdb86018aee0e44a141",
+   "title": "fix: escape character references in autolink destinations",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-04T05:58:49Z",
+   "url": "https://github.com/markedjs/marked/pull/4053",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Renderer.ts",
+    "src/Tokenizer.ts",
+    "src/Tokens.ts",
+    "test/unit/Lexer.test.js"
+   ],
+   "notes": [
+    "test/unit/Lexer.test.js: 4 added/modified case(s) extracted to test/unit/Lexer.pr4053.test.js",
+    "test/unit/Lexer.test.js: modified expectations stay in the solution"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 22
+  },
+  {
+   "pr": 4064,
+   "sha": "37b28d8f640e39c9680e24b83fe7828dd111073d",
+   "title": "fix: allow one more level of nested brackets in a link label",
+   "author": "luantaraschi",
+   "merged_at": "2026-09-04T05:59:26Z",
+   "url": "https://github.com/markedjs/marked/pull/4064",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts",
+    "test/specs/commonmark/commonmark.0.31.2.json",
+    "test/specs/gfm/commonmark.0.31.2.json"
+   ],
+   "notes": [
+    "test/specs/commonmark/commonmark.0.31.2.json: examples [512, 520, 528] copied to test/specs/commonmark/pr4064.json; the shared file's edit is in the solution",
+    "test/specs/gfm/commonmark.0.31.2.json: examples [512, 520, 528] copied to test/specs/gfm/pr4064.json; the shared file's edit is in the solution"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 23
+  },
+  {
+   "pr": 4063,
+   "sha": "df575341940389880afde6372ae5aa19bd9eb205",
+   "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+   "author": "contactjawad",
+   "merged_at": "2026-09-04T05:59:56Z",
+   "url": "https://github.com/markedjs/marked/pull/4063",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 24
+  },
+  {
+   "pr": 4073,
+   "sha": "23b1706a0e19e354d0dd0e82ba93fb73e11c6f5c",
+   "title": "fix: do not add a newline to an empty code block",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-04T20:39:13Z",
+   "url": "https://github.com/markedjs/marked/pull/4073",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Renderer.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 25
+  },
+  {
+   "pr": 4084,
+   "sha": "4417582f35d69926f0778ee133c3af75b7f3f966",
+   "title": "fix: allow a tab before the closing sequence of an ATX heading",
+   "author": "giaBaoJS",
+   "merged_at": "2026-09-05T13:08:47Z",
+   "url": "https://github.com/markedjs/marked/pull/4084",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts",
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 26
+  },
+  {
+   "pr": 4080,
+   "sha": "dbb393deebc5b6982cb29d7415e8a8ba5555b83a",
+   "title": "fix: strip a tab that follows spaces in an indented code block",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-08T15:28:17Z",
+   "url": "https://github.com/markedjs/marked/pull/4080",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 27
+  },
+  {
+   "pr": 4075,
+   "sha": "123ce04b813e0cd87a6dcb2326112ffb54022069",
+   "title": "fix: drop the leading whitespace after a hard line break",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-08T15:29:34Z",
+   "url": "https://github.com/markedjs/marked/pull/4075",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 28
+  },
+  {
+   "pr": 4077,
+   "sha": "aed933680dc146d868cb4573f393367abde04aae",
+   "title": "fix: case fold reference link labels",
+   "author": "gyanu2507",
+   "merged_at": "2026-09-08T15:30:30Z",
+   "url": "https://github.com/markedjs/marked/pull/4077",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 29
+  },
+  {
+   "pr": 4087,
+   "sha": "afbb27c7ee753af07fb1a5c18031fc3068261b31",
+   "title": "fix: allow tabs in the thematic break that ends a list item",
+   "author": "giaBaoJS",
+   "merged_at": "2026-09-08T15:32:00Z",
+   "url": "https://github.com/markedjs/marked/pull/4087",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 30
+  },
+  {
+   "pr": 4090,
+   "sha": "c6a25bb2a9d14f839cf2fd9abe4e4c7c3eece25b",
+   "title": "fix: avoid O(n^2) scanning in reflinkSearch",
+   "author": "spokodev",
+   "merged_at": "2026-09-11T22:38:17Z",
+   "url": "https://github.com/markedjs/marked/pull/4090",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 31
+  },
+  {
+   "pr": 4066,
+   "sha": "ef394f71df54ab9d4057821881e866366eaacf11",
+   "title": "fix: respect raw tokens when closing link labels",
+   "author": "evgenyponomarev",
+   "merged_at": "2026-09-12T20:18:27Z",
+   "url": "https://github.com/markedjs/marked/pull/4066",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/commonmark/commonmark.0.31.2.json",
+    "test/specs/gfm/commonmark.0.31.2.json"
+   ],
+   "notes": [
+    "test/specs/commonmark/commonmark.0.31.2.json: examples [524, 526, 536, 538] copied to test/specs/commonmark/pr4066.json; the shared file's edit is in the solution",
+    "test/specs/gfm/commonmark.0.31.2.json: examples [524, 526, 536, 538] copied to test/specs/gfm/pr4066.json; the shared file's edit is in the solution"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 32
+  },
+  {
+   "pr": 4072,
+   "sha": "c2facac8d455c87034f82639c900242de288aca0",
+   "title": "fix: match html block start conditions when ending a list item",
+   "author": "giaBaoJS",
+   "merged_at": "2026-09-12T20:19:35Z",
+   "url": "https://github.com/markedjs/marked/pull/4072",
+   "status": "candidate",
+   "solution_paths": [
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 33
+  },
+  {
+   "pr": 4086,
+   "sha": "e136da7c7dedcb58af046086005f89350020c416",
+   "title": "fix: preserve internal tabs in list item content",
+   "author": "nrps9909",
+   "merged_at": "2026-09-21T02:46:27Z",
+   "url": "https://github.com/markedjs/marked/pull/4086",
+   "status": "candidate",
+   "solution_paths": [
+    "src/Tokenizer.ts",
+    "src/rules.ts"
+   ],
+   "notes": [],
+   "prompt_source": "pr-description",
+   "seq": 34
+  },
+  {
+   "pr": 4076,
+   "sha": "cead8de96f2ee32d79e1de187bd099929f7409a8",
+   "title": "fix: decode numeric character references in text",
+   "author": "Kjubikstronk",
+   "merged_at": "2026-09-21T02:50:50Z",
+   "url": "https://github.com/markedjs/marked/pull/4076",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Tokenizer.ts"
+   ],
+   "seq": 35
+  },
+  {
+   "pr": 4091,
+   "sha": "c7ee43abecd6a9e024f8bb6818be2da05e5793cb",
+   "title": "fix: strip whitespace when normalizing link reference labels",
+   "author": "NgoQuocViet2001",
+   "merged_at": "2026-09-21T02:53:06Z",
+   "url": "https://github.com/markedjs/marked/pull/4091",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/helpers.ts"
+   ],
+   "seq": 36
+  },
+  {
+   "pr": 4095,
+   "sha": "7d05530733fa3f3ec2ed912ff695d05af6d81b8a",
+   "title": "fix: allow indented lines in setext heading text",
+   "author": "giaBaoJS",
+   "merged_at": "2026-09-21T02:56:08Z",
+   "url": "https://github.com/markedjs/marked/pull/4095",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 37
+  },
+  {
+   "pr": 4067,
+   "sha": "7f7a49670c14acc6f11efcb18ecc69d17962477a",
+   "title": "fix: support GFM protocol autolinks",
+   "author": "evgenyponomarev",
+   "merged_at": "2026-09-21T03:01:28Z",
+   "url": "https://github.com/markedjs/marked/pull/4067",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/rules.ts"
+   ],
+   "seq": 38
+  },
+  {
+   "pr": 4101,
+   "sha": "1b89557177fe5a7d5d430fdc76e7c8a7c0adf6d7",
+   "title": "fix: keep text after empty nested blockquote",
+   "author": "Yahiro025",
+   "merged_at": "2026-09-22T05:44:51Z",
+   "url": "https://github.com/markedjs/marked/pull/4101",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Tokenizer.ts"
+   ],
+   "seq": 39
+  },
+  {
+   "pr": 4100,
+   "sha": "c61543ed0f16121ace9255626abcafe9514cb1b0",
+   "title": "fix: load CLI configs with top-level await",
+   "author": "pengboyu-dev",
+   "merged_at": "2026-09-29T03:03:58Z",
+   "url": "https://github.com/markedjs/marked/pull/4100",
+   "status": "candidate",
+   "solution_paths": [
+    "bin/main.js"
+   ],
+   "notes": [
+    "test/unit/bin.test.js: 1 added/modified case(s) extracted to test/unit/bin.pr4100.test.js"
+   ],
+   "prompt_source": "pr-description",
+   "seq": 40
+  },
+  {
+   "pr": 4070,
+   "sha": "4ee44f7f2167bec4079255e32b520dd47f16486c",
+   "title": "perf: fast-fail link tokenizing when no ')' remains ahead",
+   "author": "koding88",
+   "merged_at": "2026-09-29T22:56:59Z",
+   "url": "https://github.com/markedjs/marked/pull/4070",
+   "status": "excluded",
+   "reason": "depends on an earlier change in the window",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ],
+   "seq": 41
+  }
+ ]
+}

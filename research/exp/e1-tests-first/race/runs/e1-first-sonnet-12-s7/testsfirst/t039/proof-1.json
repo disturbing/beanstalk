@@ -1,0 +1,69 @@
+{
+ "task": "t039",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/overdue-invoices.test.ts"
+ ],
+ "results": {
+  "src/billing/overdue-invoices.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 8,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > is admin only",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 403"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > returns an empty list when nothing is overdue",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > lists open invoices past their due date with daysOverdue, longest overdue first",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > excludes paid and void invoices",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > excludes invoices that are not yet due",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > counts whole days, rounding down",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > reports at least 1 day for an invoice that is only hours overdue",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/overdue-invoices.test.ts",
+     "name": "GET /invoices/overdue > follows the clock",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

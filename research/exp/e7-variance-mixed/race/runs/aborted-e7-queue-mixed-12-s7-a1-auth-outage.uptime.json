@@ -1,0 +1,332 @@
+{
+ "start_uptime": "15:02  up 1 day,  6:59, 12 users, load averages: 91.24 77.44 61.03",
+ "start_at": "15:02:03",
+ "end_uptime": "15:24  up 1 day,  7:21, 12 users, load averages: 18.87 28.31 43.09",
+ "end_at": "15:24:30",
+ "samples": [
+  {
+   "at": "15:02:03",
+   "load1": 91.2,
+   "load5": 77.4,
+   "load15": 61.0,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:02:33",
+   "load1": 119.4,
+   "load5": 84.7,
+   "load15": 64.2,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:03:04",
+   "load1": 170.4,
+   "load5": 100.6,
+   "load15": 70.6,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:03:34",
+   "load1": 184.7,
+   "load5": 111.2,
+   "load15": 75.6,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:04:04",
+   "load1": 173.8,
+   "load5": 115.3,
+   "load15": 78.3,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:04:34",
+   "load1": 177.9,
+   "load5": 121.5,
+   "load15": 81.8,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:05:04",
+   "load1": 131.3,
+   "load5": 116.2,
+   "load15": 81.3,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:05:34",
+   "load1": 82.0,
+   "load5": 105.7,
+   "load15": 78.7,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:06:04",
+   "load1": 91.8,
+   "load5": 104.9,
+   "load15": 79.2,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:06:35",
+   "load1": 72.5,
+   "load5": 99.0,
+   "load15": 78.0,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:07:05",
+   "load1": 58.2,
+   "load5": 93.3,
+   "load15": 76.7,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:07:35",
+   "load1": 39.5,
+   "load5": 85.5,
+   "load15": 74.4,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:08:05",
+   "load1": 26.9,
+   "load5": 78.0,
+   "load15": 72.1,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:08:35",
+   "load1": 29.2,
+   "load5": 73.5,
+   "load15": 70.6,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:09:05",
+   "load1": 26.5,
+   "load5": 68.6,
+   "load15": 69.0,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:09:35",
+   "load1": 17.5,
+   "load5": 62.4,
+   "load15": 66.7,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:10:05",
+   "load1": 17.1,
+   "load5": 58.1,
+   "load15": 65.0,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:10:35",
+   "load1": 29.3,
+   "load5": 57.1,
+   "load15": 64.4,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:11:05",
+   "load1": 27.1,
+   "load5": 54.0,
+   "load15": 63.1,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:11:35",
+   "load1": 20.8,
+   "load5": 50.0,
+   "load15": 61.3,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:12:05",
+   "load1": 21.4,
+   "load5": 47.2,
+   "load15": 59.9,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:12:35",
+   "load1": 65.7,
+   "load5": 54.2,
+   "load15": 61.9,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:13:05",
+   "load1": 77.6,
+   "load5": 58.7,
+   "load15": 63.3,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:13:35",
+   "load1": 51.1,
+   "load5": 54.1,
+   "load15": 61.4,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:14:05",
+   "load1": 43.0,
+   "load5": 51.6,
+   "load15": 60.3,
+   "race_py_procs": 5
+  },
+  {
+   "at": "15:14:35",
+   "load1": 49.7,
+   "load5": 53.2,
+   "load15": 60.6,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:15:06",
+   "load1": 33.2,
+   "load5": 48.8,
+   "load15": 58.8,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:15:37",
+   "load1": 38.7,
+   "load5": 48.8,
+   "load15": 58.4,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:16:07",
+   "load1": 29.5,
+   "load5": 45.7,
+   "load15": 56.9,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:16:37",
+   "load1": 26.6,
+   "load5": 43.5,
+   "load15": 55.8,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:17:07",
+   "load1": 31.1,
+   "load5": 43.0,
+   "load15": 55.1,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:17:37",
+   "load1": 36.8,
+   "load5": 43.5,
+   "load15": 54.9,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:18:08",
+   "load1": 35.6,
+   "load5": 42.6,
+   "load15": 54.2,
+   "race_py_procs": 7
+  },
+  {
+   "at": "15:18:38",
+   "load1": 36.2,
+   "load5": 42.0,
+   "load15": 53.6,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:19:08",
+   "load1": 31.5,
+   "load5": 40.3,
+   "load15": 52.5,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:19:38",
+   "load1": 27.8,
+   "load5": 38.6,
+   "load15": 51.5,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:20:08",
+   "load1": 28.6,
+   "load5": 37.7,
+   "load15": 50.7,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:20:38",
+   "load1": 27.6,
+   "load5": 36.5,
+   "load15": 49.8,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:21:08",
+   "load1": 22.0,
+   "load5": 34.3,
+   "load15": 48.6,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:21:38",
+   "load1": 28.2,
+   "load5": 34.2,
+   "load15": 48.0,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:22:09",
+   "load1": 21.8,
+   "load5": 32.1,
+   "load15": 46.8,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:22:39",
+   "load1": 20.7,
+   "load5": 30.8,
+   "load15": 45.8,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:23:09",
+   "load1": 24.9,
+   "load5": 31.3,
+   "load15": 45.5,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:23:39",
+   "load1": 25.4,
+   "load5": 30.7,
+   "load15": 44.8,
+   "race_py_procs": 8
+  },
+  {
+   "at": "15:24:09",
+   "load1": 22.6,
+   "load5": 29.6,
+   "load15": 43.9,
+   "race_py_procs": 6
+  },
+  {
+   "at": "15:24:30",
+   "load1": 18.9,
+   "load5": 28.3,
+   "load15": 43.1,
+   "race_py_procs": 5
+  }
+ ],
+ "load1_mean": 53.6,
+ "load1_max": 184.7
+}

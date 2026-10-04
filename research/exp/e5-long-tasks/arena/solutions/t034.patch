@@ -1,0 +1,19 @@
+diff --git a/src/inventory/stock.ts b/src/inventory/stock.ts
+index a736d91..2e54cd4 100644
+--- a/src/inventory/stock.ts
++++ b/src/inventory/stock.ts
+@@ -19,10 +19,12 @@ export function setStock(ctx: AppContext, productId: string, onHand: number): St
+ /** Hold stock for an order. Fails with 409 if any line cannot be covered. */
+ export function reserve(ctx: AppContext, lines: CartLine[]): void {
+   for (const line of lines) {
+-    const level = getStock(ctx, line.productId);
+-    if (availableQuantity(level) < line.quantity) {
++    if (availableQuantity(getStock(ctx, line.productId)) < line.quantity) {
+       throw conflict(`not enough stock for ${line.productId}`);
+     }
++  }
++  for (const line of lines) {
++    const level = getStock(ctx, line.productId);
+     setReserved(ctx, level, level.reserved + line.quantity);
+   }
+ }

@@ -1,0 +1,40 @@
+diff --git a/src/auth/password.ts b/src/auth/password.ts
+index a42e7c3..7aae0f6 100644
+--- a/src/auth/password.ts
++++ b/src/auth/password.ts
+@@ -1,4 +1,5 @@
+ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
++import { badRequest } from '../lib/errors.ts';
+ 
+ const KEY_LENGTH = 32;
+ 
+@@ -16,3 +17,11 @@ export function verifyPassword(password: string, hash: string, salt: string, cos
+   const expected = Buffer.from(hash, 'hex');
+   return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+ }
++
++/** Reject passwords that are too short or are simply the account's email address. */
++export function assertAcceptablePassword(password: string, email: string): void {
++  if (password.length < 8) throw badRequest('password must be at least 8 characters');
++  if (password.toLowerCase() === email.toLowerCase()) {
++    throw badRequest('password must not be your email address');
++  }
++}
+diff --git a/src/users/service.ts b/src/users/service.ts
+index 4b8462a..fe56b9e 100644
+--- a/src/users/service.ts
++++ b/src/users/service.ts
+@@ -1,4 +1,4 @@
+-import { hashPassword } from '../auth/password.ts';
++import { assertAcceptablePassword, hashPassword } from '../auth/password.ts';
+ import { badRequest, conflict } from '../lib/errors.ts';
+ import type { AppContext, Address, User } from '../types.ts';
+ 
+@@ -22,6 +22,7 @@ export function findByEmail(ctx: AppContext, email: string): User | undefined {
+ 
+ export function registerUser(ctx: AppContext, input: RegisterInput): User {
+   const email = input.email.trim();
++  assertAcceptablePassword(input.password, email);
+   if (!email.includes('@')) throw badRequest('email is invalid');
+   if (findByEmail(ctx, email)) throw conflict('email is already registered');
+   const { hash, salt } = hashPassword(input.password, ctx.config.passwordCost);

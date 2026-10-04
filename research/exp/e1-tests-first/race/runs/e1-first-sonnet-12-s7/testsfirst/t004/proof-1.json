@@ -1,0 +1,57 @@
+{
+ "task": "t004",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-line.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-line.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 6,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > returns the finished line with net, discount, rate and tax",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > taxes only what is left after the discount",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > uses the destination and tax class for the rate",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > falls back to the configured rate for unknown regions",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > rounds tax to whole cents",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > matches the lines buildInvoice produces",
+     "status": "fail",
+     "message": "buildInvoiceLine is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

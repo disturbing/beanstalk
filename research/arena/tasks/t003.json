@@ -1,0 +1,29 @@
+{
+  "id": "t003",
+  "title": "Invoices should show federal and regional tax separately",
+  "prompt": "Canadian customers (and our accountant) want to see the federal and the regional part of the sales tax on an invoice, not one lump sum.\n\nAdd a `taxBreakdown` object with `federal` and `regional` amounts (in cents) to every invoice. The two parts must always add up to the invoice's `tax`. For a harmonised provincial tax such as Ontario's 13% HST, the federal part is 5% and the regional part is 8%. In the US, and for any region or country without a specific entry, everything counts as regional. Exempt goods have no tax in either part, and reduced-rate goods get half of each part.\n\nIn billing/tax.ts, expose the split as `taxComponentsFor(address, taxClass, fallback)`, returning `{ federal, regional }` as fractions (Ontario gives `{ federal: 0.05, regional: 0.08 }`); `taxRateFor` keeps returning the combined rate.",
+  "acceptance_tests": {
+    "src/billing/tax-breakdown.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS, placeOrder, US_ADDRESS } from '../lib/testing.ts';\nimport { buildInvoice } from './invoice.ts';\nimport { taxComponentsFor, taxRateFor } from './tax.ts';\n\ndescribe('tax breakdown', () => {\n  it('splits Ontario HST into 5% federal and 8% regional', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    assert.deepEqual(invoice.taxBreakdown, { federal: 500, regional: 800 });\n    assert.equal(invoice.tax, 1300);\n  });\n\n  it('counts all US state tax as regional', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    assert.deepEqual(invoice.taxBreakdown, { federal: 0, regional: 650 });\n  });\n\n  it('has no tax in either part for exempt goods', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS, taxClass: 'exempt' });\n    assert.deepEqual(app.ctx.store.invoices.require(order.invoiceId!).taxBreakdown, { federal: 0, regional: 0 });\n  });\n\n  it('always adds up to the invoice tax, even with awkward amounts', () => {\n    const app = createTestApp();\n    const item = (unitPrice: number) => ({ productId: 'p', description: 'x', quantity: 1, unitPrice, taxClass: 'standard' as const });\n    const invoice = buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items: [item(333), item(333), item(334)] });\n    assert.equal(invoice.taxBreakdown.federal + invoice.taxBreakdown.regional, invoice.tax);\n    assert.ok(invoice.taxBreakdown.federal > 0 && invoice.taxBreakdown.regional > 0);\n  });\n\n  it('keeps the combined rate and exposes the components', () => {\n    assert.equal(taxRateFor(ON_ADDRESS, 'standard', 0.07), 0.13);\n    assert.deepEqual(taxComponentsFor(ON_ADDRESS, 'standard', 0.07), { federal: 0.05, regional: 0.08 });\n    assert.deepEqual(taxComponentsFor({ ...ON_ADDRESS, country: 'JP' }, 'standard', 0.1), { federal: 0, regional: 0.1 });\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t017",
+      "type": "textual",
+      "note": "Both edit the Quebec row of the tax rate table in billing/tax.ts (a rate correction versus restructuring the table into federal/regional parts)."
+    }
+  ]
+}

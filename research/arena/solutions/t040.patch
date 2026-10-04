@@ -1,0 +1,14 @@
+diff --git a/src/billing/service.ts b/src/billing/service.ts
+index 04b3139..4f91cac 100644
+--- a/src/billing/service.ts
++++ b/src/billing/service.ts
+@@ -14,6 +14,9 @@ export function issueInvoice(ctx: AppContext, request: InvoiceRequest): Invoice
+   const { couponCode, ...rest } = request;
+   const coupon = couponCode ? findCoupon(ctx, couponCode) : undefined;
+   if (couponCode && !coupon) throw badRequest('unknown coupon code');
++  if (coupon?.expiresAt && new Date(coupon.expiresAt).getTime() <= ctx.clock.now().getTime()) {
++    throw badRequest('coupon has expired');
++  }
+   const draft = buildInvoice(ctx, { ...rest, coupon });
+   const id = ctx.store.nextId('inv');
+   const invoice = ctx.store.invoices.insert({ ...draft, id, number: `INV-${id.slice(4)}` });

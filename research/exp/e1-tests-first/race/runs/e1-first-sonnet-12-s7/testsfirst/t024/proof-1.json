@@ -1,0 +1,81 @@
+{
+ "task": "t024",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/discount-cap.test.ts"
+ ],
+ "results": {
+  "src/billing/discount-cap.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 10 tests fail on the current code",
+   "tests": 10,
+   "failing": 5,
+   "passing": 5,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > limits a percentage discount to maxDiscount",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n10000 !== 2500"
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > does not change a percentage discount below the cap",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > allows a discount exactly equal to the cap",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > does not cap a percentage coupon whose maxDiscount is null",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > has no effect on fixed-amount coupons",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > applies the cap at checkout",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n10000 !== 2500"
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > leaves checkout discounts below the cap untouched",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > gives existing seeded coupons no cap",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null"
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > adds a migration after the existing ones that backfills null on existing coupons",
+     "status": "fail",
+     "message": "expected a migration with a version above 6"
+    },
+    {
+     "file": "src/billing/discount-cap.test.ts",
+     "name": "coupon discount cap > gives coupons inserted without a cap a null maxDiscount",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- null"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

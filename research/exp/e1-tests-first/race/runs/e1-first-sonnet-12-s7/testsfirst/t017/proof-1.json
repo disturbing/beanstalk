@@ -1,0 +1,57 @@
+{
+ "task": "t017",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/quebec-tax.test.ts"
+ ],
+ "results": {
+  "src/billing/quebec-tax.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 4,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > charges the combined 14.975% on standard goods",
+     "status": "fail",
+     "message": "expected 0.14975, got 0.14"
+    },
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > charges half the combined rate on reduced goods",
+     "status": "fail",
+     "message": "expected 0.074875, got 0.07"
+    },
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > keeps exempt goods untaxed",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > leaves other provinces unchanged",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > applies the rate to a Quebec order at checkout",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2800 !== 2995"
+    },
+    {
+     "file": "src/billing/quebec-tax.test.ts",
+     "name": "Quebec sales tax > applies the reduced rate to a Quebec order at checkout",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2800 !== 2995"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

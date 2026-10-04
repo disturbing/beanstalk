@@ -1,0 +1,33 @@
+{
+  "id": "t020",
+  "title": "fix: strip a tab that follows spaces in an indented code block",
+  "prompt": "**Marked version:** 18.0.11 (53cb13f1)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\nCommonMark example 2. A line indented with spaces and then a tab keeps the tab as code content:\n\n```\nin     \"··\\tfoo\\tbaz\\t\\tbim\"\n\nwant   <pre><code>foo\\tbaz\\t\\tbim\ngot    <pre><code>\\tfoo\\tbaz\\t\\tbim\n```\n\nA tab advances to the next four column stop, so `··\\t` is four columns of indentation and all of it belongs to the block structure, not to the content.\n\n## Cause\n\n`codeRemoveIndent` is `/^(?: {1,4}| {0,3}\\t)/gm`. Regex alternation takes the first branch that matches, so on `··\\tfoo` the ` {1,4}` branch matches the two spaces and stops, and the tab is left in the content. The tab branch only ever gets a chance when the line has no leading space at all, which is why example 1 (`\\tfoo…`) has always passed and example 2 has not.\n\nSwapping the order fixes it, because the tab branch already carries its own ` {0,3}` prefix:\n\n```js\ncodeRemoveIndent: /^(?: {0,3}\\t| {1,4})/gm,\n```\n\nEvery space-only input is unaffected, since the tab branch cannot match without a tab:\n\n| line | before | after |\n|---|---|---|\n| `··\\tfoo` | `\\tfoo` | `foo` |\n| `···\\tfoo` | `\\tfoo` | `foo` |\n| `\\tfoo` | `foo` | `foo` |\n| `····foo` | `foo` | `foo` |\n| `·····foo` | `·foo` | `·foo` |\n| `······foo` | `··foo` | `··foo` |\n\nThe regex is used in one place, `Tokenizer.ts:108`, inside the indented code tokenizer, so it cannot reach fenced content.\n\n## Measurement\n\nWhole spec through the CommonMark repository's own `test/normalize.py`, 0.31.2, `gfm: false`:\n\n| | fails |\n|---|---:|\n| 18.0.11 | 28 |\n| with this change | 27 |\n\nThe one that moves is example 2, and nothing else moves in either direction. That measurement matters here because marked's own suite cannot see this bug: `htmlIsEqual` leaves `ignoreWhitespaces` at `true`, and the difference is indentation inside `pre`. Example 2 reports as passing today with no `shouldFail` flag against it, the same blind spot as #4073.",
+  "acceptance_tests": {
+    "test/specs/new/tabs_indented_code.html": "<pre><code>foo\tbaz\t\tbim\n</code></pre>\n<p>sep</p>\n<pre><code>three spaces and a tab\n</code></pre>\n<p>sep</p>\n<pre><code>lone tab\n</code></pre>\n<p>sep</p>\n<pre><code>four spaces\n</code></pre>\n<p>sep</p>\n<pre><code> five spaces\n</code></pre>\n",
+    "test/specs/new/tabs_indented_code.md": "---\nrenderExact: true\n---\n  \tfoo\tbaz\t\tbim\n\nsep\n\n   \tthree spaces and a tab\n\nsep\n\n\tlone tab\n\nsep\n\n    four spaces\n\nsep\n\n     five spaces\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/tabs_indented_code.html",
+    "test/specs/new/tabs_indented_code.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4080,
+    "sha": "dbb393deebc5b6982cb29d7415e8a8ba5555b83a",
+    "url": "https://github.com/markedjs/marked/pull/4080",
+    "author": "Kjubikstronk",
+    "merged_at": "2026-09-08T15:28:17Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

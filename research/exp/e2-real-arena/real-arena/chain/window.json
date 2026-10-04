@@ -1,0 +1,527 @@
+{
+ "variant": "history order (E2b)",
+ "base": "d2af54e66184f2c4a1eaf107035ef319ee82b8a7",
+ "end": "c18a64fa5e8c97cb92a8ea709a4542ea94b1c740",
+ "qualifying": 41,
+ "tasks": [
+  {
+   "id": "t001",
+   "pr": 3991,
+   "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t002",
+   "pr": 4003,
+   "title": "fix: Fix ordered lists after blockquotes",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t003",
+   "pr": 4007,
+   "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t004",
+   "pr": 4015,
+   "title": "fix: Recognize setext headings whose first line starts with #",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t005",
+   "pr": 4012,
+   "title": "fix: preserve code spans adjacent to tildes",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t006",
+   "pr": 4004,
+   "title": "fix: keep empty list after blockquote as a sibling block",
+   "applies_to_common_base": false
+  },
+  {
+   "id": "t007",
+   "pr": 4023,
+   "title": "fix: fall back to default checkbox renderer when extension returns false",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t008",
+   "pr": 3999,
+   "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t009",
+   "pr": 4008,
+   "title": "fix: an unmatched strong run before emphasis stays literal",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t010",
+   "pr": 4030,
+   "title": "fix: Fix spurious deeper nesting in a blockquote continuation",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t011",
+   "pr": 4046,
+   "title": "fix: place task checkboxes after list loose is finalized",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t012",
+   "pr": 4051,
+   "title": "fix: do not nest a link inside a link",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t013",
+   "pr": 4083,
+   "title": "fix: reject invalid characters in HTML tag names",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t014",
+   "pr": 4074,
+   "title": "fix: remove up to the fence indentation from each content line",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t015",
+   "pr": 4053,
+   "title": "fix: escape character references in autolink destinations",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t016",
+   "pr": 4064,
+   "title": "fix: allow one more level of nested brackets in a link label",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t017",
+   "pr": 4063,
+   "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t018",
+   "pr": 4073,
+   "title": "fix: do not add a newline to an empty code block",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t019",
+   "pr": 4084,
+   "title": "fix: allow a tab before the closing sequence of an ATX heading",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t020",
+   "pr": 4080,
+   "title": "fix: strip a tab that follows spaces in an indented code block",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t021",
+   "pr": 4075,
+   "title": "fix: drop the leading whitespace after a hard line break",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t022",
+   "pr": 4087,
+   "title": "fix: allow tabs in the thematic break that ends a list item",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t023",
+   "pr": 4066,
+   "title": "fix: respect raw tokens when closing link labels",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t024",
+   "pr": 4072,
+   "title": "fix: match html block start conditions when ending a list item",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t025",
+   "pr": 4086,
+   "title": "fix: preserve internal tabs in list item content",
+   "applies_to_common_base": true
+  },
+  {
+   "id": "t026",
+   "pr": 4095,
+   "title": "fix: allow indented lines in setext heading text",
+   "applies_to_common_base": false
+  },
+  {
+   "id": "t027",
+   "pr": 4101,
+   "title": "fix: keep text after empty nested blockquote",
+   "applies_to_common_base": false
+  },
+  {
+   "id": "t028",
+   "pr": 4100,
+   "title": "fix: load CLI configs with top-level await",
+   "applies_to_common_base": true
+  }
+ ],
+ "rows": [
+  {
+   "seq": 1,
+   "pr": 3991,
+   "sha": "bbb84c88cf3a187c93fbc8966002164d229eba62",
+   "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 2,
+   "pr": 4003,
+   "sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+   "title": "fix: Fix ordered lists after blockquotes",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 3,
+   "pr": 4013,
+   "sha": "a0098085f4ff80392cc5221ed803083d3b576904",
+   "title": "fix: Avoid O(n^2) backtracking in inline link href regex",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 4,
+   "pr": 4007,
+   "sha": "bc2f121456d152fafd7d2cbd2c21b273ca4c6862",
+   "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 5,
+   "pr": 4015,
+   "sha": "f056437b389407ab3a29fe9cb61a989f043edb3e",
+   "title": "fix: Recognize setext headings whose first line starts with #",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 6,
+   "pr": 4012,
+   "sha": "0de7188bf1f30511490c961d53865390e7ede956",
+   "title": "fix: preserve code spans adjacent to tildes",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 7,
+   "pr": 4004,
+   "sha": "3f144a0e93b515877d5f55b92039d87eea9a6b04",
+   "title": "fix: keep empty list after blockquote as a sibling block",
+   "status": "task",
+   "applies_to_common_base": false
+  },
+  {
+   "seq": 8,
+   "pr": 4014,
+   "sha": "f945fc5e106c9bbeac833c60edc543aa5ab3222c",
+   "title": "fix: Avoid O(n^2) backtracking in HTML block close and tilde interrupt regexes",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 9,
+   "pr": 4017,
+   "sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+   "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 10,
+   "pr": 4023,
+   "sha": "e1b6139fec38345460f0df901723d8cdbade4fbf",
+   "title": "fix: fall back to default checkbox renderer when extension returns false",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 11,
+   "pr": 3999,
+   "sha": "823093f3d4a70be748eed48d0d0475836cebdedb",
+   "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 12,
+   "pr": 4008,
+   "sha": "e8544e6a6702125f4ea3f74eb81c90a2f8203c38",
+   "title": "fix: an unmatched strong run before emphasis stays literal",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 13,
+   "pr": 4030,
+   "sha": "452f1ed6a7429e05f00d788bcd9867440d7dc750",
+   "title": "fix: Fix spurious deeper nesting in a blockquote continuation",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 14,
+   "pr": 4039,
+   "sha": "81bd7505338f83ad118401f53ab6b0e86b8d895f",
+   "title": "fix: parse EOF backtick fences after paragraphs",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/rules.ts"
+   ]
+  },
+  {
+   "seq": 15,
+   "pr": 4044,
+   "sha": "681373ccc058b5dc93c1f63291d755d7d714c2fa",
+   "title": "fix: keep the em/strong mask the same length as the source",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ]
+  },
+  {
+   "seq": 16,
+   "pr": 4046,
+   "sha": "b8cf7dc5929331d3014555babc33bcda0dae4999",
+   "title": "fix: place task checkboxes after list loose is finalized",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 17,
+   "pr": 4051,
+   "sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+   "title": "fix: do not nest a link inside a link",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 18,
+   "pr": 4040,
+   "sha": "0653c24b59edfe03e327cbb68ea8318cd0b93641",
+   "title": "fix: inlineTokens rebuilds the reflink-mask preamble per call",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ]
+  },
+  {
+   "seq": 19,
+   "pr": 4059,
+   "sha": "b699db3c6de018ccdbf93ac28b0f0677c627c576",
+   "title": "fix: keep emphasis in the text of a rejected reference link",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ]
+  },
+  {
+   "seq": 20,
+   "pr": 4083,
+   "sha": "300bb1dce07bc262d74778b28bd6644770269be0",
+   "title": "fix: reject invalid characters in HTML tag names",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 21,
+   "pr": 4074,
+   "sha": "0244f08d6253993fff0755c3edece62002692b31",
+   "title": "fix: remove up to the fence indentation from each content line",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 22,
+   "pr": 4053,
+   "sha": "8f432f0ef219439cb1b5efdb86018aee0e44a141",
+   "title": "fix: escape character references in autolink destinations",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 23,
+   "pr": 4064,
+   "sha": "37b28d8f640e39c9680e24b83fe7828dd111073d",
+   "title": "fix: allow one more level of nested brackets in a link label",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 24,
+   "pr": 4063,
+   "sha": "df575341940389880afde6372ae5aa19bd9eb205",
+   "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 25,
+   "pr": 4073,
+   "sha": "23b1706a0e19e354d0dd0e82ba93fb73e11c6f5c",
+   "title": "fix: do not add a newline to an empty code block",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 26,
+   "pr": 4084,
+   "sha": "4417582f35d69926f0778ee133c3af75b7f3f966",
+   "title": "fix: allow a tab before the closing sequence of an ATX heading",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 27,
+   "pr": 4080,
+   "sha": "dbb393deebc5b6982cb29d7415e8a8ba5555b83a",
+   "title": "fix: strip a tab that follows spaces in an indented code block",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 28,
+   "pr": 4075,
+   "sha": "123ce04b813e0cd87a6dcb2326112ffb54022069",
+   "title": "fix: drop the leading whitespace after a hard line break",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 29,
+   "pr": 4077,
+   "sha": "aed933680dc146d868cb4573f393367abde04aae",
+   "title": "fix: case fold reference link labels",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/Lexer.ts"
+   ]
+  },
+  {
+   "seq": 30,
+   "pr": 4087,
+   "sha": "afbb27c7ee753af07fb1a5c18031fc3068261b31",
+   "title": "fix: allow tabs in the thematic break that ends a list item",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 31,
+   "pr": 4090,
+   "sha": "c6a25bb2a9d14f839cf2fd9abe4e4c7c3eece25b",
+   "title": "fix: avoid O(n^2) scanning in reflinkSearch",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 32,
+   "pr": 4066,
+   "sha": "ef394f71df54ab9d4057821881e866366eaacf11",
+   "title": "fix: respect raw tokens when closing link labels",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 33,
+   "pr": 4072,
+   "sha": "c2facac8d455c87034f82639c900242de288aca0",
+   "title": "fix: match html block start conditions when ending a list item",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 34,
+   "pr": 4086,
+   "sha": "e136da7c7dedcb58af046086005f89350020c416",
+   "title": "fix: preserve internal tabs in list item content",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 35,
+   "pr": 4076,
+   "sha": "cead8de96f2ee32d79e1de187bd099929f7409a8",
+   "title": "fix: decode numeric character references in text",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/Tokenizer.ts"
+   ]
+  },
+  {
+   "seq": 36,
+   "pr": 4091,
+   "sha": "c7ee43abecd6a9e024f8bb6818be2da05e5793cb",
+   "title": "fix: strip whitespace when normalizing link reference labels",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task",
+   "conflict_files": [
+    "src/helpers.ts"
+   ]
+  },
+  {
+   "seq": 37,
+   "pr": 4095,
+   "sha": "7d05530733fa3f3ec2ed912ff695d05af6d81b8a",
+   "title": "fix: allow indented lines in setext heading text",
+   "status": "task",
+   "applies_to_common_base": false
+  },
+  {
+   "seq": 38,
+   "pr": 4067,
+   "sha": "7f7a49670c14acc6f11efcb18ecc69d17962477a",
+   "title": "fix: support GFM protocol autolinks",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/unit/Lexer.pr4067.test.js']"
+  },
+  {
+   "seq": 39,
+   "pr": 4101,
+   "sha": "1b89557177fe5a7d5d430fdc76e7c8a7c0adf6d7",
+   "title": "fix: keep text after empty nested blockquote",
+   "status": "task",
+   "applies_to_common_base": false
+  },
+  {
+   "seq": 40,
+   "pr": 4100,
+   "sha": "c61543ed0f16121ace9255626abcafe9514cb1b0",
+   "title": "fix: load CLI configs with top-level await",
+   "status": "task",
+   "applies_to_common_base": true
+  },
+  {
+   "seq": 41,
+   "pr": 4070,
+   "sha": "4ee44f7f2167bec4079255e32b520dd47f16486c",
+   "title": "perf: fast-fail link tokenizing when no ')' remains ahead",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  }
+ ]
+}

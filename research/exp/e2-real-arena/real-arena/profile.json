@@ -1,0 +1,72 @@
+{
+ "tasks": 24,
+ "base": "d2af54e66184f2c4a1eaf107035ef319ee82b8a7",
+ "avg_files": 4.96,
+ "avg_source_files": 1.21,
+ "source_touch": {
+  "src/rules.ts": {
+   "tasks": 14,
+   "share": 0.583
+  },
+  "src/Tokenizer.ts": {
+   "tasks": 9,
+   "share": 0.375
+  },
+  "src/Renderer.ts": {
+   "tasks": 2,
+   "share": 0.083
+  },
+  "src/Parser.ts": {
+   "tasks": 1,
+   "share": 0.042
+  },
+  "src/Lexer.ts": {
+   "tasks": 1,
+   "share": 0.042
+  },
+  "src/Tokens.ts": {
+   "tasks": 1,
+   "share": 0.042
+  },
+  "bin/main.js": {
+   "tasks": 1,
+   "share": 0.042
+  }
+ },
+ "pairs": {
+  "total": 276,
+  "share_source_file": 127,
+  "share_any_file": 127
+ },
+ "textual_conflicts": {
+  "conflicting": 0,
+  "rate": 0.0,
+  "by_overlap_class": {
+   "source-file": {
+    "pairs": 127,
+    "conflicts": 0,
+    "rate": 0.0
+   },
+   "test-side-file": {
+    "pairs": 0,
+    "conflicts": 0,
+    "rate": 0
+   },
+   "disjoint": {
+    "pairs": 149,
+    "conflicts": 0,
+    "rate": 0.0
+   }
+  },
+  "most_conflicted_files": [],
+  "tasks_never_in_a_textual_conflict": 24,
+  "pairs_list": []
+ },
+ "semantic": {
+  "pairs_checked": 276,
+  "clean_but_broken": 0,
+  "rate": 0.0,
+  "share_source_file": 0,
+  "pairs": []
+ }
+}

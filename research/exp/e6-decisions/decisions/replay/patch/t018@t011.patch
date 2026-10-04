@@ -1,0 +1,12 @@
+diff --git a/src/shipping/service.ts b/src/shipping/service.ts
+index c947948..a0b22cb 100644
+--- a/src/shipping/service.ts
++++ b/src/shipping/service.ts
+@@ -39,6 +39,6 @@ export function markShipped(ctx: AppContext, orderId: string, trackingNumber: st
+     shippedAt: now,
+   });
+   const updated = ctx.store.orders.update(orderId, { status: 'shipped', updatedAt: now });
+-  enqueueNotification(ctx, 'order_shipped', updated);
++  enqueueNotification(ctx, 'order_shipped', { ...updated, trackingNumber } as Order);
+   return updated;
+ }

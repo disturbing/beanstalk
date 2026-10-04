@@ -1,0 +1,45 @@
+{
+ "task": "t017",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/tax-quebec.test.ts"
+ ],
+ "results": {
+  "src/billing/tax-quebec.test.ts": {
+   "status": "fails-first",
+   "why": "2 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 2,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/tax-quebec.test.ts",
+     "name": "taxRateFor in Quebec > charges the combined 14.975% on standard goods",
+     "status": "fail",
+     "message": "expected 0.14975, got 0.14"
+    },
+    {
+     "file": "src/billing/tax-quebec.test.ts",
+     "name": "taxRateFor in Quebec > charges half the combined rate on reduced goods",
+     "status": "fail",
+     "message": "expected 0.074875, got 0.07"
+    },
+    {
+     "file": "src/billing/tax-quebec.test.ts",
+     "name": "taxRateFor in Quebec > still exempts exempt goods",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/tax-quebec.test.ts",
+     "name": "taxRateFor in Quebec > leaves other provinces unchanged",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

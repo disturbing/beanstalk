@@ -1,0 +1,1978 @@
+{
+ "profile": {
+  "compounds": 16,
+  "pairs": 120,
+  "plain_conflicts": 28,
+  "union_conflicts": 26,
+  "share_a_file": 78,
+  "clean_but_red": [
+   {
+    "pair": "L01+L02",
+    "failing": [
+     "filters by status and rejects unknown ones",
+     "invoice list",
+     "pages with limit and offset",
+     "returns the caller's invoices as an array, newest first"
+    ]
+   },
+   {
+    "pair": "L04+L07",
+    "failing": [
+     "groups thousands in line items and the total",
+     "leaves small orders unchanged",
+     "order confirmation with digit grouping"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "failing": [
+     "plain-text invoices",
+     "renders items, subtotal, tax and total"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "failing": [
+     "line refunds",
+     "refunds identical lines identically: $3.33 plus 43 cents of tax each"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "failing": [
+     "includes shipping on top of goods and tax",
+     "order total",
+     "shows the new total in the confirmation email",
+     "works with discounts and cross-border shipping"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "failing": [
+     "includes the tracking number",
+     "is what the customer sees in their notification list",
+     "shipped email"
+    ]
+   }
+  ]
+ },
+ "tasks": [
+  {
+   "id": "L01",
+   "members": [
+    "t001",
+    "t016",
+    "t022"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t001": true,
+    "t016": true,
+    "t022": true
+   },
+   "suite_ok": true,
+   "tests": 88,
+   "files": 8,
+   "ok": true
+  },
+  {
+   "id": "L02",
+   "members": [
+    "t002",
+    "t007",
+    "t019"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t002": true,
+    "t007": true,
+    "t019": true
+   },
+   "suite_ok": true,
+   "tests": 92,
+   "files": 16,
+   "ok": true
+  },
+  {
+   "id": "L03",
+   "members": [
+    "t003",
+    "t004",
+    "t024"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t003": true,
+    "t004": true,
+    "t024": true
+   },
+   "suite_ok": true,
+   "tests": 93,
+   "files": 11,
+   "ok": true
+  },
+  {
+   "id": "L04",
+   "members": [
+    "t005",
+    "t027"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t005": true,
+    "t027": true
+   },
+   "suite_ok": true,
+   "tests": 87,
+   "files": 6,
+   "ok": true
+  },
+  {
+   "id": "L05",
+   "members": [
+    "t006",
+    "t015",
+    "t023"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t006": true,
+    "t015": true,
+    "t023": true
+   },
+   "suite_ok": true,
+   "tests": 89,
+   "files": 10,
+   "ok": true
+  },
+  {
+   "id": "L06",
+   "members": [
+    "t008",
+    "t025"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t008": true,
+    "t025": true
+   },
+   "suite_ok": true,
+   "tests": 85,
+   "files": 4,
+   "ok": true
+  },
+  {
+   "id": "L07",
+   "members": [
+    "t009",
+    "t010",
+    "t032"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t009": true,
+    "t010": true,
+    "t032": true
+   },
+   "suite_ok": true,
+   "tests": 92,
+   "files": 11,
+   "ok": true
+  },
+  {
+   "id": "L08",
+   "members": [
+    "t011",
+    "t021",
+    "t037"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t011": true,
+    "t021": true,
+    "t037": true
+   },
+   "suite_ok": true,
+   "tests": 90,
+   "files": 13,
+   "ok": true
+  },
+  {
+   "id": "L09",
+   "members": [
+    "t012",
+    "t014",
+    "t020"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t012": true,
+    "t014": true,
+    "t020": true
+   },
+   "suite_ok": true,
+   "tests": 89,
+   "files": 8,
+   "ok": true
+  },
+  {
+   "id": "L10",
+   "members": [
+    "t013",
+    "t039",
+    "t040"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t013": true,
+    "t039": true,
+    "t040": true
+   },
+   "suite_ok": true,
+   "tests": 89,
+   "files": 10,
+   "ok": true
+  },
+  {
+   "id": "L11",
+   "members": [
+    "t017",
+    "t036"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t017": true,
+    "t036": true
+   },
+   "suite_ok": true,
+   "tests": 88,
+   "files": 9,
+   "ok": true
+  },
+  {
+   "id": "L12",
+   "members": [
+    "t018",
+    "t031"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t018": true,
+    "t031": true
+   },
+   "suite_ok": true,
+   "tests": 85,
+   "files": 8,
+   "ok": true
+  },
+  {
+   "id": "L13",
+   "members": [
+    "t026",
+    "t038"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t026": true,
+    "t038": true
+   },
+   "suite_ok": true,
+   "tests": 84,
+   "files": 3,
+   "ok": true
+  },
+  {
+   "id": "L14",
+   "members": [
+    "t028",
+    "t033"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t028": true,
+    "t033": true
+   },
+   "suite_ok": true,
+   "tests": 87,
+   "files": 7,
+   "ok": true
+  },
+  {
+   "id": "L15",
+   "members": [
+    "t029",
+    "t030"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t029": true,
+    "t030": true
+   },
+   "suite_ok": true,
+   "tests": 85,
+   "files": 3,
+   "ok": true
+  },
+  {
+   "id": "L16",
+   "members": [
+    "t034",
+    "t035"
+   ],
+   "notes": [],
+   "acceptance_fails_on_base": {
+    "t034": true,
+    "t035": true
+   },
+   "suite_ok": true,
+   "tests": 89,
+   "files": 5,
+   "ok": true
+  }
+ ],
+ "couplings": [
+  {
+   "pair": "L01+L02",
+   "type": "semantic",
+   "members": [
+    [
+     "t022",
+     "t002"
+    ]
+   ],
+   "ok": true,
+   "detail": "clean merge, red: filters by status and rejects unknown ones; invoice list"
+  },
+  {
+   "pair": "L01+L10",
+   "type": "textual",
+   "members": [
+    [
+     "t001",
+     "t040"
+    ]
+   ],
+   "ok": true,
+   "detail": "src/billing/handlers.ts, src/billing/service.ts, src/routes.ts"
+  },
+  {
+   "pair": "L03+L11",
+   "type": "textual",
+   "members": [
+    [
+     "t003",
+     "t017"
+    ]
+   ],
+   "ok": true,
+   "detail": "src/billing/tax.ts"
+  },
+  {
+   "pair": "L04+L09",
+   "type": "textual",
+   "members": [
+    [
+     "t027",
+     "t020"
+    ]
+   ],
+   "ok": true,
+   "detail": "src/users/service.ts"
+  },
+  {
+   "pair": "L04+L12",
+   "type": "semantic",
+   "members": [
+    [
+     "t005",
+     "t031"
+    ]
+   ],
+   "ok": true,
+   "detail": "clean merge, red: plain-text invoices; renders items, subtotal, tax and total"
+  },
+  {
+   "pair": "L05+L11",
+   "type": "semantic",
+   "members": [
+    [
+     "t023",
+     "t036"
+    ]
+   ],
+   "ok": true,
+   "detail": "clean merge, red: line refunds; refunds identical lines identically: $3.33 plus 43 cents of tax each"
+  },
+  {
+   "pair": "L06+L16",
+   "type": "textual",
+   "members": [
+    [
+     "t008",
+     "t034"
+    ]
+   ],
+   "ok": true,
+   "detail": "src/inventory/stock.ts"
+  },
+  {
+   "pair": "L07+L14",
+   "type": "semantic",
+   "members": [
+    [
+     "t032",
+     "t028"
+    ]
+   ],
+   "ok": true,
+   "detail": "clean merge, red: includes shipping on top of goods and tax; order total"
+  },
+  {
+   "pair": "L07+L15",
+   "type": "textual",
+   "members": [
+    [
+     "t009",
+     "t030"
+    ]
+   ],
+   "ok": true,
+   "detail": "src/orders/checkout.ts"
+  },
+  {
+   "pair": "L08+L12",
+   "type": "semantic",
+   "members": [
+    [
+     "t011",
+     "t018"
+    ]
+   ],
+   "ok": true,
+   "detail": "clean merge, red: includes the tracking number; is what the customer sees in their notification list"
+  }
+ ],
+ "pairs": {
+  "L01+L02": {
+   "pair": "L01+L02",
+   "plain_conflict": true,
+   "plain_files": [
+    "CHANGELOG.md"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "filters by status and rejects unknown ones",
+    "invoice list",
+    "pages with limit and offset",
+    "returns the caller's invoices as an array, newest first"
+   ]
+  },
+  "L01+L03": {
+   "pair": "L01+L03",
+   "plain_conflict": true,
+   "plain_files": [
+    "CHANGELOG.md"
+   ],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L04": {
+   "pair": "L01+L04",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L05": {
+   "pair": "L01+L05",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L06": {
+   "pair": "L01+L06",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L07": {
+   "pair": "L01+L07",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L08": {
+   "pair": "L01+L08",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L09": {
+   "pair": "L01+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L10": {
+   "pair": "L01+L10",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+   ],
+   "shared_files": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+   ]
+  },
+  "L01+L11": {
+   "pair": "L01+L11",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts"
+   ]
+  },
+  "L01+L12": {
+   "pair": "L01+L12",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts"
+   ]
+  },
+  "L01+L13": {
+   "pair": "L01+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L14": {
+   "pair": "L01+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L15": {
+   "pair": "L01+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L01+L16": {
+   "pair": "L01+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L03": {
+   "pair": "L02+L03",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/db/migrations/index.ts"
+   ]
+  },
+  "L02+L04": {
+   "pair": "L02+L04",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L05": {
+   "pair": "L02+L05",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L06": {
+   "pair": "L02+L06",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L07": {
+   "pair": "L02+L07",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/db/migrations/index.ts"
+   ]
+  },
+  "L02+L08": {
+   "pair": "L02+L08",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/catalog/handlers.ts",
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "L02+L09": {
+   "pair": "L02+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L10": {
+   "pair": "L02+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md",
+    "src/routes.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L11": {
+   "pair": "L02+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L12": {
+   "pair": "L02+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L13": {
+   "pair": "L02+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L14": {
+   "pair": "L02+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L02+L15": {
+   "pair": "L02+L15",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared_files": [
+    "src/orders/checkout.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "L02+L16": {
+   "pair": "L02+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L04": {
+   "pair": "L03+L04",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L05": {
+   "pair": "L03+L05",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/discounts.ts",
+    "src/billing/invoice.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/billing/discounts.ts",
+    "src/billing/invoice.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/discounts.ts",
+    "src/billing/invoice.ts"
+   ]
+  },
+  "L03+L06": {
+   "pair": "L03+L06",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L07": {
+   "pair": "L03+L07",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/invoice.ts",
+    "src/db/migrations/index.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts",
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/invoice.ts",
+    "src/db/migrations/index.ts"
+   ]
+  },
+  "L03+L08": {
+   "pair": "L03+L08",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/db/migrations/index.ts"
+   ]
+  },
+  "L03+L09": {
+   "pair": "L03+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L10": {
+   "pair": "L03+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L11": {
+   "pair": "L03+L11",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/tax.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/billing/tax.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/tax.ts"
+   ]
+  },
+  "L03+L12": {
+   "pair": "L03+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L13": {
+   "pair": "L03+L13",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared_files": [
+    "src/billing/discounts.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "L03+L14": {
+   "pair": "L03+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L15": {
+   "pair": "L03+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L03+L16": {
+   "pair": "L03+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L05": {
+   "pair": "L04+L05",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/lib/money.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L06": {
+   "pair": "L04+L06",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L07": {
+   "pair": "L04+L07",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "groups thousands in line items and the total",
+    "leaves small orders unchanged",
+    "order confirmation with digit grouping"
+   ]
+  },
+  "L04+L08": {
+   "pair": "L04+L08",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L09": {
+   "pair": "L04+L09",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/users/service.ts"
+   ],
+   "shared_files": [
+    "src/users/service.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/users/service.ts"
+   ]
+  },
+  "L04+L10": {
+   "pair": "L04+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L11": {
+   "pair": "L04+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L12": {
+   "pair": "L04+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "plain-text invoices",
+    "renders items, subtotal, tax and total"
+   ]
+  },
+  "L04+L13": {
+   "pair": "L04+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L14": {
+   "pair": "L04+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L15": {
+   "pair": "L04+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L04+L16": {
+   "pair": "L04+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L06": {
+   "pair": "L05+L06",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L07": {
+   "pair": "L05+L07",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/invoice.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts",
+    "src/config.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "L05+L08": {
+   "pair": "L05+L08",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L09": {
+   "pair": "L05+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L10": {
+   "pair": "L05+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L11": {
+   "pair": "L05+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "line refunds",
+    "refunds identical lines identically: $3.33 plus 43 cents of tax each"
+   ]
+  },
+  "L05+L12": {
+   "pair": "L05+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L13": {
+   "pair": "L05+L13",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared_files": [
+    "src/billing/discounts.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "L05+L14": {
+   "pair": "L05+L14",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/config.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/config.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/config.ts"
+   ]
+  },
+  "L05+L15": {
+   "pair": "L05+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L05+L16": {
+   "pair": "L05+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L07": {
+   "pair": "L06+L07",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L08": {
+   "pair": "L06+L08",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L09": {
+   "pair": "L06+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L10": {
+   "pair": "L06+L10",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/notifications/templates.ts"
+   ],
+   "shared_files": [
+    "src/notifications/templates.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/notifications/templates.ts"
+   ]
+  },
+  "L06+L11": {
+   "pair": "L06+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L12": {
+   "pair": "L06+L12",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/notifications/templates.ts"
+   ],
+   "shared_files": [
+    "src/notifications/templates.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/notifications/templates.ts"
+   ]
+  },
+  "L06+L13": {
+   "pair": "L06+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L14": {
+   "pair": "L06+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L15": {
+   "pair": "L06+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L06+L16": {
+   "pair": "L06+L16",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/inventory/stock.ts"
+   ],
+   "shared_files": [
+    "src/inventory/stock.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/inventory/stock.ts"
+   ]
+  },
+  "L07+L08": {
+   "pair": "L07+L08",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/db/migrations/index.ts"
+   ]
+  },
+  "L07+L09": {
+   "pair": "L07+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L07+L10": {
+   "pair": "L07+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L07+L11": {
+   "pair": "L07+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L07+L12": {
+   "pair": "L07+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L07+L13": {
+   "pair": "L07+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L07+L14": {
+   "pair": "L07+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/config.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "includes shipping on top of goods and tax",
+    "order total",
+    "shows the new total in the confirmation email",
+    "works with discounts and cross-border shipping"
+   ]
+  },
+  "L07+L15": {
+   "pair": "L07+L15",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared_files": [
+    "src/orders/checkout.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "L07+L16": {
+   "pair": "L07+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L08+L09": {
+   "pair": "L08+L09",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L08+L10": {
+   "pair": "L08+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L08+L11": {
+   "pair": "L08+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L08+L12": {
+   "pair": "L08+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": false,
+   "failing": [
+    "includes the tracking number",
+    "is what the customer sees in their notification list",
+    "shipped email"
+   ]
+  },
+  "L08+L13": {
+   "pair": "L08+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L08+L14": {
+   "pair": "L08+L14",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/shipping/service.ts",
+    "src/types.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "src/shipping/service.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/shipping/service.ts",
+    "src/types.ts"
+   ]
+  },
+  "L08+L15": {
+   "pair": "L08+L15",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared_files": [
+    "src/orders/checkout.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "L08+L16": {
+   "pair": "L08+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L10": {
+   "pair": "L09+L10",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L11": {
+   "pair": "L09+L11",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L12": {
+   "pair": "L09+L12",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L13": {
+   "pair": "L09+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L14": {
+   "pair": "L09+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L15": {
+   "pair": "L09+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L09+L16": {
+   "pair": "L09+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L10+L11": {
+   "pair": "L10+L11",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared_files": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts",
+    "src/types.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts"
+   ]
+  },
+  "L10+L12": {
+   "pair": "L10+L12",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared_files": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/notifications/templates.ts",
+    "src/routes.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts"
+   ]
+  },
+  "L10+L13": {
+   "pair": "L10+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L10+L14": {
+   "pair": "L10+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L10+L15": {
+   "pair": "L10+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L10+L16": {
+   "pair": "L10+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L11+L12": {
+   "pair": "L11+L12",
+   "plain_conflict": true,
+   "plain_files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ],
+   "union_conflict": true,
+   "union_files": [
+    "src/billing/handlers.ts"
+   ]
+  },
+  "L11+L13": {
+   "pair": "L11+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L11+L14": {
+   "pair": "L11+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/types.ts"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L11+L15": {
+   "pair": "L11+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L11+L16": {
+   "pair": "L11+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L12+L13": {
+   "pair": "L12+L13",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L12+L14": {
+   "pair": "L12+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "CHANGELOG.md",
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L12+L15": {
+   "pair": "L12+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L12+L16": {
+   "pair": "L12+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L13+L14": {
+   "pair": "L13+L14",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L13+L15": {
+   "pair": "L13+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L13+L16": {
+   "pair": "L13+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L14+L15": {
+   "pair": "L14+L15",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L14+L16": {
+   "pair": "L14+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [
+    "README.md"
+   ],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  },
+  "L15+L16": {
+   "pair": "L15+L16",
+   "plain_conflict": false,
+   "plain_files": [],
+   "shared_files": [],
+   "union_conflict": false,
+   "union_files": [],
+   "suite_green": true,
+   "failing": []
+  }
+ }
+}

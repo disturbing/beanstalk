@@ -1,0 +1,59 @@
+{
+  "id": "L07",
+  "title": "Limit how many units of one product fit in an order + Wholesale customers should not be charged sales tax + The order total shown to customers leaves out shipping",
+  "prompt": "Three related tickets in checkout, tax and order totals are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Limit how many units of one product fit in an order\n\nA bot ordered thousands of units of one cheap product and tied up our stock. Add a per-line quantity limit at checkout: no single product may appear more than `maxLineQuantity` times in one order. The limit defaults to 10 and can be set with the `MAX_LINE_QUANTITY` environment variable.\n\nA cart that breaks the limit must fail checkout with a 400 and the message \"at most N units of <product name> per order\" (N being the limit), without reserving stock or creating an invoice.\n\n### Ticket 2: Wholesale customers should not be charged sales tax\n\nOur wholesale accounts hold a resale certificate and must not be charged sales tax on any of their orders.\n\nAdd a `taxExempt` flag to users: false for everyone by default, including accounts that already exist. When the customer placing an order is tax exempt, every line on their invoice gets a tax rate of 0 and no tax is charged, whatever the destination or the product's tax class. The flag is set directly in the database for now; no endpoint or UI is needed. Because it changes stored data, add a numbered migration for it (and register it) so existing accounts read `false`.\n\n### Ticket 3: The order total shown to customers leaves out shipping\n\nCustomers complain that the total in their confirmation email is lower than the amount they are asked to pay. The order `total` only covers goods and tax; shipping sits in a separate `shippingCost` field and is never added.\n\nMake `total` the full amount payable: goods after discount, plus tax, plus shipping. `subtotal`, `discount`, `tax` and `shippingCost` keep their meaning. The invoice stays as it is (it does not include shipping), and the confirmation email must show the new order total.\n",
+  "acceptance_tests": {
+    "src/orders/line-limit.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { defaultConfig, loadConfig } from '../config.ts';\nimport { getStock } from '../inventory/stock.ts';\nimport { addProduct, createTestApp, errorMessage, signUp } from '../lib/testing.ts';\n\nfunction checkoutWith(app: ReturnType<typeof createTestApp>, quantity: number) {\n  const { token } = signUp(app.ctx);\n  const product = addProduct(app.ctx, { name: 'Cheap widget', price: 100, stock: 1000 });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity } });\n  return { product, res: app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }) };\n}\n\ndescribe('order line limit', () => {\n  it('defaults to ten and can be set from the environment', () => {\n    assert.equal(defaultConfig.maxLineQuantity, 10);\n    assert.equal(loadConfig({ MAX_LINE_QUANTITY: '3' }).maxLineQuantity, 3);\n  });\n\n  it('accepts a line at the limit', () => {\n    assert.equal(checkoutWith(createTestApp(), 10).res.status, 201);\n  });\n\n  it('rejects a line over the limit without touching stock or invoices', () => {\n    const app = createTestApp();\n    const { product, res } = checkoutWith(app, 11);\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'at most 10 units of Cheap widget per order');\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n    assert.equal(app.ctx.store.invoices.all().length, 0);\n  });\n\n  it('follows the configured limit', () => {\n    const app = createTestApp();\n    app.ctx.config.maxLineQuantity = 2;\n    assert.equal(checkoutWith(app, 3).res.status, 400);\n  });\n});\n",
+    "src/billing/tax-exempt.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, ON_ADDRESS, signUp } from '../lib/testing.ts';\nimport type { Order } from '../types.ts';\n\nfunction checkoutAs(app: ReturnType<typeof createTestApp>, email: string, taxExempt: boolean) {\n  const { user, token } = signUp(app.ctx, email, { address: ON_ADDRESS });\n  if (taxExempt) app.ctx.store.users.update(user.id, { taxExempt: true });\n  const product = addProduct(app.ctx, { price: 10000 });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity: 2 } });\n  const order = app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }).body as Order;\n  return { user, order, invoice: app.ctx.store.invoices.require(order.invoiceId!) };\n}\n\ndescribe('tax-exempt customers', () => {\n  it('charges no tax on any line of an exempt customer\\'s invoice', () => {\n    const app = createTestApp();\n    const { order, invoice } = checkoutAs(app, 'wholesale@example.com', true);\n    assert.equal(order.tax, 0);\n    assert.deepEqual(invoice.lines.map((l) => l.taxRate), [0]);\n    assert.equal(invoice.total, 20000);\n  });\n\n  it('still taxes everyone else', () => {\n    const app = createTestApp();\n    assert.equal(checkoutAs(app, 'retail@example.com', false).order.tax, 2600);\n  });\n});\n",
+    "src/db/user-tax-exempt-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, signUp } from '../lib/testing.ts';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: user tax exempt', () => {\n  it('defaults the flag to false for new users', () => {\n    const app = createTestApp();\n    assert.equal(signUp(app.ctx).user.taxExempt, false);\n  });\n\n  it('backfills accounts that already exist', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.users.insert({ id: 'usr_old', email: 'old@example.com' } as never);\n    runMigrations(store);\n    assert.equal(store.users.require('usr_old').taxExempt, false);\n  });\n});\n",
+    "src/orders/total-with-shipping.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS, placeOrder, US_ADDRESS } from '../lib/testing.ts';\n\ndescribe('order total', () => {\n  it('includes shipping on top of goods and tax', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.equal(order.shippingCost, 500);\n    assert.equal(order.total, order.subtotal - order.discount + order.tax + order.shippingCost);\n    assert.equal(order.total, 10000 + 650 + 500);\n  });\n\n  it('works with discounts and cross-border shipping', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS, couponCode: 'WELCOME10' });\n    assert.equal(order.shippingCost, 1200);\n    assert.equal(order.total, 9000 + 1170 + 1200);\n  });\n\n  it('leaves the invoice without shipping', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.equal(app.ctx.store.invoices.require(order.invoiceId!).total, 10650);\n  });\n\n  it('shows the new total in the confirmation email', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 10000, address: US_ADDRESS });\n    assert.match(app.mailer.sent[0].body, /Total: \\$111\\.50$/);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts",
+    "src/billing/tax-exempt.test.ts",
+    "src/config.ts",
+    "src/db/migrations/0006_user_tax_exempt.ts",
+    "src/db/migrations/index.ts",
+    "src/db/user-tax-exempt-migration.test.ts",
+    "src/orders/checkout.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/total-with-shipping.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing",
+    "src/db",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "members": [
+    "t009",
+    "t010",
+    "t032"
+  ],
+  "couplings": [
+    {
+      "with": "L15",
+      "type": "textual",
+      "members": [
+        "t009",
+        "t030"
+      ],
+      "note": "t009 x t030: Both add a validation immediately after the cart is loaded at the top of checkout() in orders/checkout.ts."
+    },
+    {
+      "with": "L14",
+      "type": "semantic",
+      "members": [
+        "t032",
+        "t028"
+      ],
+      "note": "t032 x t028: total-with-shipping redefines Order.total to include shipping; signature compares order.total with a threshold and its test sits just under it. Merges cleanly, the shipping amount then pushes the order over the threshold."
+    }
+  ],
+  "theme": "checkout, tax and order totals"
+}

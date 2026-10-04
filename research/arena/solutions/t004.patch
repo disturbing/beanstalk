@@ -1,0 +1,48 @@
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..ad292b0 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -23,6 +23,22 @@ export type InvoiceDraft = Omit<Invoice, 'id' | 'number'>;
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
++/** One invoice line: what the item costs, its share of the discount, and the tax on what is left. */
++export function buildInvoiceLine(ctx: AppContext, address: Address, item: InvoiceItem, discount: Cents): InvoiceLine {
++  const net = item.quantity * item.unitPrice;
++  const taxRate = taxRateFor(address, item.taxClass, ctx.config.fallbackTaxRate);
++  return {
++    productId: item.productId,
++    description: item.description,
++    quantity: item.quantity,
++    unitPrice: item.unitPrice,
++    net,
++    discount,
++    taxRate,
++    tax: applyRate(net - discount, taxRate),
++  };
++}
++
+ /** Price an order: line nets, the coupon, tax per line, and the due date. Pure apart from the clock. */
+ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft {
+   const nets = input.items.map((item) => item.quantity * item.unitPrice);
+@@ -31,19 +47,7 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+   const discount = coupon ? couponDiscount(coupon, subtotal) : 0;
+   const lineDiscounts = allocateDiscount(nets, discount);
+ 
+-  const lines: InvoiceLine[] = input.items.map((item, i) => {
+-    const taxRate = taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
+-    return {
+-      productId: item.productId,
+-      description: item.description,
+-      quantity: item.quantity,
+-      unitPrice: item.unitPrice,
+-      net: nets[i],
+-      discount: lineDiscounts[i],
+-      taxRate,
+-      tax: applyRate(nets[i] - lineDiscounts[i], taxRate),
+-    };
+-  });
++  const lines = input.items.map((item, i) => buildInvoiceLine(ctx, input.address, item, lineDiscounts[i]));
+ 
+   const tax = sumCents(lines.map((line) => line.tax));
+   const issuedAt = ctx.clock.now();

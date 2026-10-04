@@ -1,0 +1,46 @@
+diff --git a/src/config.ts b/src/config.ts
+index bdd535d..a1fddfa 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -11,6 +11,8 @@ export interface Config {
+   /** scrypt cost parameter (N). Kept low so the test suite stays fast. */
+   passwordCost: number;
+   maxCartLines: number;
++  /** Most units of one product allowed in a single order. */
++  maxLineQuantity: number;
+   lowStockThreshold: number;
+   orderNumberPrefix: string;
+   pageSize: number;
+@@ -24,6 +26,7 @@ export const defaultConfig: Config = {
+   sessionTtlSeconds: 3600,
+   passwordCost: 1024,
+   maxCartLines: 50,
++  maxLineQuantity: 10,
+   lowStockThreshold: 5,
+   orderNumberPrefix: 'BS',
+   pageSize: 20,
+@@ -50,6 +53,7 @@ export function loadConfig(env: Record<string, string | undefined> = {}): Config
+     sessionTtlSeconds: intFrom(env.SESSION_TTL_SECONDS, defaultConfig.sessionTtlSeconds),
+     passwordCost: intFrom(env.PASSWORD_COST, defaultConfig.passwordCost),
+     maxCartLines: intFrom(env.MAX_CART_LINES, defaultConfig.maxCartLines),
++    maxLineQuantity: intFrom(env.MAX_LINE_QUANTITY, defaultConfig.maxLineQuantity),
+     lowStockThreshold: intFrom(env.LOW_STOCK_THRESHOLD, defaultConfig.lowStockThreshold),
+   };
+ }
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..8f70c77 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -18,6 +18,12 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+   const address = user.addresses[input.addressIndex];
+   if (!address) throw badRequest('choose a saved shipping address');
+   const cart = getCart(ctx, user.id);
++  for (const line of cart.lines) {
++    if (line.quantity > ctx.config.maxLineQuantity) {
++      const name = ctx.store.products.get(line.productId)?.name ?? line.productId;
++      throw badRequest(`at most ${ctx.config.maxLineQuantity} units of ${name} per order`);
++    }
++  }
+   const priced = priceCart(ctx, cart);
+ 
+   reserve(ctx, cart.lines);

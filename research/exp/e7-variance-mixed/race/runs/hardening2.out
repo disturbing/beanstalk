@@ -1,0 +1,11 @@
+[race-slot] queued 17:13:27 behind 6 waiter(s)
+[race-slot] slot 2 acquired 18:19:56: ./e7_hardening_tests.sh
+18:19:57 hardening tests
+18:19  up 1 day, 10:17, 12 users, load averages: 6.66 4.29 4.78
+18:20:16 exit 0
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 19.200s
+
+OK
+18:20  up 1 day, 10:17, 12 users, load averages: 8.42 4.89 4.99

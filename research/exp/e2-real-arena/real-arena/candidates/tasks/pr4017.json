@@ -1,0 +1,31 @@
+{
+  "id": "pr4017",
+  "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer",
+  "prompt": "While looking for remaining quadratic paths after #4013/#4014, I found that the link-masking step in `Lexer.tokenize` is O(n²) on some ordinary inputs.\n\nBefore em/strong processing, `tokenize` masks out reflinks, escaped characters, and other inline blocks so they don't interfere. Each of the three masks ran a `while ((match = rule.exec(maskedSrc)))` loop that rebuilt the *entire* `maskedSrc` string on every match:\n\n```js\nwhile ((match = this.tokenizer.rules.inline.anyPunctuation.exec(maskedSrc)) !== null) {\n  maskedSrc = maskedSrc.slice(0, match.index) + '++' + maskedSrc.slice(...lastIndex);\n}\n```\n\nFor an input with *k* matches that's *k* full-length string rebuilds — O(k·n), i.e. quadratic when the matches are dense. It's easy to hit with perfectly normal markdown: a paragraph full of escaped punctuation, many inline `` `code` `` spans, or many reference-style `[ref]` links. On my machine (`marked.parse` at HEAD):\n\n| input | time |\n|-------|------|\n| `'\\\\.'.repeat(100000)` | ~2.4 s |\n| `` '`x` '.repeat(60000) `` | ~1.6 s |\n| `'[a]: x\\n\\n' + '[a] '.repeat(100000)` | ~4.3 s |\n\nThe masking regexes match linearly on their own — the cost is purely the repeated `slice`+concat rebuild, not the regex. This is the string-rebuild sibling of the em-mask work in #2818 (which fixed the *regex* side).\n\nThe fix replaces each hand-rolled loop with a single-pass `String.prototype.replace`, so the masked string is built once instead of *k* times. Every replacement is exactly the same length as what it replaces (reflink → `[` + `a`×(len−2) + `]`, escapes → `++`, blockSkip → context prefix + same-length padding), so the global regex's `lastIndex` bookkeeping is unaffected and the output is byte-identical — the whole spec suite (CommonMark, GFM, original, redos) passes unchanged. The three inputs above drop to ~5 ms / ~40 ms / ~68 ms and scale linearly.\n\nI added `test/specs/redos/quadratic_inline_masking.cjs` covering the three shapes; each exceeds the redos harness's 1-second budget on `master` and passes with this change.",
+  "acceptance_tests": {
+    "test/specs/redos/quadratic_inline_masking.cjs": "module.exports = [\n  {\n    markdown: '\\\\.'.repeat(100000),\n    html: `<p>${'.'.repeat(100000)}</p>`,\n  },\n  {\n    markdown: '`x` '.repeat(60000),\n    html: `<p>${'<code>x</code> '.repeat(60000)}</p>`,\n  },\n  {\n    markdown: '[a]: x\\n\\n' + '[a] '.repeat(100000),\n    html: `<p>${'<a href=\"x\">a</a> '.repeat(100000)}</p>`,\n  },\n];\n"
+  },
+  "oracle_paths": [
+    "src/Lexer.ts",
+    "test/specs/redos/quadratic_inline_masking.cjs"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4017,
+    "sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+    "url": "https://github.com/markedjs/marked/pull/4017",
+    "author": "hong4rc",
+    "merged_at": "2026-07-15T03:05:12Z",
+    "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 25,
+    "notes": []
+  }
+}

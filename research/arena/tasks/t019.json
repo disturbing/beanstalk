@@ -1,0 +1,24 @@
+{
+  "id": "t019",
+  "title": "Let customers reorder a previous order",
+  "prompt": "Add `POST /orders/:id/reorder`, which puts the lines of one of the caller's earlier orders back into their cart: same products, same quantities, added to whatever is already in the cart. Respond 200 with `{ \"added\": [{ \"productId\", \"quantity\" }], \"skipped\": [productId] }`. Products that are no longer sold (inactive) are skipped rather than failing the request. Someone else's order, or an unknown one, is a 404 (admins do not get to reorder other people's orders either).",
+  "acceptance_tests": {
+    "src/orders/reorder.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addItem, getCart } from '../cart/service.ts';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\n\ndescribe('reorder', () => {\n  it('puts the order\\'s lines back into the cart', () => {\n    const app = createTestApp();\n    const { order, token, user, product } = placeOrder(app, { quantity: 3 });\n    const res = app.call('POST', `/orders/${order.id}/reorder`, { token });\n    assert.equal(res.status, 200);\n    assert.deepEqual(res.body, { added: [{ productId: product.id, quantity: 3 }], skipped: [] });\n    assert.deepEqual(getCart(app.ctx, user.id).lines, [{ productId: product.id, quantity: 3 }]);\n  });\n\n  it('adds to what is already in the cart', () => {\n    const app = createTestApp();\n    const { order, token, user, product } = placeOrder(app, { quantity: 2 });\n    addItem(app.ctx, user.id, product.id, 1);\n    app.call('POST', `/orders/${order.id}/reorder`, { token });\n    assert.equal(getCart(app.ctx, user.id).lines[0].quantity, 3);\n  });\n\n  it('skips products that are no longer sold', () => {\n    const app = createTestApp();\n    const { order, token, user, product } = placeOrder(app);\n    app.ctx.store.products.update(product.id, { active: false });\n    const res = app.call('POST', `/orders/${order.id}/reorder`, { token });\n    assert.deepEqual(res.body, { added: [], skipped: [product.id] });\n    assert.equal(getCart(app.ctx, user.id).lines.length, 0);\n  });\n\n  it('treats other people\\'s orders as missing, admins included', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app);\n    const stranger = signUp(app.ctx, 'stranger@example.com');\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    assert.equal(app.call('POST', `/orders/${order.id}/reorder`, { token: stranger.token }).status, 404);\n    assert.equal(app.call('POST', `/orders/${order.id}/reorder`, { token: admin.token }).status, 404);\n    assert.equal(app.call('POST', '/orders/ord_9999/reorder', { token: stranger.token }).status, 404);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/orders/handlers.ts",
+    "src/orders/reorder.test.ts",
+    "src/orders/service.ts",
+    "src/routes.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

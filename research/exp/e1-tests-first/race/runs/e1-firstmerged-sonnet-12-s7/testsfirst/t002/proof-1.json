@@ -1,0 +1,75 @@
+{
+ "task": "t002",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/lib/pagination-total.test.ts"
+ ],
+ "results": {
+  "src/lib/pagination-total.test.ts": {
+   "status": "fails-first",
+   "why": "9 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 9,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "paginate total > returns the page and the pre-paging total",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ undefined\n- [\n-   10,\n-   11,\n-   12\n- ]"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "paginate total > reports the full total with default paging",
+     "status": "fail",
+     "message": "Cannot read properties of undefined (reading 'length')"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "paginate total > reports the total when the limit is clamped",
+     "status": "fail",
+     "message": "Cannot read properties of undefined (reading 'length')"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "paginate total > reports the total when the offset is past the end",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n\nundefined !== []"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "paginate total > reports zero for an empty list",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n\nundefined !== []"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "x-total-count header > is sent on GET /products with a plain array body",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== '25'"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "x-total-count header > counts products matching the filter, not just the page",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== '4'"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "x-total-count header > is sent on GET /orders with a plain array body",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== '3'"
+    },
+    {
+     "file": "src/lib/pagination-total.test.ts",
+     "name": "x-total-count header > is 0 for a user with no orders",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== '0'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

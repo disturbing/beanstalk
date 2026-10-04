@@ -1,0 +1,8 @@
+14:31:22 driver E: queue:mixed:7:0 v2:mixed:7:0 queue:claude:13:1 v2:claude:13:1 queue:claude:3:1:rerun v2:claude:3:1:rerun; waiting for pids [48573]
+14:41:21 yielding the slot for 0 s
+14:41:21 QUEUED e7-queue-mixed-12-s7 attempt 1 harness 03e808196e80 spent $19.20
+15:24:30 END e7-queue-mixed-12-s7 attempt 1 exit 3 cost $3.19 aborted=signal SIGTERM
+         start: 15:02  up 1 day,  6:59, 12 users, load averages: 91.24 77.44 61.03
+         end:   15:24  up 1 day,  7:21, 12 users, load averages: 18.87 28.31 43.09
+15:24:30 yielding the slot for 0 s
+15:24:30 QUEUED e7-v2-mixed-12-s7 attempt 1 harness 03e808196e80 spent $22.39

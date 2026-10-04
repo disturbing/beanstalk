@@ -1,0 +1,33 @@
+{
+  "id": "t008",
+  "title": "fix: an unmatched strong run before emphasis stays literal",
+  "prompt": "The input `**a*b*c` produced malformed output.\n\n- marked: `<p>*<em>a</em>b*c</p>`\n- CommonMark 0.31.2 reference and markdown-it: `<p>**a<em>b</em>c</p>`\n\nWhen the `**` opener finds no closer, the lexer reprocesses from the second `*`\nof the run. That mid-run `*` greedily pairs with the `*` before `b`, even though\nthat `*` is itself the opener of `*b*`. The unmatched `**` should stay literal\nwhile the inner `*b*` forms its own emphasis.\n\nThe fix marks an opener that is reprocessed from inside its own delimiter run\n(`prevChar` equals the delimiter character) and stops it from closing against an\nambiguous delimiter that can also open, so that delimiter opens its own span\ninstead. This is distinct from the valid cases `**foo*`, `***foo**` and\n`****foo*`, which close against unambiguous right delimiters and are preserved.\n\nAll CommonMark and marked spec tests pass. Added a spec fixture for the case.",
+  "acceptance_tests": {
+    "test/specs/new/em_strong_unclosed_orphan.html": "<p>**a<em>b</em>c</p>\n",
+    "test/specs/new/em_strong_unclosed_orphan.md": "**a*b*c\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/new/em_strong_unclosed_orphan.html",
+    "test/specs/new/em_strong_unclosed_orphan.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4008,
+    "sha": "e8544e6a6702125f4ea3f74eb81c90a2f8203c38",
+    "url": "https://github.com/markedjs/marked/pull/4008",
+    "author": "spokodev",
+    "merged_at": "2026-08-04T04:30:18Z",
+    "pr_base_sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 12,
+    "notes": []
+  }
+}

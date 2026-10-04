@@ -1,0 +1,18 @@
+{
+  "id": "t029",
+  "title": "A failed checkout leaves stock reserved",
+  "prompt": "When checkout fails after stock has been set aside (for example because the coupon code is wrong, or the cart is below the coupon's minimum), the reserved quantities are never given back. After a few failed attempts a product shows as sold out although nothing was sold.\n\nA failed checkout must leave stock exactly as it was and keep the customer's cart intact, whatever the reason for the failure.",
+  "acceptance_tests": {
+    "src/orders/checkout-rollback.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { getCart } from '../cart/service.ts';\nimport { getStock } from '../inventory/stock.ts';\nimport { addProduct, createTestApp, signUp } from '../lib/testing.ts';\n\nfunction cartWith(app: ReturnType<typeof createTestApp>, quantity: number, price = 1500, stock = 5) {\n  const { user, token } = signUp(app.ctx);\n  const product = addProduct(app.ctx, { price, stock });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity } });\n  return { user, token, product };\n}\n\ndescribe('failed checkouts', () => {\n  it('release the stock when the coupon code is unknown', () => {\n    const app = createTestApp();\n    const { token, product, user } = cartWith(app, 2);\n    const res = app.call('POST', '/checkout', { token, body: { addressIndex: 0, couponCode: 'NOPE' } });\n    assert.equal(res.status, 400);\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n    assert.equal(getCart(app.ctx, user.id).lines.length, 1);\n    assert.equal(app.ctx.store.invoices.all().length, 0);\n  });\n\n  it('release the stock when the cart is below the coupon minimum', () => {\n    const app = createTestApp();\n    const { token, product } = cartWith(app, 1, 1500);\n    const res = app.call('POST', '/checkout', { token, body: { addressIndex: 0, couponCode: 'FIVEOFF' } });\n    assert.equal(res.status, 400);\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n  });\n\n  it('let the customer buy the last unit afterwards', () => {\n    const app = createTestApp();\n    const { token, product } = cartWith(app, 1, 1500, 1);\n    app.call('POST', '/checkout', { token, body: { addressIndex: 0, couponCode: 'NOPE' } });\n    assert.equal(app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }).status, 201);\n    assert.equal(getStock(app.ctx, product.id).reserved, 1);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/orders/checkout-rollback.test.ts",
+    "src/orders/checkout.ts"
+  ],
+  "oracle_modules": [
+    "src/orders"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": []
+}

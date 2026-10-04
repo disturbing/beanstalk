@@ -1,0 +1,6 @@
+13:21:40 driver A: queue:claude:5:1 v2:claude:5:1 v2:claude:13:1 queue:claude:13:1; waiting for pids [79195, 79252]
+13:26:30 QUEUED e7-queue-claude-12-s5-shuf attempt 1 harness 853567307776 spent $8.57
+13:54:34 END e7-queue-claude-12-s5-shuf attempt 1 exit 0 cost $4.87 aborted=None
+         start: 13:26  up 1 day,  5:23, 12 users, load averages: 163.31 154.78 238.33
+         end:   13:54  up 1 day,  5:51, 12 users, load averages: 10.22 27.40 69.12
+13:54:34 HOLD file present: paused

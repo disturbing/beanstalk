@@ -1,0 +1,81 @@
+{
+ "task": "t023",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-tax-rounding.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-tax-rounding.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 10 tests fail on the current code",
+   "tests": 10,
+   "failing": 8,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "applyRateToTotal > rounds once on the total instead of per amount",
+     "status": "fail",
+     "message": "money.applyRateToTotal is not a function"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "applyRateToTotal > rounds half up",
+     "status": "fail",
+     "message": "money.applyRateToTotal is not a function"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "applyRateToTotal > keeps each share within a cent of its exact proportional share",
+     "status": "fail",
+     "message": "money.applyRateToTotal is not a function"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "applyRateToTotal > handles an empty list and a zero rate",
+     "status": "fail",
+     "message": "money.applyRateToTotal is not a function"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "applyRateToTotal > gives a single amount its whole rounded tax",
+     "status": "fail",
+     "message": "money.applyRateToTotal is not a function"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "invoice tax rounding > rounds once on the taxable total of lines at the same rate",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n129 !== 130"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "invoice tax rounding > rounds each rate independently",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n129 !== 130"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "invoice tax rounding > uses the discounted amounts",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "invoice tax rounding > keeps the federal/regional breakdown adding up to the tax",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n129 !== 130"
+    },
+    {
+     "file": "src/billing/invoice-tax-rounding.test.ts",
+     "name": "invoice tax rounding > leaves single-line invoices unchanged",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

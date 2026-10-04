@@ -1,0 +1,73 @@
+diff --git a/src/inventory/stock.ts b/src/inventory/stock.ts
+index a736d91..8eea4cd 100644
+--- a/src/inventory/stock.ts
++++ b/src/inventory/stock.ts
+@@ -19,6 +19,9 @@ export function setStock(ctx: AppContext, productId: string, onHand: number): St
+ /** Hold stock for an order. Fails with 409 if any line cannot be covered. */
+ export function reserve(ctx: AppContext, lines: CartLine[]): void {
+   for (const line of lines) {
++    if (!Number.isInteger(line.quantity) || line.quantity < 1) {
++      throw badRequest('quantity must be a positive whole number');
++    }
+     const level = getStock(ctx, line.productId);
+     if (availableQuantity(level) < line.quantity) {
+       throw conflict(`not enough stock for ${line.productId}`);
+diff --git a/src/notifications/templates.ts b/src/notifications/templates.ts
+index a3a2e52..dcba9ed 100644
+--- a/src/notifications/templates.ts
++++ b/src/notifications/templates.ts
+@@ -6,26 +6,33 @@ export interface Rendered {
+   body: string;
+ }
+ 
++type Template = (order: Order, currency: Currency) => Rendered;
++
++/** One render function per notification kind. A new kind is a new entry here. */
++export const templates: Record<NotificationKind, Template> = {
++  order_confirmed(order, currency) {
++    const lines = order.lines.map(
++      (line) => `${line.quantity} x ${line.name} - ${formatMoney(line.unitPrice * line.quantity, currency)}`,
++    );
++    return {
++      subject: `Order ${order.number} confirmed`,
++      body: ['Thanks for your order!', ...lines, `Total: ${formatMoney(order.total, currency)}`].join('\n'),
++    };
++  },
++  order_shipped(order) {
++    return {
++      subject: `Order ${order.number} has shipped`,
++      body: `Your order ${order.number} is on its way.`,
++    };
++  },
++  order_cancelled(order) {
++    return {
++      subject: `Order ${order.number} was cancelled`,
++      body: `Your order ${order.number} was cancelled. Any payment will be refunded.`,
++    };
++  },
++};
++
+ export function renderNotification(kind: NotificationKind, order: Order, currency: Currency): Rendered {
+-  switch (kind) {
+-    case 'order_confirmed': {
+-      const lines = order.lines.map(
+-        (line) => `${line.quantity} x ${line.name} - ${formatMoney(line.unitPrice * line.quantity, currency)}`,
+-      );
+-      return {
+-        subject: `Order ${order.number} confirmed`,
+-        body: ['Thanks for your order!', ...lines, `Total: ${formatMoney(order.total, currency)}`].join('\n'),
+-      };
+-    }
+-    case 'order_shipped':
+-      return {
+-        subject: `Order ${order.number} has shipped`,
+-        body: `Your order ${order.number} is on its way.`,
+-      };
+-    case 'order_cancelled':
+-      return {
+-        subject: `Order ${order.number} was cancelled`,
+-        body: `Your order ${order.number} was cancelled. Any payment will be refunded.`,
+-      };
+-  }
++  return templates[kind](order, currency);
+ }

@@ -1,0 +1,63 @@
+{
+ "task": "t028",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/shipping/signature.test.ts"
+ ],
+ "results": {
+  "src/shipping/signature.test.ts": {
+   "status": "fails-first",
+   "why": "7 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 7,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > defaults the threshold to 25000 cents",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 25000"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > reads the threshold from SIGNATURE_THRESHOLD",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 10000"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > requires a signature when the total is exactly the threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > requires a signature above the threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > does not require a signature just below the threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- false"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > records the flag on the stored shipment",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true"
+    },
+    {
+     "file": "src/shipping/signature.test.ts",
+     "name": "signature for high-value deliveries > honours an overridden threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- true"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

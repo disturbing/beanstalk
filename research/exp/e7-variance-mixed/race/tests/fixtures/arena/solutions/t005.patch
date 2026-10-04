@@ -1,0 +1,20 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 668ddef..36c9d90 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,3 +3,4 @@
+ ## Unreleased
+ 
+ - Initial shop service.
++- Fall back to the email address when a user has no display name.
+diff --git a/src/users/index.ts b/src/users/index.ts
+index 40f71fb..e077938 100644
+--- a/src/users/index.ts
++++ b/src/users/index.ts
+@@ -6,5 +6,5 @@ export interface User {
+ 
+ /** Name shown in the header and on invoices. */
+ export function displayName(user: User): string {
+-  return user.name ?? "";
++  return user.name?.trim() || user.email;
+ }

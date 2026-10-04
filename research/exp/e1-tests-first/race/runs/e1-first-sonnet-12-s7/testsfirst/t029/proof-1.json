@@ -1,0 +1,45 @@
+{
+ "task": "t029",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/failed-checkout-stock.test.ts"
+ ],
+ "results": {
+  "src/orders/failed-checkout-stock.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 4,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart untouched > releases stock when the coupon code is unknown",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n3 !== 0"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart untouched > releases stock when the cart is below the coupon minimum",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2 !== 0"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart untouched > does not accumulate reservations over repeated failures",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n4 !== 0"
+    },
+    {
+     "file": "src/orders/failed-checkout-stock.test.ts",
+     "name": "failed checkout leaves stock and cart untouched > releases earlier lines when a later line lacks stock",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2 !== 0"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

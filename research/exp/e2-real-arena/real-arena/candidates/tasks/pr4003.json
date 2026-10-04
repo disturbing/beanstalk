@@ -1,0 +1,33 @@
+{
+  "id": "pr4003",
+  "title": "fix: Fix ordered lists after blockquotes",
+  "prompt": "**Marked version:**\n\n18.0.5\n\n**Markdown flavor:** Markdown.pl|CommonMark|GitHub Flavored Markdown|n/a\n\nCommonMark / GitHub Flavored Markdown\n\n## Description\n\n- Fixes #4002.\n- Keeps ordered lists that follow a blockquote as sibling blocks instead of lazy blockquote continuations.\n- Adds a regression spec for an ordered list after a blockquote.\n\n## Tests\n\n- `npm test`",
+  "acceptance_tests": {
+    "test/specs/new/ordered_list_after_blockquote.html": "<ol>\n<li>test</li>\n</ol>\n<blockquote>\n<p>blockquote</p>\n</blockquote>\n<ol start=\"2\">\n<li>test</li>\n</ol>\n<blockquote>\n<p>blockquote</p>\n</blockquote>\n",
+    "test/specs/new/ordered_list_after_blockquote.md": "1. test\n> blockquote\n2. test\n> blockquote\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/ordered_list_after_blockquote.html",
+    "test/specs/new/ordered_list_after_blockquote.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4003,
+    "sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+    "url": "https://github.com/markedjs/marked/pull/4003",
+    "author": "cyphercodes",
+    "merged_at": "2026-06-30T04:23:31Z",
+    "pr_base_sha": "f8f411256680bfc870a4faba729409be68fcef4b",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 11,
+    "notes": []
+  }
+}

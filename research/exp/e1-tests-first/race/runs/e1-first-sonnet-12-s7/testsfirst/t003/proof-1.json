@@ -1,0 +1,27 @@
+{
+ "task": "t003",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/tax-breakdown.test.ts"
+ ],
+ "results": {
+  "src/billing/tax-breakdown.test.ts": {
+   "status": "fails-first",
+   "why": "the export 'taxComponentsFor' named by the issue does not exist yet",
+   "tests": 1,
+   "failing": 1,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/tax-breakdown.test.ts",
+     "name": "src/billing/tax-breakdown.test.ts",
+     "status": "fail",
+     "message": "test failed"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

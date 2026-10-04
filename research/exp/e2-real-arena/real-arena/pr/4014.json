@@ -1,0 +1,13 @@
+{
+ "number": 4014,
+ "sha": "f945fc5e106c9bbeac833c60edc543aa5ab3222c",
+ "title": "fix: Avoid O(n^2) backtracking in HTML block close and tilde interrupt regexes",
+ "body": "Follow-up to #4013 \u2014 two more spots in `src/rules.ts` where a block-level regex backtracks quadratically on a long single line. Split into one commit each.\n\nThe first is the HTML block close. #3991 rewrote the close of the closing-tag, processing-instruction, declaration, and CDATA branches to `[^\\n]*\\n+` so trailing text on the close line is kept. Keeping the trailing text is right, but the `\\n+` isn't: it requires at least one newline, so when the input ends without a trailing newline the close can never match and the engine retries every split point of the preceding lazy `[\\s\\S]*?` before finally falling through to `$`. That's O(n\u00b2):\n\n```js\nmarked.parse('<!x ' + 'a>'.repeat(80000));            // ~5s\nmarked.parse('<script>' + 'a</script>'.repeat(40000)); // ~6.5s\n```\n\nSwitching `\\n+` back to `\\n*` closes on the first match. Whenever a trailing newline is present (the normal case) `\\n*` and `\\n+` consume exactly the same text, so output is unchanged \u2014 #3991's own trailing-text fixtures still pass.\n\nThe second is the paragraph/table/blockquote interrupt check. Its fence sub-pattern is `` (?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n ``. The backtick branch is guarded by a lookahead, but `~{3,}` isn't, and it overlaps with the following `[^\\n]*`, so a long run of tildes with no newline backtracks quadratically:\n\n```js\nmarked.parse('intro\\n' + '~'.repeat(80000));           // ~5s\n```\n\nBecause `~{3,}` is always immediately followed by `[^\\n]*`, `~~~[^\\n]*` matches exactly the same strings, so replacing `~{3,}` with `~~~` removes the overlap without changing what matches. The real fenced-code tokenizer (which captures the fence length via a group and a `$` alternative) is left untouched \u2014 only the three interrupt copies change.\n\nBoth changes are behavior-preserving: the full spec and unit suites pass with identical output, and I added a `quadratic_*.cjs` guard next to #4013's for each.\n",
+ "author": "hong4rc",
+ "created_at": "2026-07-12T04:45:42Z",
+ "merged_at": "2026-07-14T22:08:51Z",
+ "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+ "pr_head_sha": "0e3273030c26f9831f4905156f96b81d17dce695",
+ "commits": 2,
+ "linked_issues": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": "t022",
+  "title": "Customers cannot list their invoices",
+  "prompt": "There is no way for a customer to see all their invoices; they have to know each id. Add `GET /invoices`, returning the signed-in user's invoices, newest first, as a JSON array. Support an optional `status` query parameter (`open`, `paid` or `void`) to filter them (400 for any other value), and the same `limit` / `offset` paging that the other list endpoints support.",
+  "acceptance_tests": {
+    "src/billing/invoice-list.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, placeOrder } from '../lib/testing.ts';\nimport type { Invoice } from '../types.ts';\nimport { markPaid } from './service.ts';\n\nfunction customerWithInvoices(count: number) {\n  const app = createTestApp();\n  const first = placeOrder(app);\n  for (let i = 1; i < count; i++) {\n    app.clock.advance(60_000);\n    const product = addProduct(app.ctx);\n    app.call('POST', '/cart/items', { token: first.token, body: { productId: product.id, quantity: 1 } });\n    app.call('POST', '/checkout', { token: first.token, body: { addressIndex: 0 } });\n  }\n  return { app, token: first.token };\n}\n\ndescribe('invoice list', () => {\n  it('returns the caller\\'s invoices as an array, newest first', () => {\n    const { app, token } = customerWithInvoices(3);\n    placeOrder(app, { email: 'someone-else@example.com' });\n    const res = app.call('GET', '/invoices', { token });\n    assert.equal(res.status, 200);\n    assert.ok(Array.isArray(res.body));\n    const invoices = res.body as Invoice[];\n    assert.equal(invoices.length, 3);\n    assert.deepEqual(invoices.map((i) => i.id), ['inv_0003', 'inv_0002', 'inv_0001']);\n  });\n\n  it('filters by status and rejects unknown ones', () => {\n    const { app, token } = customerWithInvoices(3);\n    markPaid(app.ctx, 'inv_0002');\n    const paid = app.call('GET', '/invoices', { token, query: { status: 'paid' } }).body as Invoice[];\n    assert.deepEqual(paid.map((i) => i.id), ['inv_0002']);\n    assert.equal((app.call('GET', '/invoices', { token, query: { status: 'open' } }).body as Invoice[]).length, 2);\n    assert.equal(app.call('GET', '/invoices', { token, query: { status: 'overdue' } }).status, 400);\n  });\n\n  it('pages with limit and offset', () => {\n    const { app, token } = customerWithInvoices(3);\n    const page = app.call('GET', '/invoices', { token, query: { limit: '2', offset: '1' } }).body as Invoice[];\n    assert.deepEqual(page.map((i) => i.id), ['inv_0002', 'inv_0001']);\n  });\n\n  it('needs a signed-in user', () => {\n    assert.equal(createTestApp().call('GET', '/invoices').status, 401);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/invoice-list.test.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t002",
+      "type": "semantic",
+      "note": "invoice-list returns paginate()'s result as the response body (an array); paginate-total changes paginate() to return a {items, total} page. Merges cleanly, the list endpoint then returns an object instead of an array."
+    }
+  ]
+}

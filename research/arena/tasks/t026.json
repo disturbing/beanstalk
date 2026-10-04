@@ -1,0 +1,18 @@
+{
+  "id": "t026",
+  "title": "Line discounts do not add up to the order discount",
+  "prompt": "On a three-line order with a $1.00 coupon, the per-line discounts on the invoice add up to 99 cents even though the invoice says the order discount is $1.00. A cent goes missing, and the tax is then calculated on slightly too much.\n\nSplit the cart-level discount across the lines in proportion to their value so the shares always add up to the full discount exactly. Distribute the leftover cents fairly rather than dropping them.",
+  "acceptance_tests": {
+    "src/billing/discount-split.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, addProduct, CA_ADDRESS, createTestApp, signUp } from '../lib/testing.ts';\nimport { sumCents } from '../lib/money.ts';\nimport type { Invoice } from '../types.ts';\nimport { allocateDiscount } from './discounts.ts';\n\ndescribe('discount split', () => {\n  it('shares always add up to the discount and stay within a cent of fair', () => {\n    for (const [nets, discount] of [[[333, 333, 334], 100], [[1, 1, 1, 1, 1, 1, 1], 100], [[999, 1, 500], 77]] as const) {\n      const shares = allocateDiscount([...nets], discount);\n      const total = sumCents([...nets]);\n      assert.equal(sumCents(shares), discount);\n      shares.forEach((share, i) => assert.ok(Math.abs(share - (discount * nets[i]) / total) < 1, `share ${i} of ${nets}`));\n    }\n    assert.deepEqual(allocateDiscount([0, 0], 100), [0, 0]);\n    assert.deepEqual(allocateDiscount([500, 500], 0), [0, 0]);\n  });\n\n  it('keeps the invoice lines consistent with the header', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'ONEBUCK', kind: 'fixed', value: 100 });\n    const { token } = signUp(app.ctx, 'buyer@example.com', { address: CA_ADDRESS });\n    for (const price of [333, 333, 334]) {\n      const product = addProduct(app.ctx, { price });\n      app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity: 1 } });\n    }\n    const order = app.call('POST', '/checkout', { token, body: { addressIndex: 0, couponCode: 'ONEBUCK' } }).body as { invoiceId: string };\n    const invoice = app.ctx.store.invoices.require(order.invoiceId) as Invoice;\n    assert.equal(invoice.discount, 100);\n    assert.equal(sumCents(invoice.lines.map((l) => l.discount)), 100);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/discount-split.test.ts",
+    "src/billing/discounts.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": []
+}

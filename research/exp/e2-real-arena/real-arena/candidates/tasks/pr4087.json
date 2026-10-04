@@ -1,0 +1,33 @@
+{
+  "id": "pr4087",
+  "title": "fix: allow tabs in the thematic break that ends a list item",
+  "prompt": "**Marked version:** 18.0.11 (master, 4417582)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\nA thematic break whose characters are separated or followed by tabs does not end an open list item.\n\nInput (tabs shown as `<TAB>`):\n\n```\n- foo\n_<TAB>_<TAB>_\n```\n\nExpected:\n\n```html\n<ul>\n<li>foo</li>\n</ul>\n<hr>\n```\n\nActual:\n\n```html\n<ul>\n<li>foo<hr>\n</li>\n</ul>\n```\n\nA trailing tab is enough to trigger it for every break character, and with `-` the result is worse, because the line is then read as a setext underline:\n\n```\n- foo\n---<TAB>\n```\n\nExpected `<ul><li>foo</li></ul><hr>`, actual `<ul><li><h2>foo</h2></li></ul>`.\n\nThe same input with spaces instead of tabs (`_ _ _`, `--- `) is already handled correctly, and `*<TAB>*<TAB>*` happens to work only because `nextBulletRegex` catches the leading `*` first.\n\n## Spec\n\nCommonMark 0.31.2, section 4.1 Thematic breaks:\n\n> A line consisting of optionally up to three spaces of indentation, followed by a sequence of three or more matching `-`, `_`, or `*` characters, each followed optionally by any number of spaces or tabs, forms a thematic break.\n\nA thematic break is not paragraph continuation text, so it cannot be a lazy continuation line of the list item (section 5.2, rule 5) and closes the list. Spec example 57 (`- foo` / `***` / `- bar`) already covers the space-only form, which marked passes. `commonmark` 0.31.2, the reference implementation already in devDependencies, produces the expected output above for all three tab variants.\n\n## Root cause\n\n`other.hrRegex` in `src/rules.ts`, used by the list tokenizer to decide that a following line closes the item, allowed only spaces after each break character, while the block `hr` rule it is supposed to mirror already allows `[ \\t]`. The break line therefore fell through to the paragraph-continuation path and stayed inside the item.\n\n## Spec suite\n\nBefore: 1801 tests, 1801 pass, 0 fail.\nAfter: 1803 tests, 1803 pass, 0 fail (the two added tests). The CommonMark and GFM completion tables are unchanged, including the known failures (Entity and numeric character references 15/17, Links 84/90, GFM Autolinks 15/19 and 11/14, Disallowed Raw HTML 0/1). `npm run test:unit` (191 pass), `npm run test:lint` and `tsc` are clean.",
+  "acceptance_tests": {
+    "test/specs/new/thematic_break_with_tabs_ends_list.html": "<ul>\n<li>foo</li>\n</ul>\n<hr>\n<ul>\n<li>bar</li>\n</ul>\n<hr>\n<ul>\n<li>baz</li>\n</ul>\n<hr>\n",
+    "test/specs/new/thematic_break_with_tabs_ends_list.md": "---\ngfm: false\n---\n- foo\n_\t_\t_\n\n- bar\n***\t\n\n- baz\n---\t\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/thematic_break_with_tabs_ends_list.html",
+    "test/specs/new/thematic_break_with_tabs_ends_list.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4087,
+    "sha": "afbb27c7ee753af07fb1a5c18031fc3068261b31",
+    "url": "https://github.com/markedjs/marked/pull/4087",
+    "author": "giaBaoJS",
+    "merged_at": "2026-09-08T15:32:00Z",
+    "pr_base_sha": "4417582f35d69926f0778ee133c3af75b7f3f966",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": []
+  }
+}

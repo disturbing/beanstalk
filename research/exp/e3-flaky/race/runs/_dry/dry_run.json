@@ -1,0 +1,88 @@
+{
+  "ok": true,
+  "problems": [],
+  "policy": "beanstalk",
+  "agent": "replay",
+  "arena": "/Users/coop/Workspace/beanstalk/research/exp/e3-flaky/arena",
+  "repo": "/Users/coop/Workspace/beanstalk/research/exp/e3-flaky/corpora/arena.git",
+  "base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "tasks": {
+    "t001": {
+      "title": "Limit how many times a coupon can be redeemed",
+      "predicted": [
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/coupon-limits.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "t002": {
+      "title": "Paged lists should report the total number of results",
+      "predicted": [
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "acceptance": [
+        "src/catalog/total-count.test.ts",
+        "src/lib/pagination.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "t003": {
+      "title": "Invoices should show federal and regional tax separately",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/tax-breakdown.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "t004": {
+      "title": "Split the per-line work out of buildInvoice",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/invoice-line.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    }
+  },
+  "footprint_method": "predictor",
+  "base_suite": {
+    "green": true,
+    "tests": 80,
+    "suite_seconds": 0.34
+  },
+  "couplings": [],
+  "union_merge": true,
+  "estimate": {
+    "note": "estimate only; calibrate from the first real run's summary.json",
+    "agent_minutes_per_task": 5.0,
+    "usd_per_initial_invocation": 0.45,
+    "wall_minutes_lower_bound": 6.0,
+    "usd_initial_only": 1.8
+  }
+}

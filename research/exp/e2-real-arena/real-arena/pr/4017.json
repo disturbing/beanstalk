@@ -1,0 +1,13 @@
+{
+ "number": 4017,
+ "sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+ "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer",
+ "body": "While looking for remaining quadratic paths after #4013/#4014, I found that the link-masking step in `Lexer.tokenize` is O(n\u00b2) on some ordinary inputs.\n\nBefore em/strong processing, `tokenize` masks out reflinks, escaped characters, and other inline blocks so they don't interfere. Each of the three masks ran a `while ((match = rule.exec(maskedSrc)))` loop that rebuilt the *entire* `maskedSrc` string on every match:\n\n```js\nwhile ((match = this.tokenizer.rules.inline.anyPunctuation.exec(maskedSrc)) !== null) {\n  maskedSrc = maskedSrc.slice(0, match.index) + '++' + maskedSrc.slice(...lastIndex);\n}\n```\n\nFor an input with *k* matches that's *k* full-length string rebuilds \u2014 O(k\u00b7n), i.e. quadratic when the matches are dense. It's easy to hit with perfectly normal markdown: a paragraph full of escaped punctuation, many inline `` `code` `` spans, or many reference-style `[ref]` links. On my machine (`marked.parse` at HEAD):\n\n| input | time |\n|-------|------|\n| `'\\\\.'.repeat(100000)` | ~2.4 s |\n| `` '`x` '.repeat(60000) `` | ~1.6 s |\n| `'[a]: x\\n\\n' + '[a] '.repeat(100000)` | ~4.3 s |\n\nThe masking regexes match linearly on their own \u2014 the cost is purely the repeated `slice`+concat rebuild, not the regex. This is the string-rebuild sibling of the em-mask work in #2818 (which fixed the *regex* side).\n\nThe fix replaces each hand-rolled loop with a single-pass `String.prototype.replace`, so the masked string is built once instead of *k* times. Every replacement is exactly the same length as what it replaces (reflink \u2192 `[` + `a`\u00d7(len\u22122) + `]`, escapes \u2192 `++`, blockSkip \u2192 context prefix + same-length padding), so the global regex's `lastIndex` bookkeeping is unaffected and the output is byte-identical \u2014 the whole spec suite (CommonMark, GFM, original, redos) passes unchanged. The three inputs above drop to ~5 ms / ~40 ms / ~68 ms and scale linearly.\n\nI added `test/specs/redos/quadratic_inline_masking.cjs` covering the three shapes; each exceeds the redos harness's 1-second budget on `master` and passes with this change.\n",
+ "author": "hong4rc",
+ "created_at": "2026-07-13T14:10:20Z",
+ "merged_at": "2026-07-15T03:05:12Z",
+ "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+ "pr_head_sha": "16b374b307bee95e33e6a8beac0206fcb1333bb4",
+ "commits": 1,
+ "linked_issues": []
+}

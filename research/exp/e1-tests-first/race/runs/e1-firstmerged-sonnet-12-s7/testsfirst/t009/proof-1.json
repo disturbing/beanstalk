@@ -1,0 +1,75 @@
+{
+ "task": "t009",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/line-limit.test.ts"
+ ],
+ "results": {
+  "src/orders/line-limit.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 6,
+   "passing": 3,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > defaults to 10 units per product",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 10"
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > reads MAX_LINE_QUANTITY from the environment",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 3"
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > allows exactly the default limit",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > rejects one unit over the default limit with a 400 and the message",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > names the offending product when only one line breaks the limit",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > applies the limit per product, not across the whole order",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > uses the configured limit",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > a larger configured limit lets bigger lines through",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/line-limit.test.ts",
+     "name": "per-line quantity limit at checkout > reserves no stock and creates no invoice or order when rejected",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

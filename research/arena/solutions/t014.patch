@@ -1,0 +1,48 @@
+diff --git a/README.md b/README.md
+index 91d422c..6652824 100644
+--- a/README.md
++++ b/README.md
+@@ -50,6 +50,6 @@ Settings come from environment variables (see `src/config.ts`).
+ 
+ - Prices are tax exclusive; tax is worked out per invoice line from the shipping address.
+ - Standard shipping is charged by destination zone and weight; express costs double.
+-- A session lasts `SESSION_TTL_SECONDS` from login.
++- A session lasts `SESSION_TTL_SECONDS` from login and is extended every time it is used.
+ - Stock is reserved at checkout and released when an order is cancelled.
+ - Coupons take a percentage or a fixed amount off and can have a minimum subtotal.
+diff --git a/src/auth/guard.ts b/src/auth/guard.ts
+index f09bee1..ccc8e5f 100644
+--- a/src/auth/guard.ts
++++ b/src/auth/guard.ts
+@@ -1,6 +1,6 @@
+ import type { Request } from '../router.ts';
+ import type { AppContext, User } from '../types.ts';
+-import { findSession } from './sessions.ts';
++import { findSession, touchSession } from './sessions.ts';
+ 
+ export function bearerToken(req: Pick<Request, 'headers'>): string | null {
+   const header = req.headers.authorization;
+@@ -14,5 +14,6 @@ export function authenticateRequest(ctx: AppContext, req: Pick<Request, 'headers
+   if (!token) return null;
+   const session = findSession(ctx, token);
+   if (!session) return null;
++  touchSession(ctx, session);
+   return ctx.store.users.get(session.userId) ?? null;
+ }
+diff --git a/src/auth/sessions.ts b/src/auth/sessions.ts
+index bbf99e8..cefaced 100644
+--- a/src/auth/sessions.ts
++++ b/src/auth/sessions.ts
+@@ -19,6 +19,12 @@ export function findSession(ctx: AppContext, token: string): Session | undefined
+   return session;
+ }
+ 
++/** Push a live session's expiry out to a full lifetime from now. */
++export function touchSession(ctx: AppContext, session: Session): Session {
++  const expiresAt = new Date(ctx.clock.now().getTime() + ctx.config.sessionTtlSeconds * 1000).toISOString();
++  return ctx.store.sessions.update(session.id, { expiresAt });
++}
++
+ export function destroySession(ctx: AppContext, token: string): void {
+   ctx.store.sessions.delete(token);
+ }

@@ -1,0 +1,12 @@
+{
+ "e5-short-d7-v2r": {
+  "attempts": 1,
+  "verdict": null,
+  "last_start": "2026-10-03T18:52:00+0800",
+  "cost_usd": 4.5245,
+  "aborted": "rate limited (five_hour, resets at 1791031200): stopping rather than dropping tasks",
+  "infra": 1,
+  "last_end": "2026-10-03T19:03:43+0800",
+  "contaminated": 1
+ }
+}

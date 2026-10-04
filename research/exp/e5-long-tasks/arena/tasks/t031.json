@@ -1,0 +1,30 @@
+{
+  "id": "t031",
+  "title": "Customers want a plain-text copy of their invoice",
+  "prompt": "Customers keep asking for an invoice they can paste into an expense report or an email.\n\nAdd `GET /invoices/:id/text`, with the same visibility rules as the existing invoice endpoint, that returns a plain-text rendering with the content type `text/plain; charset=utf-8`. The body has the invoice number on the first line (`Invoice <number>`), then one line per item formatted as `<quantity> x <description> - <net amount>`, then `Subtotal:`, `Discount:` (only when the invoice has a discount, shown as a negative amount), `Tax:` and `Total:` lines. Amounts use the shop's normal currency formatting.",
+  "acceptance_tests": {
+    "src/billing/invoice-text.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp, US_ADDRESS } from '../lib/testing.ts';\n\ndescribe('plain-text invoices', () => {\n  it('renders items, subtotal, tax and total', () => {\n    const app = createTestApp();\n    const { order, token, product } = placeOrder(app, { price: 100000, address: US_ADDRESS });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    const res = app.call('GET', `/invoices/${invoice.id}/text`, { token });\n    assert.equal(res.status, 200);\n    assert.equal(res.headers['content-type'], 'text/plain; charset=utf-8');\n    assert.equal(\n      res.body,\n      [`Invoice ${invoice.number}`, `1 x ${product.name} - $1000.00`, 'Subtotal: $1000.00', 'Tax: $65.00', 'Total: $1065.00'].join('\\n'),\n    );\n  });\n\n  it('shows the discount as a negative amount', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app, { price: 5000, address: US_ADDRESS, couponCode: 'WELCOME10' });\n    const text = app.call('GET', `/invoices/${order.invoiceId}/text`, { token }).body as string;\n    assert.match(text, /^Discount: -\\$5\\.00$/m);\n    assert.match(text, /^Total: \\$47\\.93$/m);\n  });\n\n  it('is only visible to the owner and admins', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const stranger = signUp(app.ctx, 'stranger@example.com');\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const path = `/invoices/${order.invoiceId}/text`;\n    assert.equal(app.call('GET', path).status, 401);\n    assert.equal(app.call('GET', path, { token: stranger.token }).status, 404);\n    assert.equal(app.call('GET', path, { token: admin.token }).status, 200);\n    assert.equal(app.call('GET', path, { token }).status, 200);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/invoice-text.test.ts",
+    "src/billing/render.ts",
+    "src/routes.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t005",
+      "type": "semantic",
+      "note": "invoice-text's test asserts amounts printed without digit grouping ($1000.00); money-grouping changes formatMoney to print $1,000.00. Merges cleanly, the text test then fails."
+    }
+  ]
+}

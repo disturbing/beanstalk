@@ -1,0 +1,33 @@
+{
+  "id": "t006",
+  "title": "fix: keep empty list after blockquote as a sibling block",
+  "prompt": "## Description\n\nA blockquote immediately followed by a bare list marker line nests an empty list inside the blockquote instead of starting a sibling list.\n\n**Minimal repro**\n\n```js\nmarked.parse('> foo\\n-');\n```\n\nExpected (matches commonmark.js and markdown-it):\n\n```html\n<blockquote>\n<p>foo</p>\n</blockquote>\n<ul>\n<li></li>\n</ul>\n```\n\nActual:\n\n```html\n<blockquote>\n<p>foo</p>\n<ul>\n<li></li>\n</ul>\n</blockquote>\n```\n\nReproduces for `-`, `*`, `+`, `1.`, `1)` and for multi line blockquotes (`> foo\\n> bar\\n-`). Non empty lists (`> foo\\n- bar`) already behave correctly.\n\n## Root cause\n\nThe `blockquote` rule reuses the paragraph list interrupt clause:\n\n```\n {0,3}(?:[*+-]|1[.)])[ \\t]+[^ \\t\\n]\n```\n\nThe trailing `[ \\t]+[^ \\t\\n]` requires content after the marker, which is correct for a top level paragraph (an empty list cannot interrupt a paragraph). But the same clause also controls when a blockquote stops its lazy continuation. A bare marker line does not match it, so the marker line is lazily continued into the blockquote paragraph and then re lexed into a nested empty list.\n\nPer CommonMark 0.31.2 (5.1 block quotes laziness, 5.2 list items) a list begun by a bare marker is a sibling block after the blockquote, not a lazy continuation of it. commonmark.js and markdown-it both produce the sibling.\n\n## Fix\n\nGive the blockquote its own paragraph variant (`blockquoteParagraph`) whose list interrupt clause also matches a bare marker:\n\n```\n {0,3}(?:[*+-]|1[.)])(?:[ \\t]|\\n|$)\n```\n\nThe top level `paragraph` rule is left untouched, so `foo\\n-` (setext heading), `foo\\n*` and `foo\\n1.` (no interruption) keep their current behavior. The change only affects when a blockquote ends.\n\n## Relation to #4003\n\n#4003 also routes the `blockquote` rule through a `blockquoteParagraph` const, but for a different bug (#4002, non empty ordered lists with a start other than 1). It keeps the `[ \\t]+[^ \\t\\n]` content requirement, so it does not fix the empty marker case verified here. The two changes touch the same region; I can rebase or fold the two interrupt clauses into one if a maintainer prefers a single edit.\n\n## Tests\n\n- Added `test/specs/new/empty_list_after_blockquote.{md,html}` covering the bare unordered and bare ordered cases including a multi line blockquote.\n- `npm test` green, including the CommonMark and GFM conformance specs (1745 spec assertions, 188 unit tests).",
+  "acceptance_tests": {
+    "test/specs/new/empty_list_after_blockquote.html": "<blockquote>\n<p>foo</p>\n</blockquote>\n<ul>\n<li></li>\n</ul>\n<blockquote>\n<p>foo\nbar</p>\n</blockquote>\n<ol>\n<li></li>\n</ol>\n",
+    "test/specs/new/empty_list_after_blockquote.md": "> foo\n-\n\n> foo\n> bar\n1.\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/empty_list_after_blockquote.html",
+    "test/specs/new/empty_list_after_blockquote.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4004,
+    "sha": "3f144a0e93b515877d5f55b92039d87eea9a6b04",
+    "url": "https://github.com/markedjs/marked/pull/4004",
+    "author": "spokodev",
+    "merged_at": "2026-07-14T22:08:05Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 6,
+    "notes": [],
+    "applies_to_common_base": false
+  }
+}

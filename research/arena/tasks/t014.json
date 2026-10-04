@@ -1,0 +1,21 @@
+{
+  "id": "t014",
+  "title": "Active customers are logged out in the middle of a session",
+  "prompt": "Sessions expire a fixed time after login even if the customer is busy shopping, which logs people out halfway through checkout.\n\nMake the expiry sliding: every authenticated request moves the session's expiry out to a full session lifetime from now. A session that has already expired stays rejected and is not revived by later requests.",
+  "acceptance_tests": {
+    "src/auth/sliding-sessions.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, signUp } from '../lib/testing.ts';\n\nconst MINUTE = 60_000;\n\nfunction setup() {\n  const app = createTestApp();\n  app.ctx.config.sessionTtlSeconds = 3600;\n  const { token } = signUp(app.ctx);\n  const me = () => app.call('GET', '/users/me', { token }).status;\n  return { app, token, me };\n}\n\ndescribe('sliding sessions', () => {\n  it('stay alive while the customer keeps using them', () => {\n    const { app, me } = setup();\n    app.clock.advance(50 * MINUTE);\n    assert.equal(me(), 200);\n    app.clock.advance(50 * MINUTE);\n    assert.equal(me(), 200, 'the first request moved the expiry out');\n    app.clock.advance(61 * MINUTE);\n    assert.equal(me(), 401, 'but an idle hour still expires it');\n  });\n\n  it('record the new expiry', () => {\n    const { app, token, me } = setup();\n    app.clock.advance(10 * MINUTE);\n    me();\n    assert.equal(app.ctx.store.sessions.require(token).expiresAt, '2026-09-15T13:10:00.000Z');\n  });\n\n  it('do not revive an expired session', () => {\n    const { app, token, me } = setup();\n    app.clock.advance(61 * MINUTE);\n    assert.equal(me(), 401);\n    assert.equal(app.ctx.store.sessions.require(token).expiresAt, '2026-09-15T13:00:00.000Z', 'rejected request left the expiry alone');\n    assert.equal(me(), 401);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/auth/guard.ts",
+    "src/auth/sessions.ts",
+    "src/auth/sliding-sessions.test.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/auth"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

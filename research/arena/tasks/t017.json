@@ -1,0 +1,26 @@
+{
+  "id": "t017",
+  "title": "Customers in Quebec are charged the wrong sales tax",
+  "prompt": "A customer in Montreal wrote to support: the sales tax on her order was lower than the amount the tax authority told her to expect.\n\nLooking at a few Quebec orders, we charge 14% in total. The combined federal and provincial sales tax in Quebec is 14.975% (5% federal plus 9.975% provincial). Please make Quebec orders use the correct combined rate, for standard and reduced-rate goods alike. Every other province keeps its current rate.",
+  "acceptance_tests": {
+    "src/billing/quebec-tax.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { CA_ADDRESS, createTestApp, ON_ADDRESS, placeOrder } from '../lib/testing.ts';\nimport { taxRateFor } from './tax.ts';\n\ndescribe('Quebec sales tax', () => {\n  it('uses the combined 14.975% rate, halved for reduced goods', () => {\n    assert.equal(taxRateFor(CA_ADDRESS, 'standard', 0.07), 0.14975);\n    assert.equal(taxRateFor(CA_ADDRESS, 'reduced', 0.07), 0.14975 / 2);\n    assert.equal(taxRateFor(CA_ADDRESS, 'exempt', 0.07), 0);\n  });\n\n  it('charges that rate on a Quebec order', () => {\n    const { order } = placeOrder(createTestApp(), { price: 20000 });\n    assert.equal(order.tax, 2995);\n    assert.equal(order.shippingAddress.region, 'QC');\n  });\n\n  it('leaves Ontario alone', () => {\n    const { order } = placeOrder(createTestApp(), { price: 20000, address: ON_ADDRESS });\n    assert.equal(order.tax, 2600);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/billing/quebec-tax.test.ts",
+    "src/billing/tax.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/billing"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t003",
+      "type": "textual",
+      "note": "Both edit the Quebec row of the tax rate table in billing/tax.ts (a rate correction versus restructuring the table into federal/regional parts)."
+    }
+  ]
+}

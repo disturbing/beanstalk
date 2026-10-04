@@ -1,0 +1,18 @@
+{
+  "id": "t016",
+  "title": "Invoice numbers should restart every year",
+  "prompt": "Our accountants want invoice numbers in the form `INV-<year>-<sequence>`, with the sequence starting again at 0001 every January 1st. For example INV-2026-0001 and INV-2026-0002, followed by INV-2027-0001 in the new year. The year is the year the invoice is issued, in UTC. Invoice ids are unaffected.",
+  "acceptance_tests": {
+    "src/billing/invoice-numbers.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\n\ndescribe('invoice numbers', () => {\n  it('count up within a year and restart on January 1st', () => {\n    const app = createTestApp();\n    const numberOf = (email: string) => {\n      const { order } = placeOrder(app, { email });\n      return app.ctx.store.invoices.require(order.invoiceId!).number;\n    };\n    assert.equal(numberOf('a@example.com'), 'INV-2026-0001');\n    assert.equal(numberOf('b@example.com'), 'INV-2026-0002');\n    app.clock.advance(Date.parse('2027-01-01T00:00:00Z') - app.clock.now().getTime());\n    assert.equal(numberOf('c@example.com'), 'INV-2027-0001');\n    assert.equal(numberOf('d@example.com'), 'INV-2027-0002');\n  });\n\n  it('keeps invoice ids sequential across years', () => {\n    const app = createTestApp();\n    const first = placeOrder(app, { email: 'a@example.com' }).order.invoiceId;\n    app.clock.advance(Date.parse('2027-03-01T00:00:00Z') - app.clock.now().getTime());\n    const second = placeOrder(app, { email: 'b@example.com' }).order.invoiceId;\n    assert.deepEqual([first, second], ['inv_0001', 'inv_0002']);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/service.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

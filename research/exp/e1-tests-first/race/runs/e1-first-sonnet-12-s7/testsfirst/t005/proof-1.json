@@ -1,0 +1,45 @@
+{
+ "task": "t005",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/lib/money-separators.test.ts"
+ ],
+ "results": {
+  "src/lib/money-separators.test.ts": {
+   "status": "fails-first",
+   "why": "3 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 3,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/lib/money-separators.test.ts",
+     "name": "formatMoney thousands separators > groups thousands with commas",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '$1234567.89'\n- '$1,234,567.89'\n     ^"
+    },
+    {
+     "file": "src/lib/money-separators.test.ts",
+     "name": "formatMoney thousands separators > handles negative amounts",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '-$1234.50'\n- '-$1,234.50'\n      ^"
+    },
+    {
+     "file": "src/lib/money-separators.test.ts",
+     "name": "formatMoney thousands separators > groups every three digits for very large amounts",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\u00a31000000000.00'\n- '\u00a31,000,000,000.00'\n     ^"
+    },
+    {
+     "file": "src/lib/money-separators.test.ts",
+     "name": "formatMoney thousands separators > leaves amounts below 1,000 unchanged",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,75 @@
+{
+ "task": "t026",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/discount-allocation.test.ts"
+ ],
+ "results": {
+  "src/billing/discount-allocation.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 5,
+   "passing": 4,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > splits $1.00 over three equal lines without losing a cent",
+     "status": "fail",
+     "message": "shares of 100 over 1000,1000,1000 add up\n\n99 !== 100"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > still splits evenly divisible discounts proportionally",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > adds up exactly for uneven lines",
+     "status": "fail",
+     "message": "shares of 101 over 333,667,1001 add up\n\n99 !== 101"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > gives a zero-value line nothing",
+     "status": "fail",
+     "message": "shares of 101 over 0,1000,1000 add up\n\n100 !== 101"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > can discount the whole cart",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > is deterministic",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > does not spread leftovers onto lines worth nothing when the cart is empty",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "buildInvoice discount allocation > line discounts add up to the invoice discount for a $1.00 coupon on three lines",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n99 !== 100"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "buildInvoice discount allocation > line discounts add up for a percent coupon on awkward prices",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n139 !== 140"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

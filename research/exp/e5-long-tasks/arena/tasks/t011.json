@@ -1,0 +1,36 @@
+{
+  "id": "t011",
+  "title": "Tracking numbers belong to shipments, not orders",
+  "prompt": "An order can ship in several parcels, but we keep a single `trackingNumber` on the order itself. Move the tracking number to the shipment.\n\nShipments get a `trackingNumber`, and orders stop having one. `POST /orders/:id/ship` still takes a tracking number and still returns the updated order (which no longer carries it), and `GET /orders/:id/shipment` returns the shipment with its `trackingNumber`. Shipments that already exist take over the tracking number of their order, so a numbered migration is needed to copy it across and remove the order column. The shared types live in src/types.ts.",
+  "acceptance_tests": {
+    "src/db/shipment-tracking-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: shipment tracking', () => {\n  it('copies existing tracking numbers onto shipments and drops the order column', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.orders.insert({ id: 'ord_1', trackingNumber: 'OLD-1' } as never);\n    store.shipments.insert({ id: 'shp_1', orderId: 'ord_1' } as never);\n    store.shipments.insert({ id: 'shp_2', orderId: 'ord_missing' } as never);\n    runMigrations(store);\n    assert.equal(store.shipments.require('shp_1').trackingNumber, 'OLD-1');\n    assert.equal(store.shipments.require('shp_2').trackingNumber, null);\n    assert.ok(!('trackingNumber' in store.orders.require('ord_1')));\n  });\n});\n",
+    "src/shipping/shipment-tracking.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport type { Order } from '../types.ts';\n\ndescribe('tracking numbers on shipments', () => {\n  it('stores the tracking number on the shipment and not on the order', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const shipped = app.call('POST', `/orders/${order.id}/ship`, { token: admin.token, body: { trackingNumber: 'TRK-5' } });\n    assert.equal(shipped.status, 200);\n    assert.equal((shipped.body as Order).status, 'shipped');\n    assert.ok(!('trackingNumber' in (shipped.body as object)));\n    assert.ok(!('trackingNumber' in app.ctx.store.orders.require(order.id)));\n    const shipment = app.call('GET', `/orders/${order.id}/shipment`, { token }).body as { trackingNumber: string };\n    assert.equal(shipment.trackingNumber, 'TRK-5');\n    assert.equal(app.ctx.store.shipments.all()[0].trackingNumber, 'TRK-5');\n  });\n\n  it('new orders do not carry a tracking number either', () => {\n    const { order } = placeOrder(createTestApp());\n    assert.ok(!('trackingNumber' in order));\n  });\n\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/db/migrations/0006_shipment_tracking.ts",
+    "src/db/migrations/index.ts",
+    "src/db/shipment-tracking-migration.test.ts",
+    "src/orders/checkout.ts",
+    "src/shipping/handlers.ts",
+    "src/shipping/service.ts",
+    "src/shipping/shipment-tracking.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/db",
+    "src/orders",
+    "src/shipping"
+  ],
+  "kind": "refactor",
+  "difficulty": 3,
+  "couplings": [
+    {
+      "with": "t018",
+      "type": "semantic",
+      "note": "tracking-on-shipment moves trackingNumber from Order to Shipment; tracking-email's template reads order.trackingNumber. Merges cleanly, the shipped email then says the tracking number is missing."
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Per-change prediction dumps are large (up to ~25 MB each) and regenerate byte-for-byte: python3 predict.py <corpus>
+out/**/predictions.jsonl
+# Raw Jev responses (only exist after a real Jev run); jev_inputs.jsonl stays
+out/**/jev_raw.jsonl
+__pycache__/
+*.pyc

@@ -1,0 +1,305 @@
+--- a/research/race/harness/agents.py (original)
++++ b/exp/e7-variance-mixed/race/harness/agents.py
+@@ -10,6 +10,7 @@
+ import math
+ import os
+ import random
++import re
+ import time
+ import uuid
+ from dataclasses import asdict, dataclass, field
+@@ -54,6 +55,13 @@
+ 
+ 
+ USAGE_KEYS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
++
++# Claude Code reports an auth or network outage as an ``is_error`` RESULT (subtype "success", exit 1, cost 0,
++# text "Failed to authenticate. API Error: 403 Request not allowed"), not as a crash. Without this the harness
++# books it as finished, empty agent work and the race carries on with no-op reworks. Only error results are
++# searched, never an agent's normal answer.
++CLAUDE_OUTAGE = re.compile(r"\b(?:401|403)\b|Request not allowed|/login|Failed to authenticate|authentication_error|"
++                           r"Invalid API key|OAuth token has expired", re.I)
+ 
+ 
+ @dataclass
+@@ -308,6 +316,11 @@
+             res.permission_denials = r.get("permission_denials") or []
+             res.result_text = r.get("result") or ""
+             res.structured_output = r.get("structured_output")
++            if res.is_error and CLAUDE_OUTAGE.search(f"{res.subtype or ''} {res.result_text}"):
++                res.ok = False
++                res.infra_error = res.result_text[:300] or "authentication failure"
++                res.rate_limited = True   # stop the race (like a hard rate limit) instead of dropping tasks
++                res.rate_limit = {"status": "rejected", "rateLimitType": "auth", "resetsAt": None}
+             sid = res.session_id or ""
+             if r.get("total_cost_usd") is not None:
+                 total = float(r["total_cost_usd"])
+@@ -353,6 +366,13 @@
+ 
+ # ---- Codex -------------------------------------------------------------------------------------------
+ 
++# what a spent ChatGPT-plan window or an API throttle looks like in codex's error events / stderr
++CODEX_LIMIT = re.compile(r"usage limit|rate.?limit|too many requests|\b429\b|quota|insufficient_quota", re.I)
++# an auth or network outage (2026-10-03 15:20: Codex "workspace routing discovery failed" behind HTML 403 pages)
++CODEX_OUTAGE = re.compile(r"workspace routing discovery failed|\b(?:401|403)\b|Forbidden|Unauthorized|not logged in|"
++                          r"log ?in again|Request not allowed", re.I)
++
++
+ class CodexAdapter(Adapter):
+     """``codex exec --json``: OS sandbox (workspace-write, no network) instead of a command allowlist;
+     user config (MCP servers, hooks, plugins) ignored; cost estimated from token usage."""
+@@ -395,7 +415,8 @@
+             fh.write(spec.prompt)
+         res.transcript = out_path
+         usage = {"input_tokens": 0, "cached_input_tokens": 0, "output_tokens": 0}
+-        st = {"turns": 0, "items": 0, "done": False, "failed": None, "last_msg": "", "tools": {}}
++        st = {"turns": 0, "items": 0, "done": False, "failed": None, "last_msg": "", "tools": {},
++              "errors": 0, "last_error": None}
+         t0 = time.monotonic()
+ 
+         def cost() -> float:
+@@ -419,8 +440,11 @@
+                     usage[k] += int((ev.get("usage") or {}).get(k, 0) or 0)
+                 if progress:
+                     progress(cost())
+-            elif typ in ("turn.failed", "error"):
++            elif typ == "turn.failed":
+                 st["failed"] = json.dumps(ev)[:1500]
++            elif typ == "error":  # also "Reconnecting... 2/5": a notice unless the turn then fails
++                st["errors"] += 1
++                st["last_error"] = json.dumps(ev)[:1500]
+             elif typ == "item.completed":
+                 item = ev.get("item") or {}
+                 kind = item.get("type") or item.get("item_type") or "?"
+@@ -447,16 +471,59 @@
+                 res.structured_output = json.loads(st["last_msg"])
+             except json.JSONDecodeError:
+                 pass
++        if st["errors"]:
++            res.notes.append(f"{st['errors']} error events (reconnect notices and the like)")
+         if st["done"] or (pr.timed_out and st["items"]):
+             res.ok = True
+             res.subtype = "timeout" if pr.timed_out else ("error" if st["failed"] else "success")
+             res.is_error = bool(st["failed"])
+         else:
+-            res.infra_error = st["failed"] or ("timeout" if pr.timed_out else (pr.stderr or "").strip()[-1500:]
+-                                               or f"exit {pr.returncode}")
++            res.infra_error = st["failed"] or st["last_error"] or (
++                "timeout" if pr.timed_out else (pr.stderr or "").strip()[-1500:] or f"exit {pr.returncode}")
++            kind = "auth" if CODEX_OUTAGE.search(res.infra_error or "") else (
++                "codex" if CODEX_LIMIT.search(res.infra_error or "") else None)
++            if kind:
++                # a spent ChatGPT-plan window or an outage is not a task failure: stop the race (like Claude's
++                # hard rejection) instead of retrying into dropped tasks
++                res.rate_limited = True
++                res.rate_limit = {"status": "rejected", "rateLimitType": kind, "resetsAt": None}
+         return res
+ 
+ 
++# ---- Mixed fleet -------------------------------------------------------------------------------------
++
++class MixedAdapter(Adapter):
++    """A mixed fleet: every agent slot is bound to one vendor for the whole race (``--agent mixed``).
++
++    Even slots (a0, a2, ...) run Claude Code, odd slots (a1, a3, ...) run Codex, so 12 agents are 6 and 6.
++    ``route`` picks the concrete adapter from ``spec.agent_id``; an invocation without an agent slot
++    (classifier) goes to Claude. A session can only be resumed by the vendor that started it, so the harness
++    asks ``resumable_by`` (Claude sessions resume on Claude slots; Codex reworks start fresh sessions).
++    """
++    name = "mixed"
++
++    def __init__(self, claude: ClaudeAdapter, codex: CodexAdapter):
++        self.claude, self.codex = claude, codex
++        self.model = f"{claude.model}+{codex.model or 'codex-default'}"
++        self.slot_vendor: dict[str, str] = {}
++
++    def assign(self, slot_ids: list[str]) -> dict[str, str]:
++        self.slot_vendor = {sid: ("claude" if i % 2 == 0 else "codex") for i, sid in enumerate(slot_ids)}
++        return dict(self.slot_vendor)
++
++    def vendor_of(self, agent_id: str | None) -> str:
++        return self.slot_vendor.get(agent_id or "", "claude")
++
++    def route(self, spec: InvocationSpec) -> Adapter:
++        return self.codex if self.vendor_of(spec.agent_id) == "codex" else self.claude
++
++    def resumable_by(self, session_id: str | None, agent_id: str | None) -> bool:
++        return self.vendor_of(agent_id) == "claude" and self.claude.resumable(session_id)
++
++    async def run(self, spec: InvocationSpec, progress: Callable[[float], None] | None = None) -> InvocationResult:
++        return await self.route(spec).run(spec, progress)
++
++
+ # ---- Replay ------------------------------------------------------------------------------------------
+ 
+ class ReplayAdapter(Adapter):
+--- a/research/race/harness/core.py (original)
++++ b/exp/e7-variance-mixed/race/harness/core.py
+@@ -12,7 +12,8 @@
+ from dataclasses import dataclass, field
+ 
+ from . import prompts
+-from .agents import (Adapter, ClaudeAdapter, CodexAdapter, InvocationResult, InvocationSpec, ReplayAdapter)
++from .agents import (Adapter, ClaudeAdapter, CodexAdapter, InvocationResult, InvocationSpec, MixedAdapter,
++                     ReplayAdapter)
+ from .arena import Task, classify, load_tasks, patch_strip_level, placement_modules
+ from .ci import CI, CIResult
+ from .footprint import ModuleCatalog, StepTwoPredictor, lexical_predict, normalise, prf, select
+@@ -68,6 +69,7 @@
+     shuffle: bool = False
+     force: bool = False
+     codex_price: tuple = (1.25, 0.125, 10.0)
++    codex_model: str | None = None      # --agent mixed: the Codex slots' model (default: codex's own default)
+ 
+     def union(self) -> bool:
+         if self.merge_drivers == "auto":
+@@ -336,6 +338,17 @@
+     def make_adapter(self) -> Adapter:
+         cfg = self.cfg
+         assert self.runner and self.git
++        if cfg.agent == "mixed":  # half the slots Claude (--model, default sonnet), half Codex (default model)
++            mixed = MixedAdapter(
++                ClaudeAdapter(self.runner, model=cfg.model or "sonnet", max_turns=cfg.max_turns,
++                              timeout=cfg.agent_timeout, transcripts=self.transcripts, binary=cfg.claude_bin,
++                              output_format=cfg.output_format, effort=cfg.effort,
++                              persist_sessions=cfg.rework_resume),
++                CodexAdapter(self.runner, model=cfg.codex_model, timeout=cfg.agent_timeout,
++                             transcripts=self.transcripts, binary=cfg.codex_bin, price=cfg.codex_price,
++                             effort=cfg.effort))
++            mixed.assign([a.id for a in self.agents])
++            return mixed
+         if cfg.agent == "claude":
+             return ClaudeAdapter(self.runner, model=cfg.model or "sonnet", max_turns=cfg.max_turns,
+                                  timeout=cfg.agent_timeout, transcripts=self.transcripts, binary=cfg.claude_bin,
+@@ -433,6 +446,7 @@
+         """Run one agent invocation. The budget is checked before it starts and while it runs."""
+         adapter = adapter or self.adapter
+         assert adapter is not None
++        concrete = adapter.route(spec) if isinstance(adapter, MixedAdapter) else adapter  # the vendor that runs it
+         self.check_budget()
+         remaining = self.cfg.budget_usd - self.committed_cost()
+         spec.budget_cap_usd = min(self.cfg.max_invocation_usd, remaining)
+@@ -440,7 +454,7 @@
+             agent.running = spec.inv_id
+         self.inflight_cost[spec.inv_id] = 0.0
+         self.log("invocation.start", inv=spec.inv_id, kind=spec.kind, task=spec.task_id, agent=spec.agent_id,
+-                 adapter=adapter.name, model=getattr(adapter, "model", None), attempt=spec.attempt,
++                 adapter=concrete.name, model=getattr(concrete, "model", None), attempt=spec.attempt,
+                  resume=spec.resume_session, cwd=os.path.relpath(spec.cwd, self.out),
+                  budget_cap_usd=round(spec.budget_cap_usd, 4))
+ 
+@@ -450,7 +464,7 @@
+                 self.abort(f"budget: ${self.committed_cost():.2f} of ${self.cfg.budget_usd:.2f} (mid-invocation)")
+ 
+         try:
+-            res = await adapter.run(spec, progress)
++            res = await concrete.run(spec, progress)
+         except asyncio.CancelledError:
+             # killed by an abort: charge what the stream showed so far (estimated, conservative)
+             est = self.inflight_cost.get(spec.inv_id, 0.0)
+@@ -669,8 +683,13 @@
+         return out
+ 
+     def can_resume(self, ts: TaskState) -> bool:
+-        """Rework resumes the author's session when the CLI supports it and its last turn reported."""
++        """Rework resumes the author's session when the CLI supports it and its last turn reported.
++        In a mixed fleet only a Claude slot resumes a Claude session; ``ts.agent`` is the slot about to run it
++        (set before every initial, rework and re-execution), so a rework that lands on a Codex slot, or on a
++        session another vendor started, runs fresh with the full-context prompt."""
+         ad = self.adapter
++        if isinstance(ad, MixedAdapter):
++            return bool(self.cfg.rework_resume and ts.session_id and ad.resumable_by(ts.session_id, ts.agent))
+         return bool(self.cfg.rework_resume and ts.session_id and isinstance(ad, ClaudeAdapter)
+                     and ad.resumable(ts.session_id))
+ 
+@@ -814,6 +833,7 @@
+                  tasks=[t.id for t in self.tasks], budget_usd=cfg.budget_usd, seed=cfg.seed, base=self.base_sha,
+                  union_merge=cfg.union(), snapshot=cfg.snapshot, queue_hold=cfg.queue_hold, protect_tests=cfg.protect_tests,
+                  footprint=self.footprint_method, error_budget=cfg.error_budget,
++                 fleet=getattr(self.adapter, "slot_vendor", None) or None,
+                  intake_seconds=round(self.race_t0 - self.events.events[0]["t"], 3))
+         deadline = self.race_t0 + cfg.max_wall_minutes * 60
+         code = 0
+--- a/research/race/harness/ci.py (original)
++++ b/exp/e7-variance-mixed/race/harness/ci.py
+@@ -77,12 +77,17 @@
+         self.seq = 0
+         self.total_seconds = 0.0
+         self.busy_by_purpose: dict[str, float] = {}
++        self.gitdirs: dict[int, str] = {}
+         self.ready = False
+ 
+     async def setup(self, commit: str) -> None:
+         os.makedirs(os.path.join(self.dir, "results"), exist_ok=True)
+         for i in range(self.slots):
+-            await self.git.add_worktree(os.path.join(self.dir, f"slot-{i}"), commit)
++            wt = os.path.join(self.dir, f"slot-{i}")
++            await self.git.add_worktree(wt, commit)
++            # the slot's own admin dir: a second CI (v2's pre-land slots) also names its worktrees slot-N and git
++            # de-duplicates admin names (slot-01, ...), so the lock path must not be guessed from N (fix from E2)
++            self.gitdirs[i] = await self.git.git_dir(wt)
+             self.free.put_nowait(i)
+         self.ready = True
+ 
+@@ -107,7 +112,8 @@
+             if on_start:
+                 on_start(slot)
+             # a slot belongs to one run at a time: any index.lock now is left by a cancelled run's git
+-            lock = os.path.join(self.git.repo, ".git", "worktrees", f"slot-{slot}", "index.lock")
++            lock = os.path.join(self.gitdirs.get(slot) or os.path.join(self.git.repo, ".git", "worktrees",
++                                                                       f"slot-{slot}"), "index.lock")
+             if os.path.exists(lock):
+                 os.remove(lock)
+             await self.git.checkout_detached(wt, sha)
+--- a/research/race/race.py (original)
++++ b/exp/e7-variance-mixed/race/race.py
+@@ -7,8 +7,9 @@
+ 
+ Both policies share the tasks, N concurrent agent sessions, K CI slots and S seconds of emulated CI
+ latency per validation run. Agents: ``claude`` (headless Claude Code, ``claude -p``), ``codex``
+-(``codex exec``), or ``replay`` (applies the arena's reference patches after a seeded lognormal delay;
+-free, used for development and as a control).
++(``codex exec``), ``mixed`` (a fleet of both: even agent slots run Claude with --model, odd slots run Codex with
++--codex-model, default its own model; ``--agents 12`` is 6 + 6), or ``replay`` (applies the arena's reference
++patches after a seeded lognormal delay; free, used for development and as a control).
+ 
+ Outputs in --out (relative paths resolve against research/race/): events.jsonl, summary.json,
+ summary.md, config.json; agent worktrees, CI checkouts and transcripts in work/ (git-ignored).
+@@ -20,6 +21,8 @@
+       --replay-median 6 --seed 1 --out runs/replay-q          # free control, 1/40 time scale
+   python3 race.py --policy beanstalk --agent claude --model sonnet --agents 8 --ci-slots 4 \\
+       --ci-seconds 180 --seed 1 --budget-usd 40 --max-turns 50 --agent-timeout 1200 --out runs/bs-sonnet-8
++  python3 race.py --policy queue --agent mixed --model sonnet --agents 12 --seed 7 --out runs/q-mixed-12
++                                                                # 6 Claude (Sonnet) + 6 Codex slots
+   python3 race.py --reap --out runs/bs-sonnet-8               # only after a SIGKILLed race
+ """
+ from __future__ import annotations
+@@ -46,9 +49,11 @@
+                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+     g = ap.add_argument_group("race")
+     g.add_argument("--policy", choices=["queue", "beanstalk", "beanstalk-preland", "beanstalk-v2"], required=True)
+-    g.add_argument("--agent", choices=["claude", "codex", "replay"], default="replay")
++    g.add_argument("--agent", choices=["claude", "codex", "mixed", "replay"], default="replay")
+     g.add_argument("--agents", type=int, default=4, help="concurrent agent sessions N (default 4)")
+-    g.add_argument("--model", help="agent model (claude default: sonnet; codex default: its own default)")
++    g.add_argument("--model", help="agent model (claude default: sonnet; codex default: its own default; "
++                                   "mixed: the Claude slots' model)")
++    g.add_argument("--codex-model", help="--agent mixed: the Codex slots' model (default: codex's own default)")
+     g.add_argument("--ci-seconds", type=float, default=60.0, help="emulated CI latency S added to every run (60)")
+     g.add_argument("--ci-slots", type=int, default=2, help="concurrent CI runs K (2)")
+     g.add_argument("--batch", type=int, default=4, help="queue batch size k (4; 1 = serial queue)")
+@@ -160,9 +165,11 @@
+     if cfg.agents < 1 or cfg.ci_slots < 1 or cfg.batch < 1:
+         print("--agents, --ci-slots and --batch must be at least 1", file=sys.stderr)
+         return 1
+-    if cfg.agent != "replay" and not shutil.which(cfg.claude_bin if cfg.agent == "claude" else cfg.codex_bin):
+-        print(f"{cfg.agent} CLI not found on PATH", file=sys.stderr)
+-        return 1
++    needed = {"claude": [cfg.claude_bin], "codex": [cfg.codex_bin], "mixed": [cfg.claude_bin, cfg.codex_bin]}
++    for binary in needed.get(cfg.agent, []):
++        if not shutil.which(binary):
++            print(f"{binary} CLI not found on PATH (--agent {cfg.agent})", file=sys.stderr)
++            return 1
+     if cfg.dry_run:
+         return dry_run(cfg)
+     race = make_race(cfg)

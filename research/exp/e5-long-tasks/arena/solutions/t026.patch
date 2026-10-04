@@ -1,0 +1,20 @@
+diff --git a/src/billing/discounts.ts b/src/billing/discounts.ts
+index 67579c9..433b300 100644
+--- a/src/billing/discounts.ts
++++ b/src/billing/discounts.ts
+@@ -1,5 +1,5 @@
+ import { badRequest } from '../lib/errors.ts';
+-import { formatMoney, percentOf, sumCents } from '../lib/money.ts';
++import { allocate, formatMoney, percentOf } from '../lib/money.ts';
+ import type { Cents, Coupon, Currency } from '../types.ts';
+ 
+ /** Check that `coupon` may be used on a cart worth `subtotal`. Returns the coupon for chaining. */
+@@ -17,7 +17,5 @@ export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
+ 
+ /** Spread a cart-level discount over the lines in proportion to their value. */
+ export function allocateDiscount(nets: Cents[], discount: Cents): Cents[] {
+-  const subtotal = sumCents(nets);
+-  if (subtotal === 0) return nets.map(() => 0);
+-  return nets.map((net) => Math.floor((discount * net) / subtotal));
++  return allocate(discount, nets);
+ }

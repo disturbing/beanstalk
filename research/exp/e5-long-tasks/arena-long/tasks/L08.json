@@ -1,0 +1,53 @@
+{
+  "id": "L08",
+  "title": "Tracking numbers belong to shipments, not orders + Retired products are still visible by id + Make product filtering a pure function",
+  "prompt": "Three related tickets in shipments and the catalog are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Tracking numbers belong to shipments, not orders\n\nAn order can ship in several parcels, but we keep a single `trackingNumber` on the order itself. Move the tracking number to the shipment.\n\nShipments get a `trackingNumber`, and orders stop having one. `POST /orders/:id/ship` still takes a tracking number and still returns the updated order (which no longer carries it), and `GET /orders/:id/shipment` returns the shipment with its `trackingNumber`. Shipments that already exist take over the tracking number of their order, so a numbered migration is needed to copy it across and remove the order column. The shared types live in src/types.ts.\n\n### Ticket 2: Retired products are still visible by id\n\nWhen a product is retired (`active` set to false) it disappears from the catalogue list, but `GET /products/:id` still returns it, so old links keep working and customers can see prices for things we no longer sell.\n\nMake the public product endpoint answer 404 for retired products. Admin tooling that reads products through the service layer is not affected, and the product list behaves as before.\n\n### Ticket 3: Make product filtering a pure function\n\nlistProducts in catalog/service.ts reads from the store and applies the filter rules in the same breath, which makes the rules awkward to reuse and to test. Extract them into an exported pure function `filterProducts(products, filter)` that takes an array of products and the same filter object and returns the products that pass, in their original order, without modifying the input. listProducts should use it (and still sort by name). Behaviour must not change.\n",
+  "acceptance_tests": {
+    "src/db/shipment-tracking-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: shipment tracking', () => {\n  it('copies existing tracking numbers onto shipments and drops the order column', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.orders.insert({ id: 'ord_1', trackingNumber: 'OLD-1' } as never);\n    store.shipments.insert({ id: 'shp_1', orderId: 'ord_1' } as never);\n    store.shipments.insert({ id: 'shp_2', orderId: 'ord_missing' } as never);\n    runMigrations(store);\n    assert.equal(store.shipments.require('shp_1').trackingNumber, 'OLD-1');\n    assert.equal(store.shipments.require('shp_2').trackingNumber, null);\n    assert.ok(!('trackingNumber' in store.orders.require('ord_1')));\n  });\n});\n",
+    "src/shipping/shipment-tracking.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport type { Order } from '../types.ts';\n\ndescribe('tracking numbers on shipments', () => {\n  it('stores the tracking number on the shipment and not on the order', () => {\n    const app = createTestApp();\n    const { order, token } = placeOrder(app);\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const shipped = app.call('POST', `/orders/${order.id}/ship`, { token: admin.token, body: { trackingNumber: 'TRK-5' } });\n    assert.equal(shipped.status, 200);\n    assert.equal((shipped.body as Order).status, 'shipped');\n    assert.ok(!('trackingNumber' in (shipped.body as object)));\n    assert.ok(!('trackingNumber' in app.ctx.store.orders.require(order.id)));\n    const shipment = app.call('GET', `/orders/${order.id}/shipment`, { token }).body as { trackingNumber: string };\n    assert.equal(shipment.trackingNumber, 'TRK-5');\n    assert.equal(app.ctx.store.shipments.all()[0].trackingNumber, 'TRK-5');\n  });\n\n  it('new orders do not carry a tracking number either', () => {\n    const { order } = placeOrder(createTestApp());\n    assert.ok(!('trackingNumber' in order));\n  });\n\n});\n",
+    "src/catalog/hidden-product.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, signUp } from '../lib/testing.ts';\nimport { getProduct, updateProduct } from './service.ts';\n\ndescribe('retired products', () => {\n  it('answer 404 on the public endpoint', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx);\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 200);\n    updateProduct(app.ctx, product.id, { active: false });\n    const res = app.call('GET', `/products/${product.id}`);\n    assert.equal(res.status, 404);\n  });\n\n  it('can be brought back by an admin', () => {\n    const app = createTestApp();\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const product = addProduct(app.ctx);\n    app.call('PATCH', `/products/${product.id}`, { token: admin.token, body: { active: false } });\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 404);\n    app.call('PATCH', `/products/${product.id}`, { token: admin.token, body: { active: true } });\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 200);\n  });\n\n  it('are still readable through the service layer', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx);\n    updateProduct(app.ctx, product.id, { active: false });\n    assert.equal(getProduct(app.ctx, product.id).active, false);\n  });\n});\n",
+    "src/catalog/filter-products.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp } from '../lib/testing.ts';\nimport type { Product } from '../types.ts';\nimport { filterProducts, listProducts } from './service.ts';\n\nconst product = (id: string, overrides: Partial<Product> = {}): Product => ({\n  id, sku: `SKU-${id}`, name: `Item ${id}`, description: '', price: 1000, category: 'general',\n  taxClass: 'standard', weightKg: 0.5, active: true, createdAt: '2026-09-01T00:00:00.000Z', ...overrides,\n});\n\ndescribe('filterProducts', () => {\n  const items = [\n    product('c', { category: 'tea', name: 'Green tea' }),\n    product('a', { category: 'coffee', name: 'Dark roast', description: 'Strong coffee' }),\n    product('b', { category: 'coffee', name: 'Decaf', active: false }),\n  ];\n\n  it('hides retired products unless asked', () => {\n    assert.deepEqual(filterProducts(items).map((p) => p.id), ['c', 'a']);\n    assert.deepEqual(filterProducts(items, { includeInactive: true }).map((p) => p.id), ['c', 'a', 'b']);\n  });\n\n  it('filters by category and by search words, keeping the input order', () => {\n    assert.deepEqual(filterProducts(items, { category: 'coffee' }).map((p) => p.id), ['a']);\n    assert.deepEqual(filterProducts(items, { q: 'STRONG coffee' }).map((p) => p.id), ['a']);\n    assert.deepEqual(filterProducts(items, { category: 'tea', q: 'roast' }), []);\n  });\n\n  it('does not modify its input', () => {\n    const copy = structuredClone(items);\n    filterProducts(items, { category: 'tea' });\n    assert.deepEqual(items, copy);\n  });\n});\n\ndescribe('listProducts', () => {\n  it('still sorts by name', () => {\n    const app = createTestApp();\n    addProduct(app.ctx, { name: 'Zinc' });\n    addProduct(app.ctx, { name: 'Alloy' });\n    assert.deepEqual(listProducts(app.ctx).map((p) => p.name), ['Alloy', 'Zinc']);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/handlers.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/service.ts",
+    "src/db/migrations/0006_shipment_tracking.ts",
+    "src/db/migrations/index.ts",
+    "src/db/shipment-tracking-migration.test.ts",
+    "src/orders/checkout.ts",
+    "src/shipping/handlers.ts",
+    "src/shipping/service.ts",
+    "src/shipping/shipment-tracking.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/catalog",
+    "src/db",
+    "src/orders",
+    "src/shipping"
+  ],
+  "kind": "refactor",
+  "difficulty": 3,
+  "members": [
+    "t011",
+    "t021",
+    "t037"
+  ],
+  "couplings": [
+    {
+      "with": "L12",
+      "type": "semantic",
+      "members": [
+        "t011",
+        "t018"
+      ],
+      "note": "t011 x t018: tracking-on-shipment moves trackingNumber from Order to Shipment; tracking-email's template reads order.trackingNumber. Merges cleanly, the shipped email then says the tracking number is missing."
+    }
+  ],
+  "theme": "shipments and the catalog"
+}

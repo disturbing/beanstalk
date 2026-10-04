@@ -1,0 +1,654 @@
+{
+  "ok": true,
+  "problems": [],
+  "policy": "beanstalk",
+  "agent": "claude",
+  "arena": "/Users/coop/Workspace/beanstalk/research/exp/e5-long-tasks/arena-long",
+  "repo": "/Users/coop/Workspace/beanstalk/research/exp/e5-long-tasks/corpora/arena-long.git",
+  "base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "tasks": {
+    "L01": {
+      "title": "Limit how many times a coupon can be redeemed + Invoice numbers should restart every year + Customers cannot list their invoices",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/coupon-limits.test.ts",
+        "src/billing/invoice-list.test.ts",
+        "src/billing/invoice-numbers.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L02": {
+      "title": "Paged lists should report the total number of results + Customers want to leave delivery notes on an order + Let customers reorder a previous order",
+      "predicted": [
+        "src/db"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/catalog",
+        "src/db",
+        "src/lib",
+        "src/orders"
+      ],
+      "acceptance": [
+        "src/catalog/total-count.test.ts",
+        "src/db/order-note-migration.test.ts",
+        "src/lib/pagination.test.ts",
+        "src/orders/order-note.test.ts",
+        "src/orders/reorder.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L03": {
+      "title": "Invoices should show federal and regional tax separately + Split the per-line work out of buildInvoice + Cap the discount a percentage coupon can give",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing",
+        "src/db"
+      ],
+      "acceptance": [
+        "src/billing/coupon-max-discount.test.ts",
+        "src/billing/invoice-line.test.ts",
+        "src/billing/tax-breakdown.test.ts",
+        "src/db/coupon-max-discount-migration.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L04": {
+      "title": "Show thousands separators in displayed amounts + Customers can register twice with different capitalisation",
+      "predicted": [
+        "src/users"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/lib",
+        "src/orders",
+        "src/users"
+      ],
+      "acceptance": [
+        "src/lib/money-format.test.ts",
+        "src/orders/confirmation-grouping.test.ts",
+        "src/users/email-case.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L05": {
+      "title": "Make the invoice payment terms configurable + Move the coupon rules out of discounts.ts into their own module + Tax on multi-line invoices is a cent off from the tax authority's figure",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing",
+        "src/lib"
+      ],
+      "acceptance": [
+        "src/billing/coupons.test.ts",
+        "src/billing/payment-terms.test.ts",
+        "src/billing/tax-rounding.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L06": {
+      "title": "Reserving zero or negative quantities should be rejected + Replace the notification switch with a template table",
+      "predicted": [
+        "src/notifications"
+      ],
+      "oracle_modules": [
+        "src/inventory",
+        "src/notifications"
+      ],
+      "acceptance": [
+        "src/inventory/reserve-validation.test.ts",
+        "src/notifications/templates.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L07": {
+      "title": "Limit how many units of one product fit in an order + Wholesale customers should not be charged sales tax + The order total shown to customers leaves out shipping",
+      "predicted": [
+        "src/db"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing",
+        "src/db",
+        "src/orders"
+      ],
+      "acceptance": [
+        "src/billing/tax-exempt.test.ts",
+        "src/db/user-tax-exempt-migration.test.ts",
+        "src/orders/line-limit.test.ts",
+        "src/orders/total-with-shipping.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L08": {
+      "title": "Tracking numbers belong to shipments, not orders + Retired products are still visible by id + Make product filtering a pure function",
+      "predicted": [
+        "src/db"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/catalog",
+        "src/db",
+        "src/orders",
+        "src/shipping"
+      ],
+      "acceptance": [
+        "src/catalog/filter-products.test.ts",
+        "src/catalog/hidden-product.test.ts",
+        "src/db/shipment-tracking-migration.test.ts",
+        "src/shipping/shipment-tracking.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L09": {
+      "title": "Work out session expiry in one place + Active customers are logged out in the middle of a session + Reject weak passwords at registration",
+      "predicted": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/auth",
+        "src/users"
+      ],
+      "acceptance": [
+        "src/auth/session-expiry.test.ts",
+        "src/auth/sliding-sessions.test.ts",
+        "src/users/password-policy.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L10": {
+      "title": "Customers should get a receipt when their invoice is paid + Finance needs a list of overdue invoices + Expired coupons are still accepted at checkout",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "acceptance": [
+        "src/billing/coupon-expiry.test.ts",
+        "src/billing/invoice-overdue.test.ts",
+        "src/billing/payment-receipt.test.ts",
+        "src/notifications/receipt-template.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L11": {
+      "title": "Customers in Quebec are charged the wrong sales tax + Support refunding a single invoice line",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/line-refunds.test.ts",
+        "src/billing/quebec-tax.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L12": {
+      "title": "Shipping emails should include the tracking number + Customers want a plain-text copy of their invoice",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing",
+        "src/notifications"
+      ],
+      "acceptance": [
+        "src/billing/invoice-text.test.ts",
+        "src/notifications/tracking-email.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L13": {
+      "title": "Line discounts do not add up to the order discount + Fixed-amount coupons can push an order total below zero",
+      "predicted": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "acceptance": [
+        "src/billing/coupon-cap.test.ts",
+        "src/billing/discount-split.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L14": {
+      "title": "Require a signature for high-value deliveries + Free standard shipping on orders over $75",
+      "predicted": [
+        "src/shipping"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/shipping"
+      ],
+      "acceptance": [
+        "src/shipping/free-shipping.test.ts",
+        "src/shipping/signature.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L15": {
+      "title": "A failed checkout leaves stock reserved + Checking out an empty cart creates a stray invoice",
+      "predicted": [
+        "src/cart"
+      ],
+      "oracle_modules": [
+        "src/orders"
+      ],
+      "acceptance": [
+        "src/orders/checkout-rollback.test.ts",
+        "src/orders/empty-cart.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "L16": {
+      "title": "Stock reservations should be all or nothing + Carts accept more units than are in stock",
+      "predicted": [
+        "src/inventory"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/cart",
+        "src/inventory"
+      ],
+      "acceptance": [
+        "src/cart/stock-check.test.ts",
+        "src/inventory/atomic-reserve.test.ts"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    }
+  },
+  "footprint_method": "predictor",
+  "base_suite": {
+    "green": true,
+    "tests": 80,
+    "suite_seconds": 2.05
+  },
+  "couplings": [
+    {
+      "pair": [
+        "L01",
+        "L10"
+      ],
+      "type": "textual",
+      "textual_conflict": true,
+      "conflict_files": [
+        "src/billing/handlers.ts",
+        "src/billing/service.ts",
+        "src/routes.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L01",
+        "L02"
+      ],
+      "type": "semantic",
+      "textual_conflict": false,
+      "conflict_files": [],
+      "suite_green": false,
+      "failing": [
+        "src/billing/invoice-list.test.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L03",
+        "L11"
+      ],
+      "type": "textual",
+      "textual_conflict": true,
+      "conflict_files": [
+        "src/billing/tax.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L04",
+        "L12"
+      ],
+      "type": "semantic",
+      "textual_conflict": false,
+      "conflict_files": [],
+      "suite_green": false,
+      "failing": [
+        "src/billing/invoice-text.test.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L04",
+        "L09"
+      ],
+      "type": "textual",
+      "textual_conflict": true,
+      "conflict_files": [
+        "src/users/service.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L05",
+        "L11"
+      ],
+      "type": "semantic",
+      "textual_conflict": false,
+      "conflict_files": [],
+      "suite_green": false,
+      "failing": [
+        "src/billing/line-refunds.test.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L06",
+        "L16"
+      ],
+      "type": "textual",
+      "textual_conflict": true,
+      "conflict_files": [
+        "src/inventory/stock.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L07",
+        "L15"
+      ],
+      "type": "textual",
+      "textual_conflict": true,
+      "conflict_files": [
+        "src/orders/checkout.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L07",
+        "L14"
+      ],
+      "type": "semantic",
+      "textual_conflict": false,
+      "conflict_files": [],
+      "suite_green": false,
+      "failing": [
+        "src/orders/total-with-shipping.test.ts"
+      ]
+    },
+    {
+      "pair": [
+        "L08",
+        "L12"
+      ],
+      "type": "semantic",
+      "textual_conflict": false,
+      "conflict_files": [],
+      "suite_green": false,
+      "failing": [
+        "src/notifications/tracking-email.test.ts"
+      ]
+    }
+  ],
+  "union_merge": true,
+  "agent_cli": {
+    "version": "2.1.288 (Claude Code)",
+    "argv": [
+      "claude",
+      "-p",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--model",
+      "sonnet",
+      "--max-turns",
+      "40",
+      "--tools",
+      "Read,Edit,Write,Glob,Grep,Bash",
+      "--permission-mode",
+      "acceptEdits",
+      "--permission-prompts",
+      "none",
+      "--strict-mcp-config",
+      "--mcp-config",
+      "{\"mcpServers\":{}}",
+      "--setting-sources",
+      "",
+      "--disable-slash-commands",
+      "--safe-mode",
+      "--restricted",
+      "--max-budget-usd",
+      "3.00",
+      "--session-id",
+      "00000000-0000-4000-8000-000000000000",
+      "--disallowedTools",
+      "Bash(git commit)",
+      "Bash(git commit *)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git push:*)",
+      "Bash(git pull)",
+      "Bash(git pull *)",
+      "Bash(git pull:*)",
+      "Bash(git fetch)",
+      "Bash(git fetch *)",
+      "Bash(git fetch:*)",
+      "Bash(git reset)",
+      "Bash(git reset *)",
+      "Bash(git reset:*)",
+      "Bash(git checkout)",
+      "Bash(git checkout *)",
+      "Bash(git checkout:*)",
+      "Bash(git switch)",
+      "Bash(git switch *)",
+      "Bash(git switch:*)",
+      "Bash(git merge)",
+      "Bash(git merge *)",
+      "Bash(git merge:*)",
+      "Bash(git rebase)",
+      "Bash(git rebase *)",
+      "Bash(git rebase:*)",
+      "Bash(git stash)",
+      "Bash(git stash *)",
+      "Bash(git stash:*)",
+      "Bash(git add)",
+      "Bash(git add *)",
+      "Bash(git add:*)",
+      "Bash(git rm)",
+      "Bash(git rm *)",
+      "Bash(git rm:*)",
+      "Bash(git mv)",
+      "Bash(git mv *)",
+      "Bash(git mv:*)",
+      "Bash(git restore)",
+      "Bash(git restore *)",
+      "Bash(git restore:*)",
+      "Bash(git clean)",
+      "Bash(git clean *)",
+      "Bash(git clean:*)",
+      "Bash(git worktree)",
+      "Bash(git worktree *)",
+      "Bash(git worktree:*)",
+      "Bash(git tag)",
+      "Bash(git tag *)",
+      "Bash(git tag:*)",
+      "Bash(git config)",
+      "Bash(git config *)",
+      "Bash(git config:*)",
+      "Bash(git remote)",
+      "Bash(git remote *)",
+      "Bash(git remote:*)",
+      "Bash(git cherry-pick)",
+      "Bash(git cherry-pick *)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git revert)",
+      "Bash(git revert *)",
+      "Bash(git revert:*)",
+      "Bash(git am)",
+      "Bash(git am *)",
+      "Bash(git am:*)",
+      "Bash(git apply)",
+      "Bash(git apply *)",
+      "Bash(git apply:*)",
+      "Bash(git update-ref)",
+      "Bash(git update-ref *)",
+      "Bash(git update-ref:*)",
+      "Bash(git notes)",
+      "Bash(git notes *)",
+      "Bash(git notes:*)",
+      "Bash(git gc)",
+      "Bash(git gc *)",
+      "Bash(git gc:*)",
+      "Bash(git submodule)",
+      "Bash(git submodule *)",
+      "Bash(git submodule:*)",
+      "Bash(npm)",
+      "Bash(npm *)",
+      "Bash(npm:*)",
+      "Bash(npx)",
+      "Bash(npx *)",
+      "Bash(npx:*)",
+      "Bash(pnpm)",
+      "Bash(pnpm *)",
+      "Bash(pnpm:*)",
+      "Bash(yarn)",
+      "Bash(yarn *)",
+      "Bash(yarn:*)",
+      "Bash(bun)",
+      "Bash(bun *)",
+      "Bash(bun:*)",
+      "Bash(curl)",
+      "Bash(curl *)",
+      "Bash(curl:*)",
+      "Bash(wget)",
+      "Bash(wget *)",
+      "Bash(wget:*)",
+      "Bash(ssh)",
+      "Bash(ssh *)",
+      "Bash(ssh:*)",
+      "Bash(scp)",
+      "Bash(scp *)",
+      "Bash(scp:*)",
+      "Bash(node -e)",
+      "Bash(node -e *)",
+      "Bash(node -e:*)",
+      "Bash(node --eval)",
+      "Bash(node --eval *)",
+      "Bash(node --eval:*)",
+      "Bash(node -p)",
+      "Bash(node -p *)",
+      "Bash(node -p:*)",
+      "Bash(node --print)",
+      "Bash(node --print *)",
+      "Bash(node --print:*)",
+      "Bash(rm)",
+      "Bash(rm *)",
+      "Bash(rm:*)",
+      "Bash(sudo)",
+      "Bash(sudo *)",
+      "Bash(sudo:*)",
+      "--allowedTools",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(node --test)",
+      "Bash(node --test *)",
+      "Bash(node --test:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git diff:*)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git log:*)",
+      "Bash(git show)",
+      "Bash(git show *)",
+      "Bash(git show:*)",
+      "Bash(git ls-files)",
+      "Bash(git ls-files *)",
+      "Bash(git ls-files:*)",
+      "Bash(git blame)",
+      "Bash(git blame *)",
+      "Bash(git blame:*)",
+      "Bash(git grep)",
+      "Bash(git grep *)",
+      "Bash(git grep:*)",
+      "Bash(git rev-parse)",
+      "Bash(git rev-parse *)",
+      "Bash(git rev-parse:*)",
+      "Bash(git merge-base)",
+      "Bash(git merge-base *)",
+      "Bash(git merge-base:*)",
+      "Bash(git cat-file)",
+      "Bash(git cat-file *)",
+      "Bash(git cat-file:*)",
+      "Bash(git ls-tree)",
+      "Bash(git ls-tree *)",
+      "Bash(git ls-tree:*)",
+      "Bash(git shortlog)",
+      "Bash(git shortlog *)",
+      "Bash(git shortlog:*)",
+      "Bash(git describe)",
+      "Bash(git describe *)",
+      "Bash(git describe:*)"
+    ],
+    "prompt_on_stdin": "Limit how many times a coupon can be redeemed + Invoice numbers should restart every year + Customers cannot list their invoices\n\nThree related tickets in billing are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Limit how many times a coupon can be redeemed\n\nMarketing wants to run limited promotions (\"the first 100 orders get 15% off\"). Coupons already have a `maxRedemptions` limit and a `redemptions` counter that goes up with every order, but nothing enforces the limit.\n\nOnce a coupon has been redeemed `maxRedemptions` times, further checkouts using it must fail with a 409 and the message \"coupon has been fully redeemed\". Coupons without a limit are unaffected.\n\n### Ticket 2: Invoice numbers should restart every year\n\nOur accountants want invoice numbers in the form `INV-<year>-<sequence>`, with the sequence starting again at 0001 every January 1st. For example INV-2026-0001 and INV-2026-0002, followed by INV-2027-0001 in the new year. The year is the year the invoice is issued, in UTC. Invoice ids are unaffected.\n\n### Ticket 3: Customers cannot list their invoices\n\nThere is no way for a customer to see all their invoices; they have to know each id. Add `GET /invoices`, returning the signed-in user's invoices, newest first, as a JSON array. Support an optional `status` query parameter (`open`, `paid` or `void`) to filter them (400 for any other value), and the same `limit` / `offset` paging that the other list endpoints support.\n\nAcceptance tests are in src/billing/coupon-limits.test.ts, src/billing/invoice-list.test.ts, src/billing/invoice-numbers.test.ts. Make them pass without breaking other tests. Run `node --test`. Don't edit the acceptance tests. Keep changes minimal. Don't stage or commit; the harness commits your changes.\n"
+  },
+  "estimate": {
+    "note": "estimate only; calibrate from the first real run's summary.json",
+    "agent_minutes_per_task": 5.0,
+    "usd_per_initial_invocation": 0.45,
+    "wall_minutes_lower_bound": 7.7,
+    "usd_initial_only": 7.2
+  }
+}

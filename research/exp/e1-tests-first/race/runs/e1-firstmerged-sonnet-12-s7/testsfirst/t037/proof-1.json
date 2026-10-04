@@ -1,0 +1,69 @@
+{
+ "task": "t037",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/catalog/filter-products.test.ts"
+ ],
+ "results": {
+  "src/catalog/filter-products.test.ts": {
+   "status": "fails-first",
+   "why": "7 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 7,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > drops inactive products unless includeInactive is set",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > filters by exact category",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > filters by search words across name, description and sku",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > combines category, q and includeInactive",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > keeps the original order and does not sort",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > does not modify its input",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > returns an empty array for no products",
+     "status": "fail",
+     "message": "filterProducts must be exported from catalog/service.ts\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "listProducts with filterProducts > still filters and sorts by name",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

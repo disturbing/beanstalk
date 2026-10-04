@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "about": "Per-coupling documentation for E6 decision cards. Oracles and cards read it; agents never see it. 'contract' is the bean that changes the shared contract (the arena's coupling notes for the designed pairs; the measured merge for the natural ones). 'winner' is the per-coupling (table) oracle's documented choice, a product owner's call, with 'rationale'. 'texts' holds the decision line for each possible winner. 'adapt' lists winners whose decision keeps both contracts (the arriving bean adapts; nothing is reverted). 'contradiction': false means both canonical suites can pass together.",
+  "pairs": [
+    {
+      "tasks": ["t002", "t022"],
+      "source": "designed",
+      "contract": "t002",
+      "contradiction": false,
+      "contract_note": "paginate() returns { items, total } instead of an array; GET /invoices returned paginate()'s result as its body.",
+      "specs": {
+        "t002": "paginate() returns { items, total }; list endpoints send x-total-count and keep plain array bodies",
+        "t022": "GET /invoices returns the caller's invoices as a JSON array, newest first, filtered by status and paged"
+      },
+      "winner": "t002",
+      "rationale": "Not a contradiction: both specs hold when the new caller sends page.items.",
+      "texts": {
+        "t002": "paginate() returns { items, total } (t002). Every list endpoint keeps a plain JSON array body, so GET /invoices returns page.items, newest first; it may also send x-total-count like the other lists.",
+        "t022": "GET /invoices returns a plain JSON array (t022). paginate() now returns { items, total } (t002), so the invoice list sends page.items as its body."
+      }
+    },
+    {
+      "tasks": ["t005", "t031"],
+      "source": "designed",
+      "contract": "t005",
+      "contradiction": true,
+      "contract_note": "formatMoney groups thousands ($1,000.00); the plain-text invoice test pins $1000.00.",
+      "specs": {
+        "t005": "Displayed amounts group thousands: formatMoney prints $1,000.00 (amounts under $1,000 unchanged)",
+        "t031": "The plain-text invoice prints its amounts as $1000.00, using the shop's normal currency formatting"
+      },
+      "winner": "t005",
+      "rationale": "t031's own prompt says its amounts use the shop's normal currency formatting, which t005 changes; one money format everywhere.",
+      "texts": {
+        "t005": "Money is shown with thousands separators everywhere, the plain-text invoice included, because it uses the shop's normal currency formatting: '1 x <item> - $1,000.00', 'Subtotal: $1,000.00', 'Total: $1,065.00'. Amounts under $1,000 look as before.",
+        "t031": "The plain-text invoice prints amounts without thousands separators ($1000.00) so they paste cleanly into expense tools; everywhere else money is grouped by formatMoney (t005)."
+      }
+    },
+    {
+      "tasks": ["t011", "t018"],
+      "source": "designed",
+      "contract": "t011",
+      "contradiction": false,
+      "contract_note": "trackingNumber moves from Order to Shipment; the shipped-email template read order.trackingNumber.",
+      "specs": {
+        "t011": "The tracking number belongs to the shipment: Shipment.trackingNumber, and orders no longer carry one",
+        "t018": "The 'order shipped' email adds a line 'Tracking number: <number>'"
+      },
+      "winner": "t011",
+      "rationale": "Not a contradiction: the email can read the number from the shipment.",
+      "texts": {
+        "t011": "The tracking number lives on the shipment, not the order (t011). The shipped email reads it from the order's shipment and still shows 'Tracking number: <number>' (t018).",
+        "t018": "The shipped email must show 'Tracking number: <number>' (t018); since the number moved to the shipment (t011), the email reads it from the shipment."
+      }
+    },
+    {
+      "tasks": ["t023", "t036"],
+      "source": "designed",
+      "contract": "t023",
+      "contradiction": true,
+      "contract_note": "Tax is rounded once per rate over the invoice and spread over the lines; the refund test pins three identical $3.33 lines to $3.76 each.",
+      "specs": {
+        "t023": "Tax is rounded once per rate over the invoice and spread over its lines (43c, 43c and 44c on three $3.33 lines at 13%)",
+        "t036": "A line refund is its net less its discount share plus its tax, so three identical lines refund identically ($3.76 each)"
+      },
+      "winner": "t023",
+      "rationale": "Matching the tax authority's figure is a legal requirement; refunds must return the tax actually charged, so identical lines may differ by a cent.",
+      "texts": {
+        "t023": "Tax follows the tax authority: rounded once per rate and spread over the lines (t023). A line refund returns that line's net, less its share of the discount, plus the tax actually charged on that line, so identical lines can differ by a cent (two refunds of $3.76 and one of $3.77 in the three-line example), and refunding every line still returns the invoice total.",
+        "t036": "Identical invoice lines must carry identical tax so that they refund identically (t036), so invoices keep rounding tax per line. applyRateToTotal may exist in lib/money.ts as a helper, but invoice line taxes are not spread."
+      }
+    },
+    {
+      "tasks": ["t028", "t032"],
+      "source": "designed",
+      "contract": "t032",
+      "contradiction": true,
+      "contract_note": "Order.total now includes shipping; the signature test's order sits just under the $250 threshold without shipping ($249.21).",
+      "specs": {
+        "t028": "A delivery needs a signature when order.total is at least $250; $234.00 of goods plus tax ($249.21) does not",
+        "t032": "Order.total is the full amount payable: goods after discount, plus tax, plus shipping"
+      },
+      "winner": "t028",
+      "adapt": ["t028"],
+      "rationale": "A parcel's worth is its goods, not the delivery fee: the signature rule keeps comparing goods plus tax, and Order.total still includes shipping. Both specs hold; no test changes.",
+      "texts": {
+        "t028": "Order.total includes shipping (t032), and the signature rule compares the parcel's worth with the threshold: goods after discount plus tax, without shipping (order.total minus order.shippingCost). An order of $234.00 plus tax ($249.21 of goods) needs no signature.",
+        "t032": "Order.total is the full amount payable, shipping included (t032), and the signature rule compares that total with the threshold, so a $234.00 order plus tax and shipping needs a signature; an example just under the threshold uses $230.00 of goods."
+      }
+    },
+    {
+      "tasks": ["t005", "t032"],
+      "source": "natural",
+      "contract": "t032",
+      "contradiction": true,
+      "contract_note": "Order.total now includes shipping; the confirmation-email test of thousands grouping pins the old total ($42.60 for a $40.00 US order).",
+      "specs": {
+        "t005": "The order confirmation shows grouped amounts; a $40.00 US order's email reads 'Total: $42.60' (goods plus tax)",
+        "t032": "The confirmation email shows the new order total, shipping included ('Total: $111.50' for a $100.00 US order)"
+      },
+      "winner": "t032",
+      "rationale": "Customers complained the email total was lower than what they pay; t032 fixes that and t005's test only pinned the old total by example.",
+      "texts": {
+        "t032": "The confirmation email shows the new order total, shipping included (t032), formatted with thousands separators (t005): a $40.00 order to the US reads 'Total: $47.60' when it pays $5.00 shipping.",
+        "t005": "The confirmation email keeps showing goods plus tax as its total ('Total: $42.60' for a $40.00 order); the shipping-inclusive Order.total (t032) is not printed in the email."
+      }
+    },
+    {
+      "tasks": ["t032", "t033"],
+      "source": "natural",
+      "contract": "t033",
+      "contradiction": true,
+      "contract_note": "Standard shipping becomes free from $75.00 of goods; the order-total tests use $100.00 orders that pay $5.00 shipping.",
+      "specs": {
+        "t032": "Order.total adds shipping; a $100.00 US order pays $5.00 shipping and totals $111.50",
+        "t033": "Standard shipping is free when the goods come to $75.00 or more"
+      },
+      "winner": "t033",
+      "rationale": "Free shipping is a pricing decision by marketing; t032's examples only assumed a shipping charge on a $100.00 order.",
+      "texts": {
+        "t033": "Standard shipping is free from $75.00 of goods (t033), and Order.total includes whatever shipping is charged (t032): a $100.00 US order pays no shipping and totals $106.50; examples that need a shipping charge use orders under $75.00.",
+        "t032": "t032's accepted totals stand: a $100.00 US order pays $5.00 standard shipping. Free standard shipping (t033) only starts above the order values those examples use."
+      }
+    },
+    {
+      "tasks": ["t003", "t023"],
+      "source": "natural",
+      "contract": "t023",
+      "contradiction": false,
+      "contract_note": "Both rewrite how invoice tax is computed: a federal/regional breakdown versus once-per-rate rounding spread over lines.",
+      "specs": {
+        "t003": "Invoices carry taxBreakdown { federal, regional } that always adds up to the invoice tax",
+        "t023": "Tax is rounded once per rate over the invoice and spread over its lines"
+      },
+      "winner": "t023",
+      "rationale": "Not a contradiction: the breakdown can be derived from the spread tax and still add up.",
+      "texts": {
+        "t023": "Tax is rounded once per rate and spread over the lines (t023); the federal/regional breakdown (t003) is computed from those amounts and still adds up to the invoice tax.",
+        "t003": "The invoice carries the federal/regional breakdown (t003), and it must add up to the invoice tax as computed by the once-per-rate rounding (t023)."
+      }
+    }
+  ]
+}

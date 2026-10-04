@@ -1,0 +1,18 @@
+diff --git a/src/invoice/index.ts b/src/invoice/index.ts
+index 1fefd48..2ad74e3 100644
+--- a/src/invoice/index.ts
++++ b/src/invoice/index.ts
+@@ -1,4 +1,4 @@
+-import { total, type LineItem } from "../cart/index.ts";
++import type { LineItem } from "../cart/index.ts";
+ import { formatCents } from "../money/index.ts";
+ 
+ /** One printable line per cart item. */
+@@ -8,5 +8,6 @@ export function invoiceLines(items: LineItem[]): string[] {
+ 
+ /** Summary line printed under the items: the subtotal before discounts. */
+ export function invoiceSummary(items: LineItem[]): string {
+-  return `Subtotal: ${formatCents(total(items))}`;
++  const subtotal = items.reduce((sum, item) => sum + item.priceCents * item.qty, 0);
++  return `Subtotal: ${formatCents(subtotal)}`;
+ }

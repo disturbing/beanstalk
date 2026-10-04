@@ -1,0 +1,81 @@
+{
+ "task": "t037",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/catalog/filter-products.test.ts"
+ ],
+ "results": {
+  "src/catalog/filter-products.test.ts": {
+   "status": "fails-first",
+   "why": "9 of 10 tests fail on the current code",
+   "tests": 10,
+   "failing": 9,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > is exported as a function",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > drops inactive products by default and keeps original order",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > keeps inactive products with includeInactive",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > filters by category",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > filters by search words across name and description",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > combines category, q and includeInactive",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > does not modify the input array or its products",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > returns a new array even when nothing is filtered out",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "filterProducts > returns an empty array for no products",
+     "status": "fail",
+     "message": "service.filterProducts is not a function"
+    },
+    {
+     "file": "src/catalog/filter-products.test.ts",
+     "name": "listProducts with filterProducts > still sorts by name and applies the same rules",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

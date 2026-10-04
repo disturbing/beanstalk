@@ -1,0 +1,51 @@
+{
+ "task": "t012",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/auth/session-expiry.test.ts"
+ ],
+ "results": {
+  "src/auth/session-expiry.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 5,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > defaults to one session lifetime after the context clock now",
+     "status": "fail",
+     "message": "sessionExpiry is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > follows the clock as it advances",
+     "status": "fail",
+     "message": "sessionExpiry is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > measures from an explicit date",
+     "status": "fail",
+     "message": "sessionExpiry is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > uses the configured lifetime",
+     "status": "fail",
+     "message": "sessionExpiry is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "createSession expiry > expires at sessionExpiry of the creation time",
+     "status": "fail",
+     "message": "sessionExpiry is exported\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

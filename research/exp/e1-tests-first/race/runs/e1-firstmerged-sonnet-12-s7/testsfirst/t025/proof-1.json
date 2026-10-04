@@ -1,0 +1,45 @@
+{
+ "task": "t025",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/notifications/templates.test.ts"
+ ],
+ "results": {
+  "src/notifications/templates.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 4,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/notifications/templates.test.ts",
+     "name": "notification templates table > has a render function for every existing kind",
+     "status": "fail",
+     "message": "templates is exported"
+    },
+    {
+     "file": "src/notifications/templates.test.ts",
+     "name": "notification templates table > renders the same text through the table as through renderNotification",
+     "status": "fail",
+     "message": "templates is exported"
+    },
+    {
+     "file": "src/notifications/templates.test.ts",
+     "name": "notification templates table > keeps the existing text",
+     "status": "fail",
+     "message": "templates is exported"
+    },
+    {
+     "file": "src/notifications/templates.test.ts",
+     "name": "notification templates table > renderNotification looks the kind up in the table",
+     "status": "fail",
+     "message": "templates is exported"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

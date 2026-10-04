@@ -1,0 +1,48 @@
+[
+ {
+  "task": "t016",
+  "members": 4,
+  "wall_s": 64.1,
+  "turns": 12,
+  "cost_usd": 0.0697,
+  "output_tokens": 1711,
+  "tools": {
+   "Bash": 7,
+   "Grep": 2,
+   "Read": 1,
+   "Edit": 1
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 2,
+  "changed": [
+   "src/billing/service.ts",
+   "src/billing/invoice-numbers.test.ts"
+  ],
+  "infra_error": null
+ },
+ {
+  "task": "t026",
+  "members": 4,
+  "wall_s": 20.3,
+  "turns": 9,
+  "cost_usd": 0.0526,
+  "output_tokens": 1511,
+  "tools": {
+   "Read": 4,
+   "Grep": 1,
+   "Edit": 2,
+   "Bash": 1
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 2,
+  "changed": [
+   "src/billing/discounts.ts",
+   "src/billing/discount-split.test.ts"
+  ],
+  "infra_error": null
+ }
+]

@@ -1,0 +1,53 @@
+{
+  "id": "L01",
+  "title": "Limit how many times a coupon can be redeemed + Invoice numbers should restart every year + Customers cannot list their invoices",
+  "prompt": "Three related tickets in invoicing and coupons are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Limit how many times a coupon can be redeemed\n\nMarketing wants to run limited promotions (\"the first 100 orders get 15% off\"). Coupons already have a `maxRedemptions` limit and a `redemptions` counter that goes up with every order, but nothing enforces the limit.\n\nOnce a coupon has been redeemed `maxRedemptions` times, further checkouts using it must fail with a 409 and the message \"coupon has been fully redeemed\". Coupons without a limit are unaffected.\n\n### Ticket 2: Invoice numbers should restart every year\n\nOur accountants want invoice numbers in the form `INV-<year>-<sequence>`, with the sequence starting again at 0001 every January 1st. For example INV-2026-0001 and INV-2026-0002, followed by INV-2027-0001 in the new year. The year is the year the invoice is issued, in UTC. Invoice ids are unaffected.\n\n### Ticket 3: Customers cannot list their invoices\n\nThere is no way for a customer to see all their invoices; they have to know each id. Add `GET /invoices`, returning the signed-in user's invoices, newest first, as a JSON array. Support an optional `status` query parameter (`open`, `paid` or `void`) to filter them (400 for any other value), and the same `limit` / `offset` paging that the other list endpoints support.\n",
+  "acceptance_tests": {
+    "src/billing/coupon-limits.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, errorMessage, tryCheckout } from '../lib/testing.ts';\n\ndescribe('coupon redemption limits', () => {\n  it('stops accepting a coupon once its limit is reached', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'FIRST2', maxRedemptions: 2 });\n    assert.equal(tryCheckout(app, { email: 'a@example.com', couponCode: 'FIRST2' }).res.status, 201);\n    assert.equal(tryCheckout(app, { email: 'b@example.com', couponCode: 'FIRST2' }).res.status, 201);\n    const third = tryCheckout(app, { email: 'c@example.com', couponCode: 'FIRST2' }).res;\n    assert.equal(third.status, 409);\n    assert.equal(errorMessage(third), 'coupon has been fully redeemed');\n    assert.equal(app.ctx.store.coupons.require('FIRST2').redemptions, 2);\n  });\n\n  it('does not limit coupons without a maximum', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'FOREVER', redemptions: 5000 });\n    assert.equal(tryCheckout(app, { couponCode: 'FOREVER' }).res.status, 201);\n  });\n});\n",
+    "src/billing/invoice-numbers.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\n\ndescribe('invoice numbers', () => {\n  it('count up within a year and restart on January 1st', () => {\n    const app = createTestApp();\n    const numberOf = (email: string) => {\n      const { order } = placeOrder(app, { email });\n      return app.ctx.store.invoices.require(order.invoiceId!).number;\n    };\n    assert.equal(numberOf('a@example.com'), 'INV-2026-0001');\n    assert.equal(numberOf('b@example.com'), 'INV-2026-0002');\n    app.clock.advance(Date.parse('2027-01-01T00:00:00Z') - app.clock.now().getTime());\n    assert.equal(numberOf('c@example.com'), 'INV-2027-0001');\n    assert.equal(numberOf('d@example.com'), 'INV-2027-0002');\n  });\n\n  it('keeps invoice ids sequential across years', () => {\n    const app = createTestApp();\n    const first = placeOrder(app, { email: 'a@example.com' }).order.invoiceId;\n    app.clock.advance(Date.parse('2027-03-01T00:00:00Z') - app.clock.now().getTime());\n    const second = placeOrder(app, { email: 'b@example.com' }).order.invoiceId;\n    assert.deepEqual([first, second], ['inv_0001', 'inv_0002']);\n  });\n});\n",
+    "src/billing/invoice-list.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, placeOrder } from '../lib/testing.ts';\nimport type { Invoice } from '../types.ts';\nimport { markPaid } from './service.ts';\n\nfunction customerWithInvoices(count: number) {\n  const app = createTestApp();\n  const first = placeOrder(app);\n  for (let i = 1; i < count; i++) {\n    app.clock.advance(60_000);\n    const product = addProduct(app.ctx);\n    app.call('POST', '/cart/items', { token: first.token, body: { productId: product.id, quantity: 1 } });\n    app.call('POST', '/checkout', { token: first.token, body: { addressIndex: 0 } });\n  }\n  return { app, token: first.token };\n}\n\ndescribe('invoice list', () => {\n  it('returns the caller\\'s invoices as an array, newest first', () => {\n    const { app, token } = customerWithInvoices(3);\n    placeOrder(app, { email: 'someone-else@example.com' });\n    const res = app.call('GET', '/invoices', { token });\n    assert.equal(res.status, 200);\n    assert.ok(Array.isArray(res.body));\n    const invoices = res.body as Invoice[];\n    assert.equal(invoices.length, 3);\n    assert.deepEqual(invoices.map((i) => i.id), ['inv_0003', 'inv_0002', 'inv_0001']);\n  });\n\n  it('filters by status and rejects unknown ones', () => {\n    const { app, token } = customerWithInvoices(3);\n    markPaid(app.ctx, 'inv_0002');\n    const paid = app.call('GET', '/invoices', { token, query: { status: 'paid' } }).body as Invoice[];\n    assert.deepEqual(paid.map((i) => i.id), ['inv_0002']);\n    assert.equal((app.call('GET', '/invoices', { token, query: { status: 'open' } }).body as Invoice[]).length, 2);\n    assert.equal(app.call('GET', '/invoices', { token, query: { status: 'overdue' } }).status, 400);\n  });\n\n  it('pages with limit and offset', () => {\n    const { app, token } = customerWithInvoices(3);\n    const page = app.call('GET', '/invoices', { token, query: { limit: '2', offset: '1' } }).body as Invoice[];\n    assert.deepEqual(page.map((i) => i.id), ['inv_0002', 'inv_0001']);\n  });\n\n  it('needs a signed-in user', () => {\n    assert.equal(createTestApp().call('GET', '/invoices').status, 401);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/handlers.ts",
+    "src/billing/invoice-list.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "members": [
+    "t001",
+    "t016",
+    "t022"
+  ],
+  "couplings": [
+    {
+      "with": "L10",
+      "type": "textual",
+      "members": [
+        "t001",
+        "t040"
+      ],
+      "note": "t001 x t040: Both add a coupon check immediately after the unknown-coupon check in issueInvoice (billing/service.ts)."
+    },
+    {
+      "with": "L02",
+      "type": "semantic",
+      "members": [
+        "t022",
+        "t002"
+      ],
+      "note": "t022 x t002: invoice-list returns paginate()'s result as the response body (an array); paginate-total changes paginate() to return a {items, total} page. Merges cleanly, the list endpoint then returns an object instead of an array."
+    }
+  ],
+  "theme": "invoicing and coupons"
+}

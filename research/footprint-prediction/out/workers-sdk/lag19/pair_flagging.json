@@ -1,0 +1,5275 @@
+{
+ "counts": {
+  "pairs_in_file": 24244,
+  "pairs_in_scope": 10302,
+  "clean": 10176,
+  "conflict": 126,
+  "conflict_after_drivers": 117,
+  "entangled": 1725,
+  "error": 0,
+  "out_of_scope": 12217,
+  "missing_prediction": 0
+ },
+ "base_rate": {
+  "raw": 0.0122306348281887,
+  "after_drivers": 0.011357018054746652
+ },
+ "restricted_to_eval_slice": true,
+ "eval_start": 643,
+ "views": {
+  "all": {
+   "oracle_module": {
+    "raw": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.7366352201257862,
+     "flag_precision": 0.016531094200997114,
+     "lift": 1.3516137496720022,
+     "flagged_share": 0.739856338575034,
+     "tp": 126,
+     "fn": 0,
+     "fp": 7496,
+     "tn": 2680
+    },
+    "after_drivers": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.7368679430535101,
+     "flag_precision": 0.015350301758068749,
+     "lift": 1.351613749672002,
+     "flagged_share": 0.739856338575034,
+     "tp": 117,
+     "fn": 0,
+     "fp": 7505,
+     "tn": 2680
+    }
+   },
+   "oracle_file": {
+    "raw": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.044221698113207544,
+     "flag_precision": 0.21875,
+     "lift": 17.885416666666668,
+     "flagged_share": 0.05591147350029121,
+     "tp": 126,
+     "fn": 0,
+     "fp": 450,
+     "tn": 9726
+    },
+    "after_drivers": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.04506627393225331,
+     "flag_precision": 0.203125,
+     "lift": 17.885416666666664,
+     "flagged_share": 0.05591147350029121,
+     "tp": 117,
+     "fn": 0,
+     "fp": 459,
+     "tn": 9726
+    }
+   },
+   "methods": {
+    "cochange": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.5714285714285714,
+        "clean_flag_rate": 0.5954205974842768,
+        "flag_precision": 0.01174359810797586,
+        "lift": 0.9601789500664073,
+        "flagged_share": 0.595127159774801,
+        "tp": 72,
+        "fn": 54,
+        "fp": 6059,
+        "tn": 4117
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5811965811965812,
+        "clean_flag_rate": 0.5952871870397644,
+        "flag_precision": 0.01109117599086609,
+        "lift": 0.9765922654521578,
+        "flagged_share": 0.595127159774801,
+        "tp": 68,
+        "fn": 49,
+        "fp": 6063,
+        "tn": 4122
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.5555555555555556,
+        "clean_flag_rate": 0.5685927672955975,
+        "flag_precision": 0.011953551912568305,
+        "lift": 0.9773451730418944,
+        "flagged_share": 0.5684333139196273,
+        "tp": 70,
+        "fn": 56,
+        "fp": 5786,
+        "tn": 4390
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5726495726495726,
+        "clean_flag_rate": 0.5683848797250859,
+        "flag_precision": 0.011441256830601093,
+        "lift": 1.0074173322124143,
+        "flagged_share": 0.5684333139196273,
+        "tp": 67,
+        "fn": 50,
+        "fp": 5789,
+        "tn": 4396
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.5476190476190477,
+        "clean_flag_rate": 0.5565055031446541,
+        "flag_precision": 0.01203768318213538,
+        "lift": 0.9842239058917357,
+        "flagged_share": 0.5563968161522035,
+        "tp": 69,
+        "fn": 57,
+        "fp": 5663,
+        "tn": 4513
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5726495726495726,
+        "clean_flag_rate": 0.5562101129111439,
+        "flag_precision": 0.011688764829030007,
+        "lift": 1.0292107287920267,
+        "flagged_share": 0.5563968161522035,
+        "tp": 67,
+        "fn": 50,
+        "fp": 5665,
+        "tn": 4520
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.5317460317460317,
+        "clean_flag_rate": 0.5133647798742138,
+        "flag_precision": 0.012663012663012663,
+        "lift": 1.0353520353520353,
+        "flagged_share": 0.513589594253543,
+        "tp": 67,
+        "fn": 59,
+        "fp": 5224,
+        "tn": 4952
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5641025641025641,
+        "clean_flag_rate": 0.5130093274423171,
+        "flag_precision": 0.012474012474012475,
+        "lift": 1.098352790660483,
+        "flagged_share": 0.513589594253543,
+        "tp": 66,
+        "fn": 51,
+        "fp": 5225,
+        "tn": 4960
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.5317460317460317,
+        "clean_flag_rate": 0.4898781446540881,
+        "flag_precision": 0.013262074425969913,
+        "lift": 1.0843324661614449,
+        "flagged_share": 0.49039021549213746,
+        "tp": 67,
+        "fn": 59,
+        "fp": 4985,
+        "tn": 5191
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5641025641025641,
+        "clean_flag_rate": 0.48954344624447715,
+        "flag_precision": 0.013064133016627079,
+        "lift": 1.150313661002497,
+        "flagged_share": 0.49039021549213746,
+        "tp": 66,
+        "fn": 51,
+        "fp": 4986,
+        "tn": 5199
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.5158730158730159,
+        "clean_flag_rate": 0.48201650943396224,
+        "flag_precision": 0.013078470824949699,
+        "lift": 1.0693206860208873,
+        "flagged_share": 0.48243059600077653,
+        "tp": 65,
+        "fn": 61,
+        "fp": 4905,
+        "tn": 5271
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5470085470085471,
+        "clean_flag_rate": 0.4816887579774178,
+        "flag_precision": 0.012877263581488933,
+        "lift": 1.1338595676623844,
+        "flagged_share": 0.48243059600077653,
+        "tp": 64,
+        "fn": 53,
+        "fp": 4906,
+        "tn": 5279
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.5158730158730159,
+        "clean_flag_rate": 0.4742531446540881,
+        "flag_precision": 0.01328971580453895,
+        "lift": 1.0865924779234941,
+        "flagged_share": 0.474762182100563,
+        "tp": 65,
+        "fn": 61,
+        "fp": 4826,
+        "tn": 5350
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5470085470085471,
+        "clean_flag_rate": 0.4739322533136966,
+        "flag_precision": 0.013085258638315273,
+        "lift": 1.152173799076273,
+        "flagged_share": 0.474762182100563,
+        "tp": 64,
+        "fn": 53,
+        "fp": 4827,
+        "tn": 5358
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.48412698412698413,
+        "clean_flag_rate": 0.46658805031446543,
+        "flag_precision": 0.012684549802453732,
+        "lift": 1.03711295289586,
+        "flagged_share": 0.4668025626092021,
+        "tp": 61,
+        "fn": 65,
+        "fp": 4748,
+        "tn": 5428
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5128205128205128,
+        "clean_flag_rate": 0.4662739322533137,
+        "flag_precision": 0.012476606363069246,
+        "lift": 1.0985811859174306,
+        "flagged_share": 0.4668025626092021,
+        "tp": 60,
+        "fn": 57,
+        "fp": 4749,
+        "tn": 5436
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.40476190476190477,
+        "clean_flag_rate": 0.4278694968553459,
+        "flag_precision": 0.011577752553916005,
+        "lift": 0.9466191016701802,
+        "flagged_share": 0.4275868763346923,
+        "tp": 51,
+        "fn": 75,
+        "fp": 4354,
+        "tn": 5822
+       },
+       "after_drivers": {
+        "conflict_recall": 0.42735042735042733,
+        "clean_flag_rate": 0.4275895925380461,
+        "flag_precision": 0.011350737797956867,
+        "lift": 0.9994470153380481,
+        "flagged_share": 0.4275868763346923,
+        "tp": 50,
+        "fn": 67,
+        "fp": 4355,
+        "tn": 5830
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.3968253968253968,
+        "clean_flag_rate": 0.39887971698113206,
+        "flag_precision": 0.012168410805548795,
+        "lift": 0.9949124453870135,
+        "flagged_share": 0.3988545913414871,
+        "tp": 50,
+        "fn": 76,
+        "fp": 4059,
+        "tn": 6117
+       },
+       "after_drivers": {
+        "conflict_recall": 0.4188034188034188,
+        "clean_flag_rate": 0.39862542955326463,
+        "flag_precision": 0.01192504258943782,
+        "lift": 1.0500152885161402,
+        "flagged_share": 0.3988545913414871,
+        "tp": 49,
+        "fn": 68,
+        "fp": 4060,
+        "tn": 6125
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.36507936507936506,
+        "clean_flag_rate": 0.14406446540880502,
+        "flag_precision": 0.03042328042328042,
+        "lift": 2.4874653565129754,
+        "flagged_share": 0.14676761793826443,
+        "tp": 46,
+        "fn": 80,
+        "fp": 1466,
+        "tn": 8710
+       },
+       "after_drivers": {
+        "conflict_recall": 0.38461538461538464,
+        "clean_flag_rate": 0.14403534609720176,
+        "flag_precision": 0.02976190476190476,
+        "lift": 2.62057387057387,
+        "flagged_share": 0.14676761793826443,
+        "tp": 45,
+        "fn": 72,
+        "fp": 1467,
+        "tn": 8718
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.5634920634920635,
+        "clean_flag_rate": 0.5905070754716981,
+        "flag_precision": 0.011677631578947368,
+        "lift": 0.9547854010025063,
+        "flagged_share": 0.5901766647252961,
+        "tp": 71,
+        "fn": 55,
+        "fp": 6009,
+        "tn": 4167
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5897435897435898,
+        "clean_flag_rate": 0.5901816396661758,
+        "flag_precision": 0.011348684210526316,
+        "lift": 0.9992661943319838,
+        "flagged_share": 0.5901766647252961,
+        "tp": 69,
+        "fn": 48,
+        "fp": 6011,
+        "tn": 4174
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.5793650793650794,
+        "clean_flag_rate": 0.6323702830188679,
+        "flag_precision": 0.011216963736939152,
+        "lift": 0.9171203207773584,
+        "flagged_share": 0.6317219957289847,
+        "tp": 73,
+        "fn": 53,
+        "fp": 6435,
+        "tn": 3741
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5982905982905983,
+        "clean_flag_rate": 0.6321060382916053,
+        "flag_precision": 0.0107559926244622,
+        "lift": 0.9470789403180305,
+        "flagged_share": 0.6317219957289847,
+        "tp": 70,
+        "fn": 47,
+        "fp": 6438,
+        "tn": 3747
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.5873015873015873,
+        "clean_flag_rate": 0.6525157232704403,
+        "flag_precision": 0.011021745606196008,
+        "lift": 0.9011589145637403,
+        "flagged_share": 0.6517181129877694,
+        "tp": 74,
+        "fn": 52,
+        "fp": 6640,
+        "tn": 3536
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5982905982905983,
+        "clean_flag_rate": 0.6523318605792833,
+        "flag_precision": 0.010425975573428656,
+        "lift": 0.9180205158757436,
+        "flagged_share": 0.6517181129877694,
+        "tp": 70,
+        "fn": 47,
+        "fp": 6644,
+        "tn": 3541
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3557688613749975,
+      "raw": {
+       "conflict_recall": 0.5317460317460317,
+       "clean_flag_rate": 0.4858490566037736,
+       "flag_precision": 0.013370584713630014,
+       "lift": 1.093204473966797,
+       "flagged_share": 0.486410405746457,
+       "tp": 67,
+       "fn": 59,
+       "fp": 4944,
+       "tn": 5232
+      },
+      "after_drivers": {
+       "conflict_recall": 0.5641025641025641,
+       "clean_flag_rate": 0.4855179185076092,
+       "flag_precision": 0.013171023747754938,
+       "lift": 1.159725526917704,
+       "flagged_share": 0.486410405746457,
+       "tp": 66,
+       "fn": 51,
+       "fp": 4945,
+       "tn": 5240
+      }
+     }
+    },
+    "combined": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9883058176100629,
+        "flag_precision": 0.012082514734774067,
+        "lift": 0.9878894190289083,
+        "flagged_share": 0.9881576392933411,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10057,
+        "tn": 119
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9883161512027492,
+        "flag_precision": 0.011198428290766208,
+        "lift": 0.9860359679613117,
+        "flagged_share": 0.9881576392933411,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10066,
+        "tn": 119
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9830974842767296,
+        "flag_precision": 0.012145748987854251,
+        "lift": 0.9930595720069405,
+        "flagged_share": 0.9830130071830713,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10004,
+        "tn": 172
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9831124202258222,
+        "flag_precision": 0.01125703564727955,
+        "lift": 0.991196420839948,
+        "flagged_share": 0.9830130071830713,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10013,
+        "tn": 172
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9824095911949685,
+        "flag_precision": 0.012154150197628458,
+        "lift": 0.9937464709203839,
+        "flagged_share": 0.9823335274703942,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9997,
+        "tn": 179
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9824251350024545,
+        "flag_precision": 0.011264822134387351,
+        "lift": 0.9918820310124656,
+        "flagged_share": 0.9823335274703942,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10006,
+        "tn": 179
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9681603773584906,
+        "flag_precision": 0.012330827067669173,
+        "lift": 1.0081919083422843,
+        "flagged_share": 0.9682585905649388,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9852,
+        "tn": 324
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9681885125184094,
+        "flag_precision": 0.011428571428571429,
+        "lift": 1.0063003663003662,
+        "flagged_share": 0.9682585905649388,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9861,
+        "tn": 324
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9547955974842768,
+        "flag_precision": 0.012501270454314463,
+        "lift": 1.022127684288473,
+        "flagged_share": 0.9550572704329257,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9716,
+        "tn": 460
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9548355424644085,
+        "flag_precision": 0.011586543347901209,
+        "lift": 1.0202099963254552,
+        "flagged_share": 0.9550572704329257,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9725,
+        "tn": 460
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.9444444444444444,
+        "clean_flag_rate": 0.9206957547169812,
+        "flag_precision": 0.012542158516020236,
+        "lift": 1.0254707700955594,
+        "flagged_share": 0.9209862162686857,
+        "tp": 119,
+        "fn": 7,
+        "fp": 9369,
+        "tn": 807
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9487179487179487,
+        "clean_flag_rate": 0.9206676485027,
+        "flag_precision": 0.011698988195615514,
+        "lift": 1.0301109093267609,
+        "flagged_share": 0.9209862162686857,
+        "tp": 111,
+        "fn": 6,
+        "fp": 9377,
+        "tn": 808
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.9206349206349206,
+        "clean_flag_rate": 0.8752948113207547,
+        "flag_precision": 0.0128560345782999,
+        "lift": 1.051133874806711,
+        "flagged_share": 0.8758493496408465,
+        "tp": 116,
+        "fn": 10,
+        "fp": 8907,
+        "tn": 1269
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9316239316239316,
+        "clean_flag_rate": 0.8752086401570938,
+        "flag_precision": 0.012080239388230078,
+        "lift": 1.0636805656200534,
+        "flagged_share": 0.8758493496408465,
+        "tp": 109,
+        "fn": 8,
+        "fp": 8914,
+        "tn": 1271
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.8809523809523809,
+        "clean_flag_rate": 0.8235062893081762,
+        "flag_precision": 0.01307266517489106,
+        "lift": 1.068846005013712,
+        "flagged_share": 0.8242088914773831,
+        "tp": 111,
+        "fn": 15,
+        "fp": 8380,
+        "tn": 1796
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8888888888888888,
+        "clean_flag_rate": 0.8234658811978399,
+        "flag_precision": 0.012248262866564597,
+        "lift": 1.0784752483021238,
+        "flagged_share": 0.8242088914773831,
+        "tp": 104,
+        "fn": 13,
+        "fp": 8387,
+        "tn": 1798
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.8015873015873016,
+        "clean_flag_rate": 0.7436124213836478,
+        "flag_precision": 0.013171622326551904,
+        "lift": 1.0769369302233154,
+        "flagged_share": 0.7443214909726267,
+        "tp": 101,
+        "fn": 25,
+        "fp": 7567,
+        "tn": 2609
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8205128205128205,
+        "clean_flag_rate": 0.7434462444771723,
+        "flag_precision": 0.012519561815336464,
+        "lift": 1.1023634685606516,
+        "flagged_share": 0.7443214909726267,
+        "tp": 96,
+        "fn": 21,
+        "fp": 7572,
+        "tn": 2613
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.6428571428571429,
+        "clean_flag_rate": 0.6171383647798742,
+        "flag_precision": 0.012733846879421475,
+        "lift": 1.0411435758079368,
+        "flagged_share": 0.6174529217627646,
+        "tp": 81,
+        "fn": 45,
+        "fp": 6280,
+        "tn": 3896
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6495726495726496,
+        "clean_flag_rate": 0.6170839469808542,
+        "flag_precision": 0.011947806948592989,
+        "lift": 1.0520197195248289,
+        "flagged_share": 0.6174529217627646,
+        "tp": 76,
+        "fn": 41,
+        "fp": 6285,
+        "tn": 3900
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.6587301587301587,
+        "clean_flag_rate": 0.5460888364779874,
+        "flag_precision": 0.014716312056737589,
+        "lift": 1.2032337048294497,
+        "flagged_share": 0.5474665113570181,
+        "tp": 83,
+        "fn": 43,
+        "fp": 5557,
+        "tn": 4619
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6495726495726496,
+        "clean_flag_rate": 0.5462935689739813,
+        "flag_precision": 0.01347517730496454,
+        "lift": 1.1865066375704674,
+        "flagged_share": 0.5474665113570181,
+        "tp": 76,
+        "fn": 41,
+        "fp": 5564,
+        "tn": 4621
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.9682539682539683,
+        "clean_flag_rate": 0.9681603773584906,
+        "flag_precision": 0.012231802686986164,
+        "lift": 1.0000954863597735,
+        "flagged_share": 0.9681615220345564,
+        "tp": 122,
+        "fn": 4,
+        "fp": 9852,
+        "tn": 324
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9658119658119658,
+        "clean_flag_rate": 0.9681885125184094,
+        "flag_precision": 0.01132945658712653,
+        "lift": 0.9975731774408334,
+        "flagged_share": 0.9681615220345564,
+        "tp": 113,
+        "fn": 4,
+        "fp": 9861,
+        "tn": 324
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.987814465408805,
+        "flag_precision": 0.012088452088452089,
+        "lift": 0.9883748683748684,
+        "flagged_share": 0.9876722966414289,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10052,
+        "tn": 124
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.987825233186058,
+        "flag_precision": 0.011203931203931204,
+        "lift": 0.9865205065205065,
+        "flagged_share": 0.9876722966414289,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10061,
+        "tn": 124
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9883058176100629,
+        "flag_precision": 0.012082514734774067,
+        "lift": 0.9878894190289083,
+        "flagged_share": 0.9881576392933411,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10057,
+        "tn": 119
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9883161512027492,
+        "flag_precision": 0.011198428290766208,
+        "lift": 0.9860359679613117,
+        "flagged_share": 0.9881576392933411,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10066,
+        "tn": 119
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.41181014079882394,
+      "raw": {
+       "conflict_recall": 0.9444444444444444,
+       "clean_flag_rate": 0.9204009433962265,
+       "flag_precision": 0.012546125461254613,
+       "lift": 1.0257951150940081,
+       "flagged_share": 0.9206950106775383,
+       "tp": 119,
+       "fn": 7,
+       "fp": 9366,
+       "tn": 810
+      },
+      "after_drivers": {
+       "conflict_recall": 0.9487179487179487,
+       "clean_flag_rate": 0.9203730976926853,
+       "flag_precision": 0.011702688455455983,
+       "lift": 1.030436721949637,
+       "flagged_share": 0.9206950106775383,
+       "tp": 111,
+       "fn": 6,
+       "fp": 9374,
+       "tn": 811
+      }
+     }
+    },
+    "knn": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9883058176100629,
+        "flag_precision": 0.012082514734774067,
+        "lift": 0.9878894190289083,
+        "flagged_share": 0.9881576392933411,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10057,
+        "tn": 119
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9883161512027492,
+        "flag_precision": 0.011198428290766208,
+        "lift": 0.9860359679613117,
+        "flagged_share": 0.9881576392933411,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10066,
+        "tn": 119
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9860455974842768,
+        "flag_precision": 0.012109874963079649,
+        "lift": 0.9901264434098932,
+        "flagged_share": 0.9859250630945448,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10034,
+        "tn": 142
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9860579283259696,
+        "flag_precision": 0.011223786551146992,
+        "lift": 0.9882687952984299,
+        "flagged_share": 0.9859250630945448,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10043,
+        "tn": 142
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9794614779874213,
+        "flag_precision": 0.012190287413280475,
+        "lift": 0.9967011185048846,
+        "flagged_share": 0.9794214715589206,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9967,
+        "tn": 209
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9794796269023073,
+        "flag_precision": 0.011298315163528246,
+        "lift": 0.9948311351681025,
+        "flagged_share": 0.9794214715589206,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9976,
+        "tn": 209
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9790683962264151,
+        "flag_precision": 0.012195121951219513,
+        "lift": 0.9970963995354241,
+        "flagged_share": 0.9790331974373908,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9963,
+        "tn": 213
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9790868924889543,
+        "flag_precision": 0.011302795954788817,
+        "lift": 0.9952256745831999,
+        "flagged_share": 0.9790331974373908,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9972,
+        "tn": 213
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9522405660377359,
+        "flag_precision": 0.012534393151941303,
+        "lift": 1.0248358591372961,
+        "flagged_share": 0.9525334886429819,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9690,
+        "tn": 486
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9522827687776141,
+        "flag_precision": 0.011617242433506572,
+        "lift": 1.0229130901708094,
+        "flagged_share": 0.9525334886429819,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9699,
+        "tn": 486
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.9682539682539683,
+        "clean_flag_rate": 0.948997641509434,
+        "flag_precision": 0.012475713263114838,
+        "lift": 1.0200380796556276,
+        "flagged_share": 0.9492331586099787,
+        "tp": 122,
+        "fn": 4,
+        "fp": 9657,
+        "tn": 519
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9658119658119658,
+        "clean_flag_rate": 0.9490427098674521,
+        "flag_precision": 0.01155537376009817,
+        "lift": 1.0174654741583875,
+        "flagged_share": 0.9492331586099787,
+        "tp": 113,
+        "fn": 4,
+        "fp": 9666,
+        "tn": 519
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.9285714285714286,
+        "clean_flag_rate": 0.924626572327044,
+        "flag_precision": 0.012282175099727063,
+        "lift": 1.0042140307729224,
+        "flagged_share": 0.9246748204232188,
+        "tp": 117,
+        "fn": 9,
+        "fp": 9409,
+        "tn": 767
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9230769230769231,
+        "clean_flag_rate": 0.924693176239568,
+        "flag_precision": 0.011337392399748058,
+        "lift": 0.9982719359162776,
+        "flagged_share": 0.9246748204232188,
+        "tp": 108,
+        "fn": 9,
+        "fp": 9418,
+        "tn": 767
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.9126984126984127,
+        "clean_flag_rate": 0.8972091194968553,
+        "flag_precision": 0.012439156300703082,
+        "lift": 1.017049112776533,
+        "flagged_share": 0.8973985633857503,
+        "tp": 115,
+        "fn": 11,
+        "fp": 9130,
+        "tn": 1046
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9145299145299145,
+        "clean_flag_rate": 0.8972017673048601,
+        "flag_precision": 0.01157382368848026,
+        "lift": 1.019090014006185,
+        "flagged_share": 0.8973985633857503,
+        "tp": 107,
+        "fn": 10,
+        "fp": 9138,
+        "tn": 1047
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.8968253968253969,
+        "clean_flag_rate": 0.8641902515723271,
+        "flag_precision": 0.01268665094869204,
+        "lift": 1.0372847466144874,
+        "flagged_share": 0.8645894001164822,
+        "tp": 113,
+        "fn": 13,
+        "fp": 8794,
+        "tn": 1382
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8974358974358975,
+        "clean_flag_rate": 0.8642120765832106,
+        "flag_precision": 0.011788480970023578,
+        "lift": 1.037990862847717,
+        "flagged_share": 0.8645894001164822,
+        "tp": 105,
+        "fn": 12,
+        "fp": 8802,
+        "tn": 1383
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.8253968253968254,
+        "clean_flag_rate": 0.7433176100628931,
+        "flag_precision": 0.013562858633281168,
+        "lift": 1.1089251558735127,
+        "flagged_share": 0.7443214909726267,
+        "tp": 104,
+        "fn": 22,
+        "fp": 7564,
+        "tn": 2612
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8376068376068376,
+        "clean_flag_rate": 0.7432498772704959,
+        "flag_precision": 0.01278038601982264,
+        "lift": 1.1253293741556651,
+        "flagged_share": 0.7443214909726267,
+        "tp": 98,
+        "fn": 19,
+        "fp": 7570,
+        "tn": 2615
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.8492063492063492,
+        "clean_flag_rate": 0.798250786163522,
+        "flag_precision": 0.013001215066828676,
+        "lift": 1.0630041080830877,
+        "flagged_share": 0.7988740050475636,
+        "tp": 107,
+        "fn": 19,
+        "fp": 8123,
+        "tn": 2053
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8461538461538461,
+        "clean_flag_rate": 0.7983308787432499,
+        "flag_precision": 0.012029161603888214,
+        "lift": 1.0591831012244135,
+        "flagged_share": 0.7988740050475636,
+        "tp": 99,
+        "fn": 18,
+        "fp": 8131,
+        "tn": 2054
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.9603174603174603,
+        "clean_flag_rate": 0.9761202830188679,
+        "flag_precision": 0.012035010940919038,
+        "lift": 0.9840054183599042,
+        "flagged_share": 0.9759270044651523,
+        "tp": 121,
+        "fn": 5,
+        "fp": 9933,
+        "tn": 243
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.976141384388807,
+        "flag_precision": 0.011139844837875473,
+        "lift": 0.9808776198272916,
+        "flagged_share": 0.9759270044651523,
+        "tp": 112,
+        "fn": 5,
+        "fp": 9942,
+        "tn": 243
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.985750786163522,
+        "flag_precision": 0.012113452826472327,
+        "lift": 0.9904189763358565,
+        "flagged_share": 0.9856338575033974,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10031,
+        "tn": 145
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9857633775159549,
+        "flag_precision": 0.011227102619657278,
+        "lift": 0.9885607793821305,
+        "flagged_share": 0.9856338575033974,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10040,
+        "tn": 145
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9883058176100629,
+        "flag_precision": 0.012082514734774067,
+        "lift": 0.9878894190289083,
+        "flagged_share": 0.9881576392933411,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10057,
+        "tn": 119
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9883161512027492,
+        "flag_precision": 0.011198428290766208,
+        "lift": 0.9860359679613117,
+        "flagged_share": 0.9881576392933411,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10066,
+        "tn": 119
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3726917257102957,
+      "raw": {
+       "conflict_recall": 0.9682539682539683,
+       "clean_flag_rate": 0.9515526729559748,
+       "flag_precision": 0.012442631310555839,
+       "lift": 1.017333236201161,
+       "flagged_share": 0.9517569403999223,
+       "tp": 122,
+       "fn": 4,
+       "fp": 9683,
+       "tn": 493
+      },
+      "after_drivers": {
+       "conflict_recall": 0.9658119658119658,
+       "clean_flag_rate": 0.9515954835542464,
+       "flag_precision": 0.01152473227944926,
+       "lift": 1.0147674525033015,
+       "flagged_share": 0.9517569403999223,
+       "tp": 113,
+       "fn": 4,
+       "fp": 9692,
+       "tn": 493
+      }
+     }
+    },
+    "lexical": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9523809523809523,
+        "clean_flag_rate": 0.9262971698113207,
+        "flag_precision": 0.01257071024512885,
+        "lift": 1.0278052138517255,
+        "flagged_share": 0.9266161910308678,
+        "tp": 120,
+        "fn": 6,
+        "fp": 9426,
+        "tn": 750
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.9262641138929799,
+        "flag_precision": 0.011732662895453593,
+        "lift": 1.0330760098201959,
+        "flagged_share": 0.9266161910308678,
+        "tp": 112,
+        "fn": 5,
+        "fp": 9434,
+        "tn": 751
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.8571428571428571,
+        "clean_flag_rate": 0.8374606918238994,
+        "flag_precision": 0.012514484356894553,
+        "lift": 1.0232080781327595,
+        "flagged_share": 0.8377014172005436,
+        "tp": 108,
+        "fn": 18,
+        "fp": 8522,
+        "tn": 1654
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8547008547008547,
+        "clean_flag_rate": 0.8375061364752087,
+        "flag_precision": 0.011587485515643106,
+        "lift": 1.0202929554030364,
+        "flagged_share": 0.8377014172005436,
+        "tp": 100,
+        "fn": 17,
+        "fp": 8530,
+        "tn": 1655
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.7857142857142857,
+        "clean_flag_rate": 0.7404677672955975,
+        "flag_precision": 0.012968299711815562,
+        "lift": 1.0603128859613011,
+        "flagged_share": 0.7410211609396233,
+        "tp": 99,
+        "fn": 27,
+        "fp": 7535,
+        "tn": 2641
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7777777777777778,
+        "clean_flag_rate": 0.7405989199803633,
+        "flag_precision": 0.011920356300759759,
+        "lift": 1.0496026547899746,
+        "flagged_share": 0.7410211609396233,
+        "tp": 91,
+        "fn": 26,
+        "fp": 7543,
+        "tn": 2642
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.6746031746031746,
+        "clean_flag_rate": 0.5479559748427673,
+        "flag_precision": 0.015015015015015015,
+        "lift": 1.2276562276562277,
+        "flagged_share": 0.5495049504950495,
+        "tp": 85,
+        "fn": 41,
+        "fp": 5576,
+        "tn": 4600
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6837606837606838,
+        "clean_flag_rate": 0.5479626902307315,
+        "flag_precision": 0.01413177883766119,
+        "lift": 1.2443212443212441,
+        "flagged_share": 0.5495049504950495,
+        "tp": 80,
+        "fn": 37,
+        "fp": 5581,
+        "tn": 4604
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.5079365079365079,
+        "clean_flag_rate": 0.3619300314465409,
+        "flag_precision": 0.017080330931411796,
+        "lift": 1.3965203909159074,
+        "flagged_share": 0.36371578334304017,
+        "tp": 64,
+        "fn": 62,
+        "fp": 3683,
+        "tn": 6493
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5213675213675214,
+        "clean_flag_rate": 0.3619047619047619,
+        "flag_precision": 0.016279690419001867,
+        "lift": 1.4334476127910873,
+        "flagged_share": 0.36371578334304017,
+        "tp": 61,
+        "fn": 56,
+        "fp": 3686,
+        "tn": 6499
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.3968253968253968,
+        "clean_flag_rate": 0.2529481132075472,
+        "flag_precision": 0.019054878048780487,
+        "lift": 1.5579631242740999,
+        "flagged_share": 0.25470782372354883,
+        "tp": 50,
+        "fn": 76,
+        "fp": 2574,
+        "tn": 7602
+       },
+       "after_drivers": {
+        "conflict_recall": 0.4017094017094017,
+        "clean_flag_rate": 0.25301914580265095,
+        "flag_precision": 0.017911585365853657,
+        "lift": 1.5771380550343963,
+        "flagged_share": 0.25470782372354883,
+        "tp": 47,
+        "fn": 70,
+        "fp": 2577,
+        "tn": 7608
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.23809523809523808,
+        "clean_flag_rate": 0.1296187106918239,
+        "flag_precision": 0.02223869532987398,
+        "lift": 1.8182780895901727,
+        "flagged_share": 0.13094544748592507,
+        "tp": 30,
+        "fn": 96,
+        "fp": 1319,
+        "tn": 8857
+       },
+       "after_drivers": {
+        "conflict_recall": 0.23931623931623933,
+        "clean_flag_rate": 0.12970054000981837,
+        "flag_precision": 0.020756115641215715,
+        "lift": 1.8276025926137118,
+        "flagged_share": 0.13094544748592507,
+        "tp": 28,
+        "fn": 89,
+        "fp": 1321,
+        "tn": 8864
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.12698412698412698,
+        "clean_flag_rate": 0.03341194968553459,
+        "flag_precision": 0.0449438202247191,
+        "lift": 3.674692348849652,
+        "flagged_share": 0.034556396816152204,
+        "tp": 16,
+        "fn": 110,
+        "fp": 340,
+        "tn": 9836
+       },
+       "after_drivers": {
+        "conflict_recall": 0.1282051282051282,
+        "clean_flag_rate": 0.033480608738340696,
+        "flag_precision": 0.042134831460674156,
+        "lift": 3.7100259291270525,
+        "flagged_share": 0.034556396816152204,
+        "tp": 15,
+        "fn": 102,
+        "fp": 341,
+        "tn": 9844
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.06349206349206349,
+        "clean_flag_rate": 0.01346305031446541,
+        "flag_precision": 0.05517241379310345,
+        "lift": 4.511001642036125,
+        "flagged_share": 0.014074936905455252,
+        "tp": 8,
+        "fn": 118,
+        "fp": 137,
+        "tn": 10039
+       },
+       "after_drivers": {
+        "conflict_recall": 0.05982905982905983,
+        "clean_flag_rate": 0.013549337260677467,
+        "flag_precision": 0.04827586206896552,
+        "lift": 4.250751547303271,
+        "flagged_share": 0.014074936905455252,
+        "tp": 7,
+        "fn": 110,
+        "fp": 138,
+        "tn": 10047
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 126,
+        "fp": 0,
+        "tn": 10176
+       },
+       "after_drivers": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 117,
+        "fp": 0,
+        "tn": 10185
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.5714285714285714,
+        "clean_flag_rate": 0.43730345911949686,
+        "flag_precision": 0.01592215833701902,
+        "lift": 1.301825993555317,
+        "flagged_share": 0.4389438943894389,
+        "tp": 72,
+        "fn": 54,
+        "fp": 4450,
+        "tn": 5726
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5811965811965812,
+        "clean_flag_rate": 0.43730976926853216,
+        "flag_precision": 0.015037593984962405,
+        "lift": 1.324079429342587,
+        "flagged_share": 0.4389438943894389,
+        "tp": 68,
+        "fn": 49,
+        "fp": 4454,
+        "tn": 5731
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.8333333333333334,
+        "clean_flag_rate": 0.7426297169811321,
+        "flag_precision": 0.01370399373531715,
+        "lift": 1.1204646306447403,
+        "flagged_share": 0.7437390797903319,
+        "tp": 105,
+        "fn": 21,
+        "fp": 7557,
+        "tn": 2619
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8376068376068376,
+        "clean_flag_rate": 0.7426607756504664,
+        "flag_precision": 0.012790394152962672,
+        "lift": 1.1262106031095849,
+        "flagged_share": 0.7437390797903319,
+        "tp": 98,
+        "fn": 19,
+        "fp": 7564,
+        "tn": 2621
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9285714285714286,
+        "clean_flag_rate": 0.8886595911949685,
+        "flag_precision": 0.01277292576419214,
+        "lift": 1.0443387398627573,
+        "flagged_share": 0.8891477383032421,
+        "tp": 117,
+        "fn": 9,
+        "fp": 9043,
+        "tn": 1133
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9230769230769231,
+        "clean_flag_rate": 0.8887579774177712,
+        "flag_precision": 0.011790393013100437,
+        "lift": 1.0381592206919719,
+        "flagged_share": 0.8891477383032421,
+        "tp": 108,
+        "fn": 9,
+        "fp": 9052,
+        "tn": 1133
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9603174603174603,
+        "clean_flag_rate": 0.9537146226415094,
+        "flag_precision": 0.012314268267860777,
+        "lift": 1.0068380293293788,
+        "flagged_share": 0.9537953795379538,
+        "tp": 121,
+        "fn": 5,
+        "fp": 9705,
+        "tn": 471
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.9537555228276878,
+        "flag_precision": 0.011398330958681051,
+        "lift": 1.0036376541566854,
+        "flagged_share": 0.9537953795379538,
+        "tp": 112,
+        "fn": 5,
+        "fp": 9714,
+        "tn": 471
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.13346537035029563,
+      "raw": {
+       "conflict_recall": 0.7936507936507936,
+       "clean_flag_rate": 0.7556996855345912,
+       "flag_precision": 0.012836970474967908,
+       "lift": 1.0495751574057095,
+       "flagged_share": 0.7561638516792856,
+       "tp": 100,
+       "fn": 26,
+       "fp": 7690,
+       "tn": 2486
+      },
+      "after_drivers": {
+       "conflict_recall": 0.7863247863247863,
+       "clean_flag_rate": 0.7558173784977908,
+       "flag_precision": 0.011810012836970476,
+       "lift": 1.039886771337349,
+       "flagged_share": 0.7561638516792856,
+       "tp": 92,
+       "fn": 25,
+       "fp": 7698,
+       "tn": 2487
+      }
+     }
+    },
+    "prior": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 126,
+        "fp": 0,
+        "tn": 10176
+       },
+       "after_drivers": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 117,
+        "fp": 0,
+        "tn": 10185
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3189063758183593,
+      "raw": {
+       "conflict_recall": 1.0,
+       "clean_flag_rate": 1.0,
+       "flag_precision": 0.0122306348281887,
+       "lift": 1.0,
+       "flagged_share": 1.0,
+       "tp": 126,
+       "fn": 0,
+       "fp": 10176,
+       "tn": 0
+      },
+      "after_drivers": {
+       "conflict_recall": 1.0,
+       "clean_flag_rate": 1.0,
+       "flag_precision": 0.011357018054746652,
+       "lift": 1.0,
+       "flagged_share": 1.0,
+       "tp": 117,
+       "fn": 0,
+       "fp": 10185,
+       "tn": 0
+      }
+     }
+    }
+   }
+  },
+  "substantive": {
+   "oracle_module": {
+    "raw": {
+     "conflict_recall": 0.9920634920634921,
+     "clean_flag_rate": 0.35809748427672955,
+     "flag_precision": 0.03316529583443884,
+     "lift": 2.7116577594157856,
+     "flagged_share": 0.3658512910114541,
+     "tp": 125,
+     "fn": 1,
+     "fp": 3644,
+     "tn": 6532
+    },
+    "after_drivers": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.35856651939126166,
+     "flag_precision": 0.03104271690103476,
+     "lift": 2.733351021491112,
+     "flagged_share": 0.3658512910114541,
+     "tp": 117,
+     "fn": 0,
+     "fp": 3652,
+     "tn": 6533
+    }
+   },
+   "oracle_file": {
+    "raw": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.044221698113207544,
+     "flag_precision": 0.21875,
+     "lift": 17.885416666666668,
+     "flagged_share": 0.05591147350029121,
+     "tp": 126,
+     "fn": 0,
+     "fp": 450,
+     "tn": 9726
+    },
+    "after_drivers": {
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 0.04506627393225331,
+     "flag_precision": 0.203125,
+     "lift": 17.885416666666664,
+     "flagged_share": 0.05591147350029121,
+     "tp": 117,
+     "fn": 0,
+     "fp": 459,
+     "tn": 9726
+    }
+   },
+   "methods": {
+    "cochange": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.5714285714285714,
+        "clean_flag_rate": 0.547562893081761,
+        "flag_precision": 0.012756909992912827,
+        "lift": 1.0430292598967297,
+        "flagged_share": 0.5478547854785478,
+        "tp": 72,
+        "fn": 54,
+        "fp": 5572,
+        "tn": 4604
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5811965811965812,
+        "clean_flag_rate": 0.5474717722140403,
+        "flag_precision": 0.012048192771084338,
+        "lift": 1.0608588198949644,
+        "flagged_share": 0.5478547854785478,
+        "tp": 68,
+        "fn": 49,
+        "fp": 5576,
+        "tn": 4609
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.5476190476190477,
+        "clean_flag_rate": 0.514937106918239,
+        "flag_precision": 0.012996797890374836,
+        "lift": 1.0626429513225522,
+        "flagged_share": 0.5153368278004271,
+        "tp": 69,
+        "fn": 57,
+        "fp": 5240,
+        "tn": 4936
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5641025641025641,
+        "clean_flag_rate": 0.5147766323024054,
+        "flag_precision": 0.012431719721228104,
+        "lift": 1.0946288595563411,
+        "flagged_share": 0.5153368278004271,
+        "tp": 66,
+        "fn": 51,
+        "fp": 5243,
+        "tn": 4942
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.5,
+        "clean_flag_rate": 0.40172955974842767,
+        "flag_precision": 0.01517706576728499,
+        "lift": 1.2409058058299205,
+        "flagged_share": 0.40293146961755,
+        "tp": 63,
+        "fn": 63,
+        "fp": 4088,
+        "tn": 6088
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5299145299145299,
+        "clean_flag_rate": 0.40147275405007365,
+        "flag_precision": 0.014936159961455071,
+        "lift": 1.3151480335291466,
+        "flagged_share": 0.40293146961755,
+        "tp": 62,
+        "fn": 55,
+        "fp": 4089,
+        "tn": 6096
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.49206349206349204,
+        "clean_flag_rate": 0.35632861635220126,
+        "flag_precision": 0.016811279826464208,
+        "lift": 1.3745222600970974,
+        "flagged_share": 0.35798874005047565,
+        "tp": 62,
+        "fn": 64,
+        "fp": 3626,
+        "tn": 6550
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5213675213675214,
+        "clean_flag_rate": 0.3561119293078056,
+        "flag_precision": 0.01654013015184382,
+        "lift": 1.4563796651649146,
+        "flagged_share": 0.35798874005047565,
+        "tp": 61,
+        "fn": 56,
+        "fp": 3627,
+        "tn": 6558
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.47619047619047616,
+        "clean_flag_rate": 0.24400550314465408,
+        "flag_precision": 0.023594180102241447,
+        "lift": 1.9291051064546936,
+        "flagged_share": 0.24684527276257037,
+        "tp": 60,
+        "fn": 66,
+        "fp": 2483,
+        "tn": 7693
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5042735042735043,
+        "clean_flag_rate": 0.2438880706921944,
+        "flag_precision": 0.02320094376720409,
+        "lift": 2.0428728435020216,
+        "flagged_share": 0.24684527276257037,
+        "tp": 59,
+        "fn": 58,
+        "fp": 2484,
+        "tn": 7701
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.47619047619047616,
+        "clean_flag_rate": 0.235062893081761,
+        "flag_precision": 0.024469820554649267,
+        "lift": 2.000699137730133,
+        "flagged_share": 0.23801203649776742,
+        "tp": 60,
+        "fn": 66,
+        "fp": 2392,
+        "tn": 7784
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5042735042735043,
+        "clean_flag_rate": 0.23495336278841433,
+        "flag_precision": 0.02406199021207178,
+        "lift": 2.11868908687832,
+        "flagged_share": 0.23801203649776742,
+        "tp": 59,
+        "fn": 58,
+        "fp": 2393,
+        "tn": 7792
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.4603174603174603,
+        "clean_flag_rate": 0.2233687106918239,
+        "flag_precision": 0.024882024882024883,
+        "lift": 2.034401748687463,
+        "flagged_share": 0.22626674432149096,
+        "tp": 58,
+        "fn": 68,
+        "fp": 2273,
+        "tn": 7903
+       },
+       "after_drivers": {
+        "conflict_recall": 0.48717948717948717,
+        "clean_flag_rate": 0.2232695139911635,
+        "flag_precision": 0.02445302445302445,
+        "lift": 2.153120153120153,
+        "flagged_share": 0.22626674432149096,
+        "tp": 57,
+        "fn": 60,
+        "fp": 2274,
+        "tn": 7911
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.4523809523809524,
+        "clean_flag_rate": 0.2172759433962264,
+        "flag_precision": 0.02513227513227513,
+        "lift": 2.054862685815067,
+        "flagged_share": 0.2201514269073966,
+        "tp": 57,
+        "fn": 69,
+        "fp": 2211,
+        "tn": 7965
+       },
+       "after_drivers": {
+        "conflict_recall": 0.47863247863247865,
+        "clean_flag_rate": 0.21718213058419245,
+        "flag_precision": 0.024691358024691357,
+        "lift": 2.174105729661285,
+        "flagged_share": 0.2201514269073966,
+        "tp": 56,
+        "fn": 61,
+        "fp": 2212,
+        "tn": 7973
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.373015873015873,
+        "clean_flag_rate": 0.19044811320754718,
+        "flag_precision": 0.02367758186397985,
+        "lift": 1.935924193354924,
+        "flagged_share": 0.19268103280916327,
+        "tp": 47,
+        "fn": 79,
+        "fp": 1938,
+        "tn": 8238
+       },
+       "after_drivers": {
+        "conflict_recall": 0.39316239316239315,
+        "clean_flag_rate": 0.19037800687285222,
+        "flag_precision": 0.023173803526448364,
+        "lift": 2.0404831105082994,
+        "flagged_share": 0.19268103280916327,
+        "tp": 46,
+        "fn": 71,
+        "fp": 1939,
+        "tn": 8246
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.36507936507936506,
+        "clean_flag_rate": 0.16863207547169812,
+        "flag_precision": 0.026106696935300794,
+        "lift": 2.1345332684719747,
+        "flagged_share": 0.17103475053387693,
+        "tp": 46,
+        "fn": 80,
+        "fp": 1716,
+        "tn": 8460
+       },
+       "after_drivers": {
+        "conflict_recall": 0.38461538461538464,
+        "clean_flag_rate": 0.1685812469317624,
+        "flag_precision": 0.02553916004540295,
+        "lift": 2.2487557845106085,
+        "flagged_share": 0.17103475053387693,
+        "tp": 45,
+        "fn": 72,
+        "fp": 1717,
+        "tn": 8468
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.40476190476190477,
+        "clean_flag_rate": 0.14819182389937108,
+        "flag_precision": 0.0327132777421424,
+        "lift": 2.674699899202786,
+        "flagged_share": 0.15132983886623957,
+        "tp": 51,
+        "fn": 75,
+        "fp": 1508,
+        "tn": 8668
+       },
+       "after_drivers": {
+        "conflict_recall": 0.42735042735042733,
+        "clean_flag_rate": 0.14815905743740795,
+        "flag_precision": 0.03207184092366902,
+        "lift": 2.823966711073831,
+        "flagged_share": 0.15132983886623957,
+        "tp": 50,
+        "fn": 67,
+        "fp": 1509,
+        "tn": 8676
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.5555555555555556,
+        "clean_flag_rate": 0.4418238993710692,
+        "flag_precision": 0.015330705212439772,
+        "lift": 1.2534676595123377,
+        "flagged_share": 0.44321490972626676,
+        "tp": 70,
+        "fn": 56,
+        "fp": 4496,
+        "tn": 5680
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5726495726495726,
+        "clean_flag_rate": 0.44172803141875305,
+        "flag_precision": 0.014673674989049496,
+        "lift": 1.2920358951896402,
+        "flagged_share": 0.44321490972626676,
+        "tp": 67,
+        "fn": 50,
+        "fp": 4499,
+        "tn": 5686
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.5714285714285714,
+        "clean_flag_rate": 0.5383254716981132,
+        "flag_precision": 0.012972972972972972,
+        "lift": 1.0606949806949808,
+        "flagged_share": 0.5387303436225975,
+        "tp": 72,
+        "fn": 54,
+        "fp": 5478,
+        "tn": 4698
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5811965811965812,
+        "clean_flag_rate": 0.5382425135002454,
+        "flag_precision": 0.012252252252252252,
+        "lift": 1.0788265188265187,
+        "flagged_share": 0.5387303436225975,
+        "tp": 68,
+        "fn": 49,
+        "fp": 5482,
+        "tn": 4703
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.5873015873015873,
+        "clean_flag_rate": 0.6054441823899371,
+        "flag_precision": 0.011868484362469928,
+        "lift": 0.9703898881124222,
+        "flagged_share": 0.6052222869345758,
+        "tp": 74,
+        "fn": 52,
+        "fp": 6161,
+        "tn": 4015
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5982905982905983,
+        "clean_flag_rate": 0.605301914580265,
+        "flag_precision": 0.011226944667201283,
+        "lift": 0.988546871465877,
+        "flagged_share": 0.6052222869345758,
+        "tp": 70,
+        "fn": 47,
+        "fp": 6165,
+        "tn": 4020
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3557688613749975,
+      "raw": {
+       "conflict_recall": 0.47619047619047616,
+       "clean_flag_rate": 0.2436124213836478,
+       "flag_precision": 0.023631350925561245,
+       "lift": 1.9321442637708885,
+       "flagged_share": 0.24645699864104056,
+       "tp": 60,
+       "fn": 66,
+       "fp": 2479,
+       "tn": 7697
+      },
+      "after_drivers": {
+       "conflict_recall": 0.5042735042735043,
+       "clean_flag_rate": 0.24349533627884143,
+       "flag_precision": 0.02323749507680189,
+       "lift": 2.046091233172761,
+       "flagged_share": 0.24645699864104056,
+       "tp": 59,
+       "fn": 58,
+       "fp": 2480,
+       "tn": 7705
+      }
+     }
+    },
+    "combined": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.983687106918239,
+        "flag_precision": 0.012138557189381229,
+        "lift": 0.9924715568651225,
+        "flagged_share": 0.9835954183653659,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10010,
+        "tn": 166
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9837015218458517,
+        "flag_precision": 0.011250370077963092,
+        "lift": 0.9906095089160322,
+        "flagged_share": 0.9835954183653659,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10019,
+        "tn": 166
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.968062106918239,
+        "flag_precision": 0.012332063364748345,
+        "lift": 1.0082929903463291,
+        "flagged_share": 0.9681615220345564,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9851,
+        "tn": 325
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9680903289150712,
+        "flag_precision": 0.01142971726488871,
+        "lift": 1.0064012586571238,
+        "flagged_share": 0.9681615220345564,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9860,
+        "tn": 325
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9406446540880503,
+        "flag_precision": 0.012686952037132543,
+        "lift": 1.0373093641788846,
+        "flagged_share": 0.9410794020578529,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9572,
+        "tn": 604
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9406971035837015,
+        "flag_precision": 0.011758638473439918,
+        "lift": 1.0353631927639146,
+        "flagged_share": 0.9410794020578529,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9581,
+        "tn": 604
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.8977004716981132,
+        "flag_precision": 0.013285806869734284,
+        "lift": 1.0862728759682745,
+        "flagged_share": 0.8986604542807222,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9135,
+        "tn": 1041
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.8977908689248896,
+        "flag_precision": 0.012313674659753726,
+        "lift": 1.0842348405537,
+        "flagged_share": 0.8986604542807222,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9144,
+        "tn": 1041
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.9365079365079365,
+        "clean_flag_rate": 0.8129913522012578,
+        "flag_precision": 0.014062686211416995,
+        "lift": 1.1497920107144277,
+        "flagged_share": 0.814502038439138,
+        "tp": 118,
+        "fn": 8,
+        "fp": 8273,
+        "tn": 1903
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.8128620520373098,
+        "flag_precision": 0.013347634370158503,
+        "lift": 1.1752763186442128,
+        "flagged_share": 0.814502038439138,
+        "tp": 112,
+        "fn": 5,
+        "fp": 8279,
+        "tn": 1906
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.8888888888888888,
+        "clean_flag_rate": 0.7234669811320755,
+        "flag_precision": 0.014985282312014986,
+        "lift": 1.2252252252252254,
+        "flagged_share": 0.7254901960784313,
+        "tp": 112,
+        "fn": 14,
+        "fp": 7362,
+        "tn": 2814
+       },
+       "after_drivers": {
+        "conflict_recall": 0.905982905982906,
+        "clean_flag_rate": 0.7234167893961708,
+        "flag_precision": 0.014182499331014183,
+        "lift": 1.2487872487872487,
+        "flagged_share": 0.7254901960784313,
+        "tp": 106,
+        "fn": 11,
+        "fp": 7368,
+        "tn": 2817
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.8095238095238095,
+        "clean_flag_rate": 0.6166470125786163,
+        "flag_precision": 0.0159949819664419,
+        "lift": 1.307780192208607,
+        "flagged_share": 0.6190060182488837,
+        "tp": 102,
+        "fn": 24,
+        "fp": 6275,
+        "tn": 3901
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8205128205128205,
+        "clean_flag_rate": 0.6166912125675013,
+        "flag_precision": 0.015054100674298259,
+        "lift": 1.3255328645010311,
+        "flagged_share": 0.6190060182488837,
+        "tp": 96,
+        "fn": 21,
+        "fp": 6281,
+        "tn": 3904
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.7380952380952381,
+        "clean_flag_rate": 0.5400943396226415,
+        "flag_precision": 0.016639828234031134,
+        "lift": 1.3605040513253075,
+        "flagged_share": 0.5425160163075131,
+        "tp": 93,
+        "fn": 33,
+        "fp": 5496,
+        "tn": 4680
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7606837606837606,
+        "clean_flag_rate": 0.5400098183603338,
+        "flag_precision": 0.015924136697083556,
+        "lift": 1.402140651738075,
+        "flagged_share": 0.5425160163075131,
+        "tp": 89,
+        "fn": 28,
+        "fp": 5500,
+        "tn": 4685
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.5873015873015873,
+        "clean_flag_rate": 0.42423349056603776,
+        "flag_precision": 0.016852653154179,
+        "lift": 1.3779050221773974,
+        "flagged_share": 0.426227916909338,
+        "tp": 74,
+        "fn": 52,
+        "fp": 4317,
+        "tn": 5859
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6153846153846154,
+        "clean_flag_rate": 0.4240549828178694,
+        "flag_precision": 0.016397176041903893,
+        "lift": 1.4437923725102042,
+        "flagged_share": 0.426227916909338,
+        "tp": 72,
+        "fn": 45,
+        "fp": 4319,
+        "tn": 5866
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.4365079365079365,
+        "clean_flag_rate": 0.2943199685534591,
+        "flag_precision": 0.018032786885245903,
+        "lift": 1.4743950039032008,
+        "flagged_share": 0.2960590176664725,
+        "tp": 55,
+        "fn": 71,
+        "fp": 2995,
+        "tn": 7181
+       },
+       "after_drivers": {
+        "conflict_recall": 0.452991452991453,
+        "clean_flag_rate": 0.2942562592047128,
+        "flag_precision": 0.01737704918032787,
+        "lift": 1.5300714585960487,
+        "flagged_share": 0.2960590176664725,
+        "tp": 53,
+        "fn": 64,
+        "fp": 2997,
+        "tn": 7188
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.7698412698412699,
+        "clean_flag_rate": 0.554933176100629,
+        "flag_precision": 0.01688718662952646,
+        "lift": 1.380728544899854,
+        "flagged_share": 0.5575616385167929,
+        "tp": 97,
+        "fn": 29,
+        "fp": 5647,
+        "tn": 4529
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7777777777777778,
+        "clean_flag_rate": 0.555031909671085,
+        "flag_precision": 0.015842618384401114,
+        "lift": 1.3949628597957289,
+        "flagged_share": 0.5575616385167929,
+        "tp": 91,
+        "fn": 26,
+        "fp": 5653,
+        "tn": 4532
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.9682539682539683,
+        "clean_flag_rate": 0.8812893081761006,
+        "flag_precision": 0.013421342134213421,
+        "lift": 1.0973544973544973,
+        "flagged_share": 0.8823529411764706,
+        "tp": 122,
+        "fn": 4,
+        "fp": 8968,
+        "tn": 1208
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9658119658119658,
+        "clean_flag_rate": 0.881394207167403,
+        "flag_precision": 0.012431243124312432,
+        "lift": 1.0945868945868946,
+        "flagged_share": 0.8823529411764706,
+        "tp": 113,
+        "fn": 4,
+        "fp": 8977,
+        "tn": 1208
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9639347484276729,
+        "flag_precision": 0.012384212645992751,
+        "lift": 1.012556814912836,
+        "flagged_share": 0.9640846437584935,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9809,
+        "tn": 367
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.963966617574865,
+        "flag_precision": 0.011478050745066451,
+        "lift": 1.0106570835527742,
+        "flagged_share": 0.9640846437584935,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9818,
+        "tn": 367
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9845715408805031,
+        "flag_precision": 0.012127785446657465,
+        "lift": 0.9915908386624223,
+        "flagged_share": 0.984469035138808,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10019,
+        "tn": 157
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.984585174275896,
+        "flag_precision": 0.011240386511536186,
+        "lift": 0.9897304430926991,
+        "flagged_share": 0.984469035138808,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10028,
+        "tn": 157
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.41181014079882394,
+      "raw": {
+       "conflict_recall": 0.8809523809523809,
+       "clean_flag_rate": 0.7023388364779874,
+       "flag_precision": 0.015293469275282447,
+       "lift": 1.2504231783647601,
+       "flagged_share": 0.7045233935158222,
+       "tp": 111,
+       "fn": 15,
+       "fp": 7147,
+       "tn": 3029
+      },
+      "after_drivers": {
+       "conflict_recall": 0.8974358974358975,
+       "clean_flag_rate": 0.7023073146784486,
+       "flag_precision": 0.014466795260402315,
+       "lift": 1.2738198698518346,
+       "flagged_share": 0.7045233935158222,
+       "tp": 105,
+       "fn": 12,
+       "fp": 7153,
+       "tn": 3032
+      }
+     }
+    },
+    "knn": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9833922955974843,
+        "flag_precision": 0.012142152023692005,
+        "lift": 0.9927654773656749,
+        "flagged_share": 0.9833042127742186,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10007,
+        "tn": 169
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.983406971035837,
+        "flag_precision": 0.01125370187561698,
+        "lift": 0.9909028779709924,
+        "flagged_share": 0.9833042127742186,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10016,
+        "tn": 169
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9535180817610063,
+        "flag_precision": 0.01251780989212294,
+        "lift": 1.023479980227385,
+        "flagged_share": 0.9537953795379538,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9703,
+        "tn": 473
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9535591556210113,
+        "flag_precision": 0.011601872582943212,
+        "lift": 1.021559755123769,
+        "flagged_share": 0.9537953795379538,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9712,
+        "tn": 473
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9209905660377359,
+        "flag_precision": 0.012954186413902054,
+        "lift": 1.0591589558414205,
+        "flagged_share": 0.9216656959813628,
+        "tp": 123,
+        "fn": 3,
+        "fp": 9372,
+        "tn": 804
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.921060382916053,
+        "flag_precision": 0.012006319115323854,
+        "lift": 1.0571717908210798,
+        "flagged_share": 0.9216656959813628,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9381,
+        "tn": 804
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.9682539682539683,
+        "clean_flag_rate": 0.8875786163522013,
+        "flag_precision": 0.013327507100720996,
+        "lift": 1.0896823662827597,
+        "flagged_share": 0.8885653271209474,
+        "tp": 122,
+        "fn": 4,
+        "fp": 9032,
+        "tn": 1144
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.8875797741777123,
+        "flag_precision": 0.01245357220887044,
+        "lift": 1.0965529991092586,
+        "flagged_share": 0.8885653271209474,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9040,
+        "tn": 1145
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.9206349206349206,
+        "clean_flag_rate": 0.7121658805031447,
+        "flag_precision": 0.015754447915251935,
+        "lift": 1.2881136700232179,
+        "flagged_share": 0.7147155892059794,
+        "tp": 116,
+        "fn": 10,
+        "fp": 7247,
+        "tn": 2929
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9401709401709402,
+        "clean_flag_rate": 0.712125675012273,
+        "flag_precision": 0.014939562678256146,
+        "lift": 1.3154476471059384,
+        "flagged_share": 0.7147155892059794,
+        "tp": 110,
+        "fn": 7,
+        "fp": 7253,
+        "tn": 2932
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.9047619047619048,
+        "clean_flag_rate": 0.6772798742138365,
+        "flag_precision": 0.01627176705680845,
+        "lift": 1.3304106684066719,
+        "flagged_share": 0.6800621238594448,
+        "tp": 114,
+        "fn": 12,
+        "fp": 6892,
+        "tn": 3284
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9316239316239316,
+        "clean_flag_rate": 0.6771723122238587,
+        "flag_precision": 0.015558093063088781,
+        "lift": 1.3699100404781248,
+        "flagged_share": 0.6800621238594448,
+        "tp": 109,
+        "fn": 8,
+        "fp": 6897,
+        "tn": 3288
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.7857142857142857,
+        "clean_flag_rate": 0.5287932389937107,
+        "flag_precision": 0.018065693430656934,
+        "lift": 1.4770855057351409,
+        "flagged_share": 0.5319355464958261,
+        "tp": 99,
+        "fn": 27,
+        "fp": 5381,
+        "tn": 4795
+       },
+       "after_drivers": {
+        "conflict_recall": 0.811965811965812,
+        "clean_flag_rate": 0.5287187039764359,
+        "flag_precision": 0.017335766423357664,
+        "lift": 1.5264364589182107,
+        "flagged_share": 0.5319355464958261,
+        "tp": 95,
+        "fn": 22,
+        "fp": 5385,
+        "tn": 4800
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.6428571428571429,
+        "clean_flag_rate": 0.41745283018867924,
+        "flag_precision": 0.018711018711018712,
+        "lift": 1.52984852984853,
+        "flagged_share": 0.4202096680256261,
+        "tp": 81,
+        "fn": 45,
+        "fp": 4248,
+        "tn": 5928
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6666666666666666,
+        "clean_flag_rate": 0.41737849779086894,
+        "flag_precision": 0.018018018018018018,
+        "lift": 1.5865095865095864,
+        "flagged_share": 0.4202096680256261,
+        "tp": 78,
+        "fn": 39,
+        "fp": 4251,
+        "tn": 5934
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.46825396825396826,
+        "clean_flag_rate": 0.30601415094339623,
+        "flag_precision": 0.018594390167034354,
+        "lift": 1.5203127579427613,
+        "flagged_share": 0.30799844690351386,
+        "tp": 59,
+        "fn": 67,
+        "fp": 3114,
+        "tn": 7062
+       },
+       "after_drivers": {
+        "conflict_recall": 0.47863247863247865,
+        "clean_flag_rate": 0.30603829160530194,
+        "flag_precision": 0.01764891270091396,
+        "lift": 1.5540093901266292,
+        "flagged_share": 0.30799844690351386,
+        "tp": 56,
+        "fn": 61,
+        "fp": 3117,
+        "tn": 7068
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.2222222222222222,
+        "clean_flag_rate": 0.1381682389937107,
+        "flag_precision": 0.019525801952580194,
+        "lift": 1.596466759646676,
+        "flagged_share": 0.1391962725684333,
+        "tp": 28,
+        "fn": 98,
+        "fp": 1406,
+        "tn": 8770
+       },
+       "after_drivers": {
+        "conflict_recall": 0.2222222222222222,
+        "clean_flag_rate": 0.13824251350024547,
+        "flag_precision": 0.01813110181311018,
+        "lift": 1.5964667596466757,
+        "flagged_share": 0.1391962725684333,
+        "tp": 26,
+        "fn": 91,
+        "fp": 1408,
+        "tn": 8777
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.7619047619047619,
+        "clean_flag_rate": 0.545499213836478,
+        "flag_precision": 0.01700017708517797,
+        "lift": 1.389966859773837,
+        "flagged_share": 0.5481459910696952,
+        "tp": 96,
+        "fn": 30,
+        "fp": 5551,
+        "tn": 4625
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7692307692307693,
+        "clean_flag_rate": 0.5456062837506136,
+        "flag_precision": 0.015937666017354347,
+        "lift": 1.4033319257332006,
+        "flagged_share": 0.5481459910696952,
+        "tp": 90,
+        "fn": 27,
+        "fp": 5557,
+        "tn": 4628
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.9523809523809523,
+        "clean_flag_rate": 0.8484669811320755,
+        "flag_precision": 0.013708019191226868,
+        "lift": 1.120793759587454,
+        "flagged_share": 0.8497379149679674,
+        "tp": 120,
+        "fn": 6,
+        "fp": 8634,
+        "tn": 1542
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9658119658119658,
+        "clean_flag_rate": 0.8484045164457535,
+        "flag_precision": 0.0129083847384053,
+        "lift": 1.1365998254277898,
+        "flagged_share": 0.8497379149679674,
+        "tp": 113,
+        "fn": 4,
+        "fp": 8641,
+        "tn": 1544
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9682539682539683,
+        "clean_flag_rate": 0.9513561320754716,
+        "flag_precision": 0.01244516984596552,
+        "lift": 1.017540791691562,
+        "flagged_share": 0.9515628033391574,
+        "tp": 122,
+        "fn": 4,
+        "fp": 9681,
+        "tn": 495
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9513009327442317,
+        "flag_precision": 0.011629093134754668,
+        "lift": 1.0239565596089109,
+        "flagged_share": 0.9515628033391574,
+        "tp": 114,
+        "fn": 3,
+        "fp": 9689,
+        "tn": 496
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9761904761904762,
+        "clean_flag_rate": 0.9841784591194969,
+        "flag_precision": 0.01213257052673111,
+        "lift": 0.9919820759236818,
+        "flagged_share": 0.9840807610172781,
+        "tp": 123,
+        "fn": 3,
+        "fp": 10015,
+        "tn": 161
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9743589743589743,
+        "clean_flag_rate": 0.9841924398625429,
+        "flag_precision": 0.011244821463799567,
+        "lift": 0.9901209463253259,
+        "flagged_share": 0.9840807610172781,
+        "tp": 114,
+        "fn": 3,
+        "fp": 10024,
+        "tn": 161
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3726917257102957,
+      "raw": {
+       "conflict_recall": 0.9126984126984127,
+       "clean_flag_rate": 0.6895636792452831,
+       "flag_precision": 0.01612450925406618,
+       "lift": 1.318370589963411,
+       "flagged_share": 0.6922927586876335,
+       "tp": 115,
+       "fn": 11,
+       "fp": 7017,
+       "tn": 3159
+      },
+      "after_drivers": {
+       "conflict_recall": 0.9316239316239316,
+       "clean_flag_rate": 0.6895434462444772,
+       "flag_precision": 0.015283230510375771,
+       "lift": 1.3457080403238564,
+       "flagged_share": 0.6922927586876335,
+       "tp": 109,
+       "fn": 8,
+       "fp": 7023,
+       "tn": 3162
+      }
+     }
+    },
+    "lexical": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 0.9523809523809523,
+        "clean_flag_rate": 0.9259040880503144,
+        "flag_precision": 0.012575979878432194,
+        "lift": 1.0282360691080037,
+        "flagged_share": 0.926227916909338,
+        "tp": 120,
+        "fn": 6,
+        "fp": 9422,
+        "tn": 754
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.9258713794796269,
+        "flag_precision": 0.011737581219870048,
+        "lift": 1.0335090745906088,
+        "flagged_share": 0.926227916909338,
+        "tp": 112,
+        "fn": 5,
+        "fp": 9430,
+        "tn": 755
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 0.8571428571428571,
+        "clean_flag_rate": 0.8373624213836478,
+        "flag_precision": 0.012515934639007997,
+        "lift": 1.0233266559607967,
+        "flagged_share": 0.8376043486701611,
+        "tp": 108,
+        "fn": 18,
+        "fp": 8521,
+        "tn": 1655
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8547008547008547,
+        "clean_flag_rate": 0.8374079528718704,
+        "flag_precision": 0.011588828369451848,
+        "lift": 1.0204111954025037,
+        "flagged_share": 0.8376043486701611,
+        "tp": 100,
+        "fn": 17,
+        "fp": 8529,
+        "tn": 1656
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 0.7857142857142857,
+        "clean_flag_rate": 0.7403694968553459,
+        "flag_precision": 0.012969998689899122,
+        "lift": 1.0604517976455616,
+        "flagged_share": 0.740924092409241,
+        "tp": 99,
+        "fn": 27,
+        "fp": 7534,
+        "tn": 2642
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7777777777777778,
+        "clean_flag_rate": 0.7405007363770251,
+        "flag_precision": 0.011921917987685052,
+        "lift": 1.0497401633259094,
+        "flagged_share": 0.740924092409241,
+        "tp": 91,
+        "fn": 26,
+        "fp": 7542,
+        "tn": 2643
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 0.6746031746031746,
+        "clean_flag_rate": 0.5478577044025157,
+        "flag_precision": 0.015017667844522967,
+        "lift": 1.2278731280498065,
+        "flagged_share": 0.549407881964667,
+        "tp": 85,
+        "fn": 41,
+        "fp": 5575,
+        "tn": 4601
+       },
+       "after_drivers": {
+        "conflict_recall": 0.6837606837606838,
+        "clean_flag_rate": 0.5478645066273933,
+        "flag_precision": 0.014134275618374558,
+        "lift": 1.2445410890640571,
+        "flagged_share": 0.549407881964667,
+        "tp": 80,
+        "fn": 37,
+        "fp": 5580,
+        "tn": 4605
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 0.5079365079365079,
+        "clean_flag_rate": 0.3619300314465409,
+        "flag_precision": 0.017080330931411796,
+        "lift": 1.3965203909159074,
+        "flagged_share": 0.36371578334304017,
+        "tp": 64,
+        "fn": 62,
+        "fp": 3683,
+        "tn": 6493
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5213675213675214,
+        "clean_flag_rate": 0.3619047619047619,
+        "flag_precision": 0.016279690419001867,
+        "lift": 1.4334476127910873,
+        "flagged_share": 0.36371578334304017,
+        "tp": 61,
+        "fn": 56,
+        "fp": 3686,
+        "tn": 6499
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 0.3968253968253968,
+        "clean_flag_rate": 0.2529481132075472,
+        "flag_precision": 0.019054878048780487,
+        "lift": 1.5579631242740999,
+        "flagged_share": 0.25470782372354883,
+        "tp": 50,
+        "fn": 76,
+        "fp": 2574,
+        "tn": 7602
+       },
+       "after_drivers": {
+        "conflict_recall": 0.4017094017094017,
+        "clean_flag_rate": 0.25301914580265095,
+        "flag_precision": 0.017911585365853657,
+        "lift": 1.5771380550343963,
+        "flagged_share": 0.25470782372354883,
+        "tp": 47,
+        "fn": 70,
+        "fp": 2577,
+        "tn": 7608
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.23809523809523808,
+        "clean_flag_rate": 0.1296187106918239,
+        "flag_precision": 0.02223869532987398,
+        "lift": 1.8182780895901727,
+        "flagged_share": 0.13094544748592507,
+        "tp": 30,
+        "fn": 96,
+        "fp": 1319,
+        "tn": 8857
+       },
+       "after_drivers": {
+        "conflict_recall": 0.23931623931623933,
+        "clean_flag_rate": 0.12970054000981837,
+        "flag_precision": 0.020756115641215715,
+        "lift": 1.8276025926137118,
+        "flagged_share": 0.13094544748592507,
+        "tp": 28,
+        "fn": 89,
+        "fp": 1321,
+        "tn": 8864
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.12698412698412698,
+        "clean_flag_rate": 0.03341194968553459,
+        "flag_precision": 0.0449438202247191,
+        "lift": 3.674692348849652,
+        "flagged_share": 0.034556396816152204,
+        "tp": 16,
+        "fn": 110,
+        "fp": 340,
+        "tn": 9836
+       },
+       "after_drivers": {
+        "conflict_recall": 0.1282051282051282,
+        "clean_flag_rate": 0.033480608738340696,
+        "flag_precision": 0.042134831460674156,
+        "lift": 3.7100259291270525,
+        "flagged_share": 0.034556396816152204,
+        "tp": 15,
+        "fn": 102,
+        "fp": 341,
+        "tn": 9844
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.06349206349206349,
+        "clean_flag_rate": 0.01346305031446541,
+        "flag_precision": 0.05517241379310345,
+        "lift": 4.511001642036125,
+        "flagged_share": 0.014074936905455252,
+        "tp": 8,
+        "fn": 118,
+        "fp": 137,
+        "tn": 10039
+       },
+       "after_drivers": {
+        "conflict_recall": 0.05982905982905983,
+        "clean_flag_rate": 0.013549337260677467,
+        "flag_precision": 0.04827586206896552,
+        "lift": 4.250751547303271,
+        "flagged_share": 0.014074936905455252,
+        "tp": 7,
+        "fn": 110,
+        "fp": 138,
+        "tn": 10047
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 126,
+        "fp": 0,
+        "tn": 10176
+       },
+       "after_drivers": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 117,
+        "fp": 0,
+        "tn": 10185
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 0.5714285714285714,
+        "clean_flag_rate": 0.43730345911949686,
+        "flag_precision": 0.01592215833701902,
+        "lift": 1.301825993555317,
+        "flagged_share": 0.4389438943894389,
+        "tp": 72,
+        "fn": 54,
+        "fp": 4450,
+        "tn": 5726
+       },
+       "after_drivers": {
+        "conflict_recall": 0.5811965811965812,
+        "clean_flag_rate": 0.43730976926853216,
+        "flag_precision": 0.015037593984962405,
+        "lift": 1.324079429342587,
+        "flagged_share": 0.4389438943894389,
+        "tp": 68,
+        "fn": 49,
+        "fp": 4454,
+        "tn": 5731
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 0.8333333333333334,
+        "clean_flag_rate": 0.7429245283018868,
+        "flag_precision": 0.0136986301369863,
+        "lift": 1.1200260926288323,
+        "flagged_share": 0.7440302853814793,
+        "tp": 105,
+        "fn": 21,
+        "fp": 7560,
+        "tn": 2616
+       },
+       "after_drivers": {
+        "conflict_recall": 0.8376068376068376,
+        "clean_flag_rate": 0.7429553264604811,
+        "flag_precision": 0.012785388127853882,
+        "lift": 1.125769816180775,
+        "flagged_share": 0.7440302853814793,
+        "tp": 98,
+        "fn": 19,
+        "fp": 7567,
+        "tn": 2618
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 0.9285714285714286,
+        "clean_flag_rate": 0.8886595911949685,
+        "flag_precision": 0.01277292576419214,
+        "lift": 1.0443387398627573,
+        "flagged_share": 0.8891477383032421,
+        "tp": 117,
+        "fn": 9,
+        "fp": 9043,
+        "tn": 1133
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9230769230769231,
+        "clean_flag_rate": 0.8887579774177712,
+        "flag_precision": 0.011790393013100437,
+        "lift": 1.0381592206919719,
+        "flagged_share": 0.8891477383032421,
+        "tp": 108,
+        "fn": 9,
+        "fp": 9052,
+        "tn": 1133
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 0.9603174603174603,
+        "clean_flag_rate": 0.9540094339622641,
+        "flag_precision": 0.012310509716146098,
+        "lift": 1.0065307229820406,
+        "flagged_share": 0.9540865851291012,
+        "tp": 121,
+        "fn": 5,
+        "fp": 9708,
+        "tn": 468
+       },
+       "after_drivers": {
+        "conflict_recall": 0.9572649572649573,
+        "clean_flag_rate": 0.9540500736377026,
+        "flag_precision": 0.011394851968664157,
+        "lift": 1.0033313246254543,
+        "flagged_share": 0.9540865851291012,
+        "tp": 112,
+        "fn": 5,
+        "fp": 9717,
+        "tn": 468
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.13346537035029563,
+      "raw": {
+       "conflict_recall": 0.7936507936507936,
+       "clean_flag_rate": 0.7556014150943396,
+       "flag_precision": 0.012838618564642445,
+       "lift": 1.049709908356718,
+       "flagged_share": 0.7560667831489031,
+       "tp": 100,
+       "fn": 26,
+       "fp": 7689,
+       "tn": 2487
+      },
+      "after_drivers": {
+       "conflict_recall": 0.7863247863247863,
+       "clean_flag_rate": 0.7557191948944526,
+       "flag_precision": 0.011811529079471049,
+       "lift": 1.0400202784334251,
+       "flagged_share": 0.7560667831489031,
+       "tp": 92,
+       "fn": 25,
+       "fp": 7697,
+       "tn": 2488
+      }
+     }
+    },
+    "prior": {
+     "thresholds": [
+      {
+       "threshold": 0.05,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.1,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.15,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.2,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.3,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.4,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "threshold": 0.5,
+       "raw": {
+        "conflict_recall": 0.746031746031746,
+        "clean_flag_rate": 0.8006092767295597,
+        "flag_precision": 0.011406382720543623,
+        "lift": 0.9326075776749239,
+        "flagged_share": 0.7999417588817705,
+        "tp": 94,
+        "fn": 32,
+        "fp": 8147,
+        "tn": 2029
+       },
+       "after_drivers": {
+        "conflict_recall": 0.7435897435897436,
+        "clean_flag_rate": 0.8005891016200295,
+        "flag_precision": 0.010556971241354204,
+        "lift": 0.9295548523797522,
+        "flagged_share": 0.7999417588817705,
+        "tp": 87,
+        "fn": 30,
+        "fp": 8154,
+        "tn": 2031
+       }
+      },
+      {
+       "threshold": 0.6,
+       "raw": {
+        "conflict_recall": 0.38095238095238093,
+        "clean_flag_rate": 0.41971305031446543,
+        "flag_precision": 0.011113683723084047,
+        "lift": 0.908675950120729,
+        "flagged_share": 0.4192389827218016,
+        "tp": 48,
+        "fn": 78,
+        "fp": 4271,
+        "tn": 5905
+       },
+       "after_drivers": {
+        "conflict_recall": 0.38461538461538464,
+        "clean_flag_rate": 0.4196367206676485,
+        "flag_precision": 0.010419078490391294,
+        "lift": 0.9174132188718898,
+        "flagged_share": 0.4192389827218016,
+        "tp": 45,
+        "fn": 72,
+        "fp": 4274,
+        "tn": 5911
+       }
+      },
+      {
+       "threshold": 0.7,
+       "raw": {
+        "conflict_recall": 0.05555555555555555,
+        "clean_flag_rate": 0.050314465408805034,
+        "flag_precision": 0.01348747591522158,
+        "lift": 1.1027617212588312,
+        "flagged_share": 0.050378567268491554,
+        "tp": 7,
+        "fn": 119,
+        "fp": 512,
+        "tn": 9664
+       },
+       "after_drivers": {
+        "conflict_recall": 0.05128205128205128,
+        "clean_flag_rate": 0.05036818851251841,
+        "flag_precision": 0.011560693641618497,
+        "lift": 1.0179338965466131,
+        "flagged_share": 0.050378567268491554,
+        "tp": 6,
+        "fn": 111,
+        "fp": 513,
+        "tn": 9672
+       }
+      },
+      {
+       "threshold": 0.8,
+       "raw": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 126,
+        "fp": 0,
+        "tn": 10176
+       },
+       "after_drivers": {
+        "conflict_recall": 0.0,
+        "clean_flag_rate": 0.0,
+        "flag_precision": null,
+        "lift": null,
+        "flagged_share": 0.0,
+        "tp": 0,
+        "fn": 117,
+        "fp": 0,
+        "tn": 10185
+       }
+      }
+     ],
+     "topk": [
+      {
+       "k": 1,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 2,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 3,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      },
+      {
+       "k": 5,
+       "raw": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.0122306348281887,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 126,
+        "fn": 0,
+        "fp": 10176,
+        "tn": 0
+       },
+       "after_drivers": {
+        "conflict_recall": 1.0,
+        "clean_flag_rate": 1.0,
+        "flag_precision": 0.011357018054746652,
+        "lift": 1.0,
+        "flagged_share": 1.0,
+        "tp": 117,
+        "fn": 0,
+        "fp": 10185,
+        "tn": 0
+       }
+      }
+     ],
+     "tuned": {
+      "threshold": 0.3189063758183593,
+      "raw": {
+       "conflict_recall": 1.0,
+       "clean_flag_rate": 1.0,
+       "flag_precision": 0.0122306348281887,
+       "lift": 1.0,
+       "flagged_share": 1.0,
+       "tp": 126,
+       "fn": 0,
+       "fp": 10176,
+       "tn": 0
+      },
+      "after_drivers": {
+       "conflict_recall": 1.0,
+       "clean_flag_rate": 1.0,
+       "flag_precision": 0.011357018054746652,
+       "lift": 1.0,
+       "flagged_share": 1.0,
+       "tp": 117,
+       "fn": 0,
+       "fp": 10185,
+       "tn": 0
+      }
+     }
+    }
+   }
+  }
+ },
+ "summary": {
+  "all": {
+   "oracle_module": {
+    "conflict_recall": 1.0,
+    "clean_flag_rate": 0.7366352201257862,
+    "flag_precision": 0.016531094200997114,
+    "lift": 1.3516137496720022,
+    "conflict_recall_after_drivers": 1.0,
+    "clean_flag_rate_after_drivers": 0.7368679430535101
+   },
+   "oracle_file": {
+    "conflict_recall": 1.0,
+    "clean_flag_rate": 0.044221698113207544,
+    "flag_precision": 0.21875,
+    "lift": 17.885416666666668,
+    "conflict_recall_after_drivers": 1.0,
+    "clean_flag_rate_after_drivers": 0.04506627393225331
+   },
+   "cochange": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.5714285714285714,
+     "clean_flag_rate": 0.5954205974842768,
+     "flag_precision": 0.01174359810797586,
+     "lift": 0.9601789500664073,
+     "conflict_recall_after_drivers": 0.5811965811965812,
+     "clean_flag_rate_after_drivers": 0.5952871870397644
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.5555555555555556,
+     "clean_flag_rate": 0.5685927672955975,
+     "flag_precision": 0.011953551912568305,
+     "lift": 0.9773451730418944,
+     "conflict_recall_after_drivers": 0.5726495726495726,
+     "clean_flag_rate_after_drivers": 0.5683848797250859
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.5476190476190477,
+     "clean_flag_rate": 0.5565055031446541,
+     "flag_precision": 0.01203768318213538,
+     "lift": 0.9842239058917357,
+     "conflict_recall_after_drivers": 0.5726495726495726,
+     "clean_flag_rate_after_drivers": 0.5562101129111439
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.5317460317460317,
+     "clean_flag_rate": 0.5133647798742138,
+     "flag_precision": 0.012663012663012663,
+     "lift": 1.0353520353520353,
+     "conflict_recall_after_drivers": 0.5641025641025641,
+     "clean_flag_rate_after_drivers": 0.5130093274423171
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.5317460317460317,
+     "clean_flag_rate": 0.4898781446540881,
+     "flag_precision": 0.013262074425969913,
+     "lift": 1.0843324661614449,
+     "conflict_recall_after_drivers": 0.5641025641025641,
+     "clean_flag_rate_after_drivers": 0.48954344624447715
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.5158730158730159,
+     "clean_flag_rate": 0.48201650943396224,
+     "flag_precision": 0.013078470824949699,
+     "lift": 1.0693206860208873,
+     "conflict_recall_after_drivers": 0.5470085470085471,
+     "clean_flag_rate_after_drivers": 0.4816887579774178
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.5158730158730159,
+     "clean_flag_rate": 0.4742531446540881,
+     "flag_precision": 0.01328971580453895,
+     "lift": 1.0865924779234941,
+     "conflict_recall_after_drivers": 0.5470085470085471,
+     "clean_flag_rate_after_drivers": 0.4739322533136966
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.48412698412698413,
+     "clean_flag_rate": 0.46658805031446543,
+     "flag_precision": 0.012684549802453732,
+     "lift": 1.03711295289586,
+     "conflict_recall_after_drivers": 0.5128205128205128,
+     "clean_flag_rate_after_drivers": 0.4662739322533137
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.40476190476190477,
+     "clean_flag_rate": 0.4278694968553459,
+     "flag_precision": 0.011577752553916005,
+     "lift": 0.9466191016701802,
+     "conflict_recall_after_drivers": 0.42735042735042733,
+     "clean_flag_rate_after_drivers": 0.4275895925380461
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.3968253968253968,
+     "clean_flag_rate": 0.39887971698113206,
+     "flag_precision": 0.012168410805548795,
+     "lift": 0.9949124453870135,
+     "conflict_recall_after_drivers": 0.4188034188034188,
+     "clean_flag_rate_after_drivers": 0.39862542955326463
+    }
+   ],
+   "cochange:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.36507936507936506,
+     "clean_flag_rate": 0.14406446540880502,
+     "flag_precision": 0.03042328042328042,
+     "lift": 2.4874653565129754,
+     "conflict_recall_after_drivers": 0.38461538461538464,
+     "clean_flag_rate_after_drivers": 0.14403534609720176
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.5634920634920635,
+     "clean_flag_rate": 0.5905070754716981,
+     "flag_precision": 0.011677631578947368,
+     "lift": 0.9547854010025063,
+     "conflict_recall_after_drivers": 0.5897435897435898,
+     "clean_flag_rate_after_drivers": 0.5901816396661758
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.5793650793650794,
+     "clean_flag_rate": 0.6323702830188679,
+     "flag_precision": 0.011216963736939152,
+     "lift": 0.9171203207773584,
+     "conflict_recall_after_drivers": 0.5982905982905983,
+     "clean_flag_rate_after_drivers": 0.6321060382916053
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.5873015873015873,
+     "clean_flag_rate": 0.6525157232704403,
+     "flag_precision": 0.011021745606196008,
+     "lift": 0.9011589145637403,
+     "conflict_recall_after_drivers": 0.5982905982905983,
+     "clean_flag_rate_after_drivers": 0.6523318605792833
+    }
+   ],
+   "combined": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9883058176100629,
+     "flag_precision": 0.012082514734774067,
+     "lift": 0.9878894190289083,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9883161512027492
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9830974842767296,
+     "flag_precision": 0.012145748987854251,
+     "lift": 0.9930595720069405,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9831124202258222
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9824095911949685,
+     "flag_precision": 0.012154150197628458,
+     "lift": 0.9937464709203839,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9824251350024545
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9681603773584906,
+     "flag_precision": 0.012330827067669173,
+     "lift": 1.0081919083422843,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9681885125184094
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9547955974842768,
+     "flag_precision": 0.012501270454314463,
+     "lift": 1.022127684288473,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9548355424644085
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.9444444444444444,
+     "clean_flag_rate": 0.9206957547169812,
+     "flag_precision": 0.012542158516020236,
+     "lift": 1.0254707700955594,
+     "conflict_recall_after_drivers": 0.9487179487179487,
+     "clean_flag_rate_after_drivers": 0.9206676485027
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.9206349206349206,
+     "clean_flag_rate": 0.8752948113207547,
+     "flag_precision": 0.0128560345782999,
+     "lift": 1.051133874806711,
+     "conflict_recall_after_drivers": 0.9316239316239316,
+     "clean_flag_rate_after_drivers": 0.8752086401570938
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.8809523809523809,
+     "clean_flag_rate": 0.8235062893081762,
+     "flag_precision": 0.01307266517489106,
+     "lift": 1.068846005013712,
+     "conflict_recall_after_drivers": 0.8888888888888888,
+     "clean_flag_rate_after_drivers": 0.8234658811978399
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.8015873015873016,
+     "clean_flag_rate": 0.7436124213836478,
+     "flag_precision": 0.013171622326551904,
+     "lift": 1.0769369302233154,
+     "conflict_recall_after_drivers": 0.8205128205128205,
+     "clean_flag_rate_after_drivers": 0.7434462444771723
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.6428571428571429,
+     "clean_flag_rate": 0.6171383647798742,
+     "flag_precision": 0.012733846879421475,
+     "lift": 1.0411435758079368,
+     "conflict_recall_after_drivers": 0.6495726495726496,
+     "clean_flag_rate_after_drivers": 0.6170839469808542
+    }
+   ],
+   "combined:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.6587301587301587,
+     "clean_flag_rate": 0.5460888364779874,
+     "flag_precision": 0.014716312056737589,
+     "lift": 1.2032337048294497,
+     "conflict_recall_after_drivers": 0.6495726495726496,
+     "clean_flag_rate_after_drivers": 0.5462935689739813
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.9682539682539683,
+     "clean_flag_rate": 0.9681603773584906,
+     "flag_precision": 0.012231802686986164,
+     "lift": 1.0000954863597735,
+     "conflict_recall_after_drivers": 0.9658119658119658,
+     "clean_flag_rate_after_drivers": 0.9681885125184094
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.987814465408805,
+     "flag_precision": 0.012088452088452089,
+     "lift": 0.9883748683748684,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.987825233186058
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9883058176100629,
+     "flag_precision": 0.012082514734774067,
+     "lift": 0.9878894190289083,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9883161512027492
+    }
+   ],
+   "knn": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9883058176100629,
+     "flag_precision": 0.012082514734774067,
+     "lift": 0.9878894190289083,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9883161512027492
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9860455974842768,
+     "flag_precision": 0.012109874963079649,
+     "lift": 0.9901264434098932,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9860579283259696
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9794614779874213,
+     "flag_precision": 0.012190287413280475,
+     "lift": 0.9967011185048846,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9794796269023073
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9790683962264151,
+     "flag_precision": 0.012195121951219513,
+     "lift": 0.9970963995354241,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9790868924889543
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9522405660377359,
+     "flag_precision": 0.012534393151941303,
+     "lift": 1.0248358591372961,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9522827687776141
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.9682539682539683,
+     "clean_flag_rate": 0.948997641509434,
+     "flag_precision": 0.012475713263114838,
+     "lift": 1.0200380796556276,
+     "conflict_recall_after_drivers": 0.9658119658119658,
+     "clean_flag_rate_after_drivers": 0.9490427098674521
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.9285714285714286,
+     "clean_flag_rate": 0.924626572327044,
+     "flag_precision": 0.012282175099727063,
+     "lift": 1.0042140307729224,
+     "conflict_recall_after_drivers": 0.9230769230769231,
+     "clean_flag_rate_after_drivers": 0.924693176239568
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.9126984126984127,
+     "clean_flag_rate": 0.8972091194968553,
+     "flag_precision": 0.012439156300703082,
+     "lift": 1.017049112776533,
+     "conflict_recall_after_drivers": 0.9145299145299145,
+     "clean_flag_rate_after_drivers": 0.8972017673048601
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.8968253968253969,
+     "clean_flag_rate": 0.8641902515723271,
+     "flag_precision": 0.01268665094869204,
+     "lift": 1.0372847466144874,
+     "conflict_recall_after_drivers": 0.8974358974358975,
+     "clean_flag_rate_after_drivers": 0.8642120765832106
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.8253968253968254,
+     "clean_flag_rate": 0.7433176100628931,
+     "flag_precision": 0.013562858633281168,
+     "lift": 1.1089251558735127,
+     "conflict_recall_after_drivers": 0.8376068376068376,
+     "clean_flag_rate_after_drivers": 0.7432498772704959
+    }
+   ],
+   "knn:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.8492063492063492,
+     "clean_flag_rate": 0.798250786163522,
+     "flag_precision": 0.013001215066828676,
+     "lift": 1.0630041080830877,
+     "conflict_recall_after_drivers": 0.8461538461538461,
+     "clean_flag_rate_after_drivers": 0.7983308787432499
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.9603174603174603,
+     "clean_flag_rate": 0.9761202830188679,
+     "flag_precision": 0.012035010940919038,
+     "lift": 0.9840054183599042,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.976141384388807
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.985750786163522,
+     "flag_precision": 0.012113452826472327,
+     "lift": 0.9904189763358565,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9857633775159549
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9883058176100629,
+     "flag_precision": 0.012082514734774067,
+     "lift": 0.9878894190289083,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9883161512027492
+    }
+   ],
+   "lexical": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9523809523809523,
+     "clean_flag_rate": 0.9262971698113207,
+     "flag_precision": 0.01257071024512885,
+     "lift": 1.0278052138517255,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.9262641138929799
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.8571428571428571,
+     "clean_flag_rate": 0.8374606918238994,
+     "flag_precision": 0.012514484356894553,
+     "lift": 1.0232080781327595,
+     "conflict_recall_after_drivers": 0.8547008547008547,
+     "clean_flag_rate_after_drivers": 0.8375061364752087
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.7857142857142857,
+     "clean_flag_rate": 0.7404677672955975,
+     "flag_precision": 0.012968299711815562,
+     "lift": 1.0603128859613011,
+     "conflict_recall_after_drivers": 0.7777777777777778,
+     "clean_flag_rate_after_drivers": 0.7405989199803633
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.6746031746031746,
+     "clean_flag_rate": 0.5479559748427673,
+     "flag_precision": 0.015015015015015015,
+     "lift": 1.2276562276562277,
+     "conflict_recall_after_drivers": 0.6837606837606838,
+     "clean_flag_rate_after_drivers": 0.5479626902307315
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.5079365079365079,
+     "clean_flag_rate": 0.3619300314465409,
+     "flag_precision": 0.017080330931411796,
+     "lift": 1.3965203909159074,
+     "conflict_recall_after_drivers": 0.5213675213675214,
+     "clean_flag_rate_after_drivers": 0.3619047619047619
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.3968253968253968,
+     "clean_flag_rate": 0.2529481132075472,
+     "flag_precision": 0.019054878048780487,
+     "lift": 1.5579631242740999,
+     "conflict_recall_after_drivers": 0.4017094017094017,
+     "clean_flag_rate_after_drivers": 0.25301914580265095
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.23809523809523808,
+     "clean_flag_rate": 0.1296187106918239,
+     "flag_precision": 0.02223869532987398,
+     "lift": 1.8182780895901727,
+     "conflict_recall_after_drivers": 0.23931623931623933,
+     "clean_flag_rate_after_drivers": 0.12970054000981837
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.12698412698412698,
+     "clean_flag_rate": 0.03341194968553459,
+     "flag_precision": 0.0449438202247191,
+     "lift": 3.674692348849652,
+     "conflict_recall_after_drivers": 0.1282051282051282,
+     "clean_flag_rate_after_drivers": 0.033480608738340696
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.06349206349206349,
+     "clean_flag_rate": 0.01346305031446541,
+     "flag_precision": 0.05517241379310345,
+     "lift": 4.511001642036125,
+     "conflict_recall_after_drivers": 0.05982905982905983,
+     "clean_flag_rate_after_drivers": 0.013549337260677467
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.0,
+     "clean_flag_rate": 0.0,
+     "flag_precision": null,
+     "lift": null,
+     "conflict_recall_after_drivers": 0.0,
+     "clean_flag_rate_after_drivers": 0.0
+    }
+   ],
+   "lexical:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.5714285714285714,
+     "clean_flag_rate": 0.43730345911949686,
+     "flag_precision": 0.01592215833701902,
+     "lift": 1.301825993555317,
+     "conflict_recall_after_drivers": 0.5811965811965812,
+     "clean_flag_rate_after_drivers": 0.43730976926853216
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.8333333333333334,
+     "clean_flag_rate": 0.7426297169811321,
+     "flag_precision": 0.01370399373531715,
+     "lift": 1.1204646306447403,
+     "conflict_recall_after_drivers": 0.8376068376068376,
+     "clean_flag_rate_after_drivers": 0.7426607756504664
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9285714285714286,
+     "clean_flag_rate": 0.8886595911949685,
+     "flag_precision": 0.01277292576419214,
+     "lift": 1.0443387398627573,
+     "conflict_recall_after_drivers": 0.9230769230769231,
+     "clean_flag_rate_after_drivers": 0.8887579774177712
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9603174603174603,
+     "clean_flag_rate": 0.9537146226415094,
+     "flag_precision": 0.012314268267860777,
+     "lift": 1.0068380293293788,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.9537555228276878
+    }
+   ],
+   "prior": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.0,
+     "clean_flag_rate": 0.0,
+     "flag_precision": null,
+     "lift": null,
+     "conflict_recall_after_drivers": 0.0,
+     "clean_flag_rate_after_drivers": 0.0
+    }
+   ],
+   "prior:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 2,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 3,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 5,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    }
+   ]
+  },
+  "substantive": {
+   "oracle_module": {
+    "conflict_recall": 0.9920634920634921,
+    "clean_flag_rate": 0.35809748427672955,
+    "flag_precision": 0.03316529583443884,
+    "lift": 2.7116577594157856,
+    "conflict_recall_after_drivers": 1.0,
+    "clean_flag_rate_after_drivers": 0.35856651939126166
+   },
+   "oracle_file": {
+    "conflict_recall": 1.0,
+    "clean_flag_rate": 0.044221698113207544,
+    "flag_precision": 0.21875,
+    "lift": 17.885416666666668,
+    "conflict_recall_after_drivers": 1.0,
+    "clean_flag_rate_after_drivers": 0.04506627393225331
+   },
+   "cochange": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.5714285714285714,
+     "clean_flag_rate": 0.547562893081761,
+     "flag_precision": 0.012756909992912827,
+     "lift": 1.0430292598967297,
+     "conflict_recall_after_drivers": 0.5811965811965812,
+     "clean_flag_rate_after_drivers": 0.5474717722140403
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.5476190476190477,
+     "clean_flag_rate": 0.514937106918239,
+     "flag_precision": 0.012996797890374836,
+     "lift": 1.0626429513225522,
+     "conflict_recall_after_drivers": 0.5641025641025641,
+     "clean_flag_rate_after_drivers": 0.5147766323024054
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.5,
+     "clean_flag_rate": 0.40172955974842767,
+     "flag_precision": 0.01517706576728499,
+     "lift": 1.2409058058299205,
+     "conflict_recall_after_drivers": 0.5299145299145299,
+     "clean_flag_rate_after_drivers": 0.40147275405007365
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.49206349206349204,
+     "clean_flag_rate": 0.35632861635220126,
+     "flag_precision": 0.016811279826464208,
+     "lift": 1.3745222600970974,
+     "conflict_recall_after_drivers": 0.5213675213675214,
+     "clean_flag_rate_after_drivers": 0.3561119293078056
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.47619047619047616,
+     "clean_flag_rate": 0.24400550314465408,
+     "flag_precision": 0.023594180102241447,
+     "lift": 1.9291051064546936,
+     "conflict_recall_after_drivers": 0.5042735042735043,
+     "clean_flag_rate_after_drivers": 0.2438880706921944
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.47619047619047616,
+     "clean_flag_rate": 0.235062893081761,
+     "flag_precision": 0.024469820554649267,
+     "lift": 2.000699137730133,
+     "conflict_recall_after_drivers": 0.5042735042735043,
+     "clean_flag_rate_after_drivers": 0.23495336278841433
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.4603174603174603,
+     "clean_flag_rate": 0.2233687106918239,
+     "flag_precision": 0.024882024882024883,
+     "lift": 2.034401748687463,
+     "conflict_recall_after_drivers": 0.48717948717948717,
+     "clean_flag_rate_after_drivers": 0.2232695139911635
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.4523809523809524,
+     "clean_flag_rate": 0.2172759433962264,
+     "flag_precision": 0.02513227513227513,
+     "lift": 2.054862685815067,
+     "conflict_recall_after_drivers": 0.47863247863247865,
+     "clean_flag_rate_after_drivers": 0.21718213058419245
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.373015873015873,
+     "clean_flag_rate": 0.19044811320754718,
+     "flag_precision": 0.02367758186397985,
+     "lift": 1.935924193354924,
+     "conflict_recall_after_drivers": 0.39316239316239315,
+     "clean_flag_rate_after_drivers": 0.19037800687285222
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.36507936507936506,
+     "clean_flag_rate": 0.16863207547169812,
+     "flag_precision": 0.026106696935300794,
+     "lift": 2.1345332684719747,
+     "conflict_recall_after_drivers": 0.38461538461538464,
+     "clean_flag_rate_after_drivers": 0.1685812469317624
+    }
+   ],
+   "cochange:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.40476190476190477,
+     "clean_flag_rate": 0.14819182389937108,
+     "flag_precision": 0.0327132777421424,
+     "lift": 2.674699899202786,
+     "conflict_recall_after_drivers": 0.42735042735042733,
+     "clean_flag_rate_after_drivers": 0.14815905743740795
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.5555555555555556,
+     "clean_flag_rate": 0.4418238993710692,
+     "flag_precision": 0.015330705212439772,
+     "lift": 1.2534676595123377,
+     "conflict_recall_after_drivers": 0.5726495726495726,
+     "clean_flag_rate_after_drivers": 0.44172803141875305
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.5714285714285714,
+     "clean_flag_rate": 0.5383254716981132,
+     "flag_precision": 0.012972972972972972,
+     "lift": 1.0606949806949808,
+     "conflict_recall_after_drivers": 0.5811965811965812,
+     "clean_flag_rate_after_drivers": 0.5382425135002454
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.5873015873015873,
+     "clean_flag_rate": 0.6054441823899371,
+     "flag_precision": 0.011868484362469928,
+     "lift": 0.9703898881124222,
+     "conflict_recall_after_drivers": 0.5982905982905983,
+     "clean_flag_rate_after_drivers": 0.605301914580265
+    }
+   ],
+   "combined": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.983687106918239,
+     "flag_precision": 0.012138557189381229,
+     "lift": 0.9924715568651225,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9837015218458517
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.968062106918239,
+     "flag_precision": 0.012332063364748345,
+     "lift": 1.0082929903463291,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9680903289150712
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9406446540880503,
+     "flag_precision": 0.012686952037132543,
+     "lift": 1.0373093641788846,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9406971035837015
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.8977004716981132,
+     "flag_precision": 0.013285806869734284,
+     "lift": 1.0862728759682745,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.8977908689248896
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.9365079365079365,
+     "clean_flag_rate": 0.8129913522012578,
+     "flag_precision": 0.014062686211416995,
+     "lift": 1.1497920107144277,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.8128620520373098
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.8888888888888888,
+     "clean_flag_rate": 0.7234669811320755,
+     "flag_precision": 0.014985282312014986,
+     "lift": 1.2252252252252254,
+     "conflict_recall_after_drivers": 0.905982905982906,
+     "clean_flag_rate_after_drivers": 0.7234167893961708
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.8095238095238095,
+     "clean_flag_rate": 0.6166470125786163,
+     "flag_precision": 0.0159949819664419,
+     "lift": 1.307780192208607,
+     "conflict_recall_after_drivers": 0.8205128205128205,
+     "clean_flag_rate_after_drivers": 0.6166912125675013
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.7380952380952381,
+     "clean_flag_rate": 0.5400943396226415,
+     "flag_precision": 0.016639828234031134,
+     "lift": 1.3605040513253075,
+     "conflict_recall_after_drivers": 0.7606837606837606,
+     "clean_flag_rate_after_drivers": 0.5400098183603338
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.5873015873015873,
+     "clean_flag_rate": 0.42423349056603776,
+     "flag_precision": 0.016852653154179,
+     "lift": 1.3779050221773974,
+     "conflict_recall_after_drivers": 0.6153846153846154,
+     "clean_flag_rate_after_drivers": 0.4240549828178694
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.4365079365079365,
+     "clean_flag_rate": 0.2943199685534591,
+     "flag_precision": 0.018032786885245903,
+     "lift": 1.4743950039032008,
+     "conflict_recall_after_drivers": 0.452991452991453,
+     "clean_flag_rate_after_drivers": 0.2942562592047128
+    }
+   ],
+   "combined:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.7698412698412699,
+     "clean_flag_rate": 0.554933176100629,
+     "flag_precision": 0.01688718662952646,
+     "lift": 1.380728544899854,
+     "conflict_recall_after_drivers": 0.7777777777777778,
+     "clean_flag_rate_after_drivers": 0.555031909671085
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.9682539682539683,
+     "clean_flag_rate": 0.8812893081761006,
+     "flag_precision": 0.013421342134213421,
+     "lift": 1.0973544973544973,
+     "conflict_recall_after_drivers": 0.9658119658119658,
+     "clean_flag_rate_after_drivers": 0.881394207167403
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9639347484276729,
+     "flag_precision": 0.012384212645992751,
+     "lift": 1.012556814912836,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.963966617574865
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9845715408805031,
+     "flag_precision": 0.012127785446657465,
+     "lift": 0.9915908386624223,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.984585174275896
+    }
+   ],
+   "knn": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9833922955974843,
+     "flag_precision": 0.012142152023692005,
+     "lift": 0.9927654773656749,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.983406971035837
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9535180817610063,
+     "flag_precision": 0.01251780989212294,
+     "lift": 1.023479980227385,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9535591556210113
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9209905660377359,
+     "flag_precision": 0.012954186413902054,
+     "lift": 1.0591589558414205,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.921060382916053
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.9682539682539683,
+     "clean_flag_rate": 0.8875786163522013,
+     "flag_precision": 0.013327507100720996,
+     "lift": 1.0896823662827597,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.8875797741777123
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.9206349206349206,
+     "clean_flag_rate": 0.7121658805031447,
+     "flag_precision": 0.015754447915251935,
+     "lift": 1.2881136700232179,
+     "conflict_recall_after_drivers": 0.9401709401709402,
+     "clean_flag_rate_after_drivers": 0.712125675012273
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.9047619047619048,
+     "clean_flag_rate": 0.6772798742138365,
+     "flag_precision": 0.01627176705680845,
+     "lift": 1.3304106684066719,
+     "conflict_recall_after_drivers": 0.9316239316239316,
+     "clean_flag_rate_after_drivers": 0.6771723122238587
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.7857142857142857,
+     "clean_flag_rate": 0.5287932389937107,
+     "flag_precision": 0.018065693430656934,
+     "lift": 1.4770855057351409,
+     "conflict_recall_after_drivers": 0.811965811965812,
+     "clean_flag_rate_after_drivers": 0.5287187039764359
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.6428571428571429,
+     "clean_flag_rate": 0.41745283018867924,
+     "flag_precision": 0.018711018711018712,
+     "lift": 1.52984852984853,
+     "conflict_recall_after_drivers": 0.6666666666666666,
+     "clean_flag_rate_after_drivers": 0.41737849779086894
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.46825396825396826,
+     "clean_flag_rate": 0.30601415094339623,
+     "flag_precision": 0.018594390167034354,
+     "lift": 1.5203127579427613,
+     "conflict_recall_after_drivers": 0.47863247863247865,
+     "clean_flag_rate_after_drivers": 0.30603829160530194
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.2222222222222222,
+     "clean_flag_rate": 0.1381682389937107,
+     "flag_precision": 0.019525801952580194,
+     "lift": 1.596466759646676,
+     "conflict_recall_after_drivers": 0.2222222222222222,
+     "clean_flag_rate_after_drivers": 0.13824251350024547
+    }
+   ],
+   "knn:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.7619047619047619,
+     "clean_flag_rate": 0.545499213836478,
+     "flag_precision": 0.01700017708517797,
+     "lift": 1.389966859773837,
+     "conflict_recall_after_drivers": 0.7692307692307693,
+     "clean_flag_rate_after_drivers": 0.5456062837506136
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.9523809523809523,
+     "clean_flag_rate": 0.8484669811320755,
+     "flag_precision": 0.013708019191226868,
+     "lift": 1.120793759587454,
+     "conflict_recall_after_drivers": 0.9658119658119658,
+     "clean_flag_rate_after_drivers": 0.8484045164457535
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9682539682539683,
+     "clean_flag_rate": 0.9513561320754716,
+     "flag_precision": 0.01244516984596552,
+     "lift": 1.017540791691562,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9513009327442317
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9761904761904762,
+     "clean_flag_rate": 0.9841784591194969,
+     "flag_precision": 0.01213257052673111,
+     "lift": 0.9919820759236818,
+     "conflict_recall_after_drivers": 0.9743589743589743,
+     "clean_flag_rate_after_drivers": 0.9841924398625429
+    }
+   ],
+   "lexical": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 0.9523809523809523,
+     "clean_flag_rate": 0.9259040880503144,
+     "flag_precision": 0.012575979878432194,
+     "lift": 1.0282360691080037,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.9258713794796269
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 0.8571428571428571,
+     "clean_flag_rate": 0.8373624213836478,
+     "flag_precision": 0.012515934639007997,
+     "lift": 1.0233266559607967,
+     "conflict_recall_after_drivers": 0.8547008547008547,
+     "clean_flag_rate_after_drivers": 0.8374079528718704
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 0.7857142857142857,
+     "clean_flag_rate": 0.7403694968553459,
+     "flag_precision": 0.012969998689899122,
+     "lift": 1.0604517976455616,
+     "conflict_recall_after_drivers": 0.7777777777777778,
+     "clean_flag_rate_after_drivers": 0.7405007363770251
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 0.6746031746031746,
+     "clean_flag_rate": 0.5478577044025157,
+     "flag_precision": 0.015017667844522967,
+     "lift": 1.2278731280498065,
+     "conflict_recall_after_drivers": 0.6837606837606838,
+     "clean_flag_rate_after_drivers": 0.5478645066273933
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 0.5079365079365079,
+     "clean_flag_rate": 0.3619300314465409,
+     "flag_precision": 0.017080330931411796,
+     "lift": 1.3965203909159074,
+     "conflict_recall_after_drivers": 0.5213675213675214,
+     "clean_flag_rate_after_drivers": 0.3619047619047619
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 0.3968253968253968,
+     "clean_flag_rate": 0.2529481132075472,
+     "flag_precision": 0.019054878048780487,
+     "lift": 1.5579631242740999,
+     "conflict_recall_after_drivers": 0.4017094017094017,
+     "clean_flag_rate_after_drivers": 0.25301914580265095
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.23809523809523808,
+     "clean_flag_rate": 0.1296187106918239,
+     "flag_precision": 0.02223869532987398,
+     "lift": 1.8182780895901727,
+     "conflict_recall_after_drivers": 0.23931623931623933,
+     "clean_flag_rate_after_drivers": 0.12970054000981837
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.12698412698412698,
+     "clean_flag_rate": 0.03341194968553459,
+     "flag_precision": 0.0449438202247191,
+     "lift": 3.674692348849652,
+     "conflict_recall_after_drivers": 0.1282051282051282,
+     "clean_flag_rate_after_drivers": 0.033480608738340696
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.06349206349206349,
+     "clean_flag_rate": 0.01346305031446541,
+     "flag_precision": 0.05517241379310345,
+     "lift": 4.511001642036125,
+     "conflict_recall_after_drivers": 0.05982905982905983,
+     "clean_flag_rate_after_drivers": 0.013549337260677467
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.0,
+     "clean_flag_rate": 0.0,
+     "flag_precision": null,
+     "lift": null,
+     "conflict_recall_after_drivers": 0.0,
+     "clean_flag_rate_after_drivers": 0.0
+    }
+   ],
+   "lexical:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 0.5714285714285714,
+     "clean_flag_rate": 0.43730345911949686,
+     "flag_precision": 0.01592215833701902,
+     "lift": 1.301825993555317,
+     "conflict_recall_after_drivers": 0.5811965811965812,
+     "clean_flag_rate_after_drivers": 0.43730976926853216
+    },
+    {
+     "k": 2,
+     "conflict_recall": 0.8333333333333334,
+     "clean_flag_rate": 0.7429245283018868,
+     "flag_precision": 0.0136986301369863,
+     "lift": 1.1200260926288323,
+     "conflict_recall_after_drivers": 0.8376068376068376,
+     "clean_flag_rate_after_drivers": 0.7429553264604811
+    },
+    {
+     "k": 3,
+     "conflict_recall": 0.9285714285714286,
+     "clean_flag_rate": 0.8886595911949685,
+     "flag_precision": 0.01277292576419214,
+     "lift": 1.0443387398627573,
+     "conflict_recall_after_drivers": 0.9230769230769231,
+     "clean_flag_rate_after_drivers": 0.8887579774177712
+    },
+    {
+     "k": 5,
+     "conflict_recall": 0.9603174603174603,
+     "clean_flag_rate": 0.9540094339622641,
+     "flag_precision": 0.012310509716146098,
+     "lift": 1.0065307229820406,
+     "conflict_recall_after_drivers": 0.9572649572649573,
+     "clean_flag_rate_after_drivers": 0.9540500736377026
+    }
+   ],
+   "prior": [
+    {
+     "threshold": 0.05,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.1,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.15,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.2,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.3,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.4,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "threshold": 0.5,
+     "conflict_recall": 0.746031746031746,
+     "clean_flag_rate": 0.8006092767295597,
+     "flag_precision": 0.011406382720543623,
+     "lift": 0.9326075776749239,
+     "conflict_recall_after_drivers": 0.7435897435897436,
+     "clean_flag_rate_after_drivers": 0.8005891016200295
+    },
+    {
+     "threshold": 0.6,
+     "conflict_recall": 0.38095238095238093,
+     "clean_flag_rate": 0.41971305031446543,
+     "flag_precision": 0.011113683723084047,
+     "lift": 0.908675950120729,
+     "conflict_recall_after_drivers": 0.38461538461538464,
+     "clean_flag_rate_after_drivers": 0.4196367206676485
+    },
+    {
+     "threshold": 0.7,
+     "conflict_recall": 0.05555555555555555,
+     "clean_flag_rate": 0.050314465408805034,
+     "flag_precision": 0.01348747591522158,
+     "lift": 1.1027617212588312,
+     "conflict_recall_after_drivers": 0.05128205128205128,
+     "clean_flag_rate_after_drivers": 0.05036818851251841
+    },
+    {
+     "threshold": 0.8,
+     "conflict_recall": 0.0,
+     "clean_flag_rate": 0.0,
+     "flag_precision": null,
+     "lift": null,
+     "conflict_recall_after_drivers": 0.0,
+     "clean_flag_rate_after_drivers": 0.0
+    }
+   ],
+   "prior:topk": [
+    {
+     "k": 1,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 2,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 3,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    },
+    {
+     "k": 5,
+     "conflict_recall": 1.0,
+     "clean_flag_rate": 1.0,
+     "flag_precision": 0.0122306348281887,
+     "lift": 1.0,
+     "conflict_recall_after_drivers": 1.0,
+     "clean_flag_rate_after_drivers": 1.0
+    }
+   ]
+  }
+ },
+ "corpus": "workers-sdk",
+ "pairs_file": "pairs.jsonl"
+}

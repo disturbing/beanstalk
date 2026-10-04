@@ -1,0 +1,18 @@
+{
+  "id": "t021",
+  "title": "Retired products are still visible by id",
+  "prompt": "When a product is retired (`active` set to false) it disappears from the catalogue list, but `GET /products/:id` still returns it, so old links keep working and customers can see prices for things we no longer sell.\n\nMake the public product endpoint answer 404 for retired products. Admin tooling that reads products through the service layer is not affected, and the product list behaves as before.",
+  "acceptance_tests": {
+    "src/catalog/hidden-product.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, signUp } from '../lib/testing.ts';\nimport { getProduct, updateProduct } from './service.ts';\n\ndescribe('retired products', () => {\n  it('answer 404 on the public endpoint', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx);\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 200);\n    updateProduct(app.ctx, product.id, { active: false });\n    const res = app.call('GET', `/products/${product.id}`);\n    assert.equal(res.status, 404);\n  });\n\n  it('can be brought back by an admin', () => {\n    const app = createTestApp();\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const product = addProduct(app.ctx);\n    app.call('PATCH', `/products/${product.id}`, { token: admin.token, body: { active: false } });\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 404);\n    app.call('PATCH', `/products/${product.id}`, { token: admin.token, body: { active: true } });\n    assert.equal(app.call('GET', `/products/${product.id}`).status, 200);\n  });\n\n  it('are still readable through the service layer', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx);\n    updateProduct(app.ctx, product.id, { active: false });\n    assert.equal(getProduct(app.ctx, product.id).active, false);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/catalog/handlers.ts",
+    "src/catalog/hidden-product.test.ts"
+  ],
+  "oracle_modules": [
+    "src/catalog"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": []
+}

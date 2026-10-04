@@ -1,0 +1,20 @@
+{
+  "id": "t015",
+  "title": "Move the coupon rules out of discounts.ts into their own module",
+  "prompt": "billing/discounts.ts mixes two concerns: the rules for coupons (is this coupon usable, and how much does it take off) and the arithmetic for splitting a discount over invoice lines.\n\nMove `validateCoupon` and `couponDiscount` into a new billing/coupons.ts and leave `allocateDiscount` in discounts.ts. Behaviour must not change. The invoice code should import the coupon functions from the new module, and discounts.ts should keep re-exporting the two moved functions so existing imports keep working.",
+  "acceptance_tests": {
+    "src/billing/coupons.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport * as discounts from './discounts.ts';\nimport { couponDiscount, validateCoupon } from './coupons.ts';\nimport type { Coupon } from '../types.ts';\n\nconst coupon: Coupon = { id: 'C', kind: 'percent', value: 25, minSubtotal: 1000, expiresAt: null, maxRedemptions: null, redemptions: 0 };\n\ndescribe('coupon rules module', () => {\n  it('takes a percentage or a fixed amount off', () => {\n    assert.equal(couponDiscount(coupon, 2000), 500);\n    assert.equal(couponDiscount({ ...coupon, kind: 'fixed', value: 300 }, 2000), 300);\n  });\n\n  it('checks the minimum subtotal', () => {\n    assert.equal(validateCoupon(coupon, 1000, 'USD'), coupon);\n    assert.throws(() => validateCoupon(coupon, 999, 'USD'), /at least \\$10\\.00/);\n  });\n\n  it('keeps the old import path working', () => {\n    assert.equal(discounts.couponDiscount, couponDiscount);\n    assert.equal(discounts.validateCoupon, validateCoupon);\n    assert.deepEqual(discounts.allocateDiscount([1000, 3000], 400), [100, 300]);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/coupons.test.ts",
+    "src/billing/coupons.ts",
+    "src/billing/discounts.ts",
+    "src/billing/invoice.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "refactor",
+  "difficulty": 1,
+  "couplings": []
+}

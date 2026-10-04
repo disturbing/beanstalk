@@ -1,0 +1,44 @@
+{
+  "id": "L09",
+  "title": "Work out session expiry in one place + Active customers are logged out in the middle of a session + Reject weak passwords at registration",
+  "prompt": "Three related tickets in sessions and accounts are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Work out session expiry in one place\n\nThe session lifetime sum (`now + sessionTtlSeconds`) is written out inline in createSession in auth/sessions.ts, and we are about to need it in more places. Move it into an exported helper `sessionExpiry(ctx, from?)` in the same file that returns the ISO timestamp one session lifetime after `from` (default: now, from the context's clock), and use it in createSession. Behaviour must not change.\n\n### Ticket 2: Active customers are logged out in the middle of a session\n\nSessions expire a fixed time after login even if the customer is busy shopping, which logs people out halfway through checkout.\n\nMake the expiry sliding: every authenticated request moves the session's expiry out to a full session lifetime from now. A session that has already expired stays rejected and is not revived by later requests.\n\n### Ticket 3: Reject weak passwords at registration\n\nRegistration currently accepts a one-character password. Require passwords to be at least 8 characters long, and reject a password that is the same as the account's email address (compared ignoring case). Registration must fail with a 400 and the message \"password must be at least 8 characters\" or \"password must not be your email address\" respectively, before any account is created.\n",
+  "acceptance_tests": {
+    "src/auth/session-expiry.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, signUp } from '../lib/testing.ts';\nimport { createSession, sessionExpiry } from './sessions.ts';\n\ndescribe('sessionExpiry', () => {\n  it('is one lifetime after now by default', () => {\n    const app = createTestApp();\n    assert.equal(sessionExpiry(app.ctx), '2026-09-15T13:00:00.000Z');\n    app.clock.advance(60_000);\n    assert.equal(sessionExpiry(app.ctx), '2026-09-15T13:01:00.000Z');\n  });\n\n  it('can start from any moment and follows the configured lifetime', () => {\n    const app = createTestApp();\n    app.ctx.config.sessionTtlSeconds = 90;\n    assert.equal(sessionExpiry(app.ctx, new Date('2026-01-01T00:00:00.000Z')), '2026-01-01T00:01:30.000Z');\n  });\n\n  it('is what new sessions expire at', () => {\n    const app = createTestApp();\n    const { user } = signUp(app.ctx);\n    app.clock.advance(5_000);\n    assert.equal(createSession(app.ctx, user.id).expiresAt, sessionExpiry(app.ctx));\n  });\n});\n",
+    "src/auth/sliding-sessions.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, signUp } from '../lib/testing.ts';\n\nconst MINUTE = 60_000;\n\nfunction setup() {\n  const app = createTestApp();\n  app.ctx.config.sessionTtlSeconds = 3600;\n  const { token } = signUp(app.ctx);\n  const me = () => app.call('GET', '/users/me', { token }).status;\n  return { app, token, me };\n}\n\ndescribe('sliding sessions', () => {\n  it('stay alive while the customer keeps using them', () => {\n    const { app, me } = setup();\n    app.clock.advance(50 * MINUTE);\n    assert.equal(me(), 200);\n    app.clock.advance(50 * MINUTE);\n    assert.equal(me(), 200, 'the first request moved the expiry out');\n    app.clock.advance(61 * MINUTE);\n    assert.equal(me(), 401, 'but an idle hour still expires it');\n  });\n\n  it('record the new expiry', () => {\n    const { app, token, me } = setup();\n    app.clock.advance(10 * MINUTE);\n    me();\n    assert.equal(app.ctx.store.sessions.require(token).expiresAt, '2026-09-15T13:10:00.000Z');\n  });\n\n  it('do not revive an expired session', () => {\n    const { app, token, me } = setup();\n    app.clock.advance(61 * MINUTE);\n    assert.equal(me(), 401);\n    assert.equal(app.ctx.store.sessions.require(token).expiresAt, '2026-09-15T13:00:00.000Z', 'rejected request left the expiry alone');\n    assert.equal(me(), 401);\n  });\n});\n",
+    "src/users/password-policy.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, errorMessage } from '../lib/testing.ts';\n\nconst register = (app: ReturnType<typeof createTestApp>, password: string, email = 'ada@example.com') =>\n  app.call('POST', '/users', { body: { email, name: 'Ada', password } });\n\ndescribe('password policy', () => {\n  it('rejects passwords shorter than 8 characters', () => {\n    const app = createTestApp();\n    const res = register(app, 'short12');\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'password must be at least 8 characters');\n    assert.equal(app.ctx.store.users.all().length, 0);\n  });\n\n  it('accepts exactly 8 characters', () => {\n    assert.equal(register(createTestApp(), 'abcd1234').status, 201);\n  });\n\n  it('rejects the email address as a password, ignoring case', () => {\n    const app = createTestApp();\n    const res = register(app, 'ADA@example.com');\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'password must not be your email address');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/auth/guard.ts",
+    "src/auth/password.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sessions.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/service.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/auth",
+    "src/users"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "members": [
+    "t012",
+    "t014",
+    "t020"
+  ],
+  "couplings": [
+    {
+      "with": "L04",
+      "type": "textual",
+      "members": [
+        "t020",
+        "t027"
+      ],
+      "note": "t020 x t027: Both change the first lines of registerUser() in users/service.ts: one modifies the email normalisation line, the other adds password checks right after it."
+    }
+  ],
+  "theme": "sessions and accounts"
+}

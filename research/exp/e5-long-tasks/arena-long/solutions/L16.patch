@@ -1,0 +1,68 @@
+diff --git a/README.md b/README.md
+index 91d422c..aa292aa 100644
+--- a/README.md
++++ b/README.md
+@@ -51,5 +51,5 @@ Settings come from environment variables (see `src/config.ts`).
+ - Prices are tax exclusive; tax is worked out per invoice line from the shipping address.
+ - Standard shipping is charged by destination zone and weight; express costs double.
+ - A session lasts `SESSION_TTL_SECONDS` from login.
+-- Stock is reserved at checkout and released when an order is cancelled.
++- Stock is reserved at checkout and released when an order is cancelled. Carts cannot hold more than is available.
+ - Coupons take a percentage or a fixed amount off and can have a minimum subtotal.
+diff --git a/src/cart/service.ts b/src/cart/service.ts
+index 7fb43e3..e1d98ba 100644
+--- a/src/cart/service.ts
++++ b/src/cart/service.ts
+@@ -1,3 +1,4 @@
++import { assertAvailable } from '../inventory/stock.ts';
+ import { badRequest } from '../lib/errors.ts';
+ import { sumCents } from '../lib/money.ts';
+ import type { AppContext, Cart, Cents, Product } from '../types.ts';
+@@ -34,6 +35,7 @@ export function addItem(ctx: AppContext, userId: string, productId: string, quan
+   if (!product.active) throw badRequest(`${product.name} is not available`);
+   const cart = getCart(ctx, userId);
+   const existing = cart.lines.find((line) => line.productId === productId);
++  assertAvailable(ctx, productId, (existing?.quantity ?? 0) + quantity);
+   if (existing) {
+     existing.quantity += quantity;
+   } else {
+@@ -49,6 +51,7 @@ export function setQuantity(ctx: AppContext, userId: string, productId: string,
+   const cart = getCart(ctx, userId);
+   const line = cart.lines.find((l) => l.productId === productId);
+   if (!line) throw badRequest('product is not in the cart');
++  if (quantity > line.quantity) assertAvailable(ctx, productId, quantity);
+   if (quantity === 0) cart.lines = cart.lines.filter((l) => l !== line);
+   else line.quantity = quantity;
+   return saveCart(ctx, cart);
+diff --git a/src/inventory/stock.ts b/src/inventory/stock.ts
+index a736d91..02443f6 100644
+--- a/src/inventory/stock.ts
++++ b/src/inventory/stock.ts
+@@ -9,6 +9,12 @@ export function availableQuantity(level: StockLevel): number {
+   return level.onHand - level.reserved;
+ }
+ 
++/** Fail with a 409 unless `quantity` units of the product could be reserved right now. */
++export function assertAvailable(ctx: AppContext, productId: string, quantity: number): void {
++  const available = availableQuantity(getStock(ctx, productId));
++  if (quantity > available) throw conflict(`only ${Math.max(available, 0)} left in stock`);
++}
++
+ export function setStock(ctx: AppContext, productId: string, onHand: number): StockLevel {
+   if (!Number.isInteger(onHand) || onHand < 0) throw badRequest('onHand must be a non-negative integer');
+   const existing = ctx.store.stock.get(productId);
+@@ -19,10 +25,12 @@ export function setStock(ctx: AppContext, productId: string, onHand: number): St
+ /** Hold stock for an order. Fails with 409 if any line cannot be covered. */
+ export function reserve(ctx: AppContext, lines: CartLine[]): void {
+   for (const line of lines) {
+-    const level = getStock(ctx, line.productId);
+-    if (availableQuantity(level) < line.quantity) {
++    if (availableQuantity(getStock(ctx, line.productId)) < line.quantity) {
+       throw conflict(`not enough stock for ${line.productId}`);
+     }
++  }
++  for (const line of lines) {
++    const level = getStock(ctx, line.productId);
+     setReserved(ctx, level, level.reserved + line.quantity);
+   }
+ }

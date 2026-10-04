@@ -1,0 +1,33 @@
+{
+  "id": "t006",
+  "title": "fix: fall back to default checkbox renderer when extension returns false",
+  "prompt": "**Markdown flavor:** GitHub Flavored Markdown\n\nA renderer extension named after a built-in token can return `false` to fall back to the default renderer — that's the documented contract in USING_PRO, and it works for `code`, `heading`, `text` and the rest. It doesn't work for `checkbox`: the checkbox silently disappears instead.\n\n```js\nconst marked = new Marked({\n  extensions: [{\n    name: 'checkbox',\n    renderer(token) {\n      return token.checked ? false : '<span class=\"todo\"></span> ';\n    },\n  }],\n});\n\nmarked.parse('- [x] one\\n- [ ] two\\n');\n```\n\nI expected the checked item to fall back to the default `<input checked=\"\" disabled=\"\" type=\"checkbox\">`, but it renders as just `<li>one</li>`. The unchecked item never returns `false`, and it renders fine, so only the fallback path is broken.\n\n`Parser` decides whether a `false` return should fall through to the built-in renderer by testing the token type against a hardcoded list of built-in type names. `checkbox` was added to both parse switches in #3755 but never to either list, so the fallback branch is unreachable for it and the `ret || ''` path wins.\n\nAdded `checkbox` to the block and inline lists. Both matter in practice: a tight list puts the checkbox token at block level while a loose list puts it inline, so there's a test for each.",
+  "acceptance_tests": {
+    "test/unit/marked.pr4023.test.js": "import { Marked, Renderer, lexer, parseInline, getDefaults, walkTokens, defaults, setOptions } from '../../lib/marked.esm.js';\nimport { timeout } from './utils.js';\nimport assert from 'node:assert';\nimport { describe, it, beforeEach, mock } from 'node:test';\n\ndescribe('marked unit', () => {\n  let marked;\n  beforeEach(() => {\n    marked = new Marked();\n    setOptions(getDefaults());\n  });\n\n  describe('use extension', () => {\n\n    it('should fall back to the default checkbox renderer if the extension returns false', () => {\n      marked.use({\n        extensions: [{\n          name: 'checkbox',\n          renderer(token) {\n            return token.checked ? false : '<span class=\"todo\"></span> ';\n          },\n        }],\n      });\n      const html = marked.parse('- [x] one\\n- [ ] two\\n');\n      assert.strictEqual(html, '<ul>\\n<li><input checked=\"\" disabled=\"\" type=\"checkbox\"> one</li>\\n<li><span class=\"todo\"></span> two</li>\\n</ul>\\n');\n    });\n\n    it('should fall back to the default checkbox renderer in a loose list if the extension returns false', () => {\n      marked.use({\n        extensions: [{\n          name: 'checkbox',\n          renderer() {\n            return false;\n          },\n        }],\n      });\n      const html = marked.parse('- [x] one\\n\\n- [ ] two\\n');\n      assert.strictEqual(html, '<ul>\\n<li><p><input checked=\"\" disabled=\"\" type=\"checkbox\"> one</p>\\n</li>\\n<li><p><input disabled=\"\" type=\"checkbox\"> two</p>\\n</li>\\n</ul>\\n');\n    });\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/Parser.ts",
+    "test/unit/marked.pr4023.test.js"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/unit"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4023,
+    "sha": "e1b6139fec38345460f0df901723d8cdbade4fbf",
+    "url": "https://github.com/markedjs/marked/pull/4023",
+    "author": "sarathfrancis90",
+    "merged_at": "2026-07-24T04:37:40Z",
+    "pr_base_sha": "9154f8f3cb2fa136d85b61e1eacc4ef381a3b629",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 4,
+    "notes": [
+      "test/unit/marked.test.js: 2 added/modified case(s) extracted to test/unit/marked.pr4023.test.js"
+    ]
+  }
+}

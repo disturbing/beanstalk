@@ -1,0 +1,19 @@
+[race-slot] slot 1 acquired 14:25:26: python3 e7_driver.py --in-slot --no-hold --label C cmd:/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race-dev/precheck_inner.sh v2:claude:5:1 queue:claude:13:1 v2:claude:13:1 queue:mixed:7:0 v2:mixed:7:0 queue:claude:3:1:rerun v2:claude:3:1:rerun
+14:25:26 driver C: cmd:/Users/coop/Workspace/beanstalk/research/exp/e7-variance-mixed/race-dev/precheck_inner.sh v2:claude:5:1 queue:claude:13:1 v2:claude:13:1 queue:mixed:7:0 v2:mixed:7:0 queue:claude:3:1:rerun v2:claude:3:1:rerun; waiting for pids []
+14:25:26 QUEUED cmd precheck_inner.sh
+14:26:48 END cmd precheck_inner.sh exit 0
+         start: 14:25  up 1 day,  6:22, 12 users, load averages: 4.86 7.75 19.00
+         end:   14:26  up 1 day,  6:24, 12 users, load averages: 7.61 8.23 18.19
+14:26:48 QUEUED e7-v2-claude-12-s5-shuf attempt 1 harness 853567307776 spent $13.60
+14:41:19 END e7-v2-claude-12-s5-shuf attempt 1 exit 0 cost $5.60 aborted=None
+         start: 14:26  up 1 day,  6:24, 12 users, load averages: 7.61 8.23 18.19
+         end:   14:41  up 1 day,  6:38, 12 users, load averages: 44.25 60.11 50.53
+14:41:19 SKIP e7-queue-claude-12-s13-shuf: spent $119.20 + cap $15 would pass $70
+14:41:19 SKIP e7-v2-claude-12-s13-shuf: spent $119.20 + cap $15 would pass $70
+14:41:19 SKIP e7-queue-mixed-12-s7: spent $119.20 + cap $15 would pass $70
+14:41:19 SKIP e7-v2-mixed-12-s7: spent $119.20 + cap $15 would pass $70
+14:41:19 moved the flagged first run of e7-queue-claude-12-s3-shuf to flagged-highload-e7-queue-claude-12-s3-shuf
+14:41:19 SKIP e7-queue-claude-12-s3-shuf: spent $114.82 + cap $15 would pass $70
+14:41:19 moved the flagged first run of e7-v2-claude-12-s3-shuf to flagged-highload-e7-v2-claude-12-s3-shuf
+14:41:19 SKIP e7-v2-claude-12-s3-shuf: spent $110.63 + cap $15 would pass $70
+14:41:19 driver C done

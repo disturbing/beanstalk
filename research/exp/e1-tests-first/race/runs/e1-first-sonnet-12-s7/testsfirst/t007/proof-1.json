@@ -1,0 +1,75 @@
+{
+ "task": "t007",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/note.test.ts"
+ ],
+ "results": {
+  "src/orders/note.test.ts": {
+   "status": "fails-first",
+   "why": "9 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 9,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > stores the note on the order, trimmed",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'leave with the concierge'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > defaults to an empty string when no note is given",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== ''"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > stores a blank note as an empty string",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== ''"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > accepts a note of exactly 200 characters",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > rejects a note longer than 200 characters with a 400",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > returns the note when the order is fetched or listed",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'ring twice'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > keeps the note after the order is cancelled",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'side door'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order note migration > gives existing orders an empty note",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(ran.length >= 1)"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order note migration > registers the new migration after the existing ones",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(migrations.length > 5)"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

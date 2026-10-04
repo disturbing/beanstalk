@@ -1,0 +1,21 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 668ddef..81653c7 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,3 +3,4 @@
+ ## Unreleased
+ 
+ - Initial shop service.
++- Add a GET /health liveness endpoint.
+diff --git a/src/routes/index.ts b/src/routes/index.ts
+index 26ab1a3..71a9970 100644
+--- a/src/routes/index.ts
++++ b/src/routes/index.ts
+@@ -7,6 +7,7 @@ export interface Route {
+ export const routes: Route[] = [
+   { method: "GET", path: "/cart", handler: () => ({ items: [] }) },
+   { method: "POST", path: "/checkout", handler: () => ({ ok: true }) },
++  { method: "GET", path: "/health", handler: () => ({ status: "ok" }) },
+ ];
+ 
+ export function findRoute(method: string, path: string): Route | undefined {

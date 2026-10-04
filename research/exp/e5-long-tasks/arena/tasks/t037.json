@@ -1,0 +1,18 @@
+{
+  "id": "t037",
+  "title": "Make product filtering a pure function",
+  "prompt": "listProducts in catalog/service.ts reads from the store and applies the filter rules in the same breath, which makes the rules awkward to reuse and to test. Extract them into an exported pure function `filterProducts(products, filter)` that takes an array of products and the same filter object and returns the products that pass, in their original order, without modifying the input. listProducts should use it (and still sort by name). Behaviour must not change.",
+  "acceptance_tests": {
+    "src/catalog/filter-products.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp } from '../lib/testing.ts';\nimport type { Product } from '../types.ts';\nimport { filterProducts, listProducts } from './service.ts';\n\nconst product = (id: string, overrides: Partial<Product> = {}): Product => ({\n  id, sku: `SKU-${id}`, name: `Item ${id}`, description: '', price: 1000, category: 'general',\n  taxClass: 'standard', weightKg: 0.5, active: true, createdAt: '2026-09-01T00:00:00.000Z', ...overrides,\n});\n\ndescribe('filterProducts', () => {\n  const items = [\n    product('c', { category: 'tea', name: 'Green tea' }),\n    product('a', { category: 'coffee', name: 'Dark roast', description: 'Strong coffee' }),\n    product('b', { category: 'coffee', name: 'Decaf', active: false }),\n  ];\n\n  it('hides retired products unless asked', () => {\n    assert.deepEqual(filterProducts(items).map((p) => p.id), ['c', 'a']);\n    assert.deepEqual(filterProducts(items, { includeInactive: true }).map((p) => p.id), ['c', 'a', 'b']);\n  });\n\n  it('filters by category and by search words, keeping the input order', () => {\n    assert.deepEqual(filterProducts(items, { category: 'coffee' }).map((p) => p.id), ['a']);\n    assert.deepEqual(filterProducts(items, { q: 'STRONG coffee' }).map((p) => p.id), ['a']);\n    assert.deepEqual(filterProducts(items, { category: 'tea', q: 'roast' }), []);\n  });\n\n  it('does not modify its input', () => {\n    const copy = structuredClone(items);\n    filterProducts(items, { category: 'tea' });\n    assert.deepEqual(items, copy);\n  });\n});\n\ndescribe('listProducts', () => {\n  it('still sorts by name', () => {\n    const app = createTestApp();\n    addProduct(app.ctx, { name: 'Zinc' });\n    addProduct(app.ctx, { name: 'Alloy' });\n    assert.deepEqual(listProducts(app.ctx).map((p) => p.name), ['Alloy', 'Zinc']);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/service.ts"
+  ],
+  "oracle_modules": [
+    "src/catalog"
+  ],
+  "kind": "refactor",
+  "difficulty": 1,
+  "couplings": []
+}

@@ -1,0 +1,93 @@
+{
+ "task": "t033",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/shipping/free-shipping.test.ts"
+ ],
+ "results": {
+  "src/shipping/free-shipping.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 12 tests fail on the current code",
+   "tests": 12,
+   "failing": 6,
+   "passing": 6,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > exports the threshold as $75.00 in cents",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 7500"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > quotes free standard shipping when goods total exactly the threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1500 !== 0"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > charges standard shipping one cent below the threshold",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > uses price times quantity summed over all lines",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1500 !== 0"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > defaults to standard when no method is given",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1200 !== 0"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > never makes express shipping free",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > does not change the delivery estimate",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > charges no standard shipping on an order at the threshold",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1350 !== 0"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > still charges standard shipping on an order below the threshold",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > measures the threshold before discounts",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1200 !== 0"
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > measures the threshold before tax, not after",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/shipping/free-shipping.test.ts",
+     "name": "free standard shipping threshold > keeps express shipping charged on an order over the threshold",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

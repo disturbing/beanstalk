@@ -1,0 +1,22 @@
+diff --git a/src/catalog/handlers.ts b/src/catalog/handlers.ts
+index 3ebf385..f1519e9 100644
+--- a/src/catalog/handlers.ts
++++ b/src/catalog/handlers.ts
+@@ -1,3 +1,4 @@
++import { notFound } from '../lib/errors.ts';
+ import { paginate } from '../lib/pagination.ts';
+ import { asBody, optionalString, requireInt, requireString } from '../lib/validate.ts';
+ import { created, ok } from '../router.ts';
+@@ -10,7 +11,11 @@ export const list: Handler = (req, ctx) => {
+   return ok(paginate(products, req.query, ctx.config.pageSize));
+ };
+ 
+-export const get: Handler = (req, ctx) => ok(getProduct(ctx, req.params.id));
++export const get: Handler = (req, ctx) => {
++  const product = getProduct(ctx, req.params.id);
++  if (!product.active) throw notFound('product');
++  return ok(product);
++};
+ 
+ export const create: Handler = (req, ctx) => {
+   const body = asBody(req.body);

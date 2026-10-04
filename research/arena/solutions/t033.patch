@@ -1,0 +1,41 @@
+diff --git a/README.md b/README.md
+index 91d422c..593e629 100644
+--- a/README.md
++++ b/README.md
+@@ -49,7 +49,7 @@ Settings come from environment variables (see `src/config.ts`).
+ ## Behaviour
+ 
+ - Prices are tax exclusive; tax is worked out per invoice line from the shipping address.
+-- Standard shipping is charged by destination zone and weight; express costs double.
++- Standard shipping is charged by destination zone and weight and is free for orders with $75 or more of goods; express costs double and is never free.
+ - A session lasts `SESSION_TTL_SECONDS` from login.
+ - Stock is reserved at checkout and released when an order is cancelled.
+ - Coupons take a percentage or a fixed amount off and can have a minimum subtotal.
+diff --git a/src/shipping/service.ts b/src/shipping/service.ts
+index 9f8e623..391d12d 100644
+--- a/src/shipping/service.ts
++++ b/src/shipping/service.ts
+@@ -1,8 +1,12 @@
+ import { enqueueNotification } from '../notifications/queue.ts';
+ import { badRequest, conflict } from '../lib/errors.ts';
++import { sumCents } from '../lib/money.ts';
+ import type { AppContext, Order, Shipment, ShippingMethod, ShippingQuote } from '../types.ts';
+ import { quoteShipping } from './rates.ts';
+ 
++/** Standard shipping is free once the goods in an order come to this many cents. */
++export const FREE_SHIPPING_THRESHOLD = 7500;
++
+ /** Weight of an order's lines, from current catalog data. */
+ export function orderWeight(ctx: AppContext, order: Pick<Order, 'lines'>): number {
+   return order.lines.reduce((kg, line) => {
+@@ -16,7 +20,9 @@ export function quoteForOrder(
+   order: Pick<Order, 'lines' | 'shippingAddress'>,
+   method: ShippingMethod = 'standard',
+ ): ShippingQuote {
+-  return quoteShipping(order.shippingAddress, orderWeight(ctx, order), method, ctx.config.defaultCountry);
++  const quote = quoteShipping(order.shippingAddress, orderWeight(ctx, order), method, ctx.config.defaultCountry);
++  const goods = sumCents(order.lines.map((line) => line.unitPrice * line.quantity));
++  return method === 'standard' && goods >= FREE_SHIPPING_THRESHOLD ? { ...quote, cost: 0 } : quote;
+ }
+ 
+ export function getShipment(ctx: AppContext, orderId: string): Shipment | undefined {

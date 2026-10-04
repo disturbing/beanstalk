@@ -1,0 +1,13 @@
+{
+ "number": 3991,
+ "sha": "bbb84c88cf3a187c93fbc8966002164d229eba62",
+ "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+ "body": "## Description\n\nWhile checking marked against the CommonMark spec I noticed that text following the closing delimiter of an HTML block on the *same line* is dropped from the block for type 3 (`<?...?>`), type 4 (`<!...>`), and type 5 (`<![CDATA[...]]>`).\n\nCommonMark ends these blocks on the line containing the closing delimiter, and the entire line \u2014 including anything after the delimiter \u2014 is part of the raw HTML block. marked already handles this for type 2 comments (spec [example 177](https://spec.commonmark.org/0.31.2/#example-177) shows `<!-- foo -->*bar*` keeping `*bar*` as raw text), but rules 3\u20135 stopped right at the delimiter, so the trailing text got split off and reparsed.\n\nFor example:\n\n```\n<?php echo '>'; ?>*not emphasis*\n```\n\nrendered as:\n\n```html\n<?php echo '>'; ?><p><em>not emphasis</em></p>\n```\n\ninstead of leaving `*not emphasis*` inside the HTML block like the reference does.\n\n## Fix\n\nThe comment rule (2) already consumes the rest of the closing line with a trailing `[^\\n]*`. I applied the same to rules 3, 4, and 5 so they consume to the end of the closing line before the newline.\n\n## Tests\n\nAdded `test/specs/new/html_block_trailing_text.md` covering all three block types. It fails on `master` and passes with this change. Full CommonMark/GFM spec suites, unit tests, lint, types, and the ReDoS check are all green, and the CommonMark conformance score is unchanged.\n\n## Contributor checklist\n\n- [x] Tests pass (`npm test`)\n- [x] Lint passes (`npm run lint`)\n- [x] Added a test for the fixed behavior",
+ "author": "sarathfrancis90",
+ "created_at": "2026-06-12T03:50:04Z",
+ "merged_at": "2026-06-30T04:22:44Z",
+ "pr_base_sha": "71caeed94b48606686d874d091b32c8c9eb7a23c",
+ "pr_head_sha": "477b7c3524e14c1799b97cd43ed31750cfbfa5bf",
+ "commits": 1,
+ "linked_issues": []
+}

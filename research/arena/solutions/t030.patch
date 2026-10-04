@@ -1,0 +1,12 @@
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..c9ce6f6 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -18,6 +18,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+   const address = user.addresses[input.addressIndex];
+   if (!address) throw badRequest('choose a saved shipping address');
+   const cart = getCart(ctx, user.id);
++  if (cart.lines.length === 0) throw badRequest('cart is empty');
+   const priced = priceCart(ctx, cart);
+ 
+   reserve(ctx, cart.lines);

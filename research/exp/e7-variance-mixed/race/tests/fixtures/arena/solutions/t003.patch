@@ -1,0 +1,19 @@
+diff --git a/src/cart/index.ts b/src/cart/index.ts
+index 6844f7f..88ba5c6 100644
+--- a/src/cart/index.ts
++++ b/src/cart/index.ts
+@@ -9,7 +9,12 @@ export function itemCount(items: LineItem[]): number {
+   return items.reduce((n, item) => n + item.qty, 0);
+ }
+ 
+-/** Amount the customer pays, in cents. */
++export const DISCOUNT_THRESHOLD_CENTS = 10000;
++export const DISCOUNT_RATE = 0.1;
++
++/** Amount the customer pays, in cents: 10% off orders of $100 or more. */
+ export function total(items: LineItem[]): number {
+-  return items.reduce((sum, item) => sum + item.priceCents * item.qty, 0);
++  const gross = items.reduce((sum, item) => sum + item.priceCents * item.qty, 0);
++  if (gross < DISCOUNT_THRESHOLD_CENTS) return gross;
++  return Math.round(gross * (1 - DISCOUNT_RATE));
+ }

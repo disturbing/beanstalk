@@ -1,0 +1,92 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..8cdbd79 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Order confirmation emails list every line item.
+ - `GET /inventory/low-stock` for admins.
++- `POST /orders/:id/reorder` refills the cart from an earlier order.
+ 
+ ### Changed
+ 
+diff --git a/README.md b/README.md
+index 91d422c..e8c247b 100644
+--- a/README.md
++++ b/README.md
+@@ -24,7 +24,7 @@ Routes are registered in one place, `src/routes.ts`.
+ | GET | `/products`, `/products/:id` | public |
+ | POST, PATCH | `/products`, `/products/:id` | admin |
+ | GET, POST, PATCH, DELETE | `/cart`, `/cart/items`, `/cart/items/:productId` | user |
+-| POST | `/checkout`, `/orders/:id/cancel` | user |
++| POST | `/checkout`, `/orders/:id/cancel`, `/orders/:id/reorder` | user |
+ | GET | `/orders`, `/orders/:id`, `/orders/:id/invoice`, `/orders/:id/shipment` | user |
+ | GET | `/invoices/:id` | user |
+ | POST | `/invoices/:id/pay`, `/orders/:id/ship` | admin |
+diff --git a/src/orders/handlers.ts b/src/orders/handlers.ts
+index c1230fa..a3744b8 100644
+--- a/src/orders/handlers.ts
++++ b/src/orders/handlers.ts
+@@ -5,7 +5,7 @@ import { created, ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { ShippingMethod } from '../types.ts';
+ import { checkout as placeOrder } from './checkout.ts';
+-import { cancelOrder, getVisibleOrder, listOrders } from './service.ts';
++import { cancelOrder, getVisibleOrder, listOrders, reorder as reorderOrder } from './service.ts';
+ 
+ export const checkout: Handler = (req, ctx) => {
+   const body = asBody(req.body);
+@@ -27,3 +27,5 @@ export const list: Handler = (req, ctx) =>
+ export const get: Handler = (req, ctx) => ok(getVisibleOrder(ctx, req.user!, req.params.id));
+ 
+ export const cancel: Handler = (req, ctx) => ok(cancelOrder(ctx, req.user!, req.params.id));
++
++export const reorder: Handler = (req, ctx) => ok(reorderOrder(ctx, req.user!, req.params.id));
+diff --git a/src/orders/service.ts b/src/orders/service.ts
+index 3082ba0..6e43310 100644
+--- a/src/orders/service.ts
++++ b/src/orders/service.ts
+@@ -1,8 +1,9 @@
+ import { voidInvoice } from '../billing/service.ts';
+ import { release } from '../inventory/stock.ts';
++import { addItem } from '../cart/service.ts';
+ import { conflict, notFound } from '../lib/errors.ts';
+ import { enqueueNotification } from '../notifications/queue.ts';
+-import type { AppContext, Order, OrderStatus, User } from '../types.ts';
++import type { AppContext, CartLine, Order, OrderStatus, User } from '../types.ts';
+ 
+ const CANCELLABLE: OrderStatus[] = ['pending', 'confirmed'];
+ 
+@@ -38,3 +39,20 @@ export function cancelOrder(ctx: AppContext, user: User, id: string): Order {
+   enqueueNotification(ctx, 'order_cancelled', cancelled);
+   return cancelled;
+ }
++
++/** Put the lines of one of the user's own earlier orders back into their cart. */
++export function reorder(ctx: AppContext, user: User, id: string): { added: CartLine[]; skipped: string[] } {
++  const order = getOrder(ctx, id);
++  if (order.userId !== user.id) throw notFound('order');
++  const added: CartLine[] = [];
++  const skipped: string[] = [];
++  for (const line of order.lines) {
++    if (!ctx.store.products.get(line.productId)?.active) {
++      skipped.push(line.productId);
++      continue;
++    }
++    addItem(ctx, user.id, line.productId, line.quantity);
++    added.push({ productId: line.productId, quantity: line.quantity });
++  }
++  return { added, skipped };
++}
+diff --git a/src/routes.ts b/src/routes.ts
+index 80658b8..0dd28f6 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -38,6 +38,7 @@ export function registerRoutes(router: Router): void {
+   router.add('GET', '/orders', 'user', orders.list);
+   router.add('GET', '/orders/:id', 'user', orders.get);
+   router.add('POST', '/orders/:id/cancel', 'user', orders.cancel);
++  router.add('POST', '/orders/:id/reorder', 'user', orders.reorder);
+ 
+   // billing
+   router.add('GET', '/orders/:id/invoice', 'user', billing.invoiceForOrder);

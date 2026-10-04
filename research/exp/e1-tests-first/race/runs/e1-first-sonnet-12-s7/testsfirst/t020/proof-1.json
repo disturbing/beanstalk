@@ -1,0 +1,45 @@
+{
+ "task": "t020",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/users/password-strength.test.ts"
+ ],
+ "results": {
+  "src/users/password-strength.test.ts": {
+   "status": "fails-first",
+   "why": "2 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 2,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/users/password-strength.test.ts",
+     "name": "password strength at registration > rejects a password shorter than 8 characters with a 400 and creates no account",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/users/password-strength.test.ts",
+     "name": "password strength at registration > accepts a password of exactly 8 characters",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/users/password-strength.test.ts",
+     "name": "password strength at registration > rejects a password equal to the email address, ignoring case, and creates no account",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/users/password-strength.test.ts",
+     "name": "password strength at registration > still accepts a password that merely contains the email address",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,51 @@
+{
+ "task": "t014",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/auth/sliding-sessions.test.ts"
+ ],
+ "results": {
+  "src/auth/sliding-sessions.test.ts": {
+   "status": "fails-first",
+   "why": "2 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 2,
+   "passing": 3,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding sessions > keeps an active customer logged in past the original expiry",
+     "status": "fail",
+     "message": "request 1\n\n401 !== 200"
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding sessions > moves expiresAt out to a full lifetime from now on each authenticated request",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 1789477200000\n- 1789479000000\n        ^"
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding sessions > still expires a full lifetime after the last request",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding sessions > does not revive a session that has already expired",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/auth/sliding-sessions.test.ts",
+     "name": "sliding sessions > does not extend a session for requests with a different token",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

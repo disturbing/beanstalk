@@ -1,0 +1,39 @@
+{
+ "task": "t038",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/coupon-cap.test.ts"
+ ],
+ "results": {
+  "src/billing/coupon-cap.test.ts": {
+   "status": "fails-first",
+   "why": "3 of 3 tests fail on the current code",
+   "tests": 3,
+   "failing": 3,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/coupon-cap.test.ts",
+     "name": "fixed coupons are capped at the subtotal > couponDiscount never exceeds the subtotal",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n5000 !== 3000"
+    },
+    {
+     "file": "src/billing/coupon-cap.test.ts",
+     "name": "fixed coupons are capped at the subtotal > buildInvoice gives a zero total and no tax when the coupon exceeds the cart",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n5000 !== 3000"
+    },
+    {
+     "file": "src/billing/coupon-cap.test.ts",
+     "name": "fixed coupons are capped at the subtotal > checkout of a $30 cart with a $50 coupon yields a zero order and invoice",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n5000 !== 3000"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

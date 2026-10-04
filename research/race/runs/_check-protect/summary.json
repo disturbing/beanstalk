@@ -1,0 +1,312 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 4 tasks, policy=queue, agent=replay (replay control: reference patches, synthetic timings)",
+  "policy": "queue",
+  "agent": "replay",
+  "model": "replay",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 4,
+    "ci_seconds": 1.0,
+    "ci_slots": 2,
+    "batch": 4,
+    "seed": 3,
+    "budget_usd": 25.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": true,
+    "snapshot": null,
+    "queue_hold": false,
+    "error_budget": null,
+    "footprint": "predictor",
+    "tasks": 4,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 6.13,
+  "tasks": 4,
+  "tasks_green": 2,
+  "tasks_landed": 2,
+  "tasks_dropped": 2,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {
+    "replay could not resolve the conflict or red (limitation of replay agents)": 2
+  },
+  "changes_green_per_hour": 1173.991,
+  "wall_to_all_green_seconds": null,
+  "task_start_to_green_seconds": {
+    "median": 2.84,
+    "p90": 3.14,
+    "mean": 2.84
+  },
+  "agent_minutes": {
+    "busy": 0.2,
+    "blocked": 0.01,
+    "idle": 0.2
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.08,
+      "blocked": 0.0,
+      "idle": 0.02
+    },
+    "a1": {
+      "busy": 0.08,
+      "blocked": 0.0,
+      "idle": 0.02
+    },
+    "a2": {
+      "busy": 0.03,
+      "blocked": 0.0,
+      "idle": 0.07
+    },
+    "a3": {
+      "busy": 0.02,
+      "blocked": 0.0,
+      "idle": 0.08
+    }
+  },
+  "invocations": {
+    "initial": 4,
+    "rework": 2
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 4,
+      "cost_usd": 0.0,
+      "turns": 4,
+      "wall_s": 8.415,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 2,
+      "cost_usd": 0.0,
+      "turns": 2,
+      "wall_s": 3.635,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0.0,
+  "cost_by_kind": {
+    "initial": 0.0,
+    "rework": 0.0
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    },
+    "rework": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": null,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0.0
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "batch": 3
+  },
+  "ci_runs_total": 3,
+  "ci_minutes": {
+    "batch": 0.07
+  },
+  "ci_minutes_total": 0.07,
+  "textual_conflicts": 1,
+  "red_validations": 1,
+  "final": {
+    "sha": "3772c6d84f43418b766faba35e7912209e2407b8",
+    "suite_green": true,
+    "suite_tests": 86,
+    "suite_failures": 0,
+    "acceptance_run_green": false,
+    "tasks_accepted": 2,
+    "tasks_total": 4,
+    "green_tasks_accepted": 2,
+    "green_tasks": 2,
+    "correct": true,
+    "all_tasks_accepted": false,
+    "failing_files": [
+      "src/billing/coupon-limits.test.ts",
+      "src/lib/money-format.test.ts",
+      "src/orders/confirmation-grouping.test.ts"
+    ],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.5,
+      "recall": 0.25,
+      "f1": 0.3333,
+      "tasks": 2,
+      "micro_recall": 0.3333,
+      "micro_precision": 0.5
+    },
+    "vs_oracle": {
+      "precision": 0.5,
+      "recall": 0.25,
+      "f1": 0.3333,
+      "tasks": 2,
+      "micro_recall": 0.3333,
+      "micro_precision": 0.5
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "dropped",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict or red (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t005": {
+      "status": "dropped",
+      "agent": "a1",
+      "started_at": 0.002,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 1,
+      "predicted": [
+        "src/lib"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict or red (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t031": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.002,
+      "landed_at": 3.223,
+      "green_at": 3.223,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t040": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.002,
+      "landed_at": 2.455,
+      "green_at": 2.455,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/db"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "queue": {
+    "batches": 3,
+    "batches_green": 2,
+    "batches_red": 1,
+    "batches_cancelled": 0,
+    "bisections": 0,
+    "bisect_runs": 0,
+    "ejections_conflict": 1,
+    "ejections_red": 1,
+    "requeued_without_agent": 0,
+    "held_behind_inflight": 0,
+    "mean_batch_size": 1.0
+  },
+  "policy_rows": [
+    [
+      "Batches (green / red / cancelled)",
+      "2 / 1 / 0"
+    ],
+    [
+      "Bisections / bisect CI runs",
+      "0 / 0"
+    ],
+    [
+      "Ejections (conflict / red)",
+      "1 / 1"
+    ],
+    [
+      "PRs held behind in-flight conflicts",
+      0
+    ],
+    [
+      "Mean batch size",
+      1.0
+    ]
+  ]
+}

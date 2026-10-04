@@ -1,0 +1,51 @@
+{
+ "task": "t011",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/shipping/tracking.test.ts"
+ ],
+ "results": {
+  "src/shipping/tracking.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 5,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > returns the updated order without a tracking number",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\ntrue !== false"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > stores the tracking number on the shipment and serves it from GET /orders/:id/shipment",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'TRK-5'"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking numbers on shipments > does not keep a tracking number on stored orders",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\ntrue !== false"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking number migration > copies the order tracking number to its existing shipment and drops the order column",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(ran.length >= 1)"
+    },
+    {
+     "file": "src/shipping/tracking.test.ts",
+     "name": "tracking number migration > leaves a fully migrated database without an order tracking column",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\ntrue !== false"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

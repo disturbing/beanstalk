@@ -1,0 +1,104 @@
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..4b483d2 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -1,6 +1,6 @@
+ import { issueInvoice } from '../billing/service.ts';
+ import { clearCart, getCart, priceCart } from '../cart/service.ts';
+-import { reserve } from '../inventory/stock.ts';
++import { release, reserve } from '../inventory/stock.ts';
+ import { badRequest } from '../lib/errors.ts';
+ import { enqueueNotification } from '../notifications/queue.ts';
+ import { quoteForOrder } from '../shipping/service.ts';
+@@ -22,47 +22,53 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+ 
+   reserve(ctx, cart.lines);
+ 
+-  const orderId = ctx.store.nextId('ord');
+-  const invoice = issueInvoice(ctx, {
+-    orderId,
+-    userId: user.id,
+-    address,
+-    couponCode: input.couponCode,
+-    items: priced.lines.map((line) => ({
++  let order: Order;
++  try {
++    const orderId = ctx.store.nextId('ord');
++    const invoice = issueInvoice(ctx, {
++      orderId,
++      userId: user.id,
++      address,
++      couponCode: input.couponCode,
++      items: priced.lines.map((line) => ({
++        productId: line.productId,
++        description: line.name,
++        quantity: line.quantity,
++        unitPrice: line.unitPrice,
++        taxClass: line.product.taxClass,
++      })),
++    });
++
++    const lines: OrderLine[] = priced.lines.map((line) => ({
+       productId: line.productId,
+-      description: line.name,
++      name: line.name,
+       quantity: line.quantity,
+       unitPrice: line.unitPrice,
+-      taxClass: line.product.taxClass,
+-    })),
+-  });
+-
+-  const lines: OrderLine[] = priced.lines.map((line) => ({
+-    productId: line.productId,
+-    name: line.name,
+-    quantity: line.quantity,
+-    unitPrice: line.unitPrice,
+-  }));
+-  const shipping = quoteForOrder(ctx, { lines, shippingAddress: address }, input.method ?? 'standard');
+-  const now = ctx.clock.now().toISOString();
+-  const order = ctx.store.orders.insert({
+-    id: orderId,
+-    number: `${ctx.config.orderNumberPrefix}-${orderId.slice(4)}`,
+-    userId: user.id,
+-    status: 'confirmed',
+-    lines,
+-    subtotal: invoice.subtotal,
+-    discount: invoice.discount,
+-    tax: invoice.tax,
+-    shippingCost: shipping.cost,
+-    total: invoice.total,
+-    couponCode: invoice.couponCode,
+-    shippingAddress: address,
+-    invoiceId: invoice.id,
+-    trackingNumber: null,
+-    createdAt: now,
+-    updatedAt: now,
+-  });
++    }));
++    const shipping = quoteForOrder(ctx, { lines, shippingAddress: address }, input.method ?? 'standard');
++    const now = ctx.clock.now().toISOString();
++    order = ctx.store.orders.insert({
++      id: orderId,
++      number: `${ctx.config.orderNumberPrefix}-${orderId.slice(4)}`,
++      userId: user.id,
++      status: 'confirmed',
++      lines,
++      subtotal: invoice.subtotal,
++      discount: invoice.discount,
++      tax: invoice.tax,
++      shippingCost: shipping.cost,
++      total: invoice.total,
++      couponCode: invoice.couponCode,
++      shippingAddress: address,
++      invoiceId: invoice.id,
++      trackingNumber: null,
++      createdAt: now,
++      updatedAt: now,
++    });
++  } catch (error) {
++    release(ctx, cart.lines);
++    throw error;
++  }
+ 
+   clearCart(ctx, user.id);
+   enqueueNotification(ctx, 'order_confirmed', order);

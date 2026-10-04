@@ -1,0 +1,26 @@
+{
+  "id": "t020",
+  "title": "Reject weak passwords at registration",
+  "prompt": "Registration currently accepts a one-character password. Require passwords to be at least 8 characters long, and reject a password that is the same as the account's email address (compared ignoring case). Registration must fail with a 400 and the message \"password must be at least 8 characters\" or \"password must not be your email address\" respectively, before any account is created.",
+  "acceptance_tests": {
+    "src/users/password-policy.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, errorMessage } from '../lib/testing.ts';\n\nconst register = (app: ReturnType<typeof createTestApp>, password: string, email = 'ada@example.com') =>\n  app.call('POST', '/users', { body: { email, name: 'Ada', password } });\n\ndescribe('password policy', () => {\n  it('rejects passwords shorter than 8 characters', () => {\n    const app = createTestApp();\n    const res = register(app, 'short12');\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'password must be at least 8 characters');\n    assert.equal(app.ctx.store.users.all().length, 0);\n  });\n\n  it('accepts exactly 8 characters', () => {\n    assert.equal(register(createTestApp(), 'abcd1234').status, 201);\n  });\n\n  it('rejects the email address as a password, ignoring case', () => {\n    const app = createTestApp();\n    const res = register(app, 'ADA@example.com');\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'password must not be your email address');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/auth/password.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/service.ts"
+  ],
+  "oracle_modules": [
+    "src/auth",
+    "src/users"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t027",
+      "type": "textual",
+      "note": "Both change the first lines of registerUser() in users/service.ts: one modifies the email normalisation line, the other adds password checks right after it."
+    }
+  ]
+}

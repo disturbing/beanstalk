@@ -1,0 +1,57 @@
+{
+ "task": "t010",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/tax-exempt.test.ts"
+ ],
+ "results": {
+  "src/billing/tax-exempt.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 5,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > defaults taxExempt to false for newly registered users",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- false"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > migrates existing users to taxExempt false",
+     "status": "fail",
+     "message": "The expression evaluated to a falsy value:\n\n  assert.ok(ran.length > 0)"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > charges no tax on any line for an exempt customer",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0.13 !== 0"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > exempts regardless of destination and tax class",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1400 !== 0"
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > still taxes customers who are not exempt",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/tax-exempt.test.ts",
+     "name": "tax-exempt customers > only exempts the flagged customer",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1300 !== 0"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

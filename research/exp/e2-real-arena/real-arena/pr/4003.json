@@ -1,0 +1,20 @@
+{
+ "number": 4003,
+ "sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+ "title": "fix: Fix ordered lists after blockquotes",
+ "body": "**Marked version:**\n\n18.0.5\n\n**Markdown flavor:** Markdown.pl|CommonMark|GitHub Flavored Markdown|n/a\n\nCommonMark / GitHub Flavored Markdown\n\n## Description\n\n- Fixes #4002.\n- Keeps ordered lists that follow a blockquote as sibling blocks instead of lazy blockquote continuations.\n- Adds a regression spec for an ordered list after a blockquote.\n\n## Tests\n\n- `npm test`\n\n## Contributor\n\n- [x] Test(s) exist to ensure functionality and minimize regression (if no tests added, list tests covering this PR); or,\n- [ ] no tests required for this PR.\n- [ ] If submitting new feature, it has been documented in the appropriate places.\n\n## Committer\n\nIn most cases, this should be a different person than the contributor.\n\n- [ ] CI is green (no forced merge required).\n- [ ] Squash and Merge PR following [conventional commit guidelines](https://www.conventionalcommits.org/).\n",
+ "author": "cyphercodes",
+ "created_at": "2026-06-23T15:34:18Z",
+ "merged_at": "2026-06-30T04:23:31Z",
+ "pr_base_sha": "f8f411256680bfc870a4faba729409be68fcef4b",
+ "pr_head_sha": "3fd93a460b41d90e874c80a79ff76949972a3468",
+ "commits": 1,
+ "linked_issues": [
+  {
+   "number": 4002,
+   "title": "Ordered list following a blockquote is incorrectly nested inside the blockquote",
+   "body": "**Marked version:** 18.0.5\n\n**Describe the bug**\n\nWhen an **ordered list item** immediately follows a blockquote line (no blank line, list marker at column 0), marked\u2019s `blockquote` tokenizer **lazy-continues** and absorbs the list into the blockquote. The list is parsed as a nested ordered list inside the blockquote instead of a sibling block.\n\nThis affects **ordered lists only**. An unordered list after a blockquote is parsed correctly as a sibling. A blockquote followed by a blank line and then a list is also parsed correctly.\n\nThe root cause appears to be in the `blockquote()` tokenizer: when the last parsed child inside a blockquote is a `list`, marked merges remaining lines into that list (`h?.type === \"list\"` branch), which pulls in subsequent ordered-list lines that should end the blockquote.\n\n**To Reproduce**\n\n1. [Marked Demo](https://marked.js.org/demo/) \u2014 paste:\n\n```markdown\n1. test\n> blockquote\n2. test\n> blockquote\n```\n\n2. [CommonMark Dingus](https://spec.commonmark.org/dingus/) \u2014 same input.\n\nOr run locally:\n\n```bash\nnpm install marked\nnode -e \"\nconst { marked } = require('marked');\nconst md = \\`1. test\n> blockquote\n2. test\n> blockquote\\`;\nconsole.log(marked.parse(md, { gfm: true, breaks: true }));\n\"\n```\n\n**Actual output (marked):**\n\n```html\n<ol>\n<li>test</li>\n</ol>\n<blockquote>\n<p>blockquote</p>\n<ol start=\"2\">\n<li>test<br>blockquote</li>\n</ol>\n</blockquote>\n```\n\nLexer tokens show the second list item and the second `> blockquote` line are trapped inside one blockquote token:\n\n```js\n// Simplified token tree\n[\n  { type: 'list', items: [{ text: 'test' }] },\n  {\n    type: 'blockquote',\n    tokens: [\n      { type: 'paragraph', text: 'blockquote' },\n      { type: 'list', ordered: true, start: 2, items: [{ text: 'test\\nblockquote' }] }\n    ]\n  }\n]\n```\n\n**Expected behavior**\n\nPer CommonMark (and micromark), the blockquote should close after its content, and the following ordered list items and blockquotes should be **sibling blocks**:\n\n```html\n<ol>\n<li>test</li>\n</ol>\n<blockquote>\n<p>blockquote</p>\n</blockquote>\n<ol start=\"2\">\n<li>test</li>\n</ol>\n<blockquote>\n<p>blockquote</p>\n</blockquote>\n```\n\nMinimal case:\n\n```markdown\n> blockquote\n2. test\n```\n\n**Expected:** `<blockquote><p>blockquote</p></blockquote>` followed by `<ol start=\"2\"><li>test</li></ol>`.\n\n**Actual:** the `<ol>` is nested inside the `<blockquote>`.\n\n",
+   "is_pr": false
+  }
+ ]
+}

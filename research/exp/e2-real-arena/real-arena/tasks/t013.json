@@ -1,0 +1,33 @@
+{
+  "id": "t013",
+  "title": "fix: remove up to the fence indentation from each content line",
+  "prompt": "**Marked version:** 18.0.11 (53cb13f1)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\nCommonMark removes up to N spaces from each line of a fenced code block when the opening fence is indented by N. `indentCodeCompensation` only strips a line that is indented at least N:\n\n```js\nif (indentInNode.length >= indentToCode.length) {\n  return node.slice(indentToCode.length);\n}\n\nreturn node;\n```\n\nSo a line indented less than the fence keeps all of its indentation instead of losing what it has.\n\n## Expectation\n\nFor example 133, a fence indented by three spaces:\n\n````\n   ```\n   aaa\n    aaa\n  aaa\n   ```\n````\n\ngives `aaa\\n aaa\\naaa\\n`. The four space line keeps one, the two space line keeps none.\n\n## Result\n\n`aaa\\n aaa\\n  aaa\\n`. The four space line is handled correctly, the two space line keeps both of its spaces.\n\n## What was attempted\n\n`node.slice(Math.min(indentInNode.length, indentToCode.length))` covers both directions, so the branch goes away rather than gaining a case.\n\nI diffed the exact-match failure set across the whole spec before and after: 133 moves to passing and nothing else changes, in both the CommonMark and GFM runs.\n\nThis is the same blind spot as #4073. `htmlIsEqual` builds `@markedjs/html-differ` with only `ignoreSelfClosingSlash` and `ignoreComments`, so `ignoreWhitespaces` stays at its default of `true`. Whitespace inside `pre`/`code` is significant, so 133 was already reported as passing and carries no `shouldFail` flag. The spec suite therefore cannot protect this fix either, which is why the tests below assert exact output.\n\nA correction to something I wrote in #4073 and in #4050, since it is wrong and has been repeated since: I described example 318 as a lexer bug. It is not. Code token text has no single convention, `'```\\nb\\n```'` gives `\"b\"` while `'    b\\n'` gives `\"b\\n\"`, and `Renderer.code`'s strip-then-append exists to reconcile that. The token is correct under marked's own convention and the renderer is where the trailing blank lines are lost. I tried the obvious fix, moving the newline inside the fences capture group and reducing the renderer to `const code = text`. It fixes 126, 130, 144, 237 and 318, and breaks 117, 128, 211, 236, 253 and 272, because indented code and fenced code inside a blockquote genuinely have no trailing newline in the token and rely on the renderer supplying it. Fixing 318 properly means agreeing one convention across every code token path, which changes `token.text` for fenced code and is a decision for the team rather than a drive-by PR.",
+  "acceptance_tests": {
+    "test/specs/new/fence_indent_stripping.html": "<pre><code>aaa\n aaa\naaa\n</code></pre>\n<p>sep</p>\n<pre><code>    aaa\n</code></pre>\n",
+    "test/specs/new/fence_indent_stripping.md": "---\nrenderExact: true\n---\n   ```\n   aaa\n    aaa\n  aaa\n   ```\n\nsep\n\n  ```\n      aaa\n  ```\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/new/fence_indent_stripping.html",
+    "test/specs/new/fence_indent_stripping.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4074,
+    "sha": "0244f08d6253993fff0755c3edece62002692b31",
+    "url": "https://github.com/markedjs/marked/pull/4074",
+    "author": "Kjubikstronk",
+    "merged_at": "2026-09-04T05:10:40Z",
+    "pr_base_sha": "53cb13f13fc13d433269248c5caa255ffa1361ee",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 8,
+    "notes": []
+  }
+}

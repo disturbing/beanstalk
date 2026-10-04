@@ -1,0 +1,51 @@
+{
+  "id": "L04",
+  "title": "Show thousands separators in displayed amounts + Customers can register twice with different capitalisation",
+  "prompt": "Two related tickets in customer accounts and money formatting are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Show thousands separators in displayed amounts\n\nLarge amounts are hard to read in emails and invoices (\"$1234567.89\"). Format money with a comma between groups of thousands: `$1,234,567.89`, `-$1,234.50`, `€12,000.00`. Amounts below 1,000 look exactly as they do today.\n\n### Ticket 2: Customers can register twice with different capitalisation\n\n\"Ada@Example.com\" and \"ada@example.com\" are treated as two different customers, so one person can end up with two accounts, and a customer who signed up as \"Ada@Example.com\" cannot log in by typing their address in lower case.\n\nTreat email addresses case-insensitively: store them lower-cased, and look them up regardless of case (whitespace around an address is still ignored). Registering an address that exists in another capitalisation must fail with the usual 409.\n",
+  "acceptance_tests": {
+    "src/lib/money-format.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { formatMoney } from './money.ts';\n\ndescribe('formatMoney digit grouping', () => {\n  it('groups thousands with commas', () => {\n    assert.equal(formatMoney(123456789), '$1,234,567.89');\n    assert.equal(formatMoney(100000), '$1,000.00');\n    assert.equal(formatMoney(1200000, 'EUR'), '€12,000.00');\n  });\n\n  it('keeps the sign in front and small amounts unchanged', () => {\n    assert.equal(formatMoney(-123450), '-$1,234.50');\n    assert.equal(formatMoney(99999), '$999.99');\n    assert.equal(formatMoney(5), '$0.05');\n    assert.equal(formatMoney(0, 'GBP'), '£0.00');\n  });\n});\n",
+    "src/orders/confirmation-grouping.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, US_ADDRESS } from '../lib/testing.ts';\n\ndescribe('order confirmation with digit grouping', () => {\n  it('groups thousands in line items and the total', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 150000, quantity: 2, address: US_ADDRESS, stock: 5 });\n    const body = app.mailer.sent[0].body;\n    assert.match(body, /2 x Product \\d+ - \\$3,000\\.00/);\n    assert.match(body, /Total: \\$3,195\\.00$/);\n  });\n\n  it('leaves small orders unchanged', () => {\n    const app = createTestApp();\n    placeOrder(app, { price: 4000, address: US_ADDRESS });\n    assert.match(app.mailer.sent[0].body, /Total: \\$42\\.60$/);\n  });\n});\n",
+    "src/users/email-case.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp } from '../lib/testing.ts';\nimport type { User } from '../types.ts';\n\nconst body = { name: 'Ada', password: 'correct horse' };\n\ndescribe('email case', () => {\n  it('stores addresses in lower case', () => {\n    const app = createTestApp();\n    const res = app.call('POST', '/users', { body: { ...body, email: '  Ada@Example.COM ' } });\n    assert.equal(res.status, 201);\n    assert.equal((res.body as User).email, 'ada@example.com');\n  });\n\n  it('refuses a second account that differs only in case', () => {\n    const app = createTestApp();\n    app.call('POST', '/users', { body: { ...body, email: 'Ada@Example.com' } });\n    assert.equal(app.call('POST', '/users', { body: { ...body, email: 'ada@example.com' } }).status, 409);\n    assert.equal(app.ctx.store.users.all().length, 1);\n  });\n\n  it('lets customers log in with any capitalisation', () => {\n    const app = createTestApp();\n    app.call('POST', '/users', { body: { ...body, email: 'Ada@Example.com' } });\n    for (const email of ['ada@example.com', 'ADA@EXAMPLE.COM', ' Ada@Example.com ']) {\n      assert.equal(app.call('POST', '/auth/login', { body: { email, password: body.password } }).status, 200, email);\n    }\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/lib/money-format.test.ts",
+    "src/lib/money.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/service.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/lib",
+    "src/orders",
+    "src/users"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "members": [
+    "t005",
+    "t027"
+  ],
+  "couplings": [
+    {
+      "with": "L12",
+      "type": "semantic",
+      "members": [
+        "t005",
+        "t031"
+      ],
+      "note": "t005 x t031: money-grouping changes formatMoney to print $1,000.00; invoice-text's test asserts amounts printed as $1000.00. Merges cleanly, the text invoice test then fails."
+    },
+    {
+      "with": "L09",
+      "type": "textual",
+      "members": [
+        "t027",
+        "t020"
+      ],
+      "note": "t027 x t020: Both change the first lines of registerUser() in users/service.ts: one modifies the email normalisation line, the other adds password checks right after it."
+    }
+  ],
+  "theme": "customer accounts and money formatting"
+}

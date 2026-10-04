@@ -1,0 +1,76 @@
+[
+ {
+  "task": "P02",
+  "members": 3,
+  "wall_s": 36.7,
+  "turns": 12,
+  "cost_usd": 0.1159,
+  "output_tokens": 3286,
+  "tools": {
+   "Bash": 10,
+   "Edit": 1
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 3,
+  "changed": [
+   "src/billing/service.ts",
+   "src/billing/coupon-limits.test.ts",
+   "src/billing/invoice-numbers.test.ts"
+  ],
+  "infra_error": null
+ },
+ {
+  "task": "P03",
+  "members": 3,
+  "wall_s": 24.7,
+  "turns": 10,
+  "cost_usd": 0.0829,
+  "output_tokens": 3261,
+  "tools": {
+   "Read": 2,
+   "Bash": 3,
+   "Edit": 4
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 5,
+  "changed": [
+   "src/billing/discounts.ts",
+   "src/billing/invoice.ts",
+   "src/billing/coupon-cap.test.ts",
+   "src/billing/discount-split.test.ts",
+   "src/billing/invoice-line.test.ts"
+  ],
+  "infra_error": null
+ },
+ {
+  "task": "P04",
+  "members": 3,
+  "wall_s": 25.4,
+  "turns": 12,
+  "cost_usd": 0.1015,
+  "output_tokens": 3228,
+  "tools": {
+   "Bash": 4,
+   "Edit": 7
+  },
+  "subtype": "success",
+  "acceptance_pass": true,
+  "suite_pass": true,
+  "files_changed": 8,
+  "changed": [
+   "src/auth/guard.ts",
+   "src/auth/sessions.ts",
+   "src/catalog/handlers.ts",
+   "src/users/service.ts",
+   "src/auth/session-expiry.test.ts",
+   "src/auth/sliding-sessions.test.ts",
+   "src/catalog/hidden-product.test.ts",
+   "src/users/password-policy.test.ts"
+  ],
+  "infra_error": null
+ }
+]

@@ -1,0 +1,57 @@
+{
+ "task": "t026",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/discount-allocation.test.ts"
+ ],
+ "results": {
+  "src/billing/discount-allocation.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 4,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > adds up to the full discount when the shares do not divide evenly",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n99 !== 100"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > gives the leftover cent to the line with the largest fractional share",
+     "status": "fail",
+     "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    3,\n    3,\n+   3\n-   4\n  ]"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > keeps proportional shares exact when they divide evenly",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > adds up exactly across many awkward splits",
+     "status": "fail",
+     "message": "nets 1,1,1 discount 100\n\n99 !== 100"
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "allocateDiscount > allocates nothing when the discount is zero",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/billing/discount-allocation.test.ts",
+     "name": "buildInvoice discount allocation > line discounts add up to the order discount on a three-line order with a $1.00 coupon",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n99 !== 100"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

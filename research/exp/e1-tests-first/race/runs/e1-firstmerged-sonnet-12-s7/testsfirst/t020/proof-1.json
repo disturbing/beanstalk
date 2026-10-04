@@ -1,0 +1,51 @@
+{
+ "task": "t020",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/users/password-policy.test.ts"
+ ],
+ "results": {
+  "src/users/password-policy.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 4,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/users/password-policy.test.ts",
+     "name": "password policy at registration > rejects a one-character password with 400",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/users/password-policy.test.ts",
+     "name": "password policy at registration > rejects a 7-character password but accepts exactly 8",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/users/password-policy.test.ts",
+     "name": "password policy at registration > rejects a password equal to the email, ignoring case",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/users/password-policy.test.ts",
+     "name": "password policy at registration > accepts a password that merely contains the email",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/users/password-policy.test.ts",
+     "name": "password policy at registration > does not create an account when the password is rejected",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,53 @@
+diff --git a/README.md b/README.md
+index 91d422c..a76438a 100644
+--- a/README.md
++++ b/README.md
+@@ -45,6 +45,7 @@ Settings come from environment variables (see `src/config.ts`).
+ | `PASSWORD_COST` | `1024` | scrypt cost for password hashes |
+ | `MAX_CART_LINES` | `50` | Most distinct products in one cart |
+ | `LOW_STOCK_THRESHOLD` | `5` | Available quantity at or below which a product counts as low on stock |
++| `PAYMENT_TERMS_DAYS` | `30` | Days between an invoice being issued and falling due |
+ 
+ ## Behaviour
+ 
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..04cc5c9 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -59,7 +59,7 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+     total: subtotal - discount + tax,
+     status: 'open',
+     issuedAt: issuedAt.toISOString(),
+-    dueAt: new Date(issuedAt.getTime() + 30 * DAY_MS).toISOString(),
++    dueAt: new Date(issuedAt.getTime() + ctx.config.paymentTermsDays * DAY_MS).toISOString(),
+     paidAt: null,
+   };
+ }
+diff --git a/src/config.ts b/src/config.ts
+index bdd535d..4ee2708 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -14,6 +14,8 @@ export interface Config {
+   lowStockThreshold: number;
+   orderNumberPrefix: string;
+   pageSize: number;
++  /** Days between an invoice being issued and falling due. */
++  paymentTermsDays: number;
+ }
+ 
+ export const defaultConfig: Config = {
+@@ -27,6 +29,7 @@ export const defaultConfig: Config = {
+   lowStockThreshold: 5,
+   orderNumberPrefix: 'BS',
+   pageSize: 20,
++  paymentTermsDays: 30,
+ };
+ 
+ const CURRENCIES = ['USD', 'CAD', 'EUR', 'GBP'];
+@@ -51,5 +54,6 @@ export function loadConfig(env: Record<string, string | undefined> = {}): Config
+     passwordCost: intFrom(env.PASSWORD_COST, defaultConfig.passwordCost),
+     maxCartLines: intFrom(env.MAX_CART_LINES, defaultConfig.maxCartLines),
+     lowStockThreshold: intFrom(env.LOW_STOCK_THRESHOLD, defaultConfig.lowStockThreshold),
++    paymentTermsDays: intFrom(env.PAYMENT_TERMS_DAYS, defaultConfig.paymentTermsDays),
+   };
+ }

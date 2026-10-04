@@ -1,0 +1,24 @@
+{
+  "id": "t008",
+  "title": "Reserving zero or negative quantities should be rejected",
+  "prompt": "A caller that passed a negative quantity to the stock reservation code \"released\" stock by accident (the reserved counter went negative), and a fractional quantity corrupted the counters.\n\nReservation must refuse any quantity that is not a positive whole number, with a 400 error and the message \"quantity must be a positive whole number\", instead of applying it.",
+  "acceptance_tests": {
+    "src/inventory/reserve-validation.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { AppError } from '../lib/errors.ts';\nimport { addProduct, createTestApp } from '../lib/testing.ts';\nimport { getStock, reserve } from './stock.ts';\n\ndescribe('reserve validation', () => {\n  it('rejects zero, negative and fractional quantities', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx, { stock: 10 });\n    for (const quantity of [0, -3, 1.5]) {\n      assert.throws(\n        () => reserve(app.ctx, [{ productId: product.id, quantity }]),\n        (e: unknown) => e instanceof AppError && e.status === 400 && e.message === 'quantity must be a positive whole number',\n        `quantity ${quantity}`,\n      );\n    }\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n  });\n\n  it('still reserves positive whole quantities', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx, { stock: 10 });\n    reserve(app.ctx, [{ productId: product.id, quantity: 4 }]);\n    assert.equal(getStock(app.ctx, product.id).reserved, 4);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/inventory/reserve-validation.test.ts",
+    "src/inventory/stock.ts"
+  ],
+  "oracle_modules": [
+    "src/inventory"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t034",
+      "type": "textual",
+      "note": "Both change the line loop inside reserve() in inventory/stock.ts: one splits it into a check pass and a reserve pass, the other adds a quantity check at the top of the loop body."
+    }
+  ]
+}

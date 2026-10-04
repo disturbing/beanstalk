@@ -1,0 +1,20 @@
+{
+ "number": 4012,
+ "sha": "0de7188bf1f30511490c961d53865390e7ede956",
+ "title": "fix: preserve code spans adjacent to tildes",
+ "body": "**Marked version:** master / 18.0.5\n\n**Markdown flavor:** GitHub Flavored Markdown\n\n## Description\n\n- Fixes #4011\n- Keep adjacent tilde and backtick delimiter runs separate so complete code spans remain available to the code-span tokenizer.\n- Keep delimiter handling in the selected GFM text grammar and stop immediately at mixed delimiter boundaries.\n- Cover both delimiter orders, multi-backtick code spans, and code nested in strikethrough.\n\n## Contributor\n\n- [x] Test(s) exist to ensure functionality and minimize regression.\n- [x] No documentation change is required because this restores existing GFM parsing behavior.\n\n## Committer\n\nIn most cases, this should be a different person than the contributor.\n\n- [ ] CI is green (no forced merge required).\n- [ ] Squash and Merge PR following conventional commit guidelines.\n",
+ "author": "Hona",
+ "created_at": "2026-07-08T01:35:15Z",
+ "merged_at": "2026-07-14T22:07:23Z",
+ "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+ "pr_head_sha": "8b2e04aab01e798758e7552fbfdbd04c69df8f13",
+ "commits": 3,
+ "linked_issues": [
+  {
+   "number": 4011,
+   "title": "Inline code after a tilde is parsed with shifted backticks",
+   "body": "**Marked version:** 18.0.5\n\n**Markdown flavor:** GitHub Flavored Markdown\n\n**Describe the bug**\n\nA literal tilde immediately followed by an inline code span causes the opening backtick to be consumed as text. Subsequent backticks are then paired incorrectly.\n\n**To Reproduce**\n\n1. Create an empty directory and install Marked:\n\n   ```sh\n   npm init -y\n   npm install marked@18.0.5\n   ```\n\n2. Save this as `repro.mjs`:\n\n   ```js\n   import assert from \"node:assert/strict\"\n   import { marked } from \"marked\"\n\n   const markdown = \"~`0.1576` to measurement-window-only `0.00092`\"\n   const expected = \"<p>~<code>0.1576</code> to measurement-window-only <code>0.00092</code></p>\\n\"\n   const actual = marked.parse(markdown)\n\n   console.log(actual)\n   assert.equal(actual, expected)\n   ```\n\n3. Run `node repro.mjs`.\n\nActual output:\n\n```html\n<p>~`0.1576<code>to measurement-window-only</code>0.00092`</p>\n```\n\n**Expected behavior**\n\nThe tilde should remain literal and both complete backtick pairs should be parsed as code spans:\n\n```html\n<p>~<code>0.1576</code> to measurement-window-only <code>0.00092</code></p>\n```\n",
+   "is_pr": false
+  }
+ ]
+}

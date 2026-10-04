@@ -1,0 +1,69 @@
+{
+ "task": "t031",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-text.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-text.test.ts": {
+   "status": "fails-first",
+   "why": "7 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 7,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > returns text/plain with a utf-8 charset",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > starts with the invoice number, then item lines, then the totals",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > omits the Discount line when there is no discount",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > shows the discount as a negative amount between Subtotal and Tax",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > lists one line per item",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > is visible to the owner and to admins, but not to other customers",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > requires authentication",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 401"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "plain-text invoice > returns 404 for an unknown invoice",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

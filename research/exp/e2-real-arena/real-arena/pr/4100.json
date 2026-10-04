@@ -1,0 +1,13 @@
+{
+ "number": 4100,
+ "sha": "c61543ed0f16121ace9255626abcafe9514cb1b0",
+ "title": "fix: load CLI configs with top-level await",
+ "body": "The CLI cannot load an ESM config containing top-level `await` on Node.js versions that support synchronous `require(esm)`. For example:\n\n```js\n// config.mjs\nexport default await Promise.resolve({ breaks: true });\n```\n\n`marked --config config.mjs --string text` exits with `ERR_REQUIRE_ASYNC_MODULE` on Node 24.19.0. The config loader only falls back to `import()` for `ERR_REQUIRE_ESM`, so it never reaches the existing asynchronous import path.\n\nTreat `ERR_REQUIRE_ASYNC_MODULE` as another reason to use that path. Other loading errors continue to propagate, and the existing JSON/CommonJS loading path is unchanged.\n\nValidation:\n- Added a CLI regression test using a config with top-level `await`; it fails before the fix and passes after it.\n- Full `npm test` passes on Node 24.19.0, including specs, unit tests, UMD/CJS, types, and lint.\n\n## Contributor\n- [x] Tests exist to ensure functionality and minimize regression.\n- [ ] No tests required for this PR.\n- [ ] If submitting a new feature, it has been documented in the appropriate places.\n",
+ "author": "pengboyu-dev",
+ "created_at": "2026-09-19T21:22:29Z",
+ "merged_at": "2026-09-29T03:03:58Z",
+ "pr_base_sha": "4eb2d97ca61e2f558aa0fb5860509f5399d74338",
+ "pr_head_sha": "739748fab24e0da8e26eabc1d4a3cbf2c5243d8c",
+ "commits": 1,
+ "linked_issues": []
+}

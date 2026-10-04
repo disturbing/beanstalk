@@ -1,0 +1,11 @@
+diff --git a/src/billing/handlers.ts b/src/billing/handlers.ts
+index eb4734b..4d0834d 100644
+--- a/src/billing/handlers.ts
++++ b/src/billing/handlers.ts
+@@ -29,5 +29,5 @@ export const list: Handler = (req, ctx) => {
+   const status = req.query.status;
+   if (status !== undefined && !STATUSES.includes(status)) throw badRequest('status must be open, paid or void');
+   const invoices = listInvoices(ctx, req.user!.id, status as InvoiceStatus | undefined);
+-  return ok(paginate(invoices, req.query, ctx.config.pageSize));
++  return ok(paginate(invoices, req.query, ctx.config.pageSize).items);
+ };

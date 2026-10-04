@@ -1,0 +1,195 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..3923161 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- Invoice tax is rounded once per tax rate instead of once per line.
+ 
+ ### Fixed
+ 
+diff --git a/README.md b/README.md
+index 91d422c..a76438a 100644
+--- a/README.md
++++ b/README.md
+@@ -45,6 +45,7 @@ Settings come from environment variables (see `src/config.ts`).
+ | `PASSWORD_COST` | `1024` | scrypt cost for password hashes |
+ | `MAX_CART_LINES` | `50` | Most distinct products in one cart |
+ | `LOW_STOCK_THRESHOLD` | `5` | Available quantity at or below which a product counts as low on stock |
++| `PAYMENT_TERMS_DAYS` | `30` | Days between an invoice being issued and falling due |
+ 
+ ## Behaviour
+ 
+diff --git a/src/billing/coupons.ts b/src/billing/coupons.ts
+new file mode 100644
+index 0000000..2973687
+--- /dev/null
++++ b/src/billing/coupons.ts
+@@ -0,0 +1,16 @@
++import { badRequest } from '../lib/errors.ts';
++import { formatMoney, percentOf } from '../lib/money.ts';
++import type { Cents, Coupon, Currency } from '../types.ts';
++
++/** Check that `coupon` may be used on a cart worth `subtotal`. Returns the coupon for chaining. */
++export function validateCoupon(coupon: Coupon, subtotal: Cents, currency: Currency): Coupon {
++  if (subtotal < coupon.minSubtotal) {
++    throw badRequest(`coupon ${coupon.id} needs a subtotal of at least ${formatMoney(coupon.minSubtotal, currency)}`);
++  }
++  return coupon;
++}
++
++/** How much `coupon` takes off a cart worth `subtotal`. */
++export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
++  return coupon.kind === 'percent' ? percentOf(subtotal, coupon.value) : coupon.value;
++}
+diff --git a/src/billing/discounts.ts b/src/billing/discounts.ts
+index 67579c9..db1639b 100644
+--- a/src/billing/discounts.ts
++++ b/src/billing/discounts.ts
+@@ -1,19 +1,7 @@
+-import { badRequest } from '../lib/errors.ts';
+-import { formatMoney, percentOf, sumCents } from '../lib/money.ts';
+-import type { Cents, Coupon, Currency } from '../types.ts';
++import { sumCents } from '../lib/money.ts';
++import type { Cents } from '../types.ts';
+ 
+-/** Check that `coupon` may be used on a cart worth `subtotal`. Returns the coupon for chaining. */
+-export function validateCoupon(coupon: Coupon, subtotal: Cents, currency: Currency): Coupon {
+-  if (subtotal < coupon.minSubtotal) {
+-    throw badRequest(`coupon ${coupon.id} needs a subtotal of at least ${formatMoney(coupon.minSubtotal, currency)}`);
+-  }
+-  return coupon;
+-}
+-
+-/** How much `coupon` takes off a cart worth `subtotal`. */
+-export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
+-  return coupon.kind === 'percent' ? percentOf(subtotal, coupon.value) : coupon.value;
+-}
++export { couponDiscount, validateCoupon } from './coupons.ts';
+ 
+ /** Spread a cart-level discount over the lines in proportion to their value. */
+ export function allocateDiscount(nets: Cents[], discount: Cents): Cents[] {
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..d88e75b 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -1,6 +1,7 @@
+-import { applyRate, sumCents } from '../lib/money.ts';
++import { applyRateToTotal, sumCents } from '../lib/money.ts';
+ import type { Address, AppContext, Cents, Coupon, Invoice, InvoiceLine, TaxClass } from '../types.ts';
+-import { allocateDiscount, couponDiscount, validateCoupon } from './discounts.ts';
++import { couponDiscount, validateCoupon } from './coupons.ts';
++import { allocateDiscount } from './discounts.ts';
+ import { taxRateFor } from './tax.ts';
+ 
+ export interface InvoiceItem {
+@@ -23,6 +24,19 @@ export type InvoiceDraft = Omit<Invoice, 'id' | 'number'>;
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
++/** Tax per line, rounded once for each distinct rate over the lines that share it. */
++function taxByRate(taxable: Cents[], rates: number[]): Cents[] {
++  const taxes = taxable.map(() => 0);
++  for (const rate of new Set(rates)) {
++    const indexes = rates.flatMap((r, i) => (r === rate ? [i] : []));
++    const shares = applyRateToTotal(indexes.map((i) => taxable[i]), rate);
++    indexes.forEach((lineIndex, k) => {
++      taxes[lineIndex] = shares[k];
++    });
++  }
++  return taxes;
++}
++
+ /** Price an order: line nets, the coupon, tax per line, and the due date. Pure apart from the clock. */
+ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft {
+   const nets = input.items.map((item) => item.quantity * item.unitPrice);
+@@ -31,19 +45,18 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+   const discount = coupon ? couponDiscount(coupon, subtotal) : 0;
+   const lineDiscounts = allocateDiscount(nets, discount);
+ 
+-  const lines: InvoiceLine[] = input.items.map((item, i) => {
+-    const taxRate = taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
+-    return {
+-      productId: item.productId,
+-      description: item.description,
+-      quantity: item.quantity,
+-      unitPrice: item.unitPrice,
+-      net: nets[i],
+-      discount: lineDiscounts[i],
+-      taxRate,
+-      tax: applyRate(nets[i] - lineDiscounts[i], taxRate),
+-    };
+-  });
++  const rates = input.items.map((item) => taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate));
++  const lineTaxes = taxByRate(nets.map((net, i) => net - lineDiscounts[i]), rates);
++  const lines: InvoiceLine[] = input.items.map((item, i) => ({
++    productId: item.productId,
++    description: item.description,
++    quantity: item.quantity,
++    unitPrice: item.unitPrice,
++    net: nets[i],
++    discount: lineDiscounts[i],
++    taxRate: rates[i],
++    tax: lineTaxes[i],
++  }));
+ 
+   const tax = sumCents(lines.map((line) => line.tax));
+   const issuedAt = ctx.clock.now();
+@@ -59,7 +72,7 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+     total: subtotal - discount + tax,
+     status: 'open',
+     issuedAt: issuedAt.toISOString(),
+-    dueAt: new Date(issuedAt.getTime() + 30 * DAY_MS).toISOString(),
++    dueAt: new Date(issuedAt.getTime() + ctx.config.paymentTermsDays * DAY_MS).toISOString(),
+     paidAt: null,
+   };
+ }
+diff --git a/src/config.ts b/src/config.ts
+index bdd535d..4ee2708 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -14,6 +14,8 @@ export interface Config {
+   lowStockThreshold: number;
+   orderNumberPrefix: string;
+   pageSize: number;
++  /** Days between an invoice being issued and falling due. */
++  paymentTermsDays: number;
+ }
+ 
+ export const defaultConfig: Config = {
+@@ -27,6 +29,7 @@ export const defaultConfig: Config = {
+   lowStockThreshold: 5,
+   orderNumberPrefix: 'BS',
+   pageSize: 20,
++  paymentTermsDays: 30,
+ };
+ 
+ const CURRENCIES = ['USD', 'CAD', 'EUR', 'GBP'];
+@@ -51,5 +54,6 @@ export function loadConfig(env: Record<string, string | undefined> = {}): Config
+     passwordCost: intFrom(env.PASSWORD_COST, defaultConfig.passwordCost),
+     maxCartLines: intFrom(env.MAX_CART_LINES, defaultConfig.maxCartLines),
+     lowStockThreshold: intFrom(env.LOW_STOCK_THRESHOLD, defaultConfig.lowStockThreshold),
++    paymentTermsDays: intFrom(env.PAYMENT_TERMS_DAYS, defaultConfig.paymentTermsDays),
+   };
+ }
+diff --git a/src/lib/money.ts b/src/lib/money.ts
+index cad3d01..1269e21 100644
+--- a/src/lib/money.ts
++++ b/src/lib/money.ts
+@@ -44,6 +44,14 @@ export function allocate(total: Cents, weights: number[]): Cents[] {
+   return parts;
+ }
+ 
++/**
++ * Apply `rate` to a group of amounts as one sum: round once, then spread the rounded
++ * result over the amounts so the parts add up to it exactly.
++ */
++export function applyRateToTotal(amounts: Cents[], rate: number): Cents[] {
++  return allocate(applyRate(sumCents(amounts), rate), amounts);
++}
++
+ export function formatMoney(amount: Cents, currency: Currency = 'USD'): string {
+   const sign = amount < 0 ? '-' : '';
+   const abs = Math.abs(amount);

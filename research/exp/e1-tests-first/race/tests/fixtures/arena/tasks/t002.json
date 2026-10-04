@@ -1,0 +1,23 @@
+{
+  "id": "t002",
+  "title": "Expose the running version at /version",
+  "prompt": "Ops wants to see which build is deployed. Add a GET /version endpoint that responds with { version } carrying the app's current version, 0.3.0.",
+  "acceptance_tests": {
+    "test/acceptance/t002.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { findRoute } from \"../../src/routes/index.ts\";\n\ntest(\"GET /version reports the app version\", () => {\n  const route = findRoute(\"GET\", \"/version\");\n  assert.ok(route, \"GET /version is registered\");\n  assert.deepEqual(route.handler(), { version: \"0.3.0\" });\n});\n"
+  },
+  "oracle_paths": [
+    "src/routes/index.ts"
+  ],
+  "oracle_modules": [
+    "src/routes"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t001",
+      "type": "textual",
+      "note": "both register a route at the end of the routes table"
+    }
+  ]
+}

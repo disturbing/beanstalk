@@ -1,0 +1,26 @@
+{
+  "id": "t007",
+  "title": "Customers want to leave delivery notes on an order",
+  "prompt": "Customers want to tell the courier things like \"leave with the concierge\". Let them add an optional free-text `note` when checking out.\n\nThe note is trimmed and stored on the order as `note` (an empty string when none was given or it is blank), and is returned wherever the order is. It may be at most 200 characters; a longer note fails checkout with a 400 and the message \"note must be at most 200 characters\". Orders that already exist get an empty note, which needs a numbered migration (registered with the others).",
+  "acceptance_tests": {
+    "src/db/order-note-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: order note', () => {\n  it('gives orders that already exist an empty note', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.orders.insert({ id: 'ord_old' } as never);\n    runMigrations(store);\n    assert.equal(store.orders.require('ord_old').note, '');\n  });\n\n  it('adds the migration at the end of the registry', () => {\n    assert.equal(migrations.at(-1)?.name, 'order_note');\n  });\n});\n",
+    "src/orders/order-note.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, errorMessage, signUp } from '../lib/testing.ts';\nimport type { Order } from '../types.ts';\n\nfunction checkout(note?: string) {\n  const app = createTestApp();\n  const { token } = signUp(app.ctx);\n  const product = addProduct(app.ctx);\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity: 1 } });\n  const res = app.call('POST', '/checkout', { token, body: { addressIndex: 0, note } });\n  return { app, token, res };\n}\n\ndescribe('order notes', () => {\n  it('stores a trimmed note and returns it with the order', () => {\n    const { app, token, res } = checkout('  leave with the concierge  ');\n    assert.equal(res.status, 201);\n    assert.equal((res.body as Order).note, 'leave with the concierge');\n    const fetched = app.call('GET', `/orders/${(res.body as Order).id}`, { token }).body as Order;\n    assert.equal(fetched.note, 'leave with the concierge');\n  });\n\n  it('defaults to an empty note', () => {\n    assert.equal((checkout().res.body as Order).note, '');\n    assert.equal((checkout('   ').res.body as Order).note, '');\n  });\n\n  it('rejects notes over 200 characters but accepts exactly 200', () => {\n    assert.equal(checkout('x'.repeat(200)).res.status, 201);\n    const tooLong = checkout('x'.repeat(201)).res;\n    assert.equal(tooLong.status, 400);\n    assert.equal(errorMessage(tooLong), 'note must be at most 200 characters');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/db/migrations/0006_order_note.ts",
+    "src/db/migrations/index.ts",
+    "src/db/order-note-migration.test.ts",
+    "src/orders/checkout.ts",
+    "src/orders/handlers.ts",
+    "src/orders/order-note.test.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "src",
+    "src/db",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

@@ -1,0 +1,45 @@
+{
+ "task": "t027",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/users/email-case.test.ts"
+ ],
+ "results": {
+  "src/users/email-case.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 4,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/users/email-case.test.ts",
+     "name": "email case-insensitivity > stores the email lower-cased",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Ada@Example.COM'\n- 'ada@example.com'"
+    },
+    {
+     "file": "src/users/email-case.test.ts",
+     "name": "email case-insensitivity > rejects registering an address that exists in another capitalisation",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/users/email-case.test.ts",
+     "name": "email case-insensitivity > lets a customer log in with any capitalisation",
+     "status": "fail",
+     "message": "ada@example.com\n\n401 !== 200"
+    },
+    {
+     "file": "src/users/email-case.test.ts",
+     "name": "email case-insensitivity > finds a user by email regardless of case",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'usr_0001'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

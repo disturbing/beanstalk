@@ -1,0 +1,13 @@
+{
+ "number": 4013,
+ "sha": "a0098085f4ff80392cc5221ed803083d3b576904",
+ "title": "fix: Avoid O(n^2) backtracking in inline link href regex",
+ "body": "**Marked version:** current `master` (regex unchanged since 18.0.5)\n\n**Markdown flavor:** n/a\n\n## Description\n\nThe inline link regex parses an unclosed link followed by a long whitespace run in O(n\u00b2) time. `marked.parse('[](' + ' '.repeat(n))` is just text \u2014 an unclosed link \u2014 but with default options the parse time roughly quadruples each time the input doubles: n=16,000 \u2192 ~0.3 s, 32,000 \u2192 ~1.2 s, 64,000 \u2192 ~4.9 s, 125,000 \u2192 ~21 s.\n\nThe cause is the unquoted-href alternative `[^ \\t\\n\\x00-\\x1f]*` in `src/rules.ts`. Since it can match empty at any whitespace position, when there is no closing `)` the leading `\\s*`, the (empty) href, the optional title separator, and the trailing `\\s*\\)` all re-partition the same whitespace run at ~n positions, so the engine backtracks quadratically. #3902 hardened the title separator (`[ \\t]*` \u2192 `[ \\t]+|\\n`) against the same class of problem but left this zero-length href branch, so input that never reaches the title branch still backtracks.\n\nThe fix requires the unquoted-href branch to match at least one non-whitespace character (`*` \u2192 `+`) and keeps the legitimate empty-href case `[foo]()` via a `(?=\\))` lookahead. CommonMark specifies that an unquoted link destination ends at whitespace, so requiring \u22651 non-whitespace character there is spec-correct. After the change the same input parses in linear time (64 KB \u2192 ~1 ms) and ordinary links are unaffected: the full spec and unit suites stay green (`test:specs` 1749/0, `test:unit` 188/0), and I added `test/specs/redos/quadratic_link_empty_href.cjs` next to the existing quadratic guards so any regression fails fast.\n\n## Contributor\n\n- [x] Test(s) exist to ensure functionality and minimize regression: `test/specs/redos/quadratic_link_empty_href.cjs`.\n- [ ] If submitting new feature, it has been documented in the appropriate places.\n",
+ "author": "hong4rc",
+ "created_at": "2026-07-09T14:56:25Z",
+ "merged_at": "2026-07-09T17:04:40Z",
+ "pr_base_sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+ "pr_head_sha": "c9e9192ce7ddabcf1884eab09976f80379005c0c",
+ "commits": 1,
+ "linked_issues": []
+}

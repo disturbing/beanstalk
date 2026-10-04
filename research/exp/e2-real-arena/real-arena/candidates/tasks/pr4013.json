@@ -1,0 +1,31 @@
+{
+  "id": "pr4013",
+  "title": "fix: Avoid O(n^2) backtracking in inline link href regex",
+  "prompt": "**Marked version:** current `master` (regex unchanged since 18.0.5)\n\n**Markdown flavor:** n/a\n\n## Description\n\nThe inline link regex parses an unclosed link followed by a long whitespace run in O(n²) time. `marked.parse('[](' + ' '.repeat(n))` is just text — an unclosed link — but with default options the parse time roughly quadruples each time the input doubles: n=16,000 → ~0.3 s, 32,000 → ~1.2 s, 64,000 → ~4.9 s, 125,000 → ~21 s.\n\nThe cause is the unquoted-href alternative `[^ \\t\\n\\x00-\\x1f]*` in `src/rules.ts`. Since it can match empty at any whitespace position, when there is no closing `)` the leading `\\s*`, the (empty) href, the optional title separator, and the trailing `\\s*\\)` all re-partition the same whitespace run at ~n positions, so the engine backtracks quadratically. #3902 hardened the title separator (`[ \\t]*` → `[ \\t]+|\\n`) against the same class of problem but left this zero-length href branch, so input that never reaches the title branch still backtracks.\n\nThe fix requires the unquoted-href branch to match at least one non-whitespace character (`*` → `+`) and keeps the legitimate empty-href case `[foo]()` via a `(?=\\))` lookahead. CommonMark specifies that an unquoted link destination ends at whitespace, so requiring ≥1 non-whitespace character there is spec-correct. After the change the same input parses in linear time (64 KB → ~1 ms) and ordinary links are unaffected: the full spec and unit suites stay green (`test:specs` 1749/0, `test:unit` 188/0), and I added `test/specs/redos/quadratic_link_empty_href.cjs` next to the existing quadratic guards so any regression fails fast.",
+  "acceptance_tests": {
+    "test/specs/redos/quadratic_link_empty_href.cjs": "module.exports = {\n  markdown: '[](' + ' '.repeat(50000),\n  html: '<p>[](' + ' '.repeat(50000) + '</p>',\n};\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/redos/quadratic_link_empty_href.cjs"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4013,
+    "sha": "a0098085f4ff80392cc5221ed803083d3b576904",
+    "url": "https://github.com/markedjs/marked/pull/4013",
+    "author": "hong4rc",
+    "merged_at": "2026-07-09T17:04:40Z",
+    "pr_base_sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": []
+  }
+}

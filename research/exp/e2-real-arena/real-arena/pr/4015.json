@@ -1,0 +1,13 @@
+{
+ "number": 4015,
+ "sha": "f056437b389407ab3a29fe9cb61a989f043edb3e",
+ "title": "fix: Recognize setext headings whose first line starts with #",
+ "body": "A line like `#1 Goals` or `#hashtag` followed by a setext underline is rendered as a paragraph plus an `<hr>` instead of a heading:\n\n```js\nmarked.parse('#1 Goals\\n---------');  // <p>#1 Goals</p>\\n<hr>\n```\n\nBoth commonmark.js and markdown-it produce `<h2>#1 Goals</h2>` here, and that matches the CommonMark spec: a line only starts an ATX heading when the `#`s are followed by a space, a tab, or the end of the line, so `#1` is ordinary paragraph text \u2014 which means the `---------` beneath it makes a setext heading.\n\nThe `lheading` rule already knows other blocks can interrupt a setext heading, but its ATX check is ` {0,3}#{1,6}`, which matches any line that merely *starts* with `#` and misses the \"followed by whitespace\" requirement. marked's own paragraph rules already get this right (` {0,3}#{1,6}(?:\\s|$)`), as does the ATX `heading` rule itself (`(?=\\s|$)`); this just brings `lheading`/`lheadingGfm` in line with them.\n\nValid ATX headings are unaffected \u2014 `# Real\\n===` still renders `<h1>Real</h1>` followed by `<p>===</p>` \u2014 and the full spec suite passes with the added fixture.\n",
+ "author": "hong4rc",
+ "created_at": "2026-07-12T04:45:59Z",
+ "merged_at": "2026-07-14T22:06:37Z",
+ "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+ "pr_head_sha": "30cb7e140145406527af5c51aeb03d04e1325f2c",
+ "commits": 1,
+ "linked_issues": []
+}

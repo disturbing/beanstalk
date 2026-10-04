@@ -1,0 +1,13 @@
+{
+ "number": 4066,
+ "sha": "ef394f71df54ab9d4057821881e866366eaacf11",
+ "title": "fix: respect raw tokens when closing link labels",
+ "body": "**Marked version:** master (18.0.10)\n\n**Markdown flavor:** CommonMark and GitHub Flavored Markdown\n\n## Description\n\nAddresses the independent raw-HTML/autolink precedence group in #4050 (CommonMark examples 524, 526, 536, and 538).\n\nThe inline link and reference-link regexes could treat a `]` inside a still-open raw HTML tag or autolink as the end of the link label. The tokenizer now checks labels containing `<` and rejects that candidate close when the matching raw token extends past it. Escaped characters and code spans are skipped during the check, and ordinary labels use an early fast path.\n\nThe existing CommonMark and GFM snapshots for all four examples are now passing, increasing link compliance from 80/90 to 84/90 in both suites.\n\nAI disclosure: OpenAI Codex assisted with repository research, implementation, and validation. I reviewed the parser behavior, corrected the spec fixtures manually, ran the complete project test pipeline, and remain responsible for the contribution.\n\n## Contributor\n\n- [x] Tests exist to ensure functionality and minimize regression: CommonMark/GFM examples 524, 526, 536, and 538.\n- [x] No documentation change is required; this brings existing supported-spec behavior into compliance.\n\n## Validation\n\n- `npm test` \u2014 passed\n  - 1,783 specification tests\n  - 191 unit tests\n  - UMD and CommonJS tests\n  - TypeScript/API compatibility checks\n  - ESLint\n- `npm run build:reset` \u2014 generated artifacts removed before submission\n",
+ "author": "evgenyponomarev",
+ "created_at": "2026-08-21T14:49:32Z",
+ "merged_at": "2026-09-12T20:18:27Z",
+ "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+ "pr_head_sha": "3efaed9b10ab4d78d2bdb77cd9ecdf18a260aa3c",
+ "commits": 1,
+ "linked_issues": []
+}

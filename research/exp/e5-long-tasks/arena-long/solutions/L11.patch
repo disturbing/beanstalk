@@ -1,0 +1,138 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..4195fe9 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Order confirmation emails list every line item.
+ - `GET /inventory/low-stock` for admins.
++- Admins can refund a single invoice line (`POST /invoices/:id/refunds`).
+ 
+ ### Changed
+ 
+@@ -17,6 +18,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ 
+ - Cart totals no longer double count quantities after a line is edited.
+ - Session cleanup runs when a user logs out.
++- Quebec orders are charged the full 14.975% sales tax.
+ 
+ ## 0.4.0 - 2026-09-12
+ 
+diff --git a/README.md b/README.md
+index 91d422c..73e8342 100644
+--- a/README.md
++++ b/README.md
+@@ -27,7 +27,7 @@ Routes are registered in one place, `src/routes.ts`.
+ | POST | `/checkout`, `/orders/:id/cancel` | user |
+ | GET | `/orders`, `/orders/:id`, `/orders/:id/invoice`, `/orders/:id/shipment` | user |
+ | GET | `/invoices/:id` | user |
+-| POST | `/invoices/:id/pay`, `/orders/:id/ship` | admin |
++| POST | `/invoices/:id/pay`, `/invoices/:id/refunds`, `/orders/:id/ship` | admin |
+ | POST | `/shipping/quote` | user |
+ | GET, PUT | `/inventory/:productId`, `/inventory/low-stock` | admin |
+ | GET | `/notifications` | user |
+diff --git a/src/billing/handlers.ts b/src/billing/handlers.ts
+index 82d2c80..97c2002 100644
+--- a/src/billing/handlers.ts
++++ b/src/billing/handlers.ts
+@@ -1,7 +1,9 @@
+ import { notFound } from '../lib/errors.ts';
+-import { ok } from '../router.ts';
++import { asBody, requireString } from '../lib/validate.ts';
++import { created, ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { Invoice, User } from '../types.ts';
++import { refundLine } from './refunds.ts';
+ import { getInvoice as loadInvoice, invoiceForOrder as loadInvoiceForOrder, markPaid } from './service.ts';
+ 
+ /** Customers only see their own invoices; admins see all. Anything else looks like a 404. */
+@@ -16,3 +18,6 @@ export const invoiceForOrder: Handler = (req, ctx) =>
+   ok(visibleTo(req.user!, loadInvoiceForOrder(ctx, req.params.id)));
+ 
+ export const payInvoice: Handler = (req, ctx) => ok(markPaid(ctx, req.params.id));
++
++export const refundInvoiceLine: Handler = (req, ctx) =>
++  created(refundLine(ctx, req.params.id, requireString(asBody(req.body), 'productId')));
+diff --git a/src/billing/refunds.ts b/src/billing/refunds.ts
+new file mode 100644
+index 0000000..d38f74f
+--- /dev/null
++++ b/src/billing/refunds.ts
+@@ -0,0 +1,27 @@
++import { conflict, notFound } from '../lib/errors.ts';
++import type { AppContext, Cents, InvoiceLine, Refund } from '../types.ts';
++import { getInvoice } from './service.ts';
++
++/** What a customer gets back for one line: its net, less its share of the discount, plus its tax. */
++export function lineRefundAmount(line: InvoiceLine): Cents {
++  return line.net - line.discount + line.tax;
++}
++
++/** Refund the whole line for `productId` on a paid invoice. */
++export function refundLine(ctx: AppContext, invoiceId: string, productId: string): Refund {
++  const invoice = getInvoice(ctx, invoiceId);
++  if (invoice.status !== 'paid') {
++    throw conflict(`invoice ${invoice.number} is ${invoice.status} and cannot be refunded`);
++  }
++  const line = invoice.lines.find((l) => l.productId === productId);
++  if (!line) throw notFound('invoice line');
++  const refunds = invoice.refunds ?? [];
++  if (refunds.some((r) => r.productId === productId)) throw conflict('that line has already been refunded');
++  const refund: Refund = {
++    productId,
++    amount: lineRefundAmount(line),
++    createdAt: ctx.clock.now().toISOString(),
++  };
++  ctx.store.invoices.update(invoiceId, { refunds: [...refunds, refund] });
++  return refund;
++}
+diff --git a/src/billing/tax.ts b/src/billing/tax.ts
+index 21eeca6..d977dc1 100644
+--- a/src/billing/tax.ts
++++ b/src/billing/tax.ts
+@@ -13,7 +13,7 @@ const RATES: Record<string, Record<string, number>> = {
+     NU: 0.05,
+     ON: 0.13,
+     PE: 0.15,
+-    QC: 0.14,
++    QC: 0.14975,
+     SK: 0.11,
+     YT: 0.05,
+   },
+diff --git a/src/routes.ts b/src/routes.ts
+index 80658b8..97b3bd7 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -43,6 +43,7 @@ export function registerRoutes(router: Router): void {
+   router.add('GET', '/orders/:id/invoice', 'user', billing.invoiceForOrder);
+   router.add('GET', '/invoices/:id', 'user', billing.getInvoice);
+   router.add('POST', '/invoices/:id/pay', 'admin', billing.payInvoice);
++  router.add('POST', '/invoices/:id/refunds', 'admin', billing.refundInvoiceLine);
+ 
+   // shipping
+   router.add('POST', '/shipping/quote', 'user', shipping.quote);
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..502f6d3 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -119,6 +119,12 @@ export interface InvoiceLine {
+ 
+ export type InvoiceStatus = 'open' | 'paid' | 'void';
+ 
++export interface Refund {
++  productId: string;
++  amount: Cents;
++  createdAt: string;
++}
++
+ export interface Invoice {
+   id: string;
+   number: string;
+@@ -135,6 +141,7 @@ export interface Invoice {
+   issuedAt: string;
+   dueAt: string;
+   paidAt: string | null;
++  refunds?: Refund[];
+ }
+ 
+ // --- inventory

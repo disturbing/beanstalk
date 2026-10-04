@@ -1,0 +1,63 @@
+{
+ "task": "t021",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/catalog/retired-products.test.ts"
+ ],
+ "results": {
+  "src/catalog/retired-products.test.ts": {
+   "status": "fails-first",
+   "why": "2 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 2,
+   "passing": 5,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > serves an active product by id",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > answers 404 for a retired product",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n200 !== 404"
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > answers 404 after an admin retires the product through the API",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n200 !== 404"
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > serves the product again once reactivated",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > still answers 404 for unknown ids",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > still returns retired products from the service layer",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/catalog/retired-products.test.ts",
+     "name": "retired products > keeps the list behaviour unchanged",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

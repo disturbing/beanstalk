@@ -1,0 +1,23 @@
+{
+  "id": "t003",
+  "title": "Apply a 10% discount to cart totals of $100 or more",
+  "prompt": "Marketing promised customers 10% off any order of $100 or more. The amount the customer pays for the cart should reflect the discount, rounded to the nearest cent. Orders under $100 are unchanged.",
+  "acceptance_tests": {
+    "test/acceptance/t003.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { total } from \"../../src/cart/index.ts\";\n\ntest(\"orders of $100 or more get 10% off\", () => {\n  assert.equal(total([{ sku: \"lamp\", priceCents: 5000, qty: 3 }]), 13500);\n  assert.equal(total([{ sku: \"rug\", priceCents: 10000, qty: 1 }]), 9000);\n});\n\ntest(\"smaller orders are unchanged\", () => {\n  assert.equal(total([{ sku: \"mug\", priceCents: 2500, qty: 2 }]), 5000);\n});\n"
+  },
+  "oracle_paths": [
+    "src/cart/index.ts"
+  ],
+  "oracle_modules": [
+    "src/cart"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t004",
+      "type": "semantic",
+      "note": "the invoice subtotal is computed with the cart total, which this task discounts"
+    }
+  ]
+}

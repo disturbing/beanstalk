@@ -1,0 +1,359 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 1 tasks, policy=beanstalk, agent=claude (sonnet)",
+  "policy": "beanstalk",
+  "agent": "claude",
+  "model": "sonnet",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 1,
+    "ci_seconds": 20.0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 7,
+    "budget_usd": 3.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": true,
+    "snapshot": "head",
+    "queue_hold": null,
+    "error_budget": 999,
+    "footprint": "predictor",
+    "tasks": 1,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 84.37,
+  "tasks": 1,
+  "tasks_green": 1,
+  "tasks_landed": 1,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {},
+  "changes_green_per_hour": 42.669,
+  "wall_to_all_green_seconds": 84.37,
+  "task_start_to_green_seconds": {
+    "median": 84.37,
+    "p90": 84.37,
+    "mean": 84.37
+  },
+  "agent_minutes": {
+    "busy": 0.38,
+    "blocked": 0.69,
+    "idle": 0.34
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.38,
+      "blocked": 0.69,
+      "idle": 0.34
+    }
+  },
+  "invocations": {
+    "initial": 1,
+    "rework": 1
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 1,
+      "cost_usd": 0.0361,
+      "turns": 6,
+      "wall_s": 11.744,
+      "input_tokens": 10,
+      "output_tokens": 1138,
+      "cache_read_input_tokens": 37764,
+      "cache_creation_input_tokens": 4298,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 1,
+      "cost_usd": 0.0269,
+      "turns": 5,
+      "wall_s": 10.969,
+      "input_tokens": 8,
+      "output_tokens": 851,
+      "cache_read_input_tokens": 42849,
+      "cache_creation_input_tokens": 2453,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0.0631,
+  "cost_by_kind": {
+    "initial": 0.0361,
+    "rework": 0.0269
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 10,
+      "output_tokens": 1138,
+      "cache_read_input_tokens": 37764,
+      "cache_creation_input_tokens": 4298
+    },
+    "rework": {
+      "input_tokens": 8,
+      "output_tokens": 851,
+      "cache_read_input_tokens": 42849,
+      "cache_creation_input_tokens": 2453
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": 226.5,
+    "wall_minus_api_ms_median": 792.5,
+    "cost_per_agent_invocation_mean": 0.0315
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": {
+      "status": "allowed_warning",
+      "rateLimitType": "seven_day",
+      "resetsAt": 1791514800,
+      "overageStatus": null,
+      "isUsingOverage": false
+    },
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "validate": 1
+  },
+  "ci_runs_total": 1,
+  "ci_minutes": {
+    "validate": 0.34
+  },
+  "ci_minutes_total": 0.34,
+  "textual_conflicts": 0,
+  "red_validations": 0,
+  "final": {
+    "sha": "0b55a05144e7cde7983cef4ad2603d41ffcaf3e1",
+    "suite_green": true,
+    "suite_tests": 83,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 1,
+    "tasks_total": 1,
+    "green_tasks_accepted": 1,
+    "green_tasks": 1,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tasks": 1,
+      "micro_recall": 1.0,
+      "micro_precision": 1.0
+    },
+    "vs_oracle": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tasks": 1,
+      "micro_recall": 1.0,
+      "micro_precision": 1.0
+    }
+  },
+  "per_task": {
+    "t012": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": 63.942,
+      "green_at": 84.371,
+      "reworks": 1,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/auth"
+      ],
+      "actual_modules": [
+        "src/auth"
+      ],
+      "oracle_modules": [
+        "src/auth"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "beanstalk": {
+    "placements_disjoint": 1,
+    "placements_overlap": 0,
+    "placement_overlap_modules": 0,
+    "landings": 1,
+    "fixer_landings": 0,
+    "reverts": 0,
+    "validations": 1,
+    "validations_green": 1,
+    "validations_red": 0,
+    "stale_reds": 0,
+    "tickets": 0,
+    "tickets_closed": 0,
+    "tickets_escalated": 0,
+    "tickets_by_method": {},
+    "trunk_bisect_runs": 0,
+    "pauses": 0,
+    "paused_seconds": 0.0,
+    "fixers_without_change": 0,
+    "wrongful_reverts": 0,
+    "preland_checks": 2,
+    "preland_red": 1,
+    "preland_seconds": 40.97,
+    "preland_reworks": 1,
+    "preland_drops": 0,
+    "preland_mode": "optimistic",
+    "preland_latency": 20.0,
+    "preland_optimistic_landings": 0,
+    "preland_rechecks": 0,
+    "preland_locked_fallbacks": 0,
+    "preland_reruns": 0,
+    "preland_reruns_absorbed": 0,
+    "needless_reworks": 1,
+    "informed_reworks": 0,
+    "cards": 0,
+    "card_details": [],
+    "revert_first": 0,
+    "validate_reruns": 0,
+    "validate_reruns_absorbed": 0,
+    "mean_suspects_per_ticket": null,
+    "final_trunk_idx": 0,
+    "final_green_idx": 0,
+    "open_tickets_at_end": 0,
+    "ticket_details": [],
+    "variant": "v2"
+  },
+  "policy_rows": [
+    [
+      "Variant",
+      "v2: pre-land check, informed author repair, decision cards, revert-first"
+    ],
+    [
+      "Informed reworks / decision cards / revert-first tickets",
+      "0 / 0 / 0"
+    ],
+    [
+      "Validation re-runs (absorbed / total) / wrongful reverts",
+      "0 / 0 / 0"
+    ],
+    [
+      "Pre-land checks (red) / reworks / drops",
+      "2 (1) / 1 / 0"
+    ],
+    [
+      "Pre-land check minutes",
+      "0.68"
+    ],
+    [
+      "Pre-land re-runs (absorbed / total) / needless reworks",
+      "0 / 0 / 1"
+    ],
+    [
+      "Pre-land mode / latency s / optimistic landings / rechecks / locked fallbacks",
+      "optimistic / 20.0 / 0 / 0 / 0"
+    ],
+    [
+      "Placements disjoint / overlapping",
+      "1 / 0"
+    ],
+    [
+      "Fast-trunk landings (task / fixer / revert)",
+      "1 / 0 / 0"
+    ],
+    [
+      "Validations (green / red)",
+      "1 / 0"
+    ],
+    [
+      "Repair tickets (closed / escalated / by method)",
+      "0 / 0 / {}"
+    ],
+    [
+      "Error-budget pauses / paused minutes",
+      "0 / 0.0"
+    ]
+  ],
+  "flake": {
+    "ci_runs": {
+      "preland": 2,
+      "validate": 1
+    },
+    "ci_runs_total": 3,
+    "flaked_runs": 1,
+    "flaked_runs_by_purpose": {
+      "preland": 1
+    },
+    "reruns": {},
+    "rerun_minutes": 0.0,
+    "needless_reworks": 1,
+    "needless_rework_cost_usd": 0.0269,
+    "needless_reworks_that_edited_files": 0,
+    "reverts": 0,
+    "wrongful_reverts": 0,
+    "wrongful_revert_tasks": [],
+    "reverts_after_flaky_probes": 0,
+    "flaked_validations": 0,
+    "flake_tickets": 0,
+    "flake_tickets_exonerated": 0,
+    "flake_tickets_reverted": 0,
+    "queue_red_ejections": 0,
+    "queue_needless_ejections": 0,
+    "flaky_tests": {
+      "src/orders/checkout.test.ts > turns the cart into a confirmed, invoiced order and empties the cart": 1
+    },
+    "config": {
+      "rate": 1.0,
+      "seed": 7,
+      "model": "per run",
+      "pool": 6,
+      "purposes": [
+        "preland"
+      ],
+      "limit": 1,
+      "timeout_ms": 5000,
+      "rerun_preland": false,
+      "rerun_validate": false,
+      "retry_batch": false,
+      "quarantine_flips": 0,
+      "rerun_seconds": null
+    },
+    "pool": [
+      "src/orders/checkout.test.ts > turns the cart into a confirmed, invoiced order and empties the cart",
+      "src/lib/pagination.test.ts > returns the first page by default",
+      "src/billing/discounts.test.ts > takes a percentage or a fixed amount off",
+      "src/notifications/notifications.test.ts > shows a customer their own notifications, newest first",
+      "src/shipping/shipping.test.ts > adds a charge for every started kilogram after the first",
+      "src/catalog/catalog.test.ts > lets admins create products and keeps customers out"
+    ],
+    "history": {
+      "runs_recorded": 3,
+      "trees": 1,
+      "tests": {
+        "src/orders/checkout.test.ts > turns the cart into a confirmed, invoiced order and empties the cart": 1
+      }
+    },
+    "injected": 1
+  },
+  "machine": {
+    "cpus": 18,
+    "load1_start": 9.6,
+    "load1_end": 5.3,
+    "load1_mean": 6.8,
+    "load1_max": 9.6,
+    "load5_start": 7.8,
+    "load5_end": 6.8,
+    "samples": 3
+  }
+}

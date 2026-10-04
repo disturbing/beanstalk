@@ -1,0 +1,13 @@
+{
+ "number": 4007,
+ "sha": "bc2f121456d152fafd7d2cbd2c21b273ca4c6862",
+ "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+ "body": "**Markdown flavor:** CommonMark\n\nA line that's only tabs (or tabs mixed with spaces) is a blank line in CommonMark, so it should separate paragraphs. Marked only treats a *spaces*-only line as blank, so when the blank line between two paragraphs happens to contain a tab, that line gets swallowed as a lazy continuation and the two paragraphs merge into one.\n\nWith a single tab on the middle line:\n\n```\nfoo\n\t\nbar\n```\n\nmarked currently returns one paragraph (`<p>foo\\tbar</p>`) instead of `<p>foo</p>\\n<p>bar</p>`. A space-only middle line already works, which is what made this easy to miss.\n\nThe paragraph rule's continuation lookahead was checking for `` +\\n`` (spaces only); I widened it to `[ \\t]+\\n` so a tab-only line counts as blank too. GFM and pedantic paragraphs build on the same base rule, so they pick up the fix as well. Added a spec test under `test/specs/new`.\n\n## Contributor\n\n- [x] Test added (`blank_line_with_tabs`)\n- [x] No new feature to document\n",
+ "author": "sarathfrancis90",
+ "created_at": "2026-07-01T02:54:50Z",
+ "merged_at": "2026-07-14T03:07:07Z",
+ "pr_base_sha": "33928d06634570d44c3426f4f48615f4c0a30b11",
+ "pr_head_sha": "cfa3d4ce4d58f5a777926c7e45e25b6d902199be",
+ "commits": 1,
+ "linked_issues": []
+}

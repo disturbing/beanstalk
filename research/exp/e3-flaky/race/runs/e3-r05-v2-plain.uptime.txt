@@ -1,0 +1,6 @@
+start 2026-10-03 16:17:26
+16:17  up 1 day,  8:14, 12 users, load averages: 5.25 6.78 15.91
+vm.loadavg { 5.25 6.78 15.91 }
+end 2026-10-03 16:30:01 exit 0
+16:30  up 1 day,  8:27, 12 users, load averages: 2.84 8.17 12.53
+vm.loadavg { 2.84 8.17 12.53 }

@@ -1,0 +1,13 @@
+diff --git a/src/rules.ts b/src/rules.ts
+index cc2e62bc..075f0016 100644
+--- a/src/rules.ts
++++ b/src/rules.ts
+@@ -41,7 +41,7 @@ try {
+ })();
+ 
+ export const other = {
+-  codeRemoveIndent: /^(?: {1,4}| {0,3}\t)/gm,
++  codeRemoveIndent: /^(?: {0,3}\t| {1,4})/gm,
+   outputLinkReplace: /\\([\[\]])/g,
+   indentCodeCompensation: /^(\s+)(?:```)/,
+   beginningSpace: /^\s+/,

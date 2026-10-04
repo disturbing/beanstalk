@@ -1,0 +1,142 @@
+diff --git a/src/Lexer.ts b/src/Lexer.ts
+index 9efbdd38..c97c5c79 100644
+--- a/src/Lexer.ts
++++ b/src/Lexer.ts
+@@ -13,6 +13,8 @@ export class _Lexer<ParserOutput = string, RendererOutput = string> {
+   state: {
+     inLink: boolean;
+     inRawBlock: boolean;
++    /** a link was produced in the inline run currently being scanned */
++    linkEmitted: boolean;
+     top: boolean;
+   };
+ 
+@@ -33,6 +35,7 @@ export class _Lexer<ParserOutput = string, RendererOutput = string> {
+     this.state = {
+       inLink: false,
+       inRawBlock: false,
++      linkEmitted: false,
+       top: true,
+     };
+ 
+diff --git a/src/Tokenizer.ts b/src/Tokenizer.ts
+index e6f900d4..2b2b6ec7 100644
+--- a/src/Tokenizer.ts
++++ b/src/Tokenizer.ts
+@@ -11,22 +11,42 @@ import type { _Lexer } from './Lexer.ts';
+ import type { Links, Tokens, Token } from './Tokens.ts';
+ import type { MarkedOptions } from './MarkedOptions.ts';
+ 
+-function outputLink(cap: string[], link: Pick<Tokens.Link, 'href' | 'title'>, raw: string, lexer: _Lexer, rules: Rules): Tokens.Link | Tokens.Image {
++function outputLink(cap: string[], link: Pick<Tokens.Link, 'href' | 'title'>, raw: string, lexer: _Lexer, rules: Rules): Tokens.Link | Tokens.Image | undefined {
+   const href = link.href;
+   const title = link.title || null;
+   const text = cap[1].replace(rules.other.outputLinkReplace, '$1');
++  const isImage = cap[0].charAt(0) === '!';
+ 
+   lexer.state.inLink = true;
+-  const token: Tokens.Link | Tokens.Image = {
+-    type: cap[0].charAt(0) === '!' ? 'image' : 'link',
++  const outerLinkEmitted = lexer.state.linkEmitted;
++  const outerInRawBlock = lexer.state.inRawBlock;
++  lexer.state.linkEmitted = false;
++  const tokens = lexer.inlineTokens(text);
++  const textHasLink = lexer.state.linkEmitted;
++  lexer.state.linkEmitted = outerLinkEmitted;
++  lexer.state.inLink = false;
++
++  if (!isImage) {
++    // CommonMark: "Links may not contain other links, at any level of nesting."
++    // Bail so the caller falls through to text and the inner link is the one kept.
++    // Images are exempt: their text is flattened into an alt attribute.
++    if (textHasLink) {
++      // these tokens are discarded, so undo the raw-block state they opened;
++      // leaving it set would suppress escaping for the text that is re-scanned
++      lexer.state.inRawBlock = outerInRawBlock;
++      return;
++    }
++    lexer.state.linkEmitted = true;
++  }
++
++  return {
++    type: isImage ? 'image' : 'link',
+     raw,
+     href,
+     title,
+     text,
+-    tokens: lexer.inlineTokens(text),
++    tokens,
+   };
+-  lexer.state.inLink = false;
+-  return token;
+ }
+ 
+ function indentCodeCompensation(raw: string, text: string, rules: Rules) {
+diff --git a/test/specs/commonmark/commonmark.0.31.2.json b/test/specs/commonmark/commonmark.0.31.2.json
+index 6e14498b..4e348a4a 100644
+--- a/test/specs/commonmark/commonmark.0.31.2.json
++++ b/test/specs/commonmark/commonmark.0.31.2.json
+@@ -4145,8 +4145,7 @@
+     "example": 518,
+     "start_line": 7886,
+     "end_line": 7890,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo *[bar [baz](/uri)](/uri)*](/uri)\n",
+@@ -4154,8 +4153,7 @@
+     "example": 519,
+     "start_line": 7893,
+     "end_line": 7897,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "![[[foo](uri1)](uri2)](uri3)\n",
+@@ -4263,8 +4261,7 @@
+     "example": 532,
+     "start_line": 8044,
+     "end_line": 8050,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo *bar [baz][ref]*][ref]\n\n[ref]: /uri\n",
+diff --git a/test/specs/gfm/commonmark.0.31.2.json b/test/specs/gfm/commonmark.0.31.2.json
+index c8ffbc14..47d0a225 100644
+--- a/test/specs/gfm/commonmark.0.31.2.json
++++ b/test/specs/gfm/commonmark.0.31.2.json
+@@ -4145,8 +4145,7 @@
+     "example": 518,
+     "start_line": 7886,
+     "end_line": 7890,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo *[bar [baz](/uri)](/uri)*](/uri)\n",
+@@ -4154,8 +4153,7 @@
+     "example": 519,
+     "start_line": 7893,
+     "end_line": 7897,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "![[[foo](uri1)](uri2)](uri3)\n",
+@@ -4263,8 +4261,7 @@
+     "example": 532,
+     "start_line": 8044,
+     "end_line": 8050,
+-    "section": "Links",
+-    "shouldFail": true
++    "section": "Links"
+   },
+   {
+     "markdown": "[foo *bar [baz][ref]*][ref]\n\n[ref]: /uri\n",

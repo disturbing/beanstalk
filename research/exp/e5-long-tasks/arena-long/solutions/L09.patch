@@ -1,0 +1,108 @@
+diff --git a/README.md b/README.md
+index 91d422c..6652824 100644
+--- a/README.md
++++ b/README.md
+@@ -50,6 +50,6 @@ Settings come from environment variables (see `src/config.ts`).
+ 
+ - Prices are tax exclusive; tax is worked out per invoice line from the shipping address.
+ - Standard shipping is charged by destination zone and weight; express costs double.
+-- A session lasts `SESSION_TTL_SECONDS` from login.
++- A session lasts `SESSION_TTL_SECONDS` from login and is extended every time it is used.
+ - Stock is reserved at checkout and released when an order is cancelled.
+ - Coupons take a percentage or a fixed amount off and can have a minimum subtotal.
+diff --git a/src/auth/guard.ts b/src/auth/guard.ts
+index f09bee1..ccc8e5f 100644
+--- a/src/auth/guard.ts
++++ b/src/auth/guard.ts
+@@ -1,6 +1,6 @@
+ import type { Request } from '../router.ts';
+ import type { AppContext, User } from '../types.ts';
+-import { findSession } from './sessions.ts';
++import { findSession, touchSession } from './sessions.ts';
+ 
+ export function bearerToken(req: Pick<Request, 'headers'>): string | null {
+   const header = req.headers.authorization;
+@@ -14,5 +14,6 @@ export function authenticateRequest(ctx: AppContext, req: Pick<Request, 'headers
+   if (!token) return null;
+   const session = findSession(ctx, token);
+   if (!session) return null;
++  touchSession(ctx, session);
+   return ctx.store.users.get(session.userId) ?? null;
+ }
+diff --git a/src/auth/password.ts b/src/auth/password.ts
+index a42e7c3..7aae0f6 100644
+--- a/src/auth/password.ts
++++ b/src/auth/password.ts
+@@ -1,4 +1,5 @@
+ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
++import { badRequest } from '../lib/errors.ts';
+ 
+ const KEY_LENGTH = 32;
+ 
+@@ -16,3 +17,11 @@ export function verifyPassword(password: string, hash: string, salt: string, cos
+   const expected = Buffer.from(hash, 'hex');
+   return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+ }
++
++/** Reject passwords that are too short or are simply the account's email address. */
++export function assertAcceptablePassword(password: string, email: string): void {
++  if (password.length < 8) throw badRequest('password must be at least 8 characters');
++  if (password.toLowerCase() === email.toLowerCase()) {
++    throw badRequest('password must not be your email address');
++  }
++}
+diff --git a/src/auth/sessions.ts b/src/auth/sessions.ts
+index bbf99e8..1499dd5 100644
+--- a/src/auth/sessions.ts
++++ b/src/auth/sessions.ts
+@@ -1,13 +1,18 @@
+ import { randomBytes } from 'node:crypto';
+ import type { AppContext, Session } from '../types.ts';
+ 
++/** When a session that starts at `from` expires. */
++export function sessionExpiry(ctx: AppContext, from: Date = ctx.clock.now()): string {
++  return new Date(from.getTime() + ctx.config.sessionTtlSeconds * 1000).toISOString();
++}
++
+ export function createSession(ctx: AppContext, userId: string): Session {
+   const now = ctx.clock.now();
+   return ctx.store.sessions.insert({
+     id: randomBytes(24).toString('hex'),
+     userId,
+     createdAt: now.toISOString(),
+-    expiresAt: new Date(now.getTime() + ctx.config.sessionTtlSeconds * 1000).toISOString(),
++    expiresAt: sessionExpiry(ctx, now),
+   });
+ }
+ 
+@@ -19,6 +24,12 @@ export function findSession(ctx: AppContext, token: string): Session | undefined
+   return session;
+ }
+ 
++/** Push a live session's expiry out to a full lifetime from now. */
++export function touchSession(ctx: AppContext, session: Session): Session {
++  const expiresAt = new Date(ctx.clock.now().getTime() + ctx.config.sessionTtlSeconds * 1000).toISOString();
++  return ctx.store.sessions.update(session.id, { expiresAt });
++}
++
+ export function destroySession(ctx: AppContext, token: string): void {
+   ctx.store.sessions.delete(token);
+ }
+diff --git a/src/users/service.ts b/src/users/service.ts
+index 4b8462a..fe56b9e 100644
+--- a/src/users/service.ts
++++ b/src/users/service.ts
+@@ -1,4 +1,4 @@
+-import { hashPassword } from '../auth/password.ts';
++import { assertAcceptablePassword, hashPassword } from '../auth/password.ts';
+ import { badRequest, conflict } from '../lib/errors.ts';
+ import type { AppContext, Address, User } from '../types.ts';
+ 
+@@ -22,6 +22,7 @@ export function findByEmail(ctx: AppContext, email: string): User | undefined {
+ 
+ export function registerUser(ctx: AppContext, input: RegisterInput): User {
+   const email = input.email.trim();
++  assertAcceptablePassword(input.password, email);
+   if (!email.includes('@')) throw badRequest('email is invalid');
+   if (findByEmail(ctx, email)) throw conflict('email is already registered');
+   const { hash, salt } = hashPassword(input.password, ctx.config.passwordCost);

@@ -1,0 +1,516 @@
+{
+  "ok": false,
+  "problems": [
+    "pr4013: acceptance tests pass on base",
+    "pr4017: acceptance tests pass on base",
+    "pr4064: base + solution is red",
+    "pr4090: acceptance tests pass on base",
+    "pr4090: base + solution is red"
+  ],
+  "policy": "queue",
+  "agent": "replay",
+  "arena": "/Users/coop/Workspace/beanstalk/research/exp/e2-real-arena/real-arena/candidates",
+  "repo": "/Users/coop/Workspace/beanstalk/research/exp/e2-real-arena/real-arena-candidates.git",
+  "base": "d2af54e66184f2c4a1eaf107035ef319ee82b8a7",
+  "tasks": {
+    "pr3991": {
+      "title": "fix: keep trailing text on HTML block close line for PI, declarations, and CDATA",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/html_block_trailing_text.html",
+        "test/specs/new/html_block_trailing_text.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr3999": {
+      "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+      "predicted": [
+        "docs/img"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/original/strong_punctuation.html",
+        "test/specs/original/strong_punctuation.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4003": {
+      "title": "fix: Fix ordered lists after blockquotes",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/ordered_list_after_blockquote.html",
+        "test/specs/new/ordered_list_after_blockquote.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4007": {
+      "title": "fix: treat a line of only tabs as a blank line between paragraphs",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/blank_line_with_tabs.html",
+        "test/specs/new/blank_line_with_tabs.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4008": {
+      "title": "fix: an unmatched strong run before emphasis stays literal",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/em_strong_unclosed_orphan.html",
+        "test/specs/new/em_strong_unclosed_orphan.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4012": {
+      "title": "fix: preserve code spans adjacent to tildes",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/codespan_adjacent_tilde.html",
+        "test/specs/new/codespan_adjacent_tilde.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4013": {
+      "title": "fix: Avoid O(n^2) backtracking in inline link href regex",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/redos/quadratic_link_empty_href.cjs"
+      ],
+      "acceptance_fails_on_base": false,
+      "solution": "passes"
+    },
+    "pr4015": {
+      "title": "fix: Recognize setext headings whose first line starts with #",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/lheading_hash_prefix.html",
+        "test/specs/new/lheading_hash_prefix.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4017": {
+      "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/redos/quadratic_inline_masking.cjs"
+      ],
+      "acceptance_fails_on_base": false,
+      "solution": "passes"
+    },
+    "pr4023": {
+      "title": "fix: fall back to default checkbox renderer when extension returns false",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/unit"
+      ],
+      "acceptance": [
+        "test/unit/marked.pr4023.test.js"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4030": {
+      "title": "fix: Fix spurious deeper nesting in a blockquote continuation",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/blockquote_nested_lazy_continuation.html",
+        "test/specs/new/blockquote_nested_lazy_continuation.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4046": {
+      "title": "fix: place task checkboxes after list loose is finalized",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/list_loose_nested_tasks.html",
+        "test/specs/new/list_loose_nested_tasks.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4051": {
+      "title": "fix: do not nest a link inside a link",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs",
+        "test/unit"
+      ],
+      "acceptance": [
+        "test/specs/commonmark/pr4051.json",
+        "test/specs/gfm/pr4051.json",
+        "test/specs/new/link_in_link_text.html",
+        "test/specs/new/link_in_link_text.md",
+        "test/unit/marked.pr4051.test.js"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4053": {
+      "title": "fix: escape character references in autolink destinations",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs",
+        "test/unit"
+      ],
+      "acceptance": [
+        "test/specs/new/link_destination_character_references.html",
+        "test/specs/new/link_destination_character_references.md",
+        "test/unit/Lexer.pr4053.test.js"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4063": {
+      "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/gfm_email_autolink_trailing.html",
+        "test/specs/new/gfm_email_autolink_trailing.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4064": {
+      "title": "fix: allow one more level of nested brackets in a link label",
+      "predicted": [
+        "(root)"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/commonmark/pr4064.json",
+        "test/specs/gfm/pr4064.json"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "fails: ['test/specs/commonmark/commonmark.0.31.2.json', 'test/specs/commonmark/pr4064.json', 'test/specs/gfm/commonmark.0.31.2.json', 'test/specs/gfm/pr4064.json']"
+    },
+    "pr4066": {
+      "title": "fix: respect raw tokens when closing link labels",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/commonmark/pr4066.json",
+        "test/specs/gfm/pr4066.json"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4072": {
+      "title": "fix: match html block start conditions when ending a list item",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/html_closing_tag_following_list.html",
+        "test/specs/new/html_closing_tag_following_list.md",
+        "test/specs/new/html_inline_tag_in_list.html",
+        "test/specs/new/html_inline_tag_in_list.md",
+        "test/specs/new/html_multiline_tag_following_list.html",
+        "test/specs/new/html_multiline_tag_following_list.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4073": {
+      "title": "fix: do not add a newline to an empty code block",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/empty_code_block.html",
+        "test/specs/new/empty_code_block.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4074": {
+      "title": "fix: remove up to the fence indentation from each content line",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/fence_indent_stripping.html",
+        "test/specs/new/fence_indent_stripping.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4075": {
+      "title": "fix: drop the leading whitespace after a hard line break",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/hardbreak_leading_whitespace.html",
+        "test/specs/new/hardbreak_leading_whitespace.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4080": {
+      "title": "fix: strip a tab that follows spaces in an indented code block",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/tabs_indented_code.html",
+        "test/specs/new/tabs_indented_code.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4083": {
+      "title": "fix: reject invalid characters in HTML tag names",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/html_invalid_tag_name.html",
+        "test/specs/new/html_invalid_tag_name.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4084": {
+      "title": "fix: allow a tab before the closing sequence of an ATX heading",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/atx_heading_closing_sequence_tab.html",
+        "test/specs/new/atx_heading_closing_sequence_tab.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4086": {
+      "title": "fix: preserve internal tabs in list item content",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/list_content_tabs_continuation_code_span_commonmark.html",
+        "test/specs/new/list_content_tabs_continuation_code_span_commonmark.md",
+        "test/specs/new/list_content_tabs_continuation_code_span_gfm.html",
+        "test/specs/new/list_content_tabs_continuation_code_span_gfm.md",
+        "test/specs/new/list_content_tabs_fence_commonmark.html",
+        "test/specs/new/list_content_tabs_fence_commonmark.md",
+        "test/specs/new/list_content_tabs_fence_gfm.html",
+        "test/specs/new/list_content_tabs_fence_gfm.md",
+        "test/specs/new/list_content_tabs_first_line_code_span_commonmark.html",
+        "test/specs/new/list_content_tabs_first_line_code_span_commonmark.md",
+        "test/specs/new/list_content_tabs_first_line_code_span_gfm.html",
+        "test/specs/new/list_content_tabs_first_line_code_span_gfm.md",
+        "test/specs/new/list_content_tabs_nested_fence_commonmark.html",
+        "test/specs/new/list_content_tabs_nested_fence_commonmark.md",
+        "test/specs/new/list_content_tabs_nested_fence_gfm.html",
+        "test/specs/new/list_content_tabs_nested_fence_gfm.md",
+        "test/specs/new/list_content_tabs_ordered_fence_commonmark.html",
+        "test/specs/new/list_content_tabs_ordered_fence_commonmark.md",
+        "test/specs/new/list_content_tabs_ordered_fence_gfm.html",
+        "test/specs/new/list_content_tabs_ordered_fence_gfm.md",
+        "test/specs/new/list_content_tabs_repeated_tabs_commonmark.html",
+        "test/specs/new/list_content_tabs_repeated_tabs_commonmark.md",
+        "test/specs/new/list_content_tabs_repeated_tabs_gfm.html",
+        "test/specs/new/list_content_tabs_repeated_tabs_gfm.md",
+        "test/specs/new/list_content_tabs_structural_indentation_tab_commonmark.html",
+        "test/specs/new/list_content_tabs_structural_indentation_tab_commonmark.md",
+        "test/specs/new/list_content_tabs_structural_indentation_tab_gfm.html",
+        "test/specs/new/list_content_tabs_structural_indentation_tab_gfm.md",
+        "test/specs/new/list_content_tabs_tab_separated_marker_commonmark.html",
+        "test/specs/new/list_content_tabs_tab_separated_marker_commonmark.md",
+        "test/specs/new/list_content_tabs_tab_separated_marker_gfm.html",
+        "test/specs/new/list_content_tabs_tab_separated_marker_gfm.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4087": {
+      "title": "fix: allow tabs in the thematic break that ends a list item",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/new/thematic_break_with_tabs_ends_list.html",
+        "test/specs/new/thematic_break_with_tabs_ends_list.md"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    },
+    "pr4090": {
+      "title": "fix: avoid O(n^2) scanning in reflinkSearch",
+      "predicted": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "acceptance": [
+        "test/specs/redos/quadratic_reflink_search.cjs"
+      ],
+      "acceptance_fails_on_base": false,
+      "solution": "fails: ['test/cjs-test.cjs', 'test/run-spec-tests.js', 'test/umd-test.js', 'test/unit/Hooks.test.js', 'test/unit/Lexer.test.js', 'test/unit/Parser.test.js', 'test/unit/bin.test.js', 'test/unit/instance.test.js', 'test/unit/marked.test.js']"
+    },
+    "pr4100": {
+      "title": "fix: load CLI configs with top-level await",
+      "predicted": [
+        "(root)"
+      ],
+      "oracle_modules": [
+        "bin",
+        "test/unit"
+      ],
+      "acceptance": [
+        "test/unit/bin.pr4100.test.js",
+        "test/unit/fixtures/bin-config-await.mjs"
+      ],
+      "acceptance_fails_on_base": true,
+      "solution": "passes"
+    }
+  },
+  "footprint_method": "predictor",
+  "base_suite": {
+    "green": true,
+    "tests": 1699,
+    "suite_seconds": 17.375
+  },
+  "couplings": [],
+  "union_merge": false,
+  "estimate": {
+    "note": "estimate only; calibrate from the first real run's summary.json",
+    "agent_minutes_per_task": 5.0,
+    "usd_per_initial_invocation": 0.45,
+    "wall_minutes_lower_bound": 141.0,
+    "usd_initial_only": 12.6
+  }
+}

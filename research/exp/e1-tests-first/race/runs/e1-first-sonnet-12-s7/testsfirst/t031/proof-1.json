@@ -1,0 +1,51 @@
+{
+ "task": "t031",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-text.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-text.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 5 tests fail on the current code",
+   "tests": 5,
+   "failing": 4,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "invoice plain-text rendering > returns text/plain with the number, item line and totals",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "invoice plain-text rendering > shows the discount as a negative amount when the invoice has one",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n'object' !== 'string'"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "invoice plain-text rendering > renders one line per item in the invoice",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n'object' !== 'string'"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "invoice plain-text rendering > uses the same visibility rules as the invoice endpoint",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-text.test.ts",
+     "name": "invoice plain-text rendering > returns 404 for an unknown invoice",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

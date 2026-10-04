@@ -1,0 +1,57 @@
+{
+ "task": "t040",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/coupon-expiry.test.ts"
+ ],
+ "results": {
+  "src/orders/coupon-expiry.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 4,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > rejects a coupon that expired in the past with 400",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > rejects a coupon at exactly its expiry time",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > accepts a coupon until its expiry, then rejects it once the clock reaches it",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > does not count a redemption or empty the cart when rejected",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > accepts a coupon that expires in the future",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/coupon-expiry.test.ts",
+     "name": "coupon expiry > accepts a coupon without an expiry",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

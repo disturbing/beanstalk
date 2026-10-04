@@ -1,0 +1,63 @@
+{
+ "task": "t019",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/reorder.test.ts"
+ ],
+ "results": {
+  "src/orders/reorder.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 4,
+   "passing": 3,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > puts the order lines into an empty cart",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > adds to quantities already in the cart",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > skips products that are no longer sold instead of failing",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > succeeds with nothing added when no product is sold any more",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > is a 404 for someone else's order and leaves the cart alone",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > is a 404 for an admin reordering another customer's order",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/reorder.test.ts",
+     "name": "POST /orders/:id/reorder > is a 404 for an unknown order",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

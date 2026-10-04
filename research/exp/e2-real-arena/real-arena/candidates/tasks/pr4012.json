@@ -1,0 +1,33 @@
+{
+  "id": "pr4012",
+  "title": "fix: preserve code spans adjacent to tildes",
+  "prompt": "**Marked version:** master / 18.0.5\n\n**Markdown flavor:** GitHub Flavored Markdown\n\n## Description\n\n- Fixes #4011\n- Keep adjacent tilde and backtick delimiter runs separate so complete code spans remain available to the code-span tokenizer.\n- Keep delimiter handling in the selected GFM text grammar and stop immediately at mixed delimiter boundaries.\n- Cover both delimiter orders, multi-backtick code spans, and code nested in strikethrough.",
+  "acceptance_tests": {
+    "test/specs/new/codespan_adjacent_tilde.html": "<p>~<code>code</code></p>\n<p><code>before</code>~<code>after</code></p>\n<p>`<del>strike</del></p>\n<p>~<code>code ` tick</code></p>\n<p><del><code>deleted code</code></del></p>\n",
+    "test/specs/new/codespan_adjacent_tilde.md": "~`code`\n\n`before`~`after`\n\n`~strike~\n\n~``code ` tick``\n\n~~`deleted code`~~\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/codespan_adjacent_tilde.html",
+    "test/specs/new/codespan_adjacent_tilde.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4012,
+    "sha": "0de7188bf1f30511490c961d53865390e7ede956",
+    "url": "https://github.com/markedjs/marked/pull/4012",
+    "author": "Hona",
+    "merged_at": "2026-07-14T22:07:23Z",
+    "pr_base_sha": "39bd884c5f17a8370cf957b8d46a15751868ab4d",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": []
+  }
+}

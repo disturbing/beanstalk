@@ -1,0 +1,23 @@
+{
+  "id": "t039",
+  "title": "Finance needs a list of overdue invoices",
+  "prompt": "Finance chases late payers by hand. Add `GET /invoices/overdue` (admin only) returning every invoice that is still `open` and whose due date has passed, the one that fell due longest ago first. Each entry is the invoice plus a `daysOverdue` field: the whole days since the due date, and at least 1 for anything that is overdue. Paid and void invoices never appear.",
+  "acceptance_tests": {
+    "src/billing/invoice-overdue.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder, signUp } from '../lib/testing.ts';\nimport { markPaid, voidInvoice } from './service.ts';\n\nconst DAY = 24 * 60 * 60 * 1000;\n\ndescribe('overdue invoices', () => {\n  it('lists open invoices past their due date, longest overdue first', () => {\n    const app = createTestApp();\n    app.ctx.config.sessionTtlSeconds = 90 * 24 * 60 * 60;\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    const early = placeOrder(app, { email: 'a@example.com' }).order.invoiceId;\n    app.clock.advance(5 * DAY);\n    const later = placeOrder(app, { email: 'b@example.com' }).order.invoiceId;\n    const paid = placeOrder(app, { email: 'c@example.com' }).order.invoiceId!;\n    const voided = placeOrder(app, { email: 'd@example.com' }).order.invoiceId!;\n    markPaid(app.ctx, paid);\n    voidInvoice(app.ctx, voided);\n    app.clock.advance(24 * DAY);\n    assert.deepEqual(app.call('GET', '/invoices/overdue', { token: admin.token }).body, []);\n    app.clock.advance(7 * DAY + 60_000);\n    const overdue = app.call('GET', '/invoices/overdue', { token: admin.token }).body as { id: string; daysOverdue: number }[];\n    assert.deepEqual(overdue.map((i) => i.id), [early, later]);\n    assert.deepEqual(overdue.map((i) => i.daysOverdue), [6, 1]);\n  });\n\n  it('is for admins only and is not mistaken for an invoice id', () => {\n    const app = createTestApp();\n    const customer = signUp(app.ctx, 'buyer@example.com');\n    const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n    assert.equal(app.call('GET', '/invoices/overdue', { token: customer.token }).status, 403);\n    assert.equal(app.call('GET', '/invoices/overdue', { token: admin.token }).status, 200);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/invoice-overdue.test.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

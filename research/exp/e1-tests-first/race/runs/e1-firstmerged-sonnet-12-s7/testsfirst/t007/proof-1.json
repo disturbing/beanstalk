@@ -1,0 +1,63 @@
+{
+ "task": "t007",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/note.test.ts"
+ ],
+ "results": {
+  "src/orders/note.test.ts": {
+   "status": "fails-first",
+   "why": "7 of 7 tests fail on the current code",
+   "tests": 7,
+   "failing": 7,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > stores the note on the order and returns it from checkout, get and list",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'leave with the concierge'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > trims the note",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'ring twice'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > uses an empty string when the note is missing or blank",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== ''"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > accepts a note of exactly 200 characters",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > measures the limit after trimming",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > rejects a note longer than 200 characters with a 400 and creates no order",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 400"
+    },
+    {
+     "file": "src/orders/note.test.ts",
+     "name": "order delivery notes > gives orders that already exist an empty note via a new numbered migration",
+     "status": "fail",
+     "message": "a new migration is registered"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

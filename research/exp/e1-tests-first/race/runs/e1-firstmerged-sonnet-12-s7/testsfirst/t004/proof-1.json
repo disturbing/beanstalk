@@ -1,0 +1,69 @@
+{
+ "task": "t004",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-line.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-line.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 8 tests fail on the current code",
+   "tests": 8,
+   "failing": 8,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > copies the item identity fields",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > computes net as quantity times unit price",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > records the discount passed in as the line discount",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > taxes the net with no discount",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > taxes only what is left after the discount",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > uses the tax class for the rate",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > uses the destination address for the rate",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    },
+    {
+     "file": "src/billing/invoice-line.test.ts",
+     "name": "buildInvoiceLine > matches the line buildInvoice produces",
+     "status": "fail",
+     "message": "invoice.ts must export buildInvoiceLine\n+ actual - expected\n\n+ 'undefined'\n- 'function'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

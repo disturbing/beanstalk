@@ -1,0 +1,3 @@
+# the research/.gitignore ignores data/ at any depth; this folder's data/ holds the measured probes, profiles and generated tables the write-up cites
+!data/
+__pycache__/

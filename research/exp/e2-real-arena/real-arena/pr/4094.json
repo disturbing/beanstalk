@@ -1,0 +1,13 @@
+{
+ "number": 4094,
+ "sha": "5196d98839463f17efa1bb104164d3bcf9cbcac2",
+ "title": "docs: add commonmark and gfm as versions in demo",
+ "body": "## Description\r\n\r\nAdd CommonMark and GFM as version on the demo page.\r\n\r\n<img width=\"1135\" height=\"282\" alt=\"image\" src=\"https://github.com/user-attachments/assets/b2bef4f8-f40d-4888-8454-44031342a2ef\" />\r\n\r\nCommonMark runs loads commonmark.js in the worker, and GFM calls https://api.github.com/markdown in the worker.\r\n\r\n[GFM demo](https://marked-website-git-fork-uzitech-gfm-demo-output-markedjs.vercel.app/demo/?outputType=html&text=%7C%20a%20%7C%20b%20%7C%0A%7C---%7C---%7C%0A%7C%201%20%7C%202%20%7C&options=%7B%0A%20%22async%22%3A%20false%2C%0A%20%22breaks%22%3A%20false%2C%0A%20%22extensions%22%3A%20null%2C%0A%20%22gfm%22%3A%20true%2C%0A%20%22hooks%22%3A%20null%2C%0A%20%22pedantic%22%3A%20false%2C%0A%20%22silent%22%3A%20false%2C%0A%20%22tokenizer%22%3A%20null%2C%0A%20%22walkTokens%22%3A%20null%0A%7D&version=gfm)\r\n\r\n## Contributor\r\n\r\n- [ ] Test(s) exist to ensure functionality and minimize regression (if no tests added, list tests covering this PR); or,\r\n- [x] no tests required for this PR.\r\n- [ ] If submitting new feature, it has been documented in the appropriate places.\r\n\r\n## Committer\r\n\r\nIn most cases, this should be a different person than the contributor.\r\n\r\n- [ ] CI is green (no forced merge required).\r\n- [ ] Squash and Merge PR following [conventional commit guidelines](https://www.conventionalcommits.org/).\r\n",
+ "author": "UziTech",
+ "created_at": "2026-09-13T08:25:33Z",
+ "merged_at": "2026-09-21T02:57:46Z",
+ "pr_base_sha": "634f81064433ffd12a6f2c7e8a5ae1b89c3ef4f1",
+ "pr_head_sha": "c29deb260c868795485ddab1e7140160a7118c0b",
+ "commits": 1,
+ "linked_issues": []
+}

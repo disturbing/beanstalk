@@ -1,0 +1,45 @@
+{
+ "task": "t013",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/receipt.test.ts"
+ ],
+ "results": {
+  "src/billing/receipt.test.ts": {
+   "status": "fails-first",
+   "why": "3 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 3,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/receipt.test.ts",
+     "name": "payment receipts > emails the customer a receipt when the invoice is marked paid",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0 !== 1"
+    },
+    {
+     "file": "src/billing/receipt.test.ts",
+     "name": "payment receipts > lists the receipt as a payment_received notification",
+     "status": "fail",
+     "message": "expected a payment_received notification"
+    },
+    {
+     "file": "src/billing/receipt.test.ts",
+     "name": "payment receipts > sends the receipt when an admin pays through the API, once only",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n0 !== 1"
+    },
+    {
+     "file": "src/billing/receipt.test.ts",
+     "name": "payment receipts > sends no receipt before payment",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

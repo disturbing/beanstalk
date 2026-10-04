@@ -1,0 +1,84 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..109f65b 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- Product and order lists send an `x-total-count` header.
+ 
+ ### Fixed
+ 
+diff --git a/src/catalog/handlers.ts b/src/catalog/handlers.ts
+index 3ebf385..7d105a1 100644
+--- a/src/catalog/handlers.ts
++++ b/src/catalog/handlers.ts
+@@ -1,13 +1,14 @@
+ import { paginate } from '../lib/pagination.ts';
+ import { asBody, optionalString, requireInt, requireString } from '../lib/validate.ts';
+-import { created, ok } from '../router.ts';
++import { created, json, ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { TaxClass } from '../types.ts';
+ import { createProduct, getProduct, listProducts, updateProduct } from './service.ts';
+ 
+ export const list: Handler = (req, ctx) => {
+   const products = listProducts(ctx, { category: req.query.category, q: req.query.q });
+-  return ok(paginate(products, req.query, ctx.config.pageSize));
++  const page = paginate(products, req.query, ctx.config.pageSize);
++  return json(200, page.items, { 'x-total-count': String(page.total) });
+ };
+ 
+ export const get: Handler = (req, ctx) => ok(getProduct(ctx, req.params.id));
+diff --git a/src/lib/pagination.ts b/src/lib/pagination.ts
+index d76c6cd..04f86fe 100644
+--- a/src/lib/pagination.ts
++++ b/src/lib/pagination.ts
+@@ -1,12 +1,18 @@
+ const MAX_LIMIT = 100;
+ 
++export interface Page<T> {
++  items: T[];
++  /** How many items there were before paging. */
++  total: number;
++}
++
+ /**
+  * Slice `items` according to `?limit=` and `?offset=`. Bad values fall back to the
+  * defaults rather than failing the request.
+  */
+-export function paginate<T>(items: T[], query: Record<string, string>, defaultLimit = 20): T[] {
++export function paginate<T>(items: T[], query: Record<string, string>, defaultLimit = 20): Page<T> {
+   const requested = Number.parseInt(query.limit ?? '', 10);
+   const limit = Number.isNaN(requested) ? defaultLimit : Math.min(Math.max(requested, 1), MAX_LIMIT);
+   const offset = Math.max(Number.parseInt(query.offset ?? '', 10) || 0, 0);
+-  return items.slice(offset, offset + limit);
++  return { items: items.slice(offset, offset + limit), total: items.length };
+ }
+diff --git a/src/orders/handlers.ts b/src/orders/handlers.ts
+index c1230fa..2215c51 100644
+--- a/src/orders/handlers.ts
++++ b/src/orders/handlers.ts
+@@ -1,7 +1,7 @@
+ import { badRequest } from '../lib/errors.ts';
+ import { paginate } from '../lib/pagination.ts';
+ import { asBody, optionalString, requireInt } from '../lib/validate.ts';
+-import { created, ok } from '../router.ts';
++import { created, json, ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { ShippingMethod } from '../types.ts';
+ import { checkout as placeOrder } from './checkout.ts';
+@@ -21,8 +21,10 @@ export const checkout: Handler = (req, ctx) => {
+   return created(order);
+ };
+ 
+-export const list: Handler = (req, ctx) =>
+-  ok(paginate(listOrders(ctx, req.user!.id), req.query, ctx.config.pageSize));
++export const list: Handler = (req, ctx) => {
++  const page = paginate(listOrders(ctx, req.user!.id), req.query, ctx.config.pageSize);
++  return json(200, page.items, { 'x-total-count': String(page.total) });
++};
+ 
+ export const get: Handler = (req, ctx) => ok(getVisibleOrder(ctx, req.user!, req.params.id));
+ 

@@ -1,0 +1,33 @@
+{
+  "id": "t016",
+  "title": "fix: do not add a newline to an empty code block",
+  "prompt": "**Marked version:** 18.0.11 (53cb13f1)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\n`Renderer.code` appends a newline unconditionally:\n\n```js\nconst code = text.replace(other.endingNewline, '') + '\\n';\n```\n\nFor a code block with no content that turns `''` into `'\\n'`, so an empty fence renders as `<pre><code>\\n</code></pre>` instead of `<pre><code></code></pre>`.\n\nThe lexer is not involved. `new Lexer({gfm: false}).lex('```\\n')` already gives `text: ''`.\n\n## Expectation\n\n```\n```\n```\n\nrenders `<pre><code></code></pre>`\n\n## Result\n\nrenders `<pre><code>\\n</code></pre>`\n\n## What was attempted\n\nThis fixes four CommonMark examples, all empty fenced code blocks: 126 (unclosed fence), 130 (closed fence), 144 (empty fence with an info string) and 237 (empty fence inside a block quote). I diffed the exact-match failure set across the whole spec before and after: those four move to passing and nothing else changes, in both the CommonMark and GFM runs.\n\nWorth flagging why this went unnoticed, since it applies to more than this bug. `htmlIsEqual` builds `@markedjs/html-differ` with only `ignoreSelfClosingSlash` and `ignoreComments`, so `ignoreWhitespaces` stays at its default of `true`. Whitespace inside `pre`/`code` is significant, so all four of these were already reported as passing and carry no `shouldFail` flag. That also means the spec suite cannot protect this fix, which is why the tests below assert exact output instead.\n\nThere is a second, separate case the same blind spot hides: example 318, a fenced block in a list item, expects `b\\n\\n\\n` and gets `b\\n\\n`. That one is a lexer issue rather than a renderer one, since the code token already comes out as `b\\n\\n`, so I have left it out of this PR.",
+  "acceptance_tests": {
+    "test/specs/new/empty_code_block.html": "<pre><code></code></pre>\n<p>sep</p>\n<pre><code class=\"language-;\"></code></pre>\n<p>sep</p>\n<pre><code>x\n</code></pre>\n<p>sep</p>\n<pre><code></code></pre>\n",
+    "test/specs/new/empty_code_block.md": "---\nrenderExact: true\n---\n```\n```\n\nsep\n\n````;\n````\n\nsep\n\n```\nx\n```\n\nsep\n\n```\n"
+  },
+  "oracle_paths": [
+    "src/Renderer.ts",
+    "test/specs/new/empty_code_block.html",
+    "test/specs/new/empty_code_block.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4073,
+    "sha": "23b1706a0e19e354d0dd0e82ba93fb73e11c6f5c",
+    "url": "https://github.com/markedjs/marked/pull/4073",
+    "author": "Kjubikstronk",
+    "merged_at": "2026-09-04T20:39:13Z",
+    "pr_base_sha": "53cb13f13fc13d433269248c5caa255ffa1361ee",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 3,
+    "notes": []
+  }
+}

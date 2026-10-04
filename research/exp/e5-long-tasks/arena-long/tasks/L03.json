@@ -1,0 +1,49 @@
+{
+  "id": "L03",
+  "title": "Invoices should show federal and regional tax separately + Split the per-line work out of buildInvoice + Cap the discount a percentage coupon can give",
+  "prompt": "Three related tickets in invoice tax and coupon limits are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Invoices should show federal and regional tax separately\n\nCanadian customers (and our accountant) want to see the federal and the regional part of the sales tax on an invoice, not one lump sum.\n\nAdd a `taxBreakdown` object with `federal` and `regional` amounts (in cents) to every invoice. The two parts must always add up to the invoice's `tax`. For a harmonised provincial tax such as Ontario's 13% HST, the federal part is 5% and the regional part is 8%. In the US, and for any region or country without a specific entry, everything counts as regional. Exempt goods have no tax in either part, and reduced-rate goods get half of each part.\n\nIn billing/tax.ts, expose the split as `taxComponentsFor(address, taxClass, fallback)`, returning `{ federal, regional }` as fractions (Ontario gives `{ federal: 0.05, regional: 0.08 }`); `taxRateFor` keeps returning the combined rate.\n\n### Ticket 2: Split the per-line work out of buildInvoice\n\nbuildInvoice in billing/invoice.ts has grown into one long function. Pull the work for a single invoice line into an exported `buildInvoiceLine(ctx, address, item, discount)` that returns the finished `InvoiceLine`: the item's net amount (quantity times unit price), the line's share of the discount, the tax rate for the destination, and the tax on what is left after the discount. buildInvoice should build its lines with it. Behaviour must not change.\n\n### Ticket 3: Cap the discount a percentage coupon can give\n\nOur 30%-off launch coupon is far too generous on big baskets. Percentage coupons need an optional cap on the amount they can take off, for example \"20% off, up to $25\".\n\nAdd an optional `maxDiscount` (in cents) to coupons. When it is set, the discount from a percentage coupon is never more than that amount. It has no effect on fixed-amount coupons or coupons without a cap, and coupons that already exist have no cap (`null`). This changes the stored data, so add a numbered migration for it (and register it) rather than special-casing missing values in the code.\n",
+  "acceptance_tests": {
+    "src/billing/tax-breakdown.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS, placeOrder, US_ADDRESS } from '../lib/testing.ts';\nimport { buildInvoice } from './invoice.ts';\nimport { taxComponentsFor, taxRateFor } from './tax.ts';\n\ndescribe('tax breakdown', () => {\n  it('splits Ontario HST into 5% federal and 8% regional', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    assert.deepEqual(invoice.taxBreakdown, { federal: 500, regional: 800 });\n    assert.equal(invoice.tax, 1300);\n  });\n\n  it('counts all US state tax as regional', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: US_ADDRESS });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    assert.deepEqual(invoice.taxBreakdown, { federal: 0, regional: 650 });\n  });\n\n  it('has no tax in either part for exempt goods', () => {\n    const app = createTestApp();\n    const { order } = placeOrder(app, { price: 10000, address: ON_ADDRESS, taxClass: 'exempt' });\n    assert.deepEqual(app.ctx.store.invoices.require(order.invoiceId!).taxBreakdown, { federal: 0, regional: 0 });\n  });\n\n  it('always adds up to the invoice tax, even with awkward amounts', () => {\n    const app = createTestApp();\n    const item = (unitPrice: number) => ({ productId: 'p', description: 'x', quantity: 1, unitPrice, taxClass: 'standard' as const });\n    const invoice = buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items: [item(333), item(333), item(334)] });\n    assert.equal(invoice.taxBreakdown.federal + invoice.taxBreakdown.regional, invoice.tax);\n    assert.ok(invoice.taxBreakdown.federal > 0 && invoice.taxBreakdown.regional > 0);\n  });\n\n  it('keeps the combined rate and exposes the components', () => {\n    assert.equal(taxRateFor(ON_ADDRESS, 'standard', 0.07), 0.13);\n    assert.deepEqual(taxComponentsFor(ON_ADDRESS, 'standard', 0.07), { federal: 0.05, regional: 0.08 });\n    assert.deepEqual(taxComponentsFor({ ...ON_ADDRESS, country: 'JP' }, 'standard', 0.1), { federal: 0, regional: 0.1 });\n  });\n});\n",
+    "src/billing/invoice-line.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS, US_ADDRESS } from '../lib/testing.ts';\nimport type { InvoiceItem } from './invoice.ts';\nimport { buildInvoice, buildInvoiceLine } from './invoice.ts';\n\nconst item: InvoiceItem = { productId: 'prd_1', description: 'Teapot', quantity: 2, unitPrice: 5000, taxClass: 'standard' };\n\ndescribe('buildInvoiceLine', () => {\n  it('works out net, discount, rate and tax for one item', () => {\n    const app = createTestApp();\n    assert.deepEqual(buildInvoiceLine(app.ctx, ON_ADDRESS, item, 1000), {\n      productId: 'prd_1',\n      description: 'Teapot',\n      quantity: 2,\n      unitPrice: 5000,\n      net: 10000,\n      discount: 1000,\n      taxRate: 0.13,\n      tax: 1170,\n    });\n  });\n\n  it('uses the tax class and the destination', () => {\n    const app = createTestApp();\n    assert.equal(buildInvoiceLine(app.ctx, US_ADDRESS, { ...item, taxClass: 'reduced' }, 0).taxRate, 0.0325);\n    assert.equal(buildInvoiceLine(app.ctx, ON_ADDRESS, { ...item, taxClass: 'exempt' }, 0).tax, 0);\n  });\n\n  it('is what buildInvoice builds its lines from', () => {\n    const app = createTestApp();\n    const other: InvoiceItem = { ...item, productId: 'prd_2', quantity: 1, unitPrice: 999 };\n    const invoice = buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items: [item, other] });\n    assert.deepEqual(invoice.lines[0], buildInvoiceLine(app.ctx, ON_ADDRESS, item, 0));\n    assert.deepEqual(invoice.lines[1], buildInvoiceLine(app.ctx, ON_ADDRESS, other, 0));\n  });\n});\n",
+    "src/billing/coupon-max-discount.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, placeOrder } from '../lib/testing.ts';\nimport { couponDiscount } from './discounts.ts';\n\nconst percent = { id: 'P20', kind: 'percent' as const, value: 20, minSubtotal: 0, expiresAt: null, maxRedemptions: null, redemptions: 0 };\n\ndescribe('coupon max discount', () => {\n  it('caps percentage discounts', () => {\n    const capped = { ...percent, maxDiscount: 2500 };\n    assert.equal(couponDiscount(capped, 20000), 2500);\n    assert.equal(couponDiscount(capped, 5000), 1000);\n  });\n\n  it('ignores the cap for fixed coupons and treats missing or null as no cap', () => {\n    assert.equal(couponDiscount({ ...percent, kind: 'fixed', value: 4000, maxDiscount: 100 }, 20000), 4000);\n    assert.equal(couponDiscount({ ...percent, maxDiscount: null }, 20000), 4000);\n    assert.equal(couponDiscount(percent, 20000), 4000);\n  });\n\n  it('applies at checkout', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { ...percent, maxDiscount: 2500 });\n    const { order } = placeOrder(app, { price: 20000, couponCode: 'P20' });\n    assert.equal(order.discount, 2500);\n  });\n});\n",
+    "src/db/coupon-max-discount-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp } from '../lib/testing.ts';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: coupon max discount', () => {\n  it('leaves seeded coupons uncapped', () => {\n    const app = createTestApp();\n    assert.equal(app.ctx.store.coupons.require('WELCOME10').maxDiscount, null);\n    assert.ok((migrations.at(-1)?.version ?? 0) > 5, 'a new migration was added after the existing five');\n  });\n\n  it('backfills coupons that already exist', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.coupons.insert({ id: 'OLD', kind: 'percent', value: 5 } as never);\n    runMigrations(store);\n    assert.equal(store.coupons.require('OLD').maxDiscount, null);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/billing/coupon-max-discount.test.ts",
+    "src/billing/discounts.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.ts",
+    "src/db/coupon-max-discount-migration.test.ts",
+    "src/db/migrations/0006_coupon_max_discount.ts",
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing",
+    "src/db"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "members": [
+    "t003",
+    "t004",
+    "t024"
+  ],
+  "couplings": [
+    {
+      "with": "L11",
+      "type": "textual",
+      "members": [
+        "t003",
+        "t017"
+      ],
+      "note": "t003 x t017: Both edit the Quebec row of the tax rate table in billing/tax.ts (a rate correction versus restructuring the table into federal/regional parts)."
+    }
+  ],
+  "theme": "invoice tax and coupon limits"
+}

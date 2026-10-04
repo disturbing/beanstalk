@@ -1,0 +1,33 @@
+{
+  "id": "t010",
+  "title": "fix: Fix spurious deeper nesting in a blockquote continuation",
+  "prompt": "### Problem\n\nIn a nested blockquote, a paragraph line that lazily continues and is then\nfollowed by a line restating the `>` markers is parsed into an extra, spurious\nblockquote level (and a split paragraph) instead of continuing the same\nparagraph.\n\nInput:\n\n```\n> > a\nb\n> > c\n```\n\n`marked` (before this PR):\n\n```html\n<blockquote>\n<blockquote>\n<p>a\nb</p>\n<blockquote>\n<p>c</p>\n</blockquote>\n</blockquote>\n</blockquote>\n```\n\nExpected — identical output from both `commonmark` 0.31.2 and\n`micromark` + `micromark-extension-gfm`:\n\n```html\n<blockquote>\n<blockquote>\n<p>a\nb\nc</p>\n</blockquote>\n</blockquote>\n```\n\n`> > a\\nb\\n> > > c` shows the same off-by-one-level (4 blockquotes in marked vs\nthe correct 3). Plain lazy nesting without a restated marker\n(`> > > foo\\nbar`, CommonMark example 250) is unaffected, which is why no\nexisting spec caught it.\n\n### Root cause\n\nThe nested-blockquote continuation branch re-lexes the inner blockquote from\n`oldToken.raw + '\\n' + lines.join('\\n')`. `oldToken.raw` already had one `>`\nmarker stripped for the inner frame, but the appended continuation `lines` still\ncarry the outer markers, so a restated `> >` keeps one surplus `>` when recursed\nand is read as a fresh deeper blockquote that interrupts the open paragraph. The\nsingle-level path works only because the marker is stripped there via\n`blockquoteSetextReplace2`; this branch bypassed that strip.\n\n### Fix\n\nStrip one `>` marker from the continuation lines (same `blockquoteSetextReplace2`\nthe normal path uses) so they align with the inner frame, and rebuild `raw` from\nthe actual consumed source. Deeper markers (`> > >`) simply recurse one further\nlevel, which is correct.\n\n### Test\n\nAdded `test/specs/new/blockquote_nested_lazy_continuation` (`.md`/`.html`).\nFails on `master` (2 failing spec cases), passes with the fix. Full suite green:\n`test:specs` 1769 pass / 0 fail, `test:unit` 188 pass / 0 fail.\n\nReference: CommonMark 0.31.2 §6.3 (block quotes — laziness): a line beginning\nwith the blockquote's own markers followed by paragraph text continues that\nparagraph, not a new deeper quote.",
+  "acceptance_tests": {
+    "test/specs/new/blockquote_nested_lazy_continuation.html": "<blockquote>\n<blockquote>\n<p>a\nb\nc</p>\n</blockquote>\n</blockquote>\n",
+    "test/specs/new/blockquote_nested_lazy_continuation.md": "> > a\nb\n> > c\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/new/blockquote_nested_lazy_continuation.html",
+    "test/specs/new/blockquote_nested_lazy_continuation.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4030,
+    "sha": "452f1ed6a7429e05f00d788bcd9867440d7dc750",
+    "url": "https://github.com/markedjs/marked/pull/4030",
+    "author": "spokodev",
+    "merged_at": "2026-08-04T04:31:16Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 9,
+    "notes": [],
+    "applies_to_common_base": true
+  }
+}

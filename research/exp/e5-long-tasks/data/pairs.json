@@ -1,0 +1,4745 @@
+{
+ "base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+ "ids": [
+  "t001",
+  "t002",
+  "t003",
+  "t004",
+  "t005",
+  "t006",
+  "t007",
+  "t008",
+  "t009",
+  "t010",
+  "t011",
+  "t012",
+  "t013",
+  "t014",
+  "t015",
+  "t016",
+  "t017",
+  "t018",
+  "t019",
+  "t020",
+  "t021",
+  "t022",
+  "t023",
+  "t024",
+  "t025",
+  "t026",
+  "t027",
+  "t028",
+  "t029",
+  "t030",
+  "t031",
+  "t032",
+  "t033",
+  "t034",
+  "t035",
+  "t036",
+  "t037",
+  "t038",
+  "t039",
+  "t040"
+ ],
+ "files": {
+  "t001": [
+   "src/billing/coupon-limits.test.ts",
+   "src/billing/service.ts"
+  ],
+  "t002": [
+   "CHANGELOG.md",
+   "src/catalog/handlers.ts",
+   "src/catalog/total-count.test.ts",
+   "src/lib/pagination.test.ts",
+   "src/lib/pagination.ts",
+   "src/orders/handlers.ts"
+  ],
+  "t003": [
+   "CHANGELOG.md",
+   "src/billing/invoice.ts",
+   "src/billing/tax-breakdown.test.ts",
+   "src/billing/tax.ts",
+   "src/types.ts"
+  ],
+  "t004": [
+   "src/billing/invoice-line.test.ts",
+   "src/billing/invoice.ts"
+  ],
+  "t005": [
+   "CHANGELOG.md",
+   "src/lib/money-format.test.ts",
+   "src/lib/money.ts",
+   "src/orders/confirmation-grouping.test.ts"
+  ],
+  "t006": [
+   "README.md",
+   "src/billing/invoice.ts",
+   "src/billing/payment-terms.test.ts",
+   "src/config.ts"
+  ],
+  "t007": [
+   "src/db/migrations/0006_order_note.ts",
+   "src/db/migrations/index.ts",
+   "src/db/order-note-migration.test.ts",
+   "src/orders/checkout.ts",
+   "src/orders/handlers.ts",
+   "src/orders/order-note.test.ts",
+   "src/types.ts"
+  ],
+  "t008": [
+   "src/inventory/reserve-validation.test.ts",
+   "src/inventory/stock.ts"
+  ],
+  "t009": [
+   "src/config.ts",
+   "src/orders/checkout.ts",
+   "src/orders/line-limit.test.ts"
+  ],
+  "t010": [
+   "src/billing/invoice.ts",
+   "src/billing/tax-exempt.test.ts",
+   "src/db/migrations/0006_user_tax_exempt.ts",
+   "src/db/migrations/index.ts",
+   "src/db/user-tax-exempt-migration.test.ts",
+   "src/orders/checkout.ts",
+   "src/types.ts"
+  ],
+  "t011": [
+   "CHANGELOG.md",
+   "src/db/migrations/0006_shipment_tracking.ts",
+   "src/db/migrations/index.ts",
+   "src/db/shipment-tracking-migration.test.ts",
+   "src/orders/checkout.ts",
+   "src/shipping/handlers.ts",
+   "src/shipping/service.ts",
+   "src/shipping/shipment-tracking.test.ts",
+   "src/types.ts"
+  ],
+  "t012": [
+   "src/auth/session-expiry.test.ts",
+   "src/auth/sessions.ts"
+  ],
+  "t013": [
+   "src/billing/payment-receipt.test.ts",
+   "src/billing/service.ts",
+   "src/notifications/receipt-template.test.ts",
+   "src/notifications/templates.ts",
+   "src/types.ts"
+  ],
+  "t014": [
+   "README.md",
+   "src/auth/guard.ts",
+   "src/auth/sessions.ts",
+   "src/auth/sliding-sessions.test.ts"
+  ],
+  "t015": [
+   "src/billing/coupons.test.ts",
+   "src/billing/coupons.ts",
+   "src/billing/discounts.ts",
+   "src/billing/invoice.ts"
+  ],
+  "t016": [
+   "src/billing/invoice-numbers.test.ts",
+   "src/billing/service.ts"
+  ],
+  "t017": [
+   "CHANGELOG.md",
+   "src/billing/quebec-tax.test.ts",
+   "src/billing/tax.ts"
+  ],
+  "t018": [
+   "src/notifications/templates.ts",
+   "src/notifications/tracking-email.test.ts"
+  ],
+  "t019": [
+   "CHANGELOG.md",
+   "README.md",
+   "src/orders/handlers.ts",
+   "src/orders/reorder.test.ts",
+   "src/orders/service.ts",
+   "src/routes.ts"
+  ],
+  "t020": [
+   "src/auth/password.ts",
+   "src/users/password-policy.test.ts",
+   "src/users/service.ts"
+  ],
+  "t021": [
+   "src/catalog/handlers.ts",
+   "src/catalog/hidden-product.test.ts"
+  ],
+  "t022": [
+   "CHANGELOG.md",
+   "README.md",
+   "src/billing/handlers.ts",
+   "src/billing/invoice-list.test.ts",
+   "src/billing/service.ts",
+   "src/routes.ts"
+  ],
+  "t023": [
+   "CHANGELOG.md",
+   "src/billing/invoice.ts",
+   "src/billing/tax-rounding.test.ts",
+   "src/lib/money.ts"
+  ],
+  "t024": [
+   "src/billing/coupon-max-discount.test.ts",
+   "src/billing/discounts.ts",
+   "src/db/coupon-max-discount-migration.test.ts",
+   "src/db/migrations/0006_coupon_max_discount.ts",
+   "src/db/migrations/index.ts",
+   "src/types.ts"
+  ],
+  "t025": [
+   "src/notifications/templates.test.ts",
+   "src/notifications/templates.ts"
+  ],
+  "t026": [
+   "src/billing/discount-split.test.ts",
+   "src/billing/discounts.ts"
+  ],
+  "t027": [
+   "src/users/email-case.test.ts",
+   "src/users/service.ts"
+  ],
+  "t028": [
+   "CHANGELOG.md",
+   "README.md",
+   "src/config.ts",
+   "src/shipping/service.ts",
+   "src/shipping/signature.test.ts",
+   "src/types.ts"
+  ],
+  "t029": [
+   "src/orders/checkout-rollback.test.ts",
+   "src/orders/checkout.ts"
+  ],
+  "t030": [
+   "src/orders/checkout.ts",
+   "src/orders/empty-cart.test.ts"
+  ],
+  "t031": [
+   "CHANGELOG.md",
+   "README.md",
+   "src/billing/handlers.ts",
+   "src/billing/invoice-text.test.ts",
+   "src/billing/render.ts",
+   "src/routes.ts"
+  ],
+  "t032": [
+   "CHANGELOG.md",
+   "src/orders/checkout.ts",
+   "src/orders/total-with-shipping.test.ts",
+   "src/types.ts"
+  ],
+  "t033": [
+   "README.md",
+   "src/shipping/free-shipping.test.ts",
+   "src/shipping/service.ts"
+  ],
+  "t034": [
+   "src/inventory/atomic-reserve.test.ts",
+   "src/inventory/stock.ts"
+  ],
+  "t035": [
+   "README.md",
+   "src/cart/service.ts",
+   "src/cart/stock-check.test.ts",
+   "src/inventory/stock.ts"
+  ],
+  "t036": [
+   "CHANGELOG.md",
+   "README.md",
+   "src/billing/handlers.ts",
+   "src/billing/line-refunds.test.ts",
+   "src/billing/refunds.ts",
+   "src/routes.ts",
+   "src/types.ts"
+  ],
+  "t037": [
+   "src/catalog/filter-products.test.ts",
+   "src/catalog/service.ts"
+  ],
+  "t038": [
+   "src/billing/coupon-cap.test.ts",
+   "src/billing/discounts.ts"
+  ],
+  "t039": [
+   "README.md",
+   "src/billing/handlers.ts",
+   "src/billing/invoice-overdue.test.ts",
+   "src/billing/service.ts",
+   "src/routes.ts"
+  ],
+  "t040": [
+   "src/billing/coupon-expiry.test.ts",
+   "src/billing/service.ts"
+  ]
+ },
+ "pairs": {
+  "t001+t002": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t003": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t004": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t005": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t006": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t001+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t001+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t001+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t001+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t001+t040": {
+   "conflict": true,
+   "files": [
+    "src/billing/service.ts"
+   ],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t002+t003": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t004": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t005": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t006": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/handlers.ts"
+   ]
+  },
+  "t002+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t011": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/orders/handlers.ts"
+   ]
+  },
+  "t002+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/catalog/handlers.ts"
+   ]
+  },
+  "t002+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t023": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t032": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t002+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t002+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t004": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t003+t005": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t003+t006": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t003+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t003+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts",
+    "src/types.ts"
+   ]
+  },
+  "t003+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t003+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t003+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t015": {
+   "conflict": true,
+   "files": [
+    "src/billing/invoice.ts"
+   ],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t003+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t017": {
+   "conflict": true,
+   "files": [
+    "src/billing/tax.ts"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/billing/tax.ts"
+   ]
+  },
+  "t003+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t019": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t003+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t022": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t003+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t003+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t003+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t028": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t003+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t031": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t003+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t003+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t036": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t003+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t003+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t005": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t006": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t004+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t010": {
+   "conflict": true,
+   "files": [
+    "src/billing/invoice.ts"
+   ],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t004+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t004+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t023": {
+   "conflict": true,
+   "files": [
+    "src/billing/invoice.ts"
+   ],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t004+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t004+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t006": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t011": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t023": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/lib/money.ts"
+   ]
+  },
+  "t005+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t032": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t005+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t005+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t007": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/config.ts"
+   ]
+  },
+  "t006+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t006+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t006+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t006+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t028": {
+   "conflict": true,
+   "files": [
+    "README.md",
+    "src/config.ts"
+   ],
+   "shared": [
+    "README.md",
+    "src/config.ts"
+   ]
+  },
+  "t006+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t006+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t006+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t008": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t007+t010": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t007+t011": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t007+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t007+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/handlers.ts"
+   ]
+  },
+  "t007+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t024": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ]
+  },
+  "t007+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t007+t029": {
+   "conflict": true,
+   "files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t007+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t007+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t007+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t007+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t007+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t009": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t034": {
+   "conflict": true,
+   "files": [
+    "src/inventory/stock.ts"
+   ],
+   "shared": [
+    "src/inventory/stock.ts"
+   ]
+  },
+  "t008+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/inventory/stock.ts"
+   ]
+  },
+  "t008+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t008+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t010": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t009+t011": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t009+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/config.ts"
+   ]
+  },
+  "t009+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t009+t030": {
+   "conflict": true,
+   "files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t009+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t009+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t009+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t011": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t010+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t010+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t010+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t023": {
+   "conflict": true,
+   "files": [
+    "src/billing/invoice.ts"
+   ],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t010+t024": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ]
+  },
+  "t010+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t010+t029": {
+   "conflict": true,
+   "files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t010+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t010+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t010+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t010+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t010+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t012": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t011+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t011+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t011+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t011+t023": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t011+t024": {
+   "conflict": true,
+   "files": [
+    "src/db/migrations/index.ts"
+   ],
+   "shared": [
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+   ]
+  },
+  "t011+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t028": {
+   "conflict": true,
+   "files": [
+    "src/shipping/service.ts",
+    "src/types.ts"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/shipping/service.ts",
+    "src/types.ts"
+   ]
+  },
+  "t011+t029": {
+   "conflict": true,
+   "files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t011+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t011+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t011+t032": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+   ]
+  },
+  "t011+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/shipping/service.ts"
+   ]
+  },
+  "t011+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t011+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t011+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t013": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/auth/sessions.ts"
+   ]
+  },
+  "t012+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t012+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t014": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t013+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/notifications/templates.ts"
+   ]
+  },
+  "t013+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t022": {
+   "conflict": true,
+   "files": [
+    "src/billing/service.ts"
+   ],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t013+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t013+t025": {
+   "conflict": true,
+   "files": [
+    "src/notifications/templates.ts"
+   ],
+   "shared": [
+    "src/notifications/templates.ts"
+   ]
+  },
+  "t013+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t013+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t013+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t013+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t013+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t013+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t014+t015": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t033": {
+   "conflict": true,
+   "files": [
+    "README.md"
+   ],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t035": {
+   "conflict": true,
+   "files": [
+    "README.md"
+   ],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t014+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t014+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t016": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/invoice.ts"
+   ]
+  },
+  "t015+t024": {
+   "conflict": true,
+   "files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t015+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t026": {
+   "conflict": true,
+   "files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t015+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t038": {
+   "conflict": true,
+   "files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t015+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t015+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t017": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t016+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t016+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t016+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t017+t018": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t017+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t017+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t019": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t025": {
+   "conflict": true,
+   "files": [
+    "src/notifications/templates.ts"
+   ],
+   "shared": [
+    "src/notifications/templates.ts"
+   ]
+  },
+  "t018+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t018+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t020": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t022": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts"
+   ]
+  },
+  "t019+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t019+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t028": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md"
+   ]
+  },
+  "t019+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t031": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts"
+   ]
+  },
+  "t019+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t019+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t019+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t019+t036": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/routes.ts"
+   ]
+  },
+  "t019+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t019+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md",
+    "src/routes.ts"
+   ]
+  },
+  "t019+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t021": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t027": {
+   "conflict": true,
+   "files": [
+    "src/users/service.ts"
+   ],
+   "shared": [
+    "src/users/service.ts"
+   ]
+  },
+  "t020+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t020+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t022": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t021+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t023": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t022+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t028": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md"
+   ]
+  },
+  "t022+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t031": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t022+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t022+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t022+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t022+t036": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t022+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t022+t039": {
+   "conflict": true,
+   "files": [
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ],
+   "shared": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/service.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t022+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  },
+  "t023+t024": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t023+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t023+t032": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t023+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t023+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t023+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t025": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t024+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t024+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t024+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/types.ts"
+   ]
+  },
+  "t024+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t038": {
+   "conflict": true,
+   "files": [
+    "src/billing/discounts.ts"
+   ],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t024+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t024+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t026": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t025+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t027": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/discounts.ts"
+   ]
+  },
+  "t026+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t026+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t028": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t027+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t029": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t031": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md"
+   ]
+  },
+  "t028+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t028+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md",
+    "src/shipping/service.ts"
+   ]
+  },
+  "t028+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t028+t036": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/types.ts"
+   ]
+  },
+  "t028+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t028+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t028+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t030": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t029+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t032": {
+   "conflict": true,
+   "files": [
+    "src/orders/checkout.ts"
+   ],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t029+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t029+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t031": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/orders/checkout.ts"
+   ]
+  },
+  "t030+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t030+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t031+t032": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md"
+   ]
+  },
+  "t031+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t031+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t031+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t031+t036": {
+   "conflict": true,
+   "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts"
+   ],
+   "shared": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t031+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t031+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t031+t039": {
+   "conflict": true,
+   "files": [
+    "src/billing/handlers.ts"
+   ],
+   "shared": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t031+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t033": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "CHANGELOG.md",
+    "src/types.ts"
+   ]
+  },
+  "t032+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t032+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t033+t034": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t033+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t033+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t033+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t033+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t033+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t033+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t034+t035": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/inventory/stock.ts"
+   ]
+  },
+  "t034+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t034+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t034+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t034+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t034+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t035+t036": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t035+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t035+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t035+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "README.md"
+   ]
+  },
+  "t035+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t036+t037": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t036+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t036+t039": {
+   "conflict": true,
+   "files": [
+    "README.md",
+    "src/billing/handlers.ts"
+   ],
+   "shared": [
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/routes.ts"
+   ]
+  },
+  "t036+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t037+t038": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t037+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t037+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t038+t039": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t038+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": []
+  },
+  "t039+t040": {
+   "conflict": false,
+   "files": [],
+   "shared": [
+    "src/billing/service.ts"
+   ]
+  }
+ }
+}

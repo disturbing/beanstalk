@@ -1,0 +1,27 @@
+{
+ "task": "t025",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/notifications/templates.test.ts"
+ ],
+ "results": {
+  "src/notifications/templates.test.ts": {
+   "status": "fails-first",
+   "why": "the export 'templates' named by the issue does not exist yet",
+   "tests": 1,
+   "failing": 1,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/notifications/templates.test.ts",
+     "name": "src/notifications/templates.test.ts",
+     "status": "fail",
+     "message": "test failed"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

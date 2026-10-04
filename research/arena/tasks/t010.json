@@ -1,0 +1,27 @@
+{
+  "id": "t010",
+  "title": "Wholesale customers should not be charged sales tax",
+  "prompt": "Our wholesale accounts hold a resale certificate and must not be charged sales tax on any of their orders.\n\nAdd a `taxExempt` flag to users: false for everyone by default, including accounts that already exist. When the customer placing an order is tax exempt, every line on their invoice gets a tax rate of 0 and no tax is charged, whatever the destination or the product's tax class. The flag is set directly in the database for now; no endpoint or UI is needed. Because it changes stored data, add a numbered migration for it (and register it) so existing accounts read `false`.",
+  "acceptance_tests": {
+    "src/billing/tax-exempt.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, ON_ADDRESS, signUp } from '../lib/testing.ts';\nimport type { Order } from '../types.ts';\n\nfunction checkoutAs(app: ReturnType<typeof createTestApp>, email: string, taxExempt: boolean) {\n  const { user, token } = signUp(app.ctx, email, { address: ON_ADDRESS });\n  if (taxExempt) app.ctx.store.users.update(user.id, { taxExempt: true });\n  const product = addProduct(app.ctx, { price: 10000 });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity: 2 } });\n  const order = app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }).body as Order;\n  return { user, order, invoice: app.ctx.store.invoices.require(order.invoiceId!) };\n}\n\ndescribe('tax-exempt customers', () => {\n  it('charges no tax on any line of an exempt customer\\'s invoice', () => {\n    const app = createTestApp();\n    const { order, invoice } = checkoutAs(app, 'wholesale@example.com', true);\n    assert.equal(order.tax, 0);\n    assert.deepEqual(invoice.lines.map((l) => l.taxRate), [0]);\n    assert.equal(invoice.total, 20000);\n  });\n\n  it('still taxes everyone else', () => {\n    const app = createTestApp();\n    assert.equal(checkoutAs(app, 'retail@example.com', false).order.tax, 2600);\n  });\n});\n",
+    "src/db/user-tax-exempt-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, signUp } from '../lib/testing.ts';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: user tax exempt', () => {\n  it('defaults the flag to false for new users', () => {\n    const app = createTestApp();\n    assert.equal(signUp(app.ctx).user.taxExempt, false);\n  });\n\n  it('backfills accounts that already exist', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.users.insert({ id: 'usr_old', email: 'old@example.com' } as never);\n    runMigrations(store);\n    assert.equal(store.users.require('usr_old').taxExempt, false);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/invoice.ts",
+    "src/billing/tax-exempt.test.ts",
+    "src/db/migrations/0006_user_tax_exempt.ts",
+    "src/db/migrations/index.ts",
+    "src/db/user-tax-exempt-migration.test.ts",
+    "src/orders/checkout.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "src",
+    "src/billing",
+    "src/db",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

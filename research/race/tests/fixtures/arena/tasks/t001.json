@@ -1,0 +1,29 @@
+{
+  "id": "t001",
+  "title": "Add a /health endpoint for the load balancer",
+  "prompt": "Our load balancer needs a liveness probe. Add a GET /health endpoint to the router that responds with { status: \"ok\" }. Mention the new endpoint in the changelog.",
+  "acceptance_tests": {
+    "test/acceptance/t001.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { findRoute } from \"../../src/routes/index.ts\";\n\ntest(\"GET /health reports ok\", () => {\n  const route = findRoute(\"GET\", \"/health\");\n  assert.ok(route, \"GET /health is registered\");\n  assert.deepEqual(route.handler(), { status: \"ok\" });\n});\n"
+  },
+  "oracle_paths": [
+    "src/routes/index.ts",
+    "CHANGELOG.md"
+  ],
+  "oracle_modules": [
+    "src/routes"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t002",
+      "type": "textual",
+      "note": "both register a route at the end of the routes table"
+    },
+    {
+      "with": "t005",
+      "type": "textual",
+      "note": "both append to CHANGELOG.md (dissolved by merge=union)"
+    }
+  ]
+}

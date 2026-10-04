@@ -1,0 +1,87 @@
+{
+ "task": "t035",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/cart/cart-stock-limit.test.ts"
+ ],
+ "results": {
+  "src/cart/cart-stock-limit.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 11 tests fail on the current code",
+   "tests": 11,
+   "failing": 8,
+   "passing": 3,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > rejects adding more than is in stock with a 409",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > allows adding exactly the available stock",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > counts the units already in the cart line when adding",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > subtracts reserved units from what is available",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > never reports less than zero left",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > rejects any add when nothing is in stock",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > rejects raising a line quantity above the available stock",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n200 !== 409"
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > allows raising a line quantity up to the available stock",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > applies the limit in the service functions too",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > always allows lowering a quantity, even when stock has dropped below it",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/cart/cart-stock-limit.test.ts",
+     "name": "cart stock limit > limits each product separately",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

@@ -1,0 +1,13 @@
+{
+ "number": 4092,
+ "sha": "de2320ac743ef752acb37c5ffe536ce1abc0d281",
+ "title": "docs: add marked-gitlab to known extensions",
+ "body": "## Description\r\n\r\nAdd [marked-gitlab](https://www.npmjs.com/package/marked-gitlab) to known extensions\r\n\r\n## Contributor\r\n\r\n- [ ] Test(s) exist to ensure functionality and minimize regression (if no tests added, list tests covering this PR); or,\r\n- [ ] no tests required for this PR.\r\n- [x] If submitting new feature, it has been documented in the appropriate places.\r\n\r\n## Committer\r\n\r\nIn most cases, this should be a different person than the contributor.\r\n\r\n- [ ] CI is green (no forced merge required).\r\n- [ ] Squash and Merge PR following [conventional commit guidelines](https://www.conventionalcommits.org/).\r\n",
+ "author": "UziTech",
+ "created_at": "2026-09-12T16:18:36Z",
+ "merged_at": "2026-09-21T02:57:16Z",
+ "pr_base_sha": "c6a25bb2a9d14f839cf2fd9abe4e4c7c3eece25b",
+ "pr_head_sha": "2d653609efb310bad1a31c23f1c5cf290a1e7f6a",
+ "commits": 1,
+ "linked_issues": []
+}

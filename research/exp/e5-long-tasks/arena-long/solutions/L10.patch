@@ -1,0 +1,130 @@
+diff --git a/README.md b/README.md
+index 91d422c..7973f9b 100644
+--- a/README.md
++++ b/README.md
+@@ -28,6 +28,7 @@ Routes are registered in one place, `src/routes.ts`.
+ | GET | `/orders`, `/orders/:id`, `/orders/:id/invoice`, `/orders/:id/shipment` | user |
+ | GET | `/invoices/:id` | user |
+ | POST | `/invoices/:id/pay`, `/orders/:id/ship` | admin |
++| GET | `/invoices/overdue` | admin |
+ | POST | `/shipping/quote` | user |
+ | GET, PUT | `/inventory/:productId`, `/inventory/low-stock` | admin |
+ | GET | `/notifications` | user |
+diff --git a/src/billing/handlers.ts b/src/billing/handlers.ts
+index 82d2c80..4e8bbea 100644
+--- a/src/billing/handlers.ts
++++ b/src/billing/handlers.ts
+@@ -2,7 +2,12 @@ import { notFound } from '../lib/errors.ts';
+ import { ok } from '../router.ts';
+ import type { Handler } from '../router.ts';
+ import type { Invoice, User } from '../types.ts';
+-import { getInvoice as loadInvoice, invoiceForOrder as loadInvoiceForOrder, markPaid } from './service.ts';
++import {
++  getInvoice as loadInvoice,
++  invoiceForOrder as loadInvoiceForOrder,
++  listOverdue,
++  markPaid,
++} from './service.ts';
+ 
+ /** Customers only see their own invoices; admins see all. Anything else looks like a 404. */
+ function visibleTo(user: User, invoice: Invoice): Invoice {
+@@ -16,3 +21,15 @@ export const invoiceForOrder: Handler = (req, ctx) =>
+   ok(visibleTo(req.user!, loadInvoiceForOrder(ctx, req.params.id)));
+ 
+ export const payInvoice: Handler = (req, ctx) => ok(markPaid(ctx, req.params.id));
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++
++export const overdue: Handler = (_req, ctx) => {
++  const now = ctx.clock.now().getTime();
++  return ok(
++    listOverdue(ctx).map((invoice) => ({
++      ...invoice,
++      daysOverdue: Math.max(Math.floor((now - new Date(invoice.dueAt).getTime()) / DAY_MS), 1),
++    })),
++  );
++};
+diff --git a/src/billing/service.ts b/src/billing/service.ts
+index 04b3139..03aa44a 100644
+--- a/src/billing/service.ts
++++ b/src/billing/service.ts
+@@ -1,4 +1,5 @@
+ import { badRequest, conflict, notFound } from '../lib/errors.ts';
++import { enqueueNotification } from '../notifications/queue.ts';
+ import type { AppContext, Coupon, Invoice } from '../types.ts';
+ import { buildInvoice } from './invoice.ts';
+ import type { InvoiceInput } from './invoice.ts';
+@@ -14,6 +15,9 @@ export function issueInvoice(ctx: AppContext, request: InvoiceRequest): Invoice
+   const { couponCode, ...rest } = request;
+   const coupon = couponCode ? findCoupon(ctx, couponCode) : undefined;
+   if (couponCode && !coupon) throw badRequest('unknown coupon code');
++  if (coupon?.expiresAt && new Date(coupon.expiresAt).getTime() <= ctx.clock.now().getTime()) {
++    throw badRequest('coupon has expired');
++  }
+   const draft = buildInvoice(ctx, { ...rest, coupon });
+   const id = ctx.store.nextId('inv');
+   const invoice = ctx.store.invoices.insert({ ...draft, id, number: `INV-${id.slice(4)}` });
+@@ -34,7 +38,10 @@ export function invoiceForOrder(ctx: AppContext, orderId: string): Invoice {
+ export function markPaid(ctx: AppContext, id: string): Invoice {
+   const invoice = getInvoice(ctx, id);
+   if (invoice.status !== 'open') throw conflict(`invoice ${invoice.number} is ${invoice.status}`);
+-  return ctx.store.invoices.update(id, { status: 'paid', paidAt: ctx.clock.now().toISOString() });
++  const paid = ctx.store.invoices.update(id, { status: 'paid', paidAt: ctx.clock.now().toISOString() });
++  const order = ctx.store.orders.get(invoice.orderId);
++  if (order) enqueueNotification(ctx, 'payment_received', order);
++  return paid;
+ }
+ 
+ export function voidInvoice(ctx: AppContext, id: string): Invoice {
+@@ -42,3 +49,11 @@ export function voidInvoice(ctx: AppContext, id: string): Invoice {
+   if (invoice.status === 'paid') throw conflict(`invoice ${invoice.number} is already paid`);
+   return ctx.store.invoices.update(id, { status: 'void' });
+ }
++
++/** Open invoices past their due date, longest overdue first. */
++export function listOverdue(ctx: AppContext): Invoice[] {
++  const now = ctx.clock.now().getTime();
++  return ctx.store.invoices
++    .find((i) => i.status === 'open' && new Date(i.dueAt).getTime() < now)
++    .sort((a, b) => a.dueAt.localeCompare(b.dueAt) || a.id.localeCompare(b.id));
++}
+diff --git a/src/notifications/templates.ts b/src/notifications/templates.ts
+index a3a2e52..0540988 100644
+--- a/src/notifications/templates.ts
++++ b/src/notifications/templates.ts
+@@ -27,5 +27,10 @@ export function renderNotification(kind: NotificationKind, order: Order, currenc
+         subject: `Order ${order.number} was cancelled`,
+         body: `Your order ${order.number} was cancelled. Any payment will be refunded.`,
+       };
++    case 'payment_received':
++      return {
++        subject: `Payment received for order ${order.number}`,
++        body: `We have received your payment for order ${order.number}. Thank you!`,
++      };
+   }
+ }
+diff --git a/src/routes.ts b/src/routes.ts
+index 80658b8..c92ba84 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -41,6 +41,7 @@ export function registerRoutes(router: Router): void {
+ 
+   // billing
+   router.add('GET', '/orders/:id/invoice', 'user', billing.invoiceForOrder);
++  router.add('GET', '/invoices/overdue', 'admin', billing.overdue);
+   router.add('GET', '/invoices/:id', 'user', billing.getInvoice);
+   router.add('POST', '/invoices/:id/pay', 'admin', billing.payInvoice);
+ 
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..d659ec4 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -200,7 +200,7 @@ export interface Order {
+ 
+ // --- notifications
+ 
+-export type NotificationKind = 'order_confirmed' | 'order_shipped' | 'order_cancelled';
++export type NotificationKind = 'order_confirmed' | 'order_shipped' | 'order_cancelled' | 'payment_received';
+ 
+ export interface Notification {
+   id: string;

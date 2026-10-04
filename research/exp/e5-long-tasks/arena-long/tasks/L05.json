@@ -1,0 +1,47 @@
+{
+  "id": "L05",
+  "title": "Make the invoice payment terms configurable + Move the coupon rules out of discounts.ts into their own module + Tax on multi-line invoices is a cent off from the tax authority's figure",
+  "prompt": "Three related tickets in invoice and coupon internals are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Make the invoice payment terms configurable\n\nInvoices are always due 30 days after they are issued, and the number is hard-coded in the billing code. Enterprise customers negotiate their own terms, so make it a setting.\n\nAdd `paymentTermsDays` to the shop configuration in src/config.ts (default 30, overridable with the `PAYMENT_TERMS_DAYS` environment variable) and use it when working out an invoice's due date.\n\n### Ticket 2: Move the coupon rules out of discounts.ts into their own module\n\nbilling/discounts.ts mixes two concerns: the rules for coupons (is this coupon usable, and how much does it take off) and the arithmetic for splitting a discount over invoice lines.\n\nMove `validateCoupon` and `couponDiscount` into a new billing/coupons.ts and leave `allocateDiscount` in discounts.ts. Behaviour must not change. The invoice code should import the coupon functions from the new module, and discounts.ts should keep re-exporting the two moved functions so existing imports keep working.\n\n### Ticket 3: Tax on multi-line invoices is a cent off from the tax authority's figure\n\nOur accountant compared a month of invoices against the tax authority's calculator and found that multi-line invoices are regularly a cent or two off. The authority rounds the tax once per rate on the taxable total of the invoice. We round every line separately and add the results, so the rounding errors pile up.\n\nWork out the tax for each tax rate on the sum of the taxable amounts (after discounts) of the lines at that rate, rounding half up once, and then spread that figure back over those lines so each line keeps its own `tax` and the line taxes always add up to the invoice `tax`. Lines at different rates are rounded independently. Single-line invoices must come out the same as before.\n\nPut the arithmetic in lib/money.ts as `applyRateToTotal(amounts, rate)`: it applies the rate to the sum of the amounts, rounds once, and returns one share per amount, each within a cent of its exact proportional share, adding up to the rounded total.\n",
+  "acceptance_tests": {
+    "src/billing/payment-terms.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { defaultConfig, loadConfig } from '../config.ts';\nimport { createTestApp, ON_ADDRESS } from '../lib/testing.ts';\nimport { buildInvoice } from './invoice.ts';\n\nconst item = { productId: 'p', description: 'x', quantity: 1, unitPrice: 1000, taxClass: 'standard' as const };\n\ndescribe('payment terms', () => {\n  it('defaults to 30 days and can be overridden from the environment', () => {\n    assert.equal(defaultConfig.paymentTermsDays, 30);\n    assert.equal(loadConfig({}).paymentTermsDays, 30);\n    assert.equal(loadConfig({ PAYMENT_TERMS_DAYS: '14' }).paymentTermsDays, 14);\n    assert.throws(() => loadConfig({ PAYMENT_TERMS_DAYS: 'soon' }), /invalid integer/);\n  });\n\n  it('sets the due date from the configured terms', () => {\n    const app = createTestApp();\n    const issue = () => buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items: [item] });\n    assert.equal(issue().dueAt, '2026-10-15T12:00:00.000Z');\n    app.ctx.config.paymentTermsDays = 14;\n    assert.equal(issue().dueAt, '2026-09-29T12:00:00.000Z');\n  });\n});\n",
+    "src/billing/coupons.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport * as discounts from './discounts.ts';\nimport { couponDiscount, validateCoupon } from './coupons.ts';\nimport type { Coupon } from '../types.ts';\n\nconst coupon: Coupon = { id: 'C', kind: 'percent', value: 25, minSubtotal: 1000, expiresAt: null, maxRedemptions: null, redemptions: 0 };\n\ndescribe('coupon rules module', () => {\n  it('takes a percentage or a fixed amount off', () => {\n    assert.equal(couponDiscount(coupon, 2000), 500);\n    assert.equal(couponDiscount({ ...coupon, kind: 'fixed', value: 300 }, 2000), 300);\n  });\n\n  it('checks the minimum subtotal', () => {\n    assert.equal(validateCoupon(coupon, 1000, 'USD'), coupon);\n    assert.throws(() => validateCoupon(coupon, 999, 'USD'), /at least \\$10\\.00/);\n  });\n\n  it('keeps the old import path working', () => {\n    assert.equal(discounts.couponDiscount, couponDiscount);\n    assert.equal(discounts.validateCoupon, validateCoupon);\n    assert.deepEqual(discounts.allocateDiscount([1000, 3000], 400), [100, 300]);\n  });\n});\n",
+    "src/billing/tax-rounding.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS } from '../lib/testing.ts';\nimport { applyRateToTotal, sumCents } from '../lib/money.ts';\nimport type { TaxClass } from '../types.ts';\nimport { buildInvoice } from './invoice.ts';\n\nconst item = (unitPrice: number, taxClass: TaxClass = 'standard') => ({\n  productId: 'p', description: 'x', quantity: 1, unitPrice, taxClass,\n});\n\nfunction invoiceFor(...items: ReturnType<typeof item>[]) {\n  const app = createTestApp();\n  return buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items });\n}\n\ndescribe('tax rounding', () => {\n  it('rounds once over the total and spreads the cents over the amounts', () => {\n    const shares = applyRateToTotal([333, 333, 333], 0.13);\n    assert.equal(sumCents(shares), 130);\n    assert.deepEqual([...shares].sort(), [43, 43, 44]);\n    assert.deepEqual(applyRateToTotal([0, 0], 0.13), [0, 0]);\n    assert.deepEqual(applyRateToTotal([1000], 0.13), [130]);\n  });\n\n  it('charges the tax authority\\'s figure on a three-line invoice', () => {\n    const invoice = invoiceFor(item(333), item(333), item(333));\n    assert.equal(invoice.tax, 130);\n    assert.deepEqual(invoice.lines.map((l) => l.tax).sort(), [43, 43, 44]);\n    assert.equal(invoice.total, 999 + 130);\n  });\n\n  it('rounds each rate on its own', () => {\n    const invoice = invoiceFor(item(333), item(333), item(333, 'reduced'));\n    const taxes = invoice.lines.map((l) => l.tax);\n    assert.equal(taxes[0] + taxes[1], 87, 'the two standard lines share one rounded figure');\n    assert.equal(taxes[2], 22);\n    assert.equal(invoice.tax, 109);\n  });\n\n  it('does not change single-line invoices', () => {\n    assert.equal(invoiceFor(item(1999)).tax, 260);\n    assert.equal(invoiceFor(item(10)).tax, 1);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/coupons.test.ts",
+    "src/billing/coupons.ts",
+    "src/billing/discounts.ts",
+    "src/billing/invoice.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-rounding.test.ts",
+    "src/config.ts",
+    "src/lib/money.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing",
+    "src/lib"
+  ],
+  "kind": "chore",
+  "difficulty": 3,
+  "members": [
+    "t006",
+    "t015",
+    "t023"
+  ],
+  "couplings": [
+    {
+      "with": "L11",
+      "type": "semantic",
+      "members": [
+        "t023",
+        "t036"
+      ],
+      "note": "t023 x t036: tax-rounding changes the rounding contract (tax rounded once per rate and spread over lines); line-refunds' test pins a line's refund to the old per-line rounding. Merges cleanly, the refund amount then differs by a cent."
+    }
+  ],
+  "theme": "invoice and coupon internals"
+}

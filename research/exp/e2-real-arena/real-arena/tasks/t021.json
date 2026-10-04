@@ -1,0 +1,38 @@
+{
+  "id": "t021",
+  "title": "fix: respect raw tokens when closing link labels",
+  "prompt": "**Marked version:** master (18.0.10)\n\n**Markdown flavor:** CommonMark and GitHub Flavored Markdown\n\n## Description\n\nAddresses the independent raw-HTML/autolink precedence group in #4050 (CommonMark examples 524, 526, 536, and 538).\n\nThe inline link and reference-link regexes could treat a `]` inside a still-open raw HTML tag or autolink as the end of the link label. The tokenizer now checks labels containing `<` and rejects that candidate close when the matching raw token extends past it. Escaped characters and code spans are skipped during the check, and ordinary labels use an early fast path.\n\nThe existing CommonMark and GFM snapshots for all four examples are now passing, increasing link compliance from 80/90 to 84/90 in both suites.\n\nAI disclosure: OpenAI Codex assisted with repository research, implementation, and validation. I reviewed the parser behavior, corrected the spec fixtures manually, ran the complete project test pipeline, and remain responsible for the contribution.",
+  "acceptance_tests": {
+    "test/specs/commonmark/pr4066.json": "[\n  {\n    \"markdown\": \"[foo <bar attr=\\\"](baz)\\\">\\n\",\n    \"html\": \"<p>[foo <bar attr=\\\"](baz)\\\"></p>\\n\",\n    \"example\": 524,\n    \"start_line\": 7937,\n    \"end_line\": 7941,\n    \"section\": \"Links [pr4066 commonmark]\"\n  },\n  {\n    \"markdown\": \"[foo<https://example.com/?search=](uri)>\\n\",\n    \"html\": \"<p>[foo<a href=\\\"https://example.com/?search=%5D(uri)\\\">https://example.com/?search=](uri)</a></p>\\n\",\n    \"example\": 526,\n    \"start_line\": 7951,\n    \"end_line\": 7955,\n    \"section\": \"Links [pr4066 commonmark]\"\n  },\n  {\n    \"markdown\": \"[foo <bar attr=\\\"][ref]\\\">\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p>[foo <bar attr=\\\"][ref]\\\"></p>\\n\",\n    \"example\": 536,\n    \"start_line\": 8089,\n    \"end_line\": 8095,\n    \"section\": \"Links [pr4066 commonmark]\"\n  },\n  {\n    \"markdown\": \"[foo<https://example.com/?search=][ref]>\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p>[foo<a href=\\\"https://example.com/?search=%5D%5Bref%5D\\\">https://example.com/?search=][ref]</a></p>\\n\",\n    \"example\": 538,\n    \"start_line\": 8107,\n    \"end_line\": 8113,\n    \"section\": \"Links [pr4066 commonmark]\"\n  }\n]\n",
+    "test/specs/gfm/pr4066.json": "[\n  {\n    \"markdown\": \"[foo <bar attr=\\\"](baz)\\\">\\n\",\n    \"html\": \"<p>[foo <bar attr=\\\"](baz)\\\"></p>\\n\",\n    \"example\": 524,\n    \"start_line\": 7937,\n    \"end_line\": 7941,\n    \"section\": \"Links [pr4066 gfm]\"\n  },\n  {\n    \"markdown\": \"[foo<https://example.com/?search=](uri)>\\n\",\n    \"html\": \"<p>[foo<a href=\\\"https://example.com/?search=%5D(uri)\\\">https://example.com/?search=](uri)</a></p>\\n\",\n    \"example\": 526,\n    \"start_line\": 7951,\n    \"end_line\": 7955,\n    \"section\": \"Links [pr4066 gfm]\"\n  },\n  {\n    \"markdown\": \"[foo <bar attr=\\\"][ref]\\\">\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p>[foo <bar attr=\\\"][ref]\\\"></p>\\n\",\n    \"example\": 536,\n    \"start_line\": 8089,\n    \"end_line\": 8095,\n    \"section\": \"Links [pr4066 gfm]\"\n  },\n  {\n    \"markdown\": \"[foo<https://example.com/?search=][ref]>\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p>[foo<a href=\\\"https://example.com/?search=%5D%5Bref%5D\\\">https://example.com/?search=][ref]</a></p>\\n\",\n    \"example\": 538,\n    \"start_line\": 8107,\n    \"end_line\": 8113,\n    \"section\": \"Links [pr4066 gfm]\"\n  }\n]\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/commonmark/commonmark.0.31.2.json",
+    "test/specs/commonmark/pr4066.json",
+    "test/specs/gfm/commonmark.0.31.2.json",
+    "test/specs/gfm/pr4066.json"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4066,
+    "sha": "ef394f71df54ab9d4057821881e866366eaacf11",
+    "url": "https://github.com/markedjs/marked/pull/4066",
+    "author": "evgenyponomarev",
+    "merged_at": "2026-09-12T20:18:27Z",
+    "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 47,
+    "notes": [
+      "test/specs/commonmark/commonmark.0.31.2.json: examples [524, 526, 536, 538] copied to test/specs/commonmark/pr4066.json; the shared file's edit is in the solution",
+      "test/specs/gfm/commonmark.0.31.2.json: examples [524, 526, 536, 538] copied to test/specs/gfm/pr4066.json; the shared file's edit is in the solution"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "t024",
+  "title": "Cap the discount a percentage coupon can give",
+  "prompt": "Our 30%-off launch coupon is far too generous on big baskets. Percentage coupons need an optional cap on the amount they can take off, for example \"20% off, up to $25\".\n\nAdd an optional `maxDiscount` (in cents) to coupons. When it is set, the discount from a percentage coupon is never more than that amount. It has no effect on fixed-amount coupons or coupons without a cap, and coupons that already exist have no cap (`null`). This changes the stored data, so add a numbered migration for it (and register it) rather than special-casing missing values in the code.",
+  "acceptance_tests": {
+    "src/billing/coupon-max-discount.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, placeOrder } from '../lib/testing.ts';\nimport { couponDiscount } from './discounts.ts';\n\nconst percent = { id: 'P20', kind: 'percent' as const, value: 20, minSubtotal: 0, expiresAt: null, maxRedemptions: null, redemptions: 0 };\n\ndescribe('coupon max discount', () => {\n  it('caps percentage discounts', () => {\n    const capped = { ...percent, maxDiscount: 2500 };\n    assert.equal(couponDiscount(capped, 20000), 2500);\n    assert.equal(couponDiscount(capped, 5000), 1000);\n  });\n\n  it('ignores the cap for fixed coupons and treats missing or null as no cap', () => {\n    assert.equal(couponDiscount({ ...percent, kind: 'fixed', value: 4000, maxDiscount: 100 }, 20000), 4000);\n    assert.equal(couponDiscount({ ...percent, maxDiscount: null }, 20000), 4000);\n    assert.equal(couponDiscount(percent, 20000), 4000);\n  });\n\n  it('applies at checkout', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { ...percent, maxDiscount: 2500 });\n    const { order } = placeOrder(app, { price: 20000, couponCode: 'P20' });\n    assert.equal(order.discount, 2500);\n  });\n});\n",
+    "src/db/coupon-max-discount-migration.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp } from '../lib/testing.ts';\nimport { runMigrations } from './migrate.ts';\nimport { migrations } from './migrations/index.ts';\nimport { Store } from './store.ts';\n\ndescribe('migration 0006: coupon max discount', () => {\n  it('leaves seeded coupons uncapped', () => {\n    const app = createTestApp();\n    assert.equal(app.ctx.store.coupons.require('WELCOME10').maxDiscount, null);\n    assert.ok((migrations.at(-1)?.version ?? 0) > 5, 'a new migration was added after the existing five');\n  });\n\n  it('backfills coupons that already exist', () => {\n    const store = new Store();\n    runMigrations(store, migrations.filter((m) => m.version <= 5));\n    store.coupons.insert({ id: 'OLD', kind: 'percent', value: 5 } as never);\n    runMigrations(store);\n    assert.equal(store.coupons.require('OLD').maxDiscount, null);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/coupon-max-discount.test.ts",
+    "src/billing/discounts.ts",
+    "src/db/coupon-max-discount-migration.test.ts",
+    "src/db/migrations/0006_coupon_max_discount.ts",
+    "src/db/migrations/index.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "src",
+    "src/billing",
+    "src/db"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": []
+}

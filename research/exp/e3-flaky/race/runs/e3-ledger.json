@@ -1,0 +1,65 @@
+[
+  {
+    "run": "e3-probe",
+    "attempt": 1,
+    "exit": -9,
+    "cost_usd": 0.0,
+    "aborted": null,
+    "ended": "2026-10-03 15:24:57"
+  },
+  {
+    "run": "e3-probe",
+    "attempt": 1,
+    "exit": 0,
+    "cost_usd": 0.0631,
+    "aborted": null,
+    "ended": "2026-10-03 16:17:25",
+    "auth_failures": 0,
+    "infra_errors": 0,
+    "is_error_results": 0
+  },
+  {
+    "run": "e3-r05-v2-plain",
+    "attempt": 1,
+    "exit": 0,
+    "cost_usd": 5.1987,
+    "aborted": null,
+    "ended": "2026-10-03 16:30:01",
+    "auth_failures": 0,
+    "infra_errors": 0,
+    "is_error_results": 0
+  },
+  {
+    "run": "e3-r05-v2-mitigated",
+    "attempt": 1,
+    "exit": 0,
+    "cost_usd": 4.4392,
+    "aborted": null,
+    "ended": "2026-10-03 17:30:52",
+    "auth_failures": 0,
+    "infra_errors": 0,
+    "is_error_results": 0
+  },
+  {
+    "run": "e3-r05-queue-retry",
+    "attempt": 1,
+    "exit": 0,
+    "cost_usd": 4.996,
+    "aborted": null,
+    "ended": "2026-10-03 18:49:25",
+    "auth_failures": 0,
+    "infra_errors": 0,
+    "is_error_results": 0
+  },
+  {
+    "run": "e3-r05-queue-plain",
+    "attempt": 1,
+    "exit": 1,
+    "cost_usd": 0.0,
+    "aborted": null,
+    "ended": "2026-10-03 19:08:02",
+    "auth_failures": 0,
+    "infra_errors": 0,
+    "is_error_results": 0
+  }
+]

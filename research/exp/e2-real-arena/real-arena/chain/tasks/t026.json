@@ -1,0 +1,37 @@
+{
+  "id": "t026",
+  "title": "fix: allow indented lines in setext heading text",
+  "prompt": "**Marked version:** 18.0.13 (`634f810`)\n\n**Markdown flavor:** CommonMark\n\n## Description\n\nThe setext heading rule refuses to let the heading text span a line that looks like an indented code block, and it lets a thematic break line be swallowed into the heading text. Both come from the same list of interrupters in `lheadingCore`.\n\n### Expectation\n\n[CommonMark 0.31.2, section 4.3 Setext headings](https://spec.commonmark.org/0.31.2/#setext-headings):\n\n> A setext heading consists of one or more lines of text, not interrupted by a blank line, of which the first line does not have more than 3 spaces of indentation, followed by a setext heading underline. **The lines of text must be such that, were they not followed by the setext heading underline, they would be interpreted as a paragraph: they cannot be interpretable as a code fence, ATX heading, block quote, thematic break, list item, or HTML block.**\n\nIndented code is deliberately absent from that list, because ([4.4 Indented code blocks](https://spec.commonmark.org/0.31.2/#indented-code-blocks)) an indented code block cannot interrupt a paragraph, and ([4.8 Paragraphs](https://spec.commonmark.org/0.31.2/#paragraphs)) \"lines after the first may be indented any amount, since indented code blocks cannot interrupt paragraphs\". Thematic break *is* on the list, but was missing from the rule.\n\n`src/Lexer.ts` already says the same thing in words for paragraphs (`// An indented code block cannot interrupt a paragraph.`), and `_paragraph` correctly omits indented code from its own continuation interrupters.\n\n### Result\n\n`commonmark@0.31.2` (already a devDependency here) is the reference:\n\n| input | marked 18.0.13 | commonmark 0.31.2 |\n|---|---|---|\n| `a\\n    b\\n===` | `<p>a\\n    b\\n===</p>` | `<h1>a\\nb</h1>` |\n| `a\\n    b\\n---` | `<p>a\\n    b</p>\\n<hr>` | `<h2>a\\nb</h2>` |\n| `a\\n\\tb\\n===` | `<p>a\\n\\tb\\n===</p>` | `<h1>a\\nb</h1>` |\n| `a\\n***\\n===` | `<h1>a\\n***</h1>` | `<p>a</p>\\n<hr>\\n<p>===</p>` |\n\n### What was attempted\n\n`src/rules.ts:115` uses one placeholder list in two positions:\n\n```js\nconst lheadingCore = /^(?!bull |blockCode|fences|...)((?:.|\\n(?!\\s*?\\n|bull |blockCode|fences|...))+?)\\n {0,3}(=+|-+) *(?:\\n+|$)/;\n```\n\nThe leading `(?!...)` guard is correct and stays: at the start of a block an indented line really does open a code block (`    Foo\\n===` is a code block plus a paragraph, and marked already gets that right). Only the continuation lookahead is wrong, so `blockCode` is dropped from it and `hr` is added, leaving the two positions with the lists the spec describes.\n\nThe `hr` half is not optional. Without it, allowing indented continuation lines exposes the pre-existing gap for thematic breaks on many more inputs, and the change is a net regression; with it, the differential fuzz below is clean.\n\n## Measurements\n\nSuites, before and after (`node --test`):\n\n| suite | before | after |\n|---|---|---|\n| `test:specs` | 1819 pass / 0 fail / 0 skip | 1823 pass / 0 fail / 0 skip |\n| `test:unit` | 191 pass / 0 fail / 0 skip | 191 pass / 0 fail / 0 skip |\n\nThe 4 added spec tests are the two new fixture pairs (gfm and `gfm: false`).\n\nConformance, measured by running every example in `test/specs/commonmark` and `test/specs/gfm` through marked and comparing with the same html-differ the harness uses, rather than reading the completion table (which counts `shouldFail` annotations and is static):\n\n| suite | before | after |\n|---|---|---|\n| CommonMark 0.31.2 (`gfm: false`) | 649/652 = 99.54% | 649/652 = 99.54% |\n| CommonMark 0.31.2 (`gfm: true`) | 645/652 = 98.93% | 645/652 = 98.93% |\n| GFM extensions | 24/28 = 85.71% | 24/28 = 85.71% |\n\nUnchanged: no example in the CommonMark suite covers a setext heading with an indented continuation line, which is why this went unnoticed. The same failing examples fail before and after (32, 33, 503, and 602/608/611/612 under gfm).\n\nDifferential fuzz over 220,000 generated block-structure documents (random line sequences drawn from indented lines, tabs, underlines, fences, bullets, quotes, ATX headings, thematic breaks, table rows, html tags), comparing old marked / new marked / `commonmark@0.31.2` with the harness's html-differ, across 5 seeds and both `gfm: false` and `gfm: true`:\n\n```\nseed A gfm:false  60000 docs  1173 fixed  0 regressions\nseed B gfm:false  40000 docs   839 fixed  0 regressions\nseed C gfm:false  40000 docs   791 fixed  0 regressions\nseed D gfm:true   40000 docs   694 fixed  0 regressions\nseed E gfm:true   40000 docs   698 fixed  0 regressions\n```\n\nThe handful of remaining documents where both versions differ from the reference differ only on unrelated pre-existing points (link reference definitions, `<br>` formatting).\n\nTwo things worth flagging:\n\n- marked keeps the continuation line's leading indentation inside the heading text (`<h1>a\\n    b</h1>` where the reference emits `<h1>a\\nb</h1>`). That is pre-existing and identical to what marked already does for paragraph continuation lines (`<p>a\\n    b</p>`), it is whitespace-insignificant in the rendered HTML, and the spec suite's differ treats the two as equal. The fixtures are therefore written without `renderExact`. Happy to fix the whitespace separately if you want it.\n- `blockPedantic.paragraph` embeds `lheading` in its continuation lookahead, so pedantic mode inherits the change. `test/specs/original` (pedantic) stays 100% green.\n\n`recheck` reports `block.normal.lheading`, `block.gfm.lheading` and `block.pedantic.lheading` as `safe` after the change.",
+  "acceptance_tests": {
+    "test/specs/new/setext_indented_continuation.html": "<h1>Foo\nbar</h1>\n<h2>Foo\nbar</h2>\n<h1>aaa\nbbb\nccc</h1>\n<pre><code>Foo\n</code></pre>\n<p>===</p>\n<p>Foo</p>\n<hr>\n<p>===</p>\n",
+    "test/specs/new/setext_indented_continuation.md": "Foo\n    bar\n===\n\nFoo\n\tbar\n---\n\naaa\n        bbb\n            ccc\n===\n\n    Foo\n===\n\nFoo\n***\n===\n",
+    "test/specs/new/setext_indented_continuation_nogfm.html": "<h1>Foo\nbar</h1>\n<h2>Foo\nbar</h2>\n<h1>aaa\nbbb\nccc</h1>\n<pre><code>Foo\n</code></pre>\n<p>===</p>\n<p>Foo</p>\n<hr>\n<p>===</p>\n",
+    "test/specs/new/setext_indented_continuation_nogfm.md": "---\ngfm: false\n---\nFoo\n    bar\n===\n\nFoo\n\tbar\n---\n\naaa\n        bbb\n            ccc\n===\n\n    Foo\n===\n\nFoo\n***\n===\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/setext_indented_continuation.html",
+    "test/specs/new/setext_indented_continuation.md",
+    "test/specs/new/setext_indented_continuation_nogfm.html",
+    "test/specs/new/setext_indented_continuation_nogfm.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4095,
+    "sha": "7d05530733fa3f3ec2ed912ff695d05af6d81b8a",
+    "url": "https://github.com/markedjs/marked/pull/4095",
+    "author": "giaBaoJS",
+    "merged_at": "2026-09-21T02:56:08Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 8,
+    "notes": [],
+    "applies_to_common_base": false
+  }
+}

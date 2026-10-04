@@ -1,0 +1,152 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0d83acc..262fb45 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -12,6 +12,7 @@ All notable changes to Beanstalk Shop are recorded here.
+ ### Changed
+ 
+ - Product search ignores letter case.
++- The order `total` includes shipping.
+ 
+ ### Fixed
+ 
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..085d046 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -17,6 +17,8 @@ export interface InvoiceInput {
+   address: Address;
+   items: InvoiceItem[];
+   coupon?: Coupon;
++  /** Skip sales tax entirely, e.g. for wholesale accounts. */
++  taxExempt?: boolean;
+ }
+ 
+ export type InvoiceDraft = Omit<Invoice, 'id' | 'number'>;
+@@ -32,7 +34,7 @@ export function buildInvoice(ctx: AppContext, input: InvoiceInput): InvoiceDraft
+   const lineDiscounts = allocateDiscount(nets, discount);
+ 
+   const lines: InvoiceLine[] = input.items.map((item, i) => {
+-    const taxRate = taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
++    const taxRate = input.taxExempt ? 0 : taxRateFor(input.address, item.taxClass, ctx.config.fallbackTaxRate);
+     return {
+       productId: item.productId,
+       description: item.description,
+diff --git a/src/config.ts b/src/config.ts
+index bdd535d..a1fddfa 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@ -11,6 +11,8 @@ export interface Config {
+   /** scrypt cost parameter (N). Kept low so the test suite stays fast. */
+   passwordCost: number;
+   maxCartLines: number;
++  /** Most units of one product allowed in a single order. */
++  maxLineQuantity: number;
+   lowStockThreshold: number;
+   orderNumberPrefix: string;
+   pageSize: number;
+@@ -24,6 +26,7 @@ export const defaultConfig: Config = {
+   sessionTtlSeconds: 3600,
+   passwordCost: 1024,
+   maxCartLines: 50,
++  maxLineQuantity: 10,
+   lowStockThreshold: 5,
+   orderNumberPrefix: 'BS',
+   pageSize: 20,
+@@ -50,6 +53,7 @@ export function loadConfig(env: Record<string, string | undefined> = {}): Config
+     sessionTtlSeconds: intFrom(env.SESSION_TTL_SECONDS, defaultConfig.sessionTtlSeconds),
+     passwordCost: intFrom(env.PASSWORD_COST, defaultConfig.passwordCost),
+     maxCartLines: intFrom(env.MAX_CART_LINES, defaultConfig.maxCartLines),
++    maxLineQuantity: intFrom(env.MAX_LINE_QUANTITY, defaultConfig.maxLineQuantity),
+     lowStockThreshold: intFrom(env.LOW_STOCK_THRESHOLD, defaultConfig.lowStockThreshold),
+   };
+ }
+diff --git a/src/db/migrations/0006_user_tax_exempt.ts b/src/db/migrations/0006_user_tax_exempt.ts
+new file mode 100644
+index 0000000..28c7ab6
+--- /dev/null
++++ b/src/db/migrations/0006_user_tax_exempt.ts
+@@ -0,0 +1,9 @@
++import type { Migration } from '../migrate.ts';
++
++export const migration0006: Migration = {
++  version: 6,
++  name: 'user_tax_exempt',
++  up(store) {
++    store.users.addColumn('taxExempt', false);
++  },
++};
+diff --git a/src/db/migrations/index.ts b/src/db/migrations/index.ts
+index b374227..30712ef 100644
+--- a/src/db/migrations/index.ts
++++ b/src/db/migrations/index.ts
+@@ -4,6 +4,7 @@ import { migration0002 } from './0002_seed_coupons.ts';
+ import { migration0003 } from './0003_product_weight.ts';
+ import { migration0004 } from './0004_order_shipping.ts';
+ import { migration0005 } from './0005_user_roles.ts';
++import { migration0006 } from './0006_user_tax_exempt.ts';
+ 
+ /** Every migration, in order. Add new ones at the end. */
+ export const migrations: Migration[] = [
+@@ -12,4 +13,5 @@ export const migrations: Migration[] = [
+   migration0003,
+   migration0004,
+   migration0005,
++  migration0006,
+ ];
+diff --git a/src/orders/checkout.ts b/src/orders/checkout.ts
+index 93fb55d..bbb4901 100644
+--- a/src/orders/checkout.ts
++++ b/src/orders/checkout.ts
+@@ -18,6 +18,12 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+   const address = user.addresses[input.addressIndex];
+   if (!address) throw badRequest('choose a saved shipping address');
+   const cart = getCart(ctx, user.id);
++  for (const line of cart.lines) {
++    if (line.quantity > ctx.config.maxLineQuantity) {
++      const name = ctx.store.products.get(line.productId)?.name ?? line.productId;
++      throw badRequest(`at most ${ctx.config.maxLineQuantity} units of ${name} per order`);
++    }
++  }
+   const priced = priceCart(ctx, cart);
+ 
+   reserve(ctx, cart.lines);
+@@ -28,6 +34,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+     userId: user.id,
+     address,
+     couponCode: input.couponCode,
++    taxExempt: user.taxExempt,
+     items: priced.lines.map((line) => ({
+       productId: line.productId,
+       description: line.name,
+@@ -55,7 +62,7 @@ export function checkout(ctx: AppContext, user: User, input: CheckoutInput): Ord
+     discount: invoice.discount,
+     tax: invoice.tax,
+     shippingCost: shipping.cost,
+-    total: invoice.total,
++    total: invoice.total + shipping.cost,
+     couponCode: invoice.couponCode,
+     shippingAddress: address,
+     invoiceId: invoice.id,
+diff --git a/src/types.ts b/src/types.ts
+index 10cce8a..ab3e9de 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -44,6 +44,8 @@ export interface User {
+   role: Role;
+   passwordHash: string;
+   passwordSalt: string;
++  /** Wholesale accounts with a resale certificate are never charged sales tax. */
++  taxExempt?: boolean;
+   addresses: Address[];
+   createdAt: string;
+ }
+@@ -188,7 +190,7 @@ export interface Order {
+   discount: Cents;
+   tax: Cents;
+   shippingCost: Cents;
+-  /** Goods after discount, plus tax. Shipping is tracked separately in `shippingCost`. */
++  /** Everything payable: goods after discount, plus tax, plus shipping. */
+   total: Cents;
+   couponCode: string | null;
+   shippingAddress: Address;

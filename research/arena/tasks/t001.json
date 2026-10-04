@@ -1,0 +1,24 @@
+{
+  "id": "t001",
+  "title": "Limit how many times a coupon can be redeemed",
+  "prompt": "Marketing wants to run limited promotions (\"the first 100 orders get 15% off\"). Coupons already have a `maxRedemptions` limit and a `redemptions` counter that goes up with every order, but nothing enforces the limit.\n\nOnce a coupon has been redeemed `maxRedemptions` times, further checkouts using it must fail with a 409 and the message \"coupon has been fully redeemed\". Coupons without a limit are unaffected.",
+  "acceptance_tests": {
+    "src/billing/coupon-limits.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, errorMessage, tryCheckout } from '../lib/testing.ts';\n\ndescribe('coupon redemption limits', () => {\n  it('stops accepting a coupon once its limit is reached', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'FIRST2', maxRedemptions: 2 });\n    assert.equal(tryCheckout(app, { email: 'a@example.com', couponCode: 'FIRST2' }).res.status, 201);\n    assert.equal(tryCheckout(app, { email: 'b@example.com', couponCode: 'FIRST2' }).res.status, 201);\n    const third = tryCheckout(app, { email: 'c@example.com', couponCode: 'FIRST2' }).res;\n    assert.equal(third.status, 409);\n    assert.equal(errorMessage(third), 'coupon has been fully redeemed');\n    assert.equal(app.ctx.store.coupons.require('FIRST2').redemptions, 2);\n  });\n\n  it('does not limit coupons without a maximum', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, { id: 'FOREVER', redemptions: 5000 });\n    assert.equal(tryCheckout(app, { couponCode: 'FOREVER' }).res.status, 201);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/service.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [
+    {
+      "with": "t040",
+      "type": "textual",
+      "note": "Both add a coupon check immediately after the unknown-coupon check in issueInvoice (billing/service.ts)."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "t006",
+  "title": "Make the invoice payment terms configurable",
+  "prompt": "Invoices are always due 30 days after they are issued, and the number is hard-coded in the billing code. Enterprise customers negotiate their own terms, so make it a setting.\n\nAdd `paymentTermsDays` to the shop configuration in src/config.ts (default 30, overridable with the `PAYMENT_TERMS_DAYS` environment variable) and use it when working out an invoice's due date.",
+  "acceptance_tests": {
+    "src/billing/payment-terms.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { defaultConfig, loadConfig } from '../config.ts';\nimport { createTestApp, ON_ADDRESS } from '../lib/testing.ts';\nimport { buildInvoice } from './invoice.ts';\n\nconst item = { productId: 'p', description: 'x', quantity: 1, unitPrice: 1000, taxClass: 'standard' as const };\n\ndescribe('payment terms', () => {\n  it('defaults to 30 days and can be overridden from the environment', () => {\n    assert.equal(defaultConfig.paymentTermsDays, 30);\n    assert.equal(loadConfig({}).paymentTermsDays, 30);\n    assert.equal(loadConfig({ PAYMENT_TERMS_DAYS: '14' }).paymentTermsDays, 14);\n    assert.throws(() => loadConfig({ PAYMENT_TERMS_DAYS: 'soon' }), /invalid integer/);\n  });\n\n  it('sets the due date from the configured terms', () => {\n    const app = createTestApp();\n    const issue = () => buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items: [item] });\n    assert.equal(issue().dueAt, '2026-10-15T12:00:00.000Z');\n    app.ctx.config.paymentTermsDays = 14;\n    assert.equal(issue().dueAt, '2026-09-29T12:00:00.000Z');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/billing/invoice.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/config.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "chore",
+  "difficulty": 1,
+  "couplings": []
+}

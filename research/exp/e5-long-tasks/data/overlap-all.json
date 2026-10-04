@@ -1,0 +1,2791 @@
+[
+ {
+  "label": "S: 40 singles, seed 7 / queue",
+  "run": "opus-queue-sonnet-12-landed",
+  "beans": 40,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 17.6,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 4.13,
+   "seconds_with_2plus": 205.2
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 378,
+  "pairs_share_a_touched_file": 133,
+  "pairs_overlap_window_and_file": 72,
+  "pairs_touch_overlap_same_file_same_time": 38,
+  "pairs_write_overlap_same_file_same_time": 31,
+  "file_seconds_with_2plus_beans_holding": 173.9,
+  "file_seconds_with_2plus_beans_writing": 120.4,
+  "touch_overlap_seconds_total": 231.3,
+  "peers_per_bean_median_max": [
+   1.0,
+   7
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ],
+   [
+    "src/billing/invoice.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 2.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/lib/money.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 7.3,
+    "shared_files_touched": [
+     "src/shipping/service.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t011",
+     "t018"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 6.4,
+    "shared_files_touched": [
+     "src/billing/invoice.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 8.7,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 0.3,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 38,
+    "collided_and_flagged": 15,
+    "collided_not_flagged": 39,
+    "precision": 0.395,
+    "recall": 0.278,
+    "lift": 5.7,
+    "clean_pairs_flagged": 0.032
+   },
+   "edit_overlap": {
+    "flagged": 31,
+    "collided_and_flagged": 12,
+    "collided_not_flagged": 42,
+    "precision": 0.387,
+    "recall": 0.222,
+    "lift": 5.59,
+    "clean_pairs_flagged": 0.026
+   },
+   "window_and_file": {
+    "flagged": 72,
+    "collided_and_flagged": 28,
+    "collided_not_flagged": 26,
+    "precision": 0.389,
+    "recall": 0.519,
+    "lift": 5.62,
+    "clean_pairs_flagged": 0.061
+   },
+   "file_ever": {
+    "flagged": 133,
+    "collided_and_flagged": 54,
+    "collided_not_flagged": 0,
+    "precision": 0.406,
+    "recall": 1.0,
+    "lift": 5.86,
+    "clean_pairs_flagged": 0.109
+   },
+   "_collided_pairs": 54,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 26,
+     "event_partner_pairs": 70,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 2.016
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 70,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "27/70",
+     "first_windows_overlap": "38/70",
+     "touch_overlap": 20,
+     "observable_before_first_end": "65/70"
+    },
+    "queue-red": {
+     "events": 7,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 7.7
+  }
+ },
+ {
+  "label": "S: 40 singles, seed 7 / v2",
+  "run": "opus-v2fair-sonnet-12-s7",
+  "beans": 40,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 17.2,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.19,
+   "seconds_with_2plus": 354.7
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 179,
+  "pairs_share_a_touched_file": 195,
+  "pairs_overlap_window_and_file": 80,
+  "pairs_touch_overlap_same_file_same_time": 38,
+  "pairs_write_overlap_same_file_same_time": 28,
+  "file_seconds_with_2plus_beans_holding": 252.7,
+  "file_seconds_with_2plus_beans_writing": 151.1,
+  "touch_overlap_seconds_total": 368.2,
+  "peers_per_bean_median_max": [
+   1.0,
+   8
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/notifications/queue.ts",
+    4
+   ],
+   [
+    "src/types.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ],
+   [
+    "src/notifications/templates.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/lib/money.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t011",
+     "t018"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/billing/invoice.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 38,
+    "collided_and_flagged": 9,
+    "collided_not_flagged": 43,
+    "precision": 0.237,
+    "recall": 0.173,
+    "lift": 3.55,
+    "clean_pairs_flagged": 0.04
+   },
+   "edit_overlap": {
+    "flagged": 28,
+    "collided_and_flagged": 7,
+    "collided_not_flagged": 45,
+    "precision": 0.25,
+    "recall": 0.135,
+    "lift": 3.75,
+    "clean_pairs_flagged": 0.029
+   },
+   "window_and_file": {
+    "flagged": 80,
+    "collided_and_flagged": 18,
+    "collided_not_flagged": 34,
+    "precision": 0.225,
+    "recall": 0.346,
+    "lift": 3.38,
+    "clean_pairs_flagged": 0.085
+   },
+   "file_ever": {
+    "flagged": 195,
+    "collided_and_flagged": 39,
+    "collided_not_flagged": 13,
+    "precision": 0.2,
+    "recall": 0.75,
+    "lift": 3.0,
+    "clean_pairs_flagged": 0.214
+   },
+   "_collided_pairs": 52,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 21,
+     "event_partner_pairs": 35,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.325,
+      "during_authoring": 0.104
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 4,
+      "after_authoring": 31,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "9/35",
+     "first_windows_overlap": "13/35",
+     "touch_overlap": 12,
+     "observable_before_first_end": "19/35"
+    },
+    "informed-red": {
+     "events": 16,
+     "event_partner_pairs": 31,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.674,
+      "during_authoring": 0.393,
+      "before_start": 0.254
+     },
+     "partner_landing_phase": {
+      "before_start": 5,
+      "during_authoring": 8,
+      "after_authoring": 18,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "4/31",
+     "first_windows_overlap": "6/31",
+     "touch_overlap": 2,
+     "observable_before_first_end": "5/31"
+    }
+   },
+   "lead_s_median": 9.0
+  }
+ },
+ {
+  "label": "S: 40 singles, seed 11 / queue",
+  "run": "opus-queue-sonnet-12-s11",
+  "beans": 40,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 15.5,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 2.93,
+   "seconds_with_2plus": 170.2
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 373,
+  "pairs_share_a_touched_file": 130,
+  "pairs_overlap_window_and_file": 72,
+  "pairs_touch_overlap_same_file_same_time": 37,
+  "pairs_write_overlap_same_file_same_time": 24,
+  "file_seconds_with_2plus_beans_holding": 118.5,
+  "file_seconds_with_2plus_beans_writing": 78.6,
+  "touch_overlap_seconds_total": 194.2,
+  "peers_per_bean_median_max": [
+   1.0,
+   7
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ],
+   [
+    "src/orders/checkout.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 11.0,
+    "shared_files_touched": [
+     "src/notifications/templates.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t018",
+     "t011"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 2.6,
+    "shared_files_touched": [
+     "src/billing/invoice.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t036",
+     "t023"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 12.3,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 1.1,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 37,
+    "collided_and_flagged": 11,
+    "collided_not_flagged": 26,
+    "precision": 0.297,
+    "recall": 0.297,
+    "lift": 6.27,
+    "clean_pairs_flagged": 0.035
+   },
+   "edit_overlap": {
+    "flagged": 24,
+    "collided_and_flagged": 8,
+    "collided_not_flagged": 29,
+    "precision": 0.333,
+    "recall": 0.216,
+    "lift": 7.03,
+    "clean_pairs_flagged": 0.022
+   },
+   "window_and_file": {
+    "flagged": 72,
+    "collided_and_flagged": 21,
+    "collided_not_flagged": 16,
+    "precision": 0.292,
+    "recall": 0.568,
+    "lift": 6.15,
+    "clean_pairs_flagged": 0.069
+   },
+   "file_ever": {
+    "flagged": 130,
+    "collided_and_flagged": 37,
+    "collided_not_flagged": 0,
+    "precision": 0.285,
+    "recall": 1.0,
+    "lift": 6.0,
+    "clean_pairs_flagged": 0.125
+   },
+   "_collided_pairs": 37,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 22,
+     "event_partner_pairs": 46,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.126
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 46,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "18/46",
+     "first_windows_overlap": "26/46",
+     "touch_overlap": 14,
+     "observable_before_first_end": "43/46"
+    },
+    "queue-red": {
+     "events": 14,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 8.1
+  }
+ },
+ {
+  "label": "S: 40 singles, seed 11 / v2",
+  "run": "opus-v2fair-sonnet-12-s11",
+  "beans": 40,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 20.4,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.43,
+   "seconds_with_2plus": 351.3
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 178,
+  "pairs_share_a_touched_file": 204,
+  "pairs_overlap_window_and_file": 82,
+  "pairs_touch_overlap_same_file_same_time": 50,
+  "pairs_write_overlap_same_file_same_time": 45,
+  "file_seconds_with_2plus_beans_holding": 278.0,
+  "file_seconds_with_2plus_beans_writing": 225.8,
+  "touch_overlap_seconds_total": 570.3,
+  "peers_per_bean_median_max": [
+   1.0,
+   10
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/notifications/queue.ts",
+    5
+   ],
+   [
+    "src/notifications/templates.ts",
+    5
+   ],
+   [
+    "src/types.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t018",
+     "t011"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/notifications/templates.ts",
+     "src/shipping/service.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 50,
+    "collided_and_flagged": 9,
+    "collided_not_flagged": 32,
+    "precision": 0.18,
+    "recall": 0.22,
+    "lift": 3.42,
+    "clean_pairs_flagged": 0.055
+   },
+   "edit_overlap": {
+    "flagged": 45,
+    "collided_and_flagged": 8,
+    "collided_not_flagged": 33,
+    "precision": 0.178,
+    "recall": 0.195,
+    "lift": 3.38,
+    "clean_pairs_flagged": 0.05
+   },
+   "window_and_file": {
+    "flagged": 82,
+    "collided_and_flagged": 16,
+    "collided_not_flagged": 25,
+    "precision": 0.195,
+    "recall": 0.39,
+    "lift": 3.71,
+    "clean_pairs_flagged": 0.089
+   },
+   "file_ever": {
+    "flagged": 204,
+    "collided_and_flagged": 31,
+    "collided_not_flagged": 10,
+    "precision": 0.152,
+    "recall": 0.756,
+    "lift": 2.89,
+    "clean_pairs_flagged": 0.234
+   },
+   "_collided_pairs": 41,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 16,
+     "event_partner_pairs": 20,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.973,
+      "during_authoring": 0.194
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 2,
+      "after_authoring": 18,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "10/20",
+     "first_windows_overlap": "13/20",
+     "touch_overlap": 11,
+     "observable_before_first_end": "16/20"
+    },
+    "informed-red": {
+     "events": 20,
+     "event_partner_pairs": 39,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.746,
+      "during_authoring": 0.255,
+      "before_start": 0.471
+     },
+     "partner_landing_phase": {
+      "before_start": 11,
+      "during_authoring": 6,
+      "after_authoring": 22,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "4/39",
+     "first_windows_overlap": "8/39",
+     "touch_overlap": 5,
+     "observable_before_first_end": "12/39"
+    }
+   },
+   "lead_s_median": 9.1
+  }
+ },
+ {
+  "label": "A: 16 compounds / queue",
+  "run": "e5-long-queue",
+  "beans": 16,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 29.1,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.75,
+   "seconds_with_2plus": 161.1
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 111,
+  "pairs_share_a_touched_file": 53,
+  "pairs_overlap_window_and_file": 51,
+  "pairs_touch_overlap_same_file_same_time": 38,
+  "pairs_write_overlap_same_file_same_time": 34,
+  "file_seconds_with_2plus_beans_holding": 279.5,
+  "file_seconds_with_2plus_beans_writing": 192.5,
+  "touch_overlap_seconds_total": 581.0,
+  "peers_per_bean_median_max": [
+   4.5,
+   9
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    6
+   ],
+   [
+    "src/billing/discounts.ts",
+    4
+   ],
+   [
+    "src/billing/handlers.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/db/migrations/index.ts",
+    4
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 30.8,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 19.1,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 27.6,
+    "shared_files_touched": [
+     "src/billing/invoice.ts",
+     "src/billing/tax.ts"
+    ],
+    "touch_overlap_s": 41.1,
+    "landed_order": [
+     "L05",
+     "L11"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 18.2,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 9.7,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 25.1,
+    "shared_files_touched": [
+     "src/shipping/service.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 38,
+    "collided_and_flagged": 17,
+    "collided_not_flagged": 6,
+    "precision": 0.447,
+    "recall": 0.739,
+    "lift": 2.33,
+    "clean_pairs_flagged": 0.216
+   },
+   "edit_overlap": {
+    "flagged": 34,
+    "collided_and_flagged": 16,
+    "collided_not_flagged": 7,
+    "precision": 0.471,
+    "recall": 0.696,
+    "lift": 2.46,
+    "clean_pairs_flagged": 0.186
+   },
+   "window_and_file": {
+    "flagged": 51,
+    "collided_and_flagged": 21,
+    "collided_not_flagged": 2,
+    "precision": 0.412,
+    "recall": 0.913,
+    "lift": 2.15,
+    "clean_pairs_flagged": 0.309
+   },
+   "file_ever": {
+    "flagged": 53,
+    "collided_and_flagged": 23,
+    "collided_not_flagged": 0,
+    "precision": 0.434,
+    "recall": 1.0,
+    "lift": 2.26,
+    "clean_pairs_flagged": 0.309
+   },
+   "_collided_pairs": 23,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 19,
+     "event_partner_pairs": 30,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.335
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 30,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "22/30",
+     "first_windows_overlap": "27/30",
+     "touch_overlap": 22,
+     "observable_before_first_end": "30/30"
+    },
+    "queue-red": {
+     "events": 7,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 14.4
+  }
+ },
+ {
+  "label": "A: 16 compounds / v2",
+  "run": "e5-long-v2",
+  "beans": 16,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 30.7,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.6,
+   "seconds_with_2plus": 181.5
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 90,
+  "pairs_share_a_touched_file": 66,
+  "pairs_overlap_window_and_file": 57,
+  "pairs_touch_overlap_same_file_same_time": 33,
+  "pairs_write_overlap_same_file_same_time": 30,
+  "file_seconds_with_2plus_beans_holding": 311.4,
+  "file_seconds_with_2plus_beans_writing": 219.2,
+  "touch_overlap_seconds_total": 666.3,
+  "peers_per_bean_median_max": [
+   5.0,
+   8
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/discounts.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/orders/checkout.ts",
+    4
+   ],
+   [
+    "src/routes.ts",
+    4
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 51.3,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/lib/pagination.ts",
+     "src/notifications/queue.ts",
+     "src/notifications/templates.ts",
+     "src/orders/checkout.ts"
+    ],
+    "touch_overlap_s": 56.1,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 16.2,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 34.0,
+    "shared_files_touched": [
+     "src/billing/service.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L11",
+     "L05"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 11.7,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 22.5,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 33,
+    "collided_and_flagged": 13,
+    "collided_not_flagged": 20,
+    "precision": 0.394,
+    "recall": 0.394,
+    "lift": 1.43,
+    "clean_pairs_flagged": 0.23
+   },
+   "edit_overlap": {
+    "flagged": 30,
+    "collided_and_flagged": 13,
+    "collided_not_flagged": 20,
+    "precision": 0.433,
+    "recall": 0.394,
+    "lift": 1.58,
+    "clean_pairs_flagged": 0.195
+   },
+   "window_and_file": {
+    "flagged": 57,
+    "collided_and_flagged": 25,
+    "collided_not_flagged": 8,
+    "precision": 0.439,
+    "recall": 0.758,
+    "lift": 1.59,
+    "clean_pairs_flagged": 0.368
+   },
+   "file_ever": {
+    "flagged": 66,
+    "collided_and_flagged": 31,
+    "collided_not_flagged": 2,
+    "precision": 0.47,
+    "recall": 0.939,
+    "lift": 1.71,
+    "clean_pairs_flagged": 0.402
+   },
+   "_collided_pairs": 33,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 14,
+     "event_partner_pairs": 23,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.167,
+      "during_authoring": 0.02
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 1,
+      "after_authoring": 22,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "14/23",
+     "first_windows_overlap": "17/23",
+     "touch_overlap": 12,
+     "observable_before_first_end": "16/23"
+    },
+    "informed-red": {
+     "events": 8,
+     "event_partner_pairs": 16,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.91
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 16,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "13/16",
+     "first_windows_overlap": "13/16",
+     "touch_overlap": 2,
+     "observable_before_first_end": "6/16"
+    }
+   },
+   "lead_s_median": 12.7
+  }
+ },
+ {
+  "label": "A2: 16 compounds, repeat / queue",
+  "run": "e5-long-r2-queue",
+  "beans": 16,
+  "drift_factor": 1.0,
+  "authoring_window_s_median": 27.5,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.45,
+   "seconds_with_2plus": 142.1
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 111,
+  "pairs_share_a_touched_file": 51,
+  "pairs_overlap_window_and_file": 50,
+  "pairs_touch_overlap_same_file_same_time": 37,
+  "pairs_write_overlap_same_file_same_time": 29,
+  "file_seconds_with_2plus_beans_holding": 328.1,
+  "file_seconds_with_2plus_beans_writing": 205.9,
+  "touch_overlap_seconds_total": 626.0,
+  "peers_per_bean_median_max": [
+   4.5,
+   10
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/discounts.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/orders/checkout.ts",
+    4
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 61.6,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/lib/pagination.ts",
+     "src/orders/checkout.ts",
+     "src/orders/handlers.ts",
+     "src/orders/service.ts"
+    ],
+    "touch_overlap_s": 62.8,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 15.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 33.4,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L11",
+     "L05"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 15.5,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 21.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 37,
+    "collided_and_flagged": 14,
+    "collided_not_flagged": 6,
+    "precision": 0.378,
+    "recall": 0.7,
+    "lift": 2.27,
+    "clean_pairs_flagged": 0.23
+   },
+   "edit_overlap": {
+    "flagged": 29,
+    "collided_and_flagged": 12,
+    "collided_not_flagged": 8,
+    "precision": 0.414,
+    "recall": 0.6,
+    "lift": 2.48,
+    "clean_pairs_flagged": 0.17
+   },
+   "window_and_file": {
+    "flagged": 50,
+    "collided_and_flagged": 19,
+    "collided_not_flagged": 1,
+    "precision": 0.38,
+    "recall": 0.95,
+    "lift": 2.28,
+    "clean_pairs_flagged": 0.31
+   },
+   "file_ever": {
+    "flagged": 51,
+    "collided_and_flagged": 20,
+    "collided_not_flagged": 0,
+    "precision": 0.392,
+    "recall": 1.0,
+    "lift": 2.35,
+    "clean_pairs_flagged": 0.31
+   },
+   "_collided_pairs": 20,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 16,
+     "event_partner_pairs": 25,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 2.009
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 25,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "14/25",
+     "first_windows_overlap": "24/25",
+     "touch_overlap": 17,
+     "observable_before_first_end": "22/25"
+    },
+    "queue-red": {
+     "events": 8,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 12.9
+  }
+ },
+ {
+  "label": "B: 40 singles, drift x7 / queue [modelled: touches stretched with the session]",
+  "run": "e5-short-d7-queue",
+  "beans": 40,
+  "drift_factor": 7.0,
+  "authoring_window_s_median": 134.0,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 5.64,
+   "seconds_with_2plus": 1131.8
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 394,
+  "pairs_share_a_touched_file": 132,
+  "pairs_overlap_window_and_file": 83,
+  "pairs_touch_overlap_same_file_same_time": 49,
+  "pairs_write_overlap_same_file_same_time": 34,
+  "file_seconds_with_2plus_beans_holding": 2047.7,
+  "file_seconds_with_2plus_beans_writing": 1161.4,
+  "touch_overlap_seconds_total": 3884.9,
+  "peers_per_bean_median_max": [
+   1.0,
+   9
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 84.6,
+    "shared_files_touched": [
+     "src/notifications/templates.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t018",
+     "t011"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/billing/invoice.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 118.9,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 55.7,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 49,
+    "collided_and_flagged": 19,
+    "collided_not_flagged": 12,
+    "precision": 0.388,
+    "recall": 0.613,
+    "lift": 9.76,
+    "clean_pairs_flagged": 0.04
+   },
+   "edit_overlap": {
+    "flagged": 34,
+    "collided_and_flagged": 13,
+    "collided_not_flagged": 18,
+    "precision": 0.382,
+    "recall": 0.419,
+    "lift": 9.62,
+    "clean_pairs_flagged": 0.028
+   },
+   "window_and_file": {
+    "flagged": 83,
+    "collided_and_flagged": 27,
+    "collided_not_flagged": 4,
+    "precision": 0.325,
+    "recall": 0.871,
+    "lift": 8.18,
+    "clean_pairs_flagged": 0.075
+   },
+   "file_ever": {
+    "flagged": 132,
+    "collided_and_flagged": 31,
+    "collided_not_flagged": 0,
+    "precision": 0.235,
+    "recall": 1.0,
+    "lift": 5.91,
+    "clean_pairs_flagged": 0.135
+   },
+   "_collided_pairs": 31,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 16,
+     "event_partner_pairs": 39,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.209,
+      "during_authoring": 0.471
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 13,
+      "after_authoring": 26,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "22/39",
+     "first_windows_overlap": "26/39",
+     "touch_overlap": 24,
+     "observable_before_first_end": "35/39"
+    },
+    "queue-red": {
+     "events": 9,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 78.4
+  }
+ },
+ {
+  "label": "B: 40 singles, drift x7 / queue [touches as they happened]",
+  "run": "e5-short-d7-queue",
+  "beans": 40,
+  "drift_factor": 7.0,
+  "authoring_window_s_median": 134.0,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 5.64,
+   "seconds_with_2plus": 1131.8
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 394,
+  "pairs_share_a_touched_file": 132,
+  "pairs_overlap_window_and_file": 83,
+  "pairs_touch_overlap_same_file_same_time": 71,
+  "pairs_write_overlap_same_file_same_time": 65,
+  "file_seconds_with_2plus_beans_holding": 4306.8,
+  "file_seconds_with_2plus_beans_writing": 4060.3,
+  "touch_overlap_seconds_total": 11004.9,
+  "peers_per_bean_median_max": [
+   3.0,
+   13
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/orders/checkout.ts",
+    4
+   ],
+   [
+    "src/billing/coupons.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 84.6,
+    "shared_files_touched": [
+     "src/notifications/templates.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t018",
+     "t011"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/billing/invoice.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 118.9,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 109.9,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 71,
+    "collided_and_flagged": 26,
+    "collided_not_flagged": 5,
+    "precision": 0.366,
+    "recall": 0.839,
+    "lift": 9.21,
+    "clean_pairs_flagged": 0.06
+   },
+   "edit_overlap": {
+    "flagged": 65,
+    "collided_and_flagged": 26,
+    "collided_not_flagged": 5,
+    "precision": 0.4,
+    "recall": 0.839,
+    "lift": 10.06,
+    "clean_pairs_flagged": 0.052
+   },
+   "window_and_file": {
+    "flagged": 83,
+    "collided_and_flagged": 27,
+    "collided_not_flagged": 4,
+    "precision": 0.325,
+    "recall": 0.871,
+    "lift": 8.18,
+    "clean_pairs_flagged": 0.075
+   },
+   "file_ever": {
+    "flagged": 132,
+    "collided_and_flagged": 31,
+    "collided_not_flagged": 0,
+    "precision": 0.235,
+    "recall": 1.0,
+    "lift": 5.91,
+    "clean_pairs_flagged": 0.135
+   },
+   "_collided_pairs": 31,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 16,
+     "event_partner_pairs": 39,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.209,
+      "during_authoring": 0.471
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 13,
+      "after_authoring": 26,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "22/39",
+     "first_windows_overlap": "26/39",
+     "touch_overlap": 31,
+     "observable_before_first_end": "35/39"
+    },
+    "queue-red": {
+     "events": 9,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 181.3
+  }
+ },
+ {
+  "label": "B: 40 singles, drift x7 / v2 [modelled: touches stretched with the session]",
+  "run": "e5-short-d7-v2",
+  "beans": 40,
+  "drift_factor": 7.0,
+  "authoring_window_s_median": 129.8,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 6.43,
+   "seconds_with_2plus": 1067.6
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 280,
+  "pairs_share_a_touched_file": 129,
+  "pairs_overlap_window_and_file": 66,
+  "pairs_touch_overlap_same_file_same_time": 33,
+  "pairs_write_overlap_same_file_same_time": 25,
+  "file_seconds_with_2plus_beans_holding": 1711.0,
+  "file_seconds_with_2plus_beans_writing": 892.0,
+  "touch_overlap_seconds_total": 2742.1,
+  "peers_per_bean_median_max": [
+   1.0,
+   8
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/db/migrations/index.ts",
+    4
+   ],
+   [
+    "src/types.ts",
+    4
+   ],
+   [
+    "src/billing/invoice.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ],
+   [
+    "src/db/migrations/0007_order_note.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/lib/money.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t011",
+     "t018"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 200.1,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 255.8,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 37.7,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 33,
+    "collided_and_flagged": 9,
+    "collided_not_flagged": 21,
+    "precision": 0.273,
+    "recall": 0.3,
+    "lift": 7.09,
+    "clean_pairs_flagged": 0.032
+   },
+   "edit_overlap": {
+    "flagged": 25,
+    "collided_and_flagged": 9,
+    "collided_not_flagged": 21,
+    "precision": 0.36,
+    "recall": 0.3,
+    "lift": 9.36,
+    "clean_pairs_flagged": 0.021
+   },
+   "window_and_file": {
+    "flagged": 66,
+    "collided_and_flagged": 18,
+    "collided_not_flagged": 12,
+    "precision": 0.273,
+    "recall": 0.6,
+    "lift": 7.09,
+    "clean_pairs_flagged": 0.064
+   },
+   "file_ever": {
+    "flagged": 129,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 6,
+    "precision": 0.186,
+    "recall": 0.8,
+    "lift": 4.84,
+    "clean_pairs_flagged": 0.14
+   },
+   "_collided_pairs": 30,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 14,
+     "event_partner_pairs": 25,
+     "rework_cost_usd_by_partner_phase": {
+      "during_authoring": 0.659,
+      "after_authoring": 0.969
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 10,
+      "after_authoring": 15,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "9/25",
+     "first_windows_overlap": "14/25",
+     "touch_overlap": 9,
+     "observable_before_first_end": "18/25"
+    },
+    "informed-red": {
+     "events": 5,
+     "event_partner_pairs": 10,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.264,
+      "during_authoring": 0.132,
+      "before_start": 0.064
+     },
+     "partner_landing_phase": {
+      "before_start": 2,
+      "during_authoring": 2,
+      "after_authoring": 6,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "3/10",
+     "first_windows_overlap": "4/10",
+     "touch_overlap": 1,
+     "observable_before_first_end": "3/10"
+    }
+   },
+   "lead_s_median": 68.2
+  }
+ },
+ {
+  "label": "B: 40 singles, drift x7 / v2 [touches as they happened]",
+  "run": "e5-short-d7-v2",
+  "beans": 40,
+  "drift_factor": 7.0,
+  "authoring_window_s_median": 129.8,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 6.43,
+   "seconds_with_2plus": 1067.6
+  },
+  "pairs": 780,
+  "pairs_authoring_windows_overlap": 280,
+  "pairs_share_a_touched_file": 129,
+  "pairs_overlap_window_and_file": 66,
+  "pairs_touch_overlap_same_file_same_time": 50,
+  "pairs_write_overlap_same_file_same_time": 46,
+  "file_seconds_with_2plus_beans_holding": 3853.6,
+  "file_seconds_with_2plus_beans_writing": 3138.4,
+  "touch_overlap_seconds_total": 8863.2,
+  "peers_per_bean_median_max": [
+   1.5,
+   12
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/db/migrations/index.ts",
+    4
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "t002+t022",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t002",
+     "t022"
+    ]
+   },
+   {
+    "pair": "t005+t031",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [
+     "src/lib/money.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t005",
+     "t031"
+    ]
+   },
+   {
+    "pair": "t011+t018",
+    "windows_overlap_s": 0.0,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t011",
+     "t018"
+    ]
+   },
+   {
+    "pair": "t023+t036",
+    "windows_overlap_s": 200.1,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "t023",
+     "t036"
+    ]
+   },
+   {
+    "pair": "t028+t032",
+    "windows_overlap_s": 255.8,
+    "shared_files_touched": [
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 86.0,
+    "landed_order": [
+     "t028",
+     "t032"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 50,
+    "collided_and_flagged": 13,
+    "collided_not_flagged": 17,
+    "precision": 0.26,
+    "recall": 0.433,
+    "lift": 6.76,
+    "clean_pairs_flagged": 0.049
+   },
+   "edit_overlap": {
+    "flagged": 46,
+    "collided_and_flagged": 13,
+    "collided_not_flagged": 17,
+    "precision": 0.283,
+    "recall": 0.433,
+    "lift": 7.35,
+    "clean_pairs_flagged": 0.044
+   },
+   "window_and_file": {
+    "flagged": 66,
+    "collided_and_flagged": 18,
+    "collided_not_flagged": 12,
+    "precision": 0.273,
+    "recall": 0.6,
+    "lift": 7.09,
+    "clean_pairs_flagged": 0.064
+   },
+   "file_ever": {
+    "flagged": 129,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 6,
+    "precision": 0.186,
+    "recall": 0.8,
+    "lift": 4.84,
+    "clean_pairs_flagged": 0.14
+   },
+   "_collided_pairs": 30,
+   "_pairs": 780
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 14,
+     "event_partner_pairs": 25,
+     "rework_cost_usd_by_partner_phase": {
+      "during_authoring": 0.659,
+      "after_authoring": 0.969
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 10,
+      "after_authoring": 15,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "9/25",
+     "first_windows_overlap": "14/25",
+     "touch_overlap": 14,
+     "observable_before_first_end": "19/25"
+    },
+    "informed-red": {
+     "events": 5,
+     "event_partner_pairs": 10,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 0.264,
+      "during_authoring": 0.132,
+      "before_start": 0.064
+     },
+     "partner_landing_phase": {
+      "before_start": 2,
+      "during_authoring": 2,
+      "after_authoring": 6,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "3/10",
+     "first_windows_overlap": "4/10",
+     "touch_overlap": 1,
+     "observable_before_first_end": "3/10"
+    }
+   },
+   "lead_s_median": 178.8
+  }
+ },
+ {
+  "label": "C: 16 compounds, drift x4 / queue [modelled: touches stretched with the session]",
+  "run": "e5-long-d4-queue",
+  "beans": 16,
+  "drift_factor": 4.0,
+  "authoring_window_s_median": 119.2,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.97,
+   "seconds_with_2plus": 590.2
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 111,
+  "pairs_share_a_touched_file": 55,
+  "pairs_overlap_window_and_file": 53,
+  "pairs_touch_overlap_same_file_same_time": 38,
+  "pairs_write_overlap_same_file_same_time": 34,
+  "file_seconds_with_2plus_beans_holding": 850.2,
+  "file_seconds_with_2plus_beans_writing": 738.3,
+  "touch_overlap_seconds_total": 1871.3,
+  "peers_per_bean_median_max": [
+   5.0,
+   9
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/billing/discounts.ts",
+    5
+   ],
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/invoice.ts",
+    4
+   ],
+   [
+    "src/orders/checkout.ts",
+    4
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 133.9,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 76.6,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 125.3,
+    "shared_files_touched": [
+     "src/billing/tax.ts"
+    ],
+    "touch_overlap_s": 54.3,
+    "landed_order": [
+     "L05",
+     "L11"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 68.7,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 3.6,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 94.9,
+    "shared_files_touched": [
+     "src/shipping/service.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 38,
+    "collided_and_flagged": 20,
+    "collided_not_flagged": 5,
+    "precision": 0.526,
+    "recall": 0.8,
+    "lift": 2.53,
+    "clean_pairs_flagged": 0.189
+   },
+   "edit_overlap": {
+    "flagged": 34,
+    "collided_and_flagged": 19,
+    "collided_not_flagged": 6,
+    "precision": 0.559,
+    "recall": 0.76,
+    "lift": 2.68,
+    "clean_pairs_flagged": 0.158
+   },
+   "window_and_file": {
+    "flagged": 53,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 1,
+    "precision": 0.453,
+    "recall": 0.96,
+    "lift": 2.17,
+    "clean_pairs_flagged": 0.305
+   },
+   "file_ever": {
+    "flagged": 55,
+    "collided_and_flagged": 25,
+    "collided_not_flagged": 0,
+    "precision": 0.455,
+    "recall": 1.0,
+    "lift": 2.18,
+    "clean_pairs_flagged": 0.316
+   },
+   "_collided_pairs": 25,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 20,
+     "event_partner_pairs": 35,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 2.308,
+      "during_authoring": 0.247
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 4,
+      "after_authoring": 31,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "24/35",
+     "first_windows_overlap": "33/35",
+     "touch_overlap": 29,
+     "observable_before_first_end": "34/35"
+    },
+    "queue-red": {
+     "events": 5,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 50.5
+  }
+ },
+ {
+  "label": "C: 16 compounds, drift x4 / queue [touches as they happened]",
+  "run": "e5-long-d4-queue",
+  "beans": 16,
+  "drift_factor": 4.0,
+  "authoring_window_s_median": 119.2,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 3.97,
+   "seconds_with_2plus": 590.2
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 111,
+  "pairs_share_a_touched_file": 55,
+  "pairs_overlap_window_and_file": 53,
+  "pairs_touch_overlap_same_file_same_time": 50,
+  "pairs_write_overlap_same_file_same_time": 48,
+  "file_seconds_with_2plus_beans_holding": 2325.7,
+  "file_seconds_with_2plus_beans_writing": 2254.7,
+  "touch_overlap_seconds_total": 8352.5,
+  "peers_per_bean_median_max": [
+   7.0,
+   11
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    7
+   ],
+   [
+    "src/billing/discounts.ts",
+    5
+   ],
+   [
+    "src/billing/invoice.ts",
+    5
+   ],
+   [
+    "src/routes.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    4
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 133.9,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "touch_overlap_s": 96.4,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 76.6,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 125.3,
+    "shared_files_touched": [
+     "src/billing/tax.ts"
+    ],
+    "touch_overlap_s": 107.6,
+    "landed_order": [
+     "L05",
+     "L11"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 68.7,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 102.1,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 94.9,
+    "shared_files_touched": [
+     "src/shipping/service.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 50,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 1,
+    "precision": 0.48,
+    "recall": 0.96,
+    "lift": 2.3,
+    "clean_pairs_flagged": 0.274
+   },
+   "edit_overlap": {
+    "flagged": 48,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 1,
+    "precision": 0.5,
+    "recall": 0.96,
+    "lift": 2.4,
+    "clean_pairs_flagged": 0.253
+   },
+   "window_and_file": {
+    "flagged": 53,
+    "collided_and_flagged": 24,
+    "collided_not_flagged": 1,
+    "precision": 0.453,
+    "recall": 0.96,
+    "lift": 2.17,
+    "clean_pairs_flagged": 0.305
+   },
+   "file_ever": {
+    "flagged": 55,
+    "collided_and_flagged": 25,
+    "collided_not_flagged": 0,
+    "precision": 0.455,
+    "recall": 1.0,
+    "lift": 2.18,
+    "clean_pairs_flagged": 0.316
+   },
+   "_collided_pairs": 25,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 20,
+     "event_partner_pairs": 35,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 2.308,
+      "during_authoring": 0.247
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 4,
+      "after_authoring": 31,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "24/35",
+     "first_windows_overlap": "33/35",
+     "touch_overlap": 33,
+     "observable_before_first_end": "35/35"
+    },
+    "queue-red": {
+     "events": 5,
+     "event_partner_pairs": 0,
+     "rework_cost_usd_by_partner_phase": {},
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 0,
+      "after_authoring": 0,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "0/0",
+     "first_windows_overlap": "0/0",
+     "touch_overlap": 0,
+     "observable_before_first_end": "0/0"
+    }
+   },
+   "lead_s_median": 112.5
+  }
+ },
+ {
+  "label": "C: 16 compounds, drift x4 / v2 [modelled: touches stretched with the session]",
+  "run": "e5-long-d4-v2",
+  "beans": 16,
+  "drift_factor": 4.0,
+  "authoring_window_s_median": 119.4,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 5.71,
+   "seconds_with_2plus": 471.4
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 102,
+  "pairs_share_a_touched_file": 47,
+  "pairs_overlap_window_and_file": 44,
+  "pairs_touch_overlap_same_file_same_time": 29,
+  "pairs_write_overlap_same_file_same_time": 28,
+  "file_seconds_with_2plus_beans_holding": 873.5,
+  "file_seconds_with_2plus_beans_writing": 733.7,
+  "touch_overlap_seconds_total": 1484.6,
+  "peers_per_bean_median_max": [
+   3.5,
+   8
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    3
+   ],
+   [
+    "src/billing/service.ts",
+    3
+   ],
+   [
+    "src/db/migrations/index.ts",
+    3
+   ],
+   [
+    "src/notifications/templates.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 143.8,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 75.8,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 139.6,
+    "shared_files_touched": [
+     "src/billing/tax.ts"
+    ],
+    "touch_overlap_s": 42.0,
+    "landed_order": [
+     "L11",
+     "L05"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 238.6,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/db/migrations/index.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 34.3,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 94.7,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 29,
+    "collided_and_flagged": 12,
+    "collided_not_flagged": 10,
+    "precision": 0.414,
+    "recall": 0.545,
+    "lift": 2.26,
+    "clean_pairs_flagged": 0.173
+   },
+   "edit_overlap": {
+    "flagged": 28,
+    "collided_and_flagged": 12,
+    "collided_not_flagged": 10,
+    "precision": 0.429,
+    "recall": 0.545,
+    "lift": 2.34,
+    "clean_pairs_flagged": 0.163
+   },
+   "window_and_file": {
+    "flagged": 44,
+    "collided_and_flagged": 19,
+    "collided_not_flagged": 3,
+    "precision": 0.432,
+    "recall": 0.864,
+    "lift": 2.36,
+    "clean_pairs_flagged": 0.255
+   },
+   "file_ever": {
+    "flagged": 47,
+    "collided_and_flagged": 20,
+    "collided_not_flagged": 2,
+    "precision": 0.426,
+    "recall": 0.909,
+    "lift": 2.32,
+    "clean_pairs_flagged": 0.276
+   },
+   "_collided_pairs": 22,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 18,
+     "event_partner_pairs": 28,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.968,
+      "during_authoring": 0.35
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 3,
+      "after_authoring": 25,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "11/28",
+     "first_windows_overlap": "24/28",
+     "touch_overlap": 18,
+     "observable_before_first_end": "22/28"
+    },
+    "informed-red": {
+     "events": 2,
+     "event_partner_pairs": 4,
+     "rework_cost_usd_by_partner_phase": {
+      "during_authoring": 0.072,
+      "after_authoring": 0.288
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 1,
+      "after_authoring": 3,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "3/4",
+     "first_windows_overlap": "3/4",
+     "touch_overlap": 1,
+     "observable_before_first_end": "2/4"
+    }
+   },
+   "lead_s_median": 47.7
+  }
+ },
+ {
+  "label": "C: 16 compounds, drift x4 / v2 [touches as they happened]",
+  "run": "e5-long-d4-v2",
+  "beans": 16,
+  "drift_factor": 4.0,
+  "authoring_window_s_median": 119.4,
+  "beans_authoring_at_once": {
+   "peak": 12,
+   "time_weighted_mean": 5.71,
+   "seconds_with_2plus": 471.4
+  },
+  "pairs": 120,
+  "pairs_authoring_windows_overlap": 102,
+  "pairs_share_a_touched_file": 47,
+  "pairs_overlap_window_and_file": 44,
+  "pairs_touch_overlap_same_file_same_time": 39,
+  "pairs_write_overlap_same_file_same_time": 38,
+  "file_seconds_with_2plus_beans_holding": 2352.9,
+  "file_seconds_with_2plus_beans_writing": 2307.1,
+  "touch_overlap_seconds_total": 7153.4,
+  "peers_per_bean_median_max": [
+   5.0,
+   9
+  ],
+  "peak_beans_on_one_file": [
+   [
+    "src/types.ts",
+    6
+   ],
+   [
+    "src/routes.ts",
+    5
+   ],
+   [
+    "src/billing/handlers.ts",
+    4
+   ],
+   [
+    "src/db/migrations/index.ts",
+    4
+   ],
+   [
+    "src/billing/discounts.ts",
+    3
+   ]
+  ],
+  "semantic_pairs": [
+   {
+    "pair": "L01+L02",
+    "windows_overlap_s": 143.8,
+    "shared_files_touched": [
+     "src/billing/handlers.ts",
+     "src/routes.ts"
+    ],
+    "touch_overlap_s": 106.0,
+    "landed_order": [
+     "L01",
+     "L02"
+    ]
+   },
+   {
+    "pair": "L04+L12",
+    "windows_overlap_s": 75.8,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L04",
+     "L12"
+    ]
+   },
+   {
+    "pair": "L05+L11",
+    "windows_overlap_s": 139.6,
+    "shared_files_touched": [
+     "src/billing/tax.ts"
+    ],
+    "touch_overlap_s": 99.7,
+    "landed_order": [
+     "L11",
+     "L05"
+    ]
+   },
+   {
+    "pair": "L07+L14",
+    "windows_overlap_s": 238.6,
+    "shared_files_touched": [
+     "src/config.ts",
+     "src/db/migrations/index.ts",
+     "src/types.ts"
+    ],
+    "touch_overlap_s": 119.5,
+    "landed_order": [
+     "L14",
+     "L07"
+    ]
+   },
+   {
+    "pair": "L08+L12",
+    "windows_overlap_s": 94.7,
+    "shared_files_touched": [],
+    "touch_overlap_s": 0.0,
+    "landed_order": [
+     "L08",
+     "L12"
+    ]
+   }
+  ],
+  "flagging": {
+   "hold_overlap": {
+    "flagged": 39,
+    "collided_and_flagged": 17,
+    "collided_not_flagged": 5,
+    "precision": 0.436,
+    "recall": 0.773,
+    "lift": 2.38,
+    "clean_pairs_flagged": 0.224
+   },
+   "edit_overlap": {
+    "flagged": 38,
+    "collided_and_flagged": 17,
+    "collided_not_flagged": 5,
+    "precision": 0.447,
+    "recall": 0.773,
+    "lift": 2.44,
+    "clean_pairs_flagged": 0.214
+   },
+   "window_and_file": {
+    "flagged": 44,
+    "collided_and_flagged": 19,
+    "collided_not_flagged": 3,
+    "precision": 0.432,
+    "recall": 0.864,
+    "lift": 2.36,
+    "clean_pairs_flagged": 0.255
+   },
+   "file_ever": {
+    "flagged": 47,
+    "collided_and_flagged": 20,
+    "collided_not_flagged": 2,
+    "precision": 0.426,
+    "recall": 0.909,
+    "lift": 2.32,
+    "clean_pairs_flagged": 0.276
+   },
+   "_collided_pairs": 22,
+   "_pairs": 120
+  },
+  "attribution": {
+   "events_by_kind": {
+    "conflict": {
+     "events": 18,
+     "event_partner_pairs": 28,
+     "rework_cost_usd_by_partner_phase": {
+      "after_authoring": 1.968,
+      "during_authoring": 0.35
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 3,
+      "after_authoring": 25,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "11/28",
+     "first_windows_overlap": "24/28",
+     "touch_overlap": 23,
+     "observable_before_first_end": "26/28"
+    },
+    "informed-red": {
+     "events": 2,
+     "event_partner_pairs": 4,
+     "rework_cost_usd_by_partner_phase": {
+      "during_authoring": 0.072,
+      "after_authoring": 0.288
+     },
+     "partner_landing_phase": {
+      "before_start": 0,
+      "during_authoring": 1,
+      "after_authoring": 3,
+      "not_landed": 0
+     },
+     "partner_submitted_during_authoring": "3/4",
+     "first_windows_overlap": "3/4",
+     "touch_overlap": 2,
+     "observable_before_first_end": "2/4"
+    }
+   },
+   "lead_s_median": 108.8
+  }
+ }
+]

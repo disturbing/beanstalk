@@ -1,0 +1,13 @@
+{
+ "number": 3999,
+ "sha": "823093f3d4a70be748eed48d0d0475836cebdedb",
+ "title": "fix: pedantic **foo:** and **\"word\"** emphasis parsing",
+ "body": "<!--\r\n\r\n\tIf badging PR, add ?template=badges.md to the PR url to use the badges PR template.\r\n\r\n\tOtherwise, you are stating this PR fixes an issue that has been submitted; or,\r\n\tdescribes the issue or proposal under consideration and contains the project-related code to implement.\r\n\r\n-->\r\n\r\n**Marked version:**\r\n\r\n18.0.5 / master\r\n\r\n**Markdown flavor:** Markdown.pl  / pedantic\r\n\r\n## Description\r\n\r\n- [Fixes 3938](https://github.com/markedjs/marked/issues/3938)\r\n- Inspired by the fix in [markedjs/marked#3959](https://github.com/markedjs/marked/compare/master...waiter:marked:fix_strong?expand=1), this implementation further optimizes emphasis and strong parsing for broader edge cases, such as:\r\n\r\n```\r\n**foo:**bar\r\n\r\n**foo**bar\r\n\r\n*foo:*bar\r\n\r\n_foo:_bar\r\n\r\n__foo:__bar\r\n\r\naa**\"A\"**and**\"B\"**aa\r\n\r\naa**'A'**and**'B'**aa\r\n\r\n**'test'**  \r\n```\r\n<img width=\"1103\" height=\"466\" alt=\"image\" src=\"https://github.com/user-attachments/assets/9bdd20f9-2730-4877-9e61-ad12dae4e042\" />\r\n\r\n<!--\r\n\r\n\tIf no issue exists that you're aware of. The maintainers should be able to figure out if it's a duplicate.\r\n\r\n## Expectation\r\n\r\nDescribe the output you are expecting from marked\r\n\r\n## Result\r\n\r\nDescribe the output you received from marked\r\n\r\n## What was attempted\r\n\r\nDescribe what code combination got you there\r\n\r\n-->\r\n\r\n## Contributor\r\n\r\n- [x] Test(s) exist to ensure functionality and minimize regression (if no tests added, list tests covering this PR); or,\r\n- [ ] no tests required for this PR.\r\n- [ ] If submitting new feature, it has been documented in the appropriate places.\r\n\r\n## Committer\r\n\r\nIn most cases, this should be a different person than the contributor.\r\n\r\n- [ ] CI is green (no forced merge required).\r\n- [ ] Squash and Merge PR following [conventional commit guidelines](https://www.conventionalcommits.org/).\r\n",
+ "author": "waiter",
+ "created_at": "2026-06-22T05:38:42Z",
+ "merged_at": "2026-08-04T04:29:40Z",
+ "pr_base_sha": "5ddfd8a5eba524b826b7a048cb9d20dcb57a13bd",
+ "pr_head_sha": "b3d9534bb2f9590c36cfe3e44d64590370f32398",
+ "commits": 2,
+ "linked_issues": []
+}

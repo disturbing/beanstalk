@@ -1,0 +1,5 @@
+[
+ {"id": "P02", "members": ["t001", "t016"], "theme": "billing"},
+ {"id": "P03", "members": ["t004", "t026", "t038"], "theme": "billing"},
+ {"id": "P04", "members": ["t012", "t014", "t020", "t021"], "theme": "auth and catalog"}
+]

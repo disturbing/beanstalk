@@ -1,0 +1,37 @@
+{
+  "id": "L06",
+  "title": "Reserving zero or negative quantities should be rejected + Replace the notification switch with a template table",
+  "prompt": "Two related tickets in stock checks and notification templates are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Reserving zero or negative quantities should be rejected\n\nA caller that passed a negative quantity to the stock reservation code \"released\" stock by accident (the reserved counter went negative), and a fractional quantity corrupted the counters.\n\nReservation must refuse any quantity that is not a positive whole number, with a 400 error and the message \"quantity must be a positive whole number\", instead of applying it.\n\n### Ticket 2: Replace the notification switch with a template table\n\nrenderNotification in notifications/templates.ts is a switch with one branch per kind, and every new notification kind means editing that function. Turn it into a table: export a `templates` record, keyed by notification kind, whose values are render functions taking `(order, currency)` and returning `{ subject, body }`. renderNotification should just look the kind up in it. The text produced for the existing kinds must not change.\n",
+  "acceptance_tests": {
+    "src/inventory/reserve-validation.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { AppError } from '../lib/errors.ts';\nimport { addProduct, createTestApp } from '../lib/testing.ts';\nimport { getStock, reserve } from './stock.ts';\n\ndescribe('reserve validation', () => {\n  it('rejects zero, negative and fractional quantities', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx, { stock: 10 });\n    for (const quantity of [0, -3, 1.5]) {\n      assert.throws(\n        () => reserve(app.ctx, [{ productId: product.id, quantity }]),\n        (e: unknown) => e instanceof AppError && e.status === 400 && e.message === 'quantity must be a positive whole number',\n        `quantity ${quantity}`,\n      );\n    }\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n  });\n\n  it('still reserves positive whole quantities', () => {\n    const app = createTestApp();\n    const product = addProduct(app.ctx, { stock: 10 });\n    reserve(app.ctx, [{ productId: product.id, quantity: 4 }]);\n    assert.equal(getStock(app.ctx, product.id).reserved, 4);\n  });\n});\n",
+    "src/notifications/templates.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, placeOrder } from '../lib/testing.ts';\nimport { renderNotification, templates } from './templates.ts';\n\ndescribe('notification templates', () => {\n  it('has one render function per kind', () => {\n    assert.deepEqual(Object.keys(templates).sort(), ['order_cancelled', 'order_confirmed', 'order_shipped']);\n    for (const render of Object.values(templates)) assert.equal(typeof render, 'function');\n  });\n\n  it('renders exactly what renderNotification does', () => {\n    const { order } = placeOrder(createTestApp());\n    for (const kind of ['order_confirmed', 'order_shipped', 'order_cancelled'] as const) {\n      assert.deepEqual(templates[kind](order, 'USD'), renderNotification(kind, order, 'USD'));\n    }\n  });\n\n  it('keeps the wording of the existing messages', () => {\n    const { order } = placeOrder(createTestApp(), { price: 1500 });\n    assert.equal(renderNotification('order_shipped', order, 'USD').subject, `Order ${order.number} has shipped`);\n    assert.equal(renderNotification('order_cancelled', order, 'USD').body, `Your order ${order.number} was cancelled. Any payment will be refunded.`);\n    assert.equal(renderNotification('order_confirmed', order, 'USD').body.split('\\n')[0], 'Thanks for your order!');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/inventory/reserve-validation.test.ts",
+    "src/inventory/stock.ts",
+    "src/notifications/templates.test.ts",
+    "src/notifications/templates.ts"
+  ],
+  "oracle_modules": [
+    "src/inventory",
+    "src/notifications"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "members": [
+    "t008",
+    "t025"
+  ],
+  "couplings": [
+    {
+      "with": "L16",
+      "type": "textual",
+      "members": [
+        "t008",
+        "t034"
+      ],
+      "note": "t008 x t034: Both change the line loop inside reserve() in inventory/stock.ts: one splits it into a check pass and a reserve pass, the other adds a quantity check at the top of the loop body."
+    }
+  ],
+  "theme": "stock checks and notification templates"
+}

@@ -1,0 +1,39 @@
+{
+ "task": "t030",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/empty-cart.test.ts"
+ ],
+ "results": {
+  "src/orders/empty-cart.test.ts": {
+   "status": "fails-first",
+   "why": "3 of 3 tests fail on the current code",
+   "tests": 3,
+   "failing": 3,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > rejects with 400 &quot;cart is empty&quot;",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'nothing to ship'\n- 'cart is empty'"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > creates no invoice and no order",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1 !== 0"
+    },
+    {
+     "file": "src/orders/empty-cart.test.ts",
+     "name": "checkout with an empty cart > rejects the empty cart before looking at the coupon",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'unknown coupon code'\n- 'cart is empty'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

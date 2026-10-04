@@ -1,0 +1,39 @@
+{
+  "id": "L16",
+  "title": "Stock reservations should be all or nothing + Carts accept more units than are in stock",
+  "prompt": "Two related tickets in stock and carts are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Stock reservations should be all or nothing\n\nIf a cart has three lines and the third is out of stock, checkout fails with a 409, but the first two lines stay reserved, so the stock of those products leaks away with every failed attempt.\n\nReserving a group of lines in inventory/stock.ts must be all or nothing: if any line cannot be covered, nothing at all is reserved and the error names the first line that is short.\n\n### Ticket 2: Carts accept more units than are in stock\n\nA customer put 50 units of a product with 3 in stock into their cart and only found out at checkout.\n\nAdding to the cart, or raising a line's quantity, must fail with a 409 and the message \"only N left in stock\" (N being what is still available: on hand minus reserved, never below zero) when the line's resulting quantity would be more than that. Anything within the available stock keeps working, and lowering a quantity is always allowed.\n",
+  "acceptance_tests": {
+    "src/inventory/atomic-reserve.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, signUp } from '../lib/testing.ts';\nimport { getStock, reserve } from './stock.ts';\n\ndescribe('atomic reservations', () => {\n  it('reserve nothing when one line is short', () => {\n    const app = createTestApp();\n    const a = addProduct(app.ctx, { stock: 5 });\n    const b = addProduct(app.ctx, { stock: 5 });\n    const c = addProduct(app.ctx, { stock: 1 });\n    const lines = [a, b, c].map((p) => ({ productId: p.id, quantity: 2 }));\n    assert.throws(() => reserve(app.ctx, lines), new RegExp(`not enough stock for ${c.id}`));\n    assert.deepEqual([a, b, c].map((p) => getStock(app.ctx, p.id).reserved), [0, 0, 0]);\n  });\n\n  it('name the first short line', () => {\n    const app = createTestApp();\n    const ok = addProduct(app.ctx, { stock: 5 });\n    const short1 = addProduct(app.ctx, { stock: 0 });\n    const short2 = addProduct(app.ctx, { stock: 0 });\n    const lines = [ok, short1, short2].map((p) => ({ productId: p.id, quantity: 1 }));\n    assert.throws(() => reserve(app.ctx, lines), new RegExp(short1.id));\n  });\n\n  it('reserve every line when all are covered', () => {\n    const app = createTestApp();\n    const a = addProduct(app.ctx, { stock: 5 });\n    const b = addProduct(app.ctx, { stock: 5 });\n    reserve(app.ctx, [{ productId: a.id, quantity: 3 }, { productId: b.id, quantity: 5 }]);\n    assert.deepEqual([a, b].map((p) => getStock(app.ctx, p.id).reserved), [3, 5]);\n  });\n\n  it('keep stock intact across a failed checkout', () => {\n    const app = createTestApp();\n    const { token } = signUp(app.ctx);\n    const plenty = addProduct(app.ctx, { stock: 10 });\n    const scarce = addProduct(app.ctx, { stock: 5 });\n    app.call('POST', '/cart/items', { token, body: { productId: plenty.id, quantity: 2 } });\n    app.call('POST', '/cart/items', { token, body: { productId: scarce.id, quantity: 2 } });\n    app.ctx.store.stock.update(scarce.id, { onHand: 1 });\n    assert.equal(app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }).status, 409);\n    assert.equal(getStock(app.ctx, plenty.id).reserved, 0);\n  });\n});\n",
+    "src/cart/stock-check.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { reserve } from '../inventory/stock.ts';\nimport { addProduct, createTestApp, errorMessage, signUp } from '../lib/testing.ts';\nimport { getCart } from './service.ts';\n\nfunction setup(stock: number) {\n  const app = createTestApp();\n  const { user, token } = signUp(app.ctx);\n  const product = addProduct(app.ctx, { stock });\n  const add = (quantity: number) => app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity } });\n  const set = (quantity: number) => app.call('PATCH', `/cart/items/${product.id}`, { token, body: { quantity } });\n  return { app, user, product, add, set };\n}\n\ndescribe('cart stock check', () => {\n  it('accepts quantities up to the stock on hand', () => {\n    const { add, app, user } = setup(3);\n    assert.equal(add(3).status, 201);\n    assert.equal(getCart(app.ctx, user.id).lines[0].quantity, 3);\n  });\n\n  it('refuses to add more than is available, counting what is already in the cart', () => {\n    const { add, app, user } = setup(3);\n    assert.equal(add(2).status, 201);\n    const res = add(2);\n    assert.equal(res.status, 409);\n    assert.equal(errorMessage(res), 'only 3 left in stock');\n    assert.equal(getCart(app.ctx, user.id).lines[0].quantity, 2);\n  });\n\n  it('refuses to raise a line past the stock but lets it go down', () => {\n    const { add, set } = setup(4);\n    add(2);\n    assert.equal(set(5).status, 409);\n    assert.equal(set(4).status, 200);\n    assert.equal(set(1).status, 200);\n  });\n\n  it('does not count stock reserved for other orders as available', () => {\n    const { add, app, product } = setup(5);\n    reserve(app.ctx, [{ productId: product.id, quantity: 4 }]);\n    const res = add(2);\n    assert.equal(res.status, 409);\n    assert.equal(errorMessage(res), 'only 1 left in stock');\n  });\n\n  it('says zero when everything is reserved or sold', () => {\n    const { add } = setup(0);\n    assert.equal(errorMessage(add(1)), 'only 0 left in stock');\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "src/cart/service.ts",
+    "src/cart/stock-check.test.ts",
+    "src/inventory/atomic-reserve.test.ts",
+    "src/inventory/stock.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/cart",
+    "src/inventory"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "members": [
+    "t034",
+    "t035"
+  ],
+  "couplings": [
+    {
+      "with": "L06",
+      "type": "textual",
+      "members": [
+        "t034",
+        "t008"
+      ],
+      "note": "t034 x t008: Both change the line loop inside reserve() in inventory/stock.ts: one splits it into a check pass and a reserve pass, the other adds a quantity check at the top of the loop body."
+    }
+  ],
+  "theme": "stock and carts"
+}

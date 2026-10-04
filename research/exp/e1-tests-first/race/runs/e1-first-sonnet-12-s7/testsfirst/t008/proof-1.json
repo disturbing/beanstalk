@@ -1,0 +1,75 @@
+{
+ "task": "t008",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/inventory/reserve-quantity.test.ts"
+ ],
+ "results": {
+  "src/inventory/reserve-quantity.test.ts": {
+   "status": "fails-first",
+   "why": "8 of 9 tests fail on the current code",
+   "tests": 9,
+   "failing": 8,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity 0 with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity -1 with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity -5 with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity 1.5 with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity 0.5 with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity NaN with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity Infinity with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n409 !== 400"
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > rejects quantity -Infinity with a 400 and leaves the counters alone",
+     "status": "fail",
+     "message": "Missing expected exception."
+    },
+    {
+     "file": "src/inventory/reserve-quantity.test.ts",
+     "name": "reserve quantity validation > still reserves positive whole numbers",
+     "status": "pass",
+     "message": ""
+    }
+   ]
+  }
+ },
+ "problems": []
+}

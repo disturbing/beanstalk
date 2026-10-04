@@ -1,0 +1,33 @@
+{
+  "id": "pr4063",
+  "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+  "prompt": "The GFM email autolink rule mangles an address when its domain is immediately followed by `_` or `-`.\n\nThe `email` sub-pattern in the GFM inline `url` rule ends with a `(?![-_])` lookahead. Since that only forbids `-`/`_` *after* the final domain character, the regex backtracks and gives that character back to satisfy the lookahead — truncating the last domain label and producing a wrong `mailto:` target plus a visibly split word (e.g. `foo@bar.com-` autolinks `foo@bar.co` and leaves `m-` behind).\n\nPer the GFM spec a domain label must not end in `_` or `-`. Changing the lookahead to `(?![\\w-])` also forbids a following word character, forcing the final label to match maximally; when the maximal domain is then followed by `_`/`-`, the whole autolink fails and the text is rendered as-is — which is the correct behaviour.\n\nAdded a unit test covering `foo@bar.com_` and `foo@bar.com-`, both of which now tokenize as plain text. It fails on `master` and passes with this change.",
+  "acceptance_tests": {
+    "test/specs/new/gfm_email_autolink_trailing.html": "<p>foo@bar.com_</p>\n<p>foo@bar.com-</p>\n",
+    "test/specs/new/gfm_email_autolink_trailing.md": "---\ngfm: true\n---\nfoo@bar.com_\n\nfoo@bar.com-\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/new/gfm_email_autolink_trailing.html",
+    "test/specs/new/gfm_email_autolink_trailing.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4063,
+    "sha": "df575341940389880afde6372ae5aa19bd9eb205",
+    "url": "https://github.com/markedjs/marked/pull/4063",
+    "author": "contactjawad",
+    "merged_at": "2026-09-04T05:59:56Z",
+    "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 2,
+    "notes": []
+  }
+}

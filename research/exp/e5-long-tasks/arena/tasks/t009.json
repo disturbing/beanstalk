@@ -1,0 +1,26 @@
+{
+  "id": "t009",
+  "title": "Limit how many units of one product fit in an order",
+  "prompt": "A bot ordered thousands of units of one cheap product and tied up our stock. Add a per-line quantity limit at checkout: no single product may appear more than `maxLineQuantity` times in one order. The limit defaults to 10 and can be set with the `MAX_LINE_QUANTITY` environment variable.\n\nA cart that breaks the limit must fail checkout with a 400 and the message \"at most N units of <product name> per order\" (N being the limit), without reserving stock or creating an invoice.",
+  "acceptance_tests": {
+    "src/orders/line-limit.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { defaultConfig, loadConfig } from '../config.ts';\nimport { getStock } from '../inventory/stock.ts';\nimport { addProduct, createTestApp, errorMessage, signUp } from '../lib/testing.ts';\n\nfunction checkoutWith(app: ReturnType<typeof createTestApp>, quantity: number) {\n  const { token } = signUp(app.ctx);\n  const product = addProduct(app.ctx, { name: 'Cheap widget', price: 100, stock: 1000 });\n  app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity } });\n  return { product, res: app.call('POST', '/checkout', { token, body: { addressIndex: 0 } }) };\n}\n\ndescribe('order line limit', () => {\n  it('defaults to ten and can be set from the environment', () => {\n    assert.equal(defaultConfig.maxLineQuantity, 10);\n    assert.equal(loadConfig({ MAX_LINE_QUANTITY: '3' }).maxLineQuantity, 3);\n  });\n\n  it('accepts a line at the limit', () => {\n    assert.equal(checkoutWith(createTestApp(), 10).res.status, 201);\n  });\n\n  it('rejects a line over the limit without touching stock or invoices', () => {\n    const app = createTestApp();\n    const { product, res } = checkoutWith(app, 11);\n    assert.equal(res.status, 400);\n    assert.equal(errorMessage(res), 'at most 10 units of Cheap widget per order');\n    assert.equal(getStock(app.ctx, product.id).reserved, 0);\n    assert.equal(app.ctx.store.invoices.all().length, 0);\n  });\n\n  it('follows the configured limit', () => {\n    const app = createTestApp();\n    app.ctx.config.maxLineQuantity = 2;\n    assert.equal(checkoutWith(app, 3).res.status, 400);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/config.ts",
+    "src/orders/checkout.ts",
+    "src/orders/line-limit.test.ts"
+  ],
+  "oracle_modules": [
+    "src",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t030",
+      "type": "textual",
+      "note": "Both add a validation immediately after the cart is loaded at the top of checkout() in orders/checkout.ts."
+    }
+  ]
+}

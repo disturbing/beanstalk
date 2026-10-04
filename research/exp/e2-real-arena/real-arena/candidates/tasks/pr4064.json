@@ -1,0 +1,38 @@
+{
+  "id": "pr4064",
+  "title": "fix: allow one more level of nested brackets in a link label",
+  "prompt": "Part of the \"nested brackets in link text\" group in #4050.\n\nCommonMark says the brackets in a link label may nest, with no limit on the depth:\n\n> Brackets are allowed in the link text only if (a) they are backslash-escaped or (b) they appear as a matched pair of brackets, with an open bracket `[`, a sequence of zero or more inlines, and a close bracket `]`.\n\n`_inlineLabel` allowed one level. The nested alternative it carries, `\\[(?:\\[\\s\\S]|[^\\[\\]\\])*\\]`, matches a pair of brackets whose contents hold no bracket at all, so a second pair inside made the whole label fail to match and the text stayed literal:\n\n```\n[link [foo [bar]]](/uri)\n  <p>[link [foo [bar]]](/uri)</p>\n  <p><a href=\"/uri\">link [foo [bar]]</a></p>\n```\n\nThe nested alternative now accepts one such pair itself. Everything else about the label is unchanged, including the code-span alternatives that keep a backtick span from swallowing a bracket.\n\n### Why two levels and not more\n\nA regex cannot follow arbitrary nesting, so the depth is a number someone has to pick. I built the pattern at depths 1 through 4 and ran the CommonMark suite at each:\n\n| depth | examples that start passing | examples that break |\n|---|---|---|\n| 1 (today) | | |\n| 2 | 512, 520, 528 | none |\n| 3 | 512, 520, 528 | none |\n| 4 | 512, 520, 528 | none |\n\nThe third and the fourth level pay for nothing: the spec has no case that needs them. So this stops at two, and the comment in the source says so, since the next person to look at that line will ask the same question.\n\nExample 520, `![[[foo](uri1)](uri2)](uri3)`, comes along for the ride. It needs the same second level, and the link-inside-a-link rejection from #4051 already does the rest.\n\n### Cost\n\n`link`, `reflink` and their gfm and pedantic variants each grow by 28 characters of source. Parsing 200 documents holding a 2000 character label measured the same before and after, at 14ms.\n\n`npm run test:redos` is clean: 148 patterns analysed, all reported safe, including the deeper `inline.normal.link` and `inline.normal.reflink`.\n\n### Tests\n\nThe three examples are covered by the spec suite itself, so this drops their `shouldFail` flags in `test/specs/commonmark/commonmark.0.31.2.json` and in the gfm copy of the same file, which flagged them separately.\n\n`npm test` is green: 1783 spec tests, 191 unit tests, plus umd, cjs, types and lint.\n\n### What is still failing in that group\n\n524, 526, 536 and 538 are a different root cause, the one about raw HTML and autolinks binding more tightly than the brackets of a link text, and are untouched here.",
+  "acceptance_tests": {
+    "test/specs/commonmark/pr4064.json": "[\n  {\n    \"markdown\": \"[link [foo [bar]]](/uri)\\n\",\n    \"html\": \"<p><a href=\\\"/uri\\\">link [foo [bar]]</a></p>\\n\",\n    \"example\": 512,\n    \"start_line\": 7840,\n    \"end_line\": 7844,\n    \"section\": \"Links [pr4064 commonmark]\"\n  },\n  {\n    \"markdown\": \"![[[foo](uri1)](uri2)](uri3)\\n\",\n    \"html\": \"<p><img src=\\\"uri3\\\" alt=\\\"[foo](uri2)\\\" /></p>\\n\",\n    \"example\": 520,\n    \"start_line\": 7900,\n    \"end_line\": 7904,\n    \"section\": \"Links [pr4064 commonmark]\"\n  },\n  {\n    \"markdown\": \"[link [foo [bar]]][ref]\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p><a href=\\\"/uri\\\">link [foo [bar]]</a></p>\\n\",\n    \"example\": 528,\n    \"start_line\": 8004,\n    \"end_line\": 8010,\n    \"section\": \"Links [pr4064 commonmark]\"\n  }\n]\n",
+    "test/specs/gfm/pr4064.json": "[\n  {\n    \"markdown\": \"[link [foo [bar]]](/uri)\\n\",\n    \"html\": \"<p><a href=\\\"/uri\\\">link [foo [bar]]</a></p>\\n\",\n    \"example\": 512,\n    \"start_line\": 7840,\n    \"end_line\": 7844,\n    \"section\": \"Links [pr4064 gfm]\"\n  },\n  {\n    \"markdown\": \"![[[foo](uri1)](uri2)](uri3)\\n\",\n    \"html\": \"<p><img src=\\\"uri3\\\" alt=\\\"[foo](uri2)\\\" /></p>\\n\",\n    \"example\": 520,\n    \"start_line\": 7900,\n    \"end_line\": 7904,\n    \"section\": \"Links [pr4064 gfm]\"\n  },\n  {\n    \"markdown\": \"[link [foo [bar]]][ref]\\n\\n[ref]: /uri\\n\",\n    \"html\": \"<p><a href=\\\"/uri\\\">link [foo [bar]]</a></p>\\n\",\n    \"example\": 528,\n    \"start_line\": 8004,\n    \"end_line\": 8010,\n    \"section\": \"Links [pr4064 gfm]\"\n  }\n]\n"
+  },
+  "oracle_paths": [
+    "src/rules.ts",
+    "test/specs/commonmark/commonmark.0.31.2.json",
+    "test/specs/commonmark/pr4064.json",
+    "test/specs/gfm/commonmark.0.31.2.json",
+    "test/specs/gfm/pr4064.json"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4064,
+    "sha": "37b28d8f640e39c9680e24b83fe7828dd111073d",
+    "url": "https://github.com/markedjs/marked/pull/4064",
+    "author": "luantaraschi",
+    "merged_at": "2026-09-04T05:59:26Z",
+    "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 9,
+    "notes": [
+      "test/specs/commonmark/commonmark.0.31.2.json: examples [512, 520, 528] copied to test/specs/commonmark/pr4064.json; the shared file's edit is in the solution",
+      "test/specs/gfm/commonmark.0.31.2.json: examples [512, 520, 528] copied to test/specs/gfm/pr4064.json; the shared file's edit is in the solution"
+    ]
+  }
+}

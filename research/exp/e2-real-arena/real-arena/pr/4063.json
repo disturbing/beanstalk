@@ -1,0 +1,13 @@
+{
+ "number": 4063,
+ "sha": "df575341940389880afde6372ae5aa19bd9eb205",
+ "title": "fix: reject GFM email autolink when the domain ends in _ or -",
+ "body": "The GFM email autolink rule mangles an address when its domain is immediately followed by `_` or `-`.\n\nThe `email` sub-pattern in the GFM inline `url` rule ends with a `(?![-_])` lookahead. Since that only forbids `-`/`_` *after* the final domain character, the regex backtracks and gives that character back to satisfy the lookahead \u2014 truncating the last domain label and producing a wrong `mailto:` target plus a visibly split word (e.g. `foo@bar.com-` autolinks `foo@bar.co` and leaves `m-` behind).\n\nPer the GFM spec a domain label must not end in `_` or `-`. Changing the lookahead to `(?![\\w-])` also forbids a following word character, forcing the final label to match maximally; when the maximal domain is then followed by `_`/`-`, the whole autolink fails and the text is rendered as-is \u2014 which is the correct behaviour.\n\nAdded a unit test covering `foo@bar.com_` and `foo@bar.com-`, both of which now tokenize as plain text. It fails on `master` and passes with this change.\n",
+ "author": "contactjawad",
+ "created_at": "2026-08-20T06:16:32Z",
+ "merged_at": "2026-09-04T05:59:56Z",
+ "pr_base_sha": "e250e31f3e1de80e41baf6f83ac8d3123d1e114f",
+ "pr_head_sha": "fdfc48a0f13fa0b62fdba5db0be5d9edfdb9ac03",
+ "commits": 2,
+ "linked_issues": []
+}

@@ -1,0 +1,62 @@
+diff --git a/src/billing/coupons.ts b/src/billing/coupons.ts
+new file mode 100644
+index 0000000..2973687
+--- /dev/null
++++ b/src/billing/coupons.ts
+@@ -0,0 +1,16 @@
++import { badRequest } from '../lib/errors.ts';
++import { formatMoney, percentOf } from '../lib/money.ts';
++import type { Cents, Coupon, Currency } from '../types.ts';
++
++/** Check that `coupon` may be used on a cart worth `subtotal`. Returns the coupon for chaining. */
++export function validateCoupon(coupon: Coupon, subtotal: Cents, currency: Currency): Coupon {
++  if (subtotal < coupon.minSubtotal) {
++    throw badRequest(`coupon ${coupon.id} needs a subtotal of at least ${formatMoney(coupon.minSubtotal, currency)}`);
++  }
++  return coupon;
++}
++
++/** How much `coupon` takes off a cart worth `subtotal`. */
++export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
++  return coupon.kind === 'percent' ? percentOf(subtotal, coupon.value) : coupon.value;
++}
+diff --git a/src/billing/discounts.ts b/src/billing/discounts.ts
+index 67579c9..db1639b 100644
+--- a/src/billing/discounts.ts
++++ b/src/billing/discounts.ts
+@@ -1,19 +1,7 @@
+-import { badRequest } from '../lib/errors.ts';
+-import { formatMoney, percentOf, sumCents } from '../lib/money.ts';
+-import type { Cents, Coupon, Currency } from '../types.ts';
++import { sumCents } from '../lib/money.ts';
++import type { Cents } from '../types.ts';
+ 
+-/** Check that `coupon` may be used on a cart worth `subtotal`. Returns the coupon for chaining. */
+-export function validateCoupon(coupon: Coupon, subtotal: Cents, currency: Currency): Coupon {
+-  if (subtotal < coupon.minSubtotal) {
+-    throw badRequest(`coupon ${coupon.id} needs a subtotal of at least ${formatMoney(coupon.minSubtotal, currency)}`);
+-  }
+-  return coupon;
+-}
+-
+-/** How much `coupon` takes off a cart worth `subtotal`. */
+-export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {
+-  return coupon.kind === 'percent' ? percentOf(subtotal, coupon.value) : coupon.value;
+-}
++export { couponDiscount, validateCoupon } from './coupons.ts';
+ 
+ /** Spread a cart-level discount over the lines in proportion to their value. */
+ export function allocateDiscount(nets: Cents[], discount: Cents): Cents[] {
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 39d1b75..106b43a 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -1,6 +1,7 @@
+ import { applyRate, sumCents } from '../lib/money.ts';
+ import type { Address, AppContext, Cents, Coupon, Invoice, InvoiceLine, TaxClass } from '../types.ts';
+-import { allocateDiscount, couponDiscount, validateCoupon } from './discounts.ts';
++import { couponDiscount, validateCoupon } from './coupons.ts';
++import { allocateDiscount } from './discounts.ts';
+ import { taxRateFor } from './tax.ts';
+ 
+ export interface InvoiceItem {

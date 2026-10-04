@@ -1,0 +1,20 @@
+{
+ "e5-long-d4-v2": {
+  "attempts": 1,
+  "verdict": "CLEAN",
+  "last_start": "2026-10-03T17:30:55+0800",
+  "cost_usd": 4.2907,
+  "aborted": null,
+  "infra": 0,
+  "last_end": "2026-10-03T17:43:23+0800"
+ },
+ "e5-long-d4-queue": {
+  "attempts": 1,
+  "verdict": "CLEAN",
+  "last_start": "2026-10-03T17:43:25+0800",
+  "cost_usd": 4.5175,
+  "aborted": null,
+  "infra": 0,
+  "last_end": "2026-10-03T18:00:54+0800"
+ }
+}

@@ -1,0 +1,13 @@
+{
+ "number": 4077,
+ "sha": "aed933680dc146d868cb4573f393367abde04aae",
+ "title": "fix: case fold reference link labels",
+ "body": "## Description\n\nReference link labels are matched with `toLowerCase()`, but CommonMark asks for a Unicode case fold:\n\n> To normalize a label, strip off the opening and closing brackets, perform the *Unicode case fold*, strip leading and trailing spaces, tabs, and line endings, and collapse consecutive internal spaces, tabs, and line endings to a single space.\n\n`toLowerCase()` doesn't get there, so labels that only agree once folded never match:\n\n```md\n[\u1e9e] and [Stra\u00dfe].\n\n[SS]: /sharp-s\n[STRASSE]: /street\n```\n\nrenders as literal text today, because `'\u1e9e'.toLowerCase()` is `'\u00df'` \u2014 never `'ss'`. Round-tripping through upper case reaches the fold, which is what commonmark.js does in `normalizeReference()`:\n\n```js\n.toLowerCase()\n.toUpperCase();\n```\n\nI lowercase once more afterwards so `def.tag` and the `tokens.links` keys stay in the lower case form they've always had \u2014 an uppercase key would be a visible change for anyone reading `lexer.tokens.links` or a `def` token, and it isn't needed to get the fold.\n\nThe two link-map lookups in `Lexer` (`linkInText` and the reflink mask) used the label verbatim rather than normalized, so they go through the same helper. Without that they'd start missing definitions they used to find as soon as the stored keys are folded. As a side effect the mask now also handles labels whose case differs from the definition.\n\nThis enables CommonMark example 540, taking Links from 81/90 to 82/90.\n\n## Contributor\n\n- [x] Test(s) exist to ensure functionality and minimize regression (if no tests added, list tests covering this PR)\n- [x] Docs have been added/updated (for bug fixes/features)\n\nVerification notes:\n\n- Removed the `shouldFail` flag from example 540 in both `test/specs/commonmark` and `test/specs/gfm`.\n- Added `test/specs/new/reflink_case_folding.{md,html}` covering `\u1e9e`/`SS`, `Stra\u00dfe`/`STRASSE`, `\u01c5`/`\u01c4` and `\ufb01`/`FI`. I generated the expected HTML from commonmark.js 0.32 and it is byte-identical to marked's output with this change; the fixture fails on `master`.\n- `npm test` is green: specs 1789 -> 1791 passing, unit 191 passing, 0 failures, lint clean. No existing test needed adjusting.\n",
+ "author": "gyanu2507",
+ "created_at": "2026-08-31T10:38:04Z",
+ "merged_at": "2026-09-08T15:30:30Z",
+ "pr_base_sha": "53cb13f13fc13d433269248c5caa255ffa1361ee",
+ "pr_head_sha": "397dabb77a0c9398b6a1f2c3c03f7b7217a9a9d6",
+ "commits": 1,
+ "linked_issues": []
+}

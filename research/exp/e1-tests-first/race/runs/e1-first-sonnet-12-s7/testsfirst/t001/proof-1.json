@@ -1,0 +1,57 @@
+{
+ "task": "t001",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/coupon-limit.test.ts"
+ ],
+ "results": {
+  "src/orders/coupon-limit.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 4,
+   "passing": 2,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > rejects checkout with 409 once the coupon is fully redeemed",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > allows orders up to the limit, then rejects the next one",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > still allows the last remaining redemption",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > does not create an order when rejected",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    },
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > leaves coupons without a limit unaffected",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/orders/coupon-limit.test.ts",
+     "name": "coupon redemption limit > matches the code case-insensitively",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n201 !== 409"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

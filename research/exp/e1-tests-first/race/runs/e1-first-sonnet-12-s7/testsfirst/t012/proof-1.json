@@ -1,0 +1,45 @@
+{
+ "task": "t012",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/auth/session-expiry.test.ts"
+ ],
+ "results": {
+  "src/auth/session-expiry.test.ts": {
+   "status": "fails-first",
+   "why": "4 of 4 tests fail on the current code",
+   "tests": 4,
+   "failing": 4,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > defaults to one session lifetime after the context clock now",
+     "status": "fail",
+     "message": "sessions.sessionExpiry is not a function"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > follows the clock as it advances",
+     "status": "fail",
+     "message": "sessions.sessionExpiry is not a function"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > measures from an explicit date",
+     "status": "fail",
+     "message": "sessions.sessionExpiry is not a function"
+    },
+    {
+     "file": "src/auth/session-expiry.test.ts",
+     "name": "sessionExpiry > matches the expiry createSession stores",
+     "status": "fail",
+     "message": "sessions.sessionExpiry is not a function"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

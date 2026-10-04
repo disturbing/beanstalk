@@ -1,0 +1,13 @@
+diff --git a/src/rules.ts b/src/rules.ts
+index 31e717e9..91483d36 100644
+--- a/src/rules.ts
++++ b/src/rules.ts
+@@ -283,7 +283,7 @@ const blockPedantic: Record<BlockKeys, RegExp> = {
+ 
+ const escape = /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/;
+ const inlineCode = /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/;
+-const br = /^( {2,}|\\)\n(?!\s*$)/;
++const br = /^( {2,}|\\)\n(?!\s*$)[ \t]*/;
+ const inlineText = /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/;
+ 
+ // list of unicode punctuation marks, plus any missing characters from CommonMark spec

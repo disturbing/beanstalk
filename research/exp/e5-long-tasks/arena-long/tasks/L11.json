@@ -1,0 +1,52 @@
+{
+  "id": "L11",
+  "title": "Customers in Quebec are charged the wrong sales tax + Support refunding a single invoice line",
+  "prompt": "Two related tickets in tax and refunds are being delivered together as one change. Implement all of them in this working tree.\n\n### Ticket 1: Customers in Quebec are charged the wrong sales tax\n\nA customer in Montreal wrote to support: the sales tax on her order was lower than the amount the tax authority told her to expect.\n\nLooking at a few Quebec orders, we charge 14% in total. The combined federal and provincial sales tax in Quebec is 14.975% (5% federal plus 9.975% provincial). Please make Quebec orders use the correct combined rate, for standard and reduced-rate goods alike. Every other province keeps its current rate.\n\n### Ticket 2: Support refunding a single invoice line\n\nSupport staff can currently only void a whole invoice. Customers often return one item from a multi-item order, and we need to refund just that line.\n\nAdd `POST /invoices/:id/refunds` (admin only) taking `{ \"productId\": \"...\" }`. It refunds the whole line for that product: the refund amount is the line's net amount, minus the line's share of the order discount, plus the tax charged on that line (so three identical lines refund identical amounts). Respond 201 with `{ productId, amount, createdAt }` and keep the refund on the invoice in a `refunds` list. Only paid invoices can be refunded (409 otherwise), a line can only be refunded once (409), and an unknown product is a 404.\n",
+  "acceptance_tests": {
+    "src/billing/quebec-tax.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { CA_ADDRESS, createTestApp, ON_ADDRESS, placeOrder } from '../lib/testing.ts';\nimport { taxRateFor } from './tax.ts';\n\ndescribe('Quebec sales tax', () => {\n  it('uses the combined 14.975% rate, halved for reduced goods', () => {\n    assert.equal(taxRateFor(CA_ADDRESS, 'standard', 0.07), 0.14975);\n    assert.equal(taxRateFor(CA_ADDRESS, 'reduced', 0.07), 0.14975 / 2);\n    assert.equal(taxRateFor(CA_ADDRESS, 'exempt', 0.07), 0);\n  });\n\n  it('charges that rate on a Quebec order', () => {\n    const { order } = placeOrder(createTestApp(), { price: 20000 });\n    assert.equal(order.tax, 2995);\n    assert.equal(order.shippingAddress.region, 'QC');\n  });\n\n  it('leaves Ontario alone', () => {\n    const { order } = placeOrder(createTestApp(), { price: 20000, address: ON_ADDRESS });\n    assert.equal(order.tax, 2600);\n  });\n});\n",
+    "src/billing/line-refunds.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, ON_ADDRESS, signUp } from '../lib/testing.ts';\nimport type { Invoice, Order } from '../types.ts';\nimport { markPaid } from './service.ts';\n\nfunction threeLineOrder() {\n  const app = createTestApp();\n  const customer = signUp(app.ctx, 'buyer@example.com', { address: ON_ADDRESS });\n  const admin = signUp(app.ctx, 'admin@example.com', { admin: true });\n  const products = [333, 333, 333].map((price) => addProduct(app.ctx, { price }));\n  for (const p of products) {\n    app.call('POST', '/cart/items', { token: customer.token, body: { productId: p.id, quantity: 1 } });\n  }\n  const order = app.call('POST', '/checkout', { token: customer.token, body: { addressIndex: 0 } }).body as Order;\n  return { app, customer, admin, products, order };\n}\n\nconst refund = (t: ReturnType<typeof threeLineOrder>, productId: string, token = t.admin.token) =>\n  t.app.call('POST', `/invoices/${t.order.invoiceId}/refunds`, { token, body: { productId } });\n\ndescribe('line refunds', () => {\n  it('refunds a line\\'s net plus the tax charged on it', () => {\n    const t = threeLineOrder();\n    markPaid(t.app.ctx, t.order.invoiceId!);\n    const res = refund(t, t.products[0].id);\n    assert.equal(res.status, 201);\n    assert.equal((res.body as { productId: string }).productId, t.products[0].id);\n    assert.equal((res.body as { createdAt: string }).createdAt, '2026-09-15T12:00:00.000Z');\n    const invoice = t.app.ctx.store.invoices.require(t.order.invoiceId!) as Invoice;\n    assert.equal(invoice.refunds?.length, 1);\n    assert.equal(invoice.refunds?.[0].amount, (res.body as { amount: number }).amount);\n  });\n\n  it('refunds identical lines identically: $3.33 plus 43 cents of tax each', () => {\n    const t = threeLineOrder();\n    markPaid(t.app.ctx, t.order.invoiceId!);\n    const amounts = t.products.map((p) => (refund(t, p.id).body as { amount: number }).amount);\n    assert.deepEqual(amounts, [376, 376, 376]);\n  });\n\n  it('refunding every line returns the whole invoice total', () => {\n    const t = threeLineOrder();\n    markPaid(t.app.ctx, t.order.invoiceId!);\n    const amounts = t.products.map((p) => (refund(t, p.id).body as { amount: number }).amount);\n    assert.equal(amounts.reduce((a, b) => a + b, 0), t.app.ctx.store.invoices.require(t.order.invoiceId!).total);\n  });\n\n  it('refuses double refunds, unknown products and unpaid invoices', () => {\n    const t = threeLineOrder();\n    assert.equal(refund(t, t.products[0].id).status, 409, 'invoice is still open');\n    markPaid(t.app.ctx, t.order.invoiceId!);\n    assert.equal(refund(t, 'prd_nope').status, 404);\n    assert.equal(refund(t, t.products[1].id).status, 201);\n    assert.equal(refund(t, t.products[1].id).status, 409);\n  });\n\n  it('is for admins only', () => {\n    const t = threeLineOrder();\n    markPaid(t.app.ctx, t.order.invoiceId!);\n    assert.equal(refund(t, t.products[0].id, t.customer.token).status, 403);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/billing/handlers.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/quebec-tax.test.ts",
+    "src/billing/refunds.ts",
+    "src/billing/tax.ts",
+    "src/routes.ts",
+    "src/types.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src",
+    "src/billing"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "members": [
+    "t017",
+    "t036"
+  ],
+  "couplings": [
+    {
+      "with": "L03",
+      "type": "textual",
+      "members": [
+        "t017",
+        "t003"
+      ],
+      "note": "t017 x t003: Both edit the Quebec row of the tax rate table in billing/tax.ts (a rate correction versus restructuring the table into federal/regional parts)."
+    },
+    {
+      "with": "L05",
+      "type": "semantic",
+      "members": [
+        "t036",
+        "t023"
+      ],
+      "note": "t036 x t023: line-refunds' test pins the refund of one line to net + that line's individually rounded tax (333 + 43); tax-rounding rounds tax once per invoice and spreads the cents (44/43/43). Merges cleanly, the refund amount then differs by a cent."
+    }
+  ],
+  "theme": "tax and refunds"
+}

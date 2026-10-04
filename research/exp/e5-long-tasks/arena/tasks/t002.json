@@ -1,0 +1,32 @@
+{
+  "id": "t002",
+  "title": "Paged lists should report the total number of results",
+  "prompt": "API clients that page through products or orders cannot tell how many pages there are. Change the shared `paginate()` helper in lib/pagination.ts so that it returns `{ items, total }`: the requested page of items, and the number of items there were before paging. Use that on the product and order list endpoints to send the total in an `x-total-count` response header. The response bodies stay plain JSON arrays so existing clients keep working.",
+  "acceptance_tests": {
+    "src/catalog/total-count.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addProduct, createTestApp, placeOrder } from '../lib/testing.ts';\nimport type { Order, Product } from '../types.ts';\n\ndescribe('x-total-count header', () => {\n  it('reports the number of products before paging', () => {\n    const app = createTestApp();\n    for (let i = 0; i < 25; i++) addProduct(app.ctx);\n    const res = app.call('GET', '/products', { query: { limit: '5' } });\n    assert.equal((res.body as Product[]).length, 5);\n    assert.equal(res.headers['x-total-count'], '25');\n  });\n\n  it('counts only the products matching the filters', () => {\n    const app = createTestApp();\n    addProduct(app.ctx, { category: 'coffee' });\n    addProduct(app.ctx, { category: 'coffee' });\n    addProduct(app.ctx, { category: 'tea' });\n    const res = app.call('GET', '/products', { query: { category: 'coffee', limit: '1' } });\n    assert.equal(res.headers['x-total-count'], '2');\n  });\n\n  it('reports the number of orders and keeps the body an array', () => {\n    const app = createTestApp();\n    const { token, product } = placeOrder(app);\n    for (let i = 0; i < 2; i++) {\n      app.clock.advance(1000);\n      app.call('POST', '/cart/items', { token, body: { productId: product.id, quantity: 1 } });\n      app.call('POST', '/checkout', { token, body: { addressIndex: 0 } });\n    }\n    const res = app.call('GET', '/orders', { token, query: { limit: '2' } });\n    assert.ok(Array.isArray(res.body));\n    assert.equal((res.body as Order[]).length, 2);\n    assert.equal(res.headers['x-total-count'], '3');\n  });\n});\n",
+    "src/lib/pagination.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { paginate } from './pagination.ts';\n\nconst items = Array.from({ length: 150 }, (_, i) => i);\n\ndescribe('paginate', () => {\n  it('returns the first page by default, with the total', () => {\n    const page = paginate(items, {});\n    assert.equal(page.items.length, 20);\n    assert.equal(page.items[0], 0);\n    assert.equal(page.total, 150);\n  });\n\n  it('honours limit and offset and still reports the full total', () => {\n    const page = paginate(items, { limit: '3', offset: '10' });\n    assert.deepEqual(page.items, [10, 11, 12]);\n    assert.equal(page.total, 150);\n  });\n\n  it('clamps the limit and ignores garbage', () => {\n    assert.equal(paginate(items, { limit: '1000' }).items.length, 100);\n    assert.equal(paginate(items, { limit: 'abc', offset: '-4' }).items.length, 20);\n    assert.deepEqual(paginate([], {}), { items: [], total: 0 });\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/catalog/handlers.ts",
+    "src/catalog/total-count.test.ts",
+    "src/lib/pagination.test.ts",
+    "src/lib/pagination.ts",
+    "src/orders/handlers.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/catalog",
+    "src/lib",
+    "src/orders"
+  ],
+  "kind": "feature",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t022",
+      "type": "semantic",
+      "note": "paginate-total changes paginate() to return a {items, total} page and updates the existing callers; invoice-list adds a new caller that returns paginate()'s result as the response body. Merges cleanly, the new endpoint then returns an object instead of an array."
+    }
+  ]
+}

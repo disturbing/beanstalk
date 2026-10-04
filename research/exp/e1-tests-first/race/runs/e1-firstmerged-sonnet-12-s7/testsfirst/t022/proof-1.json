@@ -1,0 +1,105 @@
+{
+ "task": "t022",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/billing/invoice-list.test.ts"
+ ],
+ "results": {
+  "src/billing/invoice-list.test.ts": {
+   "status": "fails-first",
+   "why": "14 of 14 tests fail on the current code",
+   "tests": 14,
+   "failing": 14,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > requires a signed-in user",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 401"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > returns an empty array when the user has no invoices",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > returns the full invoices, newest first",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices > only returns the signed-in user's invoices",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > filters by open",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > filters by paid, newest first",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > filters by void",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > returns every status without a filter",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== 4"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices status filter > rejects an unknown status with 400",
+     "status": "fail",
+     "message": "status=pending\n\n404 !== 400"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > honours limit",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > honours offset together with limit",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > returns an empty array past the end",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n404 !== 200"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > pages within a status filter",
+     "status": "fail",
+     "message": "body.map is not a function"
+    },
+    {
+     "file": "src/billing/invoice-list.test.ts",
+     "name": "GET /invoices paging > sends x-total-count like the other list endpoints",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\nundefined !== '3'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

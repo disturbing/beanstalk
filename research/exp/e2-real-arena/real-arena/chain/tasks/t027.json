@@ -1,0 +1,33 @@
+{
+  "id": "t027",
+  "title": "fix: keep text after empty nested blockquote",
+  "prompt": "## Description\n\nSince 18.0.9 (#4030), text after an empty nested blockquote was dropped. In `Tokenizer.blockquote()`, the nested-blockquote continuation path appended every leftover line to `raw` even when the re-tokenized nested quote did not consume them. The lexer then skipped that source, so following paragraphs (and later `>` quotes) vanished.\n\nThis only merges original continuation lines that `newToken` actually consumed into outer `raw`/`text` (leftover count from `newText.substring(newToken.raw.length)`, same idea as the adjacent list branch). Unconsumed lines stay out of this token so the outer lexer can still parse them. Fully consumed continuations stay unchanged.\n\nFixes #4098.\n\n## Checklist\n\n- [x] Spec fixtures for `>>\\\\ntext`, `>>>\\\\ntext`, `> quote\\\\n>>\\\\ntext`, and `>>\\\\ntext\\\\n> more`\n- [x] `npm test` green (specs, unit, lint)",
+  "acceptance_tests": {
+    "test/specs/new/blockquote_empty_nested_following_text.html": "<blockquote>\n<blockquote>\n</blockquote>\n</blockquote>\n<p>text</p>\n<blockquote>\n<blockquote>\n<blockquote>\n</blockquote>\n</blockquote>\n</blockquote>\n<p>text</p>\n<blockquote>\n<p>quote</p>\n<blockquote>\n</blockquote>\n</blockquote>\n<p>text</p>\n<blockquote>\n<blockquote>\n</blockquote>\n</blockquote>\n<p>text</p>\n<blockquote>\n<p>more</p>\n</blockquote>\n",
+    "test/specs/new/blockquote_empty_nested_following_text.md": ">>\ntext\n\n>>>\ntext\n\n> quote\n>>\ntext\n\n>>\ntext\n> more\n"
+  },
+  "oracle_paths": [
+    "src/Tokenizer.ts",
+    "test/specs/new/blockquote_empty_nested_following_text.html",
+    "test/specs/new/blockquote_empty_nested_following_text.md"
+  ],
+  "oracle_modules": [
+    "src",
+    "test/specs"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/markedjs/marked",
+    "pr": 4101,
+    "sha": "1b89557177fe5a7d5d430fdc76e7c8a7c0adf6d7",
+    "url": "https://github.com/markedjs/marked/pull/4101",
+    "author": "Yahiro025",
+    "merged_at": "2026-09-22T05:44:51Z",
+    "prompt_source": "pr-description",
+    "source_lines_changed": 10,
+    "notes": [],
+    "applies_to_common_base": false
+  }
+}

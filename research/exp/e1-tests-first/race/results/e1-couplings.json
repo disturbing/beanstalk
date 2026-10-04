@@ -1,0 +1,115 @@
+{
+ "label": "measured: arena reference solutions merged pairwise; tests run with node --test",
+ "pairs": [
+  {
+   "pair": "t002->t022",
+   "source": "canonical",
+   "t002": "passes merged (clash unseen)",
+   "t022": "FAILS merged (clash seen): src/billing/invoice-list.test.ts > returns the caller's invoices as an array, newest first: The expression evaluated to a falsy value:\n\n  as",
+   "seen": true
+  },
+  {
+   "pair": "t002->t022",
+   "source": "e1-first-sonnet-12-s7",
+   "t002": "passes merged (clash unseen)",
+   "t022": "fails on its own reference",
+   "seen": false
+  },
+  {
+   "pair": "t002->t022",
+   "source": "e1-firstmerged-sonnet-12-s7",
+   "t002": "passes merged (clash unseen)",
+   "t022": "fails on its own reference",
+   "seen": false
+  },
+  {
+   "pair": "t005->t031",
+   "source": "canonical",
+   "t005": "passes merged (clash unseen)",
+   "t031": "FAILS merged (clash seen): src/billing/invoice-text.test.ts > renders items, subtotal, tax and total: Expected values to be strictly equal:\n+ actual - expected\n\n  'Inv",
+   "seen": true
+  },
+  {
+   "pair": "t005->t031",
+   "source": "e1-first-sonnet-12-s7",
+   "t005": "passes merged (clash unseen)",
+   "t031": "passes merged (clash unseen)",
+   "seen": false
+  },
+  {
+   "pair": "t005->t031",
+   "source": "e1-firstmerged-sonnet-12-s7",
+   "t005": "passes merged (clash unseen)",
+   "t031": "passes merged (clash unseen)",
+   "seen": false
+  },
+  {
+   "pair": "t011->t018",
+   "source": "canonical",
+   "t011": "passes merged (clash unseen)",
+   "t018": "FAILS merged (clash seen): src/notifications/tracking-email.test.ts > includes the tracking number: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Your ",
+   "seen": true
+  },
+  {
+   "pair": "t011->t018",
+   "source": "e1-first-sonnet-12-s7",
+   "t011": "passes merged (clash unseen)",
+   "t018": "FAILS merged (clash seen): src/notifications/shipped-tracking.test.ts > includes the tracking number after the existing sentence: Expected values to be strictly equal:",
+   "seen": true
+  },
+  {
+   "pair": "t011->t018",
+   "source": "e1-firstmerged-sonnet-12-s7",
+   "t011": "passes merged (clash unseen)",
+   "t018": "FAILS merged (clash seen): src/shipping/tracking-email.test.ts > adds the tracking number on a line after the existing sentence: Expected values to be strictly equal:\n",
+   "seen": true
+  },
+  {
+   "pair": "t023->t036",
+   "source": "canonical",
+   "t023": "passes merged (clash unseen)",
+   "t036": "FAILS merged (clash seen): src/billing/line-refunds.test.ts > refunds identical lines identically: $3.33 plus 43 cents of tax each: Expected values to be strictly deep",
+   "seen": true
+  },
+  {
+   "pair": "t023->t036",
+   "source": "e1-first-sonnet-12-s7",
+   "t023": "passes merged (clash unseen)",
+   "t036": "passes merged (clash unseen)",
+   "seen": false
+  },
+  {
+   "pair": "t023->t036",
+   "source": "e1-firstmerged-sonnet-12-s7",
+   "t023": "fails on its own reference",
+   "t036": "passes merged (clash unseen)",
+   "seen": false
+  },
+  {
+   "pair": "t032->t028",
+   "source": "canonical",
+   "t032": "passes merged (clash unseen)",
+   "t028": "FAILS merged (clash seen): src/shipping/signature.test.ts > is not required just under the threshold: Expected values to be strictly equal:\n\ntrue !== false",
+   "seen": true
+  },
+  {
+   "pair": "t032->t028",
+   "source": "e1-first-sonnet-12-s7",
+   "t032": "passes merged (clash unseen)",
+   "t028": "passes merged (clash unseen)",
+   "seen": false
+  },
+  {
+   "pair": "t032->t028",
+   "source": "e1-firstmerged-sonnet-12-s7",
+   "t032": "passes merged (clash unseen)",
+   "t028": "passes merged (clash unseen)",
+   "seen": false
+  }
+ ],
+ "seen": {
+  "canonical": "5 of 5",
+  "e1-first-sonnet-12-s7": "1 of 5",
+  "e1-firstmerged-sonnet-12-s7": "1 of 5"
+ }
+}

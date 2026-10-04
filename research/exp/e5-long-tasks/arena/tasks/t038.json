@@ -1,0 +1,18 @@
+{
+  "id": "t038",
+  "title": "Fixed-amount coupons can push an order total below zero",
+  "prompt": "A $50 fixed-amount coupon applied to a $30 cart produced an invoice with a negative taxable amount and a negative total.\n\nA coupon must never take off more than the cart subtotal: cap the discount at the subtotal. The invoice total must never go negative, and no tax is charged on a fully discounted order.",
+  "acceptance_tests": {
+    "src/billing/coupon-cap.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { addCoupon, createTestApp, placeOrder } from '../lib/testing.ts';\nimport { couponDiscount } from './discounts.ts';\n\ndescribe('coupon cap', () => {\n  const fifty = { id: 'FIFTY', kind: 'fixed' as const, value: 5000, minSubtotal: 0, expiresAt: null, maxRedemptions: null, redemptions: 0 };\n\n  it('never discounts more than the subtotal', () => {\n    assert.equal(couponDiscount(fifty, 3000), 3000);\n    assert.equal(couponDiscount(fifty, 8000), 5000);\n    assert.equal(couponDiscount({ ...fifty, kind: 'percent', value: 100 }, 3000), 3000);\n  });\n\n  it('produces a zero invoice instead of a negative one', () => {\n    const app = createTestApp();\n    addCoupon(app.ctx, fifty);\n    const { order } = placeOrder(app, { price: 3000, couponCode: 'FIFTY' });\n    const invoice = app.ctx.store.invoices.require(order.invoiceId!);\n    assert.deepEqual([invoice.discount, invoice.tax, invoice.total], [3000, 0, 0]);\n    assert.equal(invoice.lines[0].discount, 3000);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "src/billing/coupon-cap.test.ts",
+    "src/billing/discounts.ts"
+  ],
+  "oracle_modules": [
+    "src/billing"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": []
+}

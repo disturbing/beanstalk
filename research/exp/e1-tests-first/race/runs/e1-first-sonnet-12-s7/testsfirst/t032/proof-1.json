@@ -1,0 +1,57 @@
+{
+ "task": "t032",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/orders/order-total-shipping.test.ts"
+ ],
+ "results": {
+  "src/orders/order-total-shipping.test.ts": {
+   "status": "fails-first",
+   "why": "6 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 6,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > is goods after discount, plus tax, plus shipping",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n11400 !== 12600"
+    },
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > includes shipping when a coupon discount applies",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n10260 !== 11460"
+    },
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > includes shipping for international destinations",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2130 !== 2630"
+    },
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > is the same when the order is fetched again",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2280 !== 3480"
+    },
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > leaves the invoice without shipping",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n5700 !== 6900"
+    },
+    {
+     "file": "src/orders/order-total-shipping.test.ts",
+     "name": "order total includes shipping > shows the new order total in the confirmation email",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n5700 !== 6900"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

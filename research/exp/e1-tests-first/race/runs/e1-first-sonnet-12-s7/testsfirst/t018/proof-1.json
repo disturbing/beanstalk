@@ -1,0 +1,33 @@
+{
+ "task": "t018",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/notifications/shipped-tracking.test.ts"
+ ],
+ "results": {
+  "src/notifications/shipped-tracking.test.ts": {
+   "status": "fails-first",
+   "why": "2 of 2 tests fail on the current code",
+   "tests": 2,
+   "failing": 2,
+   "passing": 0,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/notifications/shipped-tracking.test.ts",
+     "name": "order shipped email > includes the tracking number after the existing sentence",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'Tracking number: TRK-4242'"
+    },
+    {
+     "file": "src/notifications/shipped-tracking.test.ts",
+     "name": "order shipped email > uses the tracking number recorded for that order",
+     "status": "fail",
+     "message": "The input did not match the regular expression /^Tracking number: AAA-1$/m. Input:\n\n'Your order BS-0001 is on its way.'"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

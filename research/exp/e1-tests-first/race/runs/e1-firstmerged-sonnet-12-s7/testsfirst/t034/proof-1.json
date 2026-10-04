@@ -1,0 +1,57 @@
+{
+ "task": "t034",
+ "attempt": 1,
+ "ok": true,
+ "accepted": [
+  "src/inventory/reserve-atomic.test.ts"
+ ],
+ "results": {
+  "src/inventory/reserve-atomic.test.ts": {
+   "status": "fails-first",
+   "why": "5 of 6 tests fail on the current code",
+   "tests": 6,
+   "failing": 5,
+   "passing": 1,
+   "skipped": 0,
+   "cases": [
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > reserves nothing when the last line is short",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n2 !== 0"
+    },
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > names the first short line when several are short",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n1 !== 0"
+    },
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > keeps earlier reservations intact when a later group fails",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n6 !== 4"
+    },
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > counts repeated lines of one product together",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n3 !== 0"
+    },
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > still reserves every line when all are covered",
+     "status": "pass",
+     "message": ""
+    },
+    {
+     "file": "src/inventory/reserve-atomic.test.ts",
+     "name": "reserve is all or nothing > does not leak stock when checkout fails with a 409",
+     "status": "fail",
+     "message": "Expected values to be strictly equal:\n\n6 !== 0"
+    }
+   ]
+  }
+ },
+ "problems": []
+}

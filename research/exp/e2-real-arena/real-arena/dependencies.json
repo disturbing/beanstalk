@@ -1,0 +1,142 @@
+[
+ {
+  "pr": 4004,
+  "title": "fix: keep empty list after blockquote as a sibling block",
+  "conflict_files": [
+   "src/rules.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "33928d0663",
+    "title": "fix: Fix ordered lists after blockquotes (#4003)"
+   }
+  ]
+ },
+ {
+  "pr": 4014,
+  "title": "fix: Avoid O(n^2) backtracking in HTML block close and tilde interrupt regexes",
+  "conflict_files": [
+   "src/rules.ts"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4039,
+  "title": "fix: parse EOF backtick fences after paragraphs",
+  "conflict_files": [
+   "src/rules.ts",
+   "test/specs/redos/quadratic_tilde_paragraph_interrupt.cjs"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4044,
+  "title": "fix: keep the em/strong mask the same length as the source",
+  "conflict_files": [
+   "src/Lexer.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "9154f8f3cb",
+    "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer (#4017)"
+   }
+  ]
+ },
+ {
+  "pr": 4040,
+  "title": "fix: inlineTokens rebuilds the reflink-mask preamble per call",
+  "conflict_files": [
+   "src/Lexer.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "9154f8f3cb",
+    "title": "fix: Avoid O(n^2) masked source rebuild in inline tokenizer (#4017)"
+   }
+  ]
+ },
+ {
+  "pr": 4059,
+  "title": "fix: keep emphasis in the text of a rejected reference link",
+  "conflict_files": [
+   "src/Lexer.ts"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4077,
+  "title": "fix: case fold reference link labels",
+  "conflict_files": [
+   "src/Lexer.ts"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4076,
+  "title": "fix: decode numeric character references in text",
+  "conflict_files": [
+   "src/Tokenizer.ts"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4091,
+  "title": "fix: strip whitespace when normalizing link reference labels",
+  "conflict_files": [
+   "src/helpers.ts"
+  ],
+  "applies_after_any_single": []
+ },
+ {
+  "pr": 4095,
+  "title": "fix: allow indented lines in setext heading text",
+  "conflict_files": [
+   "src/rules.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "f056437b38",
+    "title": "fix: Recognize setext headings whose first line starts with # (#4015)"
+   }
+  ]
+ },
+ {
+  "pr": 4067,
+  "title": "fix: support GFM protocol autolinks",
+  "conflict_files": [
+   "src/rules.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "0de7188bf1",
+    "title": "fix: preserve code spans adjacent to tildes (#4012)"
+   }
+  ]
+ },
+ {
+  "pr": 4101,
+  "title": "fix: keep text after empty nested blockquote",
+  "conflict_files": [
+   "src/Tokenizer.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "452f1ed6a7",
+    "title": "fix: Fix spurious deeper nesting in a blockquote continuation (#4030)"
+   }
+  ]
+ },
+ {
+  "pr": 4070,
+  "title": "perf: fast-fail link tokenizing when no ')' remains ahead",
+  "conflict_files": [
+   "src/Lexer.ts"
+  ],
+  "applies_after_any_single": [
+   {
+    "sha": "e250e31f3e",
+    "title": "fix: do not nest a link inside a link (#4051)"
+   }
+  ]
+ }
+]

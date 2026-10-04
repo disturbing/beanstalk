@@ -1,0 +1,891 @@
+{
+  "label": "measured: arena=real-arena@d2af54e6/0cba7528, 24 tasks, policy=beanstalk, agent=claude (sonnet)",
+  "policy": "beanstalk",
+  "agent": "claude",
+  "model": "sonnet",
+  "arena_base": "d2af54e66184f2c4a1eaf107035ef319ee82b8a7",
+  "arena_digest": "0cba75281bdcb8d0",
+  "config": {
+    "agents": 12,
+    "ci_seconds": 60.0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 11,
+    "budget_usd": 25.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": true,
+    "snapshot": "head",
+    "queue_hold": null,
+    "error_budget": 999,
+    "footprint": "predictor",
+    "tasks": 24,
+    "protect_tests": "landed"
+  },
+  "aborted": "error in validate-10: GitError('git checkout -q -f --detach 32a06e78b387c9e95acfef6a48e7f5f448557ebb failed (128): fatal: unable to write new index file')",
+  "wall_seconds": 501.78,
+  "tasks": 24,
+  "tasks_green": 10,
+  "tasks_landed": 11,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {},
+  "changes_green_per_hour": 71.745,
+  "wall_to_all_green_seconds": null,
+  "task_start_to_green_seconds": {
+    "median": 276.43,
+    "p90": 441.08,
+    "mean": 289.72
+  },
+  "agent_minutes": {
+    "busy": 12.75,
+    "blocked": 87.61,
+    "idle": 0.0
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.6,
+      "blocked": 7.76,
+      "idle": 0.0
+    },
+    "a1": {
+      "busy": 1.19,
+      "blocked": 7.17,
+      "idle": 0.0
+    },
+    "a2": {
+      "busy": 0.41,
+      "blocked": 7.95,
+      "idle": 0.0
+    },
+    "a3": {
+      "busy": 0.54,
+      "blocked": 7.83,
+      "idle": 0.0
+    },
+    "a4": {
+      "busy": 0.73,
+      "blocked": 7.63,
+      "idle": 0.0
+    },
+    "a5": {
+      "busy": 1.87,
+      "blocked": 6.5,
+      "idle": 0.0
+    },
+    "a6": {
+      "busy": 1.43,
+      "blocked": 6.93,
+      "idle": 0.0
+    },
+    "a7": {
+      "busy": 1.31,
+      "blocked": 7.06,
+      "idle": 0.0
+    },
+    "a8": {
+      "busy": 0.83,
+      "blocked": 7.53,
+      "idle": 0.0
+    },
+    "a9": {
+      "busy": 0.92,
+      "blocked": 7.44,
+      "idle": 0.0
+    },
+    "a10": {
+      "busy": 1.32,
+      "blocked": 7.04,
+      "idle": 0.0
+    },
+    "a11": {
+      "busy": 1.6,
+      "blocked": 6.77,
+      "idle": 0.0
+    }
+  },
+  "invocations": {
+    "initial": 22
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 22,
+      "cost_usd": 1.3633,
+      "turns": 213,
+      "wall_s": 764.85,
+      "input_tokens": 296,
+      "output_tokens": 51773,
+      "cache_read_input_tokens": 1654365,
+      "cache_creation_input_tokens": 175701,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 1.3633,
+  "cost_by_kind": {
+    "initial": 1.3633
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 296,
+      "output_tokens": 51773,
+      "cache_read_input_tokens": 1654365,
+      "cache_creation_input_tokens": 175701
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": 662.0,
+    "wall_minus_api_ms_median": 9791.0,
+    "cost_per_agent_invocation_mean": 0.062
+  },
+  "subscription": {
+    "invocations_on_overage": 22,
+    "last_rate_limit": {
+      "status": "rejected",
+      "rateLimitType": "five_hour",
+      "resetsAt": 1791013200,
+      "overageStatus": "allowed",
+      "isUsingOverage": true
+    },
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "validate": 10
+  },
+  "ci_runs_total": 10,
+  "ci_minutes": {
+    "validate": 11.24
+  },
+  "ci_minutes_total": 11.24,
+  "textual_conflicts": 0,
+  "red_validations": 0,
+  "final": {
+    "sha": "d9a19c4013990c713ac033592d664eaf253648d9",
+    "suite_green": true,
+    "suite_tests": 1714,
+    "suite_failures": 0,
+    "acceptance_run_green": false,
+    "tasks_accepted": 10,
+    "tasks_total": 24,
+    "green_tasks_accepted": 10,
+    "green_tasks": 10,
+    "correct": true,
+    "all_tasks_accepted": false,
+    "failing_files": [
+      "test/specs/commonmark/pr4051.json",
+      "test/specs/commonmark/pr4066.json",
+      "test/specs/gfm/pr4051.json",
+      "test/specs/gfm/pr4066.json",
+      "test/specs/new/atx_heading_closing_sequence_tab.html",
+      "test/specs/new/atx_heading_closing_sequence_tab.md",
+      "test/specs/new/em_strong_unclosed_orphan.html",
+      "test/specs/new/em_strong_unclosed_orphan.md",
+      "test/specs/new/empty_code_block.html",
+      "test/specs/new/empty_code_block.md",
+      "test/specs/new/fence_indent_stripping.html",
+      "test/specs/new/fence_indent_stripping.md",
+      "test/specs/new/gfm_email_autolink_trailing.html",
+      "test/specs/new/gfm_email_autolink_trailing.md",
+      "test/specs/new/hardbreak_leading_whitespace.html",
+      "test/specs/new/hardbreak_leading_whitespace.md",
+      "test/specs/new/html_closing_tag_following_list.html",
+      "test/specs/new/html_closing_tag_following_list.md",
+      "test/specs/new/html_inline_tag_in_list.html",
+      "test/specs/new/html_inline_tag_in_list.md",
+      "test/specs/new/html_multiline_tag_following_list.html",
+      "test/specs/new/html_multiline_tag_following_list.md",
+      "test/specs/new/list_content_tabs_continuation_code_span_commonmark.html",
+      "test/specs/new/list_content_tabs_continuation_code_span_commonmark.md",
+      "test/specs/new/list_content_tabs_continuation_code_span_gfm.html",
+      "test/specs/new/list_content_tabs_continuation_code_span_gfm.md",
+      "test/specs/new/list_content_tabs_fence_commonmark.html",
+      "test/specs/new/list_content_tabs_fence_commonmark.md",
+      "test/specs/new/list_content_tabs_fence_gfm.html",
+      "test/specs/new/list_content_tabs_fence_gfm.md",
+      "test/specs/new/list_content_tabs_first_line_code_span_commonmark.html",
+      "test/specs/new/list_content_tabs_first_line_code_span_commonmark.md",
+      "test/specs/new/list_content_tabs_first_line_code_span_gfm.html",
+      "test/specs/new/list_content_tabs_first_line_code_span_gfm.md",
+      "test/specs/new/list_content_tabs_nested_fence_commonmark.html",
+      "test/specs/new/list_content_tabs_nested_fence_commonmark.md",
+      "test/specs/new/list_content_tabs_nested_fence_gfm.html",
+      "test/specs/new/list_content_tabs_nested_fence_gfm.md",
+      "test/specs/new/list_content_tabs_ordered_fence_commonmark.html",
+      "test/specs/new/list_content_tabs_ordered_fence_commonmark.md",
+      "test/specs/new/list_content_tabs_ordered_fence_gfm.html",
+      "test/specs/new/list_content_tabs_ordered_fence_gfm.md",
+      "test/specs/new/list_content_tabs_repeated_tabs_commonmark.html",
+      "test/specs/new/list_content_tabs_repeated_tabs_commonmark.md",
+      "test/specs/new/list_content_tabs_repeated_tabs_gfm.html",
+      "test/specs/new/list_content_tabs_repeated_tabs_gfm.md",
+      "test/specs/new/list_content_tabs_structural_indentation_tab_commonmark.html",
+      "test/specs/new/list_content_tabs_structural_indentation_tab_commonmark.md",
+      "test/specs/new/list_content_tabs_structural_indentation_tab_gfm.html",
+      "test/specs/new/list_content_tabs_structural_indentation_tab_gfm.md"
+    ],
+    "base_tests_changed": [
+      "test/unit/Lexer.test.js"
+    ]
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tasks": 11,
+      "micro_recall": 1.0,
+      "micro_precision": 1.0
+    },
+    "vs_oracle": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tasks": 11,
+      "micro_recall": 1.0,
+      "micro_precision": 1.0
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.001,
+      "landed_at": 220.785,
+      "green_at": 292.299,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.007,
+      "landed_at": 434.891,
+      "green_at": 501.012,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.008,
+      "landed_at": 82.423,
+      "green_at": 148.886,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.008,
+      "landed_at": 156.243,
+      "green_at": 227.566,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t005": {
+      "status": "green",
+      "agent": "a4",
+      "started_at": 0.008,
+      "landed_at": 292.046,
+      "green_at": 363.559,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 0.008,
+      "landed_at": 95.694,
+      "green_at": 162.708,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/unit"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t007": {
+      "status": "running",
+      "agent": "a6",
+      "started_at": 0.008,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "docs/img"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t008": {
+      "status": "running",
+      "agent": "a7",
+      "started_at": 0.008,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t009": {
+      "status": "green",
+      "agent": "a8",
+      "started_at": 0.008,
+      "landed_at": 103.024,
+      "green_at": 213.959,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t010": {
+      "status": "green",
+      "agent": "a9",
+      "started_at": 0.008,
+      "landed_at": 169.778,
+      "green_at": 284.049,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t011": {
+      "status": "landed",
+      "agent": "a10",
+      "started_at": 0.008,
+      "landed_at": 501.179,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs",
+        "test/unit"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t012": {
+      "status": "green",
+      "agent": "a11",
+      "started_at": 0.008,
+      "landed_at": 366.361,
+      "green_at": 434.43,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t013": {
+      "status": "running",
+      "agent": "a2",
+      "started_at": 82.453,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t014": {
+      "status": "green",
+      "agent": "a5",
+      "started_at": 95.735,
+      "landed_at": 293.055,
+      "green_at": 364.55,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [
+        "src"
+      ],
+      "oracle_modules": [
+        "src",
+        "test/specs",
+        "test/unit"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t015": {
+      "status": "running",
+      "agent": "a8",
+      "started_at": 103.056,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t016": {
+      "status": "running",
+      "agent": "a3",
+      "started_at": 156.33,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t017": {
+      "status": "running",
+      "agent": "a9",
+      "started_at": 169.89,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t018": {
+      "status": "running",
+      "agent": "a0",
+      "started_at": 220.814,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t019": {
+      "status": "running",
+      "agent": "a4",
+      "started_at": 292.302,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t020": {
+      "status": "running",
+      "agent": "a5",
+      "started_at": 293.117,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t021": {
+      "status": "running",
+      "agent": "a11",
+      "started_at": 366.4,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t022": {
+      "status": "running",
+      "agent": "a1",
+      "started_at": 434.939,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t023": {
+      "status": "running",
+      "agent": "a10",
+      "started_at": 501.252,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "src",
+        "test/specs"
+      ],
+      "invocations": 0,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    },
+    "t024": {
+      "status": "pending",
+      "agent": null,
+      "started_at": null,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "(root)"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "bin",
+        "test/unit"
+      ],
+      "invocations": 0,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": false
+    }
+  },
+  "beanstalk": {
+    "placements_disjoint": 23,
+    "placements_overlap": 0,
+    "placement_overlap_modules": 0,
+    "landings": 11,
+    "fixer_landings": 0,
+    "reverts": 0,
+    "validations": 10,
+    "validations_green": 10,
+    "validations_red": 0,
+    "stale_reds": 0,
+    "tickets": 0,
+    "tickets_closed": 0,
+    "tickets_escalated": 0,
+    "tickets_by_method": {},
+    "trunk_bisect_runs": 0,
+    "pauses": 0,
+    "paused_seconds": 0.0,
+    "fixers_without_change": 0,
+    "preland_checks": 47,
+    "preland_red": 0,
+    "preland_seconds": 3099.28,
+    "preland_reworks": 0,
+    "preland_drops": 0,
+    "preland_mode": "optimistic",
+    "preland_latency": 60.0,
+    "preland_optimistic_landings": 6,
+    "preland_rechecks": 28,
+    "preland_locked_fallbacks": 6,
+    "preland_recheck_rule": "file",
+    "informed_reworks": 0,
+    "cards": 0,
+    "card_details": [],
+    "revert_first": 0,
+    "mean_suspects_per_ticket": null,
+    "final_trunk_idx": 10,
+    "final_green_idx": 9,
+    "open_tickets_at_end": 0,
+    "ticket_details": [],
+    "variant": "v2"
+  },
+  "policy_rows": [
+    [
+      "Variant",
+      "v2: pre-land check, informed author repair, decision cards, revert-first"
+    ],
+    [
+      "Informed reworks / decision cards / revert-first tickets",
+      "0 / 0 / 0"
+    ],
+    [
+      "Pre-land checks (red) / reworks / drops",
+      "47 (0) / 0 / 0"
+    ],
+    [
+      "Pre-land check minutes",
+      "51.65"
+    ],
+    [
+      "Pre-land mode / latency s / optimistic landings / rechecks / locked fallbacks",
+      "optimistic / 60.0 / 6 / 28 / 6"
+    ],
+    [
+      "Placements disjoint / overlapping",
+      "23 / 0"
+    ],
+    [
+      "Fast-trunk landings (task / fixer / revert)",
+      "11 / 0 / 0"
+    ],
+    [
+      "Validations (green / red)",
+      "10 / 0"
+    ],
+    [
+      "Repair tickets (closed / escalated / by method)",
+      "0 / 0 / {}"
+    ],
+    [
+      "Error-budget pauses / paused minutes",
+      "0 / 0.0"
+    ]
+  ]
+}

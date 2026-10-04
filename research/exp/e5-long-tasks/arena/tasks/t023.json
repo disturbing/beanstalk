@@ -1,0 +1,28 @@
+{
+  "id": "t023",
+  "title": "Tax on multi-line invoices is a cent off from the tax authority's figure",
+  "prompt": "Our accountant compared a month of invoices against the tax authority's calculator and found that multi-line invoices are regularly a cent or two off. The authority rounds the tax once per rate on the taxable total of the invoice. We round every line separately and add the results, so the rounding errors pile up.\n\nWork out the tax for each tax rate on the sum of the taxable amounts (after discounts) of the lines at that rate, rounding half up once, and then spread that figure back over those lines so each line keeps its own `tax` and the line taxes always add up to the invoice `tax`. Lines at different rates are rounded independently. Single-line invoices must come out the same as before.\n\nPut the arithmetic in lib/money.ts as `applyRateToTotal(amounts, rate)`: it applies the rate to the sum of the amounts, rounds once, and returns one share per amount, each within a cent of its exact proportional share, adding up to the rounded total.",
+  "acceptance_tests": {
+    "src/billing/tax-rounding.test.ts": "import assert from 'node:assert/strict';\nimport { describe, it } from 'node:test';\nimport { createTestApp, ON_ADDRESS } from '../lib/testing.ts';\nimport { applyRateToTotal, sumCents } from '../lib/money.ts';\nimport type { TaxClass } from '../types.ts';\nimport { buildInvoice } from './invoice.ts';\n\nconst item = (unitPrice: number, taxClass: TaxClass = 'standard') => ({\n  productId: 'p', description: 'x', quantity: 1, unitPrice, taxClass,\n});\n\nfunction invoiceFor(...items: ReturnType<typeof item>[]) {\n  const app = createTestApp();\n  return buildInvoice(app.ctx, { orderId: 'o', userId: 'u', address: ON_ADDRESS, items });\n}\n\ndescribe('tax rounding', () => {\n  it('rounds once over the total and spreads the cents over the amounts', () => {\n    const shares = applyRateToTotal([333, 333, 333], 0.13);\n    assert.equal(sumCents(shares), 130);\n    assert.deepEqual([...shares].sort(), [43, 43, 44]);\n    assert.deepEqual(applyRateToTotal([0, 0], 0.13), [0, 0]);\n    assert.deepEqual(applyRateToTotal([1000], 0.13), [130]);\n  });\n\n  it('charges the tax authority\\'s figure on a three-line invoice', () => {\n    const invoice = invoiceFor(item(333), item(333), item(333));\n    assert.equal(invoice.tax, 130);\n    assert.deepEqual(invoice.lines.map((l) => l.tax).sort(), [43, 43, 44]);\n    assert.equal(invoice.total, 999 + 130);\n  });\n\n  it('rounds each rate on its own', () => {\n    const invoice = invoiceFor(item(333), item(333), item(333, 'reduced'));\n    const taxes = invoice.lines.map((l) => l.tax);\n    assert.equal(taxes[0] + taxes[1], 87, 'the two standard lines share one rounded figure');\n    assert.equal(taxes[2], 22);\n    assert.equal(invoice.tax, 109);\n  });\n\n  it('does not change single-line invoices', () => {\n    assert.equal(invoiceFor(item(1999)).tax, 260);\n    assert.equal(invoiceFor(item(10)).tax, 1);\n  });\n});\n"
+  },
+  "oracle_paths": [
+    "CHANGELOG.md",
+    "src/billing/invoice.ts",
+    "src/billing/tax-rounding.test.ts",
+    "src/lib/money.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "src/billing",
+    "src/lib"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [
+    {
+      "with": "t036",
+      "type": "semantic",
+      "note": "tax-rounding changes the rounding contract (tax rounded once per rate and spread over lines); line-refunds' test pins a line's refund to the old per-line rounding. Merges cleanly, the refund amount then differs by a cent."
+    }
+  ]
+}
