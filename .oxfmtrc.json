@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "ignorePatterns": [
+    "docs/**",
+    "research/**",
+    ".agents/**",
+    ".claude/**",
+    "**/worker-configuration.d.ts",
+    "skills-lock.json",
+    "pnpm-lock.yaml",
+    "**/*.md",
+    "packages/web/fixtures/**"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "options": {
+    "typeAware": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-console": "error",
+    "no-param-reassign": "error",
+    "no-nested-ternary": "error",
+    "prefer-const": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/prefer-nullish-coalescing": "warn",
+    "import/no-default-export": "error",
+    "import/no-cycle": "error",
+    "unicorn/filename-case": [
+      "error",
+      {
+        "case": "kebabCase"
+      }
+    ],
+    "unicorn/no-null": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/src/index.ts",
+        "**/*.config.ts",
+        "**/vite.config.*",
+        "**/vitest.config.*",
+        "**/next.config.*"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["**/app/**/*.tsx", "**/app/**/*.ts", "**/pages/**/*.tsx"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["scripts/**", "**/*.test.ts", "**/test/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.wrangler/**",
+    "**/worker-configuration.d.ts",
+    "**/target/**",
+    "research/**",
+    "docs/**"
+  ]
+}

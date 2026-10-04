@@ -1,0 +1,26 @@
+{
+  "name": "beanstalk",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "pnpm fmt:check && pnpm lint && pnpm typecheck && pnpm test && pnpm rust:check",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "rust:check": "node scripts/rust-check.mjs",
+    "skills:update": "npx -y skills@latest update -p -y"
+  },
+  "devDependencies": {
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
+    "oxlint-tsgolint": "7.0.2003",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.13.0"
+}
