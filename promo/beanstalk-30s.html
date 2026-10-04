@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Beanstalk in 30 Seconds</title>
+<meta name="description" content="A short animated promo: why Beanstalk beats a batched merge queue when many AI coding agents share one codebase.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&display=swap">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+/*
+  Beanstalk, 30 seconds. One file: HTML, CSS and JS only, no video.
+  Everything on screen is a pure function of the playhead t (0-30 s), so ?t=12 shows exactly
+  the frame at 12 s (paused, for screenshots; add &play to keep playing). ?clean hides the controls
+  and the side margin, for screen recording at 1920 x 1080. Space pauses, R restarts.
+  Colour carries meaning: slate is today's queue, red is a failure, yellow-green is the young
+  sprout (staged), deep green is the stalk (verified).
+*/
+:root{
+  color-scheme:dark;
+  --night:#04100a;
+  --fg:#eef7f1;
+  --fg-2:#a9bfb2;
+  --fg-3:#71897d;
+  --leaf:#34b46c;
+  --leaf-hi:#62de92;
+  --sprout:#c2f5a0;
+  --red:#ff5b4d;
+  --ink:#04130b;
+  --font:"Bricolage Grotesque",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#000;color:var(--fg);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-kerning:normal}
+html.js,html.js body{height:100%;overflow:hidden}
+
+/* Player: a 16:9 frame, letterboxed and centred. JS sets its size and the stage scale. */
+#player{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px);
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+#player.clean{padding:0}
+#player.clean #controls{display:none}
+#wrap{position:relative}
+#frame{position:relative;overflow:hidden;background:var(--night)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+.bg{position:absolute;inset:0}
+#bgToday{background:radial-gradient(110% 95% at 72% 78%,#0f1a15 0%,#080e0b 55%,#040706 100%)}
+#bgGreen{opacity:0;background:radial-gradient(105% 95% at 64% 82%,#0e2c1c 0%,#06150e 50%,#030a06 100%)}
+#cv{position:absolute;left:0;top:0;width:1920px;height:1080px}
+
+/* Text lives in stage pixels (1920 x 1080); JS animates opacity and a small rise. */
+.t{position:absolute;left:0;top:0;margin:0;white-space:nowrap;opacity:0;visibility:hidden;color:var(--fg)}
+.hook{font-size:132px;line-height:1;font-weight:800;font-stretch:88%;letter-spacing:-.03em}
+.head{font-size:44px;line-height:1;font-weight:600;color:var(--fg-3);display:flex;align-items:center;gap:14px}
+.head.green{color:var(--leaf-hi)}
+.head svg{width:28px;height:46px;overflow:visible}
+.fact{font-size:76px;line-height:1.12;font-weight:720;letter-spacing:-.02em}
+.cite{font-size:42px;font-weight:500;color:var(--fg-3);letter-spacing:0}
+.phrase{font-size:70px;line-height:1;font-weight:760;letter-spacing:-.022em}
+.lbl{font-size:44px;line-height:1;font-weight:650}
+.cap{font-size:62px;line-height:1.14;font-weight:720;letter-spacing:-.018em}
+.lane{font-size:46px;line-height:1;font-weight:650;color:var(--fg-2)}
+.lane.green{color:var(--leaf-hi)}
+.inbar{left:auto;font-size:42px;line-height:1;font-weight:760;color:var(--ink)}
+.stat{font-size:150px;line-height:1;font-weight:800;font-stretch:90%;letter-spacing:-.035em;color:var(--leaf-hi)}
+.sub{font-size:50px;line-height:1;font-weight:620}
+.center{width:1920px;text-align:center}
+.tag{font-size:62px;line-height:1;font-weight:720;letter-spacing:-.018em}
+.built{font-size:42px;line-height:1;font-weight:560;color:var(--fg-2)}
+.src{left:160px;width:1600px;white-space:normal;text-align:center;font-size:26px;line-height:1.45;font-weight:450;color:var(--fg-3)}
+
+/* Decision card */
+#card{position:absolute;left:560px;top:396px;width:800px;padding:24px;border-radius:30px;background:#09180f;
+  border:2px solid rgba(169,191,178,.16);box-shadow:0 30px 80px rgba(0,0,0,.45);opacity:0;visibility:hidden}
+.opt{position:relative;display:flex;align-items:center;gap:22px;height:100px;padding:0 26px 0 28px;border-radius:20px;
+  border:2px solid rgba(169,191,178,.16);background-color:rgba(98,222,146,0);font-size:46px;font-weight:620;color:var(--fg)}
+.opt+.opt{margin-top:16px}
+.opt .txt{position:relative;flex:1}
+.opt .strike{position:absolute;left:-4px;top:54%;height:4px;border-radius:2px;background:var(--fg-2);width:0}
+.opt .bn{width:36px;height:26px;flex:none}
+.radio{width:42px;height:42px;border-radius:50%;border:3px solid var(--fg-3);flex:none;display:grid;place-items:center}
+.radio svg{width:24px;height:24px;opacity:0}
+#clash{position:absolute;left:-3px;top:74px;width:6px;height:116px;border-radius:3px;background:var(--red)}
+#cursor{position:absolute;left:0;top:0;width:46px;height:58px;opacity:0;visibility:hidden;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+#ripple{position:absolute;left:0;top:0;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:4px solid var(--leaf-hi);opacity:0}
+
+/* Logo */
+#logo{position:absolute;left:0;top:176px;width:1920px;display:flex;justify-content:center;align-items:center;gap:40px;opacity:0;visibility:hidden}
+#bigmark{width:150px;height:240px;overflow:visible}
+#lgLeafR{transform-origin:58px 100px}
+#lgLeafL{transform-origin:44px 58px}
+#lgBean{transform-origin:56px 16px}
+#lgStem{stroke-dasharray:1;stroke-dashoffset:1}
+#word{font-size:176px;line-height:1;font-weight:800;font-stretch:92%;letter-spacing:-.04em}
+
+/* Controls: overlaid on the frame, or below it when the viewport has room (portrait phones). */
+#controls{display:flex;align-items:center;gap:4px;color:var(--fg)}
+.overlay #controls{position:absolute;left:0;right:0;bottom:0;padding:18px 12px 8px;
+  background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,0));transition:background .3s}
+.below #controls{margin-top:10px}
+.btn{appearance:none;border:0;margin:0;padding:0;background:transparent;color:inherit;width:40px;height:40px;border-radius:10px;
+  display:grid;place-items:center;cursor:pointer;flex:none;transition:opacity .3s,background-color .2s}
+.below .btn{width:44px;height:44px}
+.btn:hover{background-color:rgba(255,255,255,.09)}
+.btn svg{width:22px;height:22px;display:block}
+.btn:focus-visible,#track:focus-visible{outline:2px solid var(--leaf-hi);outline-offset:2px}
+.btn .i-play{display:none}
+.paused .btn .i-play{display:block}
+.paused .btn .i-pause{display:none}
+#track{position:relative;flex:1;height:24px;margin:0 6px;cursor:pointer;touch-action:none;border-radius:4px}
+#track::before,#fill{content:"";position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;border-radius:2px}
+#track::before{background:rgba(255,255,255,.2)}
+#fill{background:var(--leaf-hi);transform-origin:0 50%;transform:scaleX(0)}
+.overlay.idle{cursor:none}
+.overlay.idle #controls{background:transparent}
+.overlay.idle .btn{opacity:0;pointer-events:none}
+
+/* Reduced motion: nothing travels; state changes cross-fade. */
+.rm #card,.rm #cursor,.rm #logo,.rm .lbl,.rm .opt,.rm .radio,.rm .radio svg{transition:opacity .45s,background-color .45s,border-color .45s}
+
+.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* No-JS fallback */
+.nos{max-width:680px;margin:0 auto;padding:40px 20px 56px;line-height:1.55;font-size:18px}
+.nos h1{font-size:40px;line-height:1.1;margin:0 0 8px;color:var(--leaf-hi)}
+.nos li{margin:0 0 12px}
+.nos .s{font-size:14px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gStem" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#1b6b43"/>
+      <stop offset=".6" stop-color="#34b46c"/>
+      <stop offset="1" stop-color="#9fe882"/>
+    </linearGradient>
+    <linearGradient id="gLeaf" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1f7a4d"/>
+      <stop offset="1" stop-color="#62de92"/>
+    </linearGradient>
+    <linearGradient id="gLeafL" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#1f7a4d"/>
+      <stop offset="1" stop-color="#62de92"/>
+    </linearGradient>
+    <radialGradient id="gHalo">
+      <stop offset="0" stop-color="#62de92" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#62de92" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="mark" viewBox="0 0 100 160">
+      <path d="M50 156C50 132 60 120 58 100C56 80 42 74 44 56C45.5 42 52 32 55 26" fill="none" stroke="url(#gStem)" stroke-width="11" stroke-linecap="round"/>
+      <path d="M58 100C64 86 80 80 94 82C88 96 74 104 58 100Z" fill="url(#gLeaf)"/>
+      <path d="M44 58C36 46 20 42 6 46C12 58 28 64 44 58Z" fill="url(#gLeafL)"/>
+      <path transform="translate(56 16) rotate(-24)" d="M-16 1C-16-7-9-10.5-3-8.5C0-7.5 2-7.5 5-8.8C11-11 16.5-6.5 16 .5C15.5 7.5 8 10.5 0 10.5C-8 10.5-16 8-16 1Z" fill="#c2f5a0"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main id="player" class="overlay" aria-label="Beanstalk promo video">
+  <div id="wrap">
+    <div id="frame">
+      <div id="stage" aria-hidden="true">
+        <div class="bg" id="bgToday"></div>
+        <div class="bg" id="bgGreen"></div>
+        <canvas id="cv" width="1920" height="1080"></canvas>
+
+        <!-- 1. Hook -->
+        <p class="t hook" id="h1a" style="left:120px;top:112px">12 AI agents.</p>
+        <p class="t hook" id="h1b" style="left:120px;top:248px">One codebase.</p>
+        <p class="t hook" id="h1c" style="left:120px;top:384px">Who waits?</p>
+
+        <!-- 2. Today -->
+        <p class="t head" id="b2head" style="left:120px;top:96px">Today</p>
+        <p class="t fact" id="b2f1" style="left:120px;top:300px">A merge-queue bug silently reverted<br>work in 2,092 pull requests <span class="cite">(GitHub, Apr 23 2026)</span></p>
+        <p class="t fact" id="b2f2" style="left:120px;top:300px">20 agents behind locks<br>did the work of 1–3 <span class="cite">(Cursor, 2026)</span></p>
+
+        <!-- 3. Beanstalk -->
+        <p class="t head green" id="b3head" style="left:120px;top:96px"><svg viewBox="0 0 100 160"><use href="#mark"/></svg>Beanstalk</p>
+        <p class="t phrase" id="b3p1" style="left:120px;top:420px">Land without waiting.</p>
+        <p class="t phrase" id="b3p2" style="left:120px;top:512px">Check the exact tree.</p>
+        <p class="t phrase" id="b3p3" style="left:120px;top:604px">Repair with context.</p>
+        <p class="t lbl" id="lbBean" style="color:var(--fg)">bean</p>
+        <p class="t lbl" id="lbSprout" style="color:var(--sprout)">sprout</p>
+        <p class="t lbl" id="lbStalk" style="color:var(--leaf-hi)">stalk</p>
+
+        <!-- 4. The race, measured -->
+        <p class="t cap" id="b4head" style="left:120px;top:100px">Same 40 tasks. 12 real Claude agents.<br>Running on Cloudflare.</p>
+        <p class="t lane" id="b4n1" style="left:120px;top:284px">Merge queue</p>
+        <p class="t lane green" id="b4n2" style="left:120px;top:494px">Beanstalk</p>
+        <p class="t inbar" id="b4d1" style="right:146px;top:367px"><span id="b4d1p">done in </span>40.6 min</p>
+        <p class="t inbar" id="b4d2" style="right:1102px;top:577px"><span id="b4d2p">done in </span>17.5 min</p>
+        <p class="t stat" id="b4stat" style="left:900px;top:522px">2.3x faster</p>
+        <p class="t sub" id="b4sub" style="left:906px;top:698px">5 of 5 seeds faster, 1.98x average</p>
+
+        <!-- 5. Humans decide meaning -->
+        <p class="t cap" id="b5l1" style="left:120px;top:100px">When two specs collide,</p>
+        <p class="t cap" id="b5l2" style="left:120px;top:171px">you decide in one click.</p>
+        <p class="t cap" id="b5l3" style="left:120px;top:242px">40 of 40 tasks shipped.</p>
+        <div id="card">
+          <div id="clash"></div>
+          <div class="opt" id="optA">
+            <svg class="bn" viewBox="-16 -12 32 24"><path d="M-16 1C-16-7-9-10.5-3-8.5C0-7.5 2-7.5 5-8.8C11-11 16.5-6.5 16 .5C15.5 7.5 8 10.5 0 10.5C-8 10.5-16 8-16 1Z" fill="#c2f5a0"/></svg>
+            <span class="txt">Invoices show $1,000.00</span>
+            <span class="radio" id="radioA"><svg id="tickA" viewBox="-12 -12 24 24"><path d="M-6.5 .5L-2 5 7-5" fill="none" stroke="#04130b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="opt" id="optB">
+            <svg class="bn" viewBox="-16 -12 32 24"><path d="M-16 1C-16-7-9-10.5-3-8.5C0-7.5 2-7.5 5-8.8C11-11 16.5-6.5 16 .5C15.5 7.5 8 10.5 0 10.5C-8 10.5-16 8-16 1Z" fill="#c2f5a0"/></svg>
+            <span class="txt">Invoices show $1000.00<span class="strike" id="strikeB"></span></span>
+            <span class="radio"></span>
+          </div>
+        </div>
+        <div id="ripple"></div>
+        <svg id="cursor" viewBox="0 0 46 58"><path d="M4 3L4 46L15 36L23 54L31 50L23 33L38 33Z" fill="#fff" stroke="#04130b" stroke-width="3" stroke-linejoin="round"/></svg>
+
+        <!-- 6. Logo and tagline -->
+        <div id="logo">
+          <svg id="bigmark" viewBox="0 0 100 160">
+            <circle cx="52" cy="92" r="96" fill="url(#gHalo)"/>
+            <path id="lgStem" pathLength="1" d="M50 156C50 132 60 120 58 100C56 80 42 74 44 56C45.5 42 52 32 55 26" fill="none" stroke="url(#gStem)" stroke-width="11" stroke-linecap="round"/>
+            <path id="lgLeafR" d="M58 100C64 86 80 80 94 82C88 96 74 104 58 100Z" fill="url(#gLeaf)"/>
+            <path id="lgLeafL" d="M44 58C36 46 20 42 6 46C12 58 28 64 44 58Z" fill="url(#gLeafL)"/>
+            <g id="lgBean"><path transform="translate(56 16) rotate(-24)" d="M-16 1C-16-7-9-10.5-3-8.5C0-7.5 2-7.5 5-8.8C11-11 16.5-6.5 16 .5C15.5 7.5 8 10.5 0 10.5C-8 10.5-16 8-16 1Z" fill="#c2f5a0"/></g>
+          </svg>
+          <div id="word">Beanstalk</div>
+        </div>
+        <p class="t tag center" id="b6tag1" style="top:486px">Agents commit without waiting.</p>
+        <p class="t tag center" id="b6tag2" style="top:560px">The stalk stays honest.</p>
+        <p class="t built center" id="b6built" style="top:668px">Built on Cloudflare Workers + Artifacts.</p>
+        <p class="t src" id="b6src" style="top:836px">Measured: 12 Sonnet agents, 40 colliding tasks, same seed, every landed test protected (beanstalk research, Oct&nbsp;2026).<br>Revert incident: GitHub blog, 2026-04-28. Locks: Cursor, 2026-02-05.</p>
+      </div>
+    </div>
+    <div id="controls">
+      <button class="btn" id="play" type="button" aria-label="Pause">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.8v14.4a1 1 0 0 0 1.5.86l11.5-7.2a1 1 0 0 0 0-1.72L9.5 3.94A1 1 0 0 0 8 4.8Z" fill="currentColor"/></svg>
+      </button>
+      <button class="btn" id="restart" type="button" aria-label="Restart">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div id="track" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" aria-valuetext="0 seconds"><div id="fill"></div></div>
+    </div>
+  </div>
+  <p id="cc" class="vh" aria-live="polite" aria-atomic="true"></p>
+</main>
+
+<noscript>
+  <style>#player{display:none}</style>
+  <section class="nos" aria-label="Beanstalk promo, text version">
+    <h1>Beanstalk</h1>
+    <p>This promo is an animation that needs JavaScript. Here are its beats.</p>
+    <ol>
+      <li>12 AI agents. One codebase. Who waits?</li>
+      <li>Today, agents' pull requests pile up behind a merge queue, and red batches reset the line. A merge-queue bug silently reverted work in 2,092 pull requests (GitHub, Apr 23 2026). 20 agents behind locks did the work of 1–3 (Cursor, 2026).</li>
+      <li>With Beanstalk, each agent's change is a bean. It is checked on its exact merged tree in its own sandbox and lands straight onto the sprout without waiting. The stalk grows behind it with verified snapshots only. A broken bean goes back to the same agent with the change that broke it. Land without waiting. Check the exact tree. Repair with context.</li>
+      <li>The race, measured against a strong batched merge queue (today's PR workflow): same 40 tasks, 12 real Claude agents, running on Cloudflare. Merge queue: done in 40.6 min. Beanstalk: done in 17.5 min. 2.3x faster. 5 of 5 seeds faster, 1.98x average.</li>
+      <li>When two specs collide, you decide in one click. Here, invoices show $1,000.00 rather than $1000.00. 40 of 40 tasks shipped.</li>
+      <li>Beanstalk: agents commit without waiting. The stalk stays honest. Built on Cloudflare Workers + Artifacts.</li>
+    </ol>
+    <p class="s">Measured: 12 Sonnet agents, 40 colliding tasks, same seed, every landed test protected (beanstalk research, Oct 2026). Revert incident: GitHub blog, 2026-04-28. Locks: Cursor, 2026-02-05.</p>
+  </section>
+</noscript>
+
+<script>
+(() => {
+'use strict';
+const W = 1920, H = 1080, DUR = 30, TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const player = $('player'), wrap = $('wrap'), frame = $('frame'), stage = $('stage');
+const cv = $('cv'), ctx = cv.getContext('2d');
+const RMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = RMQ.matches;
+
+/* ---------- maths ---------- */
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, k) => a + (b - a) * k;
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - (1 - k) ** 3;
+const eIn = k => k * k * k;
+const eIO = k => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
+const eBack = k => { const c = 1.70158; return 1 + (c + 1) * (k - 1) ** 3 + c * (k - 1) ** 2; };
+const win = (t, a, b, fi, fo) => seg(t, a, a + fi) * (1 - seg(t, b - fo, b));
+const bump = (t, a, b) => Math.sin(seg(t, a, b) * Math.PI);
+function rng(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, k) => `rgb(${Math.round(lerp(a[0], b[0], k))},${Math.round(lerp(a[1], b[1], k))},${Math.round(lerp(a[2], b[2], k))})`;
+const C = {
+  fg: hex('#eef7f1'), fg2: hex('#a9bfb2'), fg3: hex('#71897d'),
+  slate: hex('#1f2b26'), slate2: hex('#4a5d54'), slate3: hex('#8fa398'),
+  red: hex('#ff5b4d'), leafHi: hex('#62de92'), cell: hex('#16301f'),
+};
+
+/* ---------- drawing helpers (stage pixels) ---------- */
+const BEAN = new Path2D('M-16 1C-16-7-9-10.5-3-8.5C0-7.5 2-7.5 5-8.8C11-11 16.5-6.5 16 .5C15.5 7.5 8 10.5 0 10.5C-8 10.5-16 8-16 1Z');
+const LEAF = new Path2D('M0 0C14-18 44-22 70-8C46 10 16 12 0 0Z');
+const TICK = new Path2D('M-6.5 .5L-2 5 7-5');
+let SA = 1; // alpha multiplier of whatever is being drawn now
+
+function rr(x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function sprite(rgb) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, `rgba(${rgb},.9)`); grd.addColorStop(0.35, `rgba(${rgb},.4)`); grd.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128); return c;
+}
+const GW = sprite('231,242,236'), GG = sprite('98,222,146'), GS = sprite('194,245,160'), GR = sprite('255,91,77');
+function glow(img, x, y, r, a) {
+  if (a <= 0.003) return;
+  ctx.globalAlpha = SA * a; ctx.drawImage(img, x - r, y - r, r * 2, r * 2); ctx.globalAlpha = SA;
+}
+function bean(x, y, rot, s, fill, stroke, a) {
+  if (a <= 0.003 || s <= 0.01) return;
+  ctx.save(); ctx.globalAlpha = SA * a; ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+  ctx.fillStyle = fill; ctx.fill(BEAN);
+  if (stroke) { ctx.lineWidth = 2.2 / s; ctx.strokeStyle = stroke; ctx.stroke(BEAN); }
+  ctx.restore();
+}
+function leaf(x, y, flip, s, a) {
+  if (s <= 0.01 || a <= 0.003) return;
+  ctx.save(); ctx.globalAlpha = SA * a; ctx.translate(x, y); ctx.scale(flip ? -s : s, s); ctx.rotate(-0.55);
+  const g = ctx.createLinearGradient(0, 0, 70, 0); g.addColorStop(0, '#1f7a4d'); g.addColorStop(1, '#62de92');
+  ctx.fillStyle = g; ctx.fill(LEAF);
+  ctx.strokeStyle = 'rgba(4,19,11,.45)'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(6, -1); ctx.quadraticCurveTo(34, -7, 60, -7); ctx.stroke();
+  ctx.restore();
+}
+function badge(x, y, r, ok, a) {
+  if (a <= 0.003 || r <= 0.5) return;
+  ctx.save(); ctx.globalAlpha = SA * a; ctx.translate(x, y);
+  ctx.fillStyle = ok ? '#62de92' : '#ff5b4d'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.scale(r / 13, r / 13); ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (ok) { ctx.strokeStyle = '#04130b'; ctx.stroke(TICK); }
+  else { ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-4.5, -4.5); ctx.lineTo(4.5, 4.5); ctx.moveTo(4.5, -4.5); ctx.lineTo(-4.5, 4.5); ctx.stroke(); }
+  ctx.restore();
+}
+
+/* ---------- beat 1: twelve agents stream to one gate (precomputed, fixed step) ---------- */
+const HOOK = (() => {
+  const N = 12, FPS = 120, END = 4.6, steps = Math.ceil(END * FPS) + 2, dt = 1 / FPS;
+  const R = rng(1207), d = [];
+  for (let i = 0; i < N; i++) {
+    const early = i < 5;
+    d.push({ x0: early ? 40 + R() * 460 : -300 + R() * 240, y0: 610 + R() * 420, spawn: early ? R() * 0.2 : 0.2 + R() * 0.8 });
+  }
+  const ord = d.map((_, i) => i).sort((a, b) => (d[b].x0 - d[b].spawn * 700) - (d[a].x0 - d[a].spawn * 700));
+  ord.forEach((id, r) => (d[id].rank = r));
+  const PASS = [1.62, 2.45, 3.3], GY = 860, SLOT0 = 1652, SP = 50;
+  const data = new Float32Array(steps * N * 4);
+  const s = d.map(o => ({ x: o.x0, y: o.y0, vx: 420, vy: 0, arrive: -1 }));
+  for (let k = 0; k < steps; k++) {
+    const t = k * dt;
+    let passed = 0; for (const p of PASS) if (t >= p) passed++;
+    for (let i = 0; i < N; i++) {
+      const o = d[i], q = s[i];
+      let alpha = 0, wait = 0;
+      if (t >= o.spawn) {
+        const gone = o.rank < passed;
+        const tx = gone ? 1800 : SLOT0 - (o.rank - passed) * SP, ty = GY;
+        const wx = gone ? 6 : 3.2, wy = gone ? 7 : 2.5;
+        let ax = wx * wx * (tx - q.x) - 1.8 * wx * q.vx;
+        let ay = wy * wy * (ty - q.y) - 1.8 * wy * q.vy;
+        for (let j = 0; j < N; j++) {
+          if (j === i || t < d[j].spawn) continue;
+          const dx = q.x - s[j].x, dy = q.y - s[j].y, dd = Math.hypot(dx, dy);
+          if (dd > 0.001 && dd < 42) { const f = (42 - dd) * 110; ax += (dx / dd) * f; ay += (dy / dd) * f; }
+        }
+        q.vx += ax * dt; q.vy += ay * dt;
+        const sp = Math.hypot(q.vx, q.vy); if (sp > 1500) { q.vx *= 1500 / sp; q.vy *= 1500 / sp; }
+        q.x += q.vx * dt; q.y += q.vy * dt;
+        alpha = seg(t, o.spawn, o.spawn + 0.3);
+        if (gone) alpha *= 1 - seg(q.x, 1712, 1790);
+        else {
+          if (q.arrive < 0 && Math.abs(q.x - tx) < 18 && Math.abs(q.y - ty) < 12) q.arrive = t;
+          if (q.arrive >= 0) wait = seg(t, q.arrive + 0.15, q.arrive + 1.5);
+        }
+      }
+      const b = (k * N + i) * 4;
+      data[b] = q.x; data[b + 1] = q.y; data[b + 2] = alpha; data[b + 3] = wait;
+    }
+  }
+  const out = new Float32Array(4);
+  function at(t, i) {
+    const f = clamp(t, 0, END) * FPS, k = Math.min(Math.floor(f), steps - 2), u = f - k;
+    const a = (k * N + i) * 4, b = a + N * 4;
+    for (let j = 0; j < 4; j++) out[j] = data[a + j] + (data[b + j] - data[a + j]) * u;
+    return out;
+  }
+  return { N, PASS, at };
+})();
+
+function drawBlock(t) { // the one codebase, with a single slot
+  const x = 1700, y = 660, w = 140, h = 340, r = 26, g0 = 826, g1 = 894;
+  const hi = seg(t, 0.85, 1.3) * (1 - seg(t, 3.5, 4.2));
+  ctx.globalAlpha = SA;
+  rr(x, y, w, h, r); ctx.fillStyle = 'rgba(169,191,178,.045)'; ctx.fill();
+  ctx.strokeStyle = mix(C.slate2, C.fg2, hi); ctx.lineWidth = 3; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(x, g0); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, g1); ctx.stroke();
+  ctx.fillStyle = mix(C.fg3, C.fg, hi);
+  rr(x - 12, g0 - 3, 24, 6, 3); ctx.fill(); rr(x - 12, g1 - 3, 24, 6, 3); ctx.fill();
+  ctx.globalAlpha = SA * 0.75; ctx.fillStyle = mix(C.slate2, C.slate3, hi * 0.6);
+  for (const [ly, lw] of [[702, 78], [738, 54], [774, 92], [806, 40], [918, 70], [954, 50]]) { rr(x + 24, ly, lw, 8, 4); ctx.fill(); }
+  const m = bump(t, 7.45, 8.15); // a batch merged in beat 2
+  if (m > 0) glow(GW, x + w / 2, 860, 170, 0.28 * m);
+  ctx.globalAlpha = SA;
+}
+
+function drawHook(t) {
+  for (let i = 0; i < HOOK.N; i++) {
+    const p = HOOK.at(t, i); const x = p[0], y = p[1], a = p[2], w = p[3];
+    if (a <= 0.01) continue;
+    const q = HOOK.at(t - 0.11, i); const qx = q[0], qy = q[1];
+    const dx = x - qx, dy = y - qy;
+    if (dx * dx + dy * dy > 36) {
+      const g = ctx.createLinearGradient(qx, qy, x, y);
+      g.addColorStop(0, 'rgba(231,242,236,0)'); g.addColorStop(1, 'rgba(231,242,236,.3)');
+      ctx.globalAlpha = SA * a; ctx.strokeStyle = g; ctx.lineWidth = 14; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(x, y); ctx.stroke();
+    }
+    glow(GW, x, y, 52, a * (0.42 - 0.3 * w));
+    ctx.globalAlpha = SA * a; ctx.fillStyle = mix(C.fg, C.slate3, w * 0.8);
+    ctx.beginPath(); ctx.arc(x, y, 15, 0, TAU); ctx.fill();
+  }
+  for (const p of HOOK.PASS) { const k = seg(t, p + 0.02, p + 0.5); if (k > 0 && k < 1) glow(GW, 1704, 860, 80, 0.7 * (1 - k)); }
+  ctx.globalAlpha = SA;
+}
+
+/* ---------- beat 2: pull requests in a batched merge queue ---------- */
+function qPath(u) { // slot units along a serpentine line; u < 0 is the test box, then the codebase
+  if (u <= 11) return [1236 - 84 * u, 860];
+  if (u <= 12) { const a = Math.PI / 2 + (u - 11) * Math.PI; return [312 + 44 * Math.cos(a), 816 + 44 * Math.sin(a)]; }
+  if (u <= 23) return [312 + 84 * (u - 12), 772];
+  if (u <= 24) { const a = Math.PI / 2 - (u - 23) * Math.PI; return [1236 + 44 * Math.cos(a), 728 + 44 * Math.sin(a)]; }
+  return [1236 - 84 * (u - 24), 684];
+}
+const TESTS = [{ a: 4.45, b: 5.3, ok: false }, { a: 6.4, b: 7.25, ok: true }, { a: 8.1, b: 8.95, ok: false }];
+const RESETS = [5.45, 9.1];
+const QUEUE = (() => {
+  const FPS = 120, T0 = 3.8, END = 10.4, steps = Math.ceil((END - T0) * FPS) + 2, dt = 1 / FPS;
+  const chips = [], line = []; let box = [];
+  const mk = (born, arrives) => { const c = { u: 0, target: 0, born, arrives, active: !arrives, red: 0, flash: 0, state: 0, ev: -1, culprit: false }; chips.push(c); return c; };
+  for (let i = 0; i < 9; i++) { const c = mk(T0, false); c.u = c.target = i; line.push(c); }
+  const evs = [[4.1, 'load'], [5.3, 'red'], [5.45, 'reset'], [6.05, 'load'], [7.25, 'green'], [7.35, 'merge'], [7.75, 'load'], [8.95, 'red'], [9.1, 'reset']]
+    .map(([t, type]) => ({ t, type }));
+  for (let j = 0; j < 20; j++) { const tt = 4.2 + 0.3 * j; evs.push({ t: tt, type: 'arrive', c: mk(tt, true) }); }
+  evs.sort((a, b) => a.t - b.t);
+  const NC = chips.length, F = 6, data = new Float32Array(steps * NC * F);
+  const retarget = () => { line.forEach((c, i) => (c.target = i)); box.forEach((c, b) => (c.target = b - 4)); };
+  let ei = 0;
+  for (let k = 0; k < steps; k++) {
+    const t = T0 + k * dt;
+    while (ei < evs.length && evs[ei].t <= t) {
+      const e = evs[ei++];
+      if (e.type === 'arrive') { const c = e.c; c.active = true; c.target = line.length; c.u = c.target + 2.5; line.push(c); } // walks up to the back of the line
+      else if (e.type === 'load') { box = line.splice(0, 4); box.forEach(c => (c.state = 1)); retarget(); }
+      else if (e.type === 'red') { box.forEach(c => (c.red = 1)); box[1].culprit = true; }
+      else if (e.type === 'reset') { // the failing PR leaves, the rest go back to the front, everyone else is pushed back
+        const cul = box[1]; cul.state = 3; cul.ev = t;
+        const back = box.filter(c => c !== cul); back.forEach(c => (c.state = 0));
+        line.unshift(...back); box = []; retarget();
+      }
+      else if (e.type === 'green') box.forEach(c => (c.flash = 1));
+      else if (e.type === 'merge') { box.forEach(c => { c.state = 2; c.ev = t; c.target = -6.9; }); box = []; retarget(); }
+    }
+    for (let i = 0; i < NC; i++) {
+      const c = chips[i];
+      if (c.active) {
+        c.u += (c.target - c.u) * (1 - Math.exp(-dt * (c.state === 2 ? 5.5 : 8)));
+        if (c.state === 0 && !c.culprit && c.red > 0) c.red = Math.max(0, c.red - dt / 0.9);
+        c.flash = Math.max(0, c.flash - dt / 0.55);
+      }
+      let a = 0, dy = 0;
+      if (c.active) {
+        a = 1;
+        if (c.arrives) a = seg(t, c.born, c.born + 0.3);
+        if (c.state === 3) { dy -= 150 * eIn(seg(t, c.ev, c.ev + 0.6)); a *= 1 - seg(t, c.ev + 0.15, c.ev + 0.6); }
+        if (c.state === 2) a *= 1 - seg(qPath(c.u)[0], 1702, 1770);
+      }
+      const b = (k * NC + i) * F;
+      data[b] = c.u; data[b + 1] = dy; data[b + 2] = a; data[b + 3] = c.red; data[b + 4] = c.flash; data[b + 5] = c.culprit ? 1 : 0;
+    }
+  }
+  const out = new Float32Array(F);
+  function at(t, i) {
+    const f = (clamp(t, T0, END) - T0) * FPS, k = Math.min(Math.floor(f), steps - 2), u = f - k;
+    const a = (k * NC + i) * F, b = a + NC * F;
+    for (let j = 0; j < F; j++) out[j] = data[a + j] + (data[b + j] - data[a + j]) * u;
+    out[5] = data[b + 5];
+    return out;
+  }
+  return { NC, at };
+})();
+
+function chip(x, y, a, red, flash, cul) {
+  ctx.globalAlpha = SA * a;
+  rr(x - 34, y - 23, 68, 46, 12);
+  ctx.fillStyle = mix(C.slate, C.red, cul ? 0.85 : red * 0.42); ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = mix(C.slate2, C.red, red); ctx.stroke();
+  ctx.fillStyle = mix(C.fg2, C.fg, flash); ctx.beginPath(); ctx.arc(x - 17, y, 6.5, 0, TAU); ctx.fill();
+  ctx.globalAlpha = SA * a * 0.75; ctx.fillStyle = mix(C.slate3, C.fg, flash);
+  rr(x - 4, y - 10, 26, 6, 3); ctx.fill(); rr(x - 4, y + 4, 18, 6, 3); ctx.fill();
+  if (flash > 0) { ctx.globalAlpha = SA * a * flash * 0.55; ctx.fillStyle = '#fff'; rr(x - 34, y - 23, 68, 46, 12); ctx.fill(); }
+  ctx.globalAlpha = SA;
+}
+function drawQueue(t) {
+  // stanchion ropes and posts: this is a line people wait in
+  ctx.globalAlpha = SA; ctx.strokeStyle = 'rgba(143,163,152,.26)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  const ropes = [[268, 1262, 906], [360, 1262, 816], [268, 1262, 728]];
+  for (const [x1, x2, y] of ropes) { ctx.beginPath(); ctx.moveTo(x1, y); ctx.quadraticCurveTo((x1 + x2) / 2, y + 8, x2, y); ctx.stroke(); }
+  ctx.fillStyle = 'rgb(74,93,84)';
+  for (const [x1, x2, y] of ropes) for (const x of [x1, x2]) { ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU); ctx.fill(); }
+
+  // the test box (one batch at a time)
+  const bx = 1264, by = 806, bw = 364, bh = 108;
+  let redA = 0, okA = 0, prog = 0;
+  for (const T of TESTS) {
+    if (t >= T.a && t < T.b) prog = seg(t, T.a, T.b);
+    else if (t >= T.b && t < T.b + 0.9) {
+      if (T.ok) { okA = 1 - seg(t, T.b, T.b + 0.8); prog = 1 - seg(t, T.b + 0.25, T.b + 0.6); }
+      else { redA = 1 - seg(t, T.b + 0.2, T.b + 0.9); prog = 1 - eIn(seg(t, T.b + 0.12, T.b + 0.42)); }
+    }
+  }
+  if (redA > 0) glow(GR, bx + bw / 2, by + bh / 2, 260, 0.35 * redA);
+  rr(bx, by, bw, bh, 20); ctx.fillStyle = 'rgba(169,191,178,.04)'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = redA > 0 ? mix(C.slate2, C.red, redA) : mix(C.slate2, C.fg, okA); ctx.stroke();
+  rr(bx + 22, by + bh - 15, bw - 44, 5, 2.5); ctx.fillStyle = 'rgba(169,191,178,.14)'; ctx.fill();
+  if (prog > 0.002) { rr(bx + 22, by + bh - 15, (bw - 44) * prog, 5, 2.5); ctx.fillStyle = redA > 0 ? '#ff5b4d' : mix(C.fg2, C.fg, okA); ctx.fill(); }
+
+  // pull requests
+  for (let i = 0; i < QUEUE.NC; i++) {
+    const s = QUEUE.at(t, i); const u = s[0], dy = s[1], a = s[2], red = s[3], flash = s[4], cul = s[5] > 0.5;
+    if (a <= 0.01) continue;
+    const p = qPath(u);
+    let rip = 0; // a red reset travels back down the line
+    for (const r of RESETS) {
+      if (t > r && t < r + 1.2 && u >= -0.5) rip = Math.max(rip, Math.exp(-((u - (t - r) * 24) ** 2) / 3) * (1 - seg(t, r + 0.6, r + 1.2)));
+    }
+    chip(p[0], p[1] + dy, a, Math.max(red, rip * 0.75), flash, cul);
+  }
+}
+
+/* ---------- beat 3: beans, sandboxes, sprout and stalk ---------- */
+const BS = (() => {
+  const GROUND = 1010, STEP = 17, BASE = 70;
+  const AG = [];
+  for (let i = 0; i < 6; i++) AG.push({ x: 980, y: 360 + 108 * i, sx: 1094, side: -1 });
+  for (let i = 0; i < 6; i++) AG.push({ x: 1740, y: 360 + 108 * i, sx: 1626, side: 1 });
+  AG.forEach(a => (a.sy = a.y));
+  // When each agent finishes a change (agents 0-5 on the left, 6-11 on the right).
+  const SCHED = [
+    [9.80, 11.55, 13.95], [10.10, 12.05, 14.60], [10.50, 12.60, 15.00], [9.95, 11.30, 12.80, 15.60], [10.30, 11.90, 13.40], [10.70, 12.30, 14.20],
+    [9.90, 12.30, 14.75], [10.20, 11.75, 13.10], [10.25, 13.66, 15.30], [10.60, 12.15, 14.40], [9.85, 11.40, 13.25], [10.40, 12.45, 14.05],
+  ];
+  const EM = 0.18, CHK = 0.44, FLY = 0.34;
+  const beans = [];
+  SCHED.forEach((list, ai) => list.forEach(e => {
+    const b = { a: ai, e, kind: 'ok', chk: CHK };
+    if (ai === 6 && e === 12.3) { b.chk = 0.85; b.inset = true; }   // shown magnified
+    if (ai === 8 && e === 13.66) b.kind = 'broken';               // fails its check
+    if (ai === 8 && e === 15.3) b.kind = 'fixed';                 // same agent, repaired
+    if (ai === 3 && e === 12.8) b.culprit = true;                 // the landed change that broke it
+    if (ai === 2 && e === 10.5) b.label = true;
+    b.box = e + EM; b.done = b.box + b.chk; b.land = b.kind === 'broken' ? Infinity : b.done + FLY;
+    beans.push(b);
+  }));
+  const landed = beans.filter(b => b.land < 99).sort((p, q) => p.land - q.land);
+  landed.forEach((b, i) => { b.h = BASE + STEP * i + STEP / 2; b.off = (i % 2 ? 1 : -1) * 7; b.rot = (i % 2 ? 1 : -1) * 0.22; });
+  const X = h => 1360 + 16 * Math.sin(h / 110);
+  function tipH(t) {
+    let h = BASE * eOut(seg(t, 9.95, 10.55));
+    for (const b of landed) { if (t <= b.land) break; h += STEP * eOut(seg(t, b.land, b.land + 0.25)); }
+    return h;
+  }
+  // The stalk only moves to verified snapshots, one validation behind the sprout.
+  const SNAPS = [11.25, 12.45, 13.65, 14.95, 16.3].map(s => ({ s, h: tipH(s - 0.9) }));
+  function stalkH(t) {
+    let h = 0, prev = 0;
+    for (const sn of SNAPS) { if (t < sn.s) break; h = lerp(prev, sn.h, eIO(seg(t, sn.s, sn.s + 0.45))); prev = sn.h; }
+    return h;
+  }
+  const find = f => beans.find(f);
+  return {
+    AG, beans, landed, X, tipH, stalkH, SNAPS, GROUND,
+    culprit: find(b => b.culprit), broken: find(b => b.kind === 'broken'), labelBean: find(b => b.label),
+  };
+})();
+
+function beanState(b, t) {
+  const ag = BS.AG[b.a];
+  if (t < b.e) return null;
+  const sx = ag.sx, sy = ag.sy - 8;
+  if (t < b.box) { const k = eOut(seg(t, b.e, b.box)); return { x: lerp(ag.x, sx, k), y: lerp(ag.y, sy, k), s: lerp(0.35, 1, k), r: 0, ph: 0 }; }
+  if (t < b.done) return { x: sx, y: sy, s: 1, r: 0, ph: 1, k: seg(t, b.box, b.done) };
+  if (b.kind === 'broken') { // bounce back to the same agent
+    const T0 = b.done + 0.1, T1 = T0 + 0.4, T2 = T1 + 0.16;
+    if (t < T0) return { x: sx, y: sy, s: 1, r: 0, ph: 1, k: 1 };
+    if (t < T1) { const k = eOut(seg(t, T0, T1)); return { x: lerp(sx, ag.x, k), y: lerp(sy, ag.y, k) - 46 * Math.sin(k * Math.PI), s: 1, r: k * 0.6, ph: 3 }; }
+    if (t < T2) return { x: ag.x, y: ag.y, s: 1 - seg(t, T1, T2), r: 0.6, ph: 3 };
+    return null;
+  }
+  if (t < b.land) {
+    const k = eIO(seg(t, b.done, b.land));
+    const tx = BS.X(b.h) + b.off, ty = BS.GROUND - b.h, cx = (sx + tx) / 2, cy = Math.min(sy, ty) - 110, m = 1 - k;
+    return { x: m * m * sx + 2 * m * k * cx + k * k * tx, y: m * m * sy + 2 * m * k * cy + k * k * ty, s: 1, r: b.rot * k, ph: 2 };
+  }
+  return null;
+}
+function stalkPath(h0, h1) {
+  ctx.beginPath(); ctx.moveTo(BS.X(h0), BS.GROUND - h0);
+  for (let h = h0 + 6; h < h1; h += 6) ctx.lineTo(BS.X(h), BS.GROUND - h);
+  ctx.lineTo(BS.X(h1), BS.GROUND - h1);
+}
+function diffChip(x, y, a) {
+  ctx.globalAlpha = SA * a;
+  rr(x - 26, y - 19, 52, 38, 9); ctx.fillStyle = '#0b1d14'; ctx.fill(); ctx.strokeStyle = '#ff5b4d'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.fillStyle = '#ff5b4d'; rr(x - 15, y - 9, 22, 5, 2.5); ctx.fill();
+  ctx.fillStyle = '#62de92'; rr(x - 15, y + 3, 30, 5, 2.5); ctx.fill();
+  ctx.globalAlpha = SA;
+}
+function drawInset(t, a) { // the exact tree a bean is checked on, magnified
+  const prev = SA; SA *= a;
+  const px = 1440, py = 70, pw = 360, ph = 222, cx = 1556, base = py + ph - 20;
+  ctx.save();
+  ctx.globalAlpha = SA; ctx.setLineDash([5, 7]); ctx.strokeStyle = 'rgba(194,245,160,.55)'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(1626, py + ph); ctx.lineTo(1626, 322); ctx.stroke(); ctx.setLineDash([]);
+  const sc = 0.94 + 0.06 * eOut(Math.min(1, a * 1.2));
+  ctx.translate(px + pw / 2, py + ph / 2); ctx.scale(sc, sc); ctx.translate(-(px + pw / 2), -(py + ph / 2));
+  rr(px, py, pw, ph, 24); ctx.fillStyle = 'rgba(6,22,14,.96)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(98,222,146,.5)'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.lineCap = 'round'; ctx.strokeStyle = '#2a9a5c'; ctx.lineWidth = 12;
+  ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - 64); ctx.stroke();
+  leaf(cx + 5, base - 38, false, 0.55, 1);
+  ctx.strokeStyle = 'rgba(194,245,160,.55)'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(cx, base - 64); ctx.lineTo(cx, base - 118); ctx.stroke();
+  for (let i = 0; i < 3; i++) bean(cx + (i % 2 ? 6 : -6), base - 78 - i * 17, (i % 2 ? 1 : -1) * 0.22, 1, '#c2f5a0', 'rgba(4,19,11,.55)', 1);
+  const by = base - 78 - 3 * 17, vk = seg(t, 13.33, 13.5);
+  ctx.save(); ctx.globalAlpha = SA * (1 - vk); ctx.translate(cx - 6, by); ctx.rotate(-0.22);
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 2; ctx.stroke(BEAN); ctx.restore();
+  bean(cx - 6, by, -0.22, 1, '#c2f5a0', 'rgba(4,19,11,.55)', 0.35 + 0.65 * vk);
+  const s = seg(t, 12.55, 13.25);
+  if (s > 0 && s < 1) {
+    const y = lerp(base + 6, by - 16, s);
+    glow(GS, cx, y, 70, 0.45);
+    ctx.globalAlpha = SA; ctx.strokeStyle = '#e6ffd6'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx - 64, y); ctx.lineTo(cx + 64, y); ctx.stroke();
+  }
+  badge(1712, py + ph / 2, 36 * eBack(seg(t, 13.33, 13.6)), true, 1);
+  ctx.restore();
+  SA = prev; ctx.globalAlpha = SA;
+}
+function drawStalk(t) {
+  const { AG, beans, landed, X, GROUND } = BS;
+  const tip = BS.tipH(t), sh = BS.stalkH(t);
+  const fRep = win(t, 14.25, 16.55, 0.3, 0.3), fIns = win(t, 12.2, 14.2, 0.3, 0.3);
+  const dimFor = ai => (1 - 0.55 * fRep * (ai === 8 ? 0 : 1)) * (1 - 0.45 * fIns * (ai === 6 ? 0 : 1));
+
+  const gg = ctx.createLinearGradient(900, 0, 1820, 0);
+  gg.addColorStop(0, 'rgba(52,180,108,0)'); gg.addColorStop(0.5, 'rgba(52,180,108,.5)'); gg.addColorStop(1, 'rgba(52,180,108,0)');
+  ctx.globalAlpha = SA; ctx.fillStyle = gg; ctx.fillRect(900, GROUND + 6, 920, 2);
+  glow(GG, 1360, GROUND, 170, 0.2);
+
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (sh > 2) { // the stalk: verified snapshots only
+    const sg = ctx.createLinearGradient(0, GROUND, 0, GROUND - sh);
+    sg.addColorStop(0, '#17603c'); sg.addColorStop(1, '#34b46c');
+    ctx.globalAlpha = SA; ctx.strokeStyle = sg; ctx.lineWidth = 16; stalkPath(0, sh); ctx.stroke();
+  }
+  if (tip > sh + 2) { ctx.globalAlpha = SA; ctx.strokeStyle = 'rgba(194,245,160,.5)'; ctx.lineWidth = 5; stalkPath(sh, tip); ctx.stroke(); }
+  BS.SNAPS.forEach((sn, i) => {
+    if (t < sn.s) return;
+    const x = X(sn.h), y = GROUND - sn.h;
+    leaf(x + (i % 2 ? -6 : 6), y, i % 2 === 1, 0.85 * eBack(seg(t, sn.s + 0.3, sn.s + 0.85)), 1);
+    const n = eOut(seg(t, sn.s + 0.3, sn.s + 0.55));
+    ctx.globalAlpha = SA * n; ctx.fillStyle = '#04100a'; ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, TAU); ctx.fill(); ctx.stroke();
+    const sw = seg(t, sn.s, sn.s + 0.45);
+    if (sw > 0 && sw < 1) { const hh = lerp(i ? BS.SNAPS[i - 1].h : 0, sn.h, eIO(sw)); glow(GS, X(hh), GROUND - hh, 46, 0.8 * Math.sin(sw * Math.PI)); }
+  });
+  for (const b of landed) { // the sprout: beans that landed without waiting
+    if (t < b.land) break;
+    if (b.h < sh - 6) continue;
+    const vis = b.h < sh + 12 ? seg(b.h, sh - 6, sh + 12) : 1;
+    bean(X(b.h) + b.off, GROUND - b.h, b.rot, 1.18 - 0.18 * eOut(seg(t, b.land, b.land + 0.22)), '#c2f5a0', 'rgba(4,19,11,.55)', vis);
+  }
+  if (tip > 4) {
+    const x = X(tip), y = GROUND - tip;
+    glow(GS, x, y - 4, 40, 0.55);
+    ctx.globalAlpha = SA; ctx.fillStyle = '#e6ffd6'; ctx.beginPath(); ctx.ellipse(x, y - 6, 6, 9, 0, 0, TAU); ctx.fill();
+  }
+  for (const b of landed) {
+    const k = seg(t, b.land, b.land + 0.5);
+    if (k <= 0 || k >= 1) continue;
+    const big = b.kind === 'fixed' ? 1.8 : 1;
+    ctx.globalAlpha = SA * (1 - k) * 0.8; ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(X(b.h) + b.off, GROUND - b.h, (16 + 34 * eOut(k)) * big, 0, TAU); ctx.stroke();
+  }
+
+  AG.forEach((ag, i) => { // agents and their own sandboxes
+    const d = dimFor(i);
+    let sb = 0.22;
+    for (const b of beans) if (b.a === i && t >= b.box - 0.05 && t < b.done + 0.3) sb = 0.6;
+    const red = i === 8 ? win(t, BS.broken.done, BS.broken.done + 0.75, 0.05, 0.3) : 0;
+    ctx.globalAlpha = SA * d;
+    rr(ag.sx - 36, ag.sy - 36, 72, 72, 18); ctx.fillStyle = 'rgba(15,59,39,.32)'; ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = red > 0 ? `rgba(255,91,77,${0.35 + 0.6 * red})` : `rgba(98,222,146,${sb})`; ctx.stroke();
+    glow(GG, ag.x, ag.y, 54, 0.32 * d);
+    for (const b of beans) {
+      if (b.a !== i) continue;
+      const k = seg(t, b.e, b.e + 0.45);
+      if (k > 0 && k < 1) { ctx.globalAlpha = SA * d * (1 - k) * 0.7; ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(ag.x, ag.y, 16 + 18 * eOut(k), 0, TAU); ctx.stroke(); }
+    }
+    ctx.globalAlpha = SA * d; ctx.fillStyle = '#e3f4ea'; ctx.beginPath(); ctx.arc(ag.x, ag.y, 16, 0, TAU); ctx.fill();
+  });
+  for (const b of beans) {
+    const st = beanState(b, t); if (!st) continue;
+    const ag = AG[b.a], d = dimFor(b.a), isRed = b.kind === 'broken' && t >= b.done;
+    if (st.ph === 1) { // checked on the exact tree it would land on, in its own sandbox
+      ctx.globalAlpha = SA * d; ctx.strokeStyle = '#2a9a5c'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(ag.sx, ag.sy + 28); ctx.lineTo(ag.sx, ag.sy + 4); ctx.stroke();
+      ctx.strokeStyle = isRed ? '#ff5b4d' : '#c2f5a0'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(st.x, st.y, 24, -Math.PI / 2, -Math.PI / 2 + TAU * st.k); ctx.stroke();
+    }
+    bean(st.x, st.y, st.r, st.s, isRed ? '#ff5b4d' : '#c2f5a0', 'rgba(4,19,11,.55)', d);
+  }
+  for (const b of beans) {
+    if (t < b.done || t > b.done + 0.9) continue;
+    const ag = AG[b.a], ok = b.kind !== 'broken';
+    const out = ok ? 1 - seg(t, b.done + 0.45, b.done + 0.7) : 1 - seg(t, b.done + 0.6, b.done + 0.9);
+    badge(ag.sx - ag.side * 28, ag.sy - 28, 14 * eBack(seg(t, b.done, b.done + 0.18)), ok, dimFor(b.a) * out);
+  }
+
+  const ins = win(t, 12.2, 14.2, 0.28, 0.28);
+  if (ins > 0) drawInset(t, ins);
+
+  const c = BS.culprit, B = BS.broken, cx = X(c.h) + c.off, cy = GROUND - c.h;
+  const hl = win(t, B.done, B.done + 1.35, 0.1, 0.35);
+  if (hl > 0) { // the landed change that broke it
+    ctx.globalAlpha = SA * hl; ctx.strokeStyle = '#ff5b4d'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.arc(cx, cy, 22 + 3 * Math.sin(t * 9), 0, TAU); ctx.stroke();
+    const lk = win(t, B.done, B.done + 0.7, 0.08, 0.25);
+    if (lk > 0) {
+      ctx.globalAlpha = SA * lk; ctx.setLineDash([6, 8]); ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(cx + 22, cy); ctx.lineTo(AG[8].sx - 36, AG[8].sy); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+  const chipA = win(t, B.done + 0.05, 15.85, 0.12, 0.3);
+  if (chipA > 0) { // ...travels back with the bean, as context for the same agent
+    const k = eIO(seg(t, B.done + 0.05, B.done + 0.52));
+    diffChip(lerp(cx, 1802, k), lerp(cy, 520, k) - 60 * Math.sin(k * Math.PI), chipA);
+  }
+  const sp = win(t, 14.9, 15.4, 0.08, 0.12);
+  if (sp > 0) {
+    const ag = AG[8], a0 = t * 9;
+    ctx.globalAlpha = SA * sp; ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(ag.x, ag.y, 28, a0, a0 + 4.2); ctx.stroke();
+  }
+  ctx.globalAlpha = SA;
+}
+
+/* ---------- beat 4: the race, measured (bar length is wall-clock time) ---------- */
+const RACE = { x0: 120, full: 1680, h: 88, y1: 344, y2: 554, start: 17.6, dur: 3.0 };
+RACE.bLen = RACE.full * 17.5 / 40.6;
+RACE.bEnd = RACE.start + RACE.dur * 17.5 / 40.6;
+function pulseRect(x, y, w, h, k, col) {
+  if (k <= 0 || k >= 1) return;
+  const g = 18 * eOut(k);
+  ctx.globalAlpha = SA * (1 - k) * 0.8; ctx.strokeStyle = col; ctx.lineWidth = 3;
+  rr(x - g, y - g, w + 2 * g, h + 2 * g, 20 + g); ctx.stroke(); ctx.globalAlpha = SA;
+}
+function drawRace(t) {
+  const { x0, full, h, y1, y2, start, dur, bLen, bEnd } = RACE;
+  const lq = full * seg(t, start, start + dur), lb = Math.min(lq, bLen);
+  ctx.globalAlpha = SA; ctx.fillStyle = 'rgba(169,191,178,.07)';
+  rr(x0, y1, full, h, 20); ctx.fill(); rr(x0, y2, full, h, 20); ctx.fill();
+  if (lq > 1) {
+    const g = ctx.createLinearGradient(x0, 0, x0 + full, 0); g.addColorStop(0, '#4a5d54'); g.addColorStop(1, '#b4c8bc');
+    ctx.fillStyle = g; rr(x0, y1, Math.max(lq, 8), h, 20); ctx.fill();
+    if (lq < full) glow(GW, x0 + lq, y1 + h / 2, 70, 0.45);
+  }
+  if (lb > 1) {
+    const g = ctx.createLinearGradient(x0, 0, x0 + bLen, 0); g.addColorStop(0, '#1f7a4d'); g.addColorStop(0.65, '#62de92'); g.addColorStop(1, '#c2f5a0');
+    ctx.fillStyle = g; rr(x0, y2, Math.max(lb, 8), h, 20); ctx.fill();
+    if (t < bEnd) glow(GS, x0 + lb, y2 + h / 2, 80, 0.6);
+  }
+  const m = seg(t, bEnd, bEnd + 0.35);
+  if (m > 0) { // where Beanstalk finished, while the queue is still running
+    ctx.globalAlpha = SA * m * 0.55; ctx.strokeStyle = '#c2f5a0'; ctx.lineWidth = 2.5; ctx.setLineDash([6, 9]);
+    ctx.beginPath(); ctx.moveTo(x0 + bLen, y2 - 10); ctx.lineTo(x0 + bLen, y1 - 22); ctx.stroke(); ctx.setLineDash([]);
+  }
+  pulseRect(x0, y2, bLen, h, seg(t, bEnd, bEnd + 0.6), '#c2f5a0');
+  pulseRect(x0, y1, full, h, seg(t, start + dur, start + dur + 0.6), '#eef7f1');
+  ctx.globalAlpha = SA;
+}
+
+/* ---------- beat 5: 40 of 40 ---------- */
+function drawStrip(t) {
+  const x0 = 440, y = 504, pitch = 26, cw = 20, ch = 64;
+  const a = seg(t, 25.48, 25.7);
+  for (let j = 0; j < 40; j++) {
+    const lit = eOut(seg(t, 25.6 + j * 0.017, 25.76 + j * 0.017));
+    ctx.globalAlpha = SA * a; ctx.fillStyle = mix(C.cell, C.leafHi, lit);
+    rr(x0 + j * pitch, y, cw, ch, 5); ctx.fill();
+  }
+  const done = seg(t, 26.25, 26.6);
+  if (done > 0) glow(GG, 960, y + ch / 2, 480, 0.16 * done * a);
+  ctx.globalAlpha = SA;
+}
+
+/* ---------- canvas orchestration ---------- */
+function drawScenes(tv, G) {
+  const layers = [
+    [G * (1 - seg(tv, 9.8, 10.25)), drawBlock],
+    [G * (1 - seg(tv, 3.7, 4.05)), drawHook],
+    [G * win(tv, 3.9, 10.25, 0.45, 0.45), drawQueue],
+    [G * win(tv, 9.95, 17.15, 0.45, 0.35), drawStalk],
+    [G * win(tv, 16.95, 23.1, 0.4, 0.35), drawRace],
+    [G * win(tv, 25.3, 27.1, 0.1, 0.3), drawStrip],
+  ];
+  for (const [a, fn] of layers) if (a > 0.002) { SA = a; fn(tv); }
+  SA = 1;
+}
+// Reduced motion: hold a few still poses and cross-fade between them.
+const RM_POSES = [[0, 3.3], [3.95, 5.4], [7.1, 9.0], [9.95, 11.6], [12.2, 13.2], [14.3, 15.05], [15.75, 16.6],
+  [16.9, 22.6], [22.85, 23.9], [24.2, 25.0], [25.35, 26.6], [26.9, 29.95]];
+function poses(t) {
+  let i = 0; while (i + 1 < RM_POSES.length && t >= RM_POSES[i + 1][0]) i++;
+  const k = i > 0 ? seg(t, RM_POSES[i][0], RM_POSES[i][0] + 0.5) : 1;
+  return k >= 1 ? [[RM_POSES[i][1], 1]] : [[RM_POSES[i - 1][1], 1 - k], [RM_POSES[i][1], k]];
+}
+
+/* ---------- DOM text and elements ---------- */
+const CUES = [
+  ['h1a', 0.15, 3.95], ['h1b', 0.85, 3.95], ['h1c', 1.6, 3.95],
+  ['b2head', 4.05, 9.95], ['b2f1', 4.3, 7.0], ['b2f2', 7.15, 9.95],
+  ['b3head', 10.1, 16.95], ['b3p1', 10.3, 16.95, 12.2], ['b3p2', 12.2, 16.95, 14.3], ['b3p3', 14.3, 16.95],
+  ['b4head', 17.0, 19.0], ['b4n1', 17.05, 21.55], ['b4n2', 17.12, 21.55],
+  ['b4d2', 18.9, 22.95], ['b4d1', 20.62, 22.95], ['b4stat', 20.78, 22.95], ['b4sub', 21.6, 22.95],
+  ['b5l1', 23.05, 26.95, 25.45], ['b5l2', 24.42, 26.95, 25.45], ['b5l3', 25.45, 26.95],
+  ['b6tag1', 27.8, 99], ['b6tag2', 27.95, 99], ['b6built', 28.2, 99], ['b6src', 28.4, 99],
+].map(([id, a, b, dim]) => ({ el: $(id), a, b, dim }));
+function setVis(el, o, transform) {
+  const s = el.style, op = o < 0.001 ? '0' : o.toFixed(3);
+  if (s.opacity !== op) s.opacity = op;
+  const v = o < 0.001 ? 'hidden' : 'visible';
+  if (s.visibility !== v) s.visibility = v;
+  if (transform !== undefined && s.transform !== transform) s.transform = transform;
+}
+function updateCues(t) {
+  for (const c of CUES) {
+    let o = eOut(seg(t, c.a, c.a + 0.45)) * (1 - seg(t, c.b - 0.3, c.b));
+    if (c.dim !== undefined) o *= 1 - 0.55 * seg(t, c.dim, c.dim + 0.4);
+    const dy = reduced ? 0 : (1 - eOut(seg(t, c.a, c.a + 0.6))) * 26;
+    setVis(c.el, o, `translateY(${dy.toFixed(2)}px)`);
+  }
+  const pre = (1 - seg(t, 21.25, 21.55)).toFixed(3);
+  $('b4d1p').style.opacity = pre; $('b4d2p').style.opacity = pre;
+}
+const lbBean = $('lbBean'), lbSprout = $('lbSprout'), lbStalk = $('lbStalk');
+function placeLabels(t) {
+  const sceneA = win(t, 9.95, 17.15, 0.45, 0.35);
+  const b = BS.labelBean, st = beanState(b, t);
+  let x = BS.AG[b.a].x, y = BS.AG[b.a].y;
+  if (st) { x = st.x; y = st.y; } else if (t >= b.land) { x = BS.X(b.h) + b.off; y = BS.GROUND - b.h; }
+  setVis(lbBean, win(t, 10.62, 11.6, 0.22, 0.22) * sceneA, `translate(${(x + 50).toFixed(1)}px,${(y - 24).toFixed(1)}px)`);
+  const tip = BS.tipH(t);
+  setVis(lbSprout, win(t, 11.6, 13.05, 0.3, 0.3) * sceneA, `translate(${(BS.X(tip) + 34).toFixed(1)}px,${(BS.GROUND - tip - 30).toFixed(1)}px)`);
+  const sh = BS.stalkH(t), mh = sh * 0.5;
+  setVis(lbStalk, win(t, 12.6, 14.0, 0.3, 0.3) * sceneA, `translate(${(BS.X(mh) - 32).toFixed(1)}px,${(BS.GROUND - mh - 22).toFixed(1)}px) translateX(-100%)`);
+}
+const card = $('card'), optA = $('optA'), optB = $('optB'), radioA = $('radioA'), tickA = $('tickA');
+const strikeB = $('strikeB'), clash = $('clash'), cursor = $('cursor'), ripple = $('ripple');
+let radio = { x: 1287, y: 470 };
+function measure() { // radio button centre in stage pixels (layout only, ignores transforms)
+  let x = radioA.offsetWidth / 2, y = radioA.offsetHeight / 2, el = radioA;
+  while (el && el !== stage) { const p = el.offsetParent; x += el.offsetLeft + (p ? p.clientLeft : 0); y += el.offsetTop + (p ? p.clientTop : 0); el = p; }
+  if (el === stage && radioA.offsetWidth) radio = { x, y };
+}
+function updateCard(t) {
+  const o = win(t, 23.0, 25.6, 0.35, 0.25);
+  setVis(card, o, `translateY(${(reduced ? 0 : (1 - eOut(seg(t, 23.0, 23.5))) * 30).toFixed(2)}px)`);
+  if (o <= 0) { setVis(cursor, 0); ripple.style.opacity = '0'; return; }
+  const sp = eOut(seg(t, 24.24, 24.44));
+  optA.style.borderColor = `rgba(${Math.round(lerp(169, 98, sp))},${Math.round(lerp(191, 222, sp))},${Math.round(lerp(178, 146, sp))},${lerp(0.16, 1, sp).toFixed(3)})`;
+  optA.style.backgroundColor = `rgba(98,222,146,${(0.12 * sp).toFixed(3)})`;
+  radioA.style.borderColor = sp > 0.5 ? '#62de92' : '';
+  radioA.style.backgroundColor = `rgba(98,222,146,${sp.toFixed(3)})`;
+  tickA.style.opacity = sp.toFixed(3);
+  optB.style.opacity = Math.max(0, 1 - 0.6 * seg(t, 24.3, 24.5) - 0.4 * seg(t, 24.6, 24.85)).toFixed(3);
+  strikeB.style.width = `calc(${(100 * eOut(seg(t, 24.32, 24.6))).toFixed(1)}% + 8px)`;
+  clash.style.opacity = (1 - sp).toFixed(3);
+  const co = reduced ? win(t, 23.35, 25.1, 0.25, 0.3) * (t >= 24.2 ? 1 : 0) : win(t, 23.35, 25.1, 0.25, 0.3);
+  const mk = reduced ? 1 : eIO(seg(t, 23.4, 24.12));
+  const cx = lerp(radio.x + 270, radio.x, mk), cy = lerp(radio.y + 470, radio.y, mk);
+  const press = 1 - 0.16 * bump(t, 24.17, 24.33);
+  setVis(cursor, co, `translate(${(cx - 4).toFixed(1)}px,${(cy - 3).toFixed(1)}px) scale(${press.toFixed(3)})`);
+  const rk = seg(t, 24.2, 24.75);
+  ripple.style.opacity = (!reduced && rk > 0 && rk < 1 ? (1 - rk) * 0.9 : 0).toFixed(3);
+  ripple.style.transform = `translate(${radio.x.toFixed(1)}px,${radio.y.toFixed(1)}px) scale(${(0.2 + 0.9 * eOut(rk)).toFixed(3)})`;
+}
+const logo = $('logo'), word = $('word'), lgStem = $('lgStem'), lgLeafR = $('lgLeafR'), lgLeafL = $('lgLeafL'), lgBean = $('lgBean');
+function updateLogo(t) {
+  const o = seg(t, 26.95, 27.3);
+  setVis(logo, o);
+  if (o <= 0) return;
+  const st = reduced ? 1 : eIO(seg(t, 27.0, 27.85));
+  lgStem.style.strokeDashoffset = (1 - st).toFixed(4);
+  lgStem.style.opacity = st > 0.002 ? '1' : '0';
+  lgLeafR.style.transform = `scale(${reduced ? 1 : Math.max(0, eBack(seg(t, 27.45, 27.9))).toFixed(3)})`;
+  lgLeafL.style.transform = `scale(${reduced ? 1 : Math.max(0, eBack(seg(t, 27.6, 28.05))).toFixed(3)})`;
+  lgBean.style.transform = `scale(${reduced ? 1 : Math.max(0, eBack(seg(t, 27.8, 28.15))).toFixed(3)})`;
+  const w = reduced ? 1 : eOut(seg(t, 27.3, 27.8));
+  word.style.opacity = w.toFixed(3); word.style.transform = `translateX(${((1 - w) * -24).toFixed(2)}px)`;
+}
+
+/* ---------- captions as a live text track ---------- */
+const CAPS = [
+  '12 AI agents. One codebase. Who waits?',
+  "Today, agents' pull requests pile up behind a merge queue, and red batches reset the line. A merge-queue bug silently reverted work in 2,092 pull requests (GitHub, Apr 23 2026). 20 agents behind locks did the work of 1–3 (Cursor, 2026).",
+  "Beanstalk: each agent's change is a bean, checked on its exact merged tree in its own sandbox, landing straight onto the sprout without waiting. The stalk grows behind it with verified snapshots only. A broken bean goes back to the same agent with the change that broke it. Land without waiting. Check the exact tree. Repair with context.",
+  "The race, measured against a strong batched merge queue (today's PR workflow). Same 40 tasks, 12 real Claude agents, running on Cloudflare. Merge queue: done in 40.6 min. Beanstalk: done in 17.5 min. 2.3x faster. 5 of 5 seeds faster, 1.98x average.",
+  'When two specs collide, you decide in one click. Here, invoices show $1,000.00 rather than $1000.00. 40 of 40 tasks shipped.',
+  'Beanstalk: agents commit without waiting. The stalk stays honest. Built on Cloudflare Workers + Artifacts. Measured: 12 Sonnet agents, 40 colliding tasks, same seed, every landed test protected (beanstalk research, Oct 2026). Revert incident: GitHub blog, 2026-04-28. Locks: Cursor, 2026-02-05.',
+];
+const BEATS = [0, 4, 10, 17, 23, 27];
+const cc = $('cc');
+let capIdx = -1;
+function updateCaption(t) {
+  let i = 0; while (i + 1 < BEATS.length && t >= BEATS[i + 1]) i++;
+  if (i !== capIdx) { capIdx = i; cc.textContent = CAPS[i]; }
+}
+
+/* ---------- render one frame ---------- */
+const bgToday = $('bgToday'), bgGreen = $('bgGreen'), fillEl = $('fill'), track = $('track');
+let lastSec = -1;
+function render(t) {
+  const g = seg(t, 9.8, 10.4);
+  bgToday.style.opacity = (1 - g).toFixed(3); bgGreen.style.opacity = g.toFixed(3);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+  let tDom = t;
+  if (reduced) {
+    const P = poses(t);
+    for (const [tv, a] of P) drawScenes(tv, a);
+    tDom = P.reduce((m, p) => (p[1] > m[1] ? p : m))[0];
+  } else drawScenes(t, 1);
+  updateCues(t);
+  placeLabels(tDom);
+  updateCard(tDom);
+  updateLogo(tDom);
+  fillEl.style.transform = `scaleX(${(t / DUR).toFixed(4)})`;
+  const sec = Math.round(t);
+  if (sec !== lastSec) { lastSec = sec; track.setAttribute('aria-valuenow', sec); track.setAttribute('aria-valuetext', `${sec} seconds`); }
+  updateCaption(t);
+}
+
+/* ---------- layout: scale the 1920 x 1080 stage into the viewport ---------- */
+let scale = 1, dirty = true;
+const qs = new URLSearchParams(location.search), tq = parseFloat(qs.get('t'));
+if (qs.has('clean')) player.classList.add('clean');
+function layout() { // fit the player's content box: the side margin and phone safe areas are its padding
+  const cs = getComputedStyle(player), clean = player.classList.contains('clean'), ctrl = clean ? 0 : 56;
+  const vw = player.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const vh = player.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const below = !clean && vh - (vw * 9) / 16 >= ctrl + 32;
+  const availH = below ? vh - ctrl - 10 : vh;
+  const w = Math.max(160, Math.floor(Math.min(vw, (availH * 16) / 9))), h = Math.round((w * 9) / 16);
+  scale = w / W;
+  wrap.style.width = w + 'px';
+  frame.style.width = w + 'px'; frame.style.height = h + 'px';
+  stage.style.transform = `scale(${scale})`;
+  player.classList.toggle('below', below); player.classList.toggle('overlay', !below);
+  const dpr = Math.min(window.devicePixelRatio || 1, 3), bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+  measure();
+  dirty = true;
+}
+
+/* ---------- playback and controls ---------- */
+const playBtn = $('play'), restartBtn = $('restart');
+let t = 0, playing = false, last = performance.now(), chromeTimer = 0;
+function poke() {
+  player.classList.remove('idle');
+  clearTimeout(chromeTimer);
+  chromeTimer = setTimeout(() => { if (playing) player.classList.add('idle'); }, 2200);
+}
+function setPlaying(p) {
+  playing = p; last = performance.now();
+  playBtn.setAttribute('aria-label', p ? 'Pause' : 'Play');
+  player.classList.toggle('paused', !p);
+  poke();
+}
+function seek(v) { t = clamp(v, 0, DUR); dirty = true; }
+function restart() { seek(0); setPlaying(true); }
+function toggle() { if (playing) setPlaying(false); else { if (t >= DUR - 0.01) seek(0); setPlaying(true); } }
+playBtn.addEventListener('click', toggle);
+restartBtn.addEventListener('click', restart);
+let dragging = false;
+const seekFrom = e => { const r = track.getBoundingClientRect(); seek(((e.clientX - r.left) / r.width) * DUR); };
+track.addEventListener('pointerdown', e => { dragging = true; track.setPointerCapture(e.pointerId); seekFrom(e); poke(); });
+track.addEventListener('pointermove', e => { if (dragging) seekFrom(e); });
+track.addEventListener('pointerup', () => { dragging = false; });
+track.addEventListener('pointercancel', () => { dragging = false; });
+track.addEventListener('keydown', e => {
+  const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+  if (step) { seek(t + step); e.preventDefault(); }
+  else if (e.key === 'Home') { seek(0); e.preventDefault(); }
+  else if (e.key === 'End') { seek(DUR); e.preventDefault(); }
+});
+const isSpace = e => e.code === 'Space' || e.key === ' ';
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (isSpace(e)) { e.preventDefault(); if (!e.repeat) toggle(); }
+  else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); if (!e.repeat) restart(); }
+  poke();
+}, true);
+document.addEventListener('keyup', e => { if (isSpace(e)) e.preventDefault(); }, true); // no double toggle on a focused button
+['pointermove', 'pointerdown'].forEach(ev => player.addEventListener(ev, poke, { passive: true }));
+const onRM = e => { reduced = e.matches; player.classList.toggle('rm', reduced); dirty = true; };
+if (RMQ.addEventListener) RMQ.addEventListener('change', onRM); else if (RMQ.addListener) RMQ.addListener(onRM);
+player.classList.toggle('rm', reduced);
+window.addEventListener('resize', layout);
+
+function loop(now) {
+  if (playing) {
+    t += Math.min((now - last) / 1000, 0.1);
+    if (t >= DUR) { t = DUR; setPlaying(false); }
+    dirty = true;
+  }
+  last = now;
+  if (dirty) { dirty = false; render(t); }
+  requestAnimationFrame(loop);
+}
+
+layout();
+if (qs.has('t') && isFinite(tq)) { // ?t=12 holds the frame at 12 s (add &play to keep playing)
+  seek(tq);
+  setPlaying(qs.has('play'));
+  if (!playing) player.classList.add('idle');
+} else {
+  setPlaying(false);
+  const go = () => { if (!playing && t === 0) setPlaying(true); };
+  if (document.fonts && document.fonts.ready) Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 900))]).then(go, go);
+  else go();
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); dirty = true; });
+window.promo = { seek: v => seek(v), play: () => setPlaying(true), pause: () => setPlaying(false), get time() { return t; }, get playing() { return playing; } };
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
