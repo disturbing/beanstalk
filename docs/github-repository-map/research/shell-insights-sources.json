@@ -1,0 +1,564 @@
+[
+  {
+    "id": "M01",
+    "url": "https://github.com/github/docs",
+    "title": "Live github/docs repository markup",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web page markup read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M02",
+    "url": "https://docs.github.com/en/rest/repos/repos",
+    "title": "Repos",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M03",
+    "url": "https://docs.github.com/en/get-started/accessibility/keyboard-shortcuts",
+    "title": "Keyboard shortcuts",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M04",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics",
+    "title": "Classifying your repository with topics",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N20"
+    ]
+  },
+  {
+    "id": "M05",
+    "url": "https://raw.githubusercontent.com/github-linguist/linguist/main/docs/how-linguist-works.md",
+    "title": "How linguist works",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N13"
+    ]
+  },
+  {
+    "id": "M06",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository",
+    "title": "Displaying a sponsor button in your repository",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M07",
+    "url": "https://docs.github.com/en/communities/maintaining-your-safety-on-github/reporting-abuse-or-spam",
+    "title": "Reporting abuse or spam",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M08",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/using-the-activity-view-to-see-changes-to-a-repository",
+    "title": "Using the activity view to see changes to a repository",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N08"
+    ]
+  },
+  {
+    "id": "M09",
+    "url": "https://github.com/github/docs/custom-properties",
+    "title": "Repository custom properties boundary observation",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web page markup read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M10",
+    "url": "https://docs.github.com/en/get-started/exploring-projects-on-github/saving-repositories-with-stars",
+    "title": "Saving repositories with stars",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N14"
+    ]
+  },
+  {
+    "id": "M11",
+    "url": "https://docs.github.com/en/subscriptions-and-notifications/get-started/configuring-notifications",
+    "title": "Configuring notifications",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N24"
+    ]
+  },
+  {
+    "id": "M12",
+    "url": "https://docs.github.com/en/rest/activity/watching",
+    "title": "Watching",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N15"
+    ]
+  },
+  {
+    "id": "M13",
+    "url": "https://docs.github.com/en/get-started/accessibility/github-command-palette",
+    "title": "Github command palette",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M14",
+    "url": "https://docs.github.com/en/codespaces/the-githubdev-web-based-editor",
+    "title": "The githubdev web based editor",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M15",
+    "url": "https://docs.github.com/en/codespaces/developing-in-a-codespace/creating-a-codespace-for-a-repository",
+    "title": "Creating a codespace for a repository",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M16",
+    "url": "https://docs.github.com/en/codespaces/about-codespaces/understanding-the-codespace-lifecycle",
+    "title": "Understanding the codespace lifecycle",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M17",
+    "url": "https://docs.github.com/en/get-started/exploring-projects-on-github/using-github-copilot-to-explore-projects",
+    "title": "Using github copilot to explore projects",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M18",
+    "url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/chat-with-copilot/chat-in-github",
+    "title": "Chat in github",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "M19",
+    "url": "https://docs.github.com/en/search-github/getting-started-with-searching-on-github/about-searching-on-github",
+    "title": "About searching on github",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N18"
+    ]
+  },
+  {
+    "id": "M20",
+    "url": "https://docs.github.com/en/account-and-profile/reference/profile-reference",
+    "title": "Profile reference",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N16"
+    ]
+  },
+  {
+    "id": "M21",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-a-projects-contributors",
+    "title": "Viewing a projects contributors",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N03"
+    ]
+  },
+  {
+    "id": "M22",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/analyzing-changes-to-a-repositorys-content",
+    "title": "Analyzing changes to a repositorys content",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N05"
+    ]
+  },
+  {
+    "id": "M23",
+    "url": "https://docs.github.com/en/rest/activity/starring",
+    "title": "Starring",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": [
+      "N11"
+    ]
+  },
+  {
+    "id": "N01",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/about-repository-graphs",
+    "title": "About repository graphs",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N02",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/using-pulse-to-view-a-summary-of-repository-activity",
+    "title": "Using pulse to view a summary of repository activity",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N04",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-traffic-to-a-repository",
+    "title": "Viewing traffic to a repository",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N06",
+    "url": "https://docs.github.com/en/rest/metrics/statistics",
+    "title": "Statistics",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N07",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/understanding-connections-between-repositories",
+    "title": "Understanding connections between repositories",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N09",
+    "url": "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/about-community-profiles-for-public-repositories",
+    "title": "About community profiles for public repositories",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N10",
+    "url": "https://docs.github.com/en/rest/metrics/community",
+    "title": "Community",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N12",
+    "url": "https://docs.github.com/en/rest/metrics/traffic",
+    "title": "Traffic",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N17",
+    "url": "https://docs.github.com/en/account-and-profile/concepts/contributions-on-your-profile",
+    "title": "Contributions on your profile",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N19",
+    "url": "https://docs.github.com/en/search-github/github-code-search/understanding-github-code-search-syntax",
+    "title": "Understanding github code search syntax",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N21",
+    "url": "https://docs.github.com/en/subscriptions-and-notifications/how-tos/viewing-and-triaging-notifications/managing-notifications-from-your-inbox",
+    "title": "Managing notifications from your inbox",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N22",
+    "url": "https://docs.github.com/en/subscriptions-and-notifications/how-tos/viewing-and-triaging-notifications/triaging-a-single-notification",
+    "title": "Triaging a single notification",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "N23",
+    "url": "https://docs.github.com/en/subscriptions-and-notifications/reference/inbox-filters",
+    "title": "Inbox filters",
+    "feature": "Repository shell, insights, identities and discovery",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03",
+    "aliases": []
+  },
+  {
+    "id": "MS01",
+    "url": "https://docs.github.com/en/rest/commits/commits",
+    "title": "REST API endpoints for commits",
+    "feature": "Changeset retrieval and limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS02",
+    "url": "https://docs.github.com/en/rest/pulls/pulls",
+    "title": "REST API endpoints for pull requests",
+    "feature": "PR changed files and retrieval limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS03",
+    "url": "https://docs.github.com/en/rest/checks/runs",
+    "title": "REST API endpoints for check runs",
+    "feature": "Check status and conclusion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS04",
+    "url": "https://docs.github.com/en/rest/commits/statuses",
+    "title": "REST API endpoints for commit statuses",
+    "feature": "Provider statuses",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS05",
+    "url": "https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api",
+    "title": "Using pagination in the REST API",
+    "feature": "Completeness and pagination",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS06",
+    "url": "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+    "title": "Rate limits for the REST API",
+    "feature": "Rate limits and freshness",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS07",
+    "url": "https://docs.github.com/en/repositories",
+    "title": "Repositories documentation",
+    "feature": "Root discovery index",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS08",
+    "url": "https://docs.github.com/en/pull-requests",
+    "title": "Pull requests documentation",
+    "feature": "Root discovery index",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS09",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository",
+    "title": "Viewing activity and data for your repository",
+    "feature": "Insights discovery index",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS10",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows",
+    "title": "Monitor workflows",
+    "feature": "Actions discovery index",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "M24",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/agent-management",
+    "title": "About agent management",
+    "feature": "Repository Agents tab",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "M25",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template",
+    "title": "Creating a repository from a template",
+    "feature": "Template creation usage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "M26",
+    "url": "https://docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories",
+    "title": "Archiving repositories",
+    "feature": "Consumer read-only state; configuration excluded",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS11",
+    "url": "https://docs.github.com/en/github-models",
+    "title": "GitHub Models retirement",
+    "feature": "Retired surface audit",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS12",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories",
+    "title": "About repositories",
+    "feature": "Repository scope and visibility",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "N25",
+    "url": "https://docs.github.com/en/search-github/github-code-search/about-github-code-search",
+    "title": "About GitHub Code Search",
+    "feature": "Search limitations",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "M27",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository",
+    "title": "Cloning a repository",
+    "feature": "Clone versus source archive",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS13",
+    "url": "https://docs.github.com/en/graphql/reference/pulls",
+    "title": "GraphQL Pull requests reference",
+    "feature": "Viewer-specific changed-file evidence",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS14",
+    "url": "https://docs.github.com/en/rest/pulls/reviews",
+    "title": "REST API endpoints for pull request reviews",
+    "feature": "PR-level review evidence",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "MS15",
+    "url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+    "title": "REST API endpoints for workflow jobs",
+    "feature": "Runtime matrix availability boundary",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  }
+]

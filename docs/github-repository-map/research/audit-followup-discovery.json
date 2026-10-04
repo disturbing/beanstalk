@@ -1,0 +1,62 @@
+{
+  "research_date": "2026-10-03",
+  "reviewer": "collaboration",
+  "method": "official one-hop articles read; no live UI observation",
+  "findings": [
+    {
+      "id": "discovery-01",
+      "feature": "Repository Agents Automations",
+      "finding": "Creator-private definitions/editor/triggers/tools/lifecycle and shared spawned sessions were missing.",
+      "status": "accounted",
+      "locations": [
+        "02 W142\u2013W146",
+        "05 automation object/access model"
+      ],
+      "evidence_urls": [
+        "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations",
+        "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-automations"
+      ]
+    },
+    {
+      "id": "discovery-02",
+      "feature": "Issue automation suggestions",
+      "finding": "Applied rationale, pending-suggestion search and issue proposal acceptance were missing.",
+      "status": "accounted",
+      "locations": [
+        "02 W147\u2013W149",
+        "05 proposed change model",
+        "06 VZ38"
+      ],
+      "evidence_urls": [
+        "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automation-rationale-and-approvals",
+        "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/manage-rationale-confidence-approvals"
+      ]
+    },
+    {
+      "id": "discovery-03",
+      "feature": "Agent app usage",
+      "finding": "Usage article confirmed selector, assignment, mention autocomplete and OAuth; no distinct tab needed.",
+      "status": "accounted",
+      "locations": [
+        "02 W133/W134/W140"
+      ],
+      "evidence_urls": [
+        "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-agent-apps"
+      ]
+    },
+    {
+      "id": "discovery-04",
+      "feature": "GitHub Agentic Workflows",
+      "finding": "Versioned Markdown/compiled lock workflow uses standard PR/Actions interface and differs from creator-private automations.",
+      "status": "accounted",
+      "locations": [
+        "03 A118",
+        "05 definition origin"
+      ],
+      "evidence_urls": [
+        "https://docs.github.com/en/copilot/concepts/agents/about-github-agentic-workflows",
+        "https://docs.github.com/en/copilot/how-tos/github-agentic-workflows/creating-github-agentic-workflows"
+      ]
+    }
+  ]
+}

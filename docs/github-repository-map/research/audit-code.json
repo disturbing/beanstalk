@@ -1,0 +1,30 @@
+[
+  {
+    "severity": "high",
+    "location": "01-code-git-releases.md:C024; 04-insights-people-search.md:I039-I042 and code-search interpretation paragraph; 05-data-and-state-model.md:retrieval constraints",
+    "finding": "The map distinguishes search from the selected ref, but does not state the current code-search boundaries that explain otherwise misleading results: sign-in is required even for public code; only the repository default branch is searched; not every repository/file is indexed; results stop at 100 and cannot be sorted. This is a material missing state contract for a repository clone, rather than an unknown live UI label.",
+    "evidence_url": "https://docs.github.com/en/search-github/github-code-search/about-github-code-search",
+    "recommended_fix": "Add this verified article to the registry and explicit code-search gates to C024/I039-I042. State that native default-branch search does not inherit the file browser's selected branch/tag/SHA. Document capped/nonexhaustive results and absent sorting. Briefly describe index exclusions, including large/generated/vendored/binary/non-UTF-8 files. A proposed Beanstalk revision-aware or exhaustive index must be labeled as additional infrastructure."
+  },
+  {
+    "severity": "high",
+    "location": "06-visualization-opportunities.md:VZ06, prototype 1; 05-data-and-state-model.md:viewed-file denominator",
+    "finding": "The files-by-reviewer matrix and the task of locating an unreviewed risky file imply per-reviewer per-file evidence that ordinary GitHub review data does not establish. Reviews expose a PR decision and associated commit/comments; the changed-file GraphQL field viewerViewedState is explicitly for the authenticated viewer. Neither a PR approval nor an absent file comment proves that every file was inspected, and viewer state cannot be treated as a team-wide review ledger.",
+    "evidence_url": "https://docs.github.com/en/graphql/reference/pulls#pullrequestchangedfile",
+    "recommended_fix": "Keep PR-level decisions, file ownership, file comments, checks/annotations and the current viewer's viewed state as separate matrix dimensions. Mark other reviewers' file-inspection coverage unknown unless Beanstalk explicitly records authorized per-file acknowledgments tied to revision. Update the prototype fixture to include such acknowledgments or change the evaluation task to locating a file lacking required ownership/review evidence. Link review semantics to https://docs.github.com/en/rest/pulls/reviews and use the current GraphQL /reference/pulls page; the legacy /reference/objects URL now redirects to a category index."
+  },
+  {
+    "severity": "medium",
+    "location": "05-data-and-state-model.md:Job / matrix instance; 06-visualization-opportunities.md:VZ19-VZ20 and prototype 2",
+    "finding": "The proposed normalized model legitimately includes matrix values and dependency edges, but the visualization catalog leaves their acquisition implicit. The documented workflow-job response provides names, timestamps, status, steps and runner metadata; it does not document structured matrix assignments or needs edges. Matrix values can also be computed from event payloads or prior-job outputs, so parsing a static YAML file or a display name is insufficient in general. Wait causes likewise cannot always be recovered from start/end timestamps.",
+    "evidence_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+    "recommended_fix": "Add an availability note distinguishing job API timing/results from source workflow dependencies and separately captured runtime matrix assignments/wait reasons. Pin workflow source to the executed revision and handle reusable workflows, dynamic expressions, include/exclude and skipped instances. When mapping is unavailable or ambiguous, retain a job list/timeline with unknown axes/edges rather than synthesizing values. Cite the already verified workflow syntax and run-job-variations articles for declarations and dynamic matrices."
+  },
+  {
+    "severity": "medium",
+    "location": "00-repository-shell.md:S026 and clone/download explanation; 01-code-git-releases.md:C007",
+    "finding": "The shell sentence says the clone/download UI exposes repository content at a reference, which can be read as claiming a normal clone follows the branch/tag currently selected in the browser. A source archive is a selected snapshot without Git history; ordinary cloning copies Git history and refs and normally checks out the default branch unless the command selects something else. The distinction is correct in C008 but should also be explicit at the acquisition entry. The command-palette citation supports clone URL commands, not the full Code dropdown or archive action.",
+    "evidence_url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository",
+    "recommended_fix": "Describe source ZIP/tar downloads as a snapshot of the selected ref/SHA and Git clone as a history-bearing local repository, with branch selection controlled by clone arguments or later checkout. Add the actual cloning article as direct evidence for the Code dropdown's HTTPS/SSH/CLI and Open with GitHub Desktop choices; keep archive evidence linked to the source-code-archives article. The separate hosting metadata exclusion remains correct."
+  }
+]

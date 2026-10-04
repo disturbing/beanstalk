@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-10-02T18:18:44.728545+00:00",
+  "documentation_files": 10,
+  "component_count": 464,
+  "counts_by_document": {
+    "00-repository-shell.md": 54,
+    "01-code-git-releases.md": 91,
+    "02-work-items-and-reviews.md": 149,
+    "03-automation-delivery-security.md": 118,
+    "04-insights-people-search.md": 52
+  },
+  "source_records": 308,
+  "unique_source_urls": 294,
+  "issues": [],
+  "scope": "github-repository-map only; no app/UI tests",
+  "fetch_summary": {
+    "sources_checked": 294,
+    "reachable": 294
+  },
+  "fetch_failures": 0
+}

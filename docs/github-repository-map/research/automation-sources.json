@@ -1,0 +1,839 @@
+[
+  {
+    "id": "AS01",
+    "url": "https://docs.github.com/en/actions/get-started/quickstart",
+    "title": "Quickstart for GitHub Actions",
+    "feature": "Actions entry and workflow creation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS02",
+    "url": "https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/monitoring-workflows/viewing-workflow-run-history",
+    "title": "Viewing workflow run history",
+    "feature": "Workflow sidebar and run list",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS03",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/use-the-visualization-graph",
+    "title": "Using the visualization graph",
+    "feature": "Run dependency graph",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS04",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/use-workflow-run-logs",
+    "title": "Using workflow run logs",
+    "feature": "Logs, steps, search, attempts",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS05",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/view-job-execution-time",
+    "title": "Viewing job execution time",
+    "feature": "Job duration",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS06",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow",
+    "title": "Manually running a workflow",
+    "feature": "Manual dispatch",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS07",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs",
+    "title": "Re-running workflows and jobs",
+    "feature": "Reruns",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS08",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/cancel-a-workflow-run",
+    "title": "Canceling a workflow run",
+    "feature": "Cancellation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS09",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/delete-a-workflow-run",
+    "title": "Deleting a workflow run",
+    "feature": "Run deletion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS10",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts",
+    "title": "Downloading workflow artifacts",
+    "feature": "Artifact retrieval and retention",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS11",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/remove-workflow-artifacts",
+    "title": "Removing workflow artifacts",
+    "feature": "Artifact deletion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS12",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-caches",
+    "title": "Managing caches",
+    "feature": "Cache management",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS13",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/approve-runs-from-forks",
+    "title": "Approving workflow runs from forks",
+    "feature": "Fork execution approval",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS14",
+    "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+    "title": "Control the concurrency of workflows and jobs",
+    "feature": "Queue and concurrency semantics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS15",
+    "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands",
+    "title": "Workflow commands for GitHub Actions",
+    "feature": "Annotations, grouped logs, masking, summaries",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS16",
+    "url": "https://docs.github.com/en/rest/actions/workflow-runs",
+    "title": "REST API endpoints for workflow runs",
+    "feature": "Run identities and attempts",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS17",
+    "url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+    "title": "REST API endpoints for workflow jobs",
+    "feature": "Jobs, steps and runner metadata",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS18",
+    "url": "https://docs.github.com/en/rest/checks/runs",
+    "title": "REST API endpoints for check runs",
+    "feature": "Check state and conclusions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS19",
+    "url": "https://docs.github.com/en/rest/commits/statuses",
+    "title": "REST API endpoints for commit statuses",
+    "feature": "Legacy commit statuses",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS20",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-runners/github-hosted-runners/use-github-hosted-runners",
+    "title": "Using GitHub-hosted runners",
+    "feature": "Available hosted runners",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS21",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/use-in-a-workflow",
+    "title": "Using self-hosted runners in a workflow",
+    "feature": "Self-hosted runners and scale sets",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS22",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/view-job-condition-logs",
+    "title": "Viewing job condition expression logs",
+    "feature": "Condition diagnostics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS23",
+    "url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/add-a-status-badge",
+    "title": "Adding a workflow status badge",
+    "feature": "README status badges",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS24",
+    "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations",
+    "title": "Running variations of jobs in a workflow",
+    "feature": "Matrix execution",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS25",
+    "url": "https://docs.github.com/en/actions/concepts/workflows-and-actions/reusing-workflow-configurations",
+    "title": "Reusing workflow configurations",
+    "feature": "Reusable workflows and composite actions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS26",
+    "url": "https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/view-deployment-history",
+    "title": "Viewing deployment history",
+    "feature": "Deployments dashboard",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS27",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-deployment-activity-for-your-repository",
+    "title": "Viewing deployment activity for your repository",
+    "feature": "Older deployment entry naming",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS28",
+    "url": "https://docs.github.com/en/rest/deployments/deployments",
+    "title": "REST API endpoints for deployments",
+    "feature": "Deployment objects",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS29",
+    "url": "https://docs.github.com/en/rest/deployments/statuses",
+    "title": "REST API endpoints for deployment statuses",
+    "feature": "Deployment status events",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS30",
+    "url": "https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments",
+    "title": "Reviewing deployments",
+    "feature": "Approval and rejection UI",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS31",
+    "url": "https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments",
+    "title": "Deploying with GitHub Actions",
+    "feature": "Protection runtime and deployment:false",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS32",
+    "url": "https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/about-jekyll-build-errors-for-github-pages-sites",
+    "title": "About Jekyll build errors for GitHub Pages sites",
+    "feature": "Pages build diagnosis",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS33",
+    "url": "https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site",
+    "title": "Creating a GitHub Pages site",
+    "feature": "Published site and availability",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS34",
+    "url": "https://docs.github.com/en/packages/learn-github-packages/viewing-packages",
+    "title": "Viewing packages",
+    "feature": "Repository package navigation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS35",
+    "url": "https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages",
+    "title": "About permissions for GitHub Packages",
+    "feature": "Registry permissions and download access",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS36",
+    "url": "https://docs.github.com/en/packages/learn-github-packages/deleting-and-restoring-a-package",
+    "title": "Deleting and restoring a package",
+    "feature": "Package version deletion and restoration",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS37",
+    "url": "https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages",
+    "title": "Introduction to GitHub Packages",
+    "feature": "Package overview metadata",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS38",
+    "url": "https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/add-security-policy",
+    "title": "Adding a security policy to your repository",
+    "feature": "SECURITY.md policy",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS39",
+    "url": "https://docs.github.com/en/code-security/concepts/vulnerability-reporting-and-management/repository-security-advisories",
+    "title": "Repository security advisories",
+    "feature": "Advisory access",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS40",
+    "url": "https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/fix-reported-vulnerabilities/create-repository-advisory",
+    "title": "Creating a repository security advisory",
+    "feature": "Draft fields and credits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS41",
+    "url": "https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/report-privately",
+    "title": "Privately reporting a security vulnerability",
+    "feature": "Reporter form",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS42",
+    "url": "https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/fix-reported-vulnerabilities/manage-vulnerability-reports",
+    "title": "Managing privately reported security vulnerabilities",
+    "feature": "Maintainer triage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS43",
+    "url": "https://docs.github.com/en/code-security/tutorials/fix-reported-vulnerabilities/collaborate-in-a-fork",
+    "title": "Collaborating in a temporary private fork to resolve a repository security vulnerability",
+    "feature": "Private remediation fork",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS44",
+    "url": "https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/fix-reported-vulnerabilities/publish-repository-advisory",
+    "title": "Publishing a repository security advisory",
+    "feature": "Publication and CVE",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS45",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/explore-dependencies",
+    "title": "Exploring the dependencies of a repository",
+    "feature": "Dependency graph and dependents",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS46",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/establish-provenance-and-integrity/export-dependencies-as-sbom",
+    "title": "Exporting a software bill of materials for your repository",
+    "feature": "SPDX export",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS47",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-dependabot-alerts/view-dependabot-alerts",
+    "title": "Viewing and updating Dependabot alerts",
+    "feature": "Alert triage and agent assignment",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS48",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts",
+    "title": "Dependabot alerts",
+    "feature": "Alert entities and gates",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS49",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-dependabot-alerts/manage-malware-alerts",
+    "title": "Managing Dependabot malware alerts",
+    "feature": "Malware list and triage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS50",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/malware-alerts",
+    "title": "Dependabot malware alerts",
+    "feature": "Malware behavior and limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS51",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/list-configured-dependencies",
+    "title": "Listing dependencies configured for version updates",
+    "feature": "Monitored manifests",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS52",
+    "url": "https://docs.github.com/en/code-security/how-tos/view-and-interpret-data/view-dependabot-logs",
+    "title": "Viewing Dependabot job logs",
+    "feature": "Update-job logs",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS53",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-job-logs",
+    "title": "Dependabot job logs",
+    "feature": "Update-job types",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS54",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/assess-alerts",
+    "title": "Assessing code scanning alerts for your repository",
+    "feature": "Alert list, detail, branch state and data flow",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS55",
+    "url": "https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts",
+    "title": "Code scanning alerts",
+    "feature": "Scanning findings versus execution",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS56",
+    "url": "https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/manage-your-configuration/use-the-tools-status-page-for-code-scanning",
+    "title": "Use the tool status page for code scanning",
+    "feature": "Tool health and coverage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS57",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts",
+    "title": "Resolving code scanning alerts",
+    "feature": "Fixes, dismissal, Autofix",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS58",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/triage-alerts-in-pull-requests",
+    "title": "Triaging code scanning alerts in pull requests",
+    "feature": "PR results check",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS59",
+    "url": "https://docs.github.com/en/code-security/reference/code-scanning/sarif-files/sarif-support",
+    "title": "SARIF support for code scanning",
+    "feature": "Rules, results and identities",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS60",
+    "url": "https://docs.github.com/en/code-security/concepts/code-scanning/ai-powered-security-detections",
+    "title": "AI Scan for pull requests",
+    "feature": "PR-only AI findings",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS61",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-secret-scanning-alerts/viewing-alerts",
+    "title": "Viewing and filtering alerts from secret scanning",
+    "feature": "Secret lists and filters",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS62",
+    "url": "https://docs.github.com/en/code-security/concepts/secret-security/about-alerts",
+    "title": "About secret scanning alerts",
+    "feature": "Alert categories and limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS63",
+    "url": "https://docs.github.com/en/code-security/tutorials/remediate-leaked-secrets/evaluating-alerts",
+    "title": "Evaluating alerts from secret scanning",
+    "feature": "Validity and token metadata",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS64",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-secret-scanning-alerts/resolving-alerts",
+    "title": "Resolving alerts from secret scanning",
+    "feature": "Secret resolution",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS65",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-secrets/work-with-leak-prevention/push-protection-in-the-github-ui",
+    "title": "Working with push protection in the GitHub UI",
+    "feature": "Blocked web edits and bypass",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS66",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-secrets/manage-bypass-requests/manage-bypass-requests",
+    "title": "Managing requests to bypass push protection",
+    "feature": "Repository bypass queue",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS67",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-secrets/manage-bypass-requests/review-bypass-requests",
+    "title": "Reviewing requests to bypass push protection",
+    "feature": "Organization status terminology",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS68",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/remediate-alerts-at-scale/review-alert-dismissal-requests",
+    "title": "Reviewing alert dismissal requests",
+    "feature": "Delegated dismissal",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS69",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/interpret-results",
+    "title": "Interpreting the code quality results for your repository",
+    "feature": "Code Quality findings and entry",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS70",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/fix-backlog-findings",
+    "title": "Fixing code quality findings in your repository backlog",
+    "feature": "Standard findings remediation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS71",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/fix-findings-in-recent-merges",
+    "title": "Fixing code quality findings in recently merged files",
+    "feature": "AI recent-merge suggestions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS72",
+    "url": "https://docs.github.com/en/code-security/reference/code-quality/metrics-and-ratings",
+    "title": "Metrics and scores reference",
+    "feature": "Reliability and maintainability",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS73",
+    "url": "https://docs.github.com/en/code-security/reference/code-quality/codeql-detection",
+    "title": "CodeQL-powered analysis for Code Quality",
+    "feature": "Quality workflow and PR findings",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS74",
+    "url": "https://docs.github.com/en/code-security/reference/code-quality/code-coverage",
+    "title": "Code coverage reference",
+    "feature": "Native line coverage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS75",
+    "url": "https://docs.github.com/en/code-security/tutorials/secure-your-organization/prioritize-alerts-in-production-code",
+    "title": "Prioritizing Dependabot and code scanning alerts using production context",
+    "feature": "Runtime risk context",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS76",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/open-source-license-compliance",
+    "title": "About open source license compliance",
+    "feature": "PR license policy findings",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS77",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/linked-artifacts",
+    "title": "About linked artifacts",
+    "feature": "Artifact provenance and deployment metadata",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS78",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/establish-provenance-and-integrity/view-linked-artifacts",
+    "title": "Auditing your organization's builds on the linked artifacts page",
+    "feature": "Artifact detail drilldown",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS79",
+    "url": "https://docs.github.com/en/code-security/concepts/security-at-scale/security-overview",
+    "title": "Security overview",
+    "feature": "Organization versus repository boundary",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS80",
+    "url": "https://docs.github.com/en/rest/actions/artifacts",
+    "title": "REST API endpoints for GitHub Actions artifacts",
+    "feature": "Artifact metadata, expiry and digest",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS81",
+    "url": "https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks",
+    "title": "Using the REST API to interact with checks",
+    "feature": "Suite aggregation, requested actions and check retention",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS82",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows",
+    "title": "Disabling and enabling a workflow",
+    "feature": "Workflow lifecycle controls",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS83",
+    "url": "https://docs.github.com/en/actions/how-tos/administer/view-metrics",
+    "title": "Viewing GitHub Actions metrics",
+    "feature": "Repository metrics navigation and aggregation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS84",
+    "url": "https://docs.github.com/en/actions/concepts/metrics",
+    "title": "About GitHub Actions metrics",
+    "feature": "Usage and performance measures",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS85",
+    "url": "https://docs.github.com/en/code-security/concepts/security-at-scale/delegated-alert-dismissal",
+    "title": "Delegated alert dismissal",
+    "feature": "Request versus direct dismissal",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS86",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/fix-findings-on-a-pr",
+    "title": "Fixing code quality findings on a pull request",
+    "feature": "PR finding controls",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS87",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/unblock-your-pr",
+    "title": "Resolving a block on your pull request",
+    "feature": "Quality and coverage merge gates",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS88",
+    "url": "https://docs.github.com/en/code-security/how-tos/maintain-quality-code/view-coverage-on-prs",
+    "title": "Viewing code coverage on pull requests",
+    "feature": "Coverage summary comment",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS89",
+    "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs",
+    "title": "Skipping workflow runs",
+    "feature": "Skipped triggers and pending checks",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS90",
+    "url": "https://docs.github.com/en/code-security/concepts/security-at-scale/about-security-campaigns",
+    "title": "About security campaigns",
+    "feature": "Alert assignment permissions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS91",
+    "url": "https://docs.github.com/en/code-security/tutorials/manage-security-alerts/best-practices-for-participating-in-a-security-campaign",
+    "title": "Participating in a code security campaign",
+    "feature": "Repository campaign usage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS92",
+    "url": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-secret-scanning-alerts/enable-delegated-dismissal",
+    "title": "Enabling delegated alert dismissal for secret scanning",
+    "feature": "Secret dismissal request expiry; configuration excluded",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "AS93",
+    "url": "https://docs.github.com/en/rest/actions/workflows",
+    "title": "REST API endpoints for workflows",
+    "feature": "Workflow state and mutation permission",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  }
+]

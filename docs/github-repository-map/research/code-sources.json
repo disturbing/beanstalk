@@ -1,0 +1,542 @@
+[
+  {
+    "id": "CS01",
+    "url": "https://github.com/github/docs",
+    "title": "Live github/docs repository markup",
+    "feature": "Live github/docs repository markup",
+    "verified": true,
+    "method": "web page markup read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS02",
+    "url": "https://docs.github.com/en/pull-requests/reference/branches",
+    "title": "Branches and Git diff comparison semantics",
+    "feature": "Branches and Git diff comparison semantics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS03",
+    "url": "https://docs.github.com/en/get-started/accessibility/keyboard-shortcuts",
+    "title": "Keyboard shortcuts",
+    "feature": "Keyboard shortcuts",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS04",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github",
+    "title": "Navigating code on GitHub",
+    "feature": "Navigating code on GitHub",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS05",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/viewing-and-understanding-files",
+    "title": "Viewing and understanding files",
+    "feature": "Viewing and understanding files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS06",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/getting-permanent-links-to-files",
+    "title": "Getting permanent links to files",
+    "feature": "Getting permanent links to files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS07",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-a-permanent-link-to-a-code-snippet",
+    "title": "Creating a permanent link to a code snippet",
+    "feature": "Creating a permanent link to a code snippet",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS08",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives",
+    "title": "Downloading source code archives",
+    "feature": "Downloading source code archives",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS09",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files",
+    "title": "Working with non-code files",
+    "feature": "Working with non-code files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS10",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files",
+    "title": "Creating new files",
+    "feature": "Creating new files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS11",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository",
+    "title": "Adding a file to a repository",
+    "feature": "Adding a file to a repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS12",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files",
+    "title": "Editing files",
+    "feature": "Editing files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS13",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/moving-a-file-to-a-new-location",
+    "title": "Moving a file to a new location",
+    "feature": "Moving a file to a new location",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS14",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/renaming-a-file",
+    "title": "Renaming a file",
+    "feature": "Renaming a file",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS15",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/deleting-files-in-a-repository",
+    "title": "Deleting files in a repository",
+    "feature": "Deleting files in a repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS16",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-files/customizing-how-changed-files-appear-on-github",
+    "title": "Customizing how changed files appear on GitHub",
+    "feature": "Customizing how changed files appear on GitHub",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS17",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/viewing-branches-in-your-repository",
+    "title": "Viewing branches in your repository",
+    "feature": "Viewing branches in your repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS18",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/commit-changes/managing-branches-within-your-repository",
+    "title": "Managing branches within your repository",
+    "feature": "Managing branches within your repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS19",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch",
+    "title": "Renaming a branch",
+    "feature": "Renaming a branch",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS20",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/deleting-and-restoring-branches-in-a-pull-request",
+    "title": "Deleting and restoring branches in a pull request",
+    "feature": "Deleting and restoring branches in a pull request",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS21",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/commit-changes/comparing-commits",
+    "title": "Comparing commits",
+    "feature": "Comparing commits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS22",
+    "url": "https://docs.github.com/en/pull-requests/reference/commits",
+    "title": "Commits",
+    "feature": "Commits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS23",
+    "url": "https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification",
+    "title": "About commit signature verification",
+    "feature": "About commit signature verification",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS24",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/work-with-forks/fork-a-repo",
+    "title": "Fork a repository",
+    "feature": "Fork a repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS25",
+    "url": "https://docs.github.com/en/pull-requests/reference/forks",
+    "title": "Forks",
+    "feature": "Forks",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS26",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/work-with-forks/syncing-a-fork",
+    "title": "Syncing a fork",
+    "feature": "Syncing a fork",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS27",
+    "url": "https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/understanding-connections-between-repositories",
+    "title": "Understanding connections between repositories",
+    "feature": "Understanding connections between repositories",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS28",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases",
+    "title": "About releases",
+    "feature": "About releases",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS29",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository",
+    "title": "Managing releases in a repository",
+    "feature": "Managing releases in a repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS30",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/viewing-your-repositorys-releases-and-tags",
+    "title": "Viewing your repository's releases and tags",
+    "feature": "Viewing your repository's releases and tags",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS31",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/searching-a-repositorys-releases",
+    "title": "Searching a repository's releases",
+    "feature": "Searching a repository's releases",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS32",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases",
+    "title": "Linking to releases",
+    "feature": "Linking to releases",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS33",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes",
+    "title": "About the repository README file",
+    "feature": "About the repository README file",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS34",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/comparing-releases",
+    "title": "Comparing releases",
+    "feature": "Comparing releases",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS35",
+    "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes",
+    "title": "Automatically generated release notes",
+    "feature": "Automatically generated release notes",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS36",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage",
+    "title": "About Git Large File Storage",
+    "feature": "About Git Large File Storage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS37",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-repository-languages",
+    "title": "About repository languages",
+    "feature": "About repository languages",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS38",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits",
+    "title": "Repository limits",
+    "feature": "Repository limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS39",
+    "url": "https://docs.github.com/en/rest/git/commits",
+    "title": "REST API endpoints for Git commits",
+    "feature": "REST API endpoints for Git commits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS40",
+    "url": "https://docs.github.com/en/rest/git/trees",
+    "title": "REST API endpoints for Git trees",
+    "feature": "REST API endpoints for Git trees",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS41",
+    "url": "https://docs.github.com/en/rest/repos/contents",
+    "title": "REST API endpoints for repository contents",
+    "feature": "REST API endpoints for repository contents",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS42",
+    "url": "https://docs.github.com/en/search-github/github-code-search/understanding-github-code-search-syntax",
+    "title": "Understanding GitHub Code Search syntax",
+    "feature": "Understanding GitHub Code Search syntax",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS43",
+    "url": "https://docs.github.com/en/rest/git/tags",
+    "title": "REST API endpoints for Git tags",
+    "feature": "REST API endpoints for Git tags",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS44",
+    "url": "https://docs.github.com/en/rest/git/refs",
+    "title": "REST API endpoints for Git references",
+    "feature": "REST API endpoints for Git references",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS45",
+    "url": "https://docs.github.com/en/codespaces/the-githubdev-web-based-editor",
+    "title": "Using VS Code for the Web from GitHub",
+    "feature": "Using VS Code for the Web from GitHub",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS46",
+    "url": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/collaboration-with-git-large-file-storage",
+    "title": "Collaboration with Git Large File Storage",
+    "feature": "Collaboration with Git Large File Storage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS47",
+    "url": "https://docs.github.com/en/repositories/working-with-files/using-files/downloading-files-from-github",
+    "title": "Downloading files from GitHub",
+    "feature": "Downloading files from GitHub",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS48",
+    "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases",
+    "title": "Immutable releases",
+    "feature": "Immutable releases",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS49",
+    "url": "https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/verify-release-integrity",
+    "title": "Verifying the integrity of a release",
+    "feature": "Verifying the integrity of a release",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS50",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+    "title": "Licensing a repository",
+    "feature": "Licensing a repository",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS51",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files",
+    "title": "About CITATION files",
+    "feature": "About CITATION files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS52",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+    "title": "About code owners",
+    "feature": "About code owners",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS53",
+    "url": "https://docs.github.com/en/get-started/git-basics/ignoring-files",
+    "title": "Ignoring files",
+    "feature": "Ignoring files",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS54",
+    "url": "https://docs.github.com/en/rest/releases/assets",
+    "title": "REST API endpoints for release assets",
+    "feature": "REST API endpoints for release assets",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS55",
+    "url": "https://github.com/cli/cli/releases",
+    "title": "Live cli/cli release feed markup",
+    "feature": "Live cli/cli release feed markup",
+    "verified": true,
+    "method": "web page markup read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS56",
+    "url": "https://git-scm.com/docs/gitrevisions",
+    "title": "Git revision range semantics",
+    "feature": "Git revision range semantics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS57",
+    "url": "https://git-scm.com/docs/git-diff",
+    "title": "Git diff endpoint semantics",
+    "feature": "Git diff endpoint semantics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS58",
+    "url": "https://docs.github.com/en/search-github/github-code-search/about-github-code-search",
+    "title": "About GitHub Code Search",
+    "feature": "Search limitations",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS59",
+    "url": "https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository",
+    "title": "Cloning a repository",
+    "feature": "Clone versus source archive",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "CS60",
+    "url": "https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace",
+    "title": "Publishing actions in GitHub Marketplace",
+    "feature": "Conditional release/action publication",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "severity": "medium",
+    "location": "02-work-items-and-reviews.md:W045-W047; 07-coverage-and-validation.md:fork PR creation coverage",
+    "finding": "The personal-fork PR permission control is missing. Authors can allow upstream maintainers to commit to the compare branch at creation or later. If the fork contains Actions workflows, the documented checkbox explicitly includes access to secrets; this is a contribution capability, not a repository Settings page.",
+    "evidence_url": "https://docs.github.com/en/pull-requests/how-tos/work-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork",
+    "recommended_fix": "Add a stable component group or expand creation/header actions for Allow edits from maintainers and its workflow variant. Record personal-fork eligibility, upstream push-access requirement, and the actual permission consequence. Keep this distinct from ordinary base-repository write access."
+  },
+  {
+    "severity": "medium",
+    "location": "02-work-items-and-reviews.md:W002/W010 composer; 00-repository-shell.md:S044",
+    "finding": "The shared composer omits documented slash-command prompts. These are current public-preview usage controls in supported issue, PR, and discussion description/comment fields.",
+    "evidence_url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/about-slash-commands",
+    "recommended_fix": "Map slash insertion/autocomplete and its follow-up prompts: /code, /details, /saved-replies, /table, and /template. Preserve supported-surface and preview gates; /template inserts a repository template, while /saved-replies selects personal reply content."
+  },
+  {
+    "severity": "medium",
+    "location": "02-work-items-and-reviews.md:Projects W095-W114 and export live-gap bullet; 07-coverage-and-validation.md:Projects coverage",
+    "finding": "Project export is recorded only as an unresolved live detail, although its usage and permission are documented. People who can access the project can use View → Export view data; the output is TSV.",
+    "evidence_url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/exporting-your-projects-data",
+    "recommended_fix": "Add a Project view-export group/action with read/access eligibility and tab-separated output. Do not inherit the CSV/PNG formats of Insights charts. Retain live validation only for current menu placement and file contents."
+  },
+  {
+    "severity": "medium",
+    "location": "02-work-items-and-reviews.md:W027-W028 milestone index/detail/assignment",
+    "finding": "Milestone browsing and assignment are covered, but the milestone creation/edit/delete usage surface is absent. These actions live beside the issue/PR list and on milestone entries, not in Settings.",
+    "evidence_url": "https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/creating-and-editing-milestones-for-issues-and-pull-requests",
+    "recommended_fix": "Map New Milestone, title/Markdown description/date editor, save, and Delete. Keep milestone deletion separate from deleting its associated issues/PRs. Document role eligibility only when verified; the article itself does not establish all role gates."
+  },
+  {
+    "severity": "high",
+    "location": "00-repository-shell.md:S053; 02-work-items-and-reviews.md:W122-W123; 07-coverage-and-validation.md:Agents boundaries",
+    "finding": "The repository Agents inventory models Copilot and custom agents but omits the current third-party coding-agent and agent-app usage choices. Third-party agents can be selected in the Agents tab, assigned to issues, and invoked through PR mentions; they are not merely models or custom-agent profiles.",
+    "evidence_url": "https://docs.github.com/en/copilot/concepts/agents/about-third-party-coding-agents",
+    "recommended_fix": "Add agent-kind selection and the issue/PR invocation paths with paid-plan, policy, and public-preview gates. Read/register https://docs.github.com/en/copilot/concepts/agents/agent-apps for app selection and first-use OAuth authorization. Exclude installation/policy administration but include its resulting availability and authorization handoff. Avoid hard-coding today's model list."
+  },
+  {
+    "severity": "medium",
+    "location": "02-work-items-and-reviews.md:W124-W125; 05-data-and-state-model.md:objects and capabilities; 06-visualization-opportunities.md:session catalog",
+    "finding": "Agent-session sharing, local handoff, and query scope are not mapped as controls, and the normalized object table only has a Codespaces development session. Cloud sessions are shared with repository readers; shared local sessions are view-only, and only the initiating user can query synced history. Steering is unavailable for third-party coding agents.",
+    "evidence_url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/manage-and-track-agents",
+    "recommended_fix": "Add session share/unshare and history-query handoffs, actor-specific visibility/steering capabilities, and cloud archive-without-delete behavior. Add a distinct AgentSession/attempt object linked to agent kind, initiator, repository/base, PR/commits, trace, state and sharing. Agent-management docs also describe Open in VS Code / Continue in Copilot CLI; map these entry actions, not entire IDEs."
+  },
+  {
+    "severity": "high",
+    "location": "02-work-items-and-reviews.md:W070/W126/W128; 03-automation-delivery-security.md:A014/A034; 05-data-and-state-model.md:approval boundaries",
+    "finding": "Cloud-agent PRs have an additional workflow trust gate omitted from the map: Actions do not run automatically by default after agent pushes; the PR merge box offers Approve and run workflows. The same current article also documents Fix with Copilot on a failing PR-branch job and batched delegation of human review comments.",
+    "evidence_url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github",
+    "recommended_fix": "Map agent-workflow approval separately from fork and environment approval; keep the configuration-dependent default explicit. Add failed-job Fix with Copilot, conflict-fix entry, PR @copilot invocation with write eligibility/model picker, and Add to batch → Manage batch → Fix and commit/new PR. Each action starts work against an explicit branch/revision rather than certifying a fix."
+  }
+]

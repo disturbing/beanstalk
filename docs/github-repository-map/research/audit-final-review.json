@@ -1,0 +1,15 @@
+{
+  "research_date": "2026-10-03",
+  "reviewer": "collaboration",
+  "scope": "Bounded final semantic review of the completed additions against already-read primary sources; no new broad crawl or live UI tests.",
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "02 W124/W126; 05 Agent session",
+      "finding": "A cloud-agent task can push changes without opening a PR; the session logs expose a Create pull request action.",
+      "evidence_url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github",
+      "recommended_fix": "Map PR creation from session logs, a changes-pushed/no-PR state, and an optional session-to-PR relation."
+    }
+  ],
+  "remaining_material_issues": []
+}

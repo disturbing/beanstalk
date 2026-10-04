@@ -1,0 +1,51 @@
+[
+  {
+    "severity": "medium",
+    "location": "01-code-git-releases.md: C085 / release publication",
+    "finding": "The official release-management article links a genuine repository-specific Marketplace action publication flow that is absent from the inventory: action.yml banner → Draft a release, Publish this Action checkbox, metadata validation, primary/secondary category controls, and unpublishing per release.",
+    "evidence_url": "https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace",
+    "recommended_fix": "Add a conditional release/Actions Marketplace publication component or expand C085. Include public repository/root action metadata, unique name, developer-agreement checkbox gate and 2FA; mark external Marketplace listing as a boundary. This is a release form, not a Settings form."
+  },
+  {
+    "severity": "medium",
+    "location": "05-data-and-state-model.md: Alert / finding object and Security finding state dimension",
+    "finding": "One normalized alert state is insufficient for code-scanning branch/configuration occurrence states. The detail header always reflects the default branch; nondefault-only alerts show in branch/in pull request, and different configurations can disagree because scans are stale.",
+    "evidence_url": "https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts",
+    "recommended_fix": "Add alert occurrence identity (alert + branch + analysis configuration), last analysis time and raw occurrence state. Keep default-branch presentation state separate from source-specific overall resolution. Refer to A079 rather than assuming every finding belongs to one revision."
+  },
+  {
+    "severity": "medium",
+    "location": "05-data-and-state-model.md: Alert / finding, Repository capability and minimum fixtures",
+    "finding": "Secret validity active/inactive/unknown is independent of open/closed resolution, and assigning a secret alert can temporarily grant an otherwise unauthorized writer access to only that alert. A repository-wide alert-read capability cannot express this object-specific grant or its revocation.",
+    "evidence_url": "https://docs.github.com/en/code-security/concepts/security-at-scale/about-security-campaigns",
+    "recommended_fix": "Add validity to secret subtype and object-scoped alert access/assignment lifecycle. Include assigned-secret-viewer → unassigned-access-revoked fixture; link validity semantics to A088 and assignment semantics to A115."
+  },
+  {
+    "severity": "medium",
+    "location": "05-data-and-state-model.md: Deployment / status and Environment / approval",
+    "finding": "The proposed model should explicitly allow an environment-referencing Actions job to wait for review/timer without having a deployment object. Current environment deployment:false behavior preserves these gates and omits deployment history; a custom protection app fails without a deployment record.",
+    "evidence_url": "https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments",
+    "recommended_fix": "Make deployment relation optional on an environment approval and keep wait reason/gate type on job context. Add one environment-only waiting fixture and distinguish custom-app incompatibility failure from reviewer rejection."
+  },
+  {
+    "severity": "medium",
+    "location": "05-data-and-state-model.md: Artifact / cache and Package / version; cross-feature relationships",
+    "finding": "New linked-artifact storage/deployment metadata is a distinct entity family: organization Packages → Linked artifacts hosts metadata only, can describe external registries, and its deployment records do not come from the repository deployment dashboard.",
+    "evidence_url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/linked-artifacts",
+    "recommended_fix": "Add provenance attestation and linked artifact storage/deployment record objects, retaining source-system identity. Keep optional references to workflow artifact/package version/source repo and never union repository deployment events with runtime metadata merely because their environment names match."
+  },
+  {
+    "severity": "low",
+    "location": "06-visualization-opportunities.md: VZ22 Check evidence lineage",
+    "finding": "The proposed linear Commit → attempt → checks → artifact/deployment chain can imply a check creates artifacts or proves a deployment. Actions workflow run produces a suite, each job a check run, artifacts are run-linked outputs, and deployments can be independently created.",
+    "evidence_url": "https://docs.github.com/en/actions/how-tos/monitor-workflows/use-workflow-run-logs",
+    "recommended_fix": "Describe a branched lineage: commit → run/attempt → jobs/checks, with separate artifact/deployment links supported by provenance. Preserve independent legacy status contexts and third-party checks; unknown links remain missing."
+  },
+  {
+    "severity": "low",
+    "location": "06-visualization-opportunities.md: VZ29 Code Quality trend/context",
+    "finding": "Reliability/Maintainability ratings are worst-finding-severity categories, not continuous numeric measurements. A trend panel should not imply a small severity-count change is a measured improvement in a universal quality score.",
+    "evidence_url": "https://docs.github.com/en/code-security/reference/code-quality/metrics-and-ratings",
+    "recommended_fix": "Show categorical rating and underlying rule/severity counts with comparable analysis coverage and revision, retaining Standard findings vs recent-merge AI findings distinctions. Require uploaded line-coverage baseline freshness when showing coverage delta."
+  }
+]

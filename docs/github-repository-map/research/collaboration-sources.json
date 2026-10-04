@@ -1,0 +1,893 @@
+[
+  {
+    "id": "COL01",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue",
+    "title": "Creating an issue",
+    "feature": "Issues creation and duplicate suggestions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL02",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues",
+    "title": "Adding sub-issues",
+    "feature": "Sub-issue creation and limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL03",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies",
+    "title": "Creating issue dependencies",
+    "feature": "Blocked-by and blocking relations",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL04",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/browsing-sub-issues",
+    "title": "Browsing sub-issues",
+    "feature": "Hierarchy navigation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL05",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests",
+    "title": "Filtering and searching issues and pull requests",
+    "feature": "List filters search sorting and shared URLs",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL06",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-and-managing-issue-fields",
+    "title": "Adding and managing issue fields",
+    "feature": "Typed issue values visibility and timeline",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL07",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization",
+    "title": "Managing issue types in an organization",
+    "feature": "Issue type usage and organization ownership",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL08",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/assigning-issues-and-pull-requests-to-other-github-users",
+    "title": "Assigning issues and pull requests to other GitHub users",
+    "feature": "Assignee eligibility picker and bulk changes",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL09",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/editing-an-issue",
+    "title": "Editing an issue",
+    "feature": "Title body and issue type editing",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL10",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue",
+    "title": "Creating a branch to work on an issue",
+    "feature": "Development branch creation preview",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL11",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue",
+    "title": "Linking a pull request to an issue",
+    "feature": "Development links closing keywords default-branch behavior",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL12",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/pinning-an-issue-to-your-repository",
+    "title": "Pinning an issue to your repository",
+    "feature": "Pinned issue usage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL13",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/marking-issues-or-pull-requests-as-a-duplicate",
+    "title": "Marking issues or pull requests as a duplicate",
+    "feature": "Duplicate relation and timeline undo",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL14",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/transferring-an-issue-to-another-repository",
+    "title": "Transferring an issue to another repository",
+    "feature": "Transfer retention redirect and access",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL15",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/closing-an-issue",
+    "title": "Closing an issue",
+    "feature": "Close and reason selection",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL16",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/deleting-an-issue",
+    "title": "Deleting an issue",
+    "feature": "Deletion permission and missing-page state",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL17",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/administering-issues/cloning-an-issue",
+    "title": "Cloning an issue",
+    "feature": "Clone prefilled form and target requirements",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL18",
+    "url": "https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels",
+    "title": "Managing labels",
+    "feature": "Shared repository labels and usage",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL19",
+    "url": "https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/about-milestones",
+    "title": "About milestones",
+    "feature": "Milestone data progress and ordering",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL20",
+    "url": "https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/viewing-your-milestones-progress",
+    "title": "Viewing your milestone's progress",
+    "feature": "Milestones navigation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL21",
+    "url": "https://docs.github.com/en/pull-requests/get-started/about-pull-requests",
+    "title": "About pull requests",
+    "feature": "PR tabs timeline and merge box",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL22",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request",
+    "title": "Creating a pull request",
+    "feature": "PR creation base-head selectors draft and file editing",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL23",
+    "url": "https://docs.github.com/en/pull-requests/get-started/about-stacked-prs",
+    "title": "About stacked pull requests",
+    "feature": "Stack preview membership map and same-repo requirement",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL24",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request",
+    "title": "Reviewing proposed changes in a pull request",
+    "feature": "Diff review controls pending reviews viewed progress and AI context",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL25",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request",
+    "title": "Commenting on a pull request",
+    "feature": "Line file comments conversations navigation and resolution",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL26",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/viewing-a-pull-request-review",
+    "title": "Viewing a pull request review",
+    "feature": "Historical review snapshot",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL27",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request",
+    "title": "Incorporating feedback in your pull request",
+    "feature": "Suggestions batching co-authorship rereview and delegation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL28",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review",
+    "title": "Requesting a pull request review",
+    "feature": "Reviewer requests suggestions teams and Copilot",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL29",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request",
+    "title": "Changing the stage of a pull request",
+    "feature": "Draft ready transitions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL30",
+    "url": "https://docs.github.com/en/pull-requests/reference/branches",
+    "title": "Branches",
+    "feature": "Diff three-dot semantics and visual formats",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL31",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request",
+    "title": "Merging a pull request",
+    "feature": "Merge method selection confirmation and history effects",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL32",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/automatically-merging-a-pull-request",
+    "title": "Automatically merging a pull request",
+    "feature": "Auto-merge usage and disable conditions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL33",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request-with-a-merge-queue",
+    "title": "Merging a pull request with a merge queue",
+    "feature": "Queue add remove view and ejection",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL34",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch",
+    "title": "Keeping your pull request in sync with the base branch",
+    "feature": "Update branch merge or rebase",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL35",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-base-branch-of-a-pull-request",
+    "title": "Changing the base branch of a pull request",
+    "feature": "Retargeting and review invalidation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL36",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/reverting-a-pull-request",
+    "title": "Reverting a pull request",
+    "feature": "New revert PR",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL37",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/resolving-a-merge-conflict-on-github",
+    "title": "Resolving a merge conflict on GitHub",
+    "feature": "Conflict editor and AI repair",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL38",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-stacked-pull-requests",
+    "title": "Merging stacked pull requests",
+    "feature": "Stack merge gates rebase and auto-merge exclusion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL39",
+    "url": "https://docs.github.com/en/pull-requests/reference/status-checks",
+    "title": "Status checks",
+    "feature": "Checks vs statuses commit selection annotations and retention",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL40",
+    "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+    "title": "About code owners",
+    "feature": "Base CODEOWNERS reviewer requests and required approval",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL41",
+    "url": "https://docs.github.com/en/communities/moderating-comments-and-conversations/archive-pull-requests",
+    "title": "Archive pull requests",
+    "feature": "Admin-only PR archive closed locked and unarchive semantics",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL42",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review",
+    "title": "Dismissing a pull request review",
+    "feature": "Dismiss review reason and audit",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL43",
+    "url": "https://docs.github.com/en/discussions/collaborating-with-your-community-using-discussions/collaborating-with-maintainers-using-discussions",
+    "title": "Collaborating with maintainers using discussions",
+    "feature": "Discussion list search sorts and comments",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL44",
+    "url": "https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-categories-for-discussions",
+    "title": "Managing categories for discussions",
+    "feature": "Categories sections formats and announcement gates",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL45",
+    "url": "https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-discussions",
+    "title": "Managing discussions",
+    "feature": "Category changes pin transfer delete close",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL46",
+    "url": "https://docs.github.com/en/discussions/managing-discussions-for-your-community/moderating-discussions",
+    "title": "Moderating discussions",
+    "feature": "Answer lock reactions and issue conversion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL47",
+    "url": "https://docs.github.com/en/discussions/collaborating-with-your-community-using-discussions/participating-in-a-discussion",
+    "title": "Participating in a discussion",
+    "feature": "Threaded replies upvotes answers and polls",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL48",
+    "url": "https://docs.github.com/en/discussions/managing-discussions-for-your-community/creating-discussion-category-forms",
+    "title": "Creating discussion category forms",
+    "feature": "Category form usage and poll exclusion",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL49",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/learning-about-projects/about-projects",
+    "title": "About Projects",
+    "feature": "Owner-level Projects views fields and synchronization",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL50",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/adding-your-project-to-a-repository",
+    "title": "Adding your project to a repository",
+    "feature": "Linked-project tab visibility and ownership",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL51",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-items-in-your-project/adding-items-to-your-project",
+    "title": "Adding items to your project",
+    "feature": "Items entry bulk add new drafts and source timeline",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL52",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-items-in-your-project/editing-items-in-your-project",
+    "title": "Editing items in your project",
+    "feature": "Grid editing copy fill clear and undo",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL53",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-table-layout",
+    "title": "Customizing the table layout",
+    "feature": "Table groups slices sort fields and sums",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL54",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-board-layout",
+    "title": "Customizing the board layout",
+    "feature": "Board column mapping card moves soft WIP limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL55",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout",
+    "title": "Customizing the roadmap layout",
+    "feature": "Timeline date mapping dragging zoom and markers",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL56",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/managing-your-views",
+    "title": "Managing your views",
+    "feature": "Saved tabs temporary view changes and persistence",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL57",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-iteration-fields",
+    "title": "About iteration fields",
+    "feature": "Iteration dates breaks filters and bulk moves",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL58",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-parent-issue-and-sub-issue-progress-fields",
+    "title": "About parent issue and sub-issue progress fields",
+    "feature": "Hierarchy fields in Projects",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL59",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-pull-request-fields",
+    "title": "About pull request fields",
+    "feature": "Linked PR and reviewers columns",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL60",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/viewing-insights-from-your-project/about-insights-for-projects",
+    "title": "About insights for Projects",
+    "feature": "Current historical and burn-up charts omissions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL61",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-items-in-your-project/archiving-items-from-your-project",
+    "title": "Archiving items from your project",
+    "feature": "Item archive restore and removal",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL62",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/viewing-insights-from-your-project/configuring-charts",
+    "title": "Configuring charts",
+    "feature": "Chart axes grouping numeric aggregation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL63",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/sharing-project-updates",
+    "title": "Sharing project updates",
+    "feature": "Project status updates dates subscription and history",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL64",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-issue-fields",
+    "title": "About issue fields in projects",
+    "feature": "Organization issue values public field constraints and empty inapplicable cells",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL65",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax",
+    "title": "Basic writing and formatting syntax",
+    "feature": "Common rich content quote reply mentions references emoji and image alt text",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL66",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/autolinked-references-and-urls",
+    "title": "Autolinked references and URLs",
+    "feature": "Reference links unfurls backlinks SHA and wiki exceptions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL67",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files",
+    "title": "Attaching files",
+    "feature": "Upload immediate persistence file types size and access gates",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL68",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/about-tasklists",
+    "title": "About tasklists",
+    "feature": "Markdown checklists completion and retired tasklist blocks",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL69",
+    "url": "https://docs.github.com/en/communities/moderating-comments-and-conversations/managing-disruptive-comments",
+    "title": "Managing disruptive comments",
+    "feature": "Comment hide edit delete and audit anonymization",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL70",
+    "url": "https://docs.github.com/en/communities/moderating-comments-and-conversations/locking-conversations",
+    "title": "Locking conversations",
+    "feature": "Issue PR commit lock reactions and permissions",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL71",
+    "url": "https://docs.github.com/en/communities/moderating-comments-and-conversations/tracking-changes-in-a-comment",
+    "title": "Tracking changes in a comment",
+    "feature": "Comment history revision diff deletion and limits",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL72",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-saved-replies/using-saved-replies",
+    "title": "Using saved replies",
+    "feature": "Saved reply insertion and filtering",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL73",
+    "url": "https://docs.github.com/en/communities/documenting-your-project-with-wikis/about-wikis",
+    "title": "About wikis",
+    "feature": "Wiki reading rendering visibility and editing gates",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL74",
+    "url": "https://docs.github.com/en/communities/documenting-your-project-with-wikis/adding-or-editing-wiki-pages",
+    "title": "Adding or editing wiki pages",
+    "feature": "Wiki editor navigation commits and separate Git remote",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL75",
+    "url": "https://docs.github.com/en/communities/documenting-your-project-with-wikis/creating-a-footer-or-sidebar-for-your-wiki",
+    "title": "Creating a footer or sidebar for your wiki",
+    "feature": "Custom navigation content",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL76",
+    "url": "https://docs.github.com/en/communities/documenting-your-project-with-wikis/viewing-a-wikis-history-of-changes",
+    "title": "Viewing a wiki's history of changes",
+    "feature": "Wiki history revision compare and revert",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL77",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent",
+    "title": "About GitHub Copilot cloud agent",
+    "feature": "Agent capabilities and availability",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL78",
+    "url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-code-review",
+    "title": "Using GitHub Copilot code review",
+    "feature": "Review requests effort severity fix delegation attribution and preview approvals",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL79",
+    "url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github",
+    "title": "Using Copilot cloud agent on GitHub",
+    "feature": "Repository Agents tab issue assignment optional prompt and PR iteration",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL80",
+    "url": "https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema",
+    "title": "Syntax for GitHub's form schema",
+    "feature": "Form input textarea dropdown checkboxes upload and validation",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL81",
+    "url": "https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates",
+    "title": "About issue and pull request templates",
+    "feature": "Template selection default-branch and Markdown submission",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL82",
+    "url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/manage-and-track-agents",
+    "title": "Managing agent sessions",
+    "feature": "Logs overview steer stop archive sharing and commit trace",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL83",
+    "url": "https://docs.github.com/en/communities/maintaining-your-safety-on-github/reporting-abuse-or-spam",
+    "title": "Reporting abuse or spam",
+    "feature": "Object/comment reports and configured target choices",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL84",
+    "url": "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/about-writing-and-formatting-on-github",
+    "title": "About writing and formatting on GitHub",
+    "feature": "Shared toolbar",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL85",
+    "url": "https://docs.github.com/en/pull-requests/reference/pull-requests",
+    "title": "Pull requests",
+    "feature": "Pull request tabs including Findings and simulated merge refs",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL86",
+    "url": "https://docs.github.com/en/pull-requests/how-tos/work-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork",
+    "title": "Allowing changes to a pull request branch created from a fork",
+    "feature": "Allowing changes to a pull request branch created from a fork",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL87",
+    "url": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/about-slash-commands",
+    "title": "About slash commands",
+    "feature": "About slash commands",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL88",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/exporting-your-projects-data",
+    "title": "Exporting your project data",
+    "feature": "Exporting your project data",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL89",
+    "url": "https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/creating-and-editing-milestones-for-issues-and-pull-requests",
+    "title": "Creating and editing milestones for issues and pull requests",
+    "feature": "Creating and editing milestones for issues and pull requests",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL90",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/about-third-party-coding-agents",
+    "title": "About third-party coding agents",
+    "feature": "About third-party coding agents",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL91",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/agent-apps",
+    "title": "About agent apps",
+    "feature": "About agent apps",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL92",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/agent-management",
+    "title": "About agent management",
+    "feature": "About agent management",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL93",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations",
+    "title": "About Copilot automations",
+    "feature": "About Copilot automations",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL94",
+    "url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-automations",
+    "title": "Creating automations with Copilot cloud agent",
+    "feature": "Creating automations with Copilot cloud agent",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL95",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automation-rationale-and-approvals",
+    "title": "About rationale, confidence, and approvals for issues",
+    "feature": "About rationale, confidence, and approvals for issues",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL96",
+    "url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/manage-rationale-confidence-approvals",
+    "title": "Managing rationale, confidence, and approvals for issues",
+    "feature": "Managing rationale, confidence, and approvals for issues",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL97",
+    "url": "https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-agent-apps",
+    "title": "Using agent apps",
+    "feature": "Using agent apps",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL98",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/about-github-agentic-workflows",
+    "title": "About GitHub Agentic Workflows",
+    "feature": "About GitHub Agentic Workflows",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  },
+  {
+    "id": "COL99",
+    "url": "https://docs.github.com/en/copilot/how-tos/github-agentic-workflows/creating-github-agentic-workflows",
+    "title": "Creating GitHub Agentic Workflows",
+    "feature": "Creating GitHub Agentic Workflows",
+    "verified": true,
+    "method": "web article read",
+    "checked_date": "2026-10-03"
+  }
+]

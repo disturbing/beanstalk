@@ -1,0 +1,458 @@
+{
+  "retrieved_on": "2026-10-03",
+  "provider": "Exa Search API",
+  "endpoint": "https://api.exa.ai/search",
+  "scope": "Public web research; no private repository content sent",
+  "notes": [
+    "Search metadata only; page bodies and credentials are not included.",
+    "Provider dates and snippets require source verification.",
+    "Search hits are not all evidence; some extracts contained only generic page boilerplate."
+  ],
+  "queries": [
+    {
+      "id": "exa-01",
+      "query": "GitHub merge queue flaky tests repeated CI builds developer problems discussions",
+      "domains": [],
+      "type": "auto",
+      "num_results_requested": 7,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Clarifying merge queue behavior with \"Only merge non-failing ...",
+          "url": "https://github.com/orgs/community/discussions/180420",
+          "provider_published_date": null,
+          "extracted_characters": 493,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Merge queue: option to tolerate CI retries before dequeuing",
+          "url": "https://github.com/Mergifyio/mergify/discussions/5158",
+          "provider_published_date": null,
+          "extracted_characters": 3413,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": ".NET: Flaky integration tests blocking merge queue (73% failure rate) \u00b7 Issue #4971 \u00b7 microsoft/agent-framework",
+          "url": "https://github.com/microsoft/agent-framework/issues/4971",
+          "provider_published_date": "2026-03-30T10:26:08.000Z",
+          "extracted_characters": 7251,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Issue: Automatically File Bugs for Merge-Queue CI Regressions \u00b7 Issue #4976 \u00b7 microsoft/ebpf-for-windows",
+          "url": "https://github.com/microsoft/ebpf-for-windows/issues/4976",
+          "provider_published_date": "2026-02-02T23:21:02.000Z",
+          "extracted_characters": 5628,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Stop flaky tests from sabotaging your merge queue - Trunk.io",
+          "url": "https://trunk.io/blog/stop-flaky-tests-from-sabotaging-your-merge-queue",
+          "provider_published_date": "2025-03-05T00:00:00.000Z",
+          "extracted_characters": 9000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "chore(ci): keep rust test flakes from evicting merge-queue PRs",
+          "url": "https://github.com/PostHog/posthog/pull/84800",
+          "provider_published_date": null,
+          "extracted_characters": 4432,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "PRs removed from merge queue even though all checks are ...",
+          "url": "https://github.com/orgs/community/discussions/177180",
+          "provider_published_date": null,
+          "extracted_characters": 567,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-02",
+      "query": "AI coding agents pull requests review overload maintainer reddit GitHub",
+      "domains": [
+        "reddit.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0,
+      "results": []
+    },
+    {
+      "id": "exa-03",
+      "query": "multiple parallel coding agents git worktrees merge conflicts coordination problems",
+      "domains": [
+        "reddit.com",
+        "news.ycombinator.com",
+        "forum.cursor.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Parallel agents do not properly merge back changes when working on subfolders of git repo",
+          "url": "https://forum.cursor.com/t/parallel-agents-do-not-properly-merge-back-changes-when-working-on-subfolders-of-git-repo/150279",
+          "provider_published_date": null,
+          "extracted_characters": 3212,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Show HN: Foremerge \u2013 Catch intent conflicts between parallel coding agents | Hacker News",
+          "url": "https://news.ycombinator.com/item?id=49789356",
+          "provider_published_date": "2026-09-21T16:42:17.000Z",
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Walgit: A Git server that is one binary in front of an object store | Hacker News",
+          "url": "https://news.ycombinator.com/item?id=49852832",
+          "provider_published_date": "2026-09-27T14:24:48.000Z",
+          "extracted_characters": 2586,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Trying the software factory pattern | Hacker News",
+          "url": "https://news.ycombinator.com/item?id=49777913",
+          "provider_published_date": "2026-09-20T17:46:08.000Z",
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-04",
+      "query": "GitHub merge queue CI cost slow developers discussion",
+      "domains": [
+        "reddit.com",
+        "github.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Merge Queue running checks twice? #43988 - GitHub",
+          "url": "https://github.com/orgs/community/discussions/43988",
+          "provider_published_date": null,
+          "extracted_characters": 493,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Merge queue configuration discussion",
+          "url": "https://github.com/ddnet/ddnet/issues/11871",
+          "provider_published_date": null,
+          "extracted_characters": 4263,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Pull Request Merge Queue Public Beta Feedback #46757",
+          "url": "https://github.com/orgs/community/discussions/46757",
+          "provider_published_date": null,
+          "extracted_characters": 567,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Managing a merge queue - GitHub Docs",
+          "url": "https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "[CI/CD] Merge queue orphaned workflow runs waste CI resources",
+          "url": "https://github.com/dotCMS/core/issues/34592",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "decision(ci): adopt GitHub native merge queue vs custom train + zone-spread (#3381) \u2014 needs admin call",
+          "url": "https://github.com/mattbutlerengineering/mattbutlerengineering/issues/3389",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-05",
+      "query": "Cursor Origin code hosting GitHub competitor why agents scale",
+      "domains": [
+        "cursor.com",
+        "forum.cursor.com",
+        "news.ycombinator.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Origin Code Hosting - Cursor",
+          "url": "https://cursor.com/changelog/origin-code-hosting",
+          "provider_published_date": "2026-08-17T00:00:00.000Z",
+          "extracted_characters": 5496,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Origin",
+          "url": "https://cursor.com/docs/origin",
+          "provider_published_date": null,
+          "extracted_characters": 2840,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Cursor \u00b7 Origin",
+          "url": "https://cursor.com/origin",
+          "provider_published_date": null,
+          "extracted_characters": 260,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Cursor launches Origin, GitHub alternative | Hacker News",
+          "url": "https://news.ycombinator.com/item?id=49334209",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "What's the biggest differentiator to GitHub (other than uptime). I keep hearing ... | Hacker News",
+          "url": "https://news.ycombinator.com/item?id=49338041",
+          "provider_published_date": null,
+          "extracted_characters": 2165,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Origin Code Hosting - Release Discussions - Cursor - Community Forum",
+          "url": "https://forum.cursor.com/t/origin-code-hosting/168670",
+          "provider_published_date": "2026-08-17T00:00:00.000Z",
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-06",
+      "query": "AI generated pull request maintainer burden rejected contributions",
+      "domains": [
+        "github.com",
+        "daniel.haxx.se",
+        "sqlite.org"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "CODE_OF_CONDUCT.md",
+          "url": "https://github.com/opt-nc/geol/blob/93c1fbe1c84af7131d8350578695e771882465a1/CODE_OF_CONDUCT.md",
+          "provider_published_date": null,
+          "extracted_characters": 1252,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "AI_POLICY.md",
+          "url": "https://github.com/Pennyw0rth/NetExec/blob/main/AI_POLICY.md",
+          "provider_published_date": null,
+          "extracted_characters": 4013,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "AI_POLICY.md",
+          "url": "https://github.com/beyond-all-reason/Beyond-All-Reason/blob/master/AI_POLICY.md",
+          "provider_published_date": null,
+          "extracted_characters": 3490,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Policy about LLM generated code from PRs #28335 - GitHub",
+          "url": "https://github.com/opencv/opencv/issues/28335",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "AI_POLICY.md",
+          "url": "https://github.com/OCA/.github/blob/master/AI_POLICY.md",
+          "provider_published_date": null,
+          "extracted_characters": 6526,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Allow us to block Copilot-generated issues (and PRs ... - GitHub",
+          "url": "https://github.com/orgs/community/discussions/159749",
+          "provider_published_date": null,
+          "extracted_characters": 493,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-07",
+      "query": "GitHub Actions migration Forgejo act incompatible actions workflow limitations",
+      "domains": [
+        "forgejo.org",
+        "github.com",
+        "nektosact.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Forgejo Actions | GitHub Actions | Forgejo \u2013 Beyond coding. We forge.",
+          "url": "https://forgejo.org/docs/latest/user/actions/github-actions/",
+          "provider_published_date": null,
+          "extracted_characters": 2376,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Forgejo Actions | User guide | Forgejo \u2013 Beyond coding. We forge.",
+          "url": "https://forgejo.org/docs/latest/user/actions/overview/",
+          "provider_published_date": null,
+          "extracted_characters": 2511,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Forgejo Actions | Reference | Forgejo \u2013 Beyond coding. We forge.",
+          "url": "https://forgejo.org/docs/latest/user/actions/reference/",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Forgejo Actions | Basic concepts | Forgejo \u2013 Beyond coding. We forge.",
+          "url": "https://forgejo.org/docs/latest/user/actions/basic-concepts/",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Forgejo gets an integrated CI named Actions \u2014 Forgejo",
+          "url": "https://forgejo.org/2023-02-27-forgejo-actions/",
+          "provider_published_date": "2023-02-27T00:00:00.000Z",
+          "extracted_characters": 4683,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Forgejo Actions | User guide | Forgejo \u2013 Beyond coding. We forge.",
+          "url": "https://forgejo.org/docs/v16.0/user/actions/overview/",
+          "provider_published_date": null,
+          "extracted_characters": 2516,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-08",
+      "query": "Cloudflare Artifacts Git repository concurrent agents fork ArtifactFS",
+      "domains": [
+        "developers.cloudflare.com",
+        "blog.cloudflare.com"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "Repositories \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/concepts/repositories/",
+          "provider_published_date": null,
+          "extracted_characters": 3613,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Best practices for Artifacts \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/concepts/best-practices/",
+          "provider_published_date": null,
+          "extracted_characters": 7041,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "How Artifacts works \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/concepts/how-artifacts-works/",
+          "provider_published_date": null,
+          "extracted_characters": 2391,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "ArtifactFS \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/guides/artifact-fs/",
+          "provider_published_date": null,
+          "extracted_characters": 2521,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Artifacts \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/",
+          "provider_published_date": null,
+          "extracted_characters": 1849,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Workers binding \u00b7 Artifacts \u00b7 Cloudflare Artifacts docs",
+          "url": "https://developers.cloudflare.com/artifacts/api/workers-binding/",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    },
+    {
+      "id": "exa-09",
+      "query": "AI agents code review productivity randomized controlled trial METR experienced developers",
+      "domains": [
+        "metr.org",
+        "arxiv.org"
+      ],
+      "type": "auto",
+      "num_results_requested": 6,
+      "reported_cost_usd": 0.007,
+      "results": [
+        {
+          "title": "[PDF] Measuring the Impact of Early-2025 AI on Experienced ... - METR",
+          "url": "https://metr.org/Early_2025_AI_Experienced_OS_Devs_Study-paper.pdf",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity",
+          "url": "https://arxiv.org/html/2507.09089v1",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "Measuring the Impact of Early-2025 AI on Experienced ... - METR",
+          "url": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
+          "provider_published_date": "2025-07-10T00:00:00.000Z",
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "[2507.09089] Measuring the Impact of Early-2025 AI on ... - arXiv",
+          "url": "https://arxiv.org/abs/2507.09089",
+          "provider_published_date": null,
+          "extracted_characters": 4522,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "",
+          "url": "https://arxiv.org/pdf/2507.09089v1",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        },
+        {
+          "title": "How much does AI impact development speed? An enterprise-based randomized controlled trial",
+          "url": "https://arxiv.org/html/2410.12944",
+          "provider_published_date": null,
+          "extracted_characters": 10000,
+          "verification": "discovery_only_unless_cited_in_research_docs"
+        }
+      ]
+    }
+  ]
+}
