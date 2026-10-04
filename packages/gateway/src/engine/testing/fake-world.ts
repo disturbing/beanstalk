@@ -60,6 +60,11 @@ export type ScriptedTask = {
   readonly amendTests?: Readonly<Record<string, string>>;
   /** Files the n-th re-execution writes (default: the initial writes with the bug fixed). */
   readonly reexecutions?: readonly Readonly<Record<string, string>>[];
+  /**
+   * v2.4: what a reconciling test author writes on this (arriving) task's branch, in either
+   * task's acceptance tests. Absent: it finds a contradiction and changes nothing.
+   */
+  readonly reconcile?: Readonly<Record<string, string>>;
 };
 
 export type WorldOptions = {
@@ -135,6 +140,7 @@ export function createWorld(options: WorldOptions): World {
       const costUsd = options.costUsd ?? 0;
       if (instruction.kind === 'initial') return initialRun(git, task, instruction, costUsd);
       if (instruction.kind === 'test-author') return authorRun(git, task, instruction);
+      if (instruction.kind === 'reconcile') return reconcileRun(git, task, instruction);
       if (instruction.workspace.headSha === null) {
         const nth = (reexecutions.get(task.id) ?? 0) + 1;
         reexecutions.set(task.id, nth);
@@ -385,6 +391,42 @@ function authorRun(
     { task, writes: task.amendTests ?? {}, costUsd: 0.005, session: `author-${task.id}` },
     instruction,
   );
+}
+
+/** A reconcile: the scripted amendments, committed onto the bean's head (it merged the sprout). */
+function reconcileRun(
+  git: ToyGit,
+  task: ScriptedTask,
+  instruction: EngineInstruction,
+): InvocationResult {
+  const workspace = instruction.workspace;
+  const head = workspace.headSha ?? workspace.baseSha;
+  const result = {
+    ok: true,
+    cost_usd: 0.005,
+    session_id: `reconcile-${task.id}`,
+    pushed_ref: `refs/heads/${workspace.branch}`,
+  };
+  if (task.reconcile === undefined) {
+    return agentResult({
+      ...result,
+      head_sha: head,
+      new_commit: false,
+      files: [],
+      result_text: 'CONTRADICTION: both intents cannot hold at once.',
+    });
+  }
+  const files = new Map(git.get(head).files);
+  for (const [path, content] of Object.entries(task.reconcile)) files.set(path, content);
+  const commit = git.commit([head], files, workspace.commitMessage);
+  git.setRef(REPO, `refs/heads/${workspace.branch}`, commit.sha);
+  return agentResult({
+    ...result,
+    head_sha: commit.sha,
+    new_commit: true,
+    files: changedPaths(git.get(workspace.baseSha).files, files),
+    result_text: 'RECONCILED',
+  });
 }
 
 /**

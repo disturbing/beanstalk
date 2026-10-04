@@ -405,6 +405,27 @@ class CommitPath(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(wt, "src/new.ts")))
         self.assertEqual(git(ws["bean_url"], "rev-parse", "refs/heads/task/t009"), fields["head_sha"])
 
+    def test_a_reconcile_commits_both_tasks_acceptance_files_and_nothing_else(self) -> None:
+        wt, base, ws = worktree_with_landed_test(self.race)
+        for path, text in (("test/acceptance/t009.test.ts", "own test, reconciled\n"),
+                           ("test/acceptance/t001.test.ts", "landed t001 test, new total\n"),
+                           ("src/a.ts", "export const a = 2;\n"), ("src/new.ts", "export {};\n")):
+            with open(os.path.join(wt, path), "w") as fh:
+                fh.write(text)
+        # The gateway lists both tasks' tests as acceptance and no longer protects the landed one.
+        ws = {**ws, "acceptance": {"test/acceptance/t009.test.ts": "own test\n",
+                                   "test/acceptance/t001.test.ts": "landed t001 test\n"},
+              "protect": [p for p in ws["protect"] if p["path"] != "test/acceptance/t001.test.ts"],
+              "commit_message": "Task nine\n\nTask: t009\nKind: reconcile\nInvocation: inv0010-reconcile\n"}
+        inv = {"inv": "inv0010-reconcile", "kind": "reconcile", "task": "t009", "resume": None, "workspace": ws}
+        res = InvocationResult(inv_id="inv0010-reconcile", adapter="replay", model="replay", ok=True,
+                               subtype="success")
+        fields = self.run_commit(inv, res)
+        self.assertEqual(fields["files"], ["test/acceptance/t001.test.ts", "test/acceptance/t009.test.ts"])
+        self.assertEqual(read(os.path.join(wt, "test/acceptance/t001.test.ts")), "landed t001 test, new total\n")
+        self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 1;\n")
+        self.assertFalse(os.path.exists(os.path.join(wt, "src/new.ts")))
+
     def test_markers_left_means_no_commit(self) -> None:
         wt, base, ws = worktree_with_landed_test(self.race)
         with open(os.path.join(wt, "src/a.ts"), "w") as fh:

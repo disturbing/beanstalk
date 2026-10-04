@@ -103,6 +103,8 @@ export type WorkspaceOptions = {
   readonly head?: Sha | null;
   /** Tests the driver writes on a fresh start and restores before committing. */
   readonly acceptance?: Readonly<Record<string, string>>;
+  /** Landed tests the bean may change (amendments it carries, or a reconcile's): not protected. */
+  readonly unprotect?: readonly string[];
 };
 
 /** The workspace of a task's invocation. */
@@ -121,7 +123,9 @@ export function taskWorkspace(
     headSha: options.head === undefined ? task.headSha : options.head,
     merge: options.merge,
     acceptance: options.acceptance ?? acceptanceTests(ctx, task.id),
-    protect: protectedTests(ctx, task.id),
+    protect: protectedTests(ctx, task.id).filter(
+      (file) => options.unprotect?.includes(file.path) !== true,
+    ),
     unionPaths: unionPaths(ctx.env.config),
     commitMessage: taskCommitMessage(definition, options.kind, options.inv),
   };

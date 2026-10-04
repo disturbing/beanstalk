@@ -21,6 +21,8 @@ export type SproutCommit = {
   files: string[];
   landedAt: Seconds;
   reverted: boolean;
+  /** The sprout index of the revert that undid it. */
+  revertedAt?: number;
 };
 
 export type TicketStatus = 'bisecting' | 'open' | 'reverting' | 'reverted' | 'escalated' | 'closed';
@@ -94,6 +96,13 @@ export type AgentWork =
       readonly culprits: readonly TaskId[];
       readonly diffs: Readonly<Record<string, string>>;
     }
+  | {
+      /** v2.4: reconcile the two tasks' tests before a card. */
+      readonly kind: 'reconcile';
+      readonly against: TaskId;
+      readonly red: CheckResult;
+      readonly head: Sha;
+    }
   | { readonly kind: 'author'; readonly card: string }
   | { readonly kind: 'reexec'; readonly card: string }
   | { readonly kind: 'adopt'; readonly card: string };
@@ -157,6 +166,18 @@ export type LandingStep =
   | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' }
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
+  /** v2.4: a test author reconciles the bean's tests with `against`'s, then reads what changed. */
+  | { kind: 'reconciling'; against: TaskId; red: CheckResult; head: Sha }
+  | {
+      kind: 'reconcile-reading';
+      against: TaskId;
+      red: CheckResult;
+      head: Sha;
+      inv: string;
+      reason: string;
+      before: Record<string, string>;
+      jobId: JobId;
+    }
   /** A decided card's pipeline: the winner's diff, the author, its files, the fail-first proof. */
   | { kind: 'card-context'; card: string; jobId: JobId }
   | { kind: 'authoring'; card: string }
@@ -320,6 +341,10 @@ export type V2Stats = {
   recheck_samples: number;
   early_tickets: number;
   confirmed_by_sighting: number;
+  reconciles: number;
+  reconciled: number;
+  contradictions: number;
+  stale_rechecks: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -331,6 +356,7 @@ export type V2Settings = {
   readonly flakeConfirm: boolean;
   readonly inheritedReds: 'readset' | 'validation' | 'off';
   readonly earlyTickets: boolean;
+  readonly reconcile: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
 };
@@ -380,6 +406,8 @@ export type V2State = {
   pairReds: Record<string, number>;
   /** Pairs a card already decided (never asked twice), with the card. */
   decidedPairs: Record<string, string>;
+  /** v2.4: pairs already reconciled once (a second stuck red goes to a card). */
+  reconciledPairs: Record<string, boolean>;
   cards: Record<string, DecisionCard>;
   cardSeq: number;
   /** The card of each running test-author invocation. */

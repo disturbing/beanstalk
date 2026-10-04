@@ -340,6 +340,8 @@ export function testAuthorPrompt(
     readonly output: string;
     readonly inForce: readonly string[];
     readonly inPlace: boolean;
+    /** v2.4: the winner's failing tests as they are now, by path. */
+    readonly winnerTests?: Readonly<Record<string, string>>;
   },
 ): string {
   const paths = acceptancePaths(loser);
@@ -383,6 +385,9 @@ export function testAuthorPrompt(
       lines.push('Output:', '```', context.output.trim().slice(0, AUTHOR_OUTPUT_CHARS), '```');
     }
   }
+  lines.push(
+    ...testFiles(`The failing tests of ${winner.task}, as they are now:`, context.winnerTests),
+  );
   const check = context.inPlace
     ? `${loser.id} is implemented in this tree; the amended tests must describe the decided behaviour, ` +
       'which the winning change brings when it lands. Run ' +
@@ -400,6 +405,74 @@ export function testAuthorPrompt(
   );
   return `${lines.join('\n')}\n`;
 }
+
+/**
+ * v2.4: before a decision card, a test author reconciles the two tasks' acceptance tests on
+ * the arriving bean's branch: an assertion that pins a value the other intent legitimately
+ * changes is updated (RECONCILED); a genuine disagreement changes nothing (CONTRADICTION).
+ */
+export function reconcilePrompt(
+  arriving: PromptTask & Pick<ArenaTask, 'id'>,
+  landed: PromptTask & Pick<ArenaTask, 'id'>,
+  context: {
+    readonly failing: readonly string[];
+    readonly output: string;
+    /** The failing tests of the two tasks as they are now, by path. */
+    readonly tests: Readonly<Record<string, string>>;
+    /** Every acceptance test file of the two tasks: the only files it may change. */
+    readonly paths: readonly string[];
+  },
+): string {
+  const lines = [
+    `You are the test author for tasks ${arriving.id} and ${landed.id}. You write and amend acceptance tests; you never implement features.`,
+    '',
+    `Task ${arriving.id} ("${arriving.title}") is arriving; its change is in this tree:`,
+    arriving.prompt.trim(),
+    '',
+    `Task ${landed.id} ("${landed.title}") has already landed:`,
+    landed.prompt.trim(),
+    '',
+    'With both in this tree, these tests fail:',
+    ...context.failing.slice(0, AUTHOR_FAILING_TESTS).map((test) => `- ${test}`),
+  ];
+  if (context.output.trim() !== '') {
+    lines.push('Output:', '```', context.output.trim().slice(0, AUTHOR_OUTPUT_CHARS), '```');
+  }
+  lines.push(
+    ...testFiles('The failing tests, as they are now:', context.tests),
+    '',
+    'Do the two intents contradict? Often they do not: a test pins a value that the other task ' +
+      'legitimately changes (an example total, a formatted string), and only that value is out of date.',
+    `- If they do not, update in ${context.paths.join(', ')} only the assertions that pin such a value, ` +
+      "so that each task's own intent stays tested. Work out the new expected values from the code in " +
+      `this tree, run \`node --test ${context.paths.join(' ')}\` until they pass, and reply RECONCILED.`,
+    "- Change a value only when the other task's intent explains the new one, and say which in your reply. " +
+      "Never delete or loosen an assertion, and never change what a task's own intent requires: if the code " +
+      'looks wrong rather than the test, change nothing and reply CONTRADICTION: <what looks wrong>.',
+    '- If both cannot hold, change nothing and reply with one line: CONTRADICTION: <the disagreement>.',
+    "Don't stage or commit.",
+  );
+  return `${lines.join('\n')}\n`;
+}
+
+/** Test files shown to a test author, under a heading (nothing when there are none). */
+function testFiles(heading: string, files: Readonly<Record<string, string>> | undefined): string[] {
+  const entries = Object.entries(files ?? {});
+  if (entries.length === 0) return [];
+  return [
+    '',
+    heading,
+    ...entries.flatMap(([path, content]) => [
+      `${path}:`,
+      '```ts',
+      content.trimEnd().slice(0, AUTHOR_TEST_CHARS),
+      '```',
+    ]),
+  ];
+}
+
+/** Characters of one test file a test author is shown. */
+const AUTHOR_TEST_CHARS = 6000;
 
 /** Failing tests and output characters a test author is shown (`[:12]`, `[:3000]`). */
 const AUTHOR_FAILING_TESTS = 12;

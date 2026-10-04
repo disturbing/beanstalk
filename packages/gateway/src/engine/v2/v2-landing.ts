@@ -44,11 +44,13 @@ import {
   windowAdmits,
 } from './v2-backpressure';
 import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
+import { onReconcileRead } from './v2-reconcile';
 import { startRepair } from './v2-repair';
 import {
   appendCommit,
   awaitOutcome,
   filesLandedSince,
+  lastTaskCommit,
   sproutIndex,
   unvalidatedCount,
 } from './v2-sprout';
@@ -140,10 +142,14 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
     case 'publish':
       if (current.jobId === jobId) onPublished(step, flow, current, result);
       return;
+    case 'reconcile-reading':
+      if (current.jobId === jobId) onReconcileRead(step, flow, current, result);
+      return;
     case 'queued-land':
     case 'queued-locked':
     case 'inherited':
     case 'window-wait':
+    case 'reconciling':
     case 'diffs':
     case 'awaiting-agent':
     case 'rework':
@@ -350,21 +356,28 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   const inherited = inheritedFailures(step, flow, red);
   logCheck(step, flow.task, check, { result, isInherited: inherited !== null });
   if (inherited !== null) sightInherited(step, flow, { ...red, failing: inherited });
+  const stale = inherited === null ? staleFailures(step, check.head0, result) : [];
   if (check.isInTurn) {
     if (result.green) {
       publish(step, flow, { head: check.head0, sha: check.candidate, files: check.files });
       return;
     }
-    if (inherited === null) {
-      attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result });
-    } else {
+    if (inherited !== null) {
       waitOutInherited(step, flow, { head: check.head0, failing: inherited });
+    } else if (stale.length > 0) {
+      recheckStale(step, flow, { checkedOn: check.head0, stale });
+    } else {
+      attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result });
     }
     releaseTurn(step);
     return;
   }
   if (inherited !== null) {
     waitOutInherited(step, flow, { head: check.head0, failing: inherited });
+    return;
+  }
+  if (stale.length > 0) {
+    recheckStale(step, flow, { checkedOn: check.head0, stale });
     return;
   }
   if (!result.green) {
@@ -527,6 +540,44 @@ function sightInherited(
   state.stats.early_tickets += 1;
   onSproutRed(step, idx);
   openTicket(step, { idx, result: red.result, files, early: true });
+}
+
+/**
+ * v2.4 (`reconcile`): failing tests whose owner was on the checked sprout and was reverted
+ * after it. Such a red is stale: it raises no card and costs no round.
+ */
+function staleFailures(step: V2Step, head: Sha, result: CheckResult): string[] {
+  if (!step.ctx.env.config.reconcile || result.green || result.failingFiles === null) return [];
+  const { ctx, state } = step;
+  const checkedOn = sproutIndex(state, head);
+  const owners = new Map<string, TaskId>();
+  for (const id of ctx.state.order) {
+    if (ctx.state.tasks[id]?.landedSha === null) continue;
+    for (const path of Object.keys(taskDefinition(ctx, id).acceptance_tests)) owners.set(path, id);
+  }
+  return result.failingFiles.filter((path) => {
+    const owner = owners.get(path);
+    const commit = owner === undefined ? undefined : lastTaskCommit(state, owner);
+    return commit !== undefined && commit.idx <= checkedOn && (commit.revertedAt ?? -1) > checkedOn;
+  });
+}
+
+/** A stale red: the bean checks again on the sprout as it is now, without a round. */
+function recheckStale(
+  step: V2Step,
+  flow: LandingFlow,
+  red: { checkedOn: Sha; stale: readonly string[] },
+): void {
+  const { ctx, state } = step;
+  state.stats.stale_rechecks += 1;
+  emit(ctx, 'preland.recheck', {
+    task: flow.task,
+    checked_on: red.checkedOn,
+    head: state.sprout,
+    attempt: flow.rechecks,
+    stale: [...red.stale],
+  });
+  squashOntoSprout(step, flow);
 }
 
 /** The bean waits for the sprout to move (`wakeInherited`); no round is spent. */

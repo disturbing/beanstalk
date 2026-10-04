@@ -9,7 +9,7 @@ import { runRace, soloTask } from './testing/scenario';
 /**
  * Replay parity. With the v2.0 settings (file-level re-checks, the agent bound to its bean
  * until it lands, no re-run before a revert, every red check the bean's, declined losers, no
- * sprout window, no early tickets)
+ * sprout window, no early tickets, no reconcile)
  * the engine must decide exactly as it did before the v2.2 rules, so cloud runs stay
  * comparable with the harness's v2 races. The digests below were recorded from the engine
  * before v2.2; the queue is pinned too.
@@ -21,6 +21,7 @@ const V20_KNOBS: Partial<RunConfigInput> = {
   inherited_reds: 'off',
   window: 'off',
   early_tickets: false,
+  reconcile: false,
   decision_outcome: 'decline',
 };
 

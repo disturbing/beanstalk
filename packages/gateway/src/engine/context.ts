@@ -39,6 +39,8 @@ export type ReworkOutcome = {
   readonly committed: boolean;
   /** The commit the driver pushed, if any. */
   readonly headSha: Sha | null;
+  /** The agent's final message (a reconcile's verdict line). */
+  readonly resultText: string;
 };
 
 /** An answer to a decision card. */

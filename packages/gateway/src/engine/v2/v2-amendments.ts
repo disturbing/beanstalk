@@ -23,6 +23,11 @@ export function beanAcceptance(step: V2Step, task: TaskId): Readonly<Record<stri
   return Object.assign({}, own, ...carried.map((amendment) => amendment.files));
 }
 
+/** Landed tests a bean carries amendments of: the driver must not restore them. */
+export function carriedPaths(step: V2Step, task: TaskId): string[] {
+  return (step.state.carried[task] ?? []).flatMap((amendment) => Object.keys(amendment.files));
+}
+
 /** A winner starts carrying an in-place amendment of a landed loser. */
 export function carry(state: V2State, winner: TaskId, amendment: CarriedAmendment): void {
   state.carried[winner] = [...(state.carried[winner] ?? []), amendment];

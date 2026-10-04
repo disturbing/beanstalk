@@ -18,6 +18,7 @@ const V20: Partial<RunConfigInput> = {
   inherited_reds: 'off',
   window: 'off',
   early_tickets: false,
+  reconcile: false,
   decision_outcome: 'decline',
 };
 
@@ -133,7 +134,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2 and v2.3', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.4', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -190,6 +191,11 @@ describe('v2: a clean landing', () => {
       'early_tickets',
       'early_tickets_opened',
       'confirmed_by_sighting',
+      'reconcile',
+      'reconciles',
+      'reconciled',
+      'contradictions',
+      'stale_rechecks',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -216,14 +222,14 @@ describe('v2: a clean landing', () => {
       window: 'aimd',
       window_size: 6,
       early_tickets: true,
+      reconcile: true,
       decision_outcome: 'reexecute',
-      variant: 'v2.3',
+      variant: 'v2.4',
     });
     expect(summaryOf(run)['policy_rows']).toEqual([
       [
         'Variant',
-        'v2.3: pre-land check, sprout window, sampled re-check, agent released during checks, ' +
-          'read-set inherited reds, early revert-first, cards that re-execute the loser',
+        'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked',
       ],
       ['Informed reworks / decision cards / revert-first tickets', '0 / 0 / 0'],
       [
@@ -232,6 +238,7 @@ describe('v2: a clean landing', () => {
       ],
       ['Validation re-runs / suspected flakes', '0 / 0'],
       ['Inherited reds waited out (no rework round spent)', '0'],
+      ['Reconciles (reconciled / contradictions) / stale re-checks', '0 (0 / 0) / 0'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
         '6 / 0 / 0 / 0',

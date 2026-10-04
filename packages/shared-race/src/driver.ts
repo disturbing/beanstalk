@@ -6,10 +6,12 @@ import type { InvocationId, SlotId } from './ids';
 
 /**
  * What an invocation is for, as the harness names it. `test-author` (v2.2) is a separate,
- * fresh session that amends a decision loser's acceptance tests; the driver runs it like any
- * other prompt, keeps only its changes to the `acceptance` files, and never restores them.
+ * fresh session that amends a decision loser's acceptance tests; `reconcile` (v2.4) is one
+ * that amends two clashing tasks' acceptance tests on the arriving bean's branch. The driver
+ * runs both like any other prompt, keeps only their changes to the `acceptance` files, and
+ * never restores them.
  */
-export type InvocationKind = 'initial' | 'rework' | 'fixer' | 'test-author';
+export type InvocationKind = 'initial' | 'rework' | 'fixer' | 'test-author' | 'reconcile';
 
 /**
  * A merge the driver performs in the worktree before running the agent: `git fetch` the
@@ -47,8 +49,9 @@ export type Workspace = {
   readonly merge: WorkspaceMerge | null;
   /**
    * The task's own acceptance tests: write before the initial run (whenever `head_sha` is
-   * null), restore before every commit. For `test-author`, the tests to amend: written at the
-   * start, never restored, and the only files whose changes are committed.
+   * null), restore before every commit. For `test-author` and `reconcile`, the tests to amend
+   * (for `reconcile`, both tasks'): written at the start when `head_sha` is null, never
+   * restored, and the only files whose changes are committed.
    */
   readonly acceptance: Readonly<Record<string, string>>;
   /**

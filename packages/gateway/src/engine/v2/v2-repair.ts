@@ -16,7 +16,7 @@ import type { CulpritContext } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
-import { beanAcceptance } from './v2-amendments';
+import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import type { AgentWork, LandingFlow, V2Step } from './v2-state';
@@ -75,6 +75,7 @@ export function startConflictRework(
         inv,
         merge: { sha: work.head, ref: SPROUT_REF, conflicts: [...work.files] },
         acceptance: beanAcceptance(step, flow.task),
+        unprotect: carriedPaths(step, flow.task),
       }),
     replay: { reset_to: work.head, check: 'acceptance', fixes: [] },
   });
@@ -96,6 +97,14 @@ export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: Che
       (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
       !isDecided(state, flow.task, culprit),
   );
+  const unreconciled = stuck.find(
+    (culprit) =>
+      step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
+  );
+  if (unreconciled !== undefined) {
+    requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, red, head });
+    return;
+  }
   if (stuck.length > 0) {
     openCard(step, flow, { against: stuck, red, head });
     return;
@@ -228,6 +237,7 @@ export function startInformedRework(
         inv,
         merge: { sha: head, ref: SPROUT_REF, conflicts: [] },
         acceptance: beanAcceptance(step, flow.task),
+        unprotect: carriedPaths(step, flow.task),
       }),
     replay: { reset_to: head, check: 'acceptance', fixes: [] },
   });

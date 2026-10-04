@@ -38,7 +38,7 @@ import { SPROUT_REF } from '../refs';
 import { holderOf, release } from '../slots';
 import { taskBranch, taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
-import { amend, beanAcceptance, carry } from './v2-amendments';
+import { amend, beanAcceptance, carriedPaths, carry } from './v2-amendments';
 import { endLanding, failFirstTimerKey, oracleTimerKey } from './v2-flows';
 import { awaitOutcome, lastTaskCommit } from './v2-sprout';
 import type { DecisionCard, LandingFlow, V2State, V2Step } from './v2-state';
@@ -398,6 +398,7 @@ export function startAuthor(step: V2Step, flow: LandingFlow, slot: SlotId, cardI
       output: card.red.output,
       inForce: decisionsInForce(state, loser, card.id),
       inPlace: isInPlace,
+      ...(ctx.env.config.reconcile ? { winnerTests: failingTestsOf(step, winner.task, card) } : {}),
     },
   );
   flow.step = { kind: 'authoring', card: card.id };
@@ -421,6 +422,14 @@ export function startAuthor(step: V2Step, flow: LandingFlow, slot: SlotId, cardI
     replay: { reset_to: null, check: null, fixes: [] },
   });
   if (inv !== null) state.authors[inv] = card.id;
+}
+
+/** v2.4: the card's failing tests that `owner` owns, as they are now. */
+function failingTestsOf(step: V2Step, owner: string, card: DecisionCard): Record<string, string> {
+  const files = new Set(card.red.failing.map((test) => test.split(' > ')[0] ?? test));
+  return Object.fromEntries(
+    Object.entries(acceptanceTests(step.ctx, owner)).filter(([path]) => files.has(path)),
+  );
 }
 
 /** The test author finished: read what it changed in the loser's tests. */
@@ -671,6 +680,7 @@ export function startReexecution(
         base: head,
         head: null,
         acceptance: beanAcceptance(step, flow.task),
+        unprotect: carriedPaths(step, flow.task),
       }),
     replay: { reset_to: head, check: 'acceptance', fixes: [] },
   });
@@ -730,6 +740,7 @@ export function startAdoptRework(
         inv,
         merge,
         acceptance: beanAcceptance(step, flow.task),
+        unprotect: carriedPaths(step, flow.task),
       }),
     mergedLine: card.red.head,
     replay: { reset_to: card.red.head, check: 'acceptance', fixes: [] },

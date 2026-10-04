@@ -113,6 +113,13 @@ export const RunConfig = z
      * flake re-run.
      */
     early_tickets: z.boolean().default(true),
+    /**
+     * v2.4: before a card, a test author reconciles the two tasks' acceptance tests: it may
+     * update assertions that pin a value the other intent legitimately changes. Only a genuine
+     * contradiction raises the card. Also re-checks, without a rework round, a red whose
+     * failing tests belong to a task reverted after the check began. `false`: v2.3.
+     */
+    reconcile: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

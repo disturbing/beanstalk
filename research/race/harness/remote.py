@@ -61,7 +61,7 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
            "window": ("WINDOW", str), "release_on_check": ("RELEASE_ON_CHECK", bool),
            "flake_confirm": ("FLAKE_CONFIRM", bool), "inherited_reds": ("INHERITED_REDS", str),
-           "early_tickets": ("EARLY_TICKETS", bool),
+           "early_tickets": ("EARLY_TICKETS", bool), "reconcile": ("RECONCILE", bool),
            "decision_outcome": ("DECISION_OUTCOME", str), "decision_mode": ("DECISION_MODE", str),
            "human_timeout_seconds": ("HUMAN_TIMEOUT_SECONDS", float)}
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
@@ -1156,7 +1156,9 @@ class RemoteRace(Race):
             if left:
                 return {"markers_left": left}
         acceptance = dict(ws.get("acceptance") or {})
-        if kind == "test-author":  # it amends the acceptance files: they are kept, every other change is not
+        # A test author (v2.2) or a reconciling one (v2.4, both tasks' tests) amends the acceptance files:
+        # they are kept, every other change is not.
+        if kind in ("test-author", "reconcile"):
             dropped = await self.keep_only(wt, set(acceptance))
             if dropped:
                 self.log("driver.author_discarded", inv=inv["inv"], task=inv["task"], paths=dropped)

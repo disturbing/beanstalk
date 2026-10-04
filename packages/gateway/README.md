@@ -9,7 +9,7 @@ The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 o
 
 It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)).
 
-The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.3 rules by default (see [The v2.2 and v2.3 rules](#the-v22-and-v23-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
+The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.4 rules by default (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
 
 ## Names
 
@@ -79,7 +79,7 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
-- the v2.2 and v2.3 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 and v2.3 rules](#the-v22-and-v23-rules)).
+- the v2.2 to v2.4 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)).
 
 ## Driver contract (for the Python driver)
 
@@ -115,7 +115,8 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `initial`;
 - `rework`;
 - `fixer` (the queue only);
-- `test-author` (v2.2 cards).
+- `test-author` (v2.2 cards);
+- `reconcile` (v2.4: a test author amends both clashing tasks' acceptance tests on the arriving bean's branch; like `test-author`, only changes to the `acceptance` files are committed).
 
 With `release_on_check`, a rework can come to any slot. Its `resume` names the author's session. So the driver runs every invocation in the bean's own directory (`work/agents/<task>`), whichever slot it came to, and the session resumes there. Sessions live on the machine that ran them, so `remote.py` drives every slot of a run from one process. A resume that fails is retried once as a fresh session.
 
@@ -185,7 +186,7 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
 - **Error budget.** The error-budget controller is not built; v2 reports `error_budget: 999`.
 
-## The v2.2 and v2.3 rules
+## The v2.2 to v2.4 rules
 
 The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summary.md`). v2.3 answers v2.2's first real race (cloud run `qpucqup50w`, 12 Sonnet agents, seed 7). There, 24 beans were green and 16 dropped, 11 of them innocent beans that spent their rework rounds on reds that were not theirs. Each rule is a `RunConfig` field, on by default for `beanstalk-v2`:
 
@@ -197,7 +198,8 @@ The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summa
 | Flake confirmation | `flake_confirm: true` | Before revert-first, a red validation runs again on the same commit. If a file that failed the first run fails again, the red stands. Otherwise the engine logs `flake.suspected`, records the test as flaky and counts the validation green. Pre-land reds are never re-run | E3 |
 | Inherited reds | `inherited_reds: readset` (`validation`, `off`) | A pre-land red that is the sprout's, not the bean's, costs no rework round. `preland.check` carries `inherited: true`, and the bean waits for the sprout to move, or for its repair to end, then checks again (at most 3 times). A failing test is the sprout's when it already failed a validation of the sprout the bean was checked on (`validation`, E6). Under `readset`, it is also the sprout's when the bean changed neither the test file nor any file in its import closure, as the runner reports it. A bean that changed a file every test depends on is never cleared this way: `package.json`, a lockfile, `tsconfig*.json`, a vitest/vite/jest config | v2.3; E6 |
 | Early tickets | `early_tickets: true` | An inherited red is a sighting of a red sprout at the commit it was checked on. Two beans' sightings of one test file there, or one sighting and a red validation of that commit, prove it red. Revert-first starts at once (`ticket.open` with `early: true`), with read-set suspects among the commits since the last green validation, without waiting for the validation queue. A sighting also confirms a red validation that waits for its flake re-run | v2.3 |
-| Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below | E6 |
+| Reconcile before a card | `reconcile: true` (`false`: v2.3) | Where a card would be raised, a `reconcile` invocation first gets both tasks' intents and both owners' failing tests, on the arriving bean's branch (which already merged the landed task). It may amend the two tasks' acceptance tests only, updating assertions that pin a value the other intent legitimately changes. A commit that changes them is RECONCILED: the bean's own tests are amended at once, and the landed task's travel with the bean as a carried amendment (they land with it, and are rolled back if it is dropped). The bean then checks again; a green check is the proof. A commit that changes nothing is a CONTRADICTION, and only that raises the card. Each pair is reconciled once. The same setting re-checks, without a rework round, a red whose failing tests belong to a task reverted after the check began (`preland.recheck` with `stale`) | v2.4 |
+| Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below. With `reconcile`, the loser's test author also sees the winner's failing tests as they are now | E6 |
 
 A decided card works in one of two ways:
 
@@ -215,31 +217,34 @@ Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route
 **Events.** New types:
 
 - `spec.amended` and `flake.suspected` (v2.2);
-- `window.wait` and `window.resize` (v2.3).
+- `window.wait` and `window.resize` (v2.3);
+- `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`).
 
 Optional fields on existing types:
 
 - `decision.made.outcome` and `.text`;
 - `rework.start.card`;
 - `preland.check.inherited`;
-- `ticket.open.early`.
+- `ticket.open.early`;
+- `preland.recheck.stale`.
 
-`summary.json` adds the v2.2 and v2.3 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
+`summary.json` adds the v2.2 to v2.4 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
 **Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
 
 ```json
 {"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
- "inherited_reds": "off", "early_tickets": false, "decision_outcome": "decline"}
+ "inherited_reds": "off", "early_tickets": false, "reconcile": false, "decision_outcome": "decline"}
 ```
 
-`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with any v2.3 rule on reports `"v2.3"`, and any other run `"v2.2"`. These settings run v2.2 again:
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with `reconcile` reports `"v2.4"`, one with any other v2.3 rule `"v2.3"`, and any other run `"v2.2"`. `{"reconcile": false}` runs v2.3 again, and these settings run v2.2:
 
 ```json
-{"recheck": "adaptive", "window": "off", "inherited_reds": "validation", "early_tickets": false}
+{"recheck": "adaptive", "window": "off", "inherited_reds": "validation", "early_tickets": false,
+ "reconcile": false}
 ```
 
-v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
 
 **Fixed in v2.3.** Two bugs from v2.2 and v2:
 
@@ -379,6 +384,7 @@ The tests cover:
   - v2 races for a clean landing, an optimistic landing, a re-check, a conflict, an informed rework, decision cards, revert-first with and without bisection, and the leave-one-out search;
   - each v2.2 and v2.3 rule (`src/engine/v2/v2-rules.test.ts`);
   - the v2.2 burst and a calm race, v2.2 against v2.3 (`src/engine/v2/v2-burst.test.ts`);
+  - reconcile before a card, a genuine contradiction, and the stale-failure guard (`src/engine/v2/v2-reconcile.test.ts`);
 - determinism, and replay parity with the pre-v2.2 engine;
 - the shell end to end: routes, auth, the git proxy and full races over HTTP (`SELF.fetch`), and every RPC method through the default entrypoint (`test/rpc.test.ts`, with `exports.default` from `cloudflare:workers`).
 

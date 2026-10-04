@@ -167,6 +167,7 @@ export type V2PolicyView = {
     readonly flake_confirm: boolean;
     readonly inherited_reds: 'readset' | 'validation' | 'off';
     readonly early_tickets: boolean;
+    readonly reconcile: boolean;
     readonly decision_outcome: 'reexecute' | 'decline';
     readonly decision_mode: 'oracle' | 'human';
   };

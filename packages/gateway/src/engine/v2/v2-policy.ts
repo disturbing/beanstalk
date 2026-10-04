@@ -44,6 +44,7 @@ import {
 } from './v2-decisions';
 import { WINDOW_START } from './v2-backpressure';
 import { parseTimerKey } from './v2-flows';
+import { onReconcileDone, startReconcile } from './v2-reconcile';
 import {
   admitWaiting,
   attempt,
@@ -87,6 +88,8 @@ const V22_VARIANT_ROW =
 const V23_VARIANT_ROW =
   'v2.3: pre-land check, sprout window, sampled re-check, agent released during checks, ' +
   'read-set inherited reds, early revert-first, cards that re-execute the loser';
+const V24_VARIANT_ROW =
+  'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked';
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -112,6 +115,7 @@ function initialV2State(ctx: StepContext): V2State {
       flakeConfirm: config.flake_confirm,
       inheritedReds: config.inherited_reds,
       earlyTickets: config.early_tickets,
+      reconcile: config.reconcile,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
     },
@@ -139,6 +143,7 @@ function initialV2State(ctx: StepContext): V2State {
     recentChecks: [],
     pairReds: {},
     decidedPairs: {},
+    reconciledPairs: {},
     cards: {},
     cardSeq: 0,
     authors: {},
@@ -202,6 +207,10 @@ function initialStats(): V2State['stats'] {
     recheck_samples: 0,
     early_tickets: 0,
     confirmed_by_sighting: 0,
+    reconciles: 0,
+    reconciled: 0,
+    contradictions: 0,
+    stale_rechecks: 0,
   };
 }
 
@@ -221,6 +230,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onInitialCommitted: (task) => startLanding(step, task),
     onReworkResult: (outcome: ReworkOutcome) => {
       if (outcome.kind === 'test-author') onAuthorDone(step, outcome);
+      else if (outcome.kind === 'reconcile') onReconcileDone(step, outcome);
       else onReworkDone(step, outcome);
     },
     onJobDone: (jobId: JobId, result: JobResult) => routeJob(step, jobId, result),
@@ -279,6 +289,9 @@ function startWork(step: V2Step, flow: LandingFlow, slot: SlotId): void {
       return;
     case 'informed':
       startInformedRework(step, flow, slot, work);
+      return;
+    case 'reconcile':
+      startReconcile(step, flow, slot, work);
       return;
     case 'author':
       startAuthor(step, flow, slot, work.card);
@@ -447,13 +460,15 @@ function isV20(settings: V2Settings): boolean {
     !settings.flakeConfirm &&
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
+    !settings.reconcile &&
     settings.decisionOutcome === 'decline'
   );
 }
 
-/** `v2` (the harness's rules), `v2.3` when a v2.3 rule is on, else `v2.2`. */
-function variantOf(settings: V2Settings): 'v2' | 'v2.2' | 'v2.3' {
+/** `v2` (the harness's rules), `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
+function variantOf(settings: V2Settings): Variant {
   if (isV20(settings)) return 'v2';
+  if (settings.reconcile) return 'v2.4';
   const isV23 =
     settings.window === 'aimd' ||
     settings.recheck === 'sampled' ||
@@ -462,10 +477,13 @@ function variantOf(settings: V2Settings): 'v2' | 'v2.2' | 'v2.3' {
   return isV23 ? 'v2.3' : 'v2.2';
 }
 
-const VARIANT_ROWS: Readonly<Record<'v2' | 'v2.2' | 'v2.3', string>> = {
+type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4';
+
+const VARIANT_ROWS: Readonly<Record<Variant, string>> = {
   v2: V20_VARIANT_ROW,
   'v2.2': V22_VARIANT_ROW,
   'v2.3': V23_VARIANT_ROW,
+  'v2.4': V24_VARIANT_ROW,
 };
 
 /** `policy_summary` of v2 (the beanstalk block, in the harness's key and row order, then v2.2's). */
@@ -531,6 +549,11 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     early_tickets: settings.earlyTickets,
     early_tickets_opened: stats.early_tickets,
     confirmed_by_sighting: stats.confirmed_by_sighting,
+    reconcile: settings.reconcile,
+    reconciles: stats.reconciles,
+    reconciled: stats.reconciled,
+    contradictions: stats.contradictions,
+    stale_rechecks: stats.stale_rechecks,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -596,6 +619,12 @@ function summaryRows(
     [
       'Inherited reds waited out (no rework round spent)',
       settings.inheritedReds === 'off' ? 'off' : String(stats.inherited_reds),
+    ],
+    [
+      'Reconciles (reconciled / contradictions) / stale re-checks',
+      settings.reconcile
+        ? `${stats.reconciles} (${stats.reconciled} / ${stats.contradictions}) / ${stats.stale_rechecks}`
+        : 'off',
     ],
     [
       'Sprout window at the end / window waits / early tickets / re-check samples',
@@ -708,6 +737,7 @@ function v2View(state: V2State): V2PolicyView {
       flake_confirm: state.settings.flakeConfirm,
       inherited_reds: state.settings.inheritedReds,
       early_tickets: state.settings.earlyTickets,
+      reconcile: state.settings.reconcile,
       decision_outcome: state.settings.decisionOutcome,
       decision_mode: state.settings.decisionMode,
     },

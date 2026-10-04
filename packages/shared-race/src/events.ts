@@ -357,6 +357,17 @@ export type RaceEventFields = {
     /** v2.2: the red was the sprout's (`inherited_reds`); the bean waits, no rework round. */
     readonly inherited?: true;
   };
+  /**
+   * v2.4: before a card, the test author reconciled the two tasks' acceptance tests (their
+   * changed `files`, carried by the arriving bean), or found a genuine contradiction.
+   */
+  'decision.reconcile': TaskRef & {
+    readonly against: string;
+    readonly outcome: 'reconciled' | 'contradiction';
+    readonly files: readonly string[];
+    readonly reason: string | null;
+    readonly inv: string;
+  };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
   /** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */
@@ -375,6 +386,8 @@ export type RaceEventFields = {
     readonly checked_on: string;
     readonly head: string;
     readonly attempt: number;
+    /** v2.4: failing tests whose owner was reverted after the check began (no round spent). */
+    readonly stale?: readonly string[];
   };
   // v2 (policy_beanstalk_v2.py)
   'decision.request': {

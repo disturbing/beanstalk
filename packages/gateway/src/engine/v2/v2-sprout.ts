@@ -60,7 +60,7 @@ export function landRevert(
 ): SproutCommit {
   revert.target.reverted = true;
   step.state.stats.reverts += 1;
-  return appendCommit(step, {
+  const commit = appendCommit(step, {
     sha: revert.sha,
     parent: revert.head,
     kind: 'revert',
@@ -68,6 +68,8 @@ export function landRevert(
     ticket: revert.ticket,
     files: [...revert.files],
   });
+  revert.target.revertedAt = commit.idx;
+  return commit;
 }
 
 /** Routes a job's or CI run's outcome back to the flow that started it. */

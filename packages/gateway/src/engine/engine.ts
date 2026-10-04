@@ -208,6 +208,7 @@ function finishInvocation(ctx: StepContext, inv: OpenInvocation, body: Invocatio
     markersLeft: body.markers_left,
     committed: isCommitted,
     headSha: body.head_sha,
+    resultText: body.result_text,
   });
 }
 
@@ -224,7 +225,8 @@ function recordReworkCommit(
   task?.invocations.push(inv.id);
   if (retryAfterFailedResume(ctx, inv, body, task)) return false;
   if (task === undefined) return true;
-  rememberSession(task, body);
+  // A reconcile is a test author's fresh session on the bean: the bean keeps its own.
+  if (inv.kind !== 'reconcile') rememberSession(task, body);
   if (rework.isCommitted) {
     recordCommit(ctx, task, inv.id, 'rework', body);
     task.mergedMain = inv.mergedLine ?? inv.workspace.merge?.sha ?? task.mergedMain;
