@@ -4,7 +4,7 @@
 # Each waiter takes a ticket (nanosecond timestamp + pid); only the oldest live ticket may take a free slot,
 # so chained jobs that re-queue go to the back instead of re-acquiring at once. Hold one slot per race.
 SLOTS=${RACE_SLOTS:-2}
-DIR=/private/tmp/claude-501/-Users-coop-Workspace/469e6f7b-45e3-4919-bc23-03d7694a485c/scratchpad/race-slots
+DIR=${RACE_SLOT_DIR:-${TMPDIR:-/tmp}/beanstalk-race-slots}
 Q="$DIR/queue"
 mkdir -p "$DIR" "$Q"
 ticket="$Q/$(python3 -c 'import time; print(time.time_ns())')-$$"
