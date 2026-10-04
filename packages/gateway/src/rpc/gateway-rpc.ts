@@ -1,0 +1,193 @@
+/**
+ * The RPC surface for the web app (`GatewayRpc` in `@beanstalk/shared-race/rpc`), behind the
+ * gateway's default entrypoint. Arguments are validated here; expected failures come back
+ * as `{ ok: false, error }`, as the HTTP API would answer them.
+ */
+import { z } from 'zod';
+
+import { RunId } from '@beanstalk/shared-race/ids';
+import type {
+  GatewayRpc,
+  RepoDiff,
+  RepoFile,
+  RepoGrep,
+  RepoLog,
+  RepoRef,
+  RepoTree,
+  RpcError,
+  RpcResult,
+  ViewToken,
+} from '@beanstalk/shared-race/rpc';
+import { REPO_REF_PATTERN } from '@beanstalk/shared-race/rpc';
+import { isSafeRepoPath } from '@beanstalk/shared-race/task';
+
+import type { RepoExplorer } from '../adapters/repo-explorer';
+import { repoExplorer } from '../adapters/repo-explorer';
+import { issueToken } from '../auth/tokens';
+import type { Deps } from '../deps';
+import { GatewayError, UpstreamError } from '../errors';
+import type { RunResult } from '../run/run-do';
+import { MAX_LISTED_RUNS, RUN_INDEX_NAME } from '../run/run-index';
+import { runRepoName } from '../run/run-names';
+
+/** View tokens minted for the web app's live socket live an hour. */
+const VIEW_TOKEN_TTL_SECONDS = 3600;
+/** Paths a call may name. */
+const MAX_PATHS = 100;
+/** Events per `runEvents` page. */
+const MAX_EVENTS_PAGE = 5000;
+/** Characters of an actor's name (the log records `human:<actor>`). */
+const MAX_ACTOR = 64;
+
+const Ref = z.string().regex(REPO_REF_PATTERN, 'sprout, stalk, beans/<task> or a commit sha');
+const Path = z.string().max(512).refine(isSafeRepoPath, 'a relative path inside the repo');
+const Paths = z.array(Path).max(MAX_PATHS);
+
+export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
+  const explorer = (run: string): RepoExplorer => repoExplorer(env.ARTIFACTS, run);
+  return {
+    async listRuns(limit = 50) {
+      const index = env.RUN_INDEX.getByName(RUN_INDEX_NAME);
+      return index.list(Math.min(limit, MAX_LISTED_RUNS));
+    },
+    runView: (run) => forRun(run, async (id) => fromRun(await deps.run(id).view())),
+    runEvents: (run, after, limit) =>
+      forRun(run, async (id) => {
+        const page = fromRun(
+          await deps.run(id).events(Math.max(0, Math.trunc(after)), clampPage(limit)),
+        );
+        if (!page.ok) return page;
+        const { bodies, last, done } = page.value;
+        return ok({ events: [...bodies], next_after: last, done });
+      }),
+    decide: (run, card, winner, actor, text) => {
+      const who = actorName(actor);
+      if (who === '') return Promise.resolve(invalid('name the actor who decided'));
+      return forRun(run, async (id) =>
+        fromRun(
+          await deps.run(id).decide(card, {
+            winner,
+            actor: who,
+            text: text === undefined ? null : text.slice(0, 2000),
+          }),
+        ),
+      );
+    },
+    viewToken: (run) => forRun(run, (id) => viewToken(deps, id)),
+    repoTree: (run, ref, path = '') =>
+      explore<RepoTree>(run, { ref, paths: path === '' ? [] : [path] }, (id) =>
+        explorer(runRepoName(id)).tree(ref, path),
+      ),
+    repoFile: (run, ref, path) =>
+      explore<RepoFile>(run, { ref, paths: [path] }, (id) =>
+        explorer(runRepoName(id)).file(ref, path),
+      ),
+    repoDiff: (run, fromRef, toRef, paths) =>
+      explore<RepoDiff>(run, { ref: fromRef, refs: [toRef], paths: paths ?? [] }, (id) =>
+        explorer(runRepoName(id)).diff(fromRef, toRef, paths ?? null),
+      ),
+    repoLog: (run, ref, paths, limit) =>
+      explore<RepoLog>(run, { ref, paths: paths ?? [] }, (id) =>
+        explorer(runRepoName(id)).log(ref, paths, limit),
+      ),
+    repoGrep: (run, ref, pattern, paths) =>
+      explore<RepoGrep>(run, { ref, paths: paths ?? [] }, (id) =>
+        explorer(runRepoName(id)).grep(ref, pattern, paths ?? null),
+      ),
+    beansByPath: (run, paths) =>
+      checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).beans(paths))),
+    beanDetail: (run, bean) => forRun(run, async (id) => fromRun(await deps.run(id).bean(bean))),
+    decisions: (run, paths) =>
+      checkedPaths(run, paths ?? [], async (id) =>
+        fromRun(await deps.run(id).decisionRecords(paths ?? null)),
+      ),
+    testsFor: (run, paths) =>
+      checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).testsFor(paths))),
+  };
+}
+
+async function viewToken(deps: Deps, run: RunId): Promise<RpcResult<ViewToken>> {
+  const exists = fromRun(await deps.run(run).agentCount());
+  if (!exists.ok) return exists;
+  const issued = await issueToken(
+    deps.tokenSecret,
+    { run, sub: 'web', scope: 'view' },
+    { ttlSeconds: VIEW_TOKEN_TTL_SECONDS, nowMs: deps.now() },
+  );
+  return ok({
+    token: issued.token,
+    expires_at: issued.expiresAt,
+    live_path: `/v1/runs/${run}/live`,
+  });
+}
+
+/** Validates the run id, then runs `use`; thrown gateway errors become error values. */
+async function forRun<T>(
+  run: string,
+  use: (id: RunId) => Promise<RpcResult<T>>,
+): Promise<RpcResult<T>> {
+  const id = RunId.safeParse(run);
+  if (!id.success) return invalid(`not a run id: ${run}`);
+  try {
+    return await use(id.data);
+  } catch (error: unknown) {
+    return caught(error);
+  }
+}
+
+function checkedPaths<T>(
+  run: string,
+  paths: readonly string[],
+  use: (id: RunId) => Promise<RpcResult<T>>,
+): Promise<RpcResult<T>> {
+  const parsed = Paths.safeParse(paths);
+  if (!parsed.success) return Promise.resolve(invalid(parsed.error.issues[0]?.message ?? 'paths'));
+  return forRun(run, use);
+}
+
+/** A read of the run repo: refs and paths are checked first. */
+function explore<T>(
+  run: string,
+  args: { ref: RepoRef; refs?: readonly RepoRef[]; paths: readonly string[] },
+  read: (id: RunId) => Promise<T>,
+): Promise<RpcResult<T>> {
+  const refs = [args.ref, ...(args.refs ?? [])];
+  const badRef = refs.find((ref) => !Ref.safeParse(ref).success);
+  if (badRef !== undefined) return Promise.resolve(invalid(`not a ref of the run repo: ${badRef}`));
+  return checkedPaths(run, args.paths, async (id) => ok(await read(id)));
+}
+
+function fromRun<T>(result: RunResult<T>): RpcResult<T> {
+  return result.ok ? result : { ok: false, error: { ...result.error } };
+}
+
+function caught(error: unknown): { ok: false; error: RpcError } {
+  if (error instanceof GatewayError) {
+    return { ok: false, error: { code: error.code, status: error.status, message: error.message } };
+  }
+  if (error instanceof UpstreamError) {
+    return { ok: false, error: { code: 'upstream_failed', status: 502, message: error.message } };
+  }
+  throw error;
+}
+
+/** The actor as the log names it after `human:`; a leading `human:` is not doubled. */
+function actorName(actor: string): string {
+  return actor
+    .trim()
+    .replace(/^human:/, '')
+    .trim()
+    .slice(0, MAX_ACTOR);
+}
+
+function clampPage(limit: number): number {
+  return Math.max(1, Math.min(MAX_EVENTS_PAGE, Math.trunc(limit)));
+}
+
+function ok<T>(value: T): RpcResult<T> {
+  return { ok: true, value };
+}
+
+function invalid(message: string): { ok: false; error: RpcError } {
+  return { ok: false, error: { code: 'invalid_request', status: 400, message } };
+}

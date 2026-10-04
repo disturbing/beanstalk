@@ -1,0 +1,2 @@
+# The root .gitignore drops .dev.vars.*; the placeholder file is meant to be committed.
+!.dev.vars.example

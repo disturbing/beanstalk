@@ -1,0 +1,24 @@
+{
+  "name": "@beanstalk/shared-race",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./task": "./src/task.ts",
+    "./run-config": "./src/run-config.ts",
+    "./driver": "./src/driver.ts",
+    "./events": "./src/events.ts",
+    "./ids": "./src/ids.ts",
+    "./rpc": "./src/rpc.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

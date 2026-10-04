@@ -1,0 +1,440 @@
+/**
+ * The prompts the harness sends, ported verbatim from `research/race/harness/prompts.py`
+ * (`preland_red` from `policy_beanstalk_preland.py`, `informed_red` from
+ * `policy_beanstalk_v2.py`). Agent behaviour must not differ between a local and a cloud
+ * race, so any change here is a change to the experiment: prompts keep the harness's words
+ * ("trunk", "main") even where the gateway's API says sprout and stalk.
+ */
+import type { ArenaTask } from '@beanstalk/shared-race/task';
+import { acceptancePaths } from '@beanstalk/shared-race/task';
+
+export const NO_COMMIT = "Don't stage or commit; the harness commits your changes.";
+
+type PromptTask = Pick<ArenaTask, 'title' | 'prompt' | 'acceptance_tests'>;
+
+export function acceptanceLine(paths: readonly string[]): string {
+  return (
+    `Acceptance tests are in ${paths.join(', ')}. Make them pass without breaking other tests. ` +
+    "Run `node --test`. Don't edit the acceptance tests. Keep changes minimal."
+  );
+}
+
+export function initialPrompt(task: PromptTask): string {
+  return `${task.title}\n\n${task.prompt.trim()}\n\n${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`;
+}
+
+function sessionHead(task: PromptTask, resumed: boolean): string {
+  return resumed ? '' : `You are working on: ${task.title}\n\n${task.prompt.trim()}\n\n`;
+}
+
+export function reworkConflictPrompt(
+  task: PromptTask,
+  files: readonly string[],
+  target: string,
+  resumed: boolean,
+): string {
+  return (
+    `${sessionHead(task, resumed)}Your change could not be merged: ${target} moved on and conflicts with it. ` +
+    `The merge of ${target} into your branch is in progress in this worktree; conflict markers are in: ` +
+    `${files.join(', ')}.\n\nResolve every conflict so that your change and the changes already on ${target} ` +
+    'both keep working, and remove all conflict markers. ' +
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+export function reworkRedPrompt(
+  task: PromptTask,
+  failing: readonly string[],
+  output: string,
+  target: string,
+  resumed: boolean,
+): string {
+  const tests =
+    failing.map((test) => `- ${test}`).join('\n') || '- (the suite failed; see the output)';
+  return (
+    `${sessionHead(task, resumed)}The merge queue rejected your change: merged with the latest ${target} and the other queued ` +
+    `changes, these tests failed:\n${tests}\n\nOutput:\n\`\`\`\n${output.trim()}\n\`\`\`\n\n` +
+    `The latest ${target} has been merged into this worktree. Fix your change so the whole suite passes ` +
+    "(your acceptance tests and everyone else's). Other teams' acceptance tests describe behaviour that " +
+    `must keep working. ${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+/** A repair ticket as the beanstalk fixer prompt reads it. */
+export type FixerTicket = {
+  readonly id: string;
+  readonly attempt: number;
+  readonly failingTests: readonly string[];
+  readonly output: string;
+};
+
+/** A suspect commit shown to a fixer. */
+export type FixerSuspect = {
+  readonly sha: string;
+  readonly label: string;
+  readonly title: string;
+  readonly intent: string;
+  readonly diff: string;
+};
+
+export function fixerPrompt(
+  ticket: FixerTicket,
+  suspects: readonly FixerSuspect[],
+  acceptance: readonly string[],
+): string {
+  const failing = ticket.failingTests.map((test) => `- ${test}`);
+  const lines = [
+    `The fast trunk is red. Repair ticket ${ticket.id} (attempt ${ticket.attempt}).`,
+    '',
+    'Failing tests:',
+    ...(failing.length > 0 ? failing : ['- (see output)']),
+    '',
+    'Output:',
+    '```',
+    ticket.output.trim(),
+    '```',
+    '',
+    ...suspectLines(suspects),
+    '',
+    'Make the whole suite pass (`node --test`) with a minimal change that preserves the intent of ' +
+      "every suspect change: don't revert features. Don't edit acceptance tests " +
+      `(${acceptance.length > 0 ? acceptance.join(', ') : 'test files named in the tickets'}). ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+function suspectLines(suspects: readonly FixerSuspect[]): string[] {
+  if (suspects.length === 0) {
+    return [
+      'No suspect could be isolated; the failure appeared between the last green commit and the head.',
+    ];
+  }
+  const header =
+    'Suspect commits: unvalidated changes whose writes intersect what the failing tests read, plus any ' +
+    "change that landed after a suspect's snapshot and wrote the same code (marked):";
+  return [
+    header,
+    ...suspects.flatMap((suspect) => [
+      `- ${suspect.sha.slice(0, 10)} ${suspect.label}: ${suspect.title}`,
+      `  Intent: ${suspect.intent.trim()}`,
+      '  Diff:',
+      '```diff',
+      suspect.diff.trim(),
+      '```',
+    ]),
+  ];
+}
+
+export function prelandRedPrompt(
+  task: PromptTask,
+  failing: readonly string[],
+  output: string,
+  resumed: boolean,
+): string {
+  const tests =
+    failing.map((test) => `- ${test}`).join('\n') || '- (the suite failed; see the output)';
+  return (
+    `${sessionHead(task, resumed)}Your change was not landed. Merged onto the latest trunk, these tests failed:\n${tests}\n\n` +
+    `Output:\n\`\`\`\n${output.trim()}\n\`\`\`\n\n` +
+    'The latest trunk has been merged into this worktree. Fix your change so the whole suite passes. ' +
+    "Acceptance tests (yours and other teams') are protected: edits to them are discarded before landing, " +
+    "so change the code, not the tests. Other teams' acceptance tests describe behaviour that must keep " +
+    `working. ${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+/** A landed change the informed rework names: what it was for and what it changed. */
+export type CulpritContext = {
+  readonly task: string;
+  readonly title: string;
+  readonly intent: string;
+  readonly diff: string;
+};
+
+/** v2's `informed_red`: the failures plus the intent and diff of the landed changes involved. */
+export function informedRedPrompt(
+  task: PromptTask,
+  failing: readonly string[],
+  output: string,
+  culprits: readonly CulpritContext[],
+  resumed: boolean,
+): string {
+  const tests =
+    failing.map((test) => `- ${test}`).join('\n') || '- (the suite failed; see the output)';
+  const lines = [
+    `${sessionHead(task, resumed)}Your change was not landed. Merged onto the latest trunk, these tests failed:`,
+    tests,
+    '',
+    'Output:',
+    '```',
+    output.trim(),
+    '```',
+    '',
+  ];
+  if (culprits.length > 0) {
+    lines.push(
+      'They involve changes that already landed and are accepted behaviour. Their intent and diffs:',
+    );
+    for (const culprit of culprits) {
+      lines.push(
+        `- ${culprit.task}: ${culprit.title}`,
+        `  Intent: ${culprit.intent.trim()}`,
+        '  Diff:',
+        '```diff',
+        culprit.diff.trim(),
+        '```',
+      );
+    }
+    lines.push(
+      '',
+      'Adapt your change so that your acceptance tests AND theirs pass. Where the two behaviours ' +
+        'seem to contradict, keep both by scoping your change (a separate helper, an explicit option, ' +
+        'the new shape at the new call site) rather than changing their accepted behaviour.',
+    );
+  }
+  lines.push(
+    "The latest trunk has been merged into this worktree. Acceptance tests (yours and other teams') are " +
+      'protected: edits to them are discarded before landing, so change the code, not the tests.',
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  );
+  return `${lines.join('\n')}\n`;
+}
+
+/** A product decision as the prompts state it (E6 `decision_block`). */
+export type DecisionContext = {
+  readonly card: string;
+  readonly text: string;
+  /** The oracle, a human, or the oracle after the human's timeout. */
+  readonly by: 'oracle' | 'human' | 'human-timeout';
+};
+
+const DECIDED_BY: Readonly<Record<DecisionContext['by'], string>> = {
+  oracle: 'decided by the product owner',
+  human: 'decided by a human',
+  'human-timeout': 'decided by the product owner (default)',
+};
+
+/** E6's `decision_text`: the decision line written when the human gave none. */
+export function decisionText(
+  winner: { readonly id: string; readonly title: string },
+  loser: { readonly id: string; readonly title: string },
+): string {
+  return (
+    `Where the two specs disagree, ${winner.id}'s behaviour stands: ${winner.title}. ` +
+    `${loser.id} (${loser.title}) must work with it; its acceptance tests are amended where they ` +
+    'encode the other behaviour.'
+  );
+}
+
+function decisionBlock(
+  decision: DecisionContext,
+  winner: CulpritContext | null,
+  me: string,
+): string[] {
+  const lines = [
+    `Product decision ${decision.card} (${DECIDED_BY[decision.by]}): ${decision.text}`,
+  ];
+  if (winner === null || winner.task === me) return lines;
+  return [
+    ...lines,
+    '',
+    `${winner.task} "${winner.title}" is accepted behaviour on the trunk that your change must work with.`,
+    `Its intent: ${winner.intent.trim()}`,
+    'Its diff:',
+    '```diff',
+    winner.diff.trim(),
+    '```',
+  ];
+}
+
+function amendedLine(paths: readonly string[]): string[] {
+  if (paths.length === 0) return [];
+  return [
+    `Your acceptance tests were amended by the test author to match the decision (${paths.join(', ')}). ` +
+      'They are your spec now.',
+    '',
+  ];
+}
+
+function inForceLines(inForce: readonly string[]): string[] {
+  if (inForce.length === 0) return [];
+  return ['Other decisions in force for this task:', ...inForce.map((line) => `- ${line}`), ''];
+}
+
+/**
+ * E6's `reexec_prompt` for a `keep-landed` loser: a fresh session on a fresh fork of the
+ * sprout head, with the decision, the winner's intent and diff, and its amended tests.
+ */
+export function reexecutionPrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  decision: DecisionContext,
+  context: {
+    readonly winner: CulpritContext | null;
+    readonly amended: readonly string[];
+    readonly inForce: readonly string[];
+  },
+): string {
+  const lines = [
+    task.title,
+    '',
+    task.prompt.trim(),
+    '',
+    ...decisionBlock(decision, context.winner, task.id),
+    '',
+    'Your earlier attempt was discarded because it contradicted that accepted behaviour. ' +
+      'Implement your task again on the current trunk, within the decision.',
+    '',
+    ...inForceLines(context.inForce),
+    ...amendedLine(context.amended),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
+ * The winner of an `adopt-in-place` decision (v2.2): the landed loser stays and its
+ * acceptance tests were amended to the decision; the winner's session lands with them.
+ */
+export function adoptInPlacePrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  decision: DecisionContext,
+  context: {
+    readonly loser: { readonly id: string; readonly title: string };
+    readonly amended: readonly string[];
+    readonly inForce: readonly string[];
+    readonly resumed: boolean;
+  },
+): string {
+  const { loser } = context;
+  const amendment =
+    context.amended.length > 0
+      ? `${loser.id}'s acceptance tests were amended to the decision (${context.amended.join(', ')}). ` +
+        'The amendment is merged into this worktree and lands with your change; the tests are ' +
+        'protected, so edits to them are discarded before landing.'
+      : `The test author found nothing in ${loser.id}'s acceptance tests that contradicts the decision.`;
+  const lines = [
+    `${sessionHead(task, context.resumed)}${decisionBlock(decision, null, task.id).join('\n')}`,
+    '',
+    `Your spec wins over ${loser.id} ("${loser.title}"), which stays on the trunk. ${amendment}`,
+    '',
+    `Make your acceptance tests and everyone else's pass, adapting ${loser.id}'s code where it ` +
+      'must follow your behaviour.',
+    '',
+    ...inForceLines(context.inForce),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
+ * E6's `author_prompt`: a separate session that amends the loser's acceptance tests to the
+ * decided spec, or replies NO AMENDMENT. On the loser's snapshot (keep-landed) the amended
+ * tests must still fail; in place, the loser is implemented and only the decision changes.
+ */
+export function testAuthorPrompt(
+  loser: PromptTask & Pick<ArenaTask, 'id'>,
+  decision: Pick<DecisionContext, 'card' | 'text'>,
+  context: {
+    readonly winner: CulpritContext;
+    readonly failing: readonly string[];
+    readonly output: string;
+    readonly inForce: readonly string[];
+    readonly inPlace: boolean;
+  },
+): string {
+  const paths = acceptancePaths(loser);
+  const { winner } = context;
+  const lines = [
+    `You are the test author for task ${loser.id}. You write and amend acceptance tests; you never implement features.`,
+    '',
+    `A product decision was made (${decision.card}): ${decision.text}`,
+    '',
+  ];
+  if (context.inForce.length > 0) {
+    lines.push(
+      `Earlier decisions about ${loser.id} are still in force; the tests must stay consistent with them too ` +
+        '(keep what they decided, change only what this new decision changes):',
+      ...context.inForce.map((line) => `- ${line}`),
+      '',
+    );
+  }
+  lines.push(
+    `Task ${loser.id} ("${loser.title}") was specified as:`,
+    loser.prompt.trim(),
+    '',
+    `Its acceptance tests are in: ${paths.join(', ')}. They were written before this decision.`,
+    '',
+    context.inPlace
+      ? `The winning change, ${winner.task} ("${winner.title}"), lands next; it is not in this tree yet.`
+      : `The winning change, ${winner.task} ("${winner.title}"), is already in this tree.`,
+    `Its intent: ${winner.intent.trim()}`,
+    'Its diff:',
+    '```diff',
+    winner.diff.trim(),
+    '```',
+  );
+  if (context.failing.length > 0) {
+    lines.push(
+      '',
+      `When ${loser.id}'s implementation met it, these tests failed:`,
+      ...context.failing.slice(0, AUTHOR_FAILING_TESTS).map((test) => `- ${test}`),
+    );
+    if (context.output.trim() !== '') {
+      lines.push('Output:', '```', context.output.trim().slice(0, AUTHOR_OUTPUT_CHARS), '```');
+    }
+  }
+  const check = context.inPlace
+    ? `${loser.id} is implemented in this tree; the amended tests must describe the decided behaviour, ` +
+      'which the winning change brings when it lands. Run ' +
+      `\`node --test ${paths.join(' ')}\` to check that they parse.`
+    : `${loser.id} is not implemented in this tree, so its tests must still fail here because the ` +
+      `feature is missing: run \`node --test ${paths.join(' ')}\` to check that they fail for that ` +
+      'reason and not because of a syntax error.';
+  lines.push(
+    '',
+    `Amend ${loser.id}'s acceptance tests so that they encode the decided behaviour: change only the ` +
+      'assertions (and the setup they need) that contradict the decision, keep every other assertion and ' +
+      'the file structure, and do not edit any other file. Work out expected values from the code in this ' +
+      `tree. ${check} If the tests encode nothing that contradicts the decision, change nothing and reply ` +
+      "NO AMENDMENT. Don't stage or commit.",
+  );
+  return `${lines.join('\n')}\n`;
+}
+
+/** Failing tests and output characters a test author is shown (`[:12]`, `[:3000]`). */
+const AUTHOR_FAILING_TESTS = 12;
+const AUTHOR_OUTPUT_CHARS = 3000;
+
+/** Extra line `rework_flow` appends to a red prompt when the merge of main also conflicted. */
+export function alsoConflictedLine(files: readonly string[]): string {
+  return `\nThe merge of main also left conflict markers in: ${files.join(', ')}. Resolve them too.\n`;
+}
+
+/** The harness's commit message for agent work (`commit_task`). */
+export function taskCommitMessage(
+  task: Pick<ArenaTask, 'title' | 'id'>,
+  kind: string,
+  inv: string,
+): string {
+  return `${task.title}\n\nTask: ${task.id}\nKind: ${kind}\nInvocation: ${inv}\n`;
+}
+
+/** The queue's squash message (`QueueRace.land_message`). */
+export function queueLandMessage(task: Pick<ArenaTask, 'title' | 'id'>): string {
+  return `${task.title}\n\nTask: ${task.id}\nPolicy: queue\n`;
+}
+
+/** The beanstalk policies' squash message for a task (`BeanstalkRace.land_message`). */
+export function beanstalkLandMessage(task: Pick<ArenaTask, 'title' | 'id'>): string {
+  return `${task.title}\n\nTask: ${task.id}\nPolicy: beanstalk\n`;
+}
+
+/** The message of a revert on the landed line (`revert_culprit`); `ticket` may be a card. */
+export function revertMessage(title: string, reverted: string, ticket: string): string {
+  return `Revert ${title}\n\nReverts: ${reverted}\nTicket: ${ticket}\n`;
+}
+
+/** The message of a leave-one-out probe commit (`leave_one_out`). */
+export function probeMessage(without: string): string {
+  return `probe: without ${without.slice(0, 10)}\n`;
+}

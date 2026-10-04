@@ -1,0 +1,421 @@
+/**
+ * Read-only views of a run repo for the web app's explorer (`docs/claude-opus/13` §4),
+ * through the ARTIFACTS binding: one directory, one file, a diff, history and a grep at a
+ * ref. Every answer is bounded and says when a bound was hit (`truncated`). The runner has
+ * no read endpoints, so diffs and grep walk trees and blobs here as well.
+ */
+import type {
+  RepoCommit,
+  RepoDiff,
+  RepoFile,
+  RepoGrep,
+  RepoGrepMatch,
+  RepoLog,
+  RepoTree,
+  RepoTreeEntry,
+} from '@beanstalk/shared-race/rpc';
+import { Sha } from '@beanstalk/shared-race/ids';
+
+import { GatewayError, UpstreamError } from '../errors';
+import { changeStats, diffText } from '../git/diff-text';
+import { artifactsCode, artifactsPort, isUnder } from './artifacts';
+
+/** Entries of one directory listing. */
+const MAX_TREE_ENTRIES = 1000;
+/** Bytes of a file returned (or searched). */
+const MAX_FILE_BYTES = 256 * 1024;
+/** Characters of a diff's patch text. */
+const MAX_PATCH_CHARS = 100_000;
+/** Files a diff covers (the adapter reads at most this many). */
+const MAX_DIFF_FILES = 200;
+/** Commits a log returns, and commits it looks at when filtering by path. */
+const MAX_LOG = 100;
+const MAX_LOG_SCAN = 200;
+/** Files a grep reads, matches it returns, and characters of a matching line. */
+const MAX_GREP_FILES = 300;
+const MAX_GREP_MATCHES = 200;
+const MAX_GREP_LINE = 300;
+/** Characters of a commit message. */
+const MAX_MESSAGE = 2000;
+/** Files of a whole-tree listing (the import closure of tests). */
+const MAX_LISTED_FILES = 5000;
+/** Blob reads in flight at once. */
+const READ_CONCURRENCY = 8;
+
+export type ResolvedRef = { readonly commit: string; readonly tree: string };
+
+export type RepoExplorer = {
+  /** The commit and root tree a ref names; null when it names nothing. */
+  resolve(ref: string): Promise<ResolvedRef | null>;
+  tree(ref: string, path: string): Promise<RepoTree>;
+  file(ref: string, path: string): Promise<RepoFile>;
+  diff(from: string, to: string, paths: readonly string[] | null): Promise<RepoDiff>;
+  log(ref: string, paths: readonly string[] | null, limit: number): Promise<RepoLog>;
+  grep(ref: string, pattern: string, paths: readonly string[] | null): Promise<RepoGrep>;
+  /** Every file path at a commit (up to 5,000), for resolving imports. */
+  listFiles(commit: string): Promise<{ files: string[]; truncated: boolean }>;
+  /** Text of files at a commit; null for a missing, binary or oversized file. */
+  readTexts(commit: string, paths: readonly string[]): Promise<(string | null)[]>;
+};
+
+export function repoExplorer(binding: Artifacts, repo: string): RepoExplorer {
+  const open = async <T>(use: (handle: ArtifactsRepo) => Promise<T>): Promise<T> => {
+    const handle = await call(() => binding.get(repo));
+    try {
+      return await call(() => use(handle));
+    } finally {
+      handle[Symbol.dispose]();
+    }
+  };
+  return {
+    resolve: (ref) => open((handle) => resolveRef(handle, ref)),
+    tree: (ref, path) => open((handle) => readDirectory(handle, ref, path)),
+    file: (ref, path) => open((handle) => readOne(handle, ref, path)),
+    diff: (from, to, paths) =>
+      open(async (handle) => {
+        const [base, head] = await Promise.all([required(handle, from), required(handle, to)]);
+        const changes = await artifactsPort(binding).changedFiles(repo, {
+          from: Sha.parse(base.commit),
+          to: Sha.parse(head.commit),
+          ...(paths === null ? {} : { paths }),
+        });
+        if (changes === null) throw new GatewayError('a commit is missing', 'not_found', 404);
+        const patch = diffText(changes, MAX_PATCH_CHARS);
+        return {
+          from: { ref: from, commit: base.commit },
+          to: { ref: to, commit: head.commit },
+          files: changes.map((change) => ({ path: change.path, ...changeStats(change) })),
+          patch,
+          truncated: changes.length >= MAX_DIFF_FILES || patch.length > MAX_PATCH_CHARS,
+        };
+      }),
+    log: (ref, paths, limit) => open((handle) => readLog(handle, { ref, paths, limit })),
+    grep: (ref, pattern, paths) => open((handle) => search(handle, { ref, pattern, paths })),
+    listFiles: (commit) =>
+      open(async (handle) => {
+        const resolved = await required(handle, commit);
+        const files: string[] = [];
+        const truncated = await walkFiles(handle, resolved.tree, {
+          prefix: '',
+          limit: MAX_LISTED_FILES,
+          visit: (path) => files.push(path),
+        });
+        return { files, truncated };
+      }),
+    readTexts: (commit, paths) =>
+      open(async (handle) => {
+        const texts: (string | null)[] = [];
+        for (let start = 0; start < paths.length; start += READ_CONCURRENCY) {
+          const batch = paths.slice(start, start + READ_CONCURRENCY);
+          const reads = batch.map(async (path) => {
+            const blob = await handle.readFile({ ref: commit, path });
+            return blob === null ? null : textOf(await blob.arrayBuffer());
+          });
+          // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
+          texts.push(...(await Promise.all(reads)));
+        }
+        return texts;
+      }),
+  };
+}
+
+async function resolveRef(handle: ArtifactsRepo, ref: string): Promise<ResolvedRef | null> {
+  if (/^[0-9a-f]{40}$/.test(ref)) {
+    const commit = await handle.readCommit(ref);
+    return commit === null ? null : { commit: commit.hash, tree: commit.treeHash };
+  }
+  const [head] = await handle.log({ ref, limit: 1 });
+  return head === undefined ? null : { commit: head.hash, tree: head.treeHash };
+}
+
+async function required(handle: ArtifactsRepo, ref: string): Promise<ResolvedRef> {
+  const resolved = await resolveRef(handle, ref);
+  if (resolved === null) throw new GatewayError(`no ref ${ref} in the run repo`, 'not_found', 404);
+  return resolved;
+}
+
+async function readDirectory(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoTree> {
+  const resolved = await required(handle, ref);
+  const tree = await subtree(handle, resolved.tree, path);
+  if (tree === null) throw new GatewayError(`no directory ${path} at ${ref}`, 'not_found', 404);
+  const entries = (await handle.readTree(tree)) ?? [];
+  const listed: RepoTreeEntry[] = entries
+    .map((entry) => ({
+      name: entry.name,
+      path: path === '' ? entry.name : `${path}/${entry.name}`,
+      type: entry.type,
+      sha: entry.hash,
+    }))
+    .toSorted(
+      (a, b) => Number(b.type === 'tree') - Number(a.type === 'tree') || (a.name < b.name ? -1 : 1),
+    );
+  return {
+    ref,
+    commit: resolved.commit,
+    path,
+    entries: listed.slice(0, MAX_TREE_ENTRIES),
+    truncated: listed.length > MAX_TREE_ENTRIES,
+  };
+}
+
+/** The tree at `path` under a root tree (`''`: the root), or null. */
+async function subtree(handle: ArtifactsRepo, root: string, path: string): Promise<string | null> {
+  let current = root;
+  for (const segment of path === '' ? [] : path.split('/')) {
+    // oxlint-disable-next-line no-await-in-loop -- each level is read from the one above
+    const entries = (await handle.readTree(current)) ?? [];
+    const next = entries.find((entry) => entry.name === segment && entry.type === 'tree');
+    if (next === undefined) return null;
+    current = next.hash;
+  }
+  return current;
+}
+
+/** The object a path names under a tree (a blob or a subtree), or null. */
+async function entryAt(
+  handle: ArtifactsRepo,
+  root: string | null,
+  path: string,
+  cache: Map<string, ArtifactsTreeEntry[]>,
+): Promise<string | null> {
+  let current = root;
+  for (const segment of path.split('/')) {
+    if (current === null) return null;
+    const cached = cache.get(current);
+    // oxlint-disable-next-line no-await-in-loop -- each level is read from the one above
+    const entries = cached ?? (await handle.readTree(current)) ?? [];
+    cache.set(current, entries);
+    current = entries.find((entry) => entry.name === segment)?.hash ?? null;
+  }
+  return current;
+}
+
+async function readOne(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoFile> {
+  const resolved = await required(handle, ref);
+  const blob = await handle.readFile({ ref: resolved.commit, path });
+  if (blob === null) throw new GatewayError(`no file ${path} at ${ref}`, 'not_found', 404);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const isBinary = bytes.subarray(0, MAX_FILE_BYTES).includes(0);
+  return {
+    ref,
+    commit: resolved.commit,
+    path,
+    size: bytes.length,
+    binary: isBinary,
+    content: isBinary ? null : new TextDecoder().decode(bytes.subarray(0, MAX_FILE_BYTES)),
+    truncated: bytes.length > MAX_FILE_BYTES,
+  };
+}
+
+async function readLog(
+  handle: ArtifactsRepo,
+  query: { ref: string; paths: readonly string[] | null; limit: number },
+): Promise<RepoLog> {
+  const limit = Math.max(1, Math.min(MAX_LOG, Math.trunc(query.limit)));
+  const paths = query.paths;
+  if (paths === null || paths.length === 0) {
+    const commits = await handle.log({ ref: query.ref, limit });
+    return {
+      ref: query.ref,
+      commits: commits.map(toCommit),
+      scanned: commits.length,
+      truncated: false,
+    };
+  }
+  const commits = await handle.log({ ref: query.ref, limit: MAX_LOG_SCAN });
+  const cache = new Map<string, ArtifactsTreeEntry[]>();
+  const touching: RepoCommit[] = [];
+  let scanned = 0;
+  for (const [index, commit] of commits.entries()) {
+    if (touching.length >= limit) break;
+    scanned += 1;
+    // oxlint-disable-next-line no-await-in-loop -- commits are compared with their parents in order
+    const parentTree = await parentTreeOf(handle, commit, commits[index + 1]);
+    // oxlint-disable-next-line no-await-in-loop -- the tree cache is shared from commit to commit
+    if (await touches(handle, { commit, parentTree, paths, cache }))
+      touching.push(toCommit(commit));
+  }
+  return {
+    ref: query.ref,
+    commits: touching,
+    scanned,
+    truncated: touching.length < limit && commits.length >= MAX_LOG_SCAN,
+  };
+}
+
+async function parentTreeOf(
+  handle: ArtifactsRepo,
+  commit: ArtifactsCommitMetadata,
+  next: ArtifactsCommitMetadata | undefined,
+): Promise<string | null> {
+  const parent = commit.parents[0];
+  if (parent === undefined) return null;
+  if (next?.hash === parent) return next.treeHash;
+  return (await handle.readCommit(parent))?.treeHash ?? null;
+}
+
+async function touches(
+  handle: ArtifactsRepo,
+  compare: {
+    commit: ArtifactsCommitMetadata;
+    parentTree: string | null;
+    paths: readonly string[];
+    cache: Map<string, ArtifactsTreeEntry[]>;
+  },
+): Promise<boolean> {
+  for (const path of compare.paths) {
+    const trimmed = path.replace(/\/+$/, '');
+    // oxlint-disable-next-line no-await-in-loop -- stop at the first path that changed
+    const [now, before] = await Promise.all([
+      entryAt(handle, compare.commit.treeHash, trimmed, compare.cache),
+      entryAt(handle, compare.parentTree, trimmed, compare.cache),
+    ]);
+    if (now !== before) return true;
+  }
+  return false;
+}
+
+function toCommit(commit: ArtifactsCommitMetadata): RepoCommit {
+  return {
+    sha: commit.hash,
+    parents: [...commit.parents],
+    message: commit.message.slice(0, MAX_MESSAGE),
+    author: { name: commit.author.name, email: commit.author.email },
+    committed_at: new Date(commit.committedAt * 1000).toISOString(),
+  };
+}
+
+async function search(
+  handle: ArtifactsRepo,
+  query: { ref: string; pattern: string; paths: readonly string[] | null },
+): Promise<RepoGrep> {
+  const matcher = compile(query.pattern);
+  const resolved = await required(handle, query.ref);
+  const blobs: { path: string; hash: string }[] = [];
+  const isFull = await walkFiles(handle, resolved.tree, {
+    prefix: '',
+    limit: MAX_GREP_FILES,
+    visit: (path, hash) => {
+      if (query.paths === null || isUnder(path, query.paths)) blobs.push({ path, hash });
+    },
+    filter: query.paths,
+  });
+  const matches: RepoGrepMatch[] = [];
+  let scanned = 0;
+  for (
+    let start = 0;
+    start < blobs.length && matches.length < MAX_GREP_MATCHES;
+    start += READ_CONCURRENCY
+  ) {
+    const batch = blobs.slice(start, start + READ_CONCURRENCY);
+    // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
+    const texts = await Promise.all(batch.map(async (blob) => blobText(handle, blob.hash)));
+    batch.forEach((blob, index) => {
+      scanned += 1;
+      const text = texts[index];
+      if (text !== null && text !== undefined)
+        collectMatches(text, { path: blob.path, matcher, matches });
+    });
+  }
+  return {
+    ref: query.ref,
+    commit: resolved.commit,
+    pattern: query.pattern,
+    matches: matches.slice(0, MAX_GREP_MATCHES),
+    files_scanned: scanned,
+    truncated: isFull || matches.length >= MAX_GREP_MATCHES,
+  };
+}
+
+function compile(pattern: string): RegExp {
+  if (pattern.length === 0 || pattern.length > 200) {
+    throw new GatewayError('the pattern must have 1 to 200 characters', 'invalid_request', 400);
+  }
+  try {
+    return new RegExp(pattern);
+  } catch {
+    throw new GatewayError(`not a regular expression: ${pattern}`, 'invalid_request', 400);
+  }
+}
+
+function collectMatches(
+  text: string,
+  target: { path: string; matcher: RegExp; matches: RepoGrepMatch[] },
+): void {
+  text.split('\n').forEach((line, index) => {
+    if (target.matches.length >= MAX_GREP_MATCHES || !target.matcher.test(line)) return;
+    target.matches.push({ path: target.path, line: index + 1, text: line.slice(0, MAX_GREP_LINE) });
+  });
+}
+
+/**
+ * Visits every file under a tree (paths relative to the repo root), at most `limit`; with
+ * `filter`, only directories on the way to or under a filtered path are opened. True when
+ * the limit cut the walk short.
+ */
+async function walkFiles(
+  handle: ArtifactsRepo,
+  root: string,
+  walk: {
+    prefix: string;
+    limit: number;
+    visit: (path: string, hash: string) => void;
+    filter?: readonly string[] | null;
+  },
+): Promise<boolean> {
+  const pending: { tree: string; prefix: string }[] = [{ tree: root, prefix: walk.prefix }];
+  let visited = 0;
+  while (pending.length > 0) {
+    const next = pending.shift();
+    if (next === undefined) break;
+    // oxlint-disable-next-line no-await-in-loop -- a breadth-first walk, one directory at a time
+    const entries = (await handle.readTree(next.tree)) ?? [];
+    for (const entry of entries) {
+      const path = `${next.prefix}${entry.name}`;
+      if (entry.type === 'tree') {
+        if (isOnTheWay(path, walk.filter)) pending.push({ tree: entry.hash, prefix: `${path}/` });
+        continue;
+      }
+      if (entry.type === 'gitlink') continue;
+      if (walk.filter !== undefined && walk.filter !== null && !isUnder(path, walk.filter))
+        continue;
+      if (visited >= walk.limit) return true;
+      visited += 1;
+      walk.visit(path, entry.hash);
+    }
+  }
+  return false;
+}
+
+/** A directory worth opening: no filter, or it holds or lies under a filtered path. */
+function isOnTheWay(directory: string, filter: readonly string[] | null | undefined): boolean {
+  if (filter === undefined || filter === null) return true;
+  return filter.some((path) => {
+    const wanted = path.replace(/\/+$/, '');
+    return wanted.startsWith(`${directory}/`) || isUnder(directory, [wanted]);
+  });
+}
+
+async function blobText(handle: ArtifactsRepo, hash: string): Promise<string | null> {
+  const blob = await handle.readBlob(hash);
+  return blob === null ? null : textOf(await blob.arrayBuffer());
+}
+
+/** Text of a file, unless it is binary or oversized. */
+function textOf(buffer: ArrayBuffer): string | null {
+  const bytes = new Uint8Array(buffer);
+  if (bytes.length > MAX_FILE_BYTES || bytes.includes(0)) return null;
+  return new TextDecoder().decode(bytes);
+}
+
+async function call<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error: unknown) {
+    if (error instanceof GatewayError || error instanceof UpstreamError) throw error;
+    if (artifactsCode(error) === 'NOT_FOUND') {
+      throw new GatewayError('no such run repo', 'not_found', 404, { cause: error });
+    }
+    throw new UpstreamError('the run repo could not be read', true, { cause: error });
+  }
+}

@@ -1,0 +1,451 @@
+/**
+ * The race event schema: one JSON object per line of `events.jsonl`, identical in shape to
+ * the local harness (`research/race/harness/core.py` `EventLog.write` and the policies), so
+ * `summary.py`, `report.py` and the harness tests read cloud runs unchanged.
+ *
+ * Every event is `{seq, t, ts, type, ...fields}`: `seq` counts from 1, `t` is seconds since
+ * the run was created (3 decimals), `ts` is the wall clock (`2026-10-03T00:17:49.013+00:00`).
+ * Field order follows the harness's keyword order, and absent values are `null`, never
+ * omitted, wherever the harness writes `None`.
+ */
+
+/** JSON value as stored in an event. */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly Json[]
+  | { readonly [key: string]: Json };
+
+/** Extra keys `run_ci(meta=...)` spreads into `ci.start` and `ci.end`. */
+export type CiMeta = {
+  readonly batch?: string;
+  readonly tasks?: readonly string[];
+  readonly prefix?: number;
+  readonly check?: 'suite' | 'acceptance';
+  readonly trunk_idx?: number;
+  readonly unvalidated?: number;
+  readonly ticket?: string;
+  readonly without?: string;
+};
+
+/** `invocation.end` for an invocation that reported (InvocationResult.to_event()). */
+export type InvocationEndFields = {
+  readonly inv: string;
+  readonly kind: string;
+  readonly task: string | null;
+  readonly agent: string | null;
+  readonly spent_usd: number;
+  readonly ok: boolean;
+  readonly infra_error: string | null;
+  readonly timed_out: boolean;
+  readonly exit_code: number | null;
+  readonly subtype: string | null;
+  readonly is_error: boolean;
+  readonly cost_usd: number;
+  readonly cost_source: string;
+  readonly num_turns: number | null;
+  readonly duration_ms: number | null;
+  readonly duration_api_ms: number | null;
+  readonly wall_ms: number;
+  readonly startup_ms: number | null;
+  readonly session_id: string | null;
+  readonly usage: Readonly<Record<string, number>>;
+  readonly model_usage: Json;
+  readonly permission_denials: Json;
+  readonly tool_uses: Readonly<Record<string, number>>;
+  readonly result_text: string;
+  readonly structured_output: Json;
+  readonly transcript: string | null;
+  readonly notes: readonly string[];
+  readonly rate_limit: Json;
+  readonly rate_limited: boolean;
+};
+
+/** `invocation.end` for an invocation killed by an abort (cost estimated from progress). */
+export type InvocationKilledFields = {
+  readonly inv: string;
+  readonly kind: string;
+  readonly task: string | null;
+  readonly agent: string | null;
+  readonly ok: false;
+  readonly killed: true;
+  readonly cost_usd: number;
+  readonly cost_source: 'estimated' | 'none';
+  readonly spent_usd: number;
+};
+
+export type CiEndFields =
+  | ({
+      readonly ci: string;
+      readonly sha: string;
+      readonly purpose: string;
+      readonly green: boolean;
+      readonly slot: number;
+      readonly failing_files: readonly string[] | null;
+      readonly failing_tests: readonly string[];
+      readonly tests: number;
+      readonly failures: number;
+      readonly suite_seconds: number;
+      readonly ci_seconds: number;
+      readonly timed_out: boolean;
+    } & CiMeta)
+  | ({
+      readonly ci: string;
+      readonly sha: string;
+      readonly purpose: string;
+      readonly green: null;
+      readonly cancelled: true;
+      readonly slot: number;
+      readonly ci_seconds: number;
+    } & CiMeta);
+
+export type FinalCheckFields =
+  | {
+      readonly sha: string;
+      readonly suite_green: boolean;
+      readonly suite_tests: number;
+      readonly suite_failures: number;
+      readonly acceptance_run_green: boolean;
+      readonly tasks_accepted: number;
+      readonly tasks_total: number;
+      readonly green_tasks_accepted: number;
+      readonly green_tasks: number;
+      readonly correct: boolean;
+      readonly all_tasks_accepted: boolean;
+      readonly failing_files: readonly string[];
+      readonly base_tests_changed: readonly string[];
+    }
+  | { readonly error: string };
+
+type TaskRef = { readonly task: string };
+
+/** Fields of every event type, keyed by `type`. */
+export type RaceEventFields = {
+  'race.setup': {
+    readonly policy: string;
+    readonly out: string;
+    readonly repo: string;
+    readonly arena: string;
+    readonly arena_digest: string;
+    readonly setup_seconds: number;
+  };
+  'footprint.predicted': TaskRef & {
+    readonly method: string;
+    readonly selected: readonly string[];
+    readonly probs: Readonly<Record<string, number>>;
+  };
+  'race.start': {
+    readonly policy: string;
+    readonly agent: string;
+    readonly model: string | null;
+    readonly agents: number;
+    readonly ci_seconds: number;
+    readonly ci_slots: number;
+    readonly batch: number;
+    readonly tasks: readonly string[];
+    readonly budget_usd: number;
+    readonly seed: number;
+    readonly base: string;
+    readonly union_merge: boolean;
+    readonly snapshot: string;
+    readonly queue_hold: boolean;
+    readonly protect_tests: string;
+    readonly footprint: string;
+    readonly error_budget: number;
+    readonly intake_seconds: number;
+  };
+  'task.start': TaskRef & {
+    readonly agent: string;
+    readonly base: string;
+    readonly predicted: readonly string[];
+  };
+  'invocation.start': {
+    readonly inv: string;
+    readonly kind: string;
+    readonly task: string | null;
+    readonly agent: string | null;
+    readonly adapter: string;
+    readonly model: string | null;
+    readonly attempt: number;
+    readonly resume: string | null;
+    readonly cwd: string;
+    readonly budget_cap_usd: number;
+  };
+  'invocation.end': InvocationEndFields | InvocationKilledFields;
+  'invocation.init': { readonly inv: string; readonly [key: string]: Json };
+  'invocation.retry': TaskRef & { readonly reason: string };
+  'task.commit': TaskRef & {
+    readonly sha: string;
+    readonly kind: string;
+    readonly new_commit: boolean;
+    readonly files: readonly string[];
+  };
+  'acceptance.restored': {
+    readonly task?: string;
+    readonly ticket?: string;
+    readonly paths: readonly string[];
+    readonly inv: string;
+    readonly others?: readonly string[];
+  };
+  'task.drop': TaskRef & { readonly reason: string };
+  'ci.start': {
+    readonly ci: string;
+    readonly sha: string;
+    readonly purpose: string;
+    readonly slot: number;
+  } & CiMeta;
+  'ci.end': CiEndFields;
+  land:
+    | (TaskRef & {
+        readonly sha: string;
+        readonly target: string;
+        readonly files: readonly string[];
+      })
+    | {
+        readonly task: string | null;
+        readonly ticket: string | null;
+        readonly kind: string;
+        readonly sha: string;
+        readonly target: string;
+        readonly trunk_idx: number;
+        readonly files: readonly string[];
+        readonly unvalidated: number;
+        readonly prelanded?: boolean;
+      };
+  'green.promote': {
+    readonly sha: string;
+    readonly trunk_idx?: number;
+    readonly tasks: readonly string[];
+  };
+  'merge.conflict': {
+    readonly task: string | null;
+    readonly ticket?: string | null;
+    readonly onto: string;
+    readonly onto_main?: boolean;
+    readonly files: readonly string[];
+    readonly batch_mates?: readonly string[];
+  };
+  'rework.start': {
+    readonly task: string | null;
+    readonly ticket?: string | null;
+    readonly reason: string;
+    readonly conflicts?: readonly string[];
+    readonly failing?: readonly string[];
+    readonly attempt: number;
+    readonly resumed: boolean;
+    /** v2: the landed tasks whose intent and diff the informed rework carries. */
+    readonly culprits?: readonly string[];
+    /** v2.2: the decision card a re-execution (`reason: decision`) follows. */
+    readonly card?: string;
+  };
+  'rework.markers_left': {
+    readonly task: string | null;
+    readonly ticket?: string | null;
+    readonly files: readonly string[];
+  };
+  abort: { readonly reason: string };
+  error: { readonly where: string; readonly error: string; readonly traceback: string };
+  'race.end': {
+    readonly aborted: string | null;
+    readonly killed_processes: number;
+    readonly spent_usd: number;
+  };
+  'final.check': FinalCheckFields;
+  // queue policy (policy_queue.py)
+  'queue.enqueue': TaskRef & { readonly sha: string; readonly depth: number };
+  'queue.hold': TaskRef & { readonly files: readonly string[]; readonly behind: readonly string[] };
+  'queue.eject': TaskRef & {
+    readonly reason: 'conflict' | 'red';
+    readonly files: readonly string[] | null;
+    readonly failing: readonly string[] | null;
+  };
+  'batch.start': {
+    readonly batch: string;
+    readonly base: string;
+    readonly head: string;
+    readonly tasks: readonly string[];
+    readonly speculative: boolean;
+  };
+  'batch.red': {
+    readonly batch: string;
+    readonly tasks: readonly string[];
+    readonly failing: readonly string[] | null;
+  };
+  'batch.cancel': {
+    readonly batch: string;
+    readonly tasks: readonly string[];
+    readonly because: string;
+  };
+  'bisect.start': { readonly batch: string; readonly tasks: readonly string[] };
+  'bisect.end': {
+    readonly batch: string;
+    readonly culprit: string;
+    readonly landed: readonly string[];
+    readonly requeued: readonly string[];
+  };
+  // beanstalk policies (policy_beanstalk.py, policy_beanstalk_preland.py)
+  'placement.decision': TaskRef & {
+    readonly rule: string;
+    readonly predicted: readonly string[];
+    readonly overlap: readonly string[];
+    readonly occupied: Readonly<Record<string, readonly string[]>>;
+    readonly skipped: readonly string[];
+  };
+  'budget.pause': { readonly open_reds: number; readonly budget: number };
+  'budget.resume': { readonly open_reds: number; readonly budget: number };
+  'ticket.open': {
+    readonly ticket: string;
+    readonly red_sha: string;
+    readonly red_idx: number;
+    readonly failing: readonly string[];
+    readonly method: string;
+    readonly suspects: Json;
+    readonly concurrent: Json;
+  };
+  'ticket.bisect': {
+    readonly ticket: string;
+    readonly red_idx: number;
+    readonly failing: readonly string[];
+  };
+  'ticket.close': {
+    readonly ticket: string;
+    readonly how: string;
+    readonly attempts: number;
+    readonly open_seconds: number;
+  };
+  'ticket.retry': { readonly ticket: string; readonly why: string; readonly attempt: number };
+  'ticket.escalate': { readonly ticket: string; readonly why: string; readonly attempts: number };
+  'ticket.culprit': {
+    readonly ticket: string;
+    readonly trunk_idx: number;
+    readonly task: string | null;
+    readonly kind: string;
+  };
+  'ticket.stuck': { readonly ticket: string; readonly culprit_idx: number };
+  'ticket.fix_landed': { readonly ticket: string; readonly trunk_idx: number };
+  'fixer.dispatch': {
+    readonly ticket: string;
+    readonly agent: string;
+    readonly attempt: number;
+    readonly base: string;
+    readonly suspects: readonly string[];
+  };
+  revert: {
+    readonly ticket: string;
+    readonly task: string | null;
+    readonly reverted: string;
+    readonly sha: string;
+    readonly trunk_idx: number;
+  };
+  'revert.conflict': {
+    readonly ticket: string;
+    readonly task: string | null;
+    readonly files: readonly string[];
+  };
+  'race.stuck': { readonly trunk_idx: number; readonly green_idx: number };
+  'preland.check': TaskRef & {
+    readonly sha: string;
+    readonly green: boolean;
+    readonly failing_files: readonly string[] | null;
+    readonly failing_tests: readonly string[];
+    readonly suite_seconds: number;
+    readonly check_seconds: number;
+    /** v2.2: the red was the sprout's (`inherited_reds`); the bean waits, no rework round. */
+    readonly inherited?: true;
+  };
+  'preland.optimistic': TaskRef & {
+    readonly checked_on: string;
+    readonly landed_on: string;
+    readonly landed_meanwhile: number;
+  };
+  'preland.recheck': TaskRef & {
+    readonly checked_on: string;
+    readonly head: string;
+    readonly attempt: number;
+  };
+  // v2 (policy_beanstalk_v2.py)
+  'decision.request': {
+    readonly card: string;
+    readonly task: string;
+    readonly against: readonly string[];
+    readonly specs: Readonly<Record<string, string>>;
+    readonly failing: readonly string[];
+    readonly attempts: number;
+  };
+  'decision.made': {
+    readonly card: string;
+    readonly winner: string;
+    readonly loser: string;
+    /** `landed` / `arriving` (the oracle), `human:<actor>`, or `timeout:<oracle>`. */
+    readonly oracle: string;
+    readonly wait_seconds: number;
+    /** v2.2 (`decision_outcome: reexecute`): `keep-landed` or `adopt-in-place`. */
+    readonly outcome?: string;
+    /** v2.2: the decision line the test author and the re-executed bean read. */
+    readonly text?: string;
+  };
+  // v2.2
+  /**
+   * The test author's amendment of a decision's loser: accepted (`amended`, with the fail-first
+   * proof unless in place), `none` (nothing contradicted the decision, or the author failed),
+   * `rejected`, or `rolled-back` (the winner that carried an in-place amendment was dropped).
+   */
+  'spec.amended': {
+    readonly card: string;
+    readonly task: string;
+    readonly status: 'amended' | 'none' | 'rejected' | 'rolled-back';
+    readonly paths: readonly string[];
+    readonly in_place: boolean;
+    readonly fail_first: {
+      readonly sha: string;
+      readonly failing_files: readonly string[];
+      readonly failing_tests: readonly string[];
+    } | null;
+    readonly problems: readonly string[];
+    readonly inv: string | null;
+  };
+  /**
+   * A red validation whose re-run did not fail the same test file again: the test is recorded
+   * as flaky and the validation counts as green (no revert).
+   */
+  'flake.suspected': {
+    readonly trunk_idx: number;
+    readonly sha: string;
+    readonly failing: readonly string[] | null;
+    readonly rerun_failing: readonly string[] | null;
+    readonly flaky: readonly string[];
+  };
+};
+
+export type RaceEventType = keyof RaceEventFields;
+
+/** The envelope every event carries before its fields. */
+export type EventEnvelope<K extends RaceEventType = RaceEventType> = {
+  readonly seq: number;
+  readonly t: number;
+  readonly ts: string;
+  readonly type: K;
+};
+
+/** One event of a given type. */
+export type RaceEventOf<K extends RaceEventType> = EventEnvelope<K> & RaceEventFields[K];
+
+/** Any race event. */
+export type RaceEvent = { [K in RaceEventType]: RaceEventOf<K> }[RaceEventType];
+
+/** Event keys the harness's `ZEvents.REQUIRED` test checks for, by type. */
+export const REQUIRED_EVENT_KEYS: Readonly<Partial<Record<RaceEventType, readonly string[]>>> = {
+  'race.start': ['policy', 'agent', 'tasks'],
+  'task.start': ['task', 'agent', 'base'],
+  'invocation.start': ['inv', 'kind', 'agent'],
+  'invocation.end': ['inv', 'kind', 'cost_usd', 'ok'],
+  'ci.start': ['ci', 'sha', 'purpose', 'slot'],
+  'ci.end': ['ci', 'sha', 'purpose', 'green'],
+  land: ['sha', 'target'],
+  'green.promote': ['sha', 'tasks'],
+  'merge.conflict': ['files'],
+  'race.end': ['aborted', 'spent_usd'],
+  'final.check': ['sha', 'suite_green'],
+};

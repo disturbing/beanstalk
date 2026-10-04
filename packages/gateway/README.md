@@ -1,0 +1,347 @@
+# @beanstalk/gateway
+
+The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 of §7). It is a Worker that runs agent races in the cloud. It does four things:
+
+- holds one Durable Object per run (`RunDO`), which runs a deterministic race engine;
+- hands work to Python driver slots over long polls;
+- proxies git for the agents, which never hold Artifacts tokens;
+- drives the runner container for squashes, reverts, suites and ref updates.
+
+It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)).
+
+The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.2 rules by default (see [The v2.2 rules](#the-v22-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
+
+## Names
+
+| Public name (API, refs, live page) | What it is | Harness name (events, summary) |
+|---|---|---|
+| **bean** | One agent's change: the branch `refs/heads/beans/<task>` of the run repo `race-<run>`, pushed by the driver | task worktree, `task/<id>` |
+| **sprout** | The staged line `refs/heads/sprout` of the run repo `race-<run>`. Beans land here after their pre-land check passes | `trunk` (`trunk_idx`, `land.target: "trunk"`) |
+| **stalk** | The stable line `refs/heads/stalk`. It only moves to validated commits and is the run repo's default branch | `green` (`green.promote`, `green_idx`) |
+
+Event types and field names stay identical to the harness. The queue has no staged line: it lands verified batches straight on the stalk, and its `land` events keep `target: "main"`. Prompts are the harness's, word for word, so they still say "trunk" and "main".
+
+### Why a bean is a branch, not a fork
+
+The first deployed build forked one Artifacts repo per bean, lazily. Forks made after the first landing were unreadable: upload-pack answered 500, and pushes failed with `delta base is missing`. A new fork could also stay invisible for a moment (`NOT_FOUND`), which aborted races. Forking every bean eagerly at the seed would avoid the observed bug, but it would still depend on forks behaving.
+
+A bean is now a branch of the run repo:
+
+- Every object lives in one store. A fetch from `bean_url` finds the sprout, the stalk and every bean, and a push's delta bases are always there.
+- Nothing is created per task, so nothing per task can fail before the work starts, and a finished run leaves one repo to reap.
+- The proxy keeps the isolation that matters. It reads each push's command list and accepts only the slot's own `refs/heads/beans/<task>`, never a deletion.
+- Reads are open within the run, as in the local harness, where every worktree shares one repository.
+
+A runner job that keeps failing for one bean drops only that bean, with reason `infrastructure failure: …`. Failures on the shared lines (the sprout, the stalk, tickets) still abort, because the state of those lines is then unknown.
+
+## Routes
+
+| Route | Auth | Purpose |
+|---|---|---|
+| `GET /healthz` | none | Liveness |
+| `POST /v1/runs` | admin | Create a run from a `RunConfig` (`@beanstalk/shared-race/run-config`). Creates the run repo and returns slot tokens and a view link. `201` |
+| `POST /v1/runs/:run/seed-token` | admin | A 15-minute token that pushes the arena base to the sprout **and** the stalk, before the start only |
+| `POST /v1/runs/:run/start` | admin | Starts the race from the seeded base. `409 repo_not_seeded` until both refs exist and agree |
+| `POST /v1/runs/:run/stop` | admin | `{reason?}`. Aborts the race, which then runs the final check |
+| `POST /v1/runs/:run/tokens` | admin | Re-issues the slot tokens |
+| `POST /v1/runs/:run/decisions/:card` | admin | v2: `{winner, text?}` answers a decision card (logged as `human:admin`) |
+| `POST /v1/runs/:run/reap` | admin | `{dry_run}` (default `true`). A dry run lists the run's Artifacts repos: `race-<run>`, plus any `race-<run>-*` left by earlier gateways. `{"dry_run": false}` deletes them. `409` while the race runs |
+| `GET /v1/runs/:run` | admin, view or slot token | The run view (state, slots, CI, cost, `policy_state`) |
+| `GET /v1/runs/:run/summary` | reader | `summary.json` |
+| `GET /v1/runs/:run/events?after=&limit=&format=json\|jsonl` | reader | The event log. `jsonl` is byte-for-byte `events.jsonl` |
+| `GET /v1/runs/:run/live` | reader (`?key=`) | WebSocket feed: the view, then each step's events |
+| `GET /runs/:run?key=<view token>` | view token in the page URL | Live page: lanes, sprout and stalk, beans, decision cards, CI, cost |
+| `POST /v1/runs/:run/agents/:slot/next` | slot token | Long poll, up to 25 s, for the slot's next invocation |
+| `POST /v1/runs/:run/invocations/:inv/result` | slot token | The invocation's result, posted after the driver commits and pushes |
+| `POST /v1/runs/:run/invocations/:inv/progress` | slot token | `{cost_usd}`, the running estimate. The answer can tell the driver to abort |
+| `/git/<namespace>/<repo>.git/*` | slot or seed token, as Bearer or Basic password | Git smart-HTTP proxy. A slot reads the run repo and pushes only its own bean branch `refs/heads/beans/<task>`; the proxy refuses other refs and deletions. The seed token pushes the sprout and the stalk before the start. Bodies stream through; the gateway mints a short-lived Artifacts token server-side |
+
+Errors are `{"error": {"code", "message", "issues?"}}`. Run tokens are `bst1.<claims>.<HMAC>` with scope `slot`, `seed` or `view`.
+
+## A run, end to end
+
+```bash
+GW=http://localhost:8787; A="Authorization: Bearer $ADMIN_TOKEN"
+RUN=$(curl -s -H "$A" -H 'content-type: application/json' -d @run.json $GW/v1/runs | jq -r .run)
+SEED=$(curl -s -H "$A" -X POST $GW/v1/runs/$RUN/seed-token | jq -r .token)
+git -C arena -c http.extraHeader="Authorization: Bearer $SEED" \
+  push $GW/git/beanstalk-race/race-$RUN.git $BASE:refs/heads/sprout $BASE:refs/heads/stalk
+curl -s -H "$A" -X POST $GW/v1/runs/$RUN/start          # {"run":…,"phase":"running","base_sha":…}
+# start one driver per slot with its slot token; then:
+curl -s -H "$A" "$GW/v1/runs/$RUN/events?format=jsonl" > events.jsonl
+curl -s -H "$A" $GW/v1/runs/$RUN/summary > summary.json
+curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/v1/runs/$RUN/reap
+```
+
+`run.json` is the harness's `RaceConfig` with the same names and defaults, plus `tasks`, in the arena JSON format. v2 adds these fields:
+
+- `preland_mode`: `optimistic` (the default) or `locked`;
+- `preland_seconds`: `null` (the default) means `ci_seconds`;
+- `decision_seconds`: 30 by default;
+- `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
+- the v2.2 rules, all on by default: `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 rules](#the-v22-rules)).
+
+## Driver contract (for the Python driver)
+
+`POST /v1/runs/:run/agents/a0/next` returns one of these:
+
+```json
+{"invocation": {
+  "inv": "inv0007-rework", "kind": "rework", "task": "t002", "slot": "a0", "attempt": 1,
+  "prompt": "Your change was not landed. Merged onto the latest trunk, these tests failed:\n…",
+  "resume": "2d054156-…", "adapter": "claude", "model": "sonnet", "max_turns": 40,
+  "timeout_seconds": 900, "budget_cap_usd": 3,
+  "replay": {"reset_to": "9e52f41…", "check": "acceptance", "fixes": []},
+  "workspace": {
+    "bean": "beans/t002",
+    "bean_url": "https://gw/git/beanstalk-race/race-k3x9q2m7ab.git",
+    "repo_url": "https://gw/git/beanstalk-race/race-k3x9q2m7ab.git",
+    "branch": "beans/t002",
+    "base_sha": "26eecce…", "head_sha": "2fdd264…",
+    "merge": {"sha": "9e52f41…", "ref": "refs/heads/sprout", "conflicts": []},
+    "acceptance": {"tests/t002.test.ts": "…"},
+    "protect": [{"path": "tests/t001.test.ts", "content": "…"}],
+    "union_paths": ["CHANGELOG.md", "CHANGELOG*.md", "**/CHANGELOG.md"],
+    "commit_message": "Task t002\n\nTask: t002\nKind: rework\nInvocation: inv0007-rework\n"}},
+ "token": {"token": "bst1.…", "expires_at": "…"}}
+{"wait": true}
+{"done": true, "aborted": null}
+```
+
+`token` appears only when the slot token is past half its life. Replace the old token with it.
+
+`kind` is one of these:
+
+- `initial`;
+- `rework`;
+- `fixer` (the queue only);
+- `test-author` (v2.2 cards).
+
+With `release_on_check`, a rework can come to any slot. Its `resume` names the author's session. So the driver runs every invocation in the bean's own directory (`work/agents/<task>`), whichever slot it came to, and the session resumes there. Sessions live on the machine that ran them, so `remote.py` drives every slot of a run from one process. A resume that fails is retried once as a fresh session.
+
+For each invocation:
+
+1. Check out the bean at `head_sha`, or `base_sha` before the first push.
+2. If `merge` is set, fetch `merge.ref` from `repo_url` and merge `merge.sha` with `--no-commit --no-ff`. Skip this when `merge.sha` is already an ancestor.
+3. Run the agent.
+4. Restore `acceptance`, and restore each `protect` file whose content is in the lineage.
+5. Commit with `commit_message`, unless conflict markers are left. A `test-author` invocation is the exception: its `acceptance` files are the tests to amend, written at the start and never restored, and the driver commits changes to those files only, discarding any other change.
+6. Push `branch` to `bean_url`.
+7. Post the result:
+
+```json
+POST /v1/runs/:run/invocations/inv0007-rework/result
+{"ok": true, "subtype": "success", "cost_usd": 0.0907, "cost_source": "reported-delta",
+ "num_turns": 9, "wall_ms": 21830, "session_id": "2d054156-…",
+ "pushed_ref": "refs/heads/beans/t002", "head_sha": "66a517d…", "new_commit": true,
+ "files": ["src/notifications/templates.ts"], "tamper": [], "markers_left": [],
+ "merge_conflicts": null, "infra_error": null}
+→ 200 {"accepted": true}
+```
+
+The result body is `InvocationResult.to_event()` plus the git fields. Unknown keys are dropped. `turns` and `wall_seconds` are accepted as fallbacks for `num_turns` and `wall_ms`.
+
+Progress uses the same shape: `POST …/progress {"cost_usd": 0.02}` answers `{"abort": false}`, or `{"abort": true, "reason": "budget: …"}`.
+
+Decisions (admin): `POST /v1/runs/:run/decisions/D001 {"winner": "t005", "text": "…"}` answers `200 {"run", "card": "D001", "winner": "t005", "accepted": true}`. `text` is optional, up to 2,000 characters. It is the decision as the test author and the loser's re-execution read it; without it the engine writes one. Errors:
+
+- `404 unknown_card`: the card is not open;
+- `422 invalid_winner`: the winner is not one of the card's tasks;
+- `409 invalid_state`: the run is not running.
+
+## How the engine maps to the harness
+
+`src/engine` is a pure state machine: `step(state, input, env) → {state, effects, response}`. The inputs are polls, results, progress, job outcomes, timer ticks, decisions, start and stop. The effects are events, poll replies and jobs. It never reads the clock or bindings. The RunDO applies one input at a time, persists the state and that step's events atomically in SQLite, then performs the effects. Timers (CI latency, pre-land latency, the oracle, retries, the wall clock) live in the state and fire from the DO alarm.
+
+| Harness | Engine |
+|---|---|
+| `core.py` `Race` (invoke, commit_task, drop, budget, shutdown, final_check) | `invocations.ts`, `tasks.ts`, `lifecycle.ts`, `final-check.ts` |
+| `ci.py` `CI.run` + `run_ci` (K slots, suite then emulated latency) | `ci.ts`; suites run as `check` jobs on `run-<run>-ci-<k>` |
+| `summary.py` `build` | `summary.ts` |
+| `prompts.py`, `preland_red`, `informed_red` | `prompts.ts` (verbatim) |
+| `policy_queue.py` | `queue/` |
+| `policy_beanstalk_v2.py` `place` (FIFO), `decide` | `v2/v2-policy.ts`, `v2/v2-decisions.ts` |
+| `policy_beanstalk_preland.py` `land`, `try_optimistic`, `publish`, `resolve_on` | `v2/v2-landing.ts`; the committer lock is `v2/v2-turn.ts` |
+| `policy_beanstalk_v2.py` `repair_before_landing`, `culprit_tasks`, `culprit_context` | `v2/v2-repair.ts`; diffs come from a `diff` job (`src/git/diff-text.ts`) |
+| `policy_beanstalk.py` `maybe_validate`, `on_validation`, `promote` | `v2/v2-validator.ts` |
+| `policy_beanstalk.py` `open_ticket`, `bisect_trunk`, `first_bad`, `leave_one_out`, `revert_culprit` | `v2/v2-tickets.ts` |
+
+Runner instances per run:
+
+- `run-<run>-committer` squashes, reverts and moves refs, with write tokens. It never runs a suite.
+- `run-<run>-sandbox-<slot>` runs v2's pre-land checks with a read token.
+- `run-<run>-ci-<k>` runs validations, bisection probes and the final check with read tokens.
+
+A run therefore needs `agents + ci_slots + 1` container instances. They are `standard-2` (1 vCPU); on `standard-1` suites took 12.7 s median against 0.9 s locally. `max_instances` is 48 and `sleepAfter` is 2 min: a cloud race at 24 hit the cap while the previous runs' idle runners were still asleep (10 min), and four beans were dropped as infrastructure failures. 48 fits a 20-agent v2 run (23 instances) beside other work.
+
+### Where v2 differs from the harness
+
+- **Pre-land squash.** It runs on the committer, not in the sandbox, because the runner's `/v1/squash` publishes a candidate ref and so needs a write token.
+- **Optimistic disjointness.** The test uses the union of the files of the sprout commits that landed meanwhile, not `git diff head0 head`. This is conservative.
+- **Decision cards.** A card can also be answered by the admin route or the web app (`decide`). Under `decision_outcome: decline` (v2.0), when the arriving bean wins, the landed losers are reverted in the turn and dropped, and the arriving bean goes back to its landing loop. The harness's `arriving` oracle drops the arriving task anyway. Under `reexecute` (the v2.2 default) nothing is reverted, as described below.
+- **Revert-first after a bisection.** Revert-first also follows a trunk bisection when no read-set suspect exists; the harness would send a fixer there. No fixer is ever sent.
+- **Markers after an informed rework.** Conflict markers left after an informed rework drop the bean.
+- **Protected tests.** The `protect` list is computed when the invocation is created.
+- **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
+- **Error budget.** The error-budget controller is not built; v2 reports `error_budget: 999`.
+
+## The v2.2 rules
+
+The experiments validated these rules (`docs/claude-opus/11-experiments-summary.md`). Each one is a `RunConfig` field and is on by default for `beanstalk-v2`:
+
+| Rule | Config (default) | What the engine does | From |
+|---|---|---|---|
+| Adaptive re-check | `recheck: adaptive` (`file`, `hunk`, `never`), `recheck_fallback: file` (`hunk`) | A green bean whose files overlap commits that landed during its check normally checks again. `adaptive` skips that re-check while the last 20 pre-land checks hold at least 5 outcomes and under 10% red; otherwise it applies the fallback rule. Skips are counted as `preland_skipped_rechecks`, as the harness counts them. `hunk` re-checks only when changed line ranges in a shared file are within 3 lines (a `line-ranges` runner job) | E2, v2.1/v2.2 |
+| Release the agent during its check | `release_on_check: true` | The agent's slot is free once its bean is submitted. A red check or a conflict queues a rework for the next free slot, preferring the author's slot, and reworks go before new tasks. The rework resumes the author's session | E5 |
+| Flake confirmation | `flake_confirm: true` | Before revert-first, a red validation runs again on the same commit. If the same failing test file fails again, the red stands. Otherwise the engine logs `flake.suspected`, records the test as flaky and counts the validation green. Pre-land reds are never re-run | E3 |
+| Inherited reds | `inherited_reds: true` | A pre-land red is inherited when every failing file already failed a validation of the sprout the bean was checked on, or of an earlier commit with no green validation or revert since. The red belongs to the sprout, not the bean. `preland.check` carries `inherited: true`, and the bean waits for the sprout to move, or for its repair to end, then checks again without spending a rework round (at most 3 times) | E6 |
+| Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below | E6 |
+
+A decided card works in one of two ways:
+
+- **Keep-landed** (the landed bean wins):
+  1. A `test-author` invocation, a fresh session, amends the loser's acceptance tests on the loser's snapshot.
+  2. The amended tests must fail there first. If they do not, the amendment is `rejected`.
+  3. The loser re-executes from the sprout head, in a fresh session, with the decision text, the winner's intent and diff, and every earlier decision in force on it (decisions compose).
+- **Adopt-in-place** (the arriving bean wins):
+  1. The author amends the landed loser's tests on the red head.
+  2. The winner merges the author's commit and lands.
+  3. The loser's spec changes when the winner lands, and rolls back if the winner is dropped.
+
+Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route. With `human_timeout_seconds` set, the oracle answers after the timeout, and `decision.made` says `oracle: "timeout:<oracle>"`.
+
+**Events.** Two new types, `spec.amended` and `flake.suspected`, plus optional fields on existing ones: `decision.made.outcome` and `.text`, `rework.start.card`, `preland.check.inherited`. `summary.json` adds the v2.2 keys after the harness's v2 keys, and the matching rows after `Variant`.
+
+**Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
+
+```json
+{"recheck": "file", "release_on_check": false, "flake_confirm": false,
+ "inherited_reds": false, "decision_outcome": "decline"}
+```
+
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`, and any other run reports `"v2.2"`. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+
+**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
+
+## RPC for the web app
+
+The web app (`packages/web`) calls the gateway over Workers RPC, never HTTP. It uses a service binding to this Worker's default entrypoint, `Gateway` (a `WorkerEntrypoint`). The types live in `@beanstalk/shared-race/rpc`:
+
+```jsonc
+// packages/web/wrangler.jsonc
+"services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }]
+```
+
+`wrangler types` types the binding as a plain `Fetcher`. Narrow it where it is used, to `Fetcher & GatewayRpc`; the generated `Env` stays as generated.
+
+```ts
+import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+
+export type GatewayRpc = {
+  listRuns(limit?: number): Promise<readonly RunListItem[]>;
+  runView(run: string): Promise<RpcResult<RunView>>;
+  runEvents(run: string, after: number, limit: number): Promise<RpcResult<RunEventsPage>>;
+  decide(
+    run: string,
+    card: string,
+    winner: string,
+    actor: string,
+    text?: string,
+  ): Promise<RpcResult<{ readonly accepted: true }>>;
+  viewToken(run: string): Promise<RpcResult<ViewToken>>;
+  repoTree(run: string, ref: RepoRef, path?: string): Promise<RpcResult<RepoTree>>;
+  repoFile(run: string, ref: RepoRef, path: string): Promise<RpcResult<RepoFile>>;
+  repoDiff(
+    run: string,
+    fromRef: RepoRef,
+    toRef: RepoRef,
+    paths?: readonly string[],
+  ): Promise<RpcResult<RepoDiff>>;
+  repoLog(
+    run: string,
+    ref: RepoRef,
+    paths: readonly string[] | null,
+    limit: number,
+  ): Promise<RpcResult<RepoLog>>;
+  repoGrep(
+    run: string,
+    ref: RepoRef,
+    pattern: string,
+    paths?: readonly string[],
+  ): Promise<RpcResult<RepoGrep>>;
+  beansByPath(run: string, paths: readonly string[]): Promise<RpcResult<readonly BeanSummary[]>>;
+  beanDetail(run: string, bean: string): Promise<RpcResult<BeanDetail>>;
+  decisions(run: string, paths?: readonly string[]): Promise<RpcResult<readonly DecisionRecord[]>>;
+  testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>>;
+};
+
+type RpcResult<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly error: { code: string; status: number; message: string } };
+```
+
+Every method but `listRuns` answers an `RpcResult`. Errors use the HTTP API's codes and statuses:
+
+- `invalid_request` 400;
+- `not_found` 404;
+- `unknown_card` 404;
+- `invalid_winner` 422;
+- `invalid_state` 409;
+- `upstream_failed` 502.
+
+Anything unexpected throws. The value types (`RunView`, `RepoTree`, `BeanDetail`, …) are documented field by field in `packages/shared-race/src/rpc.ts`.
+
+| Method | What it answers | Bound |
+|---|---|---|
+| `listRuns(limit = 50)` | Every run, newest first, from the `RunIndex` Durable Object, which each RunDO updates as it steps | 200 runs |
+| `runView(run)` | The run view, the same as `GET /v1/runs/:run` | |
+| `runEvents(run, after, limit)` | `events.jsonl` lines after sequence number `after`, and `next_after` | 5,000 per page |
+| `decide(run, card, winner, actor, text?)` | The only write: answers an open card, as the admin route does. `actor` names who decided (an email or a handle); the log records `human:<actor>`, and a leading `human:` is not doubled. `text` is the decision's wording | `text` 2,000 chars |
+| `viewToken(run)` | A one-hour view token, and `live_path` for the live socket | |
+| `repoTree(run, ref, path?)` | One directory level at a ref | 1,000 entries |
+| `repoFile(run, ref, path)` | A file at a ref. Binary files have no `content` | 256 KiB |
+| `repoDiff(run, fromRef, toRef, paths?)` | Changed files with line counts, and a unified patch | 200 files, 100 KB of patch |
+| `repoLog(run, ref, paths, limit)` | History at a ref, newest first. With `paths`, only commits whose change against their first parent touches them | 100 commits; 200 scanned when filtering |
+| `repoGrep(run, ref, pattern, paths?)` | Matching lines of text files at a ref. `pattern` is a JavaScript regular expression of 1 to 200 characters, tested line by line | 300 files, 200 matches |
+| `beansByPath(run, paths)` | Beans whose files lie under `paths` (every bean for `[]`). A bean's files are those of its landing, or else of its last commit, plus its acceptance tests | 200 beans |
+| `beanDetail(run, bean)` | One bean's story from the event log: status, agent, intent, files, acceptance tests (amended or not), invocations, pre-land checks (`inherited` included), reworks and decisions | |
+| `decisions(run, paths?)` | Decision cards, open and decided, with outcome, text, who answered and the amendment. With `paths`, only cards whose beans or amendments touch them | |
+| `testsFor(run, paths)` | Acceptance tests whose static import closure covers the paths, with their owner's status. Relative imports only, read at the sprout (the stalk for the queue), at most 5,000 files listed | |
+
+Refs are `sprout`, `stalk`, `beans/<task>` or a 40-hex sha (`REPO_REF_PATTERN`). Paths are relative and inside the repo, at most 100 per call. When a bound is hit, the answer says `truncated: true`.
+
+**The live socket.** RPC cannot carry a WebSocket, so the web Worker proxies the existing feed through the binding's `fetch`:
+
+```ts
+const token = await env.GATEWAY.viewToken(run);
+if (!token.ok) return new Response(token.error.message, { status: token.error.status });
+const url = new URL(token.value.live_path, 'https://gateway.internal');
+url.searchParams.set('key', token.value.token);
+return env.GATEWAY.fetch(new Request(url, request)); // keeps the client's Upgrade: websocket
+```
+
+The feed sends the run view first, then each step's events.
+
+**Trust boundary.** The binding is the boundary: RPC calls are not authenticated by the gateway. Only the web Worker holds the binding, and it must authenticate its users before it calls `decide`. Repository reads go through the gateway's own Artifacts binding, so no token leaves the gateway.
+
+**Where repo reads come from.** The brief asked for grep and diff on the runner, with a read-only token on a CI instance. The runner has no grep or diff endpoint, and the runner crate was outside this change. So `src/adapters/repo-explorer.ts` computes both in the Worker, from Artifacts tree and blob reads, within the bounds above. A grep pattern runs in the gateway, where the Worker's CPU limit bounds a pathological one. Moving grep and diff to the runner later changes only that adapter.
+
+## Running locally
+
+```bash
+cp .dev.vars.example .dev.vars            # fill ADMIN_TOKEN and RUN_TOKEN_SECRET
+pnpm -F @beanstalk/gateway dev            # wrangler dev: needs Docker (runner) and a Cloudflare login (Artifacts is remote-only)
+pnpm -F @beanstalk/gateway test           # Miniflare; fakes for Artifacts, the git remote and the runner; no network
+pnpm -F @beanstalk/gateway types          # regenerate worker-configuration.d.ts after editing wrangler.jsonc
+```
+
+The tests cover:
+
+- the engine with a toy git and scripted agents, through the discrete-event simulator (`src/engine/testing/simulator.ts`):
+  - queue races;
+  - v2 races for a clean landing, an optimistic landing, a re-check, a conflict, an informed rework, decision cards, revert-first with and without bisection, and the leave-one-out search;
+  - each v2.2 rule (`src/engine/v2/v2-rules.test.ts`);
+- determinism, and replay parity with the pre-v2.2 engine;
+- the shell end to end: routes, auth, the git proxy and full races over HTTP (`SELF.fetch`), and every RPC method through the default entrypoint (`test/rpc.test.ts`, with `exports.default` from `cloudflare:workers`).
+
+The pool's workerd predates the compatibility date in `wrangler.jsonc`, so the test config clamps the date to the newest one that workerd supports.

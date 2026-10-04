@@ -1,0 +1,248 @@
+/**
+ * The only module that touches the ARTIFACTS binding: the run repo, tokens, file reads,
+ * the tree walk behind a diff, and the namespace listing that reaping uses, with Artifacts
+ * errors turned into `UpstreamError` (retryable or not).
+ */
+import { Sha } from '@beanstalk/shared-race/ids';
+
+import { UpstreamError } from '../errors';
+import type { FileChange } from '../git/diff-text';
+
+export type RepoRemote = { readonly name: string; readonly remote: string };
+export type CommitRange = {
+  readonly from: Sha;
+  readonly to: Sha;
+  readonly paths?: readonly string[];
+};
+export type MintedToken = { readonly token: string; readonly expiresAtMs: number };
+export type TokenScope = 'read' | 'write';
+
+export type ArtifactsPort = {
+  createRepo(name: string, description: string): Promise<RepoRemote>;
+  mintToken(repo: string, scope: TokenScope, ttlSeconds: number): Promise<MintedToken>;
+  /** The commit a branch points at, or null when the branch does not exist. */
+  branchHead(repo: string, branch: string): Promise<Sha | null>;
+  readFile(repo: string, ref: string, path: string): Promise<string | null>;
+  /**
+   * The files that differ between two commits, with both contents (at most 200, by path),
+   * optionally only under `paths` (files or directories); null when a commit is missing.
+   */
+  changedFiles(repo: string, range: CommitRange): Promise<FileChange[] | null>;
+  /** The names of the namespace's repos that `matches` accepts, sorted. */
+  listRepos(matches: (name: string) => boolean): Promise<string[]>;
+  /** Deletes a repo and its tokens; false when it was already gone. */
+  deleteRepo(name: string): Promise<boolean>;
+};
+
+/** The run repo's default branch: a clone gets the stable line. */
+const DEFAULT_BRANCH = 'stalk';
+/** Changed files a diff reads (a landed bean touches a handful; the text is cut at 5000 chars). */
+const MAX_DIFF_FILES = 200;
+/** Blob and tree reads in flight at once. */
+const READ_CONCURRENCY = 8;
+/** Repos per page of the namespace listing (the binding's maximum). */
+const LIST_PAGE_SIZE = 200;
+/** Pages a listing follows at most (40,000 repos), so a cursor that loops cannot hang a request. */
+const MAX_LIST_PAGES = 200;
+
+/**
+ * Error codes worth retrying: the repo is still being created, the service hiccuped, or a
+ * repo written moments ago is not visible yet (`NOT_FOUND`: Artifacts is eventually
+ * consistent here, and treating it as final aborted races).
+ */
+const RETRYABLE_CODES: ReadonlySet<string> = new Set([
+  'CREATE_IN_PROGRESS',
+  'FORK_IN_PROGRESS',
+  'IMPORT_IN_PROGRESS',
+  'UPSTREAM_UNAVAILABLE',
+  'INTERNAL_ERROR',
+  'NOT_FOUND',
+]);
+
+export function artifactsPort(binding: Artifacts): ArtifactsPort {
+  return {
+    async createRepo(name, description) {
+      const created = await call(`create ${name}`, () =>
+        binding.create(name, { description, setDefaultBranch: DEFAULT_BRANCH }),
+      );
+      return { name: created.name, remote: created.remote };
+    },
+    mintToken(repo, scope, ttlSeconds) {
+      return withRepo(binding, repo, async (handle) => {
+        const minted = await handle.createToken(scope, ttlSeconds);
+        return { token: minted.plaintext, expiresAtMs: Date.parse(minted.expiresAt) };
+      });
+    },
+    branchHead(repo, branch) {
+      return withRepo(binding, repo, async (handle) => {
+        const [head] = await handle.log({ ref: branch, limit: 1 });
+        return head === undefined ? null : Sha.parse(head.hash);
+      });
+    },
+    readFile(repo, ref, path) {
+      return withRepo(binding, repo, async (handle) => {
+        const file = await handle.readFile({ ref, path });
+        return file === null ? null : file.text();
+      });
+    },
+    changedFiles(repo, range) {
+      return withRepo(binding, repo, async (handle) => {
+        const [before, after] = await Promise.all([
+          handle.readCommit(range.from),
+          handle.readCommit(range.to),
+        ]);
+        if (before === null || after === null) return null;
+        const changed: ChangedBlob[] = [];
+        const trees = { before: before.treeHash, after: after.treeHash, prefix: '' };
+        await collectChanges(handle, trees, changed);
+        const wanted = range.paths;
+        const selected = changed
+          .filter((blob) => wanted === undefined || isUnder(blob.path, wanted))
+          .toSorted((a, b) => (a.path < b.path ? -1 : 1));
+        return readContents(handle, selected.slice(0, MAX_DIFF_FILES));
+      });
+    },
+    listRepos(matches) {
+      return listMatching(binding, matches);
+    },
+    deleteRepo(name) {
+      return call(`delete ${name}`, () => binding.delete(name));
+    },
+  };
+}
+
+/** Follows the namespace listing's cursor and keeps the names `matches` accepts. */
+async function listMatching(
+  binding: Artifacts,
+  matches: (name: string) => boolean,
+): Promise<string[]> {
+  const names: string[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < MAX_LIST_PAGES; page += 1) {
+    const options =
+      cursor === undefined ? { limit: LIST_PAGE_SIZE } : { limit: LIST_PAGE_SIZE, cursor };
+    // oxlint-disable-next-line no-await-in-loop -- each page follows the previous page's cursor
+    const listed = await call('list repos', () => binding.list(options));
+    names.push(...listed.repos.map((repo) => repo.name).filter(matches));
+    cursor = listed.cursor;
+    if (cursor === undefined || cursor === '') break;
+  }
+  return names.toSorted();
+}
+
+type ChangedBlob = { path: string; beforeId: string | null; afterId: string | null };
+type TreePair = { before: string | null; after: string | null; prefix: string };
+
+/** Walks two trees together, descending only where they differ. */
+async function collectChanges(
+  repo: ArtifactsRepo,
+  trees: TreePair,
+  out: ChangedBlob[],
+): Promise<void> {
+  if (trees.before === trees.after) return;
+  const [before, after] = await Promise.all([
+    entriesOf(repo, trees.before),
+    entriesOf(repo, trees.after),
+  ]);
+  const names = [...new Set([...before.keys(), ...after.keys()])].toSorted();
+  const subtrees: TreePair[] = [];
+  for (const name of names) {
+    const old = before.get(name);
+    const next = after.get(name);
+    if (old?.hash === next?.hash && old?.type === next?.type) continue;
+    const path = `${trees.prefix}${name}`;
+    const oldTree = old?.type === 'tree' ? old.hash : null;
+    const nextTree = next?.type === 'tree' ? next.hash : null;
+    if (oldTree !== null || nextTree !== null) {
+      subtrees.push({ before: oldTree, after: nextTree, prefix: `${path}/` });
+    }
+    const oldBlob = isFile(old) ? old.hash : null;
+    const nextBlob = isFile(next) ? next.hash : null;
+    if (oldBlob !== null || nextBlob !== null) {
+      out.push({ path, beforeId: oldBlob, afterId: nextBlob });
+    }
+  }
+  await Promise.all(subtrees.map((pair) => collectChanges(repo, pair, out)));
+}
+
+/** Whether a path is one of `paths` or lies in a directory among them. */
+export function isUnder(path: string, paths: readonly string[]): boolean {
+  return paths.some((prefix) => {
+    const directory = prefix.replace(/\/+$/, '');
+    return path === directory || path.startsWith(`${directory}/`);
+  });
+}
+
+function isFile(entry: ArtifactsTreeEntry | undefined): entry is ArtifactsTreeEntry {
+  return entry !== undefined && entry.type !== 'tree' && entry.type !== 'gitlink';
+}
+
+async function entriesOf(
+  repo: ArtifactsRepo,
+  tree: string | null,
+): Promise<Map<string, ArtifactsTreeEntry>> {
+  if (tree === null) return new Map();
+  const entries = (await repo.readTree(tree)) ?? [];
+  return new Map(entries.map((entry) => [entry.name, entry]));
+}
+
+async function readContents(
+  repo: ArtifactsRepo,
+  changed: readonly ChangedBlob[],
+): Promise<FileChange[]> {
+  const files: FileChange[] = [];
+  for (let start = 0; start < changed.length; start += READ_CONCURRENCY) {
+    const batch = changed.slice(start, start + READ_CONCURRENCY);
+    const reads = batch.map(async (blob) => ({
+      path: blob.path,
+      before: await blobText(repo, blob.beforeId),
+      after: await blobText(repo, blob.afterId),
+      beforeId: blob.beforeId,
+      afterId: blob.afterId,
+    }));
+    // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
+    files.push(...(await Promise.all(reads)));
+  }
+  return files;
+}
+
+async function blobText(repo: ArtifactsRepo, hash: string | null): Promise<string | null> {
+  if (hash === null) return null;
+  const blob = await repo.readBlob(hash);
+  return blob === null ? null : blob.text();
+}
+
+/** Runs `use` with a repo capability and always releases it. */
+async function withRepo<T>(
+  binding: Artifacts,
+  name: string,
+  use: (repo: ArtifactsRepo) => Promise<T>,
+): Promise<T> {
+  const repo = await call(`open ${name}`, () => binding.get(name));
+  try {
+    return await call(`use ${name}`, () => use(repo));
+  } finally {
+    repo[Symbol.dispose]();
+  }
+}
+
+async function call<T>(what: string, operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error: unknown) {
+    if (error instanceof UpstreamError) throw error;
+    const code = artifactsCode(error);
+    throw new UpstreamError(
+      `artifacts ${what} failed (${code ?? 'unknown'})`,
+      code !== null && RETRYABLE_CODES.has(code),
+      { cause: error },
+    );
+  }
+}
+
+/** The `ArtifactsError.code` of an error, if it carries one. */
+export function artifactsCode(error: unknown): string | null {
+  if (error instanceof UpstreamError) return artifactsCode(error.cause);
+  if (typeof error !== 'object' || error === null || !('code' in error)) return null;
+  return typeof error.code === 'string' ? error.code : null;
+}
