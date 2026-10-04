@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:10.245Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:10.296Z"
+    },
+    "language": {
+      "value": "en",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:10.346Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:10.395Z"
+    },
+    "storyboard": {
+      "value": "yes",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:10.444Z"
+    },
+    "style_preset.product-launch-video": {
+      "value": "biennale-yellow",
+      "confirmed_in": [
+        "beanstalk-swarm"
+      ],
+      "updated_at": "2026-10-04T07:25:24.449Z"
+    }
+  },
+  "sightings": {}
+}

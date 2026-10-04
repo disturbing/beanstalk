@@ -16,3 +16,6 @@ target/
 
 # Promo verification screenshots: reproduce any frame with promo/beanstalk-30s.html?t=<seconds>
 promo/shots/
+
+# Promo film: intermediate renders (rebuild with node film.mjs render)
+promo/beanstalk-swarm-film/out/
