@@ -112,6 +112,23 @@ describe('RPC for the web app: runs', () => {
     const viewed = await call('GET', `/v1/runs/${run.run}?key=${token.value.token}`);
     expect(viewed.status).toBe(200);
   });
+
+  it('verifies view tokens for the MCP server, and refuses forged and slot tokens', async () => {
+    const run = await createRun();
+    const token = await gateway.viewToken(run.run);
+    if (!token.ok) throw new Error('no view token');
+
+    const verified = await gateway.verifyViewToken(token.value.token);
+    const forged = await gateway.verifyViewToken(`${token.value.token.slice(0, -2)}xx`);
+    const slot = await gateway.verifyViewToken(slotToken(run, 'a1'));
+
+    expect(verified).toEqual({
+      ok: true,
+      value: { run: run.run, sub: 'web', expires_at: token.value.expires_at },
+    });
+    expect(forged).toMatchObject({ ok: false, error: { code: 'unauthorized', status: 401 } });
+    expect(slot).toMatchObject({ ok: false, error: { code: 'forbidden', status: 403 } });
+  });
 });
 
 describe('RPC for the web app: the repo explorer', () => {

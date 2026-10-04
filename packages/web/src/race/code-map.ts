@@ -5,10 +5,10 @@
  */
 import type { TaskId } from '@beanstalk/shared-race/ids';
 
-import { compareText } from '../repo/paths';
-import { isInFlight } from './race-counters';
-import type { RaceEvent } from './race-events';
-import type { RaceState } from './race-state';
+import { compareText } from '@beanstalk/shared-ask/repo/paths';
+import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 
 /** A landing or a conflict glows on the map for this long (race seconds). */
 export const AFTERGLOW_SECONDS = 45;

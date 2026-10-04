@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { codeMap, mapFiles } from '../../src/race/code-map';
-import { raceCounters } from '../../src/race/race-counters';
-import type { RaceEvent } from '../../src/race/race-events';
+import { raceCounters } from '@beanstalk/shared-ask/race/race-counters';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { FeedLine } from '../../src/race/race-feed';
 import { recentFeed } from '../../src/race/race-feed';
 import { raceMoments } from '../../src/race/race-moments';
-import type { RaceOptions, RaceState } from '../../src/race/race-state';
-import { reduceRace } from '../../src/race/reduce-race';
+import type { RaceOptions, RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import styles from './canvas.module.css';
 import { CodeMapView } from './code-map-view';
 import { Counters } from './counters';

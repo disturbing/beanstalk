@@ -4,7 +4,7 @@
  */
 import type { TaskId } from '@beanstalk/shared-race/ids';
 
-import type { RaceEvent } from './race-events';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { plural } from './race-format';
 
 export type FeedTone = 'good' | 'bad' | 'warn' | 'human' | 'neutral';

@@ -1,0 +1,9 @@
+{
+  "name": "beanstalk",
+  "displayName": "Beanstalk",
+  "version": "0.1.0",
+  "description": "Work on a Beanstalk run safely: see overlapping beans before editing, follow your bean's status and checks, and ask the repo questions, through the read-only beanstalk-mcp server.",
+  "author": { "name": "Beanstalk" },
+  "license": "FSL-1.1-ALv2",
+  "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare"]
+}

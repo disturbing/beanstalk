@@ -1,5 +1,5 @@
 /** Moments of a race worth travelling to: landings, reds, decisions, every five minutes. */
-import type { RaceEvent } from './race-events';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { formatClock } from './race-format';
 
 export type RaceMoment = { readonly t: number; readonly label: string };

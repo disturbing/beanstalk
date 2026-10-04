@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 
-import { isForgeError } from '../../../../../../../src/forge/forge-errors';
+import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../../../../../../src/forge/sources';
 import { log } from '../../../../../../../src/log';
 

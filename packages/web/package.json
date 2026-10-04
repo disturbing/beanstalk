@@ -13,6 +13,7 @@
     "fixtures": "node scripts/build-fixtures.ts"
   },
   "dependencies": {
+    "@beanstalk/shared-ask": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@fontsource-variable/bricolage-grotesque": "catalog:",
     "@fontsource-variable/jetbrains-mono": "catalog:",

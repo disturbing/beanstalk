@@ -1,8 +1,12 @@
 import Link from 'next/link';
 
-import type { RailBlock } from '../../src/ask/answer';
-import type { BeanRecord, DecisionRecord, TestRecord } from '../../src/forge/forge-source';
-import type { Lane } from '../../src/race/race-state';
+import type { RailBlock } from '@beanstalk/shared-ask/ask/answer';
+import type {
+  BeanRecord,
+  DecisionRecord,
+  TestRecord,
+} from '@beanstalk/shared-ask/forge/forge-source';
+import type { Lane } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import { StatusPill, beadClass, statusLabel } from './bean-status';
 import { BeanSteps } from './bean-view';

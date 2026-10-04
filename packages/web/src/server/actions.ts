@@ -15,7 +15,7 @@ import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 import { SESSION_COOKIE, SESSION_SECONDS, isDemoPassword, sessionToken } from '../auth/session';
 import { forgeForRun } from '../forge/sources';
 import { log } from '../log';
-import { CardId } from '../race/race-events';
+import { CardId } from '@beanstalk/shared-ask/race/race-events';
 import { demoPassword, isSignedIn } from './viewer';
 
 /** Where to go after signing in: a path on this site only. */

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import type { MainPane as MainPaneModel } from '../../src/ask/answer';
+import type { MainPane as MainPaneModel } from '@beanstalk/shared-ask/ask/answer';
 import { BeanList, BeanView } from './bean-view';
 import { DiffView } from './diff-view';
 import styles from './explorer.module.css';

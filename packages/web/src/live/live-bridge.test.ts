@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RunId } from '@beanstalk/shared-race/ids';
 import type { GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
 
-import type { GatewayBinding } from '../forge/gateway-rpc';
+import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { recordedRun } from '../recorded/recorded-runs';
 import { liveEventStream } from './live-bridge';
 
@@ -41,7 +41,7 @@ function unused(): Promise<RpcResult<never>> {
   return Promise.resolve({ ok: false, error: { code: 'unused', status: 500, message: 'unused' } });
 }
 
-function fakeBinding(socket: FakeSocket, upTo: number): GatewayBinding {
+function fakeBinding(socket: FakeSocket, upTo: number): GatewayBinding<Fetcher> {
   const events = fixtureEvents().filter((event) => event.seq <= upTo);
   const rpc: GatewayRpc = {
     listRuns: () => Promise.resolve([]),
@@ -70,6 +70,7 @@ function fakeBinding(socket: FakeSocket, upTo: number): GatewayBinding {
     beanDetail: unused,
     decisions: unused,
     testsFor: unused,
+    verifyViewToken: unused,
   };
   return {
     ...rpc,

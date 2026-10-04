@@ -4,8 +4,8 @@
  */
 import type { Sha } from '@beanstalk/shared-race/ids';
 
-import { diffFile } from '../repo/file-diff';
-import { compareText } from '../repo/paths';
+import { diffFile } from '@beanstalk/shared-ask/repo/file-diff';
+import { compareText } from '@beanstalk/shared-ask/repo/paths';
 import type {
   FileStat,
   FileStatus,
@@ -13,7 +13,7 @@ import type {
   RepoCommit,
   RepoDiff,
   TreeFile,
-} from '../repo/repo-types';
+} from '@beanstalk/shared-ask/repo/repo-types';
 import type { LineCommitRecord, RepoSnapshot, TaskRecord } from './recorded-runs';
 
 /** Grep stops after this many matching lines, as a bounded search should. */

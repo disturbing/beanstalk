@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 
 import { recordedSource } from '../forge/recorded-source';
-import { loadCorpus } from './corpus';
-import type { ResolverCorpus } from './resolve-files';
-import { MAX_RESOLVED_FILES, resolveFiles } from './resolve-files';
+import { loadCorpus } from '@beanstalk/shared-ask/ask/corpus';
+import type { ResolverCorpus } from '@beanstalk/shared-ask/ask/resolve-files';
+import { MAX_RESOLVED_FILES, resolveFiles } from '@beanstalk/shared-ask/ask/resolve-files';
 
 const v2 = RunId.parse('7z4j84eqvl');
 

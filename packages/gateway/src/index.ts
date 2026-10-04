@@ -16,6 +16,7 @@ import type {
   RunView,
   TestCoverage,
   ViewToken,
+  ViewTokenClaims,
 } from '@beanstalk/shared-race/rpc';
 
 import { createApp } from './app';
@@ -118,6 +119,10 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
 
   testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>> {
     return this.#rpc().testsFor(run, paths);
+  }
+
+  verifyViewToken(token: string): Promise<RpcResult<ViewTokenClaims>> {
+    return this.#rpc().verifyViewToken(token);
   }
 
   #rpc(): GatewayRpc {

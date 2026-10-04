@@ -125,6 +125,12 @@ export const adminRoutes = new Hono<AppEnv>()
     const agents = unwrap(await deps.run(run).agentCount());
     return c.json({ run, slots: await slotTokens(deps, run, agents) });
   })
+  .post('/:run/view-token', requireAdmin, validate('param', RunParam), async (c) => {
+    const { run } = c.req.valid('param');
+    const deps = c.var.deps;
+    unwrap(await deps.run(run).agentCount());
+    return c.json({ run, ...(await viewLinks(deps, run, new URL(c.req.url).origin)) });
+  })
   .post(
     '/:run/decisions/:card',
     requireAdmin,

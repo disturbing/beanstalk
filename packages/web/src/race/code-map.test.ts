@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { recordedRun } from '../recorded/recorded-runs';
 import { codeMap, mapFiles, moduleOf } from './code-map';
-import { reduceRace } from './reduce-race';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
 function v2Events() {
   const recorded = recordedRun('7z4j84eqvl');

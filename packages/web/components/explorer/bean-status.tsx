@@ -1,4 +1,4 @@
-import type { BeanStatus } from '../../src/forge/forge-source';
+import type { BeanStatus } from '@beanstalk/shared-ask/forge/forge-source';
 import styles from './explorer.module.css';
 
 const LABELS: Readonly<Record<BeanStatus, string>> = {

@@ -9,10 +9,10 @@ import { z } from 'zod';
 import type { RunId } from '@beanstalk/shared-race/ids';
 
 import { log } from '../log';
-import type { GatewayBinding } from '../forge/gateway-rpc';
-import { RunEventsPage, ViewToken, unwrap } from '../forge/gateway-rpc';
-import type { RaceEvent } from '../race/race-events';
-import { parseRaceEvents } from '../race/race-events';
+import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { RunEventsPage, ViewToken, unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
 
 /** A comment line keeps proxies from closing a quiet stream. */
 const HEARTBEAT_MS = 20_000;
@@ -28,7 +28,7 @@ const FeedMessage = z.object({
 const encoder = new TextEncoder();
 
 export async function liveEventStream(input: {
-  readonly binding: GatewayBinding;
+  readonly binding: GatewayBinding<Fetcher>;
   readonly run: RunId;
   readonly after: number;
   readonly signal: AbortSignal;
@@ -40,7 +40,7 @@ export async function liveEventStream(input: {
   });
 }
 
-async function openFeed(binding: GatewayBinding, run: RunId): Promise<WebSocket> {
+async function openFeed(binding: GatewayBinding<Fetcher>, run: RunId): Promise<WebSocket> {
   const token = unwrap(await binding.viewToken(run), ViewToken);
   const url = `https://gateway.internal${token.live_path}?key=${encodeURIComponent(token.token)}`;
   const response = await binding.fetch(new Request(url, { headers: { Upgrade: 'websocket' } }));
@@ -51,7 +51,7 @@ async function openFeed(binding: GatewayBinding, run: RunId): Promise<WebSocket>
 }
 
 type Pump = {
-  readonly binding: GatewayBinding;
+  readonly binding: GatewayBinding<Fetcher>;
   readonly run: RunId;
   readonly after: number;
   readonly signal: AbortSignal;
@@ -114,7 +114,7 @@ async function pump(input: Pump): Promise<void> {
 }
 
 async function catchUp(
-  binding: GatewayBinding,
+  binding: GatewayBinding<Fetcher>,
   run: RunId,
   after: number,
 ): Promise<readonly RaceEvent[]> {

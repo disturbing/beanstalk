@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  // `dom` for the timers the classifier's timeout uses; the code also runs in the web app.
+  "compilerOptions": { "lib": ["es2024", "dom"] },
+  "include": ["src/**/*.ts"]
+}

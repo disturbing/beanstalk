@@ -12,13 +12,13 @@ import { FileTree } from '../../../components/explorer/file-tree';
 import { MainPane } from '../../../components/explorer/main-pane';
 import { RailBlocks } from '../../../components/explorer/rail-blocks';
 import { RunHeader } from '../../../components/explorer/run-header';
-import { classifierFrom } from '../../../src/ask/classifier-from-env';
-import { planAnswer } from '../../../src/ask/plan-answer';
-import { CATALOG } from '../../../src/ask/view-spec';
-import { isForgeError } from '../../../src/forge/forge-errors';
+import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
+import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
+import { CATALOG } from '@beanstalk/shared-ask/ask/view-spec';
+import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../../src/forge/sources';
 import { raceMoments } from '../../../src/race/race-moments';
-import { reduceRace } from '../../../src/race/reduce-race';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import { recordedRun } from '../../../src/recorded/recorded-runs';
 import { runMeta } from '../../../src/server/run-meta';
 

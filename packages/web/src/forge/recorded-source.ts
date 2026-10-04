@@ -5,20 +5,25 @@
  */
 import type { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
 
-import type { RaceEvent } from '../race/race-events';
-import { raceCounters } from '../race/race-counters';
-import type { RaceState } from '../race/race-state';
-import { reduceRace } from '../race/reduce-race';
-import { importClosure, isTestFile } from '../repo/imports';
-import { folderOf } from '../repo/paths';
-import type { RefName, RepoTree } from '../repo/repo-types';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import { raceCounters } from '@beanstalk/shared-ask/race/race-counters';
+import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { importClosure, isTestFile } from '@beanstalk/shared-ask/repo/imports';
+import { folderOf } from '@beanstalk/shared-ask/repo/paths';
+import type { RefName, RepoTree } from '@beanstalk/shared-ask/repo/repo-types';
 import type { RecordedRun } from '../recorded/recorded-runs';
 import { recordedRun, recordedRuns } from '../recorded/recorded-runs';
 import type { SnapshotReader } from '../recorded/snapshot-reader';
 import { openSnapshot } from '../recorded/snapshot-reader';
-import type { TaskInfo } from './bean-records';
-import { beanRecord, beansTouching, decisionRecords, testRecord } from './bean-records';
-import { ForgeError } from './forge-errors';
+import type { TaskInfo } from '@beanstalk/shared-ask/forge/bean-records';
+import {
+  beanRecord,
+  beansTouching,
+  decisionRecords,
+  testRecord,
+} from '@beanstalk/shared-ask/forge/bean-records';
+import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import type {
   BeanDetail,
   BeanRecord,
@@ -26,7 +31,7 @@ import type {
   ForgeSource,
   RunListing,
   TestRecord,
-} from './forge-source';
+} from '@beanstalk/shared-ask/forge/forge-source';
 
 type RecordedContext = {
   readonly recorded: RecordedRun;

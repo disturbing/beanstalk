@@ -2,13 +2,13 @@
 
 import { useMemo } from 'react';
 
-import { raceCounters } from '../../src/race/race-counters';
-import { kthGreenAt } from '../../src/race/race-counters';
-import type { RaceEvent } from '../../src/race/race-events';
+import { raceCounters } from '@beanstalk/shared-ask/race/race-counters';
+import { kthGreenAt } from '@beanstalk/shared-ask/race/race-counters';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { formatMinutes, formatUsd } from '../../src/race/race-format';
 import { raceMoments } from '../../src/race/race-moments';
-import type { RaceState } from '../../src/race/race-state';
-import { reduceRace } from '../../src/race/reduce-race';
+import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import { ReplayBar } from '../canvas/replay-bar';
 import type { Speed } from '../canvas/use-replay-clock';
 import { useReplayClock } from '../canvas/use-replay-clock';

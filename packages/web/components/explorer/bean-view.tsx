@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
-import type { BeanDetail, BeanRecord } from '../../src/forge/forge-source';
-import type { BeanStep } from '../../src/race/race-state';
+import type { BeanDetail, BeanRecord } from '@beanstalk/shared-ask/forge/forge-source';
+import type { BeanStep } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatUsd, plural } from '../../src/race/race-format';
-import type { RepoDiff } from '../../src/repo/repo-types';
+import type { RepoDiff } from '@beanstalk/shared-ask/repo/repo-types';
 import { StatusPill, beadClass } from './bean-status';
 import { DiffView } from './diff-view';
 import styles from './explorer.module.css';

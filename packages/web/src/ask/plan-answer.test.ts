@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { RunId } from '@beanstalk/shared-race/ids';
 
 import { recordedSource } from '../forge/recorded-source';
-import { textLines } from '../repo/file-diff';
-import type { Answer } from './answer';
-import { keywordClassifier } from './classifier';
-import { planAnswer } from './plan-answer';
+import { textLines } from '@beanstalk/shared-ask/repo/file-diff';
+import type { Answer } from '@beanstalk/shared-ask/ask/answer';
+import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
+import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 
 const v2 = RunId.parse('7z4j84eqvl');
 const queue = RunId.parse('u0ntf65lbe');

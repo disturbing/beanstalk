@@ -1,7 +1,7 @@
 /** A run's title for page headers: the recorded label, or the policy of a live run. */
 import type { RunId } from '@beanstalk/shared-race/ids';
 
-import type { RaceState } from '../race/race-state';
+import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { recordedRun } from '../recorded/recorded-runs';
 
 export type RunMeta = { readonly label: string; readonly detail: string };

@@ -4,6 +4,7 @@
  * come from reducing that log here, the same way the recorded runs are read.
  */
 import type { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
 import {
   RunId as RunIdSchema,
   Sha as ShaSchema,
@@ -26,7 +27,6 @@ import type {
   RunListing,
   TestRecord,
 } from './forge-source';
-import type { GatewayBinding } from './gateway-rpc';
 import {
   Accepted,
   BeanDetailAnswer,
@@ -53,7 +53,7 @@ const LOG_LIMIT = 100;
 
 type RunLog = { readonly events: readonly RaceEvent[]; readonly state: RaceState };
 
-export function gatewaySource(binding: GatewayBinding): ForgeSource {
+export function gatewaySource(binding: GatewayRpc): ForgeSource {
   const logs = new Map<string, Promise<RunLog>>();
   const runLog = (run: RunId): Promise<RunLog> => {
     const cached = logs.get(run);
@@ -118,7 +118,7 @@ export function gatewaySource(binding: GatewayBinding): ForgeSource {
   };
 }
 
-async function readLog(binding: GatewayBinding, run: RunId): Promise<RunLog> {
+async function readLog(binding: GatewayRpc, run: RunId): Promise<RunLog> {
   const events: RaceEvent[] = [];
   let after = 0;
   for (;;) {
@@ -132,7 +132,7 @@ async function readLog(binding: GatewayBinding, run: RunId): Promise<RunLog> {
 }
 
 async function eventsPage(
-  binding: GatewayBinding,
+  binding: GatewayRpc,
   query: { readonly run: RunId; readonly after: number; readonly limit: number },
 ): Promise<EventsPage> {
   const page = unwrap(await binding.runEvents(query.run, query.after, query.limit), RunEventsPage);
@@ -162,14 +162,14 @@ function toListing(item: ReturnType<typeof RunListItem.parse>): RunListing {
 type TreeWalk = { readonly commit: string; readonly files: readonly TreeFile[] };
 
 /** The whole tree at a ref in one recursive call; level by level when the gateway truncates it. */
-async function walkTree(binding: GatewayBinding, run: RunId, ref: RefName): Promise<TreeWalk> {
+async function walkTree(binding: GatewayRpc, run: RunId, ref: RefName): Promise<TreeWalk> {
   const whole = unwrap(await binding.repoTree(run, ref, '', true), RepoTreeLevel);
   if (!whole.truncated) return { commit: whole.commit, files: filesOf(whole.entries) };
   return walkLevels(binding, run, ref);
 }
 
 /** The whole tree at a ref, one directory level per call, levels in parallel. */
-async function walkLevels(binding: GatewayBinding, run: RunId, ref: RefName): Promise<TreeWalk> {
+async function walkLevels(binding: GatewayRpc, run: RunId, ref: RefName): Promise<TreeWalk> {
   const files: TreeFile[] = [];
   let commit = '';
   let level: readonly string[] = [''];
@@ -253,7 +253,7 @@ function toRecords(
 }
 
 async function beanDetail(
-  binding: GatewayBinding,
+  binding: GatewayRpc,
   input: { readonly run: RunId; readonly bean: TaskId; readonly log: RunLog },
 ): Promise<BeanDetail | undefined> {
   const result = await binding.beanDetail(input.run, input.bean);
@@ -338,7 +338,7 @@ function toTestRecords(
   });
 }
 
-function toOutcome(result: Awaited<ReturnType<GatewayBinding['decide']>>): DecideOutcome {
+function toOutcome(result: Awaited<ReturnType<GatewayRpc['decide']>>): DecideOutcome {
   if (result.ok) {
     Accepted.parse(result.value);
     return { ok: true };

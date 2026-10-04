@@ -15,8 +15,8 @@ import queueTasks from '../../fixtures/u0ntf65lbe/tasks.json?raw';
 import v2Events from '../../fixtures/7z4j84eqvl/events.jsonl?raw';
 import v2Repo from '../../fixtures/7z4j84eqvl/repo.json?raw';
 import v2Tasks from '../../fixtures/7z4j84eqvl/tasks.json?raw';
-import type { RaceEvent } from '../race/race-events';
-import { parseEventLog } from '../race/race-events';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import { parseEventLog } from '@beanstalk/shared-ask/race/race-events';
 
 const FileStatRecord = z.object({
   path: z.string(),

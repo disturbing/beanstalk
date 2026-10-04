@@ -4,11 +4,11 @@ import { z } from 'zod';
 import queueSummaryText from '../../fixtures/u0ntf65lbe/summary.json?raw';
 import v2SummaryText from '../../fixtures/7z4j84eqvl/summary.json?raw';
 import { recordedRun } from '../recorded/recorded-runs';
-import { costAt, kthGreenAt, raceCounters } from './race-counters';
-import { parseRaceEvents } from './race-events';
-import type { RaceState } from './race-state';
+import { costAt, kthGreenAt, raceCounters } from '@beanstalk/shared-ask/race/race-counters';
+import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { mean, percentile, roundTo } from './race-stats';
-import { reduceRace } from './reduce-race';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
 const Minutes = z.object({ busy: z.number(), blocked: z.number(), idle: z.number() });
 

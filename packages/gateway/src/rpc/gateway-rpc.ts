@@ -17,13 +17,14 @@ import type {
   RpcError,
   RpcResult,
   ViewToken,
+  ViewTokenClaims,
 } from '@beanstalk/shared-race/rpc';
 import { REPO_REF_PATTERN } from '@beanstalk/shared-race/rpc';
 import { isSafeRepoPath } from '@beanstalk/shared-race/task';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { repoExplorer } from '../adapters/repo-explorer';
-import { issueToken } from '../auth/tokens';
+import { issueToken, verifyToken } from '../auth/tokens';
 import type { Deps } from '../deps';
 import { GatewayError, UpstreamError } from '../errors';
 import type { RunResult } from '../run/run-do';
@@ -103,6 +104,7 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       ),
     testsFor: (run, paths) =>
       checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).testsFor(paths))),
+    verifyViewToken: (token) => verifyViewToken(deps, token),
   };
 }
 
@@ -119,6 +121,21 @@ async function viewToken(deps: Deps, run: RunId): Promise<RpcResult<ViewToken>> 
     expires_at: issued.expiresAt,
     live_path: `/v1/runs/${run}/live`,
   });
+}
+
+/** The MCP server's check of a caller's bearer token: a view token, genuine and current. */
+async function verifyViewToken(deps: Deps, token: string): Promise<RpcResult<ViewTokenClaims>> {
+  const check = await verifyToken(deps.tokenSecret, token, deps.now());
+  if (!check.ok) {
+    const message = `run token ${check.failure.replace('_', ' ')}`;
+    return { ok: false, error: { code: 'unauthorized', status: 401, message } };
+  }
+  const { run, sub, scope, exp } = check.claims;
+  if (scope !== 'view') {
+    const message = `a ${scope} token cannot read through this API; use a view token`;
+    return { ok: false, error: { code: 'forbidden', status: 403, message } };
+  }
+  return ok({ run, sub, expires_at: new Date(exp * 1000).toISOString() });
 }
 
 /** Validates the run id, then runs `use`; thrown gateway errors become error values. */

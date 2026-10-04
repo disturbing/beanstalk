@@ -4,12 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 import type { GatewayRpc, RepoDiff, RpcResult } from '@beanstalk/shared-race/rpc';
 
-import { CardId } from '../race/race-events';
+import { CardId } from '@beanstalk/shared-ask/race/race-events';
 import { recordedRun } from '../recorded/recorded-runs';
-import { isForgeError } from './forge-errors';
-import type { GatewayBinding } from './gateway-rpc';
-import { asGatewayBinding } from './gateway-rpc';
-import { gatewaySource } from './gateway-source';
+import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
 
 const run = RunId.parse('7z4j84eqvl');
 const recorded = requireRecorded();
@@ -52,7 +52,7 @@ function treeLevel(path: string) {
 }
 
 /** A gateway binding answering from the recorded run, in the RPC's shapes. */
-function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding {
+function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding<Fetcher> {
   const rpc: GatewayRpc = {
     listRuns: () =>
       Promise.resolve([
@@ -164,6 +164,7 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding {
     beanDetail: () => missing(),
     decisions: () => ok([]),
     testsFor: () => ok([]),
+    verifyViewToken: () => missing(),
     ...overrides,
   };
   return {

@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-04",
+  // AsyncLocalStorage, which the Agents SDK's MCP handler uses.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": {
+    "LOG_LEVEL": "info",
+    // The web app the tools link to (`preview_url`, `preview_link`).
+    "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
+    // Ask's classifier, as in packages/web: keywords unless an AI binding is added.
+    "ASK_CLASSIFIER": "keywords",
+    "ASK_AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+  },
+  // Every read goes through the gateway over RPC; the token check too (`verifyViewToken`).
+  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+}

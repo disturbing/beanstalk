@@ -5,10 +5,10 @@ import { useActionState, useId, useState } from 'react';
 
 import type { DecisionState } from '../../src/server/actions';
 import { decideCard } from '../../src/server/actions';
-import type { DecisionCard } from '../../src/race/race-state';
+import type { DecisionCard } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, plural } from '../../src/race/race-format';
 import { RepoDiffSchema } from '../../src/repo/repo-schemas';
-import type { RepoDiff } from '../../src/repo/repo-types';
+import type { RepoDiff } from '@beanstalk/shared-ask/repo/repo-types';
 import { DiffView } from '../explorer/diff-view';
 import styles from './canvas.module.css';
 

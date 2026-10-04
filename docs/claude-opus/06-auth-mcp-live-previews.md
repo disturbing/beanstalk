@@ -109,6 +109,8 @@ GitHub's official MCP server loaded 101 tools (about 64.6k tokens) by default un
 | `ask_repo` | Run a canvas view as JSON: the same query layer humans see (`04` §5.2) |
 | `execute` | Code mode: the agent writes TypeScript against the full typed API, for the long tail |
 
+**Built so far (2026-10-04, `packages/mcp`):** the read-only slice, stateless over `createMcpHandler`, behind a run-scoped view token the gateway verifies (`verifyViewToken`): `ask_repo`, `change_status`, `checks_get`, plus `work_overlaps` (beans in flight or recently landed on given paths, with their intents), `run_status` and `preview_link`. **Code mode (`execute`) is deferred: the owner tested it and judged it highly experimental**, so the surface stays plain task-shaped tools. `packages/claude-plugin` wires the server into Claude Code with a `beanstalk` skill.
+
 **Rules:**
 - Return **handles plus short summaries**. Screenshots, traces and logs go to R2, and the agent fetches them only if it needs them.
 - Annotate tools honestly (`readOnlyHint`, `destructiveHint`), and treat annotations as claims, not guarantees.

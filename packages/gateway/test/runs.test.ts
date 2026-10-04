@@ -30,6 +30,7 @@ describe('admin routes', () => {
       ['POST', `/v1/runs/${run.run}/stop`],
       ['POST', `/v1/runs/${run.run}/seed-token`],
       ['POST', `/v1/runs/${run.run}/tokens`],
+      ['POST', `/v1/runs/${run.run}/view-token`],
       ['POST', `/v1/runs/${run.run}/decisions/D001`],
       ['POST', `/v1/runs/${run.run}/reap`],
     ];
@@ -136,6 +137,18 @@ describe('admin routes', () => {
     expect(body.slots.map((slot) => slot.slot)).toEqual(['a0', 'a1']);
     const reissued = await call('GET', `/v1/runs/${run.run}?key=${body.slots[0]?.token ?? ''}`);
     expect(reissued.status).toBe(200);
+  });
+
+  it('mints a view token that reads the run (the MCP server and plugin use it)', async () => {
+    const run = await createRun();
+
+    const response = await call('POST', `/v1/runs/${run.run}/view-token`, { token: ADMIN });
+    const body = await json<{ run: string; token: string; expires_at: string }>(response);
+    const viewed = await call('GET', `/v1/runs/${run.run}?key=${body.token}`);
+
+    expect(body.run).toBe(run.run);
+    expect(body.token).toMatch(/^bst1\./);
+    expect(viewed.status).toBe(200);
   });
 
   it('stops a run before it starts', async () => {

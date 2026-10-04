@@ -1,8 +1,10 @@
 /**
- * The gateway's RPC surface for the web app (`packages/web`), which reaches it through a
- * service binding to the `beanstalk-gateway` Worker's default entrypoint. Workers RPC, not
- * HTTP (AGENTS.md). The binding is the trust boundary: the gateway does not authenticate
- * these calls, so the web app must authenticate its users before it calls `decide`.
+ * The gateway's RPC surface for the web app (`packages/web`) and the MCP server
+ * (`packages/mcp`), which reach it through a service binding to the `beanstalk-gateway`
+ * Worker's default entrypoint. Workers RPC, not HTTP (AGENTS.md). The binding is the trust
+ * boundary: the gateway does not authenticate these calls, so the web app must authenticate
+ * its users before it calls `decide`, and the MCP server checks its callers' view tokens
+ * with `verifyViewToken` before it reads anything.
  *
  * Every method returns a value: expected failures come back as `{ ok: false, error }`.
  * Everything is read-only except `decide`. Output sizes are bounded, and a `truncated`
@@ -220,6 +222,15 @@ export type ViewToken = {
   readonly expires_at: string;
   /** `GET` this path with `Upgrade: websocket` and `?key=<token>` through the binding. */
   readonly live_path: string;
+};
+
+/** `verifyViewToken`: whose view token it is, once its signature, scope and expiry check out. */
+export type ViewTokenClaims = {
+  /** The one run the token may read. */
+  readonly run: string;
+  /** Who it was minted for (`web`, `admin`, `mcp` …). */
+  readonly sub: string;
+  readonly expires_at: string;
 };
 
 /** A ref of the run repo: `sprout`, `stalk`, `beans/<task>` or a 40-hex commit. */
@@ -443,6 +454,8 @@ export type GatewayRpc = {
   beanDetail(run: string, bean: string): Promise<RpcResult<BeanDetail>>;
   decisions(run: string, paths?: readonly string[]): Promise<RpcResult<readonly DecisionRecord[]>>;
   testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>>;
+  /** `unauthorized` (401) for a malformed, forged or expired token; `forbidden` (403) for a slot or seed token. */
+  verifyViewToken(token: string): Promise<RpcResult<ViewTokenClaims>>;
 };
 
 /** Refs the explorer accepts. */

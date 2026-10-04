@@ -2,7 +2,8 @@
  * The GATEWAY service binding as a typed RPC client, and Zod schemas for what it answers.
  * Wrangler types the binding as a plain `Fetcher` (typing it from the gateway's source would
  * type-check that Worker's code against this one's env), so the client is narrowed here and
- * every answer is validated before the app trusts it.
+ * every answer is validated before the caller trusts it. Shared by the web app and the MCP
+ * server, so nothing here names a Workers runtime type.
  */
 import { z } from 'zod';
 
@@ -25,17 +26,25 @@ const RPC_METHODS = [
   'beanDetail',
   'decisions',
   'testsFor',
+  'verifyViewToken',
 ] as const satisfies readonly (keyof GatewayRpc)[];
 
-/** The binding, once it answers to the gateway's RPC methods. */
-export type GatewayBinding = Fetcher & GatewayRpc;
+/**
+ * The binding, once it answers to the gateway's RPC methods. `Binding` is the runtime's
+ * binding type (`Fetcher` on Workers), kept so a caller can still use its `fetch`.
+ */
+export type GatewayBinding<Binding extends object> = Binding & GatewayRpc;
 
 /** Narrows the binding: an RPC stub exposes every method of the remote entrypoint. */
-export function asGatewayBinding(binding: Fetcher): GatewayBinding | undefined {
+export function asGatewayBinding<Binding extends object>(
+  binding: Binding,
+): GatewayBinding<Binding> | undefined {
   return isGatewayBinding(binding) ? binding : undefined;
 }
 
-function isGatewayBinding(binding: Fetcher): binding is GatewayBinding {
+function isGatewayBinding<Binding extends object>(
+  binding: Binding,
+): binding is GatewayBinding<Binding> {
   return RPC_METHODS.every((method) => typeof Reflect.get(binding, method) === 'function');
 }
 

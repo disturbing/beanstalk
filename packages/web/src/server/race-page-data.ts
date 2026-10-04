@@ -5,10 +5,10 @@
  */
 import type { RunId } from '@beanstalk/shared-race/ids';
 
-import { allEvents } from '../ask/plan-context';
-import type { ForgeSource } from '../forge/forge-source';
-import type { RaceEvent } from '../race/race-events';
-import type { RaceOptions } from '../race/race-state';
+import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
+import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
+import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
 import { recordedRun } from '../recorded/recorded-runs';
 import { titlesOf } from '../recorded/race-pair';
 

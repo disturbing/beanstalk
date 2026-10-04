@@ -8,9 +8,9 @@ import type { DecisionAccess } from '../../../../components/canvas/decision-pane
 import { RaceCanvas } from '../../../../components/canvas/race-canvas';
 import type { Speed } from '../../../../components/canvas/use-replay-clock';
 import { RunHeader } from '../../../../components/explorer/run-header';
-import { isForgeError } from '../../../../src/forge/forge-errors';
+import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../../../src/forge/sources';
-import { reduceRace } from '../../../../src/race/reduce-race';
+import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import { isRecordedRun } from '../../../../src/recorded/recorded-runs';
 import { racePageData } from '../../../../src/server/race-page-data';
 import { runMeta } from '../../../../src/server/run-meta';

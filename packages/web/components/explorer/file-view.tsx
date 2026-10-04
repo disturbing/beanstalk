@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-import type { BlameLine } from '../../src/ask/answer';
-import { textLines } from '../../src/repo/file-diff';
+import type { BlameLine } from '@beanstalk/shared-ask/ask/answer';
+import { textLines } from '@beanstalk/shared-ask/repo/file-diff';
 import styles from './explorer.module.css';
 import type { ExplorerState } from './explorer-url';
 import { explorerHref } from './explorer-url';

@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 
 import { RunId } from '@beanstalk/shared-race/ids';
 
-import { asGatewayBinding } from '../../../../../src/forge/gateway-rpc';
+import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { liveEventStream } from '../../../../../src/live/live-bridge';
 import { log } from '../../../../../src/log';
 import { isRecordedRun } from '../../../../../src/recorded/recorded-runs';
