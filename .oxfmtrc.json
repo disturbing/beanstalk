@@ -5,6 +5,7 @@
   "semi": true,
   "trailingComma": "all",
   "ignorePatterns": [
+    "prototypes/**",
     "docs/**",
     "research/**",
     ".agents/**",

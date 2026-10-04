@@ -60,6 +60,8 @@
     }
   ],
   "ignorePatterns": [
+    "prototypes/**",
+    "promo/**",
     "**/node_modules/**",
     "**/dist/**",
     "**/.wrangler/**",
