@@ -13,6 +13,7 @@
     "skills-lock.json",
     "pnpm-lock.yaml",
     "**/*.md",
-    "packages/web/fixtures/**"
+    "packages/web/fixtures/**",
+    "promo/**"
   ]
 }
