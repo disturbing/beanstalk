@@ -1,29 +1,30 @@
-// The hero's app demo: an HTML recreation of the repository home, live today. The player runs
-// from Day 0 (the repo's inception) to today, and the demo opens at today with the whole stalk
-// grown. A short tour asks three questions; each reshapes the view (what was searched and
-// picked, the components, the stalk dimmed to the beans it is about), then clears. Then
-// "Replay last week's work" rewinds the stalk to seven days ago and grows it back to today.
-// Every frame is a pure function of the elapsed time: reduced motion shows one meaningful
-// frame, and `?demo=<ms>` freezes the demo at that time (for screenshots).
+// The hero's app demo: an HTML recreation of the repository home, live today. The player spans
+// the repo's whole life, from Day 0 to today, and the demo opens at today with the stalk grown.
+// Three questions are asked in turn; each answer morphs into the next (the Ask text backspaces
+// and retypes, the panel cross-fades) and the stalk reacts to each in its own way. Then "Replay
+// last week's work" rewinds the stalk seven days and grows it back through an irregular week
+// generated from a fixed seed. Every frame is a pure function of the elapsed time: reduced
+// motion shows one finished frame, and `?demo=<ms>` freezes the demo there (for screenshots).
 
-/* ---------- The repository's history ---------- */
+/* ---------- A week of history from a fixed seed ---------- */
+
+function seeded(seed) {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let x = Math.imul(state ^ (state >>> 15), 1 | state);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = seeded(20261005);
 
 const LIFE_DAYS = 34;
 const WEEK_FROM_DAY = LIFE_DAYS - 7;
+/** Week hours run from last Monday 9:00 (0) to today, this Monday 9:00 (168). */
+const WEEK_HOURS = 168;
 const OLDER = 48;
-
-const OLDER_TITLES = [
-  'Set up the shop: catalog, cart and checkout',
-  'Store prices in cents, never floats',
-  'Orders keep a copy of the prices they were placed at',
-  'Users can sign up and log in',
-  'Invoices get sequential numbers',
-  'Coupons: percentage and fixed-amount discounts',
-  'Shipping rates by weight and destination',
-  'Email the customer when an order ships',
-  'Admins can retire products',
-  'Paginate product listings',
-];
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const WEEK_TITLES = [
   'Show thousands separators in displayed amounts',
@@ -62,293 +63,467 @@ const WEEK_TITLES = [
   'Customers should get a receipt when paid',
   'Finance needs a list of overdue invoices',
 ];
-const TOTAL = OLDER + WEEK_TITLES.length;
-const FELL = {
-  [OLDER + 9]: 'Make the invoice payment terms configurable',
-  [OLDER + 19]: 'Wholesale customers should not be charged tax',
-  [OLDER + 20]: 'Customers want to leave delivery notes',
-};
-const FELL_IDS = ['t006', 't007', 't010'];
-const RED_AT = OLDER + 12;
-const DECIDE_AT = OLDER + 24;
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+/** Landings per weekday: an uneven week. */
+const PER_DAY = [6, 9, 4, 9, 7];
 
-/** Every landing and fall-off of the repo's life, oldest first, each with its day and time. */
-const HISTORY = [];
-for (let n = 0; n < OLDER; n++) {
-  const day = (n / OLDER) * WEEK_FROM_DAY;
-  HISTORY.push({
-    kind: 'land',
-    n,
-    title: OLDER_TITLES[n % OLDER_TITLES.length],
-    day,
-    time: `−${Math.ceil(LIFE_DAYS - day)}d`,
-  });
-}
-const WEEK = [];
-for (let i = 0; i < WEEK_TITLES.length; i++) {
-  const n = OLDER + i;
-  WEEK.push({ kind: 'land', n, title: WEEK_TITLES[i] });
-  if (FELL[n]) WEEK.push({ kind: 'fell', title: FELL[n] });
-}
-for (const [i, item] of WEEK.entries()) {
-  const week = (i + 0.5) / WEEK.length;
-  const minutes = Math.round(9 * 60 + ((week * 5) % 1) * 8.7 * 60);
-  item.day = WEEK_FROM_DAY + week * 7;
-  item.label = DAYS[Math.min(4, Math.floor(week * 5))];
-  item.time = `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
-  HISTORY.push(item);
+/** Hour of the week to a label: `Tue 14:05`. */
+function stamp(h) {
+  const abs = h + 9;
+  const day = Math.floor(abs / 24);
+  const mins = Math.round((abs % 24) * 60);
+  const name = day >= 7 ? 'today' : DAY_NAMES[day];
+  return { day: name, time: `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')}` };
 }
 
-/* ---------- The script: open at today, the tour, then the replay ---------- */
+/** Work hours of a weekday (0 = Mon) in week hours: 8:30 to 18:30. */
+const workday = (d) => [d * 24 - 0.5, d * 24 + 9.5];
 
-const CHAR_MS = 52;
+const LANDINGS = [];
+{
+  let i = 0;
+  for (let d = 0; d < 5; d++) {
+    const [from, to] = workday(d);
+    const times = Array.from({ length: PER_DAY[d] }, () => {
+      // Two bursts a day, around late morning and mid-afternoon.
+      const centre = rand() < 0.55 ? from + 2.2 : from + 6.3;
+      return Math.min(to, Math.max(from + 0.4, centre + (rand() + rand() + rand() - 1.5) * 2.2));
+    }).toSorted((a, b) => a - b);
+    for (const t of times) {
+      const duration = 1.2 + rand() * 4.8;
+      LANDINGS.push({
+        n: OLDER + i,
+        id: `t${String(i + 1).padStart(3, '0')}`,
+        title: WEEK_TITLES[i],
+        agent: `a${Math.floor(rand() * 12)}`,
+        start: Math.max(from - rand() * 0.4, t - duration),
+        land: t,
+        rework: rand() < 0.22,
+      });
+      i++;
+    }
+  }
+}
+const TOTAL = OLDER + LANDINGS.length;
+
+/** One red validation, its revert and the sprout green again (Wednesday). */
+const CULPRIT = LANDINGS.find((l) => l.land > 48 + 2);
+const RED = { at: CULPRIT.land + 0.3, revert: CULPRIT.land + 0.75, green: CULPRIT.land + 1.3 };
+/** One decision between two specs (Thursday afternoon); the declined bean falls. */
+const DECISION = { at: 72 + 5.4, kept: 't001', declined: 'The order total leaves out shipping' };
+const FELL = [
+  {
+    title: 'Customers want to leave delivery notes',
+    id: 't036',
+    agent: 'a3',
+    start: 24 + 1.1,
+    at: 24 + 3.4,
+    reason: 'conflict',
+  },
+  {
+    title: DECISION.declined,
+    id: 't037',
+    agent: 'a9',
+    start: 72 + 2.0,
+    at: DECISION.at + 0.4,
+    reason: 'declined by D001',
+  },
+];
+
+/** Validations: batches of varied size, none while the sprout is red. */
+const PROMOTES = [];
+{
+  let next = 1 + Math.floor(rand() * 3);
+  let pending = 0;
+  for (const l of LANDINGS) {
+    pending++;
+    let at = l.land + 0.25 + rand() * 0.35;
+    if (at > RED.at && at < RED.green) at = RED.green + 0.2;
+    if (pending >= next) {
+      PROMOTES.push({ at, to: l.n });
+      pending = 0;
+      next = [1, 2, 3, 4, 6, 7][Math.floor(rand() * 6)];
+    }
+  }
+  PROMOTES.push({ at: workday(4)[1] + 0.4, to: TOTAL - 1 });
+}
+
+/** In flight this morning (today), on billing: two of them touch the same files. */
+const TODAY_BEANS = [
+  {
+    id: 't038',
+    agent: 'a2',
+    title: 'Refunds for partial shipments',
+    start: 168 - 1.4,
+    land: Infinity,
+    files: ['service.ts', 'handlers.ts'],
+  },
+  {
+    id: 't039',
+    agent: 'a7',
+    title: 'Bulk-edit invoice due dates',
+    start: 168 - 0.9,
+    land: Infinity,
+    files: ['service.ts', 'types.ts'],
+  },
+  {
+    id: 't040',
+    agent: 'a5',
+    title: 'Customers want saved carts',
+    start: 168 - 0.5,
+    land: Infinity,
+    files: ['cart/service.ts'],
+  },
+];
+
+/* ---------- Replay time: nights and the weekend pass quickly ---------- */
+
+const STEP = 0.25;
+const CUMULATIVE = [0];
+for (let h = 0; h < WEEK_HOURS; h += STEP) {
+  const abs = h + 9;
+  const weekday = Math.floor(abs / 24) < 5;
+  const hour = abs % 24;
+  const weight = weekday && hour >= 8 && hour < 19 ? 1 : 0.07;
+  CUMULATIVE.push(CUMULATIVE.at(-1) + weight * STEP);
+}
+/** Replay progress u (0..1) to week hours. */
+function hourAt(u) {
+  const target = Math.min(1, Math.max(0, u)) * CUMULATIVE.at(-1);
+  let lo = 0;
+  let hi = CUMULATIVE.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (CUMULATIVE[mid] < target) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo * STEP;
+}
+
+/* ---------- The repository at hour h ---------- */
+
+function repoAt(h) {
+  const landed = OLDER + LANDINGS.filter((l) => l.land <= h).length;
+  const promote = PROMOTES.findLast((p) => p.at <= h);
+  const stalk = promote ? promote.to + 1 : OLDER;
+  const flying = [...LANDINGS, ...TODAY_BEANS, ...FELL.map((f) => ({ ...f, land: f.at }))]
+    .filter((b) => b.start <= h && h < b.land)
+    .map((b) => {
+      const frac = Number.isFinite(b.land) ? (h - b.start) / (b.land - b.start) : 0.8;
+      let status = frac > 0.68 ? 'checking' : 'writing';
+      if (b.rework && frac > 0.35 && frac < 0.55) status = 'reworking';
+      return { ...b, status, mins: Math.round((h - b.start) * 60) };
+    })
+    .toSorted((a, b) => a.start - b.start);
+  const prev = PROMOTES.findLast((p) => p.at <= h && p !== promote);
+  const fresh =
+    promote && h - promote.at < 1.1
+      ? { from: prev ? prev.to + 1 : OLDER, to: promote.to, at: promote.at }
+      : null;
+  return {
+    h,
+    landed,
+    stalk,
+    flying,
+    red: h >= RED.at && h < RED.green,
+    reverted: h >= RED.revert,
+    redSeen: h >= RED.at,
+    decided: h >= DECISION.at,
+    fell: FELL.filter((f) => f.at <= h),
+    fresh,
+  };
+}
+
+/* ---------- The script ---------- */
+
+const TYPE_MS = 50;
+const ERASE_MS = 16;
 const TOUR = [
   { id: 'coupons', q: 'What changed on coupons yesterday?' },
   { id: 'red', q: 'Why did the sprout go red?' },
   { id: 'billing', q: "Who's working on billing right now?" },
 ];
 const REPLAY_Q = "Replay last week's work";
-const REPLAY_MS = 11000;
+const REPLAY_MS = 14000;
 
-/** The demo as consecutive segments; a frame finds its segment and its time within it. */
-const SEGMENTS = [{ kind: 'idle', ms: 2200 }];
-for (const stop of TOUR) {
+const SEGMENTS = [{ kind: 'idle', ms: 2000, show: 'default' }];
+let showing = 'default';
+for (const stop of [...TOUR, { id: 'replay', q: REPLAY_Q }]) {
+  const prev = SEGMENTS.at(-1);
+  if (prev.q)
+    SEGMENTS.push({ kind: 'erase', q: prev.q, ms: prev.q.length * ERASE_MS + 150, show: showing });
+  SEGMENTS.push({ kind: 'type', q: stop.q, ms: stop.q.length * TYPE_MS, show: showing });
+  SEGMENTS.push({ kind: 'think', q: stop.q, ms: 360, show: showing });
+  showing = stop.id;
   SEGMENTS.push(
-    { kind: 'type', q: stop.q, ms: stop.q.length * CHAR_MS },
-    { kind: 'think', q: stop.q, id: stop.id, ms: 380 },
-    { kind: 'answer', q: stop.q, id: stop.id, ms: 3600 },
-    { kind: 'clear', ms: 700 },
+    stop.id === 'replay'
+      ? { kind: 'replay', q: stop.q, ms: REPLAY_MS, show: 'replay' }
+      : { kind: 'answer', q: stop.q, ms: 4200, show: stop.id },
   );
 }
 SEGMENTS.push(
-  { kind: 'type', q: REPLAY_Q, ms: REPLAY_Q.length * CHAR_MS },
-  { kind: 'think', q: REPLAY_Q, id: 'replay', ms: 380 },
-  { kind: 'replay', q: REPLAY_Q, id: 'replay', ms: REPLAY_MS },
-  { kind: 'end', q: REPLAY_Q, id: 'replay', ms: 5200 },
+  { kind: 'end', q: REPLAY_Q, ms: 4200, show: 'replay' },
+  { kind: 'erase', q: REPLAY_Q, ms: REPLAY_Q.length * ERASE_MS + 150, show: 'replay' },
+  { kind: 'settle', ms: 1200, show: 'default' },
 );
-let at = 0;
+let cursor = 0;
 for (const seg of SEGMENTS) {
-  seg.from = at;
-  at += seg.ms;
+  seg.from = cursor;
+  cursor += seg.ms;
 }
-const LOOP_MS = at;
-/** When the replay ends: the frame reduced motion holds. */
+const LOOP_MS = cursor;
 const REPLAY_END = SEGMENTS.find((s) => s.kind === 'end').from + 1;
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-const esc = (s) =>
-  s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-
-/** The repo as of a week fraction w (0 = seven days ago, 1 = today). */
-function repoAt(w) {
-  const weekItems = Math.floor(clamp01(w) * WEEK.length);
-  const applied = HISTORY.slice(0, OLDER + weekItems);
-  const landed = applied.filter((s) => s.kind === 'land').length;
-  const weekLanded = landed - OLDER;
-  const stalk = w >= 1 ? landed : OLDER + Math.floor(weekLanded / 5) * 5;
-  const red = landed > RED_AT && landed < RED_AT + 3;
-  const last = applied.at(-1);
-  const day = w >= 1 ? LIFE_DAYS : (last?.day ?? WEEK_FROM_DAY);
-  return { applied, landed, stalk, red, day, last };
-}
-
-/** Everything the frame shows at time t (ms). */
 function frameAt(t) {
   const local = ((t % LOOP_MS) + LOOP_MS) % LOOP_MS;
   const seg = SEGMENTS.findLast((s) => s.from <= local) ?? SEGMENTS[0];
   const into = local - seg.from;
-  const typing = seg.kind === 'type';
-  const typed = typing ? seg.q.slice(0, Math.floor(into / CHAR_MS)) : (seg.q ?? '');
-  const shown = seg.kind === 'answer' || seg.kind === 'replay' || seg.kind === 'end';
+  let typed = seg.q ?? '';
+  if (seg.kind === 'type') typed = seg.q.slice(0, Math.floor(into / TYPE_MS));
+  if (seg.kind === 'erase')
+    typed = seg.q.slice(0, Math.max(0, seg.q.length - Math.floor(into / ERASE_MS)));
+  if (seg.kind === 'idle' || seg.kind === 'settle') typed = '';
   const replaying = seg.kind === 'replay';
-  const w = replaying ? into / REPLAY_MS : 1;
-  const repo = repoAt(w);
-  const growing = replaying && w < 0.86 ? 6 : 3;
+  const h = replaying ? hourAt(into / REPLAY_MS) : WEEK_HOURS;
   return {
     t,
     seg,
     into,
-    typed: seg.kind === 'clear' || seg.kind === 'idle' ? '' : typed,
-    typing,
-    focus: typing || seg.kind === 'think',
-    answer: shown ? seg.id : null,
+    typed,
+    focus: seg.kind === 'type' || seg.kind === 'think' || seg.kind === 'erase',
+    show: seg.show,
+    /** How long the current answer has been on screen (for the stalk's own motion). */
+    shownFor: seg.kind === 'answer' ? into : 1e9,
     replaying,
     replayed: seg.kind === 'end',
-    w,
-    ...repo,
-    growing,
-    p: repo.day / LIFE_DAYS,
-    clock: replaying && repo.last?.label ? `${repo.last.label} ${repo.last.time}` : 'today',
+    ...repoAt(h),
   };
 }
 
+/* ---------- Rendering helpers ---------- */
+
+const esc = (s) =>
+  s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const clockOf = (h) => {
+  if (h >= WEEK_HOURS) return 'today 9:00';
+  const s = stamp(h);
+  return `${s.day} ${s.time}`;
+};
+const COUPON_BEANS = LANDINGS.filter((l) => /coupon/i.test(l.title));
+
 /* ---------- The stalk ---------- */
 
-function tipBeans(f) {
-  return Array.from({ length: f.growing }, (_, i) => {
-    const n = f.landed + i;
-    const title =
-      WEEK_TITLES[n - OLDER] ??
-      ['Customers want saved carts', 'Refunds for partial shipments', 'Bulk-edit product prices'][
-        i
-      ];
-    const phase = (f.t / 900 + i * 0.45) % 3;
-    let status = phase < 2.1 ? 'checking' : 'writing';
-    if (f.red && i === 0) status = 'reworking';
-    return {
-      agent: `a${(n * 5) % 12}`,
-      title,
-      status,
-      secs: Math.floor((f.t / 1000 + i * 17) % 110),
-    };
-  });
-}
-
-/** Which rows the current answer is about: they stay bright, the rest dim. */
-function relevant(f, item) {
-  switch (f.answer) {
-    case 'coupons':
-      return /coupon/i.test(item.title);
-    case 'red':
-      return item.n === RED_AT;
-    case 'billing':
-      return item.bean === true;
-    default:
-      return true;
-  }
-}
-
-function leaf(f, item, cls, enter) {
-  const side = item.n % 2 ? ' l' : '';
-  const hit = relevant(f, item) ? ' hit' : '';
-  const red = item.n === RED_AT && f.landed > RED_AT ? ' red' : '';
-  return `<div class="srow ${cls}${red}${side}${hit}${enter ? ' enter' : ''}"><span class="tm">${item.time}</span><span class="stem"><i class="lf"></i></span><span class="tt">${esc(item.title)}</span><span class="ix">#${item.n}</span></div>`;
-}
-
-/**
- * The stalk's rows. `moment` is the validation that just passed (the batch of sprouts that
- * matured together); `fresh` is true on the frame it passed, when the leaves animate.
- */
-function stalkRows(f, prevLanded, moment) {
+/** The stalk's rows, keyed so they can be reconciled (classes change in place, so they animate). */
+function stalkRows(f) {
   const rows = [];
-  for (const b of tipBeans(f)) {
+  const answer = f.show;
+  const linkFile = new Map();
+  for (const b of f.flying.slice(0, 9)) {
     const st = { checking: 'check', writing: 'write', reworking: 'sent back' }[b.status];
-    const hit = relevant(f, { title: b.title, bean: true }) ? ' hit' : '';
-    rows.push(
-      `<div class="srow bean ${b.status}${hit}"><span class="ag">${b.agent}</span><span class="stem"><i class="beanmark"></i></span><span class="tt">${esc(b.title)}</span><span class="st">${st}</span></div>`,
-    );
+    let cls = `srow bean ${b.status}`;
+    if (answer === 'billing') cls += b.files ? ' hit ringpulse' : ' dim';
+    else if (answer !== 'default' && answer !== 'replay') cls += ' dim';
+    if (b.files) linkFile.set(b.id, b.files);
+    const partner =
+      answer === 'billing' && b.files
+        ? TODAY_BEANS.find((o) => o.id !== b.id && o.files.some((x) => b.files.includes(x)))
+        : null;
+    rows.push({
+      key: `b-${b.id}`,
+      cls,
+      html: `<span class="ag">${b.agent}</span><span class="stem"><i class="beanmark"></i></span><span class="tt">${esc(b.title)}</span><span class="st">${partner ? `↔ ${partner.agent}` : st}</span>`,
+    });
   }
-  const newestFirst = f.applied.toReversed();
-  for (const s of newestFirst.filter((x) => x.kind === 'land' && x.n >= f.stalk)) {
-    rows.push(leaf(f, s, 'sprout', s.n >= prevLanded));
-  }
-  const above = f.landed - f.stalk;
-  rows.push(
-    `<div class="pointer"><span></span><span class="stem"></span><span>${above ? `stalk at #${f.stalk - 1}, ${above} on the sprout above` : `stalk at #${f.stalk - 1}`}</span></div>`,
+  const found = answer === 'coupons' ? Math.floor(f.shownFor / 380) : 0;
+  const foundIds = new Set(
+    COUPON_BEANS.toReversed()
+      .slice(0, found)
+      .map((l) => l.n),
   );
-  if (moment) {
-    rows.push(
-      `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${moment.clock} · ${moment.to - moment.from} matured</span></div>`,
-    );
-  }
-  let shown = 0;
-  let folded = 0;
-  for (const s of newestFirst) {
-    if (shown > 28) break;
-    // Asked why the sprout went red: fold the newer leaves so the culprit is in view.
-    const nearRed = s.kind === 'land' ? s.n <= RED_AT + 2 : s.day <= HISTORY[RED_AT + 2].day;
-    if (f.answer === 'red' && !nearRed && (s.kind === 'fell' || s.n < f.stalk - 2)) {
-      folded++;
+  const cls = (n, base) => {
+    if (answer === 'coupons') return `${base} ${foundIds.has(n) ? 'hit found' : 'dim slow'}`;
+    if (answer === 'red') return `${base} ${n === CULPRIT.n ? 'hit' : 'dim'}`;
+    if (answer === 'billing') return `${base} dim`;
+    return base;
+  };
+  const items = [
+    ...LANDINGS.filter((l) => l.land <= f.h).map((l) => ({ kind: 'leaf', at: l.land, l })),
+    ...f.fell.map((x) => ({ kind: 'fell', at: x.at, x })),
+  ];
+  if (f.reverted) items.push({ kind: 'revert', at: RED.revert });
+  items.sort((a, b) => b.at - a.at);
+  let pointer = false;
+  let bracket = false;
+  let day = null;
+  for (const item of items) {
+    const label = stamp(item.at).day;
+    if (item.kind === 'leaf' && item.l.n < f.stalk && !pointer) {
+      const above = f.landed - f.stalk;
+      rows.push({
+        key: 'ptr',
+        cls: `pointer${answer !== 'default' && answer !== 'replay' ? ' dim' : ''}`,
+        html: `<span></span><span class="stem"></span><span>${above ? `stalk at #${f.stalk - 1}, ${above} on the sprout above` : `stalk at #${f.stalk - 1}`}</span>`,
+      });
+      pointer = true;
+    }
+    if (pointer && f.fresh && !bracket && item.kind === 'leaf' && item.l.n <= f.fresh.to) {
+      rows.push({
+        key: `m-${f.fresh.at}`,
+        cls: 'matured-row',
+        html: `<span></span><span class="stem"></span><span>validated at ${clockOf(f.fresh.at)} · ${f.fresh.to - f.fresh.from + 1} matured</span>`,
+      });
+      bracket = true;
+    }
+    if (label !== day && (pointer || item.kind !== 'leaf')) {
+      rows.push({
+        key: `d-${label}`,
+        cls: 'dayrow',
+        html: `<span></span><span class="stem"></span><span>${label}</span>`,
+      });
+      day = label;
+    }
+    if (item.kind === 'fell') {
+      rows.push({
+        key: `f-${item.x.id}`,
+        cls: cls(-1, 'srow fell'),
+        html: `<span class="tm">${stamp(item.at).time}</span><span class="stem"><i class="fl"></i></span><span class="tt">${esc(item.x.title)}</span><span class="ix">fell</span>`,
+      });
       continue;
     }
-    if (folded > 0) {
-      rows.push(
-        `<div class="pointer foldrow"><span></span><span class="stem"></span><span>${folded} newer rows folded</span></div>`,
-      );
-      folded = 0;
+    if (item.kind === 'revert') {
+      const show = answer !== 'red' || f.shownFor > 1700;
+      if (show)
+        rows.push({
+          key: 'revert',
+          cls: `srow revert${answer === 'red' ? ' hit' : ''}`,
+          html: `<span class="tm">${stamp(RED.revert).time}</span><span class="stem"><i class="rv"></i></span><span class="tt">${f.red ? `Reverted ${CULPRIT.id}; validating again` : `Reverted ${CULPRIT.id}, then green again`}</span><span class="ix">↩</span>`,
+        });
+      continue;
     }
-    if (s.kind === 'fell') {
-      const hit = f.answer ? '' : ' hit';
-      rows.push(
-        `<div class="srow fell${hit}"><span class="tm">${s.time}</span><span class="stem"><i class="fl"></i></span><span class="tt">${esc(s.title)}</span><span class="ix">fell</span></div>`,
-      );
-    } else if (s.n < f.stalk) {
-      const matured = moment?.fresh && s.n >= moment.from && s.n < moment.to;
-      rows.push(leaf(f, s, matured ? 'stalk matured' : 'stalk', s.n >= prevLanded));
-      shown++;
+    const { l } = item;
+    const onStalk = l.n < f.stalk;
+    let base = onStalk ? 'srow stalk' : 'srow sprout';
+    if (l === CULPRIT && f.redSeen) base += ' red';
+    if (l === CULPRIT && answer === 'red' && f.shownFor > 900) base += ' redpulse';
+    if (f.fresh && onStalk && l.n >= f.fresh.from && l.n <= f.fresh.to && f.h - f.fresh.at < 0.5)
+      base += ' matured';
+    if (l.n % 2) base += ' l';
+    rows.push({
+      key: `l-${l.n}`,
+      cls: cls(l.n, base),
+      html: `<span class="tm">${stamp(l.land).time}</span><span class="stem"><i class="lf"></i></span><span class="tt">${esc(l.title)}</span><span class="ix">#${l.n}</span>`,
+    });
+  }
+  if (!pointer)
+    rows.push({
+      key: 'ptr',
+      cls: 'pointer',
+      html: `<span></span><span class="stem"></span><span>stalk at #${f.stalk - 1}</span>`,
+    });
+  rows.push({
+    key: 'older',
+    cls: `srow stalk older${answer !== 'default' && answer !== 'replay' ? ' dim' : ''}`,
+    html: `<span class="tm">−8d</span><span class="stem"><i class="lf"></i></span><span class="tt">${OLDER} beans before this week</span><span class="ix">#${OLDER - 1}</span>`,
+  });
+  rows.push({
+    key: 'root',
+    cls: 'seedrow',
+    html: '<span></span><span class="stem"></span><span>Fertilized by coop</span>',
+  });
+  return { rows, links: answer === 'billing' ? linkFile : null };
+}
+
+/** Updates the rows in place by key: changed classes transition, new rows grow in. */
+function reconcile(host, rows) {
+  const existing = new Map(
+    [...host.children].filter((el) => el.dataset.key).map((el) => [el.dataset.key, el]),
+  );
+  const keep = new Set();
+  let before = host.firstChild;
+  for (const row of rows) {
+    let el = existing.get(row.key);
+    if (!el) {
+      el = document.createElement('div');
+      el.dataset.key = row.key;
+    }
+    if (el.dataset.html !== row.html) {
+      el.innerHTML = row.html;
+      el.dataset.html = row.html;
+    }
+    if (el.className !== row.cls) el.className = row.cls;
+    if (el !== before) host.insertBefore(el, before);
+    before = el.nextSibling;
+    keep.add(row.key);
+  }
+  for (const [key, el] of existing) if (!keep.has(key)) el.remove();
+}
+
+/** Overlap links between in-flight beans that change the same file. */
+function drawLinks(host, overlay, links) {
+  if (!links) {
+    overlay.innerHTML = '';
+    return;
+  }
+  const entries = [...links];
+  const paths = [];
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      const shared = entries[i][1].filter((file) => entries[j][1].includes(file));
+      if (!shared.length) continue;
+      const a = host.querySelector(`[data-key="b-${entries[i][0]}"]`);
+      const b = host.querySelector(`[data-key="b-${entries[j][0]}"]`);
+      if (!a || !b) continue;
+      const y1 = a.offsetTop + a.offsetHeight / 2;
+      const y2 = b.offsetTop + b.offsetHeight / 2;
+      paths.push(`<path d="M10 ${y1} C 1 ${y1}, 1 ${y2}, 10 ${y2}" />`);
     }
   }
-  return rows.join('');
+  overlay.innerHTML = paths.length ? `<svg width="100%" height="100%">${paths.join('')}</svg>` : '';
 }
 
-/* ---------- The explorer: what was asked, what was picked, the components ---------- */
-
-const ANSWERS = {
-  coupons: {
-    searched: ['yesterday', 'coupons: paths, content, beans'],
-    picked: ['Files + diffs', 'Bean journey'],
-    head: '4 beans changed 6 files about coupons yesterday.',
-    sub: 'The stalk keeps the coupon beans lit; everything else dims.',
-  },
-  red: {
-    searched: ['validations', 'read sets of the failing test'],
-    picked: ['Red-validation card', 'Files'],
-    head: `t018 turned the sprout red at #${RED_AT}.`,
-    sub: 'Its leaf is marked on the stalk: the culprit, found by read set and bisection.',
-  },
-  billing: {
-    searched: ['in flight now', 'src/billing/*'],
-    picked: ['Overlaps + sessions', 'Files'],
-    head: '3 sessions are working on billing right now.',
-    sub: 'The beans at the tip stay lit: who holds what, and where two of them meet.',
-  },
-  replay: {
-    searched: ['last 7 days', 'beans, landings, decisions'],
-    picked: ['Stalk replay', 'Growing now', 'What happened'],
-    head: 'Replaying last week on beanstalk-shop.',
-    sub: '',
-  },
-};
-
-function pickedChips(id) {
-  const a = ANSWERS[id];
-  return `<span class="lbl">searched</span>${a.searched.map((s) => `<span class="chip">${esc(s)}</span>`).join('')}<span class="sep"></span><span class="lbl">picked</span>${a.picked.map((p, i) => `<span class="chip"><b>${i + 1}</b>${esc(p)}</span>`).join('')}<span class="chip jev">Jev, 0.4 s</span>`;
-}
+/* ---------- The explorer panels ---------- */
 
 function box(title, note, body) {
   return `<section class="d-box"><header><b>${title}</b>${note}</header>${body}</section>`;
 }
 
-function growingBox(f) {
-  const rows = tipBeans(f)
+function chips(searched, picked) {
+  return `<div class="d-picked"><span class="lbl">searched</span>${searched.map((s) => `<span class="chip">${esc(s)}</span>`).join('')}<span class="sep"></span><span class="lbl">picked</span>${picked.map((p, i) => `<span class="chip"><b>${i + 1}</b>${esc(p)}</span>`).join('')}<span class="chip jev">Jev, 0.4 s</span></div>`;
+}
+
+function head(title, sub) {
+  return `<h3 class="d-answer">${esc(title)}</h3><p class="d-sub">${esc(sub)}</p>`;
+}
+
+function growing(f) {
+  const rows = f.flying
+    .slice(0, 6)
     .map((b) => {
-      const time = `${Math.floor(b.secs / 60)}:${String(b.secs % 60).padStart(2, '0')}`;
-      const label = b.status === 'reworking' ? 'back to its author' : `${b.status} ${time}`;
+      const time = b.mins >= 60 ? `${Math.floor(b.mins / 60)}h ${b.mins % 60}m` : `${b.mins}m`;
+      const label = b.status === 'reworking' ? 'sent back to its author' : `${b.status} ${time}`;
       return `<div class="g-row ${b.status}"><span class="a">${b.agent}</span><span class="t">${esc(b.title)}</span><span class="s"><i class="spin"></i>${label}</span></div>`;
     })
     .join('');
-  return box('Growing now', `${f.growing} beans in flight`, rows);
+  return box(
+    'Growing now',
+    `${f.flying.length} beans in flight`,
+    rows || '<div class="g-empty">Nothing growing right now.</div>',
+  );
 }
 
-function happenedBox(f) {
+function happened(f) {
   const events = [];
-  if (f.landed > DECIDE_AT) {
+  if (f.decided)
     events.push(
-      `<div class="ev"><span class="ic decide">◆</span><div><b>D001: two specs clashed</b><span>coop kept "Show thousands separators in displayed amounts". Humans resolve real disagreements.</span></div></div>`,
+      `<div class="ev"><span class="ic decide">◆</span><div><b>D001: two specs clashed</b><span>coop kept "Show thousands separators"; "${esc(DECISION.declined)}" was declined.</span></div></div>`,
     );
-  }
-  if (f.landed > RED_AT) {
+  if (f.redSeen)
     events.push(
-      `<div class="ev"><span class="ic red">×</span><div><b>The sprout went red at #${RED_AT}</b><span>tracking-email.test.ts failed. Bisecting named t018 and sent it back to its author; green again 3.4 min later.</span></div></div>`,
+      `<div class="ev"><span class="ic red">×</span><div><b>The sprout went red at #${CULPRIT.n}</b><span>${f.reverted ? `Bisecting named ${CULPRIT.id}; it was reverted and the sprout went green again ${clockOf(RED.green).split(' ')[1]}.` : 'Bisecting the read-set suspects…'}</span></div></div>`,
     );
-  }
-  const fellCount = f.applied.filter((s) => s.kind === 'fell').length;
-  if (fellCount > 0) {
+  if (f.fell.length)
     events.push(
-      `<div class="ev"><span class="ic fell">·</span><div><b>${fellCount} bean${fellCount > 1 ? 's' : ''} fell off</b><span>${FELL_IDS.slice(0, fellCount).join(', ')} (conflict)</span></div></div>`,
+      `<div class="ev"><span class="ic fell">·</span><div><b>${f.fell.length} bean${f.fell.length > 1 ? 's' : ''} fell off</b><span>${f.fell.map((x) => `${x.id} (${x.reason})`).join(', ')}</span></div></div>`,
     );
-  }
   return box(
     'What happened',
     '',
@@ -356,110 +531,109 @@ function happenedBox(f) {
   );
 }
 
-const FILES = [
-  ['billing', 'Finance needs a list of overdue invoices', 3],
-  ['cart', 'Carts accept more units than are in stock', 1],
-  ['catalog', 'Make product filtering a pure function', 0],
-  ['notifications', 'Customers should get a receipt when paid', 1],
-  ['orders', 'A failed checkout leaves stock reserved', 0],
-];
-
-function filesBox() {
-  const rows = FILES.map(
-    ([dir, title, fly]) =>
-      `<div class="f-row"><span class="fn">${dir}/</span><span class="fb"><i class="lfm"></i>${esc(title)}</span>${fly ? `<span class="chip fly">${fly} in flight</span>` : '<span></span>'}</div>`,
-  ).join('');
+function files() {
+  const rows = [
+    ['billing/', 'Finance needs a list of overdue invoices', 2],
+    ['cart/', 'Carts accept more units than are in stock', 1],
+    ['catalog/', 'Make product filtering a pure function', 0],
+    ['notifications/', 'Customers should get a receipt when paid', 0],
+  ]
+    .map(
+      ([dir, title, fly]) =>
+        `<div class="f-row"><span class="fn">${dir}</span><span class="fb"><i class="lfm"></i>${esc(title)}</span>${fly ? `<span class="chip fly">${fly} in flight</span>` : '<span></span>'}</div>`,
+    )
+    .join('');
   return box('Files', 'src', rows);
 }
 
-const DIFF = [
-  ['h', '@@ -13,5 +13,5 @@'],
-  ['', ' export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {'],
-  ['d', "-  if (coupon.kind !== 'percent') return coupon.value;"],
-  ['a', "+  if (coupon.kind !== 'percent') return Math.min(coupon.value, subtotal);"],
-  ['', '   const discount = percentOf(subtotal, coupon.value);'],
-];
-
-function couponView() {
-  const files = [
-    ['billing/coupons.ts', 't038 #80', '+1 −1'],
-    ['billing/checkout-coupons.ts', 't040 #78', '+9 −2'],
-    ['billing/coupon-cap.test.ts', 't038 #80', '+23 −0'],
-    ['db/migrations/0007_coupon_max_discount.ts', 't024 #76', '+9 −0'],
-  ];
-  const diff = DIFF.map(([k, line]) => `<div class="${k}">${esc(line)}</div>`).join('');
-  return box(
-    'Files',
-    '6 files, changes yesterday',
-    files
+const PANELS = {
+  default: (f) => growing(f) + happened(f) + files(),
+  coupons: (f) => {
+    const found = Math.min(COUPON_BEANS.length, Math.floor(f.shownFor / 380));
+    const list = COUPON_BEANS.toReversed()
+      .slice(0, Math.max(found, f.shownFor > 1e8 ? COUPON_BEANS.length : 0))
       .map(
-        ([path, bean, stat], i) =>
-          `<div class="f-row"><span class="fn">${path}</span><span class="chip leafchip"><i class="lfm"></i>${bean}</span><span class="fstat">${stat}</span></div>${i === 0 ? `<div class="hunk">${diff}</div>` : ''}`,
+        (l, i) =>
+          `<div class="f-row arrive"><span class="fn">${['billing/coupons.ts', 'billing/checkout.ts', 'billing/coupon-cap.test.ts', 'db/coupon_max.ts', 'billing/discounts.ts'][i % 5]}</span><span class="chip leafchip"><i class="lfm"></i>${l.id} #${l.n}</span><span class="fstat">+${3 + ((l.n * 7) % 21)} −${(l.n * 3) % 5}</span></div>`,
       )
-      .join(''),
-  );
-}
-
-function redView() {
-  return box(
-    '✕ Red validation R001',
-    `at #${RED_AT} · green again 3.4 min later`,
-    `<div class="card"><p><code>tracking-email.test.ts</code> failed when the sprout was validated. The forge recorded what every bean read, so only 5 beans were suspects; bisecting them named <b>t018</b>.</p>
-      <div class="steps"><div><b>5:23</b>went red</div><div><b>5 suspects</b>by read set</div><div><b>t018</b>the culprit</div><div><b>8:48</b>green again</div></div></div>`,
-  );
-}
-
-function billingView(f) {
-  const beans = tipBeans(f).slice(0, 3);
-  const rows = beans
-    .map(
-      (b, i) =>
-        `<div class="g-row ${b.status}"><span class="a">${b.agent}</span><span class="t">${esc(b.title)}<small>${['service.ts, handlers.ts', 'service.ts, types.ts', 'handlers.ts, routes.ts'][i]}</small></span><span class="s"><i class="spin"></i>${b.status}</span></div>`,
-    )
-    .join('');
-  const hot = `<div class="f-row"><span class="fn">billing/service.ts</span><span>${beans
-    .slice(0, 2)
-    .map((b) => `<span class="chip fly">${b.agent}</span>`)
-    .join(' ')}</span><span class="fstat">2 beans</span></div>
-    <div class="f-row"><span class="fn">billing/handlers.ts</span><span>${[beans[0], beans[2]]
-      .map((b) => `<span class="chip fly">${b.agent}</span>`)
-      .join(' ')}</span><span class="fstat">2 beans</span></div>
-    <div class="g-empty">Each bean is checked on the merged tree before it lands, so they never collide on the sprout.</div>`;
-  return box('Who is working on billing now', '', rows) + box('Collision hot spots', '', hot);
-}
-
-function viewFor(f) {
-  switch (f.answer) {
-    case 'coupons':
-      return couponView();
-    case 'red':
-      return redView() + filesBox();
-    case 'billing':
-      return billingView(f);
-    case 'replay':
-      return growingBox(f) + happenedBox(f);
-    default:
-      return growingBox(f) + happenedBox(f) + filesBox();
-  }
-}
-
-function answerSub(f) {
-  if (f.answer !== 'replay') return ANSWERS[f.answer]?.sub ?? '';
-  if (f.replayed)
-    return `Back at today: ${f.landed - OLDER} beans landed in the last 7 days, 3 fell off.`;
-  return `${f.clock}: ${f.landed - OLDER} of 35 landed since seven days ago.`;
-}
+      .join('');
+    const diff =
+      '<div class="hunk"><div class="h">@@ -13,5 +13,5 @@</div><div> export function couponDiscount(coupon: Coupon, subtotal: Cents): Cents {</div><div class="d">-  if (coupon.kind !== \'percent\') return coupon.value;</div><div class="a">+  if (coupon.kind !== \'percent\') return Math.min(coupon.value, subtotal);</div></div>';
+    return (
+      chips(['yesterday', 'coupons: paths, content, beans'], ['Files + diffs', 'Bean journey']) +
+      head(
+        `${COUPON_BEANS.length} beans changed coupon code this week.`,
+        'Found one by one on the stalk; the rest dims.',
+      ) +
+      box('Files', `${found} of ${COUPON_BEANS.length} found`, list + (found ? diff : ''))
+    );
+  },
+  red: (f) => {
+    const step = Number(f.shownFor >= 900) + Number(f.shownFor >= 1700);
+    return (
+      chips(['validations', 'read sets of the failing test'], ['Red-validation card', 'Files']) +
+      head(
+        `${CULPRIT.id} turned the sprout red at #${CULPRIT.n}.`,
+        'Its leaf pulses on the stalk; the revert and the green again follow it.',
+      ) +
+      box(
+        '✕ Red validation R001',
+        ` at #${CULPRIT.n}`,
+        `<div class="card"><p><code>tracking-email.test.ts</code> failed when the sprout was validated. Only the beans that read that test's files were suspects; bisecting them named <b>${CULPRIT.id}</b>.</p>
+        <div class="steps"><div class="on"><b>${stamp(RED.at).day} ${stamp(RED.at).time}</b>went red</div><div class="${step >= 1 ? 'on' : ''}"><b>${CULPRIT.id}</b>the culprit</div><div class="${step >= 2 ? 'on' : ''}"><b>${stamp(RED.revert).time}</b>reverted</div><div class="${step >= 2 ? 'on' : ''}"><b>${stamp(RED.green).time}</b>green again</div></div></div>`,
+      )
+    );
+  },
+  billing: (f) => {
+    const beans = f.flying.filter((b) => b.files);
+    const rows = beans
+      .map(
+        (b) =>
+          `<div class="g-row ${b.status}"><span class="a">${b.agent}</span><span class="t">${esc(b.title)}<small>${b.files.join(', ')}</small></span><span class="s"><i class="spin"></i>${b.status}</span></div>`,
+      )
+      .join('');
+    const hot = `<div class="f-row"><span class="fn">billing/service.ts</span><span><span class="chip fly">a2</span> <span class="chip fly">a7</span></span><span class="fstat">2 beans</span></div>
+      <div class="g-empty">Each bean is checked on the merged tree before it lands, so they never collide on the sprout.</div>`;
+    return (
+      chips(['in flight now', 'src/billing/*'], ['Overlaps + sessions', 'Files']) +
+      head(
+        `${beans.length} sessions are working on billing right now.`,
+        'Their beans pulse at the tip; a link joins the two that share a file.',
+      ) +
+      box('Who is working on billing now', '', rows) +
+      box('Collision hot spots', '', hot)
+    );
+  },
+  replay: (f) => {
+    const sub =
+      f.replayed || !f.replaying
+        ? `Back at today: ${LANDINGS.length} beans landed in the last 7 days, ${FELL.length} fell off.`
+        : `${clockOf(f.h)}: ${f.landed - OLDER} of ${LANDINGS.length} landed since seven days ago.`;
+    return (
+      chips(
+        ['last 7 days', 'beans, landings, decisions'],
+        ['Stalk replay', 'Growing now', 'What happened'],
+      ) +
+      head('Replaying last week on beanstalk-shop.', sub) +
+      growing(f) +
+      happened(f)
+    );
+  },
+};
 
 function statusLine(f) {
+  const people = f.flying.length
+    ? `1 person, ${f.flying.length} sessions active`
+    : 'no sessions active';
   return [
     `<span><i class="dot ${f.red ? 'red' : 'leaf'}"></i>sprout #${f.landed - 1}</span>`,
     `<span><i class="dot leaf"></i>stalk #${f.stalk - 1}</span>`,
     `<span class="${f.red ? 'red' : ''}">sprout ${f.red ? 'red' : 'green'}</span>`,
-    `<span><i class="dot bean"></i>${f.growing} beans growing</span>`,
-    `<span class="opt">1 person, ${f.growing} sessions active</span>`,
+    `<span><i class="dot bean"></i>${f.flying.length} beans growing</span>`,
+    `<span class="opt">${people}</span>`,
     '<span class="sp"></span>',
     `<span class="opt">${f.replaying ? 'replaying' : 'live'}</span>`,
-    `<span>${f.clock}</span>`,
+    `<span>${clockOf(f.h)}</span>`,
   ].join('');
 }
 
@@ -474,79 +648,81 @@ function setupAppDemo() {
     count: $('count'),
     progress: $('progress'),
     week: $('week'),
+    scale: $('scale'),
     clock: $('clock'),
     ask: $('ask'),
     typed: $('typed'),
     ph: $('ph'),
-    picked: $('picked'),
-    answer: $('answer'),
-    head: $('head'),
-    sub: $('sub'),
     view: $('view'),
     status: $('status'),
   };
   if (Object.values(el).some((node) => !node)) return;
   const caret = el.ask.querySelector('.caret');
-  el.week.style.left = `${(WEEK_FROM_DAY / LIFE_DAYS) * 100}%`;
+  const pct = (day) => `${((day / LIFE_DAYS) * 100).toFixed(2)}%`;
+  el.week.style.left = pct(WEEK_FROM_DAY);
+  el.scale.innerHTML = `<span style="left:0">Day 0</span><span class="minus7" style="left:${pct(WEEK_FROM_DAY)}">−7 days</span>${DAY_NAMES.slice(
+    1,
+    5,
+  )
+    .map(
+      (name, i) => `<span class="tick" style="left:${pct(WEEK_FROM_DAY + i + 1)}">${name}</span>`,
+    )
+    .join('')}<span style="right:0">today</span>`;
+  const overlay = document.createElement('div');
+  overlay.className = 'links';
+  el.rows.append(overlay);
+  const list = document.createElement('div');
+  el.rows.prepend(list);
+  const panels = Object.fromEntries(
+    Object.keys(PANELS).map((id) => {
+      const panel = document.createElement('div');
+      panel.className = 'd-panel';
+      el.view.append(panel);
+      return [id, panel];
+    }),
+  );
+  let instant = false;
 
-  let prevLanded = TOTAL;
-  let prevStalk = TOTAL;
-  /** The last validation moment: which sprouts matured, and until when it stays marked. */
-  let moment = null;
   let prevKey = '';
   const draw = (t) => {
     const f = frameAt(t);
-    const key = `${f.seg.from}|${f.typed.length}|${f.applied.length}|${Math.floor(t / 450)}`;
+    const key = `${f.seg.from}|${f.typed.length}|${Math.floor(f.h * 4)}|${Math.floor(f.shownFor / 200)}|${Math.floor(t / 600)}`;
     if (key === prevKey) return;
     prevKey = key;
-    if (f.landed < prevLanded && f.replaying) {
-      // The replay rewound the stalk to seven days ago: start counting from there.
-      prevLanded = f.landed;
-      prevStalk = f.stalk;
-      moment = null;
-    }
     el.typed.textContent = f.typed;
     el.ph.hidden = f.typed.length > 0;
     if (caret instanceof HTMLElement) caret.hidden = !f.focus;
     el.ask.classList.toggle('focus', f.focus);
-    el.picked.classList.toggle('on', f.answer !== null);
-    el.answer.classList.toggle('on', f.answer !== null);
-    if (f.answer) {
-      el.picked.innerHTML = pickedChips(f.answer);
-      el.head.textContent = ANSWERS[f.answer].head;
-      el.sub.textContent = answerSub(f);
-    }
-    el.picked.hidden = f.answer === null;
-    el.answer.hidden = f.answer === null;
     app.classList.toggle('playing', f.replaying);
-    el.rows.classList.toggle('asking', f.answer !== null && f.answer !== 'replay');
-    el.progress.style.width = `${(f.p * 100).toFixed(2)}%`;
-    el.clock.textContent = f.clock;
-    el.count.textContent = `${f.landed} landed, ${f.growing} growing`;
-    if (f.stalk > prevStalk && f.replaying)
-      moment = { from: prevStalk, to: f.stalk, clock: f.clock, until: t + 2600, fresh: true };
-    else if (moment) moment = t > moment.until ? null : { ...moment, fresh: false };
-    el.rows.innerHTML = stalkRows(f, prevLanded, moment);
-    el.view.innerHTML = viewFor(f);
-    el.status.innerHTML = statusLine(f);
-    if (f.stalk > prevStalk && f.replaying) {
-      el.rows.classList.add('validating');
-      setTimeout(() => el.rows.classList.remove('validating'), 1100);
+    el.progress.style.width = pct(WEEK_FROM_DAY + f.h / 24);
+    el.clock.textContent = clockOf(f.h);
+    el.count.textContent = `${f.landed} landed, ${f.flying.length} growing`;
+    const { rows, links } = stalkRows(f);
+    reconcile(list, rows);
+    drawLinks(list, overlay, links);
+    el.rows.classList.toggle('validating', Boolean(f.fresh) && f.h - f.fresh.at < 0.3);
+    // Asked why the sprout went red: bring the culprit into view.
+    const culprit = list.querySelector(`[data-key="l-${CULPRIT.n}"]`);
+    const target = f.show === 'red' && culprit ? Math.max(0, culprit.offsetTop - 120) : 0;
+    if (Math.abs(el.rows.scrollTop - target) > 2)
+      el.rows.scrollTo({ top: target, behavior: instant ? 'instant' : 'smooth' });
+    for (const [id, panel] of Object.entries(panels)) {
+      const on = id === f.show;
+      panel.classList.toggle('on', on);
+      if (on) panel.innerHTML = PANELS[id](f);
     }
-    prevLanded = f.landed;
-    prevStalk = f.stalk;
+    el.status.innerHTML = statusLine(f);
   };
 
   const frozen = Number(new URLSearchParams(location.search).get('demo'));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   if (Number.isFinite(frozen) && frozen > 0) {
-    // Draw the moment just before too, so a validation that passed in between shows as one.
-    draw(Math.max(1, frozen - 700));
-    prevKey = '';
+    instant = true;
     draw(frozen);
     return;
   }
   if (reduced.matches) {
+    instant = true;
     draw(REPLAY_END);
     return;
   }

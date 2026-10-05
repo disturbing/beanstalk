@@ -2598,24 +2598,36 @@ dialog.choose::backdrop {
 
 /* demo-tour:start (the hero demo: life-long player, question tour, answers) */
 .player {
+  display: grid;
   grid-template-columns: 30px minmax(0, 1fr) auto;
-  row-gap: 3px;
-  padding-top: 20px;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px 8px;
+  border-top: 1px solid var(--border);
+}
+.player .pl-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.player .track {
+  position: relative;
+  height: 4px;
 }
 .player .track .week {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
+  top: -4px;
+  bottom: -4px;
   right: 0;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--leaf) 16%, transparent);
+  background: color-mix(in srgb, var(--leaf) 14%, transparent);
   box-shadow: inset 1px 0 0 var(--leaf);
 }
 .player .track i {
   z-index: 1;
+  transition: width 0.25s linear;
 }
 .player .scale {
-  grid-column: 2 / 3;
   position: relative;
   height: 14px;
   font: 10.5px var(--mono);
@@ -2626,47 +2638,165 @@ dialog.choose::backdrop {
   top: 0;
   white-space: nowrap;
 }
-.player .scale span:first-child {
-  left: 0;
-}
-.player .scale span:last-child {
-  right: 0;
-}
-.player .track .minus7 {
-  position: absolute;
-  left: 0;
-  bottom: 9px;
+.player .scale .minus7 {
   transform: translateX(-50%);
-  font: 10.5px var(--mono);
   color: var(--leaf-ink);
-  white-space: nowrap;
+}
+.player .scale .tick {
+  transform: translateX(-50%);
+  opacity: 0.7;
+}
+.player output {
+  min-width: 92px;
+}
+.app-rows {
+  position: relative;
+  scroll-behavior: smooth;
+}
+.app-rows .links {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.app-rows .links svg {
+  overflow: visible;
+}
+.app-rows .links path {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+.app-rows .links text {
+  fill: var(--amber);
+  font: 9px var(--mono);
 }
 .app-rows .srow,
 .app-rows .pointer,
+.app-rows .dayrow,
 .app-rows .matured-row {
-  transition: opacity 0.35s;
+  transition: opacity 0.45s;
 }
-.app-rows.asking .srow:not(.hit) {
-  opacity: 0.2;
+.app-rows .dim {
+  opacity: 0.18;
 }
-.app-rows.asking .srow:not(.hit) .lf,
-.app-rows.asking .srow:not(.hit) .beanmark {
-  filter: none;
+.app-rows .dim.slow {
+  transition-duration: 1.4s;
 }
-.app-rows.asking .srow.hit .tt {
+.app-rows .hit .tt {
   color: var(--fg);
   font-weight: 600;
 }
-.d-picked[hidden],
-[data-d-answer][hidden] {
-  display: none;
+.app-rows .older .tt {
+  color: var(--fg-subtle);
+  font-style: italic;
 }
-.d-view .d-box:first-child {
+.dayrow {
+  display: grid;
+  grid-template-columns: 40px 28px minmax(0, 1fr);
+  height: 18px;
+  align-items: center;
+  font: 600 10px var(--mono);
+  color: var(--fg-subtle);
+  letter-spacing: 0.04em;
+}
+.dayrow .stem {
+  position: relative;
+  height: 100%;
+}
+.dayrow .stem::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--leaf);
+  opacity: 0.6;
+}
+.dayrow span:last-child {
+  padding-left: 6px;
+}
+.srow.revert .rv {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  background: var(--red);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' d='M17.5 8.2C16.8 4.8 13.6 3 10.4 3.8 8.6 4.3 7.3 5.5 6.6 7'/%3E%3Cpath fill='%23fff' d='M4.6 5.2l2 3.6 2.9-2.4Z'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' d='M17.5 8.2C16.8 4.8 13.6 3 10.4 3.8 8.6 4.3 7.3 5.5 6.6 7'/%3E%3Cpath fill='%23fff' d='M4.6 5.2l2 3.6 2.9-2.4Z'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
+.srow.revert .tt {
+  color: var(--fg-muted);
+}
+.srow.revert .ix {
+  color: var(--leaf-ink);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .srow.found .lf {
+    animation: found-flash 0.9s ease-out;
+  }
+  .srow.redpulse .lf {
+    animation: red-pulse 0.9s ease-in-out infinite;
+  }
+  .srow.ringpulse .stem::after {
+    animation-duration: 0.9s;
+    filter: drop-shadow(0 0 4px var(--amber));
+  }
+  .srow.revert {
+    animation: rowin 0.45s ease-out;
+  }
+  .f-row.arrive {
+    animation: rowin 0.35s ease-out;
+  }
+}
+@keyframes found-flash {
+  0% {
+    scale: 0.6;
+    filter: brightness(2.8);
+  }
+  60% {
+    scale: 1.25;
+  }
+  100% {
+    scale: 1;
+  }
+}
+@keyframes red-pulse {
+  50% {
+    scale: 1.35;
+    filter: drop-shadow(0 0 6px var(--red));
+  }
+}
+.d-view {
+  display: grid;
+}
+.d-panel {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
+  pointer-events: none;
+  min-width: 0;
+}
+.d-panel.on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.d-panel .d-picked {
   margin-top: 12px;
 }
 .f-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: 170px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   padding: 6px 14px;
@@ -2675,6 +2805,9 @@ dialog.choose::backdrop {
 }
 .f-row:first-of-type {
   border-top: 0;
+}
+.f-row > .chip {
+  justify-self: start;
 }
 .f-row .fn {
   font-family: var(--mono);
@@ -2695,16 +2828,6 @@ dialog.choose::backdrop {
 .f-row .fstat {
   font: 11.5px var(--mono);
   color: var(--leaf-ink);
-}
-.d-box .f-row {
-  grid-template-columns: 170px minmax(0, 1fr) auto;
-}
-.f-row > .chip {
-  justify-self: start;
-}
-.foldrow span:last-child {
-  border-top-style: dotted;
-  color: var(--fg-subtle);
 }
 .chip.fly {
   color: var(--bean);
@@ -2771,6 +2894,11 @@ dialog.choose::backdrop {
   border-radius: 6px;
   padding: 5px 8px;
   font-size: 11.5px;
+  opacity: 0.35;
+  transition: opacity 0.4s;
+}
+.d-box .steps div.on {
+  opacity: 1;
 }
 .d-box .steps b {
   display: block;
@@ -2781,5 +2909,12 @@ dialog.choose::backdrop {
   display: block;
   color: var(--fg-subtle);
   font: 11px var(--mono);
+}
+.srow.sprout.red .lf,
+.srow.sprout.red.l .lf {
+  background: var(--red);
+}
+.app-rows .srow .st {
+  white-space: nowrap;
 }
 /* demo-tour:end */
