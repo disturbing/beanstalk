@@ -19,7 +19,7 @@ import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
-import type { AgentWork, LandingFlow, V2Step } from './v2-state';
+import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
 const MAX_CULPRITS = 2;
@@ -35,6 +35,13 @@ const CONFLICT_TARGET = 'the trunk';
 const DIFF_UNAVAILABLE = '(diff unavailable)';
 /** The diff text of a culprit with no landed commit. */
 const NOT_LANDED = '(not on trunk)';
+
+/** A red pre-land check: the sprout it ran on, its result and the bean's changed files. */
+export type RedCheck = {
+  readonly head: Sha;
+  readonly red: CheckResult;
+  readonly mine: readonly string[] | null;
+};
 
 type ConflictWork = Extract<AgentWork, { kind: 'conflict' }>;
 type InformedWork = Extract<AgentWork, { kind: 'informed' }>;
@@ -85,9 +92,10 @@ export function startConflictRework(
  * A red pre-land check: name the culprits, count the pair, and either open a decision
  * card or fetch the culprits' diffs for an informed rework.
  */
-export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: CheckResult): void {
+export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck): void {
   const { state } = step;
-  const culprits = culpritTasks(step, flow.task, red);
+  const { head, red } = failure;
+  const culprits = culpritTasks(step, flow.task, failure);
   for (const culprit of culprits) {
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
@@ -146,24 +154,59 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 
 /**
  * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
- * bean's snapshot whose writes intersect the failing tests' read set; at most two.
+ * bean's snapshot whose writes intersect the failing tests' read set; at most two. With
+ * `base_culprits`, each failing test whose read set the bean changed names, right after the
+ * owners, the newest landed bean that also wrote that read set, even one already in the
+ * bean's base: the bean's change is what met it.
  */
-export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): TaskId[] {
+export function culpritTasks(step: V2Step, task: TaskId, check: RedCheck): TaskId[] {
   const { ctx, state } = step;
+  const { red } = check;
   const owners = acceptanceOwners(step);
   const named: TaskId[] = [];
   for (const path of red.failingFiles ?? []) {
     const owner = owners.get(path);
     if (owner !== undefined && owner !== task) named.push(owner);
   }
+  if (ctx.env.config.base_culprits) named.push(...metCulprits(state, task, check));
   const read = new Set(red.readSet);
   const snapshot = sproutIndex(state, requireTask(ctx, task).baseSha);
   for (const commit of state.commits.slice(snapshot + 1).toReversed()) {
-    const culprit = commit.task;
-    if (commit.kind !== 'task' || culprit === null || culprit === task || commit.reverted) continue;
-    if (commit.files.some((path) => read.has(path))) named.push(culprit);
+    if (isOtherLiveTask(commit, task) && commit.files.some((path) => read.has(path))) {
+      named.push(commit.task);
+    }
   }
   return [...new Set(named)].slice(0, MAX_CULPRITS);
+}
+
+/**
+ * `base_culprits`: for each failing test whose read set the bean changed, the newest other
+ * live bean on the sprout that wrote a file of that read set, wherever it sits.
+ */
+function metCulprits(state: V2State, task: TaskId, check: RedCheck): TaskId[] {
+  const { red, mine } = check;
+  if (mine === null) return [];
+  const changed = new Set(mine);
+  const met: TaskId[] = [];
+  for (const test of red.failingFiles ?? []) {
+    const reads = red.readSets[test] ?? [test];
+    const ownReads = reads.filter((path) => changed.has(path));
+    if (ownReads.length === 0 && !changed.has(test)) continue;
+    const others = new Set(reads.filter((path) => !changed.has(path)));
+    const culprit = state.commits.findLast(
+      (commit) => isOtherLiveTask(commit, task) && commit.files.some((path) => others.has(path)),
+    );
+    const owner = culprit?.task;
+    if (owner !== undefined && owner !== null) met.push(owner);
+  }
+  return met;
+}
+
+function isOtherLiveTask(
+  commit: SproutCommit,
+  task: TaskId,
+): commit is SproutCommit & { task: TaskId } {
+  return commit.kind === 'task' && commit.task !== null && commit.task !== task && !commit.reverted;
 }
 
 /** Acceptance test path → the landed (not dropped) task that owns it; later tasks win. */

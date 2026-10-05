@@ -4,7 +4,7 @@ import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
 import type { FailRule, FlakeInjector, ScriptedTask } from '../testing/fake-world';
-import type { RaceRun, RaceScenario } from '../testing/scenario';
+import type { LooseEvent, RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
 
 /** The v2.2 rules (adaptive re-check, release on check, flake confirmation, re-executed losers). */
@@ -237,7 +237,7 @@ describe('v2.3: the sprout window', () => {
     const run = runV2({
       tasks: eight.map((id) => soloTask(id)),
       durations: together,
-      config: { agents: 8 },
+      config: { agents: 8, window_start: 4 },
     });
 
     expect(wellFormedProblems(run.events)).toEqual([]);
@@ -551,5 +551,127 @@ describe('v2.2: decision cards re-execute the loser', () => {
     expect(Number(made?.t) - Number(request?.t)).toBeCloseTo(600, 0);
     expect(eventsOf(run.events, 'spec.amended')[0]).toMatchObject({ status: 'none' });
     expect(run.state.tasks['t002']?.status).toBe('green');
+  });
+});
+
+/** Each bean is fine alone; together they fail a test that reads both. */
+const PAIR_CLASH: FailRule = {
+  markers: ['impl:t001', 'impl:t002'],
+  file: 'tests/clash.test.ts',
+  name: 'both features together',
+  reads: ['src/t001/index.ts', 'src/t002/index.ts'],
+};
+/**
+ * Pre-land checks are slow and CI is quick, on one slot. t002 lands and is validated green;
+ * innocent beans and then t001, checked on a sprout without t002, land above it. A late
+ * bean (t004) lands while the red sprout is searched.
+ */
+const loneSuspect = (config: Partial<RunConfigInput>): RaceScenario => ({
+  tasks: ['t001', 't002', 't003', 't004', 't005', 't006'].map((id) => soloTask(id)),
+  rules: [PAIR_CLASH],
+  durations: {
+    t001: 28_000,
+    t002: 10_000,
+    t003: 21_000,
+    t004: 75_000,
+    t005: 22_000,
+    t006: 23_000,
+  },
+  config: {
+    agents: 6,
+    ci_slots: 1,
+    ci_seconds: 20,
+    preland_seconds: 120,
+    window_start: 16,
+    ...config,
+  },
+});
+const bisectProbes = (run: RaceRun): LooseEvent[] =>
+  eventsOf(run.events, 'ci.start', { purpose: 'bisect' });
+
+/** One agent, bound to its bean until it lands: t002 starts from a sprout that has t001. */
+function afterT001(config: Partial<RunConfigInput>): RaceScenario {
+  return {
+    tasks: [soloTask('t001'), soloTask('t002')],
+    rules: [PAIR_CLASH],
+    config: { agents: 1, release_on_check: false, ...config },
+  };
+}
+
+function t002Culprits(run: RaceRun): unknown[] {
+  return eventsOf(run.events, 'rework.start', { task: 't002' }).map((event) => event['culprits']);
+}
+
+/** Validations that started between a ticket's first and last bisect probe. */
+function validationsDuringBisect(run: RaceRun): LooseEvent[] {
+  const probes = bisectProbes(run);
+  const first = Number(probes[0]?.seq);
+  const last = Number(probes.at(-1)?.seq);
+  return eventsOf(run.events, 'ci.start', { purpose: 'validate' }).filter(
+    (event) => event.seq > first && event.seq < last,
+  );
+}
+
+describe('v2.5: shorter red episodes and earlier greens', () => {
+  it('reverts a lone read-set suspect at once, without bisecting', () => {
+    const run = runV2(loneSuspect({}));
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    expect(eventsOf(run.events, 'ticket.open')[0]).toMatchObject({
+      method: 'read-set',
+      suspects: [expect.objectContaining({ task: 't001' })],
+    });
+    expect(bisectProbes(run)).toEqual([]);
+    expect(eventsOf(run.events, 'revert')[0]).toMatchObject({ task: 't001' });
+    expect(run.state.tasks['t003']?.status).toBe('green');
+    expect(eventsOf(run.events, 'final.check')[0]).toMatchObject({ correct: true });
+  });
+
+  it('still bisects the range for a lone suspect when the rule is off (the harness)', () => {
+    const run = runV2(loneSuspect({ single_suspect_revert: false }));
+
+    expect(bisectProbes(run).length).toBeGreaterThan(0);
+    expect(eventsOf(run.events, 'revert')[0]).toMatchObject({ task: 't001' });
+  });
+
+  it('names a culprit that landed before the bean started, by the failing test’s read set', () => {
+    const named = runV2(afterT001({}));
+    const before = runV2(afterT001({ base_culprits: false }));
+
+    expect(named.state.tasks['t002']?.baseSha).toBe(
+      eventsOf(named.events, 'land', { task: 't001' })[0]?.['sha'],
+    );
+    expect(t002Culprits(named)[0]).toEqual(['t001']);
+    const rework = named.world.instructions.find((instruction) => instruction.kind === 'rework');
+    expect(rework?.prompt).toContain('- t001: Task t001');
+    expect(t002Culprits(before)[0]).toEqual([]);
+  });
+
+  it('lets a validation take the next CI slot ahead of a waiting bisect probe', () => {
+    const bisecting = { single_suspect_revert: false };
+    const ahead = runV2(loneSuspect({ ...bisecting, validation_first: true }));
+    const fifo = runV2(loneSuspect({ ...bisecting, validation_first: false }));
+
+    expect(bisectProbes(ahead).length).toBeGreaterThan(1);
+    expect(validationsDuringBisect(ahead).length).toBeGreaterThan(0);
+    expect(validationsDuringBisect(fifo)).toEqual([]);
+    expect(eventsOf(ahead.events, 'final.check')[0]).toMatchObject({ correct: true });
+  });
+
+  it('starts, grows and caps the sprout window as configured', () => {
+    const twelve = Array.from(
+      { length: 12 },
+      (_, index) => `t${String(index + 1).padStart(3, '0')}`,
+    );
+    const run = runV2({
+      tasks: twelve.map((id) => soloTask(id)),
+      durations: Object.fromEntries(twelve.map((id, index) => [id, 10_000 + index * 500])),
+      config: { agents: 12, window_start: 8, window_growth: 4, window_max: 12 },
+    });
+
+    expect(eventsOf(run.events, 'window.wait')[0]).toMatchObject({ window: 8 });
+    expect(
+      eventsOf(run.events, 'window.resize').map((event) => [event['previous'], event['window']]),
+    ).toEqual([[8, 12]]);
   });
 });

@@ -4,8 +4,9 @@
  * - The sprout window (`window: aimd`): at most W commits sit above the last validated sprout
  *   commit, so a burst of green beans cannot outrun validation, and every bisection stays
  *   within W. A green bean beyond the window waits, oldest first (`window.wait`). W starts at
- *   4, grows by 2 per green validation (to 16) and halves on a red sprout (to 2), once per
- *   red episode: a red whose failures an open ticket already covers does not halve it again.
+ *   `window_start`, grows by `window_growth` per green validation (to `window_max`) and halves
+ *   on a red sprout (to `window_min`), once per red episode: a red whose failures an open
+ *   ticket already covers does not halve it again.
  * - The re-check meter (`recheck: sampled`): re-check every overlap until 5 re-checks in a
  *   row are green, then skip all but 1 in 4. A red re-check or a red sprout starts it
  *   re-checking again. It measures the re-checks it skips, not first checks on a calm base.
@@ -17,10 +18,6 @@ import { unvalidatedCount } from './v2-sprout';
 import type { LandingStep, V2State, V2Step } from './v2-state';
 import { activeTickets } from './v2-tickets';
 
-export const WINDOW_START = 4;
-const WINDOW_GROWTH = 2;
-const WINDOW_MAX = 16;
-const WINDOW_MIN = 2;
 const SKIP_AFTER_GREEN_RECHECKS = 5;
 const SAMPLE_ONE_IN = 4;
 
@@ -95,9 +92,10 @@ export function logWindowWait(step: V2Step, task: TaskId): void {
   });
 }
 
-/** A validation of `idx` was green: the window grows by 2 (to 16). */
+/** A validation of `idx` was green: the window grows by `window_growth` (to `window_max`). */
 export function onSproutGreen(step: V2Step, idx: number): void {
-  resize(step, { size: Math.min(WINDOW_MAX, step.state.window.size + WINDOW_GROWTH), idx });
+  const { window_growth: growth, window_max: max } = step.ctx.env.config;
+  resize(step, { size: Math.min(max, step.state.window.size + growth), idx });
 }
 
 /** The sprout is red at `idx` (a red validation, or an early ticket): halve the window, re-check again. */
@@ -105,7 +103,8 @@ export function onSproutRed(step: V2Step, idx: number): void {
   const meter = step.state.recheckMeter;
   meter.mode = 'checking';
   meter.greenStreak = 0;
-  resize(step, { size: Math.max(WINDOW_MIN, Math.floor(step.state.window.size / 2)), idx });
+  const floor = step.ctx.env.config.window_min;
+  resize(step, { size: Math.max(floor, Math.floor(step.state.window.size / 2)), idx });
 }
 
 function resize(step: V2Step, next: { size: number; idx: number }): void {

@@ -18,6 +18,9 @@ export const V22_RULES: Partial<RunConfigInput> = {
   window: 'off',
   inherited_reds: 'validation',
   early_tickets: false,
+  single_suspect_revert: false,
+  validation_first: false,
+  base_culprits: false,
 };
 
 const CHANGELOG_BASE = Array.from({ length: 10 }, (_, index) => `line ${index + 1}`).join('\n');

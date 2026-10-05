@@ -28,6 +28,9 @@ export type TaskFootprint = z.infer<typeof TaskFootprint>;
  * tasks themselves. Fields that only the driver uses (model, max turns, timeouts) are
  * carried so every instruction states them and the events record them.
  */
+/** The sprout window's defaults (`window: aimd`): start, growth per green, largest, red floor. */
+export const WINDOW_DEFAULTS = { start: 8, growth: 2, max: 16, min: 2 } as const;
+
 export const RunConfig = z
   .strictObject({
     policy: PolicyName,
@@ -91,8 +94,9 @@ export const RunConfig = z
     recheck_fallback: z.enum(['file', 'hunk']).default('file'),
     /**
      * v2.3: at most W beans land above the last validated sprout commit; a green bean beyond
-     * the window waits. W starts at 4, grows by 2 per green validation (to 16) and halves on a
-     * red sprout (to 2). `off` lands every green bean at once (v2.2).
+     * the window waits. W starts at `window_start` (8; v2.3: 4), grows by `window_growth` (2)
+     * per green validation to `window_max` (16) and halves on a red sprout to `window_min` (2).
+     * `off` lands every green bean at once (v2.2).
      */
     window: z.enum(['aimd', 'off']).default('aimd'),
     /** v2: free the agent while its bean is checked; reworks resume its session on a free slot. */
@@ -120,6 +124,32 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2.5: when the read sets narrow a red sprout's suspects to one commit, revert it at once
+     * instead of bisecting the unvalidated range (the flake re-run and the validation after
+     * the revert still apply). `false`: bisect as the harness does.
+     */
+    single_suspect_revert: z.boolean().default(true),
+    /**
+     * v2.5: a sprout validation waiting for a CI slot goes ahead of queued bisect probes. Off
+     * by default: in the simulator it slowed red episodes (the head it validates still holds
+     * the culprit) and, with `single_suspect_revert`, there is rarely a bisect to overtake.
+     */
+    validation_first: z.boolean().default(false),
+    /**
+     * v2.5: a pre-land red names a culprit that landed before the bean started (it is in the
+     * bean's base) when the failing tests' read set points to it, after the beans that
+     * landed since. `false`: only beans since the bean's base are named.
+     */
+    base_culprits: z.boolean().default(true),
+    /** v2.5: the sprout window's size at the start (`window: aimd`). */
+    window_start: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.start),
+    /** v2.5: how much the window grows per green validation. */
+    window_growth: z.number().int().min(0).max(256).default(WINDOW_DEFAULTS.growth),
+    /** v2.5: the window's largest size. */
+    window_max: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.max),
+    /** v2.5: the floor a red sprout halves the window to. */
+    window_min: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.min),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

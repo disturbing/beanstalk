@@ -359,6 +359,9 @@ export type V2Settings = {
   readonly reconcile: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
+  readonly singleSuspectRevert: boolean;
+  readonly validationFirst: boolean;
+  readonly baseCulprits: boolean;
 };
 
 export type V2State = {

@@ -18,6 +18,8 @@ export type CiRequest = {
   readonly extraFiles?: Readonly<Record<string, string>>;
   /** Emulated latency after the suite; defaults to `ci_seconds` (the final check uses 0). */
   readonly latency?: Seconds;
+  /** Queue ahead of the waiting runs of this purpose (`validation_first`: of bisect probes). */
+  readonly ahead?: CiPurpose;
 };
 
 /** K free slots, numbered as the harness numbers its CI worktrees. */
@@ -35,6 +37,13 @@ export function initialCiState(slots: number): CiState {
 /** Slots not reserved by a requested run (`ci_available`). */
 export function ciAvailable(ctx: StepContext): number {
   return ctx.env.config.ci_slots - ctx.state.ci.claimed;
+}
+
+/** Whether a run of `purpose` is requested (and, given `status`, in that state). */
+export function hasCiRun(ctx: StepContext, purpose: CiPurpose, status?: CiRun['status']): boolean {
+  return Object.values(ctx.state.ci.runs).some(
+    (run) => run.purpose === purpose && (status === undefined || run.status === status),
+  );
 }
 
 /**
@@ -61,7 +70,7 @@ export function requestCi(ctx: StepContext, request: CiRequest): CiId {
     timerId: null,
     result: null,
   };
-  ci.queue.push(id);
+  enqueue(ci, id, request.ahead);
   pumpCi(ctx);
   return id;
 }
@@ -181,6 +190,13 @@ export function cancelAllCi(ctx: StepContext): void {
     .map((run) => run.id)
     .toSorted();
   for (const id of ids) cancelCi(ctx, id);
+}
+
+/** Appends a run to the queue, or puts it before the first waiting run of `ahead`. */
+function enqueue(ci: CiState, id: CiId, ahead: CiPurpose | undefined): void {
+  const index = ci.queue.findIndex((queued) => ci.runs[queued]?.purpose === ahead);
+  if (ahead === undefined || index < 0) ci.queue.push(id);
+  else ci.queue.splice(index, 0, id);
 }
 
 function releaseRun(ctx: StepContext, run: CiRun): void {
