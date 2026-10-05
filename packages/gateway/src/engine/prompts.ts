@@ -410,49 +410,70 @@ export function testAuthorPrompt(
  * v2.4: before a decision card, a test author reconciles the two tasks' acceptance tests on
  * the arriving bean's branch: an assertion that pins a value the other intent legitimately
  * changes is updated (RECONCILED); a genuine disagreement changes nothing (CONTRADICTION).
+ * v2.5: every landed party behind the failing tests takes part (the counterpart first); with
+ * one, the prompt is v2.4's.
  */
 export function reconcilePrompt(
   arriving: PromptTask & Pick<ArenaTask, 'id'>,
-  landed: PromptTask & Pick<ArenaTask, 'id'>,
+  landed: readonly (PromptTask & Pick<ArenaTask, 'id'>)[],
   context: {
     readonly failing: readonly string[];
     readonly output: string;
-    /** The failing tests of the two tasks as they are now, by path. */
+    /** The failing tests of the tasks as they are now, by path. */
     readonly tests: Readonly<Record<string, string>>;
-    /** Every acceptance test file of the two tasks: the only files it may change. */
+    /** Every acceptance test file of the tasks: the only files it may change. */
     readonly paths: readonly string[];
   },
 ): string {
+  const isPair = landed.length <= 1;
+  const ids = [arriving.id, ...landed.map((task) => task.id)];
   const lines = [
-    `You are the test author for tasks ${arriving.id} and ${landed.id}. You write and amend acceptance tests; you never implement features.`,
+    `You are the test author for tasks ${listed(ids)}. You write and amend acceptance tests; you never implement features.`,
     '',
     `Task ${arriving.id} ("${arriving.title}") is arriving; its change is in this tree:`,
     arriving.prompt.trim(),
+    ...landed.flatMap((task) => [
+      '',
+      `Task ${task.id} ("${task.title}") has already landed:`,
+      task.prompt.trim(),
+    ]),
     '',
-    `Task ${landed.id} ("${landed.title}") has already landed:`,
-    landed.prompt.trim(),
-    '',
-    'With both in this tree, these tests fail:',
+    isPair
+      ? 'With both in this tree, these tests fail:'
+      : 'With all of them in this tree, these tests fail:',
     ...context.failing.slice(0, AUTHOR_FAILING_TESTS).map((test) => `- ${test}`),
   ];
   if (context.output.trim() !== '') {
     lines.push('Output:', '```', context.output.trim().slice(0, AUTHOR_OUTPUT_CHARS), '```');
   }
+  const other = isPair ? 'the other task' : 'another of these tasks';
+  const othersIntent = isPair ? "the other task's" : "another task's";
   lines.push(
     ...testFiles('The failing tests, as they are now:', context.tests),
     '',
-    'Do the two intents contradict? Often they do not: a test pins a value that the other task ' +
-      'legitimately changes (an example total, a formatted string), and only that value is out of date.',
+    `${isPair ? 'Do the two intents contradict?' : 'Do the intents contradict?'} Often they do not: a test pins a value that ${other} ` +
+      'legitimately changes (an example total, a formatted string), and only that value is out of date.' +
+      (isPair
+        ? ''
+        : " One failing test can clash with more than one landed task: check each landed task's rule before you decide."),
     `- If they do not, update in ${context.paths.join(', ')} only the assertions that pin such a value, ` +
       "so that each task's own intent stays tested. Work out the new expected values from the code in " +
       `this tree, run \`node --test ${context.paths.join(' ')}\` until they pass, and reply RECONCILED.`,
-    "- Change a value only when the other task's intent explains the new one, and say which in your reply. " +
+    `- Change a value only when ${othersIntent} intent explains the new one, and say which in your reply. ` +
       "Never delete or loosen an assertion, and never change what a task's own intent requires: if the code " +
       'looks wrong rather than the test, change nothing and reply CONTRADICTION: <what looks wrong>.',
-    '- If both cannot hold, change nothing and reply with one line: CONTRADICTION: <the disagreement>.',
+    isPair
+      ? '- If both cannot hold, change nothing and reply with one line: CONTRADICTION: <the disagreement>.'
+      : '- If they cannot all hold, change nothing and reply with one line: CONTRADICTION: <the disagreement, naming the tasks>.',
     "Don't stage or commit.",
   );
   return `${lines.join('\n')}\n`;
+}
+
+/** `a and b`, `a, b and c`. */
+function listed(items: readonly string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} and ${items.at(-1) ?? ''}`;
 }
 
 /** Test files shown to a test author, under a heading (nothing when there are none). */

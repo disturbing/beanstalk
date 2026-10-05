@@ -7,7 +7,8 @@ import type { InvocationId, SlotId } from './ids';
 /**
  * What an invocation is for, as the harness names it. `test-author` (v2.2) is a separate,
  * fresh session that amends a decision loser's acceptance tests; `reconcile` (v2.4) is one
- * that amends two clashing tasks' acceptance tests on the arriving bean's branch. The driver
+ * that amends clashing tasks' acceptance tests (the arriving bean's and, since v2.5, up to
+ * three landed tasks') on the arriving bean's branch. The driver
  * runs both like any other prompt, keeps only their changes to the `acceptance` files, and
  * never restores them.
  */
@@ -50,7 +51,7 @@ export type Workspace = {
   /**
    * The task's own acceptance tests: write before the initial run (whenever `head_sha` is
    * null), restore before every commit. For `test-author` and `reconcile`, the tests to amend
-   * (for `reconcile`, both tasks'): written at the start when `head_sha` is null, never
+   * (for `reconcile`, the bean's and every landed party's): written at the start when `head_sha` is null, never
    * restored, and the only files whose changes are committed.
    */
   readonly acceptance: Readonly<Record<string, string>>;

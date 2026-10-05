@@ -367,6 +367,8 @@ export type RaceEventFields = {
     readonly files: readonly string[];
     readonly reason: string | null;
     readonly inv: string;
+    /** v2.5: every landed task in the reconcile (`against` first), when it took in more than one. */
+    readonly parties?: readonly string[];
   };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
@@ -397,6 +399,13 @@ export type RaceEventFields = {
     readonly specs: Readonly<Record<string, string>>;
     readonly failing: readonly string[];
     readonly attempts: number;
+    /**
+     * v2.5: every landed task of the reconcile that ended in this contradiction (`against`
+     * first), when it took in more than one; the card itself decides `against`.
+     */
+    readonly parties?: readonly string[];
+    /** v2.5: the reconciling author's CONTRADICTION line. */
+    readonly reason?: string;
   };
   'decision.made': {
     readonly card: string;

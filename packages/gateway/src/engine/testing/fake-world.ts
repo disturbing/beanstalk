@@ -61,8 +61,9 @@ export type ScriptedTask = {
   /** Files the n-th re-execution writes (default: the initial writes with the bug fixed). */
   readonly reexecutions?: readonly Readonly<Record<string, string>>[];
   /**
-   * v2.4: what a reconciling test author writes on this (arriving) task's branch, in either
-   * task's acceptance tests. Absent: it finds a contradiction and changes nothing.
+   * v2.4: what a reconciling test author writes on this (arriving) task's branch, in the
+   * acceptance tests of the tasks in the reconcile. Absent, or naming a test outside them (a
+   * clash with a task it was not shown): it finds a contradiction and changes nothing.
    */
   readonly reconcile?: Readonly<Record<string, string>>;
 };
@@ -407,7 +408,9 @@ function reconcileRun(
     session_id: `reconcile-${task.id}`,
     pushed_ref: `refs/heads/${workspace.branch}`,
   };
-  if (task.reconcile === undefined) {
+  const allowed = Object.keys(workspace.acceptance);
+  const amends = Object.keys(task.reconcile ?? {});
+  if (task.reconcile === undefined || amends.some((path) => !allowed.includes(path))) {
     return agentResult({
       ...result,
       head_sha: head,

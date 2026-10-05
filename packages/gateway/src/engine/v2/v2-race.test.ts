@@ -19,6 +19,7 @@ const V20: Partial<RunConfigInput> = {
   window: 'off',
   early_tickets: false,
   reconcile: false,
+  escalate_after: 2,
   decision_outcome: 'decline',
 };
 
@@ -134,7 +135,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.4', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.5', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -196,6 +197,9 @@ describe('v2: a clean landing', () => {
       'reconciled',
       'contradictions',
       'stale_rechecks',
+      'escalate_after',
+      'reconcile_parties',
+      'stuck_drops',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -223,13 +227,15 @@ describe('v2: a clean landing', () => {
       window_size: 6,
       early_tickets: true,
       reconcile: true,
+      escalate_after: 1,
+      reconcile_parties: 3,
       decision_outcome: 'reexecute',
-      variant: 'v2.4',
+      variant: 'v2.5',
     });
     expect(summaryOf(run)['policy_rows']).toEqual([
       [
         'Variant',
-        'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked',
+        'v2.5: v2.4, escalating after one repeated red and reconciling every landed party',
       ],
       ['Informed reworks / decision cards / revert-first tickets', '0 / 0 / 0'],
       [
@@ -239,6 +245,10 @@ describe('v2: a clean landing', () => {
       ['Validation re-runs / suspected flakes', '0 / 0'],
       ['Inherited reds waited out (no rework round spent)', '0'],
       ['Reconciles (reconciled / contradictions) / stale re-checks', '0 (0 / 0) / 0'],
+      [
+        'Escalate after (failed repairs) / reconcile parties / dropped stuck after a card',
+        '1 / 3 / 0',
+      ],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
         '6 / 0 / 0 / 0',
@@ -389,12 +399,12 @@ describe('v2: repair before landing', () => {
     });
   });
 
-  it('opens a decision card after two informed reworks fail; v2.0 declines the arriving bean', () => {
+  it('opens a decision card after two informed reworks fail (v2.4); v2.0 declines the arriving bean', () => {
     const run = runV2({
       tasks: [soloTask('t001'), buggyT002({ stubborn: true })],
       rules: [BREAKS_T001],
       durations: { t001: 20_000, t002: 100_000 },
-      config: { decision_outcome: 'decline' },
+      config: { decision_outcome: 'decline', escalate_after: 2 },
     });
 
     expect(

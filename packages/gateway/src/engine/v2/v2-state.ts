@@ -97,9 +97,11 @@ export type AgentWork =
       readonly diffs: Readonly<Record<string, string>>;
     }
   | {
-      /** v2.4: reconcile the two tasks' tests before a card. */
+      /** v2.4: reconcile the bean's tests with the landed parties' before a card. */
       readonly kind: 'reconcile';
       readonly against: TaskId;
+      /** v2.5: every landed task in the reconcile, `against` first (v2.4: `against` alone). */
+      readonly parties: readonly TaskId[];
       readonly red: CheckResult;
       readonly head: Sha;
     }
@@ -167,10 +169,11 @@ export type LandingStep =
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
   /** v2.4: a test author reconciles the bean's tests with `against`'s, then reads what changed. */
-  | { kind: 'reconciling'; against: TaskId; red: CheckResult; head: Sha }
+  | { kind: 'reconciling'; against: TaskId; parties: TaskId[]; red: CheckResult; head: Sha }
   | {
       kind: 'reconcile-reading';
       against: TaskId;
+      parties: TaskId[];
       red: CheckResult;
       head: Sha;
       inv: string;
@@ -345,6 +348,8 @@ export type V2Stats = {
   reconciled: number;
   contradictions: number;
   stale_rechecks: number;
+  /** v2.5: beans dropped still red against a counterpart already reconciled and decided. */
+  stuck_drops: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -357,6 +362,10 @@ export type V2Settings = {
   readonly inheritedReds: 'readset' | 'validation' | 'off';
   readonly earlyTickets: boolean;
   readonly reconcile: boolean;
+  /** v2.5: failed informed repairs against one counterpart before escalating (2: v2.4). */
+  readonly escalateAfter: number;
+  /** v2.5: landed tasks a reconcile takes in (1: v2.4). */
+  readonly reconcileParties: number;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
 };
@@ -408,6 +417,11 @@ export type V2State = {
   decidedPairs: Record<string, string>;
   /** v2.4: pairs already reconciled once (a second stuck red goes to a card). */
   reconciledPairs: Record<string, boolean>;
+  /**
+   * v2.5 (`escalate_after: 1`): per pair, the failing files of its last red and how many reds
+   * in a row repeated a failing file of the one before; reset when a card decides the pair.
+   */
+  pairRepeats: Record<string, { files: string[]; repeats: number; decided: boolean }>;
   cards: Record<string, DecisionCard>;
   cardSeq: number;
   /** The card of each running test-author invocation. */

@@ -90,6 +90,8 @@ const V23_VARIANT_ROW =
   'read-set inherited reds, early revert-first, cards that re-execute the loser';
 const V24_VARIANT_ROW =
   'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked';
+const V25_VARIANT_ROW =
+  'v2.5: v2.4, escalating after one repeated red and reconciling every landed party';
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -116,6 +118,8 @@ function initialV2State(ctx: StepContext): V2State {
       inheritedReds: config.inherited_reds,
       earlyTickets: config.early_tickets,
       reconcile: config.reconcile,
+      escalateAfter: config.escalate_after,
+      reconcileParties: config.reconcile_parties,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
     },
@@ -144,6 +148,7 @@ function initialV2State(ctx: StepContext): V2State {
     pairReds: {},
     decidedPairs: {},
     reconciledPairs: {},
+    pairRepeats: {},
     cards: {},
     cardSeq: 0,
     authors: {},
@@ -211,6 +216,7 @@ function initialStats(): V2State['stats'] {
     reconciled: 0,
     contradictions: 0,
     stale_rechecks: 0,
+    stuck_drops: 0,
   };
 }
 
@@ -461,13 +467,17 @@ function isV20(settings: V2Settings): boolean {
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
     !settings.reconcile &&
+    settings.escalateAfter === 2 &&
     settings.decisionOutcome === 'decline'
   );
 }
 
-/** `v2` (the harness's rules), `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
+/** `v2` (the harness's rules), `v2.5` when a v2.5 rule is on, `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
 function variantOf(settings: V2Settings): Variant {
   if (isV20(settings)) return 'v2';
+  if (settings.escalateAfter < 2 || (settings.reconcile && settings.reconcileParties > 1)) {
+    return 'v2.5';
+  }
   if (settings.reconcile) return 'v2.4';
   const isV23 =
     settings.window === 'aimd' ||
@@ -477,13 +487,14 @@ function variantOf(settings: V2Settings): Variant {
   return isV23 ? 'v2.3' : 'v2.2';
 }
 
-type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4';
+type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4' | 'v2.5';
 
 const VARIANT_ROWS: Readonly<Record<Variant, string>> = {
   v2: V20_VARIANT_ROW,
   'v2.2': V22_VARIANT_ROW,
   'v2.3': V23_VARIANT_ROW,
   'v2.4': V24_VARIANT_ROW,
+  'v2.5': V25_VARIANT_ROW,
 };
 
 /** `policy_summary` of v2 (the beanstalk block, in the harness's key and row order, then v2.2's). */
@@ -554,6 +565,9 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     reconciled: stats.reconciled,
     contradictions: stats.contradictions,
     stale_rechecks: stats.stale_rechecks,
+    escalate_after: settings.escalateAfter,
+    reconcile_parties: settings.reconcileParties,
+    stuck_drops: stats.stuck_drops,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -625,6 +639,10 @@ function summaryRows(
       settings.reconcile
         ? `${stats.reconciles} (${stats.reconciled} / ${stats.contradictions}) / ${stats.stale_rechecks}`
         : 'off',
+    ],
+    [
+      'Escalate after (failed repairs) / reconcile parties / dropped stuck after a card',
+      `${settings.escalateAfter} / ${settings.reconcileParties} / ${stats.stuck_drops}`,
     ],
     [
       'Sprout window at the end / window waits / early tickets / re-check samples',

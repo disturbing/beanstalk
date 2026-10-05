@@ -77,7 +77,14 @@ export function isDecided(state: V2State, task: TaskId, culprit: TaskId): boolea
 export function openCard(
   step: V2Step,
   flow: LandingFlow,
-  raised: { against: readonly TaskId[]; red: CheckResult; head: Sha },
+  raised: {
+    against: readonly TaskId[];
+    red: CheckResult;
+    head: Sha;
+    /** v2.5: every party of the reconcile that found this contradiction, and its verdict. */
+    parties?: readonly TaskId[];
+    reason?: string | null;
+  },
 ): void {
   const { ctx, state } = step;
   const isReexecuting = ctx.env.config.decision_outcome === 'reexecute';
@@ -99,6 +106,8 @@ export function openCard(
     attempts: Math.max(
       ...against.map((culprit) => state.pairReds[pairKey(flow.task, culprit)] ?? 0),
     ),
+    ...(raised.parties === undefined ? {} : { parties: [...raised.parties] }),
+    ...(raised.reason === undefined || raised.reason === null ? {} : { reason: raised.reason }),
   });
   const card: DecisionCard = {
     id,

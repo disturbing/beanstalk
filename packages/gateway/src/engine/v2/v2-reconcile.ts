@@ -7,6 +7,11 @@
  * with the bean (`v2-amendments`), and are rolled back if it is dropped. The bean then checks
  * again: a green check is the proof. A commit that changes nothing is a contradiction, and
  * only then is the card raised.
+ *
+ * v2.5 (`reconcile_parties`): a clash often involves more than one landed task (a third task's
+ * rule the two tests both pin). The reconcile takes in every landed party behind the failing
+ * tests, up to three, and may amend each one's acceptance tests; a contradiction's card names
+ * them all.
  */
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 
@@ -26,7 +31,7 @@ import type { AgentWork, LandingFlow, LandingStep, V2Step } from './v2-state';
 type ReconcileWork = Extract<AgentWork, { kind: 'reconcile' }>;
 type Reading = Extract<LandingStep, { kind: 'reconcile-reading' }>;
 
-/** The test author reconciles the bean's tests with the landed task's, on the bean's branch. */
+/** The test author reconciles the bean's tests with the landed parties', on the bean's branch. */
 export function startReconcile(
   step: V2Step,
   flow: LandingFlow,
@@ -35,15 +40,22 @@ export function startReconcile(
 ): void {
   const { ctx, state } = step;
   const task = requireTask(ctx, flow.task);
-  const against = acceptanceTests(ctx, work.against);
+  const parties = [...work.parties];
+  const against = partiesTests(step, parties);
   const tests = { ...beanAcceptance(step, flow.task), ...against };
   const failingFiles = new Set(work.red.failingFiles ?? []);
-  state.reconciledPairs[pairKey(flow.task, work.against)] = true;
+  for (const party of parties) state.reconciledPairs[pairKey(flow.task, party)] = true;
   state.stats.reconciles += 1;
-  flow.step = { kind: 'reconciling', against: work.against, red: work.red, head: work.head };
+  flow.step = {
+    kind: 'reconciling',
+    against: work.against,
+    parties,
+    red: work.red,
+    head: work.head,
+  };
   const prompt = reconcilePrompt(
     taskDefinition(ctx, flow.task),
-    taskDefinition(ctx, work.against),
+    parties.map((party) => taskDefinition(ctx, party)),
     {
       failing: failingTestNames(work.red),
       output: work.red.output,
@@ -71,18 +83,18 @@ export function startReconcile(
   });
 }
 
-/** The test author finished: read both tasks' tests at its commit. */
+/** The test author finished: read every task's tests at its commit. */
 export function onReconcileDone(step: V2Step, outcome: ReworkOutcome): void {
   const { ctx, state } = step;
   const flow = state.landings[outcome.task];
   if (flow?.step.kind !== 'reconciling') return;
   if (holderOf(ctx, flow.task)?.id === outcome.slot) release(ctx, outcome.slot);
-  const { against, red, head } = flow.step;
+  const { against, parties, red, head } = flow.step;
   const reason = verdictLine(outcome.resultText);
-  const before = { ...beanAcceptance(step, flow.task), ...acceptanceTests(ctx, against) };
+  const before = { ...beanAcceptance(step, flow.task), ...partiesTests(step, parties) };
   const authored = outcome.headSha;
   if (!outcome.committed || authored === null) {
-    contradiction(step, flow, { against, red, head, inv: outcome.inv, reason });
+    contradiction(step, flow, { against, parties, red, head, inv: outcome.inv, reason });
     return;
   }
   const reads = Object.keys(before).map((path) => ({ ref: authored, path }));
@@ -91,6 +103,7 @@ export function onReconcileDone(step: V2Step, outcome: ReworkOutcome): void {
   flow.step = {
     kind: 'reconcile-reading',
     against,
+    parties,
     red,
     head,
     inv: outcome.inv,
@@ -100,7 +113,7 @@ export function onReconcileDone(step: V2Step, outcome: ReworkOutcome): void {
   };
 }
 
-/** What the test author changed: reconciled (both tests updated as needed), or a contradiction. */
+/** What the test author changed: reconciled (the tests updated as needed), or a contradiction. */
 export function onReconcileRead(
   step: V2Step,
   flow: LandingFlow,
@@ -118,19 +131,24 @@ export function onReconcileRead(
     return;
   }
   const { ctx, state } = step;
-  const theirs = acceptanceTests(ctx, reading.against);
-  const mine = Object.fromEntries(Object.entries(changed).filter(([path]) => !(path in theirs)));
-  const carried = Object.fromEntries(Object.entries(changed).filter(([path]) => path in theirs));
-  if (Object.keys(mine).length > 0) amend(step, flow.task, mine);
-  if (Object.keys(carried).length > 0) {
+  const owned = new Set<string>();
+  for (const party of reading.parties) {
+    const theirs = acceptanceTests(ctx, party);
+    const carried = Object.fromEntries(
+      Object.entries(changed).filter(([path]) => path in theirs && !owned.has(path)),
+    );
+    for (const path of Object.keys(theirs)) owned.add(path);
+    if (Object.keys(carried).length === 0) continue;
     carry(state, flow.task, {
       card: `reconcile:${reading.inv}`,
-      loser: reading.against,
+      loser: party,
       files: carried,
       before: Object.fromEntries(Object.keys(carried).map((path) => [path, theirs[path] ?? ''])),
       head: reading.head,
     });
   }
+  const mine = Object.fromEntries(Object.entries(changed).filter(([path]) => !owned.has(path)));
+  if (Object.keys(mine).length > 0) amend(step, flow.task, mine);
   state.stats.reconciled += 1;
   emit(ctx, 'decision.reconcile', {
     task: flow.task,
@@ -139,27 +157,54 @@ export function onReconcileRead(
     files: Object.keys(changed).toSorted(),
     reason: null,
     inv: reading.inv,
+    ...partiesField(reading.parties),
   });
   requireTask(ctx, flow.task).status = 'running';
   step.flow.attempt(flow.task);
 }
 
-/** No reconciliation: the genuine disagreement goes to a card, as in v2.3. */
+/** No reconciliation: the genuine disagreement goes to a card, as in v2.3, naming every party. */
 function contradiction(
   step: V2Step,
   flow: LandingFlow,
-  found: { against: TaskId; red: CheckResult; head: Sha; inv: string; reason: string },
+  found: {
+    against: TaskId;
+    parties: readonly TaskId[];
+    red: CheckResult;
+    head: Sha;
+    inv: string;
+    reason: string;
+  },
 ): void {
   step.state.stats.contradictions += 1;
+  const reason = found.reason === '' ? null : found.reason;
   emit(step.ctx, 'decision.reconcile', {
     task: flow.task,
     against: found.against,
     outcome: 'contradiction',
     files: [],
-    reason: found.reason === '' ? null : found.reason,
+    reason,
     inv: found.inv,
+    ...partiesField(found.parties),
   });
-  openCard(step, flow, { against: [found.against], red: found.red, head: found.head });
+  openCard(step, flow, {
+    against: [found.against],
+    red: found.red,
+    head: found.head,
+    ...(found.parties.length > 1 ? { parties: found.parties, reason } : {}),
+  });
+}
+
+/** Every party's acceptance tests, by path (a path two parties share is the earlier's). */
+function partiesTests(step: V2Step, parties: readonly TaskId[]): Record<string, string> {
+  const tests: Record<string, string> = {};
+  for (const party of parties.toReversed()) Object.assign(tests, acceptanceTests(step.ctx, party));
+  return tests;
+}
+
+/** v2.5: the `parties` field of an event, only when the reconcile took in more than one. */
+function partiesField(parties: readonly TaskId[]): { parties?: string[] } {
+  return parties.length > 1 ? { parties: [...parties] } : {};
 }
 
 /** The author's verdict: its `CONTRADICTION:` line if it gave one, else its last line. */
