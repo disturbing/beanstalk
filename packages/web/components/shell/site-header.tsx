@@ -1,13 +1,13 @@
 import Link from 'next/link';
 
-import { isSignedIn, viewerTheme } from '../../src/server/viewer';
+import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
 import { signOut } from '../../src/server/actions';
 import styles from './shell.module.css';
 import { ThemeToggle } from './theme-toggle';
 import { VineMark } from './vine-mark';
 
 export async function SiteHeader() {
-  const [theme, signedIn] = await Promise.all([viewerTheme(), isSignedIn()]);
+  const [theme, day, signedIn] = await Promise.all([viewerTheme(), viewerDay(), isSignedIn()]);
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>
@@ -15,7 +15,7 @@ export async function SiteHeader() {
         <span className={styles.wordmark}>beanstalk</span>
       </Link>
       <nav aria-label="Site" className={styles.nav}>
-        <Link href="/">Runs</Link>
+        <Link href="/">Benchmark runs</Link>
         <Link href="/race">Watch the race</Link>
       </nav>
       <div className={styles.tools}>
@@ -30,7 +30,7 @@ export async function SiteHeader() {
             Sign in to decide
           </Link>
         )}
-        <ThemeToggle initial={theme} />
+        <ThemeToggle initial={theme} day={day} />
       </div>
     </header>
   );

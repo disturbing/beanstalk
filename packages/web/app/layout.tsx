@@ -1,7 +1,5 @@
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
-import '@fontsource-variable/familjen-grotesk';
-// oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
-import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/space-grotesk';
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
 import '@fontsource-variable/jetbrains-mono';
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
@@ -11,7 +9,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { SiteHeader } from '../components/shell/site-header';
-import { viewerTheme } from '../src/server/viewer';
+import { viewerDay, viewerTheme } from '../src/server/viewer';
 
 export const metadata: Metadata = {
   title: { default: 'beanstalk', template: '%s · beanstalk' },
@@ -23,15 +21,15 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#edf1ec' },
-    { media: '(prefers-color-scheme: dark)', color: '#0e1712' },
+    { media: '(prefers-color-scheme: light)', color: '#dfe8e3' },
+    { media: '(prefers-color-scheme: dark)', color: '#05080b' },
   ],
 };
 
 export default async function RootLayout({ children }: { readonly children: ReactNode }) {
-  const theme = await viewerTheme();
+  const [theme, day] = await Promise.all([viewerTheme(), viewerDay()]);
   return (
-    <html lang="en" data-theme={theme === 'system' ? undefined : theme}>
+    <html lang="en" data-theme={theme === 'system' ? undefined : theme} data-day={day}>
       <body>
         <a className="skip-link" href="#main">
           Skip to content

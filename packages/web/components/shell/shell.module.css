@@ -4,8 +4,9 @@
   gap: 20px;
   padding: 10px var(--gutter);
   border-bottom: 1px solid var(--rule);
-  background: var(--sheet);
-  min-height: 52px;
+  background: color-mix(in srgb, var(--sheet) 90%, transparent);
+  backdrop-filter: blur(6px);
+  min-height: 48px;
   flex-wrap: wrap;
 }
 
@@ -23,10 +24,8 @@
 }
 
 .wordmark {
-  font-size: var(--step-1);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-stretch: 88%;
+  font: 600 14px var(--font-mono);
+  letter-spacing: -0.01em;
 }
 
 .nav {

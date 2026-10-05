@@ -144,7 +144,12 @@ function headline(ctx: PlanContext, set: FileSet): string {
     case 'in-flight': {
       const inFlight = ctx.beans.filter((bean) => isInFlight(bean.phase));
       const wanted = new Set(set.files);
-      const here = inFlight.filter((bean) => bean.files.some((file) => wanted.has(file))).length;
+      const feature = ctx.spec.entities.feature?.toLowerCase() ?? '';
+      const here = inFlight.filter((bean) =>
+        bean.files.some(
+          (file) => wanted.has(file) || (feature !== '' && file.toLowerCase().includes(feature)),
+        ),
+      ).length;
       if (inFlight.length === 0) return 'Nothing is in flight right now.';
       return ctx.spec.entities.feature === null
         ? `${count(inFlight.length, 'bean')} in flight.`

@@ -55,9 +55,25 @@ export async function pickRoute(input: {
       why: `Rule: the ${input.classifiedBy} router chose ${CATALOG[input.spec.class].label}.`,
     }),
   };
-  const receipt = await input.picker.decide(decision);
+  const picked = await input.picker.decide(decision);
+  const receipt = keepKeywordMatch(picked, input.spec.class);
   const chosen = QUESTION_CLASSES.find((cls) => cls === receipt.chosen[0]) ?? input.spec.class;
   return { spec: withClass(input.spec, chosen), receipt };
+}
+
+/**
+ * The router's own match stands when it found one: Jev's route decides only questions the
+ * keywords could not place (`explore`). Jev's probabilities are flat on short questions, so
+ * overriding a clear keyword match would trade a right answer for a guess.
+ */
+function keepKeywordMatch(receipt: PickReceipt, matched: QuestionClass): PickReceipt {
+  if (receipt.by !== 'jev' || matched === 'explore' || receipt.chosen[0] === matched)
+    return receipt;
+  return {
+    ...receipt,
+    chosen: [matched, ...receipt.chosen.filter((id) => id !== matched)].slice(0, 1),
+    why: `The keywords matched ${CATALOG[matched].label}, so that stands; Jev suggested ${receipt.chosen[0] ?? 'nothing'}.`,
+  };
 }
 
 /** The picker chooses which resolved files the answer is about; the resolver's ranking is the rule. */
@@ -111,10 +127,18 @@ export function pickSections(input: {
     })),
     slots: input.available.length,
     rule: () => ({
-      chosen: input.available,
+      chosen: CARD_FIRST.has(input.cls) ? cardFirst(input.available) : input.available,
       why: `Rule: the fixed arrangement for ${CATALOG[input.cls].label}.`,
     }),
   });
+}
+
+/** Classes whose answer is a card first (the red validation, the decision), then the files. */
+const CARD_FIRST: ReadonlySet<QuestionClass> = new Set(['what-broke', 'decisions']);
+
+function cardFirst(available: readonly SectionId[]): readonly SectionId[] {
+  const [main, first, ...rest] = available;
+  return main === undefined || first === undefined ? available : [first, main, ...rest];
 }
 
 function withClass(spec: ViewSpec, cls: QuestionClass): ViewSpec {

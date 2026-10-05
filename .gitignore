@@ -19,3 +19,6 @@ promo/shots/
 
 # Promo film: intermediate renders (rebuild with node film.mjs render)
 promo/beanstalk-swarm-film/out/
+
+# Agent git worktrees
+.claude/worktrees/

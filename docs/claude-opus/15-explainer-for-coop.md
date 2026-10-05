@@ -1,0 +1,264 @@
+# Beanstalk, explained: git, results, backlog, MCP
+
+Written 2026-10-05 for Coop, from the `prototype` branch: the code in `packages/`, the docs in `docs/claude-opus/`, and the recorded runs in `research/race/runs/`. Where something is designed but not built, or not measured, this says so.
+
+Names used throughout:
+
+- A **bean** is one agent's change.
+- The **sprout** is the staged line, where beans land after their check passes.
+- The **stalk** is the stable line, which only moves to validated sprout commits.
+
+---
+
+## 1. Is it git compatible?
+
+**Short answer: yes at the protocol level, no as a general-purpose host yet.** Beanstalk speaks real git smart-HTTP, so stock `git clone`, `fetch` and `push` work against it. Every real-agent race on Cloudflare used plain git through the gateway. But today a repository exists only as part of a *race run*, and access comes only from run tokens. You can't yet create a repo, import your project, and point your team at it.
+
+### Where things live
+
+Each run gets one Artifacts repo, `race-<run>`, in the namespace `beanstalk-race`. Everything is a branch of that one repo:
+
+| Ref | What it is | Who moves it |
+|---|---|---|
+| `refs/heads/beans/<task>` (e.g. `beans/t032`) | One agent's change | That agent, through the git proxy |
+| `refs/heads/sprout` | The staged line | Only the runner's committer, after a pre-land check passes |
+| `refs/heads/stalk` | The stable line, and the repo's default branch | Only the engine, after a green validation (compare-and-swap ref update) |
+| `refs/beanstalk/candidates/<sha>` | Scratch commits (squashes, reverts) the runner builds before deciding | Runner only |
+
+So `git clone` gives you the stalk. `git fetch` sees the sprout and every bean, because reads are open within a run, as in the local harness.
+
+**Why beans are branches and not forks.** The first build forked one Artifacts repo per bean. Forks made after the first landing were unreadable (upload-pack answered 500, pushes failed with `delta base is missing`), and new forks were sometimes briefly invisible. Branches keep every object in one store, nothing is created per task, and a finished run leaves one repo to reap (`packages/gateway/README.md`, "Why a bean is a branch").
+
+### The git proxy
+
+Agents never hold an Artifacts token. They talk to `/git/<namespace>/<repo>.git/*` on the gateway Worker with a Beanstalk run token (as Bearer, or as a Basic-auth password). The gateway checks the token, asks the run's Durable Object what this caller may do, borrows a short-lived Artifacts token server-side, and streams the request through (`src/routes/git.ts`, `src/run/git-access.ts`).
+
+| Caller | Can read | Can push |
+|---|---|---|
+| Slot token (one agent slot) | The whole run repo | Only `refs/heads/beans/<task>` for a task it holds or has an open invocation for. Never a deletion |
+| Seed token (admin, 15 min) | The run repo | `sprout` and `stalk`, once, before the run starts |
+| View token (browser, MCP) | Nothing over git | Nothing ("view tokens do not open git repos") |
+
+To enforce this, the proxy reads the command list at the start of each push and refuses any other ref. What it does **not** check: whether a push to your own bean fast-forwards. Force-pushing your own bean is allowed. It also refuses compressed push bodies (HTTP 415).
+
+### What a developer's normal git does today
+
+| Action | Works today? |
+|---|---|
+| `git clone` / `fetch` with a slot token | Yes: you get the stalk, and can fetch the sprout and every bean |
+| `git push origin HEAD:refs/heads/beans/t032` from the slot working on t032 | Yes. This is exactly what the race driver does |
+| Pushing to `sprout`, `stalk`, `main` or someone else's bean | Refused (403) |
+| Deleting a branch | Refused |
+| Creating a repo, importing an existing project, a long-lived team repo | **Not built.** Repos are created by `POST /v1/runs` and reaped after the run |
+| Signing in as a person and pushing | **Not built.** There are no user accounts, only run tokens and an admin token |
+| Telling Beanstalk "my bean is ready" | Only through the race driver's `POST …/invocations/:inv/result`. A plain `git push` alone doesn't submit a bean |
+
+### Cloudflare Artifacts as the storage
+
+Artifacts is the git storage. It has no server-side merge, so all merging happens in the **runner**, a Rust container with git 2.47, Node and Mergiraf (`packages/runner`). The runner squashes a bean onto the sprout, composes queue batches, reverts, runs the test suite on an exact commit, and moves refs with `--force-with-lease`. It keeps a bare-repo cache per trunk and gets a per-job Artifacts token. Write tokens stay on the committer instance, which never runs agent code.
+
+Artifacts quirks found the hard way, and the workarounds:
+
+- **Late forks were unreadable.** Beans became branches.
+- **"stored delta chain contains a cycle" on a revert push.** The runner now pushes whole objects (`exp/artifacts-delta-cycle-bug.md`).
+- **Fetch-by-sha is unverified.** The runner only ever fetches named refs.
+
+### GitHub interop: designed, not built
+
+- **Mirroring.** The thesis docs say a stalk can be mirrored to GitHub and beans exported as PRs, with a "GitHub-down write path" (`claude-10`, `claude-11` idea #32). Both self-critiques (`claude-14`, `claude-14b`) moved "GitHub mirror and PR export" to the roadmap. **No code exists.**
+- **Stalk promotion as a GitHub Action** (`10` §5c). A `.github/workflows/stalk.yml` would fire on each sprout push, run the full suite and a verifier agent, and then do one of two things:
+  - **pass:** a separate job with the only stalk-write permission fast-forwards the stalk;
+  - **fail:** `revert-culprit` reverts the culprit out of the sprout.
+
+  Teams would own "what stable means" by editing YAML. It depends on an Actions-compatible runner on Containers (`05`), which is also **not built**. Today the RunDO engine does promotion itself.
+
+---
+
+## 2. Performance seen so far
+
+Setup for every race below: 40 colliding tasks in a synthetic TypeScript "shop" arena, Sonnet agents, 60 s emulated CI on 2 slots, every landed acceptance test protected. The baseline is a good batched, bisecting merge queue.
+
+### Local harness (5 seeds)
+
+Beanstalk v2 finished first in **5 of 5 seed pairs, 1.98x sooner on average** (95% CI 1.68–2.28, p = 0.008). The queue was the noisy one (16.5–34.7 min against v2's 11.3–14.4), but it reached the 20th green first in 4 of 5 pairs, and v2 cost about 12% more (`exp/e7`).
+
+### Cloudflare, 12 real agents, seed 7 (every decision made on the deployed prototype)
+
+Numbers from `python3 kth_green.py` on the `cf-*` runs:
+
+| Run | Green | 20th green | 30th green | 35th green | Done | Agent $ | Red validations |
+|---|---|---|---|---|---|---|---|
+| Queue | 36 | 13.0 min | 19.9 | 35.0 | **40.6** | 4.12 | 10 |
+| v2.0 | 35 | 11.3 | 13.8 | 17.7 | **17.5** | 5.00 | 3 |
+| v2.2 | **24** | 25.0 | not reached | not reached | 24.9 | 6.02 | 10 |
+| v2.3 | 34 | 10.4 | 14.3 | not reached | 17.9 | 5.14 | 4 |
+| **v2.4** | **37** | **6.7** | **8.9** | **15.2** | 17.7 | 4.40 | 4 |
+
+The final stalk was correct in every run. Two earlier v2 cloud runs hit infrastructure bugs (34 and 27 green) and are kept but excluded (`08` §5.5).
+
+Before any real agents, replay parity was checked: with free replay agents, the cloud and local forges made identical decisions (25/25/15 for both policies).
+
+### Why "done" barely moves while most work ships much sooner
+
+v2.0, v2.3 and v2.4 all finish at about 17.5–17.9 minutes. What changed is the middle of the race:
+
+- v2.4 reached its 30th green at **8.9 min**, against the queue's 19.9 and v2.0's 13.8.
+- v2.4's median task went from start to green in **6.1 min**, against 10.5 for the queue. At the 90th percentile it was 13.7 against 25.2.
+
+The end of the race is set by the last few beans: the ones in a rework chain, a revert, or a decision card, plus the final validation. Faster landing doesn't shorten those. For a team, the 30th-green number matters more than "done": most work is usable in half the time.
+
+### Cost
+
+Agent spend only:
+
+| Run | Agent spend | Against the queue |
+|---|---|---|
+| Queue | $4.12 | baseline |
+| v2.0 | $5.00 | +21% |
+| v2.4 | $4.40 | +7% |
+
+Rework is the bulk of v2.4's extra: $2.00 of its $4.40. **Cloudflare infrastructure cost per race is not measured.** That covers container time, Workers and DO requests, and Artifacts operations, and Artifacts billing only starts around 2026-10-14.
+
+### What each version added, and why
+
+| Version | Added | Why |
+|---|---|---|
+| **v2.0** | Pre-land check on the exact merged tree (sprout plus bean). Optimistic landing. Informed rework (the author's own session, with the change that broke it). Decision cards. Revert-first on a red validation | The core thesis: land without queueing, and blame precisely |
+| v2.1 / v2.2 | Re-check adapts to the red rate. Agent released while its check runs (E5). Flake-confirmed reverts (E3). Cards re-execute the loser (E6). Inherited reds | Each won in isolation, in experiments and in the simulator (39/40 predicted) |
+| v2.2 on Cloudflare | **Failed: 24 green** | Releasing agents caused a landing burst (19 in minute 2). The adaptive re-check trusted a lagging signal. Validation fell 27 commits behind. 11 innocent beans burned their rework rounds on reds that weren't theirs. Replay agents didn't reproduce the burst |
+| **v2.3** | Sprout window with AIMD backpressure: at most W unvalidated landings; W grows by 2 per green and halves on a red. Sampled re-checks. Inherited reds by read set. Early revert tickets | Fixes the burst. 34 green, a tie with v2.0. One card blamed the wrong counterpart |
+| **v2.4** | Reconcile before a card: a test author first amends tests that pin a value the other task legitimately changed. Only a real contradiction reaches a human. Stale-failure re-checks | Fewer wasted cards and drops. 37 green, the best run |
+
+### Caveats
+
+- **One seed on Cloudflare per version.** The doc itself says part of v2.4's gain over v2.3 is probably run-to-run variance. Only the local harness has 5 seeds, and those are v2.0-era rules.
+- **Short tasks.** Beans take tens of seconds. With 7x-longer tasks (E5), v2's lead shrank to 1.32–1.40x and the queue led on early greens.
+- **The arena is synthetic.** On a real repo with little contention (markedjs/marked, E2), file-level v2 *lost* (19–20 min against 4.4) until the adaptive re-check. E2 hasn't been re-run on v2.4.
+- **Tests are given, not written by the forge.** Without forge-owned tests, v2's stalk went wrong silently (E1: 6 of 39 greens wrong).
+- Agents ran on the laptop. Only the decisions ran on Cloudflare.
+
+---
+
+## 3. Backlog to a real product on Cloudflare
+
+Sizes: **S** is under a day, **M** is 1–3 days, **L** is a week or more. Sizes are my estimates unless a doc gives one.
+
+| Area | Item | State | Size |
+|---|---|---|---|
+| **Engine** | v2.5: reconcile with every landed task behind the failing assertions (E6's dynamic culprits) | Next on the list (`11`) | M |
+| | Forge-owned tests: a test author with fail-first proof for every task, and a targeted check of the exact landing tree (E1) | Not built | L |
+| | Rest of E6: start cards, declared couplings, rescue re-execution, contract oracle. Plus the error-budget controller (reports `999`) | Not built | M–L |
+| | Planning and dependency-aware starts (E4's real limit at scale) | Not built | L |
+| **Git compatibility** | Persistent repos: create, import an existing repo, repos that outlive a run | Not built (repos are per run) | L |
+| | Submit a bean without the race driver: a push, a CLI or MCP marks it ready | Not built | M |
+| | Stalk promotion as an Action, on an Actions-compatible runner (`05`, `10` §5c) | Designed | L |
+| | GitHub mirror and PR export | Idea only | L |
+| | Compressed pushes; verify fetch-by-sha | Gaps | S |
+| **Identity / auth** | Users and agents as principals, delegated tokens (`sub`/`act`), per-task capability tokens, OAuth 2.1 for MCP, device flow for a CLI (`06` §2, `claude-06`) | Designed. Today: HMAC run tokens (slot, seed, view) plus an admin token | L |
+| | Rule-of-Two session taint, trust labels on returned text | Designed | M |
+| **Web app** | Plot phases 1–3 | Mostly done (`14` §10) | — |
+| | Jev eval: 60 questions, top-1 agreement against the rules | Not done | M |
+| | Polish: list toggle, time bucketing past 200 rows, Jev warm-up | Not done | M |
+| | Stream a bean's changeset while the agent writes | Simulated in the mockup. 2–2.5 days, or 1.5 for timer-only (`14` streaming note) | M |
+| | Real sign-in to replace `DEMO_PASSWORD` | Not built | M |
+| **MCP / plugin** | Write tools: `task_next`/`task_claim`, `change_submit`, `decision_request`, `context_read`, `marker_drop` | Designed (`06` §4) | M–L |
+| | Previews: `preview_ensure`, `_http`, `_browse`, `_compare`, `_logs`, and `attest` | Designed (`06` §5) | L |
+| | OAuth instead of hand-minted view tokens. The same verbs as a `bean` CLI | Designed | M |
+| **Ops / cost** | Spend guard and automatic reap before Artifacts billing (~10-14). Today reap is a manual admin route | Partial | S–M |
+| | Measure infra cost per race | Not measured | S |
+| | Shared account `2c7358a6`, container cap 48 (one 20-agent run uses 23) | Known limit | — |
+| **Competition (2026-10-14)** | 5–10 min video. The 8-min script exists (`12`) but quotes v2.0 numbers (13.8 / 17.5) and still lists a fresh v2.2 run as a must | Script done, not recorded | M |
+| | Run instructions. The README's "Run it" exists; it hasn't been tested on a fresh account | Mostly done | S |
+| | Licence note. FSL-1.1-ALv2 is your informed choice (`AGENTS.md`), but the rules list MIT, Apache-2.0 or BSD. The note should state this plainly. The script's close also says "open source", which FSL isn't in the OSI sense | Decided; the note isn't written | S |
+| | Entrant eligibility (US/Canada residency) | Settled: `AGENTS.md` records you as eligible. The winner must be in SF on 10-21 | — |
+
+### Top 5, in order
+
+1. **Run v2.4 against the queue on 2–3 more seeds on Cloudflare (M).** Today's headline rests on one seed. Replay agents are free, but real agents are what convinced.
+2. **Record the video from an updated script (M).** Use the v2.4 numbers: 37 green, 30th at 8.9 against 19.9, done 2.3x sooner. Rehearse the human-mode decision card.
+3. **Finish the submission text (S).** Test the run instructions on a clean account, write the licence note, and fix "open source" in the close.
+4. **An MCP write path: `task_next`/`task_claim` plus `change_submit` (M–L).** With these, a stock Claude Code session with the plugin can join a run without the Python driver. That's the step from "a race rig" to "a forge an agent can use".
+5. **A cost guard (S–M).** Auto-reap after every run, a per-run spend cap, and a measured infra cost, before Artifacts billing starts around 10-14.
+
+---
+
+## 4. MCP and plugin support
+
+```
+ Claude Code ──(plugin: skill + .mcp.json)──▶ beanstalk-mcp Worker  /mcp  (stateless, Bearer view token)
+      │                                              │  service binding (Workers RPC, no HTTP)
+      │ git clone/push (slot token)                  ▼
+      └────────────────────────────────────▶ beanstalk-gateway Worker
+                                               ├─ RunDO: engine state + events.jsonl
+                                               ├─ git proxy ──▶ Artifacts (race-<run>)
+                                               └─ runner containers (squash, check, revert)
+```
+
+The plugin and the MCP server are **read-only**. An agent still changes code through git and the driver. MCP tells it what's going on around it.
+
+### `packages/mcp`
+
+A Worker (`beanstalk-mcp`) serving stateless MCP over Streamable HTTP through the Agents SDK's `createMcpHandler`. There is no `McpAgent`, and no code-mode `execute` tool (Coop's decision).
+
+**Auth.** The caller sends `Authorization: Bearer <view token>`. The token is run-scoped and minted by the gateway admin route `POST /v1/runs/:run/view-token` (valid a week, via `pnpm -F @beanstalk/mcp mint-token <run>`). The MCP Worker holds no secret: it asks the gateway (`verifyViewToken` RPC) whether the token is good.
+
+| Token presented | Result |
+|---|---|
+| Missing, forged or expired | 401 |
+| Slot or seed token | 403 |
+| Valid view token | The tools read only that token's run |
+
+The deployed URL answers 401 without a token, as expected.
+
+**Where each tool gets its data.** "Event log" means the run's `events.jsonl`, pulled once per request through `runEvents` and reduced with `shared-ask`. All six tools are annotated `readOnlyHint: true`.
+
+| Tool | Answers | Reads |
+|---|---|---|
+| `ask_repo(question, ref?)` | The web app's Ask view as JSON: spec, resolved files, beans, decisions, the picker's `picks` (Jev or rules), `preview_url` | Shared Ask pipeline over gateway RPC: `repoTree`, `repoFile`, `repoDiff`, `repoLog`, `beansByPath`, `decisions`, … |
+| `work_overlaps(paths)` | Beans in flight, on the sprout, or green in the last 15 min on those paths, with intent and status | `beansByPath` RPC, plus the event log |
+| `change_status(bean)` | Status, phase, checks, reworks, card, and a `next` instruction | `beanDetail` RPC (built from the event log) |
+| `checks_get(bean)` | The latest check's failures, with `inherited` and `protected` flags, history, `blamed_by` | Event log |
+| `run_status()` | Sprout and stalk heads, the window, beans in flight, open cards, red validations, cost | Event log, plus `runView` RPC (for the window) |
+| `preview_link(bean \| ref)` | A URL into the web explorer (never carries the token) | Nothing: it builds a link |
+
+Tests run the Worker against a fake gateway that answers from a recorded v2 run.
+
+### `packages/claude-plugin`
+
+| File | What it does |
+|---|---|
+| `.claude-plugin/plugin.json` | Manifest: name `beanstalk`, v0.1.0, licence FSL-1.1-ALv2 |
+| `.mcp.json` | One HTTP server. URL from `BEANSTALK_MCP_URL` (defaults to the deployed `beanstalk-mcp…workers.dev/mcp`), header `Bearer ${BEANSTALK_TOKEN}` |
+| `skills/beanstalk/SKILL.md` | The working loop (below) |
+
+The skill's working loop:
+
+1. Orient with `ask_repo`.
+2. Call `work_overlaps` before editing, and fit the change to other beans' intents.
+3. After submitting, poll `change_status` with backoff and act on `next`.
+4. On a red check, read `checks_get`. Ignore `inherited` reds, and **never edit protected tests**.
+5. Use `preview_link` to show a person.
+
+Load it with `claude --plugin-dir packages/claude-plugin`.
+
+### What an agent can do with it today
+
+During a run, an agent can:
+
+- see who else is touching its files, and why;
+- follow its own bean from submitted to the stalk;
+- read why a check was red, and whether the failure is its fault;
+- ask the repo questions;
+- hand a person a link.
+
+That's coordination awareness, the thing a plain git host lacks.
+
+### What's missing
+
+- **Getting work:** `task_next` and `task_claim`. Tasks still come from the race driver's long poll.
+- **Submitting over MCP:** `change_submit`. Today the agent pushes with git, and the driver posts the result.
+- **Asking a human:** `decision_request`. Cards are raised only by the engine.
+- **Context and notes:** `context_read`, which would log reads into the read set, and `marker_drop`.
+- **Previews:** `preview_link` is only a link into the explorer, not a running app. `preview_ensure`, `_http`, `_browse`, `_compare` and `_logs`, plus `attest`, are designed (`06` §5) but not built.
+- **Real sign-in:** OAuth for MCP clients. Today an operator mints and pastes a view token.
+- **Live work in progress:** streaming a bean's changeset into `change_status` (`14`, optional step 5). This would let overlap warnings fire before a commit exists.

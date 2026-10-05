@@ -7,13 +7,12 @@ export function parseTheme(value: string | undefined): ThemeChoice {
   return value === 'light' || value === 'dark' ? value : 'system';
 }
 
-export function nextTheme(theme: ThemeChoice): ThemeChoice {
-  if (theme === 'system') return 'light';
-  if (theme === 'light') return 'dark';
-  return 'system';
-}
+/** Which day mode Nightshift uses in light: phosphor (default), paper or blueprint (cookie `bs_day`). */
+export type DayVariant = 'phosphor' | 'paper' | 'blueprint';
 
-export function themeLabel(theme: ThemeChoice): string {
-  if (theme === 'system') return 'System';
-  return theme === 'light' ? 'Light' : 'Dark';
+export const DAY_COOKIE = 'bs_day';
+export const DAY_VARIANTS: readonly DayVariant[] = ['phosphor', 'paper', 'blueprint'];
+
+export function parseDay(value: string | undefined): DayVariant {
+  return value === 'paper' || value === 'blueprint' ? value : 'phosphor';
 }

@@ -506,3 +506,73 @@ Coop asked whether the bean view can show a bean's changeset arriving while its 
 | **Total, with tests** | **2–2.5** |
 
 A cheaper first step is the timer only (no harness hooks), sending changed-file stats and patches every 5 s: about 1.5 days. It is good enough for the demo, because writing invocations in the recorded runs last 10–40 s. I'd only take it on after the Plot and design-v2 work land, since it touches the driver protocol that both the queue and Beanstalk policies share.
+
+## 11. Nightshift built into the app, and how real use works (2026-10-05)
+
+The design-v2 direction (Nightshift) replaced the Plot as the repository home at `/runs/:run`.
+
+### What is built
+
+- **Shell.** The repository is named once (`coop / beanstalk-shop`). Its tabs are:
+  - **Code**: the home;
+  - **Files**: the explorer, at `/files`;
+  - **Beans**, **Decisions** and **Checks**: the home explorer opened on that tab's question;
+  - **Engine**: the race canvas, at `/race`.
+
+  The site header links to the benchmark runs and the race. A ☀/☾ toggle follows the system until the viewer picks; a day-mode menu offers phosphor (the default), paper and blueprint. Both choices persist in cookies (`bs_theme`, `bs_day`), and the server renders in them.
+- **The stalk** (`shared-ask/home/stalk.ts`, `components/home/stalk-list.tsx`):
+  - beans in flight at the tip, by session;
+  - lime sprout leaves, then a pointer to the stalk, then mature stalk leaves;
+  - a red leaf for the culprit and faint, struck-through rows for beans that fell off;
+  - "Fertilized by <owner>" at the root.
+
+  Leaves keep their keys, so during playback they grow in and change colour in place. Validated landings pulse, the sprout shimmers, and an answer dims every leaf it is not about. The scrubber has play and 1×/10×/60× speeds. Old leaves fold by validation past 60 landings.
+- **The explorer.** The Ask is a command prompt: completions appear only on focus, ⌘K or `/`, and three example chips sit under the closed box. With nothing asked, it shows Growing now, What happened, then Files with the last bean of each area and "N in flight" chips. A question becomes a composition (`shared-ask/home/composition.ts`):
+  - **Ordering.** The picker's `sections` order maps onto components, and a "This view" line with a receipt behind ⓘ appears only after a question.
+  - **Recent changes and who-why** also feature the newest bean's journey.
+  - **"Why red" and "what did we decide"** lead with their card.
+  - **Swarm questions** show who is working, collision hot spots and recent conflicts.
+  - **On a finished run, "who is working now?"** answers "Nobody, the run finished at …" and offers the busiest moment.
+- **The bean journey** has "All changes" first and selected by default. Each step shows its details on the right, and a step in progress spins, for example a pre-land check running, with a progress bar.
+- **Status line.** Sprout #, stalk #, the sprout's health, beans growing, "N people, M sessions active", the picks (with a drawer of every receipt), replay or live, and the clock.
+- **Jev.** Jev still runs live through the AI binding, with the rule fallback.
+  - The rules and keywords now outrank Jev on routing. Jev's route stands only when the keyword router could not place the question (`explore`). In testing, Jev's flat probabilities had sent "why did the sprout go red?" to Explore.
+  - Jev still orders suggestions, files and sections.
+- **Not built.** Streaming diffs (backlog, §10 note).
+
+### People, sessions and repositories, not "agents" and "runs"
+
+Agents are not persistent: they are **sessions** (Claude Code, Codex …) that **people** connect and own, often 5–10 people per repository. The UI therefore says "1 person, 6 sessions active" and "a6, Claude Code session of coop". It never says "12 agents".
+
+The recorded runs carry no owner data. `packages/web/src/people/` attributes every session to the repository's owner, and that folder is where real owner data goes. A **run** is a benchmark artifact: the home reads as a living repository, and runs stay reachable from "Benchmark runs" and the Engine tab.
+
+### How real use would work (roadmap, not built)
+
+1. **Connect.** A person installs the Beanstalk plugin in Claude Code or Codex and signs in. The plugin registers a **session** with the gateway (session id, owner, harness, repository) and gets a session token scoped to that repository. The token is an agent principal under the owner, as in `06`.
+2. **Get work, or bring it.** A connected session either:
+   - **asks for work**: `task_next` over MCP returns a bean the scheduler placed, footprint-checked against everything in flight; or
+   - **brings its own task**: `bean_open {intent}` creates a bean the session owns, and the scheduler checks its predicted footprint before it starts.
+
+   Assignment is optional and owner-controlled: a repository setting says whether sessions may take placed work, and whose.
+3. **Write, check, land.** The session writes in its bean branch, as in today's driver. Pre-land checks, the sprout, validation and the stalk work as now. Decision cards go to the people who own the specs.
+
+**What the gateway needs:**
+
+| Piece | Description |
+|---|---|
+| Session identity | `sessions` table (id, owner, harness, repository, connected_at, last_seen) |
+| MCP verbs | `session_connect`, `task_next`, `bean_open`, plus a heartbeat |
+| Event fields | `owner` and `session` on `task.start` and `invocation.*` events |
+| Web read path | A `sessions(repo)` RPC, replacing the placeholder in `src/people/` |
+| Repository identity | Separate from runs, so `/:owner/:repo` can replace `/runs/:run` |
+
+About 2–3 days. It belongs after the competition demo unless Coop wants a live "connect your session" moment in it.
+
+### Screenshots
+
+In `prototypes/repo-experience/shots/app-v2/`:
+
+| Mode | Shots |
+|---|---|
+| Night | home mid-run, coupons, bean journey, finished, what broke, who's on billing, a step selected, the Files tab |
+| Day (phosphor) | home mid-run, coupons, bean journey, finished |

@@ -61,6 +61,7 @@
   ],
   "ignorePatterns": [
     "prototypes/**",
+    ".claude/**",
     "promo/**",
     "**/node_modules/**",
     "**/dist/**",

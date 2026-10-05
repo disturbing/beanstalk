@@ -7,7 +7,8 @@ import styles from '../../../../components/explorer/explorer.module.css';
 import type { DecisionAccess } from '../../../../components/canvas/decision-panel';
 import { RaceCanvas } from '../../../../components/canvas/race-canvas';
 import type { Speed } from '../../../../components/canvas/use-replay-clock';
-import { RunHeader } from '../../../../components/explorer/run-header';
+import { RepoHead } from '../../../../components/home/repo-head';
+import { repositoryOf } from '../../../../src/people/repository';
 import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../../../src/forge/sources';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
@@ -42,7 +43,7 @@ export default async function RaceCanvasPage({ params, searchParams }: PageProps
   const meta = runMeta(run, reduceRace(data.events));
   return (
     <main className={styles.page}>
-      <RunHeader run={run} label={meta.label} detail={meta.detail} current="race" />
+      <RepoHead run={run} repository={repositoryOf(run)} current="engine" />
       <RaceCanvas
         run={run}
         label={meta.label}

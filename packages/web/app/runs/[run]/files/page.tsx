@@ -11,7 +11,8 @@ import { readExplorerState } from '../../../../components/explorer/explorer-url'
 import { FileTree } from '../../../../components/explorer/file-tree';
 import { MainPane } from '../../../../components/explorer/main-pane';
 import { RailBlocks } from '../../../../components/explorer/rail-blocks';
-import { RunHeader } from '../../../../components/explorer/run-header';
+import { RepoHead } from '../../../../components/home/repo-head';
+import { repositoryOf } from '../../../../src/people/repository';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 import { CATALOG } from '@beanstalk/shared-ask/ask/view-spec';
@@ -20,7 +21,6 @@ import { forgeForRun } from '../../../../src/forge/sources';
 import { raceMoments } from '../../../../src/race/race-moments';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import { recordedRun } from '../../../../src/recorded/recorded-runs';
-import { runMeta } from '../../../../src/server/run-meta';
 
 type PageProps = {
   readonly params: Promise<{ readonly run: string }>;
@@ -73,14 +73,13 @@ export default async function ExplorerPage({ params, searchParams }: PageProps) 
   });
   const events = recorded?.events ?? [];
   const race = reduceRace(events);
-  const meta = recorded === undefined ? { label: 'Live run', detail: '' } : runMeta(run, race);
   const suggestions =
     recorded?.label === 'Beanstalk v2'
       ? V2_SUGGESTIONS
       : Object.values(CATALOG).map((entry) => ({ q: entry.example }));
   return (
     <main className={styles.page}>
-      <RunHeader run={run} label={meta.label} detail={meta.detail} current="files" />
+      <RepoHead run={run} repository={repositoryOf(run)} current="files" />
       <AskBar
         run={run}
         state={state}

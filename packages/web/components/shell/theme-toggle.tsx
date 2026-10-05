@@ -1,86 +1,66 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import type { ThemeChoice } from './theme';
-import { THEME_COOKIE, nextTheme, themeLabel } from './theme';
+import type { DayVariant, ThemeChoice } from './theme';
+import { DAY_COOKIE, DAY_VARIANTS, THEME_COOKIE } from './theme';
 
-/** Cycles system → light → dark, remembers the choice in a cookie so pages render in it. */
-export function ThemeToggle({ initial }: { readonly initial: ThemeChoice }) {
-  const [theme, setTheme] = useState<ThemeChoice>(initial);
-  const next = nextTheme(theme);
-  const apply = () => {
-    const root = document.documentElement;
-    if (next === 'system') {
-      delete root.dataset['theme'];
-      document.cookie = `${THEME_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
-    } else {
-      root.dataset['theme'] = next;
-      document.cookie = `${THEME_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
-    }
+const YEAR = 31536000;
+
+/**
+ * Day or night: follows the system until the viewer picks one, then remembers the pick in a
+ * cookie so pages render in it. In day, a small menu picks the day mode.
+ */
+export function ThemeToggle(props: { readonly initial: ThemeChoice; readonly day: DayVariant }) {
+  const [theme, setTheme] = useState<ThemeChoice>(props.initial);
+  const [day, setDay] = useState<DayVariant>(props.day);
+  const systemDark = useSystemDark();
+  const dark = theme === 'dark' || (theme === 'system' && systemDark);
+  const pick = (next: 'light' | 'dark') => {
+    document.documentElement.dataset['theme'] = next;
+    document.cookie = `${THEME_COOKIE}=${next}; Path=/; Max-Age=${YEAR}; SameSite=Lax`;
     setTheme(next);
   };
+  const pickDay = (next: DayVariant) => {
+    document.documentElement.dataset['day'] = next;
+    document.cookie = `${DAY_COOKIE}=${next}; Path=/; Max-Age=${YEAR}; SameSite=Lax`;
+    setDay(next);
+  };
   return (
-    <button
-      type="button"
-      className="theme-toggle"
-      onClick={apply}
-      aria-label={`Theme: ${themeLabel(theme)}. Switch to ${themeLabel(next)}.`}
-      title={`Theme: ${themeLabel(theme)}`}
-    >
-      <ThemeIcon theme={theme} />
-      <span className="theme-toggle__label">{themeLabel(theme)}</span>
-    </button>
+    <div className="daynight" role="group" aria-label="Day or night">
+      <button type="button" aria-pressed={!dark} onClick={() => pick('light')} title="Day">
+        ☀
+      </button>
+      <button type="button" aria-pressed={dark} onClick={() => pick('dark')} title="Night">
+        ☾
+      </button>
+      {dark ? null : (
+        <select
+          aria-label="Day mode"
+          value={day}
+          onChange={(event) =>
+            pickDay(DAY_VARIANTS.find((variant) => variant === event.target.value) ?? 'phosphor')
+          }
+        >
+          {DAY_VARIANTS.map((variant) => (
+            <option key={variant} value={variant}>
+              {variant}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
   );
 }
 
-function ThemeIcon({ theme }: { readonly theme: ThemeChoice }) {
-  if (theme === 'light') {
-    return (
-      <svg
-        viewBox="0 0 20 20"
-        width="16"
-        height="16"
-        aria-hidden="true"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      >
-        <circle cx="10" cy="10" r="3.6" />
-        <path
-          d="M10 1.8v2.4M10 15.8v2.4M1.8 10h2.4M15.8 10h2.4M4.2 4.2l1.7 1.7M14.1 14.1l1.7 1.7M4.2 15.8l1.7-1.7M14.1 5.9l1.7-1.7"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-  if (theme === 'dark') {
-    return (
-      <svg
-        viewBox="0 0 20 20"
-        width="16"
-        height="16"
-        aria-hidden="true"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      >
-        <path d="M15.6 12.9A6.6 6.6 0 0 1 7.1 4.4a6.6 6.6 0 1 0 8.5 8.5Z" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      width="16"
-      height="16"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-    >
-      <circle cx="10" cy="10" r="7" />
-      <path d="M10 3a7 7 0 0 1 0 14Z" fill="currentColor" stroke="none" />
-    </svg>
-  );
+function useSystemDark(): boolean {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    setDark(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setDark(event.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+  return dark;
 }

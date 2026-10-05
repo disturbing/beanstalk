@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-site",
+  // The marketing site: static files only, served as Workers static assets (no Worker script).
+  "compatibility_date": "2026-10-05",
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "assets": {
+    "directory": "./public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+  },
+}

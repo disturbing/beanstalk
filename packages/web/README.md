@@ -1,6 +1,6 @@
 # @beanstalk/web
 
-beanstalk's human-facing app: **the Plot**, a run's repository home with Ask (the main surface, `docs/claude-opus/14`), the **Files** explorer, the engine's **race canvas** for developers, and the **side-by-side race**. It is a vinext app (Next.js App Router on Vite) deployed as the Worker `beanstalk-web`. Every number it shows comes from the gateway over RPC, or from the recorded runs bundled with it.
+beanstalk's human-facing app: the **repository home** (Nightshift: the stalk and a generated explorer with Ask, `docs/claude-opus/14` §10–11), the **Files** explorer, the **Engine** (the race canvas, for developers), and the **side-by-side race**. It is a vinext app (Next.js App Router on Vite) deployed as the Worker `beanstalk-web`. Every number it shows comes from the gateway over RPC, or from the recorded runs bundled with it.
 
 Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprout** is the staged line (beans that passed their pre-land check; events call it `trunk`); the **stalk** is the stable line (validated; events call it `green`).
 
@@ -9,7 +9,7 @@ Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprou
 | Route | What it shows |
 |---|---|
 | `/` | Runs: the recorded race (merge queue against v2) as a chart, recorded and live runs |
-| `/runs/:run` | **The Plot**: every landing as a row up the stalk, every area of the code as a column, beans in flight as buds at the tip, a headline Jev picks, and a reading pane (questions to ask, what happened, a bean's journey, blame by bean, answers). Ask folds the Plot to the files and beans a question is about. Recorded runs replay; live runs follow the gateway |
+| `/runs/:run` | **The repository home**: the compressed stalk (beans at the tip, sprout and stalk leaves, the culprit red, fallen beans faint) beside a generated explorer: Ask (completions on focus or ⌘K), then Growing now, What happened and Files, or the components a question needs (bean journey + diff, decision and red-validation cards, overlaps and session activity). A status line, day/night and three day modes. Recorded runs replay; live runs follow the gateway |
 | `/runs/:run/files` | The Files explorer: file tree, main pane (diff, file with blame by bean, bean), context rail and its own Ask bar |
 | `/runs/:run/race` | The engine (developer view): counters, the sprout and the stalk as a vine, agent lanes, the code map, decision cards, the event feed. Recorded runs replay (1x, 10x, 60x, scrubbing); live runs follow the gateway |
 | `/race` | Watch the race: the recorded merge queue and v2 runs replayed in sync, with counters and greens over time |
@@ -19,7 +19,7 @@ Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprou
 
 URL state, so every view can be shared:
 
-- the Plot: `q`, `x` (as below), `bean`, `file` (opens blame by bean) and `t` (the race second of the playhead);
+- the home: `q`, `x` (as below), `bean`, `step` (a journey step) and `t` (the race second of the playhead);
 - Files explorer: `q` (the question), `x` (removed chips, repeated: `feature`, `range`, `agent`, `bean`, `path:<p>`, `file:<p>`), `ref` (`sprout` or `stalk`), `file`, `bean`, `view=diff`, and for a recorded run `at` (the race second to look at);
 - race canvas and `/race`: `t` (race second) and `speed` (`1`, `10`, `60`).
 
@@ -82,7 +82,7 @@ pnpm -F @beanstalk/web deploy                         # vite build && wrangler d
 
 `wrangler.jsonc` binds `GATEWAY` to the `beanstalk-gateway` service (its default entrypoint, whose methods are `GatewayRpc` in `@beanstalk/shared-race/rpc`) and requires the `DEMO_PASSWORD` secret. Observability and traces are on.
 
-**Picks (Jev).** What the Plot shows is ordered by a picker (`@beanstalk/shared-ask/pick`): the headline, the suggested questions, an answer's route, files and sections. `PICKER` is `"jev"` (TypeSafe's Jev, the Workers AI model `typesafe/jev`, called through the `AI` binding with the AI Gateway named in `JEV_GATEWAY`, `default` unless set; billed to the account, no API key) or `"rules"`. Each decision has a deterministic rule that answers when Jev is off, slow (over 1.5 s) or answers outside the candidates, and every pick leaves a receipt the page shows. The `AI` binding is `remote`, so `pnpm -F @beanstalk/web dev` calls Workers AI too (it needs `wrangler login`; with several accounts set `CLOUDFLARE_ACCOUNT_ID`).
+**Picks (Jev).** What the home shows is ordered by a picker (`@beanstalk/shared-ask/pick`): the headline, the suggested questions, an answer's route, files and sections. `PICKER` is `"jev"` (TypeSafe's Jev, the Workers AI model `typesafe/jev`, called through the `AI` binding with the AI Gateway named in `JEV_GATEWAY`, `default` unless set; billed to the account, no API key) or `"rules"`. Each decision has a deterministic rule that answers when Jev is off, slow (over 1.5 s) or answers outside the candidates, and every pick leaves a receipt the page shows. The `AI` binding is `remote`, so `pnpm -F @beanstalk/web dev` calls Workers AI too (it needs `wrangler login`; with several accounts set `CLOUDFLARE_ACCOUNT_ID`).
 
 To route Ask through Workers AI instead of the keyword router, set `ASK_CLASSIFIER` to `"workers-ai"` (the model is `ASK_AI_MODEL`), and run `pnpm -F @beanstalk/web types`. It stays off by default: the router needs no network.
 
@@ -91,7 +91,7 @@ To route Ask through Workers AI instead of the keyword router, set `ASK_CLASSIFI
 ```
 app/                     routes (thin): pages, the live SSE route, the bean diff route
 components/shell/        header, theme toggle, login styles
-components/plot/         the Plot: workspace, grid, overview, reading pane, scrubber, pick receipts
+components/home/         the repository home: header, stalk, Ask, explorer components, bean journey, receipts
 components/explorer/     Files explorer: Ask bar, answer chips, file tree, diff, file and bean views, rail
 components/canvas/       race canvas: counters, vine, lanes, code map, decisions, feed, replay bar
 components/race/         greens-over-time chart and the side-by-side race

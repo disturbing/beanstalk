@@ -7,7 +7,7 @@ import type { TaskId } from '@beanstalk/shared-race/ids';
 
 import { isInFlight } from '../race/race-counters';
 import type { RaceState } from '../race/race-state';
-import { bedOf } from '../plot/plot-model';
+import { bedOf } from '../home/areas';
 import type { PickCandidate, PickDecision } from './picker';
 
 export type LeadFactId =
