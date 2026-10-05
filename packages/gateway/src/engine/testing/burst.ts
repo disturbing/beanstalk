@@ -236,6 +236,19 @@ export function seededBurst(seed: number, config: Partial<RunConfigInput> = {}):
   return { ...scenario, durations, seed };
 }
 
+/**
+ * The seeded burst with initial runs five times as long (75-175 s, the tail 450-1050 s), as
+ * real agents on larger tasks: a coupled partner often lands while the other bean is still
+ * being written, which is where live sprout sync (`live_sync`) can act.
+ */
+export function longBurst(seed: number, config: Partial<RunConfigInput> = {}): RaceScenario {
+  const scenario = seededBurst(seed, config);
+  const durations = Object.fromEntries(
+    Object.entries(scenario.durations ?? {}).map(([task, millis]) => [task, millis * 5]),
+  );
+  return { ...scenario, durations };
+}
+
 /** The four races of the simulator tables (`docs/claude-opus/11`), by seed. */
 export const SEEDED_SCENARIOS: Readonly<
   Record<

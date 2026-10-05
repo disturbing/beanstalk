@@ -205,6 +205,15 @@ export const RunConfig = z
      * (`v2-start-order`).
      */
     start_order: z.enum(['fifo', 'dependency']).default('fifo'),
+    /**
+     * v2 opt-in track: when a bean lands, beans whose agents were working meanwhile get it at
+     * their next safe point, the end of their current invocation. A clean merge goes to the
+     * agent as a short `sync` turn (its session, the new sprout merged) before the pre-land
+     * check; a conflicting one becomes a note on the conflict rework's prompt. `overlap`: only
+     * beans whose files (union-merged files aside) or declared couplings meet the landed bean;
+     * `all`: every bean that worked while something landed. `off`: as before.
+     */
+    live_sync: z.enum(['off', 'overlap', 'all']).default('off'),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -265,6 +274,13 @@ export const RunConfig = z
         code: 'custom',
         path: ['tests_first'],
         message: 'tests_first and targeted_landing_check are beanstalk-v2 rules',
+      });
+    }
+    if (config.policy !== 'beanstalk-v2' && config.live_sync !== 'off') {
+      issues.addIssue({
+        code: 'custom',
+        path: ['live_sync'],
+        message: 'live_sync is a beanstalk-v2 rule',
       });
     }
     const known = new Set<string>(ids);

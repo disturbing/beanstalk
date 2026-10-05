@@ -76,6 +76,7 @@ import { startRescue } from './v2-rescue';
 import { takeWait } from './v2-sprout';
 import { openStartCard, startUnderCard } from './v2-start';
 import { chooseStart } from './v2-start-order';
+import { onSyncDone } from './v2-sync';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
 import {
   activeTickets,
@@ -112,6 +113,8 @@ const ADDITION_ROWS: Readonly<Record<string, string>> = {
   tests_first: 'tests first',
   targeted_landing_check: 'targeted landing check',
   'start_order:dependency': 'dependency-aware starts',
+  'live_sync:overlap': 'live sync of overlapping beans',
+  'live_sync:all': 'live sync of every bean',
 };
 
 export const v2Policy: PolicyModule<V2State> = {
@@ -159,6 +162,7 @@ function initialV2State(ctx: StepContext): V2State {
         min: config.window_min,
       },
       structuralMerge: usesStructuralMerge(config),
+      liveSync: config.live_sync,
     },
     sprout: base,
     green: base,
@@ -265,6 +269,8 @@ function initialStats(): V2State['stats'] {
     tests_first_fallbacks: 0,
     targeted_checks: 0,
     targeted_red: 0,
+    syncs_applied: 0,
+    syncs_noted: 0,
   };
 }
 
@@ -286,6 +292,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
       if (outcome.kind === 'test-author') onAuthorDone(step, outcome);
       else if (outcome.kind === 'test-first') onTestsFirstDone(step, outcome);
       else if (outcome.kind === 'reconcile') onReconcileDone(step, outcome);
+      else if (outcome.kind === 'sync') onSyncDone(step, outcome);
       else onReworkDone(step, outcome);
     },
     onJobDone: (jobId: JobId, result: JobResult) => routeJob(step, jobId, result),
@@ -591,6 +598,7 @@ function variantAdditions(settings: V2Settings): string[] {
     ...(settings.testsFirst ? ['tests_first'] : []),
     ...(settings.targetedLandingCheck ? ['targeted_landing_check'] : []),
     ...((settings.startOrder ?? 'fifo') === 'dependency' ? ['start_order:dependency'] : []),
+    ...((settings.liveSync ?? 'off') === 'off' ? [] : [`live_sync:${settings.liveSync}`]),
   ];
 }
 
@@ -724,6 +732,13 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     variant_additions: variantAdditions(settings),
     // Reported only off the default, so FIFO summaries stay byte-identical with the harness's.
     ...(settings.startOrder === 'dependency' ? { start_order: settings.startOrder } : {}),
+    ...((settings.liveSync ?? 'off') === 'off'
+      ? {}
+      : {
+          live_sync: settings.liveSync ?? 'off',
+          syncs_applied: stats.syncs_applied,
+          syncs_noted: stats.syncs_noted,
+        }),
   };
   return {
     key: 'beanstalk',

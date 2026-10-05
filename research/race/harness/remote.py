@@ -61,7 +61,7 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # (sprout window, sampled re-check, the agent released during its check, flake-confirmed reverts,
 # read-set inherited reds, early tickets, re-executed losers; v2.5: reconcile with every landed party,
 # escalation after one repeated red, lone-suspect reverts, base culprits, window sizes, E6's start cards,
-# rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts; the queue never
+# rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts; live sprout sync; the queue never
 # gets these, and the gateway refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
            "window": ("WINDOW", str), "release_on_check": ("RELEASE_ON_CHECK", bool),
@@ -76,7 +76,7 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "window_growth": ("WINDOW_GROWTH", int), "window_max": ("WINDOW_MAX", int), "window_min": ("WINDOW_MIN", int),
            "start_cards": ("START_CARDS", bool), "rescue": ("RESCUE", bool),
            "dynamic_culprits": ("DYNAMIC_CULPRITS", bool), "structural_merge": ("STRUCTURAL_MERGE", bool),
-           "start_order": ("START_ORDER", str)}
+           "start_order": ("START_ORDER", str), "live_sync": ("LIVE_SYNC", str)}
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 
@@ -817,6 +817,8 @@ class RemoteRace(Race):
                 self.counts["driver_errors"] += 1
                 res = self.driver_failure(inv, f"preparing the workspace failed: {e}")
             steps["prepare"], mark = round(time.monotonic() - mark, 3), time.monotonic()
+            if res is None:  # a sync whose merge conflicts here is aborted: nothing to run, commit or push
+                res = await self.conflicted_sync(inv, wt, fields["merge_conflicts"])
             if res is None:
                 res = await self.run_agent(slot, inv, wt)
                 if res is None:  # killed: the gateway already ended this invocation
@@ -830,6 +832,17 @@ class RemoteRace(Race):
                     res.infra_error = res.infra_error or self.secrets.scrub(f"driver: {e}")[:4000]
                 steps["commit_push"] = round(time.monotonic() - mark, 3)
             await self.post_result(slot, inv, res, fields, time.monotonic() - t0, steps)
+
+    async def conflicted_sync(self, inv: dict, wt: str, conflicts: list[str] | None) -> InvocationResult | None:
+        """A ``sync`` (live sprout sync) whose merge conflicts here although the gateway found it clean: abort it and
+        report no commit without running the agent, so the bean goes on to its landing as it was."""
+        assert self.git
+        if inv["kind"] != "sync" or not conflicts:
+            return None
+        await self.git.abort_merge(wt)
+        self.log("driver.sync_conflict", inv=inv["inv"], task=inv["task"], conflicts=conflicts)
+        return InvocationResult(inv_id=inv["inv"], adapter=self.cfg.agent, model=inv.get("model"), ok=True,
+                                subtype="sync-conflict", notes=[f"sync merge conflicted: {', '.join(conflicts)}"])
 
     def driver_failure(self, inv: dict, message: str) -> InvocationResult:
         self.log("driver.error", where="prepare", inv=inv["inv"], error=message[:2000])

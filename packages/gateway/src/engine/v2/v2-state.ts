@@ -185,6 +185,8 @@ export type LandingStep =
       diffs: Record<string, string>;
     }
   | { kind: 'awaiting-agent'; work: AgentWork }
+  /** `live_sync`: the bean's agent takes in the sprouts that landed while it worked. */
+  | { kind: 'syncing'; head0: Sha; landed: TaskId[] }
   | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' | 'rescue' }
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
@@ -248,6 +250,13 @@ export type LandingFlow = {
   targeted: number;
   /** The merge tier of the bean's latest clean squash: what its landing event reports. */
   resolved: Resolution;
+  /**
+   * `live_sync`: the bean's agent just finished an invocation, so its next squash may hand it
+   * the sprouts that landed meanwhile (absent: no).
+   */
+  syncDue?: boolean;
+  /** `live_sync`: a note for the bean's next prompt (sprouts that landed and conflict). */
+  syncNote?: string;
   step: LandingStep;
 };
 
@@ -421,6 +430,9 @@ export type V2Stats = {
   tests_first_fallbacks: number;
   targeted_checks: number;
   targeted_red: number;
+  /** `live_sync`: sprouts merged into a bean's branch for its agent, and conflicts noted. */
+  syncs_applied: number;
+  syncs_noted: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -458,6 +470,8 @@ export type V2Settings = {
   };
   /** v2.5: squashes ask the runner for its structural tier (`structural_merge`). */
   readonly structuralMerge: boolean;
+  /** Absent in runs created before the setting: `off`. */
+  readonly liveSync?: 'off' | 'overlap' | 'all';
 };
 
 export type V2State = {

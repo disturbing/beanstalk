@@ -400,6 +400,23 @@ export type RaceEventFields = {
     readonly candidates: readonly string[];
     readonly confirmed: readonly string[];
   };
+  /**
+   * `live_sync`: beans that landed while this bean's agent worked (`landed`, by the bean's
+   * `overlap` or `all`), merged into its branch at `sprout` and handed to its agent (`inv`).
+   */
+  'sync.applied': TaskRef & {
+    readonly sprout: string;
+    readonly landed: readonly string[];
+    readonly files: readonly string[];
+    readonly inv: string;
+  };
+  /** `live_sync`: the same, but the merge conflicts: the bean's next prompt names them. */
+  'sync.noted': TaskRef & {
+    readonly sprout: string;
+    readonly landed: readonly string[];
+    readonly files: readonly string[];
+    readonly conflicts: readonly string[];
+  };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
   /** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */

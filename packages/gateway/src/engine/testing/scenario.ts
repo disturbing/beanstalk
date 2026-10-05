@@ -31,6 +31,8 @@ export type RaceScenario = {
   readonly durations?: Readonly<Record<string, number>>;
   /** Flaky failures injected into suite runs. */
   readonly flakes?: FlakeInjector;
+  /** `live_sync` upper bound: agents adapt to a clash their sync turn merged (`fake-world`). */
+  readonly adaptsOnSync?: boolean;
 } & Partial<
   Pick<SimulationOptions, 'silentSlots' | 'injections' | 'startAfterMs' | 'lostInvocations'>
 >;
@@ -58,6 +60,7 @@ export function runRace(scenario: RaceScenario): RaceRun {
     rules: scenario.rules ?? [],
     costUsd: scenario.costUsd ?? 0.01,
     ...(scenario.flakes === undefined ? {} : { flakes: scenario.flakes }),
+    ...(scenario.adaptsOnSync === true ? { adaptsOnSync: true } : {}),
   });
   const seed = scenario.seed ?? 1;
   const config: RunConfigInput = {
