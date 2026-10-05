@@ -24,6 +24,8 @@ export type CiMeta = {
   readonly tasks?: readonly string[];
   readonly prefix?: number;
   readonly check?: 'suite' | 'acceptance';
+  /** v2.5: the final suite again, after a red run on a commit validated green. */
+  readonly rerun?: true;
   readonly trunk_idx?: number;
   readonly unvalidated?: number;
   readonly ticket?: string;
@@ -356,6 +358,21 @@ export type RaceEventFields = {
     readonly check_seconds: number;
     /** v2.2: the red was the sprout's (`inherited_reds`); the bean waits, no rework round. */
     readonly inherited?: true;
+    /** v2.5: a targeted check of the exact landing tree ran only these test files. */
+    readonly targets?: readonly string[];
+  };
+  /**
+   * v2.5 (`tests_first`): the test author's files for a task, proven on its base. `accepted`:
+   * the files that failed there replace the given tests; `fallback`: the given tests stay.
+   */
+  'tests.first': TaskRef & {
+    readonly status: 'accepted' | 'fallback';
+    readonly base: string;
+    readonly files: readonly string[];
+    readonly accepted: readonly string[];
+    readonly failing_tests: readonly string[];
+    readonly problems: readonly string[];
+    readonly inv: string;
   };
   /**
    * v2.4: before a card, the test author reconciled the two tasks' acceptance tests (their
@@ -367,6 +384,21 @@ export type RaceEventFields = {
     readonly files: readonly string[];
     readonly reason: string | null;
     readonly inv: string;
+    /** v2.5: every landed task in the reconcile (`against` first), when it took in more than one. */
+    readonly parties?: readonly string[];
+  };
+  /**
+   * v2.5 (E6 `rescue.start`): the bean's rework rounds ran out; it is re-executed once from
+   * scratch on the sprout head (`why`: the last round's red check or conflict).
+   */
+  'rescue.start': TaskRef & { readonly why: string; readonly rounds: number };
+  /**
+   * v2.5 (E6 `dynamic_culprits`): the leave-one-out search for the landed beans that break the
+   * bean's own failing tests: the candidates probed, and those whose removal fixed the tests.
+   */
+  'culprit.dynamic': TaskRef & {
+    readonly candidates: readonly string[];
+    readonly confirmed: readonly string[];
   };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
@@ -397,6 +429,15 @@ export type RaceEventFields = {
     readonly specs: Readonly<Record<string, string>>;
     readonly failing: readonly string[];
     readonly attempts: number;
+    /**
+     * v2.5: every landed task of the reconcile that ended in this contradiction (`against`
+     * first), when it took in more than one; the card itself decides `against`.
+     */
+    readonly parties?: readonly string[];
+    /** v2.5: the reconciling author's CONTRADICTION line. */
+    readonly reason?: string;
+    /** v2.5: raised when the bean started, against a landed declared partner (`start_cards`). */
+    readonly trigger?: 'start';
   };
   'decision.made': {
     readonly card: string;

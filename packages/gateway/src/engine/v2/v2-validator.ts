@@ -13,7 +13,8 @@
  * Every verdict also sizes the sprout window (`v2-backpressure`).
  */
 import { markAborted } from '../abort';
-import { ciAvailable, requestCi } from '../ci';
+import { ciAvailable, hasCiRun, requestCi } from '../ci';
+import type { CiRequest } from '../ci';
 import { emit, requireTask, startJob } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { STALK_REF } from '../refs';
@@ -33,13 +34,14 @@ export function maybeValidate(step: V2Step): void {
     headIdx <= state.greenIdx ||
     state.validating.includes(headIdx) ||
     Object.hasOwn(state.validated, String(headIdx));
-  if (isKnown || ciAvailable(ctx) <= 0) return;
+  if (isKnown || (ciAvailable(ctx) <= 0 && !canQueueAhead(step))) return;
   state.validating.push(headIdx);
   const ciId = requestCi(ctx, {
     sha: requireCommit(state, headIdx).sha,
     purpose: 'validate',
     meta: { trunk_idx: headIdx, unvalidated: headIdx - state.greenIdx },
     owner: 'policy',
+    ...validationOrder(step),
   });
   awaitOutcome(state, ciId, { kind: 'validate', idx: headIdx });
 }
@@ -62,6 +64,7 @@ export function onValidated(step: V2Step, idx: number, result: CheckResult): voi
     purpose: 'validate',
     meta: { trunk_idx: idx, unvalidated: idx - state.greenIdx },
     owner: 'policy',
+    ...validationOrder(step),
   });
   awaitOutcome(state, ciId, { kind: 'confirm', idx });
 }
@@ -234,4 +237,22 @@ function pushStalk(step: V2Step): void {
   );
   awaitOutcome(step.state, jobId, { kind: 'stalk' });
   stalk.inFlight = { jobId, sha: stalk.target };
+}
+
+/** `validation_first`: validations go ahead of waiting bisect probes on the CI slots. */
+function validationOrder(step: V2Step): Pick<CiRequest, 'ahead'> {
+  return step.ctx.env.config.validation_first ? { ahead: 'bisect' } : {};
+}
+
+/**
+ * `validation_first`: with every slot taken while a bisection runs, one validation still
+ * queues, ahead of the probes, and takes the next free slot.
+ */
+function canQueueAhead(step: V2Step): boolean {
+  const { ctx } = step;
+  return (
+    ctx.env.config.validation_first &&
+    hasCiRun(ctx, 'bisect') &&
+    !hasCiRun(ctx, 'validate', 'queued')
+  );
 }

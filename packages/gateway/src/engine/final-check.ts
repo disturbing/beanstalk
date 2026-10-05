@@ -33,6 +33,14 @@ export function onFinalCi(ctx: StepContext, run: CiRun): void {
   const result = run.result;
   if (final === null || result === null) return;
   if (final.phase === 'suite' && final.ciId === run.id) {
+    if (
+      !result.green &&
+      final.rerun !== true &&
+      policyHooks(ctx).rerunsRedFinalSuite?.() === true
+    ) {
+      rerunSuite(ctx, final.sha);
+      return;
+    }
     const ciId = requestCi(ctx, {
       sha: final.sha,
       purpose: 'final',
@@ -46,6 +54,22 @@ export function onFinalCi(ctx: StepContext, run: CiRun): void {
   }
   if (final.phase === 'acceptance' && final.ciId === run.id)
     readCommittedFiles(ctx, final.sha, final.suite, result);
+}
+
+/**
+ * The final suite was red on a commit the policy validated green: the same tree passed the
+ * same suite, so it runs once more and the second result counts. Without this, one flaky run
+ * in the final check reported a green stalk as wrong (`correct: false`).
+ */
+function rerunSuite(ctx: StepContext, sha: Sha): void {
+  const ciId = requestCi(ctx, {
+    sha,
+    purpose: 'final',
+    meta: { check: 'suite', rerun: true },
+    owner: 'final',
+    latency: 0,
+  });
+  ctx.state.final = { phase: 'suite', sha, ciId, rerun: true };
 }
 
 /** Every task's acceptance tests, later tasks winning a shared path (`extra.update`). */

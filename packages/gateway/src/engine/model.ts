@@ -170,6 +170,8 @@ export type CheckResult = {
   /** The failing tests' static import closure, as one set (v2 names culprits by it). */
   readonly readSet: readonly string[];
   readonly readSets: Readonly<Record<string, readonly string[]>>;
+  /** v2.5: the passing test files' read sets, when the check asked for them (`allReadSets`). */
+  readonly passingReadSets?: Readonly<Record<string, readonly string[]>>;
   /** Import hops from each failing test file to each file it reads (suspect ranking). */
   readonly readDepths: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly stackFiles: readonly string[];
@@ -227,12 +229,18 @@ export type JobSpec =
       readonly changeBase: Sha;
       readonly message: string;
       readonly unionPaths: readonly string[];
+      /** Retry a line-merge conflict with the runner's structural tier (`usesStructuralMerge`). */
+      readonly structural: boolean;
     }
   | {
       readonly kind: 'check';
       readonly sha: Sha;
       readonly extraFiles: Readonly<Record<string, string>> | null;
       readonly instance: CheckInstance;
+      /** v2.5's targeted check: run only these test files (default: the whole suite). */
+      readonly only?: readonly string[];
+      /** v2.5: also report the passing test files' read sets (the targeted check's third source). */
+      readonly allReadSets?: true;
     }
   | {
       /** A commit on `onto` that undoes `commit` (published as a candidate, no ref moved). */
@@ -265,6 +273,16 @@ export type JobSpec =
     }
   | { readonly kind: 'read-files'; readonly reads: readonly { ref: Sha; path: string }[] };
 
+/** The runner's merge tier behind a clean squash: git's line merge, or Mergiraf after it. */
+export type Resolution = 'textual' | 'structural';
+
+/** One conflict block of a squash: the sprout's side and the bean's side. */
+export type ConflictHunk = {
+  readonly path: string;
+  readonly sprout: string;
+  readonly bean: string;
+};
+
 export type JobResult =
   | {
       readonly kind: 'squash';
@@ -273,8 +291,14 @@ export type JobResult =
       readonly files: readonly string[];
       /** The change's own write set (`changeBase..head`); null when the runner left it out. */
       readonly changeFiles: readonly string[] | null;
+      readonly resolved: Resolution;
     }
-  | { readonly kind: 'squash'; readonly outcome: 'conflict'; readonly files: readonly string[] }
+  | {
+      readonly kind: 'squash';
+      readonly outcome: 'conflict';
+      readonly files: readonly string[];
+      readonly hunks: readonly ConflictHunk[];
+    }
   | {
       readonly kind: 'revert';
       readonly outcome: 'clean';
@@ -321,7 +345,13 @@ export type FinalTaskCheck = {
 };
 
 export type FinalState =
-  | { phase: 'suite'; sha: Sha; ciId: CiId }
+  | {
+      phase: 'suite';
+      sha: Sha;
+      ciId: CiId;
+      /** v2.5: this is the re-run of a red final suite (`rerunsRedFinalSuite`). */
+      rerun?: true;
+    }
   | { phase: 'acceptance'; sha: Sha; suite: CheckResult; ciId: CiId }
   | {
       phase: 'files';

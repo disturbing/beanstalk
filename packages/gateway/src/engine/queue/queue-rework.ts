@@ -1,5 +1,5 @@
 import type { TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
+import { unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
 import type { ArenaTask } from '@beanstalk/shared-race/task';
 import { couplingPartners } from '@beanstalk/shared-race/task';
 
@@ -96,6 +96,7 @@ function mergeCheck(ctx: StepContext, task: TaskState, state: QueueState): JobId
       changeBase: base,
       message: queueLandMessage(taskDefinition(ctx, task.id)),
       unionPaths: unionPaths(ctx.env.config),
+      structural: usesStructuralMerge(ctx.env.config),
     },
     { kind: 'policy' },
   );

@@ -1,5 +1,5 @@
 import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
+import { unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
 import { bisectPoints } from '../bisect';
@@ -137,6 +137,7 @@ function squash(ctx: StepContext, task: TaskState, onto: Sha): JobId {
       changeBase: base,
       message: queueLandMessage(taskDefinition(ctx, task.id)),
       unionPaths: unionPaths(ctx.env.config),
+      structural: usesStructuralMerge(ctx.env.config),
     },
     { kind: 'policy' },
   );

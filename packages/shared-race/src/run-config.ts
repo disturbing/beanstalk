@@ -28,6 +28,9 @@ export type TaskFootprint = z.infer<typeof TaskFootprint>;
  * tasks themselves. Fields that only the driver uses (model, max turns, timeouts) are
  * carried so every instruction states them and the events record them.
  */
+/** The sprout window's defaults (`window: aimd`): start, growth per green, largest, red floor. */
+export const WINDOW_DEFAULTS = { start: 8, growth: 2, max: 16, min: 2 } as const;
+
 export const RunConfig = z
   .strictObject({
     policy: PolicyName,
@@ -91,8 +94,9 @@ export const RunConfig = z
     recheck_fallback: z.enum(['file', 'hunk']).default('file'),
     /**
      * v2.3: at most W beans land above the last validated sprout commit; a green bean beyond
-     * the window waits. W starts at 4, grows by 2 per green validation (to 16) and halves on a
-     * red sprout (to 2). `off` lands every green bean at once (v2.2).
+     * the window waits. W starts at `window_start` (8; v2.3: 4), grows by `window_growth` (2)
+     * per green validation to `window_max` (16) and halves on a red sprout to `window_min` (2).
+     * `off` lands every green bean at once (v2.2).
      */
     window: z.enum(['aimd', 'off']).default('aimd'),
     /** v2: free the agent while its bean is checked; reworks resume its session on a free slot. */
@@ -120,6 +124,87 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2.5: failed informed repairs against one landed counterpart before the bean escalates
+     * (reconcile, then a card; a counterpart already reconciled and decided drops the bean).
+     * `1`: after one, when a failing test file fails again. `2` (v2.4): after two, whatever failed.
+     */
+    escalate_after: z.number().int().min(1).max(2).default(1),
+    /**
+     * v2.5: landed tasks a reconcile takes in: the counterpart, then the owners of the failing
+     * tests and the read-set suspects since the bean's base. `1`: the counterpart only (v2.4).
+     */
+    reconcile_parties: z.number().int().min(1).max(3).default(3),
+    /**
+     * v2.5: when the read sets narrow a red sprout's suspects to one commit, revert it at once
+     * instead of bisecting the unvalidated range (the flake re-run and the validation after
+     * the revert still apply). `false`: bisect as the harness does.
+     */
+    single_suspect_revert: z.boolean().default(true),
+    /**
+     * v2.5: a sprout validation waiting for a CI slot goes ahead of queued bisect probes. Off
+     * by default: in the simulator it slowed red episodes (the head it validates still holds
+     * the culprit) and, with `single_suspect_revert`, there is rarely a bisect to overtake.
+     */
+    validation_first: z.boolean().default(false),
+    /**
+     * v2.5: a pre-land red names a culprit that landed before the bean started (it is in the
+     * bean's base) when the failing tests' read set points to it, after the beans that
+     * landed since. `false`: only beans since the bean's base are named.
+     */
+    base_culprits: z.boolean().default(true),
+    /** v2.5: the sprout window's size at the start (`window: aimd`). */
+    window_start: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.start),
+    /** v2.5: how much the window grows per green validation. */
+    window_growth: z.number().int().min(0).max(256).default(WINDOW_DEFAULTS.growth),
+    /** v2.5: the window's largest size. */
+    window_max: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.max),
+    /** v2.5: the floor a red sprout halves the window to. */
+    window_min: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.min),
+    /**
+     * v2.5 (E6): a bean with a declared semantic coupling (`couplings`, type `semantic`) to a
+     * landed task raises the decision card when it starts, before any work; against a declared
+     * partner still in flight, the first red check that names it goes to reconcile (or the card).
+     */
+    start_cards: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `RESCUE`): a bean whose rework rounds run out is re-executed once from scratch
+     * on the sprout head, in a fresh session, before it is dropped.
+     */
+    rescue: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `DYNAMIC_CULPRITS`): when a bean's own acceptance tests fail its check, the landed
+     * beans whose files the failing tests read (declared partners first, then newest, at most 24,
+     * 4 at a time), wherever they landed, are confirmed by leave-one-out probes of the checked
+     * tree. Confirmed beans replace the read-set guess among commits since the bean's snapshot.
+     */
+    dynamic_culprits: z.boolean().default(true),
+    /**
+     * v2.5 (E1): before a task's implementer starts, a separate test author writes the task's
+     * acceptance tests from its intent; files that fail on the task's base (fail-first) replace
+     * the given tests as the task's protected acceptance tests. No failing file: the given
+     * tests stay.
+     */
+    tests_first: z.boolean().default(false),
+    /**
+     * v2.5 (E1): a bean about to land on a sprout that moved since its check, without a full
+     * re-check, first runs a targeted check on the exact landing tree: its own tests, the tests
+     * of the beans that landed meanwhile, and known tests whose read set meets its files.
+     */
+    targeted_landing_check: z.boolean().default(false),
+    /**
+     * v2.5: a squash that git's line merge conflicts is retried with the runner's structural
+     * tier (Mergiraf) on the conflicted paths before it counts as a conflict. v2 only, on by
+     * default; the queue never uses it, so it stays the harness's baseline (`false`: v2.4).
+     */
+    structural_merge: z.boolean().optional(),
+    /**
+     * v2: which unstarted bean a free agent takes. `fifo`: priority order. `dependency`: a bean
+     * whose predicted footprint and declared couplings clash with no bean in flight and no
+     * earlier unlanded bean, longest dependent chain first, with an age bound
+     * (`v2-start-order`).
+     */
+    start_order: z.enum(['fifo', 'dependency']).default('fifo'),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -157,6 +242,13 @@ export const RunConfig = z
         message: 'v2 starts tasks from the sprout head',
       });
     }
+    if (config.policy === 'queue' && config.structural_merge === true) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['structural_merge'],
+        message: 'the queue merges as the harness does; structural_merge is v2 only',
+      });
+    }
     if (
       config.policy === 'beanstalk-v2' &&
       config.error_budget !== undefined &&
@@ -168,6 +260,13 @@ export const RunConfig = z
         message: 'v2 has no error-budget controller; leave error_budget unset',
       });
     }
+    if (config.policy !== 'beanstalk-v2' && (config.tests_first || config.targeted_landing_check)) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['tests_first'],
+        message: 'tests_first and targeted_landing_check are beanstalk-v2 rules',
+      });
+    }
     const known = new Set<string>(ids);
     for (const id of Object.keys(config.footprints)) {
       if (!known.has(id)) {
@@ -177,6 +276,62 @@ export const RunConfig = z
   });
 export type RunConfig = z.infer<typeof RunConfig>;
 export type RunConfigInput = z.input<typeof RunConfig>;
+
+/**
+ * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
+ * races' engine). Each v2.5 phase turns some back on (`packages/gateway/README.md`,
+ * "Version labels").
+ */
+export const V25_RULES_OFF = {
+  escalate_after: 2,
+  reconcile_parties: 1,
+  single_suspect_revert: false,
+  validation_first: false,
+  base_culprits: false,
+  window_start: 4,
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
+  structural_merge: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
+export const V24_SETTINGS = { ...V25_RULES_OFF } as const satisfies Partial<RunConfigInput>;
+
+/** v2.3: v2.4 without the reconcile. */
+export const V23_SETTINGS = {
+  ...V25_RULES_OFF,
+  reconcile: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/** v2.2: adaptive re-checks, no window, validation-only inherited reds, no early tickets. */
+export const V22_SETTINGS = {
+  ...V25_RULES_OFF,
+  recheck: 'adaptive',
+  window: 'off',
+  inherited_reds: 'validation',
+  early_tickets: false,
+  reconcile: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * v2.0 (the harness's v2): replay parity, byte for byte (`parity.test.ts`), with every later
+ * rule and every opt-in track off.
+ */
+export const V20_SETTINGS = {
+  ...V25_RULES_OFF,
+  recheck: 'file',
+  release_on_check: false,
+  flake_confirm: false,
+  inherited_reds: 'off',
+  window: 'off',
+  early_tickets: false,
+  reconcile: false,
+  decision_outcome: 'decline',
+  tests_first: false,
+  targeted_landing_check: false,
+  start_order: 'fifo',
+} as const satisfies Partial<RunConfigInput>;
 
 /** The harness default for `--error-budget`, and what v2 runs with (`--error-budget 999`). */
 const DEFAULT_ERROR_BUDGET = 3;
@@ -203,6 +358,16 @@ export function snapshotMode(config: Pick<RunConfig, 'policy' | 'snapshot'>): 'g
 /** Whether an agent is freed while its bean is checked (E5): on by default for v2. */
 export function releasesOnCheck(config: Pick<RunConfig, 'policy' | 'release_on_check'>): boolean {
   return config.release_on_check ?? config.policy === 'beanstalk-v2';
+}
+
+/**
+ * Whether the runner retries a conflicted squash with its structural tier: v2 (unless
+ * `structural_merge: false`), never the queue, so the queue stays the harness's baseline.
+ */
+export function usesStructuralMerge(
+  config: Pick<RunConfig, 'policy' | 'structural_merge'>,
+): boolean {
+  return config.policy === 'beanstalk-v2' && config.structural_merge !== false;
 }
 
 /** v2's pre-land check latency: `preland_seconds`, or the CI latency when unset. */

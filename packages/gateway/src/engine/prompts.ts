@@ -42,6 +42,89 @@ export function reworkConflictPrompt(
   );
 }
 
+/** One conflict block shown to the author: the line's side and the bean's own. */
+export type PromptHunk = { readonly path: string; readonly sprout: string; readonly bean: string };
+
+/** A landed bean that wrote the other side of a conflicted file. */
+export type ConflictAuthor = {
+  readonly task: string;
+  readonly title: string;
+  readonly intent: string;
+  readonly paths: readonly string[];
+};
+
+/** What v2's conflict rework knows beyond the files: the hunks and who wrote the other side. */
+export type ConflictContext = {
+  readonly files: readonly string[];
+  readonly hunks: readonly PromptHunk[];
+  readonly authors: readonly ConflictAuthor[];
+};
+
+/** Hunks a conflict prompt quotes. */
+const PROMPT_HUNKS = 4;
+/** Characters of each side of a quoted hunk, and of an author's intent. */
+const PROMPT_SIDE_CHARS = 1200;
+const PROMPT_INTENT_CHARS = 400;
+
+/**
+ * v2's conflict rework: `reworkConflictPrompt` plus both sides of each conflict block, the
+ * landed beans that wrote the line's side with their intent, and an instruction to keep both
+ * intents. Without hunks or authors it says no more than the harness's prompt.
+ */
+export function informedConflictPrompt(
+  task: PromptTask,
+  conflict: ConflictContext,
+  resumed: boolean,
+): string {
+  const target = 'the trunk';
+  const head =
+    `${sessionHead(task, resumed)}Your change could not be merged: ${target} moved on and conflicts with it. ` +
+    `The merge of ${target} into your branch is in progress in this worktree; conflict markers are in: ` +
+    `${conflict.files.join(', ')}.\n\n`;
+  return (
+    head +
+    hunkLines(conflict.hunks) +
+    authorLines(conflict.authors) +
+    `Resolve every conflict so that your change and the changes already on ${target} both keep working: ` +
+    'keep both intents, never drop one side to make the merge compile, and remove all conflict markers. ' +
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+function hunkLines(hunks: readonly PromptHunk[]): string {
+  if (hunks.length === 0) return '';
+  const shown = hunks
+    .slice(0, PROMPT_HUNKS)
+    .map(
+      (hunk) =>
+        `${hunk.path}:\n\`\`\`\n<<<<<<< trunk\n${sideBlock(hunk.sprout)}` +
+        `=======\n${sideBlock(hunk.bean)}>>>>>>> yours\n\`\`\`\n`,
+    );
+  const more =
+    hunks.length > PROMPT_HUNKS ? `(${hunks.length - PROMPT_HUNKS} more in the files.)\n` : '';
+  return `The conflicting hunks (the trunk's side, then yours):\n${shown.join('')}${more}\n`;
+}
+
+function authorLines(authors: readonly ConflictAuthor[]): string {
+  if (authors.length === 0) return '';
+  const lines = authors.map(
+    (author) =>
+      `- ${author.task} "${author.title}" (${author.paths.join(', ')}): ` +
+      clip(author.intent.trim().replaceAll(/\s+/g, ' '), PROMPT_INTENT_CHARS),
+  );
+  return `The trunk's side was written by these landed changes:\n${lines.join('\n')}\n\n`;
+}
+
+function clip(text: string, limit: number): string {
+  return text.length <= limit ? text : `${text.slice(0, limit)}…`;
+}
+
+/** A hunk side as lines between markers: clipped, and ending with a newline unless empty. */
+function sideBlock(side: string): string {
+  const clipped = clip(side, PROMPT_SIDE_CHARS);
+  return clipped === '' || clipped.endsWith('\n') ? clipped : `${clipped}\n`;
+}
+
 export function reworkRedPrompt(
   task: PromptTask,
   failing: readonly string[],
@@ -292,6 +375,77 @@ export function reexecutionPrompt(
 }
 
 /**
+ * E6's `start_context` (v2.5 start cards): the initial prompt of a bean whose card was
+ * decided before it started, as the loser (within the decision, with its amended tests) or as
+ * the winner (its spec stands over the landed partner's tests).
+ */
+export function startDecisionPrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  decision: DecisionContext,
+  context: {
+    readonly winner: CulpritContext | null;
+    readonly isWinner: boolean;
+    readonly amended: readonly string[];
+  },
+): string {
+  const reason = context.isWinner
+    ? "Where the other task's accepted behaviour contradicts your spec, your spec wins: you do not " +
+      'need to keep its tests that encode the old behaviour passing (they will be amended and that ' +
+      'task re-executed after you land). Keep every other test passing.'
+    : 'This decision was made before you started; implement your task within it.';
+  const lines = [
+    task.title,
+    '',
+    task.prompt.trim(),
+    '',
+    ...decisionBlock(decision, context.winner, task.id),
+    '',
+    reason,
+    '',
+    ...amendedLine(context.amended),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
+ * E6's `reexec_prompt` for a rescue (v2.5): the rework rounds ran out, so the bean starts over
+ * in a fresh session on the current trunk, with the last merged tree's failures and every
+ * decision in force on it.
+ */
+export function rescuePrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  context: {
+    readonly failing: readonly string[];
+    readonly inForce: readonly string[];
+    readonly amended: readonly string[];
+  },
+): string {
+  const failing =
+    context.failing.length === 0
+      ? []
+      : ['The last merged tree failed these tests:', ...context.failing.map((test) => `- ${test}`)];
+  const inForce =
+    context.inForce.length === 0
+      ? []
+      : ['Other decisions in force for this task:', ...context.inForce.map((line) => `- ${line}`)];
+  const extra = [...failing, ...inForce];
+  const lines = [
+    task.title,
+    '',
+    task.prompt.trim(),
+    '',
+    'Your earlier attempts could not be landed: the trunk kept moving and the merged tree failed ' +
+      'or conflicted. They were discarded. Implement your task again on the current trunk.',
+    '',
+    ...(extra.length === 0 ? [] : [...extra, '']),
+    ...amendedLine(context.amended),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
  * The winner of an `adopt-in-place` decision (v2.2): the landed loser stays and its
  * acceptance tests were amended to the decision; the winner's session lands with them.
  */
@@ -410,49 +564,70 @@ export function testAuthorPrompt(
  * v2.4: before a decision card, a test author reconciles the two tasks' acceptance tests on
  * the arriving bean's branch: an assertion that pins a value the other intent legitimately
  * changes is updated (RECONCILED); a genuine disagreement changes nothing (CONTRADICTION).
+ * v2.5: every landed party behind the failing tests takes part (the counterpart first); with
+ * one, the prompt is v2.4's.
  */
 export function reconcilePrompt(
   arriving: PromptTask & Pick<ArenaTask, 'id'>,
-  landed: PromptTask & Pick<ArenaTask, 'id'>,
+  landed: readonly (PromptTask & Pick<ArenaTask, 'id'>)[],
   context: {
     readonly failing: readonly string[];
     readonly output: string;
-    /** The failing tests of the two tasks as they are now, by path. */
+    /** The failing tests of the tasks as they are now, by path. */
     readonly tests: Readonly<Record<string, string>>;
-    /** Every acceptance test file of the two tasks: the only files it may change. */
+    /** Every acceptance test file of the tasks: the only files it may change. */
     readonly paths: readonly string[];
   },
 ): string {
+  const isPair = landed.length <= 1;
+  const ids = [arriving.id, ...landed.map((task) => task.id)];
   const lines = [
-    `You are the test author for tasks ${arriving.id} and ${landed.id}. You write and amend acceptance tests; you never implement features.`,
+    `You are the test author for tasks ${listed(ids)}. You write and amend acceptance tests; you never implement features.`,
     '',
     `Task ${arriving.id} ("${arriving.title}") is arriving; its change is in this tree:`,
     arriving.prompt.trim(),
+    ...landed.flatMap((task) => [
+      '',
+      `Task ${task.id} ("${task.title}") has already landed:`,
+      task.prompt.trim(),
+    ]),
     '',
-    `Task ${landed.id} ("${landed.title}") has already landed:`,
-    landed.prompt.trim(),
-    '',
-    'With both in this tree, these tests fail:',
+    isPair
+      ? 'With both in this tree, these tests fail:'
+      : 'With all of them in this tree, these tests fail:',
     ...context.failing.slice(0, AUTHOR_FAILING_TESTS).map((test) => `- ${test}`),
   ];
   if (context.output.trim() !== '') {
     lines.push('Output:', '```', context.output.trim().slice(0, AUTHOR_OUTPUT_CHARS), '```');
   }
+  const other = isPair ? 'the other task' : 'another of these tasks';
+  const othersIntent = isPair ? "the other task's" : "another task's";
   lines.push(
     ...testFiles('The failing tests, as they are now:', context.tests),
     '',
-    'Do the two intents contradict? Often they do not: a test pins a value that the other task ' +
-      'legitimately changes (an example total, a formatted string), and only that value is out of date.',
+    `${isPair ? 'Do the two intents contradict?' : 'Do the intents contradict?'} Often they do not: a test pins a value that ${other} ` +
+      'legitimately changes (an example total, a formatted string), and only that value is out of date.' +
+      (isPair
+        ? ''
+        : " One failing test can clash with more than one landed task: check each landed task's rule before you decide."),
     `- If they do not, update in ${context.paths.join(', ')} only the assertions that pin such a value, ` +
       "so that each task's own intent stays tested. Work out the new expected values from the code in " +
       `this tree, run \`node --test ${context.paths.join(' ')}\` until they pass, and reply RECONCILED.`,
-    "- Change a value only when the other task's intent explains the new one, and say which in your reply. " +
+    `- Change a value only when ${othersIntent} intent explains the new one, and say which in your reply. ` +
       "Never delete or loosen an assertion, and never change what a task's own intent requires: if the code " +
       'looks wrong rather than the test, change nothing and reply CONTRADICTION: <what looks wrong>.',
-    '- If both cannot hold, change nothing and reply with one line: CONTRADICTION: <the disagreement>.',
+    isPair
+      ? '- If both cannot hold, change nothing and reply with one line: CONTRADICTION: <the disagreement>.'
+      : '- If they cannot all hold, change nothing and reply with one line: CONTRADICTION: <the disagreement, naming the tasks>.',
     "Don't stage or commit.",
   );
   return `${lines.join('\n')}\n`;
+}
+
+/** `a and b`, `a, b and c`. */
+function listed(items: readonly string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} and ${items.at(-1) ?? ''}`;
 }
 
 /** Test files shown to a test author, under a heading (nothing when there are none). */
@@ -495,6 +670,27 @@ export function taskCommitMessage(
 /** The queue's squash message (`QueueRace.land_message`). */
 export function queueLandMessage(task: Pick<ArenaTask, 'title' | 'id'>): string {
   return `${task.title}\n\nTask: ${task.id}\nPolicy: queue\n`;
+}
+
+/**
+ * v2.5 (`tests_first`; E1's `test_author`, verbatim): a separate session writes a task's
+ * acceptance tests from its intent alone, before anyone implements it. Only new test files
+ * are kept, and they must fail on the task's base.
+ */
+export function testsFirstPrompt(task: Pick<ArenaTask, 'title' | 'prompt'>): string {
+  return (
+    'You write the acceptance tests for an issue before anyone implements it. Another engineer will implement ' +
+    'the issue later, in a separate session, against your tests: they will not see your reasoning and cannot ' +
+    `change your tests.\n\nIssue: ${task.title}\n\n${task.prompt.trim()}\n\n` +
+    'Add one new test file (node:test, `*.test.ts`) next to the code the issue is about, in the style of the ' +
+    'existing tests and using their helpers (for example src/lib/testing.ts). Test the behaviour the issue asks ' +
+    "for through the names it gives (functions, fields, routes, messages, statuses); don't assume other names or " +
+    'internal details. The tests must fail on the current code because the behaviour is missing, and pass once ' +
+    'the issue is implemented correctly. Run `node --test <your file>` to check that the file loads and fails ' +
+    'for that reason (a failed assertion or the missing export, not a mistake in the test).\n\n' +
+    "Don't implement the issue and don't change existing files: only new test files are kept, so any helper " +
+    "must live inside your test file. Don't stage or commit; the harness collects your file.\n"
+  );
 }
 
 /** The beanstalk policies' squash message for a task (`BeanstalkRace.land_message`). */

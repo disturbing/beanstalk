@@ -3,23 +3,37 @@
  * a merge to resolve (`reexecute`), a red pre-land check as an informed rework that names at
  * most two landed culprits with their intent and diff (`repair_before_landing`). The third
  * red against the same culprit opens a decision card instead, unless that pair was decided.
+ * v2.5 (`escalate_after: 1`) escalates sooner: once a failing test file fails again against a
+ * culprit after one informed repair, the bean goes to reconcile, then to a card; a culprit
+ * already reconciled and decided drops the bean instead of spending the remaining rounds
+ * (with `rescue`, the bean is first re-executed once from scratch).
  * With `release_on_check` the rework waits for a free slot and resumes the author's session.
  */
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 
 import { failingTestNames } from '../ci';
-import { emit, requireTask, startJob, taskDefinition } from '../context';
+import {
+  acceptanceTests,
+  emit,
+  promptTask,
+  requireTask,
+  startJob,
+  taskDefinition,
+} from '../context';
 import { canResume, createInvocation } from '../invocations';
 import type { CheckResult, JobResult } from '../model';
-import { informedRedPrompt, reworkConflictPrompt } from '../prompts';
-import type { CulpritContext } from '../prompts';
+import { informedConflictPrompt, informedRedPrompt } from '../prompts';
+import type { ConflictAuthor, ConflictContext, CulpritContext } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
+import { endLanding } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
-import type { AgentWork, LandingFlow, V2Step } from './v2-state';
+import { rescueOnExhaustion } from './v2-rescue';
+import { cardAfterReds } from './v2-start';
+import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
 const MAX_CULPRITS = 2;
@@ -29,12 +43,23 @@ const CARD_AFTER_REDS = 3;
 export const CULPRIT_DIFF_CHARS = 5000;
 /** Failing tests quoted in an informed rework (`[:20]`). */
 const REWORK_FAILING_TESTS = 20;
-/** How the harness names the line in a conflict prompt (`rework_conflict(..., "the trunk")`). */
-const CONFLICT_TARGET = 'the trunk';
+/** Landed beans a conflict rework names as the other side's authors. */
+const MAX_CONFLICT_AUTHORS = 3;
 /** What an informed rework shows for a culprit's diff that cannot be read. */
 const DIFF_UNAVAILABLE = '(diff unavailable)';
 /** The diff text of a culprit with no landed commit. */
 const NOT_LANDED = '(not on trunk)';
+
+/**
+ * A red pre-land check: the sprout it ran on, its result and the bean's changed files, and
+ * (v2.5 `dynamic_culprits`) the landed beans a leave-one-out search confirmed.
+ */
+export type RedCheck = {
+  readonly head: Sha;
+  readonly red: CheckResult;
+  readonly mine: readonly string[] | null;
+  readonly confirmed?: readonly TaskId[];
+};
 
 type ConflictWork = Extract<AgentWork, { kind: 'conflict' }>;
 type InformedWork = Extract<AgentWork, { kind: 'informed' }>;
@@ -48,8 +73,9 @@ export function startConflictRework(
 ): void {
   const { ctx } = step;
   const task = requireTask(ctx, flow.task);
-  const definition = taskDefinition(ctx, flow.task);
+  const definition = promptTask(ctx, flow.task);
   const resumed = canResume(ctx, task);
+  const conflict = conflictContext(step, flow.task, work);
   task.reworks += 1;
   task.status = 'rework';
   emit(ctx, 'rework.start', {
@@ -66,8 +92,8 @@ export function startConflictRework(
     task: flow.task,
     slot,
     attempt: flow.rounds,
-    prompt: reworkConflictPrompt(definition, work.files, CONFLICT_TARGET, resumed),
-    freshPrompt: reworkConflictPrompt(definition, work.files, CONFLICT_TARGET, false),
+    prompt: informedConflictPrompt(definition, conflict, resumed),
+    freshPrompt: informedConflictPrompt(definition, conflict, false),
     resume: resumed ? task.sessionId : null,
     workspace: (inv) =>
       taskWorkspace(ctx, task, {
@@ -82,31 +108,80 @@ export function startConflictRework(
 }
 
 /**
- * A red pre-land check: name the culprits, count the pair, and either open a decision
- * card or fetch the culprits' diffs for an informed rework.
+ * The hunks of a conflict and the landed beans behind the sprout's side: the newest first
+ * among those that landed after the bean last merged the sprout and wrote a conflicted file.
  */
-export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: CheckResult): void {
+function conflictContext(step: V2Step, task: TaskId, work: ConflictWork): ConflictContext {
+  const { ctx, state } = step;
+  const since = sproutIndex(state, requireTask(ctx, task).mergedMain);
+  const conflicted = new Set(work.files);
+  const authors: ConflictAuthor[] = [];
+  for (const commit of state.commits.slice(since + 1).toReversed()) {
+    const author = commit.task;
+    const paths = commit.files.filter((path) => conflicted.has(path));
+    const isOtherBean = commit.kind === 'task' && author !== null && author !== task;
+    if (!isOtherBean || commit.reverted || paths.length === 0) continue;
+    if (authors.some((known) => known.task === author)) continue;
+    const definition = taskDefinition(ctx, author);
+    authors.push({ task: author, title: definition.title, intent: definition.prompt, paths });
+    if (authors.length === MAX_CONFLICT_AUTHORS) break;
+  }
+  return { files: work.files, hunks: work.hunks, authors };
+}
+
+/**
+ * A red pre-land check: name the culprits, count the pair, and either open a decision
+ * card or fetch the culprits' diffs for an informed rework. `failure.confirmed` (v2.5
+ * dynamic culprits) replaces the read-set guess. A declared partner (`start_cards`) is stuck
+ * at its first red.
+ */
+export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck): void {
   const { state } = step;
-  const culprits = culpritTasks(step, flow.task, red);
+  const { head, red } = failure;
+  const culprits = culpritTasks(step, flow.task, failure);
   for (const culprit of culprits) {
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
   }
+  const repeated = new Set(
+    state.settings.escalateAfter < CARD_AFTER_REDS - 1
+      ? repeatedCulprits(step, flow.task, red, culprits)
+      : [],
+  );
   const stuck = culprits.filter(
     (culprit) =>
-      (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
-      !isDecided(state, flow.task, culprit),
+      repeated.has(culprit) ||
+      ((state.pairReds[pairKey(flow.task, culprit)] ?? 0) >=
+        cardAfterReds(step, flow.task, culprit, CARD_AFTER_REDS) &&
+        !isDecided(state, flow.task, culprit)),
   );
   const unreconciled = stuck.find(
     (culprit) =>
       step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
   );
   if (unreconciled !== undefined) {
-    requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, red, head });
+    const parties = reconcileParties(step, flow.task, failure, unreconciled);
+    requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, parties, red, head });
     return;
   }
-  if (stuck.length > 0) {
-    openCard(step, flow, { against: stuck, red, head });
+  const undecided = stuck.filter((culprit) => !isDecided(state, flow.task, culprit));
+  if (undecided.length > 0) {
+    openCard(step, flow, { against: undecided, red, head });
+    return;
+  }
+  const decided = stuck[0];
+  if (decided !== undefined) {
+    if (rescueOnExhaustion(step, flow, red)) {
+      forgetRepeats(state, flow.task);
+      return;
+    }
+    state.stats.stuck_drops += 1;
+    state.stats.preland_drops += 1;
+    endLanding(
+      step,
+      flow.task,
+      `pre-land check still red against ${decided} after its decision card`,
+    );
     return;
   }
   const diffs: Record<string, string> = {};
@@ -145,25 +220,111 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 }
 
 /**
- * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
- * bean's snapshot whose writes intersect the failing tests' read set; at most two.
+ * v2.5: the culprits a bean is stuck against. A red repeats against a culprit when one of its
+ * failing test files failed in the previous red against it too (a card resets the count);
+ * after `escalate_after` repeats, or v2.4's third red of an undecided pair, the pair is stuck.
  */
-export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): TaskId[] {
+function repeatedCulprits(
+  step: V2Step,
+  task: TaskId,
+  red: CheckResult,
+  culprits: readonly TaskId[],
+): TaskId[] {
+  const { state } = step;
+  const files = [...(red.failingFiles ?? [])];
+  return culprits.filter((culprit) => {
+    const key = pairKey(task, culprit);
+    const decided = isDecided(state, task, culprit);
+    const last = state.pairRepeats[key];
+    const isRepeat =
+      last !== undefined && last.decided === decided && files.some((f) => last.files.includes(f));
+    const repeats = isRepeat ? last.repeats + 1 : 0;
+    state.pairRepeats[key] = { files, repeats, decided };
+    const isThirdRed = !decided && (state.pairReds[key] ?? 0) >= CARD_AFTER_REDS;
+    return repeats >= state.settings.escalateAfter || isThirdRed;
+  });
+}
+
+/** A rescued bean starts its repeat count against every culprit over (`rescue`). */
+function forgetRepeats(state: V2State, task: TaskId): void {
+  for (const key of Object.keys(state.pairRepeats)) {
+    if (key.startsWith(`${task}|`)) delete state.pairRepeats[key];
+  }
+}
+
+/**
+ * v2.5: the landed tasks a reconcile takes in: the stuck culprit, then the owners of the
+ * failing tests and the read-set suspects since the bean's base, at most `reconcile_parties`.
+ */
+function reconcileParties(step: V2Step, task: TaskId, check: RedCheck, against: TaskId): TaskId[] {
+  const limit = step.state.settings.reconcileParties;
+  if (limit <= 1) return [against];
+  return [...new Set([against, ...culpritTasks(step, task, check, limit)])].slice(0, limit);
+}
+
+/**
+ * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
+ * bean's snapshot whose writes intersect the failing tests' read set; at most two (`limit`).
+ * With `base_culprits`, each failing test whose read set the bean changed names, right after
+ * the owners, the newest landed bean that also wrote that read set, even one already in the
+ * bean's base: the bean's change is what met it.
+ */
+export function culpritTasks(
+  step: V2Step,
+  task: TaskId,
+  check: RedCheck,
+  limit = MAX_CULPRITS,
+): TaskId[] {
   const { ctx, state } = step;
+  const { red } = check;
   const owners = acceptanceOwners(step);
   const named: TaskId[] = [];
   for (const path of red.failingFiles ?? []) {
     const owner = owners.get(path);
     if (owner !== undefined && owner !== task) named.push(owner);
   }
+  if (check.confirmed !== undefined) {
+    return [...new Set([...named, ...check.confirmed])].slice(0, limit);
+  }
+  if (ctx.env.config.base_culprits) named.push(...metCulprits(state, task, check));
   const read = new Set(red.readSet);
   const snapshot = sproutIndex(state, requireTask(ctx, task).baseSha);
   for (const commit of state.commits.slice(snapshot + 1).toReversed()) {
-    const culprit = commit.task;
-    if (commit.kind !== 'task' || culprit === null || culprit === task || commit.reverted) continue;
-    if (commit.files.some((path) => read.has(path))) named.push(culprit);
+    if (isOtherLiveTask(commit, task) && commit.files.some((path) => read.has(path))) {
+      named.push(commit.task);
+    }
   }
-  return [...new Set(named)].slice(0, MAX_CULPRITS);
+  return [...new Set(named)].slice(0, limit);
+}
+
+/**
+ * `base_culprits`: for each failing test whose read set the bean changed, the newest other
+ * live bean on the sprout that wrote a file of that read set, wherever it sits.
+ */
+function metCulprits(state: V2State, task: TaskId, check: RedCheck): TaskId[] {
+  const { red, mine } = check;
+  if (mine === null) return [];
+  const changed = new Set(mine);
+  const met: TaskId[] = [];
+  for (const test of red.failingFiles ?? []) {
+    const reads = red.readSets[test] ?? [test];
+    const ownReads = reads.filter((path) => changed.has(path));
+    if (ownReads.length === 0 && !changed.has(test)) continue;
+    const others = new Set(reads.filter((path) => !changed.has(path)));
+    const culprit = state.commits.findLast(
+      (commit) => isOtherLiveTask(commit, task) && commit.files.some((path) => others.has(path)),
+    );
+    const owner = culprit?.task;
+    if (owner !== undefined && owner !== null) met.push(owner);
+  }
+  return met;
+}
+
+function isOtherLiveTask(
+  commit: SproutCommit,
+  task: TaskId,
+): commit is SproutCommit & { task: TaskId } {
+  return commit.kind === 'task' && commit.task !== null && commit.task !== task && !commit.reverted;
 }
 
 /** Acceptance test path → the landed (not dropped) task that owns it; later tasks win. */
@@ -173,7 +334,7 @@ function acceptanceOwners(step: V2Step): Map<string, TaskId> {
   for (const id of ctx.state.order) {
     const task = ctx.state.tasks[id];
     if (task === undefined || task.landedSha === null || task.status === 'dropped') continue;
-    for (const path of Object.keys(taskDefinition(ctx, id).acceptance_tests)) owners.set(path, id);
+    for (const path of Object.keys(acceptanceTests(ctx, id))) owners.set(path, id);
   }
   return owners;
 }
@@ -195,7 +356,7 @@ export function startInformedRework(
 ): void {
   const { ctx, state } = step;
   const task = requireTask(ctx, flow.task);
-  const definition = taskDefinition(ctx, flow.task);
+  const definition = promptTask(ctx, flow.task);
   const { head, red, culprits } = work;
   const named = failingTestNames(red).slice(0, REWORK_FAILING_TESTS);
   const failing = named.length > 0 ? named : [...(red.failingFiles ?? [])];

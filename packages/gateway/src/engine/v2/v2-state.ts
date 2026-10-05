@@ -6,7 +6,15 @@
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 
 import type { StepContext } from '../context';
-import type { CheckResult, CiId, JobId, Seconds, TimerId } from '../model';
+import type {
+  CheckResult,
+  CiId,
+  ConflictHunk,
+  JobId,
+  Resolution,
+  Seconds,
+  TimerId,
+} from '../model';
 import type { CulpritContext } from '../prompts';
 
 /** One commit on the sprout (`TrunkCommit`): a landed bean or a revert. */
@@ -88,7 +96,12 @@ export type RevertFlow =
 
 /** Work a bean needs an agent for. With `release_on_check` it waits for a free slot. */
 export type AgentWork =
-  | { readonly kind: 'conflict'; readonly head: Sha; readonly files: readonly string[] }
+  | {
+      readonly kind: 'conflict';
+      readonly head: Sha;
+      readonly files: readonly string[];
+      readonly hunks: readonly ConflictHunk[];
+    }
   | {
       readonly kind: 'informed';
       readonly head: Sha;
@@ -97,15 +110,21 @@ export type AgentWork =
       readonly diffs: Readonly<Record<string, string>>;
     }
   | {
-      /** v2.4: reconcile the two tasks' tests before a card. */
+      /** v2.4: reconcile the bean's tests with the landed parties' before a card. */
       readonly kind: 'reconcile';
       readonly against: TaskId;
+      /** v2.5: every landed task in the reconcile, `against` first (v2.4: `against` alone). */
+      readonly parties: readonly TaskId[];
       readonly red: CheckResult;
       readonly head: Sha;
     }
   | { readonly kind: 'author'; readonly card: string }
   | { readonly kind: 'reexec'; readonly card: string }
-  | { readonly kind: 'adopt'; readonly card: string };
+  | { readonly kind: 'adopt'; readonly card: string }
+  /** v2.5: the initial run of a bean whose start card was decided. */
+  | { readonly kind: 'start'; readonly card: string }
+  /** v2.5: the one re-execution from scratch after the rework rounds ran out. */
+  | { readonly kind: 'rescue'; readonly failing: readonly string[] };
 
 /** Where a bean is in its landing loop (`land` + `try_optimistic`) or in a decision. */
 export type LandingStep =
@@ -116,6 +135,8 @@ export type LandingStep =
       isInTurn: boolean;
       /** A re-check after the sprout moved under an overlapping change (`recheck: sampled` counts it). */
       isRecheck: boolean;
+      /** v2.5: a targeted check of the exact landing tree runs only these tests (null: the suite). */
+      targets: string[] | null;
       head0: Sha;
       candidate: Sha;
       files: string[];
@@ -149,6 +170,7 @@ export type LandingStep =
       head: Sha;
       sha: Sha;
       files: string[];
+      mine: string[] | null;
       landedMeanwhile: number;
       jobId: JobId;
     }
@@ -163,20 +185,37 @@ export type LandingStep =
       diffs: Record<string, string>;
     }
   | { kind: 'awaiting-agent'; work: AgentWork }
-  | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' }
+  | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' | 'rescue' }
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
   /** v2.4: a test author reconciles the bean's tests with `against`'s, then reads what changed. */
-  | { kind: 'reconciling'; against: TaskId; red: CheckResult; head: Sha }
+  | { kind: 'reconciling'; against: TaskId; parties: TaskId[]; red: CheckResult; head: Sha }
   | {
       kind: 'reconcile-reading';
       against: TaskId;
+      parties: TaskId[];
       red: CheckResult;
       head: Sha;
       inv: string;
       reason: string;
       before: Record<string, string>;
       jobId: JobId;
+    }
+  /** v2.5: leave-one-out probes for the landed beans that break the bean's own tests. */
+  | {
+      kind: 'culprit-probe';
+      head: Sha;
+      red: CheckResult;
+      /** The bean's changed files, carried to the repair. */
+      mine: readonly string[] | null;
+      candidate: Sha;
+      /** The bean's own failing test files the probes must fix. */
+      files: string[];
+      /** Candidates not probed yet, in order. */
+      queue: TaskId[];
+      probed: TaskId[];
+      probes: CulpritProbe[];
+      confirmed: TaskId[];
     }
   /** A decided card's pipeline: the winner's diff, the author, its files, the fail-first proof. */
   | { kind: 'card-context'; card: string; jobId: JobId }
@@ -191,6 +230,9 @@ export type LandingStep =
       result: CheckResult | null;
     };
 
+/** One leave-one-out probe: the checked tree without one landed bean, then the suite on it. */
+export type CulpritProbe = { task: TaskId; jobId: JobId; phase: 'revert' | 'check' };
+
 /** A bean between its first commit and its landing (or drop). */
 export type LandingFlow = {
   task: TaskId;
@@ -202,6 +244,10 @@ export type LandingFlow = {
   rechecks: number;
   /** Red checks waited out as the sprout's (`inherited_reds`); at most three per bean. */
   inheritedWaits: number;
+  /** v2.5: targeted checks of the exact landing tree in this attempt. */
+  targeted: number;
+  /** The merge tier of the bean's latest clean squash: what its landing event reports. */
+  resolved: Resolution;
   step: LandingStep;
 };
 
@@ -239,6 +285,8 @@ export type DecisionCard = {
   snapshot: Sha | null;
   winnerContext: CulpritContext | null;
   amendment: Amendment | null;
+  /** v2.5: raised when the bean started (`start_cards`), before it had any work or red. */
+  trigger?: 'start';
 };
 
 /** An in-place amendment a winner carries until it lands (then it is the loser's spec). */
@@ -280,7 +328,25 @@ export type V2Wait =
   | { readonly kind: 'loo-check'; readonly ticket: string; readonly commit: number }
   | { readonly kind: 'ticket-revert'; readonly ticket: string }
   | { readonly kind: 'card'; readonly card: string }
+  | { readonly kind: 'tests-first'; readonly task: TaskId }
   | { readonly kind: 'stalk' };
+
+/** v2.5 (`tests_first`): a task's test author, then the read of its files and their fail-first proof. */
+export type TestsFirstStep =
+  | { readonly kind: 'writing' }
+  | {
+      readonly kind: 'reading';
+      readonly inv: string;
+      readonly paths: string[];
+      readonly jobId: JobId;
+    }
+  | {
+      kind: 'proving';
+      readonly inv: string;
+      readonly files: Record<string, string>;
+      jobId: JobId | null;
+      result: CheckResult | null;
+    };
 
 export type CardDetail = {
   card: string;
@@ -345,6 +411,16 @@ export type V2Stats = {
   reconciled: number;
   contradictions: number;
   stale_rechecks: number;
+  /** v2.5: beans dropped still red against a counterpart already reconciled and decided. */
+  stuck_drops: number;
+  start_cards: number;
+  rescues: number;
+  dynamic_culprit_runs: number;
+  dynamic_culprit_probes: number;
+  tests_first_accepted: number;
+  tests_first_fallbacks: number;
+  targeted_checks: number;
+  targeted_red: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -357,8 +433,31 @@ export type V2Settings = {
   readonly inheritedReds: 'readset' | 'validation' | 'off';
   readonly earlyTickets: boolean;
   readonly reconcile: boolean;
+  /** v2.5: failed informed repairs against one counterpart before escalating (2: v2.4). */
+  readonly escalateAfter: number;
+  /** v2.5: landed tasks a reconcile takes in (1: v2.4). */
+  readonly reconcileParties: number;
+  readonly testsFirst: boolean;
+  readonly targetedLandingCheck: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
+  readonly singleSuspectRevert: boolean;
+  readonly validationFirst: boolean;
+  readonly baseCulprits: boolean;
+  readonly startCards: boolean;
+  readonly rescue: boolean;
+  readonly dynamicCulprits: boolean;
+  /** Absent in runs created before the setting: `fifo`. */
+  readonly startOrder?: 'fifo' | 'dependency';
+  /** v2.5: the sprout window's sizes (`window_start`, `_growth`, `_max`, `_min`). */
+  readonly windowSizes: {
+    readonly start: number;
+    readonly growth: number;
+    readonly max: number;
+    readonly min: number;
+  };
+  /** v2.5: squashes ask the runner for its structural tier (`structural_merge`). */
+  readonly structuralMerge: boolean;
 };
 
 export type V2State = {
@@ -395,6 +494,10 @@ export type V2State = {
   bisects: Record<string, FirstBadSearch>;
   reverts: Record<string, RevertFlow>;
   unstarted: TaskId[];
+  /** v2.5: tasks whose test author writes or proves their tests before the implementer starts. */
+  authoring: Record<string, TestsFirstStep>;
+  /** v2.5: the read set of every test file a check reported (the targeted check's third source). */
+  readSets: Record<string, string[]>;
   landings: Record<string, LandingFlow>;
   /** Beans waiting for a free agent (release on check), in arrival order. */
   agentQueue: TaskId[];
@@ -408,12 +511,19 @@ export type V2State = {
   decidedPairs: Record<string, string>;
   /** v2.4: pairs already reconciled once (a second stuck red goes to a card). */
   reconciledPairs: Record<string, boolean>;
+  /**
+   * v2.5 (`escalate_after: 1`): per pair, the failing files of its last red and how many reds
+   * in a row repeated a failing file of the one before; reset when a card decides the pair.
+   */
+  pairRepeats: Record<string, { files: string[]; repeats: number; decided: boolean }>;
   cards: Record<string, DecisionCard>;
   cardSeq: number;
   /** The card of each running test-author invocation. */
   authors: Record<string, string>;
   /** In-place amendments each winner carries until it lands. */
   carried: Record<string, CarriedAmendment[]>;
+  /** v2.5: beans already rescued once (`rescue`). */
+  rescued: Record<string, boolean>;
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;

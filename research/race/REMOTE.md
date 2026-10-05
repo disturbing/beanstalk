@@ -26,17 +26,21 @@ python3 kth_green.py runs/cf-replay-queue-8-s7 runs/cf-replay-v2-8-s7
 - **Auth probe:** before a `claude` race creates its run, the driver makes one Haiku turn through the same CLI (about $0.004). If credentials are refused or a rate limit is hit, the race stops there and no run is created. `--no-auth-probe` skips the probe.
 - **Policies:** `queue` and `beanstalk-v2` only.
 - **v2 knobs:** `--preland-mode`, `--preland-seconds`, `--decision-seconds` and `--decision-oracle` work on both forges. Each resolves from the flag, then the harness's environment variable (`PRELAND_MODE` …), then the harness default (`locked`, 0, 30, `landed`). The same command line therefore means the same race on both forges. v2 on the gateway always implies `--snapshot head --error-budget 999 --protect-tests landed`; an explicit conflicting flag is an error.
-- **v2.2/v2.3 knobs (gateway only):** `WINDOW` (`aimd`, `off`), `PRELAND_RECHECK` (`sampled`, `adaptive`, `file`, `hunk`, `never`), `PRELAND_ADAPT_FALLBACK`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS` (`readset`, `validation`, `off`), `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME` (`reexecute`, `decline`), `DECISION_MODE` (`oracle`, `human`) and `HUMAN_TIMEOUT_SECONDS`. The driver sends a knob only when its variable is set, so the gateway's v2.4 defaults apply otherwise:
-  - the sprout window (AIMD backpressure);
+- **v2.2 to v2.5 knobs (gateway only, v2 only):** `WINDOW` (`aimd`, `off`), `PRELAND_RECHECK` (`sampled`, `adaptive`, `file`, `hunk`, `never`), `PRELAND_ADAPT_FALLBACK`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS` (`readset`, `validation`, `off`), `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME` (`reexecute`, `decline`), `DECISION_MODE` (`oracle`, `human`), `HUMAN_TIMEOUT_SECONDS`, and v2.5's `ESCALATE_AFTER` (`1`, `2`), `RECONCILE_PARTIES` (`1` to `3`), `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX`, `WINDOW_MIN`, `STRUCTURAL_MERGE`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `TESTS_FIRST`, `TARGETED_LANDING_CHECK` and `START_ORDER` (`fifo`, `dependency`). The driver sends a knob only when its variable is set, so the gateway's v2.5 defaults apply otherwise:
+  - the sprout window (AIMD backpressure), starting at 8;
   - sampled re-checks;
   - the agent released during its check;
-  - flake-confirmed reverts;
+  - flake-confirmed reverts, and a red final suite re-run once on a commit validated green;
   - read-set inherited reds;
-  - early tickets;
-  - a reconcile step before any card, in which a test author updates values that one task's tests pin and the other task legitimately changes;
+  - early tickets, and a lone read-set suspect reverted without a bisect;
+  - culprits named in the bean's base, and confirmed by leave-one-out probes when the bean's own tests fail;
+  - a reconcile step before any card, in which a test author updates values that one task's tests pin and another task legitimately changes, with every landed task behind the failing tests (up to three);
+  - escalation after one failed informed repair whose failing test file fails again against the same counterpart (reconcile, then a card; a counterpart already reconciled and decided drops the bean, after one rescue);
+  - start cards for declared couplings, and one rescue re-execution when the rework rounds run out;
+  - the runner's structural merge tier (Mergiraf) before a conflict; the queue never gets it;
   - losers re-executed against amended tests.
 
-  To rerun v2.3, set `RECONCILE=0`. To rerun v2.2, set `PRELAND_RECHECK=adaptive WINDOW=off INHERITED_REDS=validation EARLY_TICKETS=0 RECONCILE=0`. To reproduce a pre-v2.2 run, set `PRELAND_RECHECK=file WINDOW=off RELEASE_ON_CHECK=0 FLAKE_CONFIRM=0 INHERITED_REDS=off EARLY_TICKETS=0 RECONCILE=0 DECISION_OUTCOME=decline` (the gateway README, "Replay parity").
+  Tests first, the targeted landing check and dependency-aware starts stay off unless set. The gateway README's "Version labels" lists the labels and the environment of each phase race (v2.4 baseline, v2.5a to v2.5d, + dependency starts, + tests track). To rerun v2.4, set `ESCALATE_AFTER=2 RECONCILE_PARTIES=1 SINGLE_SUSPECT_REVERT=0 VALIDATION_FIRST=0 BASE_CULPRITS=0 WINDOW_START=4 STRUCTURAL_MERGE=0 START_CARDS=0 RESCUE=0 DYNAMIC_CULPRITS=0` (`V24`). Add `RECONCILE=0` for v2.3; add `PRELAND_RECHECK=adaptive WINDOW=off INHERITED_REDS=validation EARLY_TICKETS=0 RECONCILE=0` for v2.2. To reproduce a pre-v2.2 run, set `V24` plus `PRELAND_RECHECK=file WINDOW=off RELEASE_ON_CHECK=0 FLAKE_CONFIRM=0 INHERITED_REDS=off EARLY_TICKETS=0 RECONCILE=0 DECISION_OUTCOME=decline` (the gateway README, "Replay parity").
 - **Outputs** (same as a local run): `events.jsonl` and `summary.json` downloaded from the gateway, `summary.md` rendered by `summary.py`, and `config.json` (adds `forge`, `gateway`, `run`). `work/` holds the bean worktrees, transcripts, the arena snapshot, and `driver.jsonl`, the driver's own log of prepare/merge/push/post per invocation. `summary.py`, `report.py` and `kth_green.py` read the run unchanged.
 - **Live page:** its link carries a view token, so it is printed only when stderr is a terminal or with `--live-url`.
 - **Exit status:** 0 done, 2 aborted on budget, 3 otherwise. Ctrl-C asks the gateway to stop (it then runs the final check) and still downloads the results; a second Ctrl-C stops waiting.

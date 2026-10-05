@@ -7,12 +7,12 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
-use crate::check::{CheckRequest, ExtraFile, SuiteCommand, SuiteLimits};
+use crate::check::{CheckRequest, ExtraFile, ReadSets, SuiteCommand, SuiteLimits};
 use crate::config::RemoteSchemes;
 use crate::error::{Error, Result};
 use crate::git::{
     AttrPattern, CommitSha, Lease, MergeDriver, MergeRules, RefName, RefUpdate, Remote, RemoteUrl,
-    Token,
+    StructuralTier, Token,
 };
 use crate::integrate::{
     ChangeSource, ComposeItem, ComposeRequest, RevertRequest, SquashRequest, UpdateRefRequest,
@@ -33,6 +33,9 @@ pub(crate) struct SquashBody {
     union_paths: Vec<String>,
     #[serde(default)]
     merge_driver: MergeDriverName,
+    /// Retry a conflict with Mergiraf on the conflicted paths before reporting it.
+    #[serde(default = "structural_by_default")]
+    structural_merge: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,6 +60,8 @@ pub(crate) struct ComposeBody {
     union_paths: Vec<String>,
     #[serde(default)]
     merge_driver: MergeDriverName,
+    #[serde(default = "structural_by_default")]
+    structural_merge: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -116,6 +121,9 @@ pub(crate) struct CheckBody {
     suite_timeout_seconds: Option<f64>,
     #[serde(default)]
     test_timeout_ms: Option<u64>,
+    /// Also report the passing test files' read sets (`passing_read_sets`).
+    #[serde(default)]
+    all_read_sets: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
@@ -136,7 +144,11 @@ impl SquashBody {
             onto: sha("onto", &self.onto)?,
             change: self.change.into_source("change", schemes)?,
             message: self.message,
-            rules: rules(&self.union_paths, self.merge_driver)?,
+            rules: rules(
+                &self.union_paths,
+                self.merge_driver,
+                tier(self.structural_merge),
+            )?,
         })
     }
 }
@@ -169,7 +181,11 @@ impl ComposeBody {
             },
             base: sha("base", &self.base)?,
             items,
-            rules: rules(&self.union_paths, self.merge_driver)?,
+            rules: rules(
+                &self.union_paths,
+                self.merge_driver,
+                tier(self.structural_merge),
+            )?,
         })
     }
 }
@@ -203,7 +219,8 @@ impl RevertBody {
             onto: sha("onto", &self.onto)?,
             commit: sha("commit", &self.commit)?,
             message: self.message,
-            rules: rules(&self.union_paths, self.merge_driver)?,
+            // A revert undoes a commit exactly; it never guesses structurally.
+            rules: rules(&self.union_paths, self.merge_driver, StructuralTier::Off)?,
         })
     }
 }
@@ -264,6 +281,11 @@ impl CheckBody {
                 suite_timeout,
                 test_timeout_ms,
             },
+            read_sets: if self.all_read_sets {
+                ReadSets::All
+            } else {
+                ReadSets::Failing
+            },
         })
     }
 }
@@ -288,7 +310,24 @@ fn reference(field: &str, raw: &str) -> Result<RefName> {
     RefName::parse(raw).map_err(|reason| invalid(field, reason))
 }
 
-fn rules(union_paths: &[String], driver: MergeDriverName) -> Result<MergeRules> {
+fn structural_by_default() -> bool {
+    true
+}
+
+/// The wire's `structural_merge` flag as the tier it selects.
+fn tier(structural_merge: bool) -> StructuralTier {
+    if structural_merge {
+        StructuralTier::Mergiraf
+    } else {
+        StructuralTier::Off
+    }
+}
+
+fn rules(
+    union_paths: &[String],
+    driver: MergeDriverName,
+    tier: StructuralTier,
+) -> Result<MergeRules> {
     let patterns = union_paths
         .iter()
         .map(|pattern| AttrPattern::parse(pattern).map_err(|reason| invalid("union_paths", reason)))
@@ -297,7 +336,7 @@ fn rules(union_paths: &[String], driver: MergeDriverName) -> Result<MergeRules> 
         MergeDriverName::Git => MergeDriver::Git,
         MergeDriverName::Mergiraf => MergeDriver::Mergiraf,
     };
-    Ok(MergeRules::new(patterns, driver))
+    Ok(MergeRules::new(patterns, driver, tier))
 }
 
 fn seconds_between(field: &str, seconds: f64, minimum: f64) -> Result<Duration> {

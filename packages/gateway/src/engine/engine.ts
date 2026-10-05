@@ -196,8 +196,9 @@ function finishInvocation(ctx: StepContext, inv: OpenInvocation, body: Invocatio
   }
   const isCommitted =
     body.head_sha !== null && body.markers_left.length === 0 && body.subtype !== 'unresolved';
-  // A test author's commit is not the task's work: the policy reads what it amended.
-  if (inv.kind !== 'test-author' && !recordReworkCommit(ctx, { inv, body, isCommitted })) return;
+  // A test author's commit is not the task's work: the policy reads what it wrote.
+  const isAuthor = inv.kind === 'test-author' || inv.kind === 'test-first';
+  if (!isAuthor && !recordReworkCommit(ctx, { inv, body, isCommitted })) return;
   policyHooks(ctx).onReworkResult({
     inv: inv.id,
     kind: inv.kind,
@@ -209,6 +210,7 @@ function finishInvocation(ctx: StepContext, inv: OpenInvocation, body: Invocatio
     committed: isCommitted,
     headSha: body.head_sha,
     resultText: body.result_text,
+    files: body.files,
   });
 }
 

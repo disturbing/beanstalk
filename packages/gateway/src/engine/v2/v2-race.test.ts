@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import {
+  V20_SETTINGS,
+  V22_SETTINGS,
+  V23_SETTINGS,
+  V24_SETTINGS,
+} from '@beanstalk/shared-race/run-config';
 
 import { SPROUT_REF, STALK_REF } from '../refs';
 import { buildSummary } from '../summary';
@@ -11,16 +17,7 @@ import { eventsOf, runRace, soloTask, typesOf, wellFormedProblems } from '../tes
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
 
 /** Every v2.2 rule off: the harness's v2. */
-const V20: Partial<RunConfigInput> = {
-  recheck: 'file',
-  release_on_check: false,
-  flake_confirm: false,
-  inherited_reds: 'off',
-  window: 'off',
-  early_tickets: false,
-  reconcile: false,
-  decision_outcome: 'decline',
-};
+const V20: Partial<RunConfigInput> = V20_SETTINGS;
 
 function runV2(scenario: RaceScenario): RaceRun {
   return runRace({ ...scenario, config: { ...V2, ...scenario.config } });
@@ -134,7 +131,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.4', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.5', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -196,6 +193,22 @@ describe('v2: a clean landing', () => {
       'reconciled',
       'contradictions',
       'stale_rechecks',
+      'escalate_after',
+      'reconcile_parties',
+      'stuck_drops',
+      'start_cards',
+      'start_cards_raised',
+      'rescue',
+      'rescues',
+      'dynamic_culprits',
+      'dynamic_culprit_runs',
+      'dynamic_culprit_probes',
+      'tests_first',
+      'tests_first_accepted',
+      'tests_first_fallbacks',
+      'targeted_landing_check',
+      'targeted_checks',
+      'targeted_red',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -210,6 +223,7 @@ describe('v2: a clean landing', () => {
       'open_tickets_at_end',
       'ticket_details',
       'variant',
+      'variant_additions',
     ]);
     expect(stats).toMatchObject({
       landings: 1,
@@ -220,16 +234,23 @@ describe('v2: a clean landing', () => {
       inherited_reds: 'readset',
       inherited_red_waits: 0,
       window: 'aimd',
-      window_size: 6,
+      window_size: 10,
       early_tickets: true,
       reconcile: true,
+      escalate_after: 1,
+      reconcile_parties: 3,
+      start_cards: true,
+      rescue: true,
       decision_outcome: 'reexecute',
-      variant: 'v2.4',
+      variant: 'v2.5',
+      variant_additions: [],
     });
     expect(summaryOf(run)['policy_rows']).toEqual([
       [
         'Variant',
-        'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked',
+        'v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, ' +
+          'lone suspects reverted at once, base and dynamic culprits, a wider window, ' +
+          'structural merges, start cards and one rescue',
       ],
       ['Informed reworks / decision cards / revert-first tickets', '0 / 0 / 0'],
       [
@@ -240,8 +261,14 @@ describe('v2: a clean landing', () => {
       ['Inherited reds waited out (no rework round spent)', '0'],
       ['Reconciles (reconciled / contradictions) / stale re-checks', '0 (0 / 0) / 0'],
       [
+        'Escalate after (failed repairs) / reconcile parties / dropped stuck after a card',
+        '1 / 3 / 0',
+      ],
+      ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
+      ['Tests first (accepted / fallbacks) / targeted landing checks (red)', 'off / off'],
+      [
         'Sprout window at the end / window waits / early tickets / re-check samples',
-        '6 / 0 / 0 / 0',
+        '10 / 0 / 0 / 0',
       ],
       [
         'Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place',
@@ -270,6 +297,72 @@ describe('v2: a clean landing', () => {
       'Variant',
       'v2: pre-land check, informed author repair, decision cards, revert-first',
     ]);
+  });
+
+  it.each([
+    ['v2.4', V24_SETTINGS],
+    ['v2.3', V23_SETTINGS],
+    ['v2.2', V22_SETTINGS],
+    ['v2.5', {}],
+  ] as const)('labels the %s settings %s', (variant, settings) => {
+    const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1, ...settings } });
+
+    expect(beanstalkStats(run)).toMatchObject({ variant, variant_additions: [] });
+  });
+
+  it.each([
+    ['v2.5', {}],
+    ['v2.4', V24_SETTINGS],
+  ] as const)(
+    'reports tests first, the targeted check and dependency starts as additions to %s',
+    (variant, settings) => {
+      const run = runV2({
+        tasks: [soloTask('t001')],
+        config: {
+          agents: 1,
+          ...settings,
+          tests_first: true,
+          targeted_landing_check: true,
+          start_order: 'dependency',
+        },
+      });
+
+      expect(beanstalkStats(run)).toMatchObject({
+        variant,
+        variant_additions: ['tests_first', 'targeted_landing_check', 'start_order:dependency'],
+      });
+      const rows: unknown = summaryOf(run)['policy_rows'];
+      const row = Array.isArray(rows)
+        ? rows.find((entry: unknown) => Array.isArray(entry) && entry[0] === 'Variant')
+        : undefined;
+      expect(Array.isArray(row) ? row[1] : null).toMatch(
+        new RegExp(
+          `^${variant.replace('.', '\\.')}: .* \\+ tests first \\+ targeted landing check \\+ dependency-aware starts$`,
+        ),
+      );
+    },
+  );
+
+  it('labels any single v2.5 rule on top of v2.4 as v2.5', () => {
+    const singles: Partial<RunConfigInput>[] = [
+      { escalate_after: 1 },
+      { reconcile_parties: 3 },
+      { single_suspect_revert: true },
+      { validation_first: true },
+      { base_culprits: true },
+      { window_start: 8 },
+      { structural_merge: true },
+      { start_cards: true },
+      { rescue: true },
+      { dynamic_culprits: true },
+    ];
+    for (const single of singles) {
+      const run = runV2({
+        tasks: [soloTask('t001')],
+        config: { agents: 1, ...V24_SETTINGS, ...single },
+      });
+      expect(beanstalkStats(run)['variant']).toBe('v2.5');
+    }
   });
 });
 
@@ -342,11 +435,41 @@ describe('v2: landing while the sprout moves', () => {
     });
     const rework = run.world.instructions.find((instruction) => instruction.kind === 'rework');
     expect(rework?.prompt).toContain('Your change could not be merged: the trunk moved on');
+    expect(rework?.prompt).toContain(
+      "The trunk's side was written by these landed changes:\n- t001",
+    );
+    expect(rework?.prompt).toContain('keep both intents');
     expect(rework?.workspace.merge).toMatchObject({
       ref: SPROUT_REF,
       conflicts: ['src/shared.ts'],
     });
     expect(eventsOf(run.events, 'land').map((event) => event['task'])).toEqual(['t001', 't002']);
+  });
+
+  it('lands a bean the runner merged structurally as a normal landing that says so', () => {
+    const run = runV2({
+      tasks: [changelogTask('t001'), { ...changelogTask('t002'), mergesStructurally: true }],
+      durations: { t001: 20_000, t002: 100_000 },
+    });
+
+    expect(eventsOf(run.events, 'merge.conflict')).toEqual([]);
+    const [first, second] = eventsOf(run.events, 'land');
+    expect(first).not.toHaveProperty('resolved');
+    expect(second).toMatchObject({ task: 't002', resolved: 'structural' });
+    const squashes = run.world.jobs.filter((job) => job.kind === 'squash');
+    expect(squashes.every((job) => job.structural)).toBe(true);
+  });
+
+  it('asks for no structural tier with structural_merge: false (v2.4)', () => {
+    const run = runV2({
+      tasks: [changelogTask('t001'), { ...changelogTask('t002'), mergesStructurally: true }],
+      durations: { t001: 20_000, t002: 100_000 },
+      config: { structural_merge: false },
+    });
+
+    const squashes = run.world.jobs.filter((job) => job.kind === 'squash');
+    expect(squashes.some((job) => job.structural)).toBe(false);
+    expect(eventsOf(run.events, 'land').some((event) => 'resolved' in event)).toBe(false);
   });
 });
 
@@ -389,12 +512,12 @@ describe('v2: repair before landing', () => {
     });
   });
 
-  it('opens a decision card after two informed reworks fail; v2.0 declines the arriving bean', () => {
+  it('opens a decision card after two informed reworks fail (v2.4); v2.0 declines the arriving bean', () => {
     const run = runV2({
       tasks: [soloTask('t001'), buggyT002({ stubborn: true })],
       rules: [BREAKS_T001],
       durations: { t001: 20_000, t002: 100_000 },
-      config: { decision_outcome: 'decline' },
+      config: { decision_outcome: 'decline', escalate_after: 2 },
     });
 
     expect(
@@ -564,7 +687,7 @@ describe('v2: asynchronous validation', () => {
       tasks: [soloTask('t001'), soloTask('t002'), soloTask('t003')],
       rules: [CLASH],
       durations: { t001: 25_000, t002: 20_000, t003: 30_000 },
-      config: { agents: 3, ci_slots: 1 },
+      config: { agents: 3, ci_slots: 1, single_suspect_revert: false },
     });
 
     const probes = eventsOf(run.events, 'ci.start').filter(

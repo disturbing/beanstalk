@@ -36,6 +36,8 @@ pub(crate) struct CheckReport {
     pub(crate) passing_files: Vec<String>,
     pub(crate) read_set: Vec<String>,
     pub(crate) read_sets: BTreeMap<String, Vec<String>>,
+    /// The passing test files' read sets, when the request asked for them (`ReadSets::All`).
+    pub(crate) passing_read_sets: BTreeMap<String, Vec<String>>,
     pub(crate) read_depths: BTreeMap<String, ImportDepths>,
     pub(crate) stack_files: Vec<String>,
     /// `CIResult.output`: the failure-relevant tail of stdout and stderr.
@@ -73,6 +75,7 @@ pub(crate) fn assess(
         passing_files: Vec::new(),
         read_set: Vec::new(),
         read_sets: BTreeMap::new(),
+        passing_read_sets: BTreeMap::new(),
         read_depths: BTreeMap::new(),
         stack_files: Vec::new(),
         output_excerpt: excerpt(&combined_output(run)),
@@ -134,6 +137,19 @@ fn record_read_sets(report: &mut CheckReport, failing_files: &[String], root_rea
         report.read_depths.insert(test_file.clone(), depths);
     }
     report.read_set = union.into_iter().collect();
+}
+
+/// The static import closure of every passing test file, so a caller can tell which tests
+/// could see two changes combine. Reads sources, so it runs on a blocking thread.
+pub(crate) fn record_passing_read_sets(report: &mut CheckReport, checkout: &Path) {
+    let root_real = paths::real_path(checkout);
+    let files = imports::list_files(&root_real);
+    for test_file in &report.passing_files {
+        let depths = imports::import_depths(&root_real, test_file, &files);
+        let mut read_set: Vec<String> = depths.paths().map(str::to_owned).collect();
+        read_set.sort();
+        report.passing_read_sets.insert(test_file.clone(), read_set);
+    }
 }
 
 /// `pr.stdout + ("\n" + pr.stderr if pr.stderr.strip() else "")`.

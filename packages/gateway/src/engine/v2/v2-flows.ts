@@ -13,6 +13,7 @@ import type { LandingFlow, V2State, V2Step } from './v2-state';
 const LATENCY_PREFIX = 'preland:';
 const ORACLE_PREFIX = 'decision:';
 const FAIL_FIRST_PREFIX = 'failfirst:';
+const TESTS_FIRST_PREFIX = 'testsfirst:';
 
 export function requireFlow(state: V2State, task: TaskId): LandingFlow {
   const flow = state.landings[task];
@@ -41,6 +42,11 @@ export function failFirstTimerKey(task: TaskId): string {
   return `${FAIL_FIRST_PREFIX}${task}`;
 }
 
+/** The timer that ends a tests-first proof's emulated latency (v2.5). */
+export function testsFirstTimerKey(task: TaskId): string {
+  return `${TESTS_FIRST_PREFIX}${task}`;
+}
+
 /** The timer of the oracle that answers a decision card (or takes over from a human). */
 export function oracleTimerKey(card: string): string {
   return `${ORACLE_PREFIX}${card}`;
@@ -49,6 +55,7 @@ export function oracleTimerKey(card: string): string {
 export type PolicyTimer =
   | { readonly kind: 'latency'; readonly task: TaskId }
   | { readonly kind: 'fail-first'; readonly task: TaskId }
+  | { readonly kind: 'tests-first'; readonly task: TaskId }
   | { readonly kind: 'oracle'; readonly card: string };
 
 /** What a policy timer key names. */
@@ -58,6 +65,9 @@ export function parseTimerKey(key: string): PolicyTimer | null {
   }
   if (key.startsWith(FAIL_FIRST_PREFIX)) {
     return { kind: 'fail-first', task: TaskId.parse(key.slice(FAIL_FIRST_PREFIX.length)) };
+  }
+  if (key.startsWith(TESTS_FIRST_PREFIX)) {
+    return { kind: 'tests-first', task: TaskId.parse(key.slice(TESTS_FIRST_PREFIX.length)) };
   }
   if (key.startsWith(ORACLE_PREFIX))
     return { kind: 'oracle', card: key.slice(ORACLE_PREFIX.length) };

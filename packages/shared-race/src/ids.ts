@@ -46,5 +46,5 @@ export type InvocationId = `inv${string}`;
 
 export const InvocationId = z
   .string()
-  .regex(/^inv[0-9]{4,}-(initial|rework|fixer|test-author|reconcile)$/)
+  .regex(/^inv[0-9]{4,}-(initial|rework|fixer|test-author|reconcile|test-first)$/)
   .transform((value): InvocationId => `inv${value.slice(3)}`);

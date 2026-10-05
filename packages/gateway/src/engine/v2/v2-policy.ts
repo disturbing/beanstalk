@@ -3,7 +3,7 @@
  * `policy_beanstalk_preland.py` (optimistic mode) and `policy_beanstalk.py`, with the v2.2
  * rules the experiments validated (`docs/claude-opus/11-experiments-summary.md`):
  *
- * 1. Beans start first-in, first-out from the sprout head; no predicted placement.
+ * 1. Beans start first-in, first-out from the sprout head, or dependency-aware (`v2-start-order`).
  * 2-3. Each bean is checked on its agent's sandbox and lands optimistically, while the sprout
  *    window has room (v2.3, `v2-backpressure`); a moved sprout forces a re-check only by the
  *    `recheck` rule (v2.3: sampled; v2.2: adaptive) (`v2-landing`).
@@ -19,7 +19,11 @@
 import type { Json } from '@beanstalk/shared-race/events';
 import type { V2PolicyView } from '@beanstalk/shared-race/rpc';
 import type { SlotId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds, releasesOnCheck } from '@beanstalk/shared-race/run-config';
+import {
+  prelandSeconds,
+  releasesOnCheck,
+  usesStructuralMerge,
+} from '@beanstalk/shared-race/run-config';
 
 import type { PolicyHooks, ReworkOutcome, StepContext } from '../context';
 import { emit, requireTask } from '../context';
@@ -30,6 +34,13 @@ import type { PolicyModule, PolicySummary } from '../policy-module';
 import { freeAskingSlot, hold } from '../slots';
 import { isTerminal, startTask } from '../tasks';
 import { assignAgents } from './v2-agents';
+import {
+  onTestsFirstDone,
+  onTestsFirstElapsed,
+  onTestsFirstJob,
+  onTestsFirstJobFailed,
+  startTestsFirst,
+} from './v2-tests-first';
 import {
   answerCard,
   hasPendingCards,
@@ -42,7 +53,6 @@ import {
   startAuthor,
   startReexecution,
 } from './v2-decisions';
-import { WINDOW_START } from './v2-backpressure';
 import { parseTimerKey } from './v2-flows';
 import { onReconcileDone, startReconcile } from './v2-reconcile';
 import {
@@ -62,7 +72,10 @@ import {
   startConflictRework,
   startInformedRework,
 } from './v2-repair';
+import { startRescue } from './v2-rescue';
 import { takeWait } from './v2-sprout';
+import { openStartCard, startUnderCard } from './v2-start';
+import { chooseStart } from './v2-start-order';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
 import {
   activeTickets,
@@ -90,6 +103,16 @@ const V23_VARIANT_ROW =
   'read-set inherited reds, early revert-first, cards that re-execute the loser';
 const V24_VARIANT_ROW =
   'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked';
+const V25_VARIANT_ROW =
+  'v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, ' +
+  'lone suspects reverted at once, base and dynamic culprits, a wider window, ' +
+  'structural merges, start cards and one rescue';
+/** How the variant row names each opt-in track. */
+const ADDITION_ROWS: Readonly<Record<string, string>> = {
+  tests_first: 'tests first',
+  targeted_landing_check: 'targeted landing check',
+  'start_order:dependency': 'dependency-aware starts',
+};
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -116,8 +139,26 @@ function initialV2State(ctx: StepContext): V2State {
       inheritedReds: config.inherited_reds,
       earlyTickets: config.early_tickets,
       reconcile: config.reconcile,
+      escalateAfter: config.escalate_after,
+      reconcileParties: config.reconcile_parties,
+      testsFirst: config.tests_first,
+      targetedLandingCheck: config.targeted_landing_check,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
+      singleSuspectRevert: config.single_suspect_revert,
+      validationFirst: config.validation_first,
+      baseCulprits: config.base_culprits,
+      startCards: config.start_cards,
+      rescue: config.rescue,
+      dynamicCulprits: config.dynamic_culprits,
+      startOrder: config.start_order,
+      windowSizes: {
+        start: config.window_start,
+        growth: config.window_growth,
+        max: config.window_max,
+        min: config.window_min,
+      },
+      structuralMerge: usesStructuralMerge(config),
     },
     sprout: base,
     green: base,
@@ -129,7 +170,7 @@ function initialV2State(ctx: StepContext): V2State {
     confirming: {},
     redValidations: {},
     sightings: {},
-    window: { size: WINDOW_START, waiting: [] },
+    window: { size: config.window_start, waiting: [] },
     recheckMeter: { mode: 'checking', greenStreak: 0, skips: 0 },
     flakes: {},
     tickets: {},
@@ -137,6 +178,8 @@ function initialV2State(ctx: StepContext): V2State {
     bisects: {},
     reverts: {},
     unstarted: [...ctx.state.order],
+    authoring: {},
+    readSets: {},
     landings: {},
     agentQueue: [],
     agentWaitSince: {},
@@ -144,10 +187,12 @@ function initialV2State(ctx: StepContext): V2State {
     pairReds: {},
     decidedPairs: {},
     reconciledPairs: {},
+    pairRepeats: {},
     cards: {},
     cardSeq: 0,
     authors: {},
     carried: {},
+    rescued: {},
     turn: { holder: null, queue: [] },
     stalk: { pushed: base, target: base, inFlight: null },
     waits: {},
@@ -211,6 +256,15 @@ function initialStats(): V2State['stats'] {
     reconciled: 0,
     contradictions: 0,
     stale_rechecks: 0,
+    stuck_drops: 0,
+    start_cards: 0,
+    rescues: 0,
+    dynamic_culprit_runs: 0,
+    dynamic_culprit_probes: 0,
+    tests_first_accepted: 0,
+    tests_first_fallbacks: 0,
+    targeted_checks: 0,
+    targeted_red: 0,
   };
 }
 
@@ -230,6 +284,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onInitialCommitted: (task) => startLanding(step, task),
     onReworkResult: (outcome: ReworkOutcome) => {
       if (outcome.kind === 'test-author') onAuthorDone(step, outcome);
+      else if (outcome.kind === 'test-first') onTestsFirstDone(step, outcome);
       else if (outcome.kind === 'reconcile') onReconcileDone(step, outcome);
       else onReworkDone(step, outcome);
     },
@@ -240,6 +295,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onDecision: (answer) => answerCard(step, answer),
     isFinished: () => isFinished(step),
     finalGreenSha: () => state.green,
+    rerunsRedFinalSuite: () => state.settings.flakeConfirm && state.greenIdx >= 0,
   };
 }
 
@@ -247,7 +303,8 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
  * `dispatch`: beans that waited out an inherited red check again once the sprout moved;
  * beans waiting for an agent go first (an agent finishes a bean before it starts
  * another), then free slots take unstarted beans in priority order from the sprout head
- * (`place` is FIFO in v2; the error-budget controller is not built). Then the validator.
+ * (`place` is FIFO, or dependency-aware with `start_order: dependency`, `v2-start-order`; the
+ * error-budget controller is not built). Then the validator.
  */
 function dispatch(step: V2Step): void {
   const { ctx, state } = step;
@@ -256,24 +313,34 @@ function dispatch(step: V2Step): void {
   assignAgents(step);
   while (state.unstarted.length > 0) {
     const slot = freeAskingSlot(ctx);
-    const id = state.unstarted[0];
-    if (slot === undefined || id === undefined) break;
-    state.unstarted.shift();
+    if (slot === undefined) break;
+    const choice = chooseStart(ctx, state.unstarted, state.settings.startOrder ?? 'fifo');
+    if (choice === null) break;
+    const id = choice.task;
+    state.unstarted = state.unstarted.filter((other) => other !== id);
     const task = requireTask(ctx, id);
-    state.stats.placements_disjoint += 1;
+    countPlacement(state, choice.overlap.length);
     emit(ctx, 'placement.decision', {
       task: id,
-      rule: 'fifo',
+      rule: choice.rule,
       predicted: [...task.selected],
-      overlap: [],
-      occupied: {},
-      skipped: [],
+      overlap: [...choice.overlap],
+      occupied: { ...choice.occupied },
+      skipped: [...choice.skipped],
     });
     task.status = 'running';
     hold(ctx, slot, id);
-    startTask(ctx, slot, id, state.sprout);
+    if (openStartCard(step, slot, id)) continue;
+    if (state.settings.testsFirst) startTestsFirst(step, slot, id);
+    else startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
+}
+
+function countPlacement(state: V2State, overlapModules: number): void {
+  if (overlapModules === 0) state.stats.placements_disjoint += 1;
+  else state.stats.placements_overlap += 1;
+  state.stats.placement_overlap_modules += overlapModules;
 }
 
 /** A slot was found for a bean's awaited work. */
@@ -301,6 +368,12 @@ function startWork(step: V2Step, flow: LandingFlow, slot: SlotId): void {
       return;
     case 'adopt':
       startAdoptRework(step, flow, slot, work.card);
+      return;
+    case 'start':
+      startUnderCard(step, flow, slot, work.card);
+      return;
+    case 'rescue':
+      startRescue(step, flow, slot, work);
       return;
     default:
       assertNever(work);
@@ -339,6 +412,9 @@ function routeJob(step: V2Step, jobId: JobId, result: JobResult): void {
     case 'card':
       onCardJob(step, wait.card, jobId, result);
       return;
+    case 'tests-first':
+      onTestsFirstJob(step, wait.task, jobId, result);
+      return;
     case 'stalk':
       onStalkJob(step, jobId, result);
       return;
@@ -373,6 +449,11 @@ function onJobFailed(step: V2Step, failure: { jobId: JobId; error: string }): bo
     onCardJobFailed(step, wait.card, failure.error);
     return true;
   }
+  if (wait?.kind === 'tests-first') {
+    takeWait(step.state, failure.jobId);
+    onTestsFirstJobFailed(step, wait.task, failure.error);
+    return true;
+  }
   return false;
 }
 
@@ -397,6 +478,7 @@ function routeCi(step: V2Step, ciId: CiId, result: CheckResult): void {
     case 'loo-revert':
     case 'ticket-revert':
     case 'card':
+    case 'tests-first':
     case 'stalk':
       throw new EngineInvariantError(`job wait ${wait.kind} got a CI result`);
     default:
@@ -413,6 +495,9 @@ function routeTimer(step: V2Step, key: string): void {
       return;
     case 'fail-first':
       onFailFirstElapsed(step, timer.task);
+      return;
+    case 'tests-first':
+      onTestsFirstElapsed(step, timer.task);
       return;
     case 'oracle':
       onOracle(step, timer.card);
@@ -461,13 +546,61 @@ function isV20(settings: V2Settings): boolean {
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
     !settings.reconcile &&
-    settings.decisionOutcome === 'decline'
+    settings.decisionOutcome === 'decline' &&
+    !hasV25Rule(settings) &&
+    variantAdditions(settings).length === 0
   );
 }
 
-/** `v2` (the harness's rules), `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
+/** The window sizes v2.3 and v2.4 ran with (start 4, +2 per green, at most 16, at least 2). */
+const V24_WINDOW = { start: 4, growth: 2, max: 16, min: 2 } as const;
+
+/**
+ * Whether any v2.5 rule is on: A's escalation and parties, B's lone-suspect reverts, base
+ * culprits, validations first and window sizes, C's structural merge tier, E's start cards,
+ * rescue and dynamic culprits. `V25_RULES_OFF` turns every one off.
+ */
+function hasV25Rule(settings: V2Settings): boolean {
+  const { windowSizes: sizes } = settings;
+  const isV25Window =
+    settings.window === 'aimd' &&
+    (sizes.start !== V24_WINDOW.start ||
+      sizes.growth !== V24_WINDOW.growth ||
+      sizes.max !== V24_WINDOW.max ||
+      sizes.min !== V24_WINDOW.min);
+  return (
+    settings.escalateAfter < 2 ||
+    (settings.reconcile && settings.reconcileParties > 1) ||
+    settings.singleSuspectRevert ||
+    settings.validationFirst ||
+    settings.baseCulprits ||
+    isV25Window ||
+    settings.structuralMerge ||
+    settings.startCards ||
+    settings.rescue ||
+    settings.dynamicCulprits
+  );
+}
+
+/**
+ * Opt-in tracks reported next to the variant, never as a variant of their own: forge-owned
+ * tests (`tests_first`, `targeted_landing_check`) and dependency-aware starts.
+ */
+function variantAdditions(settings: V2Settings): string[] {
+  return [
+    ...(settings.testsFirst ? ['tests_first'] : []),
+    ...(settings.targetedLandingCheck ? ['targeted_landing_check'] : []),
+    ...((settings.startOrder ?? 'fifo') === 'dependency' ? ['start_order:dependency'] : []),
+  ];
+}
+
+/**
+ * `v2` (the harness's rules), `v2.5` when a v2.5 rule is on, `v2.4` when reconciling, `v2.3`
+ * when a v2.3 rule is on, else `v2.2`. The opt-in tracks never change it (`variantAdditions`).
+ */
 function variantOf(settings: V2Settings): Variant {
   if (isV20(settings)) return 'v2';
+  if (hasV25Rule(settings)) return 'v2.5';
   if (settings.reconcile) return 'v2.4';
   const isV23 =
     settings.window === 'aimd' ||
@@ -477,13 +610,14 @@ function variantOf(settings: V2Settings): Variant {
   return isV23 ? 'v2.3' : 'v2.2';
 }
 
-type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4';
+type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4' | 'v2.5';
 
 const VARIANT_ROWS: Readonly<Record<Variant, string>> = {
   v2: V20_VARIANT_ROW,
   'v2.2': V22_VARIANT_ROW,
   'v2.3': V23_VARIANT_ROW,
   'v2.4': V24_VARIANT_ROW,
+  'v2.5': V25_VARIANT_ROW,
 };
 
 /** `policy_summary` of v2 (the beanstalk block, in the harness's key and row order, then v2.2's). */
@@ -554,6 +688,22 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     reconciled: stats.reconciled,
     contradictions: stats.contradictions,
     stale_rechecks: stats.stale_rechecks,
+    escalate_after: settings.escalateAfter,
+    reconcile_parties: settings.reconcileParties,
+    stuck_drops: stats.stuck_drops,
+    start_cards: settings.startCards,
+    start_cards_raised: stats.start_cards,
+    rescue: settings.rescue,
+    rescues: stats.rescues,
+    dynamic_culprits: settings.dynamicCulprits,
+    dynamic_culprit_runs: stats.dynamic_culprit_runs,
+    dynamic_culprit_probes: stats.dynamic_culprit_probes,
+    tests_first: settings.testsFirst,
+    tests_first_accepted: stats.tests_first_accepted,
+    tests_first_fallbacks: stats.tests_first_fallbacks,
+    targeted_landing_check: settings.targetedLandingCheck,
+    targeted_checks: stats.targeted_checks,
+    targeted_red: stats.targeted_red,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -571,12 +721,21 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     open_tickets_at_end: activeTickets(state).length,
     ticket_details: ticketDetails(state, nowSeconds),
     variant: variantOf(settings),
+    variant_additions: variantAdditions(settings),
+    // Reported only off the default, so FIFO summaries stay byte-identical with the harness's.
+    ...(settings.startOrder === 'dependency' ? { start_order: settings.startOrder } : {}),
   };
   return {
     key: 'beanstalk',
     stats: block,
     rows: summaryRows(state, { prelandSecondsTotal, pausedSeconds }),
   };
+}
+
+/** The variant's row, with its opt-in tracks after a `+` each. */
+function variantRow(settings: V2Settings): string {
+  const additions = variantAdditions(settings).map((addition) => ADDITION_ROWS[addition]);
+  return [VARIANT_ROWS[variantOf(settings)], ...additions].join(' + ');
 }
 
 function ticketDetails(state: V2State, nowSeconds: number): Json[] {
@@ -602,7 +761,7 @@ function summaryRows(
 ): (readonly [string, Json])[] {
   const { stats, settings } = state;
   return [
-    ['Variant', VARIANT_ROWS[variantOf(settings)]],
+    ['Variant', variantRow(settings)],
     [
       'Informed reworks / decision cards / revert-first tickets',
       `${stats.informed_reworks} / ${stats.cards} / ${stats.revert_first}`,
@@ -625,6 +784,24 @@ function summaryRows(
       settings.reconcile
         ? `${stats.reconciles} (${stats.reconciled} / ${stats.contradictions}) / ${stats.stale_rechecks}`
         : 'off',
+    ],
+    [
+      'Escalate after (failed repairs) / reconcile parties / dropped stuck after a card',
+      `${settings.escalateAfter} / ${settings.reconcileParties} / ${stats.stuck_drops}`,
+    ],
+    [
+      'Start cards / rescues / dynamic culprit searches (probes)',
+      `${settings.startCards ? stats.start_cards : 'off'} / ${settings.rescue ? stats.rescues : 'off'} / ` +
+        (settings.dynamicCulprits
+          ? `${stats.dynamic_culprit_runs} (${stats.dynamic_culprit_probes})`
+          : 'off'),
+    ],
+    [
+      'Tests first (accepted / fallbacks) / targeted landing checks (red)',
+      `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
+        (settings.targetedLandingCheck
+          ? `${stats.targeted_checks} (${stats.targeted_red})`
+          : 'off'),
     ],
     [
       'Sprout window at the end / window waits / early tickets / re-check samples',

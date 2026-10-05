@@ -53,6 +53,15 @@ export function classifyPath(path: string): FileCategory {
   return rule === undefined ? 'source' : rule[0];
 }
 
+/** The files `node --test` picks up by default (E1's `TEST_FILE`; the driver keeps the same). */
+const RUNNABLE_TEST =
+  /(^|\/)([^/]*[._-]test|test[-_][^/]*|test)\.[cm]?[jt]s$|(^|\/)test\/[^/]+\.[cm]?[jt]s$/;
+
+/** Whether a path is a runnable test file (a tests-first author's file, a targeted check's target). */
+export function isRunnableTest(path: string): boolean {
+  return RUNNABLE_TEST.test(path) && !path.includes('node_modules/');
+}
+
 const MODULE_DEPTH = 2;
 const DISSOLVABLE: ReadonlySet<FileCategory> = new Set([
   'lockfile',

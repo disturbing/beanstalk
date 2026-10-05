@@ -24,6 +24,7 @@ import {
   acceptanceTests,
   cancelTimer,
   emit,
+  promptTask,
   requireTask,
   setTimer,
   startJob,
@@ -77,7 +78,14 @@ export function isDecided(state: V2State, task: TaskId, culprit: TaskId): boolea
 export function openCard(
   step: V2Step,
   flow: LandingFlow,
-  raised: { against: readonly TaskId[]; red: CheckResult; head: Sha },
+  raised: {
+    against: readonly TaskId[];
+    red: CheckResult;
+    head: Sha;
+    /** v2.5: every party of the reconcile that found this contradiction, and its verdict. */
+    parties?: readonly TaskId[];
+    reason?: string | null;
+  },
 ): void {
   const { ctx, state } = step;
   const isReexecuting = ctx.env.config.decision_outcome === 'reexecute';
@@ -99,6 +107,8 @@ export function openCard(
     attempts: Math.max(
       ...against.map((culprit) => state.pairReds[pairKey(flow.task, culprit)] ?? 0),
     ),
+    ...(raised.parties === undefined ? {} : { parties: [...raised.parties] }),
+    ...(raised.reason === undefined || raised.reason === null ? {} : { reason: raised.reason }),
   });
   const card: DecisionCard = {
     id,
@@ -188,7 +198,8 @@ export function decisionsInForce(state: V2State, task: TaskId, exclude: string):
     .map((card) => `${card.id} (${[card.task, ...card.against].join(' and ')}): ${card.text}`);
 }
 
-function scheduleAnswer(step: V2Step, card: DecisionCard): void {
+/** The oracle's timer for a new card, or its answer now (no human, no latency). */
+export function scheduleAnswer(step: V2Step, card: DecisionCard): void {
   const config = step.ctx.env.config;
   if (config.decision_mode === 'human') {
     const timeout = config.human_timeout_seconds;
@@ -390,7 +401,7 @@ export function startAuthor(step: V2Step, flow: LandingFlow, slot: SlotId, cardI
   const loserTask = requireTask(ctx, loser);
   const tests = acceptanceTests(ctx, loser);
   const prompt = testAuthorPrompt(
-    taskDefinition(ctx, loser),
+    promptTask(ctx, loser),
     { card: card.id, text: card.text ?? '' },
     {
       winner,
@@ -597,7 +608,13 @@ function finishAmendment(
     inv: where.inv ?? null,
   });
   card.status = 'done';
-  requestAgent(step, flow, { kind: isInPlace ? 'adopt' : 'reexec', card: card.id });
+  requestAgent(step, flow, { kind: nextWork(card), card: card.id });
+}
+
+/** After the amendment: a start card's initial run, the winner's adoption, or the loser's re-execution. */
+function nextWork(card: DecisionCard): 'start' | 'adopt' | 'reexec' {
+  if (card.trigger === 'start') return 'start';
+  return card.outcome === 'adopt-in-place' ? 'adopt' : 'reexec';
 }
 
 /** keep-landed: the loser's tests are amended now; in place: the winner carries them. */
@@ -650,7 +667,7 @@ export function startReexecution(
   flow.rechecks = 0;
   state.stats.reexecutions += 1;
   const amended = Object.keys(card.amendment?.files ?? {});
-  const prompt = reexecutionPrompt(taskDefinition(ctx, flow.task), decisionOf(card), {
+  const prompt = reexecutionPrompt(promptTask(ctx, flow.task), decisionOf(card), {
     winner: card.winnerContext,
     amended,
     inForce: decisionsInForce(state, flow.task, card.id),
@@ -711,7 +728,7 @@ export function startAdoptRework(
       ? { sha: card.red.head, ref: SPROUT_REF, conflicts: [] }
       : { sha: authorHead, ref: `refs/heads/${taskBranch(loser)}`, conflicts: [] };
   const prompt = (isResumed: boolean): string =>
-    adoptInPlacePrompt(taskDefinition(ctx, flow.task), decisionOf(card), {
+    adoptInPlacePrompt(promptTask(ctx, flow.task), decisionOf(card), {
       loser: { id: loser, title: taskDefinition(ctx, loser).title },
       amended,
       inForce: decisionsInForce(state, flow.task, card.id),
@@ -747,11 +764,11 @@ export function startAdoptRework(
   });
 }
 
-function decisionOf(card: DecisionCard): DecisionContext {
+export function decisionOf(card: DecisionCard): DecisionContext {
   return { card: card.id, text: card.text ?? '', by: card.by ?? 'oracle' };
 }
 
-function requireCard(state: V2State, id: string): DecisionCard {
+export function requireCard(state: V2State, id: string): DecisionCard {
   const card = state.cards[id];
   if (card === undefined) throw new EngineInvariantError(`no decision card ${id}`);
   return card;
