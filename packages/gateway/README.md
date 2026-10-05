@@ -186,7 +186,7 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 - **Decision cards.** A card can also be answered by the admin route or the web app (`decide`). Under `decision_outcome: decline` (v2.0), when the arriving bean wins, the landed losers are reverted in the turn and dropped, and the arriving bean goes back to its landing loop. The harness's `arriving` oracle drops the arriving task anyway. Under `reexecute` (the v2.2 default) nothing is reverted, as described below.
 - **Revert-first after a bisection.** Revert-first also follows a trunk bisection when no read-set suspect exists; the harness would send a fixer there. No fixer is ever sent.
 - **Markers after an informed rework.** Conflict markers left after an informed rework drop the bean.
-- **Structural merge tier.** The runner retries a squash conflict with Mergiraf on the conflicted files (the runner README's merge tiers) for both policies; the gateway sends no flag, so the tier is on. A structurally merged bean is a normal candidate: it takes its pre-land check like any other, and its `land` event carries `resolved: "structural"` (the tier of the bean's latest clean squash, kept on the landing flow). A conflict that remains goes back to the author as before.
+- **Structural merge tier (v2 only).** For v2, the runner retries a squash conflict with Mergiraf on the conflicted files (the runner README's merge tiers): every squash job carries `structural_merge` (`usesStructuralMerge` in `@beanstalk/shared-race/run-config`), true for v2 unless the run sets `structural_merge: false` (v2.4). The queue always sends `false`, so it stays identical to the harness and to the baseline races already recorded, and `RunConfig` refuses `structural_merge: true` for it. A structurally merged bean is a normal candidate: it takes its pre-land check like any other, and its `land` event carries `resolved: "structural"` (the tier of the bean's latest clean squash, kept on the landing flow). A conflict that remains goes back to the author as before.
 - **Conflict prompt.** v2's conflict rework (`informedConflictPrompt`) adds to the harness's words both sides of up to 4 conflict blocks from the runner's `hunks`, the landed beans that wrote the sprout's side of a conflicted file since the bean last merged the sprout (newest first, at most 3, each with its title and intent), and an instruction to keep both intents. The queue keeps the harness's `reworkConflictPrompt`.
 - **Protected tests.** The `protect` list is computed when the invocation is created.
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
@@ -194,7 +194,7 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 
 ## The v2.2 to v2.5 rules
 
-The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summary.md`). v2.3 answers v2.2's first real race (cloud run `qpucqup50w`, 12 Sonnet agents, seed 7). There, 24 beans were green and 16 dropped, 11 of them innocent beans that spent their rework rounds on reds that were not theirs. Each rule is a `RunConfig` field, on by default for `beanstalk-v2`:
+The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summary.md`). v2.3 answers v2.2's first real race (cloud run `qpucqup50w`, 12 Sonnet agents, seed 7). There, 24 beans were green and 16 dropped, 11 of them innocent beans that spent their rework rounds on reds that were not theirs. Each rule is a `RunConfig` field, on by default for `beanstalk-v2` unless the table says otherwise (`validation_first`, `tests_first` and `targeted_landing_check` are off; `start_order` is `fifo`, see [Dependency-aware starts](#dependency-aware-starts)). The combined simulator table for the merged engine is in `docs/claude-opus/11-experiments-summary.md` (v2.5); the smaller tables below were measured on each rule's own branch before the merge:
 
 | Rule | Config (default) | What the engine does | From |
 |---|---|---|---|
@@ -210,6 +210,8 @@ The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summa
 | Revert a lone suspect at once | `single_suspect_revert: true` | When a red sprout's suspects narrow to one commit (by read set, or the commit a bisection just found), revert-first reverts it without searching the unvalidated range again. The flake re-run before the ticket and the validation after the revert still apply. `false` bisects as the harness does | v2.5 |
 | Name culprits in the bean's base | `base_culprits: true` | A pre-land red names, right after the owners of failing acceptance tests, the newest landed bean that wrote the read set of a failing test the bean itself changed, even one that landed before the bean started (or before its rework merged the sprout). Informed reworks get its intent and diff, and its reds count towards reconcile and the card. `false` names only beans since the bean's base | v2.5 |
 | Validations before bisects | `validation_first: false` | When on, a sprout validation queues even with every CI slot taken while a bisection runs, ahead of the waiting probes, and takes the next free slot; the flake re-run goes ahead too. Off by default: in the simulator it slowed red episodes, because the head it validates still holds the culprit | v2.5 |
+| Structural merge tier | `structural_merge: true` (v2 only; `false`: v2.4) | A squash that git's line merge conflicts is retried by the runner with Mergiraf on exactly the conflicted paths, when each is a supported code type; kept only if clean and free of markers. The bean then takes its pre-land check as usual and its `land` event says `resolved: "structural"`. A conflict that remains goes back to the author with both sides of up to 4 hunks (`informedConflictPrompt`). The queue never uses it | v2.5 |
+| Final suite re-run | with `flake_confirm` | A red final suite on a stalk commit that v2 validated green runs once more, and the second result counts (`ci.start`/`ci.end` with `rerun: true`). Before, one flaky run in the final check reported a green stalk as wrong. The queue and v2.0 keep the harness's single run | v2.5 fix |
 | Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below. With `reconcile`, the loser's test author also sees the winner's failing tests as they are now | E6 |
 | Tests first | `tests_first: false` (`true`) | Before a task's implementer starts, a `test-first` invocation (a fresh session on the task's slot and base) writes the task's acceptance tests from its intent alone. The engine reads the new test files it committed, other tasks' test paths excluded, and runs them on the base (fail-first, 10 s emulated, capped at the pre-land latency). Files that fail there and parse replace the given tests as the task's protected acceptance tests: the implementer's `acceptance`, its prompts, the protection of landed tests, culprits, reconcile and the final check all use them. No such file (or no commit, or a failed job): the given tests stay. Either way `tests.first` logs it and the implementer starts | v2.5; E1 |
 | Targeted check of the exact landing tree | `targeted_landing_check: false` (`true`) | Where a green bean would land on a moved sprout without a full re-check (no shared file, `sampled` skipping, disjoint hunks), it first runs only some tests on the exact tree that would land (`preland.check` with `targets`, 10 s emulated, capped at the pre-land latency): its own acceptance tests, those of the beans that landed meanwhile and their test files, and every test whose read set meets the bean's files. A test whose known read set misses either side (the bean's files, or what landed meanwhile) cannot see them combine and is left to validation, so it usually runs nothing and lands as before (`preland.optimistic`). The first targeted check runs outside the turn; if the sprout moved again meanwhile, the next runs inside it, so a busy sprout cannot keep a bean chasing. A red one is an ordinary red pre-land check, and also sets the `sampled` meter re-checking; a green one does not count as a re-check. Full checks then ask the runner for every passing test's read set too (`all_read_sets`, answered in `passing_read_sets`). The full suite still runs at validation | v2.5; E1 |
@@ -242,25 +244,55 @@ Optional fields on existing types:
 - `ticket.open.early`;
 - `preland.recheck.stale`;
 - `decision.request.parties` and `.reason` (v2.5, a multi-party contradiction);
-- `preland.check.targets` (v2.5).
+- `preland.check.targets` (v2.5);
+- `ci.start.rerun` and `ci.end.rerun` (v2.5, the final suite's re-run).
 
 v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-suspect revert logs `ticket.culprit` with no `ci.start` of purpose `bisect` before it, and a base culprit appears in `rework.start.culprits`.
 
-`summary.json` adds the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`, then the E6 keys below and `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
+`summary.json` adds `variant_additions` after `variant` (see [Version labels](#version-labels)) and the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`, then the E6 keys below and `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
-**Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
+**Replay parity.** `V20_SETTINGS` (exported by `@beanstalk/shared-race/run-config`) reproduces the event streams the engine logged before v2.2, byte for byte. It turns every later rule and every opt-in track off:
 
 ```json
 {"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
- "inherited_reds": "off", "early_tickets": false, "reconcile": false, "escalate_after": 2,
- "decision_outcome": "decline", "single_suspect_revert": false, "validation_first": false,
- "base_culprits": false, "start_cards": false, "rescue": false, "dynamic_culprits": false,
- "tests_first": false, "targeted_landing_check": false}
+ "inherited_reds": "off", "early_tickets": false, "reconcile": false, "decision_outcome": "decline",
+ "escalate_after": 2, "reconcile_parties": 1, "single_suspect_revert": false,
+ "validation_first": false, "base_culprits": false, "window_start": 4, "structural_merge": false,
+ "start_cards": false, "rescue": false, "dynamic_culprits": false,
+ "tests_first": false, "targeted_landing_check": false, "start_order": "fifo"}
 ```
 
-`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. Version labels are described under [Version labels](#version-labels).
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`.
 
-v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX` and `WINDOW_MIN`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+### Version labels
+
+`summary.json`'s `variant` names the rules a run used; its `Variant` row says them in words.
+
+| Variant | When | Reproduce with |
+|---|---|---|
+| `v2.5` | any v2.5 rule is on: `escalate_after: 1`, `reconcile_parties` above 1 (with `reconcile`), `single_suspect_revert`, `validation_first`, `base_culprits`, window sizes other than 4/+2/16/2 (with `window: aimd`), `structural_merge`, `start_cards`, `rescue`, `dynamic_culprits` | the defaults |
+| `v2.4` | no v2.5 rule, `reconcile` on | `V24_SETTINGS` (= `V25_RULES_OFF`) |
+| `v2.3` | no v2.5 rule, no `reconcile`, any v2.3 rule (`window: aimd`, `recheck: sampled`, `inherited_reds: readset`, `early_tickets`) | `V23_SETTINGS` |
+| `v2.2` | none of the above | `V22_SETTINGS` |
+| `v2` | exactly the harness's v2 rules | `V20_SETTINGS` |
+
+`V22_SETTINGS` also gets the two bug fixes below, and every v2.2+ preset gets the final suite re-run.
+
+Three opt-in tracks never change the variant: `tests_first`, `targeted_landing_check` and `start_order: dependency`. A run lists the ones it used in `variant_additions` (`["tests_first", "targeted_landing_check", "start_order:dependency"]`), and the `Variant` row adds them after a ` + ` each (`v2.5: ... + tests first + targeted landing check`). So "v2.5 with the tests track" is `variant: "v2.5"` with two additions, and v2.4 with tests first is `variant: "v2.4"` with one.
+
+The driver passes every knob through from the environment: `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX`, `WINDOW_MIN`, `STRUCTURAL_MERGE`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `TESTS_FIRST`, `TARGETED_LANDING_CHECK` and `START_ORDER`. It sends them only when they are set (and only for v2), so the gateway's defaults apply otherwise. The phase races of one deployed engine set them as follows (unset variables keep the v2.5 defaults):
+
+| Phase | Environment |
+|---|---|
+| v2.4 baseline | `ESCALATE_AFTER=2 RECONCILE_PARTIES=1 SINGLE_SUSPECT_REVERT=0 VALIDATION_FIRST=0 BASE_CULPRITS=0 WINDOW_START=4 STRUCTURAL_MERGE=0 START_CARDS=0 RESCUE=0 DYNAMIC_CULPRITS=0` |
+| v2.5a (B: lone suspects, base culprits, window 8) | `ESCALATE_AFTER=2 RECONCILE_PARTIES=1 STRUCTURAL_MERGE=0 START_CARDS=0 RESCUE=0 DYNAMIC_CULPRITS=0` |
+| v2.5b (+ A: escalation, parties) | `STRUCTURAL_MERGE=0 START_CARDS=0 RESCUE=0 DYNAMIC_CULPRITS=0` |
+| v2.5c (+ C: structural merges) | `START_CARDS=0 RESCUE=0 DYNAMIC_CULPRITS=0` |
+| v2.5d (+ E: start cards, rescue, dynamic culprits) = v2.5 | none |
+| v2.5 + dependency starts | `START_ORDER=dependency` |
+| v2.5 + tests track | `TESTS_FIRST=1 TARGETED_LANDING_CHECK=1` |
+
+### Fixes and simulator scenarios
 
 **Fixed in v2.3.** Two bugs from v2.2 and v2:
 
@@ -346,7 +378,7 @@ E4 found the limit at scale is independent work, not the committer (`docs/claude
 | Burst under the v2.2 rules | 27 green, 11 red validations | 36 green, 2 red validations |
 | 200 tasks in dependency chains, 64 agents | 173 green, 27 dropped, 187 conflicts, 170th green 26.3 min, done 28.4 | 200 green, 0 dropped, 108 conflicts, 170th green 28.2 min, done 60.5 |
 
-The default stays `fifo` until a real-agent race confirms it. One known gap: a bean started on top of its landed coupled partner can't name it as a culprit (culprits are commits since the bean's base), so a semantic clash reworks to a drop instead of a card.
+The default stays `fifo` until a real-agent race confirms it. The gap found here (a bean started on top of its landed coupled partner could not name it as a culprit, because culprits were commits since the bean's base, so a semantic clash reworked to a drop instead of a card) is closed in v2.5: `start_cards` raises the declared pair's card before the bean starts, `base_culprits` names a partner in the base when the failing test reads what the bean changed, and `dynamic_culprits` probes it when the bean's own tests fail (`v2-start-order.test.ts`, "F's culprit gap"). The 200-task row was measured with the v2.4 rules; under v2.5's rescue, FIFO keeps all 200 too (dependency starts still cut the conflicts by about 40%), and the test runs a 100-task, 32-agent version to keep `pnpm check` fast.
 
 ## RPC for the web app
 
