@@ -149,7 +149,7 @@
 
 /* the Ask as a command prompt */
 :root[data-skin='nightshift'] .ask { background: var(--bg); border-color: var(--border); border-radius: 6px; padding: 0 8px 0 10px; }
-:root[data-skin='nightshift'] .ask:has(+ .asked) { border-radius: 6px 6px 0 0; }
+:root[data-skin='nightshift'] .askwrap.open .ask { border-radius: 6px 6px 0 0; }
 :root[data-skin='nightshift'] .ask:focus-within { border-color: var(--leaf); box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 18%, transparent); }
 :root[data-skin='nightshift'] .ask .q { width: 22px; height: 22px; font-size: 14px; }
 :root[data-skin='nightshift'] .ask input { caret-color: var(--leaf); font-family: var(--mono); font-size: 14px; }
@@ -163,7 +163,7 @@
 :root[data-skin='nightshift'] .k-cmd { display: inline-block; font-family: var(--mono); }
 /* suggestions as completions under the prompt */
 :root[data-skin='nightshift'] .asked {
-  flex-direction: column; gap: 0; margin-top: -1px; position: relative; border: 1px solid var(--border); border-top: 1px dashed var(--border);
+  flex-direction: column; gap: 0; border: 1px solid var(--border); border-top: 1px dashed var(--border);
   border-radius: 0 0 6px 6px; background: var(--subtle); padding: 4px 0;
 }
 :root[data-skin='nightshift'] .asked a {
@@ -229,3 +229,8 @@
 :root[data-skin='nightshift'][data-theme='light'][data-day='phosphor'] .box { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 6px 20px -14px rgba(0, 90, 70, 0.35); }
 /* blueprint: drafted on a grid, ink-blue type, the filament in teal */
 :root[data-skin='nightshift'][data-theme='light'][data-day='blueprint'] .repotitle a, :root[data-skin='nightshift'][data-theme='light'][data-day='blueprint'] .stalkhead b { color: var(--link); }
+
+:root[data-skin='nightshift'] .examples a { font-family: var(--mono); font-size: 11.5px; border-radius: 4px; background: transparent; }
+:root[data-skin='nightshift'] .examples a::before { content: '› '; color: var(--leaf); }
+:root[data-skin='nightshift'] .examples > span { font-family: var(--mono); }
+:root[data-skin='nightshift'][data-theme='dark'] .journey li.prog::before { filter: drop-shadow(0 0 4px var(--glow-bean)); }

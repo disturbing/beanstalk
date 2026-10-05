@@ -53,12 +53,14 @@
   function plan(state) {
     const { T, q } = state;
     const flying = inflightAt(T);
+    STEP.value = state.step || 'all';
     if (state.bean) return beanPlan(state.bean, T, flying, q);
     if (!q) {
       const comps = [...(flying.length ? ['growing'] : []), 'happened', 'files'];
       return { relevant: null, answer: null, comps, html: compose(comps, { T, flying, mode: 'tree' }), why: 'Rule: nothing asked, so the files, then the swarm, then the stories.' };
     }
     const cls = route(q);
+    if (cls === 'bean') return beanPlan(q.match(/\bt\d{3}\b/)[0], T, flying, q);
     const ctx = { T, flying, q, cls };
     switch (cls) {
       case 'what-broke': {
@@ -108,13 +110,145 @@
     return { relevant, comps, html, why: `Rule: the arrangement for this kind of question (${ctx.cls}).` };
   }
 
+  const STEP = { value: 'all' };
   function beanPlan(task, T, flying, q) {
     const l = landingOf.get(task);
     const files = (l && l.t <= T ? l.files : M.D.beanHeads[task]?.files || []).map((f) => f.path);
-    const comps = ['journey', 'files'];
+    const comps = ['journey'];
     const d = decisions.find((x) => x.t <= T && (x.task === task || x.against.includes(task)));
     if (d) comps.splice(1, 0, 'decision');
-    return { relevant: new Set([task]), comps, html: compose(comps, { T, flying, files, mode: 'bean', bean: task, decision: d, q }, null) };
+    return { relevant: new Set([task]), comps, html: compose(comps, { T, flying, files, mode: 'bean', bean: task, decision: d, q, step: STEP.value }, null) };
+  }
+
+
+  /* ---------- The bean journey: steps on the left, the selected step's detail on the right ---------- */
+  const IN_FLIGHT = ['writing', 'checking', 'reworking', 'deciding'];
+
+  function journeyList(task, T, st) {
+    const events = (M.byTask.get(task) || []).filter((e) => e.t <= T);
+    const committed = events.some((e) => e.type === 'task.commit');
+    const flying = IN_FLIGHT.includes(st.state);
+    const head = M.D.beanHeads[task];
+    const steps = M.journey(task).filter((s) => s.t <= T).map((s, i) => ({
+      ...s, id: String(i),
+      // a commit names the bean's own files (a rework commit also carries the sprout it merged)
+      text: /^Committed/.test(s.text) ? committedText(head, s) : s.text,
+      // the footprint stays a prediction until the bean has written something
+      prog: flying && !committed && /^Footprint/.test(s.text),
+    }));
+    const list = [{ id: 'all', kind: 'all', text: 'All changes', t: T }, ...steps];
+    const live = flying ? liveStep(task, st, events, T) : null;
+    if (live) list.push({ ...live, id: 'live', prog: true });
+    return list;
+  }
+
+  const reworksBy = (task, T) => (M.byTask.get(task) || []).filter((e) => e.type === 'rework.start' && e.t <= T).length;
+
+  function committedText(head, s) {
+    const att = head?.attempts.find((x) => Math.abs(x.t - s.t) < 1);
+    const n = att ? att.files.length : Number((s.text.match(/(\d+) file/) || [])[1] || 0);
+    const names = att && att.files.length <= 2 ? `: ${att.files.map((p) => p.split('/').pop()).join(', ')}` : '';
+    return `Committed its change, ${plural(n, 'file')}${names}`;
+  }
+
+  function liveStep(task, st, events, T) {
+    const lastStart = [...events].reverse().find((e) => e.type === 'invocation.start');
+    const lastEnd = [...events].reverse().find((e) => e.type === 'invocation.end');
+    if (st.state === 'writing' || (st.state === 'reworking' && lastStart && (!lastEnd || lastEnd.t < lastStart.t))) {
+      return { kind: 'agent', t: lastStart ? lastStart.t : T, text: lastStart?.kind === 'rework' ? 'Reworking the change' : 'Writing the change' };
+    }
+    if (st.state === 'checking') return { kind: 'plan', t: lastEnd ? lastEnd.t : T, text: 'Pre-land check running on the merged tree' };
+    if (st.state === 'deciding') return { kind: 'decide', t: T, text: 'Waiting for a decision' };
+    return { kind: 'rework', t: T, text: 'Waiting for its author to rework it' };
+  }
+
+  /** The invocation running at T, with its (recorded) end, to simulate the changeset streaming in. */
+  function writingWindow(task, T) {
+    const all = M.byTask.get(task) || [];
+    const start = [...all].reverse().find((e) => e.type === 'invocation.start' && e.t <= T);
+    if (!start) return null;
+    const end = all.find((e) => e.type === 'invocation.end' && e.inv === start.inv);
+    if (!end || end.t <= T) return null;
+    return { start, end, frac: Math.max(0.04, (T - start.t) / (end.t - start.t)) };
+  }
+
+  /** The bean's own files at T: its landing, or its newest head, with the recorded diffs. */
+  function beanFiles(task, T) {
+    const l = landingOf.get(task);
+    if (l && l.t <= T) return l.files;
+    const head = M.D.beanHeads[task];
+    if (!head) return [];
+    const attempts = head.attempts.filter((a) => a.t <= T);
+    const paths = attempts.length ? attempts[attempts.length - 1].files : head.files.map((f) => f.path);
+    return paths.map((p) => head.files.find((f) => f.path === p) || { path: p, additions: 0, deletions: 0, lines: [] });
+  }
+
+  function diffBlock(f, open, opts = {}) {
+    const all = f.lines;
+    const shown = opts.frac ? all.slice(0, Math.max(1, Math.round(all.length * opts.frac))) : all.slice(0, opts.limit || 40);
+    const rows = shown.map((ln) => `<div class="${ln[0] === '+' ? 'a' : ln[0] === '-' ? 'd' : ln.startsWith('@@') ? 'h' : ''}">${esc(ln)}</div>`).join('');
+    const tail = opts.frac ? `<div class="streaming"><i class="cur"></i>${esc(opts.agent)} is writing</div>` : all.length > shown.length ? `<div class="h">… ${all.length - shown.length} more lines</div>` : '';
+    return `<details ${open ? 'open' : ''}><summary><span class="p">${K.ICON.file}<code>${esc(f.path.replace(/^src\//, ''))}</code></span><span></span><span class="n"><span class="add">+${f.additions}</span> <span class="del">−${f.deletions}</span></span></summary><div class="hunk">${rows}${tail}</div></details>`;
+  }
+
+  function allChanges(task, T) {
+    const w = writingWindow(task, T);
+    if (w) {
+      // live: the changeset streams in as the agent writes (simulated from the recorded diff)
+      const files = beanFiles(task, w.end.t + 0.01);
+      const n = Math.max(1, Math.ceil(files.length * w.frac));
+      const agent = w.start.agent || '';
+      return `<div class="jnote"><span class="chip fly"><i class="budd pulse"></i>streaming</span> ${plural(n, 'file')} so far, ${Math.round(w.frac * 100)}% of this invocation</div>` +
+        files.slice(0, n).map((f, i) => diffBlock(f, i === n - 1, i === n - 1 ? { frac: Math.min(1, w.frac * files.length - i), agent } : {})).join('');
+    }
+    const files = beanFiles(task, T);
+    if (!files.length) return '<div class="empty">No change yet.</div>';
+    return `<div class="jnote">${plural(files.length, 'file')}, its whole change${landingOf.get(task)?.t <= T ? ' as it landed' : ' so far'}</div>` + files.map((f, i) => diffBlock(f, i < 2)).join('');
+  }
+
+  function stepDetail(task, step, T, st) {
+    if (!step || step.kind === 'all') return allChanges(task, T);
+    if (step.id === 'live') {
+      if (st.state === 'checking') {
+        const since = T - step.t;
+        return `<div class="cardbody"><p><b>Pre-land check running</b> for ${M.dur(since)}. The bean's change is merged onto the sprout's current head and the whole suite runs on that exact tree; checks here take about 70 s.</p><div class="progress"><i style="width:${Math.min(96, (since / 70) * 100)}%"></i></div></div>` + allChanges(task, T);
+      }
+      return allChanges(task, T);
+    }
+    const evs = (M.byTask.get(task) || []).filter((e) => Math.abs(e.t - step.t) < 0.01);
+    const out = [];
+    for (const e of evs) out.push(eventDetail(task, e, T));
+    return `<div class="cardbody"><p class="stephead"><span class="w">${fmt(step.t)}</span> ${esc(step.text)}</p>${out.join('')}</div>`;
+  }
+
+  function eventDetail(task, e, T) {
+    const pt = M.D.meta.per_task[task] || {};
+    const mods = (xs) => xs.map((m) => m.replace('src/', '')).join(', ');
+    switch (e.type) {
+      case 'footprint.predicted': return `<p>The scheduler predicted this bean would work in <b>${esc(mods(e.selected))}</b>, and placed it so no two beans in flight shared a predicted area.${pt.actual_modules && landingOf.get(task)?.t <= T ? ` It actually wrote in <b>${esc(mods(pt.actual_modules))}</b>.` : ' Until it writes, that stays a prediction.'}</p>`;
+      case 'task.start': return `<p>Agent <b>${esc(e.agent)}</b> picked it up from base <code>${esc(String(e.base).slice(0, 7))}</code>.</p>`;
+      case 'invocation.end': return `<p>${e.num_turns} turns, ${M.dur(e.wall_ms / 1000)}, $${(e.cost_usd || 0).toFixed(2)}${e.tool_uses ? `; tools: ${esc(Object.entries(e.tool_uses).map(([k, v]) => `${k} ${v}`).join(', '))}` : ''}.</p>${e.result_text ? `<blockquote class="report">${esc(e.result_text)}</blockquote>` : ''}`;
+      case 'task.commit': {
+        const head = M.D.beanHeads[task];
+        const att = head?.attempts.find((a) => Math.abs(a.t - e.t) < 1);
+        const paths = att ? att.files : e.files;
+        const files = paths.map((p) => head?.files.find((f) => f.path === p) || landingOf.get(task)?.files.find((f) => f.path === p) || { path: p, additions: 0, deletions: 0, lines: [] });
+        return `<p>${plural(files.length, 'file')} in this commit${att ? '' : ''}:</p>` + files.map((f, i) => diffBlock(f, i === 0, { limit: 24 })).join('');
+      }
+      case 'preland.check': return `<p>${e.green ? '<span class="chip stalk">green</span> Every test passed' : '<span class="chip red">red</span> Tests failed'} on the merged tree in ${M.dur(e.check_seconds)}.</p>${e.failing_tests?.length ? `<ul class="fails">${e.failing_tests.slice(0, 6).map((x) => `<li><code>${esc(x)}</code></li>`).join('')}</ul>` : ''}`;
+      case 'merge.conflict': return `<p>Merging onto the sprout conflicted in ${e.files.map((f) => `<code>${esc(f)}</code>`).join(', ')}; it went back to its author with the conflict.</p>`;
+      case 'rework.start': return `<p>Reason: ${esc(e.reason)}${e.failing?.length ? '' : ''}.</p>${e.failing?.length ? `<ul class="fails">${e.failing.slice(0, 5).map((x) => `<li><code>${esc(x)}</code></li>`).join('')}</ul>` : ''}`;
+      case 'land': { const l = landingOf.get(task); return `<p>Landed on the sprout as <b>#${e.trunk_idx}</b>.</p>` + (l ? l.files.map((f, i) => diffBlock(f, i === 0, { limit: 24 })).join('') : ''); }
+      case 'green.promote': return `<p>A validation of the sprout passed, so the stalk moved to #${e.trunk_idx}; this bean is now on the stalk.</p>`;
+      case 'decision.request': return `<p>Decision <b>${esc(e.card)}</b> opened: its spec disagrees with ${esc(e.against.join(', '))}.</p>`;
+      case 'decision.made': return `<p>${esc(e.card)} was decided for ${esc(e.winner)} (${esc(e.oracle)}).</p>`;
+      case 'task.drop': return `<p>${esc(e.reason)}</p>`;
+      case 'preland.optimistic': return `<p>${e.landed_meanwhile} beans landed while it was checked, none on its files, so it landed without a re-check.</p>`;
+      case 'preland.recheck': return `<p>The sprout moved under it during the check, so it was checked again (attempt ${e.attempt}).</p>`;
+      case 'ticket.culprit': return `<p>Bisecting the read-set suspects named this bean as the cause of ${esc(e.ticket)}.</p>`;
+      case 'revert.conflict': return `<p>Its revert conflicted in ${e.files.map((f) => `<code>${esc(f)}</code>`).join(', ')}, so the fix came forward.</p>`;
+      default: return '';
+    }
   }
 
   /* ---------- Composition ---------- */
@@ -131,8 +265,10 @@
 
   function askBlock(ctx) {
     const sugg = ['What changed recently on coupons?', 'Why did the sprout go red?', 'Who is working on billing right now?', 'What did we decide?'];
-    return `<form class="ask" id="askForm"><span class="q">?</span><span class="caret" aria-hidden="true"></span><input name="q" value="${esc(ctx.q || '')}" placeholder="Ask the beanstalk anything" autocomplete="off"><kbd class="k-slash">/</kbd><kbd class="k-cmd">⌘K</kbd></form>
-      ${ctx.q ? '' : `<div class="asked">${sugg.map((s) => `<a href="#" data-ask="${esc(s)}">${esc(s)}</a>`).join('')}<span class="picked" title="Suggested for this moment">picked</span></div>`}`;
+    const more = ['What has a2 done?', 'What did t032 try?', "What's on the sprout but not on the stalk?"];
+    return `<div class="askwrap"><form class="ask" id="askForm"><span class="q">?</span><span class="caret" aria-hidden="true"></span><input name="q" value="${esc(ctx.q || '')}" placeholder="Ask the beanstalk anything" autocomplete="off"><kbd class="k-slash">/</kbd><kbd class="k-cmd">⌘K</kbd></form>
+      <div class="asked completions" role="listbox">${[...sugg, ...more].map((s) => `<a href="#" role="option" data-ask="${esc(s)}">${esc(s)}</a>`).join('')}<span class="picked" title="Completions suggested for this moment">picked</span></div></div>
+      ${ctx.q ? '' : `<div class="examples"><span>Try</span>${sugg.slice(0, 3).map((s) => `<a href="#" data-ask="${esc(s)}">${esc(s)}</a>`).join('')}</div>`}`;
   }
 
   const COMPONENTS = {
@@ -171,13 +307,13 @@
       const st = M.stateAt(task, ctx.T);
       const word = { stalk: 'on the stalk', landed: 'on the sprout', dropped: 'fell off', reworking: 'reworking', checking: 'being checked', writing: 'being written', deciding: 'waiting on a decision', queued: 'not started' }[st.state] || st.state;
       const chip = st.state === 'stalk' ? 'stalk' : st.state === 'landed' ? 'sprout' : st.state === 'dropped' ? 'red' : 'fly';
-      const steps = M.journey(task).filter((s) => s.t <= ctx.T);
-      const files = l && l.t <= ctx.T ? l.files : M.D.beanHeads[task]?.files || [];
-      const diff = files.slice(0, 3).map((f, i) => `<details ${i === 0 ? 'open' : ''}><summary><span class="p">${K.ICON.file}<code>${esc(f.path.replace(/^src\//, ''))}</code></span><span></span><span class="n"><span class="add">+${f.additions}</span> <span class="del">−${f.deletions}</span></span></summary><div class="hunk">${f.lines.slice(0, 20).map((ln) => `<div class="${ln[0] === '+' ? 'a' : ln[0] === '-' ? 'd' : ln.startsWith('@@') ? 'h' : ''}">${esc(ln)}</div>`).join('')}</div></details>`).join('');
-      return `<div class="box diffs"><div class="beanhead"><h3>${esc(t.title)}</h3><div class="meta"><span class="chip ${chip}">${word}</span><span>${task}</span><span>by ${pt.agent || '?'}</span>${l ? `<span>#${l.idx}</span>` : ''}${pt.reworks ? `<span class="chip red">${plural(pt.reworks, 'rework')}</span>` : ''}</div>
+      const list = journeyList(task, ctx.T, st);
+      const sel = list.some((x) => x.id === ctx.step) ? ctx.step : 'all';
+      const left = list.map((x) => `<li class="${x.kind}${x.id === sel ? ' on' : ''}${x.prog ? ' prog' : ''}" data-step="${x.id}" tabindex="0">${x.kind === 'all' ? '' : `<span class="w">${fmt(x.t)}</span>`}${esc(x.text)}${x.prog ? ' <span class="live">live</span>' : ''}</li>`).join('');
+      const right = stepDetail(task, list.find((x) => x.id === sel), ctx.T, st);
+      return `<div class="box diffs"><div class="beanhead"><h3>${esc(t.title)}</h3><div class="meta"><span class="chip ${chip}">${word}</span><span>${task}</span><span>by ${pt.agent || '?'}</span>${l && l.t <= ctx.T ? `<span>#${l.idx}</span>` : ''}${reworksBy(task, ctx.T) ? `<span class="chip red">${plural(reworksBy(task, ctx.T), 'rework')}</span>` : ''}</div>
         <p>${esc(t.intent.split('\n\n')[0]).replace(/`([^`]+)`/g, '<code>$1</code>')}</p></div>
-        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)"><ol class="journey">${steps.map((s) => `<li class="${s.kind}"><span class="w">${fmt(s.t)}</span>${esc(s.text)}${s.quote && s.kind === 'agent' ? `<q>${esc(s.quote.split('\n')[0].slice(0, 140))}${s.quote.length > 140 ? '…' : ''}</q>` : ''}</li>`).join('')}</ol>
-        <div style="border-left:1px solid var(--border-muted)">${diff || '<div class="empty">No change yet.</div>'}</div></div></div>`;
+        <div class="jgrid"><ol class="journey">${left}</ol><div class="jdetail">${right}</div></div></div>`;
     },
 
     decision(ctx) {

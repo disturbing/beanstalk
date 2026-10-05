@@ -142,3 +142,48 @@
 .info { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 0; background: none; color: var(--fg-subtle); border-radius: 50%; padding: 0; vertical-align: middle; }
 .info:hover { color: var(--link); background: var(--subtle); }
 .caret, .k-cmd, .kh, .statusline { display: none; }
+
+/* ---- Ask: completions open on focus, example chips below the closed box ---- */
+.askwrap { position: relative; z-index: 15; }
+.askwrap .completions {
+  display: none; position: absolute; left: 0; right: 0; top: calc(100% - 1px); flex-direction: column; gap: 0;
+  margin: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0 0 10px 10px; padding: 4px 0; box-shadow: var(--shadow-md);
+}
+.askwrap.open .completions { display: flex; }
+.askwrap.open .ask { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.askwrap .completions a { border: 0; border-radius: 0; background: none; padding: 5px 14px; font-size: 13px; color: var(--fg-muted); }
+.askwrap .completions a:hover, .askwrap .completions a:first-of-type { background: var(--subtle); color: var(--fg); text-decoration: none; }
+.askwrap .completions .info { position: absolute; right: 10px; bottom: 6px; }
+.examples { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--fg-subtle); }
+.examples a { font-size: 12px; border: 1px solid var(--border-muted); border-radius: 999px; padding: 1px 10px; color: var(--fg-muted); background: var(--bg); }
+.examples a:hover { color: var(--link); border-color: var(--link); text-decoration: none; }
+
+/* ---- Bean journey: selectable steps, detail on the right ---- */
+.jgrid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); }
+.jdetail { border-left: 1px solid var(--border-muted); min-width: 0; }
+.journey li { cursor: pointer; border-radius: 6px; margin: 0 -6px 2px; padding: 4px 6px 6px 28px; }
+.journey li::before { left: 6px; top: 8px; }
+.journey li::after { left: 10px; top: 20px; }
+.journey li:hover { background: var(--subtle); }
+.journey li.on { background: var(--pick-bg); box-shadow: inset 2px 0 0 var(--pick); }
+.journey li.all { font-weight: 600; }
+.journey li.all::before { border-radius: 2px; box-shadow: inset 0 0 0 2px var(--fg-muted); }
+.journey li .live { font: 600 10px/16px var(--mono); color: var(--bean); border: 1px solid var(--bean); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+.journey li.prog::before { background: transparent; box-shadow: none; border: 2px solid var(--bean); border-top-color: transparent; border-radius: 50%; width: 11px; height: 11px; transform: none; }
+.journey li.prog.plan::before { border-color: var(--amber); border-top-color: transparent; }
+@media (prefers-reduced-motion: no-preference) {
+  .journey li.prog::before { animation: jspin 0.9s linear infinite; }
+}
+@keyframes jspin { to { transform: rotate(360deg); } }
+.jnote { padding: 9px 16px; font-size: 12px; color: var(--fg-muted); border-bottom: 1px solid var(--border-muted); display: flex; gap: 8px; align-items: center; }
+.stephead { color: var(--fg) !important; font-weight: 600; }
+.stephead .w { color: var(--fg-subtle); font-weight: 400; font-family: var(--mono); font-size: 11.5px; margin-right: 4px; }
+.report { margin: 6px 0 4px; padding: 8px 12px; border-left: 3px solid var(--bean); background: var(--subtle); color: var(--fg-muted); font-size: 12.5px; white-space: pre-wrap; }
+.fails { margin: 4px 0 0; padding-left: 18px; font-size: 12px; }
+.jdetail .cardbody details { margin: 8px -16px 0; }
+.progress { height: 4px; border-radius: 2px; background: var(--inset); overflow: hidden; margin: 4px 0 2px; }
+.progress i { display: block; height: 100%; background: var(--amber); }
+.streaming { display: flex; align-items: center; gap: 6px; color: var(--bean); font: 11.5px/20px var(--mono); padding: 2px 16px !important; }
+.streaming .cur { width: 7px; height: 13px; background: var(--bean); display: inline-block; }
+@media (prefers-reduced-motion: no-preference) { .streaming .cur { animation: blinkc 1s steps(1) infinite; } }
+@keyframes blinkc { 50% { opacity: 0; } }

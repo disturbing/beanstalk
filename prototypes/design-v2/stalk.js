@@ -11,6 +11,7 @@
     T: K.moment(760),
     q: params.get('q') || '',
     bean: params.get('bean'),
+    step: params.get('step') || 'all',
     playing: false,
   };
 
@@ -160,6 +161,7 @@
     p.set('t', S.T >= TEND ? 'end' : String(Math.round(S.T - T0)));
     if (S.q) p.set('q', S.q);
     if (S.bean) p.set('bean', S.bean);
+    if (S.bean && S.step !== 'all') p.set('step', S.step);
     const root = document.documentElement;
     if (root.dataset.skin && root.dataset.skin !== 'nightshift') p.set('skin', root.dataset.skin);
     p.set('theme', root.dataset.theme);
@@ -175,8 +177,20 @@
     if (jump) { e.preventDefault(); S.T = T0 + Number(jump.dataset.t); return render(); }
     const ask = e.target.closest('[data-ask]');
     if (ask) { e.preventDefault(); S.q = ask.dataset.ask; S.bean = null; return render(); }
+    const step = e.target.closest('[data-step]');
+    if (step) { e.preventDefault(); S.step = step.dataset.step; return render(); }
     const bean = e.target.closest('[data-bean]');
-    if (bean) { e.preventDefault(); S.bean = bean.dataset.bean; return render(); }
+    if (bean) { e.preventDefault(); S.bean = bean.dataset.bean; S.step = 'all'; return render(); }
+    // the completions close when the click lands outside the Ask
+    if (!e.target.closest('.askwrap')) closeAsk();
+  });
+  /* the Ask's completions open on focus (or ⌘K) and close on Esc or blur */
+  function openAsk() { document.querySelector('.askwrap')?.classList.add('open'); }
+  function closeAsk() { document.querySelector('.askwrap')?.classList.remove('open'); }
+  document.addEventListener('focusin', (e) => { if (e.target.closest('#askForm')) openAsk(); });
+  document.addEventListener('focusout', (e) => {
+    if (!e.target.closest('#askForm')) return;
+    setTimeout(() => { if (!document.querySelector('.askwrap')?.contains(document.activeElement)) closeAsk(); }, 150);
   });
   document.addEventListener('submit', (e) => {
     if (e.target.id !== 'askForm') return;
@@ -186,11 +200,13 @@
     render();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); document.querySelector('#askForm input')?.focus(); }
+    if ((e.key === '/' && document.activeElement?.tagName !== 'INPUT') || (e.key === 'k' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); document.querySelector('#askForm input')?.focus(); openAsk(); }
+    if (e.key === 'Escape') { closeAsk(); document.activeElement?.blur(); }
   });
   range.addEventListener('input', () => { S.playing = false; S.T = T0 + (range.value / 1000) * (TEND - T0); render(); });
   document.getElementById('play').addEventListener('click', () => setPlaying(!S.playing));
 
   render();
+  if (params.get('open')) openAsk();
   if (params.get('play')) setPlaying(true);
 })();

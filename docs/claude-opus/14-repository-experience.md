@@ -476,3 +476,33 @@ Left out on purpose: wiki, discussions, releases and packages, security alerts a
   - time bucketing past 200 rows;
   - a warm-up call at boot so the first pick stays within budget;
   - an `AI Gateway` id other than `default` if Coop wants separate logs and limits.
+
+### Streaming a bean's changeset live (scope note, 2026-10-05)
+
+Coop asked whether the bean view can show a bean's changeset arriving while its agent writes: hunks streaming into the right side of the journey card. The design-v2 mockup simulates it (`prototypes/design-v2/index.html?t=630&bean=t038`, or play the run with a writing bean open). It cuts the recorded diff to the share of the invocation that has elapsed, and puts a "streaming" tag and a writing caret on the right side.
+
+**What exists today.** The engine sees a bean's change only once per invocation. The slot driver runs the harness (Claude Code or Codex) in the bean's worktree. When the invocation ends, the driver commits (`commit_task`) and replies with an `InvocationResult` carrying `head_sha`. The gateway then logs `invocation.end` and `task.commit` (`packages/gateway/src/engine/tasks.ts`, `recordCommit`). Nothing in between reaches the RunDO, so the web app can only show the change after the agent finishes.
+
+**What streaming needs:**
+
+1. **The driver reports progress mid-invocation.** It needs a way to know the agent has edited something, then sends a diff of the worktree against the bean's base, using the same `git diff` the commit already uses (scoped to the bean's own files, capped at 64 KB).
+   - **Claude Code:** a `PostToolUse` hook on `Edit`, `Write` and `MultiEdit` names the touched path.
+   - **Codex, or as a fallback:** a timer that checks the worktree every 3–5 s and sends only when it changed.
+2. **A gateway route and RunDO channel for the progress.** Each report goes to the RunDO as a `bean.progress {task, inv, seq, files: [{path, additions, deletions, patch}]}` message. It is **ephemeral**:
+   - not written to `events.jsonl`, so replays and the reducer stay as they are;
+   - the DO keeps only the latest snapshot per bean, so anyone who opens the page late sees the current state;
+   - it is broadcast on the existing live WebSocket feed, so the web app's server-sent-events bridge needs no new transport.
+3. **Guards.** Before anything is broadcast, the same secret scan the fixtures get, plus a size cap and a rate limit per slot (at most one report a second). The commit at the end of the invocation stays the source of truth: when `task.commit` arrives it replaces the streamed snapshot.
+4. **Web.** In the journey card, render the latest snapshot under "All changes" and on the live step, with the streaming tag and caret from the mockup. Diffs update in place; motion stays limited to the caret.
+5. **MCP (optional).** `change_status` can return the latest snapshot, so other agents see work in progress. It would also feed overlap warnings before a commit exists, a real coordination gain.
+
+**Effort**, against the 2026-10-14 deadline:
+
+| Piece | Days |
+|---|---|
+| Driver: hook and timer, diff, POST with retry | 0.5–1 |
+| Gateway route, RunDO snapshot and broadcast, guards, tests | 1 |
+| Web: live snapshot in the journey card (the mockup's rendering is done) | 0.5 |
+| **Total, with tests** | **2–2.5** |
+
+A cheaper first step is the timer only (no harness hooks), sending changed-file stats and patches every 5 s: about 1.5 days. It is good enough for the demo, because writing invocations in the recorded runs last 10–40 s. I'd only take it on after the Plot and design-v2 work land, since it touches the driver protocol that both the queue and Beanstalk policies share.
