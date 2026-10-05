@@ -193,6 +193,12 @@ export const RunConfig = z
      */
     targeted_landing_check: z.boolean().default(false),
     /**
+     * v2.5: a squash that git's line merge conflicts is retried with the runner's structural
+     * tier (Mergiraf) on the conflicted paths before it counts as a conflict. v2 only, on by
+     * default; the queue never uses it, so it stays the harness's baseline (`false`: v2.4).
+     */
+    structural_merge: z.boolean().optional(),
+    /**
      * v2: which unstarted bean a free agent takes. `fifo`: priority order. `dependency`: a bean
      * whose predicted footprint and declared couplings clash with no bean in flight and no
      * earlier unlanded bean, longest dependent chain first, with an age bound
@@ -234,6 +240,13 @@ export const RunConfig = z
         code: 'custom',
         path: ['snapshot'],
         message: 'v2 starts tasks from the sprout head',
+      });
+    }
+    if (config.policy === 'queue' && config.structural_merge === true) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['structural_merge'],
+        message: 'the queue merges as the harness does; structural_merge is v2 only',
       });
     }
     if (
@@ -279,6 +292,7 @@ export const V25_RULES_OFF = {
   start_cards: false,
   rescue: false,
   dynamic_culprits: false,
+  structural_merge: false,
 } as const satisfies Partial<RunConfigInput>;
 
 /** The harness default for `--error-budget`, and what v2 runs with (`--error-budget 999`). */
@@ -306,6 +320,16 @@ export function snapshotMode(config: Pick<RunConfig, 'policy' | 'snapshot'>): 'g
 /** Whether an agent is freed while its bean is checked (E5): on by default for v2. */
 export function releasesOnCheck(config: Pick<RunConfig, 'policy' | 'release_on_check'>): boolean {
   return config.release_on_check ?? config.policy === 'beanstalk-v2';
+}
+
+/**
+ * Whether the runner retries a conflicted squash with its structural tier: v2 (unless
+ * `structural_merge: false`), never the queue, so the queue stays the harness's baseline.
+ */
+export function usesStructuralMerge(
+  config: Pick<RunConfig, 'policy' | 'structural_merge'>,
+): boolean {
+  return config.policy === 'beanstalk-v2' && config.structural_merge !== false;
 }
 
 /** v2's pre-land check latency: `preland_seconds`, or the CI latency when unset. */

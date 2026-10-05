@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   RunConfig,
+  V25_RULES_OFF,
   errorBudget,
   prelandSeconds,
   releasesOnCheck,
   protectTestsMode,
   snapshotMode,
   unionPaths,
+  usesStructuralMerge,
   usesUnionMerge,
 } from './run-config';
 
@@ -124,5 +126,27 @@ describe('union merge driver', () => {
       '**/CHANGELOG.md',
     ]);
     expect(unionPaths({ policy: 'beanstalk', merge_drivers: 'none' })).toEqual([]);
+  });
+});
+
+describe('structural merge tier', () => {
+  it('is v2 only: on by default for v2, never for the queue', () => {
+    const v2 = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
+    const queue = RunConfig.parse({ policy: 'queue', tasks: [task('t001')] });
+
+    expect(usesStructuralMerge(v2)).toBe(true);
+    expect(usesStructuralMerge({ ...v2, structural_merge: false })).toBe(false);
+    expect(usesStructuralMerge(queue)).toBe(false);
+    expect(usesStructuralMerge({ ...v2, ...V25_RULES_OFF })).toBe(false);
+  });
+
+  it('refuses it for the queue, which stays the harness baseline', () => {
+    const result = RunConfig.safeParse({
+      policy: 'queue',
+      structural_merge: true,
+      tasks: [task('t001')],
+    });
+
+    expect(result.success).toBe(false);
   });
 });

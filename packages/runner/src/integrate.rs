@@ -3,9 +3,10 @@
 
 use crate::error::{Error, Result};
 use crate::git::{
-    CommitSha, MergeRules, MergeSetup, RefName, RefUpdate, RefUpdateOutcome, Remote, Repo,
-    ThreeWay, TreeMerge, TrunkCache,
+    CommitSha, MergeRules, RefName, RefUpdate, RefUpdateOutcome, Remote, Repo, ThreeWay, TreeMerge,
+    TrunkCache,
 };
+use crate::resolve::{self, ConflictHunk, MergeTiers, Resolution};
 use crate::workspace::Workspace;
 
 /// A change to land: a named ref on a remote (usually the task's fork).
@@ -80,6 +81,10 @@ impl Landing {
 #[derive(Debug, Clone)]
 pub(crate) struct Squashed {
     pub(crate) landing: Landing,
+    /// The tier that merged a clean landing (meaningless for a conflict).
+    pub(crate) resolution: Resolution,
+    /// The conflict blocks of a conflict, for the agent's prompt; empty when clean.
+    pub(crate) hunks: Vec<ConflictHunk>,
     pub(crate) change_head: CommitSha,
     pub(crate) merge_base: CommitSha,
     pub(crate) change_files: Option<Vec<String>>,
@@ -108,12 +113,17 @@ pub(crate) async fn squash(workspace: &Workspace, request: &SquashRequest) -> Re
     cache.ensure_commits(&[&request.onto]).await?;
     let job = workspace.new_job().await?;
     let setup = request.rules.prepare(job.path()).await?;
+    let tiers = MergeTiers {
+        rules: &request.rules,
+        setup: &setup,
+        scratch: job.path(),
+    };
     let step = SquashStep {
         onto: &request.onto,
         change: &request.change,
         message: &request.message,
     };
-    let squashed = squash_change(&cache, &setup, step).await?;
+    let squashed = squash_change(&cache, tiers, step).await?;
     if let Some(sha) = squashed.landing.sha() {
         cache.push_candidates(&[sha]).await?;
     }
@@ -135,6 +145,11 @@ pub(crate) async fn compose(
     cache.ensure_commits(&[&request.base]).await?;
     let job = workspace.new_job().await?;
     let setup = request.rules.prepare(job.path()).await?;
+    let tiers = MergeTiers {
+        rules: &request.rules,
+        setup: &setup,
+        scratch: job.path(),
+    };
     let mut head = request.base.clone();
     let mut items = Vec::with_capacity(request.items.len());
     for item in &request.items {
@@ -143,7 +158,7 @@ pub(crate) async fn compose(
             change: &item.change,
             message: &item.message,
         };
-        let squashed = squash_change(&cache, &setup, step).await?;
+        let squashed = squash_change(&cache, tiers, step).await?;
         if let Some(sha) = squashed.landing.sha() {
             head = sha.clone();
         }
@@ -228,10 +243,10 @@ struct NewCommit<'a> {
 }
 
 /// Fetches the change and lands `merge_base(head, onto)..head` on `onto` as one commit
-/// (`gitops.squash_onto` after `merge_base(change_head, target)`).
+/// (`gitops.squash_onto` after `merge_base(change_head, target)`), through the merge tiers.
 async fn squash_change(
     cache: &TrunkCache<'_>,
-    setup: &MergeSetup,
+    tiers: MergeTiers<'_>,
     step: SquashStep<'_>,
 ) -> Result<Squashed> {
     let change_head = cache
@@ -245,13 +260,19 @@ async fn squash_change(
         ours: step.onto,
         theirs: &change_head,
     };
-    let merged = repo.merge_tree(three_way, setup).await?;
+    let tiered = resolve::merge(repo, three_way, tiers).await?;
+    let hunks = match &tiered.merged {
+        TreeMerge::Conflicted { tree, files } => resolve::conflict_hunks(repo, tree, files).await?,
+        TreeMerge::Clean(_) => Vec::new(),
+    };
     let commit = NewCommit {
         parent: step.onto,
         message: step.message,
     };
     Ok(Squashed {
-        landing: land(repo, merged, commit).await?,
+        landing: land(repo, tiered.merged, commit).await?,
+        resolution: tiered.resolution,
+        hunks,
         change_head,
         merge_base,
         change_files,
@@ -273,7 +294,7 @@ async fn change_files(
 /// Commits a clean merge with `commit.parent` as its only parent; a conflict commits nothing.
 async fn land(repo: &Repo<'_>, merged: TreeMerge, commit: NewCommit<'_>) -> Result<Landing> {
     match merged {
-        TreeMerge::Conflicted(files) => Ok(Landing::Conflict { files }),
+        TreeMerge::Conflicted { files, .. } => Ok(Landing::Conflict { files }),
         TreeMerge::Clean(tree) => {
             let sha = repo
                 .commit_tree(&tree, commit.parent, commit.message)

@@ -19,7 +19,7 @@
  *    sprout commit prove the sprout red: revert-first starts at once (`early_tickets`).
  */
 import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds, unionPaths } from '@beanstalk/shared-race/run-config';
+import { prelandSeconds, unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
 import { isRunnableTest } from '../arena';
@@ -27,7 +27,7 @@ import { failingTestNames } from '../ci';
 import type { ReworkOutcome } from '../context';
 import { acceptanceTests, emit, requireTask, setTimer, startJob, taskDefinition } from '../context';
 import { EngineInvariantError, assertNever } from '../errors';
-import type { CheckResult, JobId, JobResult, LineRanges } from '../model';
+import type { CheckResult, ConflictHunk, JobId, JobResult, LineRanges } from '../model';
 import { roundTo } from '../numbers';
 import { beanstalkLandMessage } from '../prompts';
 import { SPROUT_REF } from '../refs';
@@ -87,7 +87,12 @@ const GLOBAL_FILE =
 type CheckStep = Extract<LandingStep, { kind: 'check' }>;
 type Candidate = Pick<CheckStep, 'head0' | 'candidate' | 'files' | 'mine'>;
 type Failure =
-  | { readonly kind: 'conflict'; readonly head: Sha; readonly files: readonly string[] }
+  | {
+      readonly kind: 'conflict';
+      readonly head: Sha;
+      readonly files: readonly string[];
+      readonly hunks: readonly ConflictHunk[];
+    }
   | {
       readonly kind: 'red';
       readonly head: Sha;
@@ -116,6 +121,7 @@ export function startLanding(step: V2Step, task: TaskId): void {
     rechecks: 0,
     inheritedWaits: 0,
     targeted: 0,
+    resolved: 'textual',
     step: { kind: 'queued-locked' },
   };
   attempt(step, task);
@@ -302,6 +308,7 @@ function squash(step: V2Step, task: TaskId, onto: Sha): JobId {
       changeBase: base,
       message: beanstalkLandMessage(taskDefinition(ctx, task)),
       unionPaths: unionPaths(ctx.env.config),
+      structural: usesStructuralMerge(ctx.env.config),
     },
     { kind: 'policy' },
   );
@@ -312,9 +319,15 @@ function squash(step: V2Step, task: TaskId, onto: Sha): JobId {
 function onSquashed(step: V2Step, flow: LandingFlow, head0: Sha, result: JobResult): void {
   if (result.kind !== 'squash') throw new EngineInvariantError(`squash got ${result.kind}`);
   if (result.outcome === 'conflict') {
-    attemptFailed(step, flow, { kind: 'conflict', head: head0, files: result.files });
+    attemptFailed(step, flow, {
+      kind: 'conflict',
+      head: head0,
+      files: result.files,
+      hunks: result.hunks,
+    });
     return;
   }
+  flow.resolved = result.resolved;
   if (flow.rechecks >= MAX_RECHECKS) {
     step.state.stats.preland_locked_fallbacks += 1;
     flow.step = { kind: 'queued-locked' };
@@ -710,10 +723,16 @@ function onResquashed(
 ): void {
   if (result.kind !== 'squash') throw new EngineInvariantError(`squash got ${result.kind}`);
   if (result.outcome === 'conflict') {
-    attemptFailed(step, flow, { kind: 'conflict', head: resquash.head, files: result.files });
+    attemptFailed(step, flow, {
+      kind: 'conflict',
+      head: resquash.head,
+      files: result.files,
+      hunks: result.hunks,
+    });
     releaseTurn(step);
     return;
   }
+  flow.resolved = result.resolved;
   const delta = filesLandedSince(step.state, resquash.head0);
   const mine = resquash.mine;
   const shared = mine === null ? delta : delta.filter((path) => mine.includes(path));
@@ -940,10 +959,11 @@ function squashInTurn(step: V2Step, flow: LandingFlow): void {
 function onLockedSquashed(step: V2Step, flow: LandingFlow, head: Sha, result: JobResult): void {
   if (result.kind !== 'squash') throw new EngineInvariantError(`squash got ${result.kind}`);
   if (result.outcome === 'conflict') {
-    attemptFailed(step, flow, { kind: 'conflict', head, files: result.files });
+    attemptFailed(step, flow, { kind: 'conflict', head, files: result.files, hunks: result.hunks });
     releaseTurn(step);
     return;
   }
+  flow.resolved = result.resolved;
   startCheck(step, flow, { isInTurn: true, targets: null, ...candidateOf(head, result) });
 }
 
@@ -996,6 +1016,7 @@ function onPublished(
     files: [...landing.files],
     unvalidated: unvalidatedCount(state),
     prelanded: true,
+    ...(flow.resolved === 'structural' ? { resolved: 'structural' } : {}),
   });
   landed(step, flow, landing);
   releaseTurn(step);
@@ -1044,5 +1065,10 @@ function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void 
     onto: failure.head,
     files: [...failure.files],
   });
-  requestAgent(step, flow, { kind: 'conflict', head: failure.head, files: failure.files });
+  requestAgent(step, flow, {
+    kind: 'conflict',
+    head: failure.head,
+    files: failure.files,
+    hunks: failure.hunks,
+  });
 }

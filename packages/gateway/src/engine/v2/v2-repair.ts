@@ -22,8 +22,8 @@ import {
 } from '../context';
 import { canResume, createInvocation } from '../invocations';
 import type { CheckResult, JobResult } from '../model';
-import { informedRedPrompt, reworkConflictPrompt } from '../prompts';
-import type { CulpritContext } from '../prompts';
+import { informedConflictPrompt, informedRedPrompt } from '../prompts';
+import type { ConflictAuthor, ConflictContext, CulpritContext } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
@@ -43,8 +43,8 @@ const CARD_AFTER_REDS = 3;
 export const CULPRIT_DIFF_CHARS = 5000;
 /** Failing tests quoted in an informed rework (`[:20]`). */
 const REWORK_FAILING_TESTS = 20;
-/** How the harness names the line in a conflict prompt (`rework_conflict(..., "the trunk")`). */
-const CONFLICT_TARGET = 'the trunk';
+/** Landed beans a conflict rework names as the other side's authors. */
+const MAX_CONFLICT_AUTHORS = 3;
 /** What an informed rework shows for a culprit's diff that cannot be read. */
 const DIFF_UNAVAILABLE = '(diff unavailable)';
 /** The diff text of a culprit with no landed commit. */
@@ -75,6 +75,7 @@ export function startConflictRework(
   const task = requireTask(ctx, flow.task);
   const definition = promptTask(ctx, flow.task);
   const resumed = canResume(ctx, task);
+  const conflict = conflictContext(step, flow.task, work);
   task.reworks += 1;
   task.status = 'rework';
   emit(ctx, 'rework.start', {
@@ -91,8 +92,8 @@ export function startConflictRework(
     task: flow.task,
     slot,
     attempt: flow.rounds,
-    prompt: reworkConflictPrompt(definition, work.files, CONFLICT_TARGET, resumed),
-    freshPrompt: reworkConflictPrompt(definition, work.files, CONFLICT_TARGET, false),
+    prompt: informedConflictPrompt(definition, conflict, resumed),
+    freshPrompt: informedConflictPrompt(definition, conflict, false),
     resume: resumed ? task.sessionId : null,
     workspace: (inv) =>
       taskWorkspace(ctx, task, {
@@ -104,6 +105,28 @@ export function startConflictRework(
       }),
     replay: { reset_to: work.head, check: 'acceptance', fixes: [] },
   });
+}
+
+/**
+ * The hunks of a conflict and the landed beans behind the sprout's side: the newest first
+ * among those that landed after the bean last merged the sprout and wrote a conflicted file.
+ */
+function conflictContext(step: V2Step, task: TaskId, work: ConflictWork): ConflictContext {
+  const { ctx, state } = step;
+  const since = sproutIndex(state, requireTask(ctx, task).mergedMain);
+  const conflicted = new Set(work.files);
+  const authors: ConflictAuthor[] = [];
+  for (const commit of state.commits.slice(since + 1).toReversed()) {
+    const author = commit.task;
+    const paths = commit.files.filter((path) => conflicted.has(path));
+    const isOtherBean = commit.kind === 'task' && author !== null && author !== task;
+    if (!isOtherBean || commit.reverted || paths.length === 0) continue;
+    if (authors.some((known) => known.task === author)) continue;
+    const definition = taskDefinition(ctx, author);
+    authors.push({ task: author, title: definition.title, intent: definition.prompt, paths });
+    if (authors.length === MAX_CONFLICT_AUTHORS) break;
+  }
+  return { files: work.files, hunks: work.hunks, authors };
 }
 
 /**

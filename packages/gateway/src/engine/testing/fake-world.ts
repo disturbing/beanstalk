@@ -63,6 +63,8 @@ export type ScriptedTask = {
   readonly failsResume?: boolean;
   /** The runner cannot squash this task's bean (a permanent infrastructure failure). */
   readonly squashFails?: boolean;
+  /** The runner's structural tier merged this bean: its clean squashes say so. */
+  readonly mergesStructurally?: boolean;
   /** What a test author writes into this task's acceptance tests when it loses a card. */
   readonly amendTests?: Readonly<Record<string, string>>;
   /** Files the n-th re-execution writes (default: the initial writes with the bug fixed). */
@@ -139,7 +141,12 @@ export function createWorld(options: WorldOptions): World {
         const result = check(git, options.rules, { ...spec, flake });
         return { ok: true, result: { kind: 'check', check: result } };
       }
-      return runJob(git, options.rules, spec);
+      const outcome = runJob(git, options.rules, spec);
+      const isStructural =
+        spec.kind === 'squash' &&
+        spec.structural &&
+        scripted.get(spec.changeKey)?.mergesStructurally === true;
+      return isStructural ? structurally(outcome) : outcome;
     },
     runAgent: (instruction) => {
       instructions.push(instruction);
@@ -178,6 +185,14 @@ const JOB_MILLIS: Record<JobSpec['kind'], number> = {
   'read-files': 100,
   'line-ranges': 100,
 };
+
+/** A clean squash as the runner reports one its structural tier merged. */
+function structurally(outcome: JobOutcome): JobOutcome {
+  if (!outcome.ok || outcome.result.kind !== 'squash' || outcome.result.outcome !== 'clean') {
+    return outcome;
+  }
+  return { ok: true, result: { ...outcome.result, resolved: 'structural' } };
+}
 
 function runJob(git: ToyGit, rules: readonly FailRule[], spec: JobSpec): JobOutcome {
   switch (spec.kind) {
@@ -229,7 +244,10 @@ function squash(git: ToyGit, spec: Extract<JobSpec, { kind: 'squash' }>): JobOut
     spec.unionPaths,
   );
   if (merged.kind === 'conflict') {
-    return { ok: true, result: { kind: 'squash', outcome: 'conflict', files: merged.conflicts } };
+    return {
+      ok: true,
+      result: { kind: 'squash', outcome: 'conflict', files: merged.conflicts, hunks: [] },
+    };
   }
   const commit = git.commit([onto.sha], merged.files, spec.message);
   git.setRef(REPO, `refs/beanstalk/candidates/${commit.sha}`, commit.sha);
@@ -241,6 +259,7 @@ function squash(git: ToyGit, spec: Extract<JobSpec, { kind: 'squash' }>): JobOut
       sha: commit.sha,
       files: changedPaths(onto.files, commit.files),
       changeFiles: changedPaths(git.get(spec.changeBase).files, git.get(head).files),
+      resolved: 'textual',
     },
   };
 }

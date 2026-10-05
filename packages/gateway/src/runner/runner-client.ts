@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { Sha } from '@beanstalk/shared-race/ids';
 
-import type { CheckResult } from '../engine/model';
+import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
 import { UpstreamError } from '../errors';
 
 /** Longest runner call: a suite has a 300 s timeout in the runner; fetches come on top. */
@@ -25,6 +25,8 @@ export type SquashCall = {
   readonly change: RunnerRemote & { readonly ref: string; readonly base: Sha };
   readonly message: string;
   readonly unionPaths: readonly string[];
+  /** The runner's `structural_merge`: false keeps git's line merge alone (the queue). */
+  readonly structural: boolean;
 };
 
 export type SquashOutcome =
@@ -35,8 +37,16 @@ export type SquashOutcome =
       readonly mergeBase: Sha;
       /** The change's own write set (`base..head`), present because the call names the base. */
       readonly changeFiles: readonly string[] | null;
+      /** The merge tier that produced it (Mergiraf's when git's line merge conflicted). */
+      readonly resolved: Resolution;
     }
-  | { readonly result: 'conflict'; readonly files: readonly string[]; readonly mergeBase: Sha };
+  | {
+      readonly result: 'conflict';
+      readonly files: readonly string[];
+      readonly mergeBase: Sha;
+      /** Both sides of each conflict block, for the author's prompt. */
+      readonly hunks: readonly ConflictHunk[];
+    };
 
 export type RevertCall = {
   readonly trunk: RunnerRemote;
@@ -84,8 +94,14 @@ const SquashResponse = z.discriminatedUnion('result', [
     files: z.array(z.string()),
     merge_base: Sha,
     change_files: z.array(z.string()).optional(),
+    resolved: z.enum(['textual', 'structural']).optional(),
   }),
-  z.object({ result: z.literal('conflict'), files: z.array(z.string()), merge_base: Sha }),
+  z.object({
+    result: z.literal('conflict'),
+    files: z.array(z.string()),
+    merge_base: Sha,
+    hunks: z.array(z.object({ path: z.string(), onto: z.string(), change: z.string() })).optional(),
+  }),
 ]);
 
 const RevertResponse = z.discriminatedUnion('result', [
@@ -138,8 +154,18 @@ export function runnerPort(stubFor: (instance: string) => RunnerStub): RunnerPor
             files: response.files,
             mergeBase: response.merge_base,
             changeFiles: response.change_files ?? null,
+            resolved: response.resolved ?? 'textual',
           }
-        : { result: 'conflict', files: response.files, mergeBase: response.merge_base };
+        : {
+            result: 'conflict',
+            files: response.files,
+            mergeBase: response.merge_base,
+            hunks: (response.hunks ?? []).map(({ path, onto, change }) => ({
+              path,
+              sprout: onto,
+              bean: change,
+            })),
+          };
     },
     async revert(instance, call) {
       const body = {
@@ -196,6 +222,7 @@ function squashBody(call: SquashCall): Record<string, unknown> {
     },
     message: call.message,
     union_paths: call.unionPaths,
+    structural_merge: call.structural,
   };
 }
 

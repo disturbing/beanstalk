@@ -79,6 +79,7 @@ export function openStartCard(step: V2Step, slot: SlotState, id: TaskId): boolea
     rechecks: 0,
     inheritedWaits: 0,
     targeted: 0,
+    resolved: 'textual',
     step: { kind: 'decision', card: card.id },
   };
   // The agent waits for no card: with the release, it takes the next task meanwhile.

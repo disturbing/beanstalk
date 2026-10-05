@@ -577,13 +577,16 @@ class CommandLine(unittest.TestCase):
         settings = v2_settings({}, env={"SINGLE_SUSPECT_REVERT": "0", "VALIDATION_FIRST": "1", "BASE_CULPRITS": "no",
                                         "WINDOW_START": "8", "WINDOW_GROWTH": "4", "WINDOW_MAX": "24",
                                         "WINDOW_MIN": "4", "START_CARDS": "0", "RESCUE": "1",
-                                        "DYNAMIC_CULPRITS": "false"})
+                                        "DYNAMIC_CULPRITS": "false", "STRUCTURAL_MERGE": "0",
+                                        "START_ORDER": "dependency"})
         self.assertEqual({k: settings[k] for k in ("single_suspect_revert", "validation_first", "base_culprits",
                                                    "window_start", "window_growth", "window_max", "window_min",
-                                                   "start_cards", "rescue", "dynamic_culprits")},
+                                                   "start_cards", "rescue", "dynamic_culprits", "structural_merge",
+                                                   "start_order")},
                          {"single_suspect_revert": False, "validation_first": True, "base_culprits": False,
                           "window_start": 8, "window_growth": 4, "window_max": 24, "window_min": 4,
-                          "start_cards": False, "rescue": True, "dynamic_culprits": False})
+                          "start_cards": False, "rescue": True, "dynamic_culprits": False,
+                          "structural_merge": False, "start_order": "dependency"})
 
     def test_v2_settings_resolve_flag_then_env_then_harness_default(self) -> None:
         self.assertEqual(v2_settings({}, {}), {"preland_mode": "locked", "preland_seconds": 0.0,

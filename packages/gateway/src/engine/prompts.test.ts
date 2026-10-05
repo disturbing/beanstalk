@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   fixerPrompt,
+  informedConflictPrompt,
   initialPrompt,
   prelandRedPrompt,
   reworkConflictPrompt,
@@ -48,6 +49,45 @@ describe('prompts (ported verbatim from prompts.py)', () => {
     expect(reworkConflictPrompt(task, ['src/lib/pagination.ts'], 'main', true)).toBe(
       conflictBody('src/lib/pagination.ts'),
     );
+  });
+
+  it("builds v2 conflict prompt with both sides of each hunk and the other side's author", () => {
+    const prompt = informedConflictPrompt(
+      task,
+      {
+        files: ['src/lib/pagination.ts'],
+        hunks: [{ path: 'src/lib/pagination.ts', sprout: 'const a = 1;\n', bean: 'const a = 2;' }],
+        authors: [
+          {
+            task: 't001',
+            title: 'Limit coupons',
+            intent: '  Cap redemptions.\n Per coupon. ',
+            paths: ['src/lib/pagination.ts'],
+          },
+        ],
+      },
+      true,
+    );
+
+    expect(prompt).toBe(
+      'Your change could not be merged: the trunk moved on and conflicts with it. The merge of the ' +
+        'trunk into your branch is in progress in this worktree; conflict markers are in: ' +
+        "src/lib/pagination.ts.\n\nThe conflicting hunks (the trunk's side, then yours):\n" +
+        'src/lib/pagination.ts:\n```\n<<<<<<< trunk\nconst a = 1;\n=======\nconst a = 2;\n>>>>>>> yours\n```\n\n' +
+        "The trunk's side was written by these landed changes:\n" +
+        '- t001 "Limit coupons" (src/lib/pagination.ts): Cap redemptions. Per coupon.\n\n' +
+        'Resolve every conflict so that your change and the changes already on the trunk both keep ' +
+        'working: keep both intents, never drop one side to make the merge compile, and remove all ' +
+        'conflict markers. ' +
+        ACCEPTANCE,
+    );
+  });
+
+  it('says no more than the harness prompt when the runner sent no hunks', () => {
+    const prompt = informedConflictPrompt(task, { files: ['a.ts'], hunks: [], authors: [] }, false);
+
+    expect(prompt.startsWith(HEAD)).toBe(true);
+    expect(prompt).not.toContain('hunks');
   });
 
   it('builds the red prompt, with a placeholder when no test is named', () => {

@@ -84,6 +84,17 @@ describe('queue race', () => {
     ]);
   });
 
+  it('never asks the runner for its structural merge tier (the harness baseline)', () => {
+    const race = runRace({
+      tasks: [clashing('t001'), { ...clashing('t002'), mergesStructurally: true }],
+    });
+
+    const squashes = race.world.jobs.filter((job) => job.kind === 'squash');
+    expect(squashes.length).toBeGreaterThan(0);
+    expect(squashes.every((job) => !job.structural)).toBe(true);
+    expect(eventsOf(race.events, 'land').some((event) => 'resolved' in event)).toBe(false);
+  });
+
   it('reworks a textual conflict with main and requeues it', () => {
     const race = runRace({ tasks: [clashing('t001'), clashing('t002')] });
 

@@ -8,6 +8,7 @@ use serde::Serialize;
 use crate::check::{CheckReport, FailingTest, ImportDepths};
 use crate::git::{CommitSha, RefUpdateOutcome};
 use crate::integrate::{Composition, Landing, Squashed};
+use crate::resolve::{ConflictHunk, Resolution};
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -42,10 +43,49 @@ impl From<Landing> for LandingBody {
     }
 }
 
+/// The tier that merged a clean squash.
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum ResolvedBy {
+    Textual,
+    Structural,
+}
+
+impl From<Resolution> for ResolvedBy {
+    fn from(resolution: Resolution) -> Self {
+        match resolution {
+            Resolution::Textual => Self::Textual,
+            Resolution::Structural => Self::Structural,
+        }
+    }
+}
+
+/// One conflict block: `onto` is the target's side, `change` the change's.
+#[derive(Debug, Serialize)]
+pub(crate) struct HunkBody {
+    path: String,
+    onto: String,
+    change: String,
+}
+
+impl From<ConflictHunk> for HunkBody {
+    fn from(hunk: ConflictHunk) -> Self {
+        Self {
+            path: hunk.path,
+            onto: hunk.onto,
+            change: hunk.change,
+        }
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub(crate) struct SquashResponse {
     #[serde(flatten)]
     landing: LandingBody,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    resolved: Option<ResolvedBy>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    hunks: Vec<HunkBody>,
     change_head: CommitSha,
     merge_base: CommitSha,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,8 +94,14 @@ pub(crate) struct SquashResponse {
 
 impl From<Squashed> for SquashResponse {
     fn from(squashed: Squashed) -> Self {
+        let resolved = squashed
+            .landing
+            .sha()
+            .map(|_| ResolvedBy::from(squashed.resolution));
         Self {
             landing: squashed.landing.into(),
+            resolved,
+            hunks: squashed.hunks.into_iter().map(HunkBody::from).collect(),
             change_head: squashed.change_head,
             merge_base: squashed.merge_base,
             change_files: squashed.change_files,
@@ -200,6 +246,8 @@ mod tests {
                 sha: sha.clone(),
                 files: vec!["a.ts".into()],
             },
+            resolution: Resolution::Structural,
+            hunks: Vec::new(),
             change_head: sha.clone(),
             merge_base: sha,
             change_files: None,
@@ -209,7 +257,36 @@ mod tests {
 
         assert_eq!(json["result"], "clean");
         assert_eq!(json["files"][0], "a.ts");
+        assert_eq!(json["resolved"], "structural");
         assert!(json.get("change_files").is_none());
+        assert!(json.get("hunks").is_none());
+    }
+
+    #[test]
+    fn a_conflicted_squash_carries_its_hunks_and_no_tier() {
+        let sha = CommitSha::parse(&"c".repeat(40)).unwrap();
+        let response = SquashResponse::from(Squashed {
+            landing: Landing::Conflict {
+                files: vec!["a.ts".into()],
+            },
+            resolution: Resolution::Textual,
+            hunks: vec![ConflictHunk {
+                path: "a.ts".into(),
+                onto: "x\n".into(),
+                change: "y\n".into(),
+            }],
+            change_head: sha.clone(),
+            merge_base: sha,
+            change_files: None,
+        });
+
+        let json = serde_json::to_value(response).unwrap();
+
+        assert!(json.get("resolved").is_none());
+        assert_eq!(
+            json["hunks"],
+            serde_json::json!([{"path": "a.ts", "onto": "x\n", "change": "y\n"}])
+        );
     }
 
     #[test]

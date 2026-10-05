@@ -61,7 +61,8 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # (sprout window, sampled re-check, the agent released during its check, flake-confirmed reverts,
 # read-set inherited reds, early tickets, re-executed losers; v2.5: reconcile with every landed party,
 # escalation after one repeated red, lone-suspect reverts, base culprits, window sizes, E6's start cards,
-# rescue, dynamic culprits)
+# rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts; the queue never
+# gets these, and the gateway refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
            "window": ("WINDOW", str), "release_on_check": ("RELEASE_ON_CHECK", bool),
            "flake_confirm": ("FLAKE_CONFIRM", bool), "inherited_reds": ("INHERITED_REDS", str),
@@ -74,7 +75,8 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "base_culprits": ("BASE_CULPRITS", bool), "window_start": ("WINDOW_START", int),
            "window_growth": ("WINDOW_GROWTH", int), "window_max": ("WINDOW_MAX", int), "window_min": ("WINDOW_MIN", int),
            "start_cards": ("START_CARDS", bool), "rescue": ("RESCUE", bool),
-           "dynamic_culprits": ("DYNAMIC_CULPRITS", bool)}
+           "dynamic_culprits": ("DYNAMIC_CULPRITS", bool), "structural_merge": ("STRUCTURAL_MERGE", bool),
+           "start_order": ("START_ORDER", str)}
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 

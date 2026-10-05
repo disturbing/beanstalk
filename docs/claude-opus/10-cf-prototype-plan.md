@@ -53,7 +53,7 @@ Every request carries `repo` (an Artifacts HTTPS remote) and `token` (an Artifac
 
 | Endpoint | Request | Response |
 |---|---|---|
-| `POST /v1/squash` | `onto` (sha), `change` {repo, token, ref, base}, `message`, `union_paths` | `{result: "clean", sha, files}` or `{result: "conflict", files}`. A clean result is pushed to `refs/beanstalk/candidates/<sha>` on the trunk repo so later steps can address it |
+| `POST /v1/squash` | `onto` (sha), `change` {repo, token, ref, base}, `message`, `union_paths` | `{result: "clean", sha, files, resolved}` or `{result: "conflict", files, hunks}`. A clean result is pushed to `refs/beanstalk/candidates/<sha>` on the trunk repo so later steps can address it. A git conflict is first retried with Mergiraf on the conflicted files (`structural_merge`, default on; `resolved: "structural"` when that tier merged it); see `packages/runner/README.md` |
 | `POST /v1/check` | `sha`, `cmd` (default `["node","--test"]`), `extra_files`, `latency_seconds` | `{green, tests, failures, failing_tests[{file,name}], failing_files, read_sets{file:[paths]}, stack_files, output_excerpt, suite_seconds}` (same fields as `harness/ci.py`) |
 | `POST /v1/compose` | `base`, `items` [{repo, token, ref, base, task}], `union_paths` | Stacked squash commits; `{head, per_item: [{task, result, sha?, files}]}` |
 | `POST /v1/update-ref` | `ref`, `new`, `old` | Push with lease; `{ok}` or `{ok: false, actual}` |

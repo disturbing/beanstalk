@@ -112,6 +112,7 @@ async function squash(
     change: { ...change, ref: spec.changeRef, base: spec.changeBase },
     message: spec.message,
     unionPaths: spec.unionPaths,
+    structural: spec.structural,
   });
   if (outcome.mergeBase !== spec.changeBase) {
     context.log.warn('runner merge base differs from the engine', {
@@ -127,8 +128,9 @@ async function squash(
         sha: outcome.sha,
         files: outcome.files,
         changeFiles: outcome.changeFiles,
+        resolved: outcome.resolved,
       }
-    : { kind: 'squash', outcome: 'conflict', files: outcome.files };
+    : { kind: 'squash', outcome: 'conflict', files: outcome.files, hunks: outcome.hunks };
 }
 
 async function revert(
