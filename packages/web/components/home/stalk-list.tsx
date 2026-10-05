@@ -59,6 +59,29 @@ export function StalkList(props: {
                 <span />
               </Link>
             );
+          case 'queued':
+            return (
+              <div key={row.key} className={styles.srow} data-phase="pending" data-bud="">
+                <span />
+                <span className={styles.stem}>
+                  <i className={styles.bud} />
+                </span>
+                <span className={styles.tt}>
+                  {row.count} {row.count === 1 ? 'idea' : 'ideas'} queued <small>not started</small>
+                </span>
+                <span />
+              </div>
+            );
+          case 'matured':
+            return (
+              <div key={row.key} className={styles.matured}>
+                <span />
+                <span className={styles.stem} />
+                <span>
+                  validated at {formatClock(row.t)} · {row.count} matured
+                </span>
+              </div>
+            );
           case 'idle':
             return (
               <div key={row.key} className={styles.note}>
@@ -78,6 +101,7 @@ export function StalkList(props: {
                 href={row.task === null ? '#' : props.hrefFor(row.task)}
                 className={`${styles.srow} ${isNew(row.key) ? styles.enter : ''}`}
                 data-leaf={row.status}
+                data-matured={row.matured ? '' : undefined}
                 data-side={row.idx % 2 === 1 ? 'l' : 'r'}
                 data-hit={hit(row.task)}
                 aria-current={row.task !== null && props.selected === row.task ? 'true' : undefined}

@@ -23,37 +23,21 @@
 .srow.sprout .stem::before { background: var(--sprout); }
 .srow.first .stem::before { top: 50%; }
 /* the leaf: grows out of the stem, alternating sides */
-.lf {
-  position: absolute; top: 50%; left: 50%; width: 13px; height: 13px; margin-top: -11px;
-  border-radius: 0 80% 0 80%; background: var(--leaf); transform-origin: 0 100%; transform: rotate(-10deg);
-  transition: background .8s, width .6s, height .6s, margin .6s;
-}
-.srow.l .lf { left: auto; right: 50%; border-radius: 80% 0 80% 0; transform-origin: 100% 100%; transform: rotate(10deg); }
-.srow.sprout .lf { background: var(--sprout); width: 9px; height: 9px; margin-top: -8px; }
-.srow.red .lf { background: var(--red); }
-.srow.enter .lf { animation: grow .7s cubic-bezier(.2, 1.5, .4, 1); }
-.srow.l.enter .lf { animation-name: growl; }
 @keyframes grow { from { transform: rotate(-60deg) scale(0); } to { transform: rotate(-10deg) scale(1); } }
 @keyframes growl { from { transform: rotate(60deg) scale(0); } to { transform: rotate(10deg) scale(1); } }
 .srow.enter { animation: rowin .45s ease-out; }
 @keyframes rowin { from { opacity: 0; transform: translateY(-6px); } }
 /* beans in flight at the tip */
 .srow.bean .stem::before { background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); opacity: .45; }
-.beanmark { position: absolute; left: 50%; top: 50%; width: 12px; height: 9px; margin: -4.5px 0 0 -6px; border-radius: 50%; background: var(--bean); transform: rotate(-20deg); }
-.srow.bean.checking .beanmark { background: var(--bg); box-shadow: inset 0 0 0 2px var(--amber); }
-.srow.bean.reworking .beanmark { background: var(--red); }
 .srow.bean .ag { color: var(--bean); font-weight: 600; font-size: 11px; text-align: right; padding-right: 6px; }
 .srow.bean .tt .st { color: var(--fg-subtle); }
 @media (prefers-reduced-motion: no-preference) {
-  .srow.bean.writing .beanmark, .srow.bean.reworking .beanmark { animation: breathe 1.8s ease-in-out infinite; }
-  .srow.bean.checking .beanmark { animation: spin 1.6s linear infinite; background: conic-gradient(var(--amber) 0 70%, transparent 0); box-shadow: none; -webkit-mask: radial-gradient(ellipse, transparent 2.5px, #000 3px); mask: radial-gradient(ellipse, transparent 2.5px, #000 3px); }
 }
 @media (prefers-reduced-motion: reduce) { .srow.enter, .srow.enter .lf { animation: none; } }
 @keyframes breathe { 50% { transform: rotate(-20deg) scale(.7); opacity: .65; } }
 @keyframes spin { to { transform: rotate(340deg); } }
 /* fell off: no node on the stalk, a grey leaf drifting away */
 .srow.fell { opacity: .55; cursor: pointer; }
-.srow.fell .fl { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -2px 0 0 7px; border-radius: 0 80% 0 80%; background: var(--fg-subtle); transform: rotate(40deg); }
 .srow.fell .tt { color: var(--fg-muted); text-decoration: line-through; text-decoration-color: var(--border); }
 .tipnote { display: grid; grid-template-columns: 40px 26px 1fr; align-items: center; height: 30px; font-size: 12.5px; color: var(--fg-muted); }
 .tipnote .sp { justify-self: center; }
@@ -187,3 +171,38 @@
 .streaming .cur { width: 7px; height: 13px; background: var(--bean); display: inline-block; }
 @media (prefers-reduced-motion: no-preference) { .streaming .cur { animation: blinkc 1s steps(1) infinite; } }
 @keyframes blinkc { 50% { opacity: 0; } }
+
+/* glyphs:start (option A, Seedling and leaf; generated from prototypes/glyphs) */
+.srow .lf { position: absolute; left: 50%; right: auto; top: 50%; width: 30px; height: 30px; margin: -15.0px 0 0 -15.0px; border-radius: 0; box-shadow: none; transform: none; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' fill='%23fff' d='M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' fill='%23fff' d='M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--leaf); filter: drop-shadow(0 0 3px var(--glowc)); transform-origin: 50% 62%; transition: background 0.8s; animation: none; }
+.srow.l .lf { transform: scaleX(-1); }
+.srow.sprout .lf, .srow.sprout.l .lf { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 14c-1-3.2-3.6-4.6-6-4.3.1 2.6 2.6 4.6 6 4.3ZM12 14c1-3.2 3.6-4.6 6-4.3-.1 2.6-2.6 4.6-6 4.3Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 14c-1-3.2-3.6-4.6-6-4.3.1 2.6 2.6 4.6 6 4.3ZM12 14c1-3.2 3.6-4.6 6-4.3-.1 2.6-2.6 4.6-6 4.3Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--sprout); filter: drop-shadow(0 0 3px var(--glow-sprout)); transform: none; }
+.srow.red .lf { background: var(--red); filter: drop-shadow(0 0 3px var(--glow-red)); }
+.srow.red .stem::after { content: ''; position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -7.5px 0 0 4.6px; z-index: 2; background: linear-gradient(45deg, transparent 38%, var(--bg) 38% 62%, transparent 62%), linear-gradient(-45deg, transparent 38%, var(--bg) 38% 62%, transparent 62%); }
+.srow.red.l .stem::after { margin-left: -12.6px; }
+.srow.fell .fl { position: absolute; left: 50%; right: auto; top: 50%; width: 30px; height: 30px; margin: -15.0px 0 0 -15.0px; border-radius: 0; box-shadow: none; transform: none; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.3' d='M15 17c.4-3 2.6-4.8 5.6-4.6-.3 3-2.6 4.9-5.6 4.6Z' transform='rotate%2835 18 15%29'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.3' d='M15 17c.4-3 2.6-4.8 5.6-4.6-.3 3-2.6 4.9-5.6 4.6Z' transform='rotate%2835 18 15%29'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--fg-subtle); }
+.srow .beanmark { position: absolute; left: 50%; right: auto; top: 50%; width: 27px; height: 27px; margin: -13.5px 0 0 -13.5px; border-radius: 0; box-shadow: none; transform: none; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--bean); filter: drop-shadow(0 0 3px var(--glow-bean)); animation: none; }
+.srow.queued .beanmark { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.5' stroke-dasharray='2 1.6' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.5' stroke-dasharray='2 1.6' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--bean); filter: none; }
+.srow.checking .beanmark { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--bean); box-shadow: none; transform: none; animation: none; }
+.srow.checking .stem::after { content: ''; position: absolute; left: 50%; right: auto; top: 50%; width: 27px; height: 27px; margin: -13.5px 0 0 -13.5px; border-radius: 0; box-shadow: none; transform: none; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-dasharray='3 3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-dasharray='3 3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--amber); }
+.srow.reworking .beanmark { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transform: none; background: var(--red); filter: drop-shadow(0 0 3px var(--glow-red)); }
+.srow.reworking .stem::after { content: ''; position: absolute; left: 50%; right: auto; top: 50%; width: 27px; height: 27px; margin: -13.5px 0 0 -13.5px; border-radius: 0; box-shadow: none; transform: none; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' d='M17.5 8.2C16.8 4.8 13.6 3 10.4 3.8 8.6 4.3 7.3 5.5 6.6 7'/%3E%3Cpath fill='%23fff' d='M4.6 5.2l2 3.6 2.9-2.4Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' d='M17.5 8.2C16.8 4.8 13.6 3 10.4 3.8 8.6 4.3 7.3 5.5 6.6 7'/%3E%3Cpath fill='%23fff' d='M4.6 5.2l2 3.6 2.9-2.4Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; background: var(--red); }
+.srow.enter .lf, .srow.l.enter .lf { animation: glyph-grow 0.7s cubic-bezier(0.2, 1.5, 0.4, 1); }
+.srow.matured .lf, .srow.promoted .lf { animation: glyph-mature 1.2s ease-out; }
+.matured-row { display: grid; grid-template-columns: 40px 28px minmax(0, 1fr); align-items: center; height: 20px; font: 600 10.5px var(--mono); color: var(--leaf); }
+.matured-row span:last-child { justify-self: start; border: 1px solid var(--leaf); border-radius: 4px; padding: 0 6px; margin-left: 4px; line-height: 16px; background: color-mix(in srgb, var(--leaf) 10%, transparent); }
+.matured-row .stem { position: relative; height: 100%; }
+.matured-row .stem::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--leaf); }
+@media (prefers-reduced-motion: no-preference) {
+  .srow.writing .beanmark { animation: glyph-breathe 1.8s ease-in-out infinite; }
+  .srow.checking .stem::after { animation: glyph-orbit 2.4s linear infinite; }
+  .srow.reworking .beanmark { animation: glyph-nudge 1.6s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .srow.enter .lf, .srow.l.enter .lf, .srow.matured .lf, .srow.promoted .lf { animation: none; }
+}
+@keyframes glyph-breathe { 50% { transform: scale(0.8); opacity: 0.7; } }
+@keyframes glyph-orbit { to { transform: rotate(360deg); } }
+@keyframes glyph-nudge { 50% { translate: -1.5px 0; } }
+@keyframes glyph-grow { from { scale: 0; } to { scale: 1; } }
+@keyframes glyph-mature { 0% { scale: 0.5; filter: brightness(2.6); } 55% { scale: 1.2; } 100% { scale: 1; } }
+/* glyphs:end */

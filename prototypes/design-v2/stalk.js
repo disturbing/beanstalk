@@ -55,6 +55,13 @@
     const stalkIdx = stalkIdxAt(S.T);
     const hit = (task) => (relevant && relevant.has(task) ? ' hit' : '');
     const culprits = new Set(tickets.filter((k) => k.culprit && k.culprit.t <= S.T).map((k) => k.culprit.task));
+    const queued = [...tasks.keys()].filter((id) => M.stateAt(id, S.T).state === 'queued').length;
+    if (queued) rows.push({ key: 'queued', cls: 'srow bean queued', html: `<span class="ag"></span><span class="stem"><i class="beanmark"></i></span><span class="tt">${queued} ${queued === 1 ? 'idea' : 'ideas'} queued <span class="st">not started</span></span><span class="ix"></span>` });
+    // the validation moment: the sprouts the last validation matured, for a few seconds after it passed
+    const promotesSoFar = M.promotes.filter((p) => p.t <= S.T);
+    const lastPromote = promotesSoFar.at(-1);
+    const moment = lastPromote && S.T - lastPromote.t <= 10 ? { t: lastPromote.t, from: (promotesSoFar.at(-2)?.trunk_idx ?? -1) + 1, to: lastPromote.trunk_idx } : null;
+    let bracket = false;
     if (flying.length) {
       for (const b of flying) {
         rows.push({ key: `b-${b.task}`, cls: `srow bean ${b.state}${hit(b.task)}${S.bean === b.task ? ' sel' : ''}`, task: b.task,
@@ -101,8 +108,13 @@
         pointer = true;
       }
       const state = culprits.has(l.task) ? 'red' : l.idx <= stalkIdx ? 'stalk' : 'sprout';
+      const matured = moment && l.idx >= moment.from && l.idx <= moment.to;
+      if (matured && !bracket) {
+        rows.push({ key: `m-${moment.t}`, cls: 'matured-row', html: `<span></span><span class="stem"></span><span>validated at ${clock(moment.t)} · ${moment.to - moment.from + 1} matured</span>` });
+        bracket = true;
+      }
       rows.push({ key: `l-${l.task}`, task: l.task,
-        cls: `srow ${state === 'stalk' ? '' : state}${l.idx % 2 ? ' l' : ''}${first && !flying.length ? ' first' : ''}${hit(l.task)}${S.bean === l.task ? ' sel' : ''}`,
+        cls: `srow ${state === 'stalk' ? '' : state}${l.idx % 2 ? ' l' : ''}${first && !flying.length ? ' first' : ''}${hit(l.task)}${S.bean === l.task ? ' sel' : ''}${matured ? ' matured' : ''}`,
         html: `<span class="tm">${clock(l.t)}</span><span class="stem"><i class="lf"></i></span><span class="tt" title="${esc(l.title)}">${esc(l.title)}</span><span class="ix">#${l.idx}</span>` });
       first = false;
     }

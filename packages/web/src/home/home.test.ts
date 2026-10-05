@@ -50,6 +50,29 @@ describe('the stalk of the recorded v2 run', () => {
   });
 });
 
+describe('the validation moment', () => {
+  it('marks the batch a validation just matured, under one bracket', () => {
+    const promotes = events.flatMap((event) => (event.type === 'green.promote' ? [event] : []));
+    const second = promotes[1];
+    if (second === undefined) throw new Error('the recorded run has no second validation');
+    const { now, visible, state } = at(second.t - START + 2);
+    const rows = stalkRows({ state, events: visible, now, titles });
+    const bracket = rows.find((row) => row.kind === 'matured');
+    const matured = rows.filter((row) => row.kind === 'leaf' && row.matured);
+    expect(bracket?.kind === 'matured' ? bracket.count : 0).toBe(matured.length);
+    expect(matured.length).toBeGreaterThan(0);
+    expect(matured.every((row) => row.kind === 'leaf' && row.status !== 'sprout')).toBe(true);
+  });
+
+  it('shows ideas not started as one queued row', () => {
+    const { now, visible, state } = at(60);
+    const queued = stalkRows({ state, events: visible, now, titles }).find(
+      (row) => row.kind === 'queued',
+    );
+    expect(queued?.kind === 'queued' ? queued.count : 0).toBeGreaterThan(0);
+  });
+});
+
 describe('the Files rows', () => {
   it('names the last bean on each area and the beans in flight on it', () => {
     const { now, state, visible } = at(760);

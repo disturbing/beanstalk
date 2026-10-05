@@ -139,7 +139,11 @@ function leaf(item, cls, enter) {
   return `<div class="srow ${cls}${side}${enter ? ' enter' : ''}"><span class="tm">${item.time}</span><span class="stem"><i class="lf"></i></span><span class="tt">${esc(item.title)}</span><span class="ix">#${item.n}</span></div>`;
 }
 
-function stalkRows(f, prevLanded) {
+/**
+ * The stalk's rows. `moment` is the validation that just passed (the batch of sprouts that
+ * matured together); `fresh` is true on the frame it passed, when the leaves animate.
+ */
+function stalkRows(f, prevLanded, moment) {
   const rows = [];
   if (f.finished) {
     rows.push(
@@ -147,7 +151,7 @@ function stalkRows(f, prevLanded) {
     );
   } else {
     for (const b of tipBeans(f)) {
-      const st = { checking: 'check', writing: 'write', reworking: 'red' }[b.status];
+      const st = { checking: 'check', writing: 'write', reworking: 'sent back' }[b.status];
       rows.push(
         `<div class="srow bean ${b.status}"><span class="ag">${b.agent}</span><span class="stem"><i class="beanmark"></i></span><span class="tt">${esc(b.title)}</span><span class="st">${st}</span></div>`,
       );
@@ -160,11 +164,15 @@ function stalkRows(f, prevLanded) {
   }
   if (f.stalk > 0) {
     const above = f.landed - f.stalk;
+    const bracket = moment
+      ? `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${moment.clock} · ${moment.to - moment.from} matured</span></div>`
+      : '';
     const label = above
       ? `stalk at #${f.stalk - 1}, ${above} on the sprout above`
       : `stalk at #${f.stalk - 1}`;
     rows.push(
       `<div class="pointer"><span></span><span class="stem"></span><span>${label}</span></div>`,
+      bracket,
     );
   }
   for (const s of newestFirst) {
@@ -173,7 +181,8 @@ function stalkRows(f, prevLanded) {
         `<div class="srow fell"><span class="tm">${s.time}</span><span class="stem"><i class="fl"></i></span><span class="tt">${esc(s.title)}</span><span class="ix">fell</span></div>`,
       );
     } else if (s.n < f.stalk) {
-      rows.push(leaf(s, 'stalk', s.n >= prevLanded));
+      const matured = moment?.fresh && s.n >= moment.from && s.n < moment.to;
+      rows.push(leaf(s, matured ? 'stalk matured' : 'stalk', s.n >= prevLanded));
     }
   }
   rows.push(
@@ -267,6 +276,8 @@ function setupAppDemo() {
 
   let prevLanded = 0;
   let prevStalk = 0;
+  /** The last validation moment: which sprouts matured, and until when it stays marked. */
+  let moment = null;
   let prevKey = '';
   const draw = (t) => {
     const f = frameAt(t);
@@ -289,7 +300,11 @@ function setupAppDemo() {
     el.progress.style.width = `${(f.p * 100).toFixed(1)}%`;
     el.clock.textContent = f.clock;
     el.count.textContent = `${f.landed} landed, ${f.growing} growing`;
-    el.rows.innerHTML = stalkRows(f, prevLanded);
+    if (f.stalk > prevStalk && prevStalk > 0)
+      moment = { from: prevStalk, to: f.stalk, clock: f.clock, until: t + 2600, fresh: true };
+    else if (moment)
+      moment = t > moment.until || f.stalk < moment.to ? null : { ...moment, fresh: false };
+    el.rows.innerHTML = stalkRows(f, prevLanded, moment);
     el.grow.innerHTML = growRows(f);
     el.growhead.textContent = f.growing
       ? `${f.growing} beans checking in parallel`
@@ -309,6 +324,9 @@ function setupAppDemo() {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   if (Number.isFinite(frozen) && frozen > 0) {
     prevLanded = Infinity;
+    // Draw the moment just before too, so a validation that passed in between shows as one.
+    draw(Math.max(1, frozen - 700));
+    prevKey = '';
     draw(frozen);
     return;
   }

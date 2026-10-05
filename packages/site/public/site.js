@@ -390,7 +390,12 @@ function createStalkModel() {
   };
 }
 
-const STATUS_SHORT = { queued: 'queued', writing: 'write', checking: 'check', reworking: 'red' };
+const STATUS_SHORT = {
+  queued: 'queued',
+  writing: 'write',
+  checking: 'check',
+  reworking: 'sent back',
+};
 
 function leafRow(leaf, cls) {
   const classes = [
@@ -414,10 +419,16 @@ function beanRow(bean) {
 function renderStalk(model, rowsEl, headEl) {
   const top = model.stalk[0];
   const pointer = `<div class="pointer"><span></span><span class="stem"></span><span>stalk at #${top.n}</span></div>`;
+  // The validation moment: the sprouts that just matured together, named for a beat.
+  const matured = model.stalk.filter((leaf) => leaf.promoted).length;
+  const bracket = matured
+    ? `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${top.time} · ${matured} matured</span></div>`
+    : '';
   rowsEl.innerHTML = [
     ...model.beans.map(beanRow),
     ...model.sprout.map((leaf) => leafRow(leaf, 'sprout')),
     pointer,
+    bracket,
     ...model.stalk.map((leaf) => leafRow(leaf, 'stalk')),
   ].join('');
   const growing = model.beans.filter((b) => b.status !== 'queued').length;

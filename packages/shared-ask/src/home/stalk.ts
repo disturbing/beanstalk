@@ -10,6 +10,8 @@ import { isInFlight } from '../race/race-counters';
 import type { RaceEvent } from '../race/race-events';
 import type { BeanPhase, LineCommit, RaceState } from '../race/race-state';
 
+/** How long the validation moment (a batch maturing together) stays marked, in race seconds. */
+const MATURE_SECONDS = 10;
 /** Past this many landings, older validated leaves fold into one row per validation. */
 const FOLD_OVER = 60;
 /** Landings always shown leaf by leaf when folding. */
@@ -27,6 +29,10 @@ export type StalkRow =
       readonly phase: BeanPhase;
     }
   | { readonly kind: 'idle'; readonly key: string; readonly finished: boolean }
+  /** Ideas not started yet: one row for all of them. */
+  | { readonly kind: 'queued'; readonly key: string; readonly count: number }
+  /** The validation moment: this many sprouts just matured into the stalk together. */
+  | { readonly kind: 'matured'; readonly key: string; readonly t: number; readonly count: number }
   | {
       readonly kind: 'leaf';
       readonly key: string;
@@ -35,6 +41,8 @@ export type StalkRow =
       readonly idx: number;
       readonly t: number;
       readonly status: LeafStatus;
+      /** Matured into the stalk in the validation that just passed. */
+      readonly matured: boolean;
     }
   | {
       readonly kind: 'fell';
@@ -67,19 +75,41 @@ function tipRows({ state, now, titles }: StalkInput): readonly StalkRow[] {
   const flying = Object.values(state.beans)
     .filter((bean) => isInFlight(bean.phase) && bean.startedAt !== null)
     .toSorted((a, b) => slotNumber(a.agent) - slotNumber(b.agent));
+  const queued = Object.values(state.beans).filter((bean) => bean.phase === 'pending').length;
+  const ideas: readonly StalkRow[] =
+    queued > 0 ? [{ kind: 'queued', key: 'queued', count: queued }] : [];
   if (flying.length === 0) {
     return [
+      ...ideas,
       { kind: 'idle', key: 'idle', finished: state.endedAt !== null && now >= state.endedAt },
     ];
   }
-  return flying.map((bean) => ({
-    kind: 'bean',
-    key: `b-${bean.id}`,
-    task: bean.id,
-    title: titles[bean.id] ?? bean.id,
-    slot: bean.agent,
-    phase: bean.phase,
-  }));
+  return [
+    ...ideas,
+    ...flying.map((bean): StalkRow => ({
+      kind: 'bean',
+      key: `b-${bean.id}`,
+      task: bean.id,
+      title: titles[bean.id] ?? bean.id,
+      slot: bean.agent,
+      phase: bean.phase,
+    })),
+  ];
+}
+
+/** The validation that just passed and the landings it matured, if one passed a moment ago. */
+function justMatured(
+  input: StalkInput,
+): { readonly t: number; readonly from: number; readonly to: number } | null {
+  const promotes = input.events.flatMap((event) =>
+    event.type === 'green.promote' && event.t <= input.now && event.trunk_idx !== undefined
+      ? [{ t: event.t, idx: event.trunk_idx }]
+      : [],
+  );
+  const latest = promotes.at(-1);
+  if (latest === undefined || input.now - latest.t > MATURE_SECONDS) return null;
+  const before = promotes.at(-2)?.idx ?? -1;
+  return { t: latest.t, from: before + 1, to: latest.idx };
 }
 
 type Item =
@@ -107,7 +137,9 @@ function lineRows(input: StalkInput): readonly StalkRow[] {
   const newestIdx = newest !== undefined && 'commit' in newest ? newest.commit.idx : -1;
   const folds = foldGroups(input, items);
   const rows: StalkRow[] = [];
+  const moment = justMatured(input);
   let pointer = false;
+  let bracket = false;
   const folded = new Set<number>();
   for (const item of items) {
     if ('fell' in item) {
@@ -133,6 +165,16 @@ function lineRows(input: StalkInput): readonly StalkRow[] {
       folded.add(group.t);
       continue;
     }
+    const matured = moment !== null && commit.idx >= moment.from && commit.idx <= moment.to;
+    if (matured && moment !== null && !bracket) {
+      rows.push({
+        kind: 'matured',
+        key: `m-${moment.t}`,
+        t: moment.t,
+        count: moment.to - moment.from + 1,
+      });
+      bracket = true;
+    }
     const red = commit.status === 'culprit' || (commit.task !== null && culprits.has(commit.task));
     rows.push({
       kind: 'leaf',
@@ -142,6 +184,7 @@ function lineRows(input: StalkInput): readonly StalkRow[] {
       idx: commit.idx,
       t: commit.t,
       status: leafStatus(red, commit.idx <= stalkIdx),
+      matured,
     });
   }
   return rows;

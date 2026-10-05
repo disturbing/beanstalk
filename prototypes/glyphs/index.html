@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stalk Glyphs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Nightshift tokens: night and phosphor day */
+  .night { --bg: #0a0f15; --page: #05080b; --rule: #1c2632; --ink: #dce6ef; --ink2: #93a3b5; --ink3: #64748a;
+    --leaf: #2cf0b0; --sprout: #b6ff5c; --bean: #b691ff; --amber: #ffc04d; --red: #ff4f6d; --fell: #64748a;
+    --glow: rgba(44, 240, 176, .55); --glow-s: rgba(182, 255, 92, .42); --glow-b: rgba(182, 145, 255, .55); --glow-r: rgba(255, 79, 109, .55); --pulse: #e9fff7; }
+  .day { --bg: #f1f6f3; --page: #dfe8e3; --rule: #c3d3cb; --ink: #08161a; --ink2: #3b524c; --ink3: #6f857e;
+    --leaf: #00a07a; --sprout: #5cb71a; --bean: #7b52f0; --amber: #b07800; --red: #d42a4a; --fell: #8a9b94;
+    --glow: rgba(0, 200, 150, .35); --glow-s: rgba(92, 196, 26, .3); --glow-b: rgba(123, 82, 240, .3); --glow-r: rgba(212, 42, 74, .3); --pulse: #ffffff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #05080b; color: #dce6ef; font: 14px/1.45 'Space Grotesk', system-ui, sans-serif; }
+  header.top { padding: 22px 28px 6px; }
+  header.top h1 { margin: 0 0 4px; font: 600 20px 'JetBrains Mono', monospace; color: #2cf0b0; }
+  header.top p { margin: 0; color: #93a3b5; max-width: 90ch; }
+  .opt { margin: 18px 28px 28px; border: 1px solid #1c2632; border-radius: 10px; overflow: hidden; }
+  .opthead { padding: 12px 18px; background: #0e141c; border-bottom: 1px solid #1c2632; display: flex; gap: 14px; align-items: baseline; }
+  .opthead b { font: 600 15px 'JetBrains Mono', monospace; color: #2cf0b0; }
+  .opthead span { color: #93a3b5; }
+  .modes { display: grid; grid-template-columns: 1fr; }
+  .mode { background: var(--page); color: var(--ink); padding: 16px 18px 18px; display: grid; grid-template-columns: 330px minmax(0, 1fr) 380px; gap: 18px; }
+  .mode + .mode { border-top: 1px solid #1c2632; }
+  .label { font: 500 11px 'JetBrains Mono', monospace; color: var(--ink3); margin: 0 0 6px; }
+  /* the stalk column at real size */
+  .col { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 0; }
+  .row { display: grid; grid-template-columns: 36px 26px 1fr 30px; align-items: center; height: 26px; font-size: 12.5px; }
+  .row .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 6px; }
+  .row .w { color: var(--ink3); font: 10.5px 'JetBrains Mono', monospace; text-align: right; padding-right: 6px; }
+  .row .ix { color: var(--ink3); font: 10.5px 'JetBrains Mono', monospace; text-align: right; padding-right: 8px; }
+  .row .ag { color: var(--bean); font: 600 11px 'JetBrains Mono', monospace; text-align: right; padding-right: 6px; }
+  .row .st { color: var(--ink3); font: 10.5px 'JetBrains Mono', monospace; }
+  .row.fell .t { text-decoration: line-through; color: var(--ink3); }
+  .g { display: block; overflow: visible; }
+  .marker { display: grid; grid-template-columns: 36px 26px 1fr; height: 22px; align-items: center; font: 500 10.5px 'JetBrains Mono', monospace; color: var(--leaf); }
+  .marker span:last-child { border-top: 1px dashed var(--leaf); margin-right: 8px; padding-top: 1px; }
+  /* the zoomed legend */
+  .legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; }
+  .cell .z svg { overflow: visible; padding: 6px; }
+  .cell { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 6px 6px; text-align: center; }
+  .cell .z { height: 104px; display: grid; place-items: center; }
+  .cell .z svg { width: 104px; height: 104px; }
+  .cell .n { font: 500 11px 'JetBrains Mono', monospace; color: var(--ink2); }
+  .cell .d { font-size: 11px; color: var(--ink3); line-height: 1.3; margin-top: 2px; }
+  .moment { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+  .moment .demo { display: grid; grid-template-columns: 26px 1fr; position: relative; }
+  .moment p { margin: 6px 0 0; font-size: 12px; color: var(--ink2); }
+  /* motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .spin { transform-box: fill-box; transform-origin: center; animation: spin 2.4s linear infinite; }
+    .breathe { animation: breathe 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .nudge { animation: nudge 1.6s ease-in-out infinite; }
+    .mature .young { animation: young 4s ease-in-out infinite; }
+    .mature .old { animation: old 4s ease-in-out infinite; }
+    .mature .sweep { animation: sweep 4s ease-in-out infinite; }
+    .mature .bracket { animation: bracket 4s ease-in-out infinite; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes breathe { 50% { transform: scale(.82); opacity: .75; } }
+  @keyframes nudge { 50% { transform: translateX(-1.5px); } }
+  @keyframes young { 0%, 38% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes old { 0%, 38% { opacity: 0; transform: scale(.6); } 52% { opacity: 1; transform: scale(1.15); } 62%, 100% { opacity: 1; transform: scale(1); } }
+  @keyframes sweep { 0%, 30% { transform: translateY(110%); opacity: 0; } 34% { opacity: 1; } 50% { transform: translateY(-10%); opacity: 1; } 56%, 100% { opacity: 0; transform: translateY(-10%); } }
+  @keyframes bracket { 0%, 40% { opacity: 0; } 52%, 92% { opacity: 1; } 100% { opacity: 0; } }
+  .young, .old { transform-box: fill-box; transform-origin: 30% 80%; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Stalk glyphs: three options</h1>
+  <p>Each option shows the same eight states. Every state differs in shape, not only colour, so it reads in greyscale and for colour-blind viewers. Top: night; bottom: day (phosphor). In each, the stalk column at real size, a 4× legend, and the validation moment (a sprout batch maturing together; it loops).</p>
+</header>
+<main id="opts"></main>
+<script>
+/* ---------- Shared glyph parts (24×24 viewBox, the stem runs through x=12) ---------- */
+const S = (inner, cls = '') => `<svg class="g ${cls}" viewBox="0 0 24 24" width="24" height="24">${inner}</svg>`;
+const stem = (style = 'solid') => ({
+  solid: `<line x1="12" y1="0" x2="12" y2="24" stroke="var(--leaf)" stroke-width="2" style="filter:drop-shadow(0 0 3px var(--glow))"/>`,
+  thick: `<line x1="12" y1="0" x2="12" y2="24" stroke="var(--leaf)" stroke-width="3.2" style="filter:drop-shadow(0 0 3px var(--glow))"/>`,
+  sprout: `<line x1="12" y1="0" x2="12" y2="24" stroke="var(--sprout)" stroke-width="1.6" style="filter:drop-shadow(0 0 3px var(--glow-s))"/>`,
+  dashed: `<line x1="12" y1="0" x2="12" y2="24" stroke="var(--bean)" stroke-width="1.6" stroke-dasharray="2 3" opacity=".55"/>`,
+  none: '',
+})[style];
+const BEAN = (fill, extra = '') => `<path d="M8.2 9.6c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z" ${fill} ${extra}/>`;
+const beanSolid = (cls = '') => BEAN(`fill="var(--bean)" style="filter:drop-shadow(0 0 3px var(--glow-b))" class="${cls}"`);
+const beanHollow = () => BEAN(`fill="none" stroke="var(--bean)" stroke-width="1.4" stroke-dasharray="2 1.6"`);
+/* a return arrow above the bean: back to its author */
+const ret = `<path d="M17.5 8.2C16.8 4.8 13.6 3 10.4 3.8 8.6 4.3 7.3 5.5 6.6 7" fill="none" stroke="var(--red)" stroke-width="1.7" stroke-linecap="round"/><path d="M4.6 5.2l2 3.6 2.9-2.4Z" fill="var(--red)"/>`;
+const orbit = `<g class="spin"><circle cx="11.6" cy="13" r="8" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="3 3.3" stroke-linecap="round"/></g>`;
+
+/* ---------- The three options ---------- */
+const OPTIONS = [
+  {
+    id: 'A', name: 'Seedling and leaf',
+    note: 'Sprout is a two-leaf seedling (a small V of cotyledons); stalk is one big mature leaf with a midrib. Beans: dashed outline queued, solid writing, dashed amber orbit while checked, red with a return arrow when sent back.',
+    g: {
+      queued: () => S(stem('dashed') + beanHollow()),
+      writing: () => S(stem('dashed') + beanSolid('breathe')),
+      checking: () => S(stem('dashed') + beanSolid() + orbit),
+      rework: () => S(stem('dashed') + `<g class="nudge" transform="translate(0 2)">${BEAN('fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"')}</g>` + ret),
+      sprout: () => S(stem('sprout') + `<path d="M12 13c-1-3-3.4-4.3-5.6-4 .1 2.4 2.4 4.3 5.6 4Z M12 13c1-3 3.4-4.3 5.6-4-.1 2.4-2.4 4.3-5.6 4Z" fill="var(--sprout)" style="filter:drop-shadow(0 0 3px var(--glow-s))"/>`),
+      stalk: (side = 1) => S(stem('solid') + `<g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2Z" fill="var(--leaf)" style="filter:drop-shadow(0 0 3px var(--glow))"/><path d="M12.6 14.5c2.4-2.6 5-4.6 8.4-6.6" stroke="var(--bg)" stroke-width=".9" fill="none" opacity=".8"/></g>`),
+      red: (side = 1) => S(stem('solid') + `<g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2Z" fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"/><path d="M15.4 8.4l4.2 4.2M19.6 8.4l-4.2 4.2" stroke="var(--bg)" stroke-width="1.5"/></g>`),
+      fell: () => S(`<line x1="12" y1="0" x2="12" y2="24" stroke="var(--fell)" stroke-width="1" stroke-dasharray="1 3"/><path d="M15 17c.4-3 2.6-4.8 5.6-4.6-.3 3-2.6 4.9-5.6 4.6Z" fill="none" stroke="var(--fell)" stroke-width="1.2" transform="rotate(35 18 15)"/>`),
+    },
+  },
+  {
+    id: 'B', name: 'Shoot and node',
+    note: 'Sprout is a curled young shoot (a fiddlehead) on a thin lime stem; stalk is a ringed node on a thicker green segment with a small leaf. Checking draws a dashed amber ring; reworking a red bean with a return arrow; queued beans are hollow, writing beans solid.',
+    g: {
+      queued: () => S(stem('dashed') + beanHollow()),
+      writing: () => S(stem('dashed') + beanSolid('breathe')),
+      checking: () => S(stem('dashed') + `<circle cx="11.6" cy="13" r="8.2" fill="none" stroke="var(--amber)" stroke-width="1.2" opacity=".35"/>` + beanSolid() + orbit),
+      rework: () => S(stem('dashed') + `<g class="nudge" transform="translate(0 2)">${BEAN('fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"')}</g>` + ret),
+      sprout: () => S(stem('sprout') + `<path d="M12 16c0-3 1.2-5.4 3.8-5.6 2-.1 2.9 1.6 2 2.8-.7 1-2.2.8-2.3-.4" fill="none" stroke="var(--sprout)" stroke-width="1.9" stroke-linecap="round" style="filter:drop-shadow(0 0 3px var(--glow-s))"/>`),
+      stalk: (side = 1) => S(stem('thick') + `<circle cx="12" cy="12" r="3.6" fill="var(--bg)" stroke="var(--leaf)" stroke-width="2"/><g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M15.4 11c1.4-3 3.8-4.4 6.4-4.2-.4 2.8-2.6 4.6-6.4 4.2Z" fill="var(--leaf)"/></g>`),
+      red: (side = 1) => S(stem('thick') + `<circle cx="12" cy="12" r="3.8" fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"/><path d="M10.4 10.4l3.2 3.2M13.6 10.4l-3.2 3.2" stroke="var(--bg)" stroke-width="1.4"/><g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M15.4 11c1.4-3 3.8-4.4 6.4-4.2-.4 2.8-2.6 4.6-6.4 4.2Z" fill="var(--leaf)"/></g>`),
+      fell: () => S(`<line x1="12" y1="0" x2="12" y2="24" stroke="var(--fell)" stroke-width="1" stroke-dasharray="1 3"/><circle cx="17" cy="15" r="3" fill="none" stroke="var(--fell)" stroke-width="1.2" stroke-dasharray="2 1.5"/>`),
+    },
+  },
+  {
+    id: 'C', name: 'Bud and open leaf',
+    note: 'Sprout is a closed upright bud (outlined, lime); stalk is an open leaf with veins, filled green. A culprit is an open leaf with a red notch-cross. Beans: a dotted idea outline when queued, solid when writing, an amber tick-ring while checked, red with a return arrow when sent back.',
+    g: {
+      queued: () => S(stem('dashed') + `<circle cx="11.6" cy="13" r="4.4" fill="none" stroke="var(--bean)" stroke-width="1.4" stroke-dasharray=".1 2.4" stroke-linecap="round"/>`),
+      writing: () => S(stem('dashed') + beanSolid('breathe')),
+      checking: () => S(stem('dashed') + beanSolid() + `<g class="spin">${[0, 60, 120, 180, 240, 300].map((a) => `<line x1="11.6" y1="4.4" x2="11.6" y2="6.4" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" transform="rotate(${a} 11.6 13)"/>`).join('')}</g>`),
+      rework: () => S(stem('dashed') + `<g class="nudge" transform="translate(0 2)">${BEAN('fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"')}</g>` + ret),
+      sprout: () => S(stem('sprout') + `<path d="M12 17.5c-2.6-1.8-2.8-6 0-9.5 2.8 3.5 2.6 7.7 0 9.5Z" fill="var(--bg)" stroke="var(--sprout)" stroke-width="1.6" style="filter:drop-shadow(0 0 3px var(--glow-s))"/>`),
+      stalk: (side = 1) => S(stem('solid') + `<g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M12 16c.2-6.2 4.4-10 10.6-9.6-.2 6.4-4.6 10.2-10.6 9.6Z" fill="var(--leaf)" style="filter:drop-shadow(0 0 3px var(--glow))"/><path d="M12.4 15.6 21.6 7.2M15.4 13l-.4-3.4M18.2 10.4l2.8.4" stroke="var(--bg)" stroke-width=".9" fill="none" opacity=".75"/></g>`),
+      red: (side = 1) => S(stem('solid') + `<g transform="${side < 0 ? 'translate(24 0) scale(-1 1)' : ''}"><path d="M12 16c.2-6.2 4.4-10 10.6-9.6-.2 6.4-4.6 10.2-10.6 9.6Z" fill="var(--leaf)"/><circle cx="17.4" cy="11.4" r="3.6" fill="var(--red)" style="filter:drop-shadow(0 0 3px var(--glow-r))"/><path d="M15.9 9.9l3 3M18.9 9.9l-3 3" stroke="var(--bg)" stroke-width="1.3"/></g>`),
+      fell: () => S(`<line x1="12" y1="0" x2="12" y2="24" stroke="var(--fell)" stroke-width="1" stroke-dasharray="1 3"/><path d="M14 18c.2-4 2.6-6.4 6.2-6.2-.2 4-2.8 6.4-6.2 6.2Z" fill="none" stroke="var(--fell)" stroke-width="1.2" transform="rotate(40 17 15)"/>`),
+    },
+  },
+];
+
+const STATES = [
+  ['queued', 'idea, queued', 'not started'],
+  ['writing', 'in flight', 'being written'],
+  ['checking', 'being checked', 'pre-land check'],
+  ['rework', 'sent back', 'reworking'],
+  ['sprout', 'on the sprout', 'landed, not validated'],
+  ['stalk', 'on the stalk', 'validated'],
+  ['red', 'culprit', 'turned the sprout red'],
+  ['fell', 'fell off', 'dropped'],
+];
+
+const ROWS = [
+  ['queued', '', 'Customers want to leave delivery notes', 'queued'],
+  ['writing', 'a3', 'Make product filtering a pure function', 'writing'],
+  ['checking', 'a9', 'Customers should get a receipt when paid', 'checking'],
+  ['rework', 'a4', 'The order total leaves out shipping', 'reworking'],
+  ['sprout', '12:35', 'Expired coupons are still accepted', '#30'],
+  ['sprout', '11:56', 'Cap the discount a percentage coupon…', '#29'],
+  ['sprout', '11:53', 'Carts accept more units than in stock', '#28'],
+  ['marker'],
+  ['stalk', '11:18', 'Stock reservations should be all or nothing', '#25'],
+  ['stalk', '10:57', 'Free standard shipping over $75', '#24'],
+  ['fell', '10:06', 'Make the invoice payment terms configurable', 'fell'],
+  ['stalk', '9:50', 'Line discounts do not add up', '#21'],
+  ['red', '4:08', 'Shipping emails should include tracking', '#12'],
+  ['stalk', '4:04', 'Customers in Quebec are charged wrong', '#11'],
+];
+
+function column(o) {
+  let side = 1;
+  return `<div class="col">${ROWS.map((r) => {
+    if (r[0] === 'marker') return `<div class="marker"><span></span><span>${S(stem('solid'))}</span><span>stalk at #25, 3 on the sprout above</span></div>`;
+    const [state, left, title, right] = r;
+    side = -side;
+    const glyph = ['stalk', 'red'].includes(state) ? o.g[state](side) : o.g[state]();
+    const bean = ['queued', 'writing', 'checking', 'rework'].includes(state);
+    return `<div class="row ${state === 'fell' ? 'fell' : ''}"><span class="${bean ? 'ag' : 'w'}">${left}</span>${glyph}<span class="t">${title}${bean ? ` <span class="st">${right}</span>` : ''}</span><span class="ix">${bean ? '' : right}</span></div>`;
+  }).join('')}</div>`;
+}
+
+function legend(o) {
+  return STATES.map(([id, name, d]) => `<div class="cell"><div class="z">${['stalk', 'red'].includes(id) ? o.g[id](1) : o.g[id]()}</div><div class="n">${name}</div><div class="d">${d}</div></div>`).join('');
+}
+
+/* The validation moment: a batch of sprouts matures together as one sweep up the stem */
+function moment(o) {
+  const n = 4;
+  const rows = Array.from({ length: n }, (_, i) => `<div class="row" style="grid-template-columns:26px 1fr"><span style="position:relative;display:block;height:24px"><span class="young" style="position:absolute;inset:0">${o.g.sprout()}</span><span class="old" style="position:absolute;inset:0;opacity:0">${o.g.stalk(i % 2 ? -1 : 1)}</span></span><span class="t">#${28 + n - 1 - i} ${['Expired coupons are still accepted', 'Cap the discount a percentage coupon', 'Carts accept more units than in stock', 'Customers want a plain-text invoice'][i]}</span></div>`).join('');
+  return `<div class="moment mature"><div class="label">The validation moment: the sprout's full suite passed, so #25–#28 mature together</div>
+    <div style="position:relative;padding-left:2px">${rows}
+      <div class="sweep" style="position:absolute;left:4px;top:0;width:18px;height:100%;pointer-events:none;background:linear-gradient(to top, transparent, var(--pulse) 50%, transparent);opacity:0;mix-blend-mode:screen;border-radius:9px"></div>
+      <div class="bracket" style="position:absolute;left:34px;right:6px;top:-2px;bottom:-2px;border:1px solid var(--leaf);border-radius:6px;opacity:0;pointer-events:none"><span style="position:absolute;right:8px;bottom:-9px;background:var(--bg);padding:0 6px;font:600 10.5px 'JetBrains Mono',monospace;color:var(--leaf)">validated at 12:40 · 4 matured</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-top:10px">
+      <div><div class="label">before</div>${[0,1,2].map(() => `<div style="height:22px">${o.g.sprout()}</div>`).join('')}</div>
+      <div style="font:600 11px 'JetBrains Mono',monospace;color:var(--leaf);text-align:center">suite passed<br>→</div>
+      <div><div class="label">after, one moment</div><div style="border-left:2px solid var(--leaf);padding-left:4px">${[1,-1,1].map((side) => `<div style="height:22px">${o.g.stalk(side)}</div>`).join('')}</div></div>
+    </div>
+    <p>One pulse travels up the stem; every sprout glyph in the batch turns into a stalk glyph at the same instant, and a bracket names the validation for a few seconds.</p></div>`;
+}
+
+const only = new URLSearchParams(location.search).get('only');
+document.getElementById('opts').innerHTML = OPTIONS.filter((o) => only === null || o.id === only).map((o) => `<section class="opt" id="opt-${o.id}"><div class="opthead"><b>${o.id}. ${o.name}</b><span>${o.note}</span></div>
+  <div class="modes">${['night', 'day'].map((m) => `<div class="mode ${m}"><div><div class="label">${m === 'night' ? 'Night' : 'Day (phosphor)'}: real size</div>${column(o)}</div>
+    <div><div class="label">4× legend</div><div class="legend">${legend(o)}</div></div><div><div class="label">Validation moment</div>${moment(o)}</div></div>`).join('')}</div></section>`).join('');
+</script>
+</body>
+</html>
