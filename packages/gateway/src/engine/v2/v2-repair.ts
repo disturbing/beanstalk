@@ -5,7 +5,8 @@
  * red against the same culprit opens a decision card instead, unless that pair was decided.
  * v2.5 (`escalate_after: 1`) escalates sooner: once a failing test file fails again against a
  * culprit after one informed repair, the bean goes to reconcile, then to a card; a culprit
- * already reconciled and decided drops the bean instead of spending the remaining rounds.
+ * already reconciled and decided drops the bean instead of spending the remaining rounds
+ * (with `rescue`, the bean is first re-executed once from scratch).
  * With `release_on_check` the rework waits for a free slot and resumes the author's session.
  */
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
@@ -23,6 +24,8 @@ import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
 import { endLanding } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
+import { rescueOnExhaustion } from './v2-rescue';
+import { cardAfterReds } from './v2-start';
 import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
@@ -40,11 +43,15 @@ const DIFF_UNAVAILABLE = '(diff unavailable)';
 /** The diff text of a culprit with no landed commit. */
 const NOT_LANDED = '(not on trunk)';
 
-/** A red pre-land check: the sprout it ran on, its result and the bean's changed files. */
+/**
+ * A red pre-land check: the sprout it ran on, its result and the bean's changed files, and
+ * (v2.5 `dynamic_culprits`) the landed beans a leave-one-out search confirmed.
+ */
 export type RedCheck = {
   readonly head: Sha;
   readonly red: CheckResult;
   readonly mine: readonly string[] | null;
+  readonly confirmed?: readonly TaskId[];
 };
 
 type ConflictWork = Extract<AgentWork, { kind: 'conflict' }>;
@@ -94,7 +101,9 @@ export function startConflictRework(
 
 /**
  * A red pre-land check: name the culprits, count the pair, and either open a decision
- * card or fetch the culprits' diffs for an informed rework.
+ * card or fetch the culprits' diffs for an informed rework. `failure.confirmed` (v2.5
+ * dynamic culprits) replaces the read-set guess. A declared partner (`start_cards`) is stuck
+ * at its first red.
  */
 export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck): void {
   const { state } = step;
@@ -104,14 +113,18 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
   }
-  const isEarly = state.settings.escalateAfter < CARD_AFTER_REDS - 1;
-  const stuck = isEarly
-    ? repeatedCulprits(step, flow.task, red, culprits)
-    : culprits.filter(
-        (culprit) =>
-          (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
-          !isDecided(state, flow.task, culprit),
-      );
+  const repeated = new Set(
+    state.settings.escalateAfter < CARD_AFTER_REDS - 1
+      ? repeatedCulprits(step, flow.task, red, culprits)
+      : [],
+  );
+  const stuck = culprits.filter(
+    (culprit) =>
+      repeated.has(culprit) ||
+      ((state.pairReds[pairKey(flow.task, culprit)] ?? 0) >=
+        cardAfterReds(step, flow.task, culprit, CARD_AFTER_REDS) &&
+        !isDecided(state, flow.task, culprit)),
+  );
   const unreconciled = stuck.find(
     (culprit) =>
       step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
@@ -128,6 +141,10 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
   }
   const decided = stuck[0];
   if (decided !== undefined) {
+    if (rescueOnExhaustion(step, flow, red)) {
+      forgetRepeats(state, flow.task);
+      return;
+    }
     state.stats.stuck_drops += 1;
     state.stats.preland_drops += 1;
     endLanding(
@@ -173,7 +190,6 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 }
 
 /**
-/**
  * v2.5: the culprits a bean is stuck against. A red repeats against a culprit when one of its
  * failing test files failed in the previous red against it too (a card resets the count);
  * after `escalate_after` repeats, or v2.4's third red of an undecided pair, the pair is stuck.
@@ -197,6 +213,13 @@ function repeatedCulprits(
     const isThirdRed = !decided && (state.pairReds[key] ?? 0) >= CARD_AFTER_REDS;
     return repeats >= state.settings.escalateAfter || isThirdRed;
   });
+}
+
+/** A rescued bean starts its repeat count against every culprit over (`rescue`). */
+function forgetRepeats(state: V2State, task: TaskId): void {
+  for (const key of Object.keys(state.pairRepeats)) {
+    if (key.startsWith(`${task}|`)) delete state.pairRepeats[key];
+  }
 }
 
 /**
@@ -229,6 +252,9 @@ export function culpritTasks(
   for (const path of red.failingFiles ?? []) {
     const owner = owners.get(path);
     if (owner !== undefined && owner !== task) named.push(owner);
+  }
+  if (check.confirmed !== undefined) {
+    return [...new Set([...named, ...check.confirmed])].slice(0, limit);
   }
   if (ctx.env.config.base_culprits) named.push(...metCulprits(state, task, check));
   const read = new Set(red.readSet);

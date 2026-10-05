@@ -370,6 +370,19 @@ export type RaceEventFields = {
     /** v2.5: every landed task in the reconcile (`against` first), when it took in more than one. */
     readonly parties?: readonly string[];
   };
+  /**
+   * v2.5 (E6 `rescue.start`): the bean's rework rounds ran out; it is re-executed once from
+   * scratch on the sprout head (`why`: the last round's red check or conflict).
+   */
+  'rescue.start': TaskRef & { readonly why: string; readonly rounds: number };
+  /**
+   * v2.5 (E6 `dynamic_culprits`): the leave-one-out search for the landed beans that break the
+   * bean's own failing tests: the candidates probed, and those whose removal fixed the tests.
+   */
+  'culprit.dynamic': TaskRef & {
+    readonly candidates: readonly string[];
+    readonly confirmed: readonly string[];
+  };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
   /** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */
@@ -406,6 +419,8 @@ export type RaceEventFields = {
     readonly parties?: readonly string[];
     /** v2.5: the reconciling author's CONTRADICTION line. */
     readonly reason?: string;
+    /** v2.5: raised when the bean started, against a landed declared partner (`start_cards`). */
+    readonly trigger?: 'start';
   };
   'decision.made': {
     readonly card: string;

@@ -79,7 +79,8 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
-- the v2.2 to v2.5 rules, all on by default except `validation_first`: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode`, `human_timeout_seconds`, and v2.5's `escalate_after`, `reconcile_parties`, `single_suspect_revert`, `base_culprits`, `validation_first` and the `window_*` sizes (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules)).
+- the v2.2 to v2.5 rules, all on by default except `validation_first`: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode`, `human_timeout_seconds`, and v2.5's `escalate_after`, `reconcile_parties`, `single_suspect_revert`, `base_culprits`, `validation_first` and the `window_*` sizes (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules));
+- E6's remaining rules, also on by default: `start_cards`, `rescue` and `dynamic_culprits` (see [Start cards, rescue and dynamic culprits](#start-cards-rescue-and-dynamic-culprits-e6)).
 
 ## Driver contract (for the Python driver)
 
@@ -244,12 +245,13 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 {"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
  "inherited_reds": "off", "early_tickets": false, "reconcile": false, "escalate_after": 2,
  "decision_outcome": "decline", "single_suspect_revert": false, "validation_first": false,
- "base_culprits": false}
+ "base_culprits": false,
+ "start_cards": false, "rescue": false, "dynamic_culprits": false}
 ```
 
 `src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. Version labels are described under [Version labels](#version-labels).
 
-v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX` and `WINDOW_MIN`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX` and `WINDOW_MIN`. It sends them only when they are set, so the gateway's defaults apply otherwise.
 
 **Fixed in v2.3.** Two bugs from v2.2 and v2:
 
@@ -275,7 +277,29 @@ v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land rewor
 
 Every row's final check is correct; v2.2's burst row (27 green, 23.9 min) is unchanged with `escalate_after: 2`.
 
-**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2.5 asks after one repeated red, not the first). The targeted check of the exact landing tree (E1) is not built either.
+### Start cards, rescue and dynamic culprits (E6)
+
+The rest of E6 (`docs/claude-opus/exp/e6-decision-cards.md` §2.4, §2.5, §5.3). Each is a `RunConfig` field, on by default for `beanstalk-v2`, and off in the parity settings. They are v2.5 rules (see [Version labels](#version-labels)); the summary also reports them by their own keys.
+
+| Rule | Config (default) | What the engine does | E6 |
+|---|---|---|---|
+| Start cards from declared couplings | `start_cards: true` | Tasks declare semantic couplings (`couplings`, type `semantic`, either side). When a bean is about to start and a declared partner is on the sprout, the pair's card is raised before any work (`decision.request` with `trigger: "start"`, `attempts: 0`); its agent is released meanwhile. The card runs as any other: the oracle or a human decides, the test author amends the loser's tests (fail-first on the sprout head for an arriving loser; in place for a landed loser, merged and carried by the arriving winner). Then the bean's initial run starts from the sprout head with the decision, the winner's intent and diff, and its amended tests (E6's `start_context` prompt). At most one start card per bean. Against a declared partner still in flight: the first red check that names it goes to reconcile (or the card) at once instead of after three, and a bean whose check passed is checked again when a declared partner landed meanwhile, even on disjoint files (E6 `partner_rechecks`) | `CARD_AFTER_KNOWN=-1`, `COUPLING_PRIOR=arena` |
+| Rescue | `rescue: true` | When a bean's rework rounds run out (a red check or an unresolved conflict), it is re-executed once from scratch: a fresh session on the sprout head, with the last merged tree's failing tests (up to 12) and every decision in force (`rescue.start`, then `rework.start` with `reason: "rescue"`). Its rounds start over; a second exhaustion drops it. This also catches a card's loser whose re-execution still fails | `RESCUE=1` |
+| Dynamic culprits | `dynamic_culprits: true` | When a bean's own acceptance tests fail its check (and no landed declared partner's tests do), the landed beans whose files those tests read are probed wherever they landed, before the bean's snapshot too: declared partners first, then the newest, at most 24, four at a time. A probe reverts one bean from the checked tree and runs the suite in the agent's sandbox (no emulated latency); the bean is confirmed when the own failing tests pass without it. Confirmed beans replace v2's read-set guess (commits since the snapshot), and none confirmed names none (`culprit.dynamic`). E6 ranked candidates by covered lines (`node --test --experimental-test-coverage` and `git blame`); the runner reports no coverage, so the order is partners, then recency | `DYNAMIC_CULPRITS=1` |
+
+Events: `rescue.start` (`task`, `why`, `rounds`) and `culprit.dynamic` (`task`, `candidates`, `confirmed`) are new; `decision.request.trigger` is optional. `summary.json` adds `start_cards`, `start_cards_raised`, `rescue`, `rescues`, `dynamic_culprits`, `dynamic_culprit_runs` and `dynamic_culprit_probes` after `stale_rechecks`, and the row `Start cards / rescues / dynamic culprit searches (probes)`.
+
+In the simulator (`v2-start.test.ts`, `v2-burst.test.ts`; 40 beans, 12 replay agents, 2 CI slots, seed 7):
+
+| Scenario | v2.4 (the E6 rules off) | With the E6 rules |
+|---|---|---|
+| Burst (4 coupled pairs, undeclared) | 40 green, 19.2 min | identical: 40 green, 19.2 min |
+| Burst, pairs declared as couplings | 40 green, 19.2 min | 40 green, **16.0 min** (cards at the first red) |
+| Calm (overlaps only) | 40 green, 8.5 min | identical |
+| v2.2 rules on the burst | 27 green, 13 dropped (9 still red) | with `rescue`: 36 green, 0 still red |
+| A bean whose own test pins what a landed partner changed | dropped (no culprit named) | start card, amended, green with no red check; without start cards, dynamic culprits name the partner and a card ships it |
+
+**Still not ported from E6:** the contract oracle, `CARD_AFTER=1` for undeclared pairs (v2.5 asks after one repeated red, not the first), coverage-ranked culprit candidates, and adopt-arriving by revert (E6 found in-place adoption was the rule). The targeted check of the exact landing tree (E1) is not built either. A start card's initial run that fails to start is retried with the plain initial prompt (its amended tests still apply).
 
 ## RPC for the web app
 

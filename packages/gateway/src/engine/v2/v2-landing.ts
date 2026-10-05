@@ -43,9 +43,11 @@ import {
   sampledRecheck,
   windowAdmits,
 } from './v2-backpressure';
+import { onProbeJob, repairWithCulprits } from './v2-culprits';
 import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
-import { startRepair } from './v2-repair';
+import { rescueOnExhaustion } from './v2-rescue';
+import { partnerMovedSince } from './v2-start';
 import {
   appendCommit,
   awaitOutcome,
@@ -86,6 +88,8 @@ type Failure =
       readonly head: Sha;
       readonly red: CheckResult;
       readonly mine: readonly string[] | null;
+      /** The squashed tree the check ran on (dynamic culprits probe it). */
+      readonly candidate: Sha;
     };
 type Optimistic = {
   readonly head0: Sha;
@@ -150,6 +154,9 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
     case 'reconcile-reading':
       if (current.jobId === jobId) onReconcileRead(step, flow, current, result);
       return;
+    case 'culprit-probe':
+      onProbeJob(step, flow, current, { jobId, result });
+      return;
     case 'queued-land':
     case 'queued-locked':
     case 'inherited':
@@ -182,6 +189,10 @@ export function onLandingJobFailed(
   const flow = step.state.landings[task];
   if (flow === undefined) return true;
   const current = flow.step;
+  if (current.kind === 'culprit-probe') {
+    onProbeJob(step, flow, current, { jobId: failure.jobId, result: null });
+    return true;
+  }
   if (!('jobId' in current) || current.jobId !== failure.jobId) return true;
   if (current.kind === 'publish') return false;
   const isHoldingTurn =
@@ -248,7 +259,7 @@ export function onReworkDone(step: V2Step, outcome: ReworkOutcome): void {
   attempt(step, flow.task);
 }
 
-function unresolvedReason(reason: 'conflict' | 'preland-red' | 'decision'): string {
+function unresolvedReason(reason: 'conflict' | 'preland-red' | 'decision' | 'rescue'): string {
   switch (reason) {
     case 'conflict':
       return 'replay could not resolve the conflict (limitation of replay agents)';
@@ -256,6 +267,8 @@ function unresolvedReason(reason: 'conflict' | 'preland-red' | 'decision'): stri
       return 'replay could not repair the pre-land failure (limitation of replay agents)';
     case 'decision':
       return 'replay could not re-execute under the decision (limitation of replay agents)';
+    case 'rescue':
+      return 'replay could not re-execute the rescued bean (limitation of replay agents)';
     default:
       return assertNever(reason);
   }
@@ -372,7 +385,13 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     } else if (stale.length > 0) {
       recheckStale(step, flow, { checkedOn: check.head0, stale });
     } else {
-      attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result, mine: check.mine });
+      attemptFailed(step, flow, {
+        kind: 'red',
+        head: check.head0,
+        red: result,
+        mine: check.mine,
+        candidate: check.candidate,
+      });
     }
     releaseTurn(step);
     return;
@@ -386,7 +405,13 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     return;
   }
   if (!result.green) {
-    attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result, mine: check.mine });
+    attemptFailed(step, flow, {
+      kind: 'red',
+      head: check.head0,
+      red: result,
+      mine: check.mine,
+      candidate: check.candidate,
+    });
     return;
   }
   const { head0, candidate, files, mine } = check;
@@ -660,6 +685,10 @@ function onResquashed(
     files: [...result.files],
     landedMeanwhile: delta.length,
   };
+  if (partnerMovedSince(step, flow.task, resquash.head0)) {
+    recheck(step, flow, resquash.head0);
+    return;
+  }
   if (mine !== null && shared.length === 0) {
     landOptimistically(step, flow, landing);
     return;
@@ -888,6 +917,7 @@ function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void 
   const { ctx, state } = step;
   flow.rounds += 1;
   if (flow.rounds > ctx.env.config.max_rework) {
+    if (rescueOnExhaustion(step, flow, failure.kind === 'red' ? failure.red : null)) return;
     if (failure.kind === 'red') state.stats.preland_drops += 1;
     endLanding(
       step,
@@ -899,7 +929,7 @@ function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void 
     return;
   }
   if (failure.kind === 'red') {
-    startRepair(step, flow, failure);
+    repairWithCulprits(step, flow, failure);
     return;
   }
   ctx.state.conflictsMet += 1;

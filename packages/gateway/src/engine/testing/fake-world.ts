@@ -66,6 +66,8 @@ export type ScriptedTask = {
    * clash with a task it was not shown): it finds a contradiction and changes nothing.
    */
   readonly reconcile?: Readonly<Record<string, string>>;
+  /** v2.5: tasks this one declares a semantic coupling with (the arena's `couplings`). */
+  readonly coupledWith?: readonly string[];
 };
 
 export type WorldOptions = {

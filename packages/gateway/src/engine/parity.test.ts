@@ -27,6 +27,9 @@ const V20_KNOBS: Partial<RunConfigInput> = {
   single_suspect_revert: false,
   validation_first: false,
   base_culprits: false,
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
 };
 
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };

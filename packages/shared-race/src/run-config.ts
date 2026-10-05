@@ -161,6 +161,24 @@ export const RunConfig = z
     window_max: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.max),
     /** v2.5: the floor a red sprout halves the window to. */
     window_min: z.number().int().min(1).max(256).default(WINDOW_DEFAULTS.min),
+    /**
+     * v2.5 (E6): a bean with a declared semantic coupling (`couplings`, type `semantic`) to a
+     * landed task raises the decision card when it starts, before any work; against a declared
+     * partner still in flight, the first red check that names it goes to reconcile (or the card).
+     */
+    start_cards: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `RESCUE`): a bean whose rework rounds run out is re-executed once from scratch
+     * on the sprout head, in a fresh session, before it is dropped.
+     */
+    rescue: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `DYNAMIC_CULPRITS`): when a bean's own acceptance tests fail its check, the landed
+     * beans whose files the failing tests read (declared partners first, then newest, at most 24,
+     * 4 at a time), wherever they landed, are confirmed by leave-one-out probes of the checked
+     * tree. Confirmed beans replace the read-set guess among commits since the bean's snapshot.
+     */
+    dynamic_culprits: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -218,6 +236,23 @@ export const RunConfig = z
   });
 export type RunConfig = z.infer<typeof RunConfig>;
 export type RunConfigInput = z.input<typeof RunConfig>;
+
+/**
+ * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
+ * races' engine). Each v2.5 phase turns some back on (`packages/gateway/README.md`,
+ * "Version labels").
+ */
+export const V25_RULES_OFF = {
+  escalate_after: 2,
+  reconcile_parties: 1,
+  single_suspect_revert: false,
+  validation_first: false,
+  base_culprits: false,
+  window_start: 4,
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
+} as const satisfies Partial<RunConfigInput>;
 
 /** The harness default for `--error-budget`, and what v2 runs with (`--error-budget 999`). */
 const DEFAULT_ERROR_BUDGET = 3;

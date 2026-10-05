@@ -73,6 +73,7 @@ export function runRace(scenario: RaceScenario): RaceRun {
       title: `Task ${task.id}`,
       prompt: `Implement ${task.id}.`,
       acceptance_tests: { [`tests/${task.id}.test.ts`]: `test('${task.id}');\n` },
+      couplings: (task.coupledWith ?? []).map((partner) => ({ with: partner, type: 'semantic' })),
     })),
     ...scenario.config,
   };

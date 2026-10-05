@@ -24,6 +24,9 @@ const V20: Partial<RunConfigInput> = {
   single_suspect_revert: false,
   validation_first: false,
   base_culprits: false,
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
 };
 
 function runV2(scenario: RaceScenario): RaceRun {
@@ -203,6 +206,13 @@ describe('v2: a clean landing', () => {
       'escalate_after',
       'reconcile_parties',
       'stuck_drops',
+      'start_cards',
+      'start_cards_raised',
+      'rescue',
+      'rescues',
+      'dynamic_culprits',
+      'dynamic_culprit_runs',
+      'dynamic_culprit_probes',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -232,6 +242,8 @@ describe('v2: a clean landing', () => {
       reconcile: true,
       escalate_after: 1,
       reconcile_parties: 3,
+      start_cards: true,
+      rescue: true,
       decision_outcome: 'reexecute',
       variant: 'v2.5',
     });
@@ -252,6 +264,7 @@ describe('v2: a clean landing', () => {
         'Escalate after (failed repairs) / reconcile parties / dropped stuck after a card',
         '1 / 3 / 0',
       ],
+      ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
         '10 / 0 / 0 / 0',

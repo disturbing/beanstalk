@@ -197,7 +197,8 @@ export function decisionsInForce(state: V2State, task: TaskId, exclude: string):
     .map((card) => `${card.id} (${[card.task, ...card.against].join(' and ')}): ${card.text}`);
 }
 
-function scheduleAnswer(step: V2Step, card: DecisionCard): void {
+/** The oracle's timer for a new card, or its answer now (no human, no latency). */
+export function scheduleAnswer(step: V2Step, card: DecisionCard): void {
   const config = step.ctx.env.config;
   if (config.decision_mode === 'human') {
     const timeout = config.human_timeout_seconds;
@@ -606,7 +607,13 @@ function finishAmendment(
     inv: where.inv ?? null,
   });
   card.status = 'done';
-  requestAgent(step, flow, { kind: isInPlace ? 'adopt' : 'reexec', card: card.id });
+  requestAgent(step, flow, { kind: nextWork(card), card: card.id });
+}
+
+/** After the amendment: a start card's initial run, the winner's adoption, or the loser's re-execution. */
+function nextWork(card: DecisionCard): 'start' | 'adopt' | 'reexec' {
+  if (card.trigger === 'start') return 'start';
+  return card.outcome === 'adopt-in-place' ? 'adopt' : 'reexec';
 }
 
 /** keep-landed: the loser's tests are amended now; in place: the winner carries them. */
@@ -756,11 +763,11 @@ export function startAdoptRework(
   });
 }
 
-function decisionOf(card: DecisionCard): DecisionContext {
+export function decisionOf(card: DecisionCard): DecisionContext {
   return { card: card.id, text: card.text ?? '', by: card.by ?? 'oracle' };
 }
 
-function requireCard(state: V2State, id: string): DecisionCard {
+export function requireCard(state: V2State, id: string): DecisionCard {
   const card = state.cards[id];
   if (card === undefined) throw new EngineInvariantError(`no decision card ${id}`);
   return card;
