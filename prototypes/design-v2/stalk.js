@@ -105,7 +105,7 @@
         html: `<span class="tm">${clock(l.t)}</span><span class="stem"><i class="lf"></i></span><span class="tt" title="${esc(l.title)}">${esc(l.title)}</span><span class="ix">#${l.idx}</span>` });
       first = false;
     }
-    rows.push({ key: 'seed', cls: 'seedrow', html: `<span></span><span class="stem"></span><span>base commit ${M.D.meta.base.slice(0, 7)}</span>` });
+    rows.push({ key: 'seed', cls: 'seedrow', html: `<span></span><span class="stem"></span><span>Fertilized by <b>coop</b> <span class="mono muted" title="base commit">${M.D.meta.base.slice(0, 7)}</span></span>` });
     return rows;
   }
 

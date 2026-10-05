@@ -31,6 +31,38 @@
 </head>
 <body>
 <div id="head"></div>
+<div class="themetoggle" id="themetoggle" role="group" aria-label="Appearance">
+  <button type="button" data-set-theme="light" aria-label="Day mode" title="Day mode">☀</button>
+  <button type="button" data-set-theme="dark" aria-label="Night mode" title="Night mode">☾</button>
+  <select id="dayvariant" aria-label="Day style" title="Day style"><option value="phosphor">phosphor</option><option value="paper">paper</option><option value="blueprint">blueprint</option></select>
+</div>
+<style>
+  .themetoggle { position: fixed; top: 10px; right: 64px; z-index: 50; display: flex; gap: 2px; align-items: center; padding: 3px; border: 1px solid var(--border, #8884); border-radius: 8px; background: var(--bg, transparent); font: 12px/1 ui-monospace, monospace; }
+  .themetoggle button { all: unset; cursor: pointer; padding: 4px 8px; border-radius: 6px; color: var(--fg-muted, inherit); }
+  .themetoggle button[aria-pressed="true"] { background: var(--leaf, #2a9); color: #fff; }
+  .themetoggle select { font: inherit; padding: 3px 4px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--fg-muted, inherit); }
+  [data-theme="dark"] .themetoggle select { display: none; }
+</style>
+<script>
+  (function () {
+    const root = document.documentElement, box = document.getElementById('themetoggle'), sel = document.getElementById('dayvariant');
+    function sync() {
+      box.querySelectorAll('[data-set-theme]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setTheme === root.dataset.theme)));
+      sel.value = root.dataset.day;
+    }
+    function save() {
+      const p = new URLSearchParams(location.search);
+      p.set('theme', root.dataset.theme);
+      if (root.dataset.theme === 'light') p.set('day', root.dataset.day); else p.delete('day');
+      history.replaceState(null, '', '?' + p.toString());
+      sync();
+    }
+    box.addEventListener('click', e => { const b = e.target.closest('[data-set-theme]'); if (b) { root.dataset.theme = b.dataset.setTheme; save(); } });
+    sel.addEventListener('change', () => { root.dataset.day = sel.value; save(); });
+    sync();
+  })();
+</script>
+
 <main class="page">
   <aside class="stalkcol" aria-label="The beanstalk">
     <div class="stalkhead"><b>The beanstalk</b><span id="stalkSummary" class="muted"></span></div>
