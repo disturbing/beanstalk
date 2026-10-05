@@ -62,7 +62,9 @@ import {
   startConflictRework,
   startInformedRework,
 } from './v2-repair';
+import { startRescue } from './v2-rescue';
 import { takeWait } from './v2-sprout';
+import { openStartCard, startUnderCard } from './v2-start';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
 import {
   activeTickets,
@@ -118,6 +120,9 @@ function initialV2State(ctx: StepContext): V2State {
       reconcile: config.reconcile,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
+      startCards: config.start_cards,
+      rescue: config.rescue,
+      dynamicCulprits: config.dynamic_culprits,
     },
     sprout: base,
     green: base,
@@ -148,6 +153,7 @@ function initialV2State(ctx: StepContext): V2State {
     cardSeq: 0,
     authors: {},
     carried: {},
+    rescued: {},
     turn: { holder: null, queue: [] },
     stalk: { pushed: base, target: base, inFlight: null },
     waits: {},
@@ -211,6 +217,10 @@ function initialStats(): V2State['stats'] {
     reconciled: 0,
     contradictions: 0,
     stale_rechecks: 0,
+    start_cards: 0,
+    rescues: 0,
+    dynamic_culprit_runs: 0,
+    dynamic_culprit_probes: 0,
   };
 }
 
@@ -271,7 +281,7 @@ function dispatch(step: V2Step): void {
     });
     task.status = 'running';
     hold(ctx, slot, id);
-    startTask(ctx, slot, id, state.sprout);
+    if (!openStartCard(step, slot, id)) startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
 }
@@ -301,6 +311,12 @@ function startWork(step: V2Step, flow: LandingFlow, slot: SlotId): void {
       return;
     case 'adopt':
       startAdoptRework(step, flow, slot, work.card);
+      return;
+    case 'start':
+      startUnderCard(step, flow, slot, work.card);
+      return;
+    case 'rescue':
+      startRescue(step, flow, slot, work);
       return;
     default:
       assertNever(work);
@@ -461,7 +477,10 @@ function isV20(settings: V2Settings): boolean {
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
     !settings.reconcile &&
-    settings.decisionOutcome === 'decline'
+    settings.decisionOutcome === 'decline' &&
+    !settings.startCards &&
+    !settings.rescue &&
+    !settings.dynamicCulprits
   );
 }
 
@@ -554,6 +573,13 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     reconciled: stats.reconciled,
     contradictions: stats.contradictions,
     stale_rechecks: stats.stale_rechecks,
+    start_cards: settings.startCards,
+    start_cards_raised: stats.start_cards,
+    rescue: settings.rescue,
+    rescues: stats.rescues,
+    dynamic_culprits: settings.dynamicCulprits,
+    dynamic_culprit_runs: stats.dynamic_culprit_runs,
+    dynamic_culprit_probes: stats.dynamic_culprit_probes,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -625,6 +651,13 @@ function summaryRows(
       settings.reconcile
         ? `${stats.reconciles} (${stats.reconciled} / ${stats.contradictions}) / ${stats.stale_rechecks}`
         : 'off',
+    ],
+    [
+      'Start cards / rescues / dynamic culprit searches (probes)',
+      `${settings.startCards ? stats.start_cards : 'off'} / ${settings.rescue ? stats.rescues : 'off'} / ` +
+        (settings.dynamicCulprits
+          ? `${stats.dynamic_culprit_runs} (${stats.dynamic_culprit_probes})`
+          : 'off'),
     ],
     [
       'Sprout window at the end / window waits / early tickets / re-check samples',

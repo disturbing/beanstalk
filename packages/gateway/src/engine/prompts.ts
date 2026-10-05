@@ -292,6 +292,77 @@ export function reexecutionPrompt(
 }
 
 /**
+ * E6's `start_context` (v2.5 start cards): the initial prompt of a bean whose card was
+ * decided before it started, as the loser (within the decision, with its amended tests) or as
+ * the winner (its spec stands over the landed partner's tests).
+ */
+export function startDecisionPrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  decision: DecisionContext,
+  context: {
+    readonly winner: CulpritContext | null;
+    readonly isWinner: boolean;
+    readonly amended: readonly string[];
+  },
+): string {
+  const reason = context.isWinner
+    ? "Where the other task's accepted behaviour contradicts your spec, your spec wins: you do not " +
+      'need to keep its tests that encode the old behaviour passing (they will be amended and that ' +
+      'task re-executed after you land). Keep every other test passing.'
+    : 'This decision was made before you started; implement your task within it.';
+  const lines = [
+    task.title,
+    '',
+    task.prompt.trim(),
+    '',
+    ...decisionBlock(decision, context.winner, task.id),
+    '',
+    reason,
+    '',
+    ...amendedLine(context.amended),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
+ * E6's `reexec_prompt` for a rescue (v2.5): the rework rounds ran out, so the bean starts over
+ * in a fresh session on the current trunk, with the last merged tree's failures and every
+ * decision in force on it.
+ */
+export function rescuePrompt(
+  task: PromptTask & Pick<ArenaTask, 'id'>,
+  context: {
+    readonly failing: readonly string[];
+    readonly inForce: readonly string[];
+    readonly amended: readonly string[];
+  },
+): string {
+  const failing =
+    context.failing.length === 0
+      ? []
+      : ['The last merged tree failed these tests:', ...context.failing.map((test) => `- ${test}`)];
+  const inForce =
+    context.inForce.length === 0
+      ? []
+      : ['Other decisions in force for this task:', ...context.inForce.map((line) => `- ${line}`)];
+  const extra = [...failing, ...inForce];
+  const lines = [
+    task.title,
+    '',
+    task.prompt.trim(),
+    '',
+    'Your earlier attempts could not be landed: the trunk kept moving and the merged tree failed ' +
+      'or conflicted. They were discarded. Implement your task again on the current trunk.',
+    '',
+    ...(extra.length === 0 ? [] : [...extra, '']),
+    ...amendedLine(context.amended),
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+/**
  * The winner of an `adopt-in-place` decision (v2.2): the landed loser stays and its
  * acceptance tests were amended to the decision; the winner's session lands with them.
  */

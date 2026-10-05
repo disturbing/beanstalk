@@ -65,6 +65,8 @@ export type ScriptedTask = {
    * task's acceptance tests. Absent: it finds a contradiction and changes nothing.
    */
   readonly reconcile?: Readonly<Record<string, string>>;
+  /** v2.5: tasks this one declares a semantic coupling with (the arena's `couplings`). */
+  readonly coupledWith?: readonly string[];
 };
 
 export type WorldOptions = {

@@ -23,6 +23,9 @@ const V20_KNOBS: Partial<RunConfigInput> = {
   early_tickets: false,
   reconcile: false,
   decision_outcome: 'decline',
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
 };
 
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };

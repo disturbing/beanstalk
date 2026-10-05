@@ -105,7 +105,11 @@ export type AgentWork =
     }
   | { readonly kind: 'author'; readonly card: string }
   | { readonly kind: 'reexec'; readonly card: string }
-  | { readonly kind: 'adopt'; readonly card: string };
+  | { readonly kind: 'adopt'; readonly card: string }
+  /** v2.5: the initial run of a bean whose start card was decided. */
+  | { readonly kind: 'start'; readonly card: string }
+  /** v2.5: the one re-execution from scratch after the rework rounds ran out. */
+  | { readonly kind: 'rescue'; readonly failing: readonly string[] };
 
 /** Where a bean is in its landing loop (`land` + `try_optimistic`) or in a decision. */
 export type LandingStep =
@@ -163,7 +167,7 @@ export type LandingStep =
       diffs: Record<string, string>;
     }
   | { kind: 'awaiting-agent'; work: AgentWork }
-  | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' }
+  | { kind: 'rework'; reason: 'conflict' | 'preland-red' | 'decision' | 'rescue' }
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
   /** v2.4: a test author reconciles the bean's tests with `against`'s, then reads what changed. */
@@ -178,6 +182,20 @@ export type LandingStep =
       before: Record<string, string>;
       jobId: JobId;
     }
+  /** v2.5: leave-one-out probes for the landed beans that break the bean's own tests. */
+  | {
+      kind: 'culprit-probe';
+      head: Sha;
+      red: CheckResult;
+      candidate: Sha;
+      /** The bean's own failing test files the probes must fix. */
+      files: string[];
+      /** Candidates not probed yet, in order. */
+      queue: TaskId[];
+      probed: TaskId[];
+      probes: CulpritProbe[];
+      confirmed: TaskId[];
+    }
   /** A decided card's pipeline: the winner's diff, the author, its files, the fail-first proof. */
   | { kind: 'card-context'; card: string; jobId: JobId }
   | { kind: 'authoring'; card: string }
@@ -190,6 +208,9 @@ export type LandingStep =
       startedAt: Seconds;
       result: CheckResult | null;
     };
+
+/** One leave-one-out probe: the checked tree without one landed bean, then the suite on it. */
+export type CulpritProbe = { task: TaskId; jobId: JobId; phase: 'revert' | 'check' };
 
 /** A bean between its first commit and its landing (or drop). */
 export type LandingFlow = {
@@ -239,6 +260,8 @@ export type DecisionCard = {
   snapshot: Sha | null;
   winnerContext: CulpritContext | null;
   amendment: Amendment | null;
+  /** v2.5: raised when the bean started (`start_cards`), before it had any work or red. */
+  trigger?: 'start';
 };
 
 /** An in-place amendment a winner carries until it lands (then it is the loser's spec). */
@@ -345,6 +368,10 @@ export type V2Stats = {
   reconciled: number;
   contradictions: number;
   stale_rechecks: number;
+  start_cards: number;
+  rescues: number;
+  dynamic_culprit_runs: number;
+  dynamic_culprit_probes: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -359,6 +386,9 @@ export type V2Settings = {
   readonly reconcile: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
+  readonly startCards: boolean;
+  readonly rescue: boolean;
+  readonly dynamicCulprits: boolean;
 };
 
 export type V2State = {
@@ -414,6 +444,8 @@ export type V2State = {
   authors: Record<string, string>;
   /** In-place amendments each winner carries until it lands. */
   carried: Record<string, CarriedAmendment[]>;
+  /** v2.5: beans already rescued once (`rescue`). */
+  rescued: Record<string, boolean>;
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;

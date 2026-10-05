@@ -19,6 +19,7 @@ import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
+import { cardAfterReds } from './v2-start';
 import type { AgentWork, LandingFlow, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
@@ -83,18 +84,26 @@ export function startConflictRework(
 
 /**
  * A red pre-land check: name the culprits, count the pair, and either open a decision
- * card or fetch the culprits' diffs for an informed rework.
+ * card or fetch the culprits' diffs for an informed rework. `confirmed` (v2.5 dynamic
+ * culprits) replaces the read-set guess.
  */
-export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: CheckResult): void {
+export function startRepair(
+  step: V2Step,
+  flow: LandingFlow,
+  head: Sha,
+  red: CheckResult,
+  confirmed?: readonly TaskId[],
+): void {
   const { state } = step;
-  const culprits = culpritTasks(step, flow.task, red);
+  const culprits = culpritTasks(step, flow.task, red, confirmed);
   for (const culprit of culprits) {
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
   }
   const stuck = culprits.filter(
     (culprit) =>
-      (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
+      (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >=
+        cardAfterReds(step, flow.task, culprit, CARD_AFTER_REDS) &&
       !isDecided(state, flow.task, culprit),
   );
   const unreconciled = stuck.find(
@@ -148,7 +157,12 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
  * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
  * bean's snapshot whose writes intersect the failing tests' read set; at most two.
  */
-export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): TaskId[] {
+export function culpritTasks(
+  step: V2Step,
+  task: TaskId,
+  red: CheckResult,
+  confirmed?: readonly TaskId[],
+): TaskId[] {
   const { ctx, state } = step;
   const owners = acceptanceOwners(step);
   const named: TaskId[] = [];
@@ -156,6 +170,7 @@ export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): Task
     const owner = owners.get(path);
     if (owner !== undefined && owner !== task) named.push(owner);
   }
+  if (confirmed !== undefined) return [...new Set([...named, ...confirmed])].slice(0, MAX_CULPRITS);
   const read = new Set(red.readSet);
   const snapshot = sproutIndex(state, requireTask(ctx, task).baseSha);
   for (const commit of state.commits.slice(snapshot + 1).toReversed()) {

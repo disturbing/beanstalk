@@ -18,6 +18,9 @@ export const V22_RULES: Partial<RunConfigInput> = {
   window: 'off',
   inherited_reds: 'validation',
   early_tickets: false,
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
 };
 
 const CHANGELOG_BASE = Array.from({ length: 10 }, (_, index) => `line ${index + 1}`).join('\n');
@@ -140,6 +143,25 @@ export type RaceNumbers = {
   readonly correct: boolean;
 };
 
+/** The E6 rules off: the v2.4 defaults. */
+const WITHOUT_E6: Partial<RunConfigInput> = {
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
+};
+
+/** The burst with each coupled pair declared in the tasks' `couplings`, as the arena does. */
+function declaredCouplings(scenario: RaceScenario): RaceScenario {
+  const partners = new Map<string, string>(PAIRS.map(({ first, culprit }) => [first, culprit]));
+  return {
+    ...scenario,
+    tasks: scenario.tasks.map((task) => {
+      const partner = partners.get(task.id);
+      return partner === undefined ? task : { ...task, coupledWith: [partner] };
+    }),
+  };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -209,6 +231,28 @@ describe('the v2.2 burst, in the simulator', () => {
     expect(count('preland_rechecks')).toBeGreaterThanOrEqual(5);
     expect(count('preland_skipped_rechecks')).toBeGreaterThan(0);
     expect(eventsOf(run.events, 'preland.check', { green: false })).toEqual([]);
+  });
+
+  it('the E6 rules change nothing on the burst', () => {
+    const v24 = numbers(runRace(burstScenario(WITHOUT_E6)));
+
+    expect(numbers(runRace(burstScenario()))).toEqual(v24);
+  });
+
+  it('declared couplings finish the burst sooner: cards at the first red', () => {
+    const declared = numbers(runRace(declaredCouplings(burstScenario())));
+
+    expect(declared.green).toBe(40);
+    expect(declared.correct).toBe(true);
+    expect(declared.done_minutes).toBeLessThan(19.2);
+  });
+
+  it('the rescue keeps v2.2’s beans that were still red after their reworks', () => {
+    const rescued = numbers(runRace(burstScenario({ ...V22_RULES, rescue: true })));
+
+    expect(rescued.preland_still_red).toBe(0);
+    expect(rescued.green).toBeGreaterThanOrEqual(35);
+    expect(rescued.correct).toBe(true);
   });
 
   it('v2.3 keeps v2.2’s speed on a calm repo', () => {

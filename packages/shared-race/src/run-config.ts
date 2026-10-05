@@ -120,6 +120,24 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2.5 (E6): a bean with a declared semantic coupling (`couplings`, type `semantic`) to a
+     * landed task raises the decision card when it starts, before any work; against a declared
+     * partner still in flight, the first red check that names it goes to reconcile (or the card).
+     */
+    start_cards: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `RESCUE`): a bean whose rework rounds run out is re-executed once from scratch
+     * on the sprout head, in a fresh session, before it is dropped.
+     */
+    rescue: z.boolean().default(true),
+    /**
+     * v2.5 (E6 `DYNAMIC_CULPRITS`): when a bean's own acceptance tests fail its check, the landed
+     * beans whose files the failing tests read (declared partners first, then newest, at most 24,
+     * 4 at a time), wherever they landed, are confirmed by leave-one-out probes of the checked
+     * tree. Confirmed beans replace the read-set guess among commits since the bean's snapshot.
+     */
+    dynamic_culprits: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

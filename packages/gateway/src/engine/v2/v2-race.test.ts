@@ -20,6 +20,9 @@ const V20: Partial<RunConfigInput> = {
   early_tickets: false,
   reconcile: false,
   decision_outcome: 'decline',
+  start_cards: false,
+  rescue: false,
+  dynamic_culprits: false,
 };
 
 function runV2(scenario: RaceScenario): RaceRun {
@@ -134,7 +137,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.4', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.5', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -196,6 +199,13 @@ describe('v2: a clean landing', () => {
       'reconciled',
       'contradictions',
       'stale_rechecks',
+      'start_cards',
+      'start_cards_raised',
+      'rescue',
+      'rescues',
+      'dynamic_culprits',
+      'dynamic_culprit_runs',
+      'dynamic_culprit_probes',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -223,6 +233,8 @@ describe('v2: a clean landing', () => {
       window_size: 6,
       early_tickets: true,
       reconcile: true,
+      start_cards: true,
+      rescue: true,
       decision_outcome: 'reexecute',
       variant: 'v2.4',
     });
@@ -239,6 +251,7 @@ describe('v2: a clean landing', () => {
       ['Validation re-runs / suspected flakes', '0 / 0'],
       ['Inherited reds waited out (no rework round spent)', '0'],
       ['Reconciles (reconciled / contradictions) / stale re-checks', '0 (0 / 0) / 0'],
+      ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
         '6 / 0 / 0 / 0',
