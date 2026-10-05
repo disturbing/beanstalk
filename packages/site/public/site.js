@@ -1,13 +1,14 @@
-// Beanstalk marketing site: theme toggle, the sign-up choice, install blocks with copy
-// buttons, the animated stalk, and the placeholder human sign-up form. No framework.
+// Beanstalk marketing site: theme toggle, the sign-up choice, the install picker with its copy
+// button, the lifecycle stalk, the parallel checks, the race tally and the placeholder human
+// sign-up form. The hero's app replay lives in app-demo.js. No framework.
 
 // ---------------------------------------------------------------------------
-// Install commands. PLACEHOLDERS (owner to confirm): the plugin marketplace repo, the
-// plugin and marketplace names, and the MCP origin. They mirror the xinf
-// bootstrap: add the marketplace, install the plugin, then the client's own MCP login,
-// which opens the browser sign-in.
+// Install commands. PLACEHOLDERS (owner to confirm): the plugin marketplace repo, the plugin
+// and marketplace names, and the MCP origin. Each install adds the marketplace, installs the
+// plugin, then runs the client's own MCP login, which opens the browser sign-in.
 // ---------------------------------------------------------------------------
 const PLUGIN_REPO = 'beanstalkdev/beanstalk-plugin';
+const PLUGIN_URL = `https://github.com/${PLUGIN_REPO}`;
 const PLUGIN = 'beanstalk';
 const MARKETPLACE = 'beanstalk';
 const MCP_URL = 'https://mcp.beanstalk.dev/mcp';
@@ -15,27 +16,46 @@ const CLAUDE_SERVER = `plugin:${PLUGIN}:${PLUGIN}`;
 
 const INSTALLS = [
   {
+    id: 'claude-code',
     name: 'Claude Code',
     where: 'paste in your terminal',
     kind: 'shell',
     code: `claude plugin marketplace add ${PLUGIN_REPO} && claude plugin install ${PLUGIN}@${MARKETPLACE} && claude mcp login ${CLAUDE_SERVER}`,
-    after: `Your browser opens once: sign in (or create your account) and approve this session. Back in Claude Code, the Beanstalk tools and skill are ready. Already inside a session? Type <code>/plugin marketplace add ${PLUGIN_REPO}</code>, then <code>/plugin install ${PLUGIN}@${MARKETPLACE}</code>, then <code>/mcp</code> to sign in.`,
+    after: `Your browser opens once: sign in (or create your account) and approve this session. Back in Claude Code, the Beanstalk tools and skill are ready. Already in a session? Type <code>/plugin marketplace add ${PLUGIN_REPO}</code>, then <code>/plugin install ${PLUGIN}@${MARKETPLACE}</code>, then <code>/mcp</code> to sign in.`,
   },
   {
+    id: 'codex',
     name: 'Codex',
     where: 'paste in your terminal',
     kind: 'shell',
     code: `codex plugin marketplace add ${PLUGIN_REPO} && codex plugin add ${PLUGIN}@${MARKETPLACE} && codex mcp login ${PLUGIN}`,
     after:
-      'The last step opens your browser: sign in and approve this session. Codex then has the Beanstalk tools and skill, and the session joins your team as yours.',
+      'The last step opens your browser: sign in and approve this session. Codex keeps running on your ChatGPT or Codex plan, with no API key needed, and the session joins your team as yours.',
   },
   {
-    name: 'Other MCP clients',
-    where: 'Cursor, Gemini CLI, Claude Desktop and others: add a remote MCP server',
+    id: 'cursor',
+    name: 'Cursor',
+    where: "paste in Cursor's chat",
+    kind: 'chat',
+    code: `/add-plugin ${PLUGIN_URL}`,
+    after: `Then open Settings &gt; MCP and click "Needs login" next to <code>${PLUGIN}</code>. Approve in the browser and Cursor is connected.`,
+  },
+  {
+    id: 'gemini',
+    name: 'Gemini CLI',
+    where: 'paste in your terminal',
+    kind: 'shell',
+    code: `gemini extensions install ${PLUGIN_URL} --consent && gemini`,
+    after: `When Gemini starts it asks to authenticate the <code>${PLUGIN}</code> server: press Enter, then approve in the browser.`,
+  },
+  {
+    id: 'mcp',
+    name: 'Other MCP',
+    where: 'add as a remote (HTTP) MCP server',
     kind: 'url',
     code: MCP_URL,
     after:
-      'Add this URL as a remote (HTTP) MCP server. The first call opens the same browser sign-in; approve it and your client is connected.',
+      'Add this URL as a remote MCP server in Claude Desktop, Windsurf or any MCP client. The first call opens the same browser sign-in; approve it and your client is connected.',
   },
 ];
 
@@ -97,13 +117,13 @@ const CHOOSE_HTML = `
     <p class="sub">Beanstalk is built for agents. Most people sign up from the agent they already use.</p>
     <div class="options">
       <a class="option agent" href="agent.html" autofocus>
-        <span class="tag">recommended</span>
+        <span class="rec">recommended</span>
         <b>Sign up with Agent</b>
-        <span>Paste one command into Claude Code, Codex or another MCP client. It installs the plugin and signs you in.</span>
+        <span>Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It installs the plugin and signs you in.</span>
       </a>
       <a class="option" href="human.html">
         <b>Sign up as Human</b>
-        <span>Leave your email and we will send you a sign-in link.</span>
+        <span>Join early access with your email. We'll be in touch.</span>
       </a>
     </div>
   </div>
@@ -130,7 +150,8 @@ function setupSignup() {
 }
 
 // ---------------------------------------------------------------------------
-// Install blocks and copy buttons.
+// Install picker: a horizontal list of agents; the selected one's command shows below
+// with one copy button. A hash such as agent.html#codex preselects an agent.
 // ---------------------------------------------------------------------------
 function escapeHtml(text) {
   return text.replace(
@@ -139,24 +160,63 @@ function escapeHtml(text) {
   );
 }
 
-function renderInstalls() {
-  for (const host of document.querySelectorAll('[data-installs]')) {
-    host.innerHTML = INSTALLS.map(
-      (item, i) => `
-      <article class="cmd">
-        <header>
-          <b>${item.name}</b>
-          <span class="where">${item.where}</span>
-          <button type="button" class="btn small copy" data-copy="#cmd-${host.id}-${i}">Copy</button>
-        </header>
-        <pre class="${item.kind}" id="cmd-${host.id}-${i}" tabindex="0"><code>${escapeHtml(item.code)}</code></pre>
-        <p class="copyhint" hidden role="status"></p>
-        <p class="after">${item.after}</p>
-      </article>`,
-    ).join('');
+function renderInstallPanel(host, item) {
+  const panel = host.querySelector('[role="tabpanel"]');
+  if (!panel) return;
+  panel.setAttribute('aria-labelledby', `${host.id}-tab-${item.id}`);
+  panel.innerHTML = `
+    <header><span>${item.name}: ${item.where}</span>
+      <button type="button" class="btn small copy" data-copy="#${host.id}-code">Copy</button></header>
+    <pre class="${item.kind}" id="${host.id}-code" tabindex="0"><code>${escapeHtml(item.code)}</code></pre>
+    <p class="copyhint" hidden role="status"></p>
+    <p class="after">${item.after}</p>`;
+}
+
+function selectInstall(host, id, focus) {
+  const item = INSTALLS.find((i) => i.id === id) ?? INSTALLS[0];
+  for (const tab of host.querySelectorAll('[role="tab"]')) {
+    const on = tab instanceof HTMLElement && tab.dataset.agent === item.id;
+    tab.setAttribute('aria-selected', String(on));
+    tab.tabIndex = on ? 0 : -1;
+    if (on && focus && tab instanceof HTMLElement) tab.focus();
+  }
+  renderInstallPanel(host, item);
+}
+
+function setupInstalls() {
+  const fromHash = location.hash.slice(1);
+  for (const host of document.querySelectorAll('[data-install]')) {
+    host.innerHTML = `
+      <div class="picker" role="tablist" aria-label="Choose your agent">
+        ${INSTALLS.map(
+          (item) =>
+            `<button type="button" role="tab" id="${host.id}-tab-${item.id}" data-agent="${item.id}" aria-controls="${host.id}-panel">${item.name}</button>`,
+        ).join('')}
+      </div>
+      <div class="cmd" role="tabpanel" id="${host.id}-panel"></div>`;
+    const ids = INSTALLS.map((i) => i.id);
+    selectInstall(host, ids.includes(fromHash) ? fromHash : ids[0], false);
+    host.querySelector('.picker')?.addEventListener('click', (event) => {
+      const tab = event.target instanceof Element ? event.target.closest('[role="tab"]') : null;
+      if (tab instanceof HTMLElement && tab.dataset.agent)
+        selectInstall(host, tab.dataset.agent, false);
+    });
+    host.querySelector('.picker')?.addEventListener('keydown', (event) => {
+      const current = ids.findIndex((id) =>
+        host.querySelector(`[data-agent="${id}"][aria-selected="true"]`),
+      );
+      const moves = { ArrowRight: 1, ArrowLeft: -1, Home: -current, End: ids.length - 1 - current };
+      const step = moves[event.key];
+      if (step === undefined) return;
+      event.preventDefault();
+      selectInstall(host, ids[(current + step + ids.length) % ids.length], true);
+    });
   }
 }
 
+// ---------------------------------------------------------------------------
+// Copy buttons, with a fallback when the clipboard is refused.
+// ---------------------------------------------------------------------------
 function selectText(element) {
   const range = document.createRange();
   range.selectNodeContents(element);
@@ -208,8 +268,32 @@ function setupCopy() {
 }
 
 // ---------------------------------------------------------------------------
-// The animated stalk: beans at the tip are written, checked on the exact tree, and land
-// on the sprout; a validated sprout leaf is promoted to the stalk with a pulse of light.
+// Shared: run a tick while the element is on screen, the tab is visible and motion is allowed.
+// ---------------------------------------------------------------------------
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+function whileVisible(element, intervalMs, tick) {
+  let timer = 0;
+  let visible = false;
+  const sync = () => {
+    const run = visible && !document.hidden && !reducedMotion.matches;
+    if (run && !timer) timer = setInterval(() => tick(), intervalMs);
+    if (!run && timer) {
+      clearInterval(timer);
+      timer = 0;
+    }
+  };
+  new IntersectionObserver((entries) => {
+    visible = entries.some((e) => e.isIntersecting);
+    sync();
+  }).observe(element);
+  document.addEventListener('visibilitychange', sync);
+  reducedMotion.addEventListener('change', sync);
+}
+
+// ---------------------------------------------------------------------------
+// The lifecycle stalk: a queued idea becomes a bean, beans are checked and land on the sprout,
+// and the whole sprout matures into the stalk together, with a pulse of light.
 // ---------------------------------------------------------------------------
 const TITLES = [
   'Expired coupons are still accepted at checkout',
@@ -218,7 +302,7 @@ const TITLES = [
   'Make product filtering a pure function',
   'Customers want a plain-text copy of their receipt',
   'Stock reservations should be all or nothing',
-  'Free standard shipping on orders over $50',
+  'Free standard shipping on orders over $75',
   'Invoices should show federal and regional tax',
   'Fixed-amount coupons can push a total below zero',
   'Finance needs a list of overdue invoices',
@@ -246,9 +330,10 @@ function createStalkModel() {
   minutes = 12 * 60 + 31;
   const sprout = [{ n: 26, title: nextTitle(), time: clock() }];
   const beans = [
+    { agent: '', title: nextTitle(), status: 'queued', reworked: false },
     { agent: nextAgent(), title: nextTitle(), status: 'writing', reworked: false },
     { agent: nextAgent(), title: nextTitle(), status: 'checking', reworked: true },
-    { agent: nextAgent(), title: nextTitle(), status: 'writing', reworked: false },
+    { agent: nextAgent(), title: nextTitle(), status: 'checking', reworked: false },
   ];
   let nextN = 27;
   let checks = 0;
@@ -257,18 +342,20 @@ function createStalkModel() {
     stalk,
     sprout,
     beans,
-    /** One step of the run; returns true when a promotion should send a pulse up the stalk. */
+    /** One step of the run; returns true when the sprout matured into the stalk. */
     step() {
       for (const bean of beans) {
         if (bean.status === 'reworking') bean.status = 'writing';
       }
       if (sprout.length >= 3) {
-        const leaf = sprout.pop();
-        stalk.unshift({ ...leaf, promoted: true });
+        // The whole sprout passed together: every leaf on it joins the stalk at once.
+        const leaves = sprout.splice(0);
+        for (const leaf of leaves) leaf.promoted = true;
+        stalk.unshift(...leaves);
         stalk.length = Math.min(stalk.length, 9);
         return true;
       }
-      const checking = beans.findIndex((b) => b.status === 'checking');
+      const checking = beans.findLastIndex((b) => b.status === 'checking');
       if (checking >= 0) {
         const bean = beans[checking];
         checks += 1;
@@ -281,90 +368,151 @@ function createStalkModel() {
         minutes += 3;
         sprout.unshift({ n: nextN++, title: bean.title, time: clock(), enter: true });
         beans.splice(checking, 1);
+        const queued = beans.find((b) => b.status === 'queued');
+        if (queued) {
+          queued.status = 'writing';
+          queued.agent = nextAgent();
+        }
         beans.unshift({
-          agent: nextAgent(),
+          agent: '',
           title: nextTitle(),
-          status: 'writing',
+          status: 'queued',
           reworked: false,
           enter: true,
         });
         return false;
       }
-      const writing = beans.findLastIndex((b) => b.status === 'writing');
-      if (writing >= 0) beans[writing].status = 'checking';
+      for (const bean of beans) {
+        if (bean.status === 'writing') bean.status = 'checking';
+      }
       return false;
     },
   };
 }
 
-const STATUS_SHORT = { writing: 'write', checking: 'check', reworking: 'red' };
+const STATUS_SHORT = { queued: 'queued', writing: 'write', checking: 'check', reworking: 'red' };
 
 function leafRow(leaf, cls) {
-  return `<div class="srow ${cls}${leaf.n % 2 ? ' l' : ''}${leaf.enter ? ' enter' : ''}${leaf.promoted ? ' promoted' : ''}">
+  const classes = [
+    'srow',
+    cls,
+    leaf.n % 2 ? 'l' : '',
+    leaf.enter ? 'enter' : '',
+    leaf.promoted ? 'promoted' : '',
+  ].join(' ');
+  return `<div class="${classes}">
       <span class="tm">${leaf.time}</span><span class="stem"><i class="lf"></i></span>
       <span class="tt">${escapeHtml(leaf.title)}</span><span class="ix">#${leaf.n}</span></div>`;
 }
 
+function beanRow(bean) {
+  return `<div class="srow bean ${bean.status}${bean.enter ? ' enter' : ''}">
+      <span class="ag">${bean.agent}</span><span class="stem"><i class="beanmark"></i></span>
+      <span class="tt">${escapeHtml(bean.title)}</span><span class="st">${STATUS_SHORT[bean.status]}</span></div>`;
+}
+
 function renderStalk(model, rowsEl, headEl) {
-  const beanRows = model.beans.map(
-    (b) => `<div class="srow bean ${b.status}${b.enter ? ' enter' : ''}">
-      <span class="ag">${b.agent}</span><span class="stem"><i class="beanmark"></i></span>
-      <span class="tt">${escapeHtml(b.title)}</span><span class="st">${STATUS_SHORT[b.status]}</span></div>`,
-  );
-  const sproutRows = model.sprout.map((leaf) => leafRow(leaf, 'sprout'));
   const top = model.stalk[0];
   const pointer = `<div class="pointer"><span></span><span class="stem"></span><span>stalk at #${top.n}</span></div>`;
-  const stalkRows = model.stalk.map((leaf) => leafRow(leaf, 'stalk'));
-  rowsEl.innerHTML = [...beanRows, ...sproutRows, pointer, ...stalkRows].join('');
-  headEl.textContent = `${model.beans.length} beans growing, ${model.sprout.length} on the sprout`;
+  rowsEl.innerHTML = [
+    ...model.beans.map(beanRow),
+    ...model.sprout.map((leaf) => leafRow(leaf, 'sprout')),
+    pointer,
+    ...model.stalk.map((leaf) => leafRow(leaf, 'stalk')),
+  ].join('');
+  const growing = model.beans.filter((b) => b.status !== 'queued').length;
+  headEl.textContent = `${growing} growing, ${model.sprout.length} on the sprout`;
   for (const item of [...model.beans, ...model.sprout, ...model.stalk]) {
     item.enter = false;
     item.promoted = false;
   }
-  const live = model.beans.find((b) => b.status === 'reworking');
-  rowsEl.setAttribute(
-    'aria-label',
-    live
-      ? `${live.agent}'s bean went red and is back with its agent`
-      : `Stalk at #${top.n}; ${model.sprout.length} on the sprout; ${model.beans.length} beans growing`,
-  );
 }
 
 function setupStalk() {
   const host = document.querySelector('[data-stalkdemo]');
-  if (!host) return;
-  const rowsEl = host.querySelector('.rows');
-  const headEl = host.querySelector('[data-stalkhead]');
-  if (!rowsEl || !headEl) return;
+  const rowsEl = host?.querySelector('.rows');
+  const headEl = host?.querySelector('[data-stalkhead]');
+  if (!host || !rowsEl || !headEl) return;
   const model = createStalkModel();
   renderStalk(model, rowsEl, headEl);
-
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let timer = 0;
-  let visible = false;
-  const tick = () => {
-    const pulse = model.step();
+  whileVisible(host, 1500, () => {
+    const matured = model.step();
     renderStalk(model, rowsEl, headEl);
-    rowsEl.classList.toggle('validating', pulse);
-  };
-  const sync = () => {
-    const run = visible && !document.hidden && !reduced.matches;
-    if (run && !timer) timer = setInterval(tick, 1700);
-    if (!run && timer) {
-      clearInterval(timer);
-      timer = 0;
-    }
-  };
-  new IntersectionObserver((entries) => {
-    visible = entries.some((e) => e.isIntersecting);
-    sync();
-  }).observe(host);
-  document.addEventListener('visibilitychange', sync);
-  reduced.addEventListener('change', sync);
+    rowsEl.classList.toggle('validating', matured);
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Human sign-up: a placeholder form. There is no backend yet; it only confirms in the page.
+// Parallel checks: twelve lanes, each bean checked on its own exact tree, all at once.
+// ---------------------------------------------------------------------------
+const LANE_TITLES = [
+  'Finance needs a list of overdue invoices',
+  'Support refunding a single invoice line',
+  'The order total leaves out shipping',
+  'Tax on multi-line invoices is a cent off',
+  'Fixed-amount coupons go below zero',
+  'Retired products are still visible by id',
+  'A failed checkout leaves stock reserved',
+  'Reject weak passwords at registration',
+  'Customers cannot list their invoices',
+  'Send a receipt when an invoice is paid',
+  'Invoice numbers restart every year',
+  'Require a signature for big deliveries',
+];
+
+function setupLanes() {
+  const host = document.querySelector('[data-lanes]');
+  const lanesEl = host?.querySelector('.lanes');
+  const headEl = host?.querySelector('[data-lanes-head]');
+  if (!host || !lanesEl || !headEl) return;
+  const lanes = LANE_TITLES.map((title, i) => ({
+    agent: `a${i}`,
+    title,
+    period: 34 + ((i * 7) % 23),
+    offset: (i * 13) % 40,
+    landed: 30 + i,
+  }));
+  let t = 31;
+  const render = () => {
+    let checking = 0;
+    lanesEl.innerHTML = lanes
+      .map((lane) => {
+        const phase = ((t + lane.offset) % lane.period) / lane.period;
+        const done = phase > 0.82;
+        if (!done) checking += 1;
+        const pct = Math.round(Math.min(phase / 0.82, 1) * 100);
+        const cycles = Math.floor((t + lane.offset) / lane.period);
+        const tree = `sprout #${30 + (cycles % 6)} + t0${String(10 + lanes.indexOf(lane)).padStart(2, '0')}`;
+        return `<div class="lane${done ? ' landed' : ''}">
+          <span class="a">${lane.agent}</span>
+          <span class="t">${escapeHtml(lane.title)}<small>on ${tree}</small></span>
+          <span class="bar"><i style="width:${pct}%"></i></span>
+          <span class="s">${done ? 'landed' : `checking ${pct}%`}</span></div>`;
+      })
+      .join('');
+    headEl.textContent = `${checking} checking now, ${12 - checking} just landed`;
+  };
+  render();
+  whileVisible(host, 250, () => {
+    t += 1;
+    render();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The race tally: 37 shipped of 40.
+// ---------------------------------------------------------------------------
+function renderTally() {
+  for (const host of document.querySelectorAll('[data-tally]')) {
+    host.innerHTML = Array.from({ length: 40 }, (_, i) =>
+      i < 37 ? '<i></i>' : '<i class="miss"></i>',
+    ).join('');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Human sign-up: a placeholder early-access form. There is no backend yet, so it only
+// confirms in the page and promises nothing beyond "we'll be in touch".
 // ---------------------------------------------------------------------------
 function setupHumanForm() {
   const form = document.querySelector('[data-human-form]');
@@ -392,19 +540,11 @@ function setupHumanForm() {
   });
 }
 
-// The proof tally: 37 shipped of 40.
-function renderTally() {
-  for (const host of document.querySelectorAll('[data-tally]')) {
-    host.innerHTML = Array.from({ length: 40 }, (_, i) =>
-      i < 37 ? '<i></i>' : '<i class="miss"></i>',
-    ).join('');
-  }
-}
-
 setupTheme();
 setupSignup();
-renderTally();
-renderInstalls();
+setupInstalls();
 setupCopy();
 setupStalk();
+setupLanes();
+renderTally();
 setupHumanForm();

@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Beanstalk: a git forge for swarms of coding agents</title>
+    <title>Beanstalk: the future of Git is three words</title>
     <meta
       name="description"
-      content="Run a swarm of coding agents on one codebase without them tripping over each other. Each change lands as soon as it passes a check on the exact tree, and the stable line only ever holds verified work."
+      content="Bean. Sprout. Stalk. Run a swarm of coding agents on one codebase without them tripping over each other; the stalk only ever holds verified work."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -30,6 +30,7 @@
     />
     <link rel="stylesheet" href="site.css" />
     <script src="site.js" defer></script>
+    <script src="app-demo.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -37,23 +38,18 @@
       <div class="wrap">
         <a class="brand" href="./" aria-label="Beanstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
-            <path
-              d="M10 21V8"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              style="color: var(--leaf)"
-            />
+            <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
           beanstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="#parallel">Why</a>
-          <a href="#concepts">How it works</a>
-          <a href="#agents">Your agents</a>
-          <a href="#proof">Proof</a>
+          <a href="./#grow">How it grows</a>
+          <a href="./#parallel">Parallel</a>
+          <a href="./#ask">Ask</a>
+          <a href="./#race">The race</a>
+          <a href="./#agents">Your agents</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -81,7 +77,7 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="#start">Install the plugin</a>
+          <a class="btn small ghost" href="./#start">Install the plugin</a>
           <a class="btn small primary" href="agent.html" data-signup>Sign up</a>
         </div>
       </div>
@@ -90,292 +86,539 @@
     <main id="main">
       <section class="hero">
         <div class="wrap">
-          <p class="prompt" aria-hidden="true">
-            run --agents 12 --tasks 40 <span class="caret"></span>
+          <p class="prompt" aria-hidden="true">beanstalk explain <span class="caret"></span></p>
+          <h1>The future of Git is three words.</h1>
+          <p class="three">
+            <span class="w-bean"><i aria-hidden="true"></i>Bean.</span>
+            <span class="w-sprout"><i aria-hidden="true"></i>Sprout.</span>
+            <span class="w-stalk"><i aria-hidden="true"></i>Stalk.</span>
           </p>
-          <h1>Run a swarm of coding agents on one codebase.</h1>
           <p class="lede">
-            Without them tripping over each other. Each agent's change is a <b>bean</b>. A bean
-            lands on the <b>sprout</b> as soon as it passes a check on the exact tree it joins, and
-            the <b>stalk</b> only ever holds verified work.
+            Run a swarm of coding agents on one codebase without them tripping over each other. The
+            stalk only ever holds verified work.
           </p>
           <div class="cta">
             <a class="btn big primary" href="agent.html" data-signup>Sign up</a>
             <a class="btn big" href="#start">Install the plugin</a>
-            <p class="aside">Works with Claude Code, Codex and any MCP client.</p>
+            <p class="aside">
+              Works with Claude Code, Codex, Cursor, Gemini CLI and any MCP client.
+            </p>
           </div>
-          <figure class="shot">
-            <img
-              class="night"
-              src="img/app-night.png"
-              width="1440"
-              height="1000"
-              alt="Beanstalk repository view at night: the glowing stalk on the left with beans in flight at the tip, a command-prompt Ask box, and six beans checking."
-            />
-            <img
-              class="day"
-              src="img/app-day.png"
-              width="1440"
-              height="1000"
-              alt="Beanstalk repository view in Daylight phosphor: the stalk on the left and the repository explorer on the right."
-            />
+        </div>
+        <div class="wrap wide showcase">
+          <figure class="app" data-appdemo style="margin: 0">
+            <figcaption class="sr-only">
+              The Beanstalk repository home. Someone asks "Replay last week's work"; the view picks
+              a stalk replay, the beans growing now and what happened, then the stalk replays a week
+              of work as 35 beans land.
+            </figcaption>
+            <div aria-hidden="true">
+              <div class="app-top">
+                <span class="dots"><i></i><i></i><i></i></span>
+                <span class="crumb">coop / <b>beanstalk-shop</b></span>
+                <span class="app-tabs"
+                  ><span class="on">Code</span><span>Files</span><span>Beans</span
+                  ><span>Decisions</span><span>Checks</span></span
+                >
+              </div>
+              <div class="app-body">
+                <div class="app-stalk">
+                  <div class="ah">
+                    <b>The beanstalk</b><span data-d-count>0 landed, 6 growing</span>
+                  </div>
+                  <div class="app-rows" data-d-rows></div>
+                  <div class="player">
+                    <span class="play"
+                      ><svg class="tri" viewBox="0 0 12 12">
+                        <path d="M2 1l9 5-9 5z" fill="currentColor" /></svg
+                      ><svg class="pause" viewBox="0 0 12 12">
+                        <path d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor" /></svg
+                    ></span>
+                    <span class="track"><i data-d-progress style="width: 0"></i></span>
+                    <output data-d-clock>Mon 9:00</output>
+                  </div>
+                </div>
+                <div class="app-main">
+                  <div class="d-ask" data-d-ask>
+                    <span class="q">?</span><span data-d-typed></span><span class="caret"></span
+                    ><span class="ph" data-d-ph>Ask the beanstalk anything</span><kbd>⌘K</kbd>
+                  </div>
+                  <div class="d-picked fadein" data-d-picked>
+                    <span class="lbl">searched</span><span class="chip">last 7 days</span
+                    ><span class="chip">beans, landings, decisions</span><span class="sep"></span
+                    ><span class="lbl">picked</span><span class="chip"><b>1</b>Stalk replay</span
+                    ><span class="chip"><b>2</b>Growing now</span
+                    ><span class="chip"><b>3</b>What happened</span
+                    ><span class="chip jev">Jev, 0.5 s</span>
+                  </div>
+                  <div class="fadein" data-d-answer>
+                    <h3 class="d-answer">Replaying last week on beanstalk-shop.</h3>
+                    <p class="d-sub" data-d-sub>
+                      Press play: 35 beans, 12 agents, Monday to Friday.
+                    </p>
+                  </div>
+                  <section class="d-box fadein" data-d-growbox>
+                    <header>
+                      <b>Growing now</b><span data-d-growhead>6 beans checking in parallel</span>
+                    </header>
+                    <div data-d-grow></div>
+                  </section>
+                  <section class="d-box fadein" data-d-eventbox>
+                    <header><b>What happened</b><span data-d-evhead></span></header>
+                    <div data-d-events></div>
+                  </section>
+                </div>
+              </div>
+              <div class="app-status" data-d-status></div>
+            </div>
+          </figure>
+          <p class="note">
+            The repository home, recreated in the browser: a week of work replaying on a demo repo.
+          </p>
+        </div>
+      </section>
+
+      <section class="band" id="grow" aria-labelledby="grow-title">
+        <div class="wrap split">
+          <div>
+            <h2 id="grow-title">How a bean grows.</h2>
+            <p class="lead">
+              A bean grows into a sprout, and sprouts mature into the stalk once verified and
+              shipped.
+            </p>
+            <dl class="terms">
+              <div>
+                <i class="mark mk-bean" aria-hidden="true"></i>
+                <dt>Bean</dt>
+                <dd>
+                  One piece of work: an idea in the queue, or a change in flight with an agent.
+                </dd>
+              </div>
+              <div>
+                <i class="mark mk-sprout" aria-hidden="true"></i>
+                <dt>Sprout</dt>
+                <dd>Where a bean lands the moment it passes its own check.</dd>
+              </div>
+              <div>
+                <i class="mark mk-stalk" aria-hidden="true"></i>
+                <dt>Stalk</dt>
+                <dd>The stable line. Only verified work matures into it.</dd>
+              </div>
+            </dl>
+            <div class="callout">
+              <p>
+                Beans sprout the moment they pass their own check. The stalk grows when the whole
+                sprout passes together.
+              </p>
+              <small>
+                That's why the stalk trails the sprout by a moment: every bean that landed together
+                runs the full test suite at once.
+              </small>
+            </div>
+          </div>
+          <figure class="panel stalkdemo" data-stalkdemo style="margin: 0">
+            <div class="head"><b>beanstalk-shop</b><span data-stalkhead></span></div>
+            <div class="rows" role="img" aria-label="An animated stalk"></div>
+            <figcaption class="caption">
+              Beans queue, grow and get checked. They land on the sprout, and the whole sprout
+              matures into the stalk together.
+            </figcaption>
           </figure>
         </div>
       </section>
 
       <section class="band" id="parallel" aria-labelledby="parallel-title">
-        <div class="wrap">
-          <h2 id="parallel-title">Parallel work, without the pile-up.</h2>
-          <p class="intro">
-            Twelve agents on one repo usually means a long queue, a wall of conflicts and someone
-            babysitting merges. Beanstalk keeps the work moving and keeps people out of the loop
-            until they're actually needed.
-          </p>
-          <ul class="benefits">
-            <li>
-              <h3>No merge queue to wait in</h3>
+        <div class="wrap split flip">
+          <div>
+            <h2 id="parallel-title">Twelve agents. Twelve checks. All at once.</h2>
+            <p class="lead">
+              Every agent's bean is checked at the same time as everyone else's, each on the exact
+              tree it will join. Nobody waits in line.
+            </p>
+            <ul class="facts">
+              <li>
+                <b>No merge queue.</b> A bean lands when its own check passes, not when its turn
+                comes.
+              </li>
+              <li>
+                <b>The real tree.</b> Each check runs on the stalk plus the beans already on the
+                sprout, so a pass means it works with everyone's latest work.
+              </li>
+            </ul>
+          </div>
+          <figure class="panel" style="margin: 0" data-lanes>
+            <div class="head">
+              <b>Checks running now</b><span data-lanes-head>12 in parallel</span>
+            </div>
+            <div
+              class="lanes"
+              role="img"
+              aria-label="Twelve checks running at the same time, landing one after another"
+            ></div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="band" id="ask" aria-labelledby="ask-title">
+        <div class="wrap split">
+          <div>
+            <h2 id="ask-title">Ask the repo anything.</h2>
+            <p class="lead">
+              Type a question in plain words and the page reshapes around the answer: the files, the
+              beans that touched them, the diffs and who's working there now. Your agents can ask
+              the same questions before they edit.
+            </p>
+            <div class="jevnote">
+              <span class="chip jev">Jev</span>
               <p>
-                Every bean is checked against the exact tree it would join and lands the moment it
-                passes. Agents don't take turns.
+                It answers fast because a small model picks the view instead of generating it. Jev
+                is a decision model: it picks what to show in about half a second instead of writing
+                a page.
+                <small>Live pages still take a few seconds to fill in today.</small>
               </p>
-            </li>
-            <li>
+            </div>
+          </div>
+          <figure
+            class="panel askdemo"
+            style="margin: 0"
+            aria-label="An answer to: What changed on coupons yesterday?"
+          >
+            <div class="body">
+              <div class="askline"><span class="q">?</span>What changed on coupons yesterday?</div>
+              <div class="d-picked" style="opacity: 1">
+                <span class="lbl">picked</span><span class="chip"><b>1</b>Files</span
+                ><span class="chip"><b>2</b>Bean journey + diff</span
+                ><span class="chip jev">Jev, 0.5 s</span>
+              </div>
+              <h3 class="d-answer">5 beans changed 8 files about coupons yesterday.</h3>
+              <div class="files">
+                <div class="f">
+                  <span>billing/coupons.ts</span><span class="tag">t038 #32</span
+                  ><span><span class="add">+1</span> <span class="del">-1</span></span>
+                </div>
+                <div class="hunk">
+                  <div class="h">@@ -13,5 +13,5 @@</div>
+                  <div>export function couponDiscount(coupon, subtotal) {</div>
+                  <div class="d">- if (coupon.kind !== 'percent') return coupon.value;</div>
+                  <div class="a">
+                    + if (coupon.kind !== 'percent') return Math.min(coupon.value, subtotal);
+                  </div>
+                </div>
+                <div class="f">
+                  <span>billing/coupon-cap.test.ts</span><span class="tag">t038 #32</span
+                  ><span><span class="add">+23</span> <span class="del">-0</span></span>
+                </div>
+                <div class="f">
+                  <span>billing/coupon-expiry.test.ts</span><span class="tag">t040 #30</span
+                  ><span><span class="add">+27</span> <span class="del">-0</span></span>
+                </div>
+                <div class="f">
+                  <span>db/migrations/0007_coupon_max_discount.ts</span
+                  ><span class="tag">t024 #28</span
+                  ><span><span class="add">+9</span> <span class="del">-0</span></span>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="band" id="collide" aria-labelledby="collide-title">
+        <div class="wrap">
+          <div class="sechead">
+            <h2 id="collide-title">When work collides, it sorts itself out.</h2>
+            <p class="intro">
+              Most clashes between agents are small. Beanstalk handles those, and saves people for
+              the ones that matter.
+            </p>
+          </div>
+          <div class="bento">
+            <article class="tile big">
               <h3>Broken work goes back to its author</h3>
               <p>
-                When a check fails, the bean returns to the agent that wrote it, with the failing
-                tests and what changed underneath it. The stalk never sees it.
+                A red check sends the bean back to the agent that wrote it, with the failing tests
+                and what changed underneath it. The stalk never sees it.
               </p>
-            </li>
-            <li>
+              <div class="shotcrop">
+                <img
+                  class="night"
+                  src="img/journey-night.png"
+                  width="1440"
+                  height="1000"
+                  loading="lazy"
+                  alt="A bean's journey: picked up by a6, check passed, conflicted with the sprout in coupons.ts, sent back to its author, reworked and checking again."
+                />
+                <img
+                  class="day"
+                  src="img/journey-day.png"
+                  width="1440"
+                  height="1000"
+                  loading="lazy"
+                  alt="A bean's journey in day mode: sent back to its author after a conflict, then reworked."
+                />
+              </div>
+            </article>
+            <article class="tile">
               <h3>Stale test values reconcile themselves</h3>
               <p>
                 When two beans clash only because a test still expects an old value, Beanstalk
-                updates it and moves on. No one gets paged for that.
+                updates it and moves on.
               </p>
-            </li>
-            <li>
-              <h3>People decide only real disagreements</h3>
-              <p>
-                You're asked when two specs truly disagree, with both sides laid out. Not for every
-                rebase.
-              </p>
-            </li>
-          </ul>
-
-          <div class="ask">
-            <div>
-              <h3>Ask the repo anything.</h3>
-              <p>
-                Type a question and the view reshapes around the answer: the files, the beans that
-                touched them, who's working there now and what was decided.
-              </p>
-              <div class="askbox" aria-hidden="true">
-                <span class="q">?</span>what changed on coupons?
+              <div
+                class="mini"
+                aria-label="A test value updated after another bean changed the shipping total"
+              >
+                <div class="mh">checkout.test.ts, reconciled</div>
+                <div class="hunk">
+                  <div class="d">- expect(order.total).toBe(4200);</div>
+                  <div class="a">+ expect(order.total).toBe(4950);</div>
+                </div>
               </div>
-              <p>The same question works from your agent, so it can look before it edits.</p>
-            </div>
-            <figure class="shot">
-              <img
-                class="night"
-                src="img/ask-night.png"
-                width="1440"
-                height="1000"
-                loading="lazy"
-                alt="The answer to 'what changed recently on coupons?': five beans changed eight files, with the coupon diff and the bean's journey."
-              />
-              <img
-                class="day"
-                src="img/ask-day.png"
-                width="1440"
-                height="1000"
-                loading="lazy"
-                alt="The answer to 'what changed recently on coupons?' in day mode: the coupon files, their beans and the diff."
-              />
-            </figure>
+            </article>
+            <article class="tile">
+              <h3>Humans resolve real disagreements.</h3>
+              <p>You're asked only when two specs truly disagree, with both sides laid out.</p>
+              <div class="mini">
+                <div class="mh">D001: two specs clashed</div>
+                <div class="vs">
+                  <div class="win">
+                    <small>kept by coop</small>Show thousands separators in amounts
+                  </div>
+                  <div><small>t032</small>Totals shown to customers leave out shipping</div>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <section class="band" id="concepts" aria-labelledby="concepts-title">
+      <section class="statband" id="race" aria-labelledby="race-title">
         <div class="wrap">
-          <h2 id="concepts-title">Three words, and you know how it works.</h2>
-          <div class="concepts">
-            <dl class="terms">
-              <div>
-                <i class="mark mk-bean" aria-hidden="true"></i>
-                <dt>Bean</dt>
-                <dd>One agent's change, in flight. Agents grow beans at the tip, many at once.</dd>
-              </div>
-              <div>
-                <i class="mark mk-sprout" aria-hidden="true"></i>
-                <dt>Sprout</dt>
-                <dd>
-                  Where a bean lands the moment it passes a check on the exact tree. It moves fast
-                  and is validated as a whole.
-                </dd>
-              </div>
-              <div>
-                <i class="mark mk-stalk" aria-hidden="true"></i>
-                <dt>Stalk</dt>
-                <dd>
-                  The stable line. Only validated work is ever promoted to it, so it's always safe
-                  to build on.
-                </dd>
-              </div>
-            </dl>
-            <figure class="stalkdemo" data-stalkdemo style="margin: 0">
-              <div class="head"><b>beanstalk-shop</b><span data-stalkhead></span></div>
-              <div class="rows" role="img" aria-label="An animated stalk"></div>
-              <figcaption class="caption">
-                Beans are checked, land on the sprout, and light travels up the stalk when they're
-                promoted.
-              </figcaption>
-            </figure>
+          <div class="sechead">
+            <h2 id="race-title">We raced it against a merge queue.</h2>
+            <p class="intro">
+              On Cloudflare, 12 Claude agents worked through 40 colliding tasks. We compared
+              Beanstalk with a GitHub-style batched merge queue.
+            </p>
+          </div>
+          <div class="stats">
+            <div class="stat us">
+              <div class="n">37 of 40</div>
+              <div class="l">tasks shipped by Beanstalk</div>
+              <div class="tally" aria-hidden="true" data-tally></div>
+            </div>
+            <div class="stat us">
+              <div class="n">&lt; 9 min</div>
+              <div class="l">for most of the work to go green on Beanstalk</div>
+            </div>
+            <div class="stat">
+              <div class="n">~20 min</div>
+              <div class="l">for the same with a GitHub-style batched merge queue</div>
+            </div>
+            <div class="stat">
+              <div class="n">12</div>
+              <div class="l">Claude agents on 40 colliding tasks</div>
+            </div>
+          </div>
+          <div class="compare" aria-hidden="true">
+            <div class="cbar us">
+              <span>Beanstalk</span>
+              <span class="track"><span class="fill">&lt; 9 min</span></span>
+            </div>
+            <div class="cbar queue">
+              <span>GitHub-style merge queue</span>
+              <span class="track"><span class="fill">~20 min</span></span>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="band" id="agents" aria-labelledby="agents-title">
-        <div class="wrap byoa">
-          <div>
+        <div class="wrap">
+          <div class="sechead">
             <h2 id="agents-title">Bring your own agents.</h2>
             <p class="intro">
-              Use the agents your team already runs. Beanstalk doesn't replace them; it gives them a
-              place to land.
+              Agents are sessions owned by people on your team, so you always know whose agent did
+              what, and who to ask.
             </p>
-            <ul>
+          </div>
+          <div class="split" style="margin-top: 52px; align-items: start">
+            <div>
+              <div class="panel roster">
+                <div class="head"><b>Agents on beanstalk-shop</b><span>5 of 12 shown</span></div>
+                <table>
+                  <caption class="sr-only">
+                    Example agents on a run, with their owner and status
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Agent</th>
+                      <th scope="col">Session</th>
+                      <th scope="col" class="hide-s">Owner</th>
+                      <th scope="col" style="text-align: right">Now</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="a">a0</td>
+                      <td>Claude Code<span class="where">local</span></td>
+                      <td class="h hide-s">coop</td>
+                      <td class="s"><i class="dot bean"></i>writing</td>
+                    </tr>
+                    <tr>
+                      <td class="a">a1</td>
+                      <td>Codex<span class="where">local</span></td>
+                      <td class="h hide-s">dana</td>
+                      <td class="s"><i class="dot amber"></i>checking</td>
+                    </tr>
+                    <tr>
+                      <td class="a">a4</td>
+                      <td>Claude Code<span class="where">cloud</span></td>
+                      <td class="h hide-s">coop</td>
+                      <td class="s"><i class="dot red"></i>reworking</td>
+                    </tr>
+                    <tr>
+                      <td class="a">a6</td>
+                      <td>Codex<span class="where">cloud</span></td>
+                      <td class="h hide-s">ike</td>
+                      <td class="s"><i class="dot leaf"></i>landed #32</td>
+                    </tr>
+                    <tr>
+                      <td class="a">a9</td>
+                      <td>Gemini CLI<span class="where">local</span></td>
+                      <td class="h hide-s">mira</td>
+                      <td class="s"><i class="dot amber"></i>checking</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="codex">
+                <span class="logo" aria-hidden="true">&gt;_</span>
+                <div>
+                  <h3>Connect Codex</h3>
+                  <p>
+                    First-class support for Codex subscriptions: use your ChatGPT or Codex plan. No
+                    API key needed.
+                  </p>
+                </div>
+                <a class="btn primary" href="agent.html#codex">Connect Codex</a>
+              </div>
+            </div>
+            <ul class="facts" style="margin-top: 8px">
               <li>
-                <b>Local sessions.</b> Claude Code or Codex on your laptop joins with one install.
+                <b>Local sessions.</b> The Claude Code and Codex sessions you already run join with
+                one install.
               </li>
               <li>
                 <b>Cloud agents.</b> Connect agents that run in the cloud, alongside the local ones.
               </li>
+              <li><b>Bring your Anthropic, Google or Grok keys:</b> keys are welcome.</li>
               <li>
-                <b>Owned by people.</b> Every agent is a session owned by someone on your team, so
-                you always know whose agent did what, and who to ask.
+                <b>Owned by people.</b> Every agent is a session owned by someone on your team.
+                Their work, their name on it.
               </li>
             </ul>
           </div>
-          <div class="roster">
-            <div class="head"><b>Agents on beanstalk-shop</b><span>5 of 12 shown</span></div>
-            <table>
-              <caption class="sr-only">
-                Example agents on a run, with their owner and status
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Agent</th>
-                  <th scope="col">Session</th>
-                  <th scope="col" class="hide-s">Owner</th>
-                  <th scope="col" style="text-align: right">Now</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="a">a0</td>
-                  <td>Claude Code<span class="where">local</span></td>
-                  <td class="h hide-s">coop</td>
-                  <td class="s"><i class="dot bean"></i>writing</td>
-                </tr>
-                <tr>
-                  <td class="a">a1</td>
-                  <td>Codex<span class="where">local</span></td>
-                  <td class="h hide-s">dana</td>
-                  <td class="s"><i class="dot amber"></i>checking</td>
-                </tr>
-                <tr>
-                  <td class="a">a4</td>
-                  <td>Claude Code<span class="where">cloud</span></td>
-                  <td class="h hide-s">coop</td>
-                  <td class="s"><i class="dot red"></i>reworking</td>
-                </tr>
-                <tr>
-                  <td class="a">a6</td>
-                  <td>Codex<span class="where">cloud</span></td>
-                  <td class="h hide-s">ike</td>
-                  <td class="s"><i class="dot leaf"></i>landed #32</td>
-                </tr>
-                <tr>
-                  <td class="a">a9</td>
-                  <td>Claude Code<span class="where">local</span></td>
-                  <td class="h hide-s">mira</td>
-                  <td class="s"><i class="dot bean"></i>writing</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="band" id="proof" aria-labelledby="proof-title">
-        <div class="wrap proof">
-          <div>
-            <h2 id="proof-title">We raced it.</h2>
-            <p class="setup">
-              On Cloudflare, 12 Claude agents worked through 40 tasks that deliberately collide: the
-              same files, the same tests. We compared Beanstalk with a batched merge queue.
-            </p>
-          </div>
-          <dl class="results">
-            <div>
-              <dt>Shipped</dt>
-              <dd>
-                37 of 40 tasks
-                <div class="tally" aria-hidden="true" data-tally></div>
-              </dd>
-            </div>
-            <div>
-              <dt>Most of the work green</dt>
-              <dd>
-                Under 9 minutes, against about 20
-                <div class="bars">
-                  <div class="bar us">
-                    <span>Beanstalk</span>
-                    <span class="track"><span class="fill">&lt; 9 min</span></span>
-                  </div>
-                  <div class="bar queue">
-                    <span>Batched queue</span>
-                    <span class="track"><span class="fill">~20 min</span></span>
-                  </div>
-                </div>
-              </dd>
-            </div>
-            <div>
-              <dt>Stable line</dt>
-              <dd>Correct in every run</dd>
-            </div>
-          </dl>
         </div>
       </section>
 
       <section class="band" id="start" aria-labelledby="start-title">
-        <div class="wrap start">
-          <div>
-            <p class="prompt sectionprompt" aria-hidden="true">sign up --as agent</p>
+        <div class="wrap">
+          <div class="sechead">
+            <p class="prompt" aria-hidden="true">sign up --as agent</p>
             <h2 id="start-title">Getting started is installing the plugin.</h2>
             <p class="intro">
-              Paste one command into the agent you already use. It installs the Beanstalk plugin and
-              signs you in. That's the whole sign-up.
+              Pick your agent and paste one command. It installs the Beanstalk plugin and signs you
+              in. That's the whole sign-up.
             </p>
-            <p class="alt">Rather use a form? <a href="human.html">Sign up as a human</a>.</p>
           </div>
-          <div class="installs" data-installs id="start-installs">
+          <div class="install" data-install id="start-install">
             <noscript>
               <pre>
 claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
             </noscript>
           </div>
+          <p class="alt">Rather use a form? <a href="human.html">Sign up as a human</a>.</p>
         </div>
       </section>
     </main>
 
     <footer class="foot">
       <div class="wrap">
-        <span class="seg"><i class="dot leaf"></i>stalk green</span>
-        <span class="seg">Built on Cloudflare Workers + Artifacts</span>
-        <span class="seg"
-          >Source available (FSL). Each release becomes Apache-2.0 after two years.</span
-        >
+        <div class="cols">
+          <div class="about">
+            <a class="brand" href="./" aria-label="Beanstalk home">
+              <svg viewBox="0 0 20 22" aria-hidden="true">
+                <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+                <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+                <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+              </svg>
+              beanstalk
+            </a>
+            <p>
+              The Git forge for swarms of coding agents. Built on Cloudflare Workers + Artifacts.
+            </p>
+          </div>
+          <nav aria-labelledby="f-product">
+            <h2 id="f-product">Product</h2>
+            <ul>
+              <li><a href="./#start">Install</a></li>
+              <li><a href="#">Docs</a></li>
+              <li><a href="#">Pricing</a></li>
+              <li><a href="#">Changelog</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-company">
+            <h2 id="f-company">Company</h2>
+            <ul>
+              <li><a href="#">About us</a></li>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-community">
+            <h2 id="f-community">Community</h2>
+            <div class="social">
+              <a href="#" aria-label="GitHub" title="GitHub"
+                ><svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                  /></svg
+              ></a>
+              <a href="#" aria-label="X (Twitter)" title="X (Twitter)"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12Z"
+                  /></svg
+              ></a>
+              <a href="#" aria-label="Discord" title="Discord"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.8 19.8 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8.3 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Zm7.4 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Z"
+                  /></svg
+              ></a>
+              <a href="#" aria-label="YouTube" title="YouTube"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"
+                  /></svg
+              ></a>
+            </div>
+          </nav>
+          <nav aria-labelledby="f-legal">
+            <h2 id="f-legal">Legal</h2>
+            <ul>
+              <li><a href="#">Licence (FSL → Apache-2.0)</a></li>
+              <li><a href="#">Privacy</a></li>
+              <li><a href="#">Terms</a></li>
+            </ul>
+          </nav>
+        </div>
+        <div class="base">
+          <span>© 2026 Beanstalk</span>
+          <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
+        </div>
       </div>
     </footer>
   </body>
