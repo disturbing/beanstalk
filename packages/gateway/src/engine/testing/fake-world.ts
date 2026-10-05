@@ -90,6 +90,12 @@ export type WorldOptions = {
   readonly rules: readonly FailRule[];
   readonly costUsd?: number;
   readonly flakes?: FlakeInjector;
+  /**
+   * `live_sync` upper bound: an agent whose sync turn merged a tree that breaks a rule naming
+   * its own clash marker rewrites its change as its first re-execution does (as if it saw the
+   * test fail and adapted). Replay agents otherwise never adapt to synced code.
+   */
+  readonly adaptsOnSync?: boolean;
 };
 
 export type World = {
@@ -170,7 +176,11 @@ export function createWorld(options: WorldOptions): World {
         const writes = task.reexecutions?.[nth - 1] ?? fixedWrites(task);
         return freshRun(git, { task, writes, costUsd }, instruction);
       }
-      return reworkRun({ git, worktrees, task, costUsd }, instruction);
+      const adapts = instruction.kind === 'sync' && options.adaptsOnSync === true;
+      return reworkRun(
+        { git, worktrees, task, costUsd, adaptTo: adapts ? options.rules : [] },
+        instruction,
+      );
     },
     jobMillis: (spec) => JOB_MILLIS[spec.kind],
   };
@@ -563,6 +573,8 @@ type ReworkWorld = {
   readonly worktrees: Map<string, { files: Files; parents: readonly Sha[] }>;
   readonly task: ScriptedTask;
   readonly costUsd: number;
+  /** Rules a sync turn adapts to (`adaptsOnSync`); empty for every other rework. */
+  readonly adaptTo: readonly FailRule[];
 };
 
 /**
@@ -590,7 +602,8 @@ function reworkRun(world: ReworkWorld, instruction: EngineInstruction): Invocati
       session_id: `session-${task.id}`,
     });
   }
-  const files = task.stubborn === true ? new Map(tree.files) : fixedFiles(tree.files, task.id);
+  const fixed = task.stubborn === true ? new Map(tree.files) : fixedFiles(tree.files, task.id);
+  const files = adapted(fixed, task, world.adaptTo);
   const markersLeft = [...files.entries()]
     .filter(([, content]) => hasMarkers(content))
     .map(([path]) => path);
@@ -633,6 +646,26 @@ function mergeIntoWorktree(
     unionPaths,
   );
   return { files: merged.files, parents: [head, target] };
+}
+
+/** The tree after an adapting agent rewrote its change to clear its own broken clash rule. */
+function adapted(
+  files: Map<string, string>,
+  task: ScriptedTask,
+  rules: readonly FailRule[],
+): Map<string, string> {
+  const contents = [...files.values()];
+  const isPresent = (marker: string): boolean => contents.some((text) => text.includes(marker));
+  const isBroken = rules.some(
+    (rule) => rule.markers.includes(`clash:${task.id}`) && rule.markers.every(isPresent),
+  );
+  const rewrite = task.reexecutions?.[0];
+  if (!isBroken || rewrite === undefined) return files;
+  const out = new Map(files);
+  for (const [path, content] of Object.entries(rewrite)) {
+    out.set(path, path.endsWith('.md') ? (files.get(path) ?? content) : content);
+  }
+  return out;
 }
 
 /** The agent resolves every conflict by keeping both sides and fixes its own bug marker. */

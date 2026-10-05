@@ -33,6 +33,7 @@ import { endLanding } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import { rescueOnExhaustion } from './v2-rescue';
 import { cardAfterReds } from './v2-start';
+import { takeSyncNote } from './v2-sync';
 import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
@@ -76,6 +77,7 @@ export function startConflictRework(
   const definition = promptTask(ctx, flow.task);
   const resumed = canResume(ctx, task);
   const conflict = conflictContext(step, flow.task, work);
+  const note = takeSyncNote(flow);
   task.reworks += 1;
   task.status = 'rework';
   emit(ctx, 'rework.start', {
@@ -92,8 +94,8 @@ export function startConflictRework(
     task: flow.task,
     slot,
     attempt: flow.rounds,
-    prompt: informedConflictPrompt(definition, conflict, resumed),
-    freshPrompt: informedConflictPrompt(definition, conflict, false),
+    prompt: note + informedConflictPrompt(definition, conflict, resumed),
+    freshPrompt: note + informedConflictPrompt(definition, conflict, false),
     resume: resumed ? task.sessionId : null,
     workspace: (inv) =>
       taskWorkspace(ctx, task, {

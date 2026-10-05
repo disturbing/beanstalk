@@ -49,6 +49,7 @@ import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
 import { rescueOnExhaustion } from './v2-rescue';
 import { partnerMovedSince } from './v2-start';
+import { holdForSync, isLiveSync, syncAtBoundary } from './v2-sync';
 import {
   appendCommit,
   awaitOutcome,
@@ -123,6 +124,7 @@ export function startLanding(step: V2Step, task: TaskId): void {
     targeted: 0,
     resolved: 'textual',
     step: { kind: 'queued-locked' },
+    ...syncDueAfterInvocation(step),
   };
   attempt(step, task);
 }
@@ -132,7 +134,7 @@ export function attempt(step: V2Step, task: TaskId): void {
   const flow = requireFlow(step.state, task);
   flow.rechecks = 0;
   flow.targeted = 0;
-  releaseAgent(step, flow);
+  if (!holdForSync(step, flow)) releaseAgent(step, flow);
   if (step.ctx.env.config.preland_mode === 'locked') {
     flow.step = { kind: 'queued-locked' };
     requestTurn(step, { kind: 'landing', task });
@@ -178,6 +180,7 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
     case 'reconciling':
     case 'diffs':
     case 'awaiting-agent':
+    case 'syncing':
     case 'rework':
     case 'decision':
     case 'card-context':
@@ -270,7 +273,14 @@ export function onReworkDone(step: V2Step, outcome: ReworkOutcome): void {
     return;
   }
   requireTask(step.ctx, flow.task).status = 'running';
+  Object.assign(flow, syncDueAfterInvocation(step));
   attempt(step, flow.task);
+}
+
+/** `live_sync` in optimistic mode: an agent just finished, so the next squash may sync it. */
+function syncDueAfterInvocation(step: V2Step): Pick<LandingFlow, 'syncDue'> {
+  const isDue = isLiveSync(step.state) && step.ctx.env.config.preland_mode === 'optimistic';
+  return isDue ? { syncDue: true } : {};
 }
 
 function unresolvedReason(reason: 'conflict' | 'preland-red' | 'decision' | 'rescue'): string {
@@ -318,6 +328,10 @@ function squash(step: V2Step, task: TaskId, onto: Sha): JobId {
 
 function onSquashed(step: V2Step, flow: LandingFlow, head0: Sha, result: JobResult): void {
   if (result.kind !== 'squash') throw new EngineInvariantError(`squash got ${result.kind}`);
+  if (flow.syncDue === true) {
+    if (syncAtBoundary(step, flow, { head0, result })) return;
+    releaseAgent(step, flow);
+  }
   if (result.outcome === 'conflict') {
     attemptFailed(step, flow, {
       kind: 'conflict',

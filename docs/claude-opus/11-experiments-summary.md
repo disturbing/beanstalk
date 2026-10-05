@@ -114,5 +114,43 @@ Started 2026-10-03, evening; updated as experiments finish. **All seven experime
    - **Targeted check:** a bean about to land on a moved sprout without a full re-check runs its own tests, the meanwhile-landed beans' tests and the tests whose read set meets its files, on the exact landing tree, but only those whose read set meets both sides (the runner now reports passing tests' read sets on request). Once outside the turn, then inside it.
    - **Simulated** (replay agents): a weak given test lets a bug onto the stalk with every signal green, and the fail-first author catches it before landing (one rework). A clash between files that do not overlap lands unchecked without the targeted check (2 red validations, a revert, the bean dropped); with it, it is red before landing and both beans ship. Burst and calm races: the same 40 greens, 0 red validations; the targeted check alone decides exactly as v2.4 there (no test reads both sides); tests first adds the author step (calm 8.5 → 10.9 min).
    - **Why off:** E1 measured them only together on one race, authors see 1 of 5 designed contract clashes (the arena's given tests 5 of 5), and an early version that ran every candidate test on every moved-sprout landing doubled the calm race's time and, by delaying landings, let burst clashes through (5 red validations). Next: a real race on the arena with the given tests hidden, (b) against (c′) on the engine.
+2b. **Live sprout sync** (owner's idea, 2026-10-05; **built, simulated only, off by default**: `live_sync: off | overlap | all`, env `LIVE_SYNC`; `packages/gateway/README.md`, "The v2.2 to v2.5 rules"). When a bean lands, beans whose agents are working get it at their next safe point. `claude -p` cannot be interrupted, so the safe point is the end of the agent's current invocation: the bean's first squash afterwards merges what landed meanwhile. Clean: the agent (kept, session resumed) gets a short `sync` invocation with the new sprout merged (re-run the tests, fix what broke, else change nothing) before its pre-land check, no round spent (`sync.applied`). Conflict: nothing is merged and the conflict rework's prompt opens with a note naming the landed beans and files (`sync.noted`). `overlap` = the bean's files (CHANGELOG-style union files aside) or a declared coupling, either side; `all` = every bean that landed meanwhile. The driver runs `sync` as a rework and aborts it (no agent, `sync-conflict`) if its own merge conflicts.
+
+   Simulator means over the same 16 seeds (v2.5 defaults; `long` = the seeded burst with initial runs 5x longer, 75–175 s, so partners land while beans are written, `longBurst` in `testing/burst.ts`; `declared` = the `declaredBurst` shape; `+ adapt` = an optimistic bound in which a sync turn that merged a clash naming the bean rewrites it as its re-execution would; the replay agents otherwise ignore what they are synced). Final check correct 16/16 in every row:
+
+   | Scenario | Arm | Green | 20th green | 30th green | Done (min) | Conflicts | Red pre-land | Re-checks | Red validations | Syncs applied |
+   |---|---|---|---|---|---|---|---|---|---|---|
+   | burst | v2.5 | 38.5 | 9.6 | 12.8 | 16.0 | 0 | 30.9 | 29.3 | 2.8 | 0 |
+   | burst | overlap (+ adapt alike) | 38.5 | 9.6 | 12.8 | 16.0 | 0 | 30.9 | 29.3 | 2.8 | 0 |
+   | burst | all | 38.1 | 10.4 | 13.7 | 16.7 | 0 | 38.8 | 30.4 | 3.6 | 18.3 |
+   | burst | all + adapt | 38.1 | 10.4 | 13.8 | 16.0 | 0 | 38.1 | 30.4 | 3.9 | 18.1 |
+   | calm | v2.5, overlap | 40.0 | 5.4 | 6.8 | 8.3 | 0 | 0 | 10.4 | 0 | 0 |
+   | calm | all (+ adapt alike) | 40.0 | 5.4 | 6.8 | 9.2 | 0 | 0 | 9.7 | 0 | 16.0 |
+   | earlier | v2.5 | 38.9 | 7.0 | 9.6 | 15.6 | 0 | 12.3 | 28.2 | 2.8 | 0 |
+   | earlier | overlap (+ adapt alike) | 38.9 | 7.0 | 9.8 | 15.6 | 0 | 12.7 | 28.2 | 2.8 | 0 |
+   | earlier | all | 38.9 | 9.5 | 11.1 | 15.8 | 0 | 23.1 | 26.3 | 2.9 | 27.4 |
+   | earlier | all + adapt | 38.8 | 9.7 | 11.2 | 14.4 | 0 | 20.2 | 25.8 | 3.1 | 26.4 |
+   | flaky | v2.5 | 38.4 | 9.9 | 12.2 | 16.5 | 0 | 29.5 | 29.6 | 4.5 | 0 |
+   | flaky | overlap (+ adapt alike) | 38.5 | 10.1 | 12.2 | 16.6 | 0 | 29.6 | 30.1 | 4.3 | 0 |
+   | flaky | all | 38.3 | 10.1 | 12.4 | 17.4 | 0 | 31.9 | 29.8 | 4.1 | 22.5 |
+   | flaky | all + adapt | 38.2 | 10.2 | 12.6 | 16.6 | 0 | 30.6 | 30.2 | 4.3 | 21.6 |
+   | declared | v2.5, overlap | 40.0 | 6.1 | 11.0 | 13.7 | 0 | 4.0 | 34.3 | 0 | 0 |
+   | declared | all (+ adapt alike) | 40.0 | 6.3 | 11.1 | 13.7 | 0 | 4.0 | 33.8 | 0 | 17.6 |
+   | long | v2.5 | 38.6 | 13.2 | 20.6 | 32.4 | 0 | 10.9 | 18.7 | 3.0 | 0 |
+   | long | overlap (+ adapt alike) | 38.6 | 13.1 | 20.6 | 32.4 | 0 | 10.7 | 18.4 | 2.8 | 0 |
+   | long | all | 38.8 | 13.1 | 21.3 | 34.4 | 0 | 12.3 | 17.8 | 3.1 | 35.6 |
+   | long | all + adapt | 38.8 | 12.7 | 20.6 | 33.6 | 0 | 10.3 | 18.5 | 2.9 | 33.5 |
+   | long + declared | v2.5 | 40.0 | 10.1 | 19.5 | 33.1 | 0 | 4.0 | 23.8 | 0 | 0 |
+   | long + declared | overlap | 40.0 | 10.1 | 19.3 | 33.0 | 0 | 4.0 | 23.6 | 0 | 0.8 |
+   | long + declared | overlap + adapt | 40.0 | 9.7 | 19.1 | 33.1 | 0 | 3.3 | 24.1 | 0 | 0.8 |
+   | long + declared | all | 40.0 | 10.5 | 20.5 | 34.5 | 0 | 4.0 | 24.4 | 0 | 33.8 |
+   | long + declared | all + adapt | 40.0 | 10.1 | 20.4 | 34.5 | 0 | 3.1 | 24.0 | 0 | 33.8 |
+
+   What the simulator can and cannot show:
+   - **It cannot show the main gain.** Replay agents never read the code they are synced. The toy merge works on whole files (two beans changing one file always conflict, never merge cleanly), so the case `overlap` exists for, a clean same-file overlap, never happens: `overlap` fires 0 to 0.8 times per race and stays within noise of v2.5 everywhere. Every clean merge a sync makes, the pre-land squash would have made identically, so a sync at the invocation boundary cannot reduce textual conflicts (these scenarios have none; in the unit test, the appends conflict either way and get the note).
+   - **It does show the cost of `all`.** 16 to 36 extra agent turns per 40-bean race; done up to 2.0 min later (calm +0.9, burst +0.7, long +2.0); more red pre-land checks in the bursts (+2 to +11: the extra turn delays the check onto redder sprouts); the 20th green 2.5 min later in `earlier`.
+   - **The optimistic bound is small.** Agents that always fix a merged clash save at most 0.9 red pre-land checks per race against v2.5 (`long + declared`), and done is the same or later except `earlier` (-1.2 min). A partner rarely lands while a bean is being written, even with 5x longer runs. A real informed rework would often fix the same clash after one red check, so the real gain is about one check latency per synced clash.
+   - **Recommended default: `off`.** Try `overlap` in one real race with long tasks and a repo where beans share files at hunk level; do not use `all`. A mid-run path would matter more, and it is not built: race sessions run with `--setting-sources ""` and no MCP servers, so neither a `PostToolUse` hook nor an MCP tool (`sprout_updates`) can reach the agent today. The cheap version for later: the driver gets pending syncs on its `progress` replies, and a `PostToolUse` hook in the bean's worktree adds "these changes landed: …" as context, merging the sprout between tool calls when the agent's dirty files miss the sprout's changes. Only that path could cut stale-base conflicts.
+
 3. **Planning and dependency-aware starts** (E4), the real limit at thousands of agents.
 4. **Stalk promotion as a GitHub Action** that triggers a verifier agent (`10` §5c); the MCP server and Claude Code plugin; the Ask explorer and race canvas (`13`, in `packages/web`).

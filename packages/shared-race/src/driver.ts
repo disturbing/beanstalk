@@ -12,7 +12,11 @@ import type { InvocationId, SlotId } from './ids';
  * runs both like any other prompt, keeps only their changes to the `acceptance` files, and
  * never restores them. `test-first` (v2.5, `tests_first`) is a fresh session that writes a
  * task's acceptance tests from its intent before the implementer starts: the driver keeps
- * only the new test files it created and discards every other change.
+ * only the new test files it created and discards every other change. `sync` (`live_sync`)
+ * resumes the bean's session after sprouts landed while it worked: `merge` (known to merge
+ * cleanly) brings the new sprout in, the agent re-runs the tests and fixes what broke, and
+ * the driver commits as for a rework. A driver whose merge conflicts anyway aborts it and
+ * posts no commit without running the agent.
  */
 export type InvocationKind =
   | 'initial'
@@ -20,7 +24,8 @@ export type InvocationKind =
   | 'fixer'
   | 'test-author'
   | 'reconcile'
-  | 'test-first';
+  | 'test-first'
+  | 'sync';
 
 /**
  * A merge the driver performs in the worktree before running the agent: `git fetch` the

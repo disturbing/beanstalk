@@ -91,6 +91,45 @@ export function informedConflictPrompt(
   );
 }
 
+/** A bean that landed while another bean's agent worked (`live_sync`), and the files it met. */
+export type SyncedBean = {
+  readonly task: string;
+  readonly title: string;
+  readonly files: readonly string[];
+};
+
+function syncedLines(beans: readonly SyncedBean[]): string {
+  return beans.map((bean) => `- ${bean.task} "${bean.title}"${filesSuffix(bean.files)}\n`).join('');
+}
+
+function filesSuffix(files: readonly string[]): string {
+  return files.length === 0 ? '' : ` (${files.join(', ')})`;
+}
+
+/**
+ * `live_sync` (beanstalk only, no harness counterpart): changes that landed while the agent
+ * worked are merged into its branch; it re-runs the tests and fixes only what they broke.
+ */
+export function syncPrompt(
+  task: PromptTask,
+  beans: readonly SyncedBean[],
+  resumed: boolean,
+): string {
+  return (
+    `${sessionHead(task, resumed)}While you worked, these changes landed on the trunk and meet your work:\n` +
+    syncedLines(beans) +
+    '\nThe trunk is merged into your branch in this worktree (no conflicts). Run `node --test`. ' +
+    'If the merged changes broke your change or theirs, fix it so that both keep working; ' +
+    'otherwise change nothing. ' +
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+/** `live_sync`: the note a conflicting sync leaves at the top of the bean's next prompt. */
+export function syncNote(beans: readonly SyncedBean[]): string {
+  return `Note: while you worked, these changes landed on the trunk and touched your files:\n${syncedLines(beans)}\n`;
+}
+
 function hunkLines(hunks: readonly PromptHunk[]): string {
   if (hunks.length === 0) return '';
   const shown = hunks

@@ -473,6 +473,28 @@ class CommitPath(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(wt, "src/billing/refund-helper.ts")))
         self.assertEqual(git(ws["bean_url"], "rev-parse", "refs/heads/task/t009"), fields["head_sha"])
 
+    def test_a_sync_whose_merge_conflicts_is_aborted_without_running_the_agent(self) -> None:
+        wt, base, ws = worktree_with_landed_test(self.race)
+        git(wt, "checkout", "-q", "-b", "sprout")
+        with open(os.path.join(wt, "src/a.ts"), "w") as fh:
+            fh.write("export const a = 3;\n")
+        git(wt, "commit", "-q", "-am", "landed")
+        sprout = git(wt, "rev-parse", "HEAD")
+        git(wt, "checkout", "-q", "-B", "task/t009", base)
+        with open(os.path.join(wt, "src/a.ts"), "w") as fh:
+            fh.write("export const a = 2;\n")
+        git(wt, "commit", "-q", "-am", "mine")
+        conflicts = asyncio.run(self.race.git.merge_into_worktree(wt, sprout))
+        inv = {"inv": "inv0009-sync", "kind": "sync", "task": "t009", "resume": None, "workspace": ws}
+        res = asyncio.run(self.race.conflicted_sync(inv, wt, conflicts))
+        self.assertEqual(conflicts, ["src/a.ts"])
+        self.assertIsNotNone(res)
+        self.assertEqual((res.ok, res.subtype), (True, "sync-conflict"))
+        self.assertFalse(os.path.exists(os.path.join(wt, ".git", "MERGE_HEAD")))
+        self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 2;\n")
+        rework = {**inv, "inv": "inv0010-rework", "kind": "rework"}
+        self.assertIsNone(asyncio.run(self.race.conflicted_sync(rework, wt, conflicts)))
+
     def test_markers_left_means_no_commit(self) -> None:
         wt, base, ws = worktree_with_landed_test(self.race)
         with open(os.path.join(wt, "src/a.ts"), "w") as fh:
@@ -587,6 +609,10 @@ class CommandLine(unittest.TestCase):
                           "window_start": 8, "window_growth": 4, "window_max": 24, "window_min": 4,
                           "start_cards": False, "rescue": True, "dynamic_culprits": False,
                           "structural_merge": False, "start_order": "dependency"})
+
+    def test_live_sync_is_sent_only_when_set(self) -> None:
+        self.assertNotIn("live_sync", v2_settings({}, env={}))
+        self.assertEqual(v2_settings({}, env={"LIVE_SYNC": "overlap"})["live_sync"], "overlap")
 
     def test_v2_settings_resolve_flag_then_env_then_harness_default(self) -> None:
         self.assertEqual(v2_settings({}, {}), {"preland_mode": "locked", "preland_seconds": 0.0,
