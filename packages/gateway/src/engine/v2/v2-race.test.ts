@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import {
+  V20_SETTINGS,
+  V22_SETTINGS,
+  V23_SETTINGS,
+  V24_SETTINGS,
+} from '@beanstalk/shared-race/run-config';
 
 import { SPROUT_REF, STALK_REF } from '../refs';
 import { buildSummary } from '../summary';
@@ -11,23 +17,7 @@ import { eventsOf, runRace, soloTask, typesOf, wellFormedProblems } from '../tes
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
 
 /** Every v2.2 rule off: the harness's v2. */
-const V20: Partial<RunConfigInput> = {
-  recheck: 'file',
-  release_on_check: false,
-  flake_confirm: false,
-  inherited_reds: 'off',
-  window: 'off',
-  early_tickets: false,
-  reconcile: false,
-  escalate_after: 2,
-  decision_outcome: 'decline',
-  single_suspect_revert: false,
-  validation_first: false,
-  base_culprits: false,
-  start_cards: false,
-  rescue: false,
-  dynamic_culprits: false,
-};
+const V20: Partial<RunConfigInput> = V20_SETTINGS;
 
 function runV2(scenario: RaceScenario): RaceRun {
   return runRace({ ...scenario, config: { ...V2, ...scenario.config } });
@@ -233,6 +223,7 @@ describe('v2: a clean landing', () => {
       'open_tickets_at_end',
       'ticket_details',
       'variant',
+      'variant_additions',
     ]);
     expect(stats).toMatchObject({
       landings: 1,
@@ -252,11 +243,14 @@ describe('v2: a clean landing', () => {
       rescue: true,
       decision_outcome: 'reexecute',
       variant: 'v2.5',
+      variant_additions: [],
     });
     expect(summaryOf(run)['policy_rows']).toEqual([
       [
         'Variant',
-        'v2.5: v2.4, escalating after one repeated red and reconciling every landed party',
+        'v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, ' +
+          'lone suspects reverted at once, base and dynamic culprits, a wider window, ' +
+          'structural merges, start cards and one rescue',
       ],
       ['Informed reworks / decision cards / revert-first tickets', '0 / 0 / 0'],
       [
@@ -303,6 +297,72 @@ describe('v2: a clean landing', () => {
       'Variant',
       'v2: pre-land check, informed author repair, decision cards, revert-first',
     ]);
+  });
+
+  it.each([
+    ['v2.4', V24_SETTINGS],
+    ['v2.3', V23_SETTINGS],
+    ['v2.2', V22_SETTINGS],
+    ['v2.5', {}],
+  ] as const)('labels the %s settings %s', (variant, settings) => {
+    const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1, ...settings } });
+
+    expect(beanstalkStats(run)).toMatchObject({ variant, variant_additions: [] });
+  });
+
+  it.each([
+    ['v2.5', {}],
+    ['v2.4', V24_SETTINGS],
+  ] as const)(
+    'reports tests first, the targeted check and dependency starts as additions to %s',
+    (variant, settings) => {
+      const run = runV2({
+        tasks: [soloTask('t001')],
+        config: {
+          agents: 1,
+          ...settings,
+          tests_first: true,
+          targeted_landing_check: true,
+          start_order: 'dependency',
+        },
+      });
+
+      expect(beanstalkStats(run)).toMatchObject({
+        variant,
+        variant_additions: ['tests_first', 'targeted_landing_check', 'start_order:dependency'],
+      });
+      const [, row] =
+        (summaryOf(run)['policy_rows'] as [string, string][]).find(
+          ([name]) => name === 'Variant',
+        ) ?? [];
+      expect(row).toMatch(
+        new RegExp(
+          `^${variant.replace('.', '\\.')}: .* \\+ tests first \\+ targeted landing check \\+ dependency-aware starts$`,
+        ),
+      );
+    },
+  );
+
+  it('labels any single v2.5 rule on top of v2.4 as v2.5', () => {
+    const singles: Partial<RunConfigInput>[] = [
+      { escalate_after: 1 },
+      { reconcile_parties: 3 },
+      { single_suspect_revert: true },
+      { validation_first: true },
+      { base_culprits: true },
+      { window_start: 8 },
+      { structural_merge: true },
+      { start_cards: true },
+      { rescue: true },
+      { dynamic_culprits: true },
+    ];
+    for (const single of singles) {
+      const run = runV2({
+        tasks: [soloTask('t001')],
+        config: { agents: 1, ...V24_SETTINGS, ...single },
+      });
+      expect(beanstalkStats(run)['variant']).toBe('v2.5');
+    }
   });
 });
 

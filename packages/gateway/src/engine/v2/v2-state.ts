@@ -449,6 +449,15 @@ export type V2Settings = {
   readonly dynamicCulprits: boolean;
   /** Absent in runs created before the setting: `fifo`. */
   readonly startOrder?: 'fifo' | 'dependency';
+  /** v2.5: the sprout window's sizes (`window_start`, `_growth`, `_max`, `_min`). */
+  readonly windowSizes: {
+    readonly start: number;
+    readonly growth: number;
+    readonly max: number;
+    readonly min: number;
+  };
+  /** v2.5: squashes ask the runner for its structural tier (`structural_merge`). */
+  readonly structuralMerge: boolean;
 };
 
 export type V2State = {

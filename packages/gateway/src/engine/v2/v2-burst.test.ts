@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import { V22_SETTINGS } from '@beanstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
 import type { FailRule, ScriptedTask } from '../testing/fake-world';
@@ -13,20 +14,7 @@ import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scen
  * coupled beans land unchecked and turn the sprout red, and innocent beans then spend their
  * rework rounds on reds that are not theirs.
  */
-export const V22_RULES: Partial<RunConfigInput> = {
-  recheck: 'adaptive',
-  window: 'off',
-  inherited_reds: 'validation',
-  early_tickets: false,
-  escalate_after: 2,
-  reconcile_parties: 1,
-  single_suspect_revert: false,
-  validation_first: false,
-  base_culprits: false,
-  start_cards: false,
-  rescue: false,
-  dynamic_culprits: false,
-};
+export const V22_RULES: Partial<RunConfigInput> = V22_SETTINGS;
 
 const CHANGELOG_BASE = Array.from({ length: 10 }, (_, index) => `line ${index + 1}`).join('\n');
 

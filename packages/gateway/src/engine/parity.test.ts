@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import { V20_SETTINGS } from '@beanstalk/shared-race/run-config';
 
 import type { FailRule, ScriptedTask } from './testing/fake-world';
 import type { LooseEvent, RaceScenario } from './testing/scenario';
@@ -14,23 +15,7 @@ import { runRace, soloTask } from './testing/scenario';
  * comparable with the harness's v2 races. The digests below were recorded from the engine
  * before v2.2; the queue is pinned too.
  */
-const V20_KNOBS: Partial<RunConfigInput> = {
-  recheck: 'file',
-  release_on_check: false,
-  flake_confirm: false,
-  inherited_reds: 'off',
-  window: 'off',
-  early_tickets: false,
-  reconcile: false,
-  escalate_after: 2,
-  decision_outcome: 'decline',
-  single_suspect_revert: false,
-  validation_first: false,
-  base_culprits: false,
-  start_cards: false,
-  rescue: false,
-  dynamic_culprits: false,
-};
+const V20_KNOBS: Partial<RunConfigInput> = V20_SETTINGS;
 
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
 

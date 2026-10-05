@@ -295,6 +295,44 @@ export const V25_RULES_OFF = {
   structural_merge: false,
 } as const satisfies Partial<RunConfigInput>;
 
+/** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
+export const V24_SETTINGS = { ...V25_RULES_OFF } as const satisfies Partial<RunConfigInput>;
+
+/** v2.3: v2.4 without the reconcile. */
+export const V23_SETTINGS = {
+  ...V25_RULES_OFF,
+  reconcile: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/** v2.2: adaptive re-checks, no window, validation-only inherited reds, no early tickets. */
+export const V22_SETTINGS = {
+  ...V25_RULES_OFF,
+  recheck: 'adaptive',
+  window: 'off',
+  inherited_reds: 'validation',
+  early_tickets: false,
+  reconcile: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * v2.0 (the harness's v2): replay parity, byte for byte (`parity.test.ts`), with every later
+ * rule and every opt-in track off.
+ */
+export const V20_SETTINGS = {
+  ...V25_RULES_OFF,
+  recheck: 'file',
+  release_on_check: false,
+  flake_confirm: false,
+  inherited_reds: 'off',
+  window: 'off',
+  early_tickets: false,
+  reconcile: false,
+  decision_outcome: 'decline',
+  tests_first: false,
+  targeted_landing_check: false,
+  start_order: 'fifo',
+} as const satisfies Partial<RunConfigInput>;
+
 /** The harness default for `--error-budget`, and what v2 runs with (`--error-budget 999`). */
 const DEFAULT_ERROR_BUDGET = 3;
 const V2_ERROR_BUDGET = 999;

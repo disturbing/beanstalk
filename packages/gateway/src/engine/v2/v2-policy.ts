@@ -19,7 +19,11 @@
 import type { Json } from '@beanstalk/shared-race/events';
 import type { V2PolicyView } from '@beanstalk/shared-race/rpc';
 import type { SlotId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds, releasesOnCheck } from '@beanstalk/shared-race/run-config';
+import {
+  prelandSeconds,
+  releasesOnCheck,
+  usesStructuralMerge,
+} from '@beanstalk/shared-race/run-config';
 
 import type { PolicyHooks, ReworkOutcome, StepContext } from '../context';
 import { emit, requireTask } from '../context';
@@ -100,7 +104,15 @@ const V23_VARIANT_ROW =
 const V24_VARIANT_ROW =
   'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked';
 const V25_VARIANT_ROW =
-  'v2.5: v2.4, escalating after one repeated red and reconciling every landed party';
+  'v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, ' +
+  'lone suspects reverted at once, base and dynamic culprits, a wider window, ' +
+  'structural merges, start cards and one rescue';
+/** How the variant row names each opt-in track. */
+const ADDITION_ROWS: Readonly<Record<string, string>> = {
+  tests_first: 'tests first',
+  targeted_landing_check: 'targeted landing check',
+  'start_order:dependency': 'dependency-aware starts',
+};
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -140,6 +152,13 @@ function initialV2State(ctx: StepContext): V2State {
       rescue: config.rescue,
       dynamicCulprits: config.dynamic_culprits,
       startOrder: config.start_order,
+      windowSizes: {
+        start: config.window_start,
+        growth: config.window_growth,
+        max: config.window_max,
+        min: config.window_min,
+      },
+      structuralMerge: usesStructuralMerge(config),
     },
     sprout: base,
     green: base,
@@ -526,25 +545,61 @@ function isV20(settings: V2Settings): boolean {
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
     !settings.reconcile &&
-    settings.escalateAfter === 2 &&
     settings.decisionOutcome === 'decline' &&
-    !settings.singleSuspectRevert &&
-    !settings.validationFirst &&
-    !settings.baseCulprits &&
-    !settings.startCards &&
-    !settings.rescue &&
-    !settings.dynamicCulprits &&
-    !settings.testsFirst &&
-    !settings.targetedLandingCheck
+    !hasV25Rule(settings) &&
+    variantAdditions(settings).length === 0
   );
 }
 
-/** `v2` (the harness's rules), `v2.5` when a v2.5 rule is on, `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
+/** The window sizes v2.3 and v2.4 ran with (start 4, +2 per green, at most 16, at least 2). */
+const V24_WINDOW = { start: 4, growth: 2, max: 16, min: 2 } as const;
+
+/**
+ * Whether any v2.5 rule is on: A's escalation and parties, B's lone-suspect reverts, base
+ * culprits, validations first and window sizes, C's structural merge tier, E's start cards,
+ * rescue and dynamic culprits. `V25_RULES_OFF` turns every one off.
+ */
+function hasV25Rule(settings: V2Settings): boolean {
+  const { windowSizes: sizes } = settings;
+  const isV25Window =
+    settings.window === 'aimd' &&
+    (sizes.start !== V24_WINDOW.start ||
+      sizes.growth !== V24_WINDOW.growth ||
+      sizes.max !== V24_WINDOW.max ||
+      sizes.min !== V24_WINDOW.min);
+  return (
+    settings.escalateAfter < 2 ||
+    (settings.reconcile && settings.reconcileParties > 1) ||
+    settings.singleSuspectRevert ||
+    settings.validationFirst ||
+    settings.baseCulprits ||
+    isV25Window ||
+    settings.structuralMerge ||
+    settings.startCards ||
+    settings.rescue ||
+    settings.dynamicCulprits
+  );
+}
+
+/**
+ * Opt-in tracks reported next to the variant, never as a variant of their own: forge-owned
+ * tests (`tests_first`, `targeted_landing_check`) and dependency-aware starts.
+ */
+function variantAdditions(settings: V2Settings): string[] {
+  return [
+    ...(settings.testsFirst ? ['tests_first'] : []),
+    ...(settings.targetedLandingCheck ? ['targeted_landing_check'] : []),
+    ...((settings.startOrder ?? 'fifo') === 'dependency' ? ['start_order:dependency'] : []),
+  ];
+}
+
+/**
+ * `v2` (the harness's rules), `v2.5` when a v2.5 rule is on, `v2.4` when reconciling, `v2.3`
+ * when a v2.3 rule is on, else `v2.2`. The opt-in tracks never change it (`variantAdditions`).
+ */
 function variantOf(settings: V2Settings): Variant {
   if (isV20(settings)) return 'v2';
-  if (settings.escalateAfter < 2 || (settings.reconcile && settings.reconcileParties > 1)) {
-    return 'v2.5';
-  }
+  if (hasV25Rule(settings)) return 'v2.5';
   if (settings.reconcile) return 'v2.4';
   const isV23 =
     settings.window === 'aimd' ||
@@ -665,6 +720,7 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     open_tickets_at_end: activeTickets(state).length,
     ticket_details: ticketDetails(state, nowSeconds),
     variant: variantOf(settings),
+    variant_additions: variantAdditions(settings),
     // Reported only off the default, so FIFO summaries stay byte-identical with the harness's.
     ...(settings.startOrder === 'dependency' ? { start_order: settings.startOrder } : {}),
   };
@@ -673,6 +729,12 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     stats: block,
     rows: summaryRows(state, { prelandSecondsTotal, pausedSeconds }),
   };
+}
+
+/** The variant's row, with its opt-in tracks after a `+` each. */
+function variantRow(settings: V2Settings): string {
+  const additions = variantAdditions(settings).map((addition) => ADDITION_ROWS[addition]);
+  return [VARIANT_ROWS[variantOf(settings)], ...additions].join(' + ');
 }
 
 function ticketDetails(state: V2State, nowSeconds: number): Json[] {
@@ -698,7 +760,7 @@ function summaryRows(
 ): (readonly [string, Json])[] {
   const { stats, settings } = state;
   return [
-    ['Variant', VARIANT_ROWS[variantOf(settings)]],
+    ['Variant', variantRow(settings)],
     [
       'Informed reworks / decision cards / revert-first tickets',
       `${stats.informed_reworks} / ${stats.cards} / ${stats.revert_first}`,
