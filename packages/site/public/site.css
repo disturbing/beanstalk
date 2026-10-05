@@ -2595,3 +2595,191 @@ dialog.choose::backdrop {
   }
 }
 /* glyph-grow:end */
+
+/* demo-tour:start (the hero demo: life-long player, question tour, answers) */
+.player {
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  row-gap: 3px;
+  padding-top: 20px;
+}
+.player .track .week {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  right: 0;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--leaf) 16%, transparent);
+  box-shadow: inset 1px 0 0 var(--leaf);
+}
+.player .track i {
+  z-index: 1;
+}
+.player .scale {
+  grid-column: 2 / 3;
+  position: relative;
+  height: 14px;
+  font: 10.5px var(--mono);
+  color: var(--fg-subtle);
+}
+.player .scale span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+.player .scale span:first-child {
+  left: 0;
+}
+.player .scale span:last-child {
+  right: 0;
+}
+.player .track .minus7 {
+  position: absolute;
+  left: 0;
+  bottom: 9px;
+  transform: translateX(-50%);
+  font: 10.5px var(--mono);
+  color: var(--leaf-ink);
+  white-space: nowrap;
+}
+.app-rows .srow,
+.app-rows .pointer,
+.app-rows .matured-row {
+  transition: opacity 0.35s;
+}
+.app-rows.asking .srow:not(.hit) {
+  opacity: 0.2;
+}
+.app-rows.asking .srow:not(.hit) .lf,
+.app-rows.asking .srow:not(.hit) .beanmark {
+  filter: none;
+}
+.app-rows.asking .srow.hit .tt {
+  color: var(--fg);
+  font-weight: 600;
+}
+.d-picked[hidden],
+[data-d-answer][hidden] {
+  display: none;
+}
+.d-view .d-box:first-child {
+  margin-top: 12px;
+}
+.f-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 14px;
+  border-top: 1px solid var(--border-muted);
+  font-size: 12.5px;
+}
+.f-row:first-of-type {
+  border-top: 0;
+}
+.f-row .fn {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f-row .fb {
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.f-row .fstat {
+  font: 11.5px var(--mono);
+  color: var(--leaf-ink);
+}
+.d-box .f-row {
+  grid-template-columns: 170px minmax(0, 1fr) auto;
+}
+.f-row > .chip {
+  justify-self: start;
+}
+.foldrow span:last-child {
+  border-top-style: dotted;
+  color: var(--fg-subtle);
+}
+.chip.fly {
+  color: var(--bean);
+  border-color: color-mix(in srgb, var(--bean) 40%, var(--border));
+  background: color-mix(in srgb, var(--bean) 12%, transparent);
+  font-size: 11px;
+  line-height: 16px;
+}
+.chip.leafchip {
+  color: var(--leaf-ink);
+  background: var(--leaf-bg);
+  font-size: 11px;
+  line-height: 16px;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.lfm {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  background: var(--leaf);
+  flex: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' fill='%23fff' d='M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' fill='%23fff' d='M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
+.hunk {
+  font: 11.5px/18px var(--mono);
+  border-top: 1px solid var(--border-muted);
+  font-variant-ligatures: none;
+}
+.hunk div {
+  padding: 0 14px;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hunk .a {
+  background: color-mix(in srgb, var(--leaf) 12%, transparent);
+}
+.hunk .d {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+.hunk .h {
+  color: var(--fg-subtle);
+}
+.d-box .card {
+  padding: 10px 14px 12px;
+  font-size: 12.5px;
+  color: var(--fg-muted);
+}
+.d-box .card p {
+  margin: 0 0 8px;
+}
+.d-box .steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.d-box .steps div {
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+}
+.d-box .steps b {
+  display: block;
+  color: var(--fg);
+  font: 600 12.5px var(--mono);
+}
+.g-row .t small {
+  display: block;
+  color: var(--fg-subtle);
+  font: 11px var(--mono);
+}
+/* demo-tour:end */

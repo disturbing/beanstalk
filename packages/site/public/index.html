@@ -108,9 +108,10 @@
         <div class="wrap wide showcase">
           <figure class="app" data-appdemo style="margin: 0">
             <figcaption class="sr-only">
-              The Beanstalk repository home. Someone asks "Replay last week's work"; the view picks
-              a stalk replay, the beans growing now and what happened, then the stalk replays a week
-              of work as 35 beans land.
+              The Beanstalk repository home, live today. Three questions are asked in turn (what
+              changed on coupons yesterday, why the sprout went red, who is working on billing right
+              now) and the view reshapes to answer each; then "Replay last week's work" rewinds the
+              stalk seven days and grows it back to today.
             </figcaption>
             <div aria-hidden="true">
               <div class="app-top">
@@ -134,8 +135,12 @@
                       ><svg class="pause" viewBox="0 0 12 12">
                         <path d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor" /></svg
                     ></span>
-                    <span class="track"><i data-d-progress style="width: 0"></i></span>
-                    <output data-d-clock>Mon 9:00</output>
+                    <span class="track"
+                      ><b class="week" data-d-week><span class="minus7">−7 days</span></b
+                      ><i data-d-progress style="width: 100%"></i
+                    ></span>
+                    <output data-d-clock>today</output>
+                    <span class="scale"><span>Day 0</span><span>today</span></span>
                   </div>
                 </div>
                 <div class="app-main">
@@ -143,37 +148,20 @@
                     <span class="q">?</span><span data-d-typed></span><span class="caret"></span
                     ><span class="ph" data-d-ph>Ask the beanstalk anything</span><kbd>⌘K</kbd>
                   </div>
-                  <div class="d-picked fadein" data-d-picked>
-                    <span class="lbl">searched</span><span class="chip">last 7 days</span
-                    ><span class="chip">beans, landings, decisions</span><span class="sep"></span
-                    ><span class="lbl">picked</span><span class="chip"><b>1</b>Stalk replay</span
-                    ><span class="chip"><b>2</b>Growing now</span
-                    ><span class="chip"><b>3</b>What happened</span
-                    ><span class="chip jev">Jev, 0.5 s</span>
-                  </div>
+                  <div class="d-picked fadein" data-d-picked></div>
                   <div class="fadein" data-d-answer>
-                    <h3 class="d-answer">Replaying last week on beanstalk-shop.</h3>
-                    <p class="d-sub" data-d-sub>
-                      Press play: 35 beans, 12 agents, Monday to Friday.
-                    </p>
+                    <h3 class="d-answer" data-d-head></h3>
+                    <p class="d-sub" data-d-sub></p>
                   </div>
-                  <section class="d-box fadein" data-d-growbox>
-                    <header>
-                      <b>Growing now</b><span data-d-growhead>6 beans checking in parallel</span>
-                    </header>
-                    <div data-d-grow></div>
-                  </section>
-                  <section class="d-box fadein" data-d-eventbox>
-                    <header><b>What happened</b><span data-d-evhead></span></header>
-                    <div data-d-events></div>
-                  </section>
+                  <div class="d-view" data-d-view></div>
                 </div>
               </div>
               <div class="app-status" data-d-status></div>
             </div>
           </figure>
           <p class="note">
-            The repository home, recreated in the browser: a week of work replaying on a demo repo.
+            The repository home, recreated in the browser: live today, three questions, then last
+            week replayed on a demo repo.
           </p>
         </div>
       </section>
