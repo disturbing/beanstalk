@@ -9,6 +9,7 @@ import {
   emit,
   isRacing,
   policyHooks,
+  promptTask,
   requireSlot,
   requireTask,
   setTimer,
@@ -64,6 +65,11 @@ export function isTerminal(task: TaskState): boolean {
  * `refs/heads/beans/<task>` of the run repo, created by the driver's first push.
  */
 export function startTask(ctx: StepContext, slot: SlotState, id: TaskId, base: Sha): void {
+  issueInitial(ctx, beginTask(ctx, slot, id, base));
+}
+
+/** Binds a task to a slot and its base and logs `task.start`; its first invocation is the caller's. */
+export function beginTask(ctx: StepContext, slot: SlotState, id: TaskId, base: Sha): TaskState {
   const task = requireTask(ctx, id);
   task.status = 'running';
   task.agent = slot.id;
@@ -71,14 +77,13 @@ export function startTask(ctx: StepContext, slot: SlotState, id: TaskId, base: S
   task.mergedMain = base;
   task.startedAt ??= ctx.now;
   emit(ctx, 'task.start', { task: id, agent: slot.id, base, predicted: task.selected });
-  issueInitial(ctx, task);
+  return task;
 }
 
 /** Creates the task's initial invocation (again, after an agent that failed to run). */
 export function issueInitial(ctx: StepContext, task: TaskState): void {
   if (!isRacing(ctx) || task.status !== 'running') return;
-  const definition = taskDefinition(ctx, task.id);
-  const prompt = initialPrompt(definition);
+  const prompt = initialPrompt(promptTask(ctx, task.id));
   createInvocation(ctx, {
     kind: 'initial',
     task: task.id,
@@ -207,7 +212,7 @@ export function recordCommit(
   kind: 'initial' | 'rework',
   result: InvocationResult,
 ): void {
-  const acceptance = taskDefinition(ctx, task.id).acceptance_tests;
+  const acceptance = acceptanceTests(ctx, task.id);
   const isOwnTest = (path: string): boolean => Object.hasOwn(acceptance, path);
   if (result.tamper.length > 0) {
     task.tamper.push(...result.tamper);
@@ -245,7 +250,7 @@ export function recordLanding(
   sha: Sha,
   files: readonly string[],
 ): void {
-  const acceptance = taskDefinition(ctx, task.id).acceptance_tests;
+  const acceptance = acceptanceTests(ctx, task.id);
   task.landedSha = sha;
   task.writeSet = [...files].toSorted();
   task.actualModules = [

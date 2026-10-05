@@ -134,7 +134,7 @@ describe('v2: a clean landing', () => {
     );
   });
 
-  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.4', () => {
+  it('reports the v2 block of summary.json in the harness order, then v2.2 to v2.5', () => {
     const run = runV2({ tasks: [soloTask('t001')], config: { agents: 1 } });
 
     const stats = beanstalkStats(run);
@@ -196,6 +196,12 @@ describe('v2: a clean landing', () => {
       'reconciled',
       'contradictions',
       'stale_rechecks',
+      'tests_first',
+      'tests_first_accepted',
+      'tests_first_fallbacks',
+      'targeted_landing_check',
+      'targeted_checks',
+      'targeted_red',
       'decision_outcome',
       'decision_mode',
       'amendments',
@@ -239,6 +245,7 @@ describe('v2: a clean landing', () => {
       ['Validation re-runs / suspected flakes', '0 / 0'],
       ['Inherited reds waited out (no rework round spent)', '0'],
       ['Reconciles (reconciled / contradictions) / stale re-checks', '0 (0 / 0) / 0'],
+      ['Tests first (accepted / fallbacks) / targeted landing checks (red)', 'off / off'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
         '6 / 0 / 0 / 0',

@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
-use crate::check::{CheckRequest, ExtraFile, SuiteCommand, SuiteLimits};
+use crate::check::{CheckRequest, ExtraFile, ReadSets, SuiteCommand, SuiteLimits};
 use crate::config::RemoteSchemes;
 use crate::error::{Error, Result};
 use crate::git::{
@@ -116,6 +116,9 @@ pub(crate) struct CheckBody {
     suite_timeout_seconds: Option<f64>,
     #[serde(default)]
     test_timeout_ms: Option<u64>,
+    /// Also report the passing test files' read sets (`passing_read_sets`).
+    #[serde(default)]
+    all_read_sets: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
@@ -263,6 +266,11 @@ impl CheckBody {
             limits: SuiteLimits {
                 suite_timeout,
                 test_timeout_ms,
+            },
+            read_sets: if self.all_read_sets {
+                ReadSets::All
+            } else {
+                ReadSets::Failing
             },
         })
     }

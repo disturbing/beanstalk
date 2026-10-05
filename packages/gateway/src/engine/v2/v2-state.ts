@@ -116,6 +116,8 @@ export type LandingStep =
       isInTurn: boolean;
       /** A re-check after the sprout moved under an overlapping change (`recheck: sampled` counts it). */
       isRecheck: boolean;
+      /** v2.5: a targeted check of the exact landing tree runs only these tests (null: the suite). */
+      targets: string[] | null;
       head0: Sha;
       candidate: Sha;
       files: string[];
@@ -149,6 +151,7 @@ export type LandingStep =
       head: Sha;
       sha: Sha;
       files: string[];
+      mine: string[] | null;
       landedMeanwhile: number;
       jobId: JobId;
     }
@@ -202,6 +205,8 @@ export type LandingFlow = {
   rechecks: number;
   /** Red checks waited out as the sprout's (`inherited_reds`); at most three per bean. */
   inheritedWaits: number;
+  /** v2.5: targeted checks of the exact landing tree in this attempt. */
+  targeted: number;
   step: LandingStep;
 };
 
@@ -280,7 +285,25 @@ export type V2Wait =
   | { readonly kind: 'loo-check'; readonly ticket: string; readonly commit: number }
   | { readonly kind: 'ticket-revert'; readonly ticket: string }
   | { readonly kind: 'card'; readonly card: string }
+  | { readonly kind: 'tests-first'; readonly task: TaskId }
   | { readonly kind: 'stalk' };
+
+/** v2.5 (`tests_first`): a task's test author, then the read of its files and their fail-first proof. */
+export type TestsFirstStep =
+  | { readonly kind: 'writing' }
+  | {
+      readonly kind: 'reading';
+      readonly inv: string;
+      readonly paths: string[];
+      readonly jobId: JobId;
+    }
+  | {
+      kind: 'proving';
+      readonly inv: string;
+      readonly files: Record<string, string>;
+      jobId: JobId | null;
+      result: CheckResult | null;
+    };
 
 export type CardDetail = {
   card: string;
@@ -345,6 +368,10 @@ export type V2Stats = {
   reconciled: number;
   contradictions: number;
   stale_rechecks: number;
+  tests_first_accepted: number;
+  tests_first_fallbacks: number;
+  targeted_checks: number;
+  targeted_red: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -357,6 +384,8 @@ export type V2Settings = {
   readonly inheritedReds: 'readset' | 'validation' | 'off';
   readonly earlyTickets: boolean;
   readonly reconcile: boolean;
+  readonly testsFirst: boolean;
+  readonly targetedLandingCheck: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
 };
@@ -395,6 +424,10 @@ export type V2State = {
   bisects: Record<string, FirstBadSearch>;
   reverts: Record<string, RevertFlow>;
   unstarted: TaskId[];
+  /** v2.5: tasks whose test author writes or proves their tests before the implementer starts. */
+  authoring: Record<string, TestsFirstStep>;
+  /** v2.5: the read set of every test file a check reported (the targeted check's third source). */
+  readSets: Record<string, string[]>;
   landings: Record<string, LandingFlow>;
   /** Beans waiting for a free agent (release on check), in arrival order. */
   agentQueue: TaskId[];

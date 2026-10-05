@@ -156,6 +156,8 @@ async function check(
     trunk: await runRepo(context, 'read'),
     sha: spec.sha,
     extraFiles: spec.extraFiles,
+    only: spec.only ?? null,
+    allReadSets: spec.allReadSets === true,
   });
   return { kind: 'check', check: result };
 }

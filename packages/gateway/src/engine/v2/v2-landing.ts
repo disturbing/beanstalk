@@ -22,9 +22,10 @@ import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
 import { prelandSeconds, unionPaths } from '@beanstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
+import { isRunnableTest } from '../arena';
 import { failingTestNames } from '../ci';
 import type { ReworkOutcome } from '../context';
-import { emit, requireTask, setTimer, startJob, taskDefinition } from '../context';
+import { acceptanceTests, emit, requireTask, setTimer, startJob, taskDefinition } from '../context';
 import { EngineInvariantError, assertNever } from '../errors';
 import type { CheckResult, JobId, JobResult, LineRanges } from '../model';
 import { roundTo } from '../numbers';
@@ -71,6 +72,10 @@ const ADAPT_MIN_CHECKS = 5;
 const ADAPT_RED_SHARE = 0.1;
 /** Lines between two changes that still count as touching (`PRELAND_HUNK_MARGIN`). */
 const HUNK_MARGIN = 3;
+/** Targeted checks outside the turn in one attempt; the next runs inside it (v2.5). */
+const MAX_TARGETED_OUTSIDE = 1;
+/** Emulated latency of a targeted check (E1's `MERGED_SECONDS`), capped at the pre-land latency. */
+const TARGETED_SECONDS = 10;
 /** Inherited reds a bean waits out before its red checks cost rounds again (E6). */
 const MAX_INHERITED_WAITS = 3;
 /** Files every test depends on: a bean that changed one may break any test it does not import. */
@@ -87,6 +92,7 @@ type Optimistic = {
   readonly head: Sha;
   readonly sha: Sha;
   readonly files: string[];
+  readonly mine: string[] | null;
   readonly landedMeanwhile: number;
 };
 
@@ -100,6 +106,7 @@ export function startLanding(step: V2Step, task: TaskId): void {
     rounds: 0,
     rechecks: 0,
     inheritedWaits: 0,
+    targeted: 0,
     step: { kind: 'queued-locked' },
   };
   attempt(step, task);
@@ -109,6 +116,7 @@ export function startLanding(step: V2Step, task: TaskId): void {
 export function attempt(step: V2Step, task: TaskId): void {
   const flow = requireFlow(step.state, task);
   flow.rechecks = 0;
+  flow.targeted = 0;
   releaseAgent(step, flow);
   if (step.ctx.env.config.preland_mode === 'locked') {
     flow.step = { kind: 'queued-locked' };
@@ -295,7 +303,7 @@ function onSquashed(step: V2Step, flow: LandingFlow, head0: Sha, result: JobResu
     requestTurn(step, { kind: 'landing', task: flow.task });
     return;
   }
-  startCheck(step, flow, { isInTurn: false, ...candidateOf(head0, result) });
+  startCheck(step, flow, { isInTurn: false, targets: null, ...candidateOf(head0, result) });
 }
 
 function candidateOf(head0: Sha, result: Extract<JobResult, { kind: 'squash' }>): Candidate {
@@ -308,11 +316,14 @@ function candidateOf(head0: Sha, result: Extract<JobResult, { kind: 'squash' }>)
   };
 }
 
-/** The suite on a squashed candidate, in the agent's sandbox with a read-only token. */
+/**
+ * The suite (or, v2.5, only `targets`) on a squashed candidate, in the agent's sandbox with
+ * a read-only token.
+ */
 function startCheck(
   step: V2Step,
   flow: LandingFlow,
-  check: Candidate & { isInTurn: boolean },
+  check: Candidate & { isInTurn: boolean; targets: string[] | null },
 ): void {
   const jobId = startJob(
     step.ctx,
@@ -321,6 +332,8 @@ function startCheck(
       sha: check.candidate,
       extraFiles: null,
       instance: { kind: 'sandbox', slot: flow.slot },
+      ...(check.targets === null ? {} : { only: check.targets }),
+      ...(step.ctx.env.config.targeted_landing_check ? { allReadSets: true } : {}),
     },
     { kind: 'policy' },
   );
@@ -328,7 +341,7 @@ function startCheck(
   flow.step = {
     kind: 'check',
     ...check,
-    isRecheck: flow.rechecks > 0,
+    isRecheck: check.targets === null && flow.rechecks > 0,
     jobId,
     startedAt: step.ctx.now,
     result: null,
@@ -339,7 +352,9 @@ function onChecked(step: V2Step, flow: LandingFlow, check: CheckStep, result: Jo
   if (result.kind !== 'check') throw new EngineInvariantError(`check got ${result.kind}`);
   check.jobId = null;
   check.result = result.check;
-  const latency = prelandSeconds(step.ctx.env.config);
+  const prelandLatency = prelandSeconds(step.ctx.env.config);
+  const latency =
+    check.targets === null ? prelandLatency : Math.min(TARGETED_SECONDS, prelandLatency);
   if (latency > 0) {
     setTimer(step.ctx, latency, { kind: 'policy', key: latencyTimerKey(flow.task) });
     return;
@@ -352,6 +367,8 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   const result = check.result;
   if (result === null) throw new EngineInvariantError('a check finished without a result');
   if (check.isRecheck) recordRecheck(step.state, result.green);
+  if (check.targets !== null) countTargeted(step.state, result.green);
+  learnReadSets(step, result);
   const red = { head: check.head0, result, mine: check.mine };
   const inherited = inheritedFailures(step, flow, red);
   logCheck(step, flow.task, check, { result, isInherited: inherited !== null });
@@ -448,7 +465,29 @@ function logCheck(
     suite_seconds: roundTo(result.suiteSeconds, 3),
     check_seconds: roundTo(seconds, 3),
     ...(outcome.isInherited ? { inherited: true } : {}),
+    ...(check.targets === null ? {} : { targets: [...check.targets] }),
   });
+}
+
+/**
+ * v2.5: a targeted check is counted; a red one is contention the full re-checks must see, so
+ * the `sampled` meter starts re-checking again. A green one says nothing about full re-checks.
+ */
+function countTargeted(state: V2State, isGreen: boolean): void {
+  state.stats.targeted_checks += 1;
+  if (isGreen) return;
+  state.stats.targeted_red += 1;
+  recordRecheck(state, false);
+}
+
+/**
+ * v2.5: remembers every test's read set a check reported, failing or passing: the targeted
+ * check's third source of tests.
+ */
+function learnReadSets(step: V2Step, result: CheckResult): void {
+  if (!step.ctx.env.config.targeted_landing_check) return;
+  const reported = { ...result.passingReadSets, ...result.readSets };
+  for (const [test, reads] of Object.entries(reported)) step.state.readSets[test] = [...reads];
 }
 
 /**
@@ -553,7 +592,7 @@ function staleFailures(step: V2Step, head: Sha, result: CheckResult): string[] {
   const owners = new Map<string, TaskId>();
   for (const id of ctx.state.order) {
     if (ctx.state.tasks[id]?.landedSha === null) continue;
-    for (const path of Object.keys(taskDefinition(ctx, id).acceptance_tests)) owners.set(path, id);
+    for (const path of Object.keys(acceptanceTests(ctx, id))) owners.set(path, id);
   }
   return result.failingFiles.filter((path) => {
     const owner = owners.get(path);
@@ -653,16 +692,17 @@ function onResquashed(
     head: resquash.head,
     sha: result.sha,
     files: [...result.files],
+    mine,
     landedMeanwhile: delta.length,
   };
   if (mine !== null && shared.length === 0) {
-    landOptimistically(step, flow, landing);
+    landOnMovedSprout(step, flow, landing);
     return;
   }
   const rule = recheckRule(step);
   switch (rule) {
     case 'skip':
-      landOptimistically(step, flow, landing);
+      landOnMovedSprout(step, flow, landing);
       return;
     case 'hunk':
       compareHunks(step, flow, { landing, candidate: resquash.candidate, shared });
@@ -749,7 +789,7 @@ function onHunks(
     return;
   }
   stats.preland_hunk_disjoint += 1;
-  landOptimistically(step, flow, hunks);
+  landOnMovedSprout(step, flow, hunks);
 }
 
 /** `a0 - m < b1 and b0 - m < a1` for some pair of ranges in a shared file. */
@@ -759,6 +799,70 @@ function rangesTouch(mine: LineRanges, theirs: LineRanges): boolean {
       (theirs[path] ?? []).some(([b0, b1]) => a0 - HUNK_MARGIN < b1 && b0 - HUNK_MARGIN < a1),
     ),
   );
+}
+
+/**
+ * The bean lands on the moved sprout without a full re-check. With `targeted_landing_check`
+ * (v2.5, E1) it first runs a targeted check of that exact tree: once outside the turn (a
+ * green one brings it back to the turn, checked on the new head), and inside the turn when
+ * the sprout moved again meanwhile, so a busy sprout cannot keep it chasing. With nothing
+ * to run, it lands as before.
+ */
+function landOnMovedSprout(step: V2Step, flow: LandingFlow, landing: Optimistic): void {
+  const targets = step.ctx.env.config.targeted_landing_check
+    ? targetedTests(step, flow.task, landing)
+    : [];
+  if (targets.length === 0) {
+    landOptimistically(step, flow, landing);
+    return;
+  }
+  const isInTurn = flow.targeted >= MAX_TARGETED_OUTSIDE;
+  flow.targeted += 1;
+  if (!isInTurn) releaseTurn(step);
+  startCheck(step, flow, {
+    isInTurn,
+    targets,
+    head0: landing.head,
+    candidate: landing.sha,
+    files: landing.files,
+    mine: landing.mine,
+  });
+}
+
+/**
+ * What a targeted check runs: the bean's own acceptance tests, the acceptance tests and test
+ * files of the beans that landed since `head0` (and are still in), and every test whose
+ * known read set meets the bean's files. A test whose known read set misses either side (the
+ * bean's files, or the files that landed meanwhile) cannot see them combine, and is left to
+ * the validation's full suite; so is everything when no test reads both sides. A file every
+ * test depends on, or a bean whose files are unknown, keeps every candidate.
+ */
+function targetedTests(step: V2Step, task: TaskId, landing: Optimistic): string[] {
+  const { ctx, state } = step;
+  const meanwhile = state.commits
+    .slice(sproutIndex(state, landing.head0) + 1)
+    .filter((commit) => commit.kind === 'task' && !commit.reverted);
+  const theirTests = meanwhile.flatMap((commit) =>
+    commit.task === null ? [] : Object.keys(acceptanceTests(ctx, commit.task)),
+  );
+  const theirFiles = meanwhile.flatMap((commit) => commit.files.filter(isRunnableTest));
+  const theirs = [...theirTests, ...theirFiles];
+  const mine = new Set(landing.mine ?? []);
+  const readers = Object.entries(state.readSets)
+    .filter(([, reads]) => reads.some((path) => mine.has(path)))
+    .map(([test]) => test);
+  const own = Object.keys(acceptanceTests(ctx, task));
+  const candidates = [...new Set([...own, ...theirs, ...readers])].toSorted();
+  const delta = new Set(filesLandedSince(state, landing.head0));
+  const isGlobal = [...mine, ...delta].some((path) => GLOBAL_FILE.test(path));
+  if (landing.mine === null || isGlobal) return candidates;
+  return candidates.filter((test) => {
+    const reads = state.readSets[test];
+    return (
+      reads === undefined ||
+      (reads.some((path) => mine.has(path)) && reads.some((path) => delta.has(path)))
+    );
+  });
 }
 
 /** Lands on the moved sprout without checking again (`preland.optimistic`). */
@@ -806,7 +910,7 @@ function onLockedSquashed(step: V2Step, flow: LandingFlow, head: Sha, result: Jo
     releaseTurn(step);
     return;
   }
-  startCheck(step, flow, { isInTurn: true, ...candidateOf(head, result) });
+  startCheck(step, flow, { isInTurn: true, targets: null, ...candidateOf(head, result) });
 }
 
 /** `publish`: move the sprout to the bean's commit with a lease on the head it was built on. */

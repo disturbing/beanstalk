@@ -8,7 +8,14 @@
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 
 import { failingTestNames } from '../ci';
-import { emit, requireTask, startJob, taskDefinition } from '../context';
+import {
+  acceptanceTests,
+  emit,
+  promptTask,
+  requireTask,
+  startJob,
+  taskDefinition,
+} from '../context';
 import { canResume, createInvocation } from '../invocations';
 import type { CheckResult, JobResult } from '../model';
 import { informedRedPrompt, reworkConflictPrompt } from '../prompts';
@@ -48,7 +55,7 @@ export function startConflictRework(
 ): void {
   const { ctx } = step;
   const task = requireTask(ctx, flow.task);
-  const definition = taskDefinition(ctx, flow.task);
+  const definition = promptTask(ctx, flow.task);
   const resumed = canResume(ctx, task);
   task.reworks += 1;
   task.status = 'rework';
@@ -173,7 +180,7 @@ function acceptanceOwners(step: V2Step): Map<string, TaskId> {
   for (const id of ctx.state.order) {
     const task = ctx.state.tasks[id];
     if (task === undefined || task.landedSha === null || task.status === 'dropped') continue;
-    for (const path of Object.keys(taskDefinition(ctx, id).acceptance_tests)) owners.set(path, id);
+    for (const path of Object.keys(acceptanceTests(ctx, id))) owners.set(path, id);
   }
   return owners;
 }
@@ -195,7 +202,7 @@ export function startInformedRework(
 ): void {
   const { ctx, state } = step;
   const task = requireTask(ctx, flow.task);
-  const definition = taskDefinition(ctx, flow.task);
+  const definition = promptTask(ctx, flow.task);
   const { head, red, culprits } = work;
   const named = failingTestNames(red).slice(0, REWORK_FAILING_TESTS);
   const failing = named.length > 0 ? named : [...(red.failingFiles ?? [])];

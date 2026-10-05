@@ -63,6 +63,17 @@ pub(crate) struct CheckRequest {
     /// sleeps while the slot stays busy.
     pub(crate) latency: Duration,
     pub(crate) limits: SuiteLimits,
+    pub(crate) read_sets: ReadSets,
+}
+
+/// Which test files get their read set reported.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) enum ReadSets {
+    /// The failing ones only (the harness's `CIResult.read_sets`).
+    #[default]
+    Failing,
+    /// The passing ones too, in `passing_read_sets` (the gateway's targeted landing check).
+    All,
 }
 
 /// Runs the suite on `request.sha` and reports as `ci.py` does.
@@ -95,10 +106,16 @@ pub(crate) async fn check(workspace: &Workspace, request: &CheckRequest) -> Resu
     };
     let run = suite::run_suite(&plan).await?;
     let sha = request.sha.clone();
-    let mut report =
-        tokio::task::spawn_blocking(move || report::assess(sha, &run, &checkout, &junit))
-            .await
-            .map_err(|error| Error::io("reading the test results")(std::io::Error::other(error)))?;
+    let read_sets = request.read_sets;
+    let mut report = tokio::task::spawn_blocking(move || {
+        let mut report = report::assess(sha, &run, &checkout, &junit);
+        if read_sets == ReadSets::All {
+            report::record_passing_read_sets(&mut report, &checkout);
+        }
+        report
+    })
+    .await
+    .map_err(|error| Error::io("reading the test results")(std::io::Error::other(error)))?;
     tokio::time::sleep(request.latency).await;
     report.ci_seconds = started.elapsed().as_secs_f64();
     job.remove().await;

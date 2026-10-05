@@ -54,6 +54,10 @@ export type CheckCall = {
   readonly trunk: RunnerRemote;
   readonly sha: Sha;
   readonly extraFiles: Readonly<Record<string, string>> | null;
+  /** Run only these test files (`node --test <files>`); null runs the whole suite. */
+  readonly only?: readonly string[] | null;
+  /** Also report the passing test files' read sets. */
+  readonly allReadSets?: boolean;
 };
 
 export type UpdateRefCall = {
@@ -100,6 +104,7 @@ const CheckResponse = z.object({
   passing_files: z.array(z.string()).optional(),
   read_set: z.array(z.string()).optional(),
   read_sets: z.record(z.string(), z.array(z.string())).optional(),
+  passing_read_sets: z.record(z.string(), z.array(z.string())).optional(),
   read_depths: z.record(z.string(), z.record(z.string(), z.number().int().min(0))).optional(),
   stack_files: z.array(z.string()).optional(),
   output_excerpt: z.string().optional(),
@@ -157,6 +162,10 @@ export function runnerPort(stubFor: (instance: string) => RunnerStub): RunnerPor
         sha: call.sha,
         extra_files: call.extraFiles ?? {},
         latency_seconds: 0,
+        ...(call.only === undefined || call.only === null
+          ? {}
+          : { cmd: ['node', '--test', ...call.only] }),
+        ...(call.allReadSets === true ? { all_read_sets: true } : {}),
       };
       return toCheckResult(await post(instance, '/v1/check', body, CheckResponse));
     },
@@ -226,6 +235,9 @@ function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {
     passingFiles: response.passing_files ?? null,
     readSet: response.read_set ?? [],
     readSets: response.read_sets ?? {},
+    ...(response.passing_read_sets === undefined
+      ? {}
+      : { passingReadSets: response.passing_read_sets }),
     readDepths: response.read_depths ?? {},
     stackFiles: response.stack_files ?? [],
     output: response.output_excerpt ?? '',

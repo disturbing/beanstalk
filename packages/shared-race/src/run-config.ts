@@ -120,6 +120,19 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2.5 (E1): before a task's implementer starts, a separate test author writes the task's
+     * acceptance tests from its intent; files that fail on the task's base (fail-first) replace
+     * the given tests as the task's protected acceptance tests. No failing file: the given
+     * tests stay.
+     */
+    tests_first: z.boolean().default(false),
+    /**
+     * v2.5 (E1): a bean about to land on a sprout that moved since its check, without a full
+     * re-check, first runs a targeted check on the exact landing tree: its own tests, the tests
+     * of the beans that landed meanwhile, and known tests whose read set meets its files.
+     */
+    targeted_landing_check: z.boolean().default(false),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -166,6 +179,13 @@ export const RunConfig = z
         code: 'custom',
         path: ['error_budget'],
         message: 'v2 has no error-budget controller; leave error_budget unset',
+      });
+    }
+    if (config.policy !== 'beanstalk-v2' && (config.tests_first || config.targeted_landing_check)) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['tests_first'],
+        message: 'tests_first and targeted_landing_check are beanstalk-v2 rules',
       });
     }
     const known = new Set<string>(ids);

@@ -31,6 +31,13 @@ import { freeAskingSlot, hold } from '../slots';
 import { isTerminal, startTask } from '../tasks';
 import { assignAgents } from './v2-agents';
 import {
+  onTestsFirstDone,
+  onTestsFirstElapsed,
+  onTestsFirstJob,
+  onTestsFirstJobFailed,
+  startTestsFirst,
+} from './v2-tests-first';
+import {
   answerCard,
   hasPendingCards,
   onAuthorDone,
@@ -90,6 +97,8 @@ const V23_VARIANT_ROW =
   'read-set inherited reds, early revert-first, cards that re-execute the loser';
 const V24_VARIANT_ROW =
   'v2.4: v2.3, with clashing tests reconciled before a card and stale reds re-checked';
+const V25_VARIANT_ROW =
+  'v2.5: v2.4, with forge-owned tests (tests first, fail-first proof) or a targeted check of the exact landing tree';
 
 export const v2Policy: PolicyModule<V2State> = {
   name: 'beanstalk-v2',
@@ -116,6 +125,8 @@ function initialV2State(ctx: StepContext): V2State {
       inheritedReds: config.inherited_reds,
       earlyTickets: config.early_tickets,
       reconcile: config.reconcile,
+      testsFirst: config.tests_first,
+      targetedLandingCheck: config.targeted_landing_check,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
     },
@@ -137,6 +148,8 @@ function initialV2State(ctx: StepContext): V2State {
     bisects: {},
     reverts: {},
     unstarted: [...ctx.state.order],
+    authoring: {},
+    readSets: {},
     landings: {},
     agentQueue: [],
     agentWaitSince: {},
@@ -211,6 +224,10 @@ function initialStats(): V2State['stats'] {
     reconciled: 0,
     contradictions: 0,
     stale_rechecks: 0,
+    tests_first_accepted: 0,
+    tests_first_fallbacks: 0,
+    targeted_checks: 0,
+    targeted_red: 0,
   };
 }
 
@@ -230,6 +247,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onInitialCommitted: (task) => startLanding(step, task),
     onReworkResult: (outcome: ReworkOutcome) => {
       if (outcome.kind === 'test-author') onAuthorDone(step, outcome);
+      else if (outcome.kind === 'test-first') onTestsFirstDone(step, outcome);
       else if (outcome.kind === 'reconcile') onReconcileDone(step, outcome);
       else onReworkDone(step, outcome);
     },
@@ -271,7 +289,8 @@ function dispatch(step: V2Step): void {
     });
     task.status = 'running';
     hold(ctx, slot, id);
-    startTask(ctx, slot, id, state.sprout);
+    if (state.settings.testsFirst) startTestsFirst(step, slot, id);
+    else startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
 }
@@ -339,6 +358,9 @@ function routeJob(step: V2Step, jobId: JobId, result: JobResult): void {
     case 'card':
       onCardJob(step, wait.card, jobId, result);
       return;
+    case 'tests-first':
+      onTestsFirstJob(step, wait.task, jobId, result);
+      return;
     case 'stalk':
       onStalkJob(step, jobId, result);
       return;
@@ -373,6 +395,11 @@ function onJobFailed(step: V2Step, failure: { jobId: JobId; error: string }): bo
     onCardJobFailed(step, wait.card, failure.error);
     return true;
   }
+  if (wait?.kind === 'tests-first') {
+    takeWait(step.state, failure.jobId);
+    onTestsFirstJobFailed(step, wait.task, failure.error);
+    return true;
+  }
   return false;
 }
 
@@ -397,6 +424,7 @@ function routeCi(step: V2Step, ciId: CiId, result: CheckResult): void {
     case 'loo-revert':
     case 'ticket-revert':
     case 'card':
+    case 'tests-first':
     case 'stalk':
       throw new EngineInvariantError(`job wait ${wait.kind} got a CI result`);
     default:
@@ -413,6 +441,9 @@ function routeTimer(step: V2Step, key: string): void {
       return;
     case 'fail-first':
       onFailFirstElapsed(step, timer.task);
+      return;
+    case 'tests-first':
+      onTestsFirstElapsed(step, timer.task);
       return;
     case 'oracle':
       onOracle(step, timer.card);
@@ -461,13 +492,19 @@ function isV20(settings: V2Settings): boolean {
     settings.inheritedReds === 'off' &&
     !settings.earlyTickets &&
     !settings.reconcile &&
+    !settings.testsFirst &&
+    !settings.targetedLandingCheck &&
     settings.decisionOutcome === 'decline'
   );
 }
 
-/** `v2` (the harness's rules), `v2.4` when reconciling, `v2.3` when a v2.3 rule is on, else `v2.2`. */
+/**
+ * `v2` (the harness's rules), `v2.5` with forge-owned tests, `v2.4` when reconciling, `v2.3`
+ * when a v2.3 rule is on, else `v2.2`.
+ */
 function variantOf(settings: V2Settings): Variant {
   if (isV20(settings)) return 'v2';
+  if (settings.testsFirst || settings.targetedLandingCheck) return 'v2.5';
   if (settings.reconcile) return 'v2.4';
   const isV23 =
     settings.window === 'aimd' ||
@@ -477,13 +514,14 @@ function variantOf(settings: V2Settings): Variant {
   return isV23 ? 'v2.3' : 'v2.2';
 }
 
-type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4';
+type Variant = 'v2' | 'v2.2' | 'v2.3' | 'v2.4' | 'v2.5';
 
 const VARIANT_ROWS: Readonly<Record<Variant, string>> = {
   v2: V20_VARIANT_ROW,
   'v2.2': V22_VARIANT_ROW,
   'v2.3': V23_VARIANT_ROW,
   'v2.4': V24_VARIANT_ROW,
+  'v2.5': V25_VARIANT_ROW,
 };
 
 /** `policy_summary` of v2 (the beanstalk block, in the harness's key and row order, then v2.2's). */
@@ -554,6 +592,12 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     reconciled: stats.reconciled,
     contradictions: stats.contradictions,
     stale_rechecks: stats.stale_rechecks,
+    tests_first: settings.testsFirst,
+    tests_first_accepted: stats.tests_first_accepted,
+    tests_first_fallbacks: stats.tests_first_fallbacks,
+    targeted_landing_check: settings.targetedLandingCheck,
+    targeted_checks: stats.targeted_checks,
+    targeted_red: stats.targeted_red,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -625,6 +669,13 @@ function summaryRows(
       settings.reconcile
         ? `${stats.reconciles} (${stats.reconciled} / ${stats.contradictions}) / ${stats.stale_rechecks}`
         : 'off',
+    ],
+    [
+      'Tests first (accepted / fallbacks) / targeted landing checks (red)',
+      `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
+        (settings.targetedLandingCheck
+          ? `${stats.targeted_checks} (${stats.targeted_red})`
+          : 'off'),
     ],
     [
       'Sprout window at the end / window waits / early tickets / re-check samples',

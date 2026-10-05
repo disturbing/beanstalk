@@ -79,7 +79,8 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
-- the v2.2 to v2.4 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)).
+- the v2.2 to v2.4 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules));
+- the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section).
 
 ## Driver contract (for the Python driver)
 
@@ -116,7 +117,8 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `rework`;
 - `fixer` (the queue only);
 - `test-author` (v2.2 cards);
-- `reconcile` (v2.4: a test author amends both clashing tasks' acceptance tests on the arriving bean's branch; like `test-author`, only changes to the `acceptance` files are committed).
+- `reconcile` (v2.4: a test author amends both clashing tasks' acceptance tests on the arriving bean's branch; like `test-author`, only changes to the `acceptance` files are committed);
+- `test-first` (v2.5 `tests_first`: a fresh session writes the task's acceptance tests from its intent before the implementer starts; `acceptance` is empty and `head_sha` null; the driver commits only the new test files it created, the paths `node --test` picks up by default, and discards every other change).
 
 With `release_on_check`, a rework can come to any slot. Its `resume` names the author's session. So the driver runs every invocation in the bean's own directory (`work/agents/<task>`), whichever slot it came to, and the session resumes there. Sessions live on the machine that ran them, so `remote.py` drives every slot of a run from one process. A resume that fails is retried once as a fresh session.
 
@@ -126,7 +128,7 @@ For each invocation:
 2. If `merge` is set, fetch `merge.ref` from `repo_url` and merge `merge.sha` with `--no-commit --no-ff`. Skip this when `merge.sha` is already an ancestor.
 3. Run the agent.
 4. Restore `acceptance`, and restore each `protect` file whose content is in the lineage.
-5. Commit with `commit_message`, unless conflict markers are left. A `test-author` invocation is the exception: its `acceptance` files are the tests to amend, written at the start and never restored, and the driver commits changes to those files only, discarding any other change.
+5. Commit with `commit_message`, unless conflict markers are left. A `test-author` invocation is the exception: its `acceptance` files are the tests to amend, written at the start and never restored, and the driver commits changes to those files only, discarding any other change. A `test-first` invocation commits only the new test files it created.
 6. Push `branch` to `bean_url`.
 7. Post the result:
 
@@ -200,6 +202,8 @@ The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summa
 | Early tickets | `early_tickets: true` | An inherited red is a sighting of a red sprout at the commit it was checked on. Two beans' sightings of one test file there, or one sighting and a red validation of that commit, prove it red. Revert-first starts at once (`ticket.open` with `early: true`), with read-set suspects among the commits since the last green validation, without waiting for the validation queue. A sighting also confirms a red validation that waits for its flake re-run | v2.3 |
 | Reconcile before a card | `reconcile: true` (`false`: v2.3) | Where a card would be raised, a `reconcile` invocation first gets both tasks' intents and both owners' failing tests, on the arriving bean's branch (which already merged the landed task). It may amend the two tasks' acceptance tests only, updating assertions that pin a value the other intent legitimately changes. A commit that changes them is RECONCILED: the bean's own tests are amended at once, and the landed task's travel with the bean as a carried amendment (they land with it, and are rolled back if it is dropped). The bean then checks again; a green check is the proof. A commit that changes nothing is a CONTRADICTION, and only that raises the card. Each pair is reconciled once. The same setting re-checks, without a rework round, a red whose failing tests belong to a task reverted after the check began (`preland.recheck` with `stale`) | v2.4 |
 | Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below. With `reconcile`, the loser's test author also sees the winner's failing tests as they are now | E6 |
+| Tests first | `tests_first: false` (`true`) | Before a task's implementer starts, a `test-first` invocation (a fresh session on the task's slot and base) writes the task's acceptance tests from its intent alone. The engine reads the new test files it committed, other tasks' test paths excluded, and runs them on the base (fail-first, 10 s emulated, capped at the pre-land latency). Files that fail there and parse replace the given tests as the task's protected acceptance tests: the implementer's `acceptance`, its prompts, the protection of landed tests, culprits, reconcile and the final check all use them. No such file (or no commit, or a failed job): the given tests stay. Either way `tests.first` logs it and the implementer starts | v2.5; E1 |
+| Targeted check of the exact landing tree | `targeted_landing_check: false` (`true`) | Where a green bean would land on a moved sprout without a full re-check (no shared file, `sampled` skipping, disjoint hunks), it first runs only some tests on the exact tree that would land (`preland.check` with `targets`, 10 s emulated, capped at the pre-land latency): its own acceptance tests, those of the beans that landed meanwhile and their test files, and every test whose read set meets the bean's files. A test whose known read set misses either side (the bean's files, or what landed meanwhile) cannot see them combine and is left to validation, so it usually runs nothing and lands as before (`preland.optimistic`). The first targeted check runs outside the turn; if the sprout moved again meanwhile, the next runs inside it, so a busy sprout cannot keep a bean chasing. A red one is an ordinary red pre-land check, and also sets the `sampled` meter re-checking; a green one does not count as a re-check. Full checks then ask the runner for every passing test's read set too (`all_read_sets`, answered in `passing_read_sets`). The full suite still runs at validation | v2.5; E1 |
 
 A decided card works in one of two ways:
 
@@ -218,7 +222,8 @@ Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route
 
 - `spec.amended` and `flake.suspected` (v2.2);
 - `window.wait` and `window.resize` (v2.3);
-- `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`).
+- `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`);
+- `tests.first` (v2.5: `task`, `status` `accepted` or `fallback`, `base`, the author's `files`, the `accepted` ones, the proof's `failing_tests`, `problems`, `inv`).
 
 Optional fields on existing types:
 
@@ -226,9 +231,10 @@ Optional fields on existing types:
 - `rework.start.card`;
 - `preland.check.inherited`;
 - `ticket.open.early`;
-- `preland.recheck.stale`.
+- `preland.recheck.stale`;
+- `preland.check.targets` (v2.5).
 
-`summary.json` adds the v2.2 to v2.4 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
+`summary.json` adds the v2.2 to v2.4 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, then v2.5's `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
 **Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
 
@@ -237,7 +243,7 @@ Optional fields on existing types:
  "inherited_reds": "off", "early_tickets": false, "reconcile": false, "decision_outcome": "decline"}
 ```
 
-`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with `reconcile` reports `"v2.4"`, one with any other v2.3 rule `"v2.3"`, and any other run `"v2.2"`. `{"reconcile": false}` runs v2.3 again, and these settings run v2.2:
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with `tests_first` or `targeted_landing_check` reports `"v2.5"`, one with `reconcile` `"v2.4"`, one with any other v2.3 rule `"v2.3"`, and any other run `"v2.2"`. `{"reconcile": false}` runs v2.3 again, and these settings run v2.2:
 
 ```json
 {"recheck": "adaptive", "window": "off", "inherited_reds": "validation", "early_tickets": false,
@@ -258,7 +264,26 @@ v2.2 there also gets the two bug fixes below. The driver passes the knobs throug
 
 v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land reworks. v2.3 drops none and finishes sooner.
 
-**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
+**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds).
+
+**Forge-owned tests (v2.5, E1), off by default.** `src/engine/v2/v2-forge-tests.test.ts` shows both rules in the simulator (2 replay agents, 60 s CI):
+
+| Scenario | Off | On |
+|---|---|---|
+| Weak given test: the implementer's bug passes it; the author's test pins the behaviour | green in 3.0 min, every signal green, **the bug is on the stalk** | `tests.first` accepted; the first pre-land check is red, one informed rework; green in 5.0 min, bug-free stalk |
+| Semantic clash without a shared file: t002 breaks t001's test once both are in | t002 lands unchecked on the moved sprout; 2 red validations (the flake re-run), revert, **t002 dropped**; 4.3 min | the targeted check (`tests/t001.test.ts` only) is red before landing, one rework; **both green**, 0 red validations; 4.0 min |
+| Author's test passes on the base (`VACUOUS`) | — | `tests.first` fallback; the given tests stay |
+
+On the burst and calm scenarios (`v2-burst.test.ts`, 40 tasks, 12 agents, seed 7):
+
+| Variant | Burst: green / red validations / done | Calm: green / done |
+|---|---|---|
+| v2.4 | 40 / 0 / 19.2 min | 40 / 8.5 min |
+| v2.4 + targeted check | 40 / 0 / 19.2 min (identical events: no test read both sides) | 40 / 8.5 min (identical) |
+| v2.4 + tests first | 40 / 0 / 14.0 min | 40 / 10.9 min |
+| v2.5 (both) | 40 / 0 / 14.0 min | 40 / 10.9 min |
+
+Tests first costs the author step (about 10 s of replay time and $0.005 per task here; E1 measured about $0.09 a task and 40% more wall time with real agents). On the burst it staggers the starts, which the replay agents reward; do not read the faster burst as a real gain. Both stay off by default: E1 measured them only together, on one race, and the arena's given tests see more cross-task contracts (5 of 5) than authors writing from one issue (1 of 5). A real race on the arena with the given tests hidden is the next step. The driver passes them from `TESTS_FIRST` and `TARGETED_LANDING_CHECK`. Replay agents write no tests for `test-first`, so a replay race falls back to the given tests.
 
 ## RPC for the web app
 
@@ -385,6 +410,7 @@ The tests cover:
   - each v2.2 and v2.3 rule (`src/engine/v2/v2-rules.test.ts`);
   - the v2.2 burst and a calm race, v2.2 against v2.3 (`src/engine/v2/v2-burst.test.ts`);
   - reconcile before a card, a genuine contradiction, and the stale-failure guard (`src/engine/v2/v2-reconcile.test.ts`);
+  - tests first (weak given tests, a fallback) and the targeted landing check (a semantic clash only it catches) (`src/engine/v2/v2-forge-tests.test.ts`), and v2.5 on the burst and calm races;
 - determinism, and replay parity with the pre-v2.2 engine;
 - the shell end to end: routes, auth, the git proxy and full races over HTTP (`SELF.fetch`), and every RPC method through the default entrypoint (`test/rpc.test.ts`, with `exports.default` from `cloudflare:workers`).
 
