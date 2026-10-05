@@ -42,7 +42,6 @@ import {
   startAuthor,
   startReexecution,
 } from './v2-decisions';
-import { WINDOW_START } from './v2-backpressure';
 import { parseTimerKey } from './v2-flows';
 import { onReconcileDone, startReconcile } from './v2-reconcile';
 import {
@@ -122,6 +121,9 @@ function initialV2State(ctx: StepContext): V2State {
       reconcileParties: config.reconcile_parties,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
+      singleSuspectRevert: config.single_suspect_revert,
+      validationFirst: config.validation_first,
+      baseCulprits: config.base_culprits,
     },
     sprout: base,
     green: base,
@@ -133,7 +135,7 @@ function initialV2State(ctx: StepContext): V2State {
     confirming: {},
     redValidations: {},
     sightings: {},
-    window: { size: WINDOW_START, waiting: [] },
+    window: { size: config.window_start, waiting: [] },
     recheckMeter: { mode: 'checking', greenStreak: 0, skips: 0 },
     flakes: {},
     tickets: {},
@@ -468,7 +470,10 @@ function isV20(settings: V2Settings): boolean {
     !settings.earlyTickets &&
     !settings.reconcile &&
     settings.escalateAfter === 2 &&
-    settings.decisionOutcome === 'decline'
+    settings.decisionOutcome === 'decline' &&
+    !settings.singleSuspectRevert &&
+    !settings.validationFirst &&
+    !settings.baseCulprits
   );
 }
 

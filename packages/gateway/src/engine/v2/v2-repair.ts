@@ -23,7 +23,7 @@ import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
 import { endLanding } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
-import type { AgentWork, LandingFlow, V2Step } from './v2-state';
+import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Landed changes an informed rework names (`[:2]`). */
 const MAX_CULPRITS = 2;
@@ -39,6 +39,13 @@ const CONFLICT_TARGET = 'the trunk';
 const DIFF_UNAVAILABLE = '(diff unavailable)';
 /** The diff text of a culprit with no landed commit. */
 const NOT_LANDED = '(not on trunk)';
+
+/** A red pre-land check: the sprout it ran on, its result and the bean's changed files. */
+export type RedCheck = {
+  readonly head: Sha;
+  readonly red: CheckResult;
+  readonly mine: readonly string[] | null;
+};
 
 type ConflictWork = Extract<AgentWork, { kind: 'conflict' }>;
 type InformedWork = Extract<AgentWork, { kind: 'informed' }>;
@@ -89,9 +96,10 @@ export function startConflictRework(
  * A red pre-land check: name the culprits, count the pair, and either open a decision
  * card or fetch the culprits' diffs for an informed rework.
  */
-export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: CheckResult): void {
+export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck): void {
   const { state } = step;
-  const culprits = culpritTasks(step, flow.task, red);
+  const { head, red } = failure;
+  const culprits = culpritTasks(step, flow.task, failure);
   for (const culprit of culprits) {
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
@@ -109,7 +117,7 @@ export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: Che
       step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
   );
   if (unreconciled !== undefined) {
-    const parties = reconcileParties(step, flow.task, red, unreconciled);
+    const parties = reconcileParties(step, flow.task, failure, unreconciled);
     requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, parties, red, head });
     return;
   }
@@ -165,6 +173,7 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 }
 
 /**
+/**
  * v2.5: the culprits a bean is stuck against. A red repeats against a culprit when one of its
  * failing test files failed in the previous red against it too (a card resets the count);
  * after `escalate_after` repeats, or v2.4's third red of an undecided pair, the pair is stuck.
@@ -194,37 +203,72 @@ function repeatedCulprits(
  * v2.5: the landed tasks a reconcile takes in: the stuck culprit, then the owners of the
  * failing tests and the read-set suspects since the bean's base, at most `reconcile_parties`.
  */
-function reconcileParties(step: V2Step, task: TaskId, red: CheckResult, against: TaskId): TaskId[] {
+function reconcileParties(step: V2Step, task: TaskId, check: RedCheck, against: TaskId): TaskId[] {
   const limit = step.state.settings.reconcileParties;
   if (limit <= 1) return [against];
-  return [...new Set([against, ...culpritTasks(step, task, red, limit)])].slice(0, limit);
+  return [...new Set([against, ...culpritTasks(step, task, check, limit)])].slice(0, limit);
 }
 
 /**
  * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
  * bean's snapshot whose writes intersect the failing tests' read set; at most two (`limit`).
+ * With `base_culprits`, each failing test whose read set the bean changed names, right after
+ * the owners, the newest landed bean that also wrote that read set, even one already in the
+ * bean's base: the bean's change is what met it.
  */
 export function culpritTasks(
   step: V2Step,
   task: TaskId,
-  red: CheckResult,
+  check: RedCheck,
   limit = MAX_CULPRITS,
 ): TaskId[] {
   const { ctx, state } = step;
+  const { red } = check;
   const owners = acceptanceOwners(step);
   const named: TaskId[] = [];
   for (const path of red.failingFiles ?? []) {
     const owner = owners.get(path);
     if (owner !== undefined && owner !== task) named.push(owner);
   }
+  if (ctx.env.config.base_culprits) named.push(...metCulprits(state, task, check));
   const read = new Set(red.readSet);
   const snapshot = sproutIndex(state, requireTask(ctx, task).baseSha);
   for (const commit of state.commits.slice(snapshot + 1).toReversed()) {
-    const culprit = commit.task;
-    if (commit.kind !== 'task' || culprit === null || culprit === task || commit.reverted) continue;
-    if (commit.files.some((path) => read.has(path))) named.push(culprit);
+    if (isOtherLiveTask(commit, task) && commit.files.some((path) => read.has(path))) {
+      named.push(commit.task);
+    }
   }
   return [...new Set(named)].slice(0, limit);
+}
+
+/**
+ * `base_culprits`: for each failing test whose read set the bean changed, the newest other
+ * live bean on the sprout that wrote a file of that read set, wherever it sits.
+ */
+function metCulprits(state: V2State, task: TaskId, check: RedCheck): TaskId[] {
+  const { red, mine } = check;
+  if (mine === null) return [];
+  const changed = new Set(mine);
+  const met: TaskId[] = [];
+  for (const test of red.failingFiles ?? []) {
+    const reads = red.readSets[test] ?? [test];
+    const ownReads = reads.filter((path) => changed.has(path));
+    if (ownReads.length === 0 && !changed.has(test)) continue;
+    const others = new Set(reads.filter((path) => !changed.has(path)));
+    const culprit = state.commits.findLast(
+      (commit) => isOtherLiveTask(commit, task) && commit.files.some((path) => others.has(path)),
+    );
+    const owner = culprit?.task;
+    if (owner !== undefined && owner !== null) met.push(owner);
+  }
+  return met;
+}
+
+function isOtherLiveTask(
+  commit: SproutCommit,
+  task: TaskId,
+): commit is SproutCommit & { task: TaskId } {
+  return commit.kind === 'task' && commit.task !== null && commit.task !== task && !commit.reverted;
 }
 
 /** Acceptance test path → the landed (not dropped) task that owns it; later tasks win. */

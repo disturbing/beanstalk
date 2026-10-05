@@ -65,7 +65,10 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "early_tickets": ("EARLY_TICKETS", bool), "reconcile": ("RECONCILE", bool),
            "escalate_after": ("ESCALATE_AFTER", int), "reconcile_parties": ("RECONCILE_PARTIES", int),
            "decision_outcome": ("DECISION_OUTCOME", str), "decision_mode": ("DECISION_MODE", str),
-           "human_timeout_seconds": ("HUMAN_TIMEOUT_SECONDS", float)}
+           "human_timeout_seconds": ("HUMAN_TIMEOUT_SECONDS", float),
+           "single_suspect_revert": ("SINGLE_SUSPECT_REVERT", bool), "validation_first": ("VALIDATION_FIRST", bool),
+           "base_culprits": ("BASE_CULPRITS", bool), "window_start": ("WINDOW_START", int),
+           "window_growth": ("WINDOW_GROWTH", int), "window_max": ("WINDOW_MAX", int), "window_min": ("WINDOW_MIN", int)}
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 

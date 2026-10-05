@@ -273,11 +273,22 @@ function revertFirst(step: V2Step, ticket: Ticket): void {
   startRevert(step, ticket);
 }
 
-/** `revert_culprit`: the first bad commit by K-ary search, unless green caught up. */
+/**
+ * `revert_culprit`: the first bad commit by K-ary search, unless green caught up. With
+ * `single_suspect_revert`, a lone suspect (named by read sets, or the commit a bisection just
+ * found) is the culprit without a second search.
+ */
 function startRevert(step: V2Step, ticket: Ticket): void {
   const { state } = step;
   if (ticket.redIdx <= state.greenIdx) {
     culpritFound(step, ticket.id, -1);
+    return;
+  }
+  const [suspect, ...others] = ticket.suspects;
+  const isLoneSuspect =
+    step.ctx.env.config.single_suspect_revert && suspect !== undefined && others.length === 0;
+  if (isLoneSuspect) {
+    culpritFound(step, ticket.id, suspect);
     return;
   }
   const search = newSearch(state.greenIdx, ticket.redIdx, ticket.failingFiles);

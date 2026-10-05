@@ -21,6 +21,9 @@ const V20: Partial<RunConfigInput> = {
   reconcile: false,
   escalate_after: 2,
   decision_outcome: 'decline',
+  single_suspect_revert: false,
+  validation_first: false,
+  base_culprits: false,
 };
 
 function runV2(scenario: RaceScenario): RaceRun {
@@ -224,7 +227,7 @@ describe('v2: a clean landing', () => {
       inherited_reds: 'readset',
       inherited_red_waits: 0,
       window: 'aimd',
-      window_size: 6,
+      window_size: 10,
       early_tickets: true,
       reconcile: true,
       escalate_after: 1,
@@ -251,7 +254,7 @@ describe('v2: a clean landing', () => {
       ],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
-        '6 / 0 / 0 / 0',
+        '10 / 0 / 0 / 0',
       ],
       [
         'Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place',
@@ -574,7 +577,7 @@ describe('v2: asynchronous validation', () => {
       tasks: [soloTask('t001'), soloTask('t002'), soloTask('t003')],
       rules: [CLASH],
       durations: { t001: 25_000, t002: 20_000, t003: 30_000 },
-      config: { agents: 3, ci_slots: 1 },
+      config: { agents: 3, ci_slots: 1, single_suspect_revert: false },
     });
 
     const probes = eventsOf(run.events, 'ci.start').filter(

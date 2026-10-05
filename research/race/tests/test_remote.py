@@ -547,6 +547,16 @@ class CommandLine(unittest.TestCase):
                           "decision_outcome": "decline", "human_timeout_seconds": 90.0, "escalate_after": 2,
                           "reconcile_parties": 1})
 
+    def test_v25_knobs_are_sent_only_when_set(self) -> None:
+        self.assertNotIn("window_start", v2_settings({}, env={}))
+        settings = v2_settings({}, env={"SINGLE_SUSPECT_REVERT": "0", "VALIDATION_FIRST": "1", "BASE_CULPRITS": "no",
+                                        "WINDOW_START": "8", "WINDOW_GROWTH": "4", "WINDOW_MAX": "24",
+                                        "WINDOW_MIN": "4"})
+        self.assertEqual({k: settings[k] for k in ("single_suspect_revert", "validation_first", "base_culprits",
+                                                   "window_start", "window_growth", "window_max", "window_min")},
+                         {"single_suspect_revert": False, "validation_first": True, "base_culprits": False,
+                          "window_start": 8, "window_growth": 4, "window_max": 24, "window_min": 4})
+
     def test_v2_settings_resolve_flag_then_env_then_harness_default(self) -> None:
         self.assertEqual(v2_settings({}, {}), {"preland_mode": "locked", "preland_seconds": 0.0,
                                                "decision_seconds": 30.0, "decision_oracle": "landed"})

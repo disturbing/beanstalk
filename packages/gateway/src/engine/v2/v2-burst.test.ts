@@ -20,6 +20,9 @@ export const V22_RULES: Partial<RunConfigInput> = {
   early_tickets: false,
   escalate_after: 2,
   reconcile_parties: 1,
+  single_suspect_revert: false,
+  validation_first: false,
+  base_culprits: false,
 };
 
 const CHANGELOG_BASE = Array.from({ length: 10 }, (_, index) => `line ${index + 1}`).join('\n');

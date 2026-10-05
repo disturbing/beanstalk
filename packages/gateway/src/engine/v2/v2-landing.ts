@@ -81,7 +81,12 @@ type CheckStep = Extract<LandingStep, { kind: 'check' }>;
 type Candidate = Pick<CheckStep, 'head0' | 'candidate' | 'files' | 'mine'>;
 type Failure =
   | { readonly kind: 'conflict'; readonly head: Sha; readonly files: readonly string[] }
-  | { readonly kind: 'red'; readonly head: Sha; readonly red: CheckResult };
+  | {
+      readonly kind: 'red';
+      readonly head: Sha;
+      readonly red: CheckResult;
+      readonly mine: readonly string[] | null;
+    };
 type Optimistic = {
   readonly head0: Sha;
   readonly head: Sha;
@@ -367,7 +372,7 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     } else if (stale.length > 0) {
       recheckStale(step, flow, { checkedOn: check.head0, stale });
     } else {
-      attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result });
+      attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result, mine: check.mine });
     }
     releaseTurn(step);
     return;
@@ -381,7 +386,7 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     return;
   }
   if (!result.green) {
-    attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result });
+    attemptFailed(step, flow, { kind: 'red', head: check.head0, red: result, mine: check.mine });
     return;
   }
   const { head0, candidate, files, mine } = check;
@@ -894,7 +899,7 @@ function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void 
     return;
   }
   if (failure.kind === 'red') {
-    startRepair(step, flow, failure.head, failure.red);
+    startRepair(step, flow, failure);
     return;
   }
   ctx.state.conflictsMet += 1;

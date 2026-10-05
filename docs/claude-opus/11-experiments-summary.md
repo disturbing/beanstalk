@@ -56,6 +56,28 @@ Started 2026-10-03, evening; updated as experiments finish. **All seven experime
    On the deployed gateway, the replay race kept v2.0's 25 greens in 4.2 min instead of 6.1. Not ported from E6: start cards, declared couplings, dynamic culprits, rescue re-execution, and the contract oracle.
 
    **v2.4 (done, the CF v2.4 row):** reconcile before a card, and re-check after stale failures. **v2.5 (built, simulated only; `packages/gateway/README.md`, "The v2.2 to v2.5 rules"):** the reconcile takes in every landed task behind the failing tests (failing-test owners and read-set suspects since the bean's base, at most 3), and a bean escalates (reconcile, then a card) after one failed informed repair whose failing test file fails again, instead of two; a bean still red against a counterpart already reconciled and decided is dropped rather than spending its last rounds (t032 spent about 8 minutes that way). In the simulator's replay of t032's three-way clash, v2.4 drops t032 at 16.2 min after 7 reworks and 2 cards; v2.5 lands it at 6.5 min after 1 rework and one reconcile. The 12-agent burst stays at 40 green and finishes in 17.4 min instead of 19.2; the calm race is unchanged. Not yet run on Cloudflare with real agents. Earlier note: The counterpart should be the owner of the failing acceptance test that isn't the bean's own. Inherited failures, and failures from a check that began before a revert, must not count. The test author then gets the counterpart's test, so it can amend the loser's tests to the decided spec. This is E6's dynamic-culprit rule, and in the CF v2.3 race it cost the one loser.
+
+   **v2.5 engine items (2026-10-05, simulated only).** Four settings in `packages/gateway` (README, "The v2.2 to v2.5 rules"):
+   - `single_suspect_revert` (on): a red sprout with one suspect is reverted at once, without the bisect.
+   - `base_culprits` (on): a pre-land red names a culprit already in the bean's base when the failing test's read set points to it, so informed reworks and cards see it (it rescued t007 in the earlier-table race).
+   - `window_start` 8 (was 4), `window_growth` 2, `window_max` 16, `window_min` 2. The suggested 8/+4/24 lost greens and was slower in the earlier and flaky races. The floor never mattered.
+   - `validation_first`: **off**. Validations jumped ahead of bisect probes but checked a head that still held the culprit, so red episodes got longer (done +0.2 to +0.6 min).
+
+   Simulator means over 16 seeds (40 tasks, 2 CI slots; earlier = 8 agents with seeded agent times; flaky = burst with 5% flaky runs):
+
+   | Scenario | Arm | Green | 20th green | 30th green | Done (min) |
+   |---|---|---|---|---|---|
+   | burst | v2.4 | 38.0 | 9.6 | 13.3 | 18.5 |
+   | burst | v2.5 | 38.5 | 9.6 | 12.8 | 16.9 |
+   | calm | v2.4 | 40 | 6.2 | 7.2 | 8.9 |
+   | calm | v2.5 | 40 | 5.4 | 6.8 | 8.3 |
+   | earlier | v2.4 | 38.4 | 8.6 | 10.8 | 18.6 |
+   | earlier | v2.5 | 38.9 | 7.0 | 9.6 | 16.6 |
+   | flaky | v2.4 | 37.7 | 10.4 | 13.2 | 17.6 |
+   | flaky | v2.5 | 37.8 | 10.0 | 12.3 | 16.7 |
+
+   On the burst's own seed 7, v2.5 lands 39 green against 40, and the 20th green comes at 8.5 min against 6.5. No setting brought back v2.2's collapse. Real races have not been run yet.
+
 2. **Forge-owned tests** (E1): a test-author step with fail-first proof for every task, and a targeted check on the exact landing tree. The engine's test author only amends a loser's tests today.
 3. **Planning and dependency-aware starts** (E4), the real limit at thousands of agents.
 4. **Stalk promotion as a GitHub Action** that triggers a verifier agent (`10` §5c); the MCP server and Claude Code plugin; the Ask explorer and race canvas (`13`, in `packages/web`).
