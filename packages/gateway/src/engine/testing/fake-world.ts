@@ -48,6 +48,11 @@ export type ScriptedTask = {
   readonly id: string;
   /** Files the initial run writes, by path. Write `BUG:<id>` where the change is wrong. */
   readonly writes: Readonly<Record<string, string>>;
+  /**
+   * Lines the initial run appends to files of its base, by path: two tasks appending to one
+   * file from the same base conflict; one started after the other landed does not.
+   */
+  readonly appends?: Readonly<Record<string, string>>;
   /** Initial runs that fail to start (infra errors) before one succeeds. */
   readonly flakyInitialRuns?: number;
   /** The agent never fixes its bug and never resolves conflict markers. */
@@ -409,6 +414,9 @@ function initialRun(
   const files = new Map(base.files);
   for (const [path, content] of Object.entries(workspace.acceptance)) files.set(path, content);
   for (const [path, content] of Object.entries(task.writes)) files.set(path, content);
+  for (const [path, line] of Object.entries(task.appends ?? {})) {
+    files.set(path, `${base.files.get(path) ?? ''}${line}\n`);
+  }
   const commit = git.commit([base.sha], files, workspace.commitMessage);
   git.setRef(REPO, `refs/heads/${workspace.branch}`, commit.sha);
   return agentResult({

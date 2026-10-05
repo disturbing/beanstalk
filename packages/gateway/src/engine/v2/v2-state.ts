@@ -432,6 +432,8 @@ export type V2Settings = {
   readonly startCards: boolean;
   readonly rescue: boolean;
   readonly dynamicCulprits: boolean;
+  /** Absent in runs created before the setting: `fifo`. */
+  readonly startOrder?: 'fifo' | 'dependency';
 };
 
 export type V2State = {

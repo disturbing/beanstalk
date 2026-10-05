@@ -79,6 +79,7 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
+- `start_order`: `fifo` (the default) or `dependency` (see [Dependency-aware starts](#dependency-aware-starts));
 - the v2.2 to v2.5 rules, all on by default except `validation_first`: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode`, `human_timeout_seconds`, and v2.5's `escalate_after`, `reconcile_parties`, `single_suspect_revert`, `base_culprits`, `validation_first` and the `window_*` sizes (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules));
 - E6's remaining rules, also on by default: `start_cards`, `rescue` and `dynamic_culprits` (see [Start cards, rescue and dynamic culprits](#start-cards-rescue-and-dynamic-culprits-e6));
 - the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section).
@@ -325,6 +326,25 @@ On the burst and calm scenarios (`v2-burst.test.ts`, 40 tasks, 12 agents, seed 7
 | v2.5 (both) | 40 / 0 / 14.0 min | 40 / 10.9 min |
 
 Tests first costs the author step (about 10 s of replay time and $0.005 per task here; E1 measured about $0.09 a task and 40% more wall time with real agents). On the burst it staggers the starts, which the replay agents reward; do not read the faster burst as a real gain. Both stay off by default: E1 measured them only together, on one race, and the arena's given tests see more cross-task contracts (5 of 5) than authors writing from one issue (1 of 5). A real race on the arena with the given tests hidden is the next step. The driver passes them from `TESTS_FIRST` and `TARGETED_LANDING_CHECK`. Replay agents write no tests for `test-first`, so a replay race falls back to the given tests.
+
+## Dependency-aware starts
+
+E4 found the limit at scale is independent work, not the committer (`docs/claude-opus/exp/e4-scale-replay.md`). With `start_order: dependency`, `src/engine/v2/v2-start-order.ts` picks the bean a free agent starts (the hook is `dispatch` in `v2-policy.ts`):
+
+1. Two tasks depend on each other when their predicted footprints (`footprint.predicted`) share a module or the arena declares a coupling; the earlier in priority order goes first. Modules more than a third of the tasks predict (`src`, `(root)`) are ignored.
+2. A task that has fallen `max(4, 2 × agents)` starts behind its FIFO turn starts next (`rule: aged`).
+3. Otherwise a bean that clashes with no bean in flight (started, not landed) and no earlier unstarted task, longest dependent chain first (`disjoint` when it is the head, else `critical-path`).
+4. Otherwise the bean with the fewest clashes, if it clashes with at most 2 beans in flight (`least-overlap`); else the agent waits for a landing. Nothing in flight always leaves a clear bean, so this never deadlocks.
+
+`placement.decision` carries the rule, the overlap and the occupied modules; `summary.json` adds `start_order` only when it is not `fifo`, so FIFO runs stay byte-identical. Simulated results (replay agents; the `E4 follow-up` row of `docs/claude-opus/11-experiments-summary.md`):
+
+| Scenario | FIFO | Dependency |
+|---|---|---|
+| Burst, 40 tasks, 12 agents | 40 green, done 19.2 min, 30th green 12.8 | 40 green, done 16.0 min, 30th green 6.5 |
+| Burst under the v2.2 rules | 27 green, 11 red validations | 36 green, 2 red validations |
+| 200 tasks in dependency chains, 64 agents | 173 green, 27 dropped, 187 conflicts, 170th green 26.3 min, done 28.4 | 200 green, 0 dropped, 108 conflicts, 170th green 28.2 min, done 60.5 |
+
+The default stays `fifo` until a real-agent race confirms it. One known gap: a bean started on top of its landed coupled partner can't name it as a culprit (culprits are commits since the bean's base), so a semantic clash reworks to a drop instead of a card.
 
 ## RPC for the web app
 
