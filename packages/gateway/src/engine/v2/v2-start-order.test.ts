@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 import { V25_RULES_OFF } from '@beanstalk/shared-race/run-config';
 
-import type { ScriptedTask } from '../testing/fake-world';
+import type { FailRule, ScriptedTask } from '../testing/fake-world';
 import type { RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
 import { ageBound } from './v2-start-order';
@@ -164,5 +164,66 @@ describe('dependency-aware starts on dependency chains', () => {
 
     expect(eventsOf(run.events, 'placement.decision', { rule: 'aged' }).length).toBeGreaterThan(0);
     expect(chainNumbers(run).green).toBe(40);
+  });
+});
+
+/** t002 and t001 are fine alone; together they fail a module test that reads both. */
+const MODULE_CLASH: FailRule = {
+  markers: ['impl:t001', 'impl:t002'],
+  file: 'src/shared/both.test.ts',
+  name: 'both features together',
+  reads: ['src/t001/index.ts', 'src/t002/index.ts'],
+};
+
+/**
+ * F's gap: dependency starts put a bean after its declared partner, so the partner is already
+ * in the bean's base when they clash, in a test neither owns. One agent, bound to its bean.
+ */
+function partnerInBase(config: Partial<RunConfigInput>): RaceScenario {
+  return {
+    tasks: [soloTask('t001'), soloTask('t002', { coupledWith: ['t001'] })],
+    rules: [MODULE_CLASH],
+    config: {
+      policy: 'beanstalk-v2',
+      agents: 1,
+      ci_seconds: 60,
+      release_on_check: false,
+      ...DEPENDENCY,
+      ...config,
+    },
+  };
+}
+
+function t002Culprits(run: RaceRun): unknown[] {
+  return eventsOf(run.events, 'rework.start', { task: 't002', reason: 'preland-red' }).map(
+    (event) => event['culprits'],
+  );
+}
+
+describe('a declared partner already in the bean’s base (F’s culprit gap)', () => {
+  it('v2.4 names no culprit: the partner landed before the bean’s base', () => {
+    const run = runRace(partnerInBase(V25_RULES_OFF));
+
+    expect(run.state.tasks['t002']?.baseSha).toBe(
+      eventsOf(run.events, 'land', { task: 't001' })[0]?.['sha'],
+    );
+    expect(t002Culprits(run)[0]).toEqual([]);
+  });
+
+  it('base culprits name it by the failing test’s read set', () => {
+    const run = runRace(partnerInBase({ ...V25_RULES_OFF, base_culprits: true }));
+
+    expect(t002Culprits(run)[0]).toEqual(['t001']);
+  });
+
+  it('v2.5 raises the pair’s start card first, and any later red still names the partner', () => {
+    const run = runRace(partnerInBase({}));
+
+    expect(eventsOf(run.events, 'decision.request')[0]).toMatchObject({
+      task: 't002',
+      against: ['t001'],
+      trigger: 'start',
+    });
+    for (const culprits of t002Culprits(run)) expect(culprits).toEqual(['t001']);
   });
 });

@@ -345,7 +345,13 @@ export type FinalTaskCheck = {
 };
 
 export type FinalState =
-  | { phase: 'suite'; sha: Sha; ciId: CiId }
+  | {
+      phase: 'suite';
+      sha: Sha;
+      ciId: CiId;
+      /** v2.5: this is the re-run of a red final suite (`rerunsRedFinalSuite`). */
+      rerun?: true;
+    }
   | { phase: 'acceptance'; sha: Sha; suite: CheckResult; ciId: CiId }
   | {
       phase: 'files';

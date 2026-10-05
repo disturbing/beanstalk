@@ -295,6 +295,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onDecision: (answer) => answerCard(step, answer),
     isFinished: () => isFinished(step),
     finalGreenSha: () => state.green,
+    rerunsRedFinalSuite: () => state.settings.flakeConfirm && state.greenIdx >= 0,
   };
 }
 

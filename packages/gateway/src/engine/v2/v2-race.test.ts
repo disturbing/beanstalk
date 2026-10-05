@@ -331,11 +331,11 @@ describe('v2: a clean landing', () => {
         variant,
         variant_additions: ['tests_first', 'targeted_landing_check', 'start_order:dependency'],
       });
-      const [, row] =
-        (summaryOf(run)['policy_rows'] as [string, string][]).find(
-          ([name]) => name === 'Variant',
-        ) ?? [];
-      expect(row).toMatch(
+      const rows: unknown = summaryOf(run)['policy_rows'];
+      const row = Array.isArray(rows)
+        ? rows.find((entry: unknown) => Array.isArray(entry) && entry[0] === 'Variant')
+        : undefined;
+      expect(Array.isArray(row) ? row[1] : null).toMatch(
         new RegExp(
           `^${variant.replace('.', '\\.')}: .* \\+ tests first \\+ targeted landing check \\+ dependency-aware starts$`,
         ),

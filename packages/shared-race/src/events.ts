@@ -24,6 +24,8 @@ export type CiMeta = {
   readonly tasks?: readonly string[];
   readonly prefix?: number;
   readonly check?: 'suite' | 'acceptance';
+  /** v2.5: the final suite again, after a red run on a commit validated green. */
+  readonly rerun?: true;
   readonly trunk_idx?: number;
   readonly unvalidated?: number;
   readonly ticket?: string;

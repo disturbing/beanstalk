@@ -74,6 +74,12 @@ export type PolicyHooks = {
   isFinished(): boolean;
   /** The newest validated commit (`final_green_sha`). */
   finalGreenSha(): Sha;
+  /**
+   * Whether a red final suite on `finalGreenSha` runs once more before it counts: its commit
+   * was validated green, so a red there is a flake until it repeats (v2 with `flake_confirm`).
+   * Absent: the harness's single run (the queue).
+   */
+  rerunsRedFinalSuite?(): boolean;
 };
 
 /** One step's working set: the draft state, the effects so far and the bound policy. */
