@@ -37,7 +37,7 @@ const UNION_FILE = /(^|\/)CHANGELOG[^/]*\.md$/;
 type Squash = Extract<JobResult, { kind: 'squash' }>;
 
 /** A landed bean as the sync names it. */
-type MetBean = SyncedBean & { readonly task: TaskId };
+export type MetBean = SyncedBean & { readonly task: TaskId };
 
 /** Whether the run syncs live (`overlap` or `all`). */
 export function isLiveSync(state: V2State): boolean {
@@ -68,7 +68,12 @@ export function syncAtBoundary(
   flow.syncDue = false;
   const { head0, result } = squash;
   const touched = result.outcome === 'conflict' ? result.files : (result.changeFiles ?? []);
-  const beans = meetingBeans(step, flow.task, touched);
+  const beans = meetingBeans(step, {
+    task: flow.task,
+    touched,
+    landed: landedMeanwhile(step, flow.task),
+    mode: step.state.settings.liveSync === 'all' ? 'all' : 'overlap',
+  });
   if (beans.length === 0) return false;
   if (result.outcome === 'conflict') {
     noteConflict(step, flow, { head0, beans, conflicts: result.files });
@@ -152,34 +157,47 @@ function noteConflict(
   });
 }
 
-/** Other beans that landed on the sprout since the bean last merged it, and still stand. */
-function landedMeanwhile(step: V2Step, task: TaskId): SproutCommit[] {
+/**
+ * Other beans that landed on the sprout since the bean last merged it (or since sprout index
+ * `since`), and still stand.
+ */
+export function landedMeanwhile(step: V2Step, task: TaskId, since?: number): SproutCommit[] {
   const { state } = step;
-  const since = sproutIndex(state, requireTask(step.ctx, task).mergedMain);
+  const from = since ?? sproutIndex(state, requireTask(step.ctx, task).mergedMain);
   return state.commits
-    .slice(since + 1)
+    .slice(from + 1)
     .filter(
       (commit) =>
         commit.kind === 'task' && commit.task !== null && commit.task !== task && !commit.reverted,
     );
 }
 
-/** The beans that landed meanwhile and meet `touched` (`overlap`), or all of them (`all`). */
-function meetingBeans(step: V2Step, task: TaskId, touched: readonly string[]): MetBean[] {
-  const { ctx, state } = step;
+/** Which landed beans a sync names: those that meet the bean (`overlap`), or every one. */
+export type MeetQuery = {
+  readonly task: TaskId;
+  /** The bean's files so far. */
+  readonly touched: readonly string[];
+  readonly landed: readonly SproutCommit[];
+  readonly mode: 'overlap' | 'all';
+};
+
+/** The beans of `landed` that meet `touched` or are coupled with the bean (`overlap`), or all. */
+export function meetingBeans(step: V2Step, query: MeetQuery): MetBean[] {
+  const { ctx } = step;
+  const { task, touched } = query;
   const hasUnion = unionPaths(ctx.env.config).length > 0;
   const isShared = (path: string): boolean => hasUnion && UNION_FILE.test(path);
   const mine = new Set(touched.filter((path) => !isShared(path)));
   const partners = new Set(couplingPartners(taskDefinition(ctx, task)));
   const beans: MetBean[] = [];
-  for (const commit of landedMeanwhile(step, task)) {
+  for (const commit of query.landed) {
     const landedTask = commit.task;
     if (landedTask === null) continue;
     const shared = commit.files.filter((path) => mine.has(path));
     const isPartner =
       partners.has(landedTask) || couplingPartners(taskDefinition(ctx, landedTask)).includes(task);
     const meets = shared.length > 0 || isPartner;
-    if (state.settings.liveSync === 'overlap' && !meets) continue;
+    if (query.mode === 'overlap' && !meets) continue;
     beans.push({
       task: landedTask,
       title: taskDefinition(ctx, landedTask).title,

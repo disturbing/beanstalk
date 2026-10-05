@@ -29,7 +29,8 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
-from .agents import Adapter, ClaudeAdapter, InvocationResult, InvocationSpec
+from . import midrun
+from .agents import Adapter, ClaudeAdapter, CodexAdapter, InvocationResult, InvocationSpec
 from .arena import load_tasks
 from .core import EventLog, Race, RaceConfig, TaskState, snapshot_arena
 from .footprint import ModuleCatalog, StepTwoPredictor
@@ -76,7 +77,9 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "window_growth": ("WINDOW_GROWTH", int), "window_max": ("WINDOW_MAX", int), "window_min": ("WINDOW_MIN", int),
            "start_cards": ("START_CARDS", bool), "rescue": ("RESCUE", bool),
            "dynamic_culprits": ("DYNAMIC_CULPRITS", bool), "structural_merge": ("STRUCTURAL_MERGE", bool),
-           "start_order": ("START_ORDER", str), "live_sync": ("LIVE_SYNC", str)}
+           "start_order": ("START_ORDER", str), "live_sync": ("LIVE_SYNC", str),
+           "live_sync_midrun": ("LIVE_SYNC_MIDRUN", bool)}
+MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 
@@ -259,9 +262,12 @@ class GatewayClient:
     def result(self, run: str, inv: str, token: str, body: dict) -> dict:
         return self.request("POST", f"/v1/runs/{run}/invocations/{inv}/result", token=token, body=body)  # type: ignore
 
-    def progress(self, run: str, inv: str, token: str, cost: float) -> dict:
+    def progress(self, run: str, inv: str, token: str, cost: float, files: list[str] | None = None) -> dict:
+        body: dict = {"cost_usd": round(max(0.0, cost), 6)}
+        if files is not None:  # live_sync_midrun only: an older gateway refuses the key
+            body["files"] = files[:10_000]
         return self.request("POST", f"/v1/runs/{run}/invocations/{inv}/progress", token=token,  # type: ignore
-                            body={"cost_usd": round(max(0.0, cost), 6)}, timeout=30)
+                            body=body, timeout=30)
 
 
 def _in_thread(fn, *args) -> asyncio.Future:
@@ -323,8 +329,8 @@ class ProgressReporter:
     """The adapter's ``progress`` callback: posts the running cost estimate (throttled) and kills the agent when
     the gateway answers that the run aborted."""
 
-    def __init__(self, race: "RemoteRace", slot: str, inv: str):
-        self.race, self.slot, self.inv = race, slot, inv
+    def __init__(self, race: "RemoteRace", slot: str, inv: str, sync: "MidrunSync | None" = None):
+        self.race, self.slot, self.inv, self.sync = race, slot, inv, sync
         self.latest: float | None = None
         self.sent: float | None = None
         self.wake = asyncio.Event()
@@ -349,11 +355,14 @@ class ProgressReporter:
         if value is None or value == self.sent:
             return False
         try:
-            reply = await self.race.call_slot(self.slot, "progress", self.inv, value)
+            files = await self.sync.changed_files() if self.sync else None
+            reply = await self.race.call_slot(self.slot, "progress", self.inv, value, files)
         except GatewayError as e:
             self.race.log("driver.progress_error", inv=self.inv, error=str(e)[:300])
             return False
         self.sent = value
+        if self.sync and reply.get("sync"):
+            await self.sync.offer(reply["sync"])
         if reply.get("abort"):
             self.race.log("driver.progress_abort", inv=self.inv, reason=reply.get("reason"))
             self.race.kill_agent(self.slot, f"gateway: {reply.get('reason')}")
@@ -366,6 +375,56 @@ class ProgressReporter:
         await asyncio.gather(self.task, return_exceptions=True)
         if flush:
             await self.post()
+
+
+class MidrunSync:
+    """``live_sync_midrun`` for one running invocation: reports the files the agent changed so far, fetches each
+    offered sprout into the worktree and leaves the offer for the agent's hook (``midrun.py``)."""
+
+    def __init__(self, race: "RemoteRace", slot: str, inv: dict, wt: str):
+        self.race, self.slot, self.inv, self.wt = race, slot, inv, wt
+        self.dir = os.path.join(race.work, "midrun", inv["inv"])
+        shutil.rmtree(self.dir, ignore_errors=True)
+        os.makedirs(self.dir)
+
+    def hook(self, adapter: Adapter) -> str:
+        """The hook command: Claude Code merges at safe points; Codex only notes (its edits are patches)."""
+        return midrun.hook_command(self.dir, self.wt, "merge" if isinstance(adapter, ClaudeAdapter) else "note")
+
+    async def changed_files(self) -> list[str]:
+        """Paths changed since the bean's base, committed or not, untracked included."""
+        assert self.race.git
+        base = self.inv["workspace"]["base_sha"]
+        diff = await self.race.git.run("diff", "--name-only", base, cwd=self.wt, check=False)
+        new = await self.race.git.run("ls-files", "--others", "--exclude-standard", cwd=self.wt, check=False)
+        return sorted({p for p in (diff.stdout + "\n" + new.stdout).splitlines() if p})
+
+    async def offer(self, offer: dict) -> None:
+        sprout = offer.get("sprout")
+        if not sprout:
+            return
+        ws = self.inv["workspace"]
+        try:
+            if not await self.race.has_commit(self.wt, sprout):
+                await self.race.git_net(["fetch", "-q", "--no-tags", "--no-write-fetch-head", ws["repo_url"],
+                                         "+refs/heads/sprout:refs/remotes/run/sprout"], cwd=self.wt, slot=self.slot,
+                                        what="fetch the sprout (live sync)", retries=1)
+        except DriverError as e:
+            self.race.log("driver.midrun_fetch_failed", inv=self.inv["inv"], sprout=sprout, error=str(e)[:300])
+            return
+        midrun.write_offer(self.dir, offer)
+        self.race.log("driver.midrun_offered", inv=self.inv["inv"], task=self.inv["task"], sprout=sprout,
+                      landed=[b.get("task") for b in offer.get("landed") or []])
+
+    def collect(self) -> list[dict]:
+        """What the hook did (copied into ``driver.jsonl``), as the result's ``midrun_syncs``."""
+        out = []
+        for entry in midrun.outcomes(self.dir):
+            self.race.log("driver.midrun_hook", inv=self.inv["inv"], task=self.inv["task"], **entry)
+            out.append({"sprout": entry["sprout"], "landed": entry.get("landed") or [], "outcome": entry["outcome"],
+                        "reason": (entry.get("reason") or None) and str(entry["reason"])[:300],
+                        "files": list(entry.get("files") or [])[:1000]})
+        return out
 
 
 # ---- the driver -------------------------------------------------------------------------------------
@@ -391,6 +450,7 @@ class RemoteRace(Race):
         self.tokens: dict[str, str] = {}
         self.seed_dir = os.path.join(self.work, "seed")
         self.agent_tasks: dict[str, asyncio.Task] = {}
+        self.midrun_results: dict[str, list[dict]] = {}  # live_sync_midrun: the hook's outcomes per invocation
         self.task_locks: dict[str, asyncio.Lock] = {}
         self.adapters: dict[str, Adapter] = {}
         self.run_over: asyncio.Event | None = None
@@ -831,6 +891,8 @@ class RemoteRace(Race):
                     res.ok = False
                     res.infra_error = res.infra_error or self.secrets.scrub(f"driver: {e}")[:4000]
                 steps["commit_push"] = round(time.monotonic() - mark, 3)
+            if inv["inv"] in self.midrun_results:
+                fields["midrun_syncs"] = self.midrun_results.pop(inv["inv"])
             await self.post_result(slot, inv, res, fields, time.monotonic() - t0, steps)
 
     async def conflicted_sync(self, inv: dict, wt: str, conflicts: list[str] | None) -> InvocationResult | None:
@@ -843,6 +905,15 @@ class RemoteRace(Race):
         self.log("driver.sync_conflict", inv=inv["inv"], task=inv["task"], conflicts=conflicts)
         return InvocationResult(inv_id=inv["inv"], adapter=self.cfg.agent, model=inv.get("model"), ok=True,
                                 subtype="sync-conflict", notes=[f"sync merge conflicted: {', '.join(conflicts)}"])
+
+    def midrun_sync(self, slot: str, inv: dict, wt: str) -> MidrunSync | None:
+        """``live_sync_midrun`` for an implementer invocation run by Claude Code or Codex, else None."""
+        adapter = self.adapter_for(inv)
+        if not self.v2.get("live_sync_midrun") or inv["kind"] not in MIDRUN_KINDS:
+            return None
+        if not isinstance(adapter, (ClaudeAdapter, CodexAdapter)):
+            return None
+        return MidrunSync(self, slot, inv, wt)
 
     def driver_failure(self, inv: dict, message: str) -> InvocationResult:
         self.log("driver.error", where="prepare", inv=inv["inv"], error=message[:2000])
@@ -890,7 +961,10 @@ class RemoteRace(Race):
                               prompt=inv["prompt"], attempt=int(inv.get("attempt") or 1),
                               resume_session=inv.get("resume"), max_turns=inv.get("max_turns"), timeout=timeout,
                               budget_cap_usd=inv.get("budget_cap_usd"), replay=self.replay_for(inv))
-        reporter = ProgressReporter(self, slot, inv["inv"])
+        sync = self.midrun_sync(slot, inv, wt)
+        if sync:
+            spec.post_tool_hook = sync.hook(self.adapter_for(inv))
+        reporter = ProgressReporter(self, slot, inv["inv"], sync)
         spent, failures, killed = 0.0, [], False
         try:
             while True:
@@ -919,6 +993,8 @@ class RemoteRace(Race):
         finally:
             self.agent_tasks.pop(slot, None)
             await reporter.close(flush=not killed)
+            if sync:
+                self.midrun_results[inv["inv"]] = sync.collect()
 
     async def attempt(self, slot: str, inv: dict, spec: InvocationSpec, progress) -> InvocationResult | None:
         agent = asyncio.create_task(self.adapter_for(inv).run(spec, progress), name=f"agent-{inv['inv']}")

@@ -433,6 +433,10 @@ export type V2Stats = {
   /** `live_sync`: sprouts merged into a bean's branch for its agent, and conflicts noted. */
   syncs_applied: number;
   syncs_noted: number;
+  /** `live_sync_midrun`: offers made mid-run, and what the agents' hooks did (absent: 0). */
+  midrun_offered?: number;
+  midrun_applied?: number;
+  midrun_noted?: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -472,6 +476,8 @@ export type V2Settings = {
   readonly structuralMerge: boolean;
   /** Absent in runs created before the setting: `off`. */
   readonly liveSync?: 'off' | 'overlap' | 'all';
+  /** `live_sync_midrun`; absent in runs created before the setting: off. */
+  readonly liveSyncMidrun?: boolean;
 };
 
 export type V2State = {
@@ -482,6 +488,8 @@ export type V2State = {
   settings: V2Settings;
   /** The sprout head (`self.trunk`). */
   sprout: Sha;
+  /** `live_sync_midrun`: the landed beans offered to each running invocation so far. */
+  midrunOffered?: Record<string, string[]>;
   /** The newest validated commit (`self.green`). */
   green: Sha;
   greenIdx: number;

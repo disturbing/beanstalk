@@ -214,6 +214,14 @@ export const RunConfig = z
      * `all`: every bean that worked while something landed. `off`: as before.
      */
     live_sync: z.enum(['off', 'overlap', 'all']).default('off'),
+    /**
+     * v2 opt-in track: sync during the agent's work, not only at its end. While an invocation
+     * runs, its progress replies offer the beans that landed meanwhile and meet its bean (the
+     * `live_sync` rule: `all` if `live_sync` is `all`, else `overlap`); the driver's hook in
+     * the agent's session merges the sprout between tool calls when that is safe, or only
+     * tells the agent. Independent of `live_sync`. `false`: as before.
+     */
+    live_sync_midrun: z.boolean().default(false),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -281,6 +289,13 @@ export const RunConfig = z
         code: 'custom',
         path: ['live_sync'],
         message: 'live_sync is a beanstalk-v2 rule',
+      });
+    }
+    if (config.policy !== 'beanstalk-v2' && config.live_sync_midrun) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['live_sync_midrun'],
+        message: 'live_sync_midrun is a beanstalk-v2 rule',
       });
     }
     const known = new Set<string>(ids);

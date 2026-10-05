@@ -15,6 +15,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Callable
 
+from . import midrun
 from .gitops import Git, union_resolve
 from .procs import Runner
 
@@ -72,6 +73,7 @@ class InvocationSpec:
     replay: dict = field(default_factory=dict)   # replay agent instructions (patches, reset target)
     json_schema: dict | None = None               # classifier only
     no_tools: bool = False                        # classifier only
+    post_tool_hook: str | None = None             # live_sync_midrun: a command the CLI runs after every tool call
 
 
 @dataclass
@@ -194,7 +196,9 @@ class ClaudeAdapter(Adapter):
         a += ["--permission-mode", "acceptEdits", "--permission-prompts", "none"]
         a += ["--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
         a += ["--setting-sources", "", "--disable-slash-commands"]
-        if self.safe_mode:
+        if spec.post_tool_hook:  # --safe-mode would drop the hook too; --setting-sources "" still keeps
+            a += ["--settings", self.hook_settings(spec)]  # every settings file but this one out
+        elif self.safe_mode:
             a.append("--safe-mode")
         if self.restricted:
             a.append("--restricted")
@@ -215,6 +219,13 @@ class ClaudeAdapter(Adapter):
             a += ["--disallowedTools", *claude_denied_tools()]
             a += ["--allowedTools", *claude_allowed_tools()]
         return a
+
+    def hook_settings(self, spec: InvocationSpec) -> str:
+        path = os.path.join(self.transcripts, f"{spec.inv_id}.settings.json")
+        os.makedirs(self.transcripts, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(midrun.claude_settings(spec.post_tool_hook or ""), fh)
+        return path
 
     def resumable(self, session_id: str | None) -> bool:
         """Only resume sessions whose last invocation reported a result (its cumulative cost is known)."""
@@ -374,7 +385,11 @@ class CodexAdapter(Adapter):
              "-s", "workspace-write", "-C", spec.cwd, "-c", 'approval_policy="never"',
              "-c", "sandbox_workspace_write.network_access=false"]
         for feat in self.DISABLED_FEATURES:
-            a += ["--disable", feat]
+            if not (feat == "hooks" and spec.post_tool_hook):
+                a += ["--disable", feat]
+        if spec.post_tool_hook:  # live_sync_midrun: only this hook (user config is ignored)
+            a += ["--enable", "hooks", "--dangerously-bypass-hook-trust",
+                  "-c", midrun.codex_hooks_config(spec.post_tool_hook)]
         if self.model:
             a += ["-m", self.model]
         if self.effort:

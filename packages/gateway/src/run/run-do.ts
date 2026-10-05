@@ -9,6 +9,7 @@ import { DurableObject } from 'cloudflare:workers';
 import type {
   InvocationResult,
   NextResponse,
+  InvocationProgress,
   ProgressResponse,
 } from '@beanstalk/shared-race/driver';
 import type { InvocationId, RunId, Sha, SlotId } from '@beanstalk/shared-race/ids';
@@ -347,10 +348,17 @@ export class RunDO extends DurableObject<Env> {
   async progress(
     slot: SlotId,
     inv: InvocationId,
-    costUsd: number,
+    report: InvocationProgress,
   ): Promise<RunResult<ProgressResponse>> {
     if (this.#loaded === null) return notFound();
-    const response = this.#apply({ kind: 'progress', at: Date.now(), slot, inv, costUsd });
+    const response = this.#apply({
+      kind: 'progress',
+      at: Date.now(),
+      slot,
+      inv,
+      costUsd: report.cost_usd,
+      ...(report.files === undefined ? {} : { files: report.files }),
+    });
     if (response.kind === 'refused') return refusal(response);
     return response.kind === 'progress'
       ? { ok: true, value: response.response }

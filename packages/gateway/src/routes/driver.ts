@@ -52,9 +52,7 @@ export const driverRoutes = new Hono<AppEnv>()
     async (c) => {
       const { run, inv } = c.req.valid('param');
       const slot = SlotId.parse(tokenClaims(c.var.principal).sub);
-      return c.json(
-        unwrap(await c.var.deps.run(run).progress(slot, inv, c.req.valid('json').cost_usd)),
-      );
+      return c.json(unwrap(await c.var.deps.run(run).progress(slot, inv, c.req.valid('json'))));
     },
   );
 

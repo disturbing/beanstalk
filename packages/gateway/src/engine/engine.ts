@@ -83,7 +83,7 @@ function handle(ctx: StepContext, input: EngineInput): EngineResponse {
     case 'result':
       return result(ctx, input.slot, input.inv, input.result);
     case 'progress':
-      return progress(ctx, input.slot, input.inv, input.costUsd);
+      return progress(ctx, input);
     case 'job-done':
       jobDone(ctx, input.jobId, input.outcome);
       return { kind: 'none' };
@@ -190,6 +190,7 @@ function wasIssued(ctx: StepContext, invId: InvocationId): boolean {
 /** Closes an invocation and continues the flow that asked for it. */
 function finishInvocation(ctx: StepContext, inv: OpenInvocation, body: InvocationResult): void {
   closeWithResult(ctx, inv, body);
+  policyHooks(ctx).onMidrunSyncs?.(inv, body);
   if (inv.kind === 'initial') {
     onInitialResult(ctx, inv, body);
     return;
@@ -245,10 +246,9 @@ function decision(ctx: StepContext, answer: DecisionAnswer): EngineResponse {
 
 function progress(
   ctx: StepContext,
-  slotId: SlotId,
-  invId: InvocationId,
-  costUsd: number,
+  input: Extract<EngineInput, { kind: 'progress' }>,
 ): EngineResponse {
+  const { slot: slotId, inv: invId, costUsd } = input;
   const inv = ctx.state.invocations[invId];
   if (inv === undefined) {
     const reason = ctx.state.aborted;
@@ -258,7 +258,10 @@ function progress(
     };
   }
   if (inv.slot !== slotId) return refused('wrong_slot', `${invId} belongs to slot ${inv.slot}`);
-  return { kind: 'progress', response: recordProgress(ctx, inv, costUsd) };
+  const response = recordProgress(ctx, inv, costUsd);
+  if (response.abort || inv.deliveredAt === null) return { kind: 'progress', response };
+  const offer = policyHooks(ctx).midrunOffer?.(inv, input.files ?? []) ?? null;
+  return { kind: 'progress', response: offer === null ? response : { abort: false, sync: offer } };
 }
 
 /**

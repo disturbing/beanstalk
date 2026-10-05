@@ -76,6 +76,7 @@ import { startRescue } from './v2-rescue';
 import { takeWait } from './v2-sprout';
 import { openStartCard, startUnderCard } from './v2-start';
 import { chooseStart } from './v2-start-order';
+import { midrunOffer, onMidrunSyncs } from './v2-midrun';
 import { onSyncDone } from './v2-sync';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
 import {
@@ -115,6 +116,7 @@ const ADDITION_ROWS: Readonly<Record<string, string>> = {
   'start_order:dependency': 'dependency-aware starts',
   'live_sync:overlap': 'live sync of overlapping beans',
   'live_sync:all': 'live sync of every bean',
+  live_sync_midrun: 'mid-run live sync',
 };
 
 export const v2Policy: PolicyModule<V2State> = {
@@ -163,6 +165,7 @@ function initialV2State(ctx: StepContext): V2State {
       },
       structuralMerge: usesStructuralMerge(config),
       liveSync: config.live_sync,
+      ...(config.live_sync_midrun ? { liveSyncMidrun: true } : {}),
     },
     sprout: base,
     green: base,
@@ -296,6 +299,8 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
       else onReworkDone(step, outcome);
     },
     onJobDone: (jobId: JobId, result: JobResult) => routeJob(step, jobId, result),
+    midrunOffer: (inv, files) => midrunOffer(step, inv, files),
+    onMidrunSyncs: (inv, body) => onMidrunSyncs(step, inv, body),
     onJobFailed: (jobId: JobId, error: string) => onJobFailed(step, { jobId, error }),
     onCiDone: (ciId: CiId, result: CheckResult) => routeCi(step, ciId, result),
     onTimer: (key: string) => routeTimer(step, key),
@@ -599,6 +604,7 @@ function variantAdditions(settings: V2Settings): string[] {
     ...(settings.targetedLandingCheck ? ['targeted_landing_check'] : []),
     ...((settings.startOrder ?? 'fifo') === 'dependency' ? ['start_order:dependency'] : []),
     ...((settings.liveSync ?? 'off') === 'off' ? [] : [`live_sync:${settings.liveSync}`]),
+    ...(settings.liveSyncMidrun === true ? ['live_sync_midrun'] : []),
   ];
 }
 
@@ -739,6 +745,14 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
           syncs_applied: stats.syncs_applied,
           syncs_noted: stats.syncs_noted,
         }),
+    ...(settings.liveSyncMidrun === true
+      ? {
+          live_sync_midrun: true,
+          midrun_offered: stats.midrun_offered ?? 0,
+          midrun_applied: stats.midrun_applied ?? 0,
+          midrun_noted: stats.midrun_noted ?? 0,
+        }
+      : {}),
   };
   return {
     key: 'beanstalk',

@@ -122,6 +122,21 @@ export type NextResponse =
 const Json: z.ZodType = z.unknown();
 
 /**
+ * `live_sync_midrun`: one sync offer the agent's hook took up between tool calls. `applied`:
+ * the sprout was merged into the worktree (a merge commit under the agent's uncommitted
+ * work); `noted`: the agent was only told (the merge would conflict, a merge was in
+ * progress, the agent was editing one of the landed files, or the adapter only notes).
+ */
+export const MidrunSyncOutcome = z.object({
+  sprout: Sha,
+  landed: z.array(z.string().max(64)).max(100),
+  outcome: z.enum(['applied', 'noted']),
+  reason: z.string().max(300).nullable().default(null),
+  files: z.array(z.string().max(512)).max(1000).default([]),
+});
+export type MidrunSyncOutcome = z.infer<typeof MidrunSyncOutcome>;
+
+/**
  * Body of `POST /v1/runs/:run/invocations/:inv/result`, posted after the driver has
  * committed and pushed. It is the harness's `InvocationResult.to_event()` (so the
  * `invocation.end` event matches the local log) plus the git outcome. Unknown keys are
@@ -168,6 +183,8 @@ export const InvocationResult = z
     markers_left: z.array(z.string().max(512)).max(1000).default([]),
     /** Paths the driver's own merge left conflicted (diagnostics only). */
     merge_conflicts: z.array(z.string().max(512)).max(1000).nullable().default(null),
+    /** `live_sync_midrun`: what the agent's hook did with each sync offer it took up. */
+    midrun_syncs: z.array(MidrunSyncOutcome).max(100).optional(),
   })
   .transform((result) => ({
     ...result,
@@ -180,6 +197,11 @@ export type InvocationResultInput = z.input<typeof InvocationResult>;
 /** Body of `POST /v1/runs/:run/invocations/:inv/progress`: the running cost estimate. */
 export const InvocationProgress = z.strictObject({
   cost_usd: z.number().min(0).max(10_000),
+  /**
+   * `live_sync_midrun`: the paths the agent has changed so far (against the bean's head),
+   * which the overlap rule meets with landed beans. Sent only with the track on.
+   */
+  files: z.array(z.string().max(512)).max(10_000).optional(),
 });
 export type InvocationProgress = z.infer<typeof InvocationProgress>;
 
@@ -193,7 +215,28 @@ export const DecisionBody = z.strictObject({
 });
 export type DecisionBody = z.infer<typeof DecisionBody>;
 
-/** Response to a progress report: keep going, or kill the agent (the run aborted). */
+/** A landed bean as a mid-run sync offer names it. */
+export type MidrunLandedBean = {
+  readonly task: string;
+  readonly title: string;
+  /** The landed bean's files that meet the running bean (`overlap`), or all of them. */
+  readonly files: readonly string[];
+};
+
+/**
+ * `live_sync_midrun`: beans that landed on the sprout while this invocation runs and meet its
+ * bean. The driver fetches `sprout` (the sprout head) and leaves the offer for the agent's
+ * hook, which merges it at the next safe point or only notes it. Each bean is offered once.
+ */
+export type MidrunSyncOffer = {
+  readonly sprout: Sha;
+  readonly landed: readonly MidrunLandedBean[];
+};
+
+/**
+ * Response to a progress report: keep going (with a sync offer under `live_sync_midrun`),
+ * or kill the agent (the run aborted).
+ */
 export type ProgressResponse =
-  | { readonly abort: false }
+  | { readonly abort: false; readonly sync?: MidrunSyncOffer }
   | { readonly abort: true; readonly reason: string };
