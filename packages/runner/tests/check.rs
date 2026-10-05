@@ -145,6 +145,29 @@ async fn check_is_green_on_a_passing_suite() {
     assert_eq!(body["timed_out"], false);
     assert!(body["suite_seconds"].as_f64().unwrap() > 0.0);
     assert!(body["ci_seconds"].as_f64().unwrap() >= body["suite_seconds"].as_f64().unwrap());
+    assert_eq!(body["passing_read_sets"], json!({}));
+}
+
+#[tokio::test]
+async fn check_reports_passing_read_sets_and_runs_only_the_named_tests_when_asked() {
+    if !has_node() {
+        return;
+    }
+    let world = World::new().await;
+    let (trunk, sha) = tiny_project(&world, ADD_TS);
+    let mut request = check_body(&trunk, &sha);
+    request["all_read_sets"] = json!(true);
+    request["cmd"] = json!(["node", "--test", "src/add.test.ts"]);
+
+    let (status, body) = world.post("/v1/check", &request).await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["green"], true, "{body}");
+    assert_eq!(
+        body["passing_read_sets"],
+        json!({"src/add.test.ts": ["src/add.test.ts", "src/add.ts", "src/numbers.ts"]})
+    );
+    assert_eq!(body["read_sets"], json!({}));
 }
 
 #[tokio::test]

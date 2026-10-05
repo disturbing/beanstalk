@@ -54,6 +54,8 @@ export type EngineState = {
   ci: CiState;
   /** Acceptance tests a decision amended, by task (v2.2): they replace the task's own. */
   amendedTests: Record<string, Record<string, string>>;
+  /** Acceptance tests a tests-first author wrote and proved (v2.5): they replace the given ones. */
+  authoredTests: Record<string, Record<string, string>>;
   final: FinalState | null;
   policy: PolicyState | null;
 };

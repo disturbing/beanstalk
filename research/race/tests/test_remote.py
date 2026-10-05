@@ -451,6 +451,28 @@ class CommitPath(unittest.TestCase):
                          "landed t007 test, threshold on goods\n")
         self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 1;\n")
 
+    def test_a_tests_first_author_commits_only_the_new_test_files_it_created(self) -> None:
+        wt, base, ws = worktree_with_landed_test(self.race)
+        os.makedirs(os.path.join(wt, "src", "billing"))
+        for path, text in (("src/billing/refund.test.ts", "the author's new test\n"),
+                           ("src/billing/refund-helper.ts", "export const helper = 1;\n"),
+                           ("test/acceptance/t009.test.ts", "an existing test, edited\n"),
+                           ("src/a.ts", "export const a = 2;\n")):
+            with open(os.path.join(wt, path), "w") as fh:
+                fh.write(text)
+        # Nothing is given: the author writes the task's tests from its intent.
+        ws = {**ws, "head_sha": None, "acceptance": {},
+              "commit_message": "Task nine\n\nTask: t009\nKind: test-first\nInvocation: inv0001-test-first\n"}
+        inv = {"inv": "inv0001-test-first", "kind": "test-first", "task": "t009", "resume": None, "workspace": ws}
+        res = InvocationResult(inv_id="inv0001-test-first", adapter="replay", model="replay", ok=True,
+                               subtype="success")
+        fields = self.run_commit(inv, res)
+        self.assertEqual(fields["files"], ["src/billing/refund.test.ts"])
+        self.assertEqual(read(os.path.join(wt, "test/acceptance/t009.test.ts")), "own test\n")
+        self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 1;\n")
+        self.assertFalse(os.path.exists(os.path.join(wt, "src/billing/refund-helper.ts")))
+        self.assertEqual(git(ws["bean_url"], "rev-parse", "refs/heads/task/t009"), fields["head_sha"])
+
     def test_markers_left_means_no_commit(self) -> None:
         wt, base, ws = worktree_with_landed_test(self.race)
         with open(os.path.join(wt, "src/a.ts"), "w") as fh:
@@ -538,7 +560,9 @@ class CommandLine(unittest.TestCase):
         settings = v2_settings({}, env={"RELEASE_ON_CHECK": "0", "PRELAND_RECHECK": "file", "FLAKE_CONFIRM": "true",
                                         "INHERITED_REDS": "validation", "WINDOW": "off", "EARLY_TICKETS": "0",
                                         "DECISION_OUTCOME": "decline", "HUMAN_TIMEOUT_SECONDS": "90",
-                                        "ESCALATE_AFTER": "2", "RECONCILE_PARTIES": "1"})
+                                        "ESCALATE_AFTER": "2", "RECONCILE_PARTIES": "1",
+                                        "TESTS_FIRST": "1", "TARGETED_LANDING_CHECK": "true"})
+        self.assertEqual((settings["tests_first"], settings["targeted_landing_check"]), (True, True))
         self.assertEqual({k: settings[k] for k in ("release_on_check", "recheck", "flake_confirm", "inherited_reds",
                                                    "window", "early_tickets", "decision_outcome",
                                                    "human_timeout_seconds", "escalate_after", "reconcile_parties")},

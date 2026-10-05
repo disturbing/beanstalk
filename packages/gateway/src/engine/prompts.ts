@@ -589,6 +589,27 @@ export function queueLandMessage(task: Pick<ArenaTask, 'title' | 'id'>): string 
   return `${task.title}\n\nTask: ${task.id}\nPolicy: queue\n`;
 }
 
+/**
+ * v2.5 (`tests_first`; E1's `test_author`, verbatim): a separate session writes a task's
+ * acceptance tests from its intent alone, before anyone implements it. Only new test files
+ * are kept, and they must fail on the task's base.
+ */
+export function testsFirstPrompt(task: Pick<ArenaTask, 'title' | 'prompt'>): string {
+  return (
+    'You write the acceptance tests for an issue before anyone implements it. Another engineer will implement ' +
+    'the issue later, in a separate session, against your tests: they will not see your reasoning and cannot ' +
+    `change your tests.\n\nIssue: ${task.title}\n\n${task.prompt.trim()}\n\n` +
+    'Add one new test file (node:test, `*.test.ts`) next to the code the issue is about, in the style of the ' +
+    'existing tests and using their helpers (for example src/lib/testing.ts). Test the behaviour the issue asks ' +
+    "for through the names it gives (functions, fields, routes, messages, statuses); don't assume other names or " +
+    'internal details. The tests must fail on the current code because the behaviour is missing, and pass once ' +
+    'the issue is implemented correctly. Run `node --test <your file>` to check that the file loads and fails ' +
+    'for that reason (a failed assertion or the missing export, not a mistake in the test).\n\n' +
+    "Don't implement the issue and don't change existing files: only new test files are kept, so any helper " +
+    "must live inside your test file. Don't stage or commit; the harness collects your file.\n"
+  );
+}
+
 /** The beanstalk policies' squash message for a task (`BeanstalkRace.land_message`). */
 export function beanstalkLandMessage(task: Pick<ArenaTask, 'title' | 'id'>): string {
   return `${task.title}\n\nTask: ${task.id}\nPolicy: beanstalk\n`;

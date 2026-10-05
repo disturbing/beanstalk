@@ -67,6 +67,7 @@ export function initialEngineState(env: EngineEnv, createdAtMs: number): EngineS
     timers: {},
     ci: initialCiState(config.ci_slots),
     amendedTests: {},
+    authoredTests: {},
     final: null,
     policy: null,
   };

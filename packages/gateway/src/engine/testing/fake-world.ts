@@ -33,6 +33,8 @@ export type FailRule = {
   readonly reads?: readonly string[];
   /** The rule does not fire while the failing test file contains this (an amended test). */
   readonly unless?: string;
+  /** The rule fires only while the failing test file contains this (a test that pins the behaviour). */
+  readonly onlyIf?: string;
 };
 
 /** A flaky failure to inject into one suite run (`nth` counts the runs of a commit from 1). */
@@ -68,6 +70,11 @@ export type ScriptedTask = {
   readonly reconcile?: Readonly<Record<string, string>>;
   /** v2.5: tasks this one declares a semantic coupling with (the arena's `couplings`). */
   readonly coupledWith?: readonly string[];
+  /**
+   * v2.5: what a tests-first author writes for this task. Default: `tests/<id>.test.ts`, which
+   * fails until the task is implemented. A test file containing `VACUOUS` asserts nothing.
+   */
+  readonly authorTests?: Readonly<Record<string, string>>;
 };
 
 export type WorldOptions = {
@@ -143,6 +150,7 @@ export function createWorld(options: WorldOptions): World {
       const costUsd = options.costUsd ?? 0;
       if (instruction.kind === 'initial') return initialRun(git, task, instruction, costUsd);
       if (instruction.kind === 'test-author') return authorRun(git, task, instruction);
+      if (instruction.kind === 'test-first') return testsFirstRun(git, task, instruction);
       if (instruction.kind === 'reconcile') return reconcileRun(git, task, instruction);
       if (instruction.workspace.headSha === null) {
         const nth = (reexecutions.get(task.id) ?? 0) + 1;
@@ -288,24 +296,35 @@ function check(
     sha: Sha;
     extraFiles: Readonly<Record<string, string>> | null;
     flake: FailingTest | null;
+    only?: readonly string[];
+    allReadSets?: true;
   },
 ): CheckResult {
   const files = new Map(git.get(run.sha).files);
   for (const [path, content] of Object.entries(run.extraFiles ?? {})) files.set(path, content);
   const contents = [...files.values()];
   const isPresent = (marker: string): boolean => contents.some((text) => text.includes(marker));
-  const testFiles = [...files.keys()].filter((path) => path.endsWith('.test.ts'));
-  const unparsable = testFiles.filter((path) => (files.get(path) ?? '').includes('SYNTAX ERROR'));
-  const missingFeatures = [...files.keys()].flatMap((path) => {
+  const testOf = (path: string): string => files.get(path) ?? '';
+  const only = run.only === undefined ? null : new Set(run.only);
+  const testFiles = [...files.keys()].filter(
+    (path) => path.endsWith('.test.ts') && (only === null || only.has(path)),
+  );
+  const unparsable = testFiles.filter((path) => testOf(path).includes('SYNTAX ERROR'));
+  const missingFeatures = testFiles.flatMap((path) => {
     const id = /^tests\/(.+)\.test\.ts$/.exec(path)?.[1];
-    return id === undefined || isPresent(`impl:${id}`) || unparsable.includes(path)
+    return id === undefined ||
+      isPresent(`impl:${id}`) ||
+      unparsable.includes(path) ||
+      testOf(path).includes('VACUOUS')
       ? []
       : [{ file: path, name: `${id} is implemented` }];
   });
   const broken = rules.filter(
     (rule) =>
+      (only === null || only.has(rule.file)) &&
       rule.markers.every(isPresent) &&
-      (rule.unless === undefined || !(files.get(rule.file) ?? '').includes(rule.unless)),
+      (rule.unless === undefined || !testOf(rule.file).includes(rule.unless)) &&
+      (rule.onlyIf === undefined || testOf(rule.file).includes(rule.onlyIf)),
   );
   const failingTests: FailingTest[] = [
     ...broken.map((rule) => ({ file: rule.file, name: rule.name })),
@@ -327,15 +346,17 @@ function check(
       Object.fromEntries([[rule.file, 0], ...(rule.reads ?? []).map((path) => [path, 1])]),
     ]),
   );
+  const passingFiles = testFiles.filter((path) => !failingFiles.includes(path)).toSorted();
   return {
     green: failingTests.length === 0,
     tests: testFiles.length,
     failures: failingTests.length,
     failingTests,
     failingFiles,
-    passingFiles: testFiles.filter((path) => !failingFiles.includes(path)).toSorted(),
+    passingFiles,
     readSet: [...new Set(Object.values(readSets).flat())].toSorted(),
     readSets,
+    ...(run.allReadSets === true ? { passingReadSets: passingReadSets(rules, passingFiles) } : {}),
     readDepths,
     stackFiles: [],
     output:
@@ -345,6 +366,24 @@ function check(
     suiteSeconds: SUITE_SECONDS,
     timedOut: false,
   };
+}
+
+/**
+ * A passing test reads what its failure rules name; a task's own test (`tests/<id>.test.ts`)
+ * also reads its module.
+ */
+function passingReadSets(
+  rules: readonly FailRule[],
+  passingFiles: readonly string[],
+): Record<string, string[]> {
+  return Object.fromEntries(
+    passingFiles.map((path) => {
+      const id = /^tests\/(.+)\.test\.ts$/.exec(path)?.[1];
+      const reads = rules.filter((rule) => rule.file === path).flatMap((rule) => rule.reads ?? []);
+      const own = id === undefined ? [] : [`src/${id}/index.ts`];
+      return [path, [...new Set([path, ...own, ...reads])].toSorted()];
+    }),
+  );
 }
 
 function updateRef(git: ToyGit, ref: string, newSha: Sha, oldSha: Sha): JobOutcome {
@@ -392,6 +431,22 @@ function authorRun(
   return freshRun(
     git,
     { task, writes: task.amendTests ?? {}, costUsd: 0.005, session: `author-${task.id}` },
+    instruction,
+  );
+}
+
+/** A tests-first author: `authorTests`, or the task's own test file, committed onto the base. */
+function testsFirstRun(
+  git: ToyGit,
+  task: ScriptedTask,
+  instruction: EngineInstruction,
+): InvocationResult {
+  const writes = task.authorTests ?? {
+    [`tests/${task.id}.test.ts`]: `test('${task.id}'); // written first\n`,
+  };
+  return freshRun(
+    git,
+    { task, writes, costUsd: 0.005, session: `tests-first-${task.id}` },
     instruction,
   );
 }

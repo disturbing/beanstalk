@@ -269,3 +269,37 @@ describe('the v2.2 burst, in the simulator', () => {
     expect(v23.done_minutes).toBeLessThanOrEqual(v22.done_minutes * 1.15);
   });
 });
+
+describe('v2.5 (forge-owned tests) on the burst and the calm race', () => {
+  const FORGE_TESTS: Partial<RunConfigInput> = { tests_first: true, targeted_landing_check: true };
+
+  it('keeps every green and a correct stalk on the burst, no slower than v2.4', () => {
+    const v24 = numbers(runRace(burstScenario()));
+    const run = runRace(burstScenario(FORGE_TESTS));
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    const v25 = numbers(run);
+    expect(v25.green).toBeGreaterThanOrEqual(v24.green);
+    expect(v25.red_validations).toBeLessThanOrEqual(v24.red_validations);
+    expect(v25.correct).toBe(true);
+    expect(v25.done_minutes).toBeLessThanOrEqual(v24.done_minutes);
+  });
+
+  it('keeps every green on the calm race; the author step costs under a third more time', () => {
+    const v24 = numbers(runRace(calmScenario()));
+    const v25 = numbers(runRace(calmScenario(FORGE_TESTS)));
+
+    expect(v25.green).toBe(40);
+    expect(v25.correct).toBe(true);
+    expect(v25.done_minutes).toBeLessThanOrEqual(v24.done_minutes * 1.3);
+  });
+
+  it('decides exactly as v2.4 when only the targeted check is on and no test reads both sides', () => {
+    const v24 = runRace(calmScenario());
+    const targeted = runRace(calmScenario({ targeted_landing_check: true }));
+
+    expect(targeted.events.map((event) => event.type)).toEqual(
+      v24.events.map((event) => event.type),
+    );
+  });
+});

@@ -41,6 +41,8 @@ export type ReworkOutcome = {
   readonly headSha: Sha | null;
   /** The agent's final message (a reconcile's verdict line). */
   readonly resultText: string;
+  /** Files the pushed commit changed since the workspace's base (a tests-first author's tests). */
+  readonly files: readonly string[];
 };
 
 /** An answer to a decision card. */
@@ -205,8 +207,9 @@ export function taskDefinition(ctx: StepContext, id: string): ArenaTask {
 }
 
 /**
- * A task's effective acceptance tests: its own, with any spec amendment a decision recorded
- * (v2.2). Paths never change; an amendment only changes contents.
+ * A task's effective acceptance tests: its own (or, v2.5, the ones its tests-first author
+ * proved, which replace them), with any spec amendment a decision recorded (v2.2). An
+ * amendment only changes contents, never paths.
  */
 export function acceptanceTests(ctx: StepContext, id: string): Readonly<Record<string, string>> {
   taskDefinition(ctx, id);
@@ -219,9 +222,14 @@ export function effectiveTests(
   state: EngineState,
   id: string,
 ): Readonly<Record<string, string>> {
-  const tests = env.tasks.get(id)?.acceptance_tests ?? {};
+  const tests = state.authoredTests[id] ?? env.tasks.get(id)?.acceptance_tests ?? {};
   const amended = state.amendedTests[id];
   return amended === undefined ? tests : { ...tests, ...amended };
+}
+
+/** The task as its prompts name it: its definition with its effective acceptance tests. */
+export function promptTask(ctx: StepContext, id: string): ArenaTask {
+  return { ...taskDefinition(ctx, id), acceptance_tests: { ...acceptanceTests(ctx, id) } };
 }
 
 export function requireSlot(ctx: StepContext, id: string | null): SlotState {

@@ -24,6 +24,7 @@ import {
   acceptanceTests,
   cancelTimer,
   emit,
+  promptTask,
   requireTask,
   setTimer,
   startJob,
@@ -400,7 +401,7 @@ export function startAuthor(step: V2Step, flow: LandingFlow, slot: SlotId, cardI
   const loserTask = requireTask(ctx, loser);
   const tests = acceptanceTests(ctx, loser);
   const prompt = testAuthorPrompt(
-    taskDefinition(ctx, loser),
+    promptTask(ctx, loser),
     { card: card.id, text: card.text ?? '' },
     {
       winner,
@@ -666,7 +667,7 @@ export function startReexecution(
   flow.rechecks = 0;
   state.stats.reexecutions += 1;
   const amended = Object.keys(card.amendment?.files ?? {});
-  const prompt = reexecutionPrompt(taskDefinition(ctx, flow.task), decisionOf(card), {
+  const prompt = reexecutionPrompt(promptTask(ctx, flow.task), decisionOf(card), {
     winner: card.winnerContext,
     amended,
     inForce: decisionsInForce(state, flow.task, card.id),
@@ -727,7 +728,7 @@ export function startAdoptRework(
       ? { sha: card.red.head, ref: SPROUT_REF, conflicts: [] }
       : { sha: authorHead, ref: `refs/heads/${taskBranch(loser)}`, conflicts: [] };
   const prompt = (isResumed: boolean): string =>
-    adoptInPlacePrompt(taskDefinition(ctx, flow.task), decisionOf(card), {
+    adoptInPlacePrompt(promptTask(ctx, flow.task), decisionOf(card), {
       loser: { id: loser, title: taskDefinition(ctx, loser).title },
       amended,
       inForce: decisionsInForce(state, flow.task, card.id),

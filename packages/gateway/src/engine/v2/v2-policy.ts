@@ -31,6 +31,13 @@ import { freeAskingSlot, hold } from '../slots';
 import { isTerminal, startTask } from '../tasks';
 import { assignAgents } from './v2-agents';
 import {
+  onTestsFirstDone,
+  onTestsFirstElapsed,
+  onTestsFirstJob,
+  onTestsFirstJobFailed,
+  startTestsFirst,
+} from './v2-tests-first';
+import {
   answerCard,
   hasPendingCards,
   onAuthorDone,
@@ -121,6 +128,8 @@ function initialV2State(ctx: StepContext): V2State {
       reconcile: config.reconcile,
       escalateAfter: config.escalate_after,
       reconcileParties: config.reconcile_parties,
+      testsFirst: config.tests_first,
+      targetedLandingCheck: config.targeted_landing_check,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
       singleSuspectRevert: config.single_suspect_revert,
@@ -148,6 +157,8 @@ function initialV2State(ctx: StepContext): V2State {
     bisects: {},
     reverts: {},
     unstarted: [...ctx.state.order],
+    authoring: {},
+    readSets: {},
     landings: {},
     agentQueue: [],
     agentWaitSince: {},
@@ -229,6 +240,10 @@ function initialStats(): V2State['stats'] {
     rescues: 0,
     dynamic_culprit_runs: 0,
     dynamic_culprit_probes: 0,
+    tests_first_accepted: 0,
+    tests_first_fallbacks: 0,
+    targeted_checks: 0,
+    targeted_red: 0,
   };
 }
 
@@ -248,6 +263,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
     onInitialCommitted: (task) => startLanding(step, task),
     onReworkResult: (outcome: ReworkOutcome) => {
       if (outcome.kind === 'test-author') onAuthorDone(step, outcome);
+      else if (outcome.kind === 'test-first') onTestsFirstDone(step, outcome);
       else if (outcome.kind === 'reconcile') onReconcileDone(step, outcome);
       else onReworkDone(step, outcome);
     },
@@ -289,7 +305,9 @@ function dispatch(step: V2Step): void {
     });
     task.status = 'running';
     hold(ctx, slot, id);
-    if (!openStartCard(step, slot, id)) startTask(ctx, slot, id, state.sprout);
+    if (openStartCard(step, slot, id)) continue;
+    if (state.settings.testsFirst) startTestsFirst(step, slot, id);
+    else startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
 }
@@ -363,6 +381,9 @@ function routeJob(step: V2Step, jobId: JobId, result: JobResult): void {
     case 'card':
       onCardJob(step, wait.card, jobId, result);
       return;
+    case 'tests-first':
+      onTestsFirstJob(step, wait.task, jobId, result);
+      return;
     case 'stalk':
       onStalkJob(step, jobId, result);
       return;
@@ -397,6 +418,11 @@ function onJobFailed(step: V2Step, failure: { jobId: JobId; error: string }): bo
     onCardJobFailed(step, wait.card, failure.error);
     return true;
   }
+  if (wait?.kind === 'tests-first') {
+    takeWait(step.state, failure.jobId);
+    onTestsFirstJobFailed(step, wait.task, failure.error);
+    return true;
+  }
   return false;
 }
 
@@ -421,6 +447,7 @@ function routeCi(step: V2Step, ciId: CiId, result: CheckResult): void {
     case 'loo-revert':
     case 'ticket-revert':
     case 'card':
+    case 'tests-first':
     case 'stalk':
       throw new EngineInvariantError(`job wait ${wait.kind} got a CI result`);
     default:
@@ -437,6 +464,9 @@ function routeTimer(step: V2Step, key: string): void {
       return;
     case 'fail-first':
       onFailFirstElapsed(step, timer.task);
+      return;
+    case 'tests-first':
+      onTestsFirstElapsed(step, timer.task);
       return;
     case 'oracle':
       onOracle(step, timer.card);
@@ -492,7 +522,9 @@ function isV20(settings: V2Settings): boolean {
     !settings.baseCulprits &&
     !settings.startCards &&
     !settings.rescue &&
-    !settings.dynamicCulprits
+    !settings.dynamicCulprits &&
+    !settings.testsFirst &&
+    !settings.targetedLandingCheck
   );
 }
 
@@ -599,6 +631,12 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     dynamic_culprits: settings.dynamicCulprits,
     dynamic_culprit_runs: stats.dynamic_culprit_runs,
     dynamic_culprit_probes: stats.dynamic_culprit_probes,
+    tests_first: settings.testsFirst,
+    tests_first_accepted: stats.tests_first_accepted,
+    tests_first_fallbacks: stats.tests_first_fallbacks,
+    targeted_landing_check: settings.targetedLandingCheck,
+    targeted_checks: stats.targeted_checks,
+    targeted_red: stats.targeted_red,
     decision_outcome: settings.decisionOutcome,
     decision_mode: settings.decisionMode,
     amendments: stats.amendments,
@@ -680,6 +718,13 @@ function summaryRows(
       `${settings.startCards ? stats.start_cards : 'off'} / ${settings.rescue ? stats.rescues : 'off'} / ` +
         (settings.dynamicCulprits
           ? `${stats.dynamic_culprit_runs} (${stats.dynamic_culprit_probes})`
+          : 'off'),
+    ],
+    [
+      'Tests first (accepted / fallbacks) / targeted landing checks (red)',
+      `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
+        (settings.targetedLandingCheck
+          ? `${stats.targeted_checks} (${stats.targeted_red})`
           : 'off'),
     ],
     [

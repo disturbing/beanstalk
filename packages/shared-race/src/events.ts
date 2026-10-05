@@ -356,6 +356,21 @@ export type RaceEventFields = {
     readonly check_seconds: number;
     /** v2.2: the red was the sprout's (`inherited_reds`); the bean waits, no rework round. */
     readonly inherited?: true;
+    /** v2.5: a targeted check of the exact landing tree ran only these test files. */
+    readonly targets?: readonly string[];
+  };
+  /**
+   * v2.5 (`tests_first`): the test author's files for a task, proven on its base. `accepted`:
+   * the files that failed there replace the given tests; `fallback`: the given tests stay.
+   */
+  'tests.first': TaskRef & {
+    readonly status: 'accepted' | 'fallback';
+    readonly base: string;
+    readonly files: readonly string[];
+    readonly accepted: readonly string[];
+    readonly failing_tests: readonly string[];
+    readonly problems: readonly string[];
+    readonly inv: string;
   };
   /**
    * v2.4: before a card, the test author reconciled the two tasks' acceptance tests (their

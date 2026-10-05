@@ -170,6 +170,8 @@ export type CheckResult = {
   /** The failing tests' static import closure, as one set (v2 names culprits by it). */
   readonly readSet: readonly string[];
   readonly readSets: Readonly<Record<string, readonly string[]>>;
+  /** v2.5: the passing test files' read sets, when the check asked for them (`allReadSets`). */
+  readonly passingReadSets?: Readonly<Record<string, readonly string[]>>;
   /** Import hops from each failing test file to each file it reads (suspect ranking). */
   readonly readDepths: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly stackFiles: readonly string[];
@@ -233,6 +235,10 @@ export type JobSpec =
       readonly sha: Sha;
       readonly extraFiles: Readonly<Record<string, string>> | null;
       readonly instance: CheckInstance;
+      /** v2.5's targeted check: run only these test files (default: the whole suite). */
+      readonly only?: readonly string[];
+      /** v2.5: also report the passing test files' read sets (the targeted check's third source). */
+      readonly allReadSets?: true;
     }
   | {
       /** A commit on `onto` that undoes `commit` (published as a candidate, no ref moved). */

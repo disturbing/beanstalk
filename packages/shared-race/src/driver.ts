@@ -10,9 +10,17 @@ import type { InvocationId, SlotId } from './ids';
  * that amends clashing tasks' acceptance tests (the arriving bean's and, since v2.5, up to
  * three landed tasks') on the arriving bean's branch. The driver
  * runs both like any other prompt, keeps only their changes to the `acceptance` files, and
- * never restores them.
+ * never restores them. `test-first` (v2.5, `tests_first`) is a fresh session that writes a
+ * task's acceptance tests from its intent before the implementer starts: the driver keeps
+ * only the new test files it created and discards every other change.
  */
-export type InvocationKind = 'initial' | 'rework' | 'fixer' | 'test-author' | 'reconcile';
+export type InvocationKind =
+  | 'initial'
+  | 'rework'
+  | 'fixer'
+  | 'test-author'
+  | 'reconcile'
+  | 'test-first';
 
 /**
  * A merge the driver performs in the worktree before running the agent: `git fetch` the

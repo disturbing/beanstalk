@@ -46,6 +46,8 @@ GIT_TIMEOUT = 300.0         # clone, fetch or push through the git proxy
 PROGRESS_INTERVAL = 2.0     # at most one cost update per invocation every this many seconds
 FINISH_TIMEOUT = 1800.0     # how long to wait for the final check after a stop
 EVENTS_PAGE = 5000          # the gateway's largest events page
+# What a tests-first author may add: the paths `node --test` picks up by default (E1's `e1_tests.TEST_FILE`)
+TEST_FILE = re.compile(r"(^|/)([^/]*[._-]test|test[-_][^/]*|test)\.(c|m)?[jt]s$|(^|/)test/[^/]+\.(c|m)?[jt]s$")
 WALL_GRACE = 900.0          # past --max-wall-minutes, how long to wait for the gateway's own end of the race
 OUTAGE_SECONDS = 300.0      # an agent-CLI outage (auth, rate limit, API down) longer than this stops the run
 INFRA_BACKOFF = 15.0        # first pause of a slot after such a failure; doubles per retry
@@ -65,6 +67,7 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "flake_confirm": ("FLAKE_CONFIRM", bool), "inherited_reds": ("INHERITED_REDS", str),
            "early_tickets": ("EARLY_TICKETS", bool), "reconcile": ("RECONCILE", bool),
            "escalate_after": ("ESCALATE_AFTER", int), "reconcile_parties": ("RECONCILE_PARTIES", int),
+           "tests_first": ("TESTS_FIRST", bool), "targeted_landing_check": ("TARGETED_LANDING_CHECK", bool),
            "decision_outcome": ("DECISION_OUTCOME", str), "decision_mode": ("DECISION_MODE", str),
            "human_timeout_seconds": ("HUMAN_TIMEOUT_SECONDS", float),
            "single_suspect_revert": ("SINGLE_SUSPECT_REVERT", bool), "validation_first": ("VALIDATION_FIRST", bool),
@@ -1166,8 +1169,10 @@ class RemoteRace(Race):
         acceptance = dict(ws.get("acceptance") or {})
         # A test author (v2.2) or a reconciling one (v2.4; v2.5: every party's tests) amends the acceptance files:
         # they are kept, every other change is not.
-        if kind in ("test-author", "reconcile"):
-            dropped = await self.keep_only(wt, set(acceptance))
+        # A tests-first author (v2.5) writes a task's tests before its implementer: only the new test files it
+        # created are kept (no edits to existing files, no source, no helpers outside the test file).
+        if kind in ("test-author", "reconcile", "test-first"):
+            dropped = await self.keep_only(wt, set(acceptance), new_tests=kind == "test-first")
             if dropped:
                 self.log("driver.author_discarded", inv=inv["inv"], task=inv["task"], paths=dropped)
             tamper: list[str] = []
@@ -1185,9 +1190,9 @@ class RemoteRace(Race):
         return {"pushed_ref": ref, "head_sha": head, "new_commit": created, "files": files, "tamper": tamper,
                 "markers_left": []}
 
-    async def keep_only(self, wt: str, keep: set[str]) -> list[str]:
-        """Discard every change in the worktree outside ``keep`` (a test author may only amend those files);
-        returns the paths it discarded."""
+    async def keep_only(self, wt: str, keep: set[str], *, new_tests: bool = False) -> list[str]:
+        """Discard every change in the worktree outside ``keep`` (a test author may only amend those files), and
+        with ``new_tests`` also keep every new test file (``TEST_FILE``); returns the paths it discarded."""
         assert self.git
         out = await self.git.out("status", "--porcelain", "-z", "--untracked-files=all", cwd=wt)
         entries = [e for e in out.split("\0")]
@@ -1200,9 +1205,10 @@ class RemoteRace(Race):
             status, path = entry[:2], entry[3:]
             if status[0] in "RC":  # a rename or copy names its source next
                 i += 1
-            if path in keep:
+            is_new = status in ("??", "A ")
+            if path in keep or (new_tests and is_new and TEST_FILE.search(path) and "node_modules/" not in path):
                 continue
-            (untracked if status in ("??", "A ") else tracked).append(path)
+            (untracked if is_new else tracked).append(path)
         if tracked:
             await self.git.run("checkout", "-q", "HEAD", "--", *tracked, cwd=wt)
         for path in untracked:
