@@ -52,12 +52,6 @@ export type StalkRow =
       readonly t: number;
       readonly reason: string;
     }
-  | {
-      readonly kind: 'pointer';
-      readonly key: string;
-      readonly stalkIdx: number;
-      readonly ahead: number;
-    }
   | { readonly kind: 'fold'; readonly key: string; readonly t: number; readonly count: number };
 
 export type StalkInput = {
@@ -133,12 +127,9 @@ function lineRows(input: StalkInput): readonly StalkRow[] {
         fell: { task: bean.id, reason: bean.dropReason ?? 'dropped' },
       })),
   ].toSorted((a, b) => b.t - a.t);
-  const newest = items.find((item) => 'commit' in item);
-  const newestIdx = newest !== undefined && 'commit' in newest ? newest.commit.idx : -1;
   const folds = foldGroups(input, items);
   const rows: StalkRow[] = [];
   const moment = justMatured(input);
-  let pointer = false;
   let bracket = false;
   const folded = new Set<number>();
   for (const item of items) {
@@ -154,10 +145,6 @@ function lineRows(input: StalkInput): readonly StalkRow[] {
       continue;
     }
     const { commit } = item;
-    if (!pointer && commit.idx <= stalkIdx && newestIdx > stalkIdx) {
-      rows.push({ kind: 'pointer', key: 'pointer', stalkIdx, ahead: newestIdx - stalkIdx });
-      pointer = true;
-    }
     const group = folds.get(commit.idx);
     if (group !== undefined) {
       if (!folded.has(group.t))

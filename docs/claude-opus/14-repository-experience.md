@@ -576,3 +576,37 @@ In `prototypes/repo-experience/shots/app-v2/`:
 |---|---|
 | Night | home mid-run, coupons, bean journey, finished, what broke, who's on billing, a step selected, the Files tab |
 | Day (phosphor) | home mid-run, coupons, bean journey, finished |
+
+### Performance note: the live Ask path (2026-10-05, not yet measured span by span)
+
+On a live run, the coupons question took about 22 s through the gateway, against 2 s for a recorded run. I haven't traced it yet; this is a read of the code path, to verify with the gateway's traces before fixing.
+
+**What one answer reads.** `planAnswer` makes four kinds of read:
+
+1. **Run context:** `loadPlanContext` pages the whole event log (`runEvents`, 5,000 at a time), then reads the tree at the sprout, `beansByPath` for every bean, `decisions` and `repoLog`.
+2. **The feature's files:** `loadCorpus` reads the tree again, the beans again and `testsFor` for every test, plus one `repoGrep` per stem of the feature word.
+3. **The answer's body:** a `repoDiff` across the range, and for the featured bean its `beanDetail` and a second `repoDiff`.
+4. **The suggestions:** reduced from the events, which are already loaded.
+
+**What probably dominates:** the reads that touch file contents, run one after another rather than together.
+
+- **`repoGrep`** reads every file at the ref from Artifacts to scan it: 114 file reads per stem, two stems for "coupons".
+- **`testsFor`** with no paths builds the import closure of every test, which means reading every test and the sources it imports.
+- **`repoDiff`** reads both trees and the changed blobs, twice per answer.
+- **The rest:** the tree read at the sprout three times, and `beansByPath` for every bean twice, each reconstructed from the event log.
+
+On Artifacts each blob read is a network round trip; on the recorded runs every read is in memory, which explains the 10×.
+
+**Fix**, in the order I'd do it:
+
+1. **Memoise per request.** One `ForgeSource` wrapper caches tree, beans, tests and events within a request. This removes the duplicate reads, under an hour of work.
+2. **Precompute indexes on landing.** When a commit lands on the sprout, the gateway (a queue consumer or the RunDO's alarm) updates three indexes, keyed by ref sha and stored in D1 or the DO's SQLite:
+   - a **term index** (path tokens and identifier tokens per file), so the resolver's grep becomes one indexed query;
+   - each **test's import closure**;
+   - each landing's **numstat and patch**, so diffs between line commits are concatenations, not tree walks.
+
+   About 1.5 days.
+3. **Cache answers.** Cache by (run, question class, entities, sprout sha) in the Cache API for a few seconds. Repeated questions and tab clicks then return immediately; the live feed invalidates the cache when the sprout moves.
+4. **Stream the page.** Render the stalk and defaults first, then stream the explorer in with React's streaming render (`Suspense`), so the page appears in under a second while the answer finishes.
+
+**Target:** under 2 s for an answer on a live run, under 300 ms for a repeated question.

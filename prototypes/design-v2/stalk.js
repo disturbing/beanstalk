@@ -74,8 +74,7 @@
       ...landings.filter((l) => l.t <= S.T).map((l) => ({ t: l.t, l })),
       ...[...drops.values()].filter((d) => d.t <= S.T).map((d) => ({ t: d.t, d })),
     ].sort((a, b) => b.t - a.t);
-    const newest = items.find((i) => i.l)?.l.idx ?? -1;
-    let pointer = false, first = true;
+    let first = true;
     const FOLD_OVER = 60, KEEP = 30;
     const landedCount = items.filter((i) => i.l).length;
     const folds = new Map();
@@ -93,7 +92,7 @@
         if (!shownFold.has(p)) {
           shownFold.add(p);
           const n = [...folds.values()].filter((x) => x === p).length;
-          rows.push({ key: `f-${p.trunk_idx}`, cls: 'pointer fold', html: `<span></span><span class="stem"></span><span>validated at ${clock(p.t)}: ${plural(n, 'bean')}</span>` });
+          rows.push({ key: `f-${p.trunk_idx}`, cls: 'tipnote fold', html: `<span></span><span class="stem"></span><span>validated at ${clock(p.t)}: ${plural(n, 'bean')}</span>` });
         }
         continue;
       }
@@ -103,10 +102,6 @@
         continue;
       }
       const l = it.l;
-      if (!pointer && l.idx <= stalkIdx && newest > stalkIdx) {
-        rows.push({ key: 'ptr', cls: 'pointer', html: `<span></span><span class="stem"></span><span>stalk at #${stalkIdx}, ${newest - stalkIdx} on the sprout above</span>` });
-        pointer = true;
-      }
       const state = culprits.has(l.task) ? 'red' : l.idx <= stalkIdx ? 'stalk' : 'sprout';
       const matured = moment && l.idx >= moment.from && l.idx <= moment.to;
       if (matured && !bracket) {

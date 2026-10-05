@@ -430,51 +430,25 @@ function beanRow(bean) {
       <span class="tt">${escapeHtml(bean.title)}</span><span class="st">${STATUS_SHORT[bean.status]}</span></div>`;
 }
 
-function noteRow(cls, text) {
-  return `<div class="pointer ${cls}"><span></span><span class="stem"></span><span>${text}</span></div>`;
-}
-
 function renderStalk(model, rowsEl, headEl) {
   const range = (leaves) => {
     const ns = leaves.map((leaf) => leaf.n);
     return ns.length > 1 ? `#${Math.min(...ns)}–#${Math.max(...ns)}` : `#${ns[0] ?? ''}`;
   };
   const rows = model.beans.map(beanRow);
-  rows.push(
-    noteRow(
-      'collect',
-      model.collecting.length
-        ? `${model.collecting.length} queued since this check began: the next batch`
-        : 'the next batch collects here',
-    ),
-    ...model.collecting.map((leaf) => leafRow(leaf, 'sprout')),
-  );
-  if (model.batch.length) {
-    const left = CHECK_STEPS - model.checkStep;
-    rows.push(
-      noteRow(
-        'checkrun',
-        `<i class="orbit"></i>stalk check: ${range(model.batch)} together, ${left > 1 ? 'running' : 'finishing'}`,
-      ),
-      ...model.batch.map((leaf) => leafRow(leaf, 'sprout inbatch')),
-    );
-  }
+  rows.push(...model.collecting.map((leaf) => leafRow(leaf, 'sprout')));
+  rows.push(...model.batch.map((leaf) => leafRow(leaf, 'sprout inbatch')));
   const r = model.result;
-  if (r?.culprit) {
-    rows.push(noteRow('pulled', `red: #${r.culprit} pulled out and sent back; the rest matured`));
-  }
   if (r?.matured) {
     rows.push(
       `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${r.time} · ${r.matured} matured</span></div>`,
     );
   }
-  rows.push(
-    noteRow('', `stalk at #${model.stalk[0].n}`),
-    ...model.stalk.map((leaf) => leafRow(leaf, 'stalk')),
-  );
+  rows.push(...model.stalk.map((leaf) => leafRow(leaf, 'stalk')));
   rowsEl.innerHTML = rows.join('');
   const growing = model.beans.filter((b) => b.status !== 'queued').length;
-  headEl.textContent = `${growing} growing, ${model.batch.length + model.collecting.length} on the sprout`;
+  const check = model.batch.length ? ` · stalk check on ${range(model.batch)}` : '';
+  headEl.textContent = `${growing} growing${check}`;
   for (const item of [...model.beans, ...model.collecting, ...model.batch, ...model.stalk]) {
     item.enter = false;
     item.promoted = false;

@@ -29,15 +29,19 @@ function at(seconds: number) {
 }
 
 describe('the stalk of the recorded v2 run', () => {
-  it('grows beans at the tip mid-run, then sprout leaves above the stalk pointer', () => {
+  it('grows beans at the tip mid-run, then sprout leaves above the stalk leaves', () => {
     const { now, visible, state } = at(760);
     const rows = stalkRows({ state, events: visible, now, titles });
     const kinds = rows.map((row) => row.kind);
     expect(kinds.slice(0, 6)).toEqual(['bean', 'bean', 'bean', 'bean', 'bean', 'bean']);
-    const pointer = kinds.indexOf('pointer');
-    expect(
-      rows.slice(6, pointer).every((row) => row.kind !== 'leaf' || row.status === 'sprout'),
-    ).toBe(true);
+    const leaves = rows.flatMap((row) =>
+      row.kind === 'leaf' && row.status !== 'red' ? [row.status] : [],
+    );
+    const firstStalk = leaves.indexOf('stalk');
+    expect(firstStalk).toBeGreaterThan(0);
+    expect(leaves.slice(0, firstStalk).every((status) => status === 'sprout')).toBe(true);
+    expect(leaves.slice(firstStalk).every((status) => status === 'stalk')).toBe(true);
+    expect(kinds).not.toContain('pointer');
     expect(rows.some((row) => row.kind === 'fell')).toBe(true);
   });
 

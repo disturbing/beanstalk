@@ -189,23 +189,6 @@
   font-size: 12.5px;
   color: var(--ink-2);
 }
-.pointer {
-  display: grid;
-  grid-template-columns: 40px 26px 1fr;
-  align-items: center;
-  height: 20px;
-  font: 500 11px var(--font-mono);
-  color: var(--good);
-}
-.pointer span:last-child {
-  border-top: 1px dashed color-mix(in srgb, var(--leaf) 55%, transparent);
-  padding-top: 1px;
-  margin-right: 12px;
-}
-.pointer .stem::before,
-.fold .stem::before {
-  opacity: 1;
-}
 .root {
   display: grid;
   grid-template-columns: 40px 26px 1fr;

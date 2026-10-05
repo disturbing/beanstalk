@@ -133,19 +133,9 @@ export function StalkList(props: {
                 <span className={styles.ix}>fell</span>
               </Link>
             );
-          case 'pointer':
-            return (
-              <div key={row.key} className={styles.pointer}>
-                <span />
-                <span className={styles.stem} />
-                <span>
-                  stalk at #{row.stalkIdx}, {row.ahead} on the sprout above
-                </span>
-              </div>
-            );
           case 'fold':
             return (
-              <div key={row.key} className={styles.pointer}>
+              <div key={row.key} className={styles.note}>
                 <span />
                 <span className={styles.stem} />
                 <span>

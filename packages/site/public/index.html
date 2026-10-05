@@ -46,7 +46,7 @@
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="./#grow">How it grows</a>
-          <a href="./#parallel">Parallel</a>
+          <a href="./#parallel">Merge queues</a>
           <a href="./#ask">Ask</a>
           <a href="./#race">The race</a>
           <a href="./#agents">Your agents</a>
@@ -179,8 +179,8 @@
                 <i class="mark mk-sprout" aria-hidden="true"></i>
                 <dt>Sprout</dt>
                 <dd>
-                  A bean that passed its tests on a soft fork. Once it passes, other beans and
-                  sprouts build on it instantly.
+                  Once a bean passes its tests on a soft fork, it blooms into a sprout, and others
+                  get its updates instantly.
                 </dd>
               </div>
               <div>
@@ -205,9 +205,9 @@
             <div class="head"><b>beanstalk-shop</b><span data-stalkhead></span></div>
             <div class="rows" role="img" aria-label="An animated stalk"></div>
             <figcaption class="caption">
-              Beans are checked alone and land on the sprout. A stalk check runs on the batch below;
-              when it passes, the batch matures together, and the next check starts at once on the
-              sprouts that collected meanwhile.
+              Beans are checked alone and land on the sprout. The shaded sprouts are under a stalk
+              check together; when it passes, they mature at once, and the next check starts on the
+              sprouts that landed meanwhile.
             </figcaption>
           </figure>
         </div>
@@ -216,31 +216,47 @@
       <section class="band" id="parallel" aria-labelledby="parallel-title">
         <div class="wrap split flip">
           <div>
-            <h2 id="parallel-title">Twelve agents. Twelve checks. All at once.</h2>
+            <h2 id="parallel-title">
+              Merge queues make green work wait. Beanstalk shares it instantly.
+            </h2>
             <p class="lead">
-              Every agent's bean is checked at the same time as everyone else's, each on the exact
-              tree it will join. Nobody waits in line.
+              Checks in parallel are table stakes. What matters is what happens after a check
+              passes, and after one fails.
             </p>
-            <ul class="facts">
-              <li>
-                <b>No merge queue.</b> A bean lands when its own check passes, not when its turn
-                comes.
-              </li>
-              <li>
-                <b>The real tree.</b> Each check runs on the stalk plus the beans already on the
-                sprout, so a pass means it works with everyone's latest work.
-              </li>
-            </ul>
+            <p class="racenote">
+              In our races, Beanstalk finishes 1.6–2.3× sooner than a GitHub-style merge queue (12
+              agents, 40 colliding tasks, three runs).
+            </p>
           </div>
-          <figure class="panel" style="margin: 0" data-lanes>
-            <div class="head">
-              <b>Checks running now</b><span data-lanes-head>12 in parallel</span>
+          <figure class="panel vsq" style="margin: 0">
+            <figcaption class="sr-only">GitHub merge queue compared with Beanstalk</figcaption>
+            <div class="vsq-head">
+              <span></span><span>GitHub merge queue</span><span class="us">Beanstalk</span>
             </div>
-            <div
-              class="lanes"
-              role="img"
-              aria-label="Twelve checks running at the same time, landing one after another"
-            ></div>
+            <div class="vsq-row">
+              <b>A check passes</b>
+              <p>
+                The green PR waits in the queue. Nobody can build on it until it merges to main.
+              </p>
+              <p class="us">
+                The bean blooms into a sprout, and other agents build on it immediately.
+              </p>
+            </div>
+            <div class="vsq-row">
+              <b>A batch fails</b>
+              <p>The whole group is blocked and re-tested, one split at a time.</p>
+              <p class="us">
+                Only the culprit comes out. The rest of the batch carries on to the stalk.
+              </p>
+            </div>
+            <div class="vsq-row">
+              <b>Two changes clash</b>
+              <p>Someone rebases, resolves and pushes again, by hand.</p>
+              <p class="us">
+                Smart reconciliation sorts out clashes that aren't real disagreements. Only real
+                disagreements reach a person.
+              </p>
+            </div>
           </figure>
         </div>
       </section>
@@ -325,23 +341,48 @@
                 A red check sends the bean back to the agent that wrote it, with the failing tests
                 and what changed underneath it. The stalk never sees it.
               </p>
-              <div class="shotcrop">
-                <img
-                  class="night"
-                  src="img/journey-night.png"
-                  width="1440"
-                  height="1000"
-                  loading="lazy"
-                  alt="A bean's journey: picked up by a6, check passed, conflicted with the sprout in coupons.ts, sent back to its author, reworked and checking again."
-                />
-                <img
-                  class="day"
-                  src="img/journey-day.png"
-                  width="1440"
-                  height="1000"
-                  loading="lazy"
-                  alt="A bean's journey in day mode: sent back to its author after a conflict, then reworked."
-                />
+              <div
+                class="jcard"
+                role="img"
+                aria-label="A bean's journey: the pre-land check failed on coupon-cap.test.ts because t040 had just landed a change to coupons.ts, so the bean was sent back to its author, a6."
+              >
+                <div class="jc-head">
+                  <b>Fixed-amount coupons can push a total below zero</b>
+                  <span class="chip jc-tag red">sent back</span
+                  ><span class="jc-meta">t038 · a6, Claude Code session of coop</span>
+                </div>
+                <div class="jc-grid">
+                  <ol class="jc-steps">
+                    <li class="agent"><span>10:30</span>Picked up by a6</li>
+                    <li class="agent"><span>10:56</span>Committed its change, 2 files</li>
+                    <li class="bad on">
+                      <span>12:09</span>Pre-land check failed on the merged tree
+                    </li>
+                    <li class="rework">
+                      <span>12:10</span>Sent back to its author, with the failing test and what
+                      changed underneath it
+                    </li>
+                    <li class="live"><span>12:10</span>Reworking</li>
+                  </ol>
+                  <div class="jc-detail">
+                    <div class="jc-label">Failing test</div>
+                    <code class="jc-fail"
+                      >coupon-cap.test.ts › never discounts more than the subtotal</code
+                    >
+                    <div class="jc-label">What changed underneath it</div>
+                    <div class="jc-landed">
+                      <i class="lfm"></i
+                      ><span><b>t040 #78</b> Expired coupons are still accepted at checkout</span>
+                    </div>
+                    <div class="hunk">
+                      <div class="h">billing/coupons.ts</div>
+                      <div class="d">- if (coupon.expiresAt &lt; now) return 0;</div>
+                      <div class="a">
+                        + if (isExpired(coupon, now)) throw expiredCoupon(coupon);
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </article>
             <article class="tile">
@@ -383,8 +424,9 @@
           <div class="sechead">
             <h2 id="race-title">We raced it against a merge queue.</h2>
             <p class="intro">
-              On Cloudflare, 12 Claude agents worked through 40 colliding tasks. We compared
-              Beanstalk with a GitHub-style batched merge queue.
+              On Cloudflare, 12 Claude agents worked through 40 colliding tasks. Across three runs,
+              Beanstalk finished 1.6–2.3× sooner than a GitHub-style batched merge queue. The
+              numbers below are from one run.
             </p>
           </div>
           <div class="stats">

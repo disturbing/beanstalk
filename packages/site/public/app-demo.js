@@ -351,35 +351,15 @@ function stalkRows(f) {
   ];
   if (f.reverted) items.push({ kind: 'revert', at: RED.revert });
   items.sort((a, b) => b.at - a.at);
-  let pointer = false;
   let bracket = false;
-  let day = null;
   for (const item of items) {
-    const label = stamp(item.at).day;
-    if (item.kind === 'leaf' && item.l.n < f.stalk && !pointer) {
-      const above = f.landed - f.stalk;
-      rows.push({
-        key: 'ptr',
-        cls: `pointer${answer !== 'default' && answer !== 'replay' ? ' dim' : ''}`,
-        html: `<span></span><span class="stem"></span><span>${above ? `stalk at #${f.stalk - 1}, ${above} on the sprout above` : `stalk at #${f.stalk - 1}`}</span>`,
-      });
-      pointer = true;
-    }
-    if (pointer && f.fresh && !bracket && item.kind === 'leaf' && item.l.n <= f.fresh.to) {
+    if (f.fresh && !bracket && item.kind === 'leaf' && item.l.n <= f.fresh.to) {
       rows.push({
         key: `m-${f.fresh.at}`,
         cls: 'matured-row',
         html: `<span></span><span class="stem"></span><span>validated at ${clockOf(f.fresh.at)} · ${f.fresh.to - f.fresh.from + 1} matured</span>`,
       });
       bracket = true;
-    }
-    if (label !== day && (pointer || item.kind !== 'leaf')) {
-      rows.push({
-        key: `d-${label}`,
-        cls: 'dayrow',
-        html: `<span></span><span class="stem"></span><span>${label}</span>`,
-      });
-      day = label;
     }
     if (item.kind === 'fell') {
       rows.push({
@@ -413,12 +393,6 @@ function stalkRows(f) {
       html: `<span class="tm">${stamp(l.land).time}</span><span class="stem"><i class="lf"></i></span><span class="tt">${esc(l.title)}</span><span class="ix">#${l.n}</span>`,
     });
   }
-  if (!pointer)
-    rows.push({
-      key: 'ptr',
-      cls: 'pointer',
-      html: `<span></span><span class="stem"></span><span>stalk at #${f.stalk - 1}</span>`,
-    });
   rows.push({
     key: 'older',
     cls: `srow stalk older${answer !== 'default' && answer !== 'replay' ? ' dim' : ''}`,
