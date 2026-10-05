@@ -19,7 +19,7 @@ The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2`
 | **sprout** | The staged line `refs/heads/sprout` of the run repo `race-<run>`. Beans land here after their pre-land check passes | `trunk` (`trunk_idx`, `land.target: "trunk"`) |
 | **stalk** | The stable line `refs/heads/stalk`. It only moves to validated commits and is the run repo's default branch | `green` (`green.promote`, `green_idx`) |
 
-Event types and field names stay identical to the harness. The queue has no staged line: it lands verified batches straight on the stalk, and its `land` events keep `target: "main"`. Prompts are the harness's, word for word, so they still say "trunk" and "main".
+Event types and field names stay identical to the harness. The queue has no staged line: it lands verified batches straight on the stalk, and its `land` events keep `target: "main"`. Prompts are the harness's, word for word, so they still say "trunk" and "main"; v2's conflict rework is the one exception (below).
 
 ### Why a bean is a branch, not a fork
 
@@ -159,7 +159,7 @@ Decisions (admin): `POST /v1/runs/:run/decisions/D001 {"winner": "t005", "text":
 | `core.py` `Race` (invoke, commit_task, drop, budget, shutdown, final_check) | `invocations.ts`, `tasks.ts`, `lifecycle.ts`, `final-check.ts` |
 | `ci.py` `CI.run` + `run_ci` (K slots, suite then emulated latency) | `ci.ts`; suites run as `check` jobs on `run-<run>-ci-<k>` |
 | `summary.py` `build` | `summary.ts` |
-| `prompts.py`, `preland_red`, `informed_red` | `prompts.ts` (verbatim) |
+| `prompts.py`, `preland_red`, `informed_red` | `prompts.ts` (verbatim, except v2's `informedConflictPrompt`) |
 | `policy_queue.py` | `queue/` |
 | `policy_beanstalk_v2.py` `place` (FIFO), `decide` | `v2/v2-policy.ts`, `v2/v2-decisions.ts` |
 | `policy_beanstalk_preland.py` `land`, `try_optimistic`, `publish`, `resolve_on` | `v2/v2-landing.ts`; the committer lock is `v2/v2-turn.ts` |
@@ -182,6 +182,8 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 - **Decision cards.** A card can also be answered by the admin route or the web app (`decide`). Under `decision_outcome: decline` (v2.0), when the arriving bean wins, the landed losers are reverted in the turn and dropped, and the arriving bean goes back to its landing loop. The harness's `arriving` oracle drops the arriving task anyway. Under `reexecute` (the v2.2 default) nothing is reverted, as described below.
 - **Revert-first after a bisection.** Revert-first also follows a trunk bisection when no read-set suspect exists; the harness would send a fixer there. No fixer is ever sent.
 - **Markers after an informed rework.** Conflict markers left after an informed rework drop the bean.
+- **Structural merge tier.** The runner retries a squash conflict with Mergiraf on the conflicted files (the runner README's merge tiers) for both policies; the gateway sends no flag, so the tier is on. A structurally merged bean is a normal candidate: it takes its pre-land check like any other, and its `land` event carries `resolved: "structural"` (the tier of the bean's latest clean squash, kept on the landing flow). A conflict that remains goes back to the author as before.
+- **Conflict prompt.** v2's conflict rework (`informedConflictPrompt`) adds to the harness's words both sides of up to 4 conflict blocks from the runner's `hunks`, the landed beans that wrote the sprout's side of a conflicted file since the bean last merged the sprout (newest first, at most 3, each with its title and intent), and an instruction to keep both intents. The queue keeps the harness's `reworkConflictPrompt`.
 - **Protected tests.** The `protect` list is computed when the invocation is created.
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
 - **Error budget.** The error-budget controller is not built; v2 reports `error_budget: 999`.

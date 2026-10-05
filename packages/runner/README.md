@@ -2,7 +2,7 @@
 
 The `runner` container: git and the test suite for the `RunDO`'s integration decisions. Artifacts has no server-side merge, so squash-merges, batch composition, reverts, ref updates and test runs happen here. The contract is §3 of [`docs/claude-opus/10-cf-prototype-plan.md`](../../docs/claude-opus/10-cf-prototype-plan.md); the semantics are those of the local race harness ([`research/race/harness/gitops.py`](../../research/race/harness/gitops.py) and [`ci.py`](../../research/race/harness/ci.py)), so cloud and local races compare metric for metric.
 
-Rust (axum, tokio), one HTTP service on `0.0.0.0:$PORT` (8080). The image adds git 2.47 (Debian trixie), Node 25.9.0 and Mergiraf 0.20.0.
+Rust (axum, tokio), one HTTP service on `0.0.0.0:$PORT` (8080). The image adds git 2.47 (Debian trixie), Node 25.9.0 and Mergiraf 0.20.0. Mergiraf is GPL-3.0 and is only ever run as that separate, unmodified binary (as git's merge driver); the runner never links it.
 
 ## API
 
@@ -10,8 +10,8 @@ JSON in, JSON out. Every request carries `repo` (the trunk's Artifacts HTTPS rem
 
 | Endpoint | Request | Response |
 |---|---|---|
-| `POST /v1/squash` | `onto`, `change` `{repo, token, ref, base?}`, `message`, `union_paths?`, `merge_driver?` | `{result: "clean", sha, files, change_head, merge_base, change_files?}` or `{result: "conflict", files, change_head, merge_base, change_files?}` |
-| `POST /v1/compose` | `base`, `items` `[{repo, token, ref, base?, task, message?}]`, `union_paths?`, `merge_driver?` | `{head, per_item: [{task, result, sha?, files, change_head, merge_base, change_files?}]}` |
+| `POST /v1/squash` | `onto`, `change` `{repo, token, ref, base?}`, `message`, `union_paths?`, `merge_driver?`, `structural_merge?` (true) | `{result: "clean", sha, files, resolved, change_head, merge_base, change_files?}` or `{result: "conflict", files, hunks, change_head, merge_base, change_files?}` |
+| `POST /v1/compose` | `base`, `items` `[{repo, token, ref, base?, task, message?}]`, `union_paths?`, `merge_driver?`, `structural_merge?` (true) | `{head, per_item: [{task, result, sha?, files, resolved?, hunks?, change_head, merge_base, change_files?}]}` |
 | `POST /v1/revert` | `onto`, `commit`, `message`, `union_paths?`, `merge_driver?` | `{result, sha?, files}` |
 | `POST /v1/update-ref` | `ref`, `new`, `old?` | `{ok: true, actual: new}` or `{ok: false, actual}` |
 | `POST /v1/check` | `sha`, `cmd?` (default `["node", "--test"]`), `extra_files?` `{path: content}`, `latency_seconds?`, `suite_timeout_seconds?` (300), `test_timeout_ms?` (60000) | `{sha, green, tests, failures, failing_tests: [{file, name, message}], failing_files, passing_files, read_set, read_sets, read_depths, stack_files, output_excerpt, suite_seconds, ci_seconds, timed_out}` |
@@ -19,6 +19,8 @@ JSON in, JSON out. Every request carries `repo` (the trunk's Artifacts HTTPS rem
 | `GET /version` | | `{version, git_sha}` |
 
 - **squash** fetches `change.ref` from the change's remote, then lands `merge_base(head, onto)..head` on `onto` as one commit whose only parent is `onto` (`git merge-tree --write-tree --merge-base`, then `commit-tree`). `files` is `changed_files(onto, sha)` when clean and the conflicted paths otherwise. `change.base` is optional and never changes the merge (every harness policy merges from `git merge-base head onto`); when given, `change_files` is the task's own write set `base..head`, as the harness logs on `task.commit`.
+- **Merge tiers** (squash and compose; never revert). git's line merge runs first. When it conflicts and `structural_merge` is on (the default), the merge is run again with Mergiraf as the merge driver for exactly the conflicted paths (anchored literal patterns in the request's attributes file; union patterns still win). The retry happens only when every conflicted path has an extension Mergiraf parses (TypeScript, JavaScript, JSON, YAML, TOML, Rust, Go, Python and the other code types in `STRUCTURAL_EXTENSIONS`, `src/git/rules.rs`; Markdown is left out on purpose) and none needs escaping. Its result is kept only when git reports it clean and none of those files holds a `<<<<<<<` or `>>>>>>>` marker line; otherwise git's conflict stands. A clean squash says which tier merged it: `resolved: "textual"` or `"structural"`. The caller's pre-land check runs on a structural result like on any other: a structural merge compiles more often than it is right (below). Each decision is logged with `tier` (`structural`, or `agent` when the conflict goes back). `structural_merge: false` gives the harness's behaviour. Without Mergiraf on `PATH` the driver fails, git reports the conflict, and the squash is a plain conflict. Mergiraf keeps a small copy of each attempt for `mergiraf review` in the runner user's cache directory, which is scratch like the rest of the disk.
+- **hunks** (on a conflict) are the conflict blocks of git's merge, read from its conflicted tree: `{path, onto, change}`, `onto` being the target's side and `change` the change's, at most 8 blocks of at most 2,000 characters a side. A `|||||||` base section is dropped; a conflict without markers (modify/delete) has no hunk.
 - **compose** is the queue's batch build: each item is squashed onto the last clean commit, a conflicting item is skipped, `head` is the last clean commit (or `base`). Without `message`, an item's commit message is `"<task>\n\nTask: <task>\n"`.
 - **revert** is the beanstalk policy's revert: a 3-way merge with `commit` as base, `onto` as ours and `commit^1` as theirs, committed on `onto`. It also serves the leave-one-out probes.
 - Every clean result (squash, each composed item, revert) is pushed to `refs/beanstalk/candidates/<sha>` on the trunk, so a later `check` or `update-ref` on any runner instance can fetch it by name. Identical requests within one second build the identical commit; when another request has already created its candidate ref, the push still counts as done.
@@ -82,6 +84,18 @@ Known differences, all deliberate:
 - The container runs in UTC with Node 25.9.0; the laptop harness inherits the host's time zone and Node. The arena pins `en-US` and uses ISO dates, so its tests do not depend on either.
 - `failing_tests` never carries the failure `body` (the harness drops it in most paths too).
 
+## The structural tier, measured
+
+Replayed on 2026-10-05 through this runner (release build, Mergiraf 0.20.0) from the recorded races in `research/race/runs/*/work/agents` (real-agent runs only; replay and `_test` runs left out). Each `merge.conflict` event was rebuilt from the bean's worktree: the bean's head is the first parent of the merge commit whose second parent is the event's `onto`. 379 events; 139 could not be rebuilt (no such merge, mostly the queue's merges of main and reworks that never committed); 240 distinct (bean, onto) pairs remained. Each was squashed with `structural_merge: false` and then with the tier on (union paths as the run's config), and every structural result was checked with `/v1/check` against both sides (a result is *sound* when it fails no test that neither side failed).
+
+| | Cloud races (`cf-*`) | Local races | All |
+|---|---|---|---|
+| Textual conflicts reproduced | 102 | 119 | 221 (19 pairs merged clean even without the tier) |
+| Clean after the structural tier, no markers | 55 (54%) | 61 (51%) | 116 (52%) |
+| Of those, sound | 30 | 23 | 53 (24% of conflicts; 35 fully green) |
+
+So the tier turns half of the conflicts into candidates, and about half of those are right. The rest are semantic conflicts that a line conflict used to stop and the pre-land check now catches as a red: all 31 structural merges of `src/db/migrations/index.ts` were unsound (two beans each add a `migration0006`; Mergiraf keeps both imports under one name and one array entry, a duplicate binding that fails every suite), against 14 of 29 for `src/billing/invoice.ts`, 14 of 21 for `src/billing/handlers.ts` and 7 of 7 for `src/billing/service.ts`. Of the beans dropped for "unresolved conflict" in `cf-v23-sonnet-12-s7` (t010, t022, t024, t036) and `cf-v2-sonnet-12-s7-r3` (t006, t007, t010), only t036 had every replayed conflict merged soundly; t022 had one of two; t010's and t024's merged unsoundly (migrations and invoice); t006's and t007's stayed conflicts. The tier is safe only because the check runs on its result.
+
 ## Notes for the gateway (`Runner` Container class)
 
 - `defaultPort = 8080`; image `../runner/Dockerfile` with `image_build_context: "../.."`. Start at `instance_type: "standard-1"`.
@@ -95,4 +109,4 @@ Known differences, all deliberate:
 
 ## Tests
 
-`pnpm rust:check` (or `cargo test -p runner`) runs unit tests beside the code, integration tests through the router (`tests/`), and property tests: ref-name validation against `git check-ref-format`, path normalisation, junit parsing, redaction, and, with real git, "squash of disjoint edits is always clean and keeps both sides" and "union merge keeps every changelog entry". Remotes in tests are local bare repositories over `file://`. The suite tests need Node 25 on `PATH`; without it they return early and say so on stderr.
+`pnpm rust:check` (or `cargo test -p runner`) runs unit tests beside the code, integration tests through the router (`tests/`), and property tests: ref-name validation against `git check-ref-format`, path normalisation, junit parsing, redaction, and, with real git, "squash of disjoint edits is always clean and keeps both sides" and "union merge keeps every changelog entry", plus conflict-hunk parsing. `tests/structural.rs` covers the tier: a same-line import conflict lands as `structural`, the flag turns it off, Markdown and unsolvable conflicts stay with the agent with their hunks. Remotes in tests are local bare repositories over `file://`. The suite tests need Node 25 on `PATH`, and the structural tests that expect a resolution need `mergiraf`; without them they return early and say so on stderr.

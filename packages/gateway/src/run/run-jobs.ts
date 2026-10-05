@@ -127,8 +127,9 @@ async function squash(
         sha: outcome.sha,
         files: outcome.files,
         changeFiles: outcome.changeFiles,
+        resolved: outcome.resolved,
       }
-    : { kind: 'squash', outcome: 'conflict', files: outcome.files };
+    : { kind: 'squash', outcome: 'conflict', files: outcome.files, hunks: outcome.hunks };
 }
 
 async function revert(

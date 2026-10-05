@@ -265,6 +265,16 @@ export type JobSpec =
     }
   | { readonly kind: 'read-files'; readonly reads: readonly { ref: Sha; path: string }[] };
 
+/** The runner's merge tier behind a clean squash: git's line merge, or Mergiraf after it. */
+export type Resolution = 'textual' | 'structural';
+
+/** One conflict block of a squash: the sprout's side and the bean's side. */
+export type ConflictHunk = {
+  readonly path: string;
+  readonly sprout: string;
+  readonly bean: string;
+};
+
 export type JobResult =
   | {
       readonly kind: 'squash';
@@ -273,8 +283,14 @@ export type JobResult =
       readonly files: readonly string[];
       /** The change's own write set (`changeBase..head`); null when the runner left it out. */
       readonly changeFiles: readonly string[] | null;
+      readonly resolved: Resolution;
     }
-  | { readonly kind: 'squash'; readonly outcome: 'conflict'; readonly files: readonly string[] }
+  | {
+      readonly kind: 'squash';
+      readonly outcome: 'conflict';
+      readonly files: readonly string[];
+      readonly hunks: readonly ConflictHunk[];
+    }
   | {
       readonly kind: 'revert';
       readonly outcome: 'clean';

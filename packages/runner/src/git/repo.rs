@@ -28,8 +28,12 @@ pub(crate) struct ThreeWay<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum TreeMerge {
     Clean(TreeId),
-    /// Conflicted paths, sorted and unique.
-    Conflicted(Vec<String>),
+    /// `tree` holds the conflicted files with conflict markers; `files` are the conflicted
+    /// paths, sorted and unique.
+    Conflicted {
+        tree: TreeId,
+        files: Vec<String>,
+    },
 }
 
 impl<'a> Repo<'a> {
@@ -121,6 +125,17 @@ impl<'a> Repo<'a> {
         parse_merge_tree(&output)
     }
 
+    /// The text of `path` in `tree`, or `None` when the tree has no such file.
+    pub(crate) async fn read_file(&self, tree: &TreeId, path: &str) -> Result<Option<String>> {
+        let output = self
+            .command("cat-file")
+            .arg("blob")
+            .arg(format!("{}:{path}", tree.as_str()))
+            .output()
+            .await?;
+        Ok(output.succeeded().then(|| output.stdout()))
+    }
+
     /// `git commit-tree <tree> -p <parent>` with `message` on stdin (`gitops.commit_tree`).
     pub(crate) async fn commit_tree(
         &self,
@@ -186,20 +201,20 @@ fn parse_merge_tree(output: &GitOutput) -> Result<TreeMerge> {
     let stdout = output.stdout();
     let mut fields = stdout.split('\0');
     let tree = fields.next().map(str::trim).filter(|tree| !tree.is_empty());
+    let parse_tree = |tree: &str| {
+        TreeId::parse(tree).map_err(|reason| Error::Git {
+            op: "merge-tree",
+            detail: reason,
+        })
+    };
     match (output.code(), tree) {
-        (Some(0), Some(tree)) => {
-            TreeId::parse(tree)
-                .map(TreeMerge::Clean)
-                .map_err(|reason| Error::Git {
-                    op: "merge-tree",
-                    detail: reason,
-                })
-        }
-        (Some(1), Some(_)) => {
+        (Some(0), Some(tree)) => parse_tree(tree).map(TreeMerge::Clean),
+        (Some(1), Some(tree)) => {
             let paths: BTreeSet<&str> = fields.filter(|path| !path.is_empty()).collect();
-            Ok(TreeMerge::Conflicted(
-                paths.into_iter().map(str::to_owned).collect(),
-            ))
+            Ok(TreeMerge::Conflicted {
+                tree: parse_tree(tree)?,
+                files: paths.into_iter().map(str::to_owned).collect(),
+            })
         }
         _ => Err(output.failure()),
     }

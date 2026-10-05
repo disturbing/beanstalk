@@ -6,7 +6,15 @@
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 
 import type { StepContext } from '../context';
-import type { CheckResult, CiId, JobId, Seconds, TimerId } from '../model';
+import type {
+  CheckResult,
+  CiId,
+  ConflictHunk,
+  JobId,
+  Resolution,
+  Seconds,
+  TimerId,
+} from '../model';
 import type { CulpritContext } from '../prompts';
 
 /** One commit on the sprout (`TrunkCommit`): a landed bean or a revert. */
@@ -88,7 +96,12 @@ export type RevertFlow =
 
 /** Work a bean needs an agent for. With `release_on_check` it waits for a free slot. */
 export type AgentWork =
-  | { readonly kind: 'conflict'; readonly head: Sha; readonly files: readonly string[] }
+  | {
+      readonly kind: 'conflict';
+      readonly head: Sha;
+      readonly files: readonly string[];
+      readonly hunks: readonly ConflictHunk[];
+    }
   | {
       readonly kind: 'informed';
       readonly head: Sha;
@@ -202,6 +215,8 @@ export type LandingFlow = {
   rechecks: number;
   /** Red checks waited out as the sprout's (`inherited_reds`); at most three per bean. */
   inheritedWaits: number;
+  /** The merge tier of the bean's latest clean squash: what its landing event reports. */
+  resolved: Resolution;
   step: LandingStep;
 };
 

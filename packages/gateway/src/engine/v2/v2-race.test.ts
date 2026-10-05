@@ -342,11 +342,27 @@ describe('v2: landing while the sprout moves', () => {
     });
     const rework = run.world.instructions.find((instruction) => instruction.kind === 'rework');
     expect(rework?.prompt).toContain('Your change could not be merged: the trunk moved on');
+    expect(rework?.prompt).toContain(
+      "The trunk's side was written by these landed changes:\n- t001",
+    );
+    expect(rework?.prompt).toContain('keep both intents');
     expect(rework?.workspace.merge).toMatchObject({
       ref: SPROUT_REF,
       conflicts: ['src/shared.ts'],
     });
     expect(eventsOf(run.events, 'land').map((event) => event['task'])).toEqual(['t001', 't002']);
+  });
+
+  it('lands a bean the runner merged structurally as a normal landing that says so', () => {
+    const run = runV2({
+      tasks: [changelogTask('t001'), { ...changelogTask('t002'), mergesStructurally: true }],
+      durations: { t001: 20_000, t002: 100_000 },
+    });
+
+    expect(eventsOf(run.events, 'merge.conflict')).toEqual([]);
+    const [first, second] = eventsOf(run.events, 'land');
+    expect(first).not.toHaveProperty('resolved');
+    expect(second).toMatchObject({ task: 't002', resolved: 'structural' });
   });
 });
 

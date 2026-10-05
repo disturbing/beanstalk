@@ -15,5 +15,6 @@ mod check;
 mod git;
 mod integrate;
 mod process;
+mod resolve;
 mod wire;
 mod workspace;

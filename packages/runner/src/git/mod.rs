@@ -17,10 +17,10 @@ use std::path::Path;
 use std::time::Duration;
 
 pub(crate) use cache::{Lease, RefUpdate, RefUpdateOutcome, RepoCaches, TrunkCache};
-pub(crate) use ids::{CommitSha, RefName};
+pub(crate) use ids::{CommitSha, RefName, TreeId};
 pub(crate) use remote::{Remote, RemoteUrl, Token};
 pub(crate) use repo::{Repo, ThreeWay, TreeMerge};
-pub(crate) use rules::{AttrPattern, MergeDriver, MergeRules, MergeSetup};
+pub(crate) use rules::{AttrPattern, MergeDriver, MergeRules, MergeSetup, StructuralTier};
 
 use crate::config::CommitIdentity;
 use crate::error::{Error, Result};

@@ -83,6 +83,7 @@ const squashed: EngineInput = {
       sha: Sha.parse('c'.repeat(40)),
       files: ['src/a.ts'],
       changeFiles: ['src/a.ts'],
+      resolved: 'textual',
     },
   },
 };

@@ -129,6 +129,13 @@ async fn squash_reports_conflicting_files_and_commits_nothing() {
         json!({
             "result": "conflict", "files": ["src/billing/service.ts"],
             "change_head": fork.ref_sha("refs/heads/ref/t040"), "merge_base": ARENA_BASE,
+            // Both sides add a guard at the same spot: Mergiraf cannot order them either, so
+            // the agent gets git's conflict block.
+            "hunks": [{
+                "path": "src/billing/service.ts",
+                "onto": "  if (coupon && coupon.maxRedemptions !== null && coupon.redemptions >= coupon.maxRedemptions) {\n    throw conflict('coupon has been fully redeemed');\n",
+                "change": "  if (coupon?.expiresAt && new Date(coupon.expiresAt).getTime() <= ctx.clock.now().getTime()) {\n    throw badRequest('coupon has expired');\n",
+            }],
         })
     );
     assert_eq!(

@@ -42,6 +42,89 @@ export function reworkConflictPrompt(
   );
 }
 
+/** One conflict block shown to the author: the line's side and the bean's own. */
+export type PromptHunk = { readonly path: string; readonly sprout: string; readonly bean: string };
+
+/** A landed bean that wrote the other side of a conflicted file. */
+export type ConflictAuthor = {
+  readonly task: string;
+  readonly title: string;
+  readonly intent: string;
+  readonly paths: readonly string[];
+};
+
+/** What v2's conflict rework knows beyond the files: the hunks and who wrote the other side. */
+export type ConflictContext = {
+  readonly files: readonly string[];
+  readonly hunks: readonly PromptHunk[];
+  readonly authors: readonly ConflictAuthor[];
+};
+
+/** Hunks a conflict prompt quotes. */
+const PROMPT_HUNKS = 4;
+/** Characters of each side of a quoted hunk, and of an author's intent. */
+const PROMPT_SIDE_CHARS = 1200;
+const PROMPT_INTENT_CHARS = 400;
+
+/**
+ * v2's conflict rework: `reworkConflictPrompt` plus both sides of each conflict block, the
+ * landed beans that wrote the line's side with their intent, and an instruction to keep both
+ * intents. Without hunks or authors it says no more than the harness's prompt.
+ */
+export function informedConflictPrompt(
+  task: PromptTask,
+  conflict: ConflictContext,
+  resumed: boolean,
+): string {
+  const target = 'the trunk';
+  const head =
+    `${sessionHead(task, resumed)}Your change could not be merged: ${target} moved on and conflicts with it. ` +
+    `The merge of ${target} into your branch is in progress in this worktree; conflict markers are in: ` +
+    `${conflict.files.join(', ')}.\n\n`;
+  return (
+    head +
+    hunkLines(conflict.hunks) +
+    authorLines(conflict.authors) +
+    `Resolve every conflict so that your change and the changes already on ${target} both keep working: ` +
+    'keep both intents, never drop one side to make the merge compile, and remove all conflict markers. ' +
+    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+  );
+}
+
+function hunkLines(hunks: readonly PromptHunk[]): string {
+  if (hunks.length === 0) return '';
+  const shown = hunks
+    .slice(0, PROMPT_HUNKS)
+    .map(
+      (hunk) =>
+        `${hunk.path}:\n\`\`\`\n<<<<<<< trunk\n${sideBlock(hunk.sprout)}` +
+        `=======\n${sideBlock(hunk.bean)}>>>>>>> yours\n\`\`\`\n`,
+    );
+  const more =
+    hunks.length > PROMPT_HUNKS ? `(${hunks.length - PROMPT_HUNKS} more in the files.)\n` : '';
+  return `The conflicting hunks (the trunk's side, then yours):\n${shown.join('')}${more}\n`;
+}
+
+function authorLines(authors: readonly ConflictAuthor[]): string {
+  if (authors.length === 0) return '';
+  const lines = authors.map(
+    (author) =>
+      `- ${author.task} "${author.title}" (${author.paths.join(', ')}): ` +
+      clip(author.intent.trim().replaceAll(/\s+/g, ' '), PROMPT_INTENT_CHARS),
+  );
+  return `The trunk's side was written by these landed changes:\n${lines.join('\n')}\n\n`;
+}
+
+function clip(text: string, limit: number): string {
+  return text.length <= limit ? text : `${text.slice(0, limit)}…`;
+}
+
+/** A hunk side as lines between markers: clipped, and ending with a newline unless empty. */
+function sideBlock(side: string): string {
+  const clipped = clip(side, PROMPT_SIDE_CHARS);
+  return clipped === '' || clipped.endsWith('\n') ? clipped : `${clipped}\n`;
+}
+
 export function reworkRedPrompt(
   task: PromptTask,
   failing: readonly string[],
