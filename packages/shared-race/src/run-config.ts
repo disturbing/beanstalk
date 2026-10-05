@@ -120,6 +120,17 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2.5: failed informed repairs against one landed counterpart before the bean escalates
+     * (reconcile, then a card; a counterpart already reconciled and decided drops the bean).
+     * `1`: after one, when a failing test file fails again. `2` (v2.4): after two, whatever failed.
+     */
+    escalate_after: z.number().int().min(1).max(2).default(1),
+    /**
+     * v2.5: landed tasks a reconcile takes in: the counterpart, then the owners of the failing
+     * tests and the read-set suspects since the bean's base. `1`: the counterpart only (v2.4).
+     */
+    reconcile_parties: z.number().int().min(1).max(3).default(3),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

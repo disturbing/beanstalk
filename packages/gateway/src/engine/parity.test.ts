@@ -22,6 +22,7 @@ const V20_KNOBS: Partial<RunConfigInput> = {
   window: 'off',
   early_tickets: false,
   reconcile: false,
+  escalate_after: 2,
   decision_outcome: 'decline',
 };
 

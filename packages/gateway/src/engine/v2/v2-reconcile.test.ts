@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 
 import type { FailRule } from '../testing/fake-world';
-import type { RaceRun, RaceScenario } from '../testing/scenario';
+import type { LooseEvent, RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
 
 const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
@@ -144,5 +144,126 @@ describe('v2.4: stale failures', () => {
     const run = runV2(revertedMidCheck({ reconcile: false }));
 
     expect(eventsOf(run.events, 'rework.start', { task: 't003' }).length).toBeGreaterThan(0);
+  });
+});
+
+/** v2.4's rules for escalation and reconcile (v2.5 changes both). */
+const V24_ESCALATION: Partial<RunConfigInput> = { escalate_after: 2, reconcile_parties: 1 };
+
+/**
+ * The real race's t032 (cf-v24-sonnet-12-s7): its shipping clashes with t005's pinned total
+ * and with a third landed task's free-shipping threshold (t030 here). Reconciling t032 with
+ * t005 alone cannot fix t030's test ("that rule comes from neither task").
+ */
+const PINS_FREE_SHIPPING: FailRule = {
+  markers: ['impl:t030', 'impl:t032'],
+  file: 'tests/t030.test.ts',
+  name: 'ships free over $75',
+  reads: ['src/t030/index.ts', 'src/t032/index.ts'],
+  unless: 'threshold on goods',
+};
+const RECONCILED_T030 = "test('t030'); // the threshold on goods, before shipping\n";
+
+export function threeWayClash(
+  config: Partial<RunConfigInput> = {},
+  reconciles = true,
+): RaceScenario {
+  const amendments = {
+    'tests/t005.test.ts': RECONCILED_T005,
+    'tests/t030.test.ts': RECONCILED_T030,
+  };
+  return {
+    tasks: [
+      soloTask('t005'),
+      soloTask('t030'),
+      soloTask('t032', reconciles ? { reconcile: amendments } : {}),
+    ],
+    rules: [PINS_OLD_TOTAL, PINS_FREE_SHIPPING],
+    durations: { t005: 10_000, t030: 12_000, t032: 100_000 },
+    config: { agents: 3, ...config },
+  };
+}
+
+function dropOf(run: RaceRun): LooseEvent | undefined {
+  return eventsOf(run.events, 'task.drop', { task: 't032' })[0];
+}
+
+describe('v2.5: escalate after one repeated red, reconcile every landed party', () => {
+  it('reconciles a three-way clash in one step: all three ship', () => {
+    const run = runV2(threeWayClash());
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    expect(eventsOf(run.events, 'rework.start', { task: 't032' })).toHaveLength(1);
+    expect(eventsOf(run.events, 'decision.reconcile')).toEqual([
+      expect.objectContaining({
+        task: 't032',
+        against: 't005',
+        parties: ['t005', 't030'],
+        outcome: 'reconciled',
+        files: ['tests/t005.test.ts', 'tests/t030.test.ts'],
+      }),
+    ]);
+    const reconcile = run.world.instructions.find(
+      (instruction) => instruction.kind === 'reconcile',
+    );
+    expect(Object.keys(reconcile?.workspace.acceptance ?? {}).toSorted()).toEqual([
+      'tests/t005.test.ts',
+      'tests/t030.test.ts',
+      'tests/t032.test.ts',
+    ]);
+    expect(reconcile?.prompt).toContain('You are the test author for tasks t032, t005 and t030.');
+    expect(reconcile?.prompt).toContain('Task t030 ("Task t030") has already landed:');
+    expect(eventsOf(run.events, 'decision.request')).toEqual([]);
+    expect(run.state.amendedTests['t030']).toEqual({ 'tests/t030.test.ts': RECONCILED_T030 });
+    expect(['t005', 't030', 't032'].map((id) => run.state.tasks[id]?.status)).toEqual([
+      'green',
+      'green',
+      'green',
+    ]);
+    expect(eventsOf(run.events, 'final.check')[0]).toMatchObject({ correct: true });
+  });
+
+  it('v2.4 reconciles with t005 alone, finds a contradiction and drops t032', () => {
+    const run = runV2(threeWayClash(V24_ESCALATION));
+
+    const verdict = eventsOf(run.events, 'decision.reconcile')[0];
+    expect(verdict).toMatchObject({ against: 't005', outcome: 'contradiction' });
+    expect(verdict).not.toHaveProperty('parties');
+    expect(run.state.tasks['t032']?.status).toBe('dropped');
+  });
+
+  it('names every party on the card when the clash stays a contradiction', () => {
+    const run = runV2(threeWayClash({}, false));
+
+    const request = eventsOf(run.events, 'decision.request', { task: 't032' })[0];
+    expect(request).toMatchObject({ against: ['t005'], parties: ['t005', 't030'], attempts: 2 });
+    expect(String(request?.['reason'])).toMatch(/^CONTRADICTION/);
+  });
+
+  it('reconciles after one failed informed repair, a round sooner than v2.4', () => {
+    const v24 = runV2(totalWithShipping(V24_ESCALATION));
+    const v25 = runV2(totalWithShipping());
+
+    expect(eventsOf(v24.events, 'rework.start', { task: 't032' })).toHaveLength(2);
+    expect(eventsOf(v25.events, 'rework.start', { task: 't032' })).toHaveLength(1);
+    expect(v25.state.tasks['t032']?.status).toBe('green');
+    expect(Number(v25.state.tasks['t032']?.greenAt)).toBeLessThan(
+      Number(v24.state.tasks['t032']?.greenAt),
+    );
+  });
+
+  it('drops a bean still red against a counterpart already reconciled and decided', () => {
+    const v24 = runV2(totalWithShipping(V24_ESCALATION, false));
+    const v25 = runV2(totalWithShipping({}, false));
+
+    expect(dropOf(v25)).toMatchObject({
+      reason: 'pre-land check still red against t005 after its decision card',
+    });
+    const policy = v25.state.policy;
+    expect(policy?.kind === 'beanstalk-v2' ? policy.stats.stuck_drops : -1).toBe(1);
+    expect(dropOf(v24)).toMatchObject({
+      reason: 'pre-land check still red after --max-rework attempts',
+    });
+    expect(Number(dropOf(v25)?.t)).toBeLessThan(Number(dropOf(v24)?.t));
   });
 });

@@ -426,6 +426,31 @@ class CommitPath(unittest.TestCase):
         self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 1;\n")
         self.assertFalse(os.path.exists(os.path.join(wt, "src/new.ts")))
 
+    def test_a_multi_party_reconcile_commits_every_partys_acceptance_files(self) -> None:
+        wt, base, ws = worktree_with_landed_test(self.race)
+        for path, text in (("test/acceptance/t009.test.ts", "own test, reconciled\n"),
+                           ("test/acceptance/t001.test.ts", "landed t001 test, new total\n"),
+                           ("test/acceptance/t007.test.ts", "landed t007 test, threshold on goods\n"),
+                           ("src/a.ts", "export const a = 2;\n")):
+            with open(os.path.join(wt, path), "w") as fh:
+                fh.write(text)
+        # v2.5: the gateway lists the bean's and two landed parties' tests as acceptance.
+        ws = {**ws, "acceptance": {"test/acceptance/t009.test.ts": "own test\n",
+                                   "test/acceptance/t001.test.ts": "landed t001 test\n",
+                                   "test/acceptance/t007.test.ts": "an older t007 test\n"},
+              "protect": [p for p in ws["protect"] if p["path"] not in ("test/acceptance/t001.test.ts",
+                                                                        "test/acceptance/t007.test.ts")],
+              "commit_message": "Task nine\n\nTask: t009\nKind: reconcile\nInvocation: inv0011-reconcile\n"}
+        inv = {"inv": "inv0011-reconcile", "kind": "reconcile", "task": "t009", "resume": None, "workspace": ws}
+        res = InvocationResult(inv_id="inv0011-reconcile", adapter="replay", model="replay", ok=True,
+                               subtype="success")
+        fields = self.run_commit(inv, res)
+        self.assertEqual(fields["files"], ["test/acceptance/t001.test.ts", "test/acceptance/t007.test.ts",
+                                           "test/acceptance/t009.test.ts"])
+        self.assertEqual(read(os.path.join(wt, "test/acceptance/t007.test.ts")),
+                         "landed t007 test, threshold on goods\n")
+        self.assertEqual(read(os.path.join(wt, "src/a.ts")), "export const a = 1;\n")
+
     def test_markers_left_means_no_commit(self) -> None:
         wt, base, ws = worktree_with_landed_test(self.race)
         with open(os.path.join(wt, "src/a.ts"), "w") as fh:
@@ -512,13 +537,15 @@ class CommandLine(unittest.TestCase):
         self.assertNotIn("release_on_check", v2_settings({}, env={}))
         settings = v2_settings({}, env={"RELEASE_ON_CHECK": "0", "PRELAND_RECHECK": "file", "FLAKE_CONFIRM": "true",
                                         "INHERITED_REDS": "validation", "WINDOW": "off", "EARLY_TICKETS": "0",
-                                        "DECISION_OUTCOME": "decline", "HUMAN_TIMEOUT_SECONDS": "90"})
+                                        "DECISION_OUTCOME": "decline", "HUMAN_TIMEOUT_SECONDS": "90",
+                                        "ESCALATE_AFTER": "2", "RECONCILE_PARTIES": "1"})
         self.assertEqual({k: settings[k] for k in ("release_on_check", "recheck", "flake_confirm", "inherited_reds",
                                                    "window", "early_tickets", "decision_outcome",
-                                                   "human_timeout_seconds")},
+                                                   "human_timeout_seconds", "escalate_after", "reconcile_parties")},
                          {"release_on_check": False, "recheck": "file", "flake_confirm": True,
                           "inherited_reds": "validation", "window": "off", "early_tickets": False,
-                          "decision_outcome": "decline", "human_timeout_seconds": 90.0})
+                          "decision_outcome": "decline", "human_timeout_seconds": 90.0, "escalate_after": 2,
+                          "reconcile_parties": 1})
 
     def test_v2_settings_resolve_flag_then_env_then_harness_default(self) -> None:
         self.assertEqual(v2_settings({}, {}), {"preland_mode": "locked", "preland_seconds": 0.0,

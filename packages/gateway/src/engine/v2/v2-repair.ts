@@ -3,6 +3,9 @@
  * a merge to resolve (`reexecute`), a red pre-land check as an informed rework that names at
  * most two landed culprits with their intent and diff (`repair_before_landing`). The third
  * red against the same culprit opens a decision card instead, unless that pair was decided.
+ * v2.5 (`escalate_after: 1`) escalates sooner: once a failing test file fails again against a
+ * culprit after one informed repair, the bean goes to reconcile, then to a card; a culprit
+ * already reconciled and decided drops the bean instead of spending the remaining rounds.
  * With `release_on_check` the rework waits for a free slot and resumes the author's session.
  */
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
@@ -18,6 +21,7 @@ import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
+import { endLanding } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import type { AgentWork, LandingFlow, V2Step } from './v2-state';
 
@@ -92,21 +96,37 @@ export function startRepair(step: V2Step, flow: LandingFlow, head: Sha, red: Che
     const key = pairKey(flow.task, culprit);
     state.pairReds[key] = (state.pairReds[key] ?? 0) + 1;
   }
-  const stuck = culprits.filter(
-    (culprit) =>
-      (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
-      !isDecided(state, flow.task, culprit),
-  );
+  const isEarly = state.settings.escalateAfter < CARD_AFTER_REDS - 1;
+  const stuck = isEarly
+    ? repeatedCulprits(step, flow.task, red, culprits)
+    : culprits.filter(
+        (culprit) =>
+          (state.pairReds[pairKey(flow.task, culprit)] ?? 0) >= CARD_AFTER_REDS &&
+          !isDecided(state, flow.task, culprit),
+      );
   const unreconciled = stuck.find(
     (culprit) =>
       step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
   );
   if (unreconciled !== undefined) {
-    requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, red, head });
+    const parties = reconcileParties(step, flow.task, red, unreconciled);
+    requestAgent(step, flow, { kind: 'reconcile', against: unreconciled, parties, red, head });
     return;
   }
-  if (stuck.length > 0) {
-    openCard(step, flow, { against: stuck, red, head });
+  const undecided = stuck.filter((culprit) => !isDecided(state, flow.task, culprit));
+  if (undecided.length > 0) {
+    openCard(step, flow, { against: undecided, red, head });
+    return;
+  }
+  const decided = stuck[0];
+  if (decided !== undefined) {
+    state.stats.stuck_drops += 1;
+    state.stats.preland_drops += 1;
+    endLanding(
+      step,
+      flow.task,
+      `pre-land check still red against ${decided} after its decision card`,
+    );
     return;
   }
   const diffs: Record<string, string> = {};
@@ -145,10 +165,51 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 }
 
 /**
- * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
- * bean's snapshot whose writes intersect the failing tests' read set; at most two.
+ * v2.5: the culprits a bean is stuck against. A red repeats against a culprit when one of its
+ * failing test files failed in the previous red against it too (a card resets the count);
+ * after `escalate_after` repeats, or v2.4's third red of an undecided pair, the pair is stuck.
  */
-export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): TaskId[] {
+function repeatedCulprits(
+  step: V2Step,
+  task: TaskId,
+  red: CheckResult,
+  culprits: readonly TaskId[],
+): TaskId[] {
+  const { state } = step;
+  const files = [...(red.failingFiles ?? [])];
+  return culprits.filter((culprit) => {
+    const key = pairKey(task, culprit);
+    const decided = isDecided(state, task, culprit);
+    const last = state.pairRepeats[key];
+    const isRepeat =
+      last !== undefined && last.decided === decided && files.some((f) => last.files.includes(f));
+    const repeats = isRepeat ? last.repeats + 1 : 0;
+    state.pairRepeats[key] = { files, repeats, decided };
+    const isThirdRed = !decided && (state.pairReds[key] ?? 0) >= CARD_AFTER_REDS;
+    return repeats >= state.settings.escalateAfter || isThirdRed;
+  });
+}
+
+/**
+ * v2.5: the landed tasks a reconcile takes in: the stuck culprit, then the owners of the
+ * failing tests and the read-set suspects since the bean's base, at most `reconcile_parties`.
+ */
+function reconcileParties(step: V2Step, task: TaskId, red: CheckResult, against: TaskId): TaskId[] {
+  const limit = step.state.settings.reconcileParties;
+  if (limit <= 1) return [against];
+  return [...new Set([against, ...culpritTasks(step, task, red, limit)])].slice(0, limit);
+}
+
+/**
+ * `culprit_tasks`: owners of failing acceptance tests first, then landed beans since the
+ * bean's snapshot whose writes intersect the failing tests' read set; at most two (`limit`).
+ */
+export function culpritTasks(
+  step: V2Step,
+  task: TaskId,
+  red: CheckResult,
+  limit = MAX_CULPRITS,
+): TaskId[] {
   const { ctx, state } = step;
   const owners = acceptanceOwners(step);
   const named: TaskId[] = [];
@@ -163,7 +224,7 @@ export function culpritTasks(step: V2Step, task: TaskId, red: CheckResult): Task
     if (commit.kind !== 'task' || culprit === null || culprit === task || commit.reverted) continue;
     if (commit.files.some((path) => read.has(path))) named.push(culprit);
   }
-  return [...new Set(named)].slice(0, MAX_CULPRITS);
+  return [...new Set(named)].slice(0, limit);
 }
 
 /** Acceptance test path → the landed (not dropped) task that owns it; later tasks win. */

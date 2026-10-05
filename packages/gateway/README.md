@@ -9,7 +9,7 @@ The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 o
 
 It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)).
 
-The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.4 rules by default (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
+The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.5 rules by default (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
 
 ## Names
 
@@ -79,7 +79,7 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
-- the v2.2 to v2.4 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)).
+- the v2.2 to v2.5 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `escalate_after`, `reconcile_parties`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules)).
 
 ## Driver contract (for the Python driver)
 
@@ -186,7 +186,7 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
 - **Error budget.** The error-budget controller is not built; v2 reports `error_budget: 999`.
 
-## The v2.2 to v2.4 rules
+## The v2.2 to v2.5 rules
 
 The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summary.md`). v2.3 answers v2.2's first real race (cloud run `qpucqup50w`, 12 Sonnet agents, seed 7). There, 24 beans were green and 16 dropped, 11 of them innocent beans that spent their rework rounds on reds that were not theirs. Each rule is a `RunConfig` field, on by default for `beanstalk-v2`:
 
@@ -199,6 +199,8 @@ The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summa
 | Inherited reds | `inherited_reds: readset` (`validation`, `off`) | A pre-land red that is the sprout's, not the bean's, costs no rework round. `preland.check` carries `inherited: true`, and the bean waits for the sprout to move, or for its repair to end, then checks again (at most 3 times). A failing test is the sprout's when it already failed a validation of the sprout the bean was checked on (`validation`, E6). Under `readset`, it is also the sprout's when the bean changed neither the test file nor any file in its import closure, as the runner reports it. A bean that changed a file every test depends on is never cleared this way: `package.json`, a lockfile, `tsconfig*.json`, a vitest/vite/jest config | v2.3; E6 |
 | Early tickets | `early_tickets: true` | An inherited red is a sighting of a red sprout at the commit it was checked on. Two beans' sightings of one test file there, or one sighting and a red validation of that commit, prove it red. Revert-first starts at once (`ticket.open` with `early: true`), with read-set suspects among the commits since the last green validation, without waiting for the validation queue. A sighting also confirms a red validation that waits for its flake re-run | v2.3 |
 | Reconcile before a card | `reconcile: true` (`false`: v2.3) | Where a card would be raised, a `reconcile` invocation first gets both tasks' intents and both owners' failing tests, on the arriving bean's branch (which already merged the landed task). It may amend the two tasks' acceptance tests only, updating assertions that pin a value the other intent legitimately changes. A commit that changes them is RECONCILED: the bean's own tests are amended at once, and the landed task's travel with the bean as a carried amendment (they land with it, and are rolled back if it is dropped). The bean then checks again; a green check is the proof. A commit that changes nothing is a CONTRADICTION, and only that raises the card. Each pair is reconciled once. The same setting re-checks, without a rework round, a red whose failing tests belong to a task reverted after the check began (`preland.recheck` with `stale`) | v2.4 |
+| Escalate after one repeated red | `escalate_after: 1` (`2`: v2.4) | v2.4 spent two informed repairs on a pair before reconcile and a card, and after a card never escalated again: t032 in `cf-v24-sonnet-12-s7` spent about 8 minutes of reworks against t005. Now a red repeats against a culprit when one of its failing test files failed in the previous red against that culprit (a card resets the count). After one repeat the bean escalates: reconcile if the pair was not reconciled, else a card if it was not decided. A culprit already reconciled and decided drops the bean (`pre-land check still red against <culprit> after its decision card`, `stuck_drops`) instead of spending its remaining rounds. v2.4's third red of an undecided pair still escalates when the failing files keep changing | v2.5 |
+| Reconcile every landed party | `reconcile_parties: 3` (`1`: v2.4) | A clash can involve more than one landed task: t032's tests also clashed with a third task's free-shipping threshold, so reconciling t032 with t005 alone ended in a CONTRADICTION. The reconcile takes in the stuck culprit, then the owners of the failing tests and the read-set suspects since the bean's base, at most 3 tasks. The author sees every intent and may amend those tasks' acceptance tests only, under the same guard (never loosen an assertion; CONTRADICTION when the code looks wrong). Each changed landed test is carried by the bean for its owner. `decision.reconcile` and, on a contradiction, `decision.request` carry `parties` (and the request the author's `reason`); the card itself still decides the pair | v2.5 |
 | Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below. With `reconcile`, the loser's test author also sees the winner's failing tests as they are now | E6 |
 
 A decided card works in one of two ways:
@@ -218,7 +220,7 @@ Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route
 
 - `spec.amended` and `flake.suspected` (v2.2);
 - `window.wait` and `window.resize` (v2.3);
-- `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`).
+- `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`; v2.5: `parties` when more than one landed task took part).
 
 Optional fields on existing types:
 
@@ -226,25 +228,27 @@ Optional fields on existing types:
 - `rework.start.card`;
 - `preland.check.inherited`;
 - `ticket.open.early`;
-- `preland.recheck.stale`.
+- `preland.recheck.stale`;
+- `decision.request.parties` and `.reason` (v2.5, a multi-party contradiction).
 
-`summary.json` adds the v2.2 to v2.4 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
+`summary.json` adds the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
 **Replay parity.** These settings reproduce the event streams the engine logged before v2.2, byte for byte:
 
 ```json
 {"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
- "inherited_reds": "off", "early_tickets": false, "reconcile": false, "decision_outcome": "decline"}
+ "inherited_reds": "off", "early_tickets": false, "reconcile": false, "escalate_after": 2,
+ "decision_outcome": "decline"}
 ```
 
-`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with `reconcile` reports `"v2.4"`, one with any other v2.3 rule `"v2.3"`, and any other run `"v2.2"`. `{"reconcile": false}` runs v2.3 again, and these settings run v2.2:
+`src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`. A run with `escalate_after: 1`, or with `reconcile` and `reconcile_parties` above 1, reports `"v2.5"`; one with `reconcile` otherwise `"v2.4"`, one with any other v2.3 rule `"v2.3"`, and any other run `"v2.2"`. `{"escalate_after": 2, "reconcile_parties": 1}` runs v2.4 again, `{"reconcile": false, "escalate_after": 2}` runs v2.3, and these settings run v2.2:
 
 ```json
 {"recheck": "adaptive", "window": "off", "inherited_reds": "validation", "early_tickets": false,
- "reconcile": false}
+ "reconcile": false, "escalate_after": 2}
 ```
 
-v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
+v2.2 there also gets the two bug fixes below. The driver passes the knobs through from `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `DECISION_OUTCOME`, `DECISION_MODE` and `HUMAN_TIMEOUT_SECONDS`. It sends them only when they are set, so the gateway's defaults apply otherwise.
 
 **Fixed in v2.3.** Two bugs from v2.2 and v2:
 
@@ -258,7 +262,19 @@ v2.2 there also gets the two bug fixes below. The driver passes the knobs throug
 
 v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land reworks. v2.3 drops none and finishes sooner.
 
-**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
+**The three-way clash.** `src/engine/v2/v2-reconcile.test.ts` replays t032 of `cf-v24-sonnet-12-s7`: the arriving bean's shipping clashes with one landed task's pinned total and another's free-shipping threshold. Simulated (3 agents, 60 s CI); the burst and calm rows are the scenarios above (12 agents, 2 CI slots, seed 7):
+
+| Scenario | v2.4 | v2.5 escalation only | v2.5 |
+|---|---|---|---|
+| Three-way clash: t032 | dropped at 16.2 min, 7 reworks, 2 contradictions, 2 cards | dropped at 10.4 min, 3 reworks | **green at 6.5 min**, 1 rework, 1 reconcile, no card |
+| Two-way, reconcilable: t032 green | 8.5 min, 2 reworks | 6.9 min, 1 rework | 6.9 min, 1 rework |
+| Two-way, genuine contradiction: t032 dropped | at 13.7 min, 6 reworks | at 9.0 min, 3 reworks | at 9.0 min, 3 reworks |
+| Burst (40 beans) | 40 green, 19.2 min, 12 reworks, 4 cards | | 40 green, **17.4 min**, 8 reworks, 4 cards |
+| Calm (40 beans) | 40 green, 8.5 min | | 40 green, 8.5 min |
+
+Every row's final check is correct; v2.2's burst row (27 green, 23.9 min) is unchanged with `escalate_after: 2`.
+
+**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2.5 asks after one repeated red, not the first). The targeted check of the exact landing tree (E1) is not built either.
 
 ## RPC for the web app
 
