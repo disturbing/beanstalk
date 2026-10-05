@@ -79,6 +79,7 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - `preland_seconds`: `null` (the default) means `ci_seconds`;
 - `decision_seconds`: 30 by default;
 - `decision_oracle`: `landed` (the default), `arriving` or `none` (wait for the admin);
+- `start_order`: `fifo` (the default) or `dependency` (see [Dependency-aware starts](#dependency-aware-starts));
 - the v2.2 to v2.4 rules, all on by default: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode` and `human_timeout_seconds` (see [The v2.2 to v2.4 rules](#the-v22-to-v24-rules)).
 
 ## Driver contract (for the Python driver)
@@ -258,7 +259,26 @@ v2.2 there also gets the two bug fixes below. The driver passes the knobs throug
 
 v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land reworks. v2.3 drops none and finishes sooner.
 
-**Not ported from E6:** start cards and declared couplings, dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
+**Not ported from E6:** start cards, declared couplings (used only to order starts, below), dynamic culprits (coverage, blame, leave-one-out), rescue re-execution after the rework budget, the contract oracle, and `CARD_AFTER=1` (v2 still asks after its usual reds). The targeted check of the exact landing tree (E1) is not built either.
+
+## Dependency-aware starts
+
+E4 found the limit at scale is independent work, not the committer (`docs/claude-opus/exp/e4-scale-replay.md`). With `start_order: dependency`, `src/engine/v2/v2-start-order.ts` picks the bean a free agent starts (the hook is `dispatch` in `v2-policy.ts`):
+
+1. Two tasks depend on each other when their predicted footprints (`footprint.predicted`) share a module or the arena declares a coupling; the earlier in priority order goes first. Modules more than a third of the tasks predict (`src`, `(root)`) are ignored.
+2. A task that has fallen `max(4, 2 × agents)` starts behind its FIFO turn starts next (`rule: aged`).
+3. Otherwise a bean that clashes with no bean in flight (started, not landed) and no earlier unstarted task, longest dependent chain first (`disjoint` when it is the head, else `critical-path`).
+4. Otherwise the bean with the fewest clashes, if it clashes with at most 2 beans in flight (`least-overlap`); else the agent waits for a landing. Nothing in flight always leaves a clear bean, so this never deadlocks.
+
+`placement.decision` carries the rule, the overlap and the occupied modules; `summary.json` adds `start_order` only when it is not `fifo`, so FIFO runs stay byte-identical. Simulated results (replay agents; the `E4 follow-up` row of `docs/claude-opus/11-experiments-summary.md`):
+
+| Scenario | FIFO | Dependency |
+|---|---|---|
+| Burst, 40 tasks, 12 agents | 40 green, done 19.2 min, 30th green 12.8 | 40 green, done 16.0 min, 30th green 6.5 |
+| Burst under the v2.2 rules | 27 green, 11 red validations | 36 green, 2 red validations |
+| 200 tasks in dependency chains, 64 agents | 173 green, 27 dropped, 187 conflicts, 170th green 26.3 min, done 28.4 | 200 green, 0 dropped, 108 conflicts, 170th green 28.2 min, done 60.5 |
+
+The default stays `fifo` until a real-agent race confirms it. One known gap: a bean started on top of its landed coupled partner can't name it as a culprit (culprits are commits since the bean's base), so a semantic clash reworks to a drop instead of a card.
 
 ## RPC for the web app
 

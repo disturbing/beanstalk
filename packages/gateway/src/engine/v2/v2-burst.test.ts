@@ -220,3 +220,85 @@ describe('the v2.2 burst, in the simulator', () => {
     expect(v23.done_minutes).toBeLessThanOrEqual(v22.done_minutes * 1.15);
   });
 });
+
+/** The four culprits' declared semantic couplings (the arena's `couplings`). */
+const DECLARED: Readonly<Record<string, string>> = Object.fromEntries(
+  PAIRS.map(({ first, culprit }) => [culprit, first]),
+);
+
+/**
+ * The burst with its couplings declared and each bean's module predicted; `coarse` also
+ * predicts `src` for every bean and `(root)` for every third, as real predictions do.
+ */
+function declaredBurst(
+  config: Partial<RunConfigInput>,
+  footprint: 'exact' | 'coarse' = 'exact',
+): RaceScenario {
+  const scenario = burstScenario(config);
+  const predicted = (id: string, index: number): string[] => {
+    if (footprint === 'exact') return [`src/${id}`];
+    return index % 3 === 0 ? ['(root)', 'src', `src/${id}`] : ['src', `src/${id}`];
+  };
+  return {
+    ...scenario,
+    config: {
+      ...scenario.config,
+      footprints: Object.fromEntries(
+        scenario.tasks.map((task, index) => [
+          task.id,
+          { method: 'oracle', selected: predicted(task.id, index), probs: {} },
+        ]),
+      ),
+      tasks: scenario.tasks.map((task) => {
+        const partner = DECLARED[task.id];
+        return {
+          id: task.id,
+          title: `Task ${task.id}`,
+          prompt: `Implement ${task.id}.`,
+          acceptance_tests: { [`tests/${task.id}.test.ts`]: `test('${task.id}');\n` },
+          couplings: partner === undefined ? [] : [{ with: partner, type: 'semantic' }],
+        };
+      }),
+    },
+  };
+}
+
+const DEPENDENCY: Partial<RunConfigInput> = { start_order: 'dependency' };
+
+describe('dependency-aware starts on the burst (start_order)', () => {
+  it('fifo is the default and starts beans in priority order', () => {
+    const run = runRace(calmScenario());
+
+    const rules = new Set(eventsOf(run.events, 'placement.decision').map((event) => event.rule));
+    expect([...rules]).toEqual(['fifo']);
+  });
+
+  it('starts culprits after their partners: all 40 green, the 30th green twice as soon', () => {
+    const fifo = numbers(runRace(declaredBurst({})));
+    const run = runRace(declaredBurst(DEPENDENCY));
+    const dependency = numbers(run);
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    expect(dependency).toMatchObject({ green: 40, dropped: 0, correct: true });
+    expect(dependency.done_minutes).toBeLessThanOrEqual(fifo.done_minutes);
+    expect(dependency.green30_minutes ?? Infinity).toBeLessThan((fifo.green30_minutes ?? 0) * 0.6);
+    const block = buildSummary(run.state, run.env, run.state.clock)['beanstalk'];
+    expect(block).toMatchObject({ start_order: 'dependency' });
+  });
+
+  it('ignores modules most beans predict, so coarse footprints decide as exact ones', () => {
+    const exact = numbers(runRace(declaredBurst(DEPENDENCY)));
+    const coarse = numbers(runRace(declaredBurst(DEPENDENCY, 'coarse')));
+
+    expect(coarse).toEqual(exact);
+  });
+
+  it('under the v2.2 rules keeps most of the beans fifo drops', () => {
+    const fifo = numbers(runRace(declaredBurst(V22_RULES)));
+    const dependency = numbers(runRace(declaredBurst({ ...V22_RULES, ...DEPENDENCY })));
+
+    expect(fifo.dropped).toBeGreaterThanOrEqual(10);
+    expect(dependency.dropped).toBeLessThanOrEqual(4);
+    expect(dependency.red_validations).toBeLessThan(fifo.red_validations);
+  });
+});

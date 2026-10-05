@@ -120,6 +120,13 @@ export const RunConfig = z
      * failing tests belong to a task reverted after the check began. `false`: v2.3.
      */
     reconcile: z.boolean().default(true),
+    /**
+     * v2: which unstarted bean a free agent takes. `fifo`: priority order. `dependency`: a bean
+     * whose predicted footprint and declared couplings clash with no bean in flight and no
+     * earlier unlanded bean, longest dependent chain first, with an age bound
+     * (`v2-start-order`).
+     */
+    start_order: z.enum(['fifo', 'dependency']).default('fifo'),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z

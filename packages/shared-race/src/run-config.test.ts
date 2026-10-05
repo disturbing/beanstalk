@@ -54,6 +54,7 @@ describe('RunConfig', () => {
       flake_confirm: true,
       inherited_reds: 'readset',
       early_tickets: true,
+      start_order: 'fifo',
     });
     expect(releasesOnCheck(config)).toBe(false);
     expect(releasesOnCheck({ ...config, policy: 'beanstalk-v2' })).toBe(true);

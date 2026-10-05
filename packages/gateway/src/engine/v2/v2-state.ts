@@ -359,6 +359,8 @@ export type V2Settings = {
   readonly reconcile: boolean;
   readonly decisionOutcome: 'reexecute' | 'decline';
   readonly decisionMode: 'oracle' | 'human';
+  /** Absent in runs created before the setting: `fifo`. */
+  readonly startOrder?: 'fifo' | 'dependency';
 };
 
 export type V2State = {

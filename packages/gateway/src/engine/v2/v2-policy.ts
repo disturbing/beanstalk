@@ -3,7 +3,7 @@
  * `policy_beanstalk_preland.py` (optimistic mode) and `policy_beanstalk.py`, with the v2.2
  * rules the experiments validated (`docs/claude-opus/11-experiments-summary.md`):
  *
- * 1. Beans start first-in, first-out from the sprout head; no predicted placement.
+ * 1. Beans start first-in, first-out from the sprout head, or dependency-aware (`v2-start-order`).
  * 2-3. Each bean is checked on its agent's sandbox and lands optimistically, while the sprout
  *    window has room (v2.3, `v2-backpressure`); a moved sprout forces a re-check only by the
  *    `recheck` rule (v2.3: sampled; v2.2: adaptive) (`v2-landing`).
@@ -63,6 +63,7 @@ import {
   startInformedRework,
 } from './v2-repair';
 import { takeWait } from './v2-sprout';
+import { chooseStart } from './v2-start-order';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
 import {
   activeTickets,
@@ -118,6 +119,7 @@ function initialV2State(ctx: StepContext): V2State {
       reconcile: config.reconcile,
       decisionOutcome: config.decision_outcome,
       decisionMode: config.decision_mode,
+      startOrder: config.start_order,
     },
     sprout: base,
     green: base,
@@ -247,7 +249,8 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
  * `dispatch`: beans that waited out an inherited red check again once the sprout moved;
  * beans waiting for an agent go first (an agent finishes a bean before it starts
  * another), then free slots take unstarted beans in priority order from the sprout head
- * (`place` is FIFO in v2; the error-budget controller is not built). Then the validator.
+ * (`place` is FIFO, or dependency-aware with `start_order: dependency`, `v2-start-order`; the
+ * error-budget controller is not built). Then the validator.
  */
 function dispatch(step: V2Step): void {
   const { ctx, state } = step;
@@ -256,24 +259,32 @@ function dispatch(step: V2Step): void {
   assignAgents(step);
   while (state.unstarted.length > 0) {
     const slot = freeAskingSlot(ctx);
-    const id = state.unstarted[0];
-    if (slot === undefined || id === undefined) break;
-    state.unstarted.shift();
+    if (slot === undefined) break;
+    const choice = chooseStart(ctx, state.unstarted, state.settings.startOrder ?? 'fifo');
+    if (choice === null) break;
+    const id = choice.task;
+    state.unstarted = state.unstarted.filter((other) => other !== id);
     const task = requireTask(ctx, id);
-    state.stats.placements_disjoint += 1;
+    countPlacement(state, choice.overlap.length);
     emit(ctx, 'placement.decision', {
       task: id,
-      rule: 'fifo',
+      rule: choice.rule,
       predicted: [...task.selected],
-      overlap: [],
-      occupied: {},
-      skipped: [],
+      overlap: [...choice.overlap],
+      occupied: { ...choice.occupied },
+      skipped: [...choice.skipped],
     });
     task.status = 'running';
     hold(ctx, slot, id);
     startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
+}
+
+function countPlacement(state: V2State, overlapModules: number): void {
+  if (overlapModules === 0) state.stats.placements_disjoint += 1;
+  else state.stats.placements_overlap += 1;
+  state.stats.placement_overlap_modules += overlapModules;
 }
 
 /** A slot was found for a bean's awaited work. */
@@ -571,6 +582,8 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     open_tickets_at_end: activeTickets(state).length,
     ticket_details: ticketDetails(state, nowSeconds),
     variant: variantOf(settings),
+    // Reported only off the default, so FIFO summaries stay byte-identical with the harness's.
+    ...(settings.startOrder === 'dependency' ? { start_order: settings.startOrder } : {}),
   };
   return {
     key: 'beanstalk',
