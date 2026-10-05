@@ -14,7 +14,7 @@
   /* ?skin=greenhouse|swiss|nightshift (default: the GitHub-style base) and ?theme=light|dark (default: the system's). */
   (function () {
     const p = new URLSearchParams(location.search);
-    const skin = ['greenhouse', 'swiss', 'nightshift'].includes(p.get('skin')) ? p.get('skin') : 'base';
+    const skin = ['greenhouse', 'swiss', 'nightshift', 'base'].includes(p.get('skin')) ? p.get('skin') : 'nightshift';
     const theme = p.get('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const root = document.documentElement;
     root.dataset.skin = skin;

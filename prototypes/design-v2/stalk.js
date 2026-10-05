@@ -160,9 +160,10 @@
     p.set('t', S.T >= TEND ? 'end' : String(Math.round(S.T - T0)));
     if (S.q) p.set('q', S.q);
     if (S.bean) p.set('bean', S.bean);
-    if (params.get('theme')) p.set('theme', params.get('theme'));
-    if (params.get('skin')) p.set('skin', params.get('skin'));
-    if (params.get('day')) p.set('day', params.get('day'));
+    const root = document.documentElement;
+    if (root.dataset.skin && root.dataset.skin !== 'nightshift') p.set('skin', root.dataset.skin);
+    p.set('theme', root.dataset.theme);
+    if (root.dataset.theme === 'light' && root.dataset.day) p.set('day', root.dataset.day);
     history.replaceState(null, '', `?${p}`);
   }
 
