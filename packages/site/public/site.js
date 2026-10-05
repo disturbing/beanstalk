@@ -292,8 +292,11 @@ function whileVisible(element, intervalMs, tick) {
 }
 
 // ---------------------------------------------------------------------------
-// The lifecycle stalk: a queued idea becomes a bean, beans are checked and land on the sprout,
-// and the whole sprout matures into the stalk together, with a pulse of light.
+// The lifecycle stalk. Beans are checked alone and land on the sprout. Meanwhile the stalk
+// check runs continuously: it tests every sprout that landed since the last check, together.
+// When it passes, that batch matures into the stalk at once and the next check starts right
+// away on the sprouts that collected meanwhile. Now and then a check goes red: only the
+// culprit is pulled out and sent back; the rest of its batch still matures.
 // ---------------------------------------------------------------------------
 const TITLES = [
   'Expired coupons are still accepted at checkout',
@@ -314,6 +317,9 @@ const TITLES = [
   'Shipping emails should include the tracking link',
 ];
 
+/** Steps a stalk check takes (about a minute in our races). */
+const CHECK_STEPS = 4;
+
 function createStalkModel() {
   let titleIx = 0;
   let agentIx = 0;
@@ -323,71 +329,79 @@ function createStalkModel() {
   const clock = () => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 
   const stalk = [];
-  for (let n = 25; n > 18; n--) {
+  for (let n = 24; n > 17; n--) {
     stalk.push({ n, title: nextTitle(), time: clock() });
-    minutes -= 9;
+    minutes -= 2 + (n % 3);
   }
   minutes = 12 * 60 + 31;
-  const sprout = [{ n: 26, title: nextTitle(), time: clock() }];
-  const beans = [
-    { agent: '', title: nextTitle(), status: 'queued', reworked: false },
-    { agent: nextAgent(), title: nextTitle(), status: 'writing', reworked: false },
-    { agent: nextAgent(), title: nextTitle(), status: 'checking', reworked: true },
-    { agent: nextAgent(), title: nextTitle(), status: 'checking', reworked: false },
-  ];
-  let nextN = 27;
-  let checks = 0;
-
-  return {
+  const model = {
     stalk,
-    sprout,
-    beans,
-    /** One step of the run; returns true when the sprout matured into the stalk. */
+    /** The batch the running stalk check is testing, together. */
+    batch: [
+      { n: 26, title: nextTitle(), time: clock() },
+      { n: 25, title: nextTitle(), time: clock() },
+    ],
+    /** Sprouts that landed since that check began: the next batch. */
+    collecting: [{ n: 27, title: nextTitle(), time: clock() }],
+    beans: [
+      { agent: '', title: nextTitle(), status: 'queued' },
+      { agent: nextAgent(), title: nextTitle(), status: 'writing' },
+      { agent: nextAgent(), title: nextTitle(), status: 'checking' },
+      { agent: nextAgent(), title: nextTitle(), status: 'checking' },
+    ],
+    checkStep: 1,
+    checks: 0,
+    nextN: 28,
+    /** What the last finished check did: matured n leaves, or pulled out a culprit. */
+    result: null,
+    clock,
     step() {
-      for (const bean of beans) {
-        if (bean.status === 'reworking') bean.status = 'writing';
-      }
-      if (sprout.length >= 3) {
-        // The whole sprout passed together: every leaf on it joins the stalk at once.
-        const leaves = sprout.splice(0);
-        for (const leaf of leaves) leaf.promoted = true;
-        stalk.unshift(...leaves);
-        stalk.length = Math.min(stalk.length, 9);
-        return true;
-      }
-      const checking = beans.findLastIndex((b) => b.status === 'checking');
-      if (checking >= 0) {
-        const bean = beans[checking];
-        checks += 1;
-        if (!bean.reworked && checks % 4 === 0) {
-          // A red check: back to the agent that wrote it, with context.
-          bean.status = 'reworking';
-          bean.reworked = true;
-          return false;
-        }
-        minutes += 3;
-        sprout.unshift({ n: nextN++, title: bean.title, time: clock(), enter: true });
-        beans.splice(checking, 1);
-        const queued = beans.find((b) => b.status === 'queued');
+      minutes += 1;
+      model.result = null;
+      for (const bean of model.beans) if (bean.status === 'reworking') bean.status = 'writing';
+      // A bean passes its own check and lands on the sprout (alone, every other step).
+      const ready = model.beans.findLastIndex((b) => b.status === 'checking');
+      if (ready >= 0 && minutes % 2 === 0) {
+        const [bean] = model.beans.splice(ready, 1);
+        model.collecting.unshift({
+          n: model.nextN++,
+          title: bean.title,
+          time: clock(),
+          enter: true,
+        });
+        const queued = model.beans.find((b) => b.status === 'queued');
         if (queued) {
           queued.status = 'writing';
           queued.agent = nextAgent();
         }
-        beans.unshift({
-          agent: '',
-          title: nextTitle(),
-          status: 'queued',
-          reworked: false,
-          enter: true,
-        });
-        return false;
+        model.beans.unshift({ agent: '', title: nextTitle(), status: 'queued', enter: true });
+      } else {
+        const writer = model.beans.findLast((b) => b.status === 'writing');
+        if (writer) writer.status = 'checking';
       }
-      for (const bean of beans) {
-        if (bean.status === 'writing') bean.status = 'checking';
+      // The stalk check runs on; when it finishes, the next starts at once on what collected.
+      model.checkStep += 1;
+      if (model.checkStep < CHECK_STEPS) return false;
+      model.checks += 1;
+      let batch = model.batch;
+      if (model.checks % 3 === 0 && batch.length > 1) {
+        // Red: only the culprit is pulled out and sent back to its author.
+        const culprit = batch[0];
+        batch = batch.slice(1);
+        model.beans.splice(1, 0, { agent: nextAgent(), title: culprit.title, status: 'reworking' });
+        model.result = { culprit: culprit.n };
       }
-      return false;
+      for (const leaf of batch) leaf.promoted = true;
+      model.stalk.unshift(...batch);
+      model.stalk.length = Math.min(model.stalk.length, 8);
+      model.result = { ...model.result, matured: batch.length, time: clock() };
+      model.batch = model.collecting;
+      model.collecting = [];
+      model.checkStep = 0;
+      return true;
     },
   };
+  return model;
 }
 
 const STATUS_SHORT = {
@@ -416,24 +430,52 @@ function beanRow(bean) {
       <span class="tt">${escapeHtml(bean.title)}</span><span class="st">${STATUS_SHORT[bean.status]}</span></div>`;
 }
 
+function noteRow(cls, text) {
+  return `<div class="pointer ${cls}"><span></span><span class="stem"></span><span>${text}</span></div>`;
+}
+
 function renderStalk(model, rowsEl, headEl) {
-  const top = model.stalk[0];
-  const pointer = `<div class="pointer"><span></span><span class="stem"></span><span>stalk at #${top.n}</span></div>`;
-  // The validation moment: the sprouts that just matured together, named for a beat.
-  const matured = model.stalk.filter((leaf) => leaf.promoted).length;
-  const bracket = matured
-    ? `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${top.time} · ${matured} matured</span></div>`
-    : '';
-  rowsEl.innerHTML = [
-    ...model.beans.map(beanRow),
-    ...model.sprout.map((leaf) => leafRow(leaf, 'sprout')),
-    pointer,
-    bracket,
+  const range = (leaves) => {
+    const ns = leaves.map((leaf) => leaf.n);
+    return ns.length > 1 ? `#${Math.min(...ns)}–#${Math.max(...ns)}` : `#${ns[0] ?? ''}`;
+  };
+  const rows = model.beans.map(beanRow);
+  rows.push(
+    noteRow(
+      'collect',
+      model.collecting.length
+        ? `${model.collecting.length} queued since this check began: the next batch`
+        : 'the next batch collects here',
+    ),
+    ...model.collecting.map((leaf) => leafRow(leaf, 'sprout')),
+  );
+  if (model.batch.length) {
+    const left = CHECK_STEPS - model.checkStep;
+    rows.push(
+      noteRow(
+        'checkrun',
+        `<i class="orbit"></i>stalk check: ${range(model.batch)} together, ${left > 1 ? 'running' : 'finishing'}`,
+      ),
+      ...model.batch.map((leaf) => leafRow(leaf, 'sprout inbatch')),
+    );
+  }
+  const r = model.result;
+  if (r?.culprit) {
+    rows.push(noteRow('pulled', `red: #${r.culprit} pulled out and sent back; the rest matured`));
+  }
+  if (r?.matured) {
+    rows.push(
+      `<div class="matured-row"><span></span><span class="stem"></span><span>validated at ${r.time} · ${r.matured} matured</span></div>`,
+    );
+  }
+  rows.push(
+    noteRow('', `stalk at #${model.stalk[0].n}`),
     ...model.stalk.map((leaf) => leafRow(leaf, 'stalk')),
-  ].join('');
+  );
+  rowsEl.innerHTML = rows.join('');
   const growing = model.beans.filter((b) => b.status !== 'queued').length;
-  headEl.textContent = `${growing} growing, ${model.sprout.length} on the sprout`;
-  for (const item of [...model.beans, ...model.sprout, ...model.stalk]) {
+  headEl.textContent = `${growing} growing, ${model.batch.length + model.collecting.length} on the sprout`;
+  for (const item of [...model.beans, ...model.collecting, ...model.batch, ...model.stalk]) {
     item.enter = false;
     item.promoted = false;
   }
@@ -445,6 +487,15 @@ function setupStalk() {
   const headEl = host?.querySelector('[data-stalkhead]');
   if (!host || !rowsEl || !headEl) return;
   const model = createStalkModel();
+  // `?stalk=<steps>` freezes the graphic after that many steps (for screenshots).
+  const frozen = Number(new URLSearchParams(location.search).get('stalk'));
+  if (Number.isFinite(frozen) && frozen > 0) {
+    let matured = false;
+    for (let i = 0; i < frozen; i++) matured = model.step();
+    renderStalk(model, rowsEl, headEl);
+    rowsEl.classList.toggle('validating', matured);
+    return;
+  }
   renderStalk(model, rowsEl, headEl);
   whileVisible(host, 1500, () => {
     const matured = model.step();

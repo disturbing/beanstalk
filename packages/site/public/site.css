@@ -2918,3 +2918,52 @@ dialog.choose::backdrop {
   white-space: nowrap;
 }
 /* demo-tour:end */
+
+/* lifecycle:start (the continuous stalk check) */
+.stalkdemo .pointer.collect {
+  color: var(--fg-subtle);
+}
+.stalkdemo .pointer.collect span:last-child {
+  border-top-style: dotted;
+  border-top-color: var(--border);
+}
+.stalkdemo .pointer.checkrun {
+  color: var(--amber);
+}
+.stalkdemo .pointer.checkrun span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-top-color: color-mix(in srgb, var(--amber) 50%, transparent);
+}
+.stalkdemo .pointer.checkrun .orbit {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  background: var(--amber);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-dasharray='3 3.2' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-dasharray='3 3.2' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
+.stalkdemo .pointer.pulled {
+  color: var(--red);
+}
+.stalkdemo .pointer.pulled span:last-child {
+  border-top-color: color-mix(in srgb, var(--red) 50%, transparent);
+}
+.stalkdemo .srow.inbatch {
+  background: color-mix(in srgb, var(--amber) 6%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stalkdemo .pointer.checkrun .orbit {
+    animation: glyph-orbit 2.4s linear infinite;
+  }
+}
+.stalkdemo .rows {
+  height: 450px;
+}
+.stalkdemo .srow .st {
+  white-space: nowrap;
+}
+/* lifecycle:end */

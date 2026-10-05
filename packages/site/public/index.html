@@ -167,36 +167,37 @@
           <div>
             <h2 id="grow-title">How a bean grows.</h2>
             <p class="lead">
-              A bean grows into a sprout, and sprouts mature into the stalk once verified and
-              shipped.
+              A bean grows into a sprout, and sprouts mature into the stalk together.
             </p>
             <dl class="terms">
               <div>
                 <i class="mark mk-bean" aria-hidden="true"></i>
                 <dt>Bean</dt>
-                <dd>
-                  One piece of work: an idea in the queue, or a change in flight with an agent.
-                </dd>
+                <dd>An agent's or a human's idea, queued or being written.</dd>
               </div>
               <div>
                 <i class="mark mk-sprout" aria-hidden="true"></i>
                 <dt>Sprout</dt>
-                <dd>Where a bean lands the moment it passes its own check.</dd>
+                <dd>
+                  A bean that passed its tests on a soft fork. Once it passes, other beans and
+                  sprouts build on it instantly.
+                </dd>
               </div>
               <div>
                 <i class="mark mk-stalk" aria-hidden="true"></i>
                 <dt>Stalk</dt>
-                <dd>The stable line. Only verified work matures into it.</dd>
+                <dd>
+                  Beanstalk promotes the sprouts queued since the last check, together, in one
+                  batch. Once they pass together, they all join the stalk.
+                </dd>
               </div>
             </dl>
             <div class="callout">
-              <p>
-                Beans sprout the moment they pass their own check. The stalk grows when the whole
-                sprout passes together.
-              </p>
+              <p>Sprouts are tested alone. The stalk is tested together.</p>
               <small>
-                That's why the stalk trails the sprout by a moment: every bean that landed together
-                runs the full test suite at once.
+                Twelve agents land at once. Each sprout passed on its own, but two can still clash,
+                so the stalk tests them together, and pulls out only the culprit if they don't. When
+                one stalk check finishes, the next starts at once on whatever landed meanwhile.
               </small>
             </div>
           </div>
@@ -204,8 +205,9 @@
             <div class="head"><b>beanstalk-shop</b><span data-stalkhead></span></div>
             <div class="rows" role="img" aria-label="An animated stalk"></div>
             <figcaption class="caption">
-              Beans queue, grow and get checked. They land on the sprout, and the whole sprout
-              matures into the stalk together.
+              Beans are checked alone and land on the sprout. A stalk check runs on the batch below;
+              when it passes, the batch matures together, and the next check starts at once on the
+              sprouts that collected meanwhile.
             </figcaption>
           </figure>
         </div>
