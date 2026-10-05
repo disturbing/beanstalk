@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option D: Centre stalk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 60px; }
+  .askhero { text-align: center; margin-bottom: 18px; }
+  .askhero .ask { max-width: 760px; margin: 0 auto; border-radius: 14px; padding: 4px 10px 4px 12px; box-shadow: var(--shadow-md); }
+  .askhero .ask .q { width: 34px; height: 34px; font-size: 19px; background: var(--leaf); }
+  .askhero .ask input { font-size: 18px; padding: 14px 0; }
+  .askhero .asked { justify-content: center; }
+  .tipzone { text-align: center; margin: 26px 0 0; }
+  .tiphead { font-size: 13px; color: var(--fg-muted); margin-bottom: 10px; }
+  .tiphead b { color: var(--bean); }
+  .canopy { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 900px; margin: 0 auto; }
+  .bud { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 3px 10px 3px 7px; font-size: 12px; max-width: 280px; box-shadow: var(--shadow-sm); }
+  .bud .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bud .a { color: var(--bean); font-weight: 600; }
+  @media (prefers-reduced-motion: no-preference) {
+    .bud { animation: drift 3.2s ease-in-out infinite; }
+    @keyframes drift { 50% { transform: translateY(-3px); } }
+  }
+  .tipstem { width: 2px; height: 34px; margin: 10px auto 0; background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 7px); opacity: .5; }
+  .stalk { position: relative; margin-top: 0; }
+  .srow::before, .pointer::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--leaf); }
+  .srow.sp::before { background: var(--sprout); }
+  .srow { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; min-height: 54px; position: relative; }
+  .node { justify-self: center; position: relative; z-index: 1; display: grid; place-items: center; width: 24px; height: 24px; }
+  .node .leaf { width: 14px; height: 14px; }
+  .node.ev { width: 22px; height: 22px; border-radius: 50%; background: var(--bg); box-shadow: 0 0 0 2px var(--bg); }
+  .sides { display: grid; grid-template-columns: 1fr 64px 1fr; font: 600 12px var(--sans); color: var(--fg-muted); margin: 6px 0 4px; }
+  .sides span:first-child { text-align: right; padding-right: 6px; }
+  .sides span:last-child { padding-left: 6px; }
+  .card { display: inline-block; max-width: 440px; text-align: left; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; background: var(--bg); font-size: 13px; box-shadow: var(--shadow-sm); position: relative; }
+  .card .ttl { font-weight: 600; font-size: 13.5px; }
+  .card .meta { color: var(--fg-muted); font-size: 12px; margin-top: 2px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .card .bed { font-size: 11px; border: 1px solid var(--border-muted); border-radius: 4px; padding: 0 5px; color: var(--fg-muted); background: var(--subtle); }
+  .left .card { margin-right: 6px; }
+  .right .card { margin-left: 6px; }
+  .left { text-align: right; }
+  .left .card { text-align: right; }
+  .left .meta { justify-content: flex-end; }
+  .card::after { content: ''; position: absolute; top: 50%; width: 22px; height: 1px; background: var(--border); }
+  .left .card::after { right: -23px; }
+  .right .card::after { left: -23px; }
+  .status { font-size: 12px; color: var(--fg-muted); padding: 0 6px; }
+  .left .status { text-align: right; }
+  .card.red { border-color: color-mix(in srgb, var(--red) 40%, var(--border)); background: var(--red-bg); }
+  .card.decide { border-color: color-mix(in srgb, var(--pick) 40%, var(--border)); background: var(--pick-bg); }
+  .card.settle { border-style: dashed; background: var(--leaf-bg); border-color: color-mix(in srgb, var(--leaf) 40%, var(--border)); color: var(--leaf); padding: 5px 10px; font-weight: 500; }
+  .more { text-align: center; margin-top: 10px; }
+  .pointer { text-align: center; padding: 6px 0; position: relative; }
+  .pointer span { position: relative; z-index: 1; }
+  .pointer span { background: var(--bg); border: 1px solid var(--leaf); color: var(--leaf); border-radius: 999px; padding: 2px 10px; font: 600 12px var(--sans); }
+  .filepage { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .fstalk { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .fstalk h3 { font-size: 14px; margin: 0 0 10px; }
+  .fl { position: relative; padding-left: 22px; }
+  .fl::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 3px; background: var(--leaf); border-radius: 2px; }
+  .fl .it { position: relative; padding: 6px 0; font-size: 13px; }
+  .fl .it > i { position: absolute; left: -21px; top: 10px; }
+  .fl .it.fly::before { content: ''; position: absolute; left: -16px; top: -6px; height: 22px; width: 3px; background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); }
+  .fl .it .m { color: var(--fg-muted); font-size: 12px; }
+  .crumbbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 15px; }
+  .crumbbar .r { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../repo-experience/data.js"></script>
+<script src="../repo-experience/model.js"></script>
+<script src="shared/kit.js"></script>
+<script>
+(function () {
+  const { esc, short, ICON, plural } = K;
+  const T = K.moment(760);
+  const view = K.params.get('view') || 'home';
+  const flying = M.inflightAt(T);
+  const stalkIdx = M.stalkIdxAt(T);
+  const landed = M.landings.filter((l) => l.t <= T).sort((a, b) => b.idx - a.idx);
+  const fmt = (t) => { const s = Math.round(t - M.T0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const beds = (l) => [...new Set(l.files.map((f) => M.bedOf(f.path)))];
+
+  function tip() {
+    if (!flying.length) return `<div class="tipzone"><div class="tiphead"><svg width="22" height="22" viewBox="0 0 16 16" style="vertical-align:-6px"><path d="M8 15V8" stroke="#7cb518" stroke-width="1.6"/><path d="M8 9c0-2.5 2-4.5 5-4.5 0 2.5-2 4.5-5 4.5Z" fill="#7cb518"/></svg> Nothing growing. The swarm is resting.</div></div>`;
+    return `<div class="tipzone"><div class="tiphead"><b>${flying.length} beans growing</b> at ${fmt(T)}, each lands on the sprout when its pre-land check passes <span class="picked" title="Jev ordered the canopy: the bean to watch first is leftmost">Jev ordered</span></div>
+      <div class="canopy">${flying.map((b, i) => `<span class="bud" style="animation-delay:${(i * 0.31).toFixed(2)}s"><i class="budd ${b.state === 'checking' ? 'checking' : b.state === 'reworking' ? 'reworking' : 'pulse'}"></i><span class="a">${b.agent}</span><span class="t">${esc(b.title)}</span></span>`).join('')}</div><div class="tipstem"></div></div>`;
+  }
+
+  /** Rows down the centre: bean cards on the left, what the forge did on the right. */
+  function stalkRows(limit) {
+    const events = [];
+    for (const l of landed.slice(0, limit)) events.push({ t: l.t, kind: 'land', l });
+    const oldest = landed.slice(0, limit).at(-1)?.t ?? 0;
+    for (const p of M.promotes) if (p.t <= T && p.t >= oldest) events.push({ t: p.t, kind: 'settle', p });
+    for (const v of M.validations) if (!v.green && v.t <= T && v.t >= oldest) events.push({ t: v.t, kind: 'red', v });
+    for (const d of M.decisions) if (d.t <= T && d.t >= oldest) events.push({ t: d.t, kind: 'decide', d });
+    for (const [, x] of M.drops) if (x.t <= T && x.t >= oldest) events.push({ t: x.t, kind: 'drop', x });
+    events.sort((a, b) => b.t - a.t);
+    let pointer = false;
+    let above = true;
+    return events.map((e) => {
+      if (e.kind === 'land' && e.l.idx <= stalkIdx) above = false;
+      const sp = above ? 'sp' : '';
+      if (e.kind === 'land') {
+        const s = K.leafState(e.l, T);
+        const pt = !pointer && e.l.idx <= stalkIdx ? ((pointer = true), `<div class="pointer"><span>the stalk is here: #${stalkIdx}</span></div>`) : '';
+        return `${pt}<div class="srow ${s === 'sprout' ? 'sp' : ''}"><div class="left"><div class="card"><div class="ttl">${esc(e.l.title)}</div><div class="meta">${beds(e.l).map((b) => `<span class="bed">${b}</span>`).join('')}<span>${e.l.agent}</span><span>#${e.l.idx}</span><span>${fmt(e.l.t)}</span></div></div></div>
+          <span class="node"><i class="leaf ${s === 'stalk' ? '' : s}"></i></span><div class="right"><div class="status">${s === 'sprout' ? 'on the sprout, waiting for validation' : s === 'red' ? 'turned the sprout red; fixed forward' : ''}</div></div></div>`;
+      }
+      if (e.kind === 'settle') return `<div class="srow ${sp}"><div></div><span class="node ev"><i class="leaf"></i></span><div class="right"><div class="card settle">Validated at ${fmt(e.t)}: the stalk moves to #${e.p.trunk_idx}</div></div></div>`;
+      if (e.kind === 'red') return `<div class="srow ${sp}"><div></div><span class="node ev" style="color:var(--red)">${ICON.x}</span><div class="right"><div class="card red"><div class="ttl">Validation red at #${e.v.trunk_idx}</div><div class="meta"><code>${esc(short(e.v.failing_files[0] || ''))}</code> failed; read sets name the suspects</div></div></div></div>`;
+      if (e.kind === 'decide') return `<div class="srow ${sp}"><div></div><span class="node ev" style="color:var(--pick)">${ICON.decide}</span><div class="right"><div class="card decide"><div class="ttl">${e.d.card}: two specs clashed</div><div class="meta">${esc(e.d.task)} against ${esc(e.d.against[0])}</div></div></div></div>`;
+      return `<div class="srow ${sp}"><div class="left"><div class="card" style="opacity:.75"><div class="ttl">${esc(M.tasks.get(e.x.task).title)}</div><div class="meta"><span class="chip red">fell off</span>${/conflict/.test(e.x.reason) ? 'unresolved conflict' : 'declined'}</div></div></div><span class="node ev" style="color:var(--fg-subtle)">${ICON.dot}</span><div></div></div>`;
+    }).join('');
+  }
+
+  function home() {
+    const sproutShare = landed.length ? Math.round((landed.filter((l) => l.idx > stalkIdx).length / 10) * 100) : 0;
+    return `<div class="askhero">${K.askBox('What do you want to know about beanstalk-shop?', ['What changed recently on coupons?', 'Why did the sprout go red?', 'Who is working on billing right now?', 'What did we decide?'])}</div>
+      <div style="display:flex;justify-content:center;gap:14px;align-items:center;margin-top:6px">${K.branchButton(T)}</div>
+      ${tip()}<div class="sides"><span>What the agents grew</span><span></span><span>What the forge did</span></div><div class="stalk" style="--sp:${Math.min(60, sproutShare)}%">${stalkRows(10)}</div>
+      <div class="more"><a class="btn" href="#">${ICON.stalk} Show the whole stalk (${landed.length} beans)</a> <a class="btn" href="#">${ICON.code} Browse files</a></div>`;
+  }
+
+  function files() {
+    const file = 'src/shipping/service.ts';
+    const touching = landed.filter((l) => l.files.some((f) => f.path === file));
+    const onIt = K.inflightOn(file, T, flying);
+    return `<div class="askhero" style="margin-bottom:22px">${K.askBox('Ask about service.ts', ['Who changed shipping quotes and why?'])}</div>
+      <div class="crumbbar"><a href="#">beanstalk-shop</a>/<a href="#">src</a>/<a href="#">shipping</a>/<b>service.ts</b><span class="r">${K.branchButton(T)}</span></div>
+      <div class="filepage"><aside><div class="fstalk"><h3>This file's stalk</h3><div class="fl">
+        ${onIt.map((b) => `<div class="it fly"><i class="budd pulse"></i><b>${b.agent}</b> ${b.state}<div class="m">${esc(b.title)}</div></div>`).join('')}
+        ${touching.map((l) => { const s = K.leafState(l, T); const f = l.files.find((x) => x.path === file); return `<div class="it"><i class="leaf ${s === 'stalk' ? '' : s}"></i>${esc(l.title)}<div class="m">${l.task} #${l.idx}, ${l.agent}, ${fmt(l.t)}, <span style="color:var(--leaf)">+${f.additions}</span> <span style="color:var(--red)">−${f.deletions}</span></div></div>`; }).join('')}
+        <div class="it"><i class="leaf" style="background:var(--fg-subtle);border-radius:50%"></i><span class="muted">base commit</span></div></div></div>
+        <div class="box" style="margin-top:16px">${K.miniTree('src/shipping', T, file)}</div></aside>
+      <div class="box"><div class="boxhead">${ICON.file}<b>service.ts</b><span class="right">${onIt.map(K.budChip).join(' ')}<button class="btn sm">Blame by bean</button></span></div>${K.codeView(file, 40, T)}</div></div>`;
+  }
+
+  document.getElementById('app').innerHTML = `${K.repoHead('code', { T })}<main class="wrap">${view === 'files' ? files() : home()}</main>`;
+})();
+</script>
+</body>
+</html>

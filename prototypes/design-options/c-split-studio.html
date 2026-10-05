@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option C: Split studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  body { height: 100vh; display: flex; flex-direction: column; }
+  .studio { flex: 1; min-height: 0; display: grid; grid-template-columns: 400px 260px minmax(0, 1fr); }
+  .left { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
+  .left .askpad { padding: 16px; border-bottom: 1px solid var(--border-muted); }
+  .left .ask { border-radius: 8px; }
+  .lines { flex: 1; overflow: hidden; padding: 6px 0 16px; }
+  .grp { padding: 10px 16px 4px; font: 600 12px/1.4 var(--sans); color: var(--fg-muted); display: flex; align-items: center; gap: 8px; }
+  .grp .n { margin-left: auto; font-weight: 500; color: var(--fg-subtle); }
+  .row { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 4px 16px; font-size: 13px; position: relative; }
+  .row .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .w { color: var(--fg-subtle); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .row .node { justify-self: center; z-index: 1; }
+  .row::before { content: ''; position: absolute; left: 26px; top: 0; bottom: 0; width: 2px; background: var(--leaf); }
+  .row.sp::before { background: var(--sprout); }
+  .row.bud::before { background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); opacity: .45; }
+  .row.sel { background: var(--pick-bg); }
+  .row .agent { color: var(--bean); font-weight: 600; font-size: 12px; }
+  .settle { margin: 4px 16px 4px 40px; font-size: 12px; color: var(--leaf); display: flex; align-items: center; gap: 6px; }
+  .settle::before { content: ''; flex: 0 0 18px; height: 1px; border-top: 1px dashed var(--leaf); }
+  .idle { display: flex; gap: 10px; align-items: center; padding: 8px 16px 6px; color: var(--fg-muted); font-size: 13px; }
+  .tree { border-right: 1px solid var(--border); background: var(--subtle); overflow: hidden; }
+  .tree .boxhead { background: transparent; border-bottom: 1px solid var(--border-muted); }
+  .main { overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .mainhead { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--border-muted); }
+  .mainhead .crumb { font-size: 14px; }
+  .mainhead .r { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .pad { padding: 16px 20px; overflow: hidden; }
+  .overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat { border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+  .stat b { display: block; font-size: 20px; font-weight: 600; }
+  .stat span { font-size: 12px; color: var(--fg-muted); }
+  .stories { margin-top: 16px; }
+  .filebanner { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 20px; border-bottom: 1px solid var(--border-muted); font-size: 12px; color: var(--fg-muted); background: var(--bean-bg); }
+  .code .ln { grid-template-columns: 160px 44px 1fr; }
+</style>
+</head>
+<body>
+<div id="app" style="display:contents"></div>
+<script src="../repo-experience/data.js"></script>
+<script src="../repo-experience/model.js"></script>
+<script src="shared/kit.js"></script>
+<script>
+(function () {
+  const { esc, short, ICON, plural } = K;
+  const view = K.params.get('view') || 'home';
+  const T = K.moment(view === 'files' ? 760 : null);
+  const flying = M.inflightAt(T);
+  const stalkIdx = M.stalkIdxAt(T);
+  const landed = M.landings.filter((l) => l.t <= T).sort((a, b) => b.idx - a.idx);
+  const file = 'src/shipping/service.ts';
+  const fileBeans = new Set(landed.filter((l) => l.files.some((f) => f.path === file)).map((l) => l.task));
+  const fmt = (t) => { const s = Math.round(t - M.T0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  /** The left column: growing, then the sprout, then the stalk grouped by the validation that settled it. */
+  function lines(limit) {
+    const out = [];
+    out.push(`<div class="grp"><i class="budd ${flying.length ? 'pulse' : ''}"></i>Growing<span class="n">${flying.length}</span></div>`);
+    if (flying.length) out.push(...flying.slice(0, 6).map((b) => `<div class="row bud"><span class="node"><i class="budd ${b.state === 'checking' ? 'checking' : b.state === 'reworking' ? 'reworking' : 'pulse'}"></i></span><span class="t"><span class="agent">${b.agent}</span> ${esc(b.title)}</span><span class="w">${b.state}</span></div>`), flying.length > 6 ? `<div class="row bud"><span></span><span class="t subtle">and ${flying.length - 6} more</span><span></span></div>` : '');
+    else out.push(`<div class="idle"><svg width="18" height="18" viewBox="0 0 16 16"><path d="M8 15V8" stroke="#7cb518" stroke-width="1.6"/><path d="M8 9c0-2.5 2-4.5 5-4.5 0 2.5-2 4.5-5 4.5Z" fill="#7cb518"/></svg>Nothing growing. All ${landed.length} beans have settled.</div>`);
+    const sprout = landed.filter((l) => l.idx > stalkIdx);
+    out.push(`<div class="grp"><i class="leaf sprout"></i>On the sprout, waiting for validation<span class="n">${sprout.length}</span></div>`);
+    out.push(...sprout.map((l) => row(l, 'sp')));
+    if (!sprout.length) out.push('<div class="row sp"><span></span><span class="t subtle">The stalk has caught up.</span><span></span></div>');
+    out.push(`<div class="grp"><i class="leaf"></i>On the stalk<span class="n">${landed.length - sprout.length}</span></div>`);
+    const proms = M.promotes.filter((p) => p.t <= T).sort((a, b) => b.trunk_idx - a.trunk_idx);
+    let count = 0;
+    for (let i = 0; i < proms.length && count < limit; i++) {
+      const p = proms[i], prev = proms[i + 1] ? proms[i + 1].trunk_idx : -1;
+      const group = landed.filter((l) => l.idx <= p.trunk_idx && l.idx > prev);
+      out.push(`<div class="settle">validated at ${fmt(p.t)}: ${group.length === 1 ? `#${p.trunk_idx}` : `#${prev + 1} to #${p.trunk_idx}`} settled</div>`);
+      for (const l of group) { if (count++ >= limit) break; out.push(row(l, '')); }
+    }
+    return out.join('');
+  }
+  function row(l, cls) {
+    const s = K.leafState(l, T);
+    return `<div class="row ${cls} ${view === 'files' && fileBeans.has(l.task) ? 'sel' : ''}"><span class="node"><i class="leaf ${s === 'stalk' ? '' : s}"></i></span><span class="t">${esc(l.title)}</span><span class="w">#${l.idx}</span></div>`;
+  }
+
+  function home() {
+    const green = landed.filter((l) => l.idx <= stalkIdx).length;
+    return `<div class="mainhead">${K.branchButton(T)}<span class="r"><button class="btn sm">Go to file</button><button class="btn primary sm">${ICON.code} Code</button></span></div>
+      <div class="pad"><div class="overview">
+        <div class="stat"><b style="color:var(--leaf)">${green}</b><span>beans on the stalk</span></div>
+        <div class="stat"><b>${landed.length - green}</b><span>on the sprout</span></div>
+        <div class="stat"><b style="color:var(--bean)">${flying.length}</b><span>growing now</span></div>
+        <div class="stat"><b style="color:var(--red)">${M.drops.size}</b><span>fell off</span></div></div>
+        <div class="box">${K.fileTable('src', T)}</div>
+        <div class="box stories"><div class="boxhead"><b>What happened</b><span class="right"><span class="picked">ordered by Jev</span></span></div>${K.stories(T)}</div></div>`;
+  }
+
+  function files() {
+    const onIt = K.inflightOn(file, T, flying);
+    const owners = K.fileOwners(file);
+    return `<div class="mainhead"><span class="crumb"><a href="#">src</a> / <a href="#">shipping</a> / <b>service.ts</b></span><span class="r"><span class="muted" style="font-size:12px">${plural(owners.length, 'bean')} wrote this file</span><button class="btn sm">Blame by bean</button></span></div>
+      ${onIt.length ? `<div class="filebanner">${onIt.map(K.budChip).join(' ')} <span>is changing this file now; its bean lands on the sprout after its pre-land check.</span></div>` : ''}
+      ${K.codeView(file, 44, T)}`;
+  }
+
+  document.getElementById('app').innerHTML = `${K.repoHead('code', { T })}
+    <div class="studio"><aside class="left"><div class="askpad">${K.askBox('Ask about this repository', ['What changed recently on coupons?', 'Why did the sprout go red?'])}</div><div class="lines">${lines(view === 'files' ? 14 : 18)}</div></aside>
+      <nav class="tree"><div class="boxhead"><b>Files</b><span class="right">sprout</span></div>${view === 'files' ? K.miniTree('src/shipping', T, file) : K.miniTree('src', T, null)}</nav>
+      <section class="main">${view === 'files' ? files() : home()}</section></div>`;
+})();
+</script>
+</body>
+</html>

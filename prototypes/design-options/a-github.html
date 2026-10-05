@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Option A: GitHub-faithful</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 24px 60px; }
+  .askrow { margin-bottom: 20px; }
+  .askrow .ask input { font-size: 16px; padding: 12px 0; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+  .bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .bar .r { margin-left: auto; display: flex; gap: 8px; }
+  .latest { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--subtle); border-bottom: 1px solid var(--border); font-size: 14px; }
+  .latest .who { width: 20px; height: 20px; border-radius: 50%; background: var(--bean-bg); color: var(--bean); font: 600 10px/20px var(--sans); text-align: center; }
+  .latest .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .latest .r { margin-left: auto; color: var(--fg-muted); font-size: 12px; display: flex; gap: 12px; white-space: nowrap; }
+  .readme { margin-top: 24px; }
+  /* The rail: the beanstalk where About would be */
+  .rail .box { overflow: visible; }
+  .rail h3 { font-size: 16px; font-weight: 600; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .rail .lede { color: var(--fg-muted); font-size: 13px; margin: 0 0 12px; }
+  .tl { list-style: none; margin: 0; padding: 8px 0; position: relative; }
+  .tl li { position: relative; display: grid; grid-template-columns: 34px 1fr auto; gap: 6px; align-items: center; padding: 5px 14px 5px 0; font-size: 13px; }
+  .tl li .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl li .w { color: var(--fg-subtle); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .tl li .node { justify-self: center; position: relative; z-index: 1; }
+  .tl li::before { content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 2px; background: var(--leaf); }
+  .tl li.sprout::before { background: var(--sprout); }
+  .tl li.tip::before { background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); opacity: .5; }
+  .tl li:first-child::before { top: 50%; }
+  .tl li.pointer { grid-template-columns: 34px 1fr; padding: 2px 14px 2px 0; }
+  .tl li.pointer span { font: 600 11px/18px var(--sans); color: var(--leaf); border-top: 1px dashed var(--leaf); padding-top: 2px; }
+  .tl .sub { color: var(--fg-muted); font-size: 12px; }
+  .railfoot { border-top: 1px solid var(--border-muted); padding: 8px 14px; font-size: 12px; color: var(--fg-muted); display: flex; justify-content: space-between; }
+  .filegrid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .treebox .boxhead .btn { height: 26px; font-size: 12px; }
+  .ftable tr.sel td { background: var(--pick-bg); }
+  .crumb { font-size: 16px; display: flex; gap: 6px; align-items: center; }
+  .crumb b { font-weight: 600; }
+  .fileowners { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--border-muted); font-size: 12px; color: var(--fg-muted); align-items: center; }
+  .growing { display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--fg-muted); font-size: 13px; border-bottom: 1px solid var(--border-muted); }
+  .growing .sproutglyph { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../repo-experience/data.js"></script>
+<script src="../repo-experience/model.js"></script>
+<script src="shared/kit.js"></script>
+<script>
+(function () {
+  const { esc, short, plural, ICON } = K;
+  const T = K.moment(760);
+  const view = K.params.get('view') || 'home';
+  const flying = M.inflightAt(T);
+  const landed = M.landings.filter((l) => l.t <= T).sort((a, b) => b.idx - a.idx);
+  const stalkIdx = M.stalkIdxAt(T);
+  const latest = landed[0];
+
+  function rail(limit) {
+    const items = [];
+    if (flying.length) {
+      items.push(...flying.slice(0, 6).map((b) => `<li class="tip"><span class="node"><i class="budd ${b.state === 'checking' ? 'checking' : b.state === 'reworking' ? 'reworking' : 'pulse'}"></i></span><span class="t">${esc(b.title)}<br><span class="sub">${b.agent} ${b.state}</span></span><span class="w"></span></li>`));
+      if (flying.length > 6) items.push(`<li class="tip"><span class="node"></span><span class="sub">and ${flying.length - 6} more in flight</span><span></span></li>`);
+    } else {
+      items.push(`<li class="tip"><span class="node"><svg class="sproutglyph" viewBox="0 0 16 16"><path d="M8 15V8" stroke="#7cb518" stroke-width="1.6" fill="none"/><path d="M8 9c0-2.5 2-4.5 5-4.5 0 2.5-2 4.5-5 4.5Z" fill="#7cb518"/></svg></span><span class="t sub">Nothing growing. The swarm is idle.</span><span></span></li>`);
+    }
+    let pointerShown = false;
+    for (const l of landed.slice(0, limit)) {
+      if (!pointerShown && l.idx <= stalkIdx) {
+        items.push(`<li class="pointer"><span></span><span>stalk at #${stalkIdx}${landed[0].idx > stalkIdx ? `, ${landed[0].idx - stalkIdx} on the sprout above` : ''}</span></li>`);
+        pointerShown = true;
+      }
+      const s = K.leafState(l, T);
+      items.push(`<li class="${l.idx > stalkIdx ? 'sprout' : ''}"><span class="node"><i class="leaf ${s === 'stalk' ? '' : s}"></i></span><span class="t">${esc(l.title)}</span><span class="w">#${l.idx}</span></li>`);
+    }
+    return `<div class="box"><div class="boxhead"><b>The beanstalk</b><span class="right">${M.clock(T) ? '' : ''}<span class="chip fly"><i class="budd pulse"></i>${flying.length} growing</span></span></div>
+      <ul class="tl">${items.join('')}</ul>
+      <div class="railfoot"><a href="#">All ${landed.length} beans on the line</a><span>replay ▸ ${fmt(T)}</span></div></div>`;
+  }
+
+  function fmt(t) { const s = Math.round(t - M.T0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+  function home() {
+    return `<div class="bar">${K.branchButton(T)}<div class="r"><button class="btn">Go to file</button><button class="btn primary">${ICON.code} Code ▾</button></div></div>
+      <div class="box"><div class="latest"><span class="who">${esc((latest.agent || '').slice(0, 3))}</span><b>${esc(latest.agent)}</b><span class="t">${esc(latest.title)}</span>${K.beanChip(latest, T)}
+        <span class="r"><span>${fmt(latest.t)}</span><a href="#">${ICON.bean} ${landed.length} beans</a></span></div>
+        ${K.fileTable('src', T)}</div>
+      <div class="box readme"><div class="boxhead"><b>What happened</b><span class="right"><span class="picked" title="Jev ordered these stories">ordered by Jev</span></span></div>${K.stories(T)}</div>`;
+  }
+
+  function files() {
+    const dir = 'src/shipping';
+    const file = K.params.get('file') || 'src/shipping/service.ts';
+    const owners = K.fileOwners(file);
+    const onIt = K.inflightOn(file, T, flying);
+    return `<div class="filegrid"><div class="box treebox"><div class="boxhead"><b>Files</b><span class="right">${K.branchButton(T).replace(/<span class="muted"[\s\S]*$/, '')}</span></div>${K.miniTree(dir, T, file)}</div><div>
+      <div class="bar"><span class="crumb"><a href="#">beanstalk-shop</a>/<a href="#">src</a>/<a href="#">shipping</a>/<b>${esc(short(file))}</b></span><div class="r"><span class="muted" style="font-size:13px">${K.branchButton(T).split('</button>')[1]}</span></div></div>
+      <div class="box"><div class="boxhead">${ICON.file}<b>${esc(short(file))}</b><span class="muted">${D_lines(file)} lines</span><span class="right">${onIt.map(K.budChip).join(' ') || '<span class="subtle">no bean in flight on this file</span>'}<button class="btn sm">Blame by bean</button></span></div>
+        <div class="fileowners">Written by ${owners.map((l) => K.beanChip(l, T)).join(' ')} <span>on top of the base commit</span></div>
+        ${K.codeView(file, 40, T)}</div></div></div>`;
+  }
+  function D_lines(f) { return M.D.files[f].content.split('\n').length; }
+
+  document.getElementById('app').innerHTML = `${K.repoHead('code', { T })}
+    <main class="wrap"><div class="askrow">${K.askBox('Ask about this repository: what changed on coupons, why did the sprout go red, who is working on billing…', ['What changed recently on coupons?', 'Why did the sprout go red?', "What's being worked on in billing?"])}</div>
+      ${view === 'files' ? files() : `<div class="grid"><div>${home()}</div><aside class="rail">${rail(16)}</aside></div>`}</main>`;
+})();
+</script>
+</body>
+</html>

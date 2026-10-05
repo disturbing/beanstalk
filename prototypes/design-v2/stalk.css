@@ -1,0 +1,143 @@
+/* Design v2: a compressed vertical stalk on the left, a generated explorer on the right. */
+.page { display: grid; grid-template-columns: 360px minmax(0, 1fr); align-items: start; max-width: 1440px; margin: 0 auto; }
+
+/* ---- The stalk column ---- */
+.stalkcol {
+  position: sticky; top: 0; height: calc(100vh - 0px); max-height: 100vh; display: flex; flex-direction: column;
+  border-right: 1px solid var(--border); background: var(--bg);
+}
+.stalkhead { display: flex; align-items: baseline; gap: 8px; padding: 14px 16px 8px; font-size: 14px; }
+.stalkhead .muted { font-size: 12px; margin-left: auto; }
+.stalkscroll { flex: 1; overflow-y: auto; padding: 0 0 12px; scrollbar-width: thin; }
+.srow {
+  display: grid; grid-template-columns: 40px 26px minmax(0, 1fr) 34px; align-items: center; height: 26px;
+  font-size: 12.5px; cursor: pointer; position: relative; transition: opacity .4s;
+}
+.srow:hover { background: var(--subtle); }
+.srow.sel { background: var(--pick-bg); }
+.srow .tm { color: var(--fg-subtle); font-size: 11px; text-align: right; padding-right: 6px; font-variant-numeric: tabular-nums; }
+.srow .tt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 6px; }
+.srow .ix { color: var(--fg-subtle); font-size: 11px; text-align: right; padding-right: 12px; font-variant-numeric: tabular-nums; }
+.srow .stem { position: relative; height: 100%; }
+.srow .stem::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: var(--leaf); transition: background .8s; }
+.srow.sprout .stem::before { background: var(--sprout); }
+.srow.first .stem::before { top: 50%; }
+/* the leaf: grows out of the stem, alternating sides */
+.lf {
+  position: absolute; top: 50%; left: 50%; width: 13px; height: 13px; margin-top: -11px;
+  border-radius: 0 80% 0 80%; background: var(--leaf); transform-origin: 0 100%; transform: rotate(-10deg);
+  transition: background .8s, width .6s, height .6s, margin .6s;
+}
+.srow.l .lf { left: auto; right: 50%; border-radius: 80% 0 80% 0; transform-origin: 100% 100%; transform: rotate(10deg); }
+.srow.sprout .lf { background: var(--sprout); width: 9px; height: 9px; margin-top: -8px; }
+.srow.red .lf { background: var(--red); }
+.srow.enter .lf { animation: grow .7s cubic-bezier(.2, 1.5, .4, 1); }
+.srow.l.enter .lf { animation-name: growl; }
+@keyframes grow { from { transform: rotate(-60deg) scale(0); } to { transform: rotate(-10deg) scale(1); } }
+@keyframes growl { from { transform: rotate(60deg) scale(0); } to { transform: rotate(10deg) scale(1); } }
+.srow.enter { animation: rowin .45s ease-out; }
+@keyframes rowin { from { opacity: 0; transform: translateY(-6px); } }
+/* beans in flight at the tip */
+.srow.bean .stem::before { background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); opacity: .45; }
+.beanmark { position: absolute; left: 50%; top: 50%; width: 12px; height: 9px; margin: -4.5px 0 0 -6px; border-radius: 50%; background: var(--bean); transform: rotate(-20deg); }
+.srow.bean.checking .beanmark { background: var(--bg); box-shadow: inset 0 0 0 2px var(--amber); }
+.srow.bean.reworking .beanmark { background: var(--red); }
+.srow.bean .ag { color: var(--bean); font-weight: 600; font-size: 11px; text-align: right; padding-right: 6px; }
+.srow.bean .tt .st { color: var(--fg-subtle); }
+@media (prefers-reduced-motion: no-preference) {
+  .srow.bean.writing .beanmark, .srow.bean.reworking .beanmark { animation: breathe 1.8s ease-in-out infinite; }
+  .srow.bean.checking .beanmark { animation: spin 1.6s linear infinite; background: conic-gradient(var(--amber) 0 70%, transparent 0); box-shadow: none; -webkit-mask: radial-gradient(ellipse, transparent 2.5px, #000 3px); mask: radial-gradient(ellipse, transparent 2.5px, #000 3px); }
+}
+@media (prefers-reduced-motion: reduce) { .srow.enter, .srow.enter .lf { animation: none; } }
+@keyframes breathe { 50% { transform: rotate(-20deg) scale(.7); opacity: .65; } }
+@keyframes spin { to { transform: rotate(340deg); } }
+/* fell off: no node on the stalk, a grey leaf drifting away */
+.srow.fell { opacity: .55; cursor: pointer; }
+.srow.fell .fl { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -2px 0 0 7px; border-radius: 0 80% 0 80%; background: var(--fg-subtle); transform: rotate(40deg); }
+.srow.fell .tt { color: var(--fg-muted); text-decoration: line-through; text-decoration-color: var(--border); }
+.tipnote { display: grid; grid-template-columns: 40px 26px 1fr; align-items: center; height: 30px; font-size: 12.5px; color: var(--fg-muted); }
+.tipnote .sp { justify-self: center; }
+.pointer { display: grid; grid-template-columns: 40px 26px 1fr; align-items: center; height: 20px; font: 600 11px var(--sans); color: var(--leaf); }
+.pointer span:last-child { border-top: 1px dashed var(--leaf); padding-top: 1px; margin-right: 12px; }
+.pointer .stem { position: relative; height: 100%; }
+.pointer .stem::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: var(--leaf); }
+.seedrow { display: grid; grid-template-columns: 40px 26px 1fr; height: 28px; align-items: center; font-size: 11.5px; color: var(--fg-subtle); }
+.seedrow .stem { position: relative; height: 100%; }
+.seedrow .stem::before { content: ''; position: absolute; left: 50%; top: 0; height: 50%; width: 3px; margin-left: -1.5px; background: var(--leaf); }
+.seedrow .stem::after { content: ''; position: absolute; left: 50%; top: 50%; width: 13px; height: 8px; margin: -2px 0 0 -6.5px; border-radius: 50%; background: var(--fg-subtle); }
+/* asked: unrelated leaves dim */
+.stalkcol.asking .srow:not(.hit):not(.bean) { opacity: .22; }
+.stalkcol.asking .srow.bean:not(.hit) { opacity: .35; }
+.scrub { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 10px 16px 12px; border-top: 1px solid var(--border); }
+.scrub .play { width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--fg); color: var(--bg); font-size: 11px; }
+.scrub input { width: 100%; accent-color: var(--leaf); }
+.scrub output { font-size: 12px; color: var(--fg-muted); font-variant-numeric: tabular-nums; min-width: 72px; text-align: right; }
+
+/* ---- The generated explorer ---- */
+.explorer { padding: 20px 28px 60px; min-width: 0; }
+.explorer .ask input { font-size: 15px; }
+.compose { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 14px 0 16px; font-size: 12px; color: var(--fg-muted); }
+.compose .c { border: 1px solid var(--border); border-radius: 6px; padding: 1px 8px; background: var(--subtle); color: var(--fg); }
+.compose .c b { color: var(--fg-subtle); font-weight: 500; margin-right: 4px; }
+.answer { font-size: 20px; font-weight: 600; margin: 18px 0 2px; letter-spacing: -.01em; }
+.answer + .sub { color: var(--fg-muted); font-size: 13px; }
+.answer + .sub a { margin-left: 6px; }
+.comp { margin-top: 16px; }
+.comp > .box { animation: compin .35s ease-out; }
+@keyframes compin { from { opacity: 0; transform: translateY(4px); } }
+.diffs details { border-top: 1px solid var(--border-muted); }
+.diffs summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 16px; font-size: 13.5px; }
+.diffs summary::-webkit-details-marker { display: none; }
+.diffs summary .p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diffs summary .p code { font-size: 12.5px; }
+.diffs summary .n { font-size: 12px; white-space: nowrap; }
+.diffs .add { color: var(--leaf); } .diffs .del { color: var(--red); }
+.hunk { font: 12px/19px var(--mono); border-top: 1px solid var(--border-muted); overflow: hidden; }
+.hunk div { padding: 0 16px; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+.hunk .a { background: var(--add-bg); } .hunk .d { background: var(--del-bg); } .hunk .h { color: var(--fg-subtle); background: var(--subtle); }
+.journey { list-style: none; margin: 0; padding: 12px 16px 4px 16px; position: relative; }
+.journey li { position: relative; padding: 0 0 10px 22px; font-size: 13px; }
+.journey li::before { content: ''; position: absolute; left: 0; top: 4px; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--fg-subtle); background: var(--bg); }
+.journey li::after { content: ''; position: absolute; left: 4px; top: 16px; bottom: -2px; width: 2px; background: var(--border-muted); }
+.journey li:last-child::after { display: none; }
+.journey li.agent::before { box-shadow: inset 0 0 0 2px var(--bean); }
+.journey li.green::before { box-shadow: inset 0 0 0 2px var(--leaf); }
+.journey li.red::before { background: var(--red); box-shadow: none; }
+.journey li.rework::before { box-shadow: inset 0 0 0 2px var(--red); }
+.journey li.land::before { background: var(--sprout); box-shadow: none; border-radius: 0 80% 0 80%; }
+.journey li.stalk::before { background: var(--leaf); box-shadow: none; border-radius: 0 80% 0 80%; }
+.journey li.decide::before { background: var(--pick); box-shadow: none; transform: rotate(45deg); border-radius: 2px; }
+.journey .w { color: var(--fg-subtle); font-size: 11.5px; margin-right: 6px; font-variant-numeric: tabular-nums; }
+.journey q { display: block; color: var(--fg-muted); font-style: italic; margin-top: 2px; quotes: '“' '”'; }
+.beanhead { padding: 14px 16px 10px; border-bottom: 1px solid var(--border-muted); }
+.beanhead h3 { margin: 0 0 4px; font-size: 17px; }
+.beanhead .meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--fg-muted); }
+.beanhead p { margin: 8px 0 0; color: var(--fg-muted); font-size: 13px; max-width: 80ch; }
+.cardbody { padding: 12px 16px 14px; font-size: 13.5px; }
+.cardbody p { margin: 0 0 8px; color: var(--fg-muted); }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 10px; }
+.vs div { border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+.vs div.win { border-color: var(--leaf); background: var(--leaf-bg); }
+.vs small { display: block; color: var(--fg-muted); font-size: 11.5px; margin-bottom: 2px; }
+.suspects { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+.steps div { border: 1px solid var(--border-muted); border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--fg-muted); }
+.steps b { display: block; color: var(--fg); font-size: 13px; }
+.hot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--border-muted); align-items: center; font-size: 13px; }
+.hot:first-child { border-top: 0; }
+.hot .who { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.agents { width: 100%; border-collapse: collapse; font-size: 13px; }
+.agents td { padding: 7px 16px; border-top: 1px solid var(--border-muted); white-space: nowrap; }
+.agents td.t { white-space: normal; }
+.agents .a { color: var(--bean); font-weight: 600; width: 1%; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.growlist { list-style: none; margin: 0; padding: 4px 0; }
+.growlist li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 6px; padding: 5px 16px; font-size: 13px; align-items: center; }
+.growlist li .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.growlist .a { color: var(--bean); font-weight: 600; font-size: 12px; }
+.growlist .s { color: var(--fg-muted); font-size: 12px; }
+.empty { padding: 14px 16px; color: var(--fg-muted); font-size: 13px; }
+.note { font-size: 12.5px; color: var(--fg-muted); background: var(--subtle); border: 1px solid var(--border-muted); border-radius: 6px; padding: 6px 10px; margin-top: 10px; }
+.acts { display: flex; gap: 14px; font-size: 13px; margin-top: 4px; }
+.info { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 0; background: none; color: var(--fg-subtle); border-radius: 50%; padding: 0; vertical-align: middle; }
+.info:hover { color: var(--link); background: var(--subtle); }

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beanstalk Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../design-options/shared/base.css">
+<link rel="stylesheet" href="stalk.css">
+<link rel="stylesheet" href="skins.css">
+<script>
+  /* ?skin=greenhouse|swiss|nightshift (default: the GitHub-style base) and ?theme=light|dark (default: the system's). */
+  (function () {
+    const p = new URLSearchParams(location.search);
+    const skin = ['greenhouse', 'swiss', 'nightshift'].includes(p.get('skin')) ? p.get('skin') : 'base';
+    const theme = p.get('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const root = document.documentElement;
+    root.dataset.skin = skin;
+    root.dataset.theme = theme;
+    const fonts = {
+      greenhouse: 'Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500',
+      swiss: 'Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500',
+      nightshift: 'Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600',
+    }[skin];
+    if (fonts) document.write(`<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${fonts}&display=swap">`);
+  })();
+</script>
+</head>
+<body>
+<div id="head"></div>
+<main class="page">
+  <aside class="stalkcol" aria-label="The beanstalk">
+    <div class="stalkhead"><b>The beanstalk</b><span id="stalkSummary" class="muted"></span></div>
+    <div class="stalkscroll" id="stalk"></div>
+    <div class="scrub">
+      <button id="play" class="play" type="button" aria-label="Play the run">▶</button>
+      <input id="range" type="range" min="0" max="1000" aria-label="Moment of the run">
+      <output id="clock"></output>
+    </div>
+  </aside>
+  <section class="explorer" id="explorer" aria-live="polite"></section>
+</main>
+<script src="../repo-experience/data.js"></script>
+<script src="../repo-experience/model.js"></script>
+<script src="../design-options/shared/kit.js"></script>
+<script src="explorer.js"></script>
+<script src="stalk.js"></script>
+</body>
+</html>
