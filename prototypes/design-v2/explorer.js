@@ -131,7 +131,7 @@
 
   function askBlock(ctx) {
     const sugg = ['What changed recently on coupons?', 'Why did the sprout go red?', 'Who is working on billing right now?', 'What did we decide?'];
-    return `<form class="ask" id="askForm"><span class="q">?</span><input name="q" value="${esc(ctx.q || '')}" placeholder="Ask the beanstalk anything" autocomplete="off"><kbd>/</kbd></form>
+    return `<form class="ask" id="askForm"><span class="q">?</span><span class="caret" aria-hidden="true"></span><input name="q" value="${esc(ctx.q || '')}" placeholder="Ask the beanstalk anything" autocomplete="off"><kbd class="k-slash">/</kbd><kbd class="k-cmd">⌘K</kbd></form>
       ${ctx.q ? '' : `<div class="asked">${sugg.map((s) => `<a href="#" data-ask="${esc(s)}">${esc(s)}</a>`).join('')}<span class="picked" title="Suggested for this moment">picked</span></div>`}`;
   }
 

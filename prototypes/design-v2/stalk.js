@@ -15,6 +15,9 @@
   };
 
   document.getElementById('head').innerHTML = K.repoHead('code', { T: S.T });
+  // keyboard hints on the tabs (shown by the Nightshift skin)
+  const KEYS = ['g c', 'g b', 'g s', 'g d', 'g k', 'g i'];
+  document.querySelectorAll('.tab').forEach((tab, i) => tab.insertAdjacentHTML('beforeend', `<kbd class="kh">${KEYS[i] || ''}</kbd>`));
   const stalkEl = document.getElementById('stalk');
   const col = document.querySelector('.stalkcol');
   const range = document.getElementById('range');
@@ -26,7 +29,22 @@
     renderStalk(plan.relevant);
     range.value = Math.round(((S.T - T0) / (TEND - T0)) * 1000);
     document.getElementById('clock').textContent = `${clock(S.T)} of ${clock(TEND)}`;
+    statusLine();
     syncUrl();
+  }
+
+  /** The editor-style status line: the lines, the swarm and the run clock. */
+  function statusLine() {
+    const el = document.getElementById('status');
+    if (!el) return;
+    const landed = landings.filter((l) => l.t <= S.T).length;
+    const s = stalkIdxAt(S.T);
+    const flying = inflightAt(S.T);
+    const agents = new Set(flying.map((b) => b.agent)).size;
+    const red = M.validations.some((v) => !v.green && v.t <= S.T && !M.validations.some((g) => g.green && g.t > v.t && g.t <= S.T));
+    el.innerHTML = `<span class="sl-item"><i class="sl-dot sprout"></i>sprout #${landed - 1}</span><span class="sl-item"><i class="sl-dot stalk"></i>stalk #${s}</span>
+      <span class="sl-item ${red ? 'sl-red' : ''}">${red ? 'sprout red' : 'sprout green'}</span><span class="sl-item"><i class="sl-dot bean"></i>${plural(flying.length, 'bean')} growing</span>
+      <span class="sl-item">${agents}/12 agents busy</span><span class="sl-sp"></span><span class="sl-item">run 7z4j84eqvl</span><span class="sl-item sl-clock">${clock(S.T)}</span>`;
   }
 
   /* ---------- The stalk, reconciled by key so new leaves grow and old ones change colour ---------- */
@@ -93,6 +111,8 @@
 
   function renderStalk(relevant) {
     col.classList.toggle('asking', Boolean(relevant));
+    // a validation in the last few seconds sends a pulse up the filament
+    col.classList.toggle('validating', M.promotes.some((p) => p.t <= S.T && p.t > S.T - 6));
     const rows = desiredRows(relevant);
     const existing = new Map([...stalkEl.children].map((el) => [el.dataset.key, el]));
     const keep = new Set();
@@ -142,6 +162,7 @@
     if (S.bean) p.set('bean', S.bean);
     if (params.get('theme')) p.set('theme', params.get('theme'));
     if (params.get('skin')) p.set('skin', params.get('skin'));
+    if (params.get('day')) p.set('day', params.get('day'));
     history.replaceState(null, '', `?${p}`);
   }
 

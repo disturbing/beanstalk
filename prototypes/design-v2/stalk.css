@@ -141,3 +141,4 @@
 .acts { display: flex; gap: 14px; font-size: 13px; margin-top: 4px; }
 .info { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 0; background: none; color: var(--fg-subtle); border-radius: 50%; padding: 0; vertical-align: middle; }
 .info:hover { color: var(--link); background: var(--subtle); }
+.caret, .k-cmd, .kh, .statusline { display: none; }

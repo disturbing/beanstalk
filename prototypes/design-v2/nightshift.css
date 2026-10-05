@@ -1,0 +1,231 @@
+/*
+ * Nightshift, leaned into: a command-prompt Ask, an editor status line, keyboard hints,
+ * a dot-matrix ground, mono for data and IDs, glow only on live things (the stalk, beans
+ * in flight, the caret). Night is the default; day comes in three variants:
+ * ?skin=nightshift&theme=light&day=paper|phosphor|blueprint.
+ */
+
+/* ---------- Night ---------- */
+:root[data-skin='nightshift'][data-theme='dark'] {
+  --bg: #0a0f15;
+  --subtle: #0e141c;
+  --inset: #121a24;
+  --border: #1c2632;
+  --border-muted: #151e28;
+  --fg: #dce6ef;
+  --fg-muted: #93a3b5;
+  --fg-subtle: #64748a;
+  --leaf-ink: #45f0bd;
+  --glowc: rgba(44, 240, 176, 0.55);
+  --glow-sprout: rgba(182, 255, 92, 0.42);
+  --glow-bean: rgba(182, 145, 255, 0.55);
+  --glow-red: rgba(255, 79, 109, 0.6);
+  --pulse: #e9fff7;
+  --page: #05080b;
+  --texture: radial-gradient(rgba(130, 170, 200, 0.075) 1px, transparent 1.3px) 0 0 / 18px 18px;
+}
+
+/* ---------- Day: three variants ---------- */
+:root[data-skin='nightshift'][data-theme='light'][data-day='paper'] {
+  --page: #f2eee3;
+  --bg: #fbf9f3;
+  --subtle: #f6f2e8;
+  --inset: #efe9db;
+  --border: #d9d1bd;
+  --border-muted: #e7e0cf;
+  --fg: #172a2e;
+  --fg-muted: #4e5f5d;
+  --fg-subtle: #87918a;
+  --link: #0d6e66;
+  --leaf: #0f7a70;
+  --leaf-ink: #0b5f57;
+  --leaf-bg: #dcece6;
+  --sprout: #6f9c1c;
+  --sprout-bg: #ecf1d8;
+  --bean: #6449b0;
+  --bean-bg: #ebe5f6;
+  --amber: #9a6a00;
+  --amber-bg: #f6ebcf;
+  --red: #b83a2c;
+  --red-bg: #f6e2dc;
+  --pick: #0d6e66;
+  --pick-bg: #dcece6;
+  --add-bg: #e3efe6;
+  --del-bg: #f6e2dc;
+  --glowc: rgba(15, 122, 112, 0.22);
+  --glow-sprout: rgba(111, 156, 28, 0.2);
+  --glow-bean: rgba(100, 73, 176, 0.22);
+  --glow-red: rgba(184, 58, 44, 0.25);
+  --pulse: #8ff0d8;
+  --texture: repeating-linear-gradient(transparent 0 25px, rgba(13, 110, 102, 0.09) 25px 26px);
+}
+:root[data-skin='nightshift'][data-theme='light'][data-day='phosphor'] {
+  --page: #d4e4dc;
+  --bg: #eff6f2;
+  --subtle: #e8efeb;
+  --inset: #dde7e2;
+  --border: #c3d3cb;
+  --border-muted: #d5e1db;
+  --fg: #08161a;
+  --fg-muted: #3b524c;
+  --fg-subtle: #6f857e;
+  --link: #00735e;
+  --leaf: #00b38c;
+  --leaf-ink: #006e57;
+  --leaf-bg: #cfeee3;
+  --sprout: #5cc41a;
+  --sprout-bg: #e1f4d2;
+  --bean: #7b52f0;
+  --bean-bg: #e7dffd;
+  --amber: #a26c00;
+  --amber-bg: #f8ebc9;
+  --red: #d42a4a;
+  --red-bg: #fbe0e5;
+  --pick: #00735e;
+  --pick-bg: #cfeee3;
+  --add-bg: #d6efe4;
+  --del-bg: #fbe0e5;
+  --glowc: rgba(0, 210, 160, 0.6);
+  --glow-sprout: rgba(92, 196, 26, 0.38);
+  --glow-bean: rgba(123, 82, 240, 0.4);
+  --glow-red: rgba(212, 42, 74, 0.4);
+  --pulse: #ffffff;
+  --texture: radial-gradient(rgba(10, 80, 60, 0.07) 1px, transparent 1.3px) 0 0 / 18px 18px;
+}
+:root[data-skin='nightshift'][data-theme='light'][data-day='blueprint'] {
+  --page: #e9f0fa;
+  --bg: #f7faff;
+  --subtle: #eef3fb;
+  --inset: #e3ebf7;
+  --border: #c2d0e6;
+  --border-muted: #d6e0ef;
+  --fg: #0b1d3a;
+  --fg-muted: #42567a;
+  --fg-subtle: #7486a5;
+  --link: #1450b8;
+  --leaf: #00a07e;
+  --leaf-ink: #006b55;
+  --leaf-bg: #d5efe8;
+  --sprout: #5fb61d;
+  --sprout-bg: #e3f2d6;
+  --bean: #6d4fe0;
+  --bean-bg: #e6e0fb;
+  --amber: #a16a00;
+  --amber-bg: #f6eacd;
+  --red: #cc2f45;
+  --red-bg: #f9e0e4;
+  --pick: #1450b8;
+  --pick-bg: #dde8fb;
+  --add-bg: #d9eee6;
+  --del-bg: #f9e0e4;
+  --glowc: rgba(0, 160, 126, 0.32);
+  --glow-sprout: rgba(95, 182, 29, 0.3);
+  --glow-bean: rgba(109, 79, 224, 0.35);
+  --glow-red: rgba(204, 47, 69, 0.35);
+  --pulse: #ffffff;
+  --texture: linear-gradient(rgba(20, 80, 184, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(20, 80, 184, 0.07) 1px, transparent 1px) 0 0 / 24px 24px;
+}
+
+/* ---------- Ground, type and surfaces ---------- */
+:root[data-skin='nightshift'] body { background: var(--texture), var(--page); padding-bottom: 28px; }
+:root[data-skin='nightshift'] .gh, :root[data-skin='nightshift'] .repohead { background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px); }
+:root[data-skin='nightshift'] .tab.on { box-shadow: none; }
+:root[data-skin='nightshift'] .answer { text-shadow: none; color: var(--fg); font-family: var(--sans); font-size: 21px; font-weight: 600; letter-spacing: -0.01em; }
+:root[data-skin='nightshift'] .answer::before { content: '› '; color: var(--leaf); font-family: var(--mono); }
+:root[data-skin='nightshift'] .chip.stalk { color: var(--leaf-ink); }
+:root[data-skin='nightshift'] .ftable .name a, :root[data-skin='nightshift'] .chip, :root[data-skin='nightshift'] .srow .ix,
+:root[data-skin='nightshift'] .growlist .a, :root[data-skin='nightshift'] .agents .a, :root[data-skin='nightshift'] code { font-family: var(--mono); }
+:root[data-skin='nightshift'] .ftable .name a { font-size: 13px; }
+:root[data-skin='nightshift'] .stalkcol { height: calc(100vh - 28px); }
+:root[data-skin='nightshift'] .box { background: var(--bg); }
+
+/* keyboard hints */
+:root[data-skin='nightshift'] .kh {
+  display: inline-block; font: 500 10px/14px var(--mono); color: var(--fg-subtle); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 4px; margin-left: 2px; opacity: 0.8;
+}
+:root[data-skin='nightshift'] .tab:not(.on) .kh { opacity: 0.55; }
+
+/* the Ask as a command prompt */
+:root[data-skin='nightshift'] .ask { background: var(--bg); border-color: var(--border); border-radius: 6px; padding: 0 8px 0 10px; }
+:root[data-skin='nightshift'] .ask:has(+ .asked) { border-radius: 6px 6px 0 0; }
+:root[data-skin='nightshift'] .ask:focus-within { border-color: var(--leaf); box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 18%, transparent); }
+:root[data-skin='nightshift'] .ask .q { width: 22px; height: 22px; font-size: 14px; }
+:root[data-skin='nightshift'] .ask input { caret-color: var(--leaf); font-family: var(--mono); font-size: 14px; }
+:root[data-skin='nightshift'] .ask .caret { display: none; width: 8px; height: 17px; background: var(--leaf); box-shadow: 0 0 8px var(--glowc); margin-right: -6px; }
+:root[data-skin='nightshift'] .ask:has(input:placeholder-shown):not(:focus-within) .caret { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-skin='nightshift'] .ask .caret { animation: blink 1.1s steps(1) infinite; }
+}
+@keyframes blink { 50% { opacity: 0; } }
+:root[data-skin='nightshift'] .k-slash { display: none; }
+:root[data-skin='nightshift'] .k-cmd { display: inline-block; font-family: var(--mono); }
+/* suggestions as completions under the prompt */
+:root[data-skin='nightshift'] .asked {
+  flex-direction: column; gap: 0; margin-top: -1px; position: relative; border: 1px solid var(--border); border-top: 1px dashed var(--border);
+  border-radius: 0 0 6px 6px; background: var(--subtle); padding: 4px 0;
+}
+:root[data-skin='nightshift'] .asked a {
+  border: 0; border-radius: 0; background: none; padding: 3px 14px; font: 12.5px/1.6 var(--mono); color: var(--fg-muted);
+}
+:root[data-skin='nightshift'] .asked a::before { content: '› '; color: var(--leaf); }
+:root[data-skin='nightshift'] .asked a:first-of-type { background: var(--inset); color: var(--fg); }
+:root[data-skin='nightshift'] .asked a:first-of-type::after { content: 'tab'; float: right; font-size: 10.5px; color: var(--fg-subtle); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; line-height: 16px; margin-top: 2px; }
+:root[data-skin='nightshift'] .asked a:hover { color: var(--fg); background: var(--inset); text-decoration: none; }
+:root[data-skin='nightshift'] .asked .info { position: absolute; right: 10px; bottom: 6px; }
+
+/* the editor-style status line */
+:root[data-skin='nightshift'] .statusline {
+  display: flex; align-items: center; gap: 0; position: fixed; left: 0; right: 0; bottom: 0; height: 28px; z-index: 20;
+  background: var(--inset); border-top: 1px solid var(--border); font: 11.5px/28px var(--mono); color: var(--fg-muted);
+}
+.sl-item { padding: 0 12px; border-right: 1px solid var(--border-muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sl-sp { flex: 1; }
+.sl-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.sl-dot.stalk { background: var(--leaf); box-shadow: 0 0 6px var(--glowc); }
+.sl-dot.sprout { background: var(--sprout); }
+.sl-dot.bean { background: var(--bean); box-shadow: 0 0 6px var(--glow-bean); }
+.sl-red { color: var(--red); }
+.sl-clock { color: var(--fg); border-right: 0; }
+
+/* ---------- The bioluminescent stalk, refined ---------- */
+:root[data-skin='nightshift'] .srow .stem::before { width: 2px; margin-left: -1px; background: var(--leaf); box-shadow: 0 0 7px 1px var(--glowc); }
+:root[data-skin='nightshift'] .srow.sprout .stem::before { background: var(--sprout); box-shadow: 0 0 7px 1px var(--glow-sprout); }
+:root[data-skin='nightshift'] .lf { box-shadow: 0 0 9px 1px var(--glowc); }
+:root[data-skin='nightshift'] .srow.sprout .lf { box-shadow: 0 0 8px var(--glow-sprout); }
+:root[data-skin='nightshift'] .srow.red .lf { box-shadow: 0 0 11px var(--glow-red); }
+:root[data-skin='nightshift'] .beanmark { box-shadow: 0 0 9px 2px var(--glow-bean); }
+:root[data-skin='nightshift'] .srow.bean.checking .beanmark { box-shadow: none; }
+:root[data-skin='nightshift'] .srow.bean .stem::before { background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 6px); box-shadow: none; opacity: 0.55; }
+:root[data-skin='nightshift'] .srow .tt { font-family: var(--sans); }
+:root[data-skin='nightshift'] .pointer .stem::before { width: 2px; margin-left: -1px; box-shadow: 0 0 7px 1px var(--glowc); }
+:root[data-skin='nightshift'] .pointer span:last-child { border-top-color: color-mix(in srgb, var(--leaf) 50%, transparent); }
+:root[data-skin='nightshift'] .stalkcol.asking .srow:not(.hit) .lf, :root[data-skin='nightshift'] .stalkcol.asking .srow:not(.hit) .stem::before { box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) {
+  /* the sprout shimmers: not yet validated, still settling */
+  :root[data-skin='nightshift'] .srow.sprout .stem::before, :root[data-skin='nightshift'] .srow.sprout .lf { animation: shimmer 2.6s ease-in-out infinite; }
+  :root[data-skin='nightshift'] .srow.sprout:nth-child(2n) .stem::before, :root[data-skin='nightshift'] .srow.sprout:nth-child(2n) .lf { animation-delay: -1.3s; }
+  /* a validation sends a pulse of light up the filament */
+  :root[data-skin='nightshift'] .stalkcol.validating .srow:not(.sprout):not(.bean) .stem::before {
+    background: linear-gradient(to top, var(--leaf) 0 35%, var(--pulse) 50%, var(--leaf) 65%) 0 0 / 100% 300%;
+    animation: pulseup 1.1s ease-out infinite;
+  }
+  /* a landing flares */
+  :root[data-skin='nightshift'] .srow.enter .lf { animation: flare 1s ease-out; }
+}
+@keyframes shimmer { 50% { opacity: 0.72; filter: brightness(1.25); } }
+@keyframes pulseup { from { background-position: 0 0; } to { background-position: 0 100%; } }
+@keyframes flare { from { transform: scale(0); filter: brightness(3); } 55% { transform: scale(1.25); filter: brightness(2); } to { filter: none; } }
+
+/* code reads as written: no ligatures */
+:root[data-skin='nightshift'] .hunk, :root[data-skin='nightshift'] .code, :root[data-skin='nightshift'] code { font-variant-ligatures: none; }
+/* paper: a fine ink filament, leaves printed with an ink edge */
+:root[data-skin='nightshift'][data-theme='light'][data-day='paper'] .srow .stem::before { width: 1.5px; margin-left: -0.75px; }
+:root[data-skin='nightshift'][data-theme='light'][data-day='paper'] .lf { box-shadow: 0 0 0 1px rgba(11, 95, 87, 0.35), 0 0 6px var(--glowc); }
+:root[data-skin='nightshift'][data-theme='light'][data-day='paper'] .box { box-shadow: 0 1px 0 rgba(23, 42, 46, 0.06); }
+/* phosphor: the night screen lit by day, the filament still luminous */
+:root[data-skin='nightshift'][data-theme='light'][data-day='phosphor'] .srow .stem::before { width: 2.5px; margin-left: -1.25px; }
+:root[data-skin='nightshift'][data-theme='light'][data-day='phosphor'] .box { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 6px 20px -14px rgba(0, 90, 70, 0.35); }
+/* blueprint: drafted on a grid, ink-blue type, the filament in teal */
+:root[data-skin='nightshift'][data-theme='light'][data-day='blueprint'] .repotitle a, :root[data-skin='nightshift'][data-theme='light'][data-day='blueprint'] .stalkhead b { color: var(--link); }
