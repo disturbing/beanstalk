@@ -1,0 +1,22 @@
+
+> test
+> node --test tests/*.test.mjs
+
+✔ checkout displays calendar days separately from business days (2.662ms)
+✔ checkout forwards holiday semantics from the shipping provider (0.303542ms)
+✔ returns calculate thirty calendar days from delivery rather than shipment (2.741666ms)
+✔ a holiday shifts delivery and return deadline consistently (0.22575ms)
+✔ return deadlines can land on weekends (0.112334ms)
+✔ one business day from Friday preserves three elapsed calendar days (2.681708ms)
+✔ an explicit Monday holiday adds a calendar day but not a business day (0.181542ms)
+✔ two business days cross a year boundary using UTC calendar dates (0.081542ms)
+✔ zero business days deliver on the starting date even on a weekend (0.074125ms)
+✔ invalid dates and negative or fractional business-day counts fail explicitly (0.195458ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.564125

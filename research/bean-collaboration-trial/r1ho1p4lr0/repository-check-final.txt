@@ -1,0 +1,248 @@
+$ pnpm fmt:check && pnpm lint && pnpm typecheck && pnpm test && pnpm rust:check
+$ oxfmt --check
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 630ms on 382 files using 18 threads.
+$ oxlint --type-aware
+packages/shared-race/src/run-config.ts:480:7: warning unicorn(prefer-set-has): should be a `Set`, and use `.has()` to check existence or non-existence. help: Switch to `Set`
+packages/site/public/site.js:433:10: warning unicorn(consistent-function-scoping): Function `range` does not capture any variables from its parent scope help: Move `range` to the outer scope to avoid recreating it on every call.
+packages/site/public/app-demo.js:616:10: warning unicorn(consistent-function-scoping): Function `pct` does not capture any variables from its parent scope help: Move `pct` to the outer scope to avoid recreating it on every call.
+packages/site/public/app-demo.js:210:6: warning oxc(no-map-spread): Spreading to modify object properties in `map` calls is inefficient help: If in-place mutation is acceptable, use `Object.assign` or direct property assignment instead of spreading
+packages/web/src/forge/testing/simulated-gateway.ts:167:11: warning typescript(no-unsafe-type-assertion): Unsafe type assertion: type 'GatewayRpc' is more narrow than the original type.
+packages/web/src/forge/testing/simulated-gateway.ts:424:10: warning typescript(no-unsafe-type-assertion): Unsafe type assertion: type 'Artifacts' is more narrow than the original type.
+packages/site/public/app-demo.js:483:10: warning typescript(prefer-nullish-coalescing): Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
+$ pnpm -r --if-present typecheck
+Scope: 6 of 7 workspace projects
+packages/shared-race typecheck$ tsc -p tsconfig.json
+packages/shared-race typecheck: Done
+packages/gateway typecheck$ tsc -p tsconfig.json
+packages/shared-ask typecheck$ tsc -p tsconfig.json
+packages/shared-ask typecheck: Done
+packages/gateway typecheck: Done
+packages/web typecheck$ tsc -p tsconfig.json
+packages/mcp typecheck$ tsc -p tsconfig.json
+packages/mcp typecheck: Done
+packages/web typecheck: Done
+$ pnpm -r --if-present test
+Scope: 6 of 7 workspace projects
+packages/shared-race test$ vitest run
+packages/shared-race test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/shared-race
+packages/shared-race test:  Test Files  4 passed (4)
+packages/shared-race test:       Tests  30 passed (30)
+packages/shared-race test:    Start at  23:07:36
+packages/shared-race test:    Duration  349ms (transform 278ms, setup 0ms, import 533ms, tests 43ms, environment 0ms)
+packages/shared-race test: Done
+packages/shared-ask test$ vitest run
+packages/gateway test$ vitest run
+packages/shared-ask test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/shared-ask
+packages/shared-ask test:  Test Files  6 passed (6)
+packages/shared-ask test:       Tests  57 passed (57)
+packages/shared-ask test:    Start at  23:07:37
+packages/shared-ask test:    Duration  437ms (transform 425ms, setup 0ms, import 902ms, tests 180ms, environment 1ms)
+packages/shared-ask test: Done
+packages/gateway test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/gateway
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/index.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/container.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/helpers.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/utils.js" points to missing source files
+packages/gateway test:  Test Files  37 passed (37)
+packages/gateway test:       Tests  314 passed (314)
+packages/gateway test:    Start at  23:07:38
+packages/gateway test:    Duration  27.16s (transform 26.31s, setup 0ms, import 118.32s, tests 88.36s, environment 1ms)
+packages/gateway test: Done
+packages/web test$ vitest run
+packages/mcp test$ vitest run
+packages/web test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/web
+packages/mcp test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/mcp
+packages/web test:  Test Files  10 passed (10)
+packages/web test:       Tests  87 passed (87)
+packages/web test:    Start at  23:08:06
+packages/web test:    Duration  4.14s (transform 2.70s, setup 0ms, import 4.80s, tests 4.07s, environment 1ms)
+packages/web test: Done
+packages/mcp test:  Test Files  4 passed (4)
+packages/mcp test:       Tests  23 passed (23)
+packages/mcp test:    Start at  23:08:08
+packages/mcp test:    Duration  4.46s (transform 3.69s, setup 0ms, import 10.91s, tests 648ms, environment 0ms)
+packages/mcp test: Done
+$ node scripts/rust-check.mjs
+    Checking runner v0.1.0 (/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/runner)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.38s
+   Compiling runner v0.1.0 (/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/runner)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.41s
+     Running unittests src/lib.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/runner-20bb2a21fa2b57bf)
+
+running 88 tests
+test check::junit::tests::a_truncated_report_reads_as_a_crash ... ok
+test check::paths::tests::dirname_and_join_match_posixpath ... ok
+test check::imports::tests::serialises_in_discovery_order ... ok
+test check::junit::tests::a_case_without_a_file_counts_but_is_not_a_passing_file ... ok
+test check::imports::tests::a_missing_start_has_an_empty_closure ... ok
+test check::junit::tests::decodes_escaped_newlines_in_messages ... ok
+test check::junit::tests::falls_back_to_the_failure_text_and_strips_it ... ok
+test check::imports::tests::resolves_like_the_harness ... ok
+test check::junit::tests::truncates_messages_by_characters_not_bytes ... ok
+test check::paths::tests::normalizes_like_posixpath ... ok
+test check::paths::tests::relative_paths_climb_out_of_the_start ... ok
+test check::junit::tests::matches_the_harness_unit_test ... ok
+test check::report::tests::excerpt_starts_at_the_failure_summary ... ok
+test check::report::tests::excerpt_counts_what_it_cut ... ok
+test check::report::tests::a_missing_report_is_a_crash_not_a_pass ... ok
+test check::suite::tests::accepts_node_by_path_and_refuses_other_programs ... ok
+test check::tests::extra_files_stay_inside_the_checkout ... ok
+test check::paths::tests::real_path_keeps_a_missing_tail ... ok
+test check::suite::tests::the_default_command_gets_the_harness_reporters ... ok
+test config::tests::reads_every_variable ... ok
+test config::tests::rejects_an_identity_that_would_corrupt_a_commit_header ... ok
+test config::tests::reports_every_invalid_variable_at_once ... ok
+test config::tests::defaults_match_the_container_contract ... ok
+test error::tests::internal_failures_hide_their_detail ... ok
+test check::report::tests::a_clean_report_with_exit_zero_is_green ... ok
+test error::tests::remote_failures_reach_the_caller ... ok
+test check::imports::tests::lists_files_without_git_or_node_modules ... ok
+test git::cache::tests::a_lease_holds_only_for_its_expected_value ... ok
+test git::cache::tests::leases_render_as_push_flags ... ok
+test git::cache::tests::ls_remote_matches_the_exact_ref_only ... ok
+test git::ids::tests::accepts_full_shas_in_either_case ... ok
+test git::ids::tests::names_candidate_refs_by_sha ... ok
+test git::ids::tests::recognises_the_null_sha ... ok
+test git::ids::tests::refuses_abbreviated_and_non_hex_shas ... ok
+test check::imports::tests::follows_static_dynamic_and_require_imports ... ok
+test git::ids::tests::refuses_short_ref_names ... ok
+test git::remote::tests::accepts_an_artifacts_remote ... ok
+test check::stack::tests::keeps_first_seen_order_without_duplicates_or_outsiders ... ok
+test git::remote::tests::cache_keys_are_stable_and_distinct ... ok
+test git::remote::tests::refuses_credentials_in_the_url ... ok
+test check::imports::tests::records_breadth_first_hops ... ok
+test check::stack::tests::matches_the_harness_unit_test ... ok
+test git::remote::tests::refuses_file_remotes_unless_configured ... ok
+test git::remote::tests::refuses_plain_http_and_non_urls ... ok
+test git::remote::tests::refuses_tokens_that_could_inject_a_header ... ok
+test git::remote::tests::token_debug_never_shows_the_secret ... ok
+test git::repo::tests::name_status_of_no_change_is_empty ... ok
+test git::repo::tests::name_status_reports_both_sides_of_a_rename ... ok
+test git::rules::tests::default_rules_need_no_attributes ... ok
+test git::rules::tests::refuses_patterns_that_would_break_the_file ... ok
+test git::rules::tests::structural_paths_are_judged_by_extension ... ok
+test git::rules::tests::structural_retry_names_each_conflicted_path_before_the_union_lines ... ok
+test git::rules::tests::union_lines_follow_the_mergiraf_line_so_they_win ... ok
+test git::rules::tests::structural_retry_needs_the_tier_and_every_path_supported ... ok
+test git::rules::tests::union_paths_become_the_harness_attribute_lines ... ok
+test git::tests::config_reaches_git_through_the_environment ... ok
+test git::tests::remote_failures_name_the_remote_and_keep_git_detail ... ok
+test process::tests::filters_variables_by_prefix ... ok
+test resolve::tests::unterminated_blocks_are_dropped ... ok
+test resolve::tests::markers_need_seven_characters_and_a_label_or_nothing ... ok
+test wire::requests::tests::check_defaults_follow_the_harness ... ok
+test wire::requests::tests::old_selects_the_lease ... ok
+test resolve::tests::parses_both_sides_and_skips_the_base ... ok
+test wire::requests::tests::refuses_negative_latency ... ok
+test wire::requests::tests::unknown_fields_are_refused ... ok
+test resolve::tests::long_sides_are_truncated ... ok
+test wire::responses::tests::a_clean_squash_serialises_flat ... ok
+test wire::requests::tests::validation_errors_name_the_field ... ok
+test wire::responses::tests::a_conflict_has_no_sha ... ok
+test wire::responses::tests::a_conflicted_squash_carries_its_hunks_and_no_tier ... ok
+test wire::responses::tests::a_stale_lease_reports_the_actual_value ... ok
+test workspace::tests::the_suite_never_sees_git_or_node_option_variables ... ok
+test workspace::tests::prepare_clears_scratch_left_by_a_previous_process ... ok
+test check::imports::tests::resolved_imports_are_always_repository_files ... ok
+test process::tests::captures_output_and_exit_code ... ok
+test workspace::tests::jobs_get_distinct_directories_and_are_removed ... ok
+test check::paths::tests::normalize_is_idempotent ... ok
+test process::tests::feeds_stdin ... ok
+test check::stack::tests::every_reported_file_is_inside_the_root ... ok
+test git::remote::tests::redaction_removes_every_copy_of_the_token ... ok
+test check::junit::tests::counts_every_case_and_splits_pass_from_fail ... ok
+test git::repo::tests::name_status_yields_each_path_once_in_order ... ok
+test check::imports::tests::import_scanning_never_panics ... ok
+test resolve::tests::recovers_every_block_between_plain_lines ... ok
+test check::junit::tests::parsing_arbitrary_text_never_panics ... ok
+test process::tests::timeout_kills_the_whole_process_tree ... ok
+test git::ids::tests::ref_validation_agrees_with_git ... ok
+test check::report::tests::excerpt_never_exceeds_its_limit ... ok
+
+test result: ok. 88 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.19s
+
+     Running unittests src/main.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/runner-995b9df427d7530a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/check.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/check-a72c3b2f2f79811d)
+
+running 11 tests
+test healthz_reports_git_and_node ... ok
+test check_refuses_commands_other_than_node ... ok
+test check_refuses_extra_files_outside_the_checkout ... ok
+test a_suite_that_outlives_its_timeout_is_killed_and_reads_as_a_crash ... ok
+test check_reports_passing_read_sets_and_runs_only_the_named_tests_when_asked ... ok
+test a_test_file_that_cannot_load_fails_under_its_own_name ... ok
+test check_reports_failures_with_read_sets_and_stack_files ... ok
+test check_is_green_on_a_passing_suite ... ok
+test check_matches_the_harness_on_an_acceptance_test_against_base ... ok
+test check_of_a_reference_solution_is_green ... ok
+test check_matches_the_harness_on_two_failing_files ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.06s
+
+     Running tests/merge.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/merge-257871e442476103)
+
+running 16 tests
+test file_remotes_are_refused_in_production_config ... ok
+test malformed_requests_name_the_field ... ok
+test unknown_fields_are_refused ... ok
+test an_unreachable_remote_is_a_bad_gateway_without_the_token ... ok
+test revert_reports_conflicting_files ... ok
+test revert_to_an_ancestor_resets_the_tree_without_conflicts ... ok
+test revert_of_a_root_commit_is_refused ... ok
+test squash_of_a_missing_change_ref_is_unprocessable ... ok
+test squash_lands_a_clean_change_as_one_commit_on_the_target ... ok
+test compose_of_only_conflicts_keeps_the_base_as_head ... ok
+test squash_reports_conflicting_files_and_commits_nothing ... ok
+test union_paths_dissolve_changelog_conflicts ... ok
+test compose_stacks_clean_items_and_skips_a_conflict ... ok
+test revert_removes_a_landed_change_from_the_head ... ok
+test concurrent_identical_squashes_all_succeed ... ok
+test commits_reachable_only_by_sha_are_never_fetched ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.07s
+
+     Running tests/properties.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/properties-ceb50427499d601a)
+
+running 2 tests
+test union_merge_keeps_every_changelog_entry ... ok
+test squash_of_disjoint_edits_is_clean_and_keeps_both_sides ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.98s
+
+     Running tests/structural.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/structural-390e890d9258ef77)
+
+running 5 tests
+test unsupported_files_stay_with_the_agent ... ok
+test the_tier_can_be_turned_off_and_the_conflict_carries_its_hunks ... ok
+test a_conflict_mergiraf_cannot_solve_stays_textual ... ok
+test a_clean_merge_is_textual ... ok
+test a_line_conflict_mergiraf_can_solve_lands_as_structural ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+     Running tests/update_ref.rs (/Users/coop/Workspace/beanstalk/target/debug/deps/update_ref-f185f1b16de7e6cf)
+
+running 7 tests
+test update_ref_is_idempotent_once_the_ref_points_at_new ... ok
+test update_ref_moves_the_ref_when_the_lease_holds ... ok
+test update_ref_without_old_moves_unconditionally ... ok
+test update_ref_reports_the_actual_value_when_the_lease_is_stale ... ok
+test update_ref_with_the_null_sha_creates_only ... ok
+test a_second_runner_finds_candidates_by_name ... ok
+test update_ref_of_an_unknown_commit_is_refused ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.53s
+
+   Doc-tests runner
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

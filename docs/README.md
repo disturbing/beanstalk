@@ -20,6 +20,7 @@
 | [Making 1,000 agents useful together, Oct 6](09c-thousand-agent-collaboration.md) | Seven concrete extensions to the collaboration model, prior-art comparison, failure criteria and reproducible capacity arithmetic |
 | [Bean intents and agent communication, Oct 6](09d-bean-intents-and-agent-communication.md) | Owner-directed agent-agnostic model: evolving approaches, requests, promises, plugin inboxes, Jev/Clef context retrieval and Cloudflare Agent Memory |
 | [Bean collaboration implementation, Oct 6](09e-bean-collaboration-implementation.md) | Contributor access, persistent conversations, exact promises, plugin/HTTP tools and current limits |
+| [Three-agent collaboration trial, Oct 6](09f-three-agent-collaboration-trial.md) | Three real contributors built a new app; ten protected tests and promise/inbox recovery after Worker restart passed |
 
 The most consequential findings are:
 

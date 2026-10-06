@@ -1,0 +1,105 @@
+{
+  "bean": {
+    "bean": "t001",
+    "revision": 0,
+    "intent": "Shipping estimates with business days. Independently negotiate precise shared shipping semantics through bean tools.",
+    "approach": null,
+    "actor": null,
+    "updated_at": null
+  },
+  "promises": [],
+  "reliance": [],
+  "referenced_promises": [],
+  "history": [],
+  "next_cursor": 0,
+  "current_cursor": 0,
+  "truncated": false,
+  "related_context": {
+    "status": "available",
+    "related": [
+      {
+        "bean": "t002",
+        "revision": 0,
+        "current_cursor": 0,
+        "intent": {
+          "text": "Checkout delivery estimate display. Independently negotiate precise shared shipping semantics through bean tools.",
+          "truncated": false
+        },
+        "approach": null,
+        "shared_paths": [],
+        "path_matches": [],
+        "shared_paths_truncated": false,
+        "reasons": [
+          "related-intent"
+        ],
+        "score": 18,
+        "promise_references": [],
+        "promise_statuses": [],
+        "request_events": [],
+        "context_truncated": false,
+        "expand": {
+          "bean": "t002"
+        }
+      },
+      {
+        "bean": "t003",
+        "revision": 0,
+        "current_cursor": 0,
+        "intent": {
+          "text": "Calendar-day returns deadline. Independently negotiate precise shared shipping semantics through bean tools.",
+          "truncated": false
+        },
+        "approach": null,
+        "shared_paths": [],
+        "path_matches": [],
+        "shared_paths_truncated": false,
+        "reasons": [
+          "related-intent"
+        ],
+        "score": 18,
+        "promise_references": [],
+        "promise_statuses": [],
+        "request_events": [],
+        "context_truncated": false,
+        "expand": {
+          "bean": "t003"
+        }
+      }
+    ],
+    "considered": 2,
+    "omitted": 0,
+    "required_omitted": [],
+    "required_omitted_count": 0,
+    "missing_required": [],
+    "missing_required_count": 0,
+    "expansion_truncated": false,
+    "truncated": false,
+    "discovery": {
+      "explicit_references": true,
+      "declared": {
+        "status": "available",
+        "candidates_truncated": false,
+        "paths_omitted": 0,
+        "query_truncated": false
+      },
+      "observed": {
+        "status": "available",
+        "paths_omitted": 0
+      }
+    },
+    "candidate_count": 2,
+    "hydration_limit": 16,
+    "unfetched": [],
+    "unfetched_count": 0,
+    "unavailable": []
+  },
+  "inbox": {
+    "status": "available",
+    "bean": "t001",
+    "unread": 0,
+    "next_cursor": 0,
+    "current_cursor": 0,
+    "truncated": false,
+    "events": []
+  }
+}

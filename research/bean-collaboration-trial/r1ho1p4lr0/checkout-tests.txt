@@ -1,0 +1,10 @@
+✔ checkout displays calendar days separately from business days (3.010625ms)
+✔ checkout forwards holiday semantics from the shipping provider (0.241708ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 115.3695

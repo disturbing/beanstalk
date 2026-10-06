@@ -1,0 +1,119 @@
+Scope: all 7 workspace projects
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 5.7s using pnpm v11.13.0
+$ pnpm fmt:check && pnpm lint && pnpm typecheck && pnpm test && pnpm rust:check
+$ oxfmt --check
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 1245ms on 382 files using 18 threads.
+$ oxlint --type-aware
+packages/shared-race/src/run-config.ts:480:7: warning unicorn(prefer-set-has): should be a `Set`, and use `.has()` to check existence or non-existence. help: Switch to `Set`
+packages/site/public/site.js:433:10: warning unicorn(consistent-function-scoping): Function `range` does not capture any variables from its parent scope help: Move `range` to the outer scope to avoid recreating it on every call.
+packages/site/public/app-demo.js:616:10: warning unicorn(consistent-function-scoping): Function `pct` does not capture any variables from its parent scope help: Move `pct` to the outer scope to avoid recreating it on every call.
+packages/site/public/app-demo.js:210:6: warning oxc(no-map-spread): Spreading to modify object properties in `map` calls is inefficient help: If in-place mutation is acceptable, use `Object.assign` or direct property assignment instead of spreading
+packages/web/src/forge/testing/simulated-gateway.ts:167:11: warning typescript(no-unsafe-type-assertion): Unsafe type assertion: type 'GatewayRpc' is more narrow than the original type.
+packages/web/src/forge/testing/simulated-gateway.ts:424:10: warning typescript(no-unsafe-type-assertion): Unsafe type assertion: type 'Artifacts' is more narrow than the original type.
+packages/site/public/app-demo.js:483:10: warning typescript(prefer-nullish-coalescing): Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
+$ pnpm -r --if-present typecheck
+Scope: 6 of 7 workspace projects
+packages/shared-race typecheck$ tsc -p tsconfig.json
+packages/shared-race typecheck: Done
+packages/shared-ask typecheck$ tsc -p tsconfig.json
+packages/gateway typecheck$ tsc -p tsconfig.json
+packages/shared-ask typecheck: Done
+packages/gateway typecheck: Done
+packages/mcp typecheck$ tsc -p tsconfig.json
+packages/web typecheck$ tsc -p tsconfig.json
+packages/mcp typecheck: Done
+packages/web typecheck: Done
+$ pnpm -r --if-present test
+Scope: 6 of 7 workspace projects
+packages/shared-race test$ vitest run
+packages/shared-race test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/shared-race
+packages/shared-race test:  Test Files  4 passed (4)
+packages/shared-race test:       Tests  30 passed (30)
+packages/shared-race test:    Start at  23:00:12
+packages/shared-race test:    Duration  691ms (transform 134ms, setup 0ms, import 839ms, tests 68ms, environment 0ms)
+packages/shared-race test: Done
+packages/gateway test$ vitest run
+packages/shared-ask test$ vitest run
+packages/shared-ask test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/shared-ask
+packages/shared-ask test:  Test Files  6 passed (6)
+packages/shared-ask test:       Tests  57 passed (57)
+packages/shared-ask test:    Start at  23:00:15
+packages/shared-ask test:    Duration  996ms (transform 511ms, setup 0ms, import 1.52s, tests 375ms, environment 1ms)
+packages/shared-ask test: Done
+packages/gateway test:  RUN  v4.1.11 /Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/gateway
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/index.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/container.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/helpers.js" points to missing source files
+packages/gateway test: Sourcemap for "/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/node_modules/.pnpm/@cloudflare+containers@0.3.7/node_modules/@cloudflare/containers/dist/lib/utils.js" points to missing source files
+packages/gateway test:  ❯ src/engine/v2/v2-park.test.ts (11 tests | 3 failed) 28085ms
+packages/gateway test:      × runs the burst race exactly as v2.5 did (seeds 1 and 7) 6548ms
+packages/gateway test:      × runs the earlier race exactly as v2.5 did (seeds 1 and 7) 7432ms
+packages/gateway test:      × runs the flaky race exactly as v2.5 did (seeds 1 and 7) 10399ms
+packages/gateway test:  ❯ src/engine/v2/v2-burst.test.ts (14 tests | 3 failed) 41477ms
+packages/gateway test:      × v2.3 keeps the beans: at least 36 green, a correct final check, little speed given back 6795ms
+packages/gateway test:      × the rescue keeps v2.2’s beans that were still red after their reworks 5570ms
+packages/gateway test:      × keeps every green and a correct stalk on the burst, no slower than v2.4 6443ms
+packages/gateway test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+packages/gateway test:  FAIL  src/engine/v2/v2-burst.test.ts > the v2.2 burst, in the simulator > v2.3 keeps the beans: at least 36 green, a correct final check, little speed given back
+packages/gateway test: Error: Test timed out in 5000ms.
+packages/gateway test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/gateway test:  ❯ src/engine/v2/v2-burst.test.ts:56:3
+packages/gateway test:      54|   });
+packages/gateway test:      55|
+packages/gateway test:      56|   it('v2.3 keeps the beans: at least 36 green, a correct final check, …
+packages/gateway test:        |   ^
+packages/gateway test:      57|     const v22 = numbers(runRace(burstScenario(V22_RULES)));
+packages/gateway test:      58|     const run = runRace(burstScenario());
+packages/gateway test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+packages/gateway test:  FAIL  src/engine/v2/v2-burst.test.ts > the v2.2 burst, in the simulator > the rescue keeps v2.2’s beans that were still red after their reworks
+packages/gateway test: Error: Test timed out in 5000ms.
+packages/gateway test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/gateway test:  ❯ src/engine/v2/v2-burst.test.ts:96:3
+packages/gateway test:      94|   });
+packages/gateway test:      95|
+packages/gateway test:      96|   it('the rescue keeps v2.2’s beans that were still red after their re…
+packages/gateway test:        |   ^
+packages/gateway test:      97|     const rescued = numbers(runRace(burstScenario({ ...V22_RULES, resc…
+packages/gateway test:      98|
+packages/gateway test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+packages/gateway test:  FAIL  src/engine/v2/v2-burst.test.ts > v2.5 (forge-owned tests) on the burst and the calm race > keeps every green and a correct stalk on the burst, no slower than v2.4
+packages/gateway test: Error: Test timed out in 5000ms.
+packages/gateway test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/gateway test:  ❯ src/engine/v2/v2-burst.test.ts:117:3
+packages/gateway test:     115|   const FORGE_TESTS: Partial<RunConfigInput> = { tests_first: true, ta…
+packages/gateway test:     116|
+packages/gateway test:     117|   it('keeps every green and a correct stalk on the burst, no slower th…
+packages/gateway test:        |   ^
+packages/gateway test:     118|     const v24 = numbers(runRace(burstScenario()));
+packages/gateway test:     119|     const run = runRace(burstScenario(FORGE_TESTS));
+packages/gateway test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+packages/gateway test:  FAIL  src/engine/v2/v2-park.test.ts > parking changes nothing else > runs the burst race exactly as v2.5 did (seeds 1 and 7)
+packages/gateway test:  FAIL  src/engine/v2/v2-park.test.ts > parking changes nothing else > runs the earlier race exactly as v2.5 did (seeds 1 and 7)
+packages/gateway test:  FAIL  src/engine/v2/v2-park.test.ts > parking changes nothing else > runs the flaky race exactly as v2.5 did (seeds 1 and 7)
+packages/gateway test: Error: Test timed out in 5000ms.
+packages/gateway test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/gateway test:  ❯ src/engine/v2/v2-park.test.ts:201:58
+packages/gateway test:     199|   });
+packages/gateway test:     200|
+packages/gateway test:     201|   it.each(['burst', 'calm', 'earlier', 'flaky'] as const)(
+packages/gateway test:        |                                                          ^
+packages/gateway test:     202|     'runs the %s race exactly as v2.5 did (seeds 1 and 7)',
+packages/gateway test:     203|     (name) => {
+packages/gateway test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+packages/gateway test:  Test Files  2 failed | 35 passed (37)
+packages/gateway test:       Tests  6 failed | 308 passed (314)
+packages/gateway test:    Start at  23:00:16
+packages/gateway test:    Duration  84.43s (transform 108.74s, setup 0ms, import 560.40s, tests 240.77s, environment 2ms)
+packages/gateway test: Failed
+/Users/coop/Workspace/beanstalk-worktrees/bean-collaboration-validated/packages/gateway:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @beanstalk/gateway@ test: `vitest run`
+Exit status 1
+[ELIFECYCLE] Test failed. See above for more details.
+[ELIFECYCLE] Command failed with exit code 1.

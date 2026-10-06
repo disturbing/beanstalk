@@ -1,0 +1,3 @@
+{"at": "2026-10-06T14:59:18.014Z", "action": "restart", "run": "r1ho1p4lr0", "previous_pid": 91543, "current_pid": 92549, "sqlite_preserved": true}
+{"at": "2026-10-06T15:07:13.069Z", "action": "restart", "run": "r1ho1p4lr0", "previous_pid": 92549, "current_pid": 23737, "sqlite_preserved": true}
+{"at": "2026-10-06T15:16:45.090698+00:00", "action": "stop_requested", "run": "r1ho1p4lr0", "pid": 23737}

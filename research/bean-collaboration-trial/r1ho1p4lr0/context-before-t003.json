@@ -1,0 +1,261 @@
+{
+  "bean": {
+    "bean": "t003",
+    "revision": 3,
+    "intent": "Calendar-day returns deadline. Independently negotiate precise shared shipping semantics through bean tools.",
+    "approach": {
+      "summary": "Implemented src/returns.mjs after negotiating and accepting exact delivery-contract@1. returnPolicy forwards the original input to estimateDelivery, consumes deliveryDate, and adds 30 with UTC calendar arithmetic; weekend and holiday deadlines remain valid. Syntax check passes. Protected returns tests await coordinator integration of the provider module, which I have not created or edited.",
+      "paths": [
+        "src/returns.mjs"
+      ]
+    },
+    "actor": "trial-returns",
+    "updated_at": "2026-10-06T15:04:02.044Z"
+  },
+  "promises": [],
+  "reliance": [
+    {
+      "bean": "t001",
+      "promise": "delivery-contract",
+      "revision": 1,
+      "actor": "trial-returns",
+      "recorded_at": "2026-10-06T15:03:28.801Z",
+      "accepted_event": 11,
+      "source": {
+        "bean": "t003",
+        "revision": 2,
+        "event_id": 11
+      }
+    }
+  ],
+  "referenced_promises": [
+    {
+      "id": "delivery-contract",
+      "body": "estimateDelivery({ shippedOn, businessDays, holidays = [] }) returns { days, businessDays, deliveryDate }. shippedOn and deliveryDate are strict YYYY-MM-DD UTC calendar dates. Counting starts AFTER shippedOn: businessDays counts Monday-Friday dates excluding explicit holiday dates, and days is elapsed calendar days between shippedOn and deliveryDate. businessDays = 0 returns the shippedOn date with days = 0 even on a weekend or holiday. The function is pure and throws on invalid dates or negative/fractional businessDays.",
+      "conditions": "Valid four-digit ISO calendar dates and nonnegative safe integer businessDays; holiday entries use the same strict UTC calendar-date format. No locale, machine timezone, or implicit holiday calendar affects results.",
+      "paths": [
+        "src/shipping.mjs"
+      ],
+      "bean": "t001",
+      "revision": 1,
+      "actor": "trial-shipping",
+      "offered_at": "2026-10-06T15:01:18.032Z",
+      "source": {
+        "bean": "t001",
+        "revision": 1,
+        "event_id": 2
+      }
+    }
+  ],
+  "history": [
+    {
+      "kind": "bean.updated",
+      "event_id": 5,
+      "bean": "t003",
+      "author_bean": "t003",
+      "actor": "trial-returns",
+      "revision": 1,
+      "created_at": "2026-10-06T15:01:33.639Z",
+      "changes": {
+        "approach": {
+          "summary": "Implement only src/returns.mjs as a consumer of shipping estimateDelivery. Use its UTC deliveryDate as the origin, then add exactly 30 UTC calendar days, allowing weekend and holiday deadlines. Negotiate and pin the provider contract before coding, preserving shipping business-day semantics without duplicating them.",
+          "paths": [
+            "src/returns.mjs",
+            "src/shipping.mjs"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "thread.posted",
+      "event_id": 6,
+      "post": {
+        "event_id": 6,
+        "bean": "t001",
+        "thread": "thread-6",
+        "author_bean": "t003",
+        "actor": "trial-returns",
+        "kind": "request",
+        "body": "Returns t003 will consume deliveryDate and add 30 UTC calendar days, never thirty business days and never from shipment. Please confirm delivery-contract@1 includes 2026-10-09 plus one business day delivering 2026-10-12 (returnBy 2026-11-11), holiday 2026-10-12 shifting delivery to 2026-10-13 (returnBy 2026-11-12), and zero business days remaining 2026-10-09 even on weekends or holidays so the 30-calendar-day deadline may itself land on a weekend. I will forward the input holidays intact and avoid recalculating your delivery. Please reply with the exact current promise reference for acceptance.",
+        "references": [
+          {
+            "bean": "t001",
+            "promise": "delivery-contract",
+            "revision": 1
+          }
+        ],
+        "reply_to": null,
+        "created_at": "2026-10-06T15:01:53.083Z"
+      }
+    },
+    {
+      "kind": "thread.posted",
+      "event_id": 8,
+      "post": {
+        "event_id": 8,
+        "bean": "t001",
+        "thread": "thread-6",
+        "author_bean": "t001",
+        "actor": "trial-shipping",
+        "kind": "reply",
+        "body": "Confirmed for delivery-contract@1. Friday 2026-10-09 + 1 business day delivers 2026-10-12; explicitly excluding holiday 2026-10-12 moves delivery to 2026-10-13. Adding 30 UTC calendar days to those delivery dates gives your respective 2026-11-11 and 2026-11-12 deadlines. Zero preserves whichever shippedOn date was provided: for the weekend example use Saturday 2026-10-10, which remains 2026-10-10 and may yield a weekend returnBy. The input and holiday array are not mutated; your forwarding and deliveryDate-based calendar arithmetic fit this exact current offer.",
+        "references": [
+          {
+            "bean": "t001",
+            "promise": "delivery-contract",
+            "revision": 1
+          }
+        ],
+        "reply_to": 6,
+        "created_at": "2026-10-06T15:02:41.079Z"
+      }
+    },
+    {
+      "kind": "thread.posted",
+      "event_id": 11,
+      "post": {
+        "event_id": 11,
+        "bean": "t001",
+        "thread": "thread-6",
+        "author_bean": "t003",
+        "actor": "trial-returns",
+        "kind": "accept",
+        "body": "Returns t003 accepts the exact current delivery-contract@1 offer after your event 8 confirmation. I will consume deliveryDate unchanged, add 30 UTC calendar days including weekend and holiday deadlines, and forward input without mutating it. Your Saturday zero-day clarification is consistent with the general unchanged shippedOn rule. This records my own bean reliance; passing implementation remains separate evidence.",
+        "references": [
+          {
+            "bean": "t001",
+            "promise": "delivery-contract",
+            "revision": 1
+          }
+        ],
+        "reply_to": 8,
+        "created_at": "2026-10-06T15:03:28.801Z"
+      }
+    },
+    {
+      "kind": "bean.updated",
+      "event_id": 12,
+      "bean": "t003",
+      "author_bean": "t003",
+      "actor": "trial-returns",
+      "revision": 3,
+      "created_at": "2026-10-06T15:04:02.044Z",
+      "changes": {
+        "approach": {
+          "summary": "Implemented src/returns.mjs after negotiating and accepting exact delivery-contract@1. returnPolicy forwards the original input to estimateDelivery, consumes deliveryDate, and adds 30 with UTC calendar arithmetic; weekend and holiday deadlines remain valid. Syntax check passes. Protected returns tests await coordinator integration of the provider module, which I have not created or edited.",
+          "paths": [
+            "src/returns.mjs"
+          ]
+        }
+      }
+    }
+  ],
+  "next_cursor": 12,
+  "current_cursor": 12,
+  "truncated": false,
+  "related_context": {
+    "status": "available",
+    "related": [
+      {
+        "bean": "t001",
+        "revision": 1,
+        "current_cursor": 12,
+        "intent": {
+          "text": "Shipping estimates with business days. Independently negotiate precise shared shipping semantics through bean tools.",
+          "truncated": false
+        },
+        "approach": {
+          "text": "Implement a pure UTC-date shipping estimator in my own src/shipping.mjs. Validate strict ISO dates and nonnegative whole business-day counts; traverse calendar dates after shippedOn, counting Monday-Friday unless explicitly listed as holidays. Keep calendar elapsed days and counted business days separate for consumers.",
+          "truncated": false
+        },
+        "shared_paths": [],
+        "path_matches": [],
+        "shared_paths_truncated": false,
+        "reasons": [
+          "promise-reference",
+          "related-intent",
+          "related-approach",
+          "related-promise"
+        ],
+        "score": 52,
+        "promise_references": [
+          {
+            "bean": "t001",
+            "promise": "delivery-contract",
+            "revision": 1
+          }
+        ],
+        "promise_statuses": [
+          {
+            "reference": {
+              "bean": "t001",
+              "promise": "delivery-contract",
+              "revision": 1
+            },
+            "current_revision": 1,
+            "status": "current"
+          }
+        ],
+        "request_events": [],
+        "context_truncated": false,
+        "expand": {
+          "bean": "t001"
+        }
+      },
+      {
+        "bean": "t002",
+        "revision": 2,
+        "current_cursor": 12,
+        "intent": {
+          "text": "Checkout delivery estimate display. Independently negotiate precise shared shipping semantics through bean tools.",
+          "truncated": false
+        },
+        "approach": {
+          "text": "Implement quoteCheckout solely in src/checkout.mjs, delegate shipping calculation to estimateDelivery, display elapsed calendar days separately from businessDays, and forward the original holidays input. Before coding, negotiate provider t001 exact return semantics and pin its current delivery-contract promise.",
+          "truncated": false
+        },
+        "shared_paths": [],
+        "path_matches": [],
+        "shared_paths_truncated": false,
+        "reasons": [
+          "related-intent",
+          "related-approach"
+        ],
+        "score": 64,
+        "promise_references": [],
+        "promise_statuses": [],
+        "request_events": [],
+        "context_truncated": false,
+        "expand": {
+          "bean": "t002"
+        }
+      }
+    ],
+    "considered": 2,
+    "omitted": 0,
+    "required_omitted": [],
+    "required_omitted_count": 0,
+    "missing_required": [],
+    "missing_required_count": 0,
+    "expansion_truncated": false,
+    "truncated": true,
+    "discovery": {
+      "explicit_references": true,
+      "declared": {
+        "status": "available",
+        "candidates_truncated": false,
+        "paths_omitted": 0,
+        "query_truncated": true
+      },
+      "observed": {
+        "status": "available",
+        "paths_omitted": 0
+      }
+    },
+    "candidate_count": 2,
+    "hydration_limit": 16,
+    "unfetched": [],
+    "unfetched_count": 0,
+    "unavailable": []
+  }
+}
