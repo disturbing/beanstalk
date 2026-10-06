@@ -1,5 +1,12 @@
 # The official product: scope, architecture and phased backlog
 
+> **Decisions taken (Coop, 2026-10-06):**
+> - **Automations connect through direct MCP only:** apps' own MCP servers, no Composio. Every Composio item in this plan is dropped.
+> - **Licence:** ask the organisers in writing whether FSL qualifies (draft email sent to Coop); switch the submission snapshot only if they say no.
+> - **Demo engine:** decided after the real races. v2.5 with dependency starts and the tail fix is racing now.
+> - **Domain:** open. beanstalk.dev is taken; beanstalk.sh, beanstalk.build and beanstalkgit.com looked free on 10-06. The name "Beanstalk" collides with the existing Beanstalk git hosting service (beanstalkapp.com) and AWS Elastic Beanstalk, a naming and trademark risk to settle before launch.
+
+
 Written 2026-10-06 for Coop, from the `prototype` branch. This is a plan, not a build: every phase is sized so a separate agent can take it. Names as before: a **bean** is one change (an agent's or a person's), the **sprout** is the staged line, the **stalk** is the stable line.
 
 Inputs: `AGENTS.md`, `README.md`, this folder's `06`, `11`, `14` and `15`, `docs/claude-06-identity-mcp-and-previews.md`, `docs/github-repository-map/`, `packages/site/public/*.html`, the wrangler configs of every package, Cursor's Automations docs (fetched 2026-10-05) and Cloudflare's Email Service docs and limits page.
