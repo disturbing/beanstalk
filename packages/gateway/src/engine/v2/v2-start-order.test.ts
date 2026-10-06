@@ -6,7 +6,7 @@ import { V25_RULES_OFF } from '@beanstalk/shared-race/run-config';
 import type { FailRule, ScriptedTask } from '../testing/fake-world';
 import type { RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
-import { ageBound } from './v2-start-order';
+import { STALL_SECONDS, ageBound } from './v2-start-order';
 
 /**
  * Dependency-aware starts on a synthetic repo with dependency chains (E4's binding
@@ -160,15 +160,92 @@ describe('dependency-aware starts on dependency chains', () => {
     expect(chainNumbers(run)).toMatchObject({ green: 20, dropped: 0 });
   });
 
-  it('starts an aged task next however much it clashes', () => {
-    expect(ageBound(1)).toBe(4);
-    expect(ageBound(64)).toBe(128);
+  it('starts an aged task next once enough later tasks overtook it', () => {
+    expect(ageBound(1, 40)).toBe(4);
+    expect(ageBound(64, 200)).toBe(32);
+    expect(ageBound(64, 8)).toBe(2);
     const run = runRace(
       chainScenario({ ...DEPENDENCY, agents: 2 }, { chains: [12], total: 40, seed: 3 }),
     );
 
     expect(eventsOf(run.events, 'placement.decision', { rule: 'aged' }).length).toBeGreaterThan(0);
     expect(chainNumbers(run).green).toBe(40);
+  });
+});
+
+/**
+ * The longest stretch, in seconds, during which an agent had no invocation, a task was
+ * unstarted and no task started: how long a free agent sat beside startable work.
+ */
+function longestIdleWait(run: RaceRun, agents: number): number {
+  const total = Object.keys(run.state.tasks).length;
+  const open = new Set<unknown>();
+  const state = { placed: 0, longest: 0, idleSince: null as number | null };
+  for (const event of run.events) {
+    if (state.idleSince !== null)
+      state.longest = Math.max(state.longest, event.t - state.idleSince);
+    if (event.type === 'invocation.start') open.add(event['inv']);
+    if (event.type === 'invocation.end') open.delete(event['inv']);
+    if (event.type === 'placement.decision') state.placed += 1;
+    const isIdle = state.placed < total && open.size < agents;
+    if (!isIdle) state.idleSince = null;
+    else if (state.idleSince === null || event.type === 'placement.decision') {
+      state.idleSince = event.t;
+    }
+  }
+  return state.longest;
+}
+
+/** Later tasks started ahead of each task (placements whose `skipped` names it). */
+function overtakes(run: RaceRun): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const event of eventsOf(run.events, 'placement.decision')) {
+    const skipped = event['skipped'];
+    if (!Array.isArray(skipped)) continue;
+    for (const id of skipped) counts.set(String(id), (counts.get(String(id)) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * `cf-demo-sonnet-30-s7`: 30 agents on 40 tasks, where the old age bound (`2 × agents` = 60
+ * starts) could never fire and agents waited for landings while beans stayed unstarted (t039
+ * started at 33 minutes). Chains of hot-file appends collide when pipelined.
+ */
+const THIRTY_ON_FORTY: ChainShape = { chains: [9, 6, 5, 4, 3, 3, 2], total: 40, seed: 7 };
+
+describe('dependency-aware starts with more agents than independent work', () => {
+  const run = runRace(chainScenario({ ...DEPENDENCY, agents: 30 }, THIRTY_ON_FORTY));
+
+  it('keeps the age bound reachable at any agent count', () => {
+    expect(ageBound(30, 40)).toBe(10);
+    expect(ageBound(12, 40)).toBe(6);
+    for (const agents of [1, 4, 12, 30, 64]) {
+      for (const tasks of [4, 40, 200]) expect(ageBound(agents, tasks)).toBeLessThan(tasks);
+    }
+  });
+
+  it('never leaves a free agent waiting longer than the stall bound beside unstarted work', () => {
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    expect(chainNumbers(run)).toMatchObject({ green: 40, dropped: 0 });
+    expect(eventsOf(run.events, 'placement.decision', { rule: 'stalled' }).length).toBeGreaterThan(
+      0,
+    );
+    expect(longestIdleWait(run, 30)).toBeLessThanOrEqual(STALL_SECONDS + 1);
+  });
+
+  it('bounds every task’s wait: overtaken at most the age bound unless a clash is in flight', () => {
+    const bound = ageBound(30, 40);
+    const placements = eventsOf(run.events, 'placement.decision');
+    for (const [id, count] of overtakes(run)) {
+      if (count <= bound) continue;
+      // Overtaken beyond the bound only while a bean it clashes with was in flight.
+      const own = placements.find((event) => event['task'] === id);
+      expect(own?.['overlap']).not.toEqual([]);
+    }
+    const lastStart = Math.max(...eventsOf(run.events, 'task.start').map((event) => event.t));
+    // Before the fix the last bean started at 20.8 minutes (17.3 with the stall bound).
+    expect(lastStart / 60).toBeLessThan(19);
   });
 });
 

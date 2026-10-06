@@ -11,8 +11,13 @@
  *   then in priority order.
  * - With nothing clear, the bean with the fewest clashes starts, if it clashes with at most
  *   two beans in flight; otherwise the agent waits for a landing (a chain is pipelined two
- *   deep, not run all at once). Modules most tasks predict (`src`) are ignored.
- * - Age bound: a task passed over by `ageBound` starts more than its FIFO turn starts next.
+ *   deep, not run all at once). Modules most tasks predict (`src`) are ignored. Parked beans
+ *   wait for a person, not a landing, so they are not in flight.
+ * - Age bound: a task that clashes with no bean in flight starts next once `ageBound` later
+ *   tasks have started ahead of it.
+ * - Stall bound: the wait for a landing lasts at most `STALL_SECONDS` after the newest start
+ *   among the beans in flight a bean clashes with; then that bean starts anyway (`stalled`),
+ *   one per chain per stall, and a timer wakes the scheduler when the next bound runs out.
  *
  * `fifo` is the head of the list, as before. The choice is a pure function of the run's state.
  */
@@ -20,22 +25,40 @@ import type { TaskId } from '@beanstalk/shared-race/ids';
 import { couplingPartners } from '@beanstalk/shared-race/task';
 
 import type { StepContext } from '../context';
-import { requireTask, taskDefinition } from '../context';
+import { requireTask, setTimer, taskDefinition } from '../context';
 import { EngineInvariantError } from '../errors';
-import type { TaskState } from '../model';
+import type { Seconds, TaskState } from '../model';
 
-/** Starts a task may fall behind its FIFO turn, per agent, before it goes next regardless. */
-const AGE_BOUND_PER_AGENT = 2;
+/** Later tasks that may start ahead of a task, per agent, before it goes next regardless. */
+const AGE_BOUND_PER_AGENT = 1 / 2;
 const MIN_AGE_BOUND = 4;
+/** The age bound never exceeds this share of the run's tasks, so it fires at any agent count. */
+const AGE_BOUND_TASK_SHARE = 1 / 4;
+/**
+ * Seconds a free agent waits for a landing in a bean's clash set before the bean starts
+ * anyway: under a real bean's start to green (`cf-demo-sonnet-30-s7`: median 5.3 minutes),
+ * so a stuck chain costs idle agents minutes, not half the race. Shorter holds (90 s, 120 s)
+ * gave up more of the conflicts dependency starts save on the E4 chains for little gain.
+ */
+export const STALL_SECONDS = 180;
+/** The policy timer key that wakes the scheduler when a stall bound runs out. */
+export const START_WAKE_KEY = 'start-wake';
 /** A bean may start alongside at most this many beans in flight it clashes with. */
 const MAX_IN_FLIGHT_CLASHES = 2;
 /** Share of the run's tasks above which a predicted module is a hub, not a dependency. */
 const HUB_SHARE = 1 / 3;
 
-export type StartRule = 'fifo' | 'disjoint' | 'critical-path' | 'least-overlap' | 'aged';
+export type StartRule =
+  | 'fifo'
+  | 'disjoint'
+  | 'critical-path'
+  | 'least-overlap'
+  | 'aged'
+  | 'stalled';
 
 /** The bean to start, and the `placement.decision` fields that explain it. */
 export type StartChoice = {
+  readonly kind: 'start';
   readonly task: TaskId;
   readonly rule: StartRule;
   readonly overlap: readonly string[];
@@ -43,26 +66,49 @@ export type StartChoice = {
   readonly skipped: readonly TaskId[];
 };
 
+/** The agent waits for a landing; the scheduler looks again by `wakeAt` at the latest. */
+export type StartWait = { readonly kind: 'wait'; readonly wakeAt: Seconds };
+
 /**
- * The next bean for a free agent; `unstarted` is in priority order and not empty. `null`:
+ * The next bean for a free agent; `unstarted` is in priority order and not empty. `wait`:
  * the agent waits for a bean in flight to land rather than start one that would clash.
  */
 export function chooseStart(
   ctx: StepContext,
   unstarted: readonly TaskId[],
   order: 'fifo' | 'dependency',
-): StartChoice | null {
+): StartChoice | StartWait {
   const head = unstarted[0];
   if (head === undefined) throw new EngineInvariantError('no unstarted bean to choose');
   if (order === 'fifo') {
-    return { task: head, rule: 'fifo', overlap: [], occupied: {}, skipped: [] };
+    return { kind: 'start', task: head, rule: 'fifo', overlap: [], occupied: {}, skipped: [] };
   }
   return chooseByDependency(ctx, unstarted);
 }
 
-/** Starts a task may lag its FIFO turn before it goes next: twice the agents, at least 4. */
-export function ageBound(agents: number): number {
-  return Math.max(MIN_AGE_BOUND, AGE_BOUND_PER_AGENT * agents);
+/**
+ * Later tasks that may start ahead of a task before it goes next: half the agents, at least
+ * 4, but at most a quarter of the tasks (at least 1). The old `2 × agents` was 60 for 30
+ * agents, more starts than a 40-task run has, so it never fired.
+ */
+export function ageBound(agents: number, tasks: number): number {
+  const byAgents = Math.max(MIN_AGE_BOUND, Math.ceil(AGE_BOUND_PER_AGENT * agents));
+  return Math.min(byAgents, Math.max(1, Math.floor(AGE_BOUND_TASK_SHARE * tasks)));
+}
+
+/**
+ * Makes sure a start-wake timer fires by `wakeAt` (the engine dispatches after every timer),
+ * unless one already will.
+ */
+export function wakeForStart(ctx: StepContext, wakeAt: Seconds): void {
+  const isPending = Object.values(ctx.state.timers).some(
+    (timer) =>
+      timer.purpose.kind === 'policy' &&
+      timer.purpose.key === START_WAKE_KEY &&
+      timer.at > ctx.now &&
+      timer.at <= wakeAt,
+  );
+  if (!isPending) setTimer(ctx, wakeAt - ctx.now, { kind: 'policy', key: START_WAKE_KEY });
 }
 
 type Signals = { readonly modules: ReadonlySet<string>; readonly partners: ReadonlySet<string> };
@@ -73,12 +119,22 @@ type Candidate = {
   readonly clashes: number;
   readonly height: number;
   readonly position: number;
+  /** Later tasks already started ahead of this one. */
+  readonly overtaken: number;
+  /** When the newest bean in flight this one clashes with started (`-Infinity`: none). */
+  readonly newestClashStart: Seconds;
 };
 
-function chooseByDependency(ctx: StepContext, unstarted: readonly TaskId[]): StartChoice | null {
+type Pick = { readonly candidate: Candidate; readonly rule: StartRule };
+
+function chooseByDependency(
+  ctx: StepContext,
+  unstarted: readonly TaskId[],
+): StartChoice | StartWait {
   const { order } = ctx.state;
   const waiting = new Set<string>(unstarted);
-  const inFlight = order.filter((id) => !waiting.has(id) && isInFlight(requireTask(ctx, id)));
+  const started = order.filter((id) => !waiting.has(id));
+  const inFlight = started.filter((id) => isInFlight(requireTask(ctx, id)));
   const hubs = hubModules(ctx);
   const signals = new Map(
     [...unstarted, ...inFlight].map((id) => [id, signalsOf(ctx, id, hubs)] as const),
@@ -87,13 +143,24 @@ function chooseByDependency(ctx: StepContext, unstarted: readonly TaskId[]): Sta
   const heights = chainHeights(unstarted, clash);
   const candidates = unstarted.map((id, index): Candidate => {
     const earlier = unstarted.slice(0, index);
-    const inFlightClashes = inFlight.filter((other) => clash(id, other)).length;
-    const clashes = inFlightClashes + earlier.filter((other) => clash(id, other)).length;
+    const clashingInFlight = inFlight.filter((other) => clash(id, other));
     const position = order.indexOf(id);
-    return { id, inFlightClashes, clashes, height: heights[index] ?? 1, position };
+    return {
+      id,
+      inFlightClashes: clashingInFlight.length,
+      clashes: clashingInFlight.length + earlier.filter((other) => clash(id, other)).length,
+      height: heights[index] ?? 1,
+      position,
+      overtaken: started.filter((other) => order.indexOf(other) > position).length,
+      newestClashStart: Math.max(
+        Number.NEGATIVE_INFINITY,
+        ...clashingInFlight.map((other) => requireTask(ctx, other).startedAt ?? ctx.now),
+      ),
+    };
   });
-  const picked = pick(candidates, ctx);
-  if (picked === null) return null;
+  const picked = pick(candidates, ctx) ?? pickStalled(candidates, ctx.now);
+  // Every bean clashes with a bean in flight here, so each stall end is finite.
+  if (picked === null) return { kind: 'wait', wakeAt: Math.min(...candidates.map(stallEnd)) };
   const { candidate, rule } = picked;
   return explain(ctx, { candidate, rule, inFlight, unstarted });
 }
@@ -102,13 +169,12 @@ function chooseByDependency(ctx: StepContext, unstarted: readonly TaskId[]): Sta
  * Aged first, then clear beans by chain height, then the fewest clashes among beans that
  * clash with at most two beans in flight; `null` when every bean would meet more.
  */
-function pick(
-  candidates: readonly Candidate[],
-  ctx: StepContext,
-): { candidate: Candidate; rule: StartRule } | null {
-  const started = ctx.state.order.length - candidates.length;
-  const bound = ageBound(ctx.env.config.agents);
-  const aged = candidates.find((candidate) => started - candidate.position >= bound);
+function pick(candidates: readonly Candidate[], ctx: StepContext): Pick | null {
+  const bound = ageBound(ctx.env.config.agents, ctx.state.order.length);
+  // A bean that clashes with a bean in flight waits for it (the stall bound limits that).
+  const aged = candidates.find(
+    (candidate) => candidate.inFlightClashes === 0 && candidate.overtaken >= bound,
+  );
   if (aged !== undefined) return { candidate: aged, rule: 'aged' };
   const clear = candidates.filter((candidate) => candidate.clashes === 0);
   if (clear.length > 0) {
@@ -124,6 +190,22 @@ function pick(
     b.clashes < a.clashes || (b.clashes === a.clashes && b.height > a.height) ? b : a,
   );
   return { candidate: best, rule: 'least-overlap' };
+}
+
+/**
+ * The wait for a landing is bounded: a bean whose clashing beans in flight all started at
+ * least `STALL_SECONDS` ago starts anyway, fewest clashes first, then priority order. It is
+ * then the newest start in its chain, so a stuck chain takes one more bean per stall.
+ */
+function pickStalled(candidates: readonly Candidate[], now: Seconds): Pick | null {
+  const stalled = candidates.filter((candidate) => stallEnd(candidate) <= now);
+  if (stalled.length === 0) return null;
+  const best = stalled.reduce((a, b) => (b.clashes < a.clashes ? b : a));
+  return { candidate: best, rule: 'stalled' };
+}
+
+function stallEnd(candidate: Candidate): Seconds {
+  return candidate.newestClashStart + STALL_SECONDS;
 }
 
 /**
@@ -168,6 +250,7 @@ function explain(
   );
   const predicted = requireTask(ctx, candidate.id).selected;
   return {
+    kind: 'start',
     task: candidate.id,
     rule,
     overlap: predicted.filter((module) => Object.hasOwn(occupied, module)).toSorted(),
@@ -176,9 +259,18 @@ function explain(
   };
 }
 
-/** Started and not yet on the sprout (landed, green or dropped beans no longer clash). */
+/**
+ * Started and not yet on the sprout (landed, green or dropped beans no longer clash). A
+ * parked bean waits for a person, not a landing, and the race may end without it, so it does
+ * not hold its chain back (`cf-demo-sonnet-30-s7`: parked t023 kept billing at three in flight).
+ */
 function isInFlight(task: TaskState): boolean {
-  return task.status !== 'landed' && task.status !== 'green' && task.status !== 'dropped';
+  return (
+    task.status !== 'landed' &&
+    task.status !== 'green' &&
+    task.status !== 'dropped' &&
+    task.status !== 'parked'
+  );
 }
 
 function signalsOf(ctx: StepContext, id: TaskId, hubs: ReadonlySet<string>): Signals {
