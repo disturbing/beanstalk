@@ -19,6 +19,7 @@ Started 2026-10-03, evening; updated as experiments finish. **All seven experime
 | CF v2.3 | v2.2 plus a sprout window, sampled re-checks, read-set inherited reds and early tickets, real agents on Cloudflare (2026-10-04) | done (`research/race/runs/cf-v23-sonnet-12-s7`) | **34 green, 6 dropped, 17.9 min, $5.14, 4 red validations, 1 revert ticket; stalk correct.** It fixes v2.2's collapse (24 green) and ties v2.0 (35 green, 17.5 min). The 20th green comes sooner (10.4 vs 11.3 min) and the 30th about the same (14.3 vs 13.8). The window held landings to 6 a minute (v2.2: 19). It grew from 4 to 16 in under 6 minutes and halved once, on the one red episode, which stalled landings for 3 minutes. Drops: 4 merge conflicts the agents could not resolve, 1 revert, and 1 decision-card loser. **The card named the wrong counterpart.** It was raised from a check that began before a revert, so a stale failure blamed t005, while t032's real conflict was with a landed task's test (`confirmation-grouping`). The test author rightly found nothing to amend, and the loser was dropped. E6's dynamic culprits are not ported yet |
 | CF v2.4 | v2.3 plus reconcile-before-card and stale-failure re-checks, real agents on Cloudflare (2026-10-04) | done (`research/race/runs/cf-v24-sonnet-12-s7`) | **Best run so far: 37 green, 3 dropped, 17.7 min, $4.40, 4 red validations; stalk correct.** Against the queue (36 green, 40.6 min, $4.12): the 30th green at 8.9 min vs 19.9 (2.2x), the 35th at 15.2 vs 35.0 (2.3x), and done 2.3x sooner, for 7% more spend. Against v2.0: the 20th green at 6.7 vs 11.3 min and 2 more greens. The one reconcile attempt ended in a CONTRADICTION, rightly. The test author found that t032's tests also clash with a third landed task's free-shipping threshold ("that rule comes from neither task"), so reconciling only t032 with t005 could not fix it. Part of the gain over v2.3 is probably run-to-run variance (one seed) |
 | CF v2.5 phase matrix | Every v2.5 phase against the queue and v2.4, three seeds each (7, 11, 13), 12 Sonnet agents on Cloudflare (2026-10-05 and 06) | done (`research/race/runs/cf-{queue,v24,v25a,v25b,v25c,v25d,v25dep,v25dep2}-sonnet-12-s*`; seed 7 queue is `cf-queue-sonnet-12-s7-landed`) | **Only the full v2.5 set plus dependency-aware starts (and the tail fix) wins: 39/39/38 green against the queue's 36/35/37, the 35th green 1.7–2.1x sooner, done about 1.3x sooner, stalk correct in every run.** Green per seed (7/11/13), 35th green (min), done (min), agent $ for the three, red validations, from `kth_green.py --k 35` and the summaries: queue 36/35/37, 35.0/29.2/36.8, 40.6/30.2/39.5, $13.16, 10/8/10 · v2.4 37/32/33, 15.2/–/–, 17.7/17.3/25.4, $15.98, 4/5/13 · v2.5a (B: lone suspects, base culprits, window 8) 34/33/37, –/–/14.0, 22.5/18.8/15.6, $15.66, 8/10/4 · v2.5b (+A: escalation, parties) 31/33/29, –/–/–, 14.9/14.9/29.6, $18.06, 5/4/15 · v2.5c (+C: structural merges) 30/35/34, –/20.5/–, 20.9/22.7/19.7, $18.67, 9/8/7 · v2.5d (+E: start cards, rescue, dynamic culprits = full v2.5, FIFO starts) 37/39/37, 21.8/15.2/28.0, 22.8/24.6/40.5, $18.79, 6/0/8 · v2.5 + dependency starts, before the tail fix (`cf-v25dep-*`) 39/39/39, 13.0/16.3/14.1, **60.0/60.0/54.7** (s7 and s11 aborted at the 60-minute wall cap on t032; see "v2.5 tail fix" below), $15.26, 0/4/0 · **v2.5 + dependency starts with the tail fix, the rerun (`cf-v25dep2-*`)** 39/39/38, 17.1/14.9/22.0, 31.6/24.0/29.8, $15.58 (6.08/4.18/5.32), 4/0/4; metered Cloudflare infrastructure $0.38/$0.35/$0.42. What it shows: **the partial phases were worse.** v2.5a to v2.5c shipped 31–34.7 green on average, no better than v2.4 (34.0) and below the queue (36.0), and v2.5b to v2.5d cost the most ($18.06–18.79 for three races); the rules only pay together. Full v2.5 with FIFO starts ships more (37.7) but is slow (29.3 min mean done, 40.5 on s13). Dependency starts are what turn it into a win; before the tail fix the gain was hidden behind one looping bean. **The simulator over-predicted v2.5:** it gave v2.5 38.5 green and 16.0 min done on the burst (v2.5 + dependency starts on the declared burst: 40.0 green, 12.1 min) and rated v2.5a–c at or above v2.4; the real races gave 37.7 green, 29.3 min for v2.5d and 38.7, 28.5 min for the rerun, and the partial phases below v2.4. v2.4 and the partial phases finish sooner (19.0–21.1 min mean done) because they drop more beans. Notes: **network outage:** a network outage hit the race machine during the batch (operator's report); the recorded runs show no infra stop, no failed invocation and no event gap other than the dynamic-culprit searches, so none is excluded for it. **Queue seed 7:** `cf-queue-sonnet-12-s7` ran with `--protect-tests own` and its final stalk was wrong (37 green, 5 failing files); `-landed` is the like-for-like run with every landed test protected, as in all others. Caveats: three seeds, one run each; synthetic arena; short tasks; agent cost measured, infrastructure metered only for the rerun |
+| 30-agent post-mortem | Why v2.5 (`demo` preset) lost its lead at 30 agents (`cf-demo-sonnet-30-s7` against `cf-queue-sonnet-30-s7`, 2026-10-06), a simulator fixture of the stall, and a culprit-isolation study | diagnosis and study done, **simulated** (fixture `packages/gateway/src/engine/testing/burst30.ts`, study `testing/culprit-study.ts`; section "30-agent post-mortem" below) | **The stall was one whole-suite break that could not be reverted, not a lack of CI capacity.** Two migrations numbered 0007 (t010 on top of t011) landed without a re-check and failed 45–52 test files from minute 8.3. The culprit's revert conflicted three times (t007 had edited the migration index). Two nested tickets reverted innocent beans (t022, t009) whose new tests failed with the suite. The bean that fixed it forward (t026, green at 14.95) waited 11.8 minutes for the window. Recommendation: **revert-then-requeue the red window** (reset the sprout to the stalk and send the window's beans back through their pre-land checks), keeping the lone-suspect revert as the fast path |
 | v2.1 / v2.2 | Finer or adaptive re-check | done | **Calm repo (marked):** line-level 5.4–6.0 min, adaptive 5.2–5.3 min (file-level v2: 19–20; queue: 4.4), all correct. **Contended arena:** line-level is unsafe (4 red validations, 29 greens). **Adaptive with file-level fallback (v2.2): 35 greens, 10.1 min, $5.43, 3 red validations, correct**, matching file-level v2 (35, 11.3 min, $5.29, 1 red). **Rule:** skip re-checks while pre-land reds are rare; fall back to file-level once they appear |
 
 ## The design changes so far
@@ -166,3 +167,102 @@ Started 2026-10-03, evening; updated as experiments finish. **All seven experime
 
 3. **Planning and dependency-aware starts** (E4), the real limit at thousands of agents.
 4. **Stalk promotion as a GitHub Action** that triggers a verifier agent (`10` §5c); the MCP server and Claude Code plugin; the Ask explorer and race canvas (`13`, in `packages/web`).
+
+## 30-agent post-mortem (2026-10-06, `cf-demo-sonnet-30-s7`)
+
+**The race.** 30 Sonnet agents, seed 7, 40 tasks, 2 CI slots, `demo` preset, against the queue (`cf-queue-sonnet-30-s7`): 36 green vs 36, 25th green 9.5 vs 20.4 min, then the 30th at 28.0 vs 22.2, 35th 34.5 vs 35.5, done 42.9 vs 38.7. The lead was lost in one red episode of about 20 minutes.
+
+**Timeline of the stall** (minutes from the start, from `events.jsonl`):
+
+| Minute | What happened |
+|---|---|
+| 6.97 | t011 lands with migration `0007_shipment_tracking` |
+| 8.34 | t010 lands its own `0006`/`0007` migrations optimistically: its check ran on a sprout without t011, 12 beans landed meanwhile, no re-check. From here every validation fails 45–52 test files (the app cannot load its migrations) |
+| 8.41–9.67 | t016, t017, t022, t009 and t007 land on the red sprout (all checked before the break); t007 also edits `src/db/migrations/index.ts` |
+| 9.90 / 10.73 | validations of #27 and #29 are red; each waits 1.2 min for its flake re-run |
+| 11.15 | R001 (red #27) bisects, sharing the slots with R002; at 13.18 it names t010, and **the revert conflicts** (`migrations/index.ts`) |
+| 11.93 | R002 (red #29, the 2 test files new since #27: t022's and t009's own tests) bisects for them; at 15.54 it blames **t022 (innocent), reverted and dropped** |
+| 14.95 | **t026's check is green on the red head #30** (its agent renumbered the migrations): the fix. It waits for the window (size 4, then 2, with 6 unvalidated commits) |
+| 15.80 / 16.95 | R003 and R004 on the next reds: R003 names t010 again (20.45, the revert conflicts again); R004 blames **t009 (innocent), reverted at 21.71** |
+| 23.11 | R005 bisects the same range again: t010 at 26.48, the revert conflicts again |
+| 26.71 | nothing is repairing any more, so the window lets one bean through: t026 lands. The validation is green at **28.0** and promotes t010, t016, t017, t007 and t026 |
+
+**Where the time went (8.3 to 28.0, 19.7 min).** The 2 CI slots were 88% busy, but not with useful work: 16 bisect runs (19.2 slot-minutes) and 13 validations (15.2, of which 4 flake re-runs took 5.0). There were 5 tickets: 3 rediscovered a culprit that cannot be reverted, and 2 blamed innocent beans. The fix forward was ready at 14.95 and the window held it for 11.8 minutes. Beans checked on the broken sprout were blamed too: their own new tests failed, so their reds were not inherited and named landed beans (t012, t014) as culprits. That raised cards D003, D004, D005 and D007 and parked t023. **The capacity hypothesis is refuted as the cause.** More or parallel validation would not have helped: everything from #25 up was red, and the green prefix (#24) was promoted at 9.51. The slots were saturated by repeated, misdirected repair work around an unrevertable culprit.
+
+**t039.** Billing had 8 tasks. t023 (billing) was parked at 19.9 but still counted as in flight. The start age bound is `max(4, 2 × agents)`, 60 starts at 30 agents: more than the 40 tasks, so it never fires for a task late in the order. t031, t032, t036 and t039 started at 26.7, 30.5, 30.8 and 32.9. (The fix is being done separately.)
+
+**The fixture** (`packages/gateway/src/engine/testing/burst30.ts`, `burst30Scenario(seed, agents, config)`, test `v2-burst30.test.ts`) has:
+
+- the arena's 40 tasks with their real predicted modules;
+- the four real card pairs, as declared couplings;
+- t023's genuine contradiction with t012;
+- four migration beans (t007, t010, t011, t028): any two that do not see each other fail the whole suite, new tests included, and none reverts cleanly;
+- t026, which renumbers them forward and commits after the break.
+
+CI takes 75 s, as measured. With seed 7, 30 agents and `demo`, the break lands at 7.1 min, both tickets find an unrevertable culprit and the sprout is green again at 16.6. The 30th green is at 16.6, the 35th at 28.0 and the race is done at 31.6, with 37 green and 3 parked (real: 28.0, 34.5, 42.9, 36 and 2). The baseline over 16 seeds follows; "Out" counts parked and dropped beans, times are in minutes, and the final check is correct 16/16 in every row:
+
+| burst30 | Green | Out | 20th | 25th | 30th | 35th | Median start→green | p90 | Last green | Done | Red validations |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| v2.5 `demo`, 30 agents | 37.0 | 3.0 | 6.0 | 6.5 | 17.0 | 27.5 | 4.2 | 11.2 | 31.0 | 31.0 | 3.0 |
+| queue, 30 agents | 35.0 | 4.1 | 8.7 | 13.3 | 17.5 | 35.4 | 8.3 | 14.4 | 35.4 | 59.7 (cap) | 0.0 |
+| v2.5 `demo`, 12 agents | 37.0 | 3.0 | 5.8 | 6.6 | 14.3 | 30.0 | 4.1 | 10.0 | 33.6 | 33.6 | 3.0 |
+| queue, 12 agents | 35.0 | 3.4 | 12.4 | 27.4 | 34.9 | 46.0 | 3.0 | 17.9 | 46.0 | 59.8 (cap) | 0.0 |
+
+The seeds vary only the agents' times, so the break happens in every seed. The simulated stall is shorter than the real one (7–8 min against 19.7) for two reasons: the replay agents make fewer misattributed reworks, and the lone-suspect path names the culprit in one probe.
+
+**Culprit isolation: a simulation study** (`testing/culprit-study.ts`, test `v2-culprit-study.test.ts`; the engine is unchanged). Two of the strategies are engine settings already, and on burst30 they make no difference. Over 16 seeds at 30 and 12 agents, `single_suspect_revert` on or off and `validation_first` give identical numbers, because the red window holds two commits and the culprit cannot be reverted either way.
+
+So the study models one red episode at a time with the engine's timings: a 75 s CI run, a 77 s sandbox check, 2 slots, the flake re-run before a ticket, a validation after each revert, and a nested ticket (like R002) for new failing tests. It plays every strategy on six episodes:
+
+1. a lone read-set suspect;
+2. one culprit among three suspects;
+3. a whole-suite break that can be reverted;
+4. the real stall: a whole-suite break that cannot be reverted, fixed forward 15.5 min after the red;
+5. two culprits that break a test only together (t010 + t011);
+6. two culprits that each break it alone (t005 + t033 under t032's test).
+
+Each cell reads: minutes to the first culprit named / minutes to a green sprout / CI slot-minutes / innocent beans reverted.
+
+| Strategy | Lone suspect | 3 suspects | Whole suite | **Real stall** | AND pair | OR pair |
+|---|---|---|---|---|---|---|
+| Today's bisect (2 probes a round) | 3.8 / 5.1 / 6.3 / 0 | 3.8 / 5.1 / 7.5 / 0 | 3.8 / 7.7 / 10.0 / 1 | 3.8 / 20.3 / 27.5 / 3 | 3.8 / 5.1 / 7.5 / 0 | 3.8 / 8.9 / 13.8 / 0 |
+| Lone-suspect revert, else bisect (v2.5) | 1.3 / 2.6 / 2.5 / 0 | 3.8 / 5.1 / 7.5 / 0 | 3.8 / 7.7 / 10.0 / 1 | 3.8 / 20.3 / 27.5 / 3 | 3.8 / 5.1 / 7.5 / 0 | 3.8 / 6.4 / 8.8 / 0 |
+| Read-set ranked leave-one-out on CI | 2.5 / 3.8 / 3.8 / 0 | 2.5 / 3.8 / 5.0 / 0 | 5.0 / 7.7 / 12.5 / 1 | 7.5 / 40.3 / 63.8 / 3 | 2.5 / 3.8 / 5.0 / 0 | 5.0 / 8.9 / 12.5 / 0 |
+| Leave-one-out, newest first, on CI | 3.8 / 5.1 / 7.5 / 0 | 5.0 / 6.3 / 10.0 / 0 | 5.0 / 7.7 / 12.5 / 1 | never / 16.8 / 16.3 / 0 | 2.5 / 3.8 / 5.0 / 0 | never / never / 11.3 / 0 |
+| Bisect, 8 probes a round in the same 2 slots | 2.5 / 3.8 / 11.3 / 0 | 2.5 / 3.8 / 11.3 / 0 | 2.5 / 5.2 / 13.8 / 1 | 2.5 / 16.8 / 37.5 / 3 | 2.5 / 3.8 / 11.3 / 0 | 2.5 / 6.4 / 20.0 / 0 |
+| Leave-one-out in agent sandboxes, all at once (10–15 sandbox-minutes, beyond the queue's 2 slots) | 2.5 / 3.9 / 2.5 / 0 | 2.5 / 3.9 / 2.5 / 0 | 2.5 / 5.2 / 2.5 / 1 | never / 16.8 / 1.3 / 0 | 2.5 / 3.9 / 2.5 / 0 | never / never / 1.3 / 0 |
+| Today's bisect + prefix promotion | same as today's bisect | same | same | same | same | same |
+| **Revert-then-requeue the red window** | 1.4 / 0.1 / 0 / 0 | 1.4 / 0.1 / 0 / 0 | 1.4 / 0.1 / 0 / 0 | **1.4 / 0.1 / 0 / 0** | 1.4 / 0.1 / 0 / 0 | 1.4 / 0.1 / 0 / 0 |
+
+Prefix promotion does not change these four numbers. It only makes the innocent beans below the culprit green after the first round: 25.3 held bean-minutes against 35.6 in the lone-suspect episode, and no gain in the real stall, where the culprit is at the bottom of the window.
+
+Revert-then-requeue resets the sprout to the stalk. A reset to an ancestor's tree never conflicts, so the sprout is green at once. The window's beans then go back through their pre-land checks in their own sandboxes (7.7–10.3 sandbox-minutes, no CI) and land again. The culprit is named by its own red re-check, where reconcile and cards already work. Its innocent beans are green again about 2.6 minutes after the red: 13–18 held bean-minutes, against 31–84 for the ticket strategies. The cost is that every bean of the window lands twice (up to W re-checks).
+
+The model reproduces the real stall under today's bisect:
+
+| Real stall | Model | Real race |
+|---|---|---|
+| Green again after the red (min) | 20.3 | 16.9 |
+| Innocent beans reverted | 3 | 2 |
+| CI slot-minutes of repair work | 27.5 | 19.2 |
+
+What the study shows:
+
+- **Every revert-based strategy fails on the real stall.** Bisection names the culprit in 2.5–3.8 min, but the culprit cannot be reverted, and leave-one-out cannot even build the probe. The episode then lasts until something fixes it forward.
+- **Nested tickets blame innocent beans.** A test that exists only from its author's commit on fails with the suite, so bisection and read-set probes for it name the author (t022, t009). Leave-one-out is immune: removing one author leaves the other new tests failing.
+- **More probes in the same 2 slots** cut isolation by one round (3.8 → 2.5 min) at 1.5–2x the CI slot-minutes.
+- **Sandbox probes** are as fast and use almost no CI, but they use agent sandboxes the queue does not get.
+- **Both forms of leave-one-out miss OR pairs** (t005 + t033) entirely.
+- **Prefix promotion** only helps beans below the culprit. With a whole-suite break at the bottom of the window it helps nothing.
+- **The lone-suspect revert** stays the best answer when the read set names one revertable commit: the same green time as a requeue, and it displaces one bean instead of the whole window.
+
+**Recommendation: revert-then-requeue the red window, with the lone-suspect revert as the fast path** (when the read set names exactly one commit and its revert is clean). No CI bisection on the sprout at all.
+
+The effect on the 30th and 35th green, to first order (moving the episode's end by the time saved):
+
+- burst30, seed 7: the 30th green moves from 16.6 to about 12.5 min;
+- the real race: the 30th green moves from 28.0 to about 14 min (the red settled at 11.15, and innocent beans are green again about 2.6 minutes later). The 35th moves by up to the same amount, bounded by the start starvation above.
+
+The model leaves out two things: the order and conflicts of the requeued beans as they land again (they re-squash onto the reset sprout as any landing does), and the rework the culprit's red re-check costs. A requeue should be tried against this fixture (`burst30Scenario`) before a real race.
+
+**Side finding** (prototyped, not committed): an earlier version of the fixture had no lucky fixer. There, letting the culprit's author repair an unrevertable culprit forward, with its green check landing past the window, cut done from the 60-minute cap to 19–25 min and raised green from 31 to 38–39, at both 12 and 30 agents. Requeue makes this unnecessary for the stall, but the window should never hold a bean whose check is green on a red sprout.
