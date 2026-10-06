@@ -425,17 +425,27 @@ Tests first costs the author step (about 10 s of replay time and $0.005 per task
 E4 found the limit at scale is independent work, not the committer (`docs/claude-opus/exp/e4-scale-replay.md`). With `start_order: dependency`, `src/engine/v2/v2-start-order.ts` picks the bean a free agent starts (the hook is `dispatch` in `v2-policy.ts`):
 
 1. Two tasks depend on each other when their predicted footprints (`footprint.predicted`) share a module or the arena declares a coupling; the earlier in priority order goes first. Modules more than a third of the tasks predict (`src`, `(root)`) are ignored.
-2. A task that has fallen `max(4, 2 × agents)` starts behind its FIFO turn starts next (`rule: aged`).
+2. Age bound: a task that clashes with no bean in flight starts next once `ageBound` later tasks have started ahead of it (`rule: aged`). `ageBound` is `min(max(4, ⌈agents / 2⌉), max(1, ⌊tasks / 4⌋))`: 10 for 30 agents on 40 tasks, 6 for 12 agents. A task that clashes with a bean in flight is waiting for that bean, not starved; the stall bound (5) limits that wait. (Aging such beans too started the burst's culprits on top of their in-flight partners: under the v2.2 rules up to 16 more beans dropped.)
 3. Otherwise a bean that clashes with no bean in flight (started, not landed) and no earlier unstarted task, longest dependent chain first (`disjoint` when it is the head, else `critical-path`).
-4. Otherwise the bean with the fewest clashes, if it clashes with at most 2 beans in flight (`least-overlap`); else the agent waits for a landing. Nothing in flight always leaves a clear bean, so this never deadlocks.
+4. Otherwise the bean with the fewest clashes, if it clashes with at most 2 beans in flight (`least-overlap`).
+5. Otherwise the agent waits for a landing, for at most `STALL_SECONDS` (180 s): a bean whose clashing beans in flight all started that long ago starts anyway (`stalled`, fewest clashes first). It is then the newest start in its chain, so a stuck chain takes one more bean per stall. When the agent waits, a `start-wake` policy timer wakes the scheduler when the first stall bound runs out, so a free agent never waits more than 180 s beside an unstarted bean. Nothing in flight always leaves a clear bean, so this never deadlocks.
 
-`placement.decision` carries the rule, the overlap and the occupied modules; `summary.json` adds `start_order` only when it is not `fifo`, so FIFO runs stay byte-identical. Simulated results (replay agents; the `E4 follow-up` row of `docs/claude-opus/11-experiments-summary.md`):
+Parked beans (waiting for a person) are not in flight: they do not hold their chain back.
 
-| Scenario | FIFO | Dependency |
-|---|---|---|
-| Burst, 40 tasks, 12 agents | 40 green, done 19.2 min, 30th green 12.8 | 40 green, done 16.0 min, 30th green 6.5 |
-| Burst under the v2.2 rules | 27 green, 11 red validations | 36 green, 2 red validations |
-| 200 tasks in dependency chains, 64 agents | 173 green, 27 dropped, 187 conflicts, 170th green 26.3 min, done 28.4 | 200 green, 0 dropped, 108 conflicts, 170th green 28.2 min, done 60.5 |
+The old age bound, a task fallen `max(4, 2 × agents)` starts behind its FIFO turn, could not fire at scale: 60 starts for 30 agents, more than a 40-task race has, and a task late in the list can never fall more than a few starts behind. In the 30-agent race `cf-demo-sonnet-30-s7` (demo preset) only 21 beans started in the first wave (9 agents got none, and 7 of the 30 never ran an invocation all race); from 9.7 to 26.7 minutes nothing started while four billing beans (t031, t032, t036, t039) waited behind three or four billing beans in flight, stuck in reworks and decisions (and from 19 minutes one of them, t023, parked), with more than 20 agents idle. t039 started at 32.9 minutes. Replayed by hand on the same timeline, the stall bound and parked beans out of flight would have started t031 at about 12 minutes and t039 by about 21.
+
+`placement.decision` carries the rule, the overlap and the occupied modules; `summary.json` adds `start_order` only when it is not `fifo`, so FIFO runs stay byte-identical. Simulated results on the current engine (replay agents; v2.5 defaults unless the row says otherwise), before and after the bounds above:
+
+| Scenario | FIFO | Dependency, old bound | Dependency, new bounds |
+|---|---|---|---|
+| Burst, 40 tasks, 12 agents | 40 green, done 16.1 min, 30th green 12.9 | 40 green, done 11.1, 30th green 7.5 | 40 green, done 14.0, 30th green 6.4 |
+| Burst under the v2.2 rules | 20 green, 11 red validations, done 21.8 | 36 green, 2 red validations, done 10.6 | 36 green, 0 red validations, done 8.9 |
+| 30 agents, 40 tasks in chains (9, 6, 5, 4, 3, 3, 2) | 40 green, 48 conflicts, last start 4.6 min, done 17.0 | 40 green, 29 conflicts, last start 20.8, done 28.9; a free agent sat 362 s beside unstarted work | 40 green, 32 conflicts, last start 17.3, done 25.3; at most 180 s |
+| 100 tasks in chains, 32 agents, v2.4 rules | 98 green, 2 dropped, 54 conflicts, done 28.3 | 100 green, 31 conflicts, done 32.5 | 100 green, 32 conflicts, done 32.3 |
+| 200 tasks in chains, 64 agents, v2.4 rules | 173 green, 27 dropped, 187 conflicts, 170th green 26.3, done 28.4 | 200 green, 108 conflicts, 170th green 28.2, done 60.5 | 198 green, 2 dropped, 123 conflicts, 170th green 28.6, done 58.9 |
+| 200 tasks in chains, 64 agents | 200 green, 188 conflicts, done 31.2 | 200 green, 110 conflicts, done 60.9 | 200 green, 130 conflicts, done 61.2 |
+
+Where every pipelined chain bean really conflicts with the one before (the synthetic chains), waiting is the point of dependency starts and FIFO still finishes first; the bounds trade a few of the saved conflicts for agents that no longer sit idle for long. Shorter stalls help the 30-agent row (90 s: last start 9.6 min, done 20.6; 120 s: 12.1 and 22.4) but give back 8 to 31 more conflicts on the 200-task chains, drop beans under the v2.4 rules (up to 12 of 200, 1 of 100) and break the 100-task chain test, so 180 s stays. The `v2-start-order.test.ts` regression ("more agents than independent work") runs the 30-agent row and checks the 180 s idle bound and the age bound.
 
 The default stays `fifo` until a real-agent race confirms it. The gap found here (a bean started on top of its landed coupled partner could not name it as a culprit, because culprits were commits since the bean's base, so a semantic clash reworked to a drop instead of a card) is closed in v2.5: `start_cards` raises the declared pair's card before the bean starts, `base_culprits` names a partner in the base when the failing test reads what the bean changed, and `dynamic_culprits` probes it when the bean's own tests fail (`v2-start-order.test.ts`, "F's culprit gap"). The 200-task row was measured with the v2.4 rules; under v2.5's rescue, FIFO keeps all 200 too (dependency starts still cut the conflicts by about 40%), and the test runs a 100-task, 32-agent version to keep `pnpm check` fast.
 

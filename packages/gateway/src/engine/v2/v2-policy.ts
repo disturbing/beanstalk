@@ -75,7 +75,7 @@ import {
 import { startRescue } from './v2-rescue';
 import { takeWait } from './v2-sprout';
 import { openStartCard, startUnderCard } from './v2-start';
-import { chooseStart } from './v2-start-order';
+import { chooseStart, wakeForStart } from './v2-start-order';
 import { midrunOffer, onMidrunSyncs } from './v2-midrun';
 import { onSyncDone } from './v2-sync';
 import type { LandingFlow, TurnHolder, V2Settings, V2State, V2Step, V2Wait } from './v2-state';
@@ -330,7 +330,12 @@ function dispatch(step: V2Step): void {
     const slot = freeAskingSlot(ctx);
     if (slot === undefined) break;
     const choice = chooseStart(ctx, state.unstarted, state.settings.startOrder ?? 'fifo');
-    if (choice === null) break;
+    if (choice.kind === 'wait') {
+      // The start-wake timer needs no handler (`parseTimerKey` ignores its key): the engine
+      // dispatches after every timer.
+      wakeForStart(ctx, choice.wakeAt);
+      break;
+    }
     const id = choice.task;
     state.unstarted = state.unstarted.filter((other) => other !== id);
     const task = requireTask(ctx, id);
