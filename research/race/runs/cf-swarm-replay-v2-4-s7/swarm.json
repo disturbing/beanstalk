@@ -1,0 +1,65 @@
+{
+  "swarm": "https://beanstalk-swarm.devaccounts-1password.workers.dev",
+  "match": "m-muwwz2nn-da722c56",
+  "state": "done",
+  "reason": "every slot exited",
+  "gateway_run": "r94lixgbr5",
+  "credential": "none",
+  "created_at": 1791305382526,
+  "released_at": 1791305407142,
+  "agents": [
+    {
+      "slot": "a0",
+      "started_at": 1791305382548,
+      "hello_at": 1791305398424,
+      "exited_at": 1791305612618,
+      "exit_code": 0,
+      "codex_version": "codex-cli 0.160.1",
+      "start_error": null
+    },
+    {
+      "slot": "a1",
+      "started_at": 1791305382548,
+      "hello_at": 1791305393008,
+      "exited_at": 1791305596645,
+      "exit_code": 0,
+      "codex_version": "codex-cli 0.160.1",
+      "start_error": null
+    },
+    {
+      "slot": "a2",
+      "started_at": 1791305382548,
+      "hello_at": 1791305403329,
+      "exited_at": 1791305389080,
+      "exit_code": 0,
+      "codex_version": "codex-cli 0.160.1",
+      "start_error": null
+    },
+    {
+      "slot": "a3",
+      "started_at": 1791305382548,
+      "hello_at": 1791305393537,
+      "exited_at": 1791305604723,
+      "exit_code": 0,
+      "codex_version": "codex-cli 0.160.1",
+      "start_error": null
+    }
+  ],
+  "cold_start_ms": {
+    "median": 13432.5,
+    "max": 20781,
+    "each": {
+      "a0": 15876,
+      "a1": 10460,
+      "a2": 20781,
+      "a3": 10989
+    }
+  },
+  "container_seconds": 672.9,
+  "usd": {
+    "agents": 0,
+    "containers": 0.014211,
+    "containers_upper": 0.041126,
+    "cap": 3
+  }
+}

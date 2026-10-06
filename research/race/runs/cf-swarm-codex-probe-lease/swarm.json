@@ -1,0 +1,38 @@
+{
+  "swarm": "https://beanstalk-swarm.devaccounts-1password.workers.dev",
+  "match": "m-muwxss23-327a72d0",
+  "state": "done",
+  "reason": "every slot exited",
+  "gateway_run": "33ns3lelk2",
+  "credential": "lease",
+  "created_at": 1791306768388,
+  "released_at": 1791306774978,
+  "agents": [
+    {
+      "slot": "a0",
+      "started_at": 1791306768412,
+      "hello_at": 1791306772490,
+      "exited_at": 1791307061696,
+      "exit_code": 0,
+      "codex_version": "codex-cli 0.160.1",
+      "harness": "263275c634c9",
+      "stop_reason": "exit",
+      "start_error": null,
+      "restarts": 0
+    }
+  ],
+  "cold_start_ms": {
+    "median": 4078,
+    "max": 4078,
+    "each": {
+      "a0": 4078
+    }
+  },
+  "container_seconds": 293.3,
+  "usd": {
+    "agents": 0,
+    "containers": 0.006194,
+    "containers_upper": 0.017926,
+    "cap": 2
+  }
+}

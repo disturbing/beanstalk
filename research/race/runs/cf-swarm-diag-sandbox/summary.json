@@ -1,0 +1,422 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 2 tasks, policy=beanstalk, agent=replay (replay control: reference patches, synthetic timings)",
+  "policy": "beanstalk",
+  "agent": "replay",
+  "model": "replay",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 1,
+    "ci_seconds": 4.5,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 7,
+    "budget_usd": 25,
+    "max_turns": 40,
+    "agent_timeout": 900,
+    "union_merge": true,
+    "snapshot": "head",
+    "queue_hold": null,
+    "error_budget": 999,
+    "footprint": "predictor",
+    "tasks": 2,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 58.38,
+  "tasks": 2,
+  "tasks_green": 2,
+  "tasks_landed": 2,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {},
+  "parked": [],
+  "changes_green_per_hour": 123.336,
+  "wall_to_all_green_seconds": 57.26,
+  "task_start_to_green_seconds": {
+    "median": 39.4,
+    "p90": 43.08,
+    "mean": 39.4
+  },
+  "agent_minutes": {
+    "busy": 0.32,
+    "blocked": 0,
+    "idle": 0.66
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.32,
+      "blocked": 0,
+      "idle": 0.66
+    }
+  },
+  "invocations": {
+    "initial": 2
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 2,
+      "cost_usd": 0,
+      "turns": 2,
+      "wall_s": 10.344,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0,
+  "cost_by_kind": {
+    "initial": 0
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": null,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "validate": 1
+  },
+  "ci_runs_total": 1,
+  "ci_minutes": {
+    "validate": 0.24
+  },
+  "ci_minutes_total": 0.24,
+  "textual_conflicts": 0,
+  "red_validations": 0,
+  "final": {
+    "sha": "480c2dad3643d80c1877003cf1e486c75df87edf",
+    "suite_green": true,
+    "suite_tests": 85,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 2,
+    "tasks_total": 2,
+    "green_tasks_accepted": 2,
+    "green_tasks": 2,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.5,
+      "recall": 0.1667,
+      "f1": 0.25,
+      "tasks": 2,
+      "micro_recall": 0.25,
+      "micro_precision": 0.5
+    },
+    "vs_oracle": {
+      "precision": 0.5,
+      "recall": 0.1667,
+      "f1": 0.25,
+      "tasks": 2,
+      "micro_recall": 0.25,
+      "micro_precision": 0.5
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 2.791,
+      "landed_at": 37.596,
+      "green_at": 37.596,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 13.263,
+      "landed_at": 42.958,
+      "green_at": 57.26,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "beanstalk": {
+    "placements_disjoint": 1,
+    "placements_overlap": 1,
+    "placement_overlap_modules": 1,
+    "landings": 2,
+    "fixer_landings": 0,
+    "reverts": 0,
+    "validations": 1,
+    "validations_green": 1,
+    "validations_red": 0,
+    "stale_reds": 0,
+    "tickets": 0,
+    "tickets_closed": 0,
+    "tickets_escalated": 0,
+    "tickets_by_method": {},
+    "trunk_bisect_runs": 0,
+    "pauses": 0,
+    "paused_seconds": 0,
+    "fixers_without_change": 0,
+    "preland_checks": 2,
+    "preland_red": 0,
+    "preland_seconds": 32.54,
+    "preland_reworks": 0,
+    "preland_drops": 0,
+    "preland_mode": "optimistic",
+    "preland_latency": 4.5,
+    "preland_optimistic_landings": 1,
+    "preland_rechecks": 0,
+    "preland_locked_fallbacks": 0,
+    "preland_recheck_rule": "sampled",
+    "preland_skipped_rechecks": 0,
+    "preland_hunk_disjoint": 0,
+    "preland_hunk_overlap": 0,
+    "informed_reworks": 0,
+    "cards": 0,
+    "card_details": [],
+    "revert_first": 0,
+    "release_on_check": true,
+    "agent_waits": 0,
+    "agent_wait_seconds": 0,
+    "flake_confirm": true,
+    "validation_reruns": 0,
+    "flakes_suspected": 0,
+    "flaky_tests": {},
+    "inherited_reds": "readset",
+    "inherited_red_waits": 0,
+    "window": "aimd",
+    "window_size": 12,
+    "window_waits": 0,
+    "recheck_samples": 0,
+    "early_tickets": true,
+    "early_tickets_opened": 0,
+    "confirmed_by_sighting": 0,
+    "reconcile": true,
+    "reconciles": 0,
+    "reconciled": 0,
+    "contradictions": 0,
+    "stale_rechecks": 0,
+    "escalate_after": 1,
+    "reconcile_parties": 3,
+    "stuck_drops": 0,
+    "start_cards": true,
+    "start_cards_raised": 0,
+    "rescue": true,
+    "rescues": 0,
+    "dynamic_culprits": true,
+    "dynamic_culprit_runs": 0,
+    "dynamic_culprit_probes": 0,
+    "dynamic_culprit_skips": 0,
+    "max_bean_invocations": 10,
+    "tail_guard_minutes": 3,
+    "invocation_drops": 0,
+    "tail_drops": 0,
+    "park": true,
+    "tests_first": false,
+    "tests_first_accepted": 0,
+    "tests_first_fallbacks": 0,
+    "targeted_landing_check": false,
+    "targeted_checks": 0,
+    "targeted_red": 0,
+    "decision_outcome": "reexecute",
+    "decision_mode": "oracle",
+    "amendments": 0,
+    "amendments_none": 0,
+    "amendments_rejected": 0,
+    "amendments_rolled_back": 0,
+    "reexecutions": 0,
+    "adoptions_in_place": 0,
+    "mean_suspects_per_ticket": null,
+    "final_trunk_idx": 1,
+    "final_green_idx": 1,
+    "open_tickets_at_end": 0,
+    "ticket_details": [],
+    "variant": "v2.5",
+    "variant_additions": [
+      "start_order:dependency"
+    ],
+    "start_order": "dependency",
+    "reuse_checks": true,
+    "checks_reused": 1,
+    "ci_superseded": 0,
+    "red_reset": true,
+    "episode_tickets": false,
+    "repair_landing": false,
+    "requeue_repair": true,
+    "resets": 0,
+    "requeued": 0,
+    "episode_reds": 0,
+    "episode_inherited": 0,
+    "repair_landings": 0
+  },
+  "policy_rows": [
+    [
+      "Variant",
+      "v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, lone suspects reverted at once, base and dynamic culprits, a wider window, structural merges, start cards and one rescue + dependency-aware starts"
+    ],
+    [
+      "Informed reworks / decision cards / revert-first tickets",
+      "0 / 0 / 0"
+    ],
+    [
+      "Agent released on check / reworks that waited for an agent / wait minutes",
+      "yes / 0 / 0.0"
+    ],
+    [
+      "Validation re-runs / suspected flakes",
+      "0 / 0"
+    ],
+    [
+      "Inherited reds waited out (no rework round spent)",
+      "0"
+    ],
+    [
+      "Reconciles (reconciled / contradictions) / stale re-checks",
+      "0 (0 / 0) / 0"
+    ],
+    [
+      "Escalate after (failed repairs) / reconcile parties / dropped stuck after a card",
+      "1 / 3 / 0"
+    ],
+    [
+      "Start cards / rescues / dynamic culprit searches (probes)",
+      "0 / 0 / 0 (0)"
+    ],
+    [
+      "Max bean invocations / tail guard minutes / dropped by each",
+      "10 / 3 / 0 / 0"
+    ],
+    [
+      "Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings",
+      "0 (0) / 0 (0) / 0"
+    ],
+    [
+      "Checks reused as validations / superseded CI runs cancelled",
+      "1 / 0"
+    ],
+    [
+      "Tests first (accepted / fallbacks) / targeted landing checks (red)",
+      "off / off"
+    ],
+    [
+      "Sprout window at the end / window waits / early tickets / re-check samples",
+      "12 / 0 / 0 / 0"
+    ],
+    [
+      "Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place",
+      "0 / 0 / 0 / 0 / 0 / 0"
+    ],
+    [
+      "Pre-land checks (red) / reworks / drops",
+      "2 (0) / 0 / 0"
+    ],
+    [
+      "Pre-land check minutes",
+      "0.54"
+    ],
+    [
+      "Re-check rule / skipped (adaptive) / hunk-disjoint / hunk-overlap",
+      "sampled / 0 / 0 / 0"
+    ],
+    [
+      "Pre-land mode / latency s / optimistic landings / rechecks / locked fallbacks",
+      "optimistic / 4.5 / 1 / 0 / 0"
+    ],
+    [
+      "Placements disjoint / overlapping",
+      "1 / 1"
+    ],
+    [
+      "Fast-trunk landings (task / fixer / revert)",
+      "2 / 0 / 0"
+    ],
+    [
+      "Validations (green / red)",
+      "1 / 0"
+    ],
+    [
+      "Repair tickets (closed / escalated / by method)",
+      "0 / 0 / {}"
+    ],
+    [
+      "Error-budget pauses / paused minutes",
+      "0 / 0.0"
+    ]
+  ],
+  "infra": {
+    "worker_requests": 39,
+    "do_requests": 42,
+    "do_active_seconds": 107.1,
+    "artifacts_ops": 34,
+    "runner_calls": 12,
+    "container_busy_seconds": 70.6,
+    "container_up_seconds": 596.8,
+    "usd": {
+      "workers": 1.17e-05,
+      "durable_objects": 0.00017359,
+      "artifacts": 0.0051,
+      "containers": 0.01086562,
+      "total": 0.01615091
+    }
+  },
+  "repos": {
+    "status": "reaped",
+    "deleted": [
+      "race-mo0qr7gkf3"
+    ],
+    "failed": []
+  }
+}

@@ -1,0 +1,45 @@
+== /etc/hosts
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::	ip6-localnet
+ff00::	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+127.0.1.1	cloudchamber
+
+== /etc/resolv.conf
+nameserver 2606:4700:4700::1111
+nameserver 2620:fe::fe
+
+== /etc/nsswitch.conf
+# /etc/nsswitch.conf
+#
+# Example configuration of GNU Name Service Switch functionality.
+# If you have the `glibc-doc-reference' and `info' packages installed, try:
+# `info libc "Name Service Switch"' for information about this file.
+
+passwd:         files
+group:          files
+shadow:         files
+gshadow:        files
+
+hosts:          files dns
+networks:       files
+
+protocols:      db files
+services:       db files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis
+
+== proxy env
+
+== getaddrinfo control.internal: ['11.9.0.1', 'fd00::119:1']
+== getaddrinfo bs.internal: ['11.9.0.1', 'fd00::119:1']
+== getaddrinfo model.internal: ['11.9.0.1', 'fd00::119:1']
+== GET model.internal/v1/models: 403 b'{"error":{"message":"this match runs no model","type":"swarm_error","code":"swarm_403"}}'
+== GET model.internal/backend-api/codex/models: 403 b'{"error":{"message":"this match runs no model","type":"swarm_error","code":"swarm_403"}}'
+== codex sandbox exit 0: sandbox-ok
+10001 
+== unprivileged_userns_clone: No such file or directory

@@ -1,0 +1,33 @@
+2026-10-06T16:27:32.6874791Z ℹ tests 81
+2026-10-06T16:27:32.6875648Z ℹ suites 25
+2026-10-06T16:27:32.6876061Z ℹ pass 80
+2026-10-06T16:27:32.6876475Z ℹ fail 1
+2026-10-06T16:27:32.6876915Z ℹ cancelled 0
+2026-10-06T16:27:32.6877370Z ℹ skipped 0
+2026-10-06T16:27:32.6877879Z ℹ todo 0
+2026-10-06T16:27:32.6878539Z ℹ duration_ms 1956.272279
+2026-10-06T16:27:32.6878941Z 
+2026-10-06T16:27:32.6879313Z ✖ failing tests:
+2026-10-06T16:27:32.6879571Z 
+2026-10-06T16:27:32.6879888Z test at src/probe-red.test.ts:3:1
+2026-10-06T16:27:32.6880496Z ✖ probe red (3.775072ms)
+2026-10-06T16:27:32.6881317Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-10-06T16:27:32.6882070Z   
+2026-10-06T16:27:32.6882370Z   1 !== 2
+2026-10-06T16:27:32.6882660Z   
+2026-10-06T16:27:32.6883727Z       at TestContext.<anonymous> (file:///home/runner/work/beanstalk-race-shop-0/beanstalk-race-shop-0/src/probe-red.test.ts:3:34)
+2026-10-06T16:27:32.6885457Z       at Test.runInAsyncScope (node:async_hooks:226:14)
+2026-10-06T16:27:32.6886378Z       at Test.run (node:internal/test_runner/test:1201:25)
+2026-10-06T16:27:32.6887303Z       at Test.start (node:internal/test_runner/test:1096:17)
+2026-10-06T16:27:32.6888221Z       at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+2026-10-06T16:27:32.6888969Z     generatedMessage: true,
+2026-10-06T16:27:32.6889377Z     code: 'ERR_ASSERTION',
+2026-10-06T16:27:32.6889744Z     actual: 1,
+2026-10-06T16:27:32.6890076Z     expected: 2,
+2026-10-06T16:27:32.6890449Z     operator: 'strictEqual',
+2026-10-06T16:27:32.6890864Z     diff: 'simple'
+2026-10-06T16:27:32.6891193Z   }
+2026-10-06T16:27:32.6944604Z ##[error]Process completed with exit code 1.
+2026-10-06T16:27:32.7094137Z Post job cleanup.
+2026-10-06T16:27:32.7977096Z [command]/usr/bin/git version
+2026-10-06T16:27:32.8024101Z git version 2.55.0

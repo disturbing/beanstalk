@@ -383,9 +383,12 @@ class CodexAdapter(Adapter):
 
     def __init__(self, runner: Runner, *, model: str | None, timeout: float, transcripts: str,
                  binary: str = "codex", price: tuple[float, float, float] = (1.25, 0.125, 10.0),
-                 effort: str | None = None):
+                 effort: str | None = None, config_overrides: tuple[str, ...] = ()):
         self.runner, self.model, self.timeout, self.transcripts = runner, model, timeout, transcripts
         self.binary, self.price, self.effort = binary, price, effort
+        # extra ``-c key=value`` overrides: the cloud swarm's model provider (``http://model.internal``), never a
+        # credential (the swarm's outbound handler adds those outside the container)
+        self.config_overrides = tuple(config_overrides)
 
     # features that widen the agent's surface beyond "edit files and run tests" (codex 0.159 names)
     DISABLED_FEATURES = ("plugins", "remote_plugin", "apps", "hooks", "browser_use", "browser_use_external",
@@ -406,6 +409,8 @@ class CodexAdapter(Adapter):
             a += ["-m", self.model]
         if self.effort:
             a += ["-c", f'model_reasoning_effort="{self.effort}"']
+        for override in self.config_overrides:
+            a += ["-c", override]
         if spec.json_schema is not None:
             path = os.path.join(self.transcripts, f"{spec.inv_id}.schema.json")
             with open(path, "w", encoding="utf-8") as fh:
