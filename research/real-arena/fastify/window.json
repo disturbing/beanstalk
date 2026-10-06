@@ -1,0 +1,1426 @@
+{
+ "variant": "chain build (history order, background folds)",
+ "upstream": "https://github.com/fastify/fastify",
+ "base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+ "end": "0d945819bebc08f4ca666d8283c03a26ed9706a0",
+ "base_date": "2025-11-01T14:14:46Z",
+ "end_date": "2026-10-05T09:59:13+02:00",
+ "window_commits": 305,
+ "candidates": 61,
+ "chain_state": "e3e1f2b5b766dd51a55fa0262fac034215b86974",
+ "tasks": [
+  {
+   "id": "t001",
+   "pr": 6372,
+   "title": "fix: handle web stream payload in HEAD route",
+   "author": "orionmiz",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t002",
+   "pr": 6247,
+   "title": "fix: consistent error handling for custom validators in async validation contexts",
+   "author": "emicovi",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t003",
+   "pr": 6383,
+   "title": "feat: speed up loading with custom compiler",
+   "author": "Eomm",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t004",
+   "pr": 6412,
+   "title": "fix: set status code before publishing diagnostics error channel",
+   "author": "tt-a1i",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t005",
+   "pr": 6392,
+   "title": "fix(ts): Align routerOptions defaultRoute types with runtime",
+   "author": "AnkanMisra",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t006",
+   "pr": 5732,
+   "title": "feat: implement conditional request logging",
+   "author": "kibertoad",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t007",
+   "pr": 6414,
+   "title": "chore: Updated content-type header parsing",
+   "author": "jsumners",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t008",
+   "pr": 6515,
+   "title": "fix: avoid mutating shared routerOptions across instances",
+   "author": "mcollina",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t009",
+   "pr": 6521,
+   "title": "feat: First-class support for handler-level timeouts",
+   "author": "kibertoad",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t010",
+   "pr": 6528,
+   "title": "fix: remove format placeholder from FST_ERR_CTP_INVALID_MEDIA_TYPE message",
+   "author": "super-mcgin",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t011",
+   "pr": 6603,
+   "title": "chore: Fix port parsing",
+   "author": "jsumners",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t012",
+   "pr": 6613,
+   "title": "fix: restore trustProxy function for number and string types, add null check for socketAddr",
+   "author": "mcollina",
+   "applies_to_common_base": false,
+   "background": 2
+  },
+  {
+   "id": "t013",
+   "pr": 6653,
+   "title": "feat: add request.mediaType",
+   "author": "climba03003",
+   "applies_to_common_base": false,
+   "background": 1
+  },
+  {
+   "id": "t014",
+   "pr": 6676,
+   "title": "fix: prevent duplicate res.end in sendTrailer with sync callbacks",
+   "author": "climba03003",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t015",
+   "pr": 6678,
+   "title": "fix: error.code not present on some routing errors",
+   "author": "mcollina",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t016",
+   "pr": 6657,
+   "title": "fix: correct isCustomSerializerCompiler flag check",
+   "author": "eddieran",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t017",
+   "pr": 6523,
+   "title": "fix: validate invalid route logLevel at registration",
+   "author": "maxpetrusenko",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t018",
+   "pr": 6685,
+   "title": "fix: use ContentType parser for response schema lookup",
+   "author": "UlisesGascon",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t019",
+   "pr": 6684,
+   "title": "fix: do not trust forwarded host/proto when socket is missing",
+   "author": "mcollina",
+   "applies_to_common_base": false,
+   "background": 2
+  },
+  {
+   "id": "t020",
+   "pr": 6458,
+   "title": "fix: enable diagnostics tracking for async error handlers",
+   "author": "irzix",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t021",
+   "pr": 6714,
+   "title": "fix: ignore duplicate trailer completions",
+   "author": "mcollina",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t022",
+   "pr": 6746,
+   "title": "fix: chunk large HTTP/2 buffer replies",
+   "author": "mcollina",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t023",
+   "pr": 6799,
+   "title": "fix: clear socket._meta after response to prevent keep-alive leaks",
+   "author": "nerkoux",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t024",
+   "pr": 6803,
+   "title": "fix: avoid double slash when joining nested prefixes",
+   "author": "rohithvegesna",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t025",
+   "pr": 6753,
+   "title": "fix: hasRequestDecorator/hasReplyDecorator misses constructor-assigned built-in properties",
+   "author": "LeSingh1",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t026",
+   "pr": 6680,
+   "title": "fix: derive request.port from request.host",
+   "author": "mcollina",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t027",
+   "pr": 6838,
+   "title": "fix: normalize method in findRoute",
+   "author": "Ram-blip",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t028",
+   "pr": 6483,
+   "title": "fix(validation): correctly update falsy values from validator",
+   "author": "jackjin1997",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t029",
+   "pr": 6881,
+   "title": "fix: uncatchable throws in writeHead when using async hook",
+   "author": "climba03003",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t030",
+   "pr": 6845,
+   "title": "fix: clear trailer state when removing all trailers",
+   "author": "Ram-blip",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t031",
+   "pr": 6892,
+   "title": "fix: recognize constructor-assigned built-in properties as decorator …",
+   "author": "aquie00t",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t032",
+   "pr": 6846,
+   "title": "fix: reset lastIndex before testing global/sticky content-type RegExp parsers",
+   "author": "zelinewang",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t033",
+   "pr": 6940,
+   "title": "fix: run preClose hook exactly once per declaring instance",
+   "author": "contactjawad",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t034",
+   "pr": 6719,
+   "title": "fix: report canonical route url for hidden prefix slash route",
+   "author": "paulkagiri",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t035",
+   "pr": 6965,
+   "title": "fix: callNotFound should run not-found preHandler regardless of registration order",
+   "author": "mcollina",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t036",
+   "pr": 7039,
+   "title": "perf: read the merged headers once in the trust proxy getters",
+   "author": "hktitof",
+   "applies_to_common_base": false,
+   "background": 0
+  },
+  {
+   "id": "t037",
+   "pr": 7049,
+   "title": "perf: decode string bodies once instead of per chunk",
+   "author": "gurgunday",
+   "applies_to_common_base": true,
+   "background": 0
+  },
+  {
+   "id": "t038",
+   "pr": 7001,
+   "title": "fix: omit absent compileSerializationSchema metadata instead of passing null",
+   "author": "Kjubikstronk",
+   "applies_to_common_base": true,
+   "background": 0
+  }
+ ],
+ "rows": [
+  {
+   "seq": 1,
+   "pr": 6372,
+   "sha": "dd02e428ddbfe407a2d114d431e60a6a10335ea0",
+   "title": "fix: handle web stream payload in HEAD route",
+   "author": "orionmiz",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 2,
+   "pr": 6373,
+   "sha": "e1aee4b872aaeabbd4f7074794c1015a518f8d9a",
+   "title": "fix: parse ipv6 hostname",
+   "author": "jean-michelet",
+   "status": "excluded",
+   "reason": "skipped (--skip-pr)"
+  },
+  {
+   "seq": 3,
+   "pr": 6247,
+   "sha": "d338dca5ab24a4ce0175b4333efe46859ceaffab",
+   "title": "fix: consistent error handling for custom validators in async validation contexts",
+   "author": "emicovi",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 4,
+   "pr": 6383,
+   "sha": "085e1c7c8cd4111064c676b21bfa5f9c6b086d0c",
+   "title": "feat: speed up loading with custom compiler",
+   "author": "Eomm",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 5,
+   "pr": 6412,
+   "sha": "970c575832521fff01cc018d928d84454811173b",
+   "title": "fix: set status code before publishing diagnostics error channel",
+   "author": "tt-a1i",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 6,
+   "pr": 6420,
+   "sha": "79ab8e956482971a8cc0544ab9a846168b11998d",
+   "title": "fix: use JSON.stringify in onBadUrl for proper escaping",
+   "author": "mcollina",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 7,
+   "pr": 6392,
+   "sha": "f18cda12d62a81f41d14b5c41cd674dd2abef817",
+   "title": "fix(ts): Align routerOptions defaultRoute types with runtime",
+   "author": "AnkanMisra",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 8,
+   "pr": 5732,
+   "sha": "1b3381e73a423b54563c8207b31017a3381aa122",
+   "title": "feat: implement conditional request logging",
+   "author": "kibertoad",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 9,
+   "pr": 6444,
+   "sha": "c89945df8b6ec3507ba0fc444d561bac010a949a",
+   "title": "perf: use native WebStream API instead of Readable.fromWeb wrapper",
+   "author": "mcollina",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 10,
+   "pr": 6414,
+   "sha": "32d7b6add39ddf082d92579a58bea7018c5ac821",
+   "title": "chore: Updated content-type header parsing",
+   "author": "jsumners",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 11,
+   "pr": 6515,
+   "sha": "b4db85b665ac99a809c633b7564d49c8a4c2c5c9",
+   "title": "fix: avoid mutating shared routerOptions across instances",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 12,
+   "pr": 6521,
+   "sha": "f376f6082b5ddfe5ea96fdd3d98a66377b6bb4c2",
+   "title": "feat: First-class support for handler-level timeouts",
+   "author": "kibertoad",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 13,
+   "pr": 6528,
+   "sha": "1e0be1294e85734f1e6ac651f3ff664d389d7799",
+   "title": "fix: remove format placeholder from FST_ERR_CTP_INVALID_MEDIA_TYPE message",
+   "author": "super-mcgin",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 14,
+   "pr": 6603,
+   "sha": "39f0f24233cf6da2fef48551f51be2f589f7d5d0",
+   "title": "chore: Fix port parsing",
+   "author": "jsumners",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 15,
+   "pr": 6613,
+   "sha": "8dee9be05ebf683cd212aeff1d294f6ea1ec405c",
+   "title": "fix: restore trustProxy function for number and string types, add null check for socketAddr",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": [
+    "e1aee4b872",
+    "4e1db5bd00"
+   ]
+  },
+  {
+   "seq": 16,
+   "pr": 6653,
+   "sha": "890ab7578f14730b2fed6de43acfeee19da1a3e4",
+   "title": "feat: add request.mediaType",
+   "author": "climba03003",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": [
+    "3ce3ae6752"
+   ]
+  },
+  {
+   "seq": 17,
+   "pr": 6676,
+   "sha": "d33f017ffef3a9beec687b4d4b1777e2e1180afa",
+   "title": "fix: prevent duplicate res.end in sendTrailer with sync callbacks",
+   "author": "climba03003",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 18,
+   "pr": 6669,
+   "sha": "c2ba18c17769dacce61472ec0397560b3b4eebde",
+   "title": "fix: avoid duplicate closeIdleConnections call on native servers",
+   "author": "trivikr",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 19,
+   "pr": 6678,
+   "sha": "d9659819fbbc391d054f1aa4b49ce969a13610dd",
+   "title": "fix: error.code not present on some routing errors",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 20,
+   "pr": 6657,
+   "sha": "d76dbcd58bf6d82bba167cdc74a79d2f74dbcb97",
+   "title": "fix: correct isCustomSerializerCompiler flag check",
+   "author": "eddieran",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 21,
+   "pr": 6523,
+   "sha": "2ae3e1d73491c023080efed566204c470cb49fd0",
+   "title": "fix: validate invalid route logLevel at registration",
+   "author": "maxpetrusenko",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 22,
+   "pr": 6685,
+   "sha": "c06fc06d33e66354cf6f5dc000b1ef2002a5eb96",
+   "title": "fix: use ContentType parser for response schema lookup",
+   "author": "UlisesGascon",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 23,
+   "pr": 6684,
+   "sha": "21b4c3c101038030e552ad2cfcca3f43a349f464",
+   "title": "fix: do not trust forwarded host/proto when socket is missing",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": [
+    "00f202f35d",
+    "da9b338c29"
+   ]
+  },
+  {
+   "seq": 24,
+   "pr": 6458,
+   "sha": "6d202c6203f33ceb709dbcf6311b2d7152a8a057",
+   "title": "fix: enable diagnostics tracking for async error handlers",
+   "author": "irzix",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 25,
+   "pr": 6714,
+   "sha": "9026164f5a2e78db59ff8f98933279161a85a6e3",
+   "title": "fix: ignore duplicate trailer completions",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 26,
+   "pr": 6716,
+   "sha": "1c49974805e57a17f1616f422678317b1d35b73f",
+   "title": "feat: add support of onMaxParamLength",
+   "author": "climba03003",
+   "status": "excluded",
+   "reason": "suite red with the change: ['(timeout)']",
+   "failing": [],
+   "folded": []
+  },
+  {
+   "seq": 27,
+   "pr": 6746,
+   "sha": "2bf4265b991aa4c9a2d3886882be6f062338c7bc",
+   "title": "fix: chunk large HTTP/2 buffer replies",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 28,
+   "pr": 6774,
+   "sha": "c647de44cceaf8ec6ce81796374ff6ffd944d873",
+   "title": "fix: replace `AssertionError` with `FST_ERR_PLUGIN_DEPENDENCY_NOT_REGISTERED` in `checkDependencies`",
+   "author": "aquie00t",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/errors.test.js']",
+   "failing": [
+    "test/internals/errors.test.js: should expose 89 errors",
+    "test/internals/errors.test.js: ensure name and codes of Errors are identical",
+    "test/internals/errors.test.js: Ensure that all errors are in Errors.md TOC",
+    "test/internals/errors.test.js: Ensure that non-existing errors are not in Errors.md TOC",
+    "test/internals/errors.test.js: Ensure that all errors are in Errors.md documented",
+    "test/internals/errors.test.js: Ensure that non-existing errors are not in Errors.md documented"
+   ],
+   "folded": []
+  },
+  {
+   "seq": 29,
+   "pr": 6799,
+   "sha": "8b9c07b645a8156c23a1d2619267fc84ea879250",
+   "title": "fix: clear socket._meta after response to prevent keep-alive leaks",
+   "author": "nerkoux",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 30,
+   "pr": 6803,
+   "sha": "2f597a9297a3020a9f30bf5548a8442c28ddb1c1",
+   "title": "fix: avoid double slash when joining nested prefixes",
+   "author": "rohithvegesna",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 31,
+   "pr": 6753,
+   "sha": "cc8d9a3c961d65cb1a39c4142ce63285d2de1e3c",
+   "title": "fix: hasRequestDecorator/hasReplyDecorator misses constructor-assigned built-in properties",
+   "author": "LeSingh1",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 32,
+   "pr": 6810,
+   "sha": "7f6d31980632eaa9c751dda48da8d12ff76ab411",
+   "title": "fix: clear socket._meta on reply.hijack() when onTimeout is registered",
+   "author": "nerkoux",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 33,
+   "pr": 6580,
+   "sha": "75d74e1af74598deb18f2c052d64f815a5eec8f8",
+   "title": "feat: introduce log controller layer",
+   "author": "Eomm",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "fastify.js",
+    "test/internals/errors.test.js",
+    "test/logger/logging.test.js"
+   ]
+  },
+  {
+   "seq": 34,
+   "pr": 6830,
+   "sha": "6f63ce9324b7368ac8beff1f385b31addce35c2d",
+   "title": "fix: use ContentType to detect `json` and `charset` in reply.send",
+   "author": "climba03003",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/reply.pr6830.test.js']",
+   "failing": [
+    "test/internals/reply.pr6830.test.js: test/internals/reply.pr6830.test.js"
+   ],
+   "folded": [
+    "4965daceab"
+   ]
+  },
+  {
+   "seq": 35,
+   "pr": 6831,
+   "sha": "5f4871f931d45d576bc3385cd1e95f0d668abf4f",
+   "title": "perf: reduce per-request overhead in the request lifecycle",
+   "author": "mcollina",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "lib/route.js"
+   ]
+  },
+  {
+   "seq": 36,
+   "pr": 6680,
+   "sha": "6ac2e953705312d0ac8776166b96f509dd153613",
+   "title": "fix: derive request.port from request.host",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 37,
+   "pr": 6838,
+   "sha": "6682c4f9a76cbb60c372ba5cad9dd2fc6e2fdb51",
+   "title": "fix: normalize method in findRoute",
+   "author": "Ram-blip",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 38,
+   "pr": 6832,
+   "sha": "6e680c3e8150071be96cba6b30e1d74487559b54",
+   "title": "feat: rfc10008 http query method",
+   "author": "climba03003",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/errors.test.js']",
+   "failing": [
+    "test/internals/errors.test.js: should expose 89 errors",
+    "test/internals/errors.test.js: ensure name and codes of Errors are identical",
+    "test/internals/errors.test.js: Ensure that all errors are in Errors.md TOC",
+    "test/internals/errors.test.js: Ensure that non-existing errors are not in Errors.md TOC",
+    "test/internals/errors.test.js: Ensure that all errors are in Errors.md documented",
+    "test/internals/errors.test.js: Ensure that non-existing errors are not in Errors.md documented"
+   ],
+   "folded": [
+    "db25d12599",
+    "79ab8e9564",
+    "c89945df8b",
+    "eb11156396",
+    "1851f208e7",
+    "c2ba18c177",
+    "aab339f7b0",
+    "221bdf4283",
+    "7f6d319806",
+    "38973670e5",
+    "c02c5f5696",
+    "4965daceab",
+    "10c69d153c",
+    "42c4f7e540",
+    "53eea2c6c3",
+    "664e5aff06",
+    "b1b7f6ef54",
+    "61ca0021db",
+    "012c249196",
+    "ab9dae462a",
+    "f4a6ac1d03",
+    "b48826f07b",
+    "d0c2f451ea",
+    "96c40c054f",
+    "1bcba2c0b4",
+    "bbdfe82ae8",
+    "c9bcde4660",
+    "e02d602f32",
+    "a0649e92e9",
+    "a1413de203",
+    "722d83b063",
+    "d1133d7eac",
+    "b5e5c374a6",
+    "47670c1fce",
+    "fc9eafddae",
+    "c7c5858976",
+    "458f104459",
+    "ff993e806a",
+    "848d240707",
+    "826c807059",
+    "82952b8652",
+    "27e3fe30ce",
+    "c7ae5a01a7",
+    "ee9de39fb1",
+    "57aad56918",
+    "8319dfe1f2",
+    "f02eaef672",
+    "3b4057303e",
+    "2590592da9",
+    "b61c362cc9",
+    "deaeb4040f",
+    "e4474cfd79",
+    "25a70ffbe0",
+    "7a11eead79",
+    "d477915528",
+    "9cc5187be2",
+    "b06a196b69",
+    "282ff731c2",
+    "9bbf60978d",
+    "291b1f89b4",
+    "66128b0351",
+    "308cdab0f3",
+    "8917a75848",
+    "2b39a76317",
+    "4d9f5b41b1",
+    "630715da8c",
+    "44e4c970fe",
+    "de3752df84"
+   ]
+  },
+  {
+   "seq": 39,
+   "pr": 6854,
+   "sha": "97d10c26a3f5ba59a24c630d31c29335da64d540",
+   "title": "perf: reuse cached content types for response serialization",
+   "author": "gurgunday",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/schema-serialization.pr6685.test.js', 'test/schema-serialization.pr6854.test.js', 'test/schema-serialization.test.js', 'test/serialize-response.test.js']",
+   "failing": [
+    "test/schema-serialization.pr6685.test.js: response schema is applied when Content-Type has whitespace before parameters",
+    "test/schema-serialization.pr6685.test.js: response schema is applied when Content-Type has tab before semicolon",
+    "test/schema-serialization.pr6685.test.js: response schema is applied when Content-Type has trailing semicolon only",
+    "test/schema-serialization.pr6854.test.js: reuse parsed content type when selecting response serializer",
+    "test/schema-serialization.test.js: Different content types",
+    "test/serialize-response.test.js: serialize the response for a Bad Request error, as defined on the schema"
+   ],
+   "folded": [
+    "6c69050523"
+   ]
+  },
+  {
+   "seq": 40,
+   "pr": 6483,
+   "sha": "325682c9e5abb4dce494770c7cdf27139934347d",
+   "title": "fix(validation): correctly update falsy values from validator",
+   "author": "jackjin1997",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 41,
+   "pr": 6881,
+   "sha": "01ca8393b9d10a897f0d2daedbe2f9eb90076ef5",
+   "title": "fix: uncatchable throws in writeHead when using async hook",
+   "author": "climba03003",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 42,
+   "pr": 6865,
+   "sha": "29bdcbb91f1318dc90ae8c0e52ab6f4e13c42744",
+   "title": "fix: honor quoted-string in `Content-Type` parameter values",
+   "author": "aquie00t",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "lib/content-type.js",
+    "test/content-type.test.js"
+   ]
+  },
+  {
+   "seq": 43,
+   "pr": 6879,
+   "sha": "0e9a3b35d8b13c9f261bf29bef46168a5d43c28f",
+   "title": "fix: add http method override warning",
+   "author": "jean-michelet",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "fastify.js",
+    "lib/warnings.js"
+   ]
+  },
+  {
+   "seq": 44,
+   "pr": 6889,
+   "sha": "9ba6d6016fa932118e6cb2a2f68617cab0824f12",
+   "title": "fix: do not force close in-flight connections when forceCloseConnections is 'idle'",
+   "author": "aquie00t",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 45,
+   "pr": 6845,
+   "sha": "7299a57d3fdce7da49f2c6d19ba08dc673e53f22",
+   "title": "fix: clear trailer state when removing all trailers",
+   "author": "Ram-blip",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 46,
+   "pr": 6892,
+   "sha": "27938ac777c15482a81881b29f86c82b025f7fae",
+   "title": "fix: recognize constructor-assigned built-in properties as decorator …",
+   "author": "aquie00t",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 47,
+   "pr": 6846,
+   "sha": "16a74e7cb2d1abdc2feca9097f2936fe8b851a5c",
+   "title": "fix: reset lastIndex before testing global/sticky content-type RegExp parsers",
+   "author": "zelinewang",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 48,
+   "pr": 6860,
+   "sha": "e4ffc205328db294d550c5855d2573b33f5e9d62",
+   "title": "fix: remove raw response headers",
+   "author": "Ram-blip",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/reply.pr6860.test.js']",
+   "failing": [
+    "test/internals/reply.pr6860.test.js: test/internals/reply.pr6860.test.js"
+   ],
+   "folded": []
+  },
+  {
+   "seq": 49,
+   "pr": 6932,
+   "sha": "eaff726a68c629c1aedc99f96b3c4b95dfdb38d1",
+   "title": "feat: add `Reply.prototype.mediaType`",
+   "author": "LiviaMedeiros",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/reply.pr6932.test.js', 'test/internals/reply.test.js', 'test/reply-media-type.test.js']",
+   "failing": [
+    "test/internals/reply.pr6932.test.js: test/internals/reply.pr6932.test.js",
+    "test/internals/reply.test.js: Once called, Reply should return an object with methods",
+    "test/reply-media-type.test.js: reply.mediaType should match the content-type header",
+    "test/reply-media-type.test.js: reply.mediaType should strip the charset parameter",
+    "test/reply-media-type.test.js: reply.mediaType should strip the space",
+    "test/reply-media-type.test.js: reply.mediaType is undefined when content-type is not set"
+   ],
+   "folded": []
+  },
+  {
+   "seq": 50,
+   "pr": 6942,
+   "sha": "15c2fb1933461f846a6160923a2bc4e091039826",
+   "title": "fix(content-type): return `undefined` for invalid media types",
+   "author": "jean-michelet",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/content-type.pr6942.test.js', 'test/internals/reply.test.js', 'test/reply-media-type.test.js']",
+   "failing": [
+    "test/content-type.pr6942.test.js: indicates media type is not correct format",
+    "test/internals/reply.test.js: Once called, Reply should return an object with methods",
+    "test/reply-media-type.test.js: reply.mediaType should match the content-type header",
+    "test/reply-media-type.test.js: reply.mediaType should strip the charset parameter",
+    "test/reply-media-type.test.js: reply.mediaType should strip the space",
+    "test/reply-media-type.test.js: reply.mediaType is undefined when content-type is not set"
+   ],
+   "folded": [
+    "3b0f76993d",
+    "4965daceab",
+    "61ca0021db",
+    "42c4f7e540",
+    "f4a6ac1d03",
+    "53eea2c6c3",
+    "c9bcde4660",
+    "e02d602f32",
+    "1851f208e7",
+    "c7c5858976",
+    "221bdf4283",
+    "458f104459",
+    "826c807059",
+    "ff7eff5eec",
+    "664e5aff06",
+    "b1b7f6ef54",
+    "012c249196",
+    "db25d12599",
+    "ab9dae462a",
+    "79ab8e9564",
+    "c89945df8b",
+    "b48826f07b",
+    "eb11156396",
+    "d0c2f451ea",
+    "96c40c054f",
+    "1bcba2c0b4",
+    "bbdfe82ae8",
+    "a0649e92e9",
+    "a1413de203",
+    "722d83b063",
+    "9cc5187be2",
+    "c2ba18c177",
+    "d1133d7eac",
+    "9bbf60978d",
+    "aab339f7b0",
+    "b5e5c374a6",
+    "47670c1fce",
+    "fc9eafddae",
+    "4fceec019b",
+    "ff993e806a",
+    "630715da8c",
+    "7f6d319806",
+    "848d240707",
+    "de3752df84",
+    "812608e5c9",
+    "ea664e6c3d",
+    "f3fd0f3df8",
+    "9ba6d6016f",
+    "f28528ff33",
+    "e4ffc20532",
+    "eaff726a68",
+    "27e3fe30ce",
+    "c7ae5a01a7",
+    "ee9de39fb1",
+    "c02c5f5696",
+    "57aad56918",
+    "8319dfe1f2",
+    "f02eaef672",
+    "c4a6e78e5d",
+    "3b4057303e",
+    "2590592da9",
+    "b61c362cc9",
+    "deaeb4040f",
+    "e4474cfd79",
+    "25a70ffbe0",
+    "7a11eead79",
+    "d477915528",
+    "b06a196b69",
+    "282ff731c2",
+    "291b1f89b4",
+    "10c69d153c",
+    "66128b0351",
+    "308cdab0f3",
+    "8917a75848",
+    "2b39a76317",
+    "4d9f5b41b1",
+    "44e4c970fe",
+    "29b6bda04d",
+    "e6db573312",
+    "39e87e892d",
+    "3120cde1a8",
+    "5d61093032",
+    "334fb31b20",
+    "759e9787b5",
+    "5317c9068a",
+    "eb2647f8d7",
+    "a397559a87",
+    "358a4e95d8",
+    "d98ce2a0c0",
+    "7c11089bc3",
+    "3653e7b927",
+    "f9c63991d1",
+    "8fad07272b",
+    "43c4e386c3",
+    "cd58ed45d3",
+    "0d3b560247",
+    "7248a6b39b",
+    "d7f01b6008",
+    "a22217f942",
+    "fd35d829a8",
+    "33a2fcd39d",
+    "909c5d5329",
+    "dce0d47a44",
+    "e5db7afd9e",
+    "7cbea084a4",
+    "d15746d18a",
+    "5350e744af",
+    "76d50af2e2",
+    "ea454d0abc",
+    "5a654336f5",
+    "74c44c94af",
+    "2e81c38bfe"
+   ]
+  },
+  {
+   "seq": 51,
+   "pr": 6940,
+   "sha": "f5ef34443c5be0cfc7fbde44f84253ef5d0ec66e",
+   "title": "fix: run preClose hook exactly once per declaring instance",
+   "author": "contactjawad",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 52,
+   "pr": 6719,
+   "sha": "6e95cb9f6de47deaf145138661c70a1eec34ec97",
+   "title": "fix: report canonical route url for hidden prefix slash route",
+   "author": "paulkagiri",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 53,
+   "pr": 6965,
+   "sha": "4176096a31f5b4c31512c36f578b08a596a72435",
+   "title": "fix: callNotFound should run not-found preHandler regardless of registration order",
+   "author": "mcollina",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 54,
+   "pr": 7012,
+   "sha": "d1dd8902ad972703b81a6f0e8395bb10dfd80b5f",
+   "title": "perf: reduce content-type parser overhead",
+   "author": "gurgunday",
+   "status": "excluded",
+   "reason": "acceptance tests pass before the change"
+  },
+  {
+   "seq": 55,
+   "pr": 7018,
+   "sha": "d266f833f2bff34c6115c026e461b682e94d0b9c",
+   "title": "perf: avoid redundant request-part reads during validation",
+   "author": "gurgunday",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/validation.pr7018.test.js']",
+   "failing": [
+    "test/internals/validation.pr7018.test.js: test/internals/validation.pr7018.test.js"
+   ],
+   "folded": [
+    "9493c0fb71",
+    "a34c3e530f"
+   ]
+  },
+  {
+   "seq": 56,
+   "pr": 7039,
+   "sha": "4a3e325483a06d5fb7773c6804407752a4507c1b",
+   "title": "perf: read the merged headers once in the trust proxy getters",
+   "author": "hktitof",
+   "status": "task",
+   "applies_to_common_base": false,
+   "background": []
+  },
+  {
+   "seq": 57,
+   "pr": 7049,
+   "sha": "e6860c59fcf46653d690bb5890b189732023d5b9",
+   "title": "perf: decode string bodies once instead of per chunk",
+   "author": "gurgunday",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 58,
+   "pr": 7056,
+   "sha": "2e3ebc5f984e0744b0738faff207cbac1875c3b3",
+   "title": "perf: avoid resetting the level of request child loggers",
+   "author": "gurgunday",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "lib/route.js"
+   ]
+  },
+  {
+   "seq": 59,
+   "pr": 7001,
+   "sha": "c3051e5b60c0e0e95ac0638fae342e82099fe534",
+   "title": "fix: omit absent compileSerializationSchema metadata instead of passing null",
+   "author": "Kjubikstronk",
+   "status": "task",
+   "applies_to_common_base": true,
+   "background": []
+  },
+  {
+   "seq": 60,
+   "pr": 6929,
+   "sha": "bc25b7499acedb803ef3cef644d0d56cf4e7c725",
+   "title": "fix: remove error when HTTP QUERY request has empty body",
+   "author": "LiviaMedeiros",
+   "status": "excluded",
+   "reason": "needs a window change that is not a task and cannot be folded",
+   "conflict_files": [
+    "lib/errors.js",
+    "lib/handle-request.js",
+    "test/internals/errors.test.js",
+    "test/rfc-10008.test.js"
+   ]
+  },
+  {
+   "seq": 61,
+   "pr": 7054,
+   "sha": "19d5be0daf1c0daace758efe3ea788f924ca1224",
+   "title": "fix: resolve reply.mediaType from raw response headers",
+   "author": "agustin18",
+   "status": "excluded",
+   "reason": "suite red with the change: ['test/internals/reply.pr7054.test.js', 'test/internals/reply.test.js', 'test/reply-media-type.pr7054.test.js', 'test/reply-media-type.test.js']",
+   "failing": [
+    "test/internals/reply.pr7054.test.js: test/internals/reply.pr7054.test.js",
+    "test/internals/reply.test.js: Once called, Reply should return an object with methods",
+    "test/reply-media-type.pr7054.test.js: reply.mediaType should match the content-type set via raw.setHeader",
+    "test/reply-media-type.pr7054.test.js: reply.mediaType should match case-insensitive content-type set via raw.setHeader",
+    "test/reply-media-type.pr7054.test.js: reply.mediaType should prioritize reply.type over raw.setHeader",
+    "test/reply-media-type.test.js: reply.mediaType should match the content-type header"
+   ],
+   "folded": [
+    "c89945df8b",
+    "eb11156396",
+    "aab339f7b0",
+    "7f6d319806",
+    "e4ffc20532",
+    "eaff726a68",
+    "b7de40faa2"
+   ]
+  }
+ ],
+ "not_candidates": [
+  {
+   "sha": "f15d4eaba0",
+   "subject": "Bumped v5.6.2",
+   "reason": "no test change"
+  },
+  {
+   "sha": "db25d12599",
+   "subject": "chore: skip unnecessary object creation (#6400)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "1d5f8ae199",
+   "subject": "fix: ajv options type validation (#6437)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "153d78aaf9",
+   "subject": "fix: updated version in the fastify.js (#6446)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "8eadc22b98",
+   "subject": "Bumped v5.7.1",
+   "reason": "no test change"
+  },
+  {
+   "sha": "e1e4fe7591",
+   "subject": "v5.7.2",
+   "reason": "no test change"
+  },
+  {
+   "sha": "eb11156396",
+   "subject": "Merge commit from fork",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "4682a78381",
+   "subject": "Bumped v5.7.4",
+   "reason": "no test change"
+  },
+  {
+   "sha": "161578a366",
+   "subject": "chore: sync version",
+   "reason": "no test change"
+  },
+  {
+   "sha": "67f6c9b32c",
+   "subject": "Merge commit from fork",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "073ff8132f",
+   "subject": "Bumped v5.8.1",
+   "reason": "no test change"
+  },
+  {
+   "sha": "3b0f76993d",
+   "subject": "fix: anchor keyValuePairsReg to prevent quadratic backtracking (#6558)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "375e136074",
+   "subject": "Bumped v5.8.2",
+   "reason": "no test change"
+  },
+  {
+   "sha": "1851f208e7",
+   "subject": "docs: update links (#6593)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "4e1db5bd00",
+   "subject": "fix: gate host and protocol getters on proxy trust function",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "af92d0d2a9",
+   "subject": "Bumped v5.8.4",
+   "reason": "no test change"
+  },
+  {
+   "sha": "3ce3ae6752",
+   "subject": "Merge commit from fork",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "3983cce812",
+   "subject": "Bumped v5.8.5",
+   "reason": "no test change"
+  },
+  {
+   "sha": "6c69050523",
+   "subject": "perf: defer ContentType parsing in getSchemaSerializer until needed (#6692)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "4965daceab",
+   "subject": "perf: cache parsed ContentType objects in ContentTypeParser (#6694)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "aab339f7b0",
+   "subject": "perf: add typeof guard before toString.call in send and onSendEnd (#6693)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "10c69d153c",
+   "subject": "docs: correct return503OnClosing comment in route.js (#6712)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "47670c1fce",
+   "subject": "fix: include hint and docs URL in FSTWRN004 warning message (#6723)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "27f4d6222d",
+   "subject": "refactor(decorate): replace `find` with `some` in `hasKey` for correct boolean semantics (#6759)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "4fceec019b",
+   "subject": "fix: correct duplicate 'not' typos in warnings.js comments (#6713)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "2e45a4472f",
+   "subject": "Bumped v5.9.0",
+   "reason": "no test change"
+  },
+  {
+   "sha": "94bcbcc6e2",
+   "subject": "Bumped v5.10.0",
+   "reason": "no test change"
+  },
+  {
+   "sha": "b93d611c7c",
+   "subject": "Bumped v5.11.0",
+   "reason": "no test change"
+  },
+  {
+   "sha": "043baf9880",
+   "subject": "Bumped 5.11.2",
+   "reason": "no test change"
+  },
+  {
+   "sha": "9eaef5123b",
+   "subject": "fix: pass null instead of undefined to requestCompleted on success (#6837)",
+   "reason": "no test change"
+  },
+  {
+   "sha": "a22ceded3d",
+   "subject": "Bumped v5.11.3",
+   "reason": "no test change"
+  },
+  {
+   "sha": "ed664c344f",
+   "subject": "Bumped v6.0.0-alpha.0",
+   "reason": "no test change"
+  },
+  {
+   "sha": "377533a260",
+   "subject": "Bumped v6.0.0-alpha.1",
+   "reason": "no test change"
+  },
+  {
+   "sha": "af079bd4c6",
+   "subject": "fix: disable numeric trustProxy hop-count trust",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "9493c0fb71",
+   "subject": "fix(validation): preserve coerced root values",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "9334d07129",
+   "subject": "Bumped v6.0.0-alpha.2",
+   "reason": "no test change"
+  },
+  {
+   "sha": "3aa8dfd729",
+   "subject": "fix(validation): normalize header names in every schema subschema",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "0c170ca13f",
+   "subject": "fix(validation): compile boolean false request schemas",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "d66ebd121c",
+   "subject": "fix: reject malformed URLs before custom 404 handlers",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "a34c3e530f",
+   "subject": "fix(validation): do not unwrap async validator results",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "15ebc8e2fe",
+   "subject": "Bumped v6.0.0-alpha.3",
+   "reason": "no test change"
+  },
+  {
+   "sha": "13d61c5fda",
+   "subject": "Merge commit from fork",
+   "reason": "no PR number (direct push or security advisory merge)"
+  },
+  {
+   "sha": "630acd0b6c",
+   "subject": "Bumped v6.0.0-alpha.4",
+   "reason": "no test change"
+  },
+  {
+   "sha": "0d945819be",
+   "subject": "perf: use a FIFO cache for parsed content-types (#7071)",
+   "reason": "no test change"
+  }
+ ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "t030",
+  "title": "fix: clear trailer state when removing all trailers",
+  "prompt": "### Description\n\n`reply.removeTrailer()` marked removed trailers as `undefined`, but it did not clear the internal trailer state when all active trailer callbacks were removed.\n\nBecause the send path checks whether trailer state is non-null, a response could still enter trailer mode after all trailers were removed. That could produce chunked framing, an empty `Trailer` header, and no `Content-Length` even though no trailers remained.\n\nThis change clears the trailer state when no active trailer callbacks remain, so removing all trailers behaves the same as not registering trailers.\n\nThe send-trailer path now keeps a stable reference to the trailer state while callbacks are running. This keeps trailer iteration safe if a trailer callback removes other trailers during execution.\n\n### Changes proposed\n\n- Clear trailer state when the last active trailer callback is removed\n- Preserve trailer mode when other active trailers remain\n- Keep trailer callback iteration safe when trailers are removed during callback execution\n- Add regression coverage for remove-all and callback-time removal cases\n\n### Verification\n\n- Ran `node --test test/reply-trailers.test.js`\n- Ran `npm run coverage:ci-check-coverage`\n- Ran `npm test`\n- Ran `npm run benchmark --if-present`",
+  "acceptance_tests": {
+    "test/reply-trailers.pr6845.test.js": "'use strict'\n\nconst { test, describe } = require('node:test')\nconst Fastify = require('..')\nconst { Readable } = require('node:stream')\nconst { createHash } = require('node:crypto')\nconst { sleep } = require('./helper')\n\ntest('remove trailer while stream is being consumed', (t, testDone) => {\n  t.plan(5)\n\n  const fastify = Fastify()\n\n  fastify.get('/', function (request, reply) {\n    const stream = Readable.from((function * () {\n      reply.removeTrailer('ETag')\n      yield 'hello'\n    })())\n\n    reply.trailer('ETag', function () {\n      t.assert.fail('removed trailer should not be called')\n    })\n\n    reply.send(stream)\n  })\n\n  fastify.inject({\n    method: 'GET',\n    url: '/'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.payload, 'hello')\n    t.assert.strictEqual(res.headers.trailer, 'etag')\n    t.assert.strictEqual(res.trailers.etag, undefined)\n    testDone()\n  })\n})\n\ntest('remove all trailers', (t, testDone) => {\n  t.plan(6)\n\n  const fastify = Fastify()\n\n  fastify.get('/', function (request, reply) {\n    reply.trailer('ETag', function (reply, payload, done) {\n      t.assert.fail('it should not called as this trailer is removed')\n      done(null, 'custom-etag')\n    })\n    reply.removeTrailer('ETag')\n    reply.trailer('Should-Not-Call', function (reply, payload, done) {\n      t.assert.fail('it should not called as this trailer is removed')\n      done(null, 'should-not-call')\n    })\n    reply.removeTrailer('Should-Not-Call')\n    reply.send('')\n  })\n\n  fastify.inject({\n    method: 'GET',\n    url: '/'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.headers.trailer, undefined)\n    t.assert.strictEqual(res.trailers.etag, undefined)\n    t.assert.strictEqual(res.trailers['should-not-call'], undefined)\n    t.assert.strictEqual(res.headers['content-length'], '0')\n    testDone()\n  })\n})\n\ntest('remove some trailers should keep trailer mode for the remaining ones', (t, testDone) => {\n  t.plan(6)\n\n  const fastify = Fastify()\n\n  fastify.get('/', function (request, reply) {\n    reply.trailer('ETag', function () {\n      t.assert.fail('removed trailer should not be called')\n    })\n    reply.removeTrailer('ETag')\n    reply.trailer('Content-MD5', function (reply, payload, done) {\n      done(null, 'custom-md5')\n    })\n    reply.send('hello')\n  })\n\n  fastify.inject({\n    method: 'GET',\n    url: '/'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.headers.trailer, 'content-md5')\n    t.assert.strictEqual(res.headers['transfer-encoding'], 'chunked')\n    t.assert.strictEqual(res.headers['content-length'], undefined)\n    t.assert.strictEqual(res.trailers['content-md5'], 'custom-md5')\n    testDone()\n  })\n})\n\ntest('remove all trailers should behave like no trailers were registered', (t, testDone) => {\n  t.plan(6)\n\n  const fastify = Fastify()\n\n  fastify.get('/', function (request, reply) {\n    reply.trailer('ETag', function () {\n      t.assert.fail('removed trailer should not be called')\n    })\n    reply.removeTrailer('ETag')\n    reply.send('hello')\n  })\n\n  fastify.inject({\n    method: 'GET',\n    url: '/'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.headers.trailer, undefined)\n    t.assert.strictEqual(res.headers['transfer-encoding'], undefined)\n    t.assert.strictEqual(res.headers['content-length'], '5')\n    t.assert.strictEqual(res.trailers.etag, undefined)\n    testDone()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/reply.js",
+    "test/reply-trailers.pr6845.test.js",
+    "test/reply-trailers.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6845,
+    "sha": "7299a57d3fdce7da49f2c6d19ba08dc673e53f22",
+    "url": "https://github.com/fastify/fastify/pull/6845",
+    "author": "Ram-blip",
+    "merged_at": "2026-08-03T13:37:21Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/reply.js",
+      "test/reply-trailers.test.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/reply-trailers.pr6845.test.js"
+    ],
+    "source_lines_changed": 10,
+    "notes": [
+      "test/reply-trailers.test.js: 4 added/modified case(s) extracted to test/reply-trailers.pr6845.test.js",
+      "test/reply-trailers.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/reply-trailers.pr6845.test.js"
+    ],
+    "suite_seconds": 16.2,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t014",
+      "t021",
+      "t022",
+      "t023",
+      "t025",
+      "t038"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

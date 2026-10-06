@@ -1,0 +1,40 @@
+diff --git a/lib/reply.js b/lib/reply.js
+index 4ce6d5b8..bf2943c6 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -588,9 +588,13 @@ function onSendEnd (reply, payload) {
+       header += ' '
+       header += trailerName
+     }
+-    // it must be chunked for trailer to work
+-    reply.header('Transfer-Encoding', 'chunked')
+-    reply.header('Trailer', header.trim())
++    if (header !== '') {
++      // it must be chunked for trailer to work
++      reply.header('Transfer-Encoding', 'chunked')
++      reply.header('Trailer', header.trim())
++    } else {
++      reply[kReplyTrailers] = null
++    }
+   }
+ 
+   // since Response contain status code, headers and body,
+diff --git a/test/reply-trailers.test.js b/test/reply-trailers.test.js
+index 0d72eef4..c217fedd 100644
+--- a/test/reply-trailers.test.js
++++ b/test/reply-trailers.test.js
+@@ -325,10 +325,10 @@ test('remove all trailers', (t, testDone) => {
+   }, (error, res) => {
+     t.assert.ifError(error)
+     t.assert.strictEqual(res.statusCode, 200)
+-    t.assert.ok(!res.headers.trailer)
+-    t.assert.ok(!res.trailers.etag)
+-    t.assert.ok(!res.trailers['should-not-call'])
+-    t.assert.ok(!res.headers['content-length'])
++    t.assert.strictEqual(res.headers.trailer, undefined)
++    t.assert.strictEqual(res.trailers.etag, undefined)
++    t.assert.strictEqual(res.trailers['should-not-call'], undefined)
++    t.assert.strictEqual(res.headers['content-length'], '0')
+     testDone()
+   })
+ })

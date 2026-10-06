@@ -1,0 +1,18 @@
+{
+ "number": 6414,
+ "sha": "32d7b6add39ddf082d92579a58bea7018c5ac821",
+ "title": "chore: Updated content-type header parsing",
+ "body": "Resolves #6332.\r\n\r\nThis is a follow-on from #6303. This introduces a more robust content-type header value parsing algorithm.\r\n\r\n***IMPORTANT:*** this results in much stricter content-type handling. Prior to this PR, we were accepting, and handling, headers like `content-type: a-simple-string`. That is not valid. There must be a type **and** a subtype present. So a \"valid\" form would be `content-type: a-simple-string/foo`.\r\n\r\nThis change _also_ enforces normalization of the content-type value. For example, if the request has `application/json; charset=utf-8` as the value, it will be normalized to `application/json; charset=\"utf-8\"`.",
+ "author": "jsumners",
+ "created_at": "2025-12-14T15:49:15Z",
+ "merged_at": "2026-01-26T11:08:02Z",
+ "pr_base_sha": "d79fa759e2ba5837681bcf0e83220cbc1b7da711",
+ "linked_issues": [
+  {
+   "number": 6332,
+   "title": "Content-Type parsing is incorrect",
+   "body": "### Prerequisites\n\n- [x] I have written a descriptive issue title\n- [x] I have searched existing issues to ensure the issue has not already been raised\n\n\n### Issue\n\nRead [#6303 discussion](https://github.com/fastify/fastify/pull/6303#discussion_r2311842747)\n\nTL;DR\n\n`application/json charset=utf8` is treated as valid.\nOWS act as the parameter separator.\n",
+   "is_pr": false
+  }
+ ]
+}

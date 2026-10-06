@@ -1,0 +1,11 @@
+{
+ "number": 7012,
+ "sha": "d1dd8902ad972703b81a6f0e8395bb10dfd80b5f",
+ "title": "perf: reduce content-type parser overhead",
+ "body": "This PR does 2 things:\r\n\r\n* Replace AsyncResource.bind() with a callback that still preserves async scope (this is an optimization I've seen in Node.js, I believe by @mcollina)\r\n* Cache parameterized content-type parser matches\r\n\r\n```sh\r\n   Existing command                   Before            After    Change\r\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━\r\n   npm run benchmark:parser    123,106 req/s    161,468 req/s    +31.2%\r\n  ──────────────────────────  ───────────────  ───────────────  ────────\r\n   npm run benchmark           201,041 req/s    201,310 req/s    +0.13%\r\n```",
+ "author": "gurgunday",
+ "created_at": "2026-09-07T20:58:50Z",
+ "merged_at": "2026-09-08T20:25:34Z",
+ "pr_base_sha": "ac28821df11d7862694900326a6cc8c831dc8bf6",
+ "linked_issues": []
+}

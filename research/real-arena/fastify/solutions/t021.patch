@@ -1,0 +1,17 @@
+diff --git a/lib/reply.js b/lib/reply.js
+index b1dd05f1..82e9acb4 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -784,9 +784,10 @@ function sendTrailer (payload, res, reply) {
+     skipped = false
+     handled--
+ 
++    let cbAlreadyCalled = false
+     function cb (err, value) {
+-      // TODO: we may protect multiple callback calls
+-      //       or mixing async-await with callback
++      if (cbAlreadyCalled) return
++      cbAlreadyCalled = true
+       handled++
+ 
+       // we can safely ignore error for trailer

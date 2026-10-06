@@ -1,0 +1,25 @@
+diff --git a/lib/schema-controller.js b/lib/schema-controller.js
+index a805c85c..273ed5a4 100644
+--- a/lib/schema-controller.js
++++ b/lib/schema-controller.js
+@@ -31,7 +31,7 @@ function buildSchemaController (parentSchemaCtrl, opts) {
+     bucket: (opts && opts.bucket) || buildSchemas,
+     compilersFactory,
+     isCustomValidatorCompiler: typeof opts?.compilersFactory?.buildValidator === 'function',
+-    isCustomSerializerCompiler: typeof opts?.compilersFactory?.buildValidator === 'function'
++    isCustomSerializerCompiler: typeof opts?.compilersFactory?.buildSerializer === 'function'
+   }
+ 
+   return new SchemaController(undefined, option)
+diff --git a/test/internals/schema-controller-perf.test.js b/test/internals/schema-controller-perf.test.js
+index 0741b41f..3ea6fd26 100644
+--- a/test/internals/schema-controller-perf.test.js
++++ b/test/internals/schema-controller-perf.test.js
+@@ -1,6 +1,7 @@
+ const { sep } = require('node:path')
+ const { test } = require('node:test')
+ const Fastify = require('../../fastify')
++const { kSchemaController } = require('../../lib/symbols')
+ 
+ test('SchemaController are NOT loaded when the controllers are custom', async t => {
+   const app = Fastify({

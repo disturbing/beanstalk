@@ -1,0 +1,68 @@
+diff --git a/lib/error-handler.js b/lib/error-handler.js
+index f9a1899c..28f27a80 100644
+--- a/lib/error-handler.js
++++ b/lib/error-handler.js
+@@ -8,7 +8,8 @@ const {
+   kReplyNextErrorHandler,
+   kReplyIsRunningOnErrorHook,
+   kRouteContext,
+-  kDisableRequestLogging
++  kDisableRequestLogging,
++  kDiagnosticsStore
+ } = require('./symbols.js')
+ 
+ const {
+@@ -19,7 +20,6 @@ const {
+ const { getSchemaSerializer } = require('./schemas')
+ 
+ const serializeError = require('./error-serializer')
+-
+ const rootErrorHandler = {
+   func: defaultErrorHandler,
+   toJSON () {
+@@ -69,7 +69,8 @@ function handleError (reply, error, cb) {
+     const result = func(error, reply.request, reply)
+     if (result !== undefined) {
+       if (result !== null && typeof result.then === 'function') {
+-        wrapThenable(result, reply)
++        const store = reply[kDiagnosticsStore] || null
++        wrapThenable(result, reply, store)
+       } else {
+         reply.send(result)
+       }
+diff --git a/lib/handle-request.js b/lib/handle-request.js
+index 9825a3c0..47a98694 100644
+--- a/lib/handle-request.js
++++ b/lib/handle-request.js
+@@ -12,7 +12,8 @@ const {
+   kRouteContext,
+   kFourOhFourContext,
+   kSupportedHTTPMethods,
+-  kRequestContentType
++  kRequestContentType,
++  kDiagnosticsStore
+ } = require('./symbols')
+ 
+ const channels = diagnostics.tracingChannel('fastify.request.handler')
+@@ -145,6 +146,7 @@ function preHandlerCallback (err, request, reply) {
+         method: context.config.method
+       }
+     }
++    reply[kDiagnosticsStore] = store
+     channels.start.runStores(store, preHandlerCallbackInner, undefined, err, request, reply, store)
+   }
+ }
+diff --git a/lib/symbols.js b/lib/symbols.js
+index 2ae2b5d7..7d2d13bd 100644
+--- a/lib/symbols.js
++++ b/lib/symbols.js
+@@ -66,7 +66,8 @@ const keys = {
+   kChildLoggerFactory: Symbol('fastify.childLoggerFactory'),
+   kHasBeenDecorated: Symbol('fastify.hasBeenDecorated'),
+   kKeepAliveConnections: Symbol('fastify.keepAliveConnections'),
+-  kRouteByFastify: Symbol('fastify.routeByFastify')
++  kRouteByFastify: Symbol('fastify.routeByFastify'),
++  kDiagnosticsStore: Symbol('fastify.diagnosticsStore')
+ }
+ 
+ module.exports = keys

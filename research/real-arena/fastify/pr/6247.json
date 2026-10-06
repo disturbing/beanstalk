@@ -1,0 +1,18 @@
+{
+ "number": 6247,
+ "sha": "d338dca5ab24a4ce0175b4333efe46859ceaffab",
+ "title": "fix: consistent error handling for custom validators in async validation contexts",
+ "body": "## Description\r\n\r\nFixes inconsistent error handling between sync and async validation contexts when custom validators throw errors instead of returning `{error}` objects.\r\n\r\n## Problem\r\n\r\nWhen using async preValidation hooks with custom validators, if the validator throws an error (instead of returning `{error}`), the error would not be caught by the error handler and would result in an unhandled promise rejection, potentially crashing the application.\r\n\r\nThis inconsistency meant:\r\n- **Sync context**: Thrown errors were caught and handled properly by the error handler\r\n- **Async context**: Thrown errors became unhandled promise rejections\r\n\r\n## Solution\r\n\r\nModified the `validateParam` function in `lib/validation.js` to wrap the `validatorFunction` call in a try-catch block. This ensures that synchronous throws are caught and returned as validation errors, making error handling consistent across both sync and async validation contexts.\r\n\r\n## Changes\r\n\r\n- **lib/validation.js**: Added try-catch block around `validatorFunction` call in `validateParam`\r\n- **test/validation-error-handling.test.js**: Added test case to verify error handling consistency\r\n\r\n## Testing\r\n\r\n- ✅ All existing tests pass\r\n- ✅ New test specifically validates the fix for async preValidation + custom validator error scenarios\r\n- ✅ Covers the exact issue described in #6214\r\n\r\n## Breaking Changes\r\n\r\nNone. This change maintains backward compatibility while fixing the error handling inconsistency.\r\n\r\nFixes #6214",
+ "author": "emicovi",
+ "created_at": "2025-07-04T12:00:41Z",
+ "merged_at": "2025-11-08T14:16:10Z",
+ "pr_base_sha": "e1aee4b872aaeabbd4f7074794c1015a518f8d9a",
+ "linked_issues": [
+  {
+   "number": 6214,
+   "title": "async preValidation with custom validator does not trigger error handler",
+   "body": "### Prerequisites\n\n- [x] I have written a descriptive issue title\n- [x] I have searched existing issues to ensure the bug has not already been reported\n\n\n### Fastify version\n\n5.4.0\n\n### Plugin version\n\n_No response_\n\n### Node.js version\n\n22.11.0\n\n### Operating system\n\nmacOS\n\n### Operating system version (i.e. 20.04, 11.3, 10)\n\n15.5\n\n### Description\n\nErrors thrown from a custom validator while using an async `preValidation` hook are not caught by the error handler. Instead the error is unhandled and propagated to the Node runtime which kills the app. Removing the hook all together or using a synchronous approach (with `done()`) resolves the issue.\n\nThis issue seems similar to https://github.com/fastify/fastify/issues/2707\n\n### Link to code that reproduces the bug\n\nhttps://github.com/jakedipity/scratchspace/tree/main/fastify-bug\n\n### Expected Behavior\n\nError handler should be called (we should see a `setErrorHandler <Error>` logged), the client is given a response, and the instance continues running. Instead the handler is not called, the connection socket hangs up, and the instance crashes.",
+   "is_pr": false
+  }
+ ]
+}

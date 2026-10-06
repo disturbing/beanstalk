@@ -1,0 +1,11 @@
+{
+ "number": 6810,
+ "sha": "7f6d31980632eaa9c751dda48da8d12ff76ab411",
+ "title": "fix: clear socket._meta on reply.hijack() when onTimeout is registered",
+ "body": "## Summary\r\nDuring review of #6799 (`socket._meta` cleanup), I found that `reply.hijack()` bypasses the normal response lifecycle and therefore skips `onResFinished`.\r\n\r\nWhen an `onTimeout` hook is registered, Fastify stores request metadata in `socket._meta`. Under the normal response lifecycle this metadata is cleared when the response finishes, but a hijacked reply never reaches that cleanup path. As a result, `socket._meta` can continue to retain references to the request and reply objects for the lifetime of the socket after a hijacked response.\r\n\r\nFix: clear `socket._meta` inside `reply.hijack()` when the current request owns the metadata.\r\n\r\n## Files changed\r\n\r\n| File | Change |\r\n| --- | --- |\r\n| `lib/reply.js` | Clear `socket._meta` in `reply.hijack()` when the current request owns it |\r\n| `lib/route.js` | Clear the socket timeout in `onResFinished` to prevent stale timeout events |\r\n| `test/hooks.test.js` | Add regression test covering `reply.hijack()` cleanup |\r\n\r\n## Test plan\r\n- [x] Added regression test in `test/hooks.test.js`:\r\n  - `socket._meta is cleared on reply.hijack() when onTimeout is registered`\r\n- [x] Existing `test/handler-timeout.test.js` — 20/20 pass\r\n- [x] Existing `test/hooks.test.js` — 96/96 pass\r\n- [x] Existing `test/keep-alive-timeout.test.js` — pass\r\n- [x] Full `npm test` — 2240 pass, 0 fail\r\n\r\n## Checklist\r\n- [x] tests and/or benchmarks are included\r\n- [x] documentation is changed or added (no public API change)\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11) and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)",
+ "author": "nerkoux",
+ "created_at": "2026-06-23T06:40:00Z",
+ "merged_at": "2026-07-01T09:06:20Z",
+ "pr_base_sha": "0c28b57cef28d15b6873df77c0f76a80a0ad2269",
+ "linked_issues": []
+}

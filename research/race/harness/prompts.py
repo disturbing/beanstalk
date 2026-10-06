@@ -4,11 +4,13 @@ from __future__ import annotations
 from .arena import Task
 
 NO_COMMIT = "Don't stage or commit; the harness commits your changes."
+TEST_HINT = "Run `node --test`."      # a real-task arena's arena.json sets these (suite.activate)
+SUITE_COMMAND = "node --test"
 
 
 def acceptance_line(paths: list[str]) -> str:
     return (f"Acceptance tests are in {', '.join(paths)}. Make them pass without breaking other tests. "
-            "Run `node --test`. Don't edit the acceptance tests. Keep changes minimal.")
+            f"{TEST_HINT} Don't edit the acceptance tests. Keep changes minimal.")
 
 
 def initial(task: Task) -> str:
@@ -47,7 +49,7 @@ def fixer(ticket: dict, suspects: list[dict], acceptance: list[str]) -> str:
                       "  Diff:", "```diff", s["diff"].strip(), "```"]
     else:
         lines.append("No suspect could be isolated; the failure appeared between the last green commit and the head.")
-    lines += ["", "Make the whole suite pass (`node --test`) with a minimal change that preserves the intent of "
+    lines += ["", f"Make the whole suite pass (`{SUITE_COMMAND}`) with a minimal change that preserves the intent of "
               "every suspect change: don't revert features. Don't edit acceptance tests "
               f"({', '.join(acceptance) if acceptance else 'test files named in the tickets'}). {NO_COMMIT}"]
     return "\n".join(lines) + "\n"

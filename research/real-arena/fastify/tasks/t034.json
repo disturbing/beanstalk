@@ -1,0 +1,67 @@
+{
+  "id": "t034",
+  "title": "fix: report canonical route url for hidden prefix slash route",
+  "prompt": "Issue #4424: routerPath returns url with a trailing slash\n\n### Prerequisites\n\n- [X] I have written a descriptive issue title\n- [X] I have searched existing issues to ensure the issue has not already been raised\n\n### Issue\n\nOriginally this error comes from [fastify-metrics](https://github.com/SkeLLLa/fastify-metrics) plugin. It relies on two things: \n - `onRoute` hook to set up a metric for the route;\n - request `routerPath` property to find the route metric from the request context.\n \n The problem happens when you use a plugin prefix with the `prefixTrailingSlash` option set to `both` (default) value. In this case, the `onRoute` hook will be called only once, so `fastify-metrics` will set up only one route, but internally there are two different routes with two different `routerPath` properties. So `fastify-metrics` will not record metrics for requests with trailing slash.\n \n Example:\n ```js\n 'use strict'\n\nconst fastify = require('fastify')()\n\nfastify.addHook('onRoute', ({ method, url }) => {\n  console.log('New route added:', method, url)\n})\n\nfastify.register(async (fastify) => {\n  fastify.get('/', async (request) => {\n    console.log(request.routerPath)\n  })\n}, { prefix: '/foo' })\n\nfastify.ready(() => {\n  fastify.inject({ method: 'GET', url: '/foo' })\n  fastify.inject({ method: 'GET', url: '/foo/' })\n})\n ```\n \n Output:\n ```js\n New route added: GET /foo\nNew route added: HEAD /foo\nNew route added: HEAD /foo/\n/foo\n/foo/\n ```\n \n If we don't call `onRoute` twice, that means that we want to hide the second route from a user. So from the user's perspective, there should be only one route. If it's true, then we should return `routerPath` with a trimmed trailing slash.",
+  "acceptance_tests": {
+    "test/route-prefix.pr6719.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst { waitForCb } = require('./helper')\n\ntest('reports the canonical route url for hidden prefix trailing slash route', async t => {\n  t.plan(4)\n\n  const fastify = Fastify({\n    ignoreTrailingSlash: false,\n    exposeHeadRoutes: false\n  })\n\n  const onRouteUrls = []\n\n  fastify.addHook('onRoute', routeOptions => {\n    onRouteUrls.push(routeOptions.url)\n  })\n\n  fastify.register(async instance => {\n    instance.get('/', async request => {\n      return request.routeOptions.url\n    })\n\n    instance.get('/bar/', async request => {\n      return request.routeOptions.url\n    })\n  }, { prefix: '/prefix' })\n\n  t.assert.strictEqual((await fastify.inject('/prefix')).payload, '/prefix')\n  t.assert.strictEqual((await fastify.inject('/prefix/')).payload, '/prefix')\n  t.assert.strictEqual((await fastify.inject('/prefix/bar/')).payload, '/prefix/bar/')\n  t.assert.deepStrictEqual(onRouteUrls, ['/prefix', '/prefix/bar/'])\n\n  await fastify.close()\n})\n"
+  },
+  "oracle_paths": [
+    "lib/route.js",
+    "test/route-prefix.pr6719.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6719,
+    "sha": "6e95cb9f6de47deaf145138661c70a1eec34ec97",
+    "url": "https://github.com/fastify/fastify/pull/6719",
+    "author": "paulkagiri",
+    "merged_at": "2026-08-16T13:56:42Z",
+    "prompt_source": "linked-issue",
+    "files_touched": [
+      "lib/route.js"
+    ],
+    "source_files": [
+      "lib/route.js"
+    ],
+    "test_files": [
+      "test/route-prefix.pr6719.test.js"
+    ],
+    "source_lines_changed": 3,
+    "notes": [
+      "test/route-prefix.test.js: 1 added/modified case(s) extracted to test/route-prefix.pr6719.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/route-prefix.pr6719.test.js"
+    ],
+    "suite_seconds": 16.2,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/route.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t008",
+      "t009",
+      "t015",
+      "t017",
+      "t027"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

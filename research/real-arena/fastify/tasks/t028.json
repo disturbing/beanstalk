@@ -1,0 +1,61 @@
+{
+  "id": "t028",
+  "title": "fix(validation): correctly update falsy values from validator",
+  "prompt": "Fixes #6411.\n\n## Summary\n\n- Update `validateParam` when a custom validator returns an explicit `value`, including falsy values such as `0`, `\"\"`, `false`, and `null`.\n- Guard the `value in ret` check with `typeof ret === 'object'` because synchronous Ajv validation may return a boolean.\n- Add regression coverage proving that the validator output replaces the original request value for each supported falsy value.\n\n## Root cause\n\n`validateParam` currently uses `if (ret && ret.value)`. The truthiness check skips an update whenever a custom validator intentionally returns a falsy value, leaving the original request value in place.\n\n## Validation\n\n- `npm run unit`: 2205 passed, 4 skipped, 0 failed\n- Full GitHub Actions matrix is green on the current head\n\n## Scope\n\nThe earlier documentation change was removed after review; the final diff contains only the validation fix and its regression test.",
+  "acceptance_tests": {
+    "test/fix-6411.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('custom validatorCompiler returning falsy values should update request param', async (t) => {\n  const fastify = Fastify()\n\n  fastify.setValidatorCompiler(() => {\n    return (data) => {\n      if (typeof data === 'object' && data !== null && 'coerceTo' in data) {\n        return { value: data.coerceTo }\n      }\n      return true\n    }\n  })\n\n  fastify.post('/test', { schema: { body: { type: 'object' } } }, (request, reply) => {\n    reply.send({ body: request.body })\n  })\n\n  // value: 0 (falsy)\n  {\n    const res = await fastify.inject({\n      method: 'POST',\n      url: '/test',\n      payload: { coerceTo: 0 }\n    })\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(JSON.parse(res.payload).body, 0, 'should update body to 0')\n  }\n\n  // value: \"\" (falsy)\n  {\n    const res = await fastify.inject({\n      method: 'POST',\n      url: '/test',\n      payload: { coerceTo: '' }\n    })\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(JSON.parse(res.payload).body, '', 'should update body to empty string')\n  }\n\n  // value: false (falsy)\n  {\n    const res = await fastify.inject({\n      method: 'POST',\n      url: '/test',\n      payload: { coerceTo: false }\n    })\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(JSON.parse(res.payload).body, false, 'should update body to false')\n  }\n\n  // value: null (falsy)\n  {\n    const res = await fastify.inject({\n      method: 'POST',\n      url: '/test',\n      payload: { coerceTo: null }\n    })\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(JSON.parse(res.payload).body, null, 'should update body to null')\n  }\n})\n"
+  },
+  "oracle_paths": [
+    "lib/validation.js",
+    "test/fix-6411.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6483,
+    "sha": "325682c9e5abb4dce494770c7cdf27139934347d",
+    "url": "https://github.com/fastify/fastify/pull/6483",
+    "author": "jackjin1997",
+    "merged_at": "2026-07-26T12:59:26Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/validation.js"
+    ],
+    "source_files": [
+      "lib/validation.js"
+    ],
+    "test_files": [
+      "test/fix-6411.test.js"
+    ],
+    "source_lines_changed": 2,
+    "notes": [],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/fix-6411.test.js"
+    ],
+    "suite_seconds": 13.8,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/validation.js"
+    ],
+    "shares_a_source_file_with": [
+      "t002",
+      "t013"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

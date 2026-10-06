@@ -1,0 +1,70 @@
+{
+  "id": "t008",
+  "title": "fix: avoid mutating shared routerOptions across instances",
+  "prompt": "## Problem\n\nReusing the same `routerOptions` object across multiple Fastify instances can fail with:\n\n`TypeError: Cannot read properties of null (reading 'server')`\n\n`buildRouterOptions()` was mutating the user-provided `options.routerOptions` object in place while filling defaults (including instance-bound callbacks like `defaultRoute` / `onBadUrl`).\n\n## Fix\n\n- clone `options.routerOptions` before filling defaults\n- avoid mutating user-provided config objects\n\n## Tests\n\n- add regression test: `Should allow reusing a routerOptions object across instances`\n- add regression test: `Should not mutate user-provided routerOptions object`\n- ensure cleanup uses `t.after()` so instances are always closed\n\nFixes #6512",
+  "acceptance_tests": {
+    "test/router-options.pr6515.test.js": "'use strict'\n\nconst split = require('split2')\nconst { test } = require('node:test')\nconst querystring = require('node:querystring')\nconst Fastify = require('../')\nconst {\n  FST_ERR_BAD_URL,\n  FST_ERR_ASYNC_CONSTRAINT\n} = require('../lib/errors')\n\ntest('Should support extra find-my-way options', async t => {\n  t.plan(1)\n  // Use a real upstream option from find-my-way\n  const fastify = Fastify({\n    routerOptions: {\n      buildPrettyMeta: (route) => {\n        const cleanMeta = Object.assign({}, route.store)\n        return cleanMeta\n      }\n    }\n  })\n\n  t.after(() => fastify.close())\n\n  await fastify.ready()\n\n  // Ensure the option is preserved after validation\n  t.assert.strictEqual(typeof fastify.initialConfig.routerOptions.buildPrettyMeta, 'function')\n})\n\ntest('Should allow reusing a routerOptions object across instances', async t => {\n  t.plan(1)\n\n  const options = {\n    routerOptions: {\n      maxParamLength: 2048\n    }\n  }\n\n  const app1 = Fastify(options)\n  const app2 = Fastify(options)\n\n  t.after(() => Promise.all([\n    app1.close(),\n    app2.close()\n  ]))\n\n  const response = await app2.inject('/not-found')\n  t.assert.strictEqual(response.statusCode, 404)\n})\n\ntest('Should not mutate user-provided routerOptions object', async t => {\n  t.plan(4)\n\n  const routerOptions = {\n    maxParamLength: 2048\n  }\n  const options = { routerOptions }\n\n  const app = Fastify(options)\n  t.after(() => app.close())\n\n  await app.ready()\n\n  t.assert.deepStrictEqual(Object.keys(routerOptions), ['maxParamLength'])\n  t.assert.strictEqual(routerOptions.maxParamLength, 2048)\n  t.assert.strictEqual(routerOptions.defaultRoute, undefined)\n  t.assert.strictEqual(routerOptions.onBadUrl, undefined)\n})\n"
+  },
+  "oracle_paths": [
+    "lib/route.js",
+    "test/router-options.pr6515.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6515,
+    "sha": "b4db85b665ac99a809c633b7564d49c8a4c2c5c9",
+    "url": "https://github.com/fastify/fastify/pull/6515",
+    "author": "mcollina",
+    "merged_at": "2026-02-20T22:08:13Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/route.js"
+    ],
+    "source_files": [
+      "lib/route.js"
+    ],
+    "test_files": [
+      "test/router-options.pr6515.test.js"
+    ],
+    "source_lines_changed": 4,
+    "notes": [
+      "test/router-options.test.js: 3 added/modified case(s) extracted to test/router-options.pr6515.test.js",
+      "test/router-options.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [
+      "test/router-options.test.js"
+    ],
+    "acceptance_failing_before": [
+      "test/router-options.pr6515.test.js"
+    ],
+    "suite_seconds": 15.5,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/route.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t009",
+      "t015",
+      "t017",
+      "t027",
+      "t034"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "id": "t005",
+  "title": "fix(ts): Align routerOptions defaultRoute types with runtime",
+  "prompt": "## Summary\n\nFixes #6389.\n\n### What was broken\n\n`routerOptions.defaultRoute` and `routerOptions.onBadUrl` were typed as receiving `FastifyReply`, but the runtime always provides the raw Node `ServerResponse`. Consumers relying on the typed `FastifyReply` helpers (for example `reply.send`) hit runtime errors despite the compiler reporting everything as safe.\n\n### What this PR changes\n\n- retunes the TypeScript definitions for both callbacks to `RawRequestDefaultExpression`/`RawReplyDefaultExpression`, so the compiler finally describes what the runtime actually hands you\n- calls out in `docs/Reference/Server.md` that these hooks get raw `IncomingMessage`/`ServerResponse` objects, setting expectations for folks writing plain JavaScript too\n- drops a tsd regression in `test/types/instance.test-d.ts` so `routerOptions` can’t quietly drift back to exposing `FastifyReply`\n\n### Testing evidence\n\n- `npm run lint` → passes (eslint only)\n- `npm run unit` → passes (borp, 2,140 tests run, 0 failures, 4 skips)\n- `npm run test:typescript` → passes (tsc + tsd)\n- `npm run benchmark --if-present` → passes (autocannon ~119k req/s avg, 672 MB read over 30 s)",
+  "acceptance_tests": {
+    "test/issue-4959.pr6392.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst http = require('node:http')\nconst Fastify = require('../fastify')\nconst { setTimeout } = require('node:timers')\n\n/*\n* Ensure that a socket error during the request does not cause the\n* onSend hook to be called multiple times.\n*\n* @see https://github.com/fastify/fastify/issues/4959\n*/\nfunction runBadClientCall (reqOptions, payload, waitBeforeDestroy) {\n  let innerResolve, innerReject\n  const promise = new Promise((resolve, reject) => {\n    innerResolve = resolve\n    innerReject = reject\n  })\n\n  const postData = JSON.stringify(payload)\n\n  const req = http.request({\n    ...reqOptions,\n    headers: {\n      'Content-Type': 'application/json',\n      'Content-Length': Buffer.byteLength(postData)\n    }\n  }, () => {\n    innerReject(new Error('Request should have failed'))\n  })\n\n  // Kill the socket after the request has been fully written.\n  // Destroying it on `connect` can race before any bytes are sent, making the\n  // server-side assertions (hooks/handler) non-deterministic.\n  //\n  // To keep the test deterministic, we optionally wait for a server-side signal\n  // (e.g. onSend entered) before aborting the client.\n  let socket\n  req.on('socket', (s) => { socket = s })\n  req.on('finish', () => {\n    if (waitBeforeDestroy && typeof waitBeforeDestroy.then === 'function') {\n      Promise.race([\n        waitBeforeDestroy,\n        new Promise(resolve => setTimeout(resolve, 200))\n      ]).then(() => {\n        if (socket) socket.destroy()\n      }, innerResolve)\n      return\n    }\n    setTimeout(() => { socket.destroy() }, 0)\n  })\n  req.on('error', innerResolve)\n  req.write(postData)\n  req.end()\n\n  return promise\n}\n\ntest('should handle a socket error', async (t) => {\n  t.plan(4)\n  const fastify = Fastify()\n\n  let resolveOnSendEntered\n  const onSendEntered = new Promise((resolve) => {\n    resolveOnSendEntered = resolve\n  })\n\n  function shouldNotHappen () {\n    t.assert.fail('This should not happen')\n  }\n  process.on('unhandledRejection', shouldNotHappen)\n\n  t.after(() => {\n    fastify.close()\n    process.removeListener('unhandledRejection', shouldNotHappen)\n  })\n\n  fastify.addHook('onRequest', async (request, reply) => {\n    t.assert.ok('onRequest hook called')\n  })\n\n  fastify.addHook('onSend', async (request, reply, payload) => {\n    if (request.onSendCalled) {\n      t.assert.fail('onSend hook called more than once')\n      return\n    }\n\n    t.assert.ok('onSend hook called')\n    request.onSendCalled = true\n\n    if (resolveOnSendEntered) {\n      resolveOnSendEntered()\n      resolveOnSendEntered = null\n    }\n\n    // Introduce a delay (gives time for client-side abort to happen while the\n    // request has already been processed, exercising the original issue).\n    await new Promise(resolve => setTimeout(resolve, 50))\n    return payload\n  })\n\n  // The handler must be async to trigger the error\n  fastify.put('/', async (request, reply) => {\n    t.assert.ok('PUT handler called')\n    return reply.send({ hello: 'world' })\n  })\n\n  await fastify.listen({ port: 0 })\n\n  const err = await runBadClientCall({\n    hostname: 'localhost',\n    port: fastify.server.address().port,\n    path: '/',\n    method: 'PUT'\n  }, { test: 'me' }, onSendEntered)\n  t.assert.equal(err.code, 'ECONNRESET')\n})\n",
+    "test/router-options.pr6392.test.js": "'use strict'\n\nconst split = require('split2')\nconst { test } = require('node:test')\nconst querystring = require('node:querystring')\nconst Fastify = require('../')\nconst {\n  FST_ERR_BAD_URL,\n  FST_ERR_ASYNC_CONSTRAINT\n} = require('../lib/errors')\n\ntest('Should support extra find-my-way options', async t => {\n  t.plan(1)\n  // Use a real upstream option from find-my-way\n  const fastify = Fastify({\n    routerOptions: {\n      buildPrettyMeta: (route) => {\n        const cleanMeta = Object.assign({}, route.store)\n        return cleanMeta\n      }\n    }\n  })\n\n  await fastify.ready()\n\n  // Ensure the option is preserved after validation\n  t.assert.strictEqual(typeof fastify.initialConfig.routerOptions.buildPrettyMeta, 'function')\n})\n"
+  },
+  "oracle_paths": [
+    "build/build-validation.js",
+    "docs/Reference/Server.md",
+    "fastify.d.ts",
+    "lib/config-validator.js",
+    "test/issue-4959.pr6392.test.js",
+    "test/issue-4959.test.js",
+    "test/router-options.pr6392.test.js",
+    "test/types/instance.test-d.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "build",
+    "docs/Reference",
+    "lib",
+    "test",
+    "test/types"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6392,
+    "sha": "f18cda12d62a81f41d14b5c41cd674dd2abef817",
+    "url": "https://github.com/fastify/fastify/pull/6392",
+    "author": "AnkanMisra",
+    "merged_at": "2026-01-02T16:39:58Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "build/build-validation.js",
+      "docs/Reference/Server.md",
+      "fastify.d.ts",
+      "lib/config-validator.js",
+      "test/issue-4959.test.js",
+      "test/types/instance.test-d.ts"
+    ],
+    "source_files": [
+      "lib/config-validator.js"
+    ],
+    "test_files": [
+      "test/issue-4959.pr6392.test.js",
+      "test/router-options.pr6392.test.js"
+    ],
+    "source_lines_changed": 20,
+    "notes": [
+      "test/issue-4959.test.js: 1 added/modified case(s) extracted to test/issue-4959.pr6392.test.js",
+      "test/issue-4959.test.js: modified expectations stay in the solution",
+      "test/router-options.test.js: 1 added/modified case(s) extracted to test/router-options.pr6392.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/router-options.pr6392.test.js"
+    ],
+    "suite_seconds": 14.4,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/config-validator.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t009"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [
+      "t006",
+      "t009"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

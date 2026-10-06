@@ -1,0 +1,25 @@
+diff --git a/lib/schema-controller.js b/lib/schema-controller.js
+index 119c95c7..a805c85c 100644
+--- a/lib/schema-controller.js
++++ b/lib/schema-controller.js
+@@ -1,8 +1,6 @@
+ 'use strict'
+ 
+ const { buildSchemas } = require('./schemas')
+-const SerializerSelector = require('@fastify/fast-json-stringify-compiler')
+-const ValidatorSelector = require('@fastify/ajv-compiler')
+ 
+ /**
+  * Called at every fastify context that is being created.
+@@ -21,9 +19,11 @@ function buildSchemaController (parentSchemaCtrl, opts) {
+   }, opts?.compilersFactory)
+ 
+   if (!compilersFactory.buildValidator) {
++    const ValidatorSelector = require('@fastify/ajv-compiler')
+     compilersFactory.buildValidator = ValidatorSelector()
+   }
+   if (!compilersFactory.buildSerializer) {
++    const SerializerSelector = require('@fastify/fast-json-stringify-compiler')
+     compilersFactory.buildSerializer = SerializerSelector()
+   }
+ 

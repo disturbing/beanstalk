@@ -1,0 +1,164 @@
+{
+  "id": "t009",
+  "title": "feat: First-class support for handler-level timeouts",
+  "prompt": "Adds a first-class handlerTimeout option, configurable per-server and per-route, backed by an AbortSignal exposed as request.signal. Unlike the existing socket-level timeouts (connectionTimeout, requestTimeout), this is an application-level timeout that works correctly with HTTP keep-alive and can be scoped to individual routes, and used together with flows that support AbortSignal (fetch, DBs etc).\n\n  Highlights\n\n  - Zero overhead when disabled: default is 0 (no timeout). No AbortController, setTimeout, or event listeners are\n  created, only a single branch check per request\n  - Per-route override: works like bodyLimit — routes inherit the server default and can override with a different\n  value;\n  - Cooperative cancellation: timeout sends a 503 response and aborts request.signal, but does not kill the handler.\n  Handlers use request.signal to propagate cancellation to downstream I/O;\n  - Unified signal: request.signal aborts on either timeout or client disconnect. signal.reason distinguishes the two\n  (FST_ERR_HANDLER_TIMEOUT vs generic AbortError);\n  - Full resource cleanup: timer and close listener are cleaned up in every exit path — normal response, error,\n  reply.hijack(), timeout, and client disconnect;\n  - Customizable error response: the timeout error flows through the route's errorHandler, allowing per-route\n  status/body customization;\n  - Fail-fast on misconfiguration: accessing request.signal without handlerTimeout configured throws\n  FST_ERR_MISSING_HANDLER_TIMEOUT.",
+  "acceptance_tests": {
+    "test/handler-timeout.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst net = require('node:net')\nconst Fastify = require('..')\nconst { Readable } = require('node:stream')\nconst { kTimeoutTimer, kOnAbort } = require('../lib/symbols')\n\n// --- Option validation ---\n\ntest('server-level handlerTimeout defaults to 0 in initialConfig', t => {\n  t.plan(1)\n  const fastify = Fastify()\n  t.assert.strictEqual(fastify.initialConfig.handlerTimeout, 0)\n})\n\ntest('server-level handlerTimeout: 5000 is accepted and exposed in initialConfig', t => {\n  t.plan(1)\n  const fastify = Fastify({ handlerTimeout: 5000 })\n  t.assert.strictEqual(fastify.initialConfig.handlerTimeout, 5000)\n})\n\ntest('route-level handlerTimeout rejects invalid values', async t => {\n  const fastify = Fastify()\n\n  t.assert.throws(() => {\n    fastify.get('/a', { handlerTimeout: 'fast' }, async () => 'ok')\n  }, { code: 'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT' })\n\n  t.assert.throws(() => {\n    fastify.get('/b', { handlerTimeout: -1 }, async () => 'ok')\n  }, { code: 'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT' })\n\n  t.assert.throws(() => {\n    fastify.get('/c', { handlerTimeout: 1.5 }, async () => 'ok')\n  }, { code: 'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT' })\n\n  t.assert.throws(() => {\n    fastify.get('/d', { handlerTimeout: 0 }, async () => 'ok')\n  }, { code: 'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT' })\n})\n\n// --- Lazy signal without handlerTimeout ---\n\ntest('when handlerTimeout is 0 (default), request.signal is lazily created', async t => {\n  t.plan(3)\n  const fastify = Fastify()\n\n  fastify.get('/', async (request) => {\n    const signal = request.signal\n    t.assert.ok(signal instanceof AbortSignal)\n    t.assert.strictEqual(signal.aborted, false)\n    return { ok: true }\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 200)\n})\n\ntest('client disconnect aborts lazily created signal (no handlerTimeout)', async t => {\n  t.plan(1)\n\n  const fastify = Fastify()\n  let signalAborted = false\n\n  fastify.get('/', async (request) => {\n    await new Promise((resolve) => {\n      request.signal.addEventListener('abort', () => {\n        signalAborted = true\n        resolve()\n      })\n    })\n    return 'should not reach'\n  })\n\n  await fastify.listen({ port: 0 })\n  t.after(() => fastify.close())\n\n  const address = fastify.server.address()\n  await new Promise((resolve) => {\n    const client = net.connect(address.port, () => {\n      client.write('GET / HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n')\n      setTimeout(() => {\n        client.destroy()\n        setTimeout(resolve, 100)\n      }, 50)\n    })\n  })\n\n  t.assert.strictEqual(signalAborted, true)\n})\n\n// --- Basic timeout behavior ---\n\ntest('slow handler returns 503 with FST_ERR_HANDLER_TIMEOUT', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  fastify.get('/', { handlerTimeout: 50 }, async () => {\n    await new Promise(resolve => setTimeout(resolve, 500))\n    return 'too late'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 503)\n  t.assert.strictEqual(JSON.parse(res.payload).code, 'FST_ERR_HANDLER_TIMEOUT')\n})\n\ntest('fast handler completes normally with 200', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  fastify.get('/', { handlerTimeout: 5000 }, async () => {\n    return { hello: 'world' }\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.deepStrictEqual(JSON.parse(res.payload), { hello: 'world' })\n})\n\n// --- Per-route override ---\n\ntest('route-level handlerTimeout overrides server default', async t => {\n  t.plan(4)\n  const fastify = Fastify({ handlerTimeout: 5000 })\n\n  fastify.get('/slow', { handlerTimeout: 50 }, async () => {\n    await new Promise(resolve => setTimeout(resolve, 500))\n    return 'too late'\n  })\n\n  fastify.get('/fast', async () => {\n    return { ok: true }\n  })\n\n  const resSlow = await fastify.inject({ method: 'GET', url: '/slow' })\n  t.assert.strictEqual(resSlow.statusCode, 503)\n  t.assert.strictEqual(JSON.parse(resSlow.payload).code, 'FST_ERR_HANDLER_TIMEOUT')\n\n  const resFast = await fastify.inject({ method: 'GET', url: '/fast' })\n  t.assert.strictEqual(resFast.statusCode, 200)\n  t.assert.deepStrictEqual(JSON.parse(resFast.payload), { ok: true })\n})\n\n// --- request.signal behavior ---\n\ntest('request.signal is an AbortSignal when handlerTimeout > 0', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  fastify.get('/', { handlerTimeout: 5000 }, async (request) => {\n    t.assert.ok(request.signal instanceof AbortSignal)\n    t.assert.strictEqual(request.signal.aborted, false)\n    return 'ok'\n  })\n\n  await fastify.inject({ method: 'GET', url: '/' })\n})\n\ntest('request.signal aborts when timeout fires with reason', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  let signalReason = null\n  fastify.get('/', { handlerTimeout: 50 }, async (request) => {\n    request.signal.addEventListener('abort', () => {\n      signalReason = request.signal.reason\n    })\n    await new Promise(resolve => setTimeout(resolve, 500))\n    return 'too late'\n  })\n\n  await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.ok(signalReason !== null)\n  t.assert.strictEqual(signalReason.code, 'FST_ERR_HANDLER_TIMEOUT')\n})\n\n// --- Streaming response ---\n\ntest('streaming response: timer clears when response finishes', async t => {\n  t.plan(1)\n\n  const fastify = Fastify()\n  fastify.get('/', { handlerTimeout: 5000 }, async (request, reply) => {\n    const stream = new Readable({\n      read () {\n        this.push('hello')\n        this.push(null)\n      }\n    })\n    reply.type('text/plain').send(stream)\n    return reply\n  })\n\n  await fastify.listen({ port: 0 })\n  t.after(() => fastify.close())\n\n  const address = fastify.server.address()\n  const res = await fetch(`http://localhost:${address.port}/`)\n  t.assert.strictEqual(res.status, 200)\n})\n\n// --- SSE with reply.hijack() ---\n\ntest('reply.hijack() clears timeout timer', async t => {\n  t.plan(1)\n\n  const fastify = Fastify()\n  fastify.get('/', { handlerTimeout: 100 }, async (request, reply) => {\n    reply.hijack()\n    // Write after the original timeout would have fired\n    await new Promise(resolve => setTimeout(resolve, 200))\n    reply.raw.writeHead(200, { 'Content-Type': 'text/plain' })\n    reply.raw.end('hijacked response')\n  })\n\n  await fastify.listen({ port: 0 })\n  t.after(() => fastify.close())\n\n  const address = fastify.server.address()\n  const res = await fetch(`http://localhost:${address.port}/`)\n  t.assert.strictEqual(res.status, 200)\n})\n\n// --- Error handler integration ---\n\ntest('route-level errorHandler receives FST_ERR_HANDLER_TIMEOUT', async t => {\n  t.plan(3)\n  const fastify = Fastify()\n\n  fastify.get('/', {\n    handlerTimeout: 50,\n    errorHandler: (error, request, reply) => {\n      t.assert.strictEqual(error.code, 'FST_ERR_HANDLER_TIMEOUT')\n      reply.code(504).send({ custom: 'timeout' })\n    }\n  }, async () => {\n    await new Promise(resolve => setTimeout(resolve, 500))\n    return 'too late'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 504)\n  t.assert.deepStrictEqual(JSON.parse(res.payload), { custom: 'timeout' })\n})\n\n// --- Timer cleanup / no leaks ---\n\ntest('timer is cleaned up after fast response (no leak)', async t => {\n  t.plan(3)\n  const fastify = Fastify()\n\n  let capturedRequest\n  fastify.get('/', { handlerTimeout: 60000 }, async (request) => {\n    capturedRequest = request\n    return 'fast'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 200)\n  // Timer and listener should be cleaned up\n  t.assert.strictEqual(capturedRequest[kTimeoutTimer], null)\n  t.assert.strictEqual(capturedRequest[kOnAbort], null)\n})\n\n// --- routeOptions exposure ---\n\ntest('request.routeOptions.handlerTimeout reflects configured value', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  fastify.get('/', { handlerTimeout: 3000 }, async (request) => {\n    t.assert.strictEqual(request.routeOptions.handlerTimeout, 3000)\n    return 'ok'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 200)\n})\n\ntest('request.routeOptions.handlerTimeout reflects server default', async t => {\n  t.plan(2)\n  const fastify = Fastify({ handlerTimeout: 7000 })\n\n  fastify.get('/', async (request) => {\n    t.assert.strictEqual(request.routeOptions.handlerTimeout, 7000)\n    return 'ok'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 200)\n})\n\n// --- Client disconnect aborts signal ---\n\ntest('client disconnect aborts request.signal', async t => {\n  t.plan(1)\n\n  const fastify = Fastify()\n  let signalAborted = false\n\n  fastify.get('/', { handlerTimeout: 5000 }, async (request) => {\n    await new Promise((resolve) => {\n      request.signal.addEventListener('abort', () => {\n        signalAborted = true\n        resolve()\n      })\n    })\n    return 'should not reach'\n  })\n\n  await fastify.listen({ port: 0 })\n  t.after(() => fastify.close())\n\n  const address = fastify.server.address()\n  await new Promise((resolve) => {\n    const client = net.connect(address.port, () => {\n      client.write('GET / HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n')\n      setTimeout(() => {\n        client.destroy()\n        // Give the server time to process the close event\n        setTimeout(resolve, 100)\n      }, 50)\n    })\n  })\n\n  t.assert.strictEqual(signalAborted, true)\n})\n\n// --- Race: handler completes just as timeout fires ---\n\ntest('no double-send when handler completes near timeout boundary', async t => {\n  t.plan(2)\n  const fastify = Fastify()\n\n  fastify.get('/', { handlerTimeout: 50 }, async (request, reply) => {\n    // Respond just before timeout\n    await new Promise(resolve => setTimeout(resolve, 40))\n    reply.send({ ok: true })\n    return reply\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  // Should get either 200 or 503 depending on race, but never crash\n  t.assert.ok(res.statusCode === 200 || res.statusCode === 503)\n  // Verify response is valid JSON regardless of which won the race\n  t.assert.ok(JSON.parse(res.payload))\n})\n\n// --- Server default inherited by routes ---\n\ntest('routes inherit server-level handlerTimeout', async t => {\n  t.plan(3)\n  const fastify = Fastify({ handlerTimeout: 50 })\n\n  fastify.get('/', async (request) => {\n    // Verify the signal is present (inherited from server default)\n    t.assert.ok(request.signal instanceof AbortSignal)\n    await new Promise(resolve => setTimeout(resolve, 500))\n    return 'too late'\n  })\n\n  const res = await fastify.inject({ method: 'GET', url: '/' })\n  t.assert.strictEqual(res.statusCode, 503)\n  t.assert.strictEqual(JSON.parse(res.payload).code, 'FST_ERR_HANDLER_TIMEOUT')\n})\n",
+    "test/internals/initial-config.pr6521.test.js": "'use strict'\n\nconst { test, before } = require('node:test')\nconst Fastify = require('../..')\nconst helper = require('../helper')\nconst http = require('node:http')\nconst pino = require('pino')\nconst split = require('split2')\nconst deepClone = require('rfdc')({ circles: true, proto: false })\nconst { deepFreezeObject } = require('../../lib/initial-config-validation').utils\n\nconst { buildCertificate } = require('../build-certificate')\n\nprocess.removeAllListeners('warning')\n\nlet localhost\nlet localhostForURL\n\nbefore(async function () {\n  await buildCertificate();\n  [localhost, localhostForURL] = await helper.getLoopbackHost()\n})\n\ntest('without options passed to Fastify, initialConfig should expose default values', t => {\n  t.plan(1)\n\n  const fastifyDefaultOptions = {\n    connectionTimeout: 0,\n    keepAliveTimeout: 72000,\n    maxRequestsPerSocket: 0,\n    requestTimeout: 0,\n    handlerTimeout: 0,\n    bodyLimit: 1024 * 1024,\n    caseSensitive: true,\n    allowUnsafeRegex: false,\n    disableRequestLogging: false,\n    ignoreTrailingSlash: false,\n    ignoreDuplicateSlashes: false,\n    maxParamLength: 100,\n    onProtoPoisoning: 'error',\n    onConstructorPoisoning: 'error',\n    pluginTimeout: 10000,\n    requestIdHeader: false,\n    requestIdLogLabel: 'reqId',\n    http2SessionTimeout: 72000,\n    exposeHeadRoutes: true,\n    useSemicolonDelimiter: false\n  }\n\n  t.assert.deepStrictEqual(Fastify().initialConfig, fastifyDefaultOptions)\n})\n\ntest('Should not have issues when passing stream options to Pino.js', (t, done) => {\n  t.plan(17)\n\n  const stream = split(JSON.parse)\n\n  const originalOptions = {\n    ignoreTrailingSlash: true,\n    logger: {\n      level: 'trace',\n      stream\n    }\n  }\n\n  let fastify\n\n  try {\n    fastify = Fastify(originalOptions)\n    fastify.setChildLoggerFactory(function (logger, bindings, opts) {\n      bindings.someBinding = 'value'\n      return logger.child(bindings, opts)\n    })\n\n    t.assert.ok(typeof fastify === 'object')\n    t.assert.deepStrictEqual(fastify.initialConfig, {\n      connectionTimeout: 0,\n      keepAliveTimeout: 72000,\n      maxRequestsPerSocket: 0,\n      requestTimeout: 0,\n      handlerTimeout: 0,\n      bodyLimit: 1024 * 1024,\n      caseSensitive: true,\n      allowUnsafeRegex: false,\n      disableRequestLogging: false,\n      ignoreTrailingSlash: true,\n      ignoreDuplicateSlashes: false,\n      maxParamLength: 100,\n      onProtoPoisoning: 'error',\n      onConstructorPoisoning: 'error',\n      pluginTimeout: 10000,\n      requestIdHeader: false,\n      requestIdLogLabel: 'reqId',\n      http2SessionTimeout: 72000,\n      exposeHeadRoutes: true,\n      useSemicolonDelimiter: false\n    })\n  } catch (error) {\n    t.assert.fail()\n  }\n\n  fastify.get('/', function (req, reply) {\n    t.assert.ok(req.log)\n    reply.send({ hello: 'world' })\n  })\n\n  stream.once('data', listenAtLogLine => {\n    t.assert.ok(listenAtLogLine, 'listen at log message is ok')\n\n    stream.once('data', line => {\n      const id = line.reqId\n      t.assert.ok(line.reqId, 'reqId is defined')\n      t.assert.strictEqual(line.someBinding, 'value', 'child logger binding is set')\n      t.assert.ok(line.req, 'req is defined')\n      t.assert.strictEqual(line.msg, 'incoming request', 'message is set')\n      t.assert.strictEqual(line.req.method, 'GET', 'method is get')\n\n      stream.once('data', line => {\n        t.assert.strictEqual(line.reqId, id)\n        t.assert.ok(line.reqId, 'reqId is defined')\n        t.assert.strictEqual(line.someBinding, 'value', 'child logger binding is set')\n        t.assert.ok(line.res, 'res is defined')\n        t.assert.strictEqual(line.msg, 'request completed', 'message is set')\n        t.assert.strictEqual(line.res.statusCode, 200, 'statusCode is 200')\n        t.assert.ok(line.responseTime, 'responseTime is defined')\n      })\n    })\n  })\n\n  fastify.listen({ port: 0, host: localhost }, err => {\n    t.assert.ifError(err)\n    t.after(() => { fastify.close() })\n\n    http.get(`http://${localhostForURL}:${fastify.server.address().port}`, () => {\n      done()\n    })\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "build/build-validation.js",
+    "docs/Reference/Errors.md",
+    "docs/Reference/Hooks.md",
+    "docs/Reference/Lifecycle.md",
+    "docs/Reference/Request.md",
+    "docs/Reference/Routes.md",
+    "docs/Reference/Server.md",
+    "fastify.d.ts",
+    "fastify.js",
+    "lib/config-validator.js",
+    "lib/context.js",
+    "lib/errors.js",
+    "lib/reply.js",
+    "lib/request.js",
+    "lib/route.js",
+    "lib/symbols.js",
+    "test/handler-timeout.test.js",
+    "test/internals/errors.test.js",
+    "test/internals/initial-config.pr6521.test.js",
+    "test/internals/initial-config.test.js",
+    "test/types/fastify.test-d.ts",
+    "test/types/request.test-d.ts",
+    "types/errors.d.ts",
+    "types/request.d.ts",
+    "types/route.d.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "build",
+    "docs/Reference",
+    "lib",
+    "test",
+    "test/internals",
+    "test/types",
+    "types"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6521,
+    "sha": "f376f6082b5ddfe5ea96fdd3d98a66377b6bb4c2",
+    "url": "https://github.com/fastify/fastify/pull/6521",
+    "author": "kibertoad",
+    "merged_at": "2026-02-25T22:55:39Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "build/build-validation.js",
+      "docs/Reference/Errors.md",
+      "docs/Reference/Hooks.md",
+      "docs/Reference/Lifecycle.md",
+      "docs/Reference/Request.md",
+      "docs/Reference/Routes.md",
+      "docs/Reference/Server.md",
+      "fastify.d.ts",
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/context.js",
+      "lib/errors.js",
+      "lib/reply.js",
+      "lib/request.js",
+      "lib/route.js",
+      "lib/symbols.js",
+      "test/internals/errors.test.js",
+      "test/internals/initial-config.test.js",
+      "test/types/fastify.test-d.ts",
+      "test/types/request.test-d.ts",
+      "types/errors.d.ts",
+      "types/request.d.ts",
+      "types/route.d.ts"
+    ],
+    "source_files": [
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/context.js",
+      "lib/errors.js",
+      "lib/reply.js",
+      "lib/request.js",
+      "lib/route.js",
+      "lib/symbols.js"
+    ],
+    "test_files": [
+      "test/handler-timeout.test.js",
+      "test/internals/initial-config.pr6521.test.js"
+    ],
+    "source_lines_changed": 734,
+    "notes": [
+      "test/internals/errors.test.js: modified expectations stay in the solution",
+      "test/internals/initial-config.test.js: 2 added/modified case(s) extracted to test/internals/initial-config.pr6521.test.js",
+      "test/internals/initial-config.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/handler-timeout.test.js",
+      "test/internals/initial-config.pr6521.test.js"
+    ],
+    "suite_seconds": 15.4,
+    "suite_retried": false,
+    "prerequisites": [
+      "t005",
+      "t006"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/context.js",
+      "lib/errors.js",
+      "lib/reply.js",
+      "lib/request.js",
+      "lib/route.js",
+      "lib/symbols.js"
+    ],
+    "shares_a_source_file_with": [
+      "t005",
+      "t006",
+      "t008",
+      "t010",
+      "t011",
+      "t012",
+      "t013",
+      "t014",
+      "t015",
+      "t017",
+      "t019",
+      "t020",
+      "t021",
+      "t022",
+      "t023",
+      "t025",
+      "t026",
+      "t027",
+      "t030",
+      "t033",
+      "t034",
+      "t036",
+      "t038"
+    ],
+    "writes_lines_written_by": [
+      "t005",
+      "t006"
+    ],
+    "lines_rewritten_by": [
+      "t017",
+      "t023"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

@@ -1,0 +1,1736 @@
+diff --git a/build/build-validation.js b/build/build-validation.js
+index c252478a..d20213a7 100644
+--- a/build/build-validation.js
++++ b/build/build-validation.js
+@@ -28,6 +28,7 @@ const defaultInitOptions = {
+   forceCloseConnections: undefined, // keep-alive connections
+   maxRequestsPerSocket: 0, // no limit
+   requestTimeout: 0, // no limit
++  handlerTimeout: 0, // no timeout (disabled by default)
+   bodyLimit: 1024 * 1024, // 1 MiB
+   caseSensitive: true,
+   allowUnsafeRegex: false,
+@@ -72,6 +73,7 @@ const schema = {
+     },
+     maxRequestsPerSocket: { type: 'integer', default: defaultInitOptions.maxRequestsPerSocket, nullable: true },
+     requestTimeout: { type: 'integer', default: defaultInitOptions.requestTimeout },
++    handlerTimeout: { type: 'integer', default: defaultInitOptions.handlerTimeout },
+     bodyLimit: { type: 'integer', default: defaultInitOptions.bodyLimit },
+     caseSensitive: { type: 'boolean', default: defaultInitOptions.caseSensitive },
+     allowUnsafeRegex: { type: 'boolean', default: defaultInitOptions.allowUnsafeRegex },
+diff --git a/docs/Reference/Errors.md b/docs/Reference/Errors.md
+index 9d592277..f1e66374 100644
+--- a/docs/Reference/Errors.md
++++ b/docs/Reference/Errors.md
+@@ -84,6 +84,9 @@
+     - [FST_ERR_ROUTE_METHOD_NOT_SUPPORTED](#fst_err_route_method_not_supported)
+     - [FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED](#fst_err_route_body_validation_schema_not_supported)
+     - [FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT](#fst_err_route_body_limit_option_not_int)
++    - [FST_ERR_HANDLER_TIMEOUT](#fst_err_handler_timeout)
++
++    - [FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT](#fst_err_route_handler_timeout_option_not_int)
+     - [FST_ERR_ROUTE_REWRITE_NOT_STR](#fst_err_route_rewrite_not_str)
+     - [FST_ERR_REOPENED_CLOSE_SERVER](#fst_err_reopened_close_server)
+     - [FST_ERR_REOPENED_SERVER](#fst_err_reopened_server)
+@@ -356,6 +359,8 @@ Below is a table with all the error codes used by Fastify.
+ | <a id="fst_err_route_method_not_supported">FST_ERR_ROUTE_METHOD_NOT_SUPPORTED</a> | Method is not supported for the route. | Use a supported method. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_route_body_validation_schema_not_supported">FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED</a> | Body validation schema route is not supported. | Use a different different method for the route. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_route_body_limit_option_not_int">FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT</a> | `bodyLimit` option must be an integer. | Use an integer for the `bodyLimit` option. | [#4554](https://github.com/fastify/fastify/pull/4554) |
++| <a id="fst_err_handler_timeout">FST_ERR_HANDLER_TIMEOUT</a> | Request timed out. | Increase the `handlerTimeout` option or optimize the handler. | - |
++| <a id="fst_err_route_handler_timeout_option_not_int">FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT</a> | `handlerTimeout` option must be a positive integer. | Use a positive integer for the `handlerTimeout` option. | - |
+ | <a id="fst_err_route_rewrite_not_str">FST_ERR_ROUTE_REWRITE_NOT_STR</a> | `rewriteUrl` needs to be of type `string`. | Use a string for the `rewriteUrl`. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_reopened_close_server">FST_ERR_REOPENED_CLOSE_SERVER</a> | Fastify has already been closed and cannot be reopened. | - | [#2415](https://github.com/fastify/fastify/pull/2415) |
+ | <a id="fst_err_reopened_server">FST_ERR_REOPENED_SERVER</a> | Fastify is already listening. | - | [#2415](https://github.com/fastify/fastify/pull/2415) |
+diff --git a/docs/Reference/Hooks.md b/docs/Reference/Hooks.md
+index ebc86f62..547e2cee 100644
+--- a/docs/Reference/Hooks.md
++++ b/docs/Reference/Hooks.md
+@@ -275,6 +275,11 @@ service (if the `connectionTimeout` property is set on the Fastify instance).
+ The `onTimeout` hook is executed when a request is timed out and the HTTP socket
+ has been hung up. Therefore, you will not be able to send data to the client.
+ 
++> Note: The `onTimeout` hook is triggered by socket-level timeouts set via
++> `connectionTimeout`. For application-level per-route timeouts, see the
++> [`handlerTimeout`](./Server.md#factory-handler-timeout) option which uses
++> `request.signal` for cooperative cancellation.
++
+ ### onRequestAbort
+ 
+ ```js
+diff --git a/docs/Reference/Lifecycle.md b/docs/Reference/Lifecycle.md
+index a1b130b7..1d66bbb6 100644
+--- a/docs/Reference/Lifecycle.md
++++ b/docs/Reference/Lifecycle.md
+@@ -41,6 +41,11 @@ Incoming Request
+                                                                             └─▶ onResponse Hook
+ ```
+ 
++When `handlerTimeout` is configured, a timer starts after routing. If the
++response is not sent within the allowed time, `request.signal` is aborted and
++a 503 error is sent. The timer is cleared when the response finishes or when
++`reply.hijack()` is called. See [`handlerTimeout`](./Server.md#factory-handler-timeout).
++
+ Before or during the `User Handler`, `reply.hijack()` can be called to:
+ - Prevent Fastify from running subsequent hooks and the user handler
+ - Prevent Fastify from sending the response automatically
+diff --git a/docs/Reference/Request.md b/docs/Reference/Request.md
+index f1fadfa3..61039bf8 100644
+--- a/docs/Reference/Request.md
++++ b/docs/Reference/Request.md
+@@ -35,12 +35,22 @@ Request is a core Fastify object containing the following fields:
+   case of internal re-routing.
+ - `is404` - `true` if request is being handled by 404 handler, `false` otherwise.
+ - `socket` - The underlying connection of the incoming request.
++- `signal` - An `AbortSignal` that aborts when the handler timeout
++  fires or the client disconnects. Created lazily on first access, so
++  there is zero overhead when not used. When
++  [`handlerTimeout`](./Server.md#factory-handler-timeout) is configured,
++  the signal is pre-created and also aborts on timeout. Pass it to
++  `fetch()`, database queries, or any API accepting a `signal` option
++  for cooperative cancellation. On timeout, `signal.reason` is the
++  `FST_ERR_HANDLER_TIMEOUT` error; on client disconnect it is a generic
++  `AbortError`. Check `signal.reason.code` to distinguish the two cases.
+ - `context` - Deprecated, use `request.routeOptions.config` instead. A Fastify
+   internal object. Do not use or modify it directly. It is useful to access one
+   special key:
+   - `context.config` - The route [`config`](./Routes.md#routes-config) object.
+ - `routeOptions` - The route [`option`](./Routes.md#routes-options) object.
+   - `bodyLimit` - Either server limit or route limit.
++  - `handlerTimeout` - The handler timeout configured for this route.
+   - `config` - The [`config`](./Routes.md#routes-config) object for this route.
+   - `method` - The HTTP method for the route.
+   - `url` - The path of the URL to match this route.
+diff --git a/docs/Reference/Routes.md b/docs/Reference/Routes.md
+index 8dc0937e..c80a4106 100644
+--- a/docs/Reference/Routes.md
++++ b/docs/Reference/Routes.md
+@@ -115,6 +115,11 @@ fastify.route(options)
+   larger than this number of bytes. Must be an integer. You may also set this
+   option globally when first creating the Fastify instance with
+   `fastify(options)`. Defaults to `1048576` (1 MiB).
++* `handlerTimeout`: maximum number of milliseconds for the route's full
++  lifecycle. Overrides the server-level
++  [`handlerTimeout`](./Server.md#factory-handler-timeout). Must be a positive
++  integer. When the timeout fires, `request.signal` is aborted and a 503 error
++  is sent through the error handler (which can be customized per-route).
+ * `logLevel`: set log level for this route. See below.
+ * `logSerializers`: set serializers to log for this route.
+ * `config`: object used to store custom configuration.
+diff --git a/docs/Reference/Server.md b/docs/Reference/Server.md
+index dafe02dd..23c32504 100644
+--- a/docs/Reference/Server.md
++++ b/docs/Reference/Server.md
+@@ -224,6 +224,71 @@ in front.
+ > ℹ️ Note:
+ >  At the time of writing, only node >= v14.11.0 supports this option
+ 
++### `handlerTimeout`
++<a id="factory-handler-timeout"></a>
++
+++ Default: `0` (no timeout)
++
++Defines the maximum number of milliseconds allowed for processing a request
++through the entire route lifecycle (from routing through onRequest, parsing,
++validation, handler execution, and serialization). If the response is not sent
++within this time, a `503 Service Unavailable` error is returned and
++`request.signal` is aborted.
++
++Unlike `connectionTimeout` and `requestTimeout` (which operate at the socket
++level), `handlerTimeout` is an application-level timeout that works correctly
++with HTTP keep-alive connections. It can be overridden per-route via
++[route options](./Routes.md#routes-options). When set at both levels, the
++route-level value takes precedence. Routes without an explicit `handlerTimeout`
++inherit the server default. Once a server-level timeout is set, individual
++routes cannot opt out of it — they can only override it with a different
++positive integer.
++
++The timeout is **cooperative**: when it fires, Fastify sends the 503 error
++response, but the handler's async work continues to run. Use
++[`request.signal`](./Request.md) to detect cancellation and stop ongoing work
++(database queries, HTTP requests, etc.). APIs that accept a `signal` option
++(`fetch()`, database drivers, `stream.pipeline()`) will cancel automatically.
++
++The timeout error (`FST_ERR_HANDLER_TIMEOUT`) is sent through the route's
++[error handler](./Routes.md#routes-options), which can be customized per-route
++to change the status code or response body.
++
++When `reply.hijack()` is called, the timeout timer is cleared — the handler
++takes full responsibility for the response lifecycle.
++
++> ℹ️ Note:
++> `handlerTimeout` does not apply to 404 handlers or custom not-found handlers
++> set via `setNotFoundHandler()`, as they bypass the route handler lifecycle.
++
++```js
++const fastify = require('fastify')({
++  handlerTimeout: 10000 // 10s default for all routes
++})
++
++// Override per-route
++fastify.get('/slow-report', { handlerTimeout: 120000 }, async (request) => {
++  // Use request.signal for cooperative cancellation
++  const data = await db.query(longQuery, { signal: request.signal })
++  return data
++})
++
++// Customize the timeout response
++fastify.get('/custom-timeout', {
++  handlerTimeout: 5000,
++  errorHandler: (error, request, reply) => {
++    if (error.code === 'FST_ERR_HANDLER_TIMEOUT') {
++      reply.code(504).send({ error: 'Gateway Timeout' })
++    } else {
++      reply.send(error)
++    }
++  }
++}, async (request) => {
++  const result = await externalService.call({ signal: request.signal })
++  return result
++})
++```
++
+ ### `bodyLimit`
+ <a id="factory-body-limit"></a>
+ 
+@@ -2161,6 +2226,7 @@ initial options passed down by the user to the Fastify instance.
+ The properties that can currently be exposed are:
+ - connectionTimeout
+ - keepAliveTimeout
++- handlerTimeout
+ - bodyLimit
+ - caseSensitive
+ - http2
+diff --git a/fastify.d.ts b/fastify.d.ts
+index c6eba3f2..b8f89d80 100644
+--- a/fastify.d.ts
++++ b/fastify.d.ts
+@@ -119,6 +119,7 @@ declare namespace fastify {
+     requestTimeout?: number,
+     pluginTimeout?: number,
+     bodyLimit?: number,
++    handlerTimeout?: number,
+     maxParamLength?: number,
+     disableRequestLogging?: boolean | ((req: FastifyRequest) => boolean),
+     exposeHeadRoutes?: boolean,
+diff --git a/fastify.js b/fastify.js
+index 555e8af3..9b9a932e 100644
+--- a/fastify.js
++++ b/fastify.js
+@@ -32,7 +32,8 @@ const {
+   kKeepAliveConnections,
+   kChildLoggerFactory,
+   kGenReqId,
+-  kErrorHandlerAlreadySet
++  kErrorHandlerAlreadySet,
++  kHandlerTimeout
+ } = require('./lib/symbols.js')
+ 
+ const { createServer } = require('./lib/server')
+@@ -149,6 +150,7 @@ function fastify (serverOptions) {
+     [kChildren]: [],
+     [kServerBindings]: [],
+     [kBodyLimit]: options.bodyLimit,
++    [kHandlerTimeout]: options.handlerTimeout,
+     [kRoutePrefix]: '',
+     [kLogLevel]: '',
+     [kLogSerializers]: null,
+diff --git a/lib/config-validator.js b/lib/config-validator.js
+index 4ce5787b..825737b1 100644
+--- a/lib/config-validator.js
++++ b/lib/config-validator.js
+@@ -3,7 +3,7 @@
+ "use strict";
+ module.exports = validate10;
+ module.exports.default = validate10;
+-const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":true,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
++const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"handlerTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":true,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
+ const func2 = Object.prototype.hasOwnProperty;
+ const pattern0 = new RegExp("idle", "u");
+ 
+@@ -24,6 +24,9 @@ data.maxRequestsPerSocket = 0;
+ if(data.requestTimeout === undefined){
+ data.requestTimeout = 0;
+ }
++if(data.handlerTimeout === undefined){
++data.handlerTimeout = 0;
++}
+ if(data.bodyLimit === undefined){
+ data.bodyLimit = 1048576;
+ }
+@@ -297,7 +300,7 @@ data["requestTimeout"] = coerced5;
+ }
+ var valid0 = _errs15 === errors;
+ if(valid0){
+-let data5 = data.bodyLimit;
++let data5 = data.handlerTimeout;
+ const _errs17 = errors;
+ if(!(((typeof data5 == "number") && (!(data5 % 1) && !isNaN(data5))) && (isFinite(data5)))){
+ let dataType6 = typeof data5;
+@@ -308,45 +311,44 @@ if(dataType6 === "boolean" || data5 === null
+ coerced6 = +data5;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/bodyLimit",schemaPath:"#/properties/bodyLimit/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/handlerTimeout",schemaPath:"#/properties/handlerTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced6 !== undefined){
+ data5 = coerced6;
+ if(data !== undefined){
+-data["bodyLimit"] = coerced6;
++data["handlerTimeout"] = coerced6;
+ }
+ }
+ }
+ var valid0 = _errs17 === errors;
+ if(valid0){
+-let data6 = data.caseSensitive;
++let data6 = data.bodyLimit;
+ const _errs19 = errors;
+-if(typeof data6 !== "boolean"){
++if(!(((typeof data6 == "number") && (!(data6 % 1) && !isNaN(data6))) && (isFinite(data6)))){
++let dataType7 = typeof data6;
+ let coerced7 = undefined;
+ if(!(coerced7 !== undefined)){
+-if(data6 === "false" || data6 === 0 || data6 === null){
+-coerced7 = false;
+-}
+-else if(data6 === "true" || data6 === 1){
+-coerced7 = true;
++if(dataType7 === "boolean" || data6 === null
++              || (dataType7 === "string" && data6 && data6 == +data6 && !(data6 % 1))){
++coerced7 = +data6;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/caseSensitive",schemaPath:"#/properties/caseSensitive/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/bodyLimit",schemaPath:"#/properties/bodyLimit/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced7 !== undefined){
+ data6 = coerced7;
+ if(data !== undefined){
+-data["caseSensitive"] = coerced7;
++data["bodyLimit"] = coerced7;
+ }
+ }
+ }
+ var valid0 = _errs19 === errors;
+ if(valid0){
+-let data7 = data.allowUnsafeRegex;
++let data7 = data.caseSensitive;
+ const _errs21 = errors;
+ if(typeof data7 !== "boolean"){
+ let coerced8 = undefined;
+@@ -358,21 +360,20 @@ else if(data7 === "true" || data7 === 1){
+ coerced8 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/allowUnsafeRegex",schemaPath:"#/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/caseSensitive",schemaPath:"#/properties/caseSensitive/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced8 !== undefined){
+ data7 = coerced8;
+ if(data !== undefined){
+-data["allowUnsafeRegex"] = coerced8;
++data["caseSensitive"] = coerced8;
+ }
+ }
+ }
+ var valid0 = _errs21 === errors;
+ if(valid0){
+-if(data.http2 !== undefined){
+-let data8 = data.http2;
++let data8 = data.allowUnsafeRegex;
+ const _errs23 = errors;
+ if(typeof data8 !== "boolean"){
+ let coerced9 = undefined;
+@@ -384,43 +385,69 @@ else if(data8 === "true" || data8 === 1){
+ coerced9 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/http2",schemaPath:"#/properties/http2/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/allowUnsafeRegex",schemaPath:"#/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced9 !== undefined){
+ data8 = coerced9;
+ if(data !== undefined){
+-data["http2"] = coerced9;
++data["allowUnsafeRegex"] = coerced9;
+ }
+ }
+ }
+ var valid0 = _errs23 === errors;
++if(valid0){
++if(data.http2 !== undefined){
++let data9 = data.http2;
++const _errs25 = errors;
++if(typeof data9 !== "boolean"){
++let coerced10 = undefined;
++if(!(coerced10 !== undefined)){
++if(data9 === "false" || data9 === 0 || data9 === null){
++coerced10 = false;
++}
++else if(data9 === "true" || data9 === 1){
++coerced10 = true;
++}
++else {
++validate10.errors = [{instancePath:instancePath+"/http2",schemaPath:"#/properties/http2/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++return false;
++}
++}
++if(coerced10 !== undefined){
++data9 = coerced10;
++if(data !== undefined){
++data["http2"] = coerced10;
++}
++}
++}
++var valid0 = _errs25 === errors;
+ }
+ else {
+ var valid0 = true;
+ }
+ if(valid0){
+ if(data.https !== undefined){
+-let data9 = data.https;
+-const _errs25 = errors;
+-const _errs26 = errors;
+-let valid2 = true;
++let data10 = data.https;
+ const _errs27 = errors;
+ const _errs28 = errors;
++let valid2 = true;
+ const _errs29 = errors;
+ const _errs30 = errors;
++const _errs31 = errors;
++const _errs32 = errors;
+ let valid4 = false;
+ let passing1 = null;
+-const _errs31 = errors;
+-if(typeof data9 !== "boolean"){
+-let coerced10 = undefined;
+-if(!(coerced10 !== undefined)){
+-if(data9 === "false" || data9 === 0 || data9 === null){
+-coerced10 = false;
++const _errs33 = errors;
++if(typeof data10 !== "boolean"){
++let coerced11 = undefined;
++if(!(coerced11 !== undefined)){
++if(data10 === "false" || data10 === 0 || data10 === null){
++coerced11 = false;
+ }
+-else if(data9 === "true" || data9 === 1){
+-coerced10 = true;
++else if(data10 === "true" || data10 === 1){
++coerced11 = true;
+ }
+ else {
+ const err4 = {};
+@@ -433,24 +460,24 @@ vErrors.push(err4);
+ errors++;
+ }
+ }
+-if(coerced10 !== undefined){
+-data9 = coerced10;
++if(coerced11 !== undefined){
++data10 = coerced11;
+ if(data !== undefined){
+-data["https"] = coerced10;
++data["https"] = coerced11;
+ }
+ }
+ }
+-var _valid2 = _errs31 === errors;
++var _valid2 = _errs33 === errors;
+ if(_valid2){
+ valid4 = true;
+ passing1 = 0;
+ }
+-const _errs33 = errors;
+-if(data9 !== null){
+-let coerced11 = undefined;
+-if(!(coerced11 !== undefined)){
+-if(data9 === "" || data9 === 0 || data9 === false){
+-coerced11 = null;
++const _errs35 = errors;
++if(data10 !== null){
++let coerced12 = undefined;
++if(!(coerced12 !== undefined)){
++if(data10 === "" || data10 === 0 || data10 === false){
++coerced12 = null;
+ }
+ else {
+ const err5 = {};
+@@ -463,14 +490,14 @@ vErrors.push(err5);
+ errors++;
+ }
+ }
+-if(coerced11 !== undefined){
+-data9 = coerced11;
++if(coerced12 !== undefined){
++data10 = coerced12;
+ if(data !== undefined){
+-data["https"] = coerced11;
++data["https"] = coerced12;
+ }
+ }
+ }
+-var _valid2 = _errs33 === errors;
++var _valid2 = _errs35 === errors;
+ if(_valid2 && valid4){
+ valid4 = false;
+ passing1 = [passing1, 1];
+@@ -480,11 +507,11 @@ if(_valid2){
+ valid4 = true;
+ passing1 = 1;
+ }
+-const _errs35 = errors;
+-if(errors === _errs35){
+-if(data9 && typeof data9 == "object" && !Array.isArray(data9)){
++const _errs37 = errors;
++if(errors === _errs37){
++if(data10 && typeof data10 == "object" && !Array.isArray(data10)){
+ let missing0;
+-if((data9.allowHTTP1 === undefined) && (missing0 = "allowHTTP1")){
++if((data10.allowHTTP1 === undefined) && (missing0 = "allowHTTP1")){
+ const err6 = {};
+ if(vErrors === null){
+ vErrors = [err6];
+@@ -495,23 +522,23 @@ vErrors.push(err6);
+ errors++;
+ }
+ else {
+-const _errs37 = errors;
+-for(const key1 in data9){
++const _errs39 = errors;
++for(const key1 in data10){
+ if(!(key1 === "allowHTTP1")){
+-delete data9[key1];
++delete data10[key1];
+ }
+ }
+-if(_errs37 === errors){
+-if(data9.allowHTTP1 !== undefined){
+-let data10 = data9.allowHTTP1;
+-if(typeof data10 !== "boolean"){
+-let coerced12 = undefined;
+-if(!(coerced12 !== undefined)){
+-if(data10 === "false" || data10 === 0 || data10 === null){
+-coerced12 = false;
++if(_errs39 === errors){
++if(data10.allowHTTP1 !== undefined){
++let data11 = data10.allowHTTP1;
++if(typeof data11 !== "boolean"){
++let coerced13 = undefined;
++if(!(coerced13 !== undefined)){
++if(data11 === "false" || data11 === 0 || data11 === null){
++coerced13 = false;
+ }
+-else if(data10 === "true" || data10 === 1){
+-coerced12 = true;
++else if(data11 === "true" || data11 === 1){
++coerced13 = true;
+ }
+ else {
+ const err7 = {};
+@@ -524,10 +551,10 @@ vErrors.push(err7);
+ errors++;
+ }
+ }
+-if(coerced12 !== undefined){
+-data10 = coerced12;
+-if(data9 !== undefined){
+-data9["allowHTTP1"] = coerced12;
++if(coerced13 !== undefined){
++data11 = coerced13;
++if(data10 !== undefined){
++data10["allowHTTP1"] = coerced13;
+ }
+ }
+ }
+@@ -546,7 +573,7 @@ vErrors.push(err8);
+ errors++;
+ }
+ }
+-var _valid2 = _errs35 === errors;
++var _valid2 = _errs37 === errors;
+ if(_valid2 && valid4){
+ valid4 = false;
+ passing1 = [passing1, 2];
+@@ -569,17 +596,17 @@ vErrors.push(err9);
+ errors++;
+ }
+ else {
+-errors = _errs30;
++errors = _errs32;
+ if(vErrors !== null){
+-if(_errs30){
+-vErrors.length = _errs30;
++if(_errs32){
++vErrors.length = _errs32;
+ }
+ else {
+ vErrors = null;
+ }
+ }
+ }
+-var valid3 = _errs29 === errors;
++var valid3 = _errs31 === errors;
+ if(valid3){
+ const err10 = {};
+ if(vErrors === null){
+@@ -591,30 +618,30 @@ vErrors.push(err10);
+ errors++;
+ }
+ else {
+-errors = _errs28;
++errors = _errs30;
+ if(vErrors !== null){
+-if(_errs28){
+-vErrors.length = _errs28;
++if(_errs30){
++vErrors.length = _errs30;
+ }
+ else {
+ vErrors = null;
+ }
+ }
+ }
+-var _valid1 = _errs27 === errors;
+-errors = _errs26;
++var _valid1 = _errs29 === errors;
++errors = _errs28;
+ if(vErrors !== null){
+-if(_errs26){
+-vErrors.length = _errs26;
++if(_errs28){
++vErrors.length = _errs28;
+ }
+ else {
+ vErrors = null;
+ }
+ }
+ if(_valid1){
+-const _errs40 = errors;
++const _errs42 = errors;
+ data["https"] = true;
+-var _valid1 = _errs40 === errors;
++var _valid1 = _errs42 === errors;
+ valid2 = _valid1;
+ }
+ if(!valid2){
+@@ -629,38 +656,13 @@ errors++;
+ validate10.errors = vErrors;
+ return false;
+ }
+-var valid0 = _errs25 === errors;
++var valid0 = _errs27 === errors;
+ }
+ else {
+ var valid0 = true;
+ }
+ if(valid0){
+-let data11 = data.ignoreTrailingSlash;
+-const _errs41 = errors;
+-if(typeof data11 !== "boolean"){
+-let coerced13 = undefined;
+-if(!(coerced13 !== undefined)){
+-if(data11 === "false" || data11 === 0 || data11 === null){
+-coerced13 = false;
+-}
+-else if(data11 === "true" || data11 === 1){
+-coerced13 = true;
+-}
+-else {
+-validate10.errors = [{instancePath:instancePath+"/ignoreTrailingSlash",schemaPath:"#/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+-return false;
+-}
+-}
+-if(coerced13 !== undefined){
+-data11 = coerced13;
+-if(data !== undefined){
+-data["ignoreTrailingSlash"] = coerced13;
+-}
+-}
+-}
+-var valid0 = _errs41 === errors;
+-if(valid0){
+-let data12 = data.ignoreDuplicateSlashes;
++let data12 = data.ignoreTrailingSlash;
+ const _errs43 = errors;
+ if(typeof data12 !== "boolean"){
+ let coerced14 = undefined;
+@@ -672,70 +674,69 @@ else if(data12 === "true" || data12 === 1){
+ coerced14 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/ignoreDuplicateSlashes",schemaPath:"#/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/ignoreTrailingSlash",schemaPath:"#/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced14 !== undefined){
+ data12 = coerced14;
+ if(data !== undefined){
+-data["ignoreDuplicateSlashes"] = coerced14;
++data["ignoreTrailingSlash"] = coerced14;
+ }
+ }
+ }
+ var valid0 = _errs43 === errors;
+ if(valid0){
+-let data13 = data.maxParamLength;
++let data13 = data.ignoreDuplicateSlashes;
+ const _errs45 = errors;
+-if(!(((typeof data13 == "number") && (!(data13 % 1) && !isNaN(data13))) && (isFinite(data13)))){
+-let dataType15 = typeof data13;
++if(typeof data13 !== "boolean"){
+ let coerced15 = undefined;
+ if(!(coerced15 !== undefined)){
+-if(dataType15 === "boolean" || data13 === null
+-              || (dataType15 === "string" && data13 && data13 == +data13 && !(data13 % 1))){
+-coerced15 = +data13;
++if(data13 === "false" || data13 === 0 || data13 === null){
++coerced15 = false;
++}
++else if(data13 === "true" || data13 === 1){
++coerced15 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/maxParamLength",schemaPath:"#/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/ignoreDuplicateSlashes",schemaPath:"#/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced15 !== undefined){
+ data13 = coerced15;
+ if(data !== undefined){
+-data["maxParamLength"] = coerced15;
++data["ignoreDuplicateSlashes"] = coerced15;
+ }
+ }
+ }
+ var valid0 = _errs45 === errors;
+ if(valid0){
+-let data14 = data.onProtoPoisoning;
++let data14 = data.maxParamLength;
+ const _errs47 = errors;
+-if(typeof data14 !== "string"){
++if(!(((typeof data14 == "number") && (!(data14 % 1) && !isNaN(data14))) && (isFinite(data14)))){
+ let dataType16 = typeof data14;
+ let coerced16 = undefined;
+ if(!(coerced16 !== undefined)){
+-if(dataType16 == "number" || dataType16 == "boolean"){
+-coerced16 = "" + data14;
+-}
+-else if(data14 === null){
+-coerced16 = "";
++if(dataType16 === "boolean" || data14 === null
++              || (dataType16 === "string" && data14 && data14 == +data14 && !(data14 % 1))){
++coerced16 = +data14;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/onProtoPoisoning",schemaPath:"#/properties/onProtoPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/maxParamLength",schemaPath:"#/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced16 !== undefined){
+ data14 = coerced16;
+ if(data !== undefined){
+-data["onProtoPoisoning"] = coerced16;
++data["maxParamLength"] = coerced16;
+ }
+ }
+ }
+ var valid0 = _errs47 === errors;
+ if(valid0){
+-let data15 = data.onConstructorPoisoning;
++let data15 = data.onProtoPoisoning;
+ const _errs49 = errors;
+ if(typeof data15 !== "string"){
+ let dataType17 = typeof data15;
+@@ -748,56 +749,82 @@ else if(data15 === null){
+ coerced17 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/onConstructorPoisoning",schemaPath:"#/properties/onConstructorPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/onProtoPoisoning",schemaPath:"#/properties/onProtoPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+ if(coerced17 !== undefined){
+ data15 = coerced17;
+ if(data !== undefined){
+-data["onConstructorPoisoning"] = coerced17;
++data["onProtoPoisoning"] = coerced17;
+ }
+ }
+ }
+ var valid0 = _errs49 === errors;
+ if(valid0){
+-let data16 = data.pluginTimeout;
++let data16 = data.onConstructorPoisoning;
+ const _errs51 = errors;
+-if(!(((typeof data16 == "number") && (!(data16 % 1) && !isNaN(data16))) && (isFinite(data16)))){
++if(typeof data16 !== "string"){
+ let dataType18 = typeof data16;
+ let coerced18 = undefined;
+ if(!(coerced18 !== undefined)){
+-if(dataType18 === "boolean" || data16 === null
+-              || (dataType18 === "string" && data16 && data16 == +data16 && !(data16 % 1))){
+-coerced18 = +data16;
++if(dataType18 == "number" || dataType18 == "boolean"){
++coerced18 = "" + data16;
++}
++else if(data16 === null){
++coerced18 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/pluginTimeout",schemaPath:"#/properties/pluginTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/onConstructorPoisoning",schemaPath:"#/properties/onConstructorPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+ if(coerced18 !== undefined){
+ data16 = coerced18;
+ if(data !== undefined){
+-data["pluginTimeout"] = coerced18;
++data["onConstructorPoisoning"] = coerced18;
+ }
+ }
+ }
+ var valid0 = _errs51 === errors;
+ if(valid0){
+-let data17 = data.requestIdHeader;
++let data17 = data.pluginTimeout;
+ const _errs53 = errors;
+-const _errs54 = errors;
+-let valid6 = false;
+-const _errs55 = errors;
+-if(typeof data17 !== "boolean"){
++if(!(((typeof data17 == "number") && (!(data17 % 1) && !isNaN(data17))) && (isFinite(data17)))){
++let dataType19 = typeof data17;
+ let coerced19 = undefined;
+ if(!(coerced19 !== undefined)){
+-if(data17 === "false" || data17 === 0 || data17 === null){
+-coerced19 = false;
++if(dataType19 === "boolean" || data17 === null
++              || (dataType19 === "string" && data17 && data17 == +data17 && !(data17 % 1))){
++coerced19 = +data17;
++}
++else {
++validate10.errors = [{instancePath:instancePath+"/pluginTimeout",schemaPath:"#/properties/pluginTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++return false;
++}
++}
++if(coerced19 !== undefined){
++data17 = coerced19;
++if(data !== undefined){
++data["pluginTimeout"] = coerced19;
+ }
+-else if(data17 === "true" || data17 === 1){
+-coerced19 = true;
++}
++}
++var valid0 = _errs53 === errors;
++if(valid0){
++let data18 = data.requestIdHeader;
++const _errs55 = errors;
++const _errs56 = errors;
++let valid6 = false;
++const _errs57 = errors;
++if(typeof data18 !== "boolean"){
++let coerced20 = undefined;
++if(!(coerced20 !== undefined)){
++if(data18 === "false" || data18 === 0 || data18 === null){
++coerced20 = false;
++}
++else if(data18 === "true" || data18 === 1){
++coerced20 = true;
+ }
+ else {
+ const err12 = {instancePath:instancePath+"/requestIdHeader",schemaPath:"#/properties/requestIdHeader/anyOf/0/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+@@ -810,26 +837,26 @@ vErrors.push(err12);
+ errors++;
+ }
+ }
+-if(coerced19 !== undefined){
+-data17 = coerced19;
++if(coerced20 !== undefined){
++data18 = coerced20;
+ if(data !== undefined){
+-data["requestIdHeader"] = coerced19;
++data["requestIdHeader"] = coerced20;
+ }
+ }
+ }
+-var _valid3 = _errs55 === errors;
++var _valid3 = _errs57 === errors;
+ valid6 = valid6 || _valid3;
+ if(!valid6){
+-const _errs57 = errors;
+-if(typeof data17 !== "string"){
+-let dataType20 = typeof data17;
+-let coerced20 = undefined;
+-if(!(coerced20 !== undefined)){
+-if(dataType20 == "number" || dataType20 == "boolean"){
+-coerced20 = "" + data17;
++const _errs59 = errors;
++if(typeof data18 !== "string"){
++let dataType21 = typeof data18;
++let coerced21 = undefined;
++if(!(coerced21 !== undefined)){
++if(dataType21 == "number" || dataType21 == "boolean"){
++coerced21 = "" + data18;
+ }
+-else if(data17 === null){
+-coerced20 = "";
++else if(data18 === null){
++coerced21 = "";
+ }
+ else {
+ const err13 = {instancePath:instancePath+"/requestIdHeader",schemaPath:"#/properties/requestIdHeader/anyOf/1/type",keyword:"type",params:{type: "string"},message:"must be string"};
+@@ -842,14 +869,14 @@ vErrors.push(err13);
+ errors++;
+ }
+ }
+-if(coerced20 !== undefined){
+-data17 = coerced20;
++if(coerced21 !== undefined){
++data18 = coerced21;
+ if(data !== undefined){
+-data["requestIdHeader"] = coerced20;
++data["requestIdHeader"] = coerced21;
+ }
+ }
+ }
+-var _valid3 = _errs57 === errors;
++var _valid3 = _errs59 === errors;
+ valid6 = valid6 || _valid3;
+ }
+ if(!valid6){
+@@ -865,94 +892,69 @@ validate10.errors = vErrors;
+ return false;
+ }
+ else {
+-errors = _errs54;
++errors = _errs56;
+ if(vErrors !== null){
+-if(_errs54){
+-vErrors.length = _errs54;
++if(_errs56){
++vErrors.length = _errs56;
+ }
+ else {
+ vErrors = null;
+ }
+ }
+ }
+-var valid0 = _errs53 === errors;
+-if(valid0){
+-let data18 = data.requestIdLogLabel;
+-const _errs59 = errors;
+-if(typeof data18 !== "string"){
+-let dataType21 = typeof data18;
+-let coerced21 = undefined;
+-if(!(coerced21 !== undefined)){
+-if(dataType21 == "number" || dataType21 == "boolean"){
+-coerced21 = "" + data18;
+-}
+-else if(data18 === null){
+-coerced21 = "";
+-}
+-else {
+-validate10.errors = [{instancePath:instancePath+"/requestIdLogLabel",schemaPath:"#/properties/requestIdLogLabel/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+-return false;
+-}
+-}
+-if(coerced21 !== undefined){
+-data18 = coerced21;
+-if(data !== undefined){
+-data["requestIdLogLabel"] = coerced21;
+-}
+-}
+-}
+-var valid0 = _errs59 === errors;
++var valid0 = _errs55 === errors;
+ if(valid0){
+-let data19 = data.http2SessionTimeout;
++let data19 = data.requestIdLogLabel;
+ const _errs61 = errors;
+-if(!(((typeof data19 == "number") && (!(data19 % 1) && !isNaN(data19))) && (isFinite(data19)))){
++if(typeof data19 !== "string"){
+ let dataType22 = typeof data19;
+ let coerced22 = undefined;
+ if(!(coerced22 !== undefined)){
+-if(dataType22 === "boolean" || data19 === null
+-              || (dataType22 === "string" && data19 && data19 == +data19 && !(data19 % 1))){
+-coerced22 = +data19;
++if(dataType22 == "number" || dataType22 == "boolean"){
++coerced22 = "" + data19;
++}
++else if(data19 === null){
++coerced22 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/http2SessionTimeout",schemaPath:"#/properties/http2SessionTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/requestIdLogLabel",schemaPath:"#/properties/requestIdLogLabel/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+ if(coerced22 !== undefined){
+ data19 = coerced22;
+ if(data !== undefined){
+-data["http2SessionTimeout"] = coerced22;
++data["requestIdLogLabel"] = coerced22;
+ }
+ }
+ }
+ var valid0 = _errs61 === errors;
+ if(valid0){
+-let data20 = data.exposeHeadRoutes;
++let data20 = data.http2SessionTimeout;
+ const _errs63 = errors;
+-if(typeof data20 !== "boolean"){
++if(!(((typeof data20 == "number") && (!(data20 % 1) && !isNaN(data20))) && (isFinite(data20)))){
++let dataType23 = typeof data20;
+ let coerced23 = undefined;
+ if(!(coerced23 !== undefined)){
+-if(data20 === "false" || data20 === 0 || data20 === null){
+-coerced23 = false;
+-}
+-else if(data20 === "true" || data20 === 1){
+-coerced23 = true;
++if(dataType23 === "boolean" || data20 === null
++              || (dataType23 === "string" && data20 && data20 == +data20 && !(data20 % 1))){
++coerced23 = +data20;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/exposeHeadRoutes",schemaPath:"#/properties/exposeHeadRoutes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/http2SessionTimeout",schemaPath:"#/properties/http2SessionTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced23 !== undefined){
+ data20 = coerced23;
+ if(data !== undefined){
+-data["exposeHeadRoutes"] = coerced23;
++data["http2SessionTimeout"] = coerced23;
+ }
+ }
+ }
+ var valid0 = _errs63 === errors;
+ if(valid0){
+-let data21 = data.useSemicolonDelimiter;
++let data21 = data.exposeHeadRoutes;
+ const _errs65 = errors;
+ if(typeof data21 !== "boolean"){
+ let coerced24 = undefined;
+@@ -964,65 +966,65 @@ else if(data21 === "true" || data21 === 1){
+ coerced24 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/useSemicolonDelimiter",schemaPath:"#/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/exposeHeadRoutes",schemaPath:"#/properties/exposeHeadRoutes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced24 !== undefined){
+ data21 = coerced24;
+ if(data !== undefined){
+-data["useSemicolonDelimiter"] = coerced24;
++data["exposeHeadRoutes"] = coerced24;
+ }
+ }
+ }
+ var valid0 = _errs65 === errors;
+ if(valid0){
+-if(data.routerOptions !== undefined){
+-let data22 = data.routerOptions;
++let data22 = data.useSemicolonDelimiter;
+ const _errs67 = errors;
+-if(errors === _errs67){
+-if(data22 && typeof data22 == "object" && !Array.isArray(data22)){
+-if(data22.ignoreTrailingSlash === undefined){
+-data22.ignoreTrailingSlash = false;
+-}
+-if(data22.ignoreDuplicateSlashes === undefined){
+-data22.ignoreDuplicateSlashes = false;
+-}
+-if(data22.maxParamLength === undefined){
+-data22.maxParamLength = 100;
+-}
+-if(data22.allowUnsafeRegex === undefined){
+-data22.allowUnsafeRegex = false;
+-}
+-if(data22.useSemicolonDelimiter === undefined){
+-data22.useSemicolonDelimiter = false;
+-}
+-let data23 = data22.ignoreTrailingSlash;
+-const _errs70 = errors;
+-if(typeof data23 !== "boolean"){
++if(typeof data22 !== "boolean"){
+ let coerced25 = undefined;
+ if(!(coerced25 !== undefined)){
+-if(data23 === "false" || data23 === 0 || data23 === null){
++if(data22 === "false" || data22 === 0 || data22 === null){
+ coerced25 = false;
+ }
+-else if(data23 === "true" || data23 === 1){
++else if(data22 === "true" || data22 === 1){
+ coerced25 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreTrailingSlash",schemaPath:"#/properties/routerOptions/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/useSemicolonDelimiter",schemaPath:"#/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced25 !== undefined){
+-data23 = coerced25;
+-if(data22 !== undefined){
+-data22["ignoreTrailingSlash"] = coerced25;
++data22 = coerced25;
++if(data !== undefined){
++data["useSemicolonDelimiter"] = coerced25;
+ }
+ }
+ }
+-var valid7 = _errs70 === errors;
+-if(valid7){
+-let data24 = data22.ignoreDuplicateSlashes;
++var valid0 = _errs67 === errors;
++if(valid0){
++if(data.routerOptions !== undefined){
++let data23 = data.routerOptions;
++const _errs69 = errors;
++if(errors === _errs69){
++if(data23 && typeof data23 == "object" && !Array.isArray(data23)){
++if(data23.ignoreTrailingSlash === undefined){
++data23.ignoreTrailingSlash = false;
++}
++if(data23.ignoreDuplicateSlashes === undefined){
++data23.ignoreDuplicateSlashes = false;
++}
++if(data23.maxParamLength === undefined){
++data23.maxParamLength = 100;
++}
++if(data23.allowUnsafeRegex === undefined){
++data23.allowUnsafeRegex = false;
++}
++if(data23.useSemicolonDelimiter === undefined){
++data23.useSemicolonDelimiter = false;
++}
++let data24 = data23.ignoreTrailingSlash;
+ const _errs72 = errors;
+ if(typeof data24 !== "boolean"){
+ let coerced26 = undefined;
+@@ -1034,69 +1036,69 @@ else if(data24 === "true" || data24 === 1){
+ coerced26 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreDuplicateSlashes",schemaPath:"#/properties/routerOptions/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreTrailingSlash",schemaPath:"#/properties/routerOptions/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced26 !== undefined){
+ data24 = coerced26;
+-if(data22 !== undefined){
+-data22["ignoreDuplicateSlashes"] = coerced26;
++if(data23 !== undefined){
++data23["ignoreTrailingSlash"] = coerced26;
+ }
+ }
+ }
+ var valid7 = _errs72 === errors;
+ if(valid7){
+-let data25 = data22.maxParamLength;
++let data25 = data23.ignoreDuplicateSlashes;
+ const _errs74 = errors;
+-if(!(((typeof data25 == "number") && (!(data25 % 1) && !isNaN(data25))) && (isFinite(data25)))){
+-let dataType27 = typeof data25;
++if(typeof data25 !== "boolean"){
+ let coerced27 = undefined;
+ if(!(coerced27 !== undefined)){
+-if(dataType27 === "boolean" || data25 === null
+-              || (dataType27 === "string" && data25 && data25 == +data25 && !(data25 % 1))){
+-coerced27 = +data25;
++if(data25 === "false" || data25 === 0 || data25 === null){
++coerced27 = false;
++}
++else if(data25 === "true" || data25 === 1){
++coerced27 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/maxParamLength",schemaPath:"#/properties/routerOptions/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreDuplicateSlashes",schemaPath:"#/properties/routerOptions/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced27 !== undefined){
+ data25 = coerced27;
+-if(data22 !== undefined){
+-data22["maxParamLength"] = coerced27;
++if(data23 !== undefined){
++data23["ignoreDuplicateSlashes"] = coerced27;
+ }
+ }
+ }
+ var valid7 = _errs74 === errors;
+ if(valid7){
+-let data26 = data22.allowUnsafeRegex;
++let data26 = data23.maxParamLength;
+ const _errs76 = errors;
+-if(typeof data26 !== "boolean"){
++if(!(((typeof data26 == "number") && (!(data26 % 1) && !isNaN(data26))) && (isFinite(data26)))){
++let dataType28 = typeof data26;
+ let coerced28 = undefined;
+ if(!(coerced28 !== undefined)){
+-if(data26 === "false" || data26 === 0 || data26 === null){
+-coerced28 = false;
+-}
+-else if(data26 === "true" || data26 === 1){
+-coerced28 = true;
++if(dataType28 === "boolean" || data26 === null
++              || (dataType28 === "string" && data26 && data26 == +data26 && !(data26 % 1))){
++coerced28 = +data26;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/allowUnsafeRegex",schemaPath:"#/properties/routerOptions/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/maxParamLength",schemaPath:"#/properties/routerOptions/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced28 !== undefined){
+ data26 = coerced28;
+-if(data22 !== undefined){
+-data22["allowUnsafeRegex"] = coerced28;
++if(data23 !== undefined){
++data23["maxParamLength"] = coerced28;
+ }
+ }
+ }
+ var valid7 = _errs76 === errors;
+ if(valid7){
+-let data27 = data22.useSemicolonDelimiter;
++let data27 = data23.allowUnsafeRegex;
+ const _errs78 = errors;
+ if(typeof data27 !== "boolean"){
+ let coerced29 = undefined;
+@@ -1108,18 +1110,43 @@ else if(data27 === "true" || data27 === 1){
+ coerced29 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/useSemicolonDelimiter",schemaPath:"#/properties/routerOptions/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/allowUnsafeRegex",schemaPath:"#/properties/routerOptions/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced29 !== undefined){
+ data27 = coerced29;
+-if(data22 !== undefined){
+-data22["useSemicolonDelimiter"] = coerced29;
++if(data23 !== undefined){
++data23["allowUnsafeRegex"] = coerced29;
+ }
+ }
+ }
+ var valid7 = _errs78 === errors;
++if(valid7){
++let data28 = data23.useSemicolonDelimiter;
++const _errs80 = errors;
++if(typeof data28 !== "boolean"){
++let coerced30 = undefined;
++if(!(coerced30 !== undefined)){
++if(data28 === "false" || data28 === 0 || data28 === null){
++coerced30 = false;
++}
++else if(data28 === "true" || data28 === 1){
++coerced30 = true;
++}
++else {
++validate10.errors = [{instancePath:instancePath+"/routerOptions/useSemicolonDelimiter",schemaPath:"#/properties/routerOptions/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++return false;
++}
++}
++if(coerced30 !== undefined){
++data28 = coerced30;
++if(data23 !== undefined){
++data23["useSemicolonDelimiter"] = coerced30;
++}
++}
++}
++var valid7 = _errs80 === errors;
+ }
+ }
+ }
+@@ -1130,49 +1157,49 @@ validate10.errors = [{instancePath:instancePath+"/routerOptions",schemaPath:"#/p
+ return false;
+ }
+ }
+-var valid0 = _errs67 === errors;
++var valid0 = _errs69 === errors;
+ }
+ else {
+ var valid0 = true;
+ }
+ if(valid0){
+ if(data.constraints !== undefined){
+-let data28 = data.constraints;
+-const _errs80 = errors;
+-if(errors === _errs80){
+-if(data28 && typeof data28 == "object" && !Array.isArray(data28)){
+-for(const key2 in data28){
+-let data29 = data28[key2];
+-const _errs83 = errors;
+-if(errors === _errs83){
++let data29 = data.constraints;
++const _errs82 = errors;
++if(errors === _errs82){
+ if(data29 && typeof data29 == "object" && !Array.isArray(data29)){
++for(const key2 in data29){
++let data30 = data29[key2];
++const _errs85 = errors;
++if(errors === _errs85){
++if(data30 && typeof data30 == "object" && !Array.isArray(data30)){
+ let missing1;
+-if(((((data29.name === undefined) && (missing1 = "name")) || ((data29.storage === undefined) && (missing1 = "storage"))) || ((data29.validate === undefined) && (missing1 = "validate"))) || ((data29.deriveConstraint === undefined) && (missing1 = "deriveConstraint"))){
++if(((((data30.name === undefined) && (missing1 = "name")) || ((data30.storage === undefined) && (missing1 = "storage"))) || ((data30.validate === undefined) && (missing1 = "validate"))) || ((data30.deriveConstraint === undefined) && (missing1 = "deriveConstraint"))){
+ validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/required",keyword:"required",params:{missingProperty: missing1},message:"must have required property '"+missing1+"'"}];
+ return false;
+ }
+ else {
+-if(data29.name !== undefined){
+-let data30 = data29.name;
+-if(typeof data30 !== "string"){
+-let dataType30 = typeof data30;
+-let coerced30 = undefined;
+-if(!(coerced30 !== undefined)){
+-if(dataType30 == "number" || dataType30 == "boolean"){
+-coerced30 = "" + data30;
++if(data30.name !== undefined){
++let data31 = data30.name;
++if(typeof data31 !== "string"){
++let dataType31 = typeof data31;
++let coerced31 = undefined;
++if(!(coerced31 !== undefined)){
++if(dataType31 == "number" || dataType31 == "boolean"){
++coerced31 = "" + data31;
+ }
+-else if(data30 === null){
+-coerced30 = "";
++else if(data31 === null){
++coerced31 = "";
+ }
+ else {
+ validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1")+"/name",schemaPath:"#/properties/constraints/additionalProperties/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+-if(coerced30 !== undefined){
+-data30 = coerced30;
+-if(data29 !== undefined){
+-data29["name"] = coerced30;
++if(coerced31 !== undefined){
++data31 = coerced31;
++if(data30 !== undefined){
++data30["name"] = coerced31;
+ }
+ }
+ }
+@@ -1184,7 +1211,7 @@ validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/
+ return false;
+ }
+ }
+-var valid8 = _errs83 === errors;
++var valid8 = _errs85 === errors;
+ if(!valid8){
+ break;
+ }
+@@ -1195,7 +1222,7 @@ validate10.errors = [{instancePath:instancePath+"/constraints",schemaPath:"#/pro
+ return false;
+ }
+ }
+-var valid0 = _errs80 === errors;
++var valid0 = _errs82 === errors;
+ }
+ else {
+ var valid0 = true;
+@@ -1224,6 +1251,7 @@ var valid0 = true;
+ }
+ }
+ }
++}
+ else {
+ validate10.errors = [{instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"}];
+ return false;
+@@ -1234,5 +1262,5 @@ return errors === 0;
+ }
+ 
+ 
+-module.exports.defaultInitOptions = {"connectionTimeout":0,"keepAliveTimeout":72000,"maxRequestsPerSocket":0,"requestTimeout":0,"bodyLimit":1048576,"caseSensitive":true,"allowUnsafeRegex":false,"disableRequestLogging":false,"ignoreTrailingSlash":false,"ignoreDuplicateSlashes":false,"maxParamLength":100,"onProtoPoisoning":"error","onConstructorPoisoning":"error","pluginTimeout":10000,"requestIdHeader":false,"requestIdLogLabel":"reqId","http2SessionTimeout":72000,"exposeHeadRoutes":true,"useSemicolonDelimiter":false,"allowErrorHandlerOverride":true,"routerOptions":{"ignoreTrailingSlash":false,"ignoreDuplicateSlashes":false,"maxParamLength":100,"allowUnsafeRegex":false,"useSemicolonDelimiter":false}}
++module.exports.defaultInitOptions = {"connectionTimeout":0,"keepAliveTimeout":72000,"maxRequestsPerSocket":0,"requestTimeout":0,"handlerTimeout":0,"bodyLimit":1048576,"caseSensitive":true,"allowUnsafeRegex":false,"disableRequestLogging":false,"ignoreTrailingSlash":false,"ignoreDuplicateSlashes":false,"maxParamLength":100,"onProtoPoisoning":"error","onConstructorPoisoning":"error","pluginTimeout":10000,"requestIdHeader":false,"requestIdLogLabel":"reqId","http2SessionTimeout":72000,"exposeHeadRoutes":true,"useSemicolonDelimiter":false,"allowErrorHandlerOverride":true,"routerOptions":{"ignoreTrailingSlash":false,"ignoreDuplicateSlashes":false,"maxParamLength":100,"allowUnsafeRegex":false,"useSemicolonDelimiter":false}}
+ /* c8 ignore stop */
+diff --git a/lib/context.js b/lib/context.js
+index d6d1f6aa..7a3a9913 100644
+--- a/lib/context.js
++++ b/lib/context.js
+@@ -14,7 +14,8 @@ const {
+   kContentTypeParser,
+   kRouteByFastify,
+   kRequestCacheValidateFns,
+-  kReplyCacheSerializeFns
++  kReplyCacheSerializeFns,
++  kHandlerTimeout
+ } = require('./symbols.js')
+ 
+ // Object that holds the context of every request
+@@ -37,7 +38,8 @@ function Context ({
+   exposeHeadRoute,
+   prefixTrailingSlash,
+   server,
+-  isFastify
++  isFastify,
++  handlerTimeout
+ }) {
+   this.schema = schema
+   this.handler = handler
+@@ -78,6 +80,7 @@ function Context ({
+   this.validatorCompiler = validatorCompiler || null
+   this.serializerCompiler = serializerCompiler || null
+ 
++  this.handlerTimeout = handlerTimeout || server[kHandlerTimeout] || 0
+   this.server = server
+ }
+ 
+diff --git a/lib/errors.js b/lib/errors.js
+index 53c14abf..670442b9 100644
+--- a/lib/errors.js
++++ b/lib/errors.js
+@@ -419,6 +419,17 @@ const codes = {
+     500,
+     TypeError
+   ),
++  FST_ERR_HANDLER_TIMEOUT: createError(
++    'FST_ERR_HANDLER_TIMEOUT',
++    "Request timed out after %s ms on route '%s'",
++    503
++  ),
++  FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT: createError(
++    'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT',
++    "'handlerTimeout' option must be an integer > 0. Got '%s'",
++    500,
++    TypeError
++  ),
+   FST_ERR_ROUTE_REWRITE_NOT_STR: createError(
+     'FST_ERR_ROUTE_REWRITE_NOT_STR',
+     'Rewrite url for "%s" needs to be of type "string" but received "%s"',
+diff --git a/lib/reply.js b/lib/reply.js
+index 5d4ddb63..4f8840ae 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -22,7 +22,10 @@ const {
+   kReplyCacheSerializeFns,
+   kSchemaController,
+   kOptions,
+-  kRouteContext
++  kRouteContext,
++  kTimeoutTimer,
++  kOnAbort,
++  kRequestSignal
+ } = require('./symbols.js')
+ const {
+   onSendHookRunner,
+@@ -122,6 +125,15 @@ Reply.prototype.writeEarlyHints = function (hints, callback) {
+ 
+ Reply.prototype.hijack = function () {
+   this[kReplyHijacked] = true
++  // Clear handler timeout and signal — hijacked replies manage their own lifecycle
++  if (this.request[kRequestSignal]) {
++    clearTimeout(this.request[kTimeoutTimer])
++    this.request[kTimeoutTimer] = null
++    if (this.request[kOnAbort]) {
++      this.request.raw.removeListener('close', this.request[kOnAbort])
++      this.request[kOnAbort] = null
++    }
++  }
+   return this
+ }
+ 
+@@ -828,6 +840,16 @@ function setupResponseListeners (reply) {
+ 
+     const ctx = reply[kRouteContext]
+ 
++    // Clean up handler timeout / signal resources
++    if (reply.request[kRequestSignal]) {
++      clearTimeout(reply.request[kTimeoutTimer])
++      reply.request[kTimeoutTimer] = null
++      if (reply.request[kOnAbort]) {
++        reply.request.raw.removeListener('close', reply.request[kOnAbort])
++        reply.request[kOnAbort] = null
++      }
++    }
++
+     if (ctx && ctx.onResponse !== null) {
+       onResponseHookRunner(
+         ctx.onResponse,
+diff --git a/lib/request.js b/lib/request.js
+index 66704d42..0fb63d6a 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -11,7 +11,9 @@ const {
+   kOptions,
+   kRequestCacheValidateFns,
+   kRouteContext,
+-  kRequestOriginalUrl
++  kRequestOriginalUrl,
++  kRequestSignal,
++  kOnAbort
+ } = require('./symbols')
+ const { FST_ERR_REQ_INVALID_VALIDATION_INVOCATION, FST_ERR_DEC_UNDECLARED } = require('./errors')
+ const decorators = require('./decorate')
+@@ -183,6 +185,7 @@ Object.defineProperties(Request.prototype, {
+         method: context.config?.method,
+         url: context.config?.url,
+         bodyLimit: (routeLimit || serverLimit),
++        handlerTimeout: context.handlerTimeout,
+         attachValidation: context.attachValidation,
+         logLevel: context.logLevel,
+         exposeHeadRoute: context.exposeHeadRoute,
+@@ -206,6 +209,20 @@ Object.defineProperties(Request.prototype, {
+       return this.raw.socket
+     }
+   },
++  signal: {
++    get () {
++      let ac = this[kRequestSignal]
++      if (ac) return ac.signal
++      ac = new AbortController()
++      this[kRequestSignal] = ac
++      const onAbort = () => {
++        if (!ac.signal.aborted) ac.abort()
++      }
++      this.raw.on('close', onAbort)
++      this[kOnAbort] = onAbort
++      return ac.signal
++    }
++  },
+   ip: {
+     get () {
+       if (this.socket) {
+diff --git a/lib/route.js b/lib/route.js
+index bf79e2c2..8d6b73da 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -26,6 +26,8 @@ const {
+   FST_ERR_ROUTE_METHOD_INVALID,
+   FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED,
+   FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT,
++  FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT,
++  FST_ERR_HANDLER_TIMEOUT,
+   FST_ERR_HOOK_INVALID_ASYNC_HANDLER
+ } = require('./errors')
+ 
+@@ -46,7 +48,10 @@ const {
+   kHasBeenDecorated,
+   kRequestAcceptVersion,
+   kRouteByFastify,
+-  kRouteContext
++  kRouteContext,
++  kRequestSignal,
++  kTimeoutTimer,
++  kOnAbort
+ } = require('./symbols.js')
+ const { buildErrorHandler } = require('./error-handler')
+ const { createChildLogger } = require('./logger-factory.js')
+@@ -217,6 +222,7 @@ function buildRouting (options) {
+     }
+ 
+     validateBodyLimitOption(opts.bodyLimit)
++    validateHandlerTimeoutOption(opts.handlerTimeout)
+ 
+     const shouldExposeHead = opts.exposeHeadRoute ?? globalExposeHeadRoutes
+ 
+@@ -346,7 +352,8 @@ function buildRouting (options) {
+         exposeHeadRoute: shouldExposeHead,
+         prefixTrailingSlash: (opts.prefixTrailingSlash || 'both'),
+         server: this,
+-        isFastify
++        isFastify,
++        handlerTimeout: opts.handlerTimeout
+       })
+ 
+       const headHandler = router.findRoute('HEAD', opts.url, constraints)
+@@ -517,7 +524,32 @@ function buildRouting (options) {
+       childLogger.info({ req: request }, 'incoming request')
+     }
+ 
+-    if (hasLogger === true || context.onResponse !== null) {
++    // Handler timeout setup — only when configured (zero overhead otherwise)
++    const handlerTimeout = context.handlerTimeout
++    if (handlerTimeout > 0) {
++      const ac = new AbortController()
++      request[kRequestSignal] = ac
++
++      request[kTimeoutTimer] = setTimeout(() => {
++        if (!reply.sent) {
++          const err = new FST_ERR_HANDLER_TIMEOUT(handlerTimeout, context.config?.url)
++          ac.abort(err)
++          reply[kReplyIsError] = true
++          reply.send(err)
++        }
++      }, handlerTimeout)
++
++      const onAbort = () => {
++        if (!ac.signal.aborted) {
++          ac.abort()
++        }
++        clearTimeout(request[kTimeoutTimer])
++      }
++      req.on('close', onAbort)
++      request[kOnAbort] = onAbort
++    }
++
++    if (hasLogger === true || context.onResponse !== null || handlerTimeout > 0) {
+       setupResponseListeners(reply)
+     }
+ 
+@@ -596,6 +628,13 @@ function validateBodyLimitOption (bodyLimit) {
+   }
+ }
+ 
++function validateHandlerTimeoutOption (handlerTimeout) {
++  if (handlerTimeout === undefined) return
++  if (!Number.isInteger(handlerTimeout) || handlerTimeout <= 0) {
++    throw new FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT(handlerTimeout)
++  }
++}
++
+ function runPreParsing (err, request, reply) {
+   if (reply.sent === true) return
+   if (err != null) {
+diff --git a/lib/symbols.js b/lib/symbols.js
+index 510ac39c..a3ad9d88 100644
+--- a/lib/symbols.js
++++ b/lib/symbols.js
+@@ -33,6 +33,10 @@ const keys = {
+   kRequestAcceptVersion: Symbol('fastify.RequestAcceptVersion'),
+   kRequestCacheValidateFns: Symbol('fastify.request.cache.validateFns'),
+   kRequestOriginalUrl: Symbol('fastify.request.originalUrl'),
++  kRequestSignal: Symbol('fastify.request.signal'),
++  kHandlerTimeout: Symbol('fastify.handlerTimeout'),
++  kTimeoutTimer: Symbol('fastify.request.timeoutTimer'),
++  kOnAbort: Symbol('fastify.request.onAbort'),
+   // 404
+   kFourOhFour: Symbol('fastify.404'),
+   kCanSetNotFoundHandler: Symbol('fastify.canSetNotFoundHandler'),
+diff --git a/test/internals/errors.test.js b/test/internals/errors.test.js
+index 2499b380..9b0a8409 100644
+--- a/test/internals/errors.test.js
++++ b/test/internals/errors.test.js
+@@ -5,7 +5,7 @@ const errors = require('../../lib/errors')
+ const { readFileSync } = require('node:fs')
+ const { resolve } = require('node:path')
+ 
+-const expectedErrors = 86
++const expectedErrors = 88
+ 
+ test(`should expose ${expectedErrors} errors`, t => {
+   t.plan(1)
+diff --git a/test/internals/initial-config.test.js b/test/internals/initial-config.test.js
+index c513c003..5cd5229a 100644
+--- a/test/internals/initial-config.test.js
++++ b/test/internals/initial-config.test.js
+@@ -34,6 +34,7 @@ test('without options passed to Fastify, initialConfig should expose default val
+     keepAliveTimeout: 72000,
+     maxRequestsPerSocket: 0,
+     requestTimeout: 0,
++    handlerTimeout: 0,
+     bodyLimit: 1024 * 1024,
+     caseSensitive: true,
+     allowUnsafeRegex: false,
+@@ -273,6 +274,7 @@ test('Should not have issues when passing stream options to Pino.js', (t, done)
+       keepAliveTimeout: 72000,
+       maxRequestsPerSocket: 0,
+       requestTimeout: 0,
++      handlerTimeout: 0,
+       bodyLimit: 1024 * 1024,
+       caseSensitive: true,
+       allowUnsafeRegex: false,
+diff --git a/test/types/fastify.test-d.ts b/test/types/fastify.test-d.ts
+index 22a0f63f..65dfa2c8 100644
+--- a/test/types/fastify.test-d.ts
++++ b/test/types/fastify.test-d.ts
+@@ -113,6 +113,7 @@ expectAssignable<FastifyInstance>(fastify({ forceCloseConnections: true }))
+ expectAssignable<FastifyInstance>(fastify({ keepAliveTimeout: 1000 }))
+ expectAssignable<FastifyInstance>(fastify({ pluginTimeout: 1000 }))
+ expectAssignable<FastifyInstance>(fastify({ bodyLimit: 100 }))
++expectAssignable<FastifyInstance>(fastify({ handlerTimeout: 5000 }))
+ expectAssignable<FastifyInstance>(fastify({ maxParamLength: 100 }))
+ expectAssignable<FastifyInstance>(fastify({ disableRequestLogging: true }))
+ expectAssignable<FastifyInstance>(fastify({ disableRequestLogging: (req) => req.url?.includes('/health') ?? false }))
+diff --git a/test/types/request.test-d.ts b/test/types/request.test-d.ts
+index 437112ca..7bf73bce 100644
+--- a/test/types/request.test-d.ts
++++ b/test/types/request.test-d.ts
+@@ -87,6 +87,7 @@ const getHandler: RouteHandler = function (request, _reply) {
+   expectType<string>(request.id)
+   expectType<FastifyLoggerInstance>(request.log)
+   expectType<RawRequestDefaultExpression['socket']>(request.socket)
++  expectType<AbortSignal>(request.signal)
+   expectType<Error & { validation: any; validationContext: string } | undefined>(request.validationError)
+   expectType<FastifyInstance>(request.server)
+   expectAssignable<(httpPart: HTTPRequestPart) => ExpectedGetValidationFunction>(request.getValidationFunction)
+diff --git a/types/errors.d.ts b/types/errors.d.ts
+index 777f97b0..13c5cf40 100644
+--- a/types/errors.d.ts
++++ b/types/errors.d.ts
+@@ -75,6 +75,8 @@ export type FastifyErrorCodes = Record<
+   'FST_ERR_ROUTE_METHOD_NOT_SUPPORTED' |
+   'FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED' |
+   'FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT' |
++  'FST_ERR_HANDLER_TIMEOUT' |
++  'FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT' |
+   'FST_ERR_ROUTE_REWRITE_NOT_STR' |
+   'FST_ERR_REOPENED_CLOSE_SERVER' |
+   'FST_ERR_REOPENED_SERVER' |
+diff --git a/types/request.d.ts b/types/request.d.ts
+index 0ee81d3e..e7229b59 100644
+--- a/types/request.d.ts
++++ b/types/request.d.ts
+@@ -25,6 +25,7 @@ export interface RequestRouteOptions<ContextConfig = ContextConfigDefault, Schem
+   // `url` can be `undefined` for instance when `request.is404` is true
+   url: string | undefined;
+   bodyLimit: number;
++  handlerTimeout: number;
+   attachValidation: boolean;
+   logLevel: string;
+   exposeHeadRoute: boolean;
+@@ -82,6 +83,7 @@ export interface FastifyRequest<RouteGeneric extends RouteGenericInterface = Rou
+   readonly routeOptions: Readonly<RequestRouteOptions<ContextConfig, SchemaCompiler>>
+   readonly is404: boolean;
+   readonly socket: RawRequest['socket'];
++  readonly signal: AbortSignal;
+ 
+   getValidationFunction(httpPart: HTTPRequestPart): ValidationFunction
+   getValidationFunction(schema: { [key: string]: any }): ValidationFunction
+diff --git a/types/route.d.ts b/types/route.d.ts
+index 46318564..0ef29924 100644
+--- a/types/route.d.ts
++++ b/types/route.d.ts
+@@ -51,6 +51,7 @@ export interface RouteShorthandOptions<
+   validatorCompiler?: FastifySchemaCompiler<NoInfer<SchemaCompiler>>;
+   serializerCompiler?: FastifySerializerCompiler<NoInfer<SchemaCompiler>>;
+   bodyLimit?: number;
++  handlerTimeout?: number;
+   logLevel?: LogLevel;
+   config?: FastifyContextConfig & ContextConfig;
+   constraints?: RouteConstraint,

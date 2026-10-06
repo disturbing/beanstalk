@@ -1,0 +1,11 @@
+{
+ "number": 6444,
+ "sha": "c89945df8b6ec3507ba0fc444d561bac010a949a",
+ "title": "perf: use native WebStream API instead of Readable.fromWeb wrapper",
+ "body": "## Summary\n\n- Remove Node.js stream wrapping overhead by using the WebStream reader API directly\n- Provides ~20% throughput improvement when returning `Response` objects or `ReadableStream` from route handlers\n- Add benchmark for WebStream performance testing\n- Add tests for WebStream error handling paths\n\n## Benchmark Results\n\n| Metric | Before | After | Improvement |\n|--------|--------|-------|-------------|\n| Req/sec | 26,931 | 32,335 | **+20%** |\n| Latency (avg) | 36.6 ms | 30.4 ms | **-17%** |\n\n## Changes\n\n- `lib/reply.js`: Rewrote `sendWebStream()` to use `reader.getReader()` and `reader.read()` directly instead of `Readable.fromWeb()`\n- `examples/benchmark/webstream.js`: New benchmark file for WebStream performance testing\n- `test/web-api.test.js`: Added tests for error handling paths (stream errors before/after headers sent, headers already sent warning)\n\n## Test plan\n\n- [x] All existing tests pass\n- [x] New error handling tests added\n- [x] 100% code coverage for reply.js\n- [x] Benchmark verified ~20% improvement",
+ "author": "mcollina",
+ "created_at": "2026-01-14T13:44:51Z",
+ "merged_at": "2026-01-15T11:45:49Z",
+ "pr_base_sha": "1b3381e73a423b54563c8207b31017a3381aa122",
+ "linked_issues": []
+}

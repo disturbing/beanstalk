@@ -1,0 +1,67 @@
+{
+  "id": "t037",
+  "title": "perf: decode string bodies once instead of per chunk",
+  "prompt": "For string parsers, including the default JSON parser, `rawBody` called `setEncoding('utf8')`. On every request that meant:\n\n- a new StringDecoder,\n- decoding each chunk separately,\n- building the body with `body += chunk`,\n- running `Buffer.byteLength()` over every decoded chunk just to enforce `bodyLimit`.\n\nOn a JSON POST profile this came to about 6% of busy CPU, more than routing, validation and hooks combined.\n\nThis PR always reads raw Buffers and counts bytes with `chunk.length`. String bodies are decoded once at the end, with no copy when the body arrived in a single chunk. Buffer parsers still receive a `Buffer.concat` copy, so they never get a view over the shared socket read buffer. String chunks from a custom `preParsing` stream are converted with `Buffer.from`.\n\n### Bug fix\n\nThe limit and `Content-Length` checks used to count bytes after decoding. An invalid UTF-8 byte decodes to U+FFFD, which is 3 bytes when counted again. So a body with the correct `Content-Length` was rejected with `FST_ERR_CTP_INVALID_CONTENT_LENGTH`. Both checks now count the bytes actually received.\n\n### Benchmarks\n\n`autocannon -d 8`, POST `application/json`, `logger: false`. Five rounds, alternating `main` and this branch; figures are median req/s.\n\n| Body | Settings | main | PR | Change | Rounds PR won |\n|---|---|---:|---:|---:|---:|\n| `{\"hello\":\"world\"}` (18 B) | `-c 50 -p 10` | 141,572 | 147,728 | **+4.3%** | 4/5 |\n| JSON object, 888 B | `-c 100 -p 10` | 97,392 | 100,736 | **+3.4%** | 4/5 |\n| JSON with multi-byte characters, 157 KB | `-c 50 -p 1` | 1,841 | 2,263 | **+22.9%** | 5/5 |\n\nApple M5 Pro, Node v24.18.0.",
+  "acceptance_tests": {
+    "test/content-parser.pr7049.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst { spyWarning } = require('process-warning')\nconst { Readable } = require('node:stream')\nconst Fastify = require('..')\nconst keys = require('../lib/symbols')\nconst { FST_ERR_CTP_ALREADY_PRESENT, FST_ERR_CTP_INVALID_TYPE, FST_ERR_CTP_INVALID_MEDIA_TYPE } = require('../lib/errors')\nconst { FSTSEC001 } = require('../lib/warnings')\n\nconst first = function (req, payload, done) {}\nconst second = function (req, payload, done) {}\nconst third = function (req, payload, done) {}\n\ntest('string body keeps multi-byte characters split across chunks', async t => {\n  t.plan(2)\n\n  const fastify = Fastify()\n  const encoded = Buffer.from(JSON.stringify({ hello: 'wörld ✓ 😀' }))\n\n  fastify.addHook('preParsing', async () => {\n    // Emit one byte per chunk so every multi-byte character is split\n    return Readable.from(Array.from(encoded, byte => Buffer.from([byte])), { objectMode: false })\n  })\n  fastify.post('/', async (request) => request.body)\n\n  const res = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    headers: { 'content-type': 'application/json' },\n    payload: encoded\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.deepStrictEqual(res.json(), { hello: 'wörld ✓ 😀' })\n})\n\ntest('string body accepts string chunks from a preParsing stream', async t => {\n  t.plan(2)\n\n  const fastify = Fastify()\n\n  fastify.addHook('preParsing', async (request, reply, payload) => {\n    payload.setEncoding('utf8')\n    return payload\n  })\n  fastify.post('/', async (request) => request.body)\n\n  const res = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    headers: { 'content-type': 'text/plain' },\n    payload: 'hellö'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.body, 'hellö')\n})\n\ntest('string body with invalid UTF-8 is not treated as a content-length mismatch', async t => {\n  t.plan(2)\n\n  const fastify = Fastify()\n  fastify.post('/', async (request) => request.body)\n\n  const res = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    headers: { 'content-type': 'text/plain' },\n    payload: Buffer.from([0x61, 0xff, 0x62])\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.body, 'a�b')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/content-type-parser.js",
+    "test/content-parser.pr7049.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "perf",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 7049,
+    "sha": "e6860c59fcf46653d690bb5890b189732023d5b9",
+    "url": "https://github.com/fastify/fastify/pull/7049",
+    "author": "gurgunday",
+    "merged_at": "2026-09-25T15:57:13Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/content-type-parser.js"
+    ],
+    "source_files": [
+      "lib/content-type-parser.js"
+    ],
+    "test_files": [
+      "test/content-parser.pr7049.test.js"
+    ],
+    "source_lines_changed": 33,
+    "notes": [
+      "test/content-parser.test.js: 3 added/modified case(s) extracted to test/content-parser.pr7049.test.js",
+      "test/content-parser.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [
+      "test/content-parser.test.js"
+    ],
+    "acceptance_failing_before": [
+      "test/content-parser.pr7049.test.js"
+    ],
+    "suite_seconds": 14.5,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/content-type-parser.js"
+    ],
+    "shares_a_source_file_with": [
+      "t007",
+      "t010",
+      "t032"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

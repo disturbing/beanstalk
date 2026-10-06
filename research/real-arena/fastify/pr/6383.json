@@ -1,0 +1,11 @@
+{
+ "number": 6383,
+ "sha": "085e1c7c8cd4111064c676b21bfa5f9c6b086d0c",
+ "title": "feat: speed up loading with custom compiler",
+ "body": "closes https://github.com/fastify/fastify/pull/6005",
+ "author": "Eomm",
+ "created_at": "2025-11-09T11:45:28Z",
+ "merged_at": "2025-11-10T09:46:42Z",
+ "pr_base_sha": "b1b7f6ef541cfa6715a0364be7508f2b412a510a",
+ "linked_issues": []
+}

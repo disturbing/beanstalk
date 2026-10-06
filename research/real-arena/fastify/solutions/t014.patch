@@ -1,0 +1,18 @@
+diff --git a/lib/reply.js b/lib/reply.js
+index 4f8840ae..b1dd05f1 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -766,10 +766,12 @@ function sendTrailer (payload, res, reply) {
+   const trailers = {}
+   let handled = 0
+   let skipped = true
++  let sent = false
+   function send () {
+     // add trailers when all handler handled
+     /* istanbul ignore else */
+-    if (handled === 0) {
++    if (handled === 0 && !sent) {
++      sent = true
+       res.addTrailers(trailers)
+       // we need to properly close the stream
+       // after trailers sent

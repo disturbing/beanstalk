@@ -1,0 +1,67 @@
+{
+  "id": "t015",
+  "title": "fix: error.code not present on some routing errors",
+  "prompt": "Fixes #6674\n\nIssue #6674: error.code not present on some fastify routing errors\n\nMinor, but already triaged & patch exists, so why not fix it.\n\n`error.code` present on errors thrown by `method: 'GET'` but not present on `method: ['GET', 'POST']`\n\n```js\ntest('Fastify should throw on multiple assignment to the same route with array method', (t) => {\n  t.plan(1)\n  const fastify = Fastify()\n\n  fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n\n  try {\n    fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n    t.assert.fail('Should throw fastify duplicated route declaration')\n  } catch (error) {\n    t.assert.strictEqual(error.code, 'FST_ERR_DUPLICATED_ROUTE')\n  }\n})\n```\n\nSee",
+  "acceptance_tests": {
+    "test/throw.pr6678.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('Fastify should throw on multiple assignment to the same route with array method', (t) => {\n  t.plan(1)\n  const fastify = Fastify()\n\n  fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n\n  try {\n    fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n    t.assert.fail('Should throw fastify duplicated route declaration')\n  } catch (error) {\n    t.assert.strictEqual(error.code, 'FST_ERR_DUPLICATED_ROUTE')\n  }\n})\n"
+  },
+  "oracle_paths": [
+    "lib/route.js",
+    "test/throw.pr6678.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6678,
+    "sha": "d9659819fbbc391d054f1aa4b49ce969a13610dd",
+    "url": "https://github.com/fastify/fastify/pull/6678",
+    "author": "mcollina",
+    "merged_at": "2026-04-19T17:55:38Z",
+    "prompt_source": "linked-issue",
+    "files_touched": [
+      "lib/route.js"
+    ],
+    "source_files": [
+      "lib/route.js"
+    ],
+    "test_files": [
+      "test/throw.pr6678.test.js"
+    ],
+    "source_lines_changed": 3,
+    "notes": [
+      "test/throw.test.js: 1 added/modified case(s) extracted to test/throw.pr6678.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/throw.pr6678.test.js"
+    ],
+    "suite_seconds": 16.2,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/route.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t008",
+      "t009",
+      "t017",
+      "t027",
+      "t034"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

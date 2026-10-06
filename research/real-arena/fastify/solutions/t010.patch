@@ -1,0 +1,52 @@
+diff --git a/lib/content-type-parser.js b/lib/content-type-parser.js
+index f83f010a..6bb3260c 100644
+--- a/lib/content-type-parser.js
++++ b/lib/content-type-parser.js
+@@ -192,7 +192,7 @@ ContentTypeParser.prototype.run = function (contentType, handler, request, reply
+     }
+ 
+     reply[kReplyIsError] = true
+-    reply.send(new FST_ERR_CTP_INVALID_MEDIA_TYPE(contentType || undefined))
++    reply.send(new FST_ERR_CTP_INVALID_MEDIA_TYPE())
+     return
+   }
+ 
+diff --git a/lib/errors.js b/lib/errors.js
+index 670442b9..a5ce70dd 100644
+--- a/lib/errors.js
++++ b/lib/errors.js
+@@ -110,7 +110,7 @@ const codes = {
+   ),
+   FST_ERR_CTP_INVALID_MEDIA_TYPE: createError(
+     'FST_ERR_CTP_INVALID_MEDIA_TYPE',
+-    'Unsupported Media Type: %s',
++    'Unsupported Media Type',
+     415
+   ),
+   FST_ERR_CTP_INVALID_CONTENT_LENGTH: createError(
+diff --git a/test/content-parser.test.js b/test/content-parser.test.js
+index 5cd29a3e..bb4e0e72 100644
+--- a/test/content-parser.test.js
++++ b/test/content-parser.test.js
+@@ -302,7 +302,7 @@ test('Error thrown 415 from content type is null and make post request to server
+   t.plan(3)
+ 
+   const fastify = Fastify()
+-  const errMsg = new FST_ERR_CTP_INVALID_MEDIA_TYPE(undefined).message
++  const errMsg = new FST_ERR_CTP_INVALID_MEDIA_TYPE().message
+ 
+   fastify.post('/', (req, reply) => {
+   })
+diff --git a/test/internals/errors.test.js b/test/internals/errors.test.js
+index 9b0a8409..e132f385 100644
+--- a/test/internals/errors.test.js
++++ b/test/internals/errors.test.js
+@@ -165,7 +165,7 @@ test('FST_ERR_CTP_INVALID_MEDIA_TYPE', t => {
+   const error = new errors.FST_ERR_CTP_INVALID_MEDIA_TYPE()
+   t.assert.strictEqual(error.name, 'FastifyError')
+   t.assert.strictEqual(error.code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
+-  t.assert.strictEqual(error.message, 'Unsupported Media Type: %s')
++  t.assert.strictEqual(error.message, 'Unsupported Media Type')
+   t.assert.strictEqual(error.statusCode, 415)
+   t.assert.ok(error instanceof Error)
+ })

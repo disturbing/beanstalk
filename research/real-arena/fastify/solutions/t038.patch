@@ -1,0 +1,13 @@
+diff --git a/lib/reply.js b/lib/reply.js
+index bf2943c6..9e759a5c 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -353,7 +353,7 @@ Reply.prototype.getSerializationFunction = function (schemaOrStatus, contentType
+   return serialize
+ }
+ 
+-Reply.prototype.compileSerializationSchema = function (schema, httpStatus = null, contentType = null) {
++Reply.prototype.compileSerializationSchema = function (schema, httpStatus, contentType) {
+   const { request } = this
+   const { method, url } = request
+ 

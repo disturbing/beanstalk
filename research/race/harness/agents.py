@@ -10,6 +10,7 @@ import json
 import math
 import os
 import random
+import tempfile
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -135,6 +136,8 @@ def agent_env() -> dict:
         if k in ("MCP_CONFIG", "NODE_OPTIONS"):
             continue
         env[k] = v
+    from . import suite as suite_mod
+    env.update(suite_mod.ACTIVE.env)  # a real-task arena's suite environment (arena.json)
     env["GIT_OPTIONAL_LOCKS"] = "0"  # an agent's `git status` must not lock the index under the harness
     env["DISABLE_AUTOUPDATER"] = "1"
     env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
@@ -169,6 +172,9 @@ def claude_allowed_tools() -> list[str]:
              "Bash(git branch --show-current)", "Bash(git branch)"]
     for sub in READ_ONLY_GIT:
         rules += [f"Bash(git {sub})", f"Bash(git {sub} *)", f"Bash(git {sub}:*)"]
+    from . import suite as suite_mod
+    for cmd in suite_mod.ACTIVE.agent_allowed_bash:  # a real-task arena's own test command (arena.json)
+        rules += [f"Bash({cmd})", f"Bash({cmd} *)", f"Bash({cmd}:*)"]
     return rules
 
 
@@ -391,10 +397,31 @@ class CodexAdapter(Adapter):
                          "computer_use", "image_generation", "multi_agent", "goals", "skill_search", "memories",
                          "in_app_browser")
 
+    # agent_network "loopback" (arena.json): a suite that listens on 127.0.0.1 (fastify) cannot run in the
+    # workspace-write sandbox without network (listen EPERM). This permissions profile keeps workspace-write file
+    # access, allows local binding, loopback connections and unix sockets under the worktree and the temp dir, and
+    # routes everything else through Codex's network proxy with no allowed domain, so direct connections fail
+    # (EPERM) and proxied ones get 403. Checked with codex-cli 0.160.1: a localhost server answers, unix sockets in
+    # the worktree and $TMPDIR listen, `curl https://github.com` and a raw socket to 1.1.1.1 fail.
+    @staticmethod
+    def loopback_profile(cwd: str) -> list[str]:
+        sockets = {os.path.realpath(cwd), os.path.realpath(os.environ.get("TMPDIR") or tempfile.gettempdir())}
+        allow = ",".join(f'{json.dumps(p)}="allow"' for p in sorted(sockets))
+        return ["--enable", "network_proxy", "-c", 'default_permissions="arena"',
+                "-c", 'permissions.arena.extends=":workspace"', "-c", "permissions.arena.network.enabled=true",
+                "-c", 'permissions.arena.network.mode="limited"',
+                "-c", "permissions.arena.network.allow_local_binding=true",
+                "-c", 'permissions.arena.network.domains={"localhost"="allow"}',
+                "-c", f"permissions.arena.network.unix_sockets={{{allow}}}"]
+
     def argv(self, spec: InvocationSpec) -> list[str]:
+        from . import suite as suite_mod
         a = [self.binary, "exec", "--json", "--skip-git-repo-check", "--ignore-user-config", "--ignore-rules",
-             "-s", "workspace-write", "-C", spec.cwd, "-c", 'approval_policy="never"',
-             "-c", "sandbox_workspace_write.network_access=false"]
+             "-C", spec.cwd, "-c", 'approval_policy="never"']
+        if suite_mod.ACTIVE.agent_network == "loopback":
+            a += self.loopback_profile(spec.cwd)
+        else:
+            a += ["-s", "workspace-write", "-c", "sandbox_workspace_write.network_access=false"]
         for feat in self.DISABLED_FEATURES:
             if not (feat == "hooks" and spec.post_tool_hook):
                 a += ["--disable", feat]
@@ -507,6 +534,16 @@ class ReplayAdapter(Adapter):
         return max(0.0, med * math.exp(self.sigma * rng.gauss(0.0, 1.0)))
 
     async def _apply(self, cwd: str, patch: dict, notes: list) -> bool:
+        if patch.get("fallback"):
+            strip = f"-p{patch.get('strip', 1)}"
+            primary = await self.git.run("apply", "--check", "--whitespace=nowarn", strip, patch["path"], cwd=cwd,
+                                         check=False)
+            if primary.returncode != 0:
+                alt = await self.git.run("apply", "--check", "--whitespace=nowarn", strip, patch["fallback"],
+                                         cwd=cwd, check=False)
+                if alt.returncode == 0:  # the prerequisites have not landed: do their part too, as an agent would
+                    notes.append(f"applied {os.path.basename(patch['fallback'])} (prerequisites not on the head)")
+                    patch = {"path": patch["fallback"], "strip": patch.get("strip", 1)}
         res = await self.git.run("apply", "--3way", "--whitespace=nowarn", f"-p{patch.get('strip', 1)}",
                                  patch["path"], cwd=cwd, check=False)
         if res.returncode == 0:
@@ -529,9 +566,16 @@ class ReplayAdapter(Adapter):
     async def _failing(self, cwd: str, tag: str) -> set[str] | None:
         """Test files failing in ``cwd`` (junit written beside the worktree, never inside it); None on a crash."""
         from .ci import parse_junit
+        from . import suite as suite_mod
+        suite = suite_mod.ACTIVE
         junit = os.path.join(os.path.dirname(cwd), f".replay-{tag}.xml")
-        await self.git.runner.run(["node", "--test", "--test-reporter=dot", "--test-reporter-destination=stdout",
-                                   "--test-reporter=junit", f"--test-reporter-destination={junit}"], cwd, timeout=300)
+        env = suite.run_env()
+        if suite.build:
+            b = await self.git.runner.run(list(suite.build), cwd, env=env, timeout=300)
+            if b.returncode != 0:
+                return None
+        await self.git.runner.run(suite.test_argv(reporters=[("dot", "stdout"), ("junit", junit)]), cwd, env=env,
+                                  timeout=300)
         parsed = parse_junit(junit, cwd)
         try:
             os.remove(junit)

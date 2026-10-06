@@ -1,0 +1,11 @@
+{
+ "number": 6854,
+ "sha": "97d10c26a3f5ba59a24c630d31c29335da64d540",
+ "title": "perf: reuse cached content types for response serialization",
+ "body": "  - Response content type schema now reuses cached ContentType instances for exact, xXX, and default response schemas.\r\n  - Added regression coverage in test/schema-serialization.test.js:66.\r\n\r\n  Benchmark for content-keyed responses:\r\n\r\n  - Median throughput: +3.85%\r\n  - Bootstrap 95% CI: +3.57% to +4.24%\r\n  - Unchanged p99 latency; zero errors",
+ "author": "gurgunday",
+ "created_at": "2026-07-18T10:59:24Z",
+ "merged_at": "2026-07-18T14:11:33Z",
+ "pr_base_sha": "6e680c3e8150071be96cba6b30e1d74487559b54",
+ "linked_issues": []
+}

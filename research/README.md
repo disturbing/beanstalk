@@ -19,6 +19,7 @@ Tests whether "schedule agents like database transactions" beats a good merge qu
 | `workers-sdk` | `cloudflare/workers-sdk` | 1,286 since 2026-03-01 | Human-led TS monorepo with `.changeset/` files |
 | `codex` | `openai/codex` | 6,777 since 2026-04-01 | Very high velocity, Rust workspace; agent use mostly unattributed |
 | `arena` | `arena/` (built here) | ~40 designed tasks | Demo repo with reference solutions; ground truth for the instruments |
+| `real-arena/fastify` | `fastify/fastify` (MIT), chain-built | 38 merged PRs, 2025-11 to 2026-10 | Real tasks for the race against GitHub's merge queue (doc 17); see `real-arena/README.md` |
 
 Rebuild: `corpora/clone.sh`, then
 `python3 common/corpus.py corpora/<name>.git --corpus <name> --drop-bots -o data/<name>/corpus.jsonl`.

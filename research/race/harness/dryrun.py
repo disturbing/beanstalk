@@ -53,6 +53,10 @@ async def run_dry(cfg: RaceConfig) -> dict:
                 race.write_acceptance(work, [t])
                 p = race.patch_ref(t.solution)[0]
                 ap = await git.run("apply", "--whitespace=nowarn", f"-p{p['strip']}", p["path"], cwd=work, check=False)
+                if ap.returncode != 0 and p.get("fallback"):  # a dependent real task: its standalone reference
+                    ap = await git.run("apply", "--whitespace=nowarn", f"-p{p['strip']}", p["fallback"], cwd=work,
+                                       check=False)
+                    row["standalone"] = True
                 if ap.returncode != 0:
                     row["solution"] = f"does not apply: {ap.stderr.strip()[:300]}"
                     problems.append(f"{t.id}: solution patch does not apply")

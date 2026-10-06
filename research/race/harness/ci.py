@@ -1,4 +1,5 @@
-"""Emulated CI: K slots, each a detached worktree; a run = ``node --test`` on a commit, then S seconds."""
+"""Emulated CI: K slots, each a detached worktree; a run = the arena's suite on a commit (default ``node --test``;
+test globs, a build step and environment from a real-task arena's ``arena.json``, see ``suite.py``), then S seconds."""
 from __future__ import annotations
 
 import asyncio
@@ -10,6 +11,7 @@ from dataclasses import dataclass, field
 from .arena import import_depths, list_files, stack_files
 from .gitops import Git
 from .procs import Runner
+from . import suite as suite_mod
 
 
 @dataclass
@@ -63,8 +65,10 @@ def parse_junit(path: str, root: str) -> tuple[list[dict], list[str], int] | Non
 
 class CI:
     def __init__(self, git: Git, runner: Runner, work: str, slots: int, latency: float,
-                 suite_timeout: float, test_timeout_ms: int = 60000, node: str = "node"):
+                 suite_timeout: float, test_timeout_ms: int = 60000, node: str = "node",
+                 suite: "suite_mod.SuiteConfig | None" = None):
         self.git, self.runner = git, runner
+        self.suite = suite or suite_mod.ACTIVE
         self.dir = os.path.join(work, "ci")
         self.slots = max(1, slots)
         self.latency = max(0.0, latency)
@@ -127,21 +131,34 @@ class CI:
                 os.remove(junit)
             env = {k: v for k, v in os.environ.items() if not k.startswith(("NODE_OPTIONS", "NODE_TEST"))}
             env["CI"] = "1"
-            argv = [self.node, "--test", f"--test-timeout={self.test_timeout_ms}",
-                    "--test-reporter=spec", "--test-reporter-destination=stdout",
-                    "--test-reporter=junit", f"--test-reporter-destination={junit}"]
-            pr = await self.runner.run(argv, wt, env=env, timeout=self.suite_timeout,
-                                       stdout_path=os.path.join(self.dir, "results", f"{ci_id}.log"))
-            res.suite_seconds = pr.seconds
-            res.timed_out = pr.timed_out
-            res.output = _excerpt(pr.stdout + ("\n" + pr.stderr if pr.stderr.strip() else ""))
-            parsed = parse_junit(junit, wt)
-            if parsed is not None:
-                failing, passing, count = parsed
-                res.failing_tests, res.passing_files, res.tests = failing, passing, count
-                res.failures = len(failing)
-                res.failing_files = sorted({f["file"] for f in failing if f["file"]})
-            res.green = (pr.returncode == 0 and not pr.timed_out and parsed is not None and not res.failing_tests)
+            suite = self.suite
+            env.update(suite.env)
+            build_seconds, built = 0.0, True
+            if suite.build:  # a real arena's build step, timed with the suite
+                b = await self.runner.run(list(suite.build), wt, env=env, timeout=self.suite_timeout,
+                                          stdout_path=os.path.join(self.dir, "results", f"{ci_id}.build.log"))
+                build_seconds = b.seconds
+                if b.returncode != 0 or b.timed_out:
+                    built = False
+                    res.timed_out, res.suite_seconds = b.timed_out, b.seconds
+                    res.output = _excerpt(f"build failed: {' '.join(suite.build)}\n" + b.stdout +
+                                          ("\n" + b.stderr if b.stderr.strip() else ""))
+            if built:
+                argv = suite.test_argv(node=self.node, test_timeout_ms=self.test_timeout_ms,
+                                       reporters=[("spec", "stdout"), ("junit", junit)])
+                pr = await self.runner.run(argv, wt, env=env, timeout=self.suite_timeout,
+                                           stdout_path=os.path.join(self.dir, "results", f"{ci_id}.log"))
+                res.suite_seconds = build_seconds + pr.seconds
+                res.timed_out = pr.timed_out
+                res.output = _excerpt(pr.stdout + ("\n" + pr.stderr if pr.stderr.strip() else ""))
+                parsed = parse_junit(junit, wt)
+                if parsed is not None:
+                    failing, passing, count = parsed
+                    res.failing_tests, res.passing_files, res.tests = failing, passing, count
+                    res.failures = len(failing)
+                    res.failing_files = sorted({f["file"] for f in failing if f["file"]})
+                res.green = (pr.returncode == 0 and not pr.timed_out and parsed is not None
+                             and not res.failing_tests)
             if not res.green and res.failing_files:
                 files = set(list_files(wt))
                 union: set[str] = set()

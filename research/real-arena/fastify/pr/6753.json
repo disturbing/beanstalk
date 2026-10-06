@@ -1,0 +1,11 @@
+{
+ "number": 6753,
+ "sha": "cc8d9a3c961d65cb1a39c4142ce63285d2de1e3c",
+ "title": "fix: hasRequestDecorator/hasReplyDecorator misses constructor-assigned built-in properties",
+ "body": "## What\n\n`hasRequestDecorator` and `hasReplyDecorator` only check the constructor prototype and the decorator props list. But several core properties — `req.id`, `req.params`, `req.raw`, `req.query`, `req.log`, `req.body`, `reply.raw`, `reply.request`, `reply.log` — are assigned directly in the `Request` and `Reply` constructors, not on their prototypes.\n\nThis means:\n\n```js\nfastify.hasRequestDecorator('id')   // returns false (wrong)\nfastify.decorateRequest('id', null) // silently succeeds (wrong)\n// then at request time:\n// TypeError: Cannot set property id... or req.id is null\n```\n\n## Root cause\n\n`checkRequestExistence` and `decorateConstructor` in `lib/decorate.js` use `Object.hasOwn(prototype, name)` and `name in prototype`. Properties set in the constructor body are never on the prototype, so these checks miss them.\n\n## Fix\n\nAdd an `instanceProperties` set to `Request` and `Reply` listing their constructor-assigned string-keyed properties. `decorateConstructor` and the `checkRequest/ReplyExistence` helpers now also check this set (walking the parent chain for derived constructors).\n\nAfter the fix:\n\n```js\nfastify.hasRequestDecorator('id')     // true\nfastify.hasReplyDecorator('raw')      // true\nfastify.decorateRequest('id', null)   // throws FST_ERR_DEC_ALREADY_PRESENT\nfastify.decorateReply('raw', null)    // throws FST_ERR_DEC_ALREADY_PRESENT\nfastify.decorateRequest('myExtra', null) // still works fine\n```\n\nAll 52 existing decorator tests pass. Six new node:test tests cover the bug and the fix.",
+ "author": "LeSingh1",
+ "created_at": "2026-06-04T23:10:00Z",
+ "merged_at": "2026-06-28T07:45:40Z",
+ "pr_base_sha": "4d9f5b41b1a7318ef44e4930f54f7f5fbe22c1b4",
+ "linked_issues": []
+}

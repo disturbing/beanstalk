@@ -1,0 +1,68 @@
+{
+  "id": "t014",
+  "title": "fix: prevent duplicate res.end in sendTrailer with sync callbacks",
+  "prompt": "",
+  "acceptance_tests": {
+    "test/reply-trailers.pr6676.test.js": "'use strict'\n\nconst { test, describe } = require('node:test')\nconst Fastify = require('..')\nconst { Readable } = require('node:stream')\nconst { createHash } = require('node:crypto')\nconst { sleep } = require('./helper')\n\ntest('send is called once when multiple trailer callbacks run synchronously', (t, testDone) => {\n  t.plan(6)\n  const fastify = Fastify()\n  let endCalls = 0\n  let addTrailersCalls = 0\n\n  fastify.get('/', function (request, reply) {\n    const originalEnd = reply.raw.end.bind(reply.raw)\n    reply.raw.end = function (...args) {\n      endCalls++\n      return originalEnd(...args)\n    }\n    const originalAddTrailers = reply.raw.addTrailers.bind(reply.raw)\n    reply.raw.addTrailers = function (...args) {\n      addTrailersCalls++\n      return originalAddTrailers(...args)\n    }\n    reply.trailer('Return-Early', function (reply, payload, done) {\n      done(null, 'a')\n    })\n    reply.trailer('Content-MD5', function (reply, payload, done) {\n      done(null, 'b')\n    })\n    reply.send('hello')\n  })\n\n  fastify.inject({\n    method: 'GET',\n    url: '/'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.trailers['return-early'], 'a')\n    t.assert.strictEqual(res.trailers['content-md5'], 'b')\n    t.assert.strictEqual(endCalls, 1)\n    t.assert.strictEqual(addTrailersCalls, 1)\n    testDone()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/reply.js",
+    "test/reply-trailers.pr6676.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6676,
+    "sha": "d33f017ffef3a9beec687b4d4b1777e2e1180afa",
+    "url": "https://github.com/fastify/fastify/pull/6676",
+    "author": "climba03003",
+    "merged_at": "2026-04-19T07:51:05Z",
+    "prompt_source": "thin",
+    "files_touched": [
+      "lib/reply.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/reply-trailers.pr6676.test.js"
+    ],
+    "source_lines_changed": 4,
+    "notes": [
+      "test/reply-trailers.test.js: 1 added/modified case(s) extracted to test/reply-trailers.pr6676.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/reply-trailers.pr6676.test.js"
+    ],
+    "suite_seconds": 16.0,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t021",
+      "t022",
+      "t023",
+      "t025",
+      "t030",
+      "t038"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

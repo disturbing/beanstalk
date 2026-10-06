@@ -1,0 +1,70 @@
+{
+  "id": "t032",
+  "title": "fix: reset lastIndex before testing global/sticky content-type RegExp parsers",
+  "prompt": "",
+  "acceptance_tests": {
+    "test/content-parser.pr6846.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst keys = require('../lib/symbols')\nconst { FST_ERR_CTP_ALREADY_PRESENT, FST_ERR_CTP_INVALID_TYPE, FST_ERR_CTP_INVALID_MEDIA_TYPE } = require('../lib/errors')\n\nconst first = function (req, payload, done) {}\nconst second = function (req, payload, done) {}\nconst third = function (req, payload, done) {}\n\ntest('content-type match - RegExp with global flag', async t => {\n  t.plan(4)\n\n  const fastify = Fastify()\n  fastify.addContentTypeParser(/^application\\/.+\\+xml$/g, { parseAs: 'string' }, function (request, body, done) {\n    done(null, body)\n  })\n\n  fastify.post('/', async (request) => request.body)\n\n  // Two distinct content types that both match the parser. A RegExp with the\n  // `g` flag keeps a mutable lastIndex between test() calls, so the second\n  // content type must still match rather than fall through to 415.\n  const first = await fastify.inject({\n    method: 'POST',\n    path: '/',\n    headers: { 'content-type': 'application/vnd.a+xml' },\n    body: '<a/>'\n  })\n  const second = await fastify.inject({\n    method: 'POST',\n    path: '/',\n    headers: { 'content-type': 'application/vnd.b+xml' },\n    body: '<b/>'\n  })\n\n  t.assert.strictEqual(first.statusCode, 200)\n  t.assert.strictEqual(first.payload, '<a/>')\n  t.assert.strictEqual(second.statusCode, 200)\n  t.assert.strictEqual(second.payload, '<b/>')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/content-type-parser.js",
+    "test/content-parser.pr6846.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6846,
+    "sha": "16a74e7cb2d1abdc2feca9097f2936fe8b851a5c",
+    "url": "https://github.com/fastify/fastify/pull/6846",
+    "author": "zelinewang",
+    "merged_at": "2026-08-08T06:37:50Z",
+    "prompt_source": "thin",
+    "files_touched": [
+      "lib/content-type-parser.js"
+    ],
+    "source_files": [
+      "lib/content-type-parser.js"
+    ],
+    "test_files": [
+      "test/content-parser.pr6846.test.js"
+    ],
+    "source_lines_changed": 4,
+    "notes": [
+      "test/content-parser.test.js: 1 added/modified case(s) extracted to test/content-parser.pr6846.test.js"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/content-parser.pr6846.test.js"
+    ],
+    "suite_seconds": 16.0,
+    "suite_retried": false,
+    "prerequisites": [
+      "t004",
+      "t007"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/content-type-parser.js"
+    ],
+    "shares_a_source_file_with": [
+      "t007",
+      "t010",
+      "t037"
+    ],
+    "writes_lines_written_by": [
+      "t007"
+    ],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

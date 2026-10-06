@@ -1,0 +1,74 @@
+{
+  "id": "t022",
+  "title": "fix: chunk large HTTP/2 buffer replies",
+  "prompt": "Chunk large non-stream HTTP/2 payload writes to avoid poisoning the session after cancellation.\n\nUser-provided streams remain unmodified; docs note apps should chunk large stream emissions.\n\nTests:\n- node --test test/http2/plain.test.js\n- node --test test/http2/*.test.js\n- npm run lint\n- npx markdownlint-cli2 docs/Reference/Reply.md --no-globs",
+  "acceptance_tests": {
+    "test/http2/plain.pr6746.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst http2 = require('node:http2')\nconst Fastify = require('../..')\nconst h2url = require('h2url')\nconst msg = { hello: 'world' }\n\ntest('http2 large non-stream replies are sent completely', async t => {\n  const modes = ['buffer', 'string']\n\n  for (const mode of modes) {\n    await t.test(mode, async t => {\n      const fastify = Fastify({ http2: true })\n      const payload = mode === 'buffer'\n        ? Buffer.alloc((64 * 1024) + 1, 'a')\n        : 'a'.repeat((64 * 1024) + 1)\n      const contentLength = Buffer.byteLength(payload)\n\n      fastify.get('/large', async (req, reply) => {\n        reply.header('content-type', 'application/octet-stream')\n        reply.header('content-length', contentLength)\n\n        return payload\n      })\n\n      await fastify.listen({ port: 0, host: '127.0.0.1' })\n\n      const client = http2.connect(`http://127.0.0.1:${fastify.server.address().port}`)\n      t.after(() => {\n        client.close()\n        return fastify.close()\n      })\n\n      await new Promise((resolve, reject) => {\n        const large = client.request({\n          [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_GET,\n          [http2.constants.HTTP2_HEADER_PATH]: '/large'\n        })\n        const chunks = []\n\n        large.on('error', reject)\n        large.on('data', chunk => {\n          chunks.push(chunk)\n        })\n        large.on('end', () => {\n          t.assert.strictEqual(Buffer.concat(chunks).length, contentLength)\n          resolve()\n        })\n        large.end()\n      })\n    })\n  }\n})\n\ntest('http2 large buffer replies can be cancelled without rejecting the next stream', async t => {\n  const fastify = Fastify({ http2: true })\n  const payload = Buffer.alloc(32 * 1024 * 1024, 'a')\n  let smallHit = false\n\n  fastify.get('/large', async (req, reply) => {\n    reply.header('content-type', 'application/octet-stream')\n    reply.header('content-length', payload.length)\n\n    return payload\n  })\n\n  fastify.get('/small', async () => {\n    smallHit = true\n    return 'ok'\n  })\n\n  await fastify.listen({ port: 0, host: '127.0.0.1' })\n\n  const client = http2.connect(`http://127.0.0.1:${fastify.server.address().port}`)\n  t.after(() => {\n    client.close()\n    return fastify.close()\n  })\n\n  await new Promise((resolve, reject) => {\n    let cancelTimer\n    let requestTimer\n    let timeout\n\n    function cleanup () {\n      clearTimeout(cancelTimer)\n      clearTimeout(requestTimer)\n      clearTimeout(timeout)\n    }\n\n    const large = client.request({\n      [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_GET,\n      [http2.constants.HTTP2_HEADER_PATH]: '/large'\n    })\n    let largeResponded = false\n\n    large.on('error', err => {\n      if (!largeResponded) {\n        cleanup()\n        reject(err)\n      }\n    })\n    large.on('response', () => {\n      largeResponded = true\n      large.pause()\n      cancelTimer = setTimeout(() => {\n        large.close(http2.constants.NGHTTP2_CANCEL)\n      }, 100)\n      requestTimer = setTimeout(() => {\n        const small = client.request({\n          [http2.constants.HTTP2_HEADER_METHOD]: http2.constants.HTTP2_METHOD_GET,\n          [http2.constants.HTTP2_HEADER_PATH]: '/small'\n        })\n        let body = ''\n\n        timeout = setTimeout(() => {\n          cleanup()\n          reject(new Error('timed out waiting for /small response'))\n        }, 3000)\n\n        small.setEncoding('utf8')\n        small.on('error', err => {\n          cleanup()\n          reject(err)\n        })\n        small.on('data', chunk => {\n          body += chunk\n        })\n        small.on('end', () => {\n          cleanup()\n          t.assert.strictEqual(body, 'ok')\n          t.assert.strictEqual(smallHit, true)\n          resolve()\n        })\n        small.end()\n      }, 200)\n    })\n    large.end()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "docs/Reference/Reply.md",
+    "lib/reply.js",
+    "test/http2/plain.pr6746.test.js",
+    "test/http2/plain.test.js"
+  ],
+  "oracle_modules": [
+    "docs/Reference",
+    "lib",
+    "test/http2"
+  ],
+  "kind": "bug",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6746,
+    "sha": "2bf4265b991aa4c9a2d3886882be6f062338c7bc",
+    "url": "https://github.com/fastify/fastify/pull/6746",
+    "author": "mcollina",
+    "merged_at": "2026-06-07T13:19:47Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "docs/Reference/Reply.md",
+      "lib/reply.js",
+      "test/http2/plain.test.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/http2/plain.pr6746.test.js"
+    ],
+    "source_lines_changed": 50,
+    "notes": [
+      "test/http2/plain.test.js: 2 added/modified case(s) extracted to test/http2/plain.pr6746.test.js",
+      "test/http2/plain.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/http2/plain.pr6746.test.js"
+    ],
+    "suite_seconds": 14.9,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t014",
+      "t021",
+      "t023",
+      "t025",
+      "t030",
+      "t038"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

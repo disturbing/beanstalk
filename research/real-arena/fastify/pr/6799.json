@@ -1,0 +1,11 @@
+{
+ "number": 6799,
+ "sha": "8b9c07b645a8156c23a1d2619267fc84ea879250",
+ "title": "fix: clear socket._meta after response to prevent keep-alive leaks",
+ "body": "## Summary\r\n\r\n- **`socket._meta` held context/request/reply alive for the full lifetime of a keep-alive socket**; now cleared in `onResFinished` when the current request owns `_meta` (`socket._meta.request === request` check prevents a race where a concurrent request has already updated `_meta`)\r\n\r\n## Files changed\r\n\r\n| File | Change |\r\n|---|---|\r\n| `lib/reply.js` | In `onResFinished`: clears `socket._meta` when this request owns it |\r\n\r\n## Test plan\r\n\r\n- [x] Added test in `test/hooks.test.js` — registers an `onTimeout` hook (which triggers `_meta` to be set), then asserts `socket._meta === null` inside `onResponse`, which fires after the cleanup runs\r\n- [x] Existing `test/handler-timeout.test.js` — 19/19 pass\r\n- [x] Existing `test/hooks.test.js` — 92/92 pass (covers `onRequestAbort` and `onTimeout`)\r\n- [x] Existing `test/keep-alive-timeout.test.js` — 2/2 pass\r\n- [x] Existing `test/client-timeout.test.js` — pass\r\n\r\n## Checklist\r\n\r\n- [x] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added (no public API change)\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11) and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)",
+ "author": "nerkoux",
+ "created_at": "2026-06-18T12:13:39Z",
+ "merged_at": "2026-06-19T15:21:35Z",
+ "pr_base_sha": "9d2914857906a98b6366266417d6527ab8e5e06f",
+ "linked_issues": []
+}

@@ -1,0 +1,60 @@
+{
+  "id": "t003",
+  "title": "feat: speed up loading with custom compiler",
+  "prompt": "closes",
+  "acceptance_tests": {
+    "test/internals/schema-controller-perf.test.js": "const { sep } = require('node:path')\nconst { test } = require('node:test')\nconst Fastify = require('../../fastify')\n\ntest('SchemaController are NOT loaded when the controllers are custom', async t => {\n  const app = Fastify({\n    schemaController: {\n      compilersFactory: {\n        buildValidator: () => () => { },\n        buildSerializer: () => () => { }\n      }\n    }\n  })\n\n  await app.ready()\n\n  const loaded = Object.keys(require.cache)\n  const ajvModule = loaded.find((path) => path.includes(`@fastify${sep}ajv-compiler`))\n  const stringifyModule = loaded.find((path) => path.includes(`@fastify${sep}fast-json-stringify-compiler`))\n\n  t.assert.equal(ajvModule, undefined, 'Ajv compiler is loaded')\n  t.assert.equal(stringifyModule, undefined, 'Stringify compiler is loaded')\n})\n\ntest('SchemaController are loaded when the controllers are not custom', async t => {\n  const app = Fastify()\n  await app.ready()\n\n  const loaded = Object.keys(require.cache)\n  const ajvModule = loaded.find((path) => path.includes(`@fastify${sep}ajv-compiler`))\n  const stringifyModule = loaded.find((path) => path.includes(`@fastify${sep}fast-json-stringify-compiler`))\n\n  t.after(() => {\n    delete require.cache[ajvModule]\n    delete require.cache[stringifyModule]\n  })\n\n  t.assert.ok(ajvModule, 'Ajv compiler is loaded')\n  t.assert.ok(stringifyModule, 'Stringify compiler is loaded')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/schema-controller.js",
+    "test/internals/schema-controller-perf.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test/internals"
+  ],
+  "kind": "feature",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6383,
+    "sha": "085e1c7c8cd4111064c676b21bfa5f9c6b086d0c",
+    "url": "https://github.com/fastify/fastify/pull/6383",
+    "author": "Eomm",
+    "merged_at": "2025-11-10T09:46:42Z",
+    "prompt_source": "thin",
+    "files_touched": [
+      "lib/schema-controller.js"
+    ],
+    "source_files": [
+      "lib/schema-controller.js"
+    ],
+    "test_files": [
+      "test/internals/schema-controller-perf.test.js"
+    ],
+    "source_lines_changed": 4,
+    "notes": [],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/internals/schema-controller-perf.test.js"
+    ],
+    "suite_seconds": 13.3,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/schema-controller.js"
+    ],
+    "shares_a_source_file_with": [
+      "t016"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

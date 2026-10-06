@@ -1,0 +1,73 @@
+diff --git a/lib/four-oh-four.js b/lib/four-oh-four.js
+index 140cd046..fccf9dc2 100644
+--- a/lib/four-oh-four.js
++++ b/lib/four-oh-four.js
+@@ -73,7 +73,14 @@ function fourOhFour (options) {
+   }
+ 
+   function setContext (instance, context) {
+-    const _404Context = Object.assign({}, instance[kFourOhFourContext])
++    // Use the selected not-found context as the prototype rather than taking a
++    // detached shallow snapshot. The selected context's lifecycle hooks are
++    // populated during preReady (potentially after this snapshot is taken when
++    // the route is registered first), and prototype lookup keeps the
++    // route-specific 404 context linked to the live one so hooks like
++    // preHandler are not lost. The route's own onSend is preserved as an own
++    // property.
++    const _404Context = Object.create(instance[kFourOhFourContext])
+     _404Context.onSend = context.onSend
+     context[kFourOhFourContext] = _404Context
+   }
+diff --git a/test/404s.test.js b/test/404s.test.js
+index 02a68762..96d0d5ce 100644
+--- a/test/404s.test.js
++++ b/test/404s.test.js
+@@ -1226,7 +1226,7 @@ test('onSend hooks run when an encapsulated route invokes the notFound handler',
+ 
+ // https://github.com/fastify/fastify/issues/713
+ test('preHandler option for setNotFoundHandler', async t => {
+-  t.plan(10)
++  t.plan(11)
+ 
+   await t.test('preHandler option', (t, done) => {
+     t.plan(2)
+@@ -1283,6 +1283,39 @@ test('preHandler option for setNotFoundHandler', async t => {
+     })
+   })
+ 
++  // https://github.com/fastify/fastify/security/advisories/GHSA-gm8r-x7h4-fm5r
++  await t.test('preHandler hook in setNotFoundHandler should be called when callNotFound and the route is registered first', (t, done) => {
++    t.plan(3)
++    const fastify = Fastify()
++
++    // Register the route before the not-found handler so that the route's
++    // preReady callback snapshots the not-found context before its lifecycle
++    // hooks are populated.
++    fastify.post('/', function (req, reply) {
++      t.assert.strictEqual(reply.callNotFound(), reply)
++    })
++
++    fastify.setNotFoundHandler({
++      preHandler: (req, reply, done) => {
++        req.body.preHandler = true
++        done()
++      }
++    }, function (req, reply) {
++      reply.code(404).send(req.body)
++    })
++
++    fastify.inject({
++      method: 'POST',
++      url: '/',
++      payload: { hello: 'world' }
++    }, (err, res) => {
++      t.assert.ifError(err)
++      const payload = JSON.parse(res.payload)
++      t.assert.deepStrictEqual(payload, { preHandler: true, hello: 'world' })
++      done()
++    })
++  })
++
+   await t.test('preHandler hook in setNotFoundHandler should accept an array of functions and be called when callNotFound', (t, done) => {
+     t.plan(2)
+     const fastify = Fastify()

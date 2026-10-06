@@ -1,0 +1,52 @@
+diff --git a/lib/request.js b/lib/request.js
+index 3f4475db..4e7596ad 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -119,8 +119,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     host: {
+       get () {
+-        const socketAddr = this.raw.socket?.remoteAddress
+-        if (this.headers['x-forwarded-host'] && socketAddr !== null && proxyFn(socketAddr, 0)) {
++        const socket = this.raw.socket
++        if (this.headers['x-forwarded-host'] && socket != null && proxyFn(socket.remoteAddress, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-host'])
+         }
+         /**
+@@ -134,8 +134,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     protocol: {
+       get () {
+-        const socketAddr = this.raw.socket?.remoteAddress
+-        if (this.headers['x-forwarded-proto'] && socketAddr !== null && proxyFn(socketAddr, 0)) {
++        const socket = this.raw.socket
++        if (this.headers['x-forwarded-proto'] && socket != null && proxyFn(socket.remoteAddress, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-proto'])
+         }
+         if (this.socket) {
+diff --git a/test/internals/request.test.js b/test/internals/request.test.js
+index 7ca08eb6..6dd07ef7 100644
+--- a/test/internals/request.test.js
++++ b/test/internals/request.test.js
+@@ -486,21 +486,3 @@ test('Request with undefined socket', t => {
+   t.assert.ok(request.getValidationFunction instanceof Function)
+   t.assert.ok(request.compileValidationSchema instanceof Function)
+ })
+-
+-test('Request with trust proxy and undefined socket', t => {
+-  t.plan(1)
+-  const headers = {
+-    'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'fastify.test'
+-  }
+-  const req = {
+-    method: 'GET',
+-    url: '/',
+-    socket: undefined,
+-    headers
+-  }
+-
+-  const TpRequest = Request.buildRequest(Request, true)
+-  const request = new TpRequest('id', 'params', req, 'query', 'log')
+-  t.assert.deepStrictEqual(request.protocol, undefined)
+-})

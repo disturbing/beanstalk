@@ -1,0 +1,63 @@
+{
+  "id": "t033",
+  "title": "fix: run preClose hook exactly once per declaring instance",
+  "prompt": "## What\n\nA single `preClose` hook added to a Fastify instance is executed once for **every** instance in the encapsulation subtree (the declaring instance plus each descendant plugin) instead of exactly once.\n\n### Reproduction\n\n```js\nconst fastify = Fastify()\nlet count = 0\n\nfastify.register(async (child) => {\n  child.get('/x', async () => 'ok')\n})\nfastify.addHook('preClose', async () => { count++ })\n\nawait fastify.ready()\nawait fastify.close()\n\nconsole.log(count) // 2, expected 1\n```\n\nWith two levels of nested plugins the same hook runs 3 times. An equivalent `onReady` hook in the identical setup correctly runs once.\n\n### Root cause\n\nIn `addHook`, the hooks `onReady`, `onListen`, and `onRoute` are special-cased to be stored only on the declaring instance via `this[kHooks].add`. `preClose` was omitted from that list, so it falls into the `else` branch and goes through `_addHook`, which copies the hook into every child via `this[kChildren].forEach`. At close time, `hookRunnerApplication('preClose')` already walks the entire child tree, so each propagated copy fires again.\n\nThat `preClose` is not meant to be inherited is already established elsewhere in the codebase: `buildHooks` in `lib/hooks.js` resets `onReady`, `onListen`, and `preClose` to empty arrays for children. `preClose` was simply left off the special-case list in `addHook`.\n\n### Fix\n\nAdd `preClose` to the same special-case branch as `onReady`/`onListen`/`onRoute` so it is stored only on the declaring instance and not propagated into children. Since `hookRunnerApplication` already recurses the child tree and `buildHooks` already excludes `preClose` from inheritance, each declared hook now fires exactly once.\n\n### Tests\n\nAdded two regression tests in `test/close.test.js` (a single child plugin and nested child plugins) asserting the hook runs exactly once. Both fail on `main` (count 2 and 3) and pass with this change. The full `test/close.test.js` suite (26 tests) stays green.",
+  "acceptance_tests": {
+    "test/close.pr6940.test.js": "'use strict'\n\nconst net = require('node:net')\nconst http = require('node:http')\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst { Client } = require('undici')\nconst split = require('split2')\nconst { sleep } = require('./helper')\n\nconst server = http.createServer()\nconst noSupport = typeof server.closeAllConnections !== 'function'\n\ntest('preClose runs exactly once with a child plugin', async t => {\n  t.plan(1)\n  const fastify = Fastify()\n  let count = 0\n\n  fastify.register(async (child) => {\n    child.get('/x', async () => 'ok')\n  })\n  fastify.addHook('preClose', async () => { count++ })\n\n  await fastify.ready()\n  await fastify.close()\n\n  t.assert.strictEqual(count, 1)\n})\n\ntest('preClose runs exactly once with nested child plugins', async t => {\n  t.plan(1)\n  const fastify = Fastify()\n  let count = 0\n\n  fastify.register(async (child) => {\n    child.register(async (grandchild) => {\n      grandchild.get('/y', async () => 'ok')\n    })\n  })\n  fastify.addHook('preClose', async () => { count++ })\n\n  await fastify.ready()\n  await fastify.close()\n\n  t.assert.strictEqual(count, 1)\n})\n"
+  },
+  "oracle_paths": [
+    "fastify.js",
+    "test/close.pr6940.test.js"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6940,
+    "sha": "f5ef34443c5be0cfc7fbde44f84253ef5d0ec66e",
+    "url": "https://github.com/fastify/fastify/pull/6940",
+    "author": "contactjawad",
+    "merged_at": "2026-08-14T09:20:56Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "fastify.js"
+    ],
+    "source_files": [
+      "fastify.js"
+    ],
+    "test_files": [
+      "test/close.pr6940.test.js"
+    ],
+    "source_lines_changed": 2,
+    "notes": [
+      "test/close.test.js: 2 added/modified case(s) extracted to test/close.pr6940.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/close.pr6940.test.js"
+    ],
+    "suite_seconds": 16.4,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "fastify.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t009"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

@@ -1,0 +1,1402 @@
+diff --git a/README.md b/README.md
+index 6f873b52..867d5af5 100644
+--- a/README.md
++++ b/README.md
+@@ -260,7 +260,8 @@ application. You should __always__ benchmark if performance matters to you.
+ Please visit [Fastify help](https://github.com/fastify/help) to view prior
+ support issues and to ask new support questions.
+ 
+-Version 3 of Fastify and lower are EOL and will not receive any security or bug fixes.
++Version 3 of Fastify and lower are EOL and will not receive any security or bug
++fixes.
+ 
+ Fastify's partner, HeroDevs, provides commercial security fixes for all
+ unsupported versions at [https://herodevs.com/support/fastify-nes][hd-link].
+diff --git a/build/build-validation.js b/build/build-validation.js
+index 0b6d4c8b..c252478a 100644
+--- a/build/build-validation.js
++++ b/build/build-validation.js
+@@ -98,7 +98,6 @@ const schema = {
+     ignoreTrailingSlash: { type: 'boolean', default: defaultInitOptions.ignoreTrailingSlash },
+     ignoreDuplicateSlashes: { type: 'boolean', default: defaultInitOptions.ignoreDuplicateSlashes },
+     disableRequestLogging: {
+-      type: 'boolean',
+       default: false
+     },
+     maxParamLength: { type: 'integer', default: defaultInitOptions.maxParamLength },
+@@ -112,7 +111,7 @@ const schema = {
+     useSemicolonDelimiter: { type: 'boolean', default: defaultInitOptions.useSemicolonDelimiter },
+     routerOptions: {
+       type: 'object',
+-      additionalProperties: false,
++      additionalProperties: true,
+       properties: {
+         ignoreTrailingSlash: { type: 'boolean', default: defaultInitOptions.routerOptions.ignoreTrailingSlash },
+         ignoreDuplicateSlashes: { type: 'boolean', default: defaultInitOptions.routerOptions.ignoreDuplicateSlashes },
+diff --git a/docs/Guides/Ecosystem.md b/docs/Guides/Ecosystem.md
+index 33bfca4c..4320fa6a 100644
+--- a/docs/Guides/Ecosystem.md
++++ b/docs/Guides/Ecosystem.md
+@@ -571,8 +571,8 @@ middlewares into Fastify plugins
+   custom permission checks.
+ - [`fastify-piscina`](https://github.com/piscinajs/fastify-piscina) A worker
+   thread pool plugin using [Piscina](https://github.com/piscinajs/piscina).
+-- [`fastify-polyglot`](https://github.com/beliven-it/fastify-polyglot) A plugin to
+-  handle i18n using
++- [`fastify-polyglot`](https://github.com/beliven-it/fastify-polyglot) A plugin
++  to handle i18n using
+   [node-polyglot](https://www.npmjs.com/package/node-polyglot).
+ - [`fastify-postgraphile`](https://github.com/alemagio/fastify-postgraphile)
+   Plugin to integrate [PostGraphile](https://www.graphile.org/postgraphile/) in
+diff --git a/docs/Guides/Migration-Guide-V4.md b/docs/Guides/Migration-Guide-V4.md
+index 4e660207..34a820ac 100644
+--- a/docs/Guides/Migration-Guide-V4.md
++++ b/docs/Guides/Migration-Guide-V4.md
+@@ -109,7 +109,8 @@ argument from your router handler.
+ ### `exposeHeadRoutes` true by default
+ 
+ Starting with v4, every `GET` route will create a sibling `HEAD` route.
+-You can revert this behavior by setting `exposeHeadRoutes: false` in the server options.
++You can revert this behavior by setting `exposeHeadRoutes: false` in the server
++options.
+ 
+ ### Synchronous route definitions ([#2954](https://github.com/fastify/fastify/pull/2954))
+ 
+diff --git a/docs/Guides/Testing.md b/docs/Guides/Testing.md
+index 5fdf8647..4901191e 100644
+--- a/docs/Guides/Testing.md
++++ b/docs/Guides/Testing.md
+@@ -353,8 +353,8 @@ Now you should be able to step through your test file (and the rest of
+ 
+ 
+ ## Plugins
+-Let's `cd` into a fresh directory called 'testing-plugin-example' and type `npm init
+--y` in our terminal.
++Let's `cd` into a fresh directory called 'testing-plugin-example' and type
++`npm init -y` in our terminal.
+ 
+ Run `npm i fastify fastify-plugin`
+ 
+diff --git a/docs/Reference/Decorators.md b/docs/Reference/Decorators.md
+index 4324658d..9f6a10d8 100644
+--- a/docs/Reference/Decorators.md
++++ b/docs/Reference/Decorators.md
+@@ -369,7 +369,8 @@ console.log(fastify.foo) // 'a getter'
+ #### `getDecorator(name)`
+ <a id="get-decorator"></a>
+ 
+-Used to retrieve an existing decorator from the Fastify instance, `Request`, or `Reply`.
++Used to retrieve an existing decorator from the Fastify instance, `Request`,
++or `Reply`.
+ If the decorator is not defined, an `FST_ERR_DEC_UNDECLARED` error is thrown.
+ 
+ ```js
+diff --git a/docs/Reference/Encapsulation.md b/docs/Reference/Encapsulation.md
+index 0ea5cc6b..cb02ffb0 100644
+--- a/docs/Reference/Encapsulation.md
++++ b/docs/Reference/Encapsulation.md
+@@ -28,8 +28,8 @@ registered within its _grandchild context_.
+ Given that everything in Fastify is a [plugin](./Plugins.md) except for the
+ _root context_, every "context" and "plugin" in this example is a plugin
+ that can consist of decorators, hooks, plugins, and routes. As plugins, they
+-must still signal completion either by returning a Promise (e.g., using `async` functions)
+-or by calling the `done` function if using the callback style.
++must still signal completion either by returning a Promise (e.g., using `async`
++functions) or by calling the `done` function if using the callback style.
+ 
+ To put this
+ example into concrete terms, consider a basic scenario of a REST API server
+diff --git a/docs/Reference/Plugins.md b/docs/Reference/Plugins.md
+index 6e98a470..944553d7 100644
+--- a/docs/Reference/Plugins.md
++++ b/docs/Reference/Plugins.md
+@@ -79,8 +79,8 @@ the Fastify instance by a preceding plugin, such as utilizing an existing databa
+ connection.
+ 
+ Keep in mind that the Fastify instance passed to the function is the same as the
+-one passed into the plugin, a copy of the external Fastify instance rather than a
+-reference. Any usage of the instance will behave the same as it would if called
++one passed into the plugin, a copy of the external Fastify instance rather than
++a reference. Any usage of the instance will behave the same as it would if called
+ within the plugin's function. For example, if `decorate` is called, the decorated
+ variables will be available within the plugin's function unless it was wrapped
+ with [`fastify-plugin`](https://github.com/fastify/fastify-plugin).
+diff --git a/docs/Reference/Principles.md b/docs/Reference/Principles.md
+index 6acd3adc..fc5694cb 100644
+--- a/docs/Reference/Principles.md
++++ b/docs/Reference/Principles.md
+@@ -64,8 +64,8 @@ frameworks do this; Fastify does not.
+ 
+ ## Semantic Versioning and Long Term Support
+ 
+-A clear [Long Term Support strategy is provided](./LTS.md) to inform developers when
+-to upgrade.
++A clear [Long Term Support strategy is provided](./LTS.md) to inform developers
++when to upgrade.
+ 
+ ## Specification adherence
+ 
+diff --git a/docs/Reference/Reply.md b/docs/Reference/Reply.md
+index cc1eac76..ed21f975 100644
+--- a/docs/Reference/Reply.md
++++ b/docs/Reference/Reply.md
+@@ -70,8 +70,9 @@ since the request was received by Fastify.
+ - `.serialize(payload)` - Serializes the specified payload using the default
+   JSON serializer or using the custom serializer (if one is set) and returns the
+   serialized payload.
+-- `.getSerializationFunction(schema | httpStatus, [contentType])` - Returns the serialization
+-  function for the specified schema or http status, if any of either are set.
++- `.getSerializationFunction(schema | httpStatus, [contentType])` - Returns the
++  serialization function for the specified schema or http status, if any of
++  either are set.
+ - `.compileSerializationSchema(schema, [httpStatus], [contentType])` - Compiles
+   the specified schema and returns a serialization function using the default
+   (or customized) `SerializerCompiler`. The optional `httpStatus` is forwarded
+diff --git a/docs/Reference/Server.md b/docs/Reference/Server.md
+index 926bd46a..dafe02dd 100644
+--- a/docs/Reference/Server.md
++++ b/docs/Reference/Server.md
+@@ -331,6 +331,20 @@ been sent. By setting this option to `true`, these log messages will be
+ disabled. This allows for more flexible request start and end logging by
+ attaching custom `onRequest` and `onResponse` hooks.
+ 
++This option can also be a function that receives the Fastify request object
++and returns a boolean. This allows for conditional request logging based on the
++request properties (e.g., URL, headers, decorations).
++
++```js
++const fastify = require('fastify')({
++  logger: true,
++  disableRequestLogging: (request) => {
++    // Disable logging for health check endpoints
++    return request.url === '/health' || request.url === '/ready'
++  }
++})
++```
++
+ The other log entries that will be disabled are:
+ - an error log written by the default `onResponse` hook on reply callback errors
+ - the error and info logs written by the `defaultErrorHandler`
+@@ -839,6 +853,12 @@ const fastify = require('fastify')({
+ })
+ ```
+ 
++> **Note**
++> The `req` and `res` objects passed to `defaultRoute` are the raw Node.js
++> `IncomingMessage` and `ServerResponse` instances. They do **not** expose the
++> Fastify-specific methods available on `FastifyRequest`/`FastifyReply` (for
++> example, `res.send`).
++
+ ### `ignoreDuplicateSlashes`
+ <a id="factory-ignore-duplicate-slashes"></a>
+ 
+@@ -930,6 +950,9 @@ const fastify = require('fastify')({
+ })
+ ```
+ 
++As with `defaultRoute`, `req` and `res` are the raw Node.js request/response
++objects and do not provide Fastify's decorated helpers.
++
+ ### `querystringParser`
+ <a id="querystringparser"></a>
+ 
+@@ -1789,8 +1812,8 @@ different plugins can set different logger factories.
+ <a id="set-gen-req-id"></a>
+ 
+ `fastify.setGenReqId(function (rawReq))` Synchronous function for setting the request-id
+-for additional Fastify instances. It will receive the _raw_ incoming request as a
+-parameter. The provided function should not throw an Error in any case.
++for additional Fastify instances. It will receive the _raw_ incoming request as
++a parameter. The provided function should not throw an Error in any case.
+ 
+ Especially in distributed systems, you may want to override the default ID
+ generation behavior to handle custom ways of generating different IDs in
+diff --git a/docs/Reference/TypeScript.md b/docs/Reference/TypeScript.md
+index e647a860..e98f065f 100644
+--- a/docs/Reference/TypeScript.md
++++ b/docs/Reference/TypeScript.md
+@@ -691,7 +691,8 @@ Or even explicit config on tsconfig
+ 
+ Fastify's `getDecorator<T>` method retrieves decorators with enhanced type safety.
+ 
+-The `getDecorator<T>` method supports generic type parameters for enhanced type safety:
++The `getDecorator<T>` method supports generic type parameters for enhanced type
++safety:
+ 
+ ```typescript
+ // Type-safe decorator retrieval
+diff --git a/fastify.d.ts b/fastify.d.ts
+index 65891df1..c6eba3f2 100644
+--- a/fastify.d.ts
++++ b/fastify.d.ts
+@@ -6,7 +6,7 @@ import { Socket } from 'node:net'
+ import { Options as AjvOptions, ValidatorFactory } from '@fastify/ajv-compiler'
+ import { FastifyError } from '@fastify/error'
+ import { Options as FJSOptions, SerializerFactory } from '@fastify/fast-json-stringify-compiler'
+-import { ConstraintStrategy, HTTPVersion } from 'find-my-way'
++import { Config as FindMyWayConfig, ConstraintStrategy, HTTPVersion } from 'find-my-way'
+ import { InjectOptions, CallbackFunc as LightMyRequestCallback, Chain as LightMyRequestChain, Response as LightMyRequestResponse } from 'light-my-request'
+ 
+ import { AddContentTypeParser, ConstructorAction, FastifyBodyParser, FastifyContentTypeParser, getDefaultJsonParser, hasContentTypeParser, ProtoAction } from './types/content-type-parser'
+@@ -77,6 +77,7 @@ declare namespace fastify {
+   }
+ 
+   type FindMyWayVersion<RawServer extends RawServerBase> = RawServer extends http.Server ? HTTPVersion.V1 : HTTPVersion.V2
++  type FindMyWayConfigForServer<RawServer extends RawServerBase> = FindMyWayConfig<FindMyWayVersion<RawServer>>
+ 
+   export interface ConnectionError extends Error {
+     code: string,
+@@ -89,20 +90,17 @@ declare namespace fastify {
+ 
+   type TrustProxyFunction = (address: string, hop: number) => boolean
+ 
+-  export type FastifyRouterOptions<RawServer extends RawServerBase> = {
+-    allowUnsafeRegex?: boolean,
+-    buildPrettyMeta?: (route: { [k: string]: unknown, store: { [k: string]: unknown } }) => object,
+-    caseSensitive?: boolean,
+-    constraints?: {
+-      [name: string]: ConstraintStrategy<FindMyWayVersion<RawServer>, unknown>,
+-    },
+-    defaultRoute?: (req: FastifyRequest, res: FastifyReply) => void,
+-    ignoreDuplicateSlashes?: boolean,
+-    ignoreTrailingSlash?: boolean,
+-    maxParamLength?: number,
+-    onBadUrl?: (path: string, req: FastifyRequest, res: FastifyReply) => void,
+-    querystringParser?: (str: string) => { [key: string]: unknown },
+-    useSemicolonDelimiter?: boolean,
++  export type FastifyRouterOptions<RawServer extends RawServerBase> = Omit<FindMyWayConfigForServer<RawServer>, 'defaultRoute' | 'onBadUrl' | 'querystringParser'> & {
++    defaultRoute?: (
++      req: RawRequestDefaultExpression<RawServer>,
++      res: RawReplyDefaultExpression<RawServer>
++    ) => void,
++    onBadUrl?: (
++      path: string,
++      req: RawRequestDefaultExpression<RawServer>,
++      res: RawReplyDefaultExpression<RawServer>
++    ) => void,
++    querystringParser?: (str: string) => { [key: string]: unknown }
+   }
+ 
+   /**
+@@ -122,7 +120,7 @@ declare namespace fastify {
+     pluginTimeout?: number,
+     bodyLimit?: number,
+     maxParamLength?: number,
+-    disableRequestLogging?: boolean,
++    disableRequestLogging?: boolean | ((req: FastifyRequest) => boolean),
+     exposeHeadRoutes?: boolean,
+     onProtoPoisoning?: ProtoAction,
+     onConstructorPoisoning?: ConstructorAction,
+diff --git a/fastify.js b/fastify.js
+index 2f3e54cc..555e8af3 100644
+--- a/fastify.js
++++ b/fastify.js
+@@ -643,7 +643,8 @@ function fastify (serverOptions) {
+       const request = new Request(id, null, req, null, childLogger, onBadUrlContext)
+       const reply = new Reply(res, request, childLogger)
+ 
+-      if (disableRequestLogging === false) {
++      const resolvedDisableRequestLogging = typeof disableRequestLogging === 'function' ? disableRequestLogging(req) : disableRequestLogging
++      if (resolvedDisableRequestLogging === false) {
+         childLogger.info({ req: request }, 'incoming request')
+       }
+ 
+@@ -668,7 +669,8 @@ function fastify (serverOptions) {
+           const request = new Request(id, null, req, null, childLogger, onBadUrlContext)
+           const reply = new Reply(res, request, childLogger)
+ 
+-          if (disableRequestLogging === false) {
++          const resolvedDisableRequestLogging = typeof disableRequestLogging === 'function' ? disableRequestLogging(req) : disableRequestLogging
++          if (resolvedDisableRequestLogging === false) {
+             childLogger.info({ req: request }, 'incoming request')
+           }
+ 
+diff --git a/lib/config-validator.js b/lib/config-validator.js
+index a110fb6b..4ce5787b 100644
+--- a/lib/config-validator.js
++++ b/lib/config-validator.js
+@@ -3,7 +3,7 @@
+ "use strict";
+ module.exports = validate10;
+ module.exports.default = validate10;
+-const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":false,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
++const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":true,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
+ const func2 = Object.prototype.hasOwnProperty;
+ const pattern0 = new RegExp("idle", "u");
+ 
+@@ -685,56 +685,57 @@ data["ignoreDuplicateSlashes"] = coerced14;
+ }
+ var valid0 = _errs43 === errors;
+ if(valid0){
+-let data13 = data.disableRequestLogging;
++let data13 = data.maxParamLength;
+ const _errs45 = errors;
+-if(typeof data13 !== "boolean"){
++if(!(((typeof data13 == "number") && (!(data13 % 1) && !isNaN(data13))) && (isFinite(data13)))){
++let dataType15 = typeof data13;
+ let coerced15 = undefined;
+ if(!(coerced15 !== undefined)){
+-if(data13 === "false" || data13 === 0 || data13 === null){
+-coerced15 = false;
+-}
+-else if(data13 === "true" || data13 === 1){
+-coerced15 = true;
++if(dataType15 === "boolean" || data13 === null
++              || (dataType15 === "string" && data13 && data13 == +data13 && !(data13 % 1))){
++coerced15 = +data13;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/disableRequestLogging",schemaPath:"#/properties/disableRequestLogging/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/maxParamLength",schemaPath:"#/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced15 !== undefined){
+ data13 = coerced15;
+ if(data !== undefined){
+-data["disableRequestLogging"] = coerced15;
++data["maxParamLength"] = coerced15;
+ }
+ }
+ }
+ var valid0 = _errs45 === errors;
+ if(valid0){
+-let data14 = data.maxParamLength;
++let data14 = data.onProtoPoisoning;
+ const _errs47 = errors;
+-if(!(((typeof data14 == "number") && (!(data14 % 1) && !isNaN(data14))) && (isFinite(data14)))){
++if(typeof data14 !== "string"){
+ let dataType16 = typeof data14;
+ let coerced16 = undefined;
+ if(!(coerced16 !== undefined)){
+-if(dataType16 === "boolean" || data14 === null
+-              || (dataType16 === "string" && data14 && data14 == +data14 && !(data14 % 1))){
+-coerced16 = +data14;
++if(dataType16 == "number" || dataType16 == "boolean"){
++coerced16 = "" + data14;
++}
++else if(data14 === null){
++coerced16 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/maxParamLength",schemaPath:"#/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/onProtoPoisoning",schemaPath:"#/properties/onProtoPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+ if(coerced16 !== undefined){
+ data14 = coerced16;
+ if(data !== undefined){
+-data["maxParamLength"] = coerced16;
++data["onProtoPoisoning"] = coerced16;
+ }
+ }
+ }
+ var valid0 = _errs47 === errors;
+ if(valid0){
+-let data15 = data.onProtoPoisoning;
++let data15 = data.onConstructorPoisoning;
+ const _errs49 = errors;
+ if(typeof data15 !== "string"){
+ let dataType17 = typeof data15;
+@@ -747,82 +748,56 @@ else if(data15 === null){
+ coerced17 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/onProtoPoisoning",schemaPath:"#/properties/onProtoPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/onConstructorPoisoning",schemaPath:"#/properties/onConstructorPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+ if(coerced17 !== undefined){
+ data15 = coerced17;
+ if(data !== undefined){
+-data["onProtoPoisoning"] = coerced17;
++data["onConstructorPoisoning"] = coerced17;
+ }
+ }
+ }
+ var valid0 = _errs49 === errors;
+ if(valid0){
+-let data16 = data.onConstructorPoisoning;
++let data16 = data.pluginTimeout;
+ const _errs51 = errors;
+-if(typeof data16 !== "string"){
++if(!(((typeof data16 == "number") && (!(data16 % 1) && !isNaN(data16))) && (isFinite(data16)))){
+ let dataType18 = typeof data16;
+ let coerced18 = undefined;
+ if(!(coerced18 !== undefined)){
+-if(dataType18 == "number" || dataType18 == "boolean"){
+-coerced18 = "" + data16;
+-}
+-else if(data16 === null){
+-coerced18 = "";
++if(dataType18 === "boolean" || data16 === null
++              || (dataType18 === "string" && data16 && data16 == +data16 && !(data16 % 1))){
++coerced18 = +data16;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/onConstructorPoisoning",schemaPath:"#/properties/onConstructorPoisoning/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/pluginTimeout",schemaPath:"#/properties/pluginTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced18 !== undefined){
+ data16 = coerced18;
+ if(data !== undefined){
+-data["onConstructorPoisoning"] = coerced18;
++data["pluginTimeout"] = coerced18;
+ }
+ }
+ }
+ var valid0 = _errs51 === errors;
+ if(valid0){
+-let data17 = data.pluginTimeout;
++let data17 = data.requestIdHeader;
+ const _errs53 = errors;
+-if(!(((typeof data17 == "number") && (!(data17 % 1) && !isNaN(data17))) && (isFinite(data17)))){
+-let dataType19 = typeof data17;
++const _errs54 = errors;
++let valid6 = false;
++const _errs55 = errors;
++if(typeof data17 !== "boolean"){
+ let coerced19 = undefined;
+ if(!(coerced19 !== undefined)){
+-if(dataType19 === "boolean" || data17 === null
+-              || (dataType19 === "string" && data17 && data17 == +data17 && !(data17 % 1))){
+-coerced19 = +data17;
+-}
+-else {
+-validate10.errors = [{instancePath:instancePath+"/pluginTimeout",schemaPath:"#/properties/pluginTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+-return false;
++if(data17 === "false" || data17 === 0 || data17 === null){
++coerced19 = false;
+ }
+-}
+-if(coerced19 !== undefined){
+-data17 = coerced19;
+-if(data !== undefined){
+-data["pluginTimeout"] = coerced19;
+-}
+-}
+-}
+-var valid0 = _errs53 === errors;
+-if(valid0){
+-let data18 = data.requestIdHeader;
+-const _errs55 = errors;
+-const _errs56 = errors;
+-let valid6 = false;
+-const _errs57 = errors;
+-if(typeof data18 !== "boolean"){
+-let coerced20 = undefined;
+-if(!(coerced20 !== undefined)){
+-if(data18 === "false" || data18 === 0 || data18 === null){
+-coerced20 = false;
+-}
+-else if(data18 === "true" || data18 === 1){
+-coerced20 = true;
++else if(data17 === "true" || data17 === 1){
++coerced19 = true;
+ }
+ else {
+ const err12 = {instancePath:instancePath+"/requestIdHeader",schemaPath:"#/properties/requestIdHeader/anyOf/0/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+@@ -835,26 +810,26 @@ vErrors.push(err12);
+ errors++;
+ }
+ }
+-if(coerced20 !== undefined){
+-data18 = coerced20;
++if(coerced19 !== undefined){
++data17 = coerced19;
+ if(data !== undefined){
+-data["requestIdHeader"] = coerced20;
++data["requestIdHeader"] = coerced19;
+ }
+ }
+ }
+-var _valid3 = _errs57 === errors;
++var _valid3 = _errs55 === errors;
+ valid6 = valid6 || _valid3;
+ if(!valid6){
+-const _errs59 = errors;
+-if(typeof data18 !== "string"){
+-let dataType21 = typeof data18;
+-let coerced21 = undefined;
+-if(!(coerced21 !== undefined)){
+-if(dataType21 == "number" || dataType21 == "boolean"){
+-coerced21 = "" + data18;
++const _errs57 = errors;
++if(typeof data17 !== "string"){
++let dataType20 = typeof data17;
++let coerced20 = undefined;
++if(!(coerced20 !== undefined)){
++if(dataType20 == "number" || dataType20 == "boolean"){
++coerced20 = "" + data17;
+ }
+-else if(data18 === null){
+-coerced21 = "";
++else if(data17 === null){
++coerced20 = "";
+ }
+ else {
+ const err13 = {instancePath:instancePath+"/requestIdHeader",schemaPath:"#/properties/requestIdHeader/anyOf/1/type",keyword:"type",params:{type: "string"},message:"must be string"};
+@@ -867,14 +842,14 @@ vErrors.push(err13);
+ errors++;
+ }
+ }
+-if(coerced21 !== undefined){
+-data18 = coerced21;
++if(coerced20 !== undefined){
++data17 = coerced20;
+ if(data !== undefined){
+-data["requestIdHeader"] = coerced21;
++data["requestIdHeader"] = coerced20;
+ }
+ }
+ }
+-var _valid3 = _errs59 === errors;
++var _valid3 = _errs57 === errors;
+ valid6 = valid6 || _valid3;
+ }
+ if(!valid6){
+@@ -890,69 +865,94 @@ validate10.errors = vErrors;
+ return false;
+ }
+ else {
+-errors = _errs56;
++errors = _errs54;
+ if(vErrors !== null){
+-if(_errs56){
+-vErrors.length = _errs56;
++if(_errs54){
++vErrors.length = _errs54;
+ }
+ else {
+ vErrors = null;
+ }
+ }
+ }
+-var valid0 = _errs55 === errors;
++var valid0 = _errs53 === errors;
+ if(valid0){
+-let data19 = data.requestIdLogLabel;
++let data18 = data.requestIdLogLabel;
++const _errs59 = errors;
++if(typeof data18 !== "string"){
++let dataType21 = typeof data18;
++let coerced21 = undefined;
++if(!(coerced21 !== undefined)){
++if(dataType21 == "number" || dataType21 == "boolean"){
++coerced21 = "" + data18;
++}
++else if(data18 === null){
++coerced21 = "";
++}
++else {
++validate10.errors = [{instancePath:instancePath+"/requestIdLogLabel",schemaPath:"#/properties/requestIdLogLabel/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++return false;
++}
++}
++if(coerced21 !== undefined){
++data18 = coerced21;
++if(data !== undefined){
++data["requestIdLogLabel"] = coerced21;
++}
++}
++}
++var valid0 = _errs59 === errors;
++if(valid0){
++let data19 = data.http2SessionTimeout;
+ const _errs61 = errors;
+-if(typeof data19 !== "string"){
++if(!(((typeof data19 == "number") && (!(data19 % 1) && !isNaN(data19))) && (isFinite(data19)))){
+ let dataType22 = typeof data19;
+ let coerced22 = undefined;
+ if(!(coerced22 !== undefined)){
+-if(dataType22 == "number" || dataType22 == "boolean"){
+-coerced22 = "" + data19;
+-}
+-else if(data19 === null){
+-coerced22 = "";
++if(dataType22 === "boolean" || data19 === null
++              || (dataType22 === "string" && data19 && data19 == +data19 && !(data19 % 1))){
++coerced22 = +data19;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/requestIdLogLabel",schemaPath:"#/properties/requestIdLogLabel/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/http2SessionTimeout",schemaPath:"#/properties/http2SessionTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced22 !== undefined){
+ data19 = coerced22;
+ if(data !== undefined){
+-data["requestIdLogLabel"] = coerced22;
++data["http2SessionTimeout"] = coerced22;
+ }
+ }
+ }
+ var valid0 = _errs61 === errors;
+ if(valid0){
+-let data20 = data.http2SessionTimeout;
++let data20 = data.exposeHeadRoutes;
+ const _errs63 = errors;
+-if(!(((typeof data20 == "number") && (!(data20 % 1) && !isNaN(data20))) && (isFinite(data20)))){
+-let dataType23 = typeof data20;
++if(typeof data20 !== "boolean"){
+ let coerced23 = undefined;
+ if(!(coerced23 !== undefined)){
+-if(dataType23 === "boolean" || data20 === null
+-              || (dataType23 === "string" && data20 && data20 == +data20 && !(data20 % 1))){
+-coerced23 = +data20;
++if(data20 === "false" || data20 === 0 || data20 === null){
++coerced23 = false;
++}
++else if(data20 === "true" || data20 === 1){
++coerced23 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/http2SessionTimeout",schemaPath:"#/properties/http2SessionTimeout/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/exposeHeadRoutes",schemaPath:"#/properties/exposeHeadRoutes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced23 !== undefined){
+ data20 = coerced23;
+ if(data !== undefined){
+-data["http2SessionTimeout"] = coerced23;
++data["exposeHeadRoutes"] = coerced23;
+ }
+ }
+ }
+ var valid0 = _errs63 === errors;
+ if(valid0){
+-let data21 = data.exposeHeadRoutes;
++let data21 = data.useSemicolonDelimiter;
+ const _errs65 = errors;
+ if(typeof data21 !== "boolean"){
+ let coerced24 = undefined;
+@@ -964,72 +964,65 @@ else if(data21 === "true" || data21 === 1){
+ coerced24 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/exposeHeadRoutes",schemaPath:"#/properties/exposeHeadRoutes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/useSemicolonDelimiter",schemaPath:"#/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced24 !== undefined){
+ data21 = coerced24;
+ if(data !== undefined){
+-data["exposeHeadRoutes"] = coerced24;
++data["useSemicolonDelimiter"] = coerced24;
+ }
+ }
+ }
+ var valid0 = _errs65 === errors;
+ if(valid0){
+-let data22 = data.useSemicolonDelimiter;
++if(data.routerOptions !== undefined){
++let data22 = data.routerOptions;
+ const _errs67 = errors;
+-if(typeof data22 !== "boolean"){
++if(errors === _errs67){
++if(data22 && typeof data22 == "object" && !Array.isArray(data22)){
++if(data22.ignoreTrailingSlash === undefined){
++data22.ignoreTrailingSlash = false;
++}
++if(data22.ignoreDuplicateSlashes === undefined){
++data22.ignoreDuplicateSlashes = false;
++}
++if(data22.maxParamLength === undefined){
++data22.maxParamLength = 100;
++}
++if(data22.allowUnsafeRegex === undefined){
++data22.allowUnsafeRegex = false;
++}
++if(data22.useSemicolonDelimiter === undefined){
++data22.useSemicolonDelimiter = false;
++}
++let data23 = data22.ignoreTrailingSlash;
++const _errs70 = errors;
++if(typeof data23 !== "boolean"){
+ let coerced25 = undefined;
+ if(!(coerced25 !== undefined)){
+-if(data22 === "false" || data22 === 0 || data22 === null){
++if(data23 === "false" || data23 === 0 || data23 === null){
+ coerced25 = false;
+ }
+-else if(data22 === "true" || data22 === 1){
++else if(data23 === "true" || data23 === 1){
+ coerced25 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/useSemicolonDelimiter",schemaPath:"#/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreTrailingSlash",schemaPath:"#/properties/routerOptions/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced25 !== undefined){
+-data22 = coerced25;
+-if(data !== undefined){
+-data["useSemicolonDelimiter"] = coerced25;
+-}
+-}
+-}
+-var valid0 = _errs67 === errors;
+-if(valid0){
+-if(data.routerOptions !== undefined){
+-let data23 = data.routerOptions;
+-const _errs69 = errors;
+-if(errors === _errs69){
+-if(data23 && typeof data23 == "object" && !Array.isArray(data23)){
+-if(data23.ignoreTrailingSlash === undefined){
+-data23.ignoreTrailingSlash = false;
+-}
+-if(data23.ignoreDuplicateSlashes === undefined){
+-data23.ignoreDuplicateSlashes = false;
+-}
+-if(data23.maxParamLength === undefined){
+-data23.maxParamLength = 100;
+-}
+-if(data23.allowUnsafeRegex === undefined){
+-data23.allowUnsafeRegex = false;
++data23 = coerced25;
++if(data22 !== undefined){
++data22["ignoreTrailingSlash"] = coerced25;
+ }
+-if(data23.useSemicolonDelimiter === undefined){
+-data23.useSemicolonDelimiter = false;
+ }
+-const _errs71 = errors;
+-for(const key2 in data23){
+-if(!(((((key2 === "ignoreTrailingSlash") || (key2 === "ignoreDuplicateSlashes")) || (key2 === "maxParamLength")) || (key2 === "allowUnsafeRegex")) || (key2 === "useSemicolonDelimiter"))){
+-delete data23[key2];
+ }
+-}
+-if(_errs71 === errors){
+-let data24 = data23.ignoreTrailingSlash;
++var valid7 = _errs70 === errors;
++if(valid7){
++let data24 = data22.ignoreDuplicateSlashes;
+ const _errs72 = errors;
+ if(typeof data24 !== "boolean"){
+ let coerced26 = undefined;
+@@ -1041,69 +1034,69 @@ else if(data24 === "true" || data24 === 1){
+ coerced26 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreTrailingSlash",schemaPath:"#/properties/routerOptions/properties/ignoreTrailingSlash/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreDuplicateSlashes",schemaPath:"#/properties/routerOptions/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced26 !== undefined){
+ data24 = coerced26;
+-if(data23 !== undefined){
+-data23["ignoreTrailingSlash"] = coerced26;
++if(data22 !== undefined){
++data22["ignoreDuplicateSlashes"] = coerced26;
+ }
+ }
+ }
+ var valid7 = _errs72 === errors;
+ if(valid7){
+-let data25 = data23.ignoreDuplicateSlashes;
++let data25 = data22.maxParamLength;
+ const _errs74 = errors;
+-if(typeof data25 !== "boolean"){
++if(!(((typeof data25 == "number") && (!(data25 % 1) && !isNaN(data25))) && (isFinite(data25)))){
++let dataType27 = typeof data25;
+ let coerced27 = undefined;
+ if(!(coerced27 !== undefined)){
+-if(data25 === "false" || data25 === 0 || data25 === null){
+-coerced27 = false;
+-}
+-else if(data25 === "true" || data25 === 1){
+-coerced27 = true;
++if(dataType27 === "boolean" || data25 === null
++              || (dataType27 === "string" && data25 && data25 == +data25 && !(data25 % 1))){
++coerced27 = +data25;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/ignoreDuplicateSlashes",schemaPath:"#/properties/routerOptions/properties/ignoreDuplicateSlashes/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/maxParamLength",schemaPath:"#/properties/routerOptions/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
+ return false;
+ }
+ }
+ if(coerced27 !== undefined){
+ data25 = coerced27;
+-if(data23 !== undefined){
+-data23["ignoreDuplicateSlashes"] = coerced27;
++if(data22 !== undefined){
++data22["maxParamLength"] = coerced27;
+ }
+ }
+ }
+ var valid7 = _errs74 === errors;
+ if(valid7){
+-let data26 = data23.maxParamLength;
++let data26 = data22.allowUnsafeRegex;
+ const _errs76 = errors;
+-if(!(((typeof data26 == "number") && (!(data26 % 1) && !isNaN(data26))) && (isFinite(data26)))){
+-let dataType28 = typeof data26;
++if(typeof data26 !== "boolean"){
+ let coerced28 = undefined;
+ if(!(coerced28 !== undefined)){
+-if(dataType28 === "boolean" || data26 === null
+-              || (dataType28 === "string" && data26 && data26 == +data26 && !(data26 % 1))){
+-coerced28 = +data26;
++if(data26 === "false" || data26 === 0 || data26 === null){
++coerced28 = false;
++}
++else if(data26 === "true" || data26 === 1){
++coerced28 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/maxParamLength",schemaPath:"#/properties/routerOptions/properties/maxParamLength/type",keyword:"type",params:{type: "integer"},message:"must be integer"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/allowUnsafeRegex",schemaPath:"#/properties/routerOptions/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced28 !== undefined){
+ data26 = coerced28;
+-if(data23 !== undefined){
+-data23["maxParamLength"] = coerced28;
++if(data22 !== undefined){
++data22["allowUnsafeRegex"] = coerced28;
+ }
+ }
+ }
+ var valid7 = _errs76 === errors;
+ if(valid7){
+-let data27 = data23.allowUnsafeRegex;
++let data27 = data22.useSemicolonDelimiter;
+ const _errs78 = errors;
+ if(typeof data27 !== "boolean"){
+ let coerced29 = undefined;
+@@ -1115,44 +1108,18 @@ else if(data27 === "true" || data27 === 1){
+ coerced29 = true;
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/allowUnsafeRegex",schemaPath:"#/properties/routerOptions/properties/allowUnsafeRegex/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
++validate10.errors = [{instancePath:instancePath+"/routerOptions/useSemicolonDelimiter",schemaPath:"#/properties/routerOptions/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+ return false;
+ }
+ }
+ if(coerced29 !== undefined){
+ data27 = coerced29;
+-if(data23 !== undefined){
+-data23["allowUnsafeRegex"] = coerced29;
++if(data22 !== undefined){
++data22["useSemicolonDelimiter"] = coerced29;
+ }
+ }
+ }
+ var valid7 = _errs78 === errors;
+-if(valid7){
+-let data28 = data23.useSemicolonDelimiter;
+-const _errs80 = errors;
+-if(typeof data28 !== "boolean"){
+-let coerced30 = undefined;
+-if(!(coerced30 !== undefined)){
+-if(data28 === "false" || data28 === 0 || data28 === null){
+-coerced30 = false;
+-}
+-else if(data28 === "true" || data28 === 1){
+-coerced30 = true;
+-}
+-else {
+-validate10.errors = [{instancePath:instancePath+"/routerOptions/useSemicolonDelimiter",schemaPath:"#/properties/routerOptions/properties/useSemicolonDelimiter/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"}];
+-return false;
+-}
+-}
+-if(coerced30 !== undefined){
+-data28 = coerced30;
+-if(data23 !== undefined){
+-data23["useSemicolonDelimiter"] = coerced30;
+-}
+-}
+-}
+-var valid7 = _errs80 === errors;
+-}
+ }
+ }
+ }
+@@ -1163,49 +1130,49 @@ validate10.errors = [{instancePath:instancePath+"/routerOptions",schemaPath:"#/p
+ return false;
+ }
+ }
+-var valid0 = _errs69 === errors;
++var valid0 = _errs67 === errors;
+ }
+ else {
+ var valid0 = true;
+ }
+ if(valid0){
+ if(data.constraints !== undefined){
+-let data29 = data.constraints;
+-const _errs82 = errors;
+-if(errors === _errs82){
++let data28 = data.constraints;
++const _errs80 = errors;
++if(errors === _errs80){
++if(data28 && typeof data28 == "object" && !Array.isArray(data28)){
++for(const key2 in data28){
++let data29 = data28[key2];
++const _errs83 = errors;
++if(errors === _errs83){
+ if(data29 && typeof data29 == "object" && !Array.isArray(data29)){
+-for(const key3 in data29){
+-let data30 = data29[key3];
+-const _errs85 = errors;
+-if(errors === _errs85){
+-if(data30 && typeof data30 == "object" && !Array.isArray(data30)){
+ let missing1;
+-if(((((data30.name === undefined) && (missing1 = "name")) || ((data30.storage === undefined) && (missing1 = "storage"))) || ((data30.validate === undefined) && (missing1 = "validate"))) || ((data30.deriveConstraint === undefined) && (missing1 = "deriveConstraint"))){
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/required",keyword:"required",params:{missingProperty: missing1},message:"must have required property '"+missing1+"'"}];
++if(((((data29.name === undefined) && (missing1 = "name")) || ((data29.storage === undefined) && (missing1 = "storage"))) || ((data29.validate === undefined) && (missing1 = "validate"))) || ((data29.deriveConstraint === undefined) && (missing1 = "deriveConstraint"))){
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/required",keyword:"required",params:{missingProperty: missing1},message:"must have required property '"+missing1+"'"}];
+ return false;
+ }
+ else {
+-if(data30.name !== undefined){
+-let data31 = data30.name;
+-if(typeof data31 !== "string"){
+-let dataType31 = typeof data31;
+-let coerced31 = undefined;
+-if(!(coerced31 !== undefined)){
+-if(dataType31 == "number" || dataType31 == "boolean"){
+-coerced31 = "" + data31;
++if(data29.name !== undefined){
++let data30 = data29.name;
++if(typeof data30 !== "string"){
++let dataType30 = typeof data30;
++let coerced30 = undefined;
++if(!(coerced30 !== undefined)){
++if(dataType30 == "number" || dataType30 == "boolean"){
++coerced30 = "" + data30;
+ }
+-else if(data31 === null){
+-coerced31 = "";
++else if(data30 === null){
++coerced30 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1")+"/name",schemaPath:"#/properties/constraints/additionalProperties/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1")+"/name",schemaPath:"#/properties/constraints/additionalProperties/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+-if(coerced31 !== undefined){
+-data31 = coerced31;
+-if(data30 !== undefined){
+-data30["name"] = coerced31;
++if(coerced30 !== undefined){
++data30 = coerced30;
++if(data29 !== undefined){
++data29["name"] = coerced30;
+ }
+ }
+ }
+@@ -1213,11 +1180,11 @@ data30["name"] = coerced31;
+ }
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"}];
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"}];
+ return false;
+ }
+ }
+-var valid8 = _errs85 === errors;
++var valid8 = _errs83 === errors;
+ if(!valid8){
+ break;
+ }
+@@ -1228,7 +1195,7 @@ validate10.errors = [{instancePath:instancePath+"/constraints",schemaPath:"#/pro
+ return false;
+ }
+ }
+-var valid0 = _errs82 === errors;
++var valid0 = _errs80 === errors;
+ }
+ else {
+ var valid0 = true;
+@@ -1257,7 +1224,6 @@ var valid0 = true;
+ }
+ }
+ }
+-}
+ else {
+ validate10.errors = [{instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"}];
+ return false;
+diff --git a/lib/four-oh-four.js b/lib/four-oh-four.js
+index ac6dfa6d..140cd046 100644
+--- a/lib/four-oh-four.js
++++ b/lib/four-oh-four.js
+@@ -49,7 +49,8 @@ function fourOhFour (options) {
+   function basic404 (request, reply) {
+     const { url, method } = request.raw
+     const message = `Route ${method}:${url} not found`
+-    if (!disableRequestLogging) {
++    const resolvedDisableRequestLogging = typeof disableRequestLogging === 'function' ? disableRequestLogging(request.raw) : disableRequestLogging
++    if (!resolvedDisableRequestLogging) {
+       request.log.info(message)
+     }
+     reply.code(404).send({
+diff --git a/lib/route.js b/lib/route.js
+index 3f49c64b..9ecd57d4 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -29,8 +29,6 @@ const {
+   FST_ERR_HOOK_INVALID_ASYNC_HANDLER
+ } = require('./errors')
+ 
+-const { FSTDEP022 } = require('./warnings')
+-
+ const {
+   kRoutePrefix,
+   kSupportedHTTPMethods,
+@@ -53,6 +51,7 @@ const {
+ const { buildErrorHandler } = require('./error-handler')
+ const { createChildLogger } = require('./logger-factory.js')
+ const { getGenReqId } = require('./req-id-gen-factory.js')
++const { FSTDEP022 } = require('./warnings')
+ 
+ const routerKeys = [
+   'allowUnsafeRegex',
+@@ -78,6 +77,7 @@ function buildRouting (options) {
+   let setupResponseListeners
+   let throwIfAlreadyStarted
+   let disableRequestLogging
++  let disableRequestLoggingFn
+   let ignoreTrailingSlash
+   let ignoreDuplicateSlashes
+   let return503OnClosing
+@@ -94,13 +94,17 @@ function buildRouting (options) {
+     setup (options, fastifyArgs) {
+       avvio = fastifyArgs.avvio
+       fourOhFour = fastifyArgs.fourOhFour
++      logger = options.logger
+       hasLogger = fastifyArgs.hasLogger
+       setupResponseListeners = fastifyArgs.setupResponseListeners
+       throwIfAlreadyStarted = fastifyArgs.throwIfAlreadyStarted
+ 
+-      logger = options.logger
+       globalExposeHeadRoutes = options.exposeHeadRoutes
+       disableRequestLogging = options.disableRequestLogging
++      if (typeof disableRequestLogging === 'function') {
++        disableRequestLoggingFn = options.disableRequestLogging
++      }
++
+       ignoreTrailingSlash = options.routerOptions.ignoreTrailingSlash
+       ignoreDuplicateSlashes = options.routerOptions.ignoreDuplicateSlashes
+       return503OnClosing = Object.hasOwn(options, 'return503OnClosing') ? options.return503OnClosing : true
+@@ -373,9 +377,8 @@ function buildRouting (options) {
+         context.logSerializers = opts.logSerializers
+         context.attachValidation = opts.attachValidation
+         context[kReplySerializerDefault] = this[kReplySerializerDefault]
+-        context.schemaErrorFormatter = opts.schemaErrorFormatter ||
+-          this[kSchemaErrorFormatter] ||
+-          context.schemaErrorFormatter
++        context.schemaErrorFormatter =
++          opts.schemaErrorFormatter || this[kSchemaErrorFormatter] || context.schemaErrorFormatter
+ 
+         // Run hooks and more
+         avvio.once('preReady', () => {
+@@ -402,9 +405,11 @@ function buildRouting (options) {
+             context.schema = normalizeSchema(context.schema, this.initialConfig)
+ 
+             const schemaController = this[kSchemaController]
+-            if (!opts.validatorCompiler && (
+-              opts.schema.body || opts.schema.headers || opts.schema.querystring || opts.schema.params
+-            )) {
++            const hasValidationSchema = opts.schema.body ||
++              opts.schema.headers ||
++              opts.schema.querystring ||
++              opts.schema.params
++            if (!opts.validatorCompiler && hasValidationSchema) {
+               schemaController.setupValidator(this[kOptions])
+             }
+             try {
+@@ -455,7 +460,8 @@ function buildRouting (options) {
+       loggerOpts.serializers = context.logSerializers
+     }
+     const childLogger = createChildLogger(context, logger, req, id, loggerOpts)
+-    childLogger[kDisableRequestLogging] = disableRequestLogging
++    // Set initial value; will be re-evaluated after FastifyRequest is constructed if it's a function
++    childLogger[kDisableRequestLogging] = disableRequestLoggingFn ? false : disableRequestLogging
+ 
+     if (closing === true) {
+       /* istanbul ignore next mac, windows */
+@@ -499,7 +505,15 @@ function buildRouting (options) {
+ 
+     const request = new context.Request(id, params, req, query, childLogger, context)
+     const reply = new context.Reply(res, request, childLogger)
+-    if (disableRequestLogging === false) {
++
++    // Evaluate disableRequestLogging after FastifyRequest is constructed
++    // so the caller has access to decorations and customizations
++    const resolvedDisableRequestLogging = disableRequestLoggingFn
++      ? disableRequestLoggingFn(request)
++      : disableRequestLogging
++    childLogger[kDisableRequestLogging] = resolvedDisableRequestLogging
++
++    if (resolvedDisableRequestLogging === false) {
+       childLogger.info({ req: request }, 'incoming request')
+     }
+ 
+diff --git a/test/issue-4959.test.js b/test/issue-4959.test.js
+index 271bc5d9..87c98a3a 100644
+--- a/test/issue-4959.test.js
++++ b/test/issue-4959.test.js
+@@ -11,7 +11,7 @@ const { setTimeout } = require('node:timers')
+ *
+ * @see https://github.com/fastify/fastify/issues/4959
+ */
+-function runBadClientCall (reqOptions, payload) {
++function runBadClientCall (reqOptions, payload, waitBeforeDestroy) {
+   let innerResolve, innerReject
+   const promise = new Promise((resolve, reject) => {
+     innerResolve = resolve
+@@ -30,11 +30,25 @@ function runBadClientCall (reqOptions, payload) {
+     innerReject(new Error('Request should have failed'))
+   })
+ 
+-  // Kill the socket immediately (before sending data)
+-  req.on('socket', (socket) => {
+-    socket.on('connect', () => {
+-      setTimeout(() => { socket.destroy() }, 0)
+-    })
++  // Kill the socket after the request has been fully written.
++  // Destroying it on `connect` can race before any bytes are sent, making the
++  // server-side assertions (hooks/handler) non-deterministic.
++  //
++  // To keep the test deterministic, we optionally wait for a server-side signal
++  // (e.g. onSend entered) before aborting the client.
++  let socket
++  req.on('socket', (s) => { socket = s })
++  req.on('finish', () => {
++    if (waitBeforeDestroy && typeof waitBeforeDestroy.then === 'function') {
++      Promise.race([
++        waitBeforeDestroy,
++        new Promise(resolve => setTimeout(resolve, 200))
++      ]).then(() => {
++        if (socket) socket.destroy()
++      }, innerResolve)
++      return
++    }
++    setTimeout(() => { socket.destroy() }, 0)
+   })
+   req.on('error', innerResolve)
+   req.write(postData)
+@@ -47,6 +61,11 @@ test('should handle a socket error', async (t) => {
+   t.plan(4)
+   const fastify = Fastify()
+ 
++  let resolveOnSendEntered
++  const onSendEntered = new Promise((resolve) => {
++    resolveOnSendEntered = resolve
++  })
++
+   function shouldNotHappen () {
+     t.assert.fail('This should not happen')
+   }
+@@ -70,8 +89,14 @@ test('should handle a socket error', async (t) => {
+     t.assert.ok('onSend hook called')
+     request.onSendCalled = true
+ 
+-    // Introduce a delay
+-    await new Promise(resolve => setTimeout(resolve, 5))
++    if (resolveOnSendEntered) {
++      resolveOnSendEntered()
++      resolveOnSendEntered = null
++    }
++
++    // Introduce a delay (gives time for client-side abort to happen while the
++    // request has already been processed, exercising the original issue).
++    await new Promise(resolve => setTimeout(resolve, 50))
+     return payload
+   })
+ 
+@@ -88,6 +113,6 @@ test('should handle a socket error', async (t) => {
+     port: fastify.server.address().port,
+     path: '/',
+     method: 'PUT'
+-  }, { test: 'me' })
++  }, { test: 'me' }, onSendEntered)
+   t.assert.equal(err.code, 'ECONNRESET')
+ })
+diff --git a/test/logger/logging.test.js b/test/logger/logging.test.js
+index 5d9c5300..0ed51872 100644
+--- a/test/logger/logging.test.js
++++ b/test/logger/logging.test.js
+@@ -16,7 +16,7 @@ t.test('logging', { timeout: 60000 }, async (t) => {
+   let localhost
+   let localhostForURL
+ 
+-  t.plan(13)
++  t.plan(14)
+ 
+   t.before(async function () {
+     [localhost, localhostForURL] = await helper.getLoopbackHost()
+@@ -282,6 +282,43 @@ t.test('logging', { timeout: 60000 }, async (t) => {
+     t.assert.strictEqual(stream.readableLength, 0)
+   })
+ 
++  await t.test('should log incoming request and outgoing response based on disableRequestLogging function', async (t) => {
++    const lines = [
++      'incoming request',
++      'request completed'
++    ]
++    t.plan(lines.length)
++
++    const stream = split(JSON.parse)
++    const loggerInstance = pino(stream)
++
++    const fastify = Fastify({
++      disableRequestLogging: (request) => {
++        return request.url !== '/not-logged'
++      },
++      loggerInstance
++    })
++    t.after(() => fastify.close())
++
++    fastify.get('/logged', (req, reply) => {
++      return reply.code(200).send({})
++    })
++
++    fastify.get('/not-logged', (req, reply) => {
++      return reply.code(200).send({})
++    })
++
++    await fastify.ready()
++
++    await fastify.inject({ method: 'GET', url: '/not-logged' })
++    await fastify.inject({ method: 'GET', url: '/logged' })
++
++    for await (const [line] of on(stream, 'data')) {
++      t.assert.strictEqual(line.msg, lines.shift())
++      if (lines.length === 0) break
++    }
++  })
++
+   await t.test('defaults to info level', async (t) => {
+     const lines = [
+       { req: { method: 'GET' }, msg: 'incoming request' },
+diff --git a/test/types/fastify.test-d.ts b/test/types/fastify.test-d.ts
+index 9a175c40..22a0f63f 100644
+--- a/test/types/fastify.test-d.ts
++++ b/test/types/fastify.test-d.ts
+@@ -115,6 +115,7 @@ expectAssignable<FastifyInstance>(fastify({ pluginTimeout: 1000 }))
+ expectAssignable<FastifyInstance>(fastify({ bodyLimit: 100 }))
+ expectAssignable<FastifyInstance>(fastify({ maxParamLength: 100 }))
+ expectAssignable<FastifyInstance>(fastify({ disableRequestLogging: true }))
++expectAssignable<FastifyInstance>(fastify({ disableRequestLogging: (req) => req.url?.includes('/health') ?? false }))
+ expectAssignable<FastifyInstance>(fastify({ requestIdLogLabel: 'request-id' }))
+ expectAssignable<FastifyInstance>(fastify({ onProtoPoisoning: 'error' }))
+ expectAssignable<FastifyInstance>(fastify({ onConstructorPoisoning: 'error' }))
+diff --git a/test/types/instance.test-d.ts b/test/types/instance.test-d.ts
+index b975249f..251bed11 100644
+--- a/test/types/instance.test-d.ts
++++ b/test/types/instance.test-d.ts
+@@ -1,9 +1,10 @@
+-import { expectAssignable, expectError, expectNotDeprecated, expectType } from 'tsd'
++import { expectAssignable, expectError, expectNotAssignable, expectNotDeprecated, expectType } from 'tsd'
+ import fastify, {
+   FastifyBaseLogger,
+   FastifyBodyParser,
+   FastifyError,
+   FastifyInstance,
++  FastifyRouterOptions,
+   RawReplyDefaultExpression,
+   RawRequestDefaultExpression,
+   RawServerDefault,
+@@ -15,7 +16,7 @@ import { FastifyRequest } from '../../types/request'
+ import { FastifySchemaControllerOptions, FastifySchemaCompiler, FastifySerializerCompiler } from '../../types/schema'
+ import { AddressInfo } from 'node:net'
+ import { Bindings, ChildLoggerOptions } from '../../types/logger'
+-import { ConstraintStrategy } from 'find-my-way'
++import { Config as FindMyWayConfig, ConstraintStrategy } from 'find-my-way'
+ import { FindMyWayVersion } from '../../types/instance'
+ 
+ const server = fastify()
+@@ -323,7 +324,7 @@ type InitialConfig = Readonly<{
+   https?: boolean | Readonly<{ allowHTTP1: boolean }>,
+   ignoreTrailingSlash?: boolean,
+   ignoreDuplicateSlashes?: boolean,
+-  disableRequestLogging?: boolean,
++  disableRequestLogging?: boolean | ((req: FastifyRequest) => boolean),
+   maxParamLength?: number,
+   onProtoPoisoning?: 'error' | 'remove' | 'ignore',
+   onConstructorPoisoning?: 'error' | 'remove' | 'ignore',
+@@ -332,25 +333,32 @@ type InitialConfig = Readonly<{
+   requestIdLogLabel?: string,
+   http2SessionTimeout?: number,
+   useSemicolonDelimiter?: boolean,
+-  routerOptions?: {
+-    allowUnsafeRegex?: boolean,
+-    buildPrettyMeta?: (route: { [k: string]: unknown, store: { [k: string]: unknown } }) => object,
+-    caseSensitive?: boolean,
+-    constraints?: {
+-      [name: string]: ConstraintStrategy<FindMyWayVersion<RawServerDefault>, unknown>
+-    }
+-    defaultRoute?: (req: FastifyRequest, res: FastifyReply) => void,
+-    ignoreDuplicateSlashes?: boolean,
+-    ignoreTrailingSlash?: boolean,
+-    maxParamLength?: number,
+-    onBadUrl?: (path: string, req: FastifyRequest, res: FastifyReply) => void,
+-    querystringParser?: (str: string) => { [key: string]: unknown },
+-    useSemicolonDelimiter?: boolean,
+-  }
++  routerOptions?: FastifyRouterOptions<RawServerDefault>
+ }>
+ 
+ expectType<InitialConfig>(fastify().initialConfig)
+ 
++const routerOptionsForFindMyWay = {} as FastifyRouterOptions<RawServerDefault>
++expectAssignable<FindMyWayConfig<FindMyWayVersion<RawServerDefault>>>(routerOptionsForFindMyWay)
++
++fastify({
++  routerOptions: {
++    defaultRoute: (req, res) => {
++      expectType<RawRequestDefaultExpression<RawServerDefault>>(req)
++      expectType<RawReplyDefaultExpression<RawServerDefault>>(res)
++      expectNotAssignable<FastifyReply>(res)
++      res.end('foo')
++    },
++    onBadUrl: (path, req, res) => {
++      expectType<string>(path)
++      expectType<RawRequestDefaultExpression<RawServerDefault>>(req)
++      expectType<RawReplyDefaultExpression<RawServerDefault>>(res)
++      expectNotAssignable<FastifyReply>(res)
++      res.end('foo')
++    }
++  }
++})
++
+ expectType<FastifyBodyParser<string>>(server.defaultTextParser)
+ 
+ expectType<FastifyBodyParser<string>>(server.getDefaultJsonParser('ignore', 'error'))
+@@ -562,7 +570,7 @@ expectError(server.decorateReply('typedTestReplyMethod', async function (x) {
+ const foo = server.getDecorator<string>('foo')
+ expectType<string>(foo)
+ 
+-const versionConstraintStrategy = {
++const versionConstraintStrategy: ConstraintStrategy<FindMyWayVersion<RawServerDefault>> = {
+   name: 'version',
+   storage: () => ({
+     get: () => () => {},
+diff --git a/types/instance.d.ts b/types/instance.d.ts
+index f940ad10..0fd1baaf 100644
+--- a/types/instance.d.ts
++++ b/types/instance.d.ts
+@@ -595,7 +595,7 @@ export interface FastifyInstance<
+     https?: boolean | Readonly<{ allowHTTP1: boolean }>,
+     ignoreTrailingSlash?: boolean,
+     ignoreDuplicateSlashes?: boolean,
+-    disableRequestLogging?: boolean,
++    disableRequestLogging?: boolean | ((req: FastifyRequest) => boolean),
+     maxParamLength?: number,
+     onProtoPoisoning?: ProtoAction,
+     onConstructorPoisoning?: ConstructorAction,

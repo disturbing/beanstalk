@@ -1,0 +1,35 @@
+{
+ "base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+ "node": "v25.8.1",
+ "cpus": 18,
+ "machine": "arm64",
+ "command": "node --no-use-env-proxy --test 'test/**/*.test.js' 'test/**/*.test.mjs'",
+ "runs": [
+  {
+   "seconds": 13.61,
+   "green": true,
+   "tests": 2072,
+   "failing": []
+  },
+  {
+   "seconds": 12.92,
+   "green": true,
+   "tests": 2072,
+   "failing": []
+  },
+  {
+   "seconds": 12.98,
+   "green": true,
+   "tests": 2072,
+   "failing": []
+  }
+ ],
+ "offline": {
+  "seconds": 13.14,
+  "green": true,
+  "tests": 2072,
+  "failing": [],
+  "how": "codex sandbox with the race's loopback-only permissions profile (no internet)"
+ },
+ "measured": "2026-10-07T03:50:50+0800"
+}

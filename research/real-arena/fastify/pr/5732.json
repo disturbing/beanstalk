@@ -1,0 +1,11 @@
+{
+ "number": 5732,
+ "sha": "1b3381e73a423b54563c8207b31017a3381aa122",
+ "title": "feat: implement conditional request logging",
+ "body": "Use-case for this is following: some endpoints generate excessive amount of irrelevant noise (e. g. healthcheck) and are not useful in logs, so it would be great to be able to be able to resolve variable for logging their requests or not conditionally. And the big problem here is that these endpoints (healthchecks, metrics etc) frequently come from 3rd party plugins which register their routes themselves, therefore preventing extra configuration on a route level.\r\n\r\nNote: Documentation linting failing does not seem to be related to changes in this PR.\r\n\r\n#### Checklist\r\n\r\n- [X] run `npm run test` and `npm run benchmark`\r\n- [X] tests and/or benchmarks are included\r\n- [X] documentation is changed or added\r\n- [X] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/master/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/master/CODE_OF_CONDUCT.md)\r\n",
+ "author": "kibertoad",
+ "created_at": "2024-10-06T13:43:15Z",
+ "merged_at": "2026-01-13T08:08:00Z",
+ "pr_base_sha": "a397559a8791d82a4a26ee937b9e09e6fdb9a671",
+ "linked_issues": []
+}

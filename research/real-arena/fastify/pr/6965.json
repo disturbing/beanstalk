@@ -1,0 +1,11 @@
+{
+ "number": 6965,
+ "sha": "4176096a31f5b4c31512c36f578b08a596a72435",
+ "title": "fix: callNotFound should run not-found preHandler regardless of registration order",
+ "body": "setContext() in four-oh-four.js takes a detached shallow snapshot of the\nselected not-found context. When a route that calls reply.callNotFound()\nis registered before setNotFoundHandler(), the snapshot is taken before\nthe not-found handler's preReady callback populates its lifecycle hooks,\nso the copied context retains preHandler: null. reply.callNotFound() then\ndispatches the not-found handler directly, skipping the preHandler that\nsetNotFoundHandler() declares.\n\nThis change uses the selected context as the prototype of the route-specific\n404 context instead of copying it, keeping the route's own onSend value, so\nthe route-specific context stays linked to the live one and later hook\npopulation is visible.\n\nAdds a regression test covering the route-first declaration order.\n",
+ "author": "mcollina",
+ "created_at": "2026-08-18T23:57:22Z",
+ "merged_at": "2026-08-23T08:04:18Z",
+ "pr_base_sha": "9334d07129589f7340adfa4729ebe6c55e34bbfd",
+ "linked_issues": []
+}

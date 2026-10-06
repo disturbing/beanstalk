@@ -1,0 +1,33 @@
+diff --git a/lib/validation.js b/lib/validation.js
+index 047d1c8a..a7ac2aea 100644
+--- a/lib/validation.js
++++ b/lib/validation.js
+@@ -117,7 +117,15 @@ function compileSchemasForValidation (context, compile, isCustom) {
+ 
+ function validateParam (validatorFunction, request, paramName) {
+   const isUndefined = request[paramName] === undefined
+-  const ret = validatorFunction && validatorFunction(isUndefined ? null : request[paramName])
++  let ret
++
++  try {
++    ret = validatorFunction?.(isUndefined ? null : request[paramName])
++  } catch (err) {
++    // If validator throws synchronously, ensure it propagates as an internal error
++    err.statusCode = 500
++    return err
++  }
+ 
+   if (ret && typeof ret.then === 'function') {
+     return ret
+diff --git a/test/validation-error-handling.test.js b/test/validation-error-handling.test.js
+index 6177332d..96ca97d5 100644
+--- a/test/validation-error-handling.test.js
++++ b/test/validation-error-handling.test.js
+@@ -1,6 +1,6 @@
+ 'use strict'
+ 
+-const { test } = require('node:test')
++const { describe, test } = require('node:test')
+ const Joi = require('joi')
+ const Fastify = require('..')
+ 

@@ -1,0 +1,13 @@
+diff --git a/fastify.js b/fastify.js
+index 9b9a932e..d8133e37 100644
+--- a/fastify.js
++++ b/fastify.js
+@@ -596,7 +596,7 @@ function fastify (serverOptions) {
+ 
+     if (name === 'onClose') {
+       this.onClose(fn.bind(this))
+-    } else if (name === 'onReady' || name === 'onListen' || name === 'onRoute') {
++    } else if (name === 'onReady' || name === 'onListen' || name === 'onRoute' || name === 'preClose') {
+       this[kHooks].add(name, fn)
+     } else {
+       this.after((err, done) => {

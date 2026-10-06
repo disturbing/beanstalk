@@ -1,0 +1,82 @@
+{
+  "id": "t010",
+  "title": "fix: remove format placeholder from FST_ERR_CTP_INVALID_MEDIA_TYPE message",
+  "prompt": "## Summary\n\n- The error message template `'Unsupported Media Type: %s'` produced the literal string `%s` when instantiated without arguments (as in `lib/handle-request.js`).\n- Rather than reflecting the raw `content-type` header back to the client (which would expose unsanitized user input in error responses and logs), the template is changed to the static message `'Unsupported Media Type'`.\n- Both callsites (`lib/handle-request.js` and `lib/content-type-parser.js`) now instantiate the error with no arguments.\n\n## Breaking change\n\nThis is a **minor breaking change** for consumers that match on the exact `error.message` string (previously `'Unsupported Media Type: <content-type>'`, now `'Unsupported Media Type'`). The error code `FST_ERR_CTP_INVALID_MEDIA_TYPE` and HTTP status `415` are unchanged and should be used for programmatic error handling instead.\n\n## Test plan\n\n- [x] Added test that sends an invalid content-type header and asserts the error message is `'Unsupported Media Type'` (no `%s` placeholder)\n- [x] Updated existing error unit test to expect the new message\n- [x] All tests pass (2164 pass, 0 fail)\n- [x] Lint passes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "acceptance_tests": {
+    "test/content-parser.pr6528.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst keys = require('../lib/symbols')\nconst { FST_ERR_CTP_ALREADY_PRESENT, FST_ERR_CTP_INVALID_TYPE, FST_ERR_CTP_INVALID_MEDIA_TYPE } = require('../lib/errors')\n\nconst first = function (req, payload, done) {}\nconst second = function (req, payload, done) {}\nconst third = function (req, payload, done) {}\n\ntest('Error thrown 415 from content type is null and make post request to server', (t, done) => {\n  t.plan(3)\n\n  const fastify = Fastify()\n  const errMsg = new FST_ERR_CTP_INVALID_MEDIA_TYPE().message\n\n  fastify.post('/', (req, reply) => {\n  })\n\n  fastify.inject({\n    method: 'POST',\n    url: '/',\n    body: 'some text'\n  }, (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 415)\n    t.assert.strictEqual(JSON.parse(res.body).message, errMsg)\n    done()\n  })\n})\n\ntest('invalid content-type error message should not contain format placeholder', (t, done) => {\n  t.plan(4)\n\n  const fastify = Fastify()\n\n  fastify.post('/', (req, reply) => {\n    reply.send('ok')\n  })\n\n  fastify.inject({\n    method: 'POST',\n    url: '/',\n    headers: { 'Content-Type': 'invalid-content-type' },\n    body: 'test'\n  }, (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 415)\n    const body = JSON.parse(res.body)\n    t.assert.strictEqual(body.code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')\n    t.assert.strictEqual(body.message, 'Unsupported Media Type')\n    done()\n  })\n})\n",
+    "test/internals/errors.pr6528.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst errors = require('../../lib/errors')\nconst { readFileSync } = require('node:fs')\nconst { resolve } = require('node:path')\n\nconst expectedErrors = 88\n\ntest('FST_ERR_CTP_INVALID_MEDIA_TYPE', t => {\n  t.plan(5)\n  const error = new errors.FST_ERR_CTP_INVALID_MEDIA_TYPE()\n  t.assert.strictEqual(error.name, 'FastifyError')\n  t.assert.strictEqual(error.code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')\n  t.assert.strictEqual(error.message, 'Unsupported Media Type')\n  t.assert.strictEqual(error.statusCode, 415)\n  t.assert.ok(error instanceof Error)\n})\n"
+  },
+  "oracle_paths": [
+    "lib/content-type-parser.js",
+    "lib/errors.js",
+    "test/content-parser.pr6528.test.js",
+    "test/content-parser.test.js",
+    "test/internals/errors.pr6528.test.js",
+    "test/internals/errors.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test",
+    "test/internals"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6528,
+    "sha": "1e0be1294e85734f1e6ac651f3ff664d389d7799",
+    "url": "https://github.com/fastify/fastify/pull/6528",
+    "author": "super-mcgin",
+    "merged_at": "2026-02-28T09:32:19Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/content-type-parser.js",
+      "lib/errors.js",
+      "test/content-parser.test.js",
+      "test/internals/errors.test.js"
+    ],
+    "source_files": [
+      "lib/content-type-parser.js",
+      "lib/errors.js"
+    ],
+    "test_files": [
+      "test/content-parser.pr6528.test.js",
+      "test/internals/errors.pr6528.test.js"
+    ],
+    "source_lines_changed": 4,
+    "notes": [
+      "test/content-parser.test.js: 2 added/modified case(s) extracted to test/content-parser.pr6528.test.js",
+      "test/content-parser.test.js: modified expectations stay in the solution",
+      "test/internals/errors.test.js: 1 added/modified case(s) extracted to test/internals/errors.pr6528.test.js",
+      "test/internals/errors.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/content-parser.pr6528.test.js",
+      "test/internals/errors.pr6528.test.js"
+    ],
+    "suite_seconds": 15.4,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/content-type-parser.js",
+      "lib/errors.js"
+    ],
+    "shares_a_source_file_with": [
+      "t007",
+      "t009",
+      "t017",
+      "t032",
+      "t037"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

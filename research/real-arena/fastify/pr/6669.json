@@ -1,0 +1,11 @@
+{
+ "number": 6669,
+ "sha": "c2ba18c17769dacce61472ec0397560b3b4eebde",
+ "title": "fix: avoid duplicate closeIdleConnections call on native servers",
+ "body": "## Summary\r\n\r\nAvoid an extra `closeIdleConnections()` call when Fastify is using a native Node.js server and `forceCloseConnections: 'idle'`.\r\n\r\nNative HTTP servers already close idle keep-alive sockets as part of `server.close()`, so the additional Fastify call is redundant there. The explicit call is still preserved for custom `serverFactory` servers to maintain the existing `forceCloseConnections: 'idle'` behavior.\r\n\r\n## Changes\r\n\r\n- Restrict the extra `closeIdleConnections()` call in the shutdown path to `serverFactory` servers only.\r\n- Update the pipelining test comment to reflect native Node.js server behavior more accurately.\r\n- Add coverage to verify:\r\n  - native servers do not get an extra `closeIdleConnections()` call\r\n  - custom servers created through `serverFactory` still receive the extra call\r\n\r\n#### Checklist\r\n\r\n- [x] run `npm run test && npm run benchmark --if-present`\r\n- [x] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "trivikr",
+ "created_at": "2026-04-17T04:22:45Z",
+ "merged_at": "2026-04-19T12:58:32Z",
+ "pr_base_sha": "dce0d47a44ecf6605a4e6b39d80f0bef17c2c2ce",
+ "linked_issues": []
+}

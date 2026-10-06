@@ -1,0 +1,66 @@
+{
+  "id": "t002",
+  "title": "fix: consistent error handling for custom validators in async validation contexts",
+  "prompt": "## Description\n\nFixes inconsistent error handling between sync and async validation contexts when custom validators throw errors instead of returning `{error}` objects.\n\n## Problem\n\nWhen using async preValidation hooks with custom validators, if the validator throws an error (instead of returning `{error}`), the error would not be caught by the error handler and would result in an unhandled promise rejection, potentially crashing the application.\n\nThis inconsistency meant:\n- **Sync context**: Thrown errors were caught and handled properly by the error handler\n- **Async context**: Thrown errors became unhandled promise rejections\n\n## Solution\n\nModified the `validateParam` function in `lib/validation.js` to wrap the `validatorFunction` call in a try-catch block. This ensures that synchronous throws are caught and returned as validation errors, making error handling consistent across both sync and async validation contexts.\n\n## Changes\n\n- **lib/validation.js**: Added try-catch block around `validatorFunction` call in `validateParam`\n- **test/validation-error-handling.test.js**: Added test case to verify error handling consistency\n\n## Testing\n\n- ✅ All existing tests pass\n- ✅ New test specifically validates the fix for async preValidation + custom validator error scenarios\n- ✅ Covers the exact issue described in #6214\n\n## Breaking Changes\n\nNone. This change maintains backward compatibility while fixing the error handling inconsistency.\n\nFixes #6214",
+  "acceptance_tests": {
+    "test/validation-error-handling.pr6247.test.js": "'use strict'\n\nconst { describe, test } = require('node:test')\nconst Joi = require('joi')\nconst Fastify = require('..')\n\nconst schema = {\n  body: {\n    type: 'object',\n    properties: {\n      name: { type: 'string' },\n      work: { type: 'string' }\n    },\n    required: ['name', 'work']\n  }\n}\n\nfunction echoBody (req, reply) {\n  reply.code(200).send(req.body.name)\n}\n\ndescribe('sync and async must work in the same way', () => {\n  // Route with custom validator that throws\n  const throwingRouteValidator = {\n    schema: {\n      body: {\n        type: 'object',\n        properties: { name: { type: 'string' } }\n      }\n    },\n    validatorCompiler: () => {\n      return function (inputData) {\n        // This custom validator throws a sync error instead of returning `{ error }`\n        throw new Error('Custom validation failed')\n      }\n    },\n    handler (request, reply) { reply.send({ success: true }) }\n  }\n\n  test('async preValidation with custom validator should trigger error handler when validator throws', async (t) => {\n    t.plan(4)\n\n    const fastify = Fastify()\n    fastify.setErrorHandler((error, request, reply) => {\n      t.assert.ok(error instanceof Error, 'error should be an Error instance')\n      t.assert.strictEqual(error.message, 'Custom validation failed')\n      reply.status(500).send({ error: error.message })\n    })\n\n    // Add async preValidation hook\n    fastify.addHook('preValidation', async (request, reply) => {\n      await Promise.resolve('ok')\n    })\n    fastify.post('/async', throwingRouteValidator)\n\n    const response = await fastify.inject({\n      method: 'POST',\n      url: '/async',\n      payload: { name: 'test' }\n    })\n    t.assert.strictEqual(response.statusCode, 500)\n    t.assert.deepStrictEqual(response.json(), { error: 'Custom validation failed' })\n  })\n\n  test('sync preValidation with custom validator should trigger error handler when validator throws', async (t) => {\n    t.plan(4)\n\n    const fastify = Fastify()\n    fastify.setErrorHandler((error, request, reply) => {\n      t.assert.ok(error instanceof Error, 'error should be an Error instance')\n      t.assert.strictEqual(error.message, 'Custom validation failed')\n      reply.status(500).send({ error: error.message })\n    })\n\n    // Add sync preValidation hook\n    fastify.addHook('preValidation', (request, reply, next) => { next() })\n    fastify.post('/sync', throwingRouteValidator)\n\n    const response = await fastify.inject({\n      method: 'POST',\n      url: '/sync',\n      payload: { name: 'test' }\n    })\n    t.assert.strictEqual(response.statusCode, 500)\n    t.assert.deepStrictEqual(response.json(), { error: 'Custom validation failed' })\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/validation.js",
+    "test/validation-error-handling.pr6247.test.js",
+    "test/validation-error-handling.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6247,
+    "sha": "d338dca5ab24a4ce0175b4333efe46859ceaffab",
+    "url": "https://github.com/fastify/fastify/pull/6247",
+    "author": "emicovi",
+    "merged_at": "2025-11-08T14:16:10Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/validation.js",
+      "test/validation-error-handling.test.js"
+    ],
+    "source_files": [
+      "lib/validation.js"
+    ],
+    "test_files": [
+      "test/validation-error-handling.pr6247.test.js"
+    ],
+    "source_lines_changed": 10,
+    "notes": [
+      "test/validation-error-handling.test.js: 2 added/modified case(s) extracted to test/validation-error-handling.pr6247.test.js",
+      "test/validation-error-handling.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/validation-error-handling.pr6247.test.js"
+    ],
+    "suite_seconds": 13.3,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/validation.js"
+    ],
+    "shares_a_source_file_with": [
+      "t013",
+      "t028"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

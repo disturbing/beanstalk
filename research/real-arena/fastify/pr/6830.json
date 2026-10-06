@@ -1,0 +1,18 @@
+{
+ "number": 6830,
+ "sha": "6f63ce9324b7368ac8beff1f385b31addce35c2d",
+ "title": "fix: use ContentType to detect `json` and `charset` in reply.send",
+ "body": "1. Move shared cache of `ContentType` from `ContentTypeParser` to itself\r\n\r\nIt makes more sense to have centralized cache instead one per parser. The parser will be recreate when the context is difference which means we have same cached key-value pairs across the application.\r\n\r\n2. Detech `json` and `charset` in `reply.send`.\r\n\r\nSee #6828 \r\nCloses #6828 \r\n\r\nI have cherry-pick the work in #6828 and modify the others.\r\nIt should credit the original author for the finding and fix.\r\n\r\n\r\ncc @aquie00t I believe it wouldn't slow down the performance boost, the cache still using.\r\n\r\n#### Checklist\r\n\r\n- [x] run `npm run test && npm run benchmark --if-present`\r\n- [x] tests and/or benchmarks are included\r\n- [x] documentation is changed or added\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "climba03003",
+ "created_at": "2026-07-02T20:08:25Z",
+ "merged_at": "2026-07-05T07:57:10Z",
+ "pr_base_sha": "355c3efded3e7b76ed864a1f61c0c8bf7a073657",
+ "linked_issues": [
+  {
+   "number": 6828,
+   "title": "fix: detect an existing charset case-insensitively when sending JSON",
+   "body": "When a route sets a JSON content type with an uppercase or mixed case charset,\nFastify appends a second `charset=utf-8`, producing a malformed header.\n\nIn `lib/reply.js`, `Reply.prototype.send` decides whether the content type\nalready has a charset with a case-sensitive `contentType.indexOf('charset')`. A\nvalue such as `application/json; CHARSET=utf-8` does not match, so Fastify treats\nit as missing a charset and appends its own:\n\n    application/json; CHARSET=utf-8  ->  application/json; CHARSET=utf-8; charset=utf-8\n\nHTTP parameter names are case-insensitive (RFC 9110 section 5.6.6), so the\nexisting charset should be detected regardless of case. The fix lowercases the\nvalue before the lookup. A route that sets a lowercase charset is unchanged.\n\nAdded an assertion for an uppercase `CHARSET` to the existing charset test.\n",
+   "is_pr": true
+  }
+ ]
+}

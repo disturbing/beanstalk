@@ -1,0 +1,18 @@
+diff --git a/lib/reply.js b/lib/reply.js
+index 20341bf7..09aec154 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -897,6 +897,13 @@ function setupResponseListeners (reply) {
+       }
+     }
+ 
++    // Fix: release socket._meta so request/reply objects are not retained
++    // past the response on keep-alive connections.
++    const socket = reply.request.raw.socket
++    if (socket && socket._meta && socket._meta.request === reply.request) {
++      socket._meta = null
++    }
++
+     if (ctx && ctx.onResponse !== null) {
+       onResponseHookRunner(
+         ctx.onResponse,

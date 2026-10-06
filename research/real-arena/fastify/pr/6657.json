@@ -1,0 +1,18 @@
+{
+ "number": 6657,
+ "sha": "d76dbcd58bf6d82bba167cdc74a79d2f74dbcb97",
+ "title": "fix: correct isCustomSerializerCompiler flag check",
+ "body": "## Summary\n\nFixes #6652. This replaces PR #6655 which was accidentally closed.\n\nThe `isCustomSerializerCompiler` flag in `lib/schema-controller.js` was incorrectly checking `opts?.compilersFactory?.buildValidator` instead of `opts?.compilersFactory?.buildSerializer`. This caused the flag to always mirror `isCustomValidatorCompiler` rather than independently tracking whether a custom serializer compiler was provided.\n\n## Changes\n\n- **`lib/schema-controller.js`**: Changed the `isCustomSerializerCompiler` initialization to check `buildSerializer` instead of `buildValidator`\n- **`test/internals/schema-controller-perf.test.js`**: Added two test cases verifying that `isCustomSerializerCompiler` and `isCustomValidatorCompiler` are set independently based on which compiler factory functions are provided",
+ "author": "eddieran",
+ "created_at": "2026-04-12T12:50:49Z",
+ "merged_at": "2026-04-20T17:37:33Z",
+ "pr_base_sha": "890ab7578f14730b2fed6de43acfeee19da1a3e4",
+ "linked_issues": [
+  {
+   "number": 6652,
+   "title": "[Bug] Schema controller checks buildValidator instead of buildSerializer for isCustomSerializerCompiler",
+   "body": "## Summary\nIn `lib/schema-controller.js:34`, the `isCustomSerializerCompiler` flag checks `buildValidator` instead of `buildSerializer`:\n\n```javascript\nisCustomSerializerCompiler: typeof opts?.compilersFactory?.buildValidator === 'function'\n//                                                         ^^^^^^^^^^^^^^ should be buildSerializer\n```\n\n## Impact\n`isCustomSerializerCompiler` is incorrect whenever a user provides only a custom serializer compiler (without a custom validator). This affects downstream code that relies on this flag.\n\n## Fix\n```diff\n- isCustomSerializerCompiler: typeof opts?.compilersFactory?.buildValidator === 'function'\n+ isCustomSerializerCompiler: typeof opts?.compilersFactory?.buildSerializer === 'function'\n```\n",
+   "is_pr": false
+  }
+ ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "t025",
+  "title": "fix: hasRequestDecorator/hasReplyDecorator misses constructor-assigned built-in properties",
+  "prompt": "## What\n\n`hasRequestDecorator` and `hasReplyDecorator` only check the constructor prototype and the decorator props list. But several core properties — `req.id`, `req.params`, `req.raw`, `req.query`, `req.log`, `req.body`, `reply.raw`, `reply.request`, `reply.log` — are assigned directly in the `Request` and `Reply` constructors, not on their prototypes.\n\nThis means:\n\n```js\nfastify.hasRequestDecorator('id')   // returns false (wrong)\nfastify.decorateRequest('id', null) // silently succeeds (wrong)\n// then at request time:\n// TypeError: Cannot set property id... or req.id is null\n```\n\n## Root cause\n\n`checkRequestExistence` and `decorateConstructor` in `lib/decorate.js` use `Object.hasOwn(prototype, name)` and `name in prototype`. Properties set in the constructor body are never on the prototype, so these checks miss them.\n\n## Fix\n\nAdd an `instanceProperties` set to `Request` and `Reply` listing their constructor-assigned string-keyed properties. `decorateConstructor` and the `checkRequest/ReplyExistence` helpers now also check this set (walking the parent chain for derived constructors).\n\nAfter the fix:\n\n```js\nfastify.hasRequestDecorator('id')     // true\nfastify.hasReplyDecorator('raw')      // true\nfastify.decorateRequest('id', null)   // throws FST_ERR_DEC_ALREADY_PRESENT\nfastify.decorateReply('raw', null)    // throws FST_ERR_DEC_ALREADY_PRESENT\nfastify.decorateRequest('myExtra', null) // still works fine\n```\n\nAll 52 existing decorator tests pass. Six new node:test tests cover the bug and the fix.",
+  "acceptance_tests": {
+    "test/decorator-instance-properties.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('hasRequestDecorator returns true for built-in constructor-assigned request properties', t => {\n  t.plan(6)\n  const fastify = Fastify()\n  t.assert.equal(fastify.hasRequestDecorator('id'), true)\n  t.assert.equal(fastify.hasRequestDecorator('params'), true)\n  t.assert.equal(fastify.hasRequestDecorator('raw'), true)\n  t.assert.equal(fastify.hasRequestDecorator('query'), true)\n  t.assert.equal(fastify.hasRequestDecorator('log'), true)\n  t.assert.equal(fastify.hasRequestDecorator('body'), true)\n})\n\ntest('hasReplyDecorator returns true for built-in constructor-assigned reply properties', t => {\n  t.plan(3)\n  const fastify = Fastify()\n  t.assert.equal(fastify.hasReplyDecorator('raw'), true)\n  t.assert.equal(fastify.hasReplyDecorator('request'), true)\n  t.assert.equal(fastify.hasReplyDecorator('log'), true)\n})\n\ntest('decorateRequest throws FST_ERR_DEC_ALREADY_PRESENT for built-in request properties', t => {\n  t.plan(4)\n  const fastify = Fastify()\n  for (const name of ['id', 'params', 'raw', 'body']) {\n    t.assert.throws(\n      () => fastify.decorateRequest(name, null),\n      (err) => err.code === 'FST_ERR_DEC_ALREADY_PRESENT'\n    )\n  }\n})\n\ntest('decorateReply throws FST_ERR_DEC_ALREADY_PRESENT for built-in reply properties', t => {\n  t.plan(2)\n  const fastify = Fastify()\n  for (const name of ['raw', 'request']) {\n    t.assert.throws(\n      () => fastify.decorateReply(name, null),\n      (err) => err.code === 'FST_ERR_DEC_ALREADY_PRESENT'\n    )\n  }\n})\n\ntest('hasRequestDecorator returns false for unknown properties', t => {\n  t.plan(1)\n  const fastify = Fastify()\n  t.assert.equal(fastify.hasRequestDecorator('nonExistent'), false)\n})\n\ntest('decorateRequest still works for non-built-in names', (t, done) => {\n  t.plan(2)\n  const fastify = Fastify()\n  fastify.decorateRequest('myExtra', null)\n  t.assert.equal(fastify.hasRequestDecorator('myExtra'), true)\n  fastify.get('/', async (req) => req.myExtra)\n  fastify.ready((err) => {\n    t.assert.ifError(err)\n    done()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/decorate.js",
+    "lib/reply.js",
+    "lib/request.js",
+    "test/decorator-instance-properties.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6753,
+    "sha": "cc8d9a3c961d65cb1a39c4142ce63285d2de1e3c",
+    "url": "https://github.com/fastify/fastify/pull/6753",
+    "author": "LeSingh1",
+    "merged_at": "2026-06-28T07:45:40Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/decorate.js",
+      "lib/reply.js",
+      "lib/request.js"
+    ],
+    "source_files": [
+      "lib/decorate.js",
+      "lib/reply.js",
+      "lib/request.js"
+    ],
+    "test_files": [
+      "test/decorator-instance-properties.test.js"
+    ],
+    "source_lines_changed": 15,
+    "notes": [],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/decorator-instance-properties.test.js"
+    ],
+    "suite_seconds": 13.6,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/decorate.js",
+      "lib/reply.js",
+      "lib/request.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t011",
+      "t012",
+      "t013",
+      "t014",
+      "t019",
+      "t021",
+      "t022",
+      "t023",
+      "t026",
+      "t030",
+      "t031",
+      "t036",
+      "t038"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

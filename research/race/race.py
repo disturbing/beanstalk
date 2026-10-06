@@ -47,6 +47,12 @@ DEFAULT_ARENA = os.path.normpath(os.path.join(HERE, "..", "arena"))
 DEFAULT_REPO = os.path.normpath(os.path.join(HERE, "..", "corpora", "arena.git"))
 
 
+def default_repo(arena: str) -> str:
+    """A real-task arena names its materialized repository in arena.json; the designed arena uses corpora/arena.git."""
+    from harness.suite import load_suite
+    return load_suite(arena).repo or DEFAULT_REPO
+
+
 def parse_args(argv: list[str] | None = None) -> RaceConfig:
     return parse_cli(argv)[0]
 
@@ -114,7 +120,8 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
                    help="kill processes left by a SIGKILLed race in --out (Ctrl-C/SIGTERM clean up themselves)")
     a = ap.add_argument_group("arena")
     a.add_argument("--arena", default=DEFAULT_ARENA, help="arena directory with tasks/ and solutions/")
-    a.add_argument("--repo", default=DEFAULT_REPO, help="materialized arena repository (main = base)")
+    a.add_argument("--repo", help="materialized arena repository (main = base); default: the arena.json \"repo\" of a "
+                                  "real-task arena (research/real-arena/<name>), else corpora/arena.git")
     a.add_argument("--shuffle", action="store_true", help="seeded shuffle of task priority (default: id order)")
     b = ap.add_argument_group("beanstalk")
     b.add_argument("--footprint", choices=["auto", "predictor", "lexical", "combined", "haiku"], default="auto",
@@ -160,7 +167,7 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     cfg = RaceConfig(**{k: v for k, v in vars(ns).items() if k in RaceConfig.__dataclass_fields__ and k != "codex_price"})
     cfg.codex_price = tuple(float(x) for x in ns.codex_price.split(","))
     cfg.arena = os.path.abspath(ns.arena)
-    cfg.repo = os.path.abspath(ns.repo)
+    cfg.repo = os.path.abspath(ns.repo or default_repo(cfg.arena))
     for attr in ("claude_bin", "codex_bin"):  # agents run with cwd = their worktree
         if os.sep in getattr(cfg, attr):
             setattr(cfg, attr, os.path.abspath(getattr(cfg, attr)))

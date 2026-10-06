@@ -1,0 +1,62 @@
+diff --git a/lib/decorate.js b/lib/decorate.js
+index 12073bb3..6c725e92 100644
+--- a/lib/decorate.js
++++ b/lib/decorate.js
+@@ -47,7 +47,7 @@ function getInstanceDecorator (name) {
+ 
+ function decorateConstructor (konstructor, name, fn, dependencies) {
+   const instance = konstructor.prototype
+-  if (Object.hasOwn(instance, name) || hasKey(konstructor, name)) {
++  if (Object.hasOwn(instance, name) || hasKey(konstructor, name) || hasInstanceProperty(konstructor, name)) {
+     throw new FST_ERR_DEC_ALREADY_PRESENT(name)
+   }
+ 
+@@ -93,13 +93,24 @@ function hasKey (fn, name) {
+   return false
+ }
+ 
++function hasInstanceProperty (konstructor, name) {
++  let k = konstructor
++  while (k) {
++    if (k.instanceProperties && k.instanceProperties.has(name)) return true
++    k = k.parent
++  }
++  return false
++}
++
+ function checkRequestExistence (name) {
+   if (name && hasKey(this[kRequest], name)) return true
++  if (name && hasInstanceProperty(this[kRequest], name)) return true
+   return checkExistence(this[kRequest].prototype, name)
+ }
+ 
+ function checkReplyExistence (name) {
+   if (name && hasKey(this[kReply], name)) return true
++  if (name && hasInstanceProperty(this[kReply], name)) return true
+   return checkExistence(this[kReply].prototype, name)
+ }
+ 
+diff --git a/lib/reply.js b/lib/reply.js
+index 09aec154..4ce6d5b8 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -77,6 +77,7 @@ function Reply (res, request, log) {
+   this.log = log
+ }
+ Reply.props = []
++Reply.instanceProperties = new Set(['raw', 'request', 'log'])
+ 
+ Object.defineProperties(Reply.prototype, {
+   [kRouteContext]: {
+diff --git a/lib/request.js b/lib/request.js
+index 4e7596ad..91dd845d 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -38,6 +38,7 @@ function Request (id, params, req, query, log, context) {
+   this.body = undefined
+ }
+ Request.props = []
++Request.instanceProperties = new Set(['id', 'params', 'raw', 'query', 'log', 'body'])
+ 
+ function getTrustProxyFn (tp) {
+   if (typeof tp === 'function') {

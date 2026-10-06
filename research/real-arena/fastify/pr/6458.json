@@ -1,0 +1,11 @@
+{
+ "number": 6458,
+ "sha": "6d202c6203f33ceb709dbcf6311b2d7152a8a057",
+ "title": "fix: enable diagnostics tracking for async error handlers",
+ "body": "When an async error handler returns a promise, `wrapThenable` was called\r\nwithout the `store` parameter, causing diagnostics channels to miss async\r\noperations in error handlers.\r\n\r\nThis fix creates a diagnostics store when channels have subscribers and\r\npasses it to `wrapThenable`, ensuring consistent diagnostics tracking\r\nacross both regular handlers and error handlers.",
+ "author": "irzix",
+ "created_at": "2026-01-18T11:36:36Z",
+ "merged_at": "2026-05-07T08:46:30Z",
+ "pr_base_sha": "291b1f89b4250f22d9edbe62a1cf1bfbd5f3f3d1",
+ "linked_issues": []
+}

@@ -1,0 +1,11 @@
+{
+ "number": 6685,
+ "sha": "c06fc06d33e66354cf6f5dc000b1ef2002a5eb96",
+ "title": "fix: use ContentType parser for response schema lookup",
+ "body": "The response schema lookup was using a naive `split(';', 1)[0]` to extract the media type from Content-Type headers. This fails when there is whitespace before the semicolon. Switched to the existing `ContentType` parser which handles this correctly.",
+ "author": "UlisesGascon",
+ "created_at": "2026-04-21T16:12:23Z",
+ "merged_at": "2026-04-21T20:01:18Z",
+ "pr_base_sha": "d1133d7eac09e075ccfd3b947f6a6e25d727d4d4",
+ "linked_issues": []
+}

@@ -1,0 +1,18 @@
+{
+ "number": 6613,
+ "sha": "8dee9be05ebf683cd212aeff1d294f6ea1ec405c",
+ "title": "fix: restore trustProxy function for number and string types, add null check for socketAddr",
+ "body": "Fixes #6606\n\n## Description\n\nThe regression was introduced when the proxy trust function was changed to check for null addresses. This caused issues with IISNode on Windows where  may be undefined/null with .\n\n## Changes\n\n- Removed the `a != null` check from number and string trust proxy functions\n- Added explicit null checks in host and protocol getters\n- Added tests for `trustProxy: 1` with undefined and null socket remoteAddress\n\n## Testing\n\nAll existing tests pass, plus new tests for the IISNode scenario.",
+ "author": "mcollina",
+ "created_at": "2026-03-27T18:05:34Z",
+ "merged_at": "2026-03-28T23:40:11Z",
+ "pr_base_sha": "d457aeda8611777389c7e4713a288eb7ddb9a389",
+ "linked_issues": [
+  {
+   "number": 6606,
+   "title": "Regression on Fastify V5.8.3 with trustProxy: 1 for Windows IISNODE servers",
+   "body": "### Prerequisites\n\n- [x] I have written a descriptive issue title\n- [x] I have searched existing issues to ensure the bug has not already been reported\n\n\n### Fastify version\n\n5.8.3\n\n### Plugin version\n\n_No response_\n\n### Node.js version\n\n20.x\n\n### Operating system\n\nWindows\n\n### Operating system version (i.e. 20.04, 11.3, 10)\n\nMicrosoft Windows Server 2022\n\n### Description\n\nreq.ip is not filled, getting undefined.\nfor Windows servers which mostly run with Plesk and IISNODE the web.config is configured with `<iisnode enableXFF=\"true\"/>` in order to get the IP address of the visitor.\nand in Fastify the instance is created with `trustProxy: 1`, setting to true won't be good because IISNODE appends user's `X-Forwarded-For` so it can be spoofed. So setting to 1 is the correct method.\nbut after version 5.8.3, the req.ip variable is undefined!\nhelp is appreciated.\n\n### Link to code that reproduces the bug\n\nNot sure how to do this\n\n### Expected Behavior\n\n_No response_",
+   "is_pr": false
+  }
+ ]
+}

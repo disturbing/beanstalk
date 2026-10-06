@@ -1,0 +1,11 @@
+{
+ "number": 6420,
+ "sha": "79ab8e956482971a8cc0544ab9a846168b11998d",
+ "title": "fix: use JSON.stringify in onBadUrl for proper escaping",
+ "body": "## Summary\n- Use `JSON.stringify` to properly escape special characters in the bad URL path instead of template string interpolation\n- Use `Buffer.byteLength` for accurate Content-Length calculation with multi-byte characters\n- Add test case to verify JSON escaping works correctly\n\n## Test plan\n- [x] Added test case for bad URL with special characters that need JSON escaping\n- [x] Existing tests pass",
+ "author": "mcollina",
+ "created_at": "2025-12-23T08:02:19Z",
+ "merged_at": "2025-12-23T18:21:46Z",
+ "pr_base_sha": "970c575832521fff01cc018d928d84454811173b",
+ "linked_issues": []
+}
