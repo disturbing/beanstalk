@@ -6,11 +6,11 @@ import type { RunId } from '@beanstalk/shared-race/ids';
 import { RunId as RunIdSchema, TaskId } from '@beanstalk/shared-race/ids';
 
 import type { Answer } from '@beanstalk/shared-ask/ask/answer';
+import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { classifyByKeywords } from '@beanstalk/shared-ask/ask/classifier';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
 import { busiestMoment } from '@beanstalk/shared-ask/home/busiest-moment';
 import { composeAnswer } from '@beanstalk/shared-ask/home/composition';
 import { isFinished, suggestDecision, suggestions } from '@beanstalk/shared-ask/pick/lead';
@@ -30,6 +30,7 @@ import { repositoryOf } from '../../../src/people/repository';
 import { isRecordedRun } from '../../../src/recorded/recorded-runs';
 import type { HomePageData } from '../../../src/server/home-page-data';
 import { homePageData } from '../../../src/server/home-page-data';
+import { featuredBean } from '../../../src/server/featured-bean';
 import { pagePicker } from '../../../src/server/picker';
 
 type PageProps = {
@@ -49,7 +50,9 @@ export default async function RepositoryHome({ params, searchParams }: PageProps
   if (!parsedRun.success) notFound();
   const run = parsedRun.data;
   const recorded = isRecordedRun(run);
-  const data = await homePageData(forgeForRun(env.GATEWAY, run), run).catch(notFoundOr);
+  // One source per request: a live run's reads are shared by the home and the answer.
+  const source = forgeForRun(env.GATEWAY, run);
+  const data = await homePageData(source, run).catch(notFoundOr);
   const url = readHomeState(await searchParams);
   const picker = pagePicker();
   const visible =
@@ -60,7 +63,7 @@ export default async function RepositoryHome({ params, searchParams }: PageProps
   const items = suggestions(state, now);
   const [suggest, explorer] = await Promise.all([
     picker.decide(suggestDecision(items, !finished)),
-    explorerFor({ run, url, picker, data, finished, now }),
+    explorerFor({ run, url, picker, data, finished, now, source }),
   ]);
   const repository = repositoryOf(run);
   const ordered = suggest.chosen.flatMap((id) =>
@@ -115,6 +118,8 @@ async function explorerFor(input: {
   readonly data: HomePageData;
   readonly finished: boolean;
   readonly now: number;
+  /** The request's source, as of now. */
+  readonly source: ForgeSource;
 }): Promise<Explorer | null> {
   const { run, url, data } = input;
   if (url.q === '' && url.bean === null) return null;
@@ -137,8 +142,9 @@ async function explorerFor(input: {
     };
   }
   const bean = TaskId.safeParse(url.bean).data ?? null;
+  const source = url.t === null ? input.source : forgeForRun(env.GATEWAY, run, { asOf: url.t });
   const answer = await planAnswer({
-    source: forgeForRun(env.GATEWAY, run, url.t === null ? {} : { asOf: url.t }),
+    source,
     run,
     question: url.q,
     classifier: classifierFrom({
@@ -151,7 +157,6 @@ async function explorerFor(input: {
     selection: { file: null, bean, view: null },
     picker: input.picker,
   }).catch(notFoundOr);
-  const source = forgeForRun(env.GATEWAY, run, url.t === null ? {} : { asOf: url.t });
   const featured = await featuredBean(source, run, answer, bean);
   const base = composeAnswer(answer, bean);
   const composition =
@@ -188,31 +193,6 @@ async function explorerFor(input: {
     relevant: [...composition.relevant, ...swarm],
     receipts: answer.picks,
   };
-}
-
-/** Classes whose answer is about recent change: feature the newest bean it is about. */
-const FEATURE_CLASSES = new Set(['recent-changes', 'who-why']);
-
-async function featuredBean(
-  source: ForgeSource,
-  run: RunId,
-  answer: Answer,
-  selected: TaskId | null,
-) {
-  if (selected !== null || !FEATURE_CLASSES.has(answer.spec.class)) return null;
-  const wanted = new Set(answer.tree.matched);
-  const newest = answer.rail
-    .flatMap((block) => (block.kind === 'beans' ? block.beans : []))
-    .filter((bean) => bean.landedIdx !== null && bean.files.some((file) => wanted.has(file)))
-    .toSorted((a, b) => (b.landedIdx ?? 0) - (a.landedIdx ?? 0))[0];
-  if (newest === undefined) return null;
-  const detail = await source.beanDetail(run, newest.id);
-  if (detail === undefined) return null;
-  const diff =
-    detail.diffBase === null || detail.diffHead === null
-      ? null
-      : await source.repoDiff(run, detail.diffBase, detail.diffHead);
-  return { bean: detail, files: diff?.files ?? [] };
 }
 
 function notFoundOr(error: unknown): never {

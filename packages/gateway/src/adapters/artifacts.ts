@@ -7,6 +7,7 @@ import { Sha } from '@beanstalk/shared-race/ids';
 
 import { UpstreamError } from '../errors';
 import type { FileChange } from '../git/diff-text';
+import type { RepoReader } from '../repo/object-cache';
 
 export type RepoRemote = { readonly name: string; readonly remote: string };
 export type CommitRange = {
@@ -86,21 +87,7 @@ export function artifactsPort(binding: Artifacts): ArtifactsPort {
       });
     },
     changedFiles(repo, range) {
-      return withRepo(binding, repo, async (handle) => {
-        const [before, after] = await Promise.all([
-          handle.readCommit(range.from),
-          handle.readCommit(range.to),
-        ]);
-        if (before === null || after === null) return null;
-        const changed: ChangedBlob[] = [];
-        const trees = { before: before.treeHash, after: after.treeHash, prefix: '' };
-        await collectChanges(handle, trees, changed);
-        const wanted = range.paths;
-        const selected = changed
-          .filter((blob) => wanted === undefined || isUnder(blob.path, wanted))
-          .toSorted((a, b) => (a.path < b.path ? -1 : 1));
-        return readContents(handle, selected.slice(0, MAX_DIFF_FILES));
-      });
+      return withRepo(binding, repo, (handle) => changedFilesIn(handle, range));
     },
     listRepos(matches) {
       return listMatching(binding, matches);
@@ -109,6 +96,29 @@ export function artifactsPort(binding: Artifacts): ArtifactsPort {
       return call(`delete ${name}`, () => binding.delete(name));
     },
   };
+}
+
+/**
+ * The files that differ between two commits of an open repo, with both contents (at most
+ * 200, by path), optionally only under `paths`; null when a commit is missing.
+ */
+export async function changedFilesIn(
+  handle: RepoReader,
+  range: CommitRange,
+): Promise<FileChange[] | null> {
+  const [before, after] = await Promise.all([
+    handle.readCommit(range.from),
+    handle.readCommit(range.to),
+  ]);
+  if (before === null || after === null) return null;
+  const changed: ChangedBlob[] = [];
+  const trees = { before: before.treeHash, after: after.treeHash, prefix: '' };
+  await collectChanges(handle, trees, changed);
+  const wanted = range.paths;
+  const selected = changed
+    .filter((blob) => wanted === undefined || isUnder(blob.path, wanted))
+    .toSorted((a, b) => (a.path < b.path ? -1 : 1));
+  return readContents(handle, selected.slice(0, MAX_DIFF_FILES));
 }
 
 /** Follows the namespace listing's cursor and keeps the names `matches` accepts. */
@@ -135,7 +145,7 @@ type TreePair = { before: string | null; after: string | null; prefix: string };
 
 /** Walks two trees together, descending only where they differ. */
 async function collectChanges(
-  repo: ArtifactsRepo,
+  repo: RepoReader,
   trees: TreePair,
   out: ChangedBlob[],
 ): Promise<void> {
@@ -178,7 +188,7 @@ function isFile(entry: ArtifactsTreeEntry | undefined): entry is ArtifactsTreeEn
 }
 
 async function entriesOf(
-  repo: ArtifactsRepo,
+  repo: RepoReader,
   tree: string | null,
 ): Promise<Map<string, ArtifactsTreeEntry>> {
   if (tree === null) return new Map();
@@ -187,7 +197,7 @@ async function entriesOf(
 }
 
 async function readContents(
-  repo: ArtifactsRepo,
+  repo: RepoReader,
   changed: readonly ChangedBlob[],
 ): Promise<FileChange[]> {
   const files: FileChange[] = [];
@@ -206,7 +216,7 @@ async function readContents(
   return files;
 }
 
-async function blobText(repo: ArtifactsRepo, hash: string | null): Promise<string | null> {
+async function blobText(repo: RepoReader, hash: string | null): Promise<string | null> {
   if (hash === null) return null;
   const blob = await repo.readBlob(hash);
   return blob === null ? null : blob.text();

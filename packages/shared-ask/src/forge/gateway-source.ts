@@ -54,11 +54,22 @@ const LOG_LIMIT = 100;
 type RunLog = { readonly events: readonly RaceEvent[]; readonly state: RaceState };
 
 export function gatewaySource(binding: GatewayRpc): ForgeSource {
+  const pages = new Map<string, Promise<EventsPage>>();
+  /** One page of the log, read once: the app's own paging and `runLog` share them. */
+  const page: PageReader = (query) => {
+    const key = `${query.run}:${query.after}:${query.limit}`;
+    const cached = pages.get(key);
+    if (cached !== undefined) return cached;
+    const read = eventsPage(binding, query);
+    pages.set(key, read);
+    read.catch(() => pages.delete(key));
+    return read;
+  };
   const logs = new Map<string, Promise<RunLog>>();
   const runLog = (run: RunId): Promise<RunLog> => {
     const cached = logs.get(run);
     if (cached !== undefined) return cached;
-    const loaded = readLog(binding, run);
+    const loaded = readLog(page, run);
     logs.set(run, loaded);
     return loaded;
   };
@@ -72,7 +83,7 @@ export function gatewaySource(binding: GatewayRpc): ForgeSource {
       const items = RunListItem.array().parse(await binding.listRuns(LISTED_RUNS));
       return items.map(toListing);
     },
-    runEvents: (run, after, limit) => eventsPage(binding, { run, after, limit }),
+    runEvents: (run, after, limit) => page({ run, after, limit }),
     repoTree: async (run, ref) => {
       const { commit, files } = await walkTree(binding, run, ref);
       return { ref, sha: ShaSchema.parse(commit), files };
@@ -118,23 +129,23 @@ export function gatewaySource(binding: GatewayRpc): ForgeSource {
   };
 }
 
-async function readLog(binding: GatewayRpc, run: RunId): Promise<RunLog> {
+type PageQuery = { readonly run: RunId; readonly after: number; readonly limit: number };
+type PageReader = (query: PageQuery) => Promise<EventsPage>;
+
+async function readLog(page: PageReader, run: RunId): Promise<RunLog> {
   const events: RaceEvent[] = [];
   let after = 0;
   for (;;) {
     // oxlint-disable-next-line no-await-in-loop -- pages follow a cursor, one after another
-    const page = await eventsPage(binding, { run, after, limit: EVENTS_PAGE });
-    events.push(...page.events);
-    if (page.done || page.events.length === 0) break;
-    after = page.nextAfter;
+    const read = await page({ run, after, limit: EVENTS_PAGE });
+    events.push(...read.events);
+    if (read.done || read.events.length === 0) break;
+    after = read.nextAfter;
   }
   return { events, state: reduceRace(events) };
 }
 
-async function eventsPage(
-  binding: GatewayRpc,
-  query: { readonly run: RunId; readonly after: number; readonly limit: number },
-): Promise<EventsPage> {
+async function eventsPage(binding: GatewayRpc, query: PageQuery): Promise<EventsPage> {
   const page = unwrap(await binding.runEvents(query.run, query.after, query.limit), RunEventsPage);
   return {
     events: parseRaceEvents(page.events).events,

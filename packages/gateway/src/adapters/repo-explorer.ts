@@ -18,7 +18,8 @@ import { Sha } from '@beanstalk/shared-race/ids';
 
 import { GatewayError, UpstreamError } from '../errors';
 import { changeStats, diffText } from '../git/diff-text';
-import { artifactsCode, artifactsPort, isUnder } from './artifacts';
+import type { RepoReader } from '../repo/object-cache';
+import { artifactsCode, changedFilesIn, isUnder } from './artifacts';
 
 /** Entries of one directory listing, and of a recursive one. */
 const MAX_TREE_ENTRIES = 1000;
@@ -57,15 +58,35 @@ export type RepoExplorer = {
   listFiles(commit: string): Promise<{ files: string[]; truncated: boolean }>;
   /** Text of files at a commit; null for a missing, binary or oversized file. */
   readTexts(commit: string, paths: readonly string[]): Promise<(string | null)[]>;
+  /** Reads every tree and blob at a ref (filling a cache, when the reader has one). */
+  warm(ref: string): Promise<{ readonly commit: string; readonly files: number }>;
 };
 
-export function repoExplorer(binding: Artifacts, repo: string): RepoExplorer {
-  const open = async <T>(use: (handle: ArtifactsRepo) => Promise<T>): Promise<T> => {
-    const handle = await call(() => binding.get(repo));
+/**
+ * The explorer over a run repo. `through` wraps each opened handle, for instance in the
+ * RunDO's object cache; without it every read goes to Artifacts.
+ */
+export function repoExplorer(
+  binding: Artifacts,
+  repo: string,
+  through: (handle: RepoReader) => RepoReader = (handle) => handle,
+): RepoExplorer {
+  const open = async <T>(use: (handle: RepoReader) => Promise<T>): Promise<T> => {
+    // The repo is opened on the first read that reaches it: a read the cache answers whole
+    // never calls Artifacts at all.
+    const repoHandle: { opened: Promise<ArtifactsRepo> | null } = { opened: null };
+    const handle = (): Promise<ArtifactsRepo> => {
+      repoHandle.opened ??= call(() => binding.get(repo));
+      return repoHandle.opened;
+    };
     try {
-      return await call(() => use(handle));
+      return await call(() => use(through(lazyReader(handle))));
     } finally {
-      handle[Symbol.dispose]();
+      // A repo that failed to open has nothing to release; the read already threw its error.
+      await repoHandle.opened?.then(
+        (opened) => opened[Symbol.dispose](),
+        () => undefined,
+      );
     }
   };
   return {
@@ -78,7 +99,7 @@ export function repoExplorer(binding: Artifacts, repo: string): RepoExplorer {
     diff: (from, to, paths) =>
       open(async (handle) => {
         const [base, head] = await Promise.all([required(handle, from), required(handle, to)]);
-        const changes = await artifactsPort(binding).changedFiles(repo, {
+        const changes = await changedFilesIn(handle, {
           from: Sha.parse(base.commit),
           to: Sha.parse(head.commit),
           ...(paths === null ? {} : { paths }),
@@ -120,10 +141,37 @@ export function repoExplorer(binding: Artifacts, repo: string): RepoExplorer {
         }
         return texts;
       }),
+    warm: (ref) =>
+      open(async (handle) => {
+        const resolved = await required(handle, ref);
+        const blobs: string[] = [];
+        await walkFiles(handle, resolved.tree, {
+          prefix: '',
+          limit: MAX_LISTED_FILES,
+          visit: (_path, hash) => blobs.push(hash),
+        });
+        for (let start = 0; start < blobs.length; start += READ_CONCURRENCY) {
+          const batch = blobs.slice(start, start + READ_CONCURRENCY);
+          // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
+          await Promise.all(batch.map(async (hash) => handle.readBlob(hash)));
+        }
+        return { commit: resolved.commit, files: blobs.length };
+      }),
   };
 }
 
-async function resolveRef(handle: ArtifactsRepo, ref: string): Promise<ResolvedRef | null> {
+/** A reader whose calls open the repo first (once). */
+function lazyReader(handle: () => Promise<ArtifactsRepo>): RepoReader {
+  return {
+    readTree: async (hash) => (await handle()).readTree(hash),
+    readBlob: async (hash) => (await handle()).readBlob(hash),
+    readCommit: async (hash) => (await handle()).readCommit(hash),
+    readFile: async (args) => (await handle()).readFile(args),
+    log: async (options) => (await handle()).log(options),
+  };
+}
+
+async function resolveRef(handle: RepoReader, ref: string): Promise<ResolvedRef | null> {
   if (/^[0-9a-f]{40}$/.test(ref)) {
     const commit = await handle.readCommit(ref);
     return commit === null ? null : { commit: commit.hash, tree: commit.treeHash };
@@ -132,13 +180,13 @@ async function resolveRef(handle: ArtifactsRepo, ref: string): Promise<ResolvedR
   return head === undefined ? null : { commit: head.hash, tree: head.treeHash };
 }
 
-async function required(handle: ArtifactsRepo, ref: string): Promise<ResolvedRef> {
+async function required(handle: RepoReader, ref: string): Promise<ResolvedRef> {
   const resolved = await resolveRef(handle, ref);
   if (resolved === null) throw new GatewayError(`no ref ${ref} in the run repo`, 'not_found', 404);
   return resolved;
 }
 
-async function readDirectory(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoTree> {
+async function readDirectory(handle: RepoReader, ref: string, path: string): Promise<RepoTree> {
   const resolved = await required(handle, ref);
   const tree = await subtree(handle, resolved.tree, path);
   if (tree === null) throw new GatewayError(`no directory ${path} at ${ref}`, 'not_found', 404);
@@ -166,7 +214,7 @@ async function readDirectory(handle: ArtifactsRepo, ref: string, path: string): 
  * Every entry under `path` at a ref in one answer, sorted by path: each level's directories
  * are read in parallel batches, so the whole tree costs one call per level, not per directory.
  */
-async function readRecursive(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoTree> {
+async function readRecursive(handle: RepoReader, ref: string, path: string): Promise<RepoTree> {
   const resolved = await required(handle, ref);
   const root = await subtree(handle, resolved.tree, path);
   if (root === null) throw new GatewayError(`no directory ${path} at ${ref}`, 'not_found', 404);
@@ -200,7 +248,7 @@ async function readRecursive(handle: ArtifactsRepo, ref: string, path: string): 
 }
 
 /** The tree at `path` under a root tree (`''`: the root), or null. */
-async function subtree(handle: ArtifactsRepo, root: string, path: string): Promise<string | null> {
+async function subtree(handle: RepoReader, root: string, path: string): Promise<string | null> {
   let current = root;
   for (const segment of path === '' ? [] : path.split('/')) {
     // oxlint-disable-next-line no-await-in-loop -- each level is read from the one above
@@ -214,7 +262,7 @@ async function subtree(handle: ArtifactsRepo, root: string, path: string): Promi
 
 /** The object a path names under a tree (a blob or a subtree), or null. */
 async function entryAt(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   root: string | null,
   path: string,
   cache: Map<string, ArtifactsTreeEntry[]>,
@@ -231,7 +279,7 @@ async function entryAt(
   return current;
 }
 
-async function readOne(handle: ArtifactsRepo, ref: string, path: string): Promise<RepoFile> {
+async function readOne(handle: RepoReader, ref: string, path: string): Promise<RepoFile> {
   const resolved = await required(handle, ref);
   const blob = await handle.readFile({ ref: resolved.commit, path });
   if (blob === null) throw new GatewayError(`no file ${path} at ${ref}`, 'not_found', 404);
@@ -249,7 +297,7 @@ async function readOne(handle: ArtifactsRepo, ref: string, path: string): Promis
 }
 
 async function readLog(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   query: { ref: string; paths: readonly string[] | null; limit: number },
 ): Promise<RepoLog> {
   const limit = Math.max(1, Math.min(MAX_LOG, Math.trunc(query.limit)));
@@ -285,7 +333,7 @@ async function readLog(
 }
 
 async function parentTreeOf(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   commit: ArtifactsCommitMetadata,
   next: ArtifactsCommitMetadata | undefined,
 ): Promise<string | null> {
@@ -296,7 +344,7 @@ async function parentTreeOf(
 }
 
 async function touches(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   compare: {
     commit: ArtifactsCommitMetadata;
     parentTree: string | null;
@@ -327,7 +375,7 @@ function toCommit(commit: ArtifactsCommitMetadata): RepoCommit {
 }
 
 async function search(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   query: { ref: string; pattern: string; paths: readonly string[] | null },
 ): Promise<RepoGrep> {
   const matcher = compile(query.pattern);
@@ -395,7 +443,7 @@ function collectMatches(
  * the limit cut the walk short.
  */
 async function walkFiles(
-  handle: ArtifactsRepo,
+  handle: RepoReader,
   root: string,
   walk: {
     prefix: string;
@@ -437,7 +485,7 @@ function isOnTheWay(directory: string, filter: readonly string[] | null | undefi
   });
 }
 
-async function blobText(handle: ArtifactsRepo, hash: string): Promise<string | null> {
+async function blobText(handle: RepoReader, hash: string): Promise<string | null> {
   const blob = await handle.readBlob(hash);
   return blob === null ? null : textOf(await blob.arrayBuffer());
 }

@@ -9,6 +9,7 @@ import type { Context } from 'hono';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
 import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
 
 import type { AppEnv } from './app-env';
 import { requireViewer } from './auth/bearer';
@@ -46,7 +47,8 @@ function serveMcp(c: Context<AppEnv>): Promise<Response> {
   const ctx = toolContext({
     run,
     gateway,
-    source: gatewaySource(gateway),
+    // Per request: repeated reads within one MCP call are shared, never across calls.
+    source: memoSource(gatewaySource(gateway)),
     classifier: classifierFrom({
       name: c.env.ASK_CLASSIFIER,
       model: c.env.ASK_AI_MODEL,

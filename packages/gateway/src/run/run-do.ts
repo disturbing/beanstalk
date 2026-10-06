@@ -21,12 +21,18 @@ import type {
   BeanDetail,
   BeanSummary,
   DecisionRecord,
+  RepoDiff,
+  RepoFile,
+  RepoGrep,
+  RepoLog,
+  RepoTree,
   RunView,
   TestCoverage,
 } from '@beanstalk/shared-race/rpc';
 
 import type { ArtifactsPort, RepoRemote } from '../adapters/artifacts';
 import { artifactsPort } from '../adapters/artifacts';
+import type { RepoExplorer } from '../adapters/repo-explorer';
 import { repoExplorer } from '../adapters/repo-explorer';
 import type { EngineEnv } from '../engine/catalog';
 import { engineEnv } from '../engine/catalog';
@@ -37,7 +43,9 @@ import type { EngineState, StepOutput } from '../engine/state';
 import { buildSummary } from '../engine/summary';
 import { runView } from '../engine/view';
 import { readConfig } from '../config';
-import { UpstreamError } from '../errors';
+import { GatewayError, UpstreamError } from '../errors';
+import type { ObjectStore, RefMemo } from '../repo/object-cache';
+import { cachedReader, sqlObjectStore } from '../repo/object-cache';
 import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
@@ -91,6 +99,11 @@ const STALK_BRANCH = 'stalk';
 const POLL_TIMEOUT_MS = 25_000;
 /** Characters of a stack trace kept in an `error` event. */
 const TRACEBACK_CHARS = 4000;
+/**
+ * Events after which a line has a new head (the base at the start, then landings on the
+ * sprout or the stalk): the read index warms that head.
+ */
+const LINE_MOVES: ReadonlySet<string> = new Set(['race.start', 'task.commit', 'green.promote']);
 
 export type RunFailure = {
   readonly code: string;
@@ -132,6 +145,12 @@ export class RunDO extends DurableObject<Env> {
   readonly #runner: RunnerPort;
   readonly #tokens: TokenSource;
   #meter: InfraMeter;
+  /** The read index: git objects by id (`repo/object-cache.ts`), and refs read moments ago. */
+  readonly #objects: ObjectStore;
+  readonly #refs: RefMemo = new Map();
+  /** The warm-up of the line's head in progress, and whether the line moved again meanwhile. */
+  #warming: Promise<void> | null = null;
+  #warmAgain = false;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -149,6 +168,7 @@ export class RunDO extends DurableObject<Env> {
       now: () => Date.now(),
     });
     migrate(ctx.storage.sql);
+    this.#objects = sqlObjectStore(ctx.storage.sql);
     const stored = loadRun(ctx.storage);
     if (stored !== null) this.#resume(stored);
   }
@@ -322,7 +342,7 @@ export class RunDO extends DurableObject<Env> {
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     const { config, repos, state } = loaded.stored;
-    const explorer = repoExplorer(this.env.ARTIFACTS, repos.repo.name);
+    const explorer = this.#explorer(repos.repo.name);
     try {
       const line = await explorer.resolve(config.policy === 'queue' ? 'stalk' : 'sprout');
       if (line === null) return failure('not_found', 404, 'the run repo has no landed line yet');
@@ -337,6 +357,39 @@ export class RunDO extends DurableObject<Env> {
     } catch (error: unknown) {
       return upstreamFailure(error, 'reading the run repo');
     }
+  }
+
+  /** The run repo's tree at a ref (one directory, or everything under it), via the read index. */
+  async repoTree(ref: string, path: string, recursive: boolean): Promise<RunResult<RepoTree>> {
+    return this.#explore((explorer) => explorer.tree(ref, path, recursive));
+  }
+
+  async repoFile(ref: string, path: string): Promise<RunResult<RepoFile>> {
+    return this.#explore((explorer) => explorer.file(ref, path));
+  }
+
+  async repoDiff(
+    from: string,
+    to: string,
+    paths: readonly string[] | null,
+  ): Promise<RunResult<RepoDiff>> {
+    return this.#explore((explorer) => explorer.diff(from, to, paths));
+  }
+
+  async repoLog(
+    ref: string,
+    paths: readonly string[] | null,
+    limit: number,
+  ): Promise<RunResult<RepoLog>> {
+    return this.#explore((explorer) => explorer.log(ref, paths, limit));
+  }
+
+  async repoGrep(
+    ref: string,
+    pattern: string,
+    paths: readonly string[] | null,
+  ): Promise<RunResult<RepoGrep>> {
+    return this.#explore((explorer) => explorer.grep(ref, pattern, paths));
   }
 
   /** `summary.json` of the run as JSON text. */
@@ -504,6 +557,7 @@ export class RunDO extends DurableObject<Env> {
     const output = this.#step(loaded, input);
     saveStep(this.ctx.storage, output.state, output.effects.events);
     this.#loaded = { ...loaded, stored: { ...loaded.stored, state: output.state } };
+    if (output.effects.events.some((event) => LINE_MOVES.has(event.type))) this.#lineMoved();
     this.#scheduleAlarm(output.state);
     this.#broadcast(output);
     this.#deliver(output.effects.replies);
@@ -575,6 +629,71 @@ export class RunDO extends DurableObject<Env> {
         .upsert({ ...item, updated_at: new Date().toISOString() })
         .catch((error: unknown) => this.#log.warn('run index update failed', { error })),
     );
+  }
+
+  /** The run repo's explorer, reading through the read index. */
+  #explorer(repo: string): RepoExplorer {
+    return repoExplorer(this.env.ARTIFACTS, repo, (handle) =>
+      cachedReader(handle, { store: this.#objects, refs: this.#refs, now: () => Date.now() }),
+    );
+  }
+
+  /** A read of the run repo for the web app: expected failures become values. */
+  async #explore<T>(read: (explorer: RepoExplorer) => Promise<T>): Promise<RunResult<T>> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null) return notFound();
+    try {
+      return { ok: true, value: await read(this.#explorer(loaded.stored.repos.repo.name)) };
+    } catch (error: unknown) {
+      if (error instanceof UpstreamError) return upstreamFailure(error, 'reading the run repo');
+      if (error instanceof GatewayError)
+        return failure(error.code, runStatus(error.status), error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * A line moved: forget the refs read moments ago, and read the new head's objects into the
+   * index in the background, so the next question finds them there. Reads only: the engine
+   * never waits for it, and a failure costs only the warm-up.
+   */
+  #lineMoved(): void {
+    this.#refs.clear();
+    this.ctx.waitUntil(this.#warm());
+  }
+
+  #warm(): Promise<void> {
+    if (this.#warming !== null) {
+      this.#warmAgain = true;
+      return this.#warming;
+    }
+    const warming = this.#warmLoop().finally(() => {
+      this.#warming = null;
+    });
+    this.#warming = warming;
+    return warming;
+  }
+
+  async #warmLoop(): Promise<void> {
+    do {
+      this.#warmAgain = false;
+      // oxlint-disable-next-line no-await-in-loop -- one warm-up at a time, again if the line moved
+      await this.#warmLine();
+    } while (this.#warmAgain);
+  }
+
+  async #warmLine(): Promise<void> {
+    const loaded = this.#loaded;
+    if (loaded === null) return;
+    const { config, repos } = loaded.stored;
+    try {
+      await this.#explorer(repos.repo.name).warm(
+        config.policy === 'queue' ? STALK_BRANCH : SPROUT_BRANCH,
+      );
+    } catch (error: unknown) {
+      this.#log.warn('read index warm-up failed', { run: loaded.stored.meta.run, error });
+    }
   }
 
   #explorerInput(): ExplorerInput | null {
@@ -705,6 +824,17 @@ function failure(
 
 function notFound(): { ok: false; error: RunFailure } {
   return failure('not_found', 404, 'no such run');
+}
+
+const RUN_STATUSES: ReadonlySet<number> = new Set([400, 403, 404, 409, 422]);
+
+/** A gateway error's status, as a run result can carry it (anything else reads as 502). */
+function runStatus(status: GatewayError['status']): RunFailure['status'] {
+  return isRunStatus(status) ? status : 502;
+}
+
+function isRunStatus(status: number): status is RunFailure['status'] {
+  return RUN_STATUSES.has(status);
 }
 
 function upstreamFailure(error: unknown, what: string): { ok: false; error: RunFailure } {
