@@ -45,7 +45,9 @@ A runner job that keeps failing for one bean drops only that bean, with reason `
 | `POST /v1/runs/:run/stop` | admin | `{reason?}`. Aborts the race, which then runs the final check |
 | `POST /v1/runs/:run/tokens` | admin | Re-issues the slot tokens |
 | `POST /v1/runs/:run/decisions/:card` | admin | v2: `{winner, text?}` answers a decision card (logged as `human:admin`) |
-| `POST /v1/runs/:run/reap` | admin | `{dry_run}` (default `true`). A dry run lists the run's Artifacts repos: `race-<run>`, plus any `race-<run>-*` left by earlier gateways. `{"dry_run": false}` deletes them. `409` while the race runs |
+| `POST /v1/runs/:run/reap` | admin | `{dry_run}` (default `true`). A dry run lists the run's Artifacts repos: `race-<run>`, plus any `race-<run>-*` left by earlier gateways. `{"dry_run": false}` deletes them. `409` while the race runs. A run deletes its own repos after its final check unless it set `keep_repo` (see [Spend guards](#spend-guards)) |
+| `GET`, `POST`, `DELETE /v1/admin/halt` | admin | The kill switch: `POST {reason?}` refuses new runs and starts (`503 halted`) and stops every run not yet done; `DELETE` turns it off |
+| `POST /v1/admin/sweep` | admin | `{older_than_hours}` (default 24). Runs the hourly repo sweep now |
 | `GET /v1/runs/:run` | admin, view or slot token | The run view (state, slots, CI, cost, `policy_state`) |
 | `GET /v1/runs/:run/summary` | reader | `summary.json` |
 | `GET /v1/runs/:run/events?after=&limit=&format=json\|jsonl` | reader | The event log. `jsonl` is byte-for-byte `events.jsonl` |
@@ -69,8 +71,7 @@ git -C arena -c http.extraHeader="Authorization: Bearer $SEED" \
 curl -s -H "$A" -X POST $GW/v1/runs/$RUN/start          # {"run":…,"phase":"running","base_sha":…}
 # start one driver per slot with its slot token; then:
 curl -s -H "$A" "$GW/v1/runs/$RUN/events?format=jsonl" > events.jsonl
-curl -s -H "$A" $GW/v1/runs/$RUN/summary > summary.json
-curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/v1/runs/$RUN/reap
+curl -s -H "$A" $GW/v1/runs/$RUN/summary > summary.json   # infra cost under "infra"; repos reaped
 ```
 
 `run.json` is the harness's `RaceConfig` with the same names and defaults, plus `tasks`, in the arena JSON format. v2 adds these fields:
@@ -84,6 +85,16 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - E6's remaining rules, also on by default: `start_cards`, `rescue` and `dynamic_culprits` (see [Start cards, rescue and dynamic culprits](#start-cards-rescue-and-dynamic-culprits-e6));
 - the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section);
 - `live_sync`: `off` (the default), `overlap` or `all` (live sprout sync, same section).
+
+## Spend guards
+
+Artifacts bills from 2026-10-14 ($0.15 per 1,000 operations, $0.50 per GB-month), and a forgotten repo bills until deleted.
+
+- **Reap after the final check.** When a run reaches `done` its RunDO deletes its repos (`reapRepos`) and records the outcome; `summary.json`'s `repos` says `live`, `reaping`, `reaped`, `reap_failed` or `kept`. `keep_repo: true` keeps them for browsing.
+- **Hourly sweep.** `RunIndex` keeps an alarm while run repos remain. Each hour it lists the namespace's `race-*` repos and asks each run's RunDO to delete them when the run began more than 24 hours ago, or is unknown (orphans). A run still racing is skipped and retried next hour.
+- **Spend cap.** `max_usd` (off by default, as before) aborts a run when agent spend plus its measured infrastructure cost reaches it; the abort reason starts `budget (max_usd)`, so the driver exits 2 as for `budget_usd`. `budget_usd` still caps agent spend alone.
+- **Kill switch.** `POST /v1/admin/halt` (see Routes).
+- **Infrastructure cost.** Each RunDO meters what it uses (`src/run/infra-meter.ts`): Worker and DO requests, DO active time, Artifacts operations (binding calls, proxied git requests, one fetch per runner call) and runner container busy and up time (`sleepAfter` tails counted once per instance). `summary.json`'s `infra` has the counts and their cost at list prices; the RunDO also logs it as `run cost` when the run is done. The figures are estimates: see `docs/claude-opus/15-explainer-for-coop.md` §2, "Cost".
 
 ## Driver contract (for the Python driver)
 
@@ -267,6 +278,10 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 ```
 
 `src/engine/parity.test.ts` checks this over 11 golden scenarios. Such a run reports `variant: "v2"`.
+
+### Presets
+
+`preset: "demo"` pins `V24_SETTINGS` (`RUN_PRESETS` in `@beanstalk/shared-race/run-config`): the v2.4 engine behind the published numbers, whatever the defaults become. A field the preset pins may be repeated with the same value; a different value is refused (`400`), so a stray environment knob cannot change a demo race. The preset is recorded in the run's config and in its `listRuns` row (`preset`). The driver's `--preset demo` sends it.
 
 ### Version labels
 

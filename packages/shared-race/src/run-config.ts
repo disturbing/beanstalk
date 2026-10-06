@@ -15,6 +15,13 @@ export type PolicyName = z.infer<typeof PolicyName>;
 export const AgentKind = z.enum(['claude', 'codex', 'replay']);
 export type AgentKind = z.infer<typeof AgentKind>;
 
+/**
+ * Named, pinned engine settings. `demo` is v2.4 (the CF v2.4 races, the published numbers):
+ * a run that names it gets exactly those rules whatever the defaults become.
+ */
+export const RunPreset = z.enum(['demo']);
+export type RunPreset = z.infer<typeof RunPreset>;
+
 /** A footprint the driver predicted for a task before the race (the harness's intake step). */
 export const TaskFootprint = z.strictObject({
   method: z.string().max(40),
@@ -31,9 +38,11 @@ export type TaskFootprint = z.infer<typeof TaskFootprint>;
 /** The sprout window's defaults (`window: aimd`): start, growth per green, largest, red floor. */
 export const WINDOW_DEFAULTS = { start: 8, growth: 2, max: 16, min: 2 } as const;
 
-export const RunConfig = z
+const CheckedFields = z
   .strictObject({
     policy: PolicyName,
+    /** Pinned settings (`RUN_PRESETS`); a field the preset pins may only be repeated, never changed. */
+    preset: RunPreset.nullable().default(null),
     agent: AgentKind.default('replay'),
     model: z.string().max(100).nullable().default(null),
     agents: z.number().int().min(1).max(64).default(4),
@@ -43,6 +52,16 @@ export const RunConfig = z
     batch_wait: z.number().min(0).max(3600).default(0),
     budget_usd: z.number().positive().max(10_000).default(25),
     max_invocation_usd: z.number().positive().max(1000).default(3),
+    /**
+     * The spend guard: agent spend plus the run's measured Cloudflare infrastructure cost
+     * (`infra` in the summary). Reaching it aborts the run (`budget (max_usd) …`). null: off.
+     */
+    max_usd: z.number().positive().max(10_000).nullable().default(null),
+    /**
+     * The run's Artifacts repos are deleted once its final check is done. `true` keeps them
+     * for browsing; the gateway's hourly sweep still deletes them a day after the run began.
+     */
+    keep_repo: z.boolean().default(false),
     max_turns: z.number().int().min(1).max(1000).default(40),
     agent_timeout: z.number().positive().max(86_400).default(900),
     seed: z.number().int().default(0),
@@ -290,8 +309,15 @@ export const RunConfig = z
       }
     }
   });
+
+/** A run's configuration: a preset's settings first, then the fields the request gives. */
+export const RunConfig = z.preprocess(
+  (input, ctx) =>
+    withPreset(input, (key, message) => ctx.addIssue({ code: 'custom', path: [key], message })),
+  CheckedFields,
+);
 export type RunConfig = z.infer<typeof RunConfig>;
-export type RunConfigInput = z.input<typeof RunConfig>;
+export type RunConfigInput = z.input<typeof CheckedFields>;
 
 /**
  * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
@@ -313,6 +339,29 @@ export const V25_RULES_OFF = {
 
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
 export const V24_SETTINGS = { ...V25_RULES_OFF } as const satisfies Partial<RunConfigInput>;
+
+/** What each preset pins. */
+export const RUN_PRESETS = {
+  demo: V24_SETTINGS,
+} as const satisfies Record<RunPreset, Partial<RunConfigInput>>;
+
+/** The preset's settings under the request's fields; a request that contradicts its preset is refused. */
+function withPreset(input: unknown, refuse: (key: string, message: string) => void): unknown {
+  if (!isFields(input)) return input;
+  const fields = input;
+  const preset = RunPreset.safeParse(fields['preset']);
+  if (!preset.success) return input;
+  const pinned: Readonly<Record<string, unknown>> = RUN_PRESETS[preset.data];
+  for (const [key, value] of Object.entries(pinned)) {
+    if (key in fields && fields[key] !== value)
+      refuse(key, `preset ${preset.data} pins ${key} to ${String(value)}`);
+  }
+  return { ...pinned, ...fields };
+}
+
+function isFields(input: unknown): input is Readonly<Record<string, unknown>> {
+  return typeof input === 'object' && input !== null && !Array.isArray(input);
+}
 
 /** v2.3: v2.4 without the reconcile. */
 export const V23_SETTINGS = {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   RunConfig,
+  V24_SETTINGS,
   V25_RULES_OFF,
   errorBudget,
   prelandSeconds,
@@ -148,5 +149,32 @@ describe('structural merge tier', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('the demo preset', () => {
+  it('pins the v2.4 rules whatever the defaults are', () => {
+    const config = RunConfig.parse({
+      policy: 'beanstalk-v2',
+      preset: 'demo',
+      tasks: [task('t001')],
+    });
+
+    expect(config).toMatchObject({ preset: 'demo', ...V24_SETTINGS });
+  });
+
+  it('accepts a pinned field repeated with its value and refuses a changed one', () => {
+    const base = { policy: 'beanstalk-v2', preset: 'demo', tasks: [task('t001')] };
+
+    expect(RunConfig.safeParse({ ...base, window_start: 4 }).success).toBe(true);
+    const changed = RunConfig.safeParse({ ...base, rescue: true });
+    expect(changed.success).toBe(false);
+    expect(changed.error?.issues[0]?.path).toEqual(['rescue']);
+  });
+
+  it('leaves a run without a preset on the defaults, with the spend guard off and reaping on', () => {
+    const config = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
+
+    expect(config).toMatchObject({ preset: null, rescue: true, max_usd: null, keep_repo: false });
   });
 });

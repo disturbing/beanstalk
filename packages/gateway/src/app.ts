@@ -9,6 +9,7 @@ import { accessLog, requestContext } from './middleware/request';
 import { adminRoutes, readRoutes } from './routes/admin';
 import { driverRoutes } from './routes/driver';
 import { gitRoutes } from './routes/git';
+import { guardRoutes } from './routes/guards';
 import { liveRoutes } from './routes/live';
 
 /** The gateway's HTTP surface (§4): admin and driver API, git proxy, live page. */
@@ -21,6 +22,7 @@ export function createApp(deps: Deps) {
   app.route('/v1/runs', adminRoutes);
   app.route('/v1/runs', readRoutes);
   app.route('/v1/runs', driverRoutes);
+  app.route('/v1/admin', guardRoutes);
   app.route('/runs', liveRoutes);
   app.notFound((c) => c.json({ error: { code: 'not_found', message: 'no such route' } }, 404));
   app.onError(onError);

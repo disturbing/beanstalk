@@ -25,6 +25,7 @@ export function runListItem(stored: StoredRun): RunListItem {
   return {
     run: meta.run,
     policy: config.policy,
+    preset: config.preset,
     phase: state.phase,
     aborted: state.aborted,
     created_at: new Date(meta.createdAtMs).toISOString(),

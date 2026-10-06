@@ -67,6 +67,14 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
                    help="--forge cloudflare: slot i asks for its first task i x SECONDS after the start, so the gateway "
                         "forks the first beans one at a time instead of all at once (default 0: all at once, as "
                         "locally; staggering changes start times, so compare with care)")
+    f.add_argument("--preset", choices=["demo"],
+                   help="--forge cloudflare: pinned engine settings; demo = v2.4, the engine behind the published "
+                        "numbers (a v2 knob that contradicts it is refused)")
+    f.add_argument("--max-usd", type=float,
+                   help="--forge cloudflare: abort when agent spend plus the measured infrastructure cost reaches this")
+    f.add_argument("--keep-repo", action="store_true",
+                   help="--forge cloudflare: keep the run's Artifacts repo after the final check (the gateway's "
+                        "hourly sweep still deletes it a day after the run began)")
     f.add_argument("--no-auth-probe", action="store_true",
                    help="--forge cloudflare: skip the one-turn Haiku call (about $0.004) a claude race makes before "
                         "it creates the run, to stop early on refused credentials or a rate limit")
@@ -213,7 +221,8 @@ def make_remote_race(cfg: RaceConfig, ns: argparse.Namespace, argv: list[str]):
         print(problem, file=sys.stderr)
         return None
     return RemoteRace(cfg, gateway=gateway, admin_token=admin, policy=cfg.policy, v2=v2_settings(v2_flags(ns)),
-                      show_live_url=ns.live_url, auth_probe=not ns.no_auth_probe, stagger_start=ns.stagger_start)
+                      show_live_url=ns.live_url, auth_probe=not ns.no_auth_probe, stagger_start=ns.stagger_start,
+                      guards={"preset": ns.preset, "max_usd": ns.max_usd, "keep_repo": ns.keep_repo or None})
 
 
 def dry_run(cfg: RaceConfig) -> int:

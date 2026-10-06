@@ -376,12 +376,14 @@ class RemoteRace(Race):
 
     def __init__(self, cfg: RaceConfig, *, gateway: str, admin_token: str | None, policy: str,
                  v2: dict | None = None, show_live_url: bool = False, auth_probe: bool = True,
-                 stagger_start: float = 0.0):
+                 stagger_start: float = 0.0, guards: dict | None = None):
         super().__init__(cfg)
         if policy not in POLICIES:
             raise SystemExit(f"--forge cloudflare runs {' and '.join(POLICIES)}, not {policy}")
         self.policy = policy
         self.v2 = v2 or v2_settings()
+        # preset, max_usd, keep_repo: sent only when set, so the gateway's defaults apply otherwise
+        self.guards = {k: v for k, v in (guards or {}).items() if v is not None}
         self.gateway_url = gateway.rstrip("/")
         self.secrets = Secrets()
         self.gw = GatewayClient(gateway, admin_token, self.secrets)
@@ -537,9 +539,21 @@ class RemoteRace(Race):
             body.update(error_budget=cfg.error_budget, protect_tests=cfg.protect_tests)
         else:  # v2 implies --snapshot head --error-budget 999 --protect-tests landed (race.py checks the flags)
             body.update(self.v2)
+        body.update(self.guards)
         return body
 
     # ---- the race --------------------------------------------------------------------------------------
+
+    def say_infra(self, summary: dict) -> None:
+        """One line: the run's measured Cloudflare cost (estimated at list prices) and what became of its repos."""
+        infra, repos = summary.get("infra"), summary.get("repos")
+        if not isinstance(infra, dict):
+            return
+        usd = infra.get("usd", {})
+        self.say(f"infra ${usd.get('total', 0):.4f} (artifacts ${usd.get('artifacts', 0):.4f}, containers "
+                 f"${usd.get('containers', 0):.4f}, {infra.get('worker_requests')} requests, "
+                 f"{infra.get('artifacts_ops')} artifacts ops, {infra.get('container_up_seconds')} container-s); "
+                 f"repos {(repos or {}).get('status', 'unknown')}")
 
     async def setup_or_close(self) -> None:
         try:
@@ -1288,6 +1302,7 @@ class RemoteRace(Race):
             return
         with open(os.path.join(self.out, "summary.json"), "w", encoding="utf-8") as fh:
             json.dump(self.summary, fh, indent=2, default=str)
+        self.say_infra(self.summary)
         from .summary import to_markdown
         try:
             md = to_markdown(self.summary)

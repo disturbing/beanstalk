@@ -2,7 +2,9 @@
  * RunDO: one Durable Object per race. The shell around the engine: it feeds inputs (polls,
  * results, job outcomes, alarms) to `step()` one at a time, persists the state and events
  * of every step atomically, answers held long polls, runs the jobs the engine asks for,
- * and keeps the live feed's WebSockets up to date.
+ * and keeps the live feed's WebSockets up to date. It also guards spend: it meters the
+ * infrastructure the run uses (`infra-meter`), aborts the run at `max_usd`, and deletes the
+ * run's Artifacts repos once the final check is done (unless `keep_repo`).
  */
 import { DurableObject } from 'cloudflare:workers';
 
@@ -40,13 +42,23 @@ import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
 import { toDriverReply } from './driver-reply';
+import type { InfraMeter, InfraReport, RunnerCall } from './infra-meter';
+import {
+  countAlarm,
+  countArtifactsOps,
+  countRequest,
+  emptyMeter,
+  infraReport,
+  recordRunnerCall,
+} from './infra-meter';
+import { meteredArtifacts, meteredRunner } from './metered-ports';
 import type { GitAccess, GitPrincipal } from './git-access';
 import { decideGitAccess } from './git-access';
 import type { TokenSource } from './run-jobs';
 import { cachingTokenSource, executeJob } from './run-jobs';
 import { runRepoName } from './run-names';
 import type { ReapMode, ReapReport } from './run-reap';
-import { reapRepos } from './run-reap';
+import { reapRepos, repoStatus } from './run-reap';
 import type { StoredRun } from './run-store';
 import type { ExplorerInput } from './run-explorer';
 import {
@@ -57,7 +69,18 @@ import {
   parseLogged,
 } from './run-explorer';
 import { RUN_INDEX_NAME } from './run-index';
-import { loadRun, migrate, readEvents, readEventsOfTypes, saveNewRun, saveStep } from './run-store';
+import {
+  loadMeter,
+  loadReapRecord,
+  loadRun,
+  migrate,
+  readEvents,
+  readEventsOfTypes,
+  saveMeter,
+  saveNewRun,
+  saveReapRecord,
+  saveStep,
+} from './run-store';
 import { runListItem, testCoverage } from './run-views';
 
 /** The run repo's branches (`refs/heads/sprout`, `refs/heads/stalk`). */
@@ -107,13 +130,19 @@ export class RunDO extends DurableObject<Env> {
   readonly #artifacts: ArtifactsPort;
   readonly #runner: RunnerPort;
   readonly #tokens: TokenSource;
+  #meter: InfraMeter;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     const config = readConfig(env);
     this.#log = createLogger(config.logLevel, { component: 'run' });
-    this.#artifacts = artifactsPort(env.ARTIFACTS);
-    this.#runner = runnerPort((instance) => env.RUNNER.getByName(instance));
+    this.#meter = loadMeter(ctx.storage) ?? emptyMeter(Date.now());
+    this.#artifacts = meteredArtifacts(artifactsPort(env.ARTIFACTS), () =>
+      this.#setMeter(countArtifactsOps(this.#meter, 1)),
+    );
+    this.#runner = runnerPort((instance) =>
+      meteredRunner(instance, env.RUNNER.getByName(instance), (call) => this.#recordRunner(call)),
+    );
     this.#tokens = cachingTokenSource(this.#artifacts, {
       ttlSeconds: config.artifactsTokenTtlSeconds,
       now: () => Date.now(),
@@ -129,6 +158,7 @@ export class RunDO extends DurableObject<Env> {
     config: RunConfig;
     createdAtMs: number;
   }): Promise<RunResult<RepoRemote>> {
+    this.#countRequest();
     if (this.#loaded !== null || this.#creating)
       return failure('conflict', 409, `run ${input.run} exists`);
     this.#creating = true;
@@ -162,6 +192,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** Starts the race from the arena base the admin seeded the sprout and the stalk with. */
   async start(): Promise<RunResult<{ baseSha: Sha }>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     if (loaded.stored.state.phase !== 'created')
@@ -185,13 +216,32 @@ export class RunDO extends DurableObject<Env> {
    * in the namespace, so repos of earlier gateways are found too. Refused while it races.
    */
   async reap(run: RunId, mode: ReapMode): Promise<RunResult<ReapReport>> {
-    const phase = this.#loaded?.stored.state.phase;
-    if (phase === 'running' || phase === 'finishing') {
+    this.#countRequest();
+    return this.#reap(run, mode);
+  }
+
+  /**
+   * The run index's sweep: deletes the run's repos when the run began before
+   * `startedBeforeMs` (or is unknown here: orphaned repos) and is not racing. null: skipped.
+   */
+  async sweep(run: RunId, startedBeforeMs: number): Promise<RunResult<ReapReport | null>> {
+    this.#countRequest();
+    const createdAtMs = this.#loaded?.stored.meta.createdAtMs;
+    if (createdAtMs !== undefined && createdAtMs >= startedBeforeMs)
+      return { ok: true, value: null };
+    return this.#reap(run, 'delete');
+  }
+
+  async #reap(run: RunId, mode: ReapMode): Promise<RunResult<ReapReport>> {
+    const phase = this.#creating ? 'being created' : this.#loaded?.stored.state.phase;
+    if (phase === 'running' || phase === 'finishing' || phase === 'being created') {
       return failure('invalid_state', 409, `run is ${phase}; reap its repos once it is over`);
     }
     try {
       const report = await reapRepos(this.#artifacts, run, mode);
       if (mode === 'delete') {
+        if (this.#loaded !== null)
+          saveReapRecord(this.ctx.storage, { ...report, atMs: Date.now() });
         this.#log.info('run repos reaped', {
           run,
           deleted: report.deleted.length,
@@ -209,6 +259,7 @@ export class RunDO extends DurableObject<Env> {
     card: string,
     answer: { winner: string; actor: string; text: string | null },
   ): Promise<RunResult<{ accepted: true }>> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const response = this.#apply({ kind: 'decision', at: Date.now(), card, ...answer });
     return response.kind === 'refused'
@@ -217,6 +268,7 @@ export class RunDO extends DurableObject<Env> {
   }
 
   async stop(reason: string): Promise<RunResult<{ phase: string }>> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const response = this.#apply({ kind: 'stop', at: Date.now(), reason });
     if (response.kind === 'refused') return failure('invalid_state', 409, response.refusal.message);
@@ -225,6 +277,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** The run view as JSON text (RPC returns text: the view is deep, recursive JSON). */
   async view(): Promise<RunResult<RunView>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     const { meta, repos, state } = loaded.stored;
@@ -236,12 +289,14 @@ export class RunDO extends DurableObject<Env> {
 
   /** Beans whose files lie under `paths` (all beans for none), from the event log. */
   async beans(paths: readonly string[]): Promise<RunResult<BeanSummary[]>> {
+    this.#countRequest();
     const input = this.#explorerInput();
     return input === null ? notFound() : { ok: true, value: beanSummaries(input, paths) };
   }
 
   /** One bean's story: status, agent, intent, files, checks, reworks, decisions. */
   async bean(id: string): Promise<RunResult<BeanDetail>> {
+    this.#countRequest();
     const input = this.#explorerInput();
     if (input === null) return notFound();
     const detail = beanDetail(input, id);
@@ -252,6 +307,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** Decision cards, optionally only those touching `paths`. */
   async decisionRecords(paths: readonly string[] | null): Promise<RunResult<DecisionRecord[]>> {
+    this.#countRequest();
     const input = this.#explorerInput();
     return input === null ? notFound() : { ok: true, value: decisionRecords(input, paths) };
   }
@@ -261,6 +317,7 @@ export class RunDO extends DurableObject<Env> {
    * landed line (the sprout; the stalk for the queue).
    */
   async testsFor(paths: readonly string[]): Promise<RunResult<TestCoverage[]>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     const { config, repos, state } = loaded.stored;
@@ -283,19 +340,31 @@ export class RunDO extends DurableObject<Env> {
 
   /** `summary.json` of the run as JSON text. */
   async summary(): Promise<RunResult<string>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
-    const state = loaded.stored.state;
-    return { ok: true, value: JSON.stringify(buildSummary(state, loaded.env, state.clock)) };
+    const { meta, config, state } = loaded.stored;
+    const repos = repoStatus({
+      done: state.phase === 'done',
+      keepRepo: config.keep_repo,
+      reaped: loadReapRecord(this.ctx.storage),
+    });
+    const summary = buildSummary(state, loaded.env, state.clock);
+    return {
+      ok: true,
+      value: JSON.stringify({ ...summary, infra: this.#infra(meta.createdAtMs), repos }),
+    };
   }
 
   /** How many agent slots the run has. */
   async agentCount(): Promise<RunResult<number>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     return loaded === null ? notFound() : { ok: true, value: loaded.stored.state.slots.length };
   }
 
   async events(after: number, limit: number): Promise<RunResult<EventsPage>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     const rows = readEvents(this.ctx.storage.sql, after, limit);
@@ -311,6 +380,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** The driver's long poll: an invocation as soon as there is one, else `wait` after 25 s. */
   async next(slot: SlotId, gitBase: string): Promise<RunResult<NextResponse>> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
     if (!loaded.stored.state.slots.some((candidate) => candidate.id === slot)) {
@@ -337,6 +407,7 @@ export class RunDO extends DurableObject<Env> {
     inv: InvocationId,
     result: InvocationResult,
   ): Promise<RunResult<{ accepted: true }>> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const response = this.#apply({ kind: 'result', at: Date.now(), slot, inv, result });
     return response.kind === 'refused'
@@ -349,6 +420,7 @@ export class RunDO extends DurableObject<Env> {
     inv: InvocationId,
     costUsd: number,
   ): Promise<RunResult<ProgressResponse>> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const response = this.#apply({ kind: 'progress', at: Date.now(), slot, inv, costUsd });
     if (response.kind === 'refused') return refusal(response);
@@ -359,6 +431,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** Lends the gateway's Artifacts token for one git request, if the principal may make it. */
   async authorizeGit(principal: GitPrincipal, repo: string, access: GitAccess): Promise<GitGrant> {
+    this.#countRequest();
     const loaded = this.#loaded;
     if (loaded === null) return { ok: false, status: 404, message: 'no such run' };
     const { repos, state } = loaded.stored;
@@ -367,6 +440,7 @@ export class RunDO extends DurableObject<Env> {
     const upstream = repos.repo;
     try {
       const token = await this.#tokens.token(repo, decision.scope);
+      this.#setMeter(countArtifactsOps(this.#meter, 1));
       return { ok: true, upstream: upstream.remote, token, refs: decision.refs };
     } catch (error: unknown) {
       this.#log.error('minting a git token failed', { repo, error });
@@ -376,6 +450,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** The live feed: a hibernatable WebSocket that gets the view, then every step's events. */
   override async fetch(request: Request): Promise<Response> {
+    this.#countRequest();
     if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
       return new Response('expected a WebSocket upgrade', { status: 426 });
     }
@@ -399,6 +474,7 @@ export class RunDO extends DurableObject<Env> {
   /** Engine timers (CI latency, retries, the wall clock) fire from the object's alarm. */
   override async alarm(): Promise<void> {
     this.#alarmAt = null;
+    this.#setMeter(countAlarm(this.#meter, Date.now()));
     if (this.#loaded !== null) this.#apply({ kind: 'tick', at: Date.now() });
   }
 
@@ -425,7 +501,56 @@ export class RunDO extends DurableObject<Env> {
     this.#deliver(output.effects.replies);
     for (const job of output.effects.jobs) this.ctx.waitUntil(this.#runJob(job.id, job.spec));
     this.#updateIndex();
+    if (loaded.stored.state.phase !== 'done' && output.state.phase === 'done') this.#finished();
+    else this.#enforceSpendCap();
     return output.response;
+  }
+
+  #countRequest(): void {
+    this.#setMeter(countRequest(this.#meter, Date.now()));
+  }
+
+  #recordRunner(call: RunnerCall): void {
+    this.#setMeter(recordRunnerCall(this.#meter, call));
+  }
+
+  /** Kept in memory always, stored only for a run (a probe of an unknown run stores nothing). */
+  #setMeter(meter: InfraMeter): void {
+    this.#meter = meter;
+    if (this.#loaded !== null) saveMeter(this.ctx.storage, meter);
+  }
+
+  #infra(createdAtMs: number): InfraReport {
+    return infraReport(this.#meter, createdAtMs);
+  }
+
+  /** `max_usd`: agent spend plus the metered infrastructure; reaching it aborts the run. */
+  #enforceSpendCap(): void {
+    const { meta, config, state } = this.#requireLoaded().stored;
+    if (config.max_usd === null || state.phase !== 'running' || state.aborted !== null) return;
+    const infraUsd = this.#infra(meta.createdAtMs).usd.total;
+    const total = state.spent + infraUsd;
+    if (total < config.max_usd) return;
+    this.#log.warn('spend cap reached', { run: meta.run, total, maxUsd: config.max_usd });
+    const reason = `budget (max_usd): $${total.toFixed(2)} of $${config.max_usd.toFixed(2)}, infra $${infraUsd.toFixed(2)}`;
+    this.#apply({ kind: 'stop', at: Date.now(), reason });
+  }
+
+  /** The final check is done: log what the run cost and delete its repos. */
+  #finished(): void {
+    const { meta, config, state } = this.#requireLoaded().stored;
+    this.#log.info('run cost', {
+      run: meta.run,
+      agentUsd: state.spent,
+      infra: this.#infra(meta.createdAtMs),
+    });
+    if (config.keep_repo) return;
+    this.ctx.waitUntil(this.#reapFinished(meta.run));
+  }
+
+  async #reapFinished(run: RunId): Promise<void> {
+    const reaped = await this.#reap(run, 'delete');
+    if (!reaped.ok) this.#log.warn('reaping a finished run failed', { run, error: reaped.error });
   }
 
   /** Tells the run index when the run's phase or task counts changed. */

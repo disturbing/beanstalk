@@ -45,3 +45,26 @@ export async function reapRepos(
   }
   return { repos, deleted, failed };
 }
+
+/** Where a run's repos stand, as its summary reports it. */
+export type RepoStatus =
+  | { readonly status: 'live' | 'kept' | 'reaping' }
+  | {
+      readonly status: 'reaped' | 'reap_failed';
+      readonly deleted: readonly string[];
+      readonly failed: ReapReport['failed'];
+    };
+
+export function repoStatus(input: {
+  readonly done: boolean;
+  readonly keepRepo: boolean;
+  readonly reaped: ReapReport | null;
+}): RepoStatus {
+  const { reaped } = input;
+  if (reaped !== null) {
+    const status = reaped.failed.length === 0 ? 'reaped' : 'reap_failed';
+    return { status, deleted: reaped.deleted, failed: reaped.failed };
+  }
+  if (!input.done) return { status: 'live' };
+  return { status: input.keepRepo ? 'kept' : 'reaping' };
+}
