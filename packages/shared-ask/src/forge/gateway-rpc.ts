@@ -8,6 +8,7 @@
 import { z } from 'zod';
 
 import type { GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
+import { RunPreset } from '@beanstalk/shared-race/run-config';
 
 import { ForgeError } from './forge-errors';
 
@@ -69,6 +70,8 @@ const TaskCounts = z.record(z.string(), z.number());
 export const RunListItem = z.object({
   run: z.string(),
   policy: z.string(),
+  /** Older gateways do not send it. */
+  preset: RunPreset.nullable().default(null),
   phase: z.enum(['created', 'running', 'finishing', 'done']),
   created_at: z.string(),
   agents: z.number().int(),

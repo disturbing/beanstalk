@@ -117,7 +117,20 @@ Agent spend only:
 | v2.0 | $5.00 | +21% |
 | v2.4 | $4.40 | +7% |
 
-Rework is the bulk of v2.4's extra: $2.00 of its $4.40. **Cloudflare infrastructure cost per race is not measured.** That covers container time, Workers and DO requests, and Artifacts operations, and Artifacts billing only starts around 2026-10-14.
+Rework is the bulk of v2.4's extra: $2.00 of its $4.40.
+
+**Cloudflare infrastructure, per race.** From 2026-10-06 every RunDO meters what its run uses and `summary.json` reports it under `infra` (counts and dollars at list prices; `packages/gateway/src/run/infra-meter.ts`, gateway README "Spend guards"). No race has run on the metering gateway yet, so the figures below are **estimates** from the recorded runs' event counts (`research/race/runs/cf-v24-sonnet-12-s7`, `cf2-replay-v2-8-s7`), priced the way the meter prices them. Replace them with the first metered `infra` block.
+
+| | v2.4, 12 Sonnet agents (1,126 s) | Replay, 8 agents (417 s) |
+|---|---|---|
+| Runner calls (checks, squashes, CI, lands, promotions) | ~266 | ~185 |
+| Container busy / up seconds (15 / 11 `standard-2` instances, 2 min `sleepAfter`) | ~1,600 / ~18,700 | ~1,000 / ~5,900 |
+| Containers | **~$0.33** | **~$0.11** |
+| Artifacts operations (agent fetch+push, runner fetches and pushes, binding calls) | ~870 → **~$0.13** | ~590 → **~$0.09** |
+| Workers + DO requests, DO duration | ~1,500 requests → **< $0.01** | **< $0.01** |
+| **Total** | **~$0.46** (about 10% of the $4.40 agent spend) | **~$0.20** |
+
+How it was estimated: container busy time is the events' `suite_seconds` plus about 1.5 s per runner call; up time is every instance warm for the whole race plus its 2-minute tail (sandboxes rarely idle 2 minutes); vCPU at $0.000020/s busy, 6 GiB + 12 GB at $0.0000158/s up. Artifacts counts 4 git requests per agent invocation, one fetch per runner call, one push per committer write and the binding calls, at $0.15/1k (an upper bound: binding reads may not be billed, and the first 10k operations a month are free, about 11 such races). Idle up time dominates, so a lower `sleepAfter` or fewer sandboxes is the lever, not the requests. Storage is negligible now that each race deletes its repo when it ends (`keep_repo` keeps it; the hourly sweep deletes anything older than a day).
 
 ### What each version added, and why
 

@@ -1,4 +1,5 @@
 import { SELF } from 'cloudflare:test';
+import { expect } from 'vitest';
 
 export const ADMIN = 'test-admin-token';
 export const ORIGIN = 'https://gateway.test';
@@ -134,4 +135,71 @@ export async function pushBase(
     body: pushRefsBody(refs.map((ref) => ({ ref, newSha: baseSha }))),
     headers: { 'content-type': 'application/x-git-receive-pack-request' },
   });
+}
+
+type Instruction = {
+  inv: string;
+  kind: string;
+  task: string;
+  workspace: {
+    bean: string;
+    bean_url: string;
+    repo_url: string;
+    branch: string;
+    base_sha: string;
+  };
+};
+export type Next = { invocation?: Instruction; wait?: true; done?: true; aborted?: string | null };
+
+/** A replay-like driver slot: take an instruction, push the branch through the proxy, report. */
+export async function driveSlot(run: CreatedRun, slot: string): Promise<string[]> {
+  const token = slotToken(run, slot);
+  const handled: string[] = [];
+  for (let round = 0; round < 20; round += 1) {
+    const path = `/v1/runs/${run.run}/agents/${slot}/next`;
+    // oxlint-disable-next-line no-await-in-loop -- a driver slot polls, works and reports in turn
+    const next = await json<Next>(await call('POST', path, { token }));
+    if (next.done === true) return handled;
+    const instruction = next.invocation;
+    if (instruction === undefined) continue;
+    handled.push(`${instruction.inv}:${instruction.task}`);
+    // oxlint-disable-next-line no-await-in-loop -- one invocation at a time per slot
+    const head = await sha(instruction.inv);
+    // oxlint-disable-next-line no-await-in-loop -- the push precedes the result
+    const pushed = await call(
+      'POST',
+      new URL(`${instruction.workspace.bean_url}/git-receive-pack`).pathname,
+      {
+        token,
+        body: pushBody(`refs/heads/${instruction.workspace.branch}`, head),
+      },
+    );
+    expect(pushed.status).toBe(200);
+    // oxlint-disable-next-line no-await-in-loop -- the result follows the push
+    const result = await call('POST', `/v1/runs/${run.run}/invocations/${instruction.inv}/result`, {
+      token,
+      body: {
+        ok: true,
+        subtype: 'success',
+        cost_usd: 0.01,
+        cost_source: 'reported',
+        num_turns: 3,
+        wall_ms: 1200,
+        session_id: `session-${instruction.task}`,
+        head_sha: head,
+        new_commit: true,
+        pushed_ref: `refs/heads/${instruction.workspace.branch}`,
+        files: [`src/${instruction.task}.ts`, `tests/${instruction.task}.test.ts`],
+        inv_id: instruction.inv,
+        adapter: 'replay',
+      },
+    });
+    expect(result.status).toBe(200);
+  }
+  throw new Error(`slot ${slot} never finished`);
+}
+
+export async function sha(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }

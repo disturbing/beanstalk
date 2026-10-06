@@ -109,6 +109,8 @@ class ScriptedCloudRace(unittest.TestCase):
                           cfg["decision_oracle"]), ("optimistic", 0.5, 1.0, "landed"))
         for absent in ("snapshot", "error_budget", "protect_tests"):  # v2 implies them on the gateway
             self.assertNotIn(absent, cfg)
+        for absent in ("preset", "max_usd", "keep_repo"):  # sent only when given: the gateway's defaults apply
+            self.assertNotIn(absent, cfg)
         self.assertEqual([t["id"] for t in cfg["tasks"]], ["t001", "t002"])
         self.assertEqual(list(cfg["tasks"][0]["acceptance_tests"]), ["test/acceptance/t001.test.ts"])  # no app/
         self.assertEqual(sorted(cfg["footprints"]), ["t001", "t002"])
@@ -362,6 +364,12 @@ class CommitPath(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.race.close_log()
+
+    def test_sends_only_the_spend_guards_and_preset_given(self) -> None:
+        cfg = RaceConfig(policy="beanstalk-v2", agent="replay", out=os.path.join(TMP, "remote-guards"), force=True)
+        race = RemoteRace(cfg, gateway="http://127.0.0.1:9", admin_token="x" * 16, policy="beanstalk-v2",
+                          guards={"preset": "demo", "max_usd": None, "keep_repo": None})
+        self.assertEqual(race.guards, {"preset": "demo"})
 
     def run_commit(self, inv: dict, res: InvocationResult) -> dict:
         return asyncio.run(self.race.commit_and_push("a0", inv, self.race.worktree(inv["task"]), res))

@@ -76,6 +76,7 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding<Fetche
             total: 16,
           },
           spent_usd: 1.25,
+          preset: null,
         },
       ]),
     runView: () => missing(),

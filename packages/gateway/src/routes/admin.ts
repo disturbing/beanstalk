@@ -62,6 +62,7 @@ export const adminRoutes = new Hono<AppEnv>()
         );
       }
       const deps = c.var.deps;
+      await refuseWhenHalted(deps);
       const run = newRunId();
       unwrap(await deps.run(run).createRun({ run, config, createdAtMs: deps.now() }));
       const origin = new URL(c.req.url).origin;
@@ -105,6 +106,7 @@ export const adminRoutes = new Hono<AppEnv>()
   })
   .post('/:run/start', requireAdmin, validate('param', RunParam), async (c) => {
     const { run } = c.req.valid('param');
+    await refuseWhenHalted(c.var.deps);
     const started = unwrap(await c.var.deps.run(run).start());
     return c.json({ run, phase: 'running', base_sha: started.baseSha });
   })
@@ -190,6 +192,13 @@ export const readRoutes = new Hono<AppEnv>()
     }
     return c.var.deps.run(c.req.valid('param').run).fetch(c.req.raw);
   });
+
+/** The kill switch refuses new runs and starts (`POST /v1/admin/halt`). */
+async function refuseWhenHalted(deps: Deps): Promise<void> {
+  const halt = await deps.runIndex().halted();
+  if (halt !== null)
+    throw new GatewayError(`runs are halted since ${halt.at}: ${halt.reason}`, 'halted', 503);
+}
 
 /** A body that is already JSON text. */
 function jsonText(c: Context<AppEnv>, text: string): Response {

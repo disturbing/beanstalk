@@ -52,29 +52,33 @@ pnpm check                                   # format, lint, typecheck, tests (T
 pnpm -F @beanstalk/web dev                   # the explorer and race canvas, on the recorded runs (works offline)
 ```
 
-Deploy the gateway, then the web app, which binds to it:
+Deploy everything (the gateway with its runner container, the web app, the MCP server and the site) to one account. Docker must be running: it builds the runner image.
 
 ```bash
-cp packages/gateway/.dev.vars.example packages/gateway/.dev.vars   # set ADMIN_TOKEN and RUN_TOKEN_SECRET
-cd packages/gateway && npx wrangler deploy --secrets-file .dev.vars && cd ../..
-cp packages/web/.dev.vars.example packages/web/.dev.vars           # set DEMO_PASSWORD (it unlocks decision cards)
-cd packages/web && pnpm build && npx wrangler deploy --config dist/server/wrangler.json --secrets-file .dev.vars
+npx wrangler login
+npx wrangler whoami                          # lists your accounts and their ids
+export CLOUDFLARE_ACCOUNT_ID=<account id>    # required: the script never guesses the account
+node scripts/deploy-all.mjs                  # --dry-run checks without uploading; --only gateway,web
 ```
 
-If your Wrangler login can see several accounts, set `CLOUDFLARE_ACCOUNT_ID`. Then run a race against your gateway. Replay agents are free; real agents need the `claude` CLI, logged in:
+The account needs Workers Paid (Containers and Durable Objects), and Artifacts and Workers AI enabled. The script creates `packages/gateway/.dev.vars` (`ADMIN_TOKEN`, `RUN_TOKEN_SECRET`) and `packages/web/.dev.vars` (`DEMO_PASSWORD`, which unlocks decision cards) with random values when they are missing, uploads them as secrets with each deploy, points the MCP server's `WEB_URL` at the web app it just deployed, and prints the URLs. Keep the `.dev.vars` files: the race driver reads `ADMIN_TOKEN` from the gateway's.
+
+Then run a race against your gateway. `--preset demo` pins the engine behind the published numbers (v2.4); `--max-usd` caps agent plus infrastructure spend; the run deletes its Artifacts repo when it ends and prints its infrastructure cost. Replay agents are free; real agents need the `claude` CLI, logged in:
 
 ```bash
 cd research/race
 GW=https://beanstalk-gateway.<your-subdomain>.workers.dev
-python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --agent replay --agents 8 \
+python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --preset demo --agent replay --agents 8 \
   --ci-seconds 4.5 --ci-slots 2 --seed 7 --preland-mode optimistic --preland-seconds 4.5 \
-  --decision-seconds 1 --out runs/my-replay
-python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --agent claude --model sonnet \
-  --agents 12 --ci-seconds 60 --ci-slots 2 --seed 7 --budget-usd 75 --max-wall-minutes 50 \
+  --decision-seconds 1 --max-usd 5 --out runs/my-replay
+python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --preset demo --agent claude --model sonnet \
+  --agents 12 --ci-seconds 60 --ci-slots 2 --seed 7 --budget-usd 75 --max-usd 80 --max-wall-minutes 50 \
   --protect-tests landed --preland-mode optimistic --preland-seconds 60 --decision-seconds 30 \
   --out runs/my-race
 python3 kth_green.py runs/my-race
 ```
+
+To stop everything at once: `curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" $GW/v1/admin/halt` (refuses new runs, stops runs in flight; `DELETE` the same route to resume).
 
 Use `--policy queue --batch 4 --no-queue-hold` for the merge-queue baseline. Run options, the engine's settings and the driver contract are in [`research/race/REMOTE.md`](research/race/REMOTE.md) and [`packages/gateway/README.md`](packages/gateway/README.md).
 

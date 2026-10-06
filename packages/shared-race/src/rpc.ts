@@ -11,7 +11,7 @@
  * flag says when a bound was hit.
  */
 import type { FinalCheckFields } from './events';
-import type { PolicyName } from './run-config';
+import type { PolicyName, RunPreset } from './run-config';
 
 export type RpcError = {
   /** `not_found`, `invalid_request`, `invalid_state`, `unknown_card`, `upstream_failed` … */
@@ -44,6 +44,8 @@ export type TaskCounts = Readonly<Record<TaskStatus, number>>;
 export type RunListItem = {
   readonly run: string;
   readonly policy: PolicyName;
+  /** The pinned settings the run was created with (`demo`: v2.4), or null. */
+  readonly preset: RunPreset | null;
   readonly phase: RunPhase;
   readonly aborted: string | null;
   /** ISO 8601. */

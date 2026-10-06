@@ -3,6 +3,9 @@ import type { StopParams } from '@cloudflare/containers';
 
 import { createLogger } from '../log';
 
+/** How long an idle runner instance stays up (and billed) after its last request. */
+export const RUNNER_SLEEP_AFTER_SECONDS = 120;
+
 const log = createLogger('info', { component: 'runner-container' });
 
 /**
@@ -15,7 +18,7 @@ const log = createLogger('info', { component: 'runner-container' });
  */
 export class Runner extends Container<Env> {
   override defaultPort = 8080;
-  override sleepAfter = '2m';
+  override sleepAfter = `${RUNNER_SLEEP_AFTER_SECONDS}s`;
   override enableInternet = true;
   override envVars = {
     PORT: '8080',

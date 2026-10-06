@@ -261,7 +261,7 @@ async function reap(run: string, body: Record<string, unknown> = {}): Promise<Re
 
 describe('reaping a run’s repos', () => {
   it('lists, then deletes, the repos of a finished run and nothing else', async () => {
-    const run = await createRun();
+    const run = await createRun({ keep_repo: true });
     const other = await createRun();
     await env.ARTIFACTS.create(`race-${run.run}-t001`);
     await call('POST', `/v1/runs/${run.run}/stop`, { token: ADMIN, body: {} });
