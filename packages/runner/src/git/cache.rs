@@ -7,6 +7,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, PoisonError};
+use std::time::Duration;
 
 use tokio::sync::Mutex;
 
@@ -25,6 +26,10 @@ const NO_DELTAS: &str = "0";
 const TRUNK_HEADS: &str = "+refs/heads/*:refs/beanstalk/trunk/heads/*";
 /// Commits pushed by earlier steps, so any runner instance can fetch them by name.
 const TRUNK_CANDIDATES: &str = "+refs/beanstalk/candidates/*:refs/beanstalk/trunk/candidates/*";
+/// Where [`TRUNK_CANDIDATES`] puts candidates locally.
+const TRUNK_CANDIDATES_LOCAL: &str = "refs/beanstalk/trunk/candidates/";
+/// Pause before looking for a missing commit a second time (see [`TrunkCache::ensure_commits`]).
+const REFETCH_DELAY: Duration = Duration::from_secs(2);
 /// Local refs for fetched change refs, one per (remote, ref), named by digest so that names from
 /// different forks never collide.
 const FETCHED_PREFIX: &str = "refs/beanstalk/fetched/";
@@ -95,21 +100,33 @@ impl<'a> TrunkCache<'a> {
         &self.repo
     }
 
-    /// Makes sure every commit is present, fetching the trunk's named refs once if any is not.
+    /// Makes sure every commit is present, fetching from the trunk if any is not: first each
+    /// missing commit's candidate ref, then (only if one is still missing) every branch and
+    /// candidate. A commit still missing is looked for once more after [`REFETCH_DELAY`]: it is
+    /// usually a candidate pushed moments earlier by another instance, and the remote is
+    /// eventually consistent.
     ///
     /// # Errors
     ///
     /// [`Error::UnknownCommit`] when a commit is not reachable from the trunk's branches or
-    /// candidate refs; [`Error::Remote`] when the fetch fails.
+    /// candidate refs; [`Error::Remote`] when a fetch fails.
     pub(crate) async fn ensure_commits(&self, shas: &[&CommitSha]) -> Result<()> {
-        if self.first_missing(shas).await?.is_none() {
+        self.ensure_commits_pausing(shas, tokio::time::sleep(REFETCH_DELAY))
+            .await
+    }
+
+    /// [`Self::ensure_commits`] with the pause before the second look given (tests make the
+    /// commit appear there).
+    async fn ensure_commits_pausing(
+        &self,
+        shas: &[&CommitSha],
+        pause: impl Future<Output = ()>,
+    ) -> Result<()> {
+        if self.first_missing(shas).await?.is_none() || self.fetch_missing(shas).await?.is_none() {
             return Ok(());
         }
-        let _fetching = self.lock.lock().await;
-        if self.first_missing(shas).await?.is_some() {
-            self.fetch_trunk().await?;
-        }
-        match self.first_missing(shas).await? {
+        pause.await;
+        match self.fetch_missing(shas).await? {
             None => Ok(()),
             Some(sha) => Err(Error::UnknownCommit {
                 sha: sha.to_string(),
@@ -287,6 +304,49 @@ impl<'a> TrunkCache<'a> {
         Ok(None)
     }
 
+    /// Under the fetch lock: fetches what is missing and returns the first commit still missing.
+    async fn fetch_missing<'s>(&self, shas: &[&'s CommitSha]) -> Result<Option<&'s CommitSha>> {
+        let _fetching = self.lock.lock().await;
+        let mut missing = Vec::new();
+        for sha in shas {
+            if !self.repo.has_commit(sha).await? {
+                missing.push(*sha);
+            }
+        }
+        if missing.is_empty() {
+            return Ok(None);
+        }
+        self.fetch_candidates(&missing).await?;
+        if self.first_missing(&missing).await?.is_none() {
+            return Ok(None);
+        }
+        self.fetch_trunk().await?;
+        self.first_missing(&missing).await
+    }
+
+    /// Fetches the candidate refs named after `shas`. Each refspec is a pattern (`<sha>*`) so that
+    /// a candidate the trunk does not have matches nothing instead of failing the fetch; the
+    /// remote filters by the pattern's prefix, so only those refs are listed.
+    async fn fetch_candidates(&self, shas: &[&CommitSha]) -> Result<GitOutput> {
+        let refspecs = shas.iter().map(|sha| {
+            format!(
+                "+{}*:{TRUNK_CANDIDATES_LOCAL}{sha}*",
+                RefName::candidate(sha)
+            )
+        });
+        self.repo
+            .command("fetch")
+            .remote(self.trunk)
+            .args(FETCH_FLAGS)
+            .arg(self.trunk.url.as_str())
+            .args(refspecs)
+            .success()
+            .await
+    }
+
+    /// Mirrors every trunk branch and candidate: the fallback for a commit that is not a
+    /// candidate (a trunk head set elsewhere). Every agent's branch comes too, so it runs only when
+    /// the candidate fetch did not find the commit.
     async fn fetch_trunk(&self) -> Result<GitOutput> {
         self.repo
             .command("fetch")
@@ -385,6 +445,10 @@ pub(crate) enum RefUpdateOutcome {
         actual: Option<CommitSha>,
     },
 }
+
+#[cfg(test)]
+#[path = "cache_tests.rs"]
+mod fetch_tests;
 
 #[cfg(test)]
 mod tests {

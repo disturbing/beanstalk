@@ -24,6 +24,8 @@ pub const TOKEN: &str = "art_v1_0123456789abcdef0123456789abcdef01234567?expires
 /// commits (`ref/t001`, `ref/t002`, `ref/t005`, `ref/t040`), each a child of `main`.
 pub const ARENA_BUNDLE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/arena.bundle");
 pub const ARENA_BASE: &str = "26eecce0d764943d0c89a6139e3491055e9ff00c";
+/// The `BEANSTALK_GIT_SHA` every test runner is configured with.
+pub const IMAGE_GIT_SHA: &str = "0123456789abcdef0123456789abcdef01234567";
 
 /// Runs git with an isolated environment and returns its trimmed stdout; panics on failure.
 pub fn git(dir: &Path, args: &[&str]) -> String {
@@ -129,6 +131,15 @@ impl World {
         post(&self.router, path, body).await
     }
 
+    /// Sends any request and returns the raw response (status, headers, body).
+    pub async fn send_raw(&self, request: Request<Body>) -> axum::response::Response {
+        self.router
+            .clone()
+            .oneshot(request)
+            .await
+            .expect("response")
+    }
+
     pub async fn get(&self, path: &str) -> (StatusCode, Value) {
         send(
             &self.router,
@@ -144,6 +155,7 @@ async fn runner_router(work_dir: &Path, schemes: &str) -> Router {
     let config = Config::from_lookup(|name| match name {
         "WORK_DIR" => Some(work_dir.clone()),
         "REMOTE_SCHEMES" => Some(schemes.clone()),
+        "BEANSTALK_GIT_SHA" => Some(IMAGE_GIT_SHA.to_owned()),
         _ => None,
     })
     .expect("config");

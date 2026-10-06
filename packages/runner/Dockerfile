@@ -35,8 +35,6 @@ FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-gnu -p runner --recipe-path recipe.json
 COPY . .
-ARG GIT_SHA=unknown
-ENV BEANSTALK_GIT_SHA=${GIT_SHA}
 RUN cargo build --release --locked --target x86_64-unknown-linux-gnu -p runner
 
 # Release binaries, downloaded and verified natively. Node runs the arena's .ts files directly (the
@@ -65,7 +63,7 @@ RUN curl -fsSLo mergiraf.tar.gz "https://codeberg.org/mergiraf/mergiraf/releases
 
 FROM --platform=linux/amd64 debian:${DEBIAN_RELEASE}-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git ca-certificates libatomic1 \
+ && apt-get install -y --no-install-recommends git ca-certificates libatomic1 tini \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --system --uid 10001 --create-home --home-dir /home/runner --shell /usr/sbin/nologin runner \
  && install -d -o runner -g runner /work
@@ -73,8 +71,15 @@ COPY --from=tools /tools/node /tools/mergiraf /usr/local/bin/
 COPY --from=tools /tools/MERGIRAF-NOTICE /usr/local/share/doc/mergiraf/NOTICE
 COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/runner /usr/local/bin/runner
 USER runner
+# The commit the image was built from, reported by /version. Set last and read at run time, so a
+# new value only changes this layer (the binary is not rebuilt). The gateway's deploy passes it
+# (packages/runner/README.md, "Image version").
+ARG GIT_SHA=unknown
 ENV PORT=8080 \
     WORK_DIR=/work \
-    RUST_LOG=info
+    RUST_LOG=info \
+    BEANSTALK_GIT_SHA=${GIT_SHA}
 EXPOSE 8080
-ENTRYPOINT ["/usr/local/bin/runner"]
+# tini is PID 1: it reaps test processes orphaned to it (a SIGKILLed suite's grandchildren would
+# otherwise stay zombies for the instance's life) and forwards SIGTERM to the runner.
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/runner"]

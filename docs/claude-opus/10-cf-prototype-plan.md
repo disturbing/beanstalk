@@ -54,11 +54,14 @@ Every request carries `repo` (an Artifacts HTTPS remote) and `token` (an Artifac
 | Endpoint | Request | Response |
 |---|---|---|
 | `POST /v1/squash` | `onto` (sha), `change` {repo, token, ref, base}, `message`, `union_paths` | `{result: "clean", sha, files, resolved}` or `{result: "conflict", files, hunks}`. A clean result is pushed to `refs/beanstalk/candidates/<sha>` on the trunk repo so later steps can address it. A git conflict is first retried with Mergiraf on the conflicted files (`structural_merge`, default on; `resolved: "structural"` when that tier merged it); see `packages/runner/README.md` |
-| `POST /v1/check` | `sha`, `cmd` (default `["node","--test"]`), `extra_files`, `latency_seconds` | `{green, tests, failures, failing_tests[{file,name}], failing_files, read_sets{file:[paths]}, stack_files, output_excerpt, suite_seconds}` (same fields as `harness/ci.py`) |
+| `POST /v1/check` | `sha`, `cmd` (default `["node","--test"]`), `extra_files`, `latency_seconds`, `all_read_sets` (default false) | `{green, tests, failures, failing_tests[{file,name}], failing_files, read_sets{file:[paths]}, passing_read_sets{file:[paths]}, stack_files, output_excerpt, suite_seconds}` (same fields as `harness/ci.py`; `passing_read_sets` is filled only with `all_read_sets`, for the targeted landing check) |
 | `POST /v1/compose` | `base`, `items` [{repo, token, ref, base, task}], `union_paths` | Stacked squash commits; `{head, per_item: [{task, result, sha?, files}]}` |
 | `POST /v1/update-ref` | `ref`, `new`, `old` | Push with lease; `{ok}` or `{ok: false, actual}` |
-| `POST /v1/revert` | `onto`, `commit`, `message` | `{result, sha?, files}` |
+| `POST /v1/revert` | `onto`, `commit`, `to?`, `message` | `{result, sha?, files}`. With `to`, every commit in `to..commit` is undone at once (the red-window reset) |
 | `GET /healthz` | | `{ok, git, node}` |
+| `GET /version` | | `{version, api_version, git_sha}` |
+
+Request bodies refuse unknown fields, so the contract is versioned: `api_version` (now 2) is on `/version` and in the `x-beanstalk-runner-api` header of every response. The gateway checks it once per instance before the first job and fails the job with `runner_version_mismatch` (not retryable, both versions named) on a difference or on a `400` for an unknown field. Capacity refusals ("Maximum number of running container instances exceeded", 429, 503) are retried inside the gateway's client for about 4 minutes before the engine sees them; `422 unknown_commit` is retryable for `check` and `update-ref`. Details in `packages/runner/README.md`.
 
 The image needs Node 25, because the arena runs `.ts` files natively. Tests use `cargo test` with property tests for squash and compose against real git, per `clean-code-rust`.
 
