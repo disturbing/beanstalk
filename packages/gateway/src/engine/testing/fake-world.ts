@@ -35,6 +35,8 @@ export type FailRule = {
   readonly unless?: string;
   /** The rule fires only while the failing test file contains this (a test that pins the behaviour). */
   readonly onlyIf?: string;
+  /** The rule fires only while its test file exists (a new test failing with the whole suite). */
+  readonly requiresFile?: boolean;
 };
 
 /** A flaky failure to inject into one suite run (`nth` counts the runs of a commit from 1). */
@@ -63,6 +65,17 @@ export type ScriptedTask = {
   readonly failsResume?: boolean;
   /** The runner cannot squash this task's bean (a permanent infrastructure failure). */
   readonly squashFails?: boolean;
+  /**
+   * Reverting this bean's landing conflicts (a later bean edited the lines it added, as t007
+   * did after t010's migration in cf-demo-sonnet-30-s7). Leave-one-out probes conflict too.
+   */
+  readonly revertConflicts?: boolean;
+  /**
+   * Markers this bean's agent repairs wherever its tree has them: in its base, for its initial
+   * run, and in the merged tree of its reworks (t026 renumbering the migrations; a migration's
+   * author told its migration collides).
+   */
+  readonly fixes?: readonly string[];
   /** The runner's structural tier merged this bean: its clean squashes say so. */
   readonly mergesStructurally?: boolean;
   /** What a test author writes into this task's acceptance tests when it loses a card. */
@@ -128,6 +141,8 @@ export function createWorld(options: WorldOptions): World {
   const instructions: EngineInstruction[] = [];
   const jobs: JobSpec[] = [];
   const checkRuns = new Map<string, number>();
+  /** Squashed candidates by sha: the bean each one lands. */
+  const squashedBy = new Map<string, string>();
   const reexecutions = new Map<string, number>();
   return {
     git,
@@ -147,7 +162,25 @@ export function createWorld(options: WorldOptions): World {
         const result = check(git, options.rules, { ...spec, flake });
         return { ok: true, result: { kind: 'check', check: result } };
       }
+      if (
+        spec.kind === 'revert' &&
+        scripted.get(squashedBy.get(spec.commit) ?? '')?.revertConflicts
+      ) {
+        const files = changedPaths(
+          git.get(git.get(spec.commit).parents[0] ?? spec.commit).files,
+          git.get(spec.commit).files,
+        );
+        return { ok: true, result: { kind: 'revert', outcome: 'conflict', files } };
+      }
       const outcome = runJob(git, options.rules, spec);
+      if (
+        spec.kind === 'squash' &&
+        outcome.ok &&
+        outcome.result.kind === 'squash' &&
+        outcome.result.outcome === 'clean'
+      ) {
+        squashedBy.set(outcome.result.sha, spec.changeKey);
+      }
       const isStructural =
         spec.kind === 'squash' &&
         spec.structural &&
@@ -358,7 +391,8 @@ function check(
       (only === null || only.has(rule.file)) &&
       rule.markers.every(isPresent) &&
       (rule.unless === undefined || !testOf(rule.file).includes(rule.unless)) &&
-      (rule.onlyIf === undefined || testOf(rule.file).includes(rule.onlyIf)),
+      (rule.onlyIf === undefined || testOf(rule.file).includes(rule.onlyIf)) &&
+      (rule.requiresFile !== true || files.has(rule.file)),
   );
   const failingTests: FailingTest[] = [
     ...broken.map((rule) => ({ file: rule.file, name: rule.name })),
@@ -441,6 +475,7 @@ function initialRun(
   const workspace = instruction.workspace;
   const base = git.get(workspace.baseSha);
   const files = new Map(base.files);
+  repairForward(files, task);
   for (const [path, content] of Object.entries(workspace.acceptance)) files.set(path, content);
   for (const [path, content] of Object.entries(task.writes)) files.set(path, content);
   for (const [path, line] of Object.entries(task.appends ?? {})) {
@@ -603,6 +638,7 @@ function reworkRun(world: ReworkWorld, instruction: EngineInstruction): Invocati
     });
   }
   const fixed = task.stubborn === true ? new Map(tree.files) : fixedFiles(tree.files, task.id);
+  repairForward(fixed, task);
   const files = adapted(fixed, task, world.adaptTo);
   const markersLeft = [...files.entries()]
     .filter(([, content]) => hasMarkers(content))
@@ -666,6 +702,16 @@ function adapted(
     out.set(path, path.endsWith('.md') ? (files.get(path) ?? content) : content);
   }
   return out;
+}
+
+/** A bean that fixes the sprout forward defuses the markers it repairs (`fixes`), in place. */
+function repairForward(files: Map<string, string>, task: ScriptedTask): void {
+  for (const marker of task.fixes ?? []) {
+    for (const [path, content] of files) {
+      if (content.includes(marker))
+        files.set(path, content.replaceAll(marker, marker.replaceAll(':', '-fixed-')));
+    }
+  }
 }
 
 /** The agent resolves every conflict by keeping both sides and fixes its own bug marker. */
