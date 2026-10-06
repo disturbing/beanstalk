@@ -1,12 +1,28 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
 import type {
+  BeanContext,
+  BeanContextInput,
+  BeanDiscoverInput,
+  BeanDiscoverPage,
+  BeanInboxAckInput,
+  BeanInboxAckResult,
+  BeanInboxPage,
+  BeanInboxReadInput,
+  BeanThreadPostInput,
+  BeanThreadPostResult,
+  BeanUpdateInput,
+  BeanUpdateResult,
+} from '@beanstalk/shared-race/collaboration';
+
+import type {
   BeanDetail,
   BeanStream,
   BeanStreamSummary,
   BeanSummary,
   DecisionRecord,
   GatewayRpc,
+  McpTokenClaims,
   RepoDiff,
   RepoFile,
   RepoGrep,
@@ -24,6 +40,7 @@ import type {
 import { createApp } from './app';
 import { createDeps } from './deps';
 import { gatewayRpc } from './rpc/gateway-rpc';
+import { collaborationRpc } from './rpc/collaboration-rpc';
 
 export { RunDO } from './run/run-do';
 export { RunIndex } from './run/run-index';
@@ -133,6 +150,37 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
 
   verifyViewToken(token: string): Promise<RpcResult<ViewTokenClaims>> {
     return this.#rpc().verifyViewToken(token);
+  }
+
+  verifyMcpToken(token: string): Promise<RpcResult<McpTokenClaims>> {
+    return collaborationRpc(createDeps(this.env)).verifyMcpToken(token);
+  }
+
+  beanContext(run: string, input: BeanContextInput): Promise<RpcResult<BeanContext>> {
+    return collaborationRpc(createDeps(this.env)).beanContext(run, input);
+  }
+
+  beanDiscover(run: string, input: BeanDiscoverInput): Promise<RpcResult<BeanDiscoverPage>> {
+    return collaborationRpc(createDeps(this.env)).beanDiscover(run, input);
+  }
+
+  beanUpdate(token: string, input: BeanUpdateInput): Promise<RpcResult<BeanUpdateResult>> {
+    return collaborationRpc(createDeps(this.env)).beanUpdate(token, input);
+  }
+
+  beanThreadPost(
+    token: string,
+    input: BeanThreadPostInput,
+  ): Promise<RpcResult<BeanThreadPostResult>> {
+    return collaborationRpc(createDeps(this.env)).beanThreadPost(token, input);
+  }
+
+  beanInboxRead(token: string, input: BeanInboxReadInput): Promise<RpcResult<BeanInboxPage>> {
+    return collaborationRpc(createDeps(this.env)).beanInboxRead(token, input);
+  }
+
+  beanInboxAck(token: string, input: BeanInboxAckInput): Promise<RpcResult<BeanInboxAckResult>> {
+    return collaborationRpc(createDeps(this.env)).beanInboxAck(token, input);
   }
 
   #rpc(): GatewayRpc {

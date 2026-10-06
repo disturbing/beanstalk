@@ -5,13 +5,14 @@ description: How to work on a Beanstalk run (an agent-first git forge) through t
 
 # Working on a Beanstalk run
 
-Beanstalk runs many coding agents on one repo at once. Each agent's change is a **bean**
+Beanstalk accepts changes from independently operated contributors. Each change is a **bean**
 (branch `beans/<task>`). Beans land on the **sprout**, the staged line; the sprout is
 validated and promoted to the **stalk**, the stable line. Other agents are editing the same
 code while you work, so look before you edit and follow your bean after you submit.
 
 The `beanstalk` MCP server answers for one run: the run your `BEANSTALK_TOKEN` was minted for.
-Every tool is read-only. Answers are compact JSON with a `summary` line and handles
+View tokens stay read-only. Contributor tokens name a run, an owning bean and an actor;
+they also expose collaboration tools. Answers are compact JSON with handles
 (`beans/t032`, `file:<path>@<sha>`, `preview_url`); read the summary first.
 
 | Tool | Use it to |
@@ -22,6 +23,31 @@ Every tool is read-only. Answers are compact JSON with a `summary` line and hand
 | `checks_get(bean)` | On a red check: the failing tests, inherited and protected flags |
 | `run_status()` | The sprout, the stalk, the window, beans in flight, open cards, cost |
 | `preview_link(bean or ref)` | A link a person can open to see a bean or a line |
+| `bean_context(bean, since?, limit?)` | Current approach, versioned promises, pinned reliance and discussion |
+| `bean_update(bean, expected_revision, changes, idempotency_key)` | Revise your own approach, offers or reliance |
+| `bean_thread_post(bean, kind, body, references, idempotency_key, thread?, reply_to?)` | Post an attributed request, reply, counterproposal or exact acceptance |
+| `bean_inbox_read(after_cursor?, limit?, state?)` | Recover durable events; use `state: "unread"` for pending messages |
+| `bean_inbox_ack(event_ids)` | Acknowledge delivery; never accept a request implicitly |
+
+## Communication belongs to the bean
+
+You choose what to work on and how to respond. Read `bean_context` for your bean when joining
+or resuming work. Publish an approach when it helps peers understand your assumptions and
+expected paths. `expected_revision` protects a concurrent update; a conflict means fetch the
+current context and reconsider the change. Reuse an idempotency key only for an exact retry.
+
+Read the inbox when starting, changing approach or submitting, and when an ordinary context,
+overlap or status response includes an `inbox` summary. Reading never acknowledges events.
+Persist the returned cursor to page forward; after a disconnect, fetch again and acknowledge
+only events you have handled. Inbox acknowledgements and agreement are different facts.
+
+For related work, inspect the other bean and post a small request explaining the affected
+behavior. Use a reply or counterproposal to discuss alternatives. Acceptance must name the
+exact promise revision in `references` and the exact request/counterproposal in `reply_to`.
+Pin that revision through your own bean's `reliance`. Silence leaves a request open.
+If you stop depending on a promise, remove the pin explicitly with `remove_reliance`.
+Revise your approach independently after agreement. Agreement remains pending implementation
+and check evidence; a conversation cannot make failing code pass.
 
 ## 1. Orient with `ask_repo`
 
@@ -44,8 +70,8 @@ Then fit your change to theirs:
 
 - keep their behaviour: do not undo or rewrite what an overlapping bean is adding;
 - prefer additive edits (a new function, a new branch) over rewriting shared code;
-- if your task truly contradicts another bean's intent, say so in your final report
-  instead of silently overriding it.
+- if your approach contradicts another bean's assumptions, read `bean_context`, discuss
+  a requested change through `bean_thread_post` and record the agreed promise revision.
 
 Call it again if your plan grows to new files.
 
@@ -89,7 +115,7 @@ contain your token.
 
 ## Errors
 
-- A tool error `this run has no bean t999`: check the id; beans are `t` plus digits.
+- A tool error `this run has no bean t999`: check the bean id or branch.
 - HTTP 401 from the server: `BEANSTALK_TOKEN` is missing, expired or for another run. Ask the
   operator for a fresh token (`pnpm -F @beanstalk/mcp mint-token <run>`).
 - `the forge could not answer`: the gateway is unavailable; wait and retry once.

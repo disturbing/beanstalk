@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 
 import { isSameSecret, presentedToken } from './credentials';
 import { issueToken, verifyToken } from './tokens';
@@ -10,6 +10,51 @@ const NOW = Date.UTC(2026, 9, 3, 12, 0, 0);
 const run = RunId.parse('abcdef1234');
 
 describe('run tokens', () => {
+  it('signs a contributor capability for a stable bean and rejects edited ownership', async () => {
+    const bean = TaskId.parse('t001');
+    const issued = await issueToken(
+      SECRET,
+      { run, bean, sub: 'checkout', scope: 'contributor' },
+      { ttlSeconds: 60, nowMs: NOW },
+    );
+    const verified = await verifyToken(SECRET, issued.token, NOW);
+    expect(verified).toMatchObject({
+      ok: true,
+      claims: { run, bean, sub: 'checkout', scope: 'contributor' },
+    });
+    expect(await verifyToken(SECRET, issued.token, NOW + 60_000)).toEqual({
+      ok: false,
+      failure: 'expired',
+    });
+    const [prefix, , signature] = issued.token.split('.');
+    if (!verified.ok) throw new Error('invalid issued token');
+    const changed = { ...verified.claims, bean: 't002' };
+    const forged = btoa(JSON.stringify(changed))
+      .replace(/=+$/, '')
+      .replaceAll('+', '-')
+      .replaceAll('/', '_');
+    expect(await verifyToken(SECRET, `${prefix}.${forged}.${signature}`, NOW)).toEqual({
+      ok: false,
+      failure: 'bad_signature',
+    });
+  });
+
+  it('requires an owning bean only for contributor capabilities', async () => {
+    await expect(
+      issueToken(
+        SECRET,
+        { run, sub: 'checkout', scope: 'contributor' },
+        { ttlSeconds: 60, nowMs: NOW },
+      ),
+    ).rejects.toThrow();
+    await expect(
+      issueToken(
+        SECRET,
+        { run, bean: TaskId.parse('t001'), sub: 'reader', scope: 'view' },
+        { ttlSeconds: 60, nowMs: NOW },
+      ),
+    ).rejects.toThrow();
+  });
   it('verifies a token it issued and returns its claims', async () => {
     const issued = await issueToken(
       SECRET,

@@ -40,7 +40,7 @@ const tasks = new Map(Tasks.parse(JSON.parse(tasksText)).map((task) => [task.id,
 const repo = Repo.parse(JSON.parse(repoText));
 
 type FakeMethod = (...args: readonly never[]) => Promise<unknown>;
-type FakeRpc = Record<keyof GatewayRpc, FakeMethod>;
+type FakeRpc = Partial<Record<keyof GatewayRpc, FakeMethod>>;
 
 /** The fake binding; `overrides` replace single methods. */
 export function fakeGateway(overrides: Partial<FakeRpc> = {}): GatewayBinding<object> {

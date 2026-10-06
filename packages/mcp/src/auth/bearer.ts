@@ -1,13 +1,14 @@
 /**
- * The MCP endpoint's auth: `Authorization: Bearer <view token>`, a run-scoped token the
- * gateway minted (`viewToken` RPC or `POST /v1/runs/:run/view-token`). The gateway checks it
- * (`verifyViewToken`); this Worker holds no token secret. Every tool reads only that run.
+ * The MCP endpoint's auth. View access remains read-only; contributor access identifies
+ * the owning bean and actor. The gateway verifies signatures and rechecks every write.
  */
 import { createMiddleware } from 'hono/factory';
+import { z } from 'zod';
 
+import { ContributorTokenClaims } from '@beanstalk/shared-race/collaboration';
 import type { RunId } from '@beanstalk/shared-race/ids';
 import { RunId as RunIdSchema } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import type { GatewayRpc, McpTokenClaims, RpcResult } from '@beanstalk/shared-race/rpc';
 
 import type { AppEnv } from '../app-env';
 
@@ -15,7 +16,22 @@ export type ViewerClaims = {
   readonly run: RunId;
   readonly sub: string;
   readonly expiresAt: string;
+  readonly contributor?: ContributorSession;
 };
+
+/** Kept only for this request; write RPCs derive identity from the signed token again. */
+export type ContributorSession = {
+  readonly token: string;
+  readonly claims: ContributorTokenClaims;
+};
+
+const ViewClaims = z.object({
+  scope: z.literal('view'),
+  run: RunIdSchema,
+  sub: z.string(),
+  expires_at: z.iso.datetime(),
+});
+const McpClaims = z.discriminatedUnion('scope', [ViewClaims, ContributorTokenClaims]);
 
 export type AuthFailure = { readonly status: 401 | 403 | 503; readonly message: string };
 
@@ -52,18 +68,35 @@ export async function authenticate(
   if (token === undefined)
     return refuse(
       401,
-      'send Authorization: Bearer <view token> (mint one with pnpm -F @beanstalk/mcp mint-token)',
+      'send Authorization: Bearer <view or contributor token> (mint one with pnpm -F @beanstalk/mcp mint-token)',
     );
   if (gateway === undefined) return refuse(503, 'the GATEWAY binding has no RPC methods');
-  const verified = await gateway.verifyViewToken(token);
+  const verified =
+    typeof gateway.verifyMcpToken === 'function'
+      ? await gateway.verifyMcpToken(token)
+      : await legacyViewClaims(gateway, token);
   if (!verified.ok) {
     const status = verified.error.status === 403 ? 403 : 401;
     return refuse(status, verified.error.message);
   }
-  const run = RunIdSchema.safeParse(verified.value.run);
-  if (!run.success) return refuse(401, 'the token names no valid run');
-  const { sub, expires_at: expiresAt } = verified.value;
-  return { ok: true, viewer: { run: run.data, sub, expiresAt } };
+  const parsed = McpClaims.safeParse(verified.value);
+  if (!parsed.success) return refuse(401, 'the token names no valid MCP capability');
+  const claims = parsed.data;
+  const viewer = { run: claims.run, expiresAt: claims.expires_at };
+  if (claims.scope === 'view') return { ok: true, viewer: { ...viewer, sub: claims.sub } };
+  return {
+    ok: true,
+    viewer: { ...viewer, sub: claims.actor, contributor: { token, claims } },
+  };
+}
+
+async function legacyViewClaims(
+  gateway: GatewayRpc,
+  token: string,
+): Promise<RpcResult<McpTokenClaims>> {
+  const verified = await gateway.verifyViewToken(token);
+  if (!verified.ok) return verified;
+  return { ok: true, value: { ...verified.value, scope: 'view' } };
 }
 
 function bearerToken(header: string | undefined): string | undefined {

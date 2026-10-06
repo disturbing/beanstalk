@@ -22,6 +22,7 @@ import type { Deps } from '../deps';
 import { GatewayError, UpstreamError } from '../errors';
 import type { RunResult } from '../run/run-do';
 import { MAX_LISTED_RUNS, RUN_INDEX_NAME } from '../run/run-index';
+import { collaborationRpc } from './collaboration-rpc';
 
 /** View tokens minted for the web app's live socket live an hour. */
 const VIEW_TOKEN_TTL_SECONDS = 3600;
@@ -38,6 +39,7 @@ const Paths = z.array(Path).max(MAX_PATHS);
 
 export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
   return {
+    ...collaborationRpc(deps),
     async listRuns(limit = 50) {
       const index = env.RUN_INDEX.getByName(RUN_INDEX_NAME);
       return index.list(Math.min(limit, MAX_LISTED_RUNS));

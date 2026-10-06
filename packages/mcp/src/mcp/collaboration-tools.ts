@@ -1,0 +1,120 @@
+import type { McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
+
+import {
+  BeanContextInput,
+  BeanInboxAckInput,
+  BeanInboxReadInput,
+  BeanThreadPostInput,
+  BeanUpdateInput,
+} from '@beanstalk/shared-race/collaboration';
+
+import {
+  beanInboxAck,
+  beanInboxRead,
+  beanThreadPost,
+  beanUpdate,
+  withInbox,
+} from '../tools/collaboration';
+import type { ToolContext } from '../tools/tool-context';
+import { beanConversation } from '../tools/bean-conversation';
+import { answer } from './tool-result';
+
+export const COLLABORATION_TOOL_NAMES = [
+  'bean_context',
+  'bean_update',
+  'bean_thread_post',
+  'bean_inbox_read',
+  'bean_inbox_ack',
+] as const;
+
+const READ: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+};
+const WRITE: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+};
+
+/** Partial injected clients may omit collaboration; view capabilities expose only context. */
+export function registerCollaboration(server: McpServer, ctx: ToolContext): void {
+  if (typeof ctx.gateway.beanContext === 'function') {
+    server.registerTool(
+      'bean_context',
+      {
+        title: 'Context and conversation of a bean',
+        description:
+          'Read current intent, approach, exact promises, reliance and paged discussion. Promise offers and agreement remain separate from implementation check evidence. Pass next_cursor as since to continue history.',
+        inputSchema: BeanContextInput,
+        annotations: READ,
+      },
+      async (input) => answer(() => withInbox(ctx, () => beanConversation(ctx, input))),
+    );
+  }
+  if (ctx.contributor === undefined) return;
+  registerUpdate(server, ctx);
+  registerThread(server, ctx);
+  registerInbox(server, ctx);
+}
+
+function registerUpdate(server: McpServer, ctx: ToolContext): void {
+  if (typeof ctx.gateway.beanUpdate !== 'function') return;
+  server.registerTool(
+    'bean_update',
+    {
+      title: 'Update your bean approach and promises',
+      description:
+        'Revise only your owning bean with an optimistic expected_revision. Offer a promise or pin exact reliance; the gateway derives actor identity from your contributor token. Reuse an idempotency_key only for an exact retry. A promise offer does not establish passing code evidence.',
+      inputSchema: BeanUpdateInput,
+      annotations: WRITE,
+    },
+    async (input) => answer(() => beanUpdate(ctx, input)),
+  );
+}
+
+function registerThread(server: McpServer, ctx: ToolContext): void {
+  if (typeof ctx.gateway.beanThreadPost !== 'function') return;
+  server.registerTool(
+    'bean_thread_post',
+    {
+      title: 'Discuss a change with another bean',
+      description:
+        'Post a note, request, reply, counterproposal, accept or decline. Responses name thread and exact reply_to event. Acceptance requires one exact promise reference and records reliance for your owning bean. Silence or inbox acknowledgements never imply agreement. Reuse idempotency_key for exact retries.',
+      inputSchema: BeanThreadPostInput,
+      annotations: WRITE,
+    },
+    async (input) => answer(() => beanThreadPost(ctx, input)),
+  );
+}
+
+function registerInbox(server: McpServer, ctx: ToolContext): void {
+  if (typeof ctx.gateway.beanInboxRead === 'function') {
+    server.registerTool(
+      'bean_inbox_read',
+      {
+        title: 'Recover events relevant to your bean',
+        description:
+          'Read a bounded durable inbox for your owning bean. state defaults to all; use unread to fetch pending events. Reading does not acknowledge or accept messages. Continue with next_cursor as after_cursor; current_cursor describes freshness. Recover after disconnects through this same tool.',
+        inputSchema: BeanInboxReadInput,
+        annotations: READ,
+      },
+      async (input) => answer(() => beanInboxRead(ctx, input)),
+    );
+  }
+  if (typeof ctx.gateway.beanInboxAck !== 'function') return;
+  server.registerTool(
+    'bean_inbox_ack',
+    {
+      title: 'Acknowledge inbox delivery',
+      description:
+        'Acknowledge handled event_ids only in your owning bean inbox. This records delivery acknowledgement and does not accept a request, change reliance or establish implementation evidence.',
+      inputSchema: BeanInboxAckInput,
+      annotations: WRITE,
+    },
+    async (input) => answer(() => beanInboxAck(ctx, input)),
+  );
+}

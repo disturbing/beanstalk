@@ -16,6 +16,9 @@ import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
+import type { ContributorSession } from '../auth/bearer';
+import type { Logger } from '../log';
+
 export type RunSnapshot = {
   readonly events: readonly RaceEvent[];
   readonly state: RaceState;
@@ -31,6 +34,8 @@ export type ToolContext = {
   readonly picker: Picker;
   /** The web app's origin, for `preview_url`. */
   readonly webUrl: string;
+  readonly contributor?: ContributorSession;
+  readonly log?: Logger;
   snapshot(): Promise<RunSnapshot>;
 };
 

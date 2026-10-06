@@ -8,7 +8,8 @@
     "./driver": "./src/driver.ts",
     "./events": "./src/events.ts",
     "./ids": "./src/ids.ts",
-    "./rpc": "./src/rpc.ts"
+    "./rpc": "./src/rpc.ts",
+    "./collaboration": "./src/collaboration.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

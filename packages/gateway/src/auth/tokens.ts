@@ -9,23 +9,30 @@
  */
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@beanstalk/shared-race/ids';
 
 import { base64UrlDecode, base64UrlEncode } from './base64url';
 
 const PREFIX = 'bst1';
 
-export const TokenScope = z.enum(['slot', 'seed', 'view']);
+export const TokenScope = z.enum(['slot', 'seed', 'view', 'contributor']);
 export type TokenScope = z.infer<typeof TokenScope>;
 
-const Claims = z.strictObject({
-  run: RunId,
-  /** The slot id for `slot` tokens, `admin` otherwise. */
-  sub: z.string().min(1).max(32),
-  scope: TokenScope,
-  /** Expiry, unix seconds. */
-  exp: z.number().int().positive(),
-});
+const Claims = z
+  .strictObject({
+    run: RunId,
+    /** The slot id for `slot` tokens, `admin` otherwise. */
+    sub: z.string().min(1).max(32),
+    scope: TokenScope,
+    /** The stable bean this contributor may revise; independent of a driver slot. */
+    bean: TaskId.optional(),
+    /** Expiry, unix seconds. */
+    exp: z.number().int().positive(),
+  })
+  .refine(
+    (claims) => (claims.scope === 'contributor') === (claims.bean !== undefined),
+    'only contributor tokens name an owning bean',
+  );
 export type TokenClaims = z.infer<typeof Claims>;
 
 export type IssuedToken = { readonly token: string; readonly expiresAt: string };
@@ -43,7 +50,8 @@ export async function issueToken(
   options: { ttlSeconds: number; nowMs: number },
 ): Promise<IssuedToken> {
   const exp = Math.floor(options.nowMs / 1000) + options.ttlSeconds;
-  const payload = base64UrlEncode(new TextEncoder().encode(JSON.stringify({ ...claims, exp })));
+  const checked = Claims.parse({ ...claims, exp });
+  const payload = base64UrlEncode(new TextEncoder().encode(JSON.stringify(checked)));
   const signature = await crypto.subtle.sign('HMAC', await hmacKey(secret), signedBytes(payload));
   return {
     token: `${PREFIX}.${payload}.${base64UrlEncode(new Uint8Array(signature))}`,

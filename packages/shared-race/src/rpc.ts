@@ -2,14 +2,29 @@
  * The gateway's RPC surface for the web app (`packages/web`) and the MCP server
  * (`packages/mcp`), which reach it through a service binding to the `beanstalk-gateway`
  * Worker's default entrypoint. Workers RPC, not HTTP (AGENTS.md). The binding is the trust
- * boundary: the gateway does not authenticate these calls, so the web app must authenticate
- * its users before it calls `decide`, and the MCP server checks its callers' view tokens
- * with `verifyViewToken` before it reads anything.
+ * boundary for reads and human decisions: the web app authenticates users before calling
+ * `decide`, and MCP verifies view/contributor capabilities before reading. Collaboration
+ * mutations additionally verify the signed contributor token again inside the gateway.
  *
  * Every method returns a value: expected failures come back as `{ ok: false, error }`.
- * Everything is read-only except `decide`. Output sizes are bounded, and a `truncated`
- * flag says when a bound was hit.
+ * Engine decisions and separately scoped collaboration metadata have write methods.
+ * Output sizes are bounded, and a `truncated` flag says when a bound was hit.
  */
+import type {
+  BeanContext,
+  BeanContextInput,
+  BeanDiscoverInput,
+  BeanDiscoverPage,
+  BeanInboxAckInput,
+  BeanInboxAckResult,
+  BeanInboxPage,
+  BeanInboxReadInput,
+  BeanThreadPostInput,
+  BeanThreadPostResult,
+  BeanUpdateInput,
+  BeanUpdateResult,
+  ContributorTokenClaims,
+} from './collaboration';
 import type { StreamFile } from './driver';
 import type { FinalCheckFields } from './events';
 import type { PolicyName, RunPreset } from './run-config';
@@ -458,7 +473,7 @@ export type TestCoverage = {
 };
 
 /** The methods the web app calls on its `GATEWAY` service binding. */
-export type GatewayRpc = {
+export type GatewayRpc = Partial<CollaborationRpc> & {
   listRuns(limit?: number): Promise<readonly RunListItem[]>;
   runView(run: string): Promise<RpcResult<RunView>>;
   runEvents(run: string, after: number, limit: number): Promise<RpcResult<RunEventsPage>>;
@@ -514,3 +529,22 @@ export type GatewayRpc = {
 /** Refs the explorer accepts. */
 export const REPO_REF_PATTERN =
   /^(sprout|stalk|beans\/[A-Za-z0-9][A-Za-z0-9._-]{0,31}|[0-9a-f]{40})$/;
+
+/** MCP readers keep their existing scope; contributors are authorized to their own bean. */
+export type McpTokenClaims =
+  | (ViewTokenClaims & { readonly scope: 'view' })
+  | ContributorTokenClaims;
+
+/** Additive for existing clients; the current production gateway exposes this API. */
+export type CollaborationRpc = {
+  verifyMcpToken(token: string): Promise<RpcResult<McpTokenClaims>>;
+  beanContext(run: string, input: BeanContextInput): Promise<RpcResult<BeanContext>>;
+  beanDiscover(run: string, input: BeanDiscoverInput): Promise<RpcResult<BeanDiscoverPage>>;
+  beanUpdate(token: string, input: BeanUpdateInput): Promise<RpcResult<BeanUpdateResult>>;
+  beanThreadPost(
+    token: string,
+    input: BeanThreadPostInput,
+  ): Promise<RpcResult<BeanThreadPostResult>>;
+  beanInboxRead(token: string, input: BeanInboxReadInput): Promise<RpcResult<BeanInboxPage>>;
+  beanInboxAck(token: string, input: BeanInboxAckInput): Promise<RpcResult<BeanInboxAckResult>>;
+};

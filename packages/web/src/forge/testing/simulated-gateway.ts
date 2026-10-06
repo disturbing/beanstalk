@@ -52,7 +52,9 @@ export type ReadPath = 'none' | 'objects';
 
 /** The gateway's RPC with answers reduced to the fields the web app reads. */
 type LooseRpc = {
-  readonly [M in keyof GatewayRpc]: (...args: Parameters<GatewayRpc[M]>) => Promise<unknown>;
+  readonly [M in keyof GatewayRpc]: (
+    ...args: Parameters<NonNullable<GatewayRpc[M]>>
+  ) => Promise<unknown>;
 };
 
 /** Files the closures of one `testsFor` call may read (the RunDO's bound). */

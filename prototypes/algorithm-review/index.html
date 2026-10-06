@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Beanstalk — Seven ways to work together</title>
+  <style>
+    :root { --ink:#182c26; --muted:#54665e; --green:#165d42; --leaf:#d8edaa; --paper:#f4f5ed; --line:#d9dfd2; --white:#fffefa; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:16px; line-height:1.55; }
+    button,a { -webkit-tap-highlight-color:transparent; }
+    button { font:inherit; cursor:pointer; }
+    button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #7b55bd; outline-offset:4px; }
+    button:disabled { opacity:.35; cursor:default; }
+    a { color:var(--green); text-underline-offset:3px; }
+    .shell { max-width:1280px; margin:0 auto; padding:28px 40px 24px; }
+    .masthead { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:22px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; font-size:22px; font-weight:740; letter-spacing:-1px; }
+    .brand svg { width:28px; height:28px; }
+    .eyebrow { font:11px/1.5 var(--mono); text-transform:uppercase; letter-spacing:1.6px; color:var(--muted); }
+    .edition { text-align:right; }
+    .direction-notice { margin:20px 0 0; padding:13px 17px; background:#e4eed9; border:1px solid #c9daba; border-radius:8px; font-size:14px; }
+    .direction-notice a { font-weight:650; }
+    .intro { display:flex; align-items:end; justify-content:space-between; gap:24px; padding:30px 0; }
+    h1 { font-size:clamp(28px,3.4vw,44px); line-height:1.12; letter-spacing:-1.8px; max-width:750px; margin:0 0 12px; font-weight:650; }
+    .intro p { color:var(--muted); margin:0; }
+    .pill { flex-shrink:0; border:1px solid var(--line); border-radius:50px; padding:7px 12px; font:11px var(--mono); white-space:nowrap; }
+    .layout { display:grid; grid-template-columns:255px minmax(0,1fr); gap:28px; align-items:start; }
+    .nav-label { margin:2px 0 12px; }
+    .idea-nav { display:flex; flex-direction:column; gap:5px; }
+    .nav-item { display:flex; align-items:center; gap:12px; width:100%; background:transparent; color:var(--muted); border:1px solid transparent; border-radius:9px; padding:13px 12px; text-align:left; font-size:14px; line-height:1.35; }
+    .nav-item:hover { background:#e9ede2; }
+    .nav-item[aria-current="step"] { background:var(--green); color:white; }
+    .nav-number { font:11px var(--mono); opacity:.75; }
+    .nav-name { flex:1; }
+    .nav-saved { width:14px; text-align:center; font-size:15px; }
+    .shortlist { margin-top:27px; padding:20px 12px; border-top:1px solid var(--line); }
+    .shortlist strong { font-size:14px; font-weight:600; }
+    .shortlist p { font-size:12px; color:var(--muted); margin:6px 0 12px; }
+    .text-button { background:none; color:var(--green); padding:0; border:0; border-bottom:1px solid currentColor; font-size:12px; }
+    .card { background:var(--white); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 12px 38px -30px #294c39; }
+    .card-top { padding:27px 32px 24px; }
+    .card-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .tag { background:#e9efd9; color:#42602e; padding:4px 9px; border-radius:4px; font:10px var(--mono); letter-spacing:.5px; text-transform:uppercase; }
+    h2 { font-size:clamp(26px,3vw,36px); line-height:1.15; letter-spacing:-1.1px; font-weight:650; margin:0 0 13px; max-width:650px; }
+    h2:focus { outline:none; }
+    .idea-summary { font-size:17px; line-height:1.55; color:var(--muted); max-width:650px; margin:0; }
+    .diagram { padding:24px 32px; background:#edf2e6; border-top:1px solid #e1e7d9; border-bottom:1px solid #e1e7d9; }
+    .flow { display:grid; grid-template-columns:1fr 28px 1fr 28px 1fr; gap:6px; align-items:center; }
+    .flow-node { min-height:80px; display:flex; flex-direction:column; justify-content:center; text-align:center; padding:12px 8px; background:var(--white); border:1px solid #d2dbc7; border-radius:9px; font-size:14px; line-height:1.3; font-weight:600; }
+    .flow-node.emphasis { background:var(--green); border-color:var(--green); color:white; }
+    .flow-node small { display:block; margin-top:6px; font:10px/1.4 var(--mono); opacity:.75; font-weight:400; }
+    .flow-arrow { text-align:center; font-size:20px; color:#78976a; }
+    .example { margin:15px 0 0; color:#415743; font-size:13px; }
+    .example strong { color:#2f4830; }
+    .reason-grid { display:grid; grid-template-columns:1fr 1fr; gap:26px; padding:22px 32px; }
+    .reason-grid h3 { font:10px/1.5 var(--mono); text-transform:uppercase; letter-spacing:1.2px; margin:0 0 6px; color:var(--green); }
+    .reason-grid .caveat h3 { color:#876632; }
+    .reason-grid p { margin:0; font-size:14px; color:var(--muted); }
+    details { margin:0 32px 18px; border-top:1px solid var(--line); padding-top:13px; }
+    summary { cursor:pointer; font-size:13px; font-weight:600; }
+    .details-body { font-size:13px; color:var(--muted); padding:8px 0 0; }
+    .details-body p { margin:7px 0; }
+    .card-footer { border-top:1px solid var(--line); padding:18px 32px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .button { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); border-radius:7px; padding:10px 14px; font-size:13px; font-weight:600; background:var(--white); color:var(--ink); min-height:42px; }
+    .button:hover:not(:disabled) { background:#edf2e6; }
+    .button.primary { background:var(--green); color:white; border-color:var(--green); }
+    .button.primary:hover:not(:disabled) { background:#104b34; }
+    .button[aria-pressed="true"] { background:var(--leaf); border-color:#bfd486; color:#234721; }
+    .pagination { display:flex; gap:8px; }
+    .bottom-note { display:flex; align-items:start; gap:11px; margin:18px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+    .note-dot { flex-shrink:0; width:6px; height:6px; background:#b49260; border-radius:50%; margin-top:6px; }
+    .page-footer { margin-top:25px; padding-top:17px; border-top:1px solid var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:11px; color:var(--muted); }
+    .page-footer a { color:var(--muted); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-width:850px) {
+      .shell { padding:20px; }
+      .layout { grid-template-columns:1fr; gap:20px; }
+      .intro { padding:24px 0; align-items:start; }
+      .intro .pill { display:none; }
+      .idea-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+      .nav-item { padding:10px; font-size:12px; border-color:var(--line); }
+      .shortlist { margin-top:12px; padding:10px 0 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      .shortlist p { margin:0; flex:1; font-size:11px; }
+      .nav-label { display:none; }
+      .card-top,.diagram { padding:23px; }
+      .reason-grid { padding:20px 23px; gap:18px; }
+      details { margin-left:23px; margin-right:23px; }
+      .card-footer { padding:17px 23px; }
+      h1 { letter-spacing:-1px; }
+    }
+    @media (max-width:480px) {
+      .shell { padding:16px; }
+      .edition { font-size:9px; letter-spacing:1px; }
+      .intro p { font-size:14px; }
+      .nav-item { min-height:47px; gap:7px; }
+      .card-top,.diagram { padding:20px; }
+      .card-meta .tag { font-size:9px; }
+      .idea-summary { font-size:15px; }
+      .flow { grid-template-columns:1fr 12px 1fr 12px 1fr; gap:3px; }
+      .flow-node { padding:10px 5px; font-size:11px; min-height:83px; }
+      .flow-node small { font-size:8px; }
+      .flow-arrow { font-size:15px; }
+      .reason-grid { grid-template-columns:1fr; gap:15px; padding:18px 20px; }
+      details { margin-left:20px; margin-right:20px; }
+      .card-footer { padding:15px 20px; flex-wrap:wrap; }
+      .pagination { margin-left:auto; }
+      .button { font-size:12px; padding:9px 12px; }
+    }
+    @media print { .shell { padding:0; } aside,.card-footer,.page-footer { display:none; } .layout { display:block; } .card { box-shadow:none; } details { display:block; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 28V15" stroke="#165d42" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20C6 20 3 14 4 7c8-1 13 3 12 13Z" fill="#165d42"/><path d="M16 15C16 6 21 2 28 3c1 7-4 13-12 12Z" fill="#85ac4b"/></svg>beanstalk<span style="font-weight:400;color:#869185;margin:0 4px">/</span><span style="font-size:14px;letter-spacing:0;font-weight:450">research</span></div>
+      <div class="eyebrow edition">Ideas to explore<br>06 October 2026</div>
+    </header>
+    <p class="direction-notice"><strong>Updated direction:</strong> agents choose their own work and collaborate through bean intents. <a href="agent-agnostic.html">Review the conversation model →</a></p>
+    <section class="intro" aria-labelledby="page-title">
+      <div><h1 id="page-title">Make 1,000 agents useful together.</h1><p>Seven ideas, one at a time. Save the ones you want to explore.</p></div>
+      <span class="pill">Proposals · ready to test</span>
+    </section>
+    <main class="layout">
+      <aside aria-label="Idea navigation and shortlist">
+        <p class="eyebrow nav-label">Choose an idea</p>
+        <nav class="idea-nav" id="idea-nav" aria-label="Seven collaboration ideas"></nav>
+        <div class="shortlist"><strong id="shortlist-count">Your shortlist · 0</strong><p id="storage-note">Saved only in this browser.</p><button class="text-button" id="download" disabled>Download shortlist</button></div>
+      </aside>
+      <section aria-label="Selected idea">
+        <article class="card" id="idea-card"></article>
+        <p class="bottom-note"><span class="note-dot" aria-hidden="true"></span><span><strong>What we know:</strong> the 1,000-agent replay landed 895 of 3,000 historical changes. It used simulated timing and real merges; it does not prove 1,000 live agents can work productively together.</span></p>
+      </section>
+    </main>
+    <footer class="page-footer"><span>Extends the Claude and Codex research notes. Benefits remain to be measured.</span><a href="../../docs/09c-thousand-agent-collaboration.md" download>Download the full research memo ↗</a></footer>
+  </div>
+  <p class="sr-only" id="announcement" aria-live="polite"></p>
+  <noscript><p style="padding:24px">Enable JavaScript to browse the seven ideas, or <a href="../../docs/09c-thousand-agent-collaboration.md">read the research memo</a>.</p></noscript>
+  <script>
+    const ideas = [
+      {
+        id:'contracts', nav:'Start with a shared promise', title:'Start together with shared contracts.', tag:'Recommended first experiment',
+        summary:'Agree how an unfinished component should behave, then let its provider and consumers develop at the same time.',
+        steps:[['Agree a contract','Exact version'],['Build in parallel','API · checkout · SDK'],['Verify together','Real components']],
+        example:'Pin one shipping contract. Build the provider, checkout, invoices and SDK concurrently.',
+        benefit:'Less waiting for another agent’s implementation. One clear agreement gives many agents somewhere to start.',
+        caveat:'Success against a mock stays conditional until the real components pass together.',
+        experiment:'One provider, five to ten consumers. Change the contract once. Measure time and total cost to the working integrated feature, including rework.',
+        prior:'Extends the existing contract-bean idea with conditional results and exact version tracking.',
+        source:'https://docs.pact.io/pact_broker/can_i_deploy', sourceLabel:'Pact’s version compatibility model'
+      },
+      {
+        id:'parallelism', nav:'Create independent work', title:'Give agents the job of unlocking others.', tag:'The ambitious direction',
+        summary:'Some agents build the interfaces and test tools that let many others tackle a shared problem independently.',
+        steps:[['Shared bottleneck','Everyone is waiting'],['Build a harness','Separate the problem'],['Work independently','Combine and verify']],
+        example:'Build a comparison harness so ten agents can replace ten pricing components separately, then check the complete replacement.',
+        benefit:'Creates more useful work before adding more writers. A single tool can help an entire team.',
+        caveat:'Setup and final integration may cost more than the time saved. The reference must be trustworthy.',
+        experiment:'Pick one coupled migration. Compare ordinary task splitting with a reference harness under the same total budget. Include final integration costs.',
+        prior:'Anthropic’s compiler team used a reference-compiler harness to separate investigations that had previously duplicated each other.',
+        source:'https://www.anthropic.com/engineering/building-c-compiler', sourceLabel:'Anthropic’s compiler experiment'
+      },
+      {
+        id:'discoveries', nav:'Share reusable discoveries', title:'Find it once. Let the team reuse it.', tag:'Less repeated investigation',
+        summary:'Publish useful findings as small executable examples that other agents can rerun and build on.',
+        steps:[['Find a problem','One investigation'],['Save the example','Inputs + assumptions'],['Reuse the finding','Affected agents']],
+        example:'One agent reproduces a migration-loader bug. Twenty affected agents use that reproduction instead of repeating the investigation.',
+        benefit:'Saves repeated debugging and preserves failed approaches, so each agent starts with more useful knowledge.',
+        caveat:'Findings become stale when inputs or assumptions change. Shared conclusions must not replace independent checks.',
+        experiment:'Reuse recurring investigations from existing race logs. Change some dependencies deliberately. Measure saved work, stale reuse and final correctness.',
+        prior:'Extends shared context and architecture memory with executable findings and dependency invalidation.',
+        source:'https://bazel.build/reference/skyframe', sourceLabel:'Bazel’s dependency and change-pruning model'
+      },
+      {
+        id:'operations', nav:'Stop fighting over registries', title:'Let Beanstalk handle shared registries.', tag:'A practical near-term test',
+        summary:'Agents submit structured requests for common changes. Beanstalk assigns identities and renders shared files.',
+        steps:[['Request a change','Register a migration'],['Check the rules','Identity + prerequisites'],['Render the files','Then validate']],
+        example:'An agent requests a migration after named prerequisites. Beanstalk assigns its identity and updates the registry.',
+        benefit:'Prevents avoidable clashes over numbering and generated files before agents spend time fixing them.',
+        caveat:'Unique numbers do not prove migrations are compatible or correctly ordered. Ordinary code still needs testing.',
+        experiment:'Compare current integration, simple numbering at commit, and structured operations on the migration tasks. Include retries and stale revisions.',
+        prior:'Extends Claude’s numbering and generated-registry ideas with checked operations and stable identities.',
+        source:'https://www.vldb.org/pvldb/vol8/p185-bailis.pdf', sourceLabel:'Research on invariants and coordination'
+      },
+      {
+        id:'combinations', nav:'Remember group failures', title:'Remember when changes fail together.', tag:'Beyond pairwise conflicts',
+        summary:'Record the exact combinations that fail, so agents can avoid repeating the same diagnosis.',
+        steps:[['A + B + C','Pass alone; fail together'],['Save the witness','Exact versions + inputs'],['Guide the next check','Reassess after repairs']],
+        example:'Promotions, loyalty credit and free shipping pass in pairs but fail together. Save the example and affected revisions.',
+        benefit:'Connects failures involving several changes and reduces repeated investigations of the same combination.',
+        caveat:'A later repair can make the combination valid. A failure record cannot become a permanent ban.',
+        experiment:'Include a triple-only failure and a fourth change that repairs it. Compare repeated diagnosis and check cost with the current engine.',
+        prior:'Extends shared diagnosis with records of multi-party interactions. Testing pairs alone cannot establish compatibility.',
+        source:'https://csrc.nist.gov/pubs/sp/800/142/final', sourceLabel:'NIST’s combinatorial testing guide'
+      },
+      {
+        id:'checkers', nav:'Give checkers different jobs', title:'Check different ways of being wrong.', tag:'Better use of spare capacity',
+        summary:'Assign spare agents to distinct kinds of verification, with each one adding evidence the others have not supplied.',
+        steps:[['A proposed change','What could fail?'],['Different checks','Reference · edges · flows'],['Combine the evidence','Measure joint misses']],
+        example:'One agent compares reference behavior, one probes boundary cases, and another minimizes a failing example.',
+        benefit:'Improves the chance of finding defects that a single checking method misses.',
+        caveat:'Several agents repeating the same reasoning do not provide independent evidence. Extra checks still cost money.',
+        experiment:'Give different checking strategies the same budget and a held-out fault bank. Measure additional defects caught, false alarms and joint misses.',
+        prior:'Extends existing challengers and diverse attempts by measuring the additional value of each evidence channel.',
+        source:'https://arxiv.org/abs/2512.08296', sourceLabel:'Research on task-dependent agent scaling'
+      },
+      {
+        id:'decisions', nav:'One answer, many tasks', title:'Make one answer unblock many tasks.', tag:'Protect human attention',
+        summary:'Group tasks around a shared product question, then apply the owner’s answer to every affected task.',
+        steps:[['Show a concrete case','Different rounding totals'],['Owner chooses a rule','Record its scope'],['Update affected work','Tests · code · contracts']],
+        example:'Show one order with conflicting rounding totals. The chosen rule updates checkout, invoices, refunds and their tests.',
+        benefit:'Reduces repeated questions and inconsistent decisions across the team.',
+        caveat:'Grouping must preserve distinct choices and their consequences. Agents cannot invent missing product authority.',
+        experiment:'With a fixed human-attention budget, compare individual task questions with grouped, example-backed questions. Track mistakes and completed features.',
+        prior:'Extends existing decision memory and attention budgets. The key is a scoped rule that many tasks can reuse.',
+        source:null, sourceLabel:null
+      }
+    ];
+
+    const storageKey = 'beanstalk-research-shortlist-v1';
+    let saved = new Set();
+    let storageAvailable = true;
+    try {
+      const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      if (Array.isArray(stored)) saved = new Set(stored.filter(id => ideas.some(idea => idea.id === id)));
+    } catch { storageAvailable = false; }
+
+    function currentIndex() {
+      const selected = ideas.findIndex(idea => '#' + idea.id === location.hash);
+      return selected < 0 ? 0 : selected;
+    }
+
+    function selectIdea(index, focus = true) {
+      history.replaceState(null, '', '#' + ideas[index].id);
+      render(index);
+      if (focus) document.getElementById('idea-title').focus({ preventScroll:true });
+    }
+
+    function render(index) {
+      const idea = ideas[index];
+      document.getElementById('idea-nav').innerHTML = ideas.map((item, number) => `
+        <button class="nav-item" data-index="${number}" ${number === index ? 'aria-current="step"' : ''}>
+          <span class="nav-number">${String(number + 1).padStart(2,'0')}</span><span class="nav-name">${item.nav}</span><span class="nav-saved" aria-label="${saved.has(item.id) ? 'Shortlisted' : ''}">${saved.has(item.id) ? '✓' : ''}</span>
+        </button>`).join('');
+      document.getElementById('idea-card').innerHTML = `
+        <div class="card-top"><div class="card-meta"><span class="eyebrow">Idea ${String(index + 1).padStart(2,'0')} / 07</span><span class="tag">${idea.tag}</span></div><h2 id="idea-title" tabindex="-1">${idea.title}</h2><p class="idea-summary">${idea.summary}</p></div>
+        <div class="diagram"><div class="flow" aria-label="How this idea works">${idea.steps.map((step, number) => `${number ? '<span class="flow-arrow" aria-hidden="true">→</span>' : ''}<div class="flow-node ${number === 1 ? 'emphasis' : ''}">${step[0]}<small>${step[1]}</small></div>`).join('')}</div><p class="example"><strong>For example.</strong> ${idea.example}</p></div>
+        <div class="reason-grid"><div><h3>Why it helps</h3><p>${idea.benefit}</p></div><div class="caveat"><h3>The catch</h3><p>${idea.caveat}</p></div></div>
+        <details><summary>The experiment &amp; background</summary><div class="details-body"><p><strong>Try this:</strong> ${idea.experiment}</p><p>${idea.prior}</p>${idea.source ? `<p><a href="${idea.source}" target="_blank" rel="noopener noreferrer">${idea.sourceLabel} ↗</a></p>` : ''}</div></details>
+        <div class="card-footer"><button class="button" id="save-idea" aria-pressed="${saved.has(idea.id)}">${saved.has(idea.id) ? '✓ On your shortlist' : '+ Worth exploring'}</button><div class="pagination"><button class="button" id="previous" ${index === 0 ? 'disabled' : ''} aria-label="Previous idea">← Back</button><button class="button primary" id="next" ${index === ideas.length - 1 ? 'disabled' : ''} aria-label="Next idea">Next idea →</button></div></div>`;
+      document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => selectIdea(Number(button.dataset.index))));
+      document.getElementById('previous').addEventListener('click', () => selectIdea(index - 1));
+      document.getElementById('next').addEventListener('click', () => selectIdea(index + 1));
+      document.getElementById('save-idea').addEventListener('click', () => {
+        if (saved.has(idea.id)) saved.delete(idea.id); else saved.add(idea.id);
+        try { localStorage.setItem(storageKey, JSON.stringify([...saved])); }
+        catch { storageAvailable = false; }
+        render(index);
+        document.getElementById('save-idea').focus({ preventScroll:true });
+        document.getElementById('announcement').textContent = `${saved.has(idea.id) ? 'Added to' : 'Removed from'} your shortlist. ${saved.size} ideas selected.`;
+      });
+      document.getElementById('shortlist-count').textContent = `Your shortlist · ${saved.size}`;
+      document.getElementById('storage-note').textContent = storageAvailable ? 'Saved only in this browser.' : 'Saved for this visit. Download to keep.';
+      document.getElementById('download').disabled = saved.size === 0;
+    }
+
+    document.getElementById('download').addEventListener('click', () => {
+      const selected = ideas.filter(idea => saved.has(idea.id));
+      const content = ['Beanstalk — ideas to explore', 'Research proposals; benefits remain to be tested.', '', ...selected.map((idea, index) => `${index + 1}. ${idea.title}\n${idea.summary}\nExperiment: ${idea.experiment}\n`)].join('\n');
+      const url = URL.createObjectURL(new Blob([content], { type:'text/plain;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = 'beanstalk-shortlist.txt';
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    window.addEventListener('hashchange', () => render(currentIndex()));
+    render(currentIndex());
+  </script>
+</body>
+</html>

@@ -16,6 +16,10 @@
 | [Validation and demo plan](07-validation-and-demo-plan.md) | Falsifiable experiments, technical gates, suggested demo and competition constraints |
 | [Research method and search log](08-research-method.md) | Retrieval limitations, Exa queries/costs and how to interpret the evidence |
 | [Preview speed and UI surfaces](09-preview-speed-and-ui-surfaces.md) | Saved visuals, warm development sessions, exact-version builds, caching, latency targets and tradeoffs |
+| [Algorithm optimization review, Oct 6](09b-algorithm-optimization-review.md) | Review of Claude's measured v2.5 results and current code; reproduced parking/scheduling issue; proposals for shared diagnosis, reusable checks and contract-aware scheduling |
+| [Making 1,000 agents useful together, Oct 6](09c-thousand-agent-collaboration.md) | Seven concrete extensions to the collaboration model, prior-art comparison, failure criteria and reproducible capacity arithmetic |
+| [Bean intents and agent communication, Oct 6](09d-bean-intents-and-agent-communication.md) | Owner-directed agent-agnostic model: evolving approaches, requests, promises, plugin inboxes, Jev/Clef context retrieval and Cloudflare Agent Memory |
+| [Bean collaboration implementation, Oct 6](09e-bean-collaboration-implementation.md) | Contributor access, persistent conversations, exact promises, plugin/HTTP tools and current limits |
 
 The most consequential findings are:
 

@@ -1,6 +1,6 @@
 /**
  * The MCP Worker's HTTP surface: stateless MCP over Streamable HTTP at `/mcp`, behind a
- * run-scoped view token. Every read goes to the gateway over its service binding.
+ * run-scoped view or contributor token. Every operation uses the gateway service binding.
  */
 import { createMcpHandler } from 'agents/mcp/server';
 import { Hono } from 'hono';
@@ -27,7 +27,11 @@ export function createApp(depsFor: (env: Env) => Deps) {
     await next();
   });
   app.get('/', (c) =>
-    c.json({ name: 'beanstalk-mcp', mcp: MCP_ROUTE, auth: 'Authorization: Bearer <view token>' }),
+    c.json({
+      name: 'beanstalk-mcp',
+      mcp: MCP_ROUTE,
+      auth: 'Authorization: Bearer <view or contributor token>',
+    }),
   );
   app.all(MCP_ROUTE, requireViewer, serveMcp);
   app.notFound((c) => c.json({ error: { code: 'not_found', message: 'no such route' } }, 404));
@@ -41,12 +45,14 @@ export function createApp(depsFor: (env: Env) => Deps) {
 /** Hands the raw request to the Agents SDK's stateless handler, with the viewer's run bound in. */
 function serveMcp(c: Context<AppEnv>): Promise<Response> {
   const { gateway, log } = c.var.deps;
-  const { run, sub } = c.var.viewer;
+  const { run, sub, contributor } = c.var.viewer;
   if (gateway === undefined)
     throw new Error('requireViewer let a request through without a gateway');
   const ctx = toolContext({
     run,
     gateway,
+    log,
+    ...(contributor === undefined ? {} : { contributor }),
     // Per request: repeated reads within one MCP call are shared, never across calls.
     source: memoSource(gatewaySource(gateway)),
     classifier: classifierFrom({

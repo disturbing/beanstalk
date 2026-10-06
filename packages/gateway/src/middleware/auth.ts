@@ -39,7 +39,11 @@ export const requireReader = createMiddleware<AppEnv>(async (c, next) => {
     await next();
     return;
   }
-  const claims = await runTokenClaims(c.req.raw, c.var.deps, c.req.param('run'), ['view', 'slot']);
+  const claims = await runTokenClaims(c.req.raw, c.var.deps, c.req.param('run'), [
+    'view',
+    'slot',
+    'contributor',
+  ]);
   c.set('principal', { kind: 'token', claims });
   await next();
 });

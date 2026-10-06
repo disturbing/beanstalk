@@ -35,6 +35,31 @@ import type {
   TestCoverage,
 } from '@beanstalk/shared-race/rpc';
 
+import {
+  BeanContextInput,
+  BeanDiscoverInput,
+  BeanInboxAckInput,
+  BeanInboxReadInput,
+  BeanThreadPostInput,
+  BeanUpdateInput,
+  ContributorTokenClaims,
+} from '@beanstalk/shared-race/collaboration';
+import type {
+  BeanContext,
+  BeanDiscoverPage,
+  BeanInboxAckResult,
+  BeanInboxPage,
+  BeanThreadPostResult,
+  BeanUpdateResult,
+} from '@beanstalk/shared-race/collaboration';
+import type { RpcResult } from '@beanstalk/shared-race/rpc';
+
+import { readBeanContext, readBeanInbox, acknowledgeBeanInbox } from '../collaboration/read';
+import { discoverBeans } from '../collaboration/discover';
+import { migrateCollaboration, seedCollaboration, readBean } from '../collaboration/store';
+import { updateBean } from '../collaboration/update';
+import { postBeanThread } from '../collaboration/thread';
+
 import type { ArtifactsPort, RepoRemote } from '../adapters/artifacts';
 import { artifactsPort } from '../adapters/artifacts';
 import type { RepoExplorer } from '../adapters/repo-explorer';
@@ -187,11 +212,15 @@ export class RunDO extends DurableObject<Env> {
       now: () => Date.now(),
     });
     migrate(ctx.storage.sql);
+    migrateCollaboration(ctx.storage.sql);
     this.#objects = sqlObjectStore(ctx.storage.sql);
     migrateStreams(ctx.storage.sql);
     for (const stream of loadStreams(ctx.storage.sql)) this.#streaming.add(stream.inv);
     const stored = loadRun(ctx.storage);
-    if (stored !== null) this.#resume(stored);
+    if (stored !== null) {
+      seedCollaboration(ctx.storage.sql, stored.config.tasks);
+      this.#resume(stored);
+    }
   }
 
   /** Creates the run: the run repo, then the engine state with every task pending. */
@@ -217,6 +246,7 @@ export class RunDO extends DurableObject<Env> {
         state: initialEngineState(env, input.createdAtMs),
       };
       saveNewRun(this.ctx.storage, stored);
+      seedCollaboration(this.ctx.storage.sql, stored.config.tasks);
       this.#loaded = { stored, env };
       this.#updateIndex();
       this.#log.info('run created', {
@@ -230,6 +260,93 @@ export class RunDO extends DurableObject<Env> {
     } finally {
       this.#creating = false;
     }
+  }
+
+  /** Stable configured bean identity, independent of dispatch slots and engine status. */
+  collaborationBeanExists(bean: string): boolean {
+    return this.#loaded !== null && readBean(this.ctx.storage.sql, bean) !== null;
+  }
+
+  /** Read current agreements and a bounded, independently cursor-addressed history. */
+  beanContext(input: BeanContextInput): RpcResult<BeanContext> {
+    if (this.#loaded === null) return notFound();
+    const parsed = BeanContextInput.safeParse(input);
+    return parsed.success
+      ? readBeanContext(this.ctx.storage.sql, parsed.data)
+      : failure('invalid_request', 400, 'invalid bean context input');
+  }
+
+  /** Discover independently published approaches before an observed diff exists. */
+  beanDiscover(input: BeanDiscoverInput): RpcResult<BeanDiscoverPage> {
+    if (this.#loaded === null) return notFound();
+    const parsed = BeanDiscoverInput.safeParse(input);
+    return parsed.success
+      ? discoverBeans(this.ctx.storage.sql, parsed.data)
+      : failure('invalid_request', 400, 'invalid bean discovery input');
+  }
+
+  beanUpdate(claims: ContributorTokenClaims, input: BeanUpdateInput): RpcResult<BeanUpdateResult> {
+    const grant = this.#collaborationGrant(claims);
+    if (!grant.ok) return grant;
+    const parsed = BeanUpdateInput.safeParse(input);
+    return parsed.success
+      ? updateBean(this.ctx.storage, grant.value, parsed.data)
+      : failure('invalid_request', 400, 'invalid bean update input');
+  }
+
+  beanThreadPost(
+    claims: ContributorTokenClaims,
+    input: BeanThreadPostInput,
+  ): RpcResult<BeanThreadPostResult> {
+    const grant = this.#collaborationGrant(claims);
+    if (!grant.ok) return grant;
+    const parsed = BeanThreadPostInput.safeParse(input);
+    return parsed.success
+      ? postBeanThread(this.ctx.storage, grant.value, parsed.data)
+      : failure('invalid_request', 400, 'invalid thread post input');
+  }
+
+  beanInboxRead(
+    claims: ContributorTokenClaims,
+    input: BeanInboxReadInput,
+  ): RpcResult<BeanInboxPage> {
+    const grant = this.#collaborationGrant(claims);
+    if (!grant.ok) return grant;
+    const parsed = BeanInboxReadInput.safeParse(input);
+    return parsed.success
+      ? readBeanInbox(this.ctx.storage.sql, grant.value, parsed.data)
+      : failure('invalid_request', 400, 'invalid inbox read input');
+  }
+
+  beanInboxAck(
+    claims: ContributorTokenClaims,
+    input: BeanInboxAckInput,
+  ): RpcResult<BeanInboxAckResult> {
+    const grant = this.#collaborationGrant(claims);
+    if (!grant.ok) return grant;
+    const parsed = BeanInboxAckInput.safeParse(input);
+    return parsed.success
+      ? acknowledgeBeanInbox(this.ctx.storage, grant.value, parsed.data)
+      : failure('invalid_request', 400, 'invalid inbox acknowledgement input');
+  }
+
+  #collaborationGrant(claims: ContributorTokenClaims): RpcResult<ContributorTokenClaims> {
+    if (this.#loaded === null) return notFound();
+    const parsed = ContributorTokenClaims.safeParse(claims);
+    if (
+      !parsed.success ||
+      parsed.data.run !== this.#loaded.stored.meta.run ||
+      Date.parse(parsed.data.expires_at) <= Date.now()
+    ) {
+      return failure(
+        'forbidden',
+        403,
+        'contributor capability does not match this run or has expired',
+      );
+    }
+    if (!this.collaborationBeanExists(parsed.data.bean))
+      return failure('not_found', 404, 'contributor bean does not exist');
+    return { ok: true, value: parsed.data };
   }
 
   /** Starts the race from the arena base the admin seeded the sprout and the stalk with. */

@@ -1,10 +1,10 @@
-// Mints a view token for one run, for the MCP server and the Claude Code plugin:
+// Mints a view or contributor token for one run, for any MCP client:
 //
 //   pnpm -F @beanstalk/mcp mint-token <run> [--gateway <url>]
 //   export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 //
-// Calls the gateway's admin route POST /v1/runs/<run>/view-token. The admin token comes from
-// ADMIN_TOKEN, else packages/gateway/.dev.vars; it is never printed. Only the view token goes
+// Add --bean <bean> --actor <actor> for a contributor token. The admin token comes from
+// ADMIN_TOKEN, else packages/gateway/.dev.vars; it is never printed. Only the token goes
 // to stdout; its expiry goes to stderr. The gateway defaults to BEANSTALK_GATEWAY_URL, else
 // a local `wrangler dev` on http://localhost:8787.
 import { existsSync, readFileSync } from 'node:fs';
@@ -18,23 +18,57 @@ const RUN_ID = /^[a-z0-9]{6,24}$/;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
-  options: { gateway: { type: 'string' } },
+  options: {
+    gateway: { type: 'string' },
+    bean: { type: 'string' },
+    actor: { type: 'string' },
+    'ttl-seconds': { type: 'string' },
+  },
 });
 const run = positionals[0] ?? '';
-if (!RUN_ID.test(run))
-  fail('usage: token <run> [--gateway <url>]  (run: 6 to 24 lowercase letters or digits)');
+if (!RUN_ID.test(run) || positionals.length !== 1)
+  fail(
+    'usage: token <run> [--gateway <url>] [--bean <bean> --actor <actor> [--ttl-seconds <seconds>]]',
+  );
+
+const contributor = contributorInput(values);
+const scope = contributor === undefined ? 'view' : 'contributor';
 
 const gateway = values.gateway ?? process.env.BEANSTALK_GATEWAY_URL ?? 'http://localhost:8787';
-const response = await fetch(new URL(`/v1/runs/${run}/view-token`, gateway), {
+const response = await fetch(new URL(`/v1/runs/${run}/${scope}-token`, gateway), {
   method: 'POST',
-  headers: { authorization: `Bearer ${adminToken()}` },
+  headers: { authorization: `Bearer ${adminToken()}`, 'content-type': 'application/json' },
+  ...(contributor === undefined ? {} : { body: JSON.stringify(contributor) }),
   signal: AbortSignal.timeout(15_000),
 });
 if (!response.ok) fail(`the gateway answered ${response.status}: ${await response.text()}`);
 const body = await response.json();
 if (typeof body?.token !== 'string') fail('the gateway answered without a token');
-process.stderr.write(`view token for run ${run}, valid until ${body.expires_at}\n`);
+process.stderr.write(`${scope} token for run ${run}, valid until ${body.expires_at}\n`);
 process.stdout.write(`${body.token}\n`);
+
+function contributorInput(options) {
+  if (options.bean === undefined && options.actor === undefined) {
+    if (options['ttl-seconds'] !== undefined) fail('--ttl-seconds requires --bean and --actor');
+    return undefined;
+  }
+  if (options.bean === undefined || options.actor === undefined)
+    fail('contributor tokens require both --bean and --actor');
+  const bean = options.bean.replace(/^beans\//, '');
+  if (
+    !/^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/.test(bean) ||
+    bean.endsWith('.lock') ||
+    bean.includes('..')
+  )
+    fail('--bean must be a bean id or beans/<id>');
+  const actor = options.actor.trim();
+  if (actor.length === 0 || actor.length > 32) fail('--actor must contain 1 to 32 characters');
+  if (options['ttl-seconds'] === undefined) return { bean, actor };
+  const ttlSeconds = Number(options['ttl-seconds']);
+  if (!Number.isSafeInteger(ttlSeconds) || ttlSeconds < 60 || ttlSeconds > 86_400)
+    fail('--ttl-seconds must be an integer from 60 to 86400');
+  return { bean, actor, ttl_seconds: ttlSeconds };
+}
 
 function adminToken() {
   const fromEnv = process.env.ADMIN_TOKEN;

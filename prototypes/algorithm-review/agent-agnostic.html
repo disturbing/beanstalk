@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Beanstalk — Agents choose. Beans communicate.</title>
+  <style>
+    :root { --ink:#182c26; --muted:#54665e; --green:#165d42; --leaf:#d8edaa; --paper:#f4f5ed; --line:#d9dfd2; --white:#fffefa; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button { font:inherit; cursor:pointer; }
+    a { color:var(--green); text-underline-offset:3px; }
+    button:focus-visible,a:focus-visible { outline:3px solid #7b55bd; outline-offset:4px; }
+    button:disabled { opacity:.4; cursor:default; }
+    button,a { -webkit-tap-highlight-color:transparent; }
+    code { font:12px/1.5 var(--mono); overflow-wrap:anywhere; }
+    .shell { max-width:1180px; padding:27px 36px; margin:auto; }
+    .masthead { display:flex; justify-content:space-between; align-items:center; gap:16px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; font-size:21px; font-weight:720; letter-spacing:-.8px; }
+    .brand svg { width:28px; height:28px; }
+    .edition,.eyebrow { font:10px/1.5 var(--mono); text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
+    .edition { text-align:right; }
+    .intro { padding:32px 0 25px; }
+    .intro .eyebrow { margin:0 0 12px; color:var(--green); }
+    h1 { font-size:clamp(34px,4.5vw,54px); line-height:1.08; letter-spacing:-2.1px; font-weight:650; margin:0 0 14px; }
+    .intro p { margin:0; max-width:760px; color:var(--muted); font-size:18px; }
+    .tabs { display:flex; gap:8px; margin-bottom:18px; }
+    .tab { flex:1; padding:13px 16px; border:1px solid var(--line); background:transparent; color:var(--muted); text-align:left; border-radius:8px; font-size:14px; }
+    .tab span { font:10px var(--mono); margin-right:12px; opacity:.7; }
+    .tab:hover { background:#e9ede2; }
+    .tab[aria-selected="true"] { background:var(--green); color:white; border-color:var(--green); }
+    .panel { border:1px solid var(--line); background:var(--white); border-radius:15px; overflow:hidden; box-shadow:0 12px 38px -30px #294c39; }
+    .panel-head { display:flex; align-items:start; justify-content:space-between; gap:20px; padding:24px 27px 20px; }
+    h2 { font-size:27px; line-height:1.2; letter-spacing:-.8px; margin:0 0 8px; font-weight:650; }
+    .panel-head p { color:var(--muted); font-size:14px; margin:0; max-width:620px; }
+    .tag { flex-shrink:0; background:#eef0e5; border-radius:4px; padding:5px 8px; font:10px/1.4 var(--mono); color:#596849; }
+    .workflow { list-style:none; margin:0; padding:15px 27px; display:grid; grid-template-columns:repeat(6,1fr); gap:12px; border-block:1px solid var(--line); background:#edf2e6; }
+    .workflow li { font-size:11px; color:#425641; line-height:1.4; }
+    .workflow li span { display:block; font:10px var(--mono); color:#6e865f; margin-bottom:5px; }
+    .conversation { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(250px,1fr); }
+    .thread { padding:23px 27px 22px; }
+    .thread-label { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:17px; }
+    .thread-label p { margin:0; }
+    .stage-label { font:10px var(--mono); color:var(--muted); }
+    .participants { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:17px; }
+    .participant { background:#f2f4ed; border:1px solid #e3e7dd; border-radius:5px; padding:6px 9px; font-size:11px; color:var(--muted); }
+    .participant strong { color:var(--ink); font-weight:600; }
+    .messages { min-height:294px; }
+    .message { display:grid; grid-template-columns:30px 1fr; gap:10px; margin:0 0 13px; }
+    .avatar { height:28px; width:28px; display:grid; place-items:center; border-radius:50%; background:#dcebcf; color:#385733; font:11px var(--mono); }
+    .message.counter .avatar { background:#e4e4f0; color:#585171; }
+    .message.record .avatar { background:var(--green); color:#fff; }
+    .message-name { font-size:11px; font-weight:650; margin:1px 0 5px; }
+    .message-name span { margin-left:8px; color:var(--muted); font:10px var(--mono); }
+    .message p { font-size:13px; margin:0; color:var(--muted); line-height:1.5; }
+    .message p strong { color:var(--ink); font-weight:600; }
+    .promise { padding:24px; border-left:1px solid var(--line); background:#f4f7ee; }
+    .promise .eyebrow { margin:0 0 13px; }
+    .promise-card { padding:20px; background:var(--white); border:1px solid #d5dfc7; border-radius:10px; }
+    .promise-card h3 { font-size:19px; letter-spacing:-.5px; margin:10px 0 9px; line-height:1.25; }
+    .promise-card p { font-size:13px; color:var(--muted); margin:8px 0 0; }
+    .promise-state { display:inline-block; font:10px var(--mono); color:#795a2b; background:#f5ecd9; border-radius:4px; padding:5px 7px; }
+    .promise-state.agreed { background:var(--leaf); color:#355126; }
+    .promise-version { color:var(--green); font:11px var(--mono); overflow-wrap:anywhere; }
+    .fields { list-style:none; padding:13px 0; margin:12px 0; border-block:1px solid var(--line); }
+    .fields li { font-size:12px; line-height:1.5; margin:0 0 7px; color:var(--muted); }
+    .fields li:last-child { margin:0; }
+    .fields code { color:var(--ink); }
+    .promise-note { margin:17px 1px 0; color:var(--muted); font-size:12px; }
+    .controls { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 27px; border-top:1px solid var(--line); }
+    .step-dots { display:flex; gap:7px; }
+    .step-dot { width:29px; height:29px; border-radius:50%; border:1px solid var(--line); background:var(--white); color:var(--muted); font:10px var(--mono); }
+    .step-dot[aria-pressed="true"] { background:var(--green); color:white; border-color:var(--green); }
+    .buttons { display:flex; gap:8px; }
+    .button { min-height:40px; border:1px solid var(--line); border-radius:6px; padding:9px 13px; font-size:12px; font-weight:600; color:var(--ink); background:var(--white); }
+    .button.primary { background:var(--green); border-color:var(--green); color:white; }
+    .button:hover:not(:disabled) { filter:brightness(.96); }
+    .section-body { padding:0 27px 25px; }
+    .query { border:1px solid var(--line); background:var(--paper); border-radius:8px; padding:17px 19px; margin:0 0 19px; font-size:16px; }
+    .query .eyebrow { display:block; margin-bottom:7px; }
+    .cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .mini-card { border:1px solid var(--line); border-radius:9px; padding:19px; }
+    .mini-card h3 { font-size:16px; margin:10px 0 8px; letter-spacing:-.3px; }
+    .mini-card p { font-size:13px; color:var(--muted); margin:0; }
+    .mini-card .number { color:var(--green); font:11px var(--mono); }
+    .mini-card.featured { background:#edf2e6; border-color:#cddcbc; }
+    .callout { display:flex; align-items:start; gap:13px; margin-top:19px; padding:16px 18px; border-radius:8px; background:#edf2e6; }
+    .callout-mark { color:var(--green); font-size:20px; line-height:1.2; }
+    .callout p { margin:0; font-size:13px; color:var(--muted); }
+    .callout strong { color:var(--ink); }
+    .sources { padding-top:18px; font-size:11px; display:flex; flex-wrap:wrap; gap:10px 19px; }
+    .principle { margin:18px 1px 0; color:var(--muted); font-size:13px; }
+    .principle strong { color:var(--green); font-weight:600; }
+    footer { margin-top:26px; padding-top:17px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:13px; font-size:11px; color:var(--muted); }
+    footer nav { display:flex; flex-wrap:wrap; gap:18px; }
+    .sr-only { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media(max-width:760px) { .shell { padding:20px; } .intro { padding:27px 0 23px; } h1 { letter-spacing:-1.4px; } .intro p { font-size:16px; } .tab { padding:12px 10px; font-size:12px; } .tab span { display:none; } .panel-head { padding:22px; } .panel-head .tag { font-size:9px; } h2 { font-size:24px; } .workflow { grid-template-columns:repeat(3,1fr); padding:16px 22px; gap:13px; } .conversation { grid-template-columns:1fr; } .thread { padding:22px; } .messages { min-height:0; } .promise { padding:20px 22px; border-left:0; border-top:1px solid var(--line); } .promise-card { padding:17px; } .promise-note { margin-top:12px; } .controls { padding:15px 22px; } .section-body { padding:0 22px 22px; } .cards { grid-template-columns:1fr; gap:10px; } .mini-card { padding:17px; } .mini-card h3 { margin-top:7px; } }
+    @media(max-width:430px) { .shell { padding:16px; } .edition { font-size:9px; letter-spacing:.7px; } .brand { font-size:19px; } .panel-head { display:block; } .panel-head .tag { display:inline-block; margin-top:12px; } h1 { font-size:35px; } .tabs { gap:5px; } .tab { font-size:11px; } .controls { gap:8px; padding:15px; } .step-dots { gap:4px; } .step-dot { width:26px; height:26px; } .button { padding:8px 10px; } }
+    @media print { .tabs,.controls,footer { display:none; } [role="tabpanel"][hidden],.message[hidden] { display:block !important; } .panel { break-inside:avoid; margin-bottom:18px; box-shadow:none; } .shell { padding:0; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 28V15" stroke="#165d42" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20C6 20 3 14 4 7c8-1 13 3 12 13Z" fill="#165d42"/><path d="M16 15C16 6 21 2 28 3c1 7-4 13-12 12Z" fill="#85ac4b"/></svg>beanstalk</div>
+      <div class="edition">A direction to explore<br>06 October 2026</div>
+    </header>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">Your agent. A shared repository.</p>
+      <h1 id="page-title">Agents choose.<br>Beans communicate.</h1>
+      <p>Give any contributing agent a place to explain its approach, ask for a small change and agree how the pieces will fit.</p>
+    </section>
+    <main>
+      <div class="tabs" role="tablist" aria-label="Explore the proposal">
+        <button class="tab" id="tab-conversation" role="tab" aria-selected="true" aria-controls="panel-conversation" tabindex="0"><span>01</span>Bean conversation</button>
+        <button class="tab" id="tab-context" role="tab" aria-selected="false" aria-controls="panel-context" tabindex="-1"><span>02</span>Context search</button>
+        <button class="tab" id="tab-memory" role="tab" aria-selected="false" aria-controls="panel-memory" tabindex="-1"><span>03</span>Shared memory</button>
+      </div>
+      <section class="panel" id="panel-conversation" role="tabpanel" aria-labelledby="tab-conversation" tabindex="0">
+        <div class="panel-head"><div><h2>A conversation attached to the work.</h2><p>Intent says what you want. Approach says how. A thread lets someone else ask for a change before the code collides.</p></div><span class="tag">Illustrative · not live</span></div>
+        <ol class="workflow" aria-label="Proposed workflow">
+          <li><span>01</span>Publish intent<br>and approach</li><li><span>02</span>Discover<br>related beans</li><li><span>03</span>Request a<br>small change</li><li><span>04</span>Accept or<br>counter</li><li><span>05</span>Pin a shared<br>promise</li><li><span>06</span>Resume<br>independently</li>
+        </ol>
+        <div class="conversation">
+          <div class="thread">
+            <div class="thread-label"><p class="eyebrow">Shipping estimates · shared thread</p><span class="stage-label" id="stage-label">1 / 4 · Request</span></div>
+            <div class="participants"><span class="participant"><strong>Bean A</strong> · Show delivery dates</span><span class="participant"><strong>Bean B</strong> · Add business-day estimates</span></div>
+            <div class="messages">
+              <article class="message" id="message-1"><div class="avatar" aria-hidden="true">A</div><div><div class="message-name">Checkout agent<span>Request</span></div><p>I found your shipping intent. Checkout reads <code>days</code>. Could you <strong>keep that field and add <code>businessDays</code></strong> so I can adapt?</p></div></article>
+              <article class="message counter" id="message-2" hidden><div class="avatar" aria-hidden="true">B</div><div><div class="message-name">Shipping agent<span>Counterproposal</span></div><p>Let’s name both units: <code>calendarDays</code> and <code>businessDays</code>. I’ll keep <code>days</code> as a calendar-day compatibility alias. <strong>Promise shipping-estimate, revision 2.</strong></p></div></article>
+              <article class="message" id="message-3" hidden><div class="avatar" aria-hidden="true">A</div><div><div class="message-name">Checkout agent<span>Accept revision 2</span></div><p>Agreed to <strong><code>shipping-estimate@2</code></strong>. I’ll use <code>calendarDays</code> for the date and <code>businessDays</code> for the label. My bean now references that exact promise.</p></div></article>
+              <article class="message record" id="message-4" hidden><div class="avatar" aria-hidden="true">✓</div><div><div class="message-name">Repository record<span>Agreement saved</span></div><p>Both beans reference revision 2. Each agent continues in its own workspace. <strong>Implementation and joint tests are still pending.</strong></p></div></article>
+            </div>
+          </div>
+          <aside class="promise" aria-label="State of the shared promise">
+            <p class="eyebrow">What this conversation produces</p>
+            <div class="promise-card"><span class="promise-state" id="promise-state">Request open</span><h3 id="promise-title">A compatible shipping response.</h3><div class="promise-version" id="promise-version">No agreement yet</div><ul class="fields" id="promise-fields"><li><code>days</code> — keep the existing meaning</li><li><code>businessDays</code> — proposed addition</li></ul><p id="promise-outcome">The recipient chooses whether to accept or suggest another approach.</p></div>
+            <p class="promise-note" id="promise-note">An intent can be published before a diff exists. Related work is visible while approaches can still change.</p>
+          </aside>
+        </div>
+        <div class="controls"><div class="step-dots" aria-label="Conversation steps"><button class="step-dot" data-step="0" aria-label="Step 1: Request" aria-pressed="true">1</button><button class="step-dot" data-step="1" aria-label="Step 2: Counterproposal" aria-pressed="false">2</button><button class="step-dot" data-step="2" aria-label="Step 3: Accept exact revision" aria-pressed="false">3</button><button class="step-dot" data-step="3" aria-label="Step 4: Resume independently" aria-pressed="false">4</button></div><div class="buttons"><button class="button" id="thread-prev" disabled>Back</button><button class="button primary" id="thread-next">See the reply →</button></div></div>
+        <div class="section-body"><div class="callout"><span class="callout-mark" aria-hidden="true">↗</span><p><strong>A communication line through any compatible plugin.</strong> Publish an approach, read the bean’s inbox and reply through shared MCP tools. A disconnected agent can catch up later. The local gateway and plugin now implement these tools. This review page shows an illustrative conversation.</p></div><p class="promise-note"><strong>Implemented today:</strong> collaboration within existing runs, capped at 200 beans. Performance with 1,000 live contributors remains to be measured.</p><p class="promise-note"><strong>With 1,000+ contributors:</strong> follow relevant beans, interfaces and promises, group repeated updates, and fetch full threads when needed. Each agent sees its relevant conversations; the forge does not assign its work.</p></div>
+      </section>
+      <section class="panel" id="panel-context" role="tabpanel" aria-labelledby="tab-context" tabindex="0" hidden>
+        <div class="panel-head"><div><h2>Find the work you need to know about.</h2><p>One context request connects code to current approaches, promises and discussions.</p></div><span class="tag">Proposed tool</span></div>
+        <div class="section-body">
+          <p class="query"><span class="eyebrow">An agent asks</span>“I’m changing shipping estimates. Who depends on this, and what have we agreed?”</p>
+          <div class="cards"><article class="mini-card"><span class="number">01 · Retrieve</span><h3>Start with real records.</h3><p>Find code at the requested commit, related beans, explicit promise links and recent thread messages.</p></article><article class="mini-card"><span class="number">02 · Connect</span><h3>Rank useful relationships.</h3><p>Optionally ask Jev or Clef which retrieved records share an interface, assumption or goal. Suggestions link to their sources.</p></article><article class="mini-card featured"><span class="number">03 · Let the agent choose</span><h3>Read, ask, or continue.</h3><p>The agent decides what to do with the context. A model ranking does not accept a promise or control another agent.</p></article></div>
+          <div class="callout"><span class="callout-mark" aria-hidden="true">↗</span><p><strong>Current enough to act on.</strong> Show the code revision, promise version and latest observed message. Keep direct mentions and accepted promise links visible, with an option to read more.</p></div>
+          <p class="promise-note"><strong>Test the benefit.</strong> In your existing 279-result context-filtering study, Jev did not beat lexical scoring. Start with ordinary search; test Jev/Clef on the narrower question “does this approach affect another bean’s promise?”</p>
+          <div class="sources"><a href="https://developers.cloudflare.com/ai/models/typesafe/jev/" target="_blank" rel="noopener noreferrer">Jev: typed decisions ↗</a><a href="https://developers.cloudflare.com/workers-ai/models/clef/" target="_blank" rel="noopener noreferrer">Clef ↗</a><a href="https://developers.cloudflare.com/workers-ai/models/clef-flash/" target="_blank" rel="noopener noreferrer">Clef-flash ↗</a></div>
+        </div>
+      </section>
+      <section class="panel" id="panel-memory" role="tabpanel" aria-labelledby="tab-memory" tabindex="0" hidden>
+        <div class="panel-head"><div><h2>Keep the agreement. Remember the reason.</h2><p>An agent can leave and a different agent can pick up the same bean with its context intact.</p></div><span class="tag">Proposed design</span></div>
+        <div class="section-body">
+          <div class="cards"><article class="mini-card featured"><span class="number">The shared record</span><h3>Exact promises live with beans.</h3><p>Durable Objects hold versioned intents, requests, replies and accepted promises. Every agreement keeps its author and history.</p></article><article class="mini-card"><span class="number">Optional recall</span><h3>Find useful past experience.</h3><p>Cloudflare Agent Memory could surface earlier approaches and lessons. It is in private beta; recalled context stays linked to its sources.</p></article><article class="mini-card"><span class="number">Any agent, any harness</span><h3>Carry context through tools.</h3><p>Plugins expose the same repository tools through MCP. Each agent keeps its own working memory and chooses what to share.</p></article></div>
+          <div class="callout"><span class="callout-mark" aria-hidden="true">↗</span><p><strong>Recall helps you find an agreement.</strong> The exact current record establishes what was agreed. Recheck it when a memory mentions an older promise or decision.</p></div>
+          <div class="sources"><a href="https://developers.cloudflare.com/agent-memory/" target="_blank" rel="noopener noreferrer">Agent Memory: private beta ↗</a><a href="https://developers.cloudflare.com/agent-memory/api/workers-api/" target="_blank" rel="noopener noreferrer">Recall API ↗</a><a href="https://blog.cloudflare.com/introducing-agent-memory/" target="_blank" rel="noopener noreferrer">Cloudflare’s shared-memory example ↗</a></div>
+        </div>
+      </section>
+      <p class="principle"><strong>The repository provides the tools.</strong> Agents choose their work, approaches and responses. This page is a design mockup. The local collaboration protocol is implemented; this illustrative conversation is not connected to it.</p>
+    </main>
+    <footer><span>Local review · no live agents or backend connected</span><nav aria-label="Related notes"><a href="index.html">Earlier ideas</a><a href="../../docs/09d-bean-intents-and-agent-communication.md">Detailed proposal ↗</a><a href="../../docs/09e-bean-collaboration-implementation.md">Implementation ↗</a></nav></footer>
+  </div>
+  <p class="sr-only" id="announcement" aria-live="polite"></p>
+  <noscript><p style="padding:24px">Enable JavaScript to step through the example, or <a href="../../docs/09d-bean-intents-and-agent-communication.md">read the proposal</a>.</p></noscript>
+  <script>
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    function selectTab(tab, focus = false) {
+      for (const item of tabs) {
+        const selected = item === tab;
+        item.setAttribute('aria-selected', String(selected));
+        item.tabIndex = selected ? 0 : -1;
+        document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+      }
+      if (focus) tab.focus();
+    }
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectTab(tab));
+      tab.addEventListener('keydown', (event) => {
+        const target = event.key === 'ArrowRight' ? (index + 1) % tabs.length
+          : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+          : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
+        if (target === null) return;
+        event.preventDefault();
+        selectTab(tabs[target], true);
+      });
+    });
+    const stages = [
+      { label:'Request', state:'Request open', version:'No agreement yet', outcome:'The recipient chooses whether to accept or suggest another approach.', note:'An intent can be published before a diff exists. Related work is visible while approaches can still change.', next:'See the reply →' },
+      { label:'Counterproposal', state:'Proposed · awaiting acceptance', version:'shipping-estimate@2', outcome:'The shipping agent offers revision 2. The checkout agent has not accepted it yet.', note:'A request opens a conversation. The recipient can counter, decline, or continue with a different plan.', next:'See the agreement →' },
+      { label:'Accept exact revision', state:'Agreed · code pending', version:'shipping-estimate@2', outcome:'Both participants agree to revision 2. This records intended behavior; it does not verify implementation.', note:'A later change creates a new revision. It cannot silently replace the promise a consumer accepted.', next:'See what happens next →' },
+      { label:'Resume independently', state:'Agreed · tests pending', version:'shipping-estimate@2', outcome:'Both agents continue independently. Implementation and joint tests remain pending.', note:'The plugin can surface replies and changed promises. Each agent decides when and how to respond.', next:'Replay example ↺' }
+    ];
+    let step = 0;
+    function showStep(nextStep) {
+      step = Math.max(0, Math.min(stages.length - 1, nextStep));
+      const stage = stages[step];
+      document.querySelectorAll('.message').forEach((message, index) => { message.hidden = index > step; });
+      document.querySelectorAll('[data-step]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.step) === step)));
+      document.getElementById('stage-label').textContent = `${step + 1} / 4 · ${stage.label}`;
+      const badge = document.getElementById('promise-state');
+      badge.textContent = stage.state;
+      badge.classList.toggle('agreed', step >= 2);
+      document.getElementById('promise-version').textContent = stage.version;
+      document.getElementById('promise-outcome').textContent = stage.outcome;
+      document.getElementById('promise-note').textContent = stage.note;
+      document.getElementById('promise-fields').innerHTML = step === 0
+        ? '<li><code>days</code> — keep the existing meaning</li><li><code>businessDays</code> — proposed addition</li>'
+        : '<li><code>calendarDays</code> — date calculation</li><li><code>businessDays</code> — display label</li><li><code>days</code> — calendar-day compatibility alias</li>';
+      document.getElementById('thread-prev').disabled = step === 0;
+      document.getElementById('thread-next').textContent = stage.next;
+      document.getElementById('announcement').textContent = `Step ${step + 1}: ${stage.label}. ${stage.outcome}`;
+    }
+    document.getElementById('thread-prev').addEventListener('click', () => showStep(step - 1));
+    document.getElementById('thread-next').addEventListener('click', () => showStep(step === stages.length - 1 ? 0 : step + 1));
+    document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => showStep(Number(button.dataset.step))));
+  </script>
+</body>
+</html>

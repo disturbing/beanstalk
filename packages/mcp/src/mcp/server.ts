@@ -1,5 +1,5 @@
 /**
- * The MCP server: six read-only tools over one run, the run the caller's view token names.
+ * Run reads plus optional contributor collaboration. Capabilities follow the caller's token.
  * A fresh server per request (the stateless handler's contract). No code mode and no
  * `execute` tool: the owner deferred code mode as highly experimental.
  */
@@ -8,7 +8,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 import { LineRef } from '@beanstalk/shared-ask/ask/view-spec';
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 
 import { askRepo } from '../tools/ask-repo';
 import { changeStatus } from '../tools/change-status';
@@ -18,6 +18,9 @@ import { runStatus } from '../tools/run-status';
 import type { ToolContext } from '../tools/tool-context';
 import { parseBean } from '../tools/tool-context';
 import { workOverlaps } from '../tools/work-overlaps';
+import { withInbox } from '../tools/collaboration';
+import { registerCollaboration } from './collaboration-tools';
+import { answer, failure } from './tool-result';
 
 export const TOOL_NAMES = [
   'ask_repo',
@@ -45,6 +48,7 @@ export function createServer(ctx: ToolContext): McpServer {
   registerWorkOverlaps(server, ctx);
   registerBeanTools(server, ctx);
   registerRunTools(server, ctx);
+  registerCollaboration(server, ctx);
   return server;
 }
 
@@ -61,7 +65,8 @@ function registerAsk(server: McpServer, ctx: ToolContext): void {
       }),
       annotations: { ...READ_ONLY, title: 'Ask the repo' },
     },
-    async ({ question, ref }) => answer(() => askRepo(ctx, question, ref ?? null)),
+    async ({ question, ref }) =>
+      answer(() => withInbox(ctx, () => askRepo(ctx, question, ref ?? null))),
   );
 }
 
@@ -75,7 +80,7 @@ function registerWorkOverlaps(server: McpServer, ctx: ToolContext): void {
       inputSchema: z.object({ paths: z.array(RepoPath).min(1).max(50) }),
       annotations: { ...READ_ONLY, title: 'Work overlapping these paths' },
     },
-    async ({ paths }) => answer(() => workOverlaps(ctx, paths)),
+    async ({ paths }) => answer(() => withInbox(ctx, () => workOverlaps(ctx, paths))),
   );
 }
 
@@ -89,7 +94,7 @@ function registerBeanTools(server: McpServer, ctx: ToolContext): void {
       inputSchema: z.object({ bean: Bean }),
       annotations: { ...READ_ONLY, title: 'Status of a bean' },
     },
-    async ({ bean }) => forBean(bean, (id) => changeStatus(ctx, id)),
+    async ({ bean }) => forBean(bean, (id) => changeStatus(ctx, id), ctx),
   );
   server.registerTool(
     'checks_get',
@@ -114,7 +119,7 @@ function registerRunTools(server: McpServer, ctx: ToolContext): void {
       inputSchema: z.object({}),
       annotations: { ...READ_ONLY, title: 'Status of the run' },
     },
-    async () => answer(() => runStatus(ctx)),
+    async () => answer(() => withInbox(ctx, () => runStatus(ctx))),
   );
   server.registerTool(
     'preview_link',
@@ -142,37 +147,17 @@ function registerRunTools(server: McpServer, ctx: ToolContext): void {
   );
 }
 
-async function forBean<T>(
+async function forBean<T extends object>(
   bean: string,
   read: (id: NonNullable<ReturnType<typeof parseBean>>) => Promise<T | undefined>,
+  ctx?: ToolContext,
 ): Promise<CallToolResult> {
   const id = parseBean(bean);
   if (id === undefined) return failure(`"${bean}" is not a bean id (like t032 or beans/t032)`);
-  return answer(async () => {
+  const resolve = async () => {
     const found = await read(id);
-    if (found === undefined) throw new MissingBean(id);
+    if (found === undefined) throw new ForgeError(`this run has no bean ${id}`, 'not_found');
     return found;
-  });
-}
-
-class MissingBean extends Error {
-  constructor(bean: string) {
-    super(`this run has no bean ${bean}`);
-    this.name = 'MissingBean';
-  }
-}
-
-/** The tool's answer as compact JSON; expected failures become tool errors, bugs are thrown. */
-async function answer(read: () => Promise<unknown>): Promise<CallToolResult> {
-  try {
-    return { content: [{ type: 'text', text: JSON.stringify(await read()) }] };
-  } catch (error: unknown) {
-    if (error instanceof MissingBean) return failure(error.message);
-    if (isForgeError(error)) return failure(`the forge could not answer: ${error.message}`);
-    throw error;
-  }
-}
-
-function failure(message: string): CallToolResult {
-  return { isError: true, content: [{ type: 'text', text: message }] };
+  };
+  return answer(() => (ctx === undefined ? resolve() : withInbox(ctx, resolve)));
 }

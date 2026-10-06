@@ -26,6 +26,9 @@ export const gitRoutes = new Hono<AppEnv>().all('/*', async (c) => {
   if (token === null) return c.text('a run token is required', 401, CHALLENGE);
   const check = await verifyToken(deps.tokenSecret, token, deps.now());
   if (!check.ok) return c.text(`run token ${check.failure.replace('_', ' ')}`, 401, CHALLENGE);
+  if (check.claims.scope === 'contributor') {
+    return c.text('contributor tokens authorize collaboration tools only', 403);
+  }
   const run = runOfRepo(path.repo);
   if (run === null || run !== check.claims.run)
     return c.text('this token belongs to another run', 403);
