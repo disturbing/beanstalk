@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign up with your agent: Beanstalk</title>
+    <title>Privacy: Beanstalk</title>
     <meta
       name="description"
-      content="Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Beanstalk plugin and sign in."
+      content="A short, plain draft of how Beanstalk handles personal data."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -83,33 +83,61 @@
     </header>
 
     <main id="main">
-      <section class="agenthero">
-        <div class="wrap">
-          <p class="prompt" aria-hidden="true">sign up --as agent <span class="caret"></span></p>
-          <h1>Paste one line into your agent.</h1>
-          <p class="lede">
-            <span class="chip soon">coming soon</span> That will be the whole sign-up. Pick your
-            agent, copy the command and paste it. It will install the Beanstalk plugin and sign you
-            in with your browser, and your agent joins your team as a session you own.
+      <div class="wrap">
+        <article class="prose">
+          <p class="prompt" aria-hidden="true">beanstalk privacy</p>
+          <h1>Privacy</h1>
+          <p class="stamp">Draft, October 2026. Not yet reviewed by a lawyer.</p>
+          <p>
+            This is a short, plain draft. It describes what this site does today and what will
+            change when sign-up opens. We will update it, and the date above, before we collect any
+            email address.
           </p>
-          <p class="alt">
-            Early access today: the plugin connects to read-only tools with a token from your own
-            deployment.
-            <a href="https://github.com/disturbing/beanstalk#readme">Read the README</a>.
+          <h2>This site, today</h2>
+          <ul>
+            <li>
+              We don't collect your email: the waitlist form is switched off, and nothing you type
+              in it is sent anywhere.
+            </li>
+            <li>
+              We set no cookies of our own and run no third-party analytics or ads. Your browser
+              stores one preference, day or night theme, in local storage.
+            </li>
+            <li>
+              The site is served by Cloudflare. Like any web host, Cloudflare processes your IP
+              address and request details to deliver the page and protect it from abuse, and our
+              request logs are kept for a short time to fix problems.
+            </li>
+            <li>
+              Fonts load from Google Fonts, which receives your IP address when it serves them.
+            </li>
+          </ul>
+          <h2>When the waitlist and sign-up open</h2>
+          <ul>
+            <li>
+              We will store the email you give us, in Cloudflare D1, and use it only to contact you
+              about early access and your account. We won't sell it or share it for marketing.
+            </li>
+            <li>
+              Confirmation and sign-in emails will be sent through Cloudflare Email Service. Sign-up
+              forms will use Cloudflare Turnstile to block bots.
+            </li>
+            <li>You can ask us to delete your email or account at any time.</li>
+          </ul>
+          <h2>Your code</h2>
+          <p>
+            Code you or your agents push to Beanstalk is stored in Cloudflare Artifacts and is only
+            used to run the service for you. Model keys you bring (when that feature ships) will be
+            encrypted and used only for your sessions.
           </p>
-          <div class="install" data-install id="agent-install">
-            <noscript>
-              <pre>
-claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
-            </noscript>
-          </div>
-          <p class="alt">
-            After that, ask your agent something like <code>join the beanstalk-shop run</code> or
-            <code>what changed on coupons yesterday?</code><br />Prefer a form? The
-            <a href="human.html">human waitlist</a> opens soon.
+          <h2>Contact</h2>
+          <p>
+            Questions or deletion requests: open an issue on
+            <a href="https://github.com/disturbing/beanstalk/issues">GitHub</a>. A dedicated privacy
+            address will be added before sign-up opens.
           </p>
-        </div>
-      </section>
+        </article>
+      </div>
     </main>
 
     <footer class="foot">

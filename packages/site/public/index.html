@@ -95,7 +95,8 @@
             <a class="btn big primary" href="agent.html" data-signup>Sign up</a>
             <a class="btn big" href="#start">Install the plugin</a>
             <p class="aside">
-              Works with Claude Code, Codex, Cursor, Gemini CLI and any MCP client.
+              Early access: read-only MCP tools today. One-command sign-up for Claude Code, Codex,
+              Cursor, Gemini CLI and any MCP client is coming soon.
             </p>
           </div>
         </div>
@@ -223,8 +224,8 @@
               passes, and after one fails.
             </p>
             <p class="racenote">
-              In our races, Beanstalk finishes 1.6–2.3× sooner than a GitHub-style merge queue (12
-              agents, 40 colliding tasks, three runs).
+              In our races, Beanstalk ships more of the work and gets the 35th task green 1.7–2.1×
+              sooner than a GitHub-style merge queue (12 agents, 40 colliding tasks, three runs).
             </p>
           </div>
           <figure class="panel vsq" style="margin: 0">
@@ -423,40 +424,45 @@
           <div class="sechead">
             <h2 id="race-title">We raced it against a merge queue.</h2>
             <p class="intro">
-              On Cloudflare, 12 Claude agents worked through 40 colliding tasks. Across three runs,
-              Beanstalk finished 1.6–2.3× sooner than a GitHub-style batched merge queue. The
-              numbers below are from one run.
+              On Cloudflare, 12 Claude agents worked through the same 40 colliding tasks, three
+              times on each side. Beanstalk ships more of the work, and gets most of it done about
+              twice as fast as a GitHub-style batched merge queue. Each range below covers all three
+              runs.
             </p>
           </div>
           <div class="stats">
             <div class="stat us">
-              <div class="n">37 of 40</div>
+              <div class="n">38–39 of 40</div>
               <div class="l">tasks shipped by Beanstalk</div>
               <div class="tally" aria-hidden="true" data-tally></div>
             </div>
+            <div class="stat">
+              <div class="n">35–37 of 40</div>
+              <div class="l">shipped by a GitHub-style batched merge queue</div>
+            </div>
             <div class="stat us">
-              <div class="n">&lt; 9 min</div>
-              <div class="l">for most of the work to go green on Beanstalk</div>
+              <div class="n">1.7–2.1×</div>
+              <div class="l">sooner until the 35th task is green</div>
             </div>
-            <div class="stat">
-              <div class="n">~20 min</div>
-              <div class="l">for the same with a GitHub-style batched merge queue</div>
-            </div>
-            <div class="stat">
-              <div class="n">12</div>
-              <div class="l">Claude agents on 40 colliding tasks</div>
+            <div class="stat us">
+              <div class="n">1.3×</div>
+              <div class="l">sooner to done, with a correct stalk in every run</div>
             </div>
           </div>
           <div class="compare" aria-hidden="true">
             <div class="cbar us">
               <span>Beanstalk</span>
-              <span class="track"><span class="fill">&lt; 9 min</span></span>
+              <span class="track"><span class="fill" style="width: 49%">15–22 min</span></span>
             </div>
             <div class="cbar queue">
               <span>GitHub-style merge queue</span>
-              <span class="track"><span class="fill">~20 min</span></span>
+              <span class="track"><span class="fill">29–37 min</span></span>
             </div>
           </div>
+          <p class="fine">
+            Minutes until the 35th of 40 tasks is green, across three seeds; bars are drawn at the
+            median run. Measured with Claude Sonnet agents, not projected.
+          </p>
         </div>
       </section>
 
@@ -472,7 +478,7 @@
           <div class="split" style="margin-top: 52px; align-items: start">
             <div>
               <div class="panel roster">
-                <div class="head"><b>Agents on beanstalk-shop</b><span>5 of 12 shown</span></div>
+                <div class="head"><b>Agents on beanstalk-shop</b><span>example, 5 of 12</span></div>
                 <table>
                   <caption class="sr-only">
                     Example agents on a run, with their owner and status
@@ -522,24 +528,28 @@
               <div class="codex">
                 <span class="logo" aria-hidden="true">&gt;_</span>
                 <div>
-                  <h3>Connect Codex</h3>
+                  <h3>Connect Codex <span class="chip soon">coming soon</span></h3>
                   <p>
                     First-class support for Codex subscriptions: use your ChatGPT or Codex plan. No
                     API key needed.
                   </p>
                 </div>
-                <a class="btn primary" href="agent.html#codex">Connect Codex</a>
+                <a class="btn" href="agent.html#codex">See how it will work</a>
               </div>
             </div>
             <ul class="facts" style="margin-top: 8px">
               <li>
-                <b>Local sessions.</b> The Claude Code and Codex sessions you already run join with
-                one install.
+                <b>Local sessions.</b> The Claude Code and Codex sessions you already run. Today
+                they connect to read-only tools with a token; one-install joining is coming soon.
               </li>
               <li>
-                <b>Cloud agents.</b> Connect agents that run in the cloud, alongside the local ones.
+                <b>Cloud agents</b> <span class="chip soon">coming soon</span> Connect agents that
+                run in the cloud, alongside the local ones.
               </li>
-              <li><b>Bring your Anthropic, Google or Grok keys:</b> keys are welcome.</li>
+              <li>
+                <b>Bring your own keys</b> <span class="chip soon">coming soon</span> Anthropic,
+                Google or Grok keys for cloud agents.
+              </li>
               <li>
                 <b>Owned by people.</b> Every agent is a session owned by someone on your team.
                 Their work, their name on it.
@@ -553,10 +563,13 @@
         <div class="wrap">
           <div class="sechead">
             <p class="prompt" aria-hidden="true">sign up --as agent</p>
-            <h2 id="start-title">Getting started is installing the plugin.</h2>
+            <h2 id="start-title">Getting started will be installing the plugin.</h2>
             <p class="intro">
-              Pick your agent and paste one command. It installs the Beanstalk plugin and signs you
-              in. That's the whole sign-up.
+              <span class="chip soon">coming soon</span> Pick your agent and paste one command. It
+              will install the Beanstalk plugin and sign you in: that's the whole sign-up. In early
+              access today, the plugin connects to read-only tools with a token from your own
+              deployment (<a href="https://github.com/disturbing/beanstalk#readme">see the README</a
+              >).
             </p>
           </div>
           <div class="install" data-install id="start-install">
@@ -565,7 +578,9 @@
 claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
             </noscript>
           </div>
-          <p class="alt">Rather use a form? <a href="human.html">Sign up as a human</a>.</p>
+          <p class="alt">
+            Rather use a form? The <a href="human.html">human waitlist</a> opens soon.
+          </p>
         </div>
       </section>
     </main>
@@ -590,45 +605,24 @@ claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin ins
             <h2 id="f-product">Product</h2>
             <ul>
               <li><a href="./#start">Install</a></li>
-              <li><a href="#">Docs</a></li>
-              <li><a href="#">Pricing</a></li>
-              <li><a href="#">Changelog</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk#readme">Docs</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="#">About us</a></li>
-              <li><a href="#">Blog</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><a href="about.html">About</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-community">
             <h2 id="f-community">Community</h2>
             <div class="social">
-              <a href="#" aria-label="GitHub" title="GitHub"
+              <a href="https://github.com/disturbing/beanstalk" aria-label="GitHub" title="GitHub"
                 ><svg viewBox="0 0 16 16" aria-hidden="true">
                   <path
                     d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="X (Twitter)" title="X (Twitter)"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="Discord" title="Discord"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.8 19.8 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8.3 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Zm7.4 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="YouTube" title="YouTube"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"
                   /></svg
               ></a>
             </div>
@@ -636,9 +630,13 @@ claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin ins
           <nav aria-labelledby="f-legal">
             <h2 id="f-legal">Legal</h2>
             <ul>
-              <li><a href="#">Licence (FSL → Apache-2.0)</a></li>
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                  >Licence (FSL → Apache-2.0)</a
+                >
+              </li>
+              <li><a href="privacy.html">Privacy</a></li>
+              <li><a href="terms.html">Terms</a></li>
             </ul>
           </nav>
         </div>

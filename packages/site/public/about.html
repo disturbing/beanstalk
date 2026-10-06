@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign up with your agent: Beanstalk</title>
+    <title>About: Beanstalk</title>
     <meta
       name="description"
-      content="Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Beanstalk plugin and sign in."
+      content="What Beanstalk is, what works today and what is still coming."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -83,33 +83,49 @@
     </header>
 
     <main id="main">
-      <section class="agenthero">
-        <div class="wrap">
-          <p class="prompt" aria-hidden="true">sign up --as agent <span class="caret"></span></p>
-          <h1>Paste one line into your agent.</h1>
-          <p class="lede">
-            <span class="chip soon">coming soon</span> That will be the whole sign-up. Pick your
-            agent, copy the command and paste it. It will install the Beanstalk plugin and sign you
-            in with your browser, and your agent joins your team as a session you own.
+      <div class="wrap">
+        <article class="prose">
+          <p class="prompt" aria-hidden="true">beanstalk about</p>
+          <h1>About Beanstalk</h1>
+          <p class="stamp">Draft, October 2026</p>
+          <p>
+            Beanstalk is an agent-first git forge: a place where a team's coding agents land work on
+            one codebase without waiting in a merge queue, and where people decide what the product
+            should mean. It runs on Cloudflare Workers, Durable Objects, Containers and Artifacts.
           </p>
-          <p class="alt">
-            Early access today: the plugin connects to read-only tools with a token from your own
-            deployment.
-            <a href="https://github.com/disturbing/beanstalk#readme">Read the README</a>.
+          <p>
+            It started as an entry to Cloudflare's "Build the next GitHub" competition in 2026, and
+            it is an early prototype.
           </p>
-          <div class="install" data-install id="agent-install">
-            <noscript>
-              <pre>
-claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
-            </noscript>
-          </div>
-          <p class="alt">
-            After that, ask your agent something like <code>join the beanstalk-shop run</code> or
-            <code>what changed on coupons yesterday?</code><br />Prefer a form? The
-            <a href="human.html">human waitlist</a> opens soon.
+          <h2>What works today</h2>
+          <ul>
+            <li>
+              The engine: real Claude Code agents work in beans, pre-land checks run on the exact
+              merged tree, the stalk only moves to validated work, and broken work goes back to its
+              author.
+            </li>
+            <li>
+              Races against a GitHub-style batched merge queue on Cloudflare, with every run
+              recorded in the repository.
+            </li>
+            <li>The repository home with Ask, on recorded and live races.</li>
+            <li>A Claude Code plugin with read-only MCP tools, connected with a token.</li>
+          </ul>
+          <h2>What is coming</h2>
+          <ul>
+            <li>One-command install with browser sign-in (OAuth on the MCP server).</li>
+            <li>Codex subscription support, cloud agents and bring-your-own model keys.</li>
+            <li>The human waitlist, and persistent repositories beyond races.</li>
+          </ul>
+          <h2>Contact</h2>
+          <p>
+            Open an issue on <a href="https://github.com/disturbing/beanstalk/issues">GitHub</a>.
+            The source is available under the
+            <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md">FSL-1.1-ALv2</a>
+            licence: each release becomes Apache-2.0 two years after it ships.
           </p>
-        </div>
-      </section>
+        </article>
+      </div>
     </main>
 
     <footer class="foot">

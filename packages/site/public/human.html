@@ -4,10 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sign up: Beanstalk</title>
-    <meta
-      name="description"
-      content="Join Beanstalk early access with your email, or let your agent sign you up in one step."
-    />
+    <meta name="description" content="The Beanstalk early-access waitlist opens soon." />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script>
@@ -87,7 +84,10 @@
         <div class="wrap">
           <p class="prompt" aria-hidden="true">sign up --as human <span class="caret"></span></p>
           <h1>Sign up as a human.</h1>
-          <p class="lede">Beanstalk is in early access. Leave your email and we'll be in touch.</p>
+          <p class="lede">
+            Beanstalk is in early access. The email waitlist opens soon; until then this form is
+            switched off and nothing you type is sent anywhere.
+          </p>
           <form class="form" data-human-form novalidate>
             <label for="email">Email</label>
             <div class="row">
@@ -97,13 +97,17 @@
                 type="email"
                 autocomplete="email"
                 required
+                disabled
                 placeholder="you@example.com"
                 aria-describedby="email-hint email-err"
               />
-              <button type="submit" class="btn big primary">Join early access</button>
+              <button type="submit" class="btn big primary" disabled>Opens soon</button>
             </div>
             <p class="err" id="email-err" hidden role="alert"></p>
-            <p class="hint" id="email-hint">We only use it to contact you about early access.</p>
+            <p class="hint" id="email-hint">
+              When it opens, we'll only use your email to contact you about early access. See the
+              draft <a href="privacy.html">privacy notice</a>.
+            </p>
           </form>
           <div class="done" data-human-done hidden tabindex="-1" role="status">
             <p><b>You're on the early-access list.</b></p>
@@ -113,10 +117,10 @@
             </p>
           </div>
           <div class="pointer-agent">
-            <h2>Faster: let your agent sign you up.</h2>
+            <h2>Soon: let your agent sign you up.</h2>
             <p>
               Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client.
-              It installs the plugin and signs you in.
+              It will install the plugin and sign you in. Coming soon.
             </p>
             <a class="btn primary" href="agent.html">Sign up with Agent</a>
           </div>
@@ -144,45 +148,24 @@
             <h2 id="f-product">Product</h2>
             <ul>
               <li><a href="./#start">Install</a></li>
-              <li><a href="#">Docs</a></li>
-              <li><a href="#">Pricing</a></li>
-              <li><a href="#">Changelog</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk#readme">Docs</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="#">About us</a></li>
-              <li><a href="#">Blog</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><a href="about.html">About</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-community">
             <h2 id="f-community">Community</h2>
             <div class="social">
-              <a href="#" aria-label="GitHub" title="GitHub"
+              <a href="https://github.com/disturbing/beanstalk" aria-label="GitHub" title="GitHub"
                 ><svg viewBox="0 0 16 16" aria-hidden="true">
                   <path
                     d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="X (Twitter)" title="X (Twitter)"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23Zm-1.16 17.52h1.83L7.08 4.13H5.12Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="Discord" title="Discord"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18a19.8 19.8 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.1-.8-9.6-3.6-13.6ZM8.3 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Zm7.4 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Z"
-                  /></svg
-              ></a>
-              <a href="#" aria-label="YouTube" title="YouTube"
-                ><svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"
                   /></svg
               ></a>
             </div>
@@ -190,9 +173,13 @@
           <nav aria-labelledby="f-legal">
             <h2 id="f-legal">Legal</h2>
             <ul>
-              <li><a href="#">Licence (FSL → Apache-2.0)</a></li>
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                  >Licence (FSL → Apache-2.0)</a
+                >
+              </li>
+              <li><a href="privacy.html">Privacy</a></li>
+              <li><a href="terms.html">Terms</a></li>
             </ul>
           </nav>
         </div>
