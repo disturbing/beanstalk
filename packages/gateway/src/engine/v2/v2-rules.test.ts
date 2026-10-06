@@ -628,7 +628,7 @@ describe('v2.5: shorter red episodes and earlier greens', () => {
   });
 
   it('still bisects the range for a lone suspect when the rule is off (the harness)', () => {
-    const run = runV2(loneSuspect({ single_suspect_revert: false }));
+    const run = runV2(loneSuspect({ single_suspect_revert: false, red_reset: false }));
 
     expect(bisectProbes(run).length).toBeGreaterThan(0);
     expect(eventsOf(run.events, 'revert')[0]).toMatchObject({ task: 't001' });
@@ -648,7 +648,7 @@ describe('v2.5: shorter red episodes and earlier greens', () => {
   });
 
   it('lets a validation take the next CI slot ahead of a waiting bisect probe', () => {
-    const bisecting = { single_suspect_revert: false };
+    const bisecting = { single_suspect_revert: false, red_reset: false };
     const ahead = runV2(loneSuspect({ ...bisecting, validation_first: true }));
     const fifo = runV2(loneSuspect({ ...bisecting, validation_first: false }));
 

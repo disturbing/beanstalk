@@ -118,6 +118,13 @@ function describe(event: RaceEvent): Draft | undefined {
         `${event.task ?? 'A commit'} is reverted from the sprout (revert-first).`,
         event.task,
       );
+    case 'sprout.reset':
+      return majorLine(
+        'warn',
+        `${event.ticket}: the sprout is reset to the stalk (#${event.green_idx}); ` +
+          `${event.requeued.length} beans go back through their checks.`,
+        null,
+      );
     case 'revert.conflict':
       return majorLine(
         'warn',
@@ -228,6 +235,7 @@ function describe(event: RaceEvent): Draft | undefined {
     case 'sync.midrun.offered':
     case 'sync.midrun.noted':
     case 'window.wait':
+    case 'bean.requeued':
       return undefined;
     case 'race.end':
       return majorLine(

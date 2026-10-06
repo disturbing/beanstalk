@@ -349,6 +349,34 @@ async fn revert_reports_conflicting_files() {
 }
 
 #[tokio::test]
+async fn revert_to_an_ancestor_resets_the_tree_without_conflicts() {
+    let world = World::new().await;
+    let trunk = world.bare("trunk");
+    let work = world.work("w");
+    let green = work.commit(&[("f.txt", "a\n")], "base");
+    work.commit(&[("f.txt", "b\n"), ("g.txt", "new\n")], "change");
+    let head = work.commit(&[("f.txt", "c\n")], "rewrite");
+    work.push(&trunk, "HEAD:refs/heads/main");
+
+    let (status, body) = world
+        .post(
+            "/v1/revert",
+            &json!({
+                "repo": trunk.url(), "token": TOKEN, "onto": head, "commit": head, "to": green,
+                "message": "Reset\n",
+            }),
+        )
+        .await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["result"], "clean");
+    assert_eq!(strings(&body["files"]), ["f.txt", "g.txt"]);
+    let sha = body["sha"].as_str().unwrap();
+    assert_eq!(trunk.git(&["rev-parse", &format!("{sha}^")]), head);
+    assert_eq!(trunk.show(sha, "f.txt"), "a\n");
+}
+
+#[tokio::test]
 async fn revert_of_a_root_commit_is_refused() {
     let world = World::new().await;
     let (trunk, _) = arena_pair(&world);

@@ -230,6 +230,14 @@ describe('v2: a clean landing', () => {
       'ticket_details',
       'variant',
       'variant_additions',
+      'red_reset',
+      'episode_tickets',
+      'repair_landing',
+      'resets',
+      'requeued',
+      'episode_reds',
+      'episode_inherited',
+      'repair_landings',
     ]);
     expect(stats).toMatchObject({
       landings: 1,
@@ -275,6 +283,10 @@ describe('v2: a clean landing', () => {
       ],
       ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
       ['Max bean invocations / tail guard minutes / dropped by each', '10 / 3 / 0 / 0'],
+      [
+        'Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings',
+        '0 (0) / 0 (0) / 0',
+      ],
       ['Tests first (accepted / fallbacks) / targeted landing checks (red)', 'off / off'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
@@ -704,7 +716,7 @@ describe('v2: asynchronous validation', () => {
       tasks: [soloTask('t001'), soloTask('t002'), soloTask('t003')],
       rules: [CLASH],
       durations: { t001: 25_000, t002: 20_000, t003: 30_000 },
-      config: { agents: 3, ci_slots: 1, single_suspect_revert: false },
+      config: { agents: 3, ci_slots: 1, single_suspect_revert: false, red_reset: false },
     });
 
     const probes = eventsOf(run.events, 'ci.start').filter(

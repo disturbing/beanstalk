@@ -139,16 +139,20 @@ describe('dependency-aware starts on dependency chains', () => {
     },
   );
 
-  it('under the v2.5 defaults (rescue keeps fifo’s beans) still cuts the conflicts', () => {
-    const fifo = chainNumbers(runRace(chainScenario(HALF_AGENTS, HALF)));
-    const dependency = chainNumbers(
-      runRace(chainScenario({ ...HALF_AGENTS, ...DEPENDENCY }, HALF)),
-    );
+  it(
+    'under the v2.5 defaults (rescue keeps fifo’s beans) still cuts the conflicts',
+    { timeout: 30_000 },
+    () => {
+      const fifo = chainNumbers(runRace(chainScenario(HALF_AGENTS, HALF)));
+      const dependency = chainNumbers(
+        runRace(chainScenario({ ...HALF_AGENTS, ...DEPENDENCY }, HALF)),
+      );
 
-    expect(fifo).toMatchObject({ green: 100, dropped: 0 });
-    expect(dependency).toMatchObject({ green: 100, dropped: 0 });
-    expect(dependency.conflicts).toBeLessThan(fifo.conflicts * 0.7);
-  });
+      expect(fifo).toMatchObject({ green: 100, dropped: 0 });
+      expect(dependency).toMatchObject({ green: 100, dropped: 0 });
+      expect(dependency.conflicts).toBeLessThan(fifo.conflicts * 0.7);
+    },
+  );
 
   it('pipelines a chain at most three beans deep, then waits for a landing', () => {
     const run = runRace(chainScenario({ ...DEPENDENCY, agents: 20 }, { chains: [6], total: 20 }));

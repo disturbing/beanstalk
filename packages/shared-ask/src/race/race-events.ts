@@ -193,6 +193,19 @@ const Revert = event('revert', {
   sha: Sha,
   trunk_idx: z.number().int(),
 });
+/** `red_reset`: the sprout reset to the stalk's tree; the red window's beans are requeued. */
+const SproutReset = event('sprout.reset', {
+  ticket: TicketId,
+  green_idx: z.number().int(),
+  trunk_idx: z.number().int(),
+  sha: Sha,
+  requeued: z.array(TaskId),
+});
+const BeanRequeued = event('bean.requeued', {
+  task: TaskId,
+  ticket: TicketId,
+  trunk_idx: z.number().int(),
+});
 const RevertConflict = event('revert.conflict', {
   ticket: TicketId,
   task: NullableTask,
@@ -331,6 +344,8 @@ export const RaceEvent = z.discriminatedUnion('type', [
   TicketClose,
   TicketEscalate,
   Revert,
+  SproutReset,
+  BeanRequeued,
   RevertConflict,
   PrelandCheck,
   PrelandRecheck,

@@ -21,7 +21,7 @@ import { STALK_REF } from '../refs';
 import { onSproutGreen, onSproutRed } from './v2-backpressure';
 import { awaitOutcome, requireCommit } from './v2-sprout';
 import type { V2State, V2Step } from './v2-state';
-import { activeTickets, closeTicket, openTicket } from './v2-tickets';
+import { activeTickets, closeTicket, isInRedEpisode, openTicket } from './v2-tickets';
 
 /** The suite crashed before it reported: the one "file" a ticket can then name. */
 const SUITE_CRASHED = '(suite crashed)';
@@ -34,14 +34,16 @@ export function maybeValidate(step: V2Step): void {
     headIdx <= state.greenIdx ||
     state.validating.includes(headIdx) ||
     Object.hasOwn(state.validated, String(headIdx));
-  if (isKnown || (ciAvailable(ctx) <= 0 && !canQueueAhead(step))) return;
+  // `repair_landing`: the validation of a bean that repairs a red sprout queues ahead of probes.
+  const isRepair = state.commits[headIdx]?.repair === true;
+  if (isKnown || (ciAvailable(ctx) <= 0 && !canQueueAhead(step) && !isRepair)) return;
   state.validating.push(headIdx);
   const ciId = requestCi(ctx, {
     sha: requireCommit(state, headIdx).sha,
     purpose: 'validate',
     meta: { trunk_idx: headIdx, unvalidated: headIdx - state.greenIdx },
     owner: 'policy',
-    ...validationOrder(step),
+    ...(isRepair ? { ahead: 'bisect' } : validationOrder(step)),
   });
   awaitOutcome(state, ciId, { kind: 'validate', idx: headIdx });
 }
@@ -51,7 +53,10 @@ export function onValidated(step: V2Step, idx: number, result: CheckResult): voi
   const { ctx, state } = step;
   recordRed(state, idx, result);
   const needsConfirmation =
-    !result.green && ctx.env.config.flake_confirm && newFailures(state, idx, result).length > 0;
+    !result.green &&
+    ctx.env.config.flake_confirm &&
+    newFailures(state, idx, result).length > 0 &&
+    !isInRedEpisode(state, idx);
   if (!needsConfirmation || isSighted(step, idx, result)) {
     if (needsConfirmation) state.stats.confirmed_by_sighting += 1;
     settle(step, idx, result);
@@ -154,11 +159,12 @@ function settle(step: V2Step, idx: number, result: CheckResult | 'green'): void 
   const { state } = step;
   state.validating = state.validating.filter((validating) => validating !== idx);
   const isGreen = result === 'green' || result.green;
+  const isEpisode = !isGreen && isInRedEpisode(state, idx);
   if (idx > state.greenIdx) {
     // One red episode halves the window once: a red whose failures a ticket already covers
     // is the same episode seen again.
     if (isGreen) onSproutGreen(step, idx);
-    else if (newFailures(state, idx, result).length > 0) onSproutRed(step, idx);
+    else if (newFailures(state, idx, result).length > 0 && !isEpisode) onSproutRed(step, idx);
   }
   state.validated[idx] = isGreen;
   state.stats.validations += 1;
@@ -168,7 +174,20 @@ function settle(step: V2Step, idx: number, result: CheckResult | 'green'): void 
     return;
   }
   state.stats.validations_red += 1;
+  if (isEpisode) {
+    state.stats.episode_reds = (state.stats.episode_reds ?? 0) + 1;
+    return;
+  }
   onRed(step, idx, result);
+}
+
+/**
+ * `red_reset`: the reset commit at `idx` has the tree of the stalk, which a validation already
+ * passed, so it is green without CI: the stalk moves forward to it.
+ */
+export function promoteReset(step: V2Step, idx: number): void {
+  step.state.validated[idx] = true;
+  onGreen(step, idx);
 }
 
 function onGreen(step: V2Step, idx: number): void {

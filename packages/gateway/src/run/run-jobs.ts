@@ -141,6 +141,7 @@ async function revert(
     trunk: await runRepo(context, 'write'),
     onto: spec.onto,
     commit: spec.commit,
+    ...(spec.to === undefined ? {} : { to: spec.to }),
     message: spec.message,
     unionPaths: spec.unionPaths,
   });

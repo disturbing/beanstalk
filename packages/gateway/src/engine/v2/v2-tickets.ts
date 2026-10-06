@@ -4,6 +4,11 @@
  * validation names suspects by read set, or bisects when none; then the culprit is found
  * by K-ary search on CI (leave-one-out when history misleads), reverted on the sprout in
  * the turn, and its task dropped. Nothing is ever fixed forward.
+ *
+ * With `red_reset` (the 30-agent stall fix) there is no CI bisection: a lone suspect is still
+ * reverted at once, and otherwise (or when that revert conflicts) the sprout is reset to the
+ * stalk and the red window's beans are requeued (`v2-reset`). With `episode_tickets` a red
+ * inside an open episode opens no ticket of its own (`isInRedEpisode`).
  */
 import type { Sha } from '@beanstalk/shared-race/ids';
 import { unionPaths } from '@beanstalk/shared-race/run-config';
@@ -19,6 +24,7 @@ import { probeMessage, revertMessage } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { dropTask } from '../tasks';
 import { rollBack } from './v2-amendments';
+import { canReset, landReset, startResetJob } from './v2-reset';
 import { awaitOutcome, landRevert, requireCommit, sproutIndex } from './v2-sprout';
 import type { FirstBadSearch, RevertFlow, Ticket, TicketStatus, V2State, V2Step } from './v2-state';
 import { releaseTurn, requestTurn } from './v2-turn';
@@ -33,6 +39,22 @@ const REVERT_FIRST = 'revert-first: no fix-forward on the trunk';
 
 export function activeTickets(state: V2State): Ticket[] {
   return Object.values(state.tickets).filter((ticket) => ACTIVE.has(ticket.status));
+}
+
+/**
+ * `episode_tickets`: the sprout at `idx` is inside a red episode already being handled: a
+ * ticket opened below it is still open, or escalated with its red still above the stalk (a
+ * culprit nothing could revert). Its reds then open no ticket of their own: the new tests that
+ * fail with the broken suite would otherwise blame their own innocent authors.
+ */
+export function isInRedEpisode(state: V2State, idx: number): boolean {
+  if (state.settings.episodeTickets !== true) return false;
+  return Object.values(state.tickets).some(
+    (ticket) =>
+      ticket.redIdx < idx &&
+      (ACTIVE.has(ticket.status) ||
+        (ticket.status === 'escalated' && ticket.redIdx > state.greenIdx)),
+  );
 }
 
 /** `open_ticket` (with v2's revert-first): a red validation at `idx` with new failures. */
@@ -50,7 +72,7 @@ export function openTicket(
     ticket.failingFiles.length > 0
       ? suspectsFor(state, red.idx, red.result, ticket.failingFiles)
       : [];
-  if (suspects.length === 0) {
+  if (suspects.length === 0 && !canReset(state)) {
     ticket.method = 'bisect';
     ticket.status = 'bisecting';
     emit(ctx, 'ticket.bisect', { ticket: id, red_idx: red.idx, failing: [...ticket.failingFiles] });
@@ -167,6 +189,20 @@ export function onRevertTurn(step: V2Step, ticketId: string): void {
   const { ctx, state } = step;
   const flow = state.reverts[ticketId];
   const ticket = requireTicket(state, ticketId);
+  if (flow?.phase === 'reset-queued' && ticket.status === 'reverting') {
+    if (ticket.redIdx <= state.greenIdx || !canReset(state)) {
+      delete state.reverts[ticketId];
+      releaseTurn(step);
+      if (ticket.redIdx <= state.greenIdx) {
+        closeTicket(step, ticket, `green at trunk #${state.greenIdx}`);
+      } else {
+        startRevert(step, ticket);
+      }
+      return;
+    }
+    state.reverts[ticketId] = { phase: 'reset', ...startResetJob(step, ticketId) };
+    return;
+  }
   if (flow?.phase !== 'queued' || ticket.status !== 'reverting') {
     delete state.reverts[ticketId];
     releaseTurn(step);
@@ -204,7 +240,66 @@ export function onTicketRevertJob(
   }
   if (flow?.phase === 'publish' && flow.jobId === jobId && result.kind === 'update-ref') {
     onRevertPublished(step, ticketId, flow, result.ok || result.actual === flow.sha);
+    return;
   }
+  if (flow?.phase === 'reset' && flow.jobId === jobId && result.kind === 'revert') {
+    onResetBuilt(step, ticketId, flow, result);
+    return;
+  }
+  if (flow?.phase === 'reset-publish' && flow.jobId === jobId && result.kind === 'update-ref') {
+    onResetPublished(step, ticketId, flow, result.ok || result.actual === flow.sha);
+  }
+}
+
+/** `red_reset`: the reset commit was built; move the sprout to it under a lease. */
+function onResetBuilt(
+  step: V2Step,
+  ticketId: string,
+  flow: Extract<RevertFlow, { phase: 'reset' }>,
+  result: Extract<JobResult, { kind: 'revert' }>,
+): void {
+  const { ctx, state } = step;
+  if (result.outcome === 'conflict') {
+    markAborted(ctx, `the reset for ${ticketId} conflicted: ${result.files.join(', ')}`);
+    return;
+  }
+  const jobId = startJob(
+    ctx,
+    { kind: 'update-ref', ref: SPROUT_REF, newSha: result.sha, oldSha: flow.head },
+    { kind: 'policy' },
+  );
+  awaitOutcome(state, jobId, { kind: 'ticket-revert', ticket: ticketId });
+  state.reverts[ticketId] = {
+    phase: 'reset-publish',
+    head: flow.head,
+    sha: result.sha,
+    files: [...result.files],
+    jobId,
+  };
+}
+
+function onResetPublished(
+  step: V2Step,
+  ticketId: string,
+  flow: Extract<RevertFlow, { phase: 'reset-publish' }>,
+  isMoved: boolean,
+): void {
+  const { ctx, state } = step;
+  if (!isMoved) {
+    markAborted(ctx, `the sprout moved unexpectedly while resetting for ${ticketId}`);
+    return;
+  }
+  const ticket = requireTicket(state, ticketId);
+  delete state.reverts[ticketId];
+  closeTicket(step, ticket, `reset to trunk #${state.greenIdx}`);
+  const suspects = ticket.suspects.flatMap((idx) => state.commits[idx]?.task ?? []);
+  ticket.revertIdx = landReset(step, {
+    ...flow,
+    ticket: ticketId,
+    redIdx: ticket.redIdx,
+    suspects,
+  });
+  releaseTurn(step);
 }
 
 function newTicket(
@@ -289,6 +384,11 @@ function startRevert(step: V2Step, ticket: Ticket): void {
     step.ctx.env.config.single_suspect_revert && suspect !== undefined && others.length === 0;
   if (isLoneSuspect) {
     culpritFound(step, ticket.id, suspect);
+    return;
+  }
+  if (canReset(state)) {
+    state.reverts[ticket.id] = { phase: 'reset-queued' };
+    requestTurn(step, { kind: 'revert', ticket: ticket.id }, true);
     return;
   }
   const search = newSearch(state.greenIdx, ticket.redIdx, ticket.failingFiles);
@@ -470,8 +570,13 @@ function onCulpritReverted(
   const { ctx, state } = step;
   const target = requireCommit(state, flow.target);
   if (result.outcome === 'conflict') {
-    requireTicket(state, ticketId).status = 'escalated';
     emit(ctx, 'revert.conflict', { ticket: ticketId, task: target.task, files: [...result.files] });
+    if (canReset(state)) {
+      // `red_reset`: the lone suspect cannot be reverted alone; reset the whole window.
+      state.reverts[ticketId] = { phase: 'reset', ...startResetJob(step, ticketId) };
+      return;
+    }
+    requireTicket(state, ticketId).status = 'escalated';
     delete state.reverts[ticketId];
     releaseTurn(step);
     return;

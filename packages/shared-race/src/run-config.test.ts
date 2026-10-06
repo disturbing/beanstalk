@@ -171,14 +171,21 @@ describe('the demo preset', () => {
     });
   });
 
-  it('pins the v2.5 rules at the values the defaults have today, parking aside', () => {
+  it('pins the v2.5 rules at the values the defaults have today, parking and the reset aside', () => {
     const defaults = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
 
     expect({ ...defaults, structural_merge: usesStructuralMerge(defaults) }).toMatchObject({
       ...V25_SETTINGS,
       park: true,
       tail_guard_minutes: 3,
+      red_reset: true,
     });
+    expect(DEMO_SETTINGS).toMatchObject({
+      red_reset: true,
+      episode_tickets: false,
+      repair_landing: false,
+    });
+    expect(V25_SETTINGS).toMatchObject({ red_reset: false });
   });
 
   it('accepts a pinned field repeated with its value and refuses a changed one', () => {

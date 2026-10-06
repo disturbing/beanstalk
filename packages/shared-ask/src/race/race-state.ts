@@ -75,6 +75,8 @@ export type BeanStepKind =
   | 'reconcile'
   /** v2.5: rework rounds ran out; re-executed once on the sprout head. */
   | 'rescue'
+  /** `red_reset`: the sprout was reset under it; it goes back through its check and lands again. */
+  | 'requeued'
   /** v2.5: the landed beans that break its tests, found by leaving each out. */
   | 'culprits'
   /** `live_sync`: beans that landed meanwhile were merged in for its agent. */

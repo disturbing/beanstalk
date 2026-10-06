@@ -31,6 +31,10 @@ export type SproutCommit = {
   reverted: boolean;
   /** The sprout index of the revert that undid it. */
   revertedAt?: number;
+  /** `red_reset`: a reset of the sprout to the stalk (a revert of the whole red window). */
+  reset?: true;
+  /** `repair_landing`: a bean that landed green on a sprout known red. */
+  repair?: true;
 };
 
 export type TicketStatus = 'bisecting' | 'open' | 'reverting' | 'reverted' | 'escalated' | 'closed';
@@ -92,7 +96,11 @@ export type RevertFlow =
     }
   | { phase: 'queued'; idx: number; target: number }
   | { phase: 'revert'; target: number; head: Sha; jobId: JobId }
-  | { phase: 'publish'; target: number; head: Sha; sha: Sha; files: string[]; jobId: JobId };
+  | { phase: 'publish'; target: number; head: Sha; sha: Sha; files: string[]; jobId: JobId }
+  /** `red_reset`: waiting for the turn, then resetting the sprout to the stalk's tree. */
+  | { phase: 'reset-queued' }
+  | { phase: 'reset'; head: Sha; jobId: JobId }
+  | { phase: 'reset-publish'; head: Sha; sha: Sha; files: string[]; jobId: JobId };
 
 /** Work a bean needs an agent for. With `release_on_check` it waits for a free slot. */
 export type AgentWork =
@@ -152,6 +160,8 @@ export type LandingStep =
       candidate: Sha;
       files: string[];
       mine: string[] | null;
+      /** `repair_landing`: green on a sprout known red, so it lands past the window. */
+      repair?: true;
     }
   /** Waiting for the turn to squash and check inside it. */
   | { kind: 'queued-locked' }
@@ -175,7 +185,7 @@ export type LandingStep =
       jobId: JobId;
     }
   | { kind: 'locked-squash'; head: Sha; jobId: JobId }
-  | { kind: 'publish'; head: Sha; sha: Sha; files: string[]; jobId: JobId }
+  | { kind: 'publish'; head: Sha; sha: Sha; files: string[]; jobId: JobId; repair?: true }
   | {
       kind: 'diffs';
       head: Sha;
@@ -447,6 +457,16 @@ export type V2Stats = {
   midrun_offered?: number;
   midrun_applied?: number;
   midrun_noted?: number;
+  /**
+   * Stall fix (absent: 0): sprout resets and the beans they requeued (`red_reset`), red
+   * validations and pre-land reds taken into an open episode (`episode_tickets`), and beans that
+   * landed past the window on a red sprout (`repair_landing`).
+   */
+  resets?: number;
+  requeued?: number;
+  episode_reds?: number;
+  episode_inherited?: number;
+  repair_landings?: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -493,6 +513,10 @@ export type V2Settings = {
   readonly tailGuardMinutes?: number;
   /** `park`: a bean that needs a person is parked, not dropped; absent: off. */
   readonly park?: boolean;
+  /** The 30-agent stall fix (`red_reset`, `episode_tickets`, `repair_landing`); absent: off. */
+  readonly redReset?: boolean;
+  readonly episodeTickets?: boolean;
+  readonly repairLanding?: boolean;
 };
 
 /** v2.5 tail guard: when a bean last made progress, and the failing sets it has seen. */
@@ -572,6 +596,13 @@ export type V2State = {
   dynamicSearches?: Record<string, TaskId[]>;
   /** v2.5 tail guard: each bean's last progress (absent: none tracked yet). */
   progress?: Record<string, BeanProgress>;
+  /** `red_reset`: how often each bean was requeued by a reset (absent: never). */
+  requeues?: Record<string, number>;
+  /**
+   * `red_reset`: read-set suspects of a reset, requeued one at a time (`current` lands or
+   * leaves first), so each is checked on a sprout holding those before it.
+   */
+  requeueChain?: { ticket: string; current: TaskId | null; waiting: TaskId[] };
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;
@@ -590,6 +621,8 @@ export type V2Flow = {
   readonly attempt: (task: TaskId) => void;
   /** A slot was found for a bean's awaited work: start it there. */
   readonly startWork: (flow: LandingFlow, slot: SlotId) => void;
+  /** `red_reset`: the reset commit at `idx` has the stalk's tree: promote it without CI. */
+  readonly promoteReset: (idx: number) => void;
 };
 
 /** One step of the v2 policy: the engine context, the policy's draft state, the continuations. */

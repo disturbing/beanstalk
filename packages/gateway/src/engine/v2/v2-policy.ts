@@ -73,6 +73,7 @@ import {
   startInformedRework,
 } from './v2-repair';
 import { startRescue } from './v2-rescue';
+import { advanceRequeues } from './v2-reset';
 import { takeWait } from './v2-sprout';
 import { openStartCard, startUnderCard } from './v2-start';
 import { chooseStart } from './v2-start-order';
@@ -94,6 +95,7 @@ import {
   onConfirmed,
   onStalkJob,
   onValidated,
+  promoteReset,
 } from './v2-validator';
 
 const V20_VARIANT_ROW = 'v2: pre-land check, informed author repair, decision cards, revert-first';
@@ -169,6 +171,9 @@ function initialV2State(ctx: StepContext): V2State {
       maxBeanInvocations: config.max_bean_invocations,
       tailGuardMinutes: config.tail_guard_minutes,
       ...(config.park ? { park: true } : {}),
+      ...(config.red_reset ? { redReset: true } : {}),
+      ...(config.episode_tickets ? { episodeTickets: true } : {}),
+      ...(config.repair_landing ? { repairLanding: true } : {}),
     },
     sprout: base,
     green: base,
@@ -289,6 +294,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
       granted: (holder) => onGranted(step, holder),
       attempt: (task) => attempt(step, task),
       startWork: (flow, slot) => startWork(step, flow, slot),
+      promoteReset: (idx) => promoteReset(step, idx),
     },
   };
   return {
@@ -323,6 +329,7 @@ function v2Hooks(ctx: StepContext, state: V2State): PolicyHooks {
  */
 function dispatch(step: V2Step): void {
   const { ctx, state } = step;
+  advanceRequeues(step);
   wakeInherited(step);
   admitWaiting(step);
   assignAgents(step);
@@ -595,7 +602,8 @@ function hasV25Rule(settings: V2Settings): boolean {
     settings.rescue ||
     settings.dynamicCulprits ||
     hasTailBounds(settings) ||
-    settings.park === true
+    settings.park === true ||
+    stallFixRules(settings).length > 0
   );
 }
 
@@ -615,6 +623,15 @@ function variantAdditions(settings: V2Settings): string[] {
     ...((settings.startOrder ?? 'fifo') === 'dependency' ? ['start_order:dependency'] : []),
     ...((settings.liveSync ?? 'off') === 'off' ? [] : [`live_sync:${settings.liveSync}`]),
     ...(settings.liveSyncMidrun === true ? ['live_sync_midrun'] : []),
+  ];
+}
+
+/** The 30-agent stall fix's rules that are on (v2.5 rules: they never make a variant of their own). */
+function stallFixRules(settings: V2Settings): string[] {
+  return [
+    ...(settings.redReset === true ? ['red_reset'] : []),
+    ...(settings.episodeTickets === true ? ['episode_tickets'] : []),
+    ...(settings.repairLanding === true ? ['repair_landing'] : []),
   ];
 }
 
@@ -775,6 +792,18 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
           midrun_noted: stats.midrun_noted ?? 0,
         }
       : {}),
+    ...(stallFixRules(settings).length > 0
+      ? {
+          red_reset: settings.redReset === true,
+          episode_tickets: settings.episodeTickets === true,
+          repair_landing: settings.repairLanding === true,
+          resets: stats.resets ?? 0,
+          requeued: stats.requeued ?? 0,
+          episode_reds: stats.episode_reds ?? 0,
+          episode_inherited: stats.episode_inherited ?? 0,
+          repair_landings: stats.repair_landings ?? 0,
+        }
+      : {}),
   };
   return {
     key: 'beanstalk',
@@ -848,6 +877,7 @@ function summaryRows(
           : 'off'),
     ],
     ...tailBoundsRows(settings, stats),
+    ...stallFixRows(settings, stats),
     [
       'Tests first (accepted / fallbacks) / targeted landing checks (red)',
       `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
@@ -908,6 +938,18 @@ function tailBoundsRows(settings: V2Settings, stats: V2State['stats']): [string,
       'Max bean invocations / tail guard minutes / dropped by each',
       `${bound(settings.maxBeanInvocations)} / ${bound(settings.tailGuardMinutes)} / ` +
         `${stats.invocation_drops ?? 0} / ${stats.tail_drops ?? 0}`,
+    ],
+  ];
+}
+
+/** The 30-agent stall fix, when any of it is on: what each rule did. */
+function stallFixRows(settings: V2Settings, stats: V2State['stats']): [string, Json][] {
+  if (stallFixRules(settings).length === 0) return [];
+  return [
+    [
+      'Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings',
+      `${stats.resets ?? 0} (${stats.requeued ?? 0}) / ${stats.episode_reds ?? 0} ` +
+        `(${stats.episode_inherited ?? 0}) / ${stats.repair_landings ?? 0}`,
     ],
   ];
 }
