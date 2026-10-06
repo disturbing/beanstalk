@@ -85,9 +85,9 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       explore(run, { ref, paths: paths ?? [] }, async (id) =>
         fromRun(await deps.run(id).repoLog(ref, paths, limit)),
       ),
-    repoGrep: (run, ref, pattern, paths) =>
+    repoGrep: (run, ref, pattern, paths, regex) =>
       explore(run, { ref, paths: paths ?? [] }, async (id) =>
-        fromRun(await deps.run(id).repoGrep(ref, pattern, paths ?? null)),
+        fromRun(await deps.run(id).repoGrep(ref, pattern, paths ?? null, regex === true)),
       ),
     beansByPath: (run, paths) =>
       checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).beans(paths))),
@@ -98,9 +98,10 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       ),
     testsFor: (run, paths) =>
       checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).testsFor(paths))),
-    beanStreams: (run) => forRun(run, async (id) => fromRun(await deps.run(id).beanStreams())),
+    // Streams answer from the run's stream object; the engine's RunDO is not asked.
+    beanStreams: (run) => forRun(run, async (id) => ok(await deps.streams(id).beanStreams())),
     beanStream: (run, bean) =>
-      forRun(run, async (id) => fromRun(await deps.run(id).beanStream(bean))),
+      forRun(run, async (id) => ok(await deps.streams(id).beanStream(bean))),
     verifyViewToken: (token) => verifyViewToken(deps, token),
   };
 }

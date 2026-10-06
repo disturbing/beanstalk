@@ -152,15 +152,24 @@ export class RunIndex extends DurableObject<Env> {
 
   /**
    * Deletes the repos of every run that began before `startedBeforeMs` and is not racing,
-   * and of `race-*` repos no run knows. Each run's own RunDO decides and deletes.
+   * and of `race-*` repos no run knows. Each run's own RunDO decides and deletes, from the
+   * one listing of the namespace made here (each run gets only its own repo names).
    */
   async sweep(startedBeforeMs: number): Promise<SweepReport> {
     const repos = await artifactsPort(this.env.ARTIFACTS).listRepos(
       (name) => runOfRepo(name) !== null,
     );
-    const runs = [...new Set(repos.map(runOfRepo))].filter((run): run is RunId => run !== null);
+    const reposByRun = Map.groupBy(
+      repos.flatMap((name) => {
+        const run = runOfRepo(name);
+        return run === null ? [] : [{ run, name }];
+      }),
+      (entry) => entry.run,
+    );
+    const runs = [...reposByRun.keys()];
     const outcomes = await inBatches(runs, async (run) => {
-      const result = await this.env.RUNS.getByName(run).sweep(run, startedBeforeMs);
+      const listed = (reposByRun.get(run) ?? []).map((entry) => entry.name);
+      const result = await this.env.RUNS.getByName(run).sweep(run, startedBeforeMs, listed);
       return [{ run, result }];
     });
     const report: SweepReport = {

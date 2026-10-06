@@ -1,3 +1,4 @@
+import { UpstreamError } from '../errors';
 import type { GitPath } from './git-path';
 
 /** A clone or push of the arena repo takes seconds; this bounds a stuck upstream. */
@@ -49,6 +50,12 @@ export async function forwardGit(
     redirect: 'manual',
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
+  if (upstream.status >= 300 && upstream.status < 400) {
+    // Never hand the client a redirect: its `location` would send git (with its credentials)
+    // to a host the gateway did not choose.
+    await upstream.body?.cancel();
+    throw new UpstreamError(`the git remote answered ${upstream.status}, a redirect`, false);
+  }
   const responseHeaders = new Headers();
   upstream.headers.forEach((value, name) => {
     if (!DROPPED_RESPONSE_HEADERS.has(name.toLowerCase())) responseHeaders.set(name, value);

@@ -13,17 +13,12 @@ import type {
   NextResponse,
   InvocationProgress,
   ProgressResponse,
-  StreamResponse,
-  StreamSnapshot,
 } from '@beanstalk/shared-race/driver';
 import type { InvocationId, RunId, Sha, SlotId } from '@beanstalk/shared-race/ids';
 import type { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type {
   BeanDetail,
-  BeanStream,
-  BeanStreamEnd,
-  BeanStreamSummary,
   BeanSummary,
   DecisionRecord,
   RepoDiff,
@@ -38,6 +33,7 @@ import type {
 import {
   BeanContextInput,
   BeanDiscoverInput,
+  BeanSummariesInput,
   BeanInboxAckInput,
   BeanInboxReadInput,
   BeanThreadPostInput,
@@ -47,6 +43,7 @@ import {
 import type {
   BeanContext,
   BeanDiscoverPage,
+  BeanPeerSummary,
   BeanInboxAckResult,
   BeanInboxPage,
   BeanThreadPostResult,
@@ -54,7 +51,12 @@ import type {
 } from '@beanstalk/shared-race/collaboration';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
-import { readBeanContext, readBeanInbox, acknowledgeBeanInbox } from '../collaboration/read';
+import {
+  readBeanContext,
+  readBeanInbox,
+  readBeanSummaries,
+  acknowledgeBeanInbox,
+} from '../collaboration/read';
 import { discoverBeans } from '../collaboration/discover';
 import { migrateCollaboration, seedCollaboration, readBean } from '../collaboration/store';
 import { updateBean } from '../collaboration/update';
@@ -80,16 +82,6 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
-import type { StoredStream } from './bean-streams';
-import {
-  beanStreamOf,
-  decideStream,
-  deleteStream,
-  loadStream,
-  loadStreams,
-  migrateStreams,
-  saveStream,
-} from './bean-streams';
 import { toDriverReply } from './driver-reply';
 import type { InfraMeter, InfraReport, RunnerCall } from './infra-meter';
 import {
@@ -99,14 +91,15 @@ import {
   emptyMeter,
   infraReport,
   recordRunnerCall,
+  recordWarmStart,
 } from './infra-meter';
 import { meteredArtifacts, meteredRunner } from './metered-ports';
 import type { GitAccess, GitPrincipal } from './git-access';
 import { decideGitAccess } from './git-access';
 import type { TokenSource } from './run-jobs';
 import { cachingTokenSource, executeJob } from './run-jobs';
-import { runRepoName } from './run-names';
-import type { ReapMode, ReapReport } from './run-reap';
+import { ciInstance, committerInstance, runRepoName } from './run-names';
+import type { ReapMode, ReapOptions, ReapReport } from './run-reap';
 import { reapRepos, repoStatus } from './run-reap';
 import type { StoredRun } from './run-store';
 import type { ExplorerInput } from './run-explorer';
@@ -119,6 +112,8 @@ import {
 } from './run-explorer';
 import { RUN_INDEX_NAME } from './run-index';
 import {
+  clearObjectCache,
+  hasRun,
   loadMeter,
   loadReapRecord,
   loadRun,
@@ -131,6 +126,18 @@ import {
   saveStep,
 } from './run-store';
 import { runListItem, testCoverage } from './run-views';
+import type { RunStreamDO } from '../stream/run-stream-do';
+import { STREAM_SWEEP_MARGIN_S, streamChanges } from '../stream/stream-changes';
+import type { StepWrite } from './step-writes';
+import {
+  COST_FLUSH_MS,
+  SIZE_SAMPLE_STEPS,
+  StepWriteError,
+  classifyStep,
+  sizeLevel,
+  stateBytes,
+  stepFingerprint,
+} from './step-writes';
 
 /** The run repo's branches (`refs/heads/sprout`, `refs/heads/stalk`). */
 const SPROUT_BRANCH = 'sprout';
@@ -143,9 +150,17 @@ const TRACEBACK_CHARS = 4000;
  * Events after which a line has a new head (the base at the start, then landings on the
  * sprout or the stalk): the read index warms that head.
  */
-const LINE_MOVES: ReadonlySet<string> = new Set(['race.start', 'task.commit', 'green.promote']);
-/** `stream_diffs`: the invocations whose agent writes the bean's code, and so may stream it. */
-const STREAMING_KINDS: ReadonlySet<string> = new Set(['initial', 'rework', 'sync', 'fixer']);
+const LINE_MOVES: ReadonlySet<string> = new Set([
+  'race.start',
+  'land',
+  'revert',
+  'sprout.reset',
+  'green.promote',
+]);
+/** The infra meter is written with every stored step, and otherwise at most this often. */
+const METER_SAVE_INTERVAL_MS = 5000;
+/** How long `summary()` waits for a reap in flight, so a capture at `done` sees its outcome. */
+const SUMMARY_REAP_WAIT_MS = 5000;
 
 export type RunFailure = {
   readonly code: string;
@@ -188,13 +203,31 @@ export class RunDO extends DurableObject<Env> {
   readonly #tokens: TokenSource;
   #meter: InfraMeter;
   /** The read index: git objects by id (`repo/object-cache.ts`), and refs read moments ago. */
-  readonly #objects: ObjectStore;
+  #objects: ObjectStore;
+  /** A sweep of a run this object never held deleted its storage; tables return on create. */
+  #wiped = false;
+  /** Fingerprint of the in-memory state for the quiet-step check (null: compute on demand). */
+  #fingerprint: string | null = null;
+  /** Since when a progress report's cost estimate is held in memory only (null: none is). */
+  #unsavedCostSinceMs: number | null = null;
+  /** Steps stored since the object woke, and the size warning last reached. */
+  #stepsWritten = 0;
+  #sizeLevel = 0;
+  /** The meter changed since it was last stored, and when that was. */
+  #meterDirty = false;
+  #meterSavedAtMs = 0;
+  /** The reap of the finished run, while it runs. */
+  #reaping: Promise<void> | null = null;
+  /** The run view the live feed last carried (JSON), to send it only when it changed. */
+  #sentView: string | null = null;
+  /** The explorer's parsed events, for the state seq they were read at. */
+  #explorerCache: { readonly seq: number; readonly input: ExplorerInput } | null = null;
   readonly #refs: RefMemo = new Map();
   /** The warm-up of the line's head in progress, and whether the line moved again meanwhile. */
   #warming: Promise<void> | null = null;
   #warmAgain = false;
-  /** `stream_diffs`: the invocations with a stored snapshot (cleared when they close). */
-  readonly #streaming = new Set<string>();
+  /** `stream_diffs`: calls to the run's stream object, in step order (each after the last). */
+  #streamCalls: Promise<void> = Promise.resolve();
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -211,11 +244,7 @@ export class RunDO extends DurableObject<Env> {
       ttlSeconds: config.artifactsTokenTtlSeconds,
       now: () => Date.now(),
     });
-    migrate(ctx.storage.sql);
-    migrateCollaboration(ctx.storage.sql);
-    this.#objects = sqlObjectStore(ctx.storage.sql);
-    migrateStreams(ctx.storage.sql);
-    for (const stream of loadStreams(ctx.storage.sql)) this.#streaming.add(stream.inv);
+    this.#objects = this.#migrate();
     const stored = loadRun(ctx.storage);
     if (stored !== null) {
       seedCollaboration(ctx.storage.sql, stored.config.tasks);
@@ -233,6 +262,10 @@ export class RunDO extends DurableObject<Env> {
     if (this.#loaded !== null || this.#creating)
       return failure('conflict', 409, `run ${input.run} exists`);
     this.#creating = true;
+    if (this.#wiped) {
+      this.#objects = this.#migrate();
+      this.#wiped = false;
+    }
     try {
       const repo = await this.#artifacts.createRepo(
         runRepoName(input.run),
@@ -248,6 +281,7 @@ export class RunDO extends DurableObject<Env> {
       saveNewRun(this.ctx.storage, stored);
       seedCollaboration(this.ctx.storage.sql, stored.config.tasks);
       this.#loaded = { stored, env };
+      this.#saveMeter();
       this.#updateIndex();
       this.#log.info('run created', {
         run: input.run,
@@ -269,6 +303,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** Read current agreements and a bounded, independently cursor-addressed history. */
   beanContext(input: BeanContextInput): RpcResult<BeanContext> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const parsed = BeanContextInput.safeParse(input);
     return parsed.success
@@ -278,6 +313,7 @@ export class RunDO extends DurableObject<Env> {
 
   /** Discover independently published approaches before an observed diff exists. */
   beanDiscover(input: BeanDiscoverInput): RpcResult<BeanDiscoverPage> {
+    this.#countRequest();
     if (this.#loaded === null) return notFound();
     const parsed = BeanDiscoverInput.safeParse(input);
     return parsed.success
@@ -285,7 +321,18 @@ export class RunDO extends DurableObject<Env> {
       : failure('invalid_request', 400, 'invalid bean discovery input');
   }
 
+  /** Excerpt-only peer summaries for bean_context; no history crosses the RPC boundary. */
+  beanPeerSummaries(beans: readonly string[]): RpcResult<BeanPeerSummary[]> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    const parsed = BeanSummariesInput.safeParse(beans);
+    return parsed.success
+      ? readBeanSummaries(this.ctx.storage.sql, parsed.data)
+      : failure('invalid_request', 400, 'invalid bean summaries input');
+  }
+
   beanUpdate(claims: ContributorTokenClaims, input: BeanUpdateInput): RpcResult<BeanUpdateResult> {
+    this.#countRequest();
     const grant = this.#collaborationGrant(claims);
     if (!grant.ok) return grant;
     const parsed = BeanUpdateInput.safeParse(input);
@@ -298,6 +345,7 @@ export class RunDO extends DurableObject<Env> {
     claims: ContributorTokenClaims,
     input: BeanThreadPostInput,
   ): RpcResult<BeanThreadPostResult> {
+    this.#countRequest();
     const grant = this.#collaborationGrant(claims);
     if (!grant.ok) return grant;
     const parsed = BeanThreadPostInput.safeParse(input);
@@ -310,6 +358,7 @@ export class RunDO extends DurableObject<Env> {
     claims: ContributorTokenClaims,
     input: BeanInboxReadInput,
   ): RpcResult<BeanInboxPage> {
+    this.#countRequest();
     const grant = this.#collaborationGrant(claims);
     if (!grant.ok) return grant;
     const parsed = BeanInboxReadInput.safeParse(input);
@@ -322,6 +371,7 @@ export class RunDO extends DurableObject<Env> {
     claims: ContributorTokenClaims,
     input: BeanInboxAckInput,
   ): RpcResult<BeanInboxAckResult> {
+    this.#countRequest();
     const grant = this.#collaborationGrant(claims);
     if (!grant.ok) return grant;
     const parsed = BeanInboxAckInput.safeParse(input);
@@ -365,9 +415,9 @@ export class RunDO extends DurableObject<Env> {
       baseSha: base.value,
       labels: { out: `cloud:${loaded.stored.meta.run}`, repo: repo.name },
     });
-    return response.kind === 'refused'
-      ? failure('invalid_state', 409, response.refusal.message)
-      : { ok: true, value: { baseSha: base.value } };
+    if (response.kind === 'refused') return failure('invalid_state', 409, response.refusal.message);
+    this.#prewarmRunners(loaded.stored.meta.run, loaded.env.config.ci_slots);
+    return { ok: true, value: { baseSha: base.value } };
   }
 
   /**
@@ -376,41 +426,68 @@ export class RunDO extends DurableObject<Env> {
    */
   async reap(run: RunId, mode: ReapMode): Promise<RunResult<ReapReport>> {
     this.#countRequest();
-    return this.#reap(run, mode);
+    return this.#reap(run, { mode });
   }
 
   /**
    * The run index's sweep: deletes the run's repos when the run began before
    * `startedBeforeMs` (or is unknown here: orphaned repos) and is not racing. null: skipped.
+   * `listed`: the namespace's repo names, when the run index listed them already.
    */
-  async sweep(run: RunId, startedBeforeMs: number): Promise<RunResult<ReapReport | null>> {
+  async sweep(
+    run: RunId,
+    startedBeforeMs: number,
+    listed?: readonly string[],
+  ): Promise<RunResult<ReapReport | null>> {
     this.#countRequest();
     const createdAtMs = this.#loaded?.stored.meta.createdAtMs;
     if (createdAtMs !== undefined && createdAtMs >= startedBeforeMs)
       return { ok: true, value: null };
-    return this.#reap(run, 'delete');
+    return this.#reap(run, listed === undefined ? { mode: 'delete' } : { mode: 'delete', listed });
   }
 
-  async #reap(run: RunId, mode: ReapMode): Promise<RunResult<ReapReport>> {
+  async #reap(run: RunId, options: ReapOptions): Promise<RunResult<ReapReport>> {
     const phase = this.#creating ? 'being created' : this.#loaded?.stored.state.phase;
     if (phase === 'running' || phase === 'finishing' || phase === 'being created') {
       return failure('invalid_state', 409, `run is ${phase}; reap its repos once it is over`);
     }
     try {
-      const report = await reapRepos(this.#artifacts, run, mode);
-      if (mode === 'delete') {
-        if (this.#loaded !== null)
-          saveReapRecord(this.ctx.storage, { ...report, atMs: Date.now() });
-        this.#log.info('run repos reaped', {
-          run,
-          deleted: report.deleted.length,
-          failed: report.failed.length,
-        });
-      }
+      const report = await reapRepos(this.#artifacts, run, options);
+      if (options.mode === 'delete') this.#reaped(run, report);
+      await this.#forgetUnknownRun();
       return { ok: true, value: report };
     } catch (error: unknown) {
       return upstreamFailure(error, 'listing the namespace');
     }
+  }
+
+  /** Records a reap; once every repo is gone, the read index's cached objects go too. */
+  #reaped(run: RunId, report: ReapReport): void {
+    if (this.#loaded !== null) {
+      saveReapRecord(this.ctx.storage, { ...report, atMs: Date.now() });
+      if (report.failed.length === 0) {
+        clearObjectCache(this.ctx.storage.sql);
+        this.#refs.clear();
+      }
+    }
+    // The run's streaming diffs go with its repos.
+    if (this.#loaded?.stored.config.stream_diffs === true)
+      this.#callStreams('clear', (streams) => streams.clear());
+    this.#log.info('run repos reaped', {
+      run,
+      deleted: report.deleted.length,
+      failed: report.failed.length,
+    });
+  }
+
+  /**
+   * A reap of a run this object never held (an orphaned repo's sweep) leaves no storage: the
+   * tables the constructor made are deleted. A run created here later makes them again.
+   */
+  async #forgetUnknownRun(): Promise<void> {
+    if (this.#loaded !== null || this.#creating || this.#wiped || hasRun(this.ctx.storage)) return;
+    this.#wiped = true;
+    await this.ctx.storage.deleteAll();
   }
 
   /** The admin answers a decision card (v2): which spec wins. */
@@ -526,15 +603,18 @@ export class RunDO extends DurableObject<Env> {
     ref: string,
     pattern: string,
     paths: readonly string[] | null,
+    regex = false,
   ): Promise<RunResult<RepoGrep>> {
-    return this.#explore((explorer) => explorer.grep(ref, pattern, paths));
+    return this.#explore((explorer) => explorer.grep(ref, pattern, paths, { regex }));
   }
 
   /** `summary.json` of the run as JSON text. */
   async summary(): Promise<RunResult<string>> {
     this.#countRequest();
+    if (this.#reaping !== null) await settledWithin(this.#reaping, SUMMARY_REAP_WAIT_MS);
     const loaded = this.#loaded;
     if (loaded === null) return notFound();
+    this.#saveMeter();
     const { meta, config, state } = loaded.stored;
     const repos = repoStatus({
       done: state.phase === 'done',
@@ -565,7 +645,8 @@ export class RunDO extends DurableObject<Env> {
       value: {
         bodies: rows.map((row) => row.body),
         last: rows.at(-1)?.seq ?? after,
-        done: loaded.stored.state.phase === 'done',
+        // The run is over and this page reached the log's end: a reader may stop.
+        done: loaded.stored.state.phase === 'done' && rows.length < limit,
       },
     };
   }
@@ -583,8 +664,8 @@ export class RunDO extends DurableObject<Env> {
       const timer = setTimeout(() => this.#expirePoll(slot, pollId), POLL_TIMEOUT_MS);
       this.#waiters.set(pollId, { resolve, timer });
     });
-    const response = this.#apply({ kind: 'poll', at: Date.now(), slot, pollId });
-    if (response.kind === 'poll' && response.reply !== null)
+    const response = this.#applyHeld({ kind: 'poll', at: Date.now(), slot, pollId });
+    if (response?.kind === 'poll' && response.reply !== null)
       this.#deliver([{ pollId, reply: response.reply }]);
     const reply = await replied;
     const current = this.#requireLoaded().stored;
@@ -628,60 +709,6 @@ export class RunDO extends DurableObject<Env> {
       : { ok: true, value: { abort: false } };
   }
 
-  /**
-   * `stream_diffs`: the driver's snapshot of a bean's working change while its agent writes.
-   * Kept as the bean's latest snapshot (never logged) and broadcast as a summary.
-   */
-  async stream(
-    slot: SlotId,
-    inv: InvocationId,
-    snapshot: StreamSnapshot,
-  ): Promise<RunResult<StreamResponse>> {
-    this.#countRequest();
-    const loaded = this.#loaded;
-    if (loaded === null) return notFound();
-    const { config, state } = loaded.stored;
-    if (!config.stream_diffs)
-      return failure('stream_off', 409, 'this run does not stream diffs (stream_diffs)');
-    const open = state.invocations[inv];
-    if (open === undefined || state.phase !== 'running')
-      return failure('closed_invocation', 409, `${inv} is not running`);
-    if (open.slot !== slot)
-      return failure('wrong_slot', 403, `${inv} belongs to slot ${open.slot}`);
-    if (!STREAMING_KINDS.has(open.kind))
-      return failure('invalid_state', 409, `a ${open.kind} invocation does not stream`);
-    const nowMs = Date.now();
-    const origin = {
-      task: open.task,
-      inv,
-      slot,
-      nowMs,
-      t: Math.max(state.clock, (nowMs - state.createdAtMs) / 1000),
-    };
-    const decision = decideStream(loadStream(this.ctx.storage.sql, open.task), origin, snapshot);
-    if (decision.kind === 'store') {
-      saveStream(this.ctx.storage.sql, decision.stream);
-      this.#streaming.add(inv);
-      this.#sendAll(JSON.stringify({ type: 'stream', stream: decision.stream.summary }));
-    }
-    return { ok: true, value: decision.response };
-  }
-
-  /** `stream_diffs`: every bean streaming now, latest summary each. */
-  async beanStreams(): Promise<RunResult<BeanStreamSummary[]>> {
-    this.#countRequest();
-    if (this.#loaded === null) return notFound();
-    return { ok: true, value: loadStreams(this.ctx.storage.sql).map((stream) => stream.summary) };
-  }
-
-  /** `stream_diffs`: a bean's latest snapshot with its patches, or null. */
-  async beanStream(bean: string): Promise<RunResult<BeanStream | null>> {
-    this.#countRequest();
-    if (this.#loaded === null) return notFound();
-    const stream = loadStream(this.ctx.storage.sql, bean);
-    return { ok: true, value: stream === null ? null : beanStreamOf(stream) };
-  }
-
   /** Lends the gateway's Artifacts token for one git request, if the principal may make it. */
   async authorizeGit(principal: GitPrincipal, repo: string, access: GitAccess): Promise<GitGrant> {
     this.#countRequest();
@@ -692,8 +719,8 @@ export class RunDO extends DurableObject<Env> {
     if (!decision.allowed) return { ok: false, status: decision.status, message: decision.message };
     const upstream = repos.repo;
     try {
+      // A mint is counted by the metered Artifacts port; a cached token costs nothing.
       const token = await this.#tokens.token(repo, decision.scope);
-      this.#setMeter(countArtifactsOps(this.#meter, 1));
       return { ok: true, upstream: upstream.remote, token, refs: decision.refs };
     } catch (error: unknown) {
       this.#log.error('minting a git token failed', { repo, error });
@@ -713,6 +740,8 @@ export class RunDO extends DurableObject<Env> {
     const loaded = this.#loaded;
     const view = loaded === null ? null : runView(loaded.stored.state, loaded.env);
     server.send(JSON.stringify({ type: 'snapshot', view }));
+    // The next update carries the view again, whatever the other viewers last got.
+    this.#sentView = null;
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -743,22 +772,102 @@ export class RunDO extends DurableObject<Env> {
     return this.#loaded;
   }
 
-  /** One engine step, persisted with its events; then its effects. Synchronous: atomic. */
+  /**
+   * One engine step, persisted with its events; then its effects. Synchronous: atomic. A
+   * quiet step (`step-writes.ts`: poll bookkeeping, a cost estimate) stays in memory; its
+   * state is written with the next step that changes something. A step that cannot be
+   * stored throws `StepWriteError` and leaves the run as it was.
+   */
   #apply(input: EngineInput): EngineResponse {
     const loaded = this.#requireLoaded();
     const output = this.#step(loaded, input);
-    saveStep(this.ctx.storage, output.state, output.effects.events);
+    const before = loaded.stored.state;
+    const { write, fingerprint } = classifyStep(
+      input,
+      output,
+      () => this.#fingerprint ?? stepFingerprint(before),
+    );
+    this.#store(input, output, write);
     this.#loaded = { ...loaded, stored: { ...loaded.stored, state: output.state } };
-    if (output.effects.events.some((event) => LINE_MOVES.has(event.type))) this.#lineMoved();
-    this.#scheduleAlarm(output.state);
-    this.#broadcast(output);
-    this.#settleStreams(output.state);
+    this.#fingerprint = fingerprint;
+    if (write === 'state') {
+      if (output.effects.events.some((event) => LINE_MOVES.has(event.type))) this.#lineMoved();
+      this.#scheduleAlarm(output.state);
+      this.#broadcast(output);
+    }
+    this.#reportStreams(output);
     this.#deliver(output.effects.replies);
     for (const job of output.effects.jobs) this.ctx.waitUntil(this.#runJob(job.id, job.spec));
-    this.#updateIndex();
-    if (loaded.stored.state.phase !== 'done' && output.state.phase === 'done') this.#finished();
-    else this.#enforceSpendCap();
+    if (write === 'state') this.#updateIndex();
+    if (before.phase !== 'done' && output.state.phase === 'done') {
+      this.#callStreams('finish', (streams) => streams.finish(output.state.clock));
+      this.#finished();
+    } else this.#enforceSpendCap();
     return output.response;
+  }
+
+  /**
+   * `#apply` for a step that answers held polls: when the step cannot be stored, the polls
+   * have been answered `wait` already, so the request returns instead of failing.
+   */
+  #applyHeld(input: EngineInput): EngineResponse | null {
+    try {
+      return this.#apply(input);
+    } catch (error: unknown) {
+      if (error instanceof StepWriteError) return null;
+      throw error;
+    }
+  }
+
+  /** Writes what the step needs: its state, events and the meter, or nothing yet. */
+  #store(input: EngineInput, output: StepOutput, write: StepWrite): void {
+    if (write === 'none') return;
+    const nowMs = Date.now();
+    if (write === 'cost') {
+      this.#unsavedCostSinceMs ??= nowMs;
+      if (nowMs - this.#unsavedCostSinceMs < COST_FLUSH_MS) return;
+    }
+    try {
+      saveStep(this.ctx.storage, {
+        state: output.state,
+        events: output.effects.events,
+        meter: this.#meter,
+      });
+    } catch (error: unknown) {
+      this.#failedWrite(input, output.state, error);
+    }
+    this.#unsavedCostSinceMs = null;
+    this.#meterDirty = false;
+    this.#meterSavedAtMs = nowMs;
+    this.#stepsWritten += 1;
+    if (this.#stepsWritten % SIZE_SAMPLE_STEPS === 0) this.#watchSize(output.state);
+  }
+
+  /** A step could not be stored: say how large it was, answer every held poll, and throw. */
+  #failedWrite(input: EngineInput, state: EngineState, error: unknown): never {
+    const run = this.#loaded?.stored.meta.run;
+    this.#log.error('storing a step failed', {
+      run,
+      input: input.kind,
+      seq: state.seq,
+      stateBytes: stateBytes(state),
+      error,
+    });
+    this.#deliver([...this.#waiters.keys()].map((pollId) => ({ pollId, reply: { wait: true } })));
+    throw new StepWriteError(`storing the ${input.kind} step of run ${run ?? '?'} failed`, {
+      cause: error,
+    });
+  }
+
+  /** Logs the state's size now and then, and warns when it reaches 1 MB, then 1.5 MB. */
+  #watchSize(state: EngineState): void {
+    const bytes = stateBytes(state);
+    const level = sizeLevel(bytes);
+    const fields = { run: this.#loaded?.stored.meta.run, seq: state.seq, stateBytes: bytes };
+    if (level > this.#sizeLevel)
+      this.#log.warn('run state is growing toward the 2 MB limit', fields);
+    else this.#log.info('run state size', fields);
+    this.#sizeLevel = level;
   }
 
   #countRequest(): void {
@@ -769,10 +878,54 @@ export class RunDO extends DurableObject<Env> {
     this.#setMeter(recordRunnerCall(this.#meter, call));
   }
 
-  /** Kept in memory always, stored only for a run (a probe of an unknown run stores nothing). */
+  /**
+   * Kept in memory always; stored with every stored step, by `summary()`, and otherwise at
+   * most every few seconds. Only a run stores it (a probe of an unknown run stores nothing).
+   */
   #setMeter(meter: InfraMeter): void {
     this.#meter = meter;
-    if (this.#loaded !== null) saveMeter(this.ctx.storage, meter);
+    this.#meterDirty = true;
+    if (Date.now() - this.#meterSavedAtMs >= METER_SAVE_INTERVAL_MS) this.#saveMeter();
+  }
+
+  #saveMeter(): void {
+    if (this.#loaded === null || !this.#meterDirty) return;
+    saveMeter(this.ctx.storage, this.#meter);
+    this.#meterDirty = false;
+    this.#meterSavedAtMs = Date.now();
+  }
+
+  /**
+   * Starts the committer and the CI runner instances as the race starts, so the first squash
+   * and check do not wait for a cold container. Best effort: a failure is logged and the
+   * instance starts on its first call instead.
+   */
+  #prewarmRunners(run: RunId, ciSlots: number): void {
+    const instances = [
+      committerInstance(run),
+      ...Array.from({ length: ciSlots }, (_, slot) => ciInstance(run, slot)),
+    ];
+    this.ctx.waitUntil(Promise.all(instances.map((instance) => this.#prewarm(instance))));
+  }
+
+  async #prewarm(instance: string): Promise<void> {
+    const startMs = Date.now();
+    try {
+      await this.env.RUNNER.getByName(instance).start();
+      this.#setMeter(recordWarmStart(this.#meter, { instance, startMs, endMs: Date.now() }));
+    } catch (error: unknown) {
+      this.#log.warn('pre-warming a runner failed', { instance, error });
+    }
+  }
+
+  /** Creates the object's tables (idempotent) and returns the read index's store. */
+  #migrate(): ObjectStore {
+    const sql = this.ctx.storage.sql;
+    migrate(sql);
+    migrateCollaboration(sql);
+    // The first design's snapshots lived here; the run's RunStreamDO holds them now.
+    sql.exec('DROP TABLE IF EXISTS bean_streams');
+    return sqlObjectStore(sql);
   }
 
   #infra(createdAtMs: number): InfraReport {
@@ -800,12 +953,21 @@ export class RunDO extends DurableObject<Env> {
       infra: this.#infra(meta.createdAtMs),
     });
     if (config.keep_repo) return;
-    this.ctx.waitUntil(this.#reapFinished(meta.run));
+    const reaping = this.#reapFinished(meta.run).finally(() => {
+      this.#reaping = null;
+    });
+    this.#reaping = reaping;
+    this.ctx.waitUntil(reaping);
   }
 
+  /** Never rejects: a failure is logged, and the summary reports the repos as still reaping. */
   async #reapFinished(run: RunId): Promise<void> {
-    const reaped = await this.#reap(run, 'delete');
-    if (!reaped.ok) this.#log.warn('reaping a finished run failed', { run, error: reaped.error });
+    try {
+      const reaped = await this.#reap(run, { mode: 'delete' });
+      if (!reaped.ok) this.#log.warn('reaping a finished run failed', { run, error: reaped.error });
+    } catch (error: unknown) {
+      this.#log.error('reaping a finished run failed', { run, error });
+    }
   }
 
   /** Tells the run index when the run's phase or task counts changed. */
@@ -889,15 +1051,21 @@ export class RunDO extends DurableObject<Env> {
     }
   }
 
+  /** The explorer's input; the event log is read and parsed once per new event. */
   #explorerInput(): ExplorerInput | null {
     const loaded = this.#loaded;
     if (loaded === null) return null;
+    const { state } = loaded.stored;
+    const cached = this.#explorerCache;
+    if (cached !== null && cached.seq === state.seq) return { ...cached.input, state };
     const bodies = readEventsOfTypes(this.ctx.storage.sql, EXPLORER_EVENT_TYPES);
     const events = bodies.flatMap((body) => {
       const event = parseLogged(body);
       return event === null ? [] : [event];
     });
-    return { state: loaded.stored.state, env: loaded.env, events };
+    const input = { state, env: loaded.env, events };
+    this.#explorerCache = { seq: state.seq, input };
+    return input;
   }
 
   #step(loaded: Loaded, input: EngineInput): StepOutput {
@@ -944,7 +1112,7 @@ export class RunDO extends DurableObject<Env> {
 
   #expirePoll(slot: SlotId, pollId: string): void {
     if (!this.#waiters.has(pollId)) return;
-    this.#apply({ kind: 'poll-expired', at: Date.now(), slot, pollId });
+    this.#applyHeld({ kind: 'poll-expired', at: Date.now(), slot, pollId });
     // The engine no longer knew this poll (it was replaced): answer it here.
     this.#deliver([{ pollId, reply: { wait: true } }]);
   }
@@ -954,8 +1122,13 @@ export class RunDO extends DurableObject<Env> {
     const at = Number.isFinite(next) ? Math.ceil(state.createdAtMs + next * 1000) : null;
     if (at === this.#alarmAt) return;
     this.#alarmAt = at;
+    const change = at === null ? this.ctx.storage.deleteAlarm() : this.ctx.storage.setAlarm(at);
     this.ctx.waitUntil(
-      at === null ? this.ctx.storage.deleteAlarm() : this.ctx.storage.setAlarm(at),
+      change.catch((error: unknown) => {
+        // Forget it, so the next step sets the alarm again.
+        if (this.#alarmAt === at) this.#alarmAt = null;
+        this.#log.error('scheduling the alarm failed', { at, error });
+      }),
     );
   }
 
@@ -964,11 +1137,11 @@ export class RunDO extends DurableObject<Env> {
     const sockets = this.ctx.getWebSockets();
     if (sockets.length === 0) return;
     const loaded = this.#requireLoaded();
-    const message = JSON.stringify({
-      type: 'update',
-      view: runView(output.state, loaded.env),
-      events: output.effects.events,
-    });
+    const view = JSON.stringify(runView(output.state, loaded.env));
+    const isNewView = view !== this.#sentView;
+    this.#sentView = view;
+    // The view is sent only when it changed (viewers keep the last one); events always are.
+    const message = `{"type":"update",${isNewView ? `"view":${view},` : ''}"events":${JSON.stringify(output.effects.events)}}`;
     for (const socket of sockets) {
       try {
         socket.send(message);
@@ -980,38 +1153,39 @@ export class RunDO extends DurableObject<Env> {
   }
 
   /**
-   * A closed invocation's snapshot is superseded (by its commit, or by nothing): drop it and
-   * tell the live feed, so viewers stop showing the bean as being written.
+   * `stream_diffs`: tells the run's stream object which invocations this step started and
+   * ended (the streaming kinds only), one batch each, from the step's events whether or not
+   * the step was stored. The engine never waits for it; a failed call is logged and the
+   * stream object's alarm sweep closes what it missed.
    */
-  #settleStreams(state: EngineState): void {
-    if (this.#streaming.size === 0) return;
-    const closed = loadStreams(this.ctx.storage.sql).filter(
-      (stream) => state.invocations[stream.inv] === undefined,
+  #reportStreams(output: StepOutput): void {
+    const { config } = this.#requireLoaded().stored;
+    if (!config.stream_diffs) return;
+    const changes = streamChanges(
+      output.effects.events,
+      output.state.invocations,
+      (config.agent_timeout + STREAM_SWEEP_MARGIN_S) * 1000,
     );
-    for (const stream of closed) this.#endStream(stream, state.clock);
+    if (changes.opens.length > 0)
+      this.#callStreams('open', (streams) => streams.open(changes.opens));
+    if (changes.closes.length > 0)
+      this.#callStreams('close', (streams) => streams.close(changes.closes));
   }
 
-  #endStream(stream: StoredStream, t: number): void {
-    deleteStream(this.ctx.storage.sql, stream.task);
-    this.#streaming.delete(stream.inv);
-    const end: BeanStreamEnd = {
-      type: 'bean.streaming.end',
-      task: stream.task,
-      inv: stream.inv,
-      t,
-    };
-    this.#sendAll(JSON.stringify({ type: 'stream', stream: end }));
-  }
-
-  #sendAll(message: string): void {
-    for (const socket of this.ctx.getWebSockets()) {
-      try {
-        socket.send(message);
-      } catch (error: unknown) {
-        // A socket that closed mid-send is dropped by the runtime; the others still get it.
-        this.#log.debug('live socket send failed', { error });
-      }
-    }
+  /** Runs `call` on the run's stream object after the calls before it (open, close, finish). */
+  #callStreams(
+    what: string,
+    call: (streams: DurableObjectStub<RunStreamDO>) => Promise<void>,
+  ): void {
+    const run = this.#loaded?.stored.meta.run;
+    if (run === undefined) return;
+    const next = this.#streamCalls.then(() =>
+      call(this.env.RUN_STREAMS.getByName(run)).catch((error: unknown) => {
+        this.#log.warn('stream object call failed', { run, call: what, error });
+      }),
+    );
+    this.#streamCalls = next;
+    this.ctx.waitUntil(next);
   }
 
   /** The base both lines were seeded with; refused until the seed push put it on both. */
@@ -1086,4 +1260,15 @@ function refusal(response: Extract<EngineResponse, { kind: 'refused' }>): {
 } {
   const { code, message } = response.refusal;
   return failure(code, REFUSAL_STATUS[code] ?? 409, message);
+}
+
+/** Waits for `work` to settle, or `ms`, whichever comes first. */
+async function settledWithin(work: Promise<void>, ms: number): Promise<void> {
+  const { promise: timeout, resolve } = Promise.withResolvers<void>();
+  const timer = setTimeout(resolve, ms);
+  try {
+    await Promise.race([work, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

@@ -14,9 +14,9 @@ import { liveRoutes } from './routes/live';
 import { collaborationRoutes } from './routes/collaboration';
 
 /** The gateway's HTTP surface (§4): admin and driver API, git proxy, live page. */
-export function createApp(deps: Deps) {
+export function createApp(depsFor: (env: Env) => Deps) {
   const app = new Hono<AppEnv>();
-  app.use(requestContext(deps));
+  app.use(requestContext(depsFor));
   app.use(accessLog);
   app.get('/healthz', (c) => c.json({ ok: true }));
   app.route('/git', gitRoutes);
@@ -34,7 +34,13 @@ export function createApp(deps: Deps) {
 export type AppType = ReturnType<typeof createApp>;
 
 function onError(error: Error, c: Context<AppEnv>): Response {
-  if (error instanceof HTTPException) return error.getResponse();
+  if (error instanceof HTTPException) {
+    // Body-limit (413) and malformed-JSON (400) failures come from Hono's own middleware.
+    return c.json(
+      { error: { code: httpErrorCode(error.status), message: error.message } },
+      error.status,
+    );
+  }
   if (error instanceof GatewayError) {
     if (error.status >= 500)
       c.var.deps.log.error('request failed', { requestId: c.var.requestId, error });
@@ -42,4 +48,10 @@ function onError(error: Error, c: Context<AppEnv>): Response {
   }
   c.var.deps.log.error('unhandled error', { requestId: c.var.requestId, error });
   return c.json({ error: { code: 'internal', message: 'internal error' } }, 500);
+}
+
+function httpErrorCode(status: number): string {
+  if (status === 400) return 'invalid_request';
+  if (status === 413) return 'payload_too_large';
+  return `http_${status}`;
 }

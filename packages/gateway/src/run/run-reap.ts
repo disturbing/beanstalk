@@ -20,13 +20,25 @@ export type ReapReport = {
   readonly failed: readonly { readonly repo: string; readonly error: string }[];
 };
 
+/**
+ * How to reap: `mode`, and the namespace's repo names when the caller listed them already
+ * (the run index's sweep lists once for every run); absent, the namespace is listed here.
+ */
+export type ReapOptions = {
+  readonly mode: ReapMode;
+  readonly listed?: readonly string[];
+};
+
 export async function reapRepos(
   artifacts: ArtifactsPort,
   run: RunId,
-  mode: ReapMode,
+  options: ReapOptions,
 ): Promise<ReapReport> {
-  const repos = await artifacts.listRepos((name) => isRunRepo(run, name));
-  if (mode === 'list') return { repos, deleted: [], failed: [] };
+  const repos =
+    options.listed === undefined
+      ? await artifacts.listRepos((name) => isRunRepo(run, name))
+      : options.listed.filter((name) => isRunRepo(run, name));
+  if (options.mode === 'list') return { repos, deleted: [], failed: [] };
   const deleted: string[] = [];
   const failed: { repo: string; error: string }[] = [];
   for (let start = 0; start < repos.length; start += DELETE_CONCURRENCY) {

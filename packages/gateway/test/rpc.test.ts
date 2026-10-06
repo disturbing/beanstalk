@@ -139,7 +139,7 @@ describe('RPC for the web app: the repo explorer', () => {
     const lib = await gateway.repoTree(run.run, 'sprout', 'src/lib');
     const whole = await gateway.repoTree(run.run, 'sprout', '', true);
     const file = await gateway.repoFile(run.run, 'stalk', 'src/lib/money.ts');
-    const grep = await gateway.repoGrep(run.run, 'sprout', 'toFixed|money\\(', ['src']);
+    const grep = await gateway.repoGrep(run.run, 'sprout', 'toFixed|money\\(', ['src'], true);
 
     expect(root).toMatchObject({ ok: true, value: { commit: NEXT, truncated: false } });
     if (!root.ok || !lib.ok || !whole.ok || !file.ok || !grep.ok)

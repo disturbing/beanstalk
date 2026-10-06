@@ -17,7 +17,8 @@ import type {
 import { Sha } from '@beanstalk/shared-race/ids';
 
 import { GatewayError, UpstreamError } from '../errors';
-import { changeStats, diffText } from '../git/diff-text';
+import { diffReport } from '../git/diff-text';
+import { compileGrep, lineMatches } from '../repo/grep-pattern';
 import type { RepoReader } from '../repo/object-cache';
 import { artifactsCode, changedFilesIn, isUnder } from './artifacts';
 
@@ -53,7 +54,13 @@ export type RepoExplorer = {
   file(ref: string, path: string): Promise<RepoFile>;
   diff(from: string, to: string, paths: readonly string[] | null): Promise<RepoDiff>;
   log(ref: string, paths: readonly string[] | null, limit: number): Promise<RepoLog>;
-  grep(ref: string, pattern: string, paths: readonly string[] | null): Promise<RepoGrep>;
+  /** A literal search, or with `options.regex` a safe-subset regular expression. */
+  grep(
+    ref: string,
+    pattern: string,
+    paths: readonly string[] | null,
+    options?: { readonly regex?: boolean },
+  ): Promise<RepoGrep>;
   /** Every file path at a commit (up to 5,000), for resolving imports. */
   listFiles(commit: string): Promise<{ files: string[]; truncated: boolean }>;
   /** Text of files at a commit; null for a missing, binary or oversized file. */
@@ -105,17 +112,18 @@ export function repoExplorer(
           ...(paths === null ? {} : { paths }),
         });
         if (changes === null) throw new GatewayError('a commit is missing', 'not_found', 404);
-        const patch = diffText(changes, MAX_PATCH_CHARS);
+        const report = diffReport(changes, MAX_PATCH_CHARS);
         return {
           from: { ref: from, commit: base.commit },
           to: { ref: to, commit: head.commit },
-          files: changes.map((change) => ({ path: change.path, ...changeStats(change) })),
-          patch,
-          truncated: changes.length >= MAX_DIFF_FILES || patch.length > MAX_PATCH_CHARS,
+          files: report.files,
+          patch: report.text,
+          truncated: changes.length >= MAX_DIFF_FILES || report.truncated,
         };
       }),
     log: (ref, paths, limit) => open((handle) => readLog(handle, { ref, paths, limit })),
-    grep: (ref, pattern, paths) => open((handle) => search(handle, { ref, pattern, paths })),
+    grep: (ref, pattern, paths, options) =>
+      open((handle) => search(handle, { ref, pattern, paths, regex: options?.regex === true })),
     listFiles: (commit) =>
       open(async (handle) => {
         const resolved = await required(handle, commit);
@@ -153,7 +161,12 @@ export function repoExplorer(
         for (let start = 0; start < blobs.length; start += READ_CONCURRENCY) {
           const batch = blobs.slice(start, start + READ_CONCURRENCY);
           // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
-          await Promise.all(batch.map(async (hash) => handle.readBlob(hash)));
+          await Promise.all(
+            batch.map(async (hash) => {
+              // A blob the cache already holds needs no read (and no body loaded to find out).
+              if (handle.hasBlob?.(hash) !== true) await handle.readBlob(hash);
+            }),
+          );
         }
         return { commit: resolved.commit, files: blobs.length };
       }),
@@ -376,9 +389,9 @@ function toCommit(commit: ArtifactsCommitMetadata): RepoCommit {
 
 async function search(
   handle: RepoReader,
-  query: { ref: string; pattern: string; paths: readonly string[] | null },
+  query: { ref: string; pattern: string; paths: readonly string[] | null; regex: boolean },
 ): Promise<RepoGrep> {
-  const matcher = compile(query.pattern);
+  const matcher = compileGrep(query.pattern, { regex: query.regex });
   const resolved = await required(handle, query.ref);
   const blobs: { path: string; hash: string }[] = [];
   const isFull = await walkFiles(handle, resolved.tree, {
@@ -416,23 +429,12 @@ async function search(
   };
 }
 
-function compile(pattern: string): RegExp {
-  if (pattern.length === 0 || pattern.length > 200) {
-    throw new GatewayError('the pattern must have 1 to 200 characters', 'invalid_request', 400);
-  }
-  try {
-    return new RegExp(pattern);
-  } catch {
-    throw new GatewayError(`not a regular expression: ${pattern}`, 'invalid_request', 400);
-  }
-}
-
 function collectMatches(
   text: string,
   target: { path: string; matcher: RegExp; matches: RepoGrepMatch[] },
 ): void {
   text.split('\n').forEach((line, index) => {
-    if (target.matches.length >= MAX_GREP_MATCHES || !target.matcher.test(line)) return;
+    if (target.matches.length >= MAX_GREP_MATCHES || !lineMatches(target.matcher, line)) return;
     target.matches.push({ path: target.path, line: index + 1, text: line.slice(0, MAX_GREP_LINE) });
   });
 }
@@ -487,7 +489,8 @@ function isOnTheWay(directory: string, filter: readonly string[] | null | undefi
 
 async function blobText(handle: RepoReader, hash: string): Promise<string | null> {
   const blob = await handle.readBlob(hash);
-  return blob === null ? null : textOf(await blob.arrayBuffer());
+  if (blob === null || blob.size > MAX_FILE_BYTES) return null;
+  return textOf(await blob.arrayBuffer());
 }
 
 /** Text of a file, unless it is binary or oversized. */

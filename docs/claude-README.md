@@ -17,6 +17,7 @@ Repo standards for agents live outside this folder: `AGENTS.md` (canonical; `CLA
 | `claude-14b-red-team-critique.md` | The red team's full report, verbatim | 8 |
 | `claude-15-fast-reads-and-search-on-edge.md` | How no-clone agents get grep-speed reads and search on the edge: blob-keyed index in a per-project DO, git trees as the Merkle tree, brute-force regex tier for the demo, trigram and Vectorize tiers later, five MCP read tools; bench plan due Oct 8 | 12 |
 | `claude-16-checkout-protocol-and-live-edits.md` | How agents check out and edit Artifacts repos: real clones through beanstalk's git proxy with a credential helper (partial clone verified to work), no-clone MCP only for non-coding roles, a two-tier live-edit channel (event stream under 1 s, `refs/wip` checkpoints under 6 s), one actor per sprout, measured against a probe repo | 12 |
+| `claude-17-streaming-diffs.md` | Streaming diffs, second design: why the first design (whole snapshots through the engine's RunDO, viewers pulling patches) is slow at 30 agents, and the replacement: a `RunStreamDO` per run, incremental posts with `base_seq` and `resync`, patches pushed to subscribed viewers, summaries to all | 6 |
 
 ## Research memos (evidence behind the above)
 

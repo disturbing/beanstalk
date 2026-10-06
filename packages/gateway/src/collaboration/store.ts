@@ -21,7 +21,14 @@ export function seedCollaboration(
   sql: SqlStorage,
   beans: readonly { id: string; prompt: string }[],
 ): void {
+  const seeded = new Set(
+    sql
+      .exec<{ bean: string }>('SELECT bean FROM collaboration_beans')
+      .toArray()
+      .map((row) => row.bean),
+  );
   for (const bean of beans) {
+    if (seeded.has(bean.id)) continue;
     const record = BeanRecord.parse({
       bean: bean.id,
       intent: bean.prompt,
@@ -30,12 +37,13 @@ export function seedCollaboration(
       actor: null,
       updated_at: null,
     });
-    const inserted = sql.exec(
+    sql.exec(
       'INSERT OR IGNORE INTO collaboration_beans (bean, body) VALUES (?, ?)',
       bean.id,
       JSON.stringify(record),
     );
-    if (inserted.rowsWritten > 0) indexBean(sql, record);
+    indexBean(sql, record);
+    seeded.add(bean.id);
   }
 }
 
@@ -210,9 +218,8 @@ export function idempotent<T>(
     const payload = JSON.stringify(identity.payload);
     const previous = storage.sql
       .exec<{ payload: string; result: string }>(
-        'SELECT payload, result FROM collaboration_idempotency WHERE bean = ? AND actor = ? AND key = ?',
+        'SELECT payload, result FROM collaboration_idempotency WHERE bean = ? AND key = ?',
         identity.bean,
-        identity.actor,
         identity.key,
       )
       .toArray()[0];

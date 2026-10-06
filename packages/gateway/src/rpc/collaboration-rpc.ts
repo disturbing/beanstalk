@@ -6,6 +6,7 @@ import {
   BeanDiscoverInput,
   BeanInboxAckInput,
   BeanInboxReadInput,
+  BeanSummariesInput,
   BeanThreadPostInput,
   BeanUpdateInput,
   ContributorTokenClaims,
@@ -35,6 +36,12 @@ export function collaborationRpc(deps: Deps): CollaborationRpc {
       const parsed = BeanDiscoverInput.safeParse(input);
       if (!id.success || !parsed.success) return invalid('invalid run or discovery request');
       return deps.run(id.data).beanDiscover(parsed.data);
+    },
+    beanPeerSummaries: async (run, beans) => {
+      const id = RunId.safeParse(run);
+      const parsed = BeanSummariesInput.safeParse(beans);
+      if (!id.success || !parsed.success) return invalid('invalid run or bean summaries request');
+      return deps.run(id.data).beanPeerSummaries(parsed.data);
     },
     beanUpdate: (token, input) =>
       forContributor(deps, token, async (claims) => {

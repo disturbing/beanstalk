@@ -1,4 +1,4 @@
-import { BeanDiscoverPage } from '@beanstalk/shared-race/collaboration';
+import { BeanDigest, BeanDiscoverPage, EXCERPT_CHARS } from '@beanstalk/shared-race/collaboration';
 import type { BeanDiscoverInput } from '@beanstalk/shared-race/collaboration';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
@@ -23,18 +23,52 @@ export function discoverBeans(
   const paths = input.paths ?? own.approach?.paths ?? [];
   for (const path of paths.slice(0, 16)) discoverPath(discovery, path);
   discoverWords(discovery, input.query ?? `${own.intent} ${own.approach?.summary ?? ''}`);
-  const beans = [...discovery.candidates].slice(0, discovery.limit).map((bean) => {
+  const ids = [...discovery.candidates].slice(0, discovery.limit);
+  const truncated = discovery.candidates.size > discovery.limit || paths.length > 16;
+  const page = { beans: readDigests(sql, ids), truncated };
+  if (input.full !== true) return { ok: true, value: BeanDiscoverPage.parse(page) };
+  const records = ids.map((bean) => {
     const record = readBean(sql, bean);
     if (record === null) throw new Error('discovered bean is missing');
     return record;
   });
-  return {
-    ok: true,
-    value: BeanDiscoverPage.parse({
-      beans,
-      truncated: discovery.candidates.size > discovery.limit || paths.length > 16,
-    }),
-  };
+  return { ok: true, value: BeanDiscoverPage.parse({ ...page, records }) };
+}
+
+/** One query reads only excerpts, so a 100 KB intent never leaves SQLite. */
+function readDigests(sql: SqlStorage, ids: readonly string[]): BeanDigest[] {
+  if (ids.length === 0) return [];
+  const rows = sql
+    .exec<{
+      bean: string;
+      revision: number;
+      updated_at: string | null;
+      intent: string;
+      intent_length: number;
+      paths: string | null;
+    }>(
+      `SELECT bean, json_extract(body, '$.revision') AS revision,
+    json_extract(body, '$.updated_at') AS updated_at,
+    substr(json_extract(body, '$.intent'), 1, ${EXCERPT_CHARS}) AS intent,
+    length(json_extract(body, '$.intent')) AS intent_length,
+    json_extract(body, '$.approach.paths') AS paths
+    FROM collaboration_beans WHERE bean IN (${ids.map(() => '?').join(',')})`,
+      ...ids,
+    )
+    .toArray();
+  const byBean = new Map(rows.map((row) => [row.bean, row]));
+  return ids.flatMap((bean) => {
+    const row = byBean.get(bean);
+    if (row === undefined) throw new Error('discovered bean is missing');
+    return BeanDigest.parse({
+      bean,
+      revision: row.revision,
+      updated_at: row.updated_at,
+      intent: row.intent,
+      intent_truncated: row.intent_length > EXCERPT_CHARS,
+      paths: row.paths === null ? [] : JSON.parse(row.paths),
+    });
+  });
 }
 
 function discoverDependencies(discovery: Discovery): void {

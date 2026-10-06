@@ -5,13 +5,20 @@
  * and renders here. Myers line diff, three lines of context, git's hunk headers.
  */
 
-/** One changed path: contents before and after (null: absent) and blob ids when known. */
+/**
+ * One changed path: contents before and after (null: absent) and blob ids when known.
+ * `binary` marks a side the reader did not load (too large to diff), and the byte counts
+ * are those of the blobs, when the reader knows them.
+ */
 export type FileChange = {
   readonly path: string;
   readonly before: string | null;
   readonly after: string | null;
   readonly beforeId: string | null;
   readonly afterId: string | null;
+  readonly binary?: boolean;
+  readonly beforeBytes?: number;
+  readonly afterBytes?: number;
 };
 
 /** Lines of context around each change (git's default `-U3`). */
@@ -24,21 +31,65 @@ const FUNCNAME_CHARS = 80;
 const TRACE_CELLS = 2_000_000;
 const ABBREV = 7;
 
-/** The diff of `changes`, cut at `limit` characters exactly as `diff_text` cuts it. */
+/** A changed file's status and line counts, as `git diff --numstat` reports them. */
+export type ChangeStats = {
+  readonly status: 'added' | 'deleted' | 'modified';
+  readonly additions: number;
+  readonly deletions: number;
+};
+
+/** The per-file counts and the (possibly cut) patch text of a set of changes. */
+export type DiffReport = {
+  readonly files: readonly ({ readonly path: string } & ChangeStats)[];
+  readonly text: string;
+  readonly truncated: boolean;
+};
+
+/**
+ * The diff of `changes` cut at about `limit` characters. Files are rendered one by one and
+ * rendering stops at the file that crosses the limit, so a huge diff costs its stat lines
+ * and one file past `limit`, not its whole patch.
+ */
 export function diffText(changes: readonly FileChange[], limit: number): string {
-  const full = renderDiff(changes);
-  if (full.length <= limit) return full;
-  return `${full.slice(0, limit)}\n... [diff truncated, ${full.length - limit} more chars]\n`;
+  return diffReport(changes, limit).text;
+}
+
+/** One pass over `changes`: every file's counts and the patch text, from the same line diffs. */
+export function diffReport(changes: readonly FileChange[], limit: number): DiffReport {
+  const analyzed = changes.map(analyze);
+  const files = analyzed.map((file) => ({
+    path: file.path,
+    status: file.status,
+    additions: file.added,
+    deletions: file.deleted,
+  }));
+  const changed = analyzed
+    .filter((file) => file.isChanged)
+    .toSorted((a, b) => (a.path < b.path ? -1 : 1));
+  if (changed.length === 0) return { files, text: '', truncated: false };
+  const stat = `${statBlock(changed)}\n`;
+  const patches: string[] = [];
+  let length = stat.length;
+  for (const file of changed) {
+    if (length > limit) break;
+    const patch = file.render();
+    patches.push(patch);
+    length += patch.length;
+  }
+  const text = `${stat}${patches.join('')}`;
+  if (length <= limit) return { files, text, truncated: false };
+  const unseen = patches.length < changed.length;
+  const rest = `${unseen ? 'at least ' : ''}${text.length - limit}`;
+  return {
+    files,
+    text: `${text.slice(0, limit)}\n... [diff truncated, ${rest} more chars]\n`,
+    truncated: true,
+  };
 }
 
 /** The whole `--stat -p` output, files in path order. */
 export function renderDiff(changes: readonly FileChange[]): string {
-  const files = changes
-    .filter((change) => change.before !== change.after)
-    .toSorted((a, b) => (a.path < b.path ? -1 : 1))
-    .map(fileDiff);
-  if (files.length === 0) return '';
-  return `${statBlock(files)}\n${files.map((file) => file.patch).join('')}`;
+  return diffReport(changes, Number.POSITIVE_INFINITY).text;
 }
 
 /**
@@ -75,62 +126,54 @@ function statusOf(change: FileChange): 'added' | 'deleted' | 'modified' {
   return change.after === null ? 'deleted' : 'modified';
 }
 
-/** A changed file's status and line counts, as `git diff --numstat` reports them. */
-export function changeStats(change: FileChange): {
-  status: 'added' | 'deleted' | 'modified';
-  additions: number;
-  deletions: number;
-} {
-  const status = statusOf(change);
-  if (isBinary(change.before ?? '') || isBinary(change.after ?? '')) {
-    return { status, additions: 0, deletions: 0 };
-  }
-  const ops = diffLines(splitLines(change.before ?? ''), splitLines(change.after ?? ''));
-  return {
-    status,
-    additions: ops.filter((op) => op.kind === '+').length,
-    deletions: ops.filter((op) => op.kind === '-').length,
-  };
-}
-
 type FileDiff = {
   readonly path: string;
+  readonly status: ChangeStats['status'];
+  readonly isChanged: boolean;
   readonly isBinary: boolean;
   readonly added: number;
   readonly deleted: number;
   readonly sizes: readonly [number, number];
-  readonly patch: string;
+  /** The file's patch text; built on demand, from the ops computed once in `analyze`. */
+  readonly render: () => string;
 };
 
 type Line = { readonly text: string; readonly hasNewline: boolean };
 type Op = { readonly kind: ' ' | '-' | '+'; readonly line: Line };
 
-function fileDiff(change: FileChange): FileDiff {
+function analyze(change: FileChange): FileDiff {
   const before = change.before ?? '';
   const after = change.after ?? '';
-  const header = fileHeader(change);
-  if (isBinary(before) || isBinary(after)) {
+  const status = statusOf(change);
+  const isChanged = change.before !== change.after;
+  if (change.binary === true || isBinary(before) || isBinary(after)) {
     return {
       path: change.path,
+      status,
+      isChanged,
       isBinary: true,
       added: 0,
       deleted: 0,
-      sizes: [byteLength(before), byteLength(after)],
-      patch: `${header}Binary files ${oldName(change)} and ${newName(change)} differ\n`,
+      sizes: [change.beforeBytes ?? byteLength(before), change.afterBytes ?? byteLength(after)],
+      render: () =>
+        `${fileHeader(change)}Binary files ${oldName(change)} and ${newName(change)} differ\n`,
     };
   }
   const ops = diffLines(splitLines(before), splitLines(after));
-  const added = ops.filter((op) => op.kind === '+').length;
-  const deleted = ops.filter((op) => op.kind === '-').length;
-  const hunks = renderHunks(ops);
-  const names = `--- ${oldName(change)}\n+++ ${newName(change)}\n`;
   return {
     path: change.path,
+    status,
+    isChanged,
     isBinary: false,
-    added,
-    deleted,
+    added: ops.filter((op) => op.kind === '+').length,
+    deleted: ops.filter((op) => op.kind === '-').length,
     sizes: [0, 0],
-    patch: hunks === '' ? header : `${header}${names}${hunks}`,
+    render: () => {
+      const header = fileHeader(change);
+      const hunks = renderHunks(ops);
+      const names = `--- ${oldName(change)}\n+++ ${newName(change)}\n`;
+      return hunks === '' ? header : `${header}${names}${hunks}`;
+    },
   };
 }
 

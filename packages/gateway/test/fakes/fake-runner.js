@@ -14,6 +14,9 @@ export class FakeRunner extends DurableObject {
     const url = new URL(request.url);
     if (url.pathname === '/__requests')
       return Response.json((await this.ctx.storage.get('requests')) ?? []);
+    // The wire contract it implements (RUNNER_API_VERSION in src/runner/runner-transport.ts).
+    if (url.pathname === '/version')
+      return Response.json({ version: 'fake', api_version: 2, git_sha: 'fake' });
     const body = await request.json();
     const requests = (await this.ctx.storage.get('requests')) ?? [];
     requests.push({ path: url.pathname, body });
