@@ -53,7 +53,7 @@ A runner job that keeps failing for one bean drops only that bean, with reason `
 | `GET /runs/:run?key=<view token>` | view token in the page URL | Live page: lanes, sprout and stalk, beans, decision cards, CI, cost |
 | `POST /v1/runs/:run/agents/:slot/next` | slot token | Long poll, up to 25 s, for the slot's next invocation |
 | `POST /v1/runs/:run/invocations/:inv/result` | slot token | The invocation's result, posted after the driver commits and pushes |
-| `POST /v1/runs/:run/invocations/:inv/progress` | slot token | `{cost_usd}`, the running estimate. The answer can tell the driver to abort |
+| `POST /v1/runs/:run/invocations/:inv/progress` | slot token | `{cost_usd, files?}`, the running estimate. The answer can tell the driver to abort, or carry a mid-run sync offer (`live_sync_midrun`) |
 | `/git/<namespace>/<repo>.git/*` | slot or seed token, as Bearer or Basic password | Git smart-HTTP proxy. A slot reads the run repo and pushes only its own bean branch `refs/heads/beans/<task>`; the proxy refuses other refs and deletions. The seed token pushes the sprout and the stalk before the start. Bodies stream through; the gateway mints a short-lived Artifacts token server-side |
 
 Errors are `{"error": {"code", "message", "issues?"}}`. Run tokens are `bst1.<claims>.<HMAC>` with scope `slot`, `seed` or `view`.
@@ -83,7 +83,8 @@ curl -s -H "$A" -H 'content-type: application/json' -d '{"dry_run": false}' $GW/
 - the v2.2 to v2.5 rules, all on by default except `validation_first`: `window`, `recheck`, `recheck_fallback`, `release_on_check`, `flake_confirm`, `inherited_reds`, `early_tickets`, `reconcile`, `decision_outcome`, `decision_mode`, `human_timeout_seconds`, and v2.5's `escalate_after`, `reconcile_parties`, `single_suspect_revert`, `base_culprits`, `validation_first` and the `window_*` sizes (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules));
 - E6's remaining rules, also on by default: `start_cards`, `rescue` and `dynamic_culprits` (see [Start cards, rescue and dynamic culprits](#start-cards-rescue-and-dynamic-culprits-e6));
 - the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section);
-- `live_sync`: `off` (the default), `overlap` or `all` (live sprout sync, same section).
+- `live_sync`: `off` (the default), `overlap` or `all` (live sprout sync, same section);
+- `live_sync_midrun`: `false` (the default) or `true` (mid-run sync, same section).
 
 ## Driver contract (for the Python driver)
 
@@ -148,7 +149,7 @@ POST /v1/runs/:run/invocations/inv0007-rework/result
 
 The result body is `InvocationResult.to_event()` plus the git fields. Unknown keys are dropped. `turns` and `wall_seconds` are accepted as fallbacks for `num_turns` and `wall_ms`.
 
-Progress uses the same shape: `POST …/progress {"cost_usd": 0.02}` answers `{"abort": false}`, or `{"abort": true, "reason": "budget: …"}`.
+Progress uses the same shape: `POST …/progress {"cost_usd": 0.02}` answers `{"abort": false}`, or `{"abort": true, "reason": "budget: …"}`. With `live_sync_midrun`, the driver adds `files` (the paths the agent changed since `base_sha`) and an answer may carry `sync`: `{"sprout": "<sha>", "landed": [{"task", "title", "files"}]}`, the beans that landed while the invocation runs and meet its bean (each offered once). The result then reports what the agent's hook did with each offer in `midrun_syncs`: `[{"sprout", "landed", "outcome": "applied" | "noted", "reason", "files"}]`.
 
 Decisions (admin): `POST /v1/runs/:run/decisions/D001 {"winner": "t005", "text": "…"}` answers `200 {"run", "card": "D001", "winner": "t005", "accepted": true}`. `text` is optional, up to 2,000 characters. It is the decision as the test author and the loser's re-execution read it; without it the engine writes one. Errors:
 
@@ -217,6 +218,7 @@ The experiments validated the v2.2 rules (`docs/claude-opus/11-experiments-summa
 | Cards that re-execute the loser | `decision_outcome: reexecute` (`decline`), `decision_mode: oracle` (`human`), `human_timeout_seconds: null` | The winner is never reverted. See below. With `reconcile`, the loser's test author also sees the winner's failing tests as they are now | E6 |
 | Tests first | `tests_first: false` (`true`) | Before a task's implementer starts, a `test-first` invocation (a fresh session on the task's slot and base) writes the task's acceptance tests from its intent alone. The engine reads the new test files it committed, other tasks' test paths excluded, and runs them on the base (fail-first, 10 s emulated, capped at the pre-land latency). Files that fail there and parse replace the given tests as the task's protected acceptance tests: the implementer's `acceptance`, its prompts, the protection of landed tests, culprits, reconcile and the final check all use them. No such file (or no commit, or a failed job): the given tests stay. Either way `tests.first` logs it and the implementer starts | v2.5; E1 |
 | Live sprout sync | `live_sync: off` (`overlap`, `all`) | When a bean lands, beans whose agents are working get it at their next safe point. A `claude -p` session cannot be interrupted, so that is the end of the agent's current invocation (initial run or rework): its first squash afterwards merges every bean that landed meanwhile. `overlap` takes those whose files meet the bean's own (union-merged files such as `CHANGELOG.md` aside) or that the arena declares coupled with it, by either side; `all` takes every one. A clean squash: before the pre-land check, the bean's agent (kept for the squash, session resumed) gets a `sync` invocation with the sprout head merged and a short prompt naming the landed beans and files: re-run the tests, fix what broke, otherwise change nothing (`sync.applied`). No round is spent; the bean then squashes and is checked as usual, without a second sync. A conflict: nothing is merged, and the conflict rework's prompt opens with a note naming them (`sync.noted`). Optimistic pre-land mode only. Opt-in track (`variant_additions`: `live_sync:overlap` or `live_sync:all`) | new; simulated only |
+| Mid-run live sync | `live_sync_midrun: false` (`true`) | Sync while the agent works. Each progress report of a running `initial` or `rework` invocation may come back with an offer of the beans that landed since its line and meet its bean (the `live_sync` rule over the files the driver reports: `all` when `live_sync` is `all`, else `overlap`), each offered once, with the sprout head (`sync.midrun.offered`). The driver's hook in the agent's session (`research/race/harness/midrun.py`; Claude Code `PostToolUse` via `--settings`, Codex note-only) merges it under the agent's uncommitted work between tool calls when that is safe and clean, or only tells the agent; the result reports which (`sync.midrun.applied`, `sync.midrun.noted`), and an applied merge moves the bean's merged line to that sprout. The pre-land check runs as usual. Independent of `live_sync`. Opt-in track (`variant_additions`: `live_sync_midrun`) | new; smoke-tested |
 | Targeted check of the exact landing tree | `targeted_landing_check: false` (`true`) | Where a green bean would land on a moved sprout without a full re-check (no shared file, `sampled` skipping, disjoint hunks), it first runs only some tests on the exact tree that would land (`preland.check` with `targets`, 10 s emulated, capped at the pre-land latency): its own acceptance tests, those of the beans that landed meanwhile and their test files, and every test whose read set meets the bean's files. A test whose known read set misses either side (the bean's files, or what landed meanwhile) cannot see them combine and is left to validation, so it usually runs nothing and lands as before (`preland.optimistic`). The first targeted check runs outside the turn; if the sprout moved again meanwhile, the next runs inside it, so a busy sprout cannot keep a bean chasing. A red one is an ordinary red pre-land check, and also sets the `sampled` meter re-checking; a green one does not count as a re-check. Full checks then ask the runner for every passing test's read set too (`all_read_sets`, answered in `passing_read_sets`). The full suite still runs at validation | v2.5; E1 |
 
 A decided card works in one of two ways:
@@ -238,7 +240,8 @@ Under `decision_mode: human`, a card waits for `decide` (RPC) or the admin route
 - `window.wait` and `window.resize` (v2.3);
 - `decision.reconcile` (v2.4: `task`, `against`, `outcome` `reconciled` or `contradiction`, the changed `files`, the author's `reason`, `inv`; v2.5: `parties` when more than one landed task took part);
 - `tests.first` (v2.5: `task`, `status` `accepted` or `fallback`, `base`, the author's `files`, the `accepted` ones, the proof's `failing_tests`, `problems`, `inv`);
-- `sync.applied` (`live_sync`: `task`, the `sprout` merged, the `landed` beans, the `files` of the sync commit, `inv`) and `sync.noted` (`task`, `sprout`, `landed`, the landed beans' `files` that met the bean, the squash's `conflicts`).
+- `sync.applied` (`live_sync`: `task`, the `sprout` merged, the `landed` beans, the `files` of the sync commit, `inv`) and `sync.noted` (`task`, `sprout`, `landed`, the landed beans' `files` that met the bean, the squash's `conflicts`);
+- `sync.midrun.offered`, `sync.midrun.applied` and `sync.midrun.noted` (`live_sync_midrun`: `task`, `inv`, the offered `sprout`, the `landed` beans, `files`; `noted` adds the hook's `reason`).
 
 Optional fields on existing types:
 
@@ -253,7 +256,7 @@ Optional fields on existing types:
 
 v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-suspect revert logs `ticket.culprit` with no `ci.start` of purpose `bisect` before it, and a base culprit appears in `rework.start.culprits`.
 
-`summary.json` adds `variant_additions` after `variant` (see [Version labels](#version-labels)) and the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`, then the E6 keys below and `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`; with `live_sync` on, also `live_sync`, `syncs_applied` and `syncs_noted` at the end), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
+`summary.json` adds `variant_additions` after `variant` (see [Version labels](#version-labels)) and the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`, then the E6 keys below and `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`; with `live_sync` on, also `live_sync`, `syncs_applied` and `syncs_noted` at the end; with `live_sync_midrun`, then `live_sync_midrun`, `midrun_offered`, `midrun_applied` and `midrun_noted`), and the matching rows after `Variant`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
 **Replay parity.** `V20_SETTINGS` (exported by `@beanstalk/shared-race/run-config`) reproduces the event streams the engine logged before v2.2, byte for byte. It turns every later rule and every opt-in track off:
 
@@ -282,9 +285,9 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 
 `V22_SETTINGS` also gets the two bug fixes below, and every v2.2+ preset gets the final suite re-run.
 
-Four opt-in tracks never change the variant: `tests_first`, `targeted_landing_check`, `start_order: dependency` and `live_sync`. A run lists the ones it used in `variant_additions` (`["tests_first", "targeted_landing_check", "start_order:dependency", "live_sync:overlap"]`), and the `Variant` row adds them after a ` + ` each (`v2.5: ... + tests first + targeted landing check`). So "v2.5 with the tests track" is `variant: "v2.5"` with two additions, and v2.4 with tests first is `variant: "v2.4"` with one.
+Five opt-in tracks never change the variant: `tests_first`, `targeted_landing_check`, `start_order: dependency`, `live_sync` and `live_sync_midrun`. A run lists the ones it used in `variant_additions` (`["tests_first", "targeted_landing_check", "start_order:dependency", "live_sync:overlap", "live_sync_midrun"]`), and the `Variant` row adds them after a ` + ` each (`v2.5: ... + tests first + targeted landing check`). So "v2.5 with the tests track" is `variant: "v2.5"` with two additions, and v2.4 with tests first is `variant: "v2.4"` with one.
 
-The driver passes every knob through from the environment: `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX`, `WINDOW_MIN`, `STRUCTURAL_MERGE`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `TESTS_FIRST`, `TARGETED_LANDING_CHECK`, `START_ORDER` and `LIVE_SYNC`. It sends them only when they are set (and only for v2), so the gateway's defaults apply otherwise. The phase races of one deployed engine set them as follows (unset variables keep the v2.5 defaults):
+The driver passes every knob through from the environment: `PRELAND_RECHECK`, `PRELAND_ADAPT_FALLBACK`, `WINDOW`, `RELEASE_ON_CHECK`, `FLAKE_CONFIRM`, `INHERITED_REDS`, `EARLY_TICKETS`, `RECONCILE`, `DECISION_OUTCOME`, `DECISION_MODE`, `HUMAN_TIMEOUT_SECONDS`, `ESCALATE_AFTER`, `RECONCILE_PARTIES`, `SINGLE_SUSPECT_REVERT`, `VALIDATION_FIRST`, `BASE_CULPRITS`, `WINDOW_START`, `WINDOW_GROWTH`, `WINDOW_MAX`, `WINDOW_MIN`, `STRUCTURAL_MERGE`, `START_CARDS`, `RESCUE`, `DYNAMIC_CULPRITS`, `TESTS_FIRST`, `TARGETED_LANDING_CHECK`, `START_ORDER`, `LIVE_SYNC` and `LIVE_SYNC_MIDRUN`. It sends them only when they are set (and only for v2), so the gateway's defaults apply otherwise. The phase races of one deployed engine set them as follows (unset variables keep the v2.5 defaults):
 
 | Phase | Environment |
 |---|---|
@@ -296,6 +299,7 @@ The driver passes every knob through from the environment: `PRELAND_RECHECK`, `P
 | v2.5 + dependency starts | `START_ORDER=dependency` |
 | v2.5 + tests track | `TESTS_FIRST=1 TARGETED_LANDING_CHECK=1` |
 | v2.5 + live sync | `LIVE_SYNC=overlap` (or `all`) |
+| v2.5 + mid-run live sync | `LIVE_SYNC_MIDRUN=1` (optionally with `LIVE_SYNC=overlap`) |
 
 ### Fixes and simulator scenarios
 

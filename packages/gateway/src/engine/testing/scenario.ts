@@ -3,8 +3,10 @@
  */
 import { REQUIRED_EVENT_KEYS } from '@beanstalk/shared-race/events';
 import type { RaceEventType } from '@beanstalk/shared-race/events';
+import type { InvocationResult } from '@beanstalk/shared-race/driver';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 
+import type { EngineInstruction } from '../model';
 import type { EngineState } from '../state';
 import type { FailRule, FlakeInjector, ScriptedTask, World } from './fake-world';
 import { createWorld } from './fake-world';
@@ -33,6 +35,15 @@ export type RaceScenario = {
   readonly flakes?: FlakeInjector;
   /** `live_sync` upper bound: agents adapt to a clash their sync turn merged (`fake-world`). */
   readonly adaptsOnSync?: boolean;
+  /**
+   * Rewrites an agent's result before the engine sees it, as a driver would after its hook
+   * merged mid-run (`live_sync_midrun`; replay agents never sync on their own).
+   */
+  readonly afterAgent?: (
+    world: World,
+    instruction: EngineInstruction,
+    result: InvocationResult,
+  ) => InvocationResult;
 } & Partial<
   Pick<SimulationOptions, 'silentSlots' | 'injections' | 'startAfterMs' | 'lostInvocations'>
 >;
@@ -54,7 +65,7 @@ export type RaceRun = Omit<SimulationResult, 'events'> & {
 
 /** Runs a scripted race on the queue policy (defaults: 2 agents, 2 CI slots, batch 2). */
 export function runRace(scenario: RaceScenario): RaceRun {
-  const world = createWorld({
+  const scripted = createWorld({
     baseFiles: scenario.baseFiles ?? { 'README.md': 'arena\n', 'src/app.ts': 'export {};\n' },
     tasks: scenario.tasks,
     rules: scenario.rules ?? [],
@@ -62,6 +73,14 @@ export function runRace(scenario: RaceScenario): RaceRun {
     ...(scenario.flakes === undefined ? {} : { flakes: scenario.flakes }),
     ...(scenario.adaptsOnSync === true ? { adaptsOnSync: true } : {}),
   });
+  const after = scenario.afterAgent;
+  const world: World =
+    after === undefined
+      ? scripted
+      : {
+          ...scripted,
+          runAgent: (instruction) => after(scripted, instruction, scripted.runAgent(instruction)),
+        };
   const seed = scenario.seed ?? 1;
   const config: RunConfigInput = {
     policy: 'queue',

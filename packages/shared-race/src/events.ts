@@ -417,6 +417,31 @@ export type RaceEventFields = {
     readonly files: readonly string[];
     readonly conflicts: readonly string[];
   };
+  /**
+   * `live_sync_midrun`: beans that landed while invocation `inv` runs and meet its bean were
+   * offered to its driver with the sprout head (`sprout`); `files` are the landed files met.
+   */
+  'sync.midrun.offered': TaskRef & {
+    readonly inv: string;
+    readonly sprout: string;
+    readonly landed: readonly string[];
+    readonly files: readonly string[];
+  };
+  /** `live_sync_midrun`: the agent's hook merged the offered sprout into its worktree. */
+  'sync.midrun.applied': TaskRef & {
+    readonly inv: string;
+    readonly sprout: string;
+    readonly landed: readonly string[];
+    readonly files: readonly string[];
+  };
+  /** `live_sync_midrun`: the hook only told the agent, and why (`reason`). */
+  'sync.midrun.noted': TaskRef & {
+    readonly inv: string;
+    readonly sprout: string;
+    readonly landed: readonly string[];
+    readonly files: readonly string[];
+    readonly reason: string | null;
+  };
   /** v2.3: a green bean waits for room in the sprout window (`window: aimd`). */
   'window.wait': TaskRef & { readonly window: number; readonly unvalidated: number };
   /** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */

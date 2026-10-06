@@ -1,4 +1,8 @@
-import type { InvocationKind } from '@beanstalk/shared-race/driver';
+import type {
+  InvocationKind,
+  InvocationResult,
+  MidrunSyncOffer,
+} from '@beanstalk/shared-race/driver';
 import type { RaceEventFields, RaceEventType } from '@beanstalk/shared-race/events';
 import type { InvocationId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 import type { ArenaTask } from '@beanstalk/shared-race/task';
@@ -15,6 +19,7 @@ import type {
   JobOwner,
   JobResult,
   JobSpec,
+  OpenInvocation,
   Seconds,
   SlotActivity,
   SlotState,
@@ -80,6 +85,13 @@ export type PolicyHooks = {
    * Absent: the harness's single run (the queue).
    */
   rerunsRedFinalSuite?(): boolean;
+  /**
+   * `live_sync_midrun`: a sync offer for a running invocation's driver (beans that landed
+   * meanwhile and meet its bean, each offered once), or null. Absent: never (the queue).
+   */
+  midrunOffer?(inv: OpenInvocation, files: readonly string[]): MidrunSyncOffer | null;
+  /** `live_sync_midrun`: what the agent's hook did with the offers, from the result. */
+  onMidrunSyncs?(inv: OpenInvocation, body: InvocationResult): void;
 };
 
 /** One step's working set: the draft state, the effects so far and the bound policy. */

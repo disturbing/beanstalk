@@ -437,6 +437,8 @@ export type EngineInput =
       readonly slot: SlotId;
       readonly inv: InvocationId;
       readonly costUsd: number;
+      /** `live_sync_midrun`: the paths the agent has changed so far (absent: unknown). */
+      readonly files?: readonly string[];
     }
   | {
       readonly kind: 'job-done';
