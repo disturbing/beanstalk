@@ -337,6 +337,8 @@ The phases v2.5a to v2.5d keep the tail fix's two bounds on (it came after their
 
 v2.2 drops 20 of 40 beans there, 16 of them still red after their pre-land reworks. v2.3 drops none and finishes sooner.
 
+**The 30-agent stall (burst30).** `src/engine/testing/burst30.ts` replays the stall of `cf-demo-sonnet-30-s7` (`v2-burst30.test.ts`): the arena's 40 tasks with their real modules and card pairs, and a whole-suite break by two migration beans that cannot be reverted, fixed forward late by t026. It is calibrated to the run's timings (75 s CI). `burst30Scenario(seed, agents, config)` runs it at any agent count. `src/engine/testing/culprit-study.ts` is a model, not the engine: it compares culprit-isolation strategies on single red episodes (`v2-culprit-study.test.ts`). Both are described in `docs/claude-opus/11-experiments-summary.md`, "30-agent post-mortem". To build the stall, the toy world gained `revertConflicts`, `fixes` and `requiresFile`.
+
 **The three-way clash.** `src/engine/v2/v2-reconcile.test.ts` replays t032 of `cf-v24-sonnet-12-s7`: the arriving bean's shipping clashes with one landed task's pinned total and another's free-shipping threshold. Simulated (3 agents, 60 s CI); the burst and calm rows are the scenarios above (12 agents, 2 CI slots, seed 7):
 
 | Scenario | v2.4 | v2.5 escalation only | v2.5 |
