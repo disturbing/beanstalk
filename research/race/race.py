@@ -56,9 +56,10 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], epilog=__doc__.split("\n\n", 1)[1],
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     f = ap.add_argument_group("forge")
-    f.add_argument("--forge", choices=["local", "cloudflare"], default="local",
-                   help="where integration decisions are made: this process (local, default) or beanstalk's "
-                        "Cloudflare gateway (cloudflare; policies queue and beanstalk-v2)")
+    f.add_argument("--forge", choices=["local", "cloudflare", "github"], default="local",
+                   help="where integration decisions are made: this process (local, default), beanstalk's "
+                        "Cloudflare gateway (cloudflare; policies queue and beanstalk-v2), or a real GitHub repo "
+                        "with GitHub's merge queue and Actions (github; policy queue; see GITHUB.md)")
     f.add_argument("--gateway", help="--forge cloudflare: the gateway's base URL (default $BEANSTALK_GATEWAY)")
     f.add_argument("--live-url", action="store_true",
                    help="--forge cloudflare: print the live page link (it carries a view token) even when stderr "
@@ -82,6 +83,28 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     f.add_argument("--no-auth-probe", action="store_true",
                    help="--forge cloudflare: skip the one-turn Haiku call (about $0.004) a claude race makes before "
                         "it creates the run, to stop early on refused credentials or a rate limit")
+    h = ap.add_argument_group("github (--forge github)")
+    h.add_argument("--gh-owner", help="organisation that owns the race repo (the merge queue needs an org-owned "
+                                      "public repo; default $BEANSTALK_GH_OWNER)")
+    h.add_argument("--gh-repo", help="repo name (default beanstalk-race-<arena>-<seed>)")
+    h.add_argument("--gh-arena-name", help="<arena> in the default repo name (default: the arena directory's name; "
+                                           "the synthetic arena is 'shop')")
+    h.add_argument("--gh-reset", action=argparse.BooleanOptionalAction, default=True,
+                   help="reset an existing race repo (created by this harness) to the arena base (default on)")
+    h.add_argument("--gh-poll", type=float, default=2.0,
+                   help="seconds between polls of GitHub's state (2; one poll is 2 API calls)")
+    h.add_argument("--gh-push-interval", type=float, default=10.0,
+                   help="minimum seconds between pushes to the repo (10 = GitHub's recommended 6 per minute)")
+    h.add_argument("--gh-enqueue", choices=["direct", "auto"], default="direct",
+                   help="direct: enqueuePullRequest as soon as the PR check is green (a bot's speed); auto: only "
+                        "auto-merge (gh pr merge --auto), which GitHub acts on lazily")
+    h.add_argument("--gh-node", help="Node version for the Actions workflow (default: the arena.json's node, else 25)")
+    h.add_argument("--gh-test-cmd", help="the suite command in the workflow (default: node --test with the arena.json's "
+                                         "test_args, as the harness CI runs it)")
+    h.add_argument("--gh-install", help="an install step before the suite (default: npm ci of the arena.json's deps "
+                                        "lockfile when it has one, else none)")
+    h.add_argument("--gh-keep-open", action="store_true",
+                   help="leave unmerged PRs open at the end (default: close them, which also stops the queue)")
     v = ap.add_argument_group("beanstalk-v2 (both forges; default: the env var, else the harness default)")
     v.add_argument("--preland-mode", choices=["optimistic", "locked"],
                    help="pre-land checks in parallel (optimistic) or inside the committer turn ($PRELAND_MODE, locked)")
@@ -230,6 +253,33 @@ def make_remote_race(cfg: RaceConfig, ns: argparse.Namespace, argv: list[str]):
                               "stream_diffs": ns.stream_diffs or None})
 
 
+def gh_repo_name(cfg: RaceConfig, ns: argparse.Namespace) -> str:
+    if ns.gh_repo:
+        return ns.gh_repo
+    arena = ns.gh_arena_name or os.path.basename(os.path.normpath(cfg.arena))
+    arena = {"arena": "shop"}.get(arena, arena)
+    return f"beanstalk-race-{arena}-{cfg.seed}"
+
+
+def make_github_race(cfg: RaceConfig, ns: argparse.Namespace, client=None):
+    """``--forge github``: the GitHub arm (harness/forge_github.py), or None after an error."""
+    from harness.forge_github import GitHubOptions, GitHubRace
+    owner = ns.gh_owner or os.environ.get("BEANSTALK_GH_OWNER")
+    problem = None
+    if cfg.policy != "queue":
+        problem = "--forge github runs --policy queue (GitHub's merge queue is the policy)"
+    elif not owner and client is None:
+        problem = "--forge github needs --gh-owner ORG (or $BEANSTALK_GH_OWNER)"
+    if problem:
+        print(problem, file=sys.stderr)
+        return None
+    opts = GitHubOptions(owner=owner or "fake", repo=gh_repo_name(cfg, ns), poll_seconds=ns.gh_poll,
+                         push_interval=ns.gh_push_interval, node_version=ns.gh_node, test_cmd=ns.gh_test_cmd,
+                         install=ns.gh_install, reset=ns.gh_reset, enqueue=ns.gh_enqueue,
+                         close_on_end=not ns.gh_keep_open)
+    return GitHubRace(cfg, opts, client=client)
+
+
 def dry_run(cfg: RaceConfig) -> int:
     """No agents: check the arena (patches apply, acceptance tests fail on base and pass with the
     reference solution), the agent CLI, footprints and placement order; print the agent command."""
@@ -237,6 +287,9 @@ def dry_run(cfg: RaceConfig) -> int:
     report = asyncio.run(run_dry(cfg))
     print(json.dumps({k: v for k, v in report.items() if k not in ("tasks",)}, indent=2, default=str))
     return 0 if report.get("ok") else 1
+
+
+GITHUB_CLIENT_FACTORY = None  # tests: a callable returning a fake GitHub client (tests/fake_github.py)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -257,7 +310,14 @@ def main(argv: list[str] | None = None) -> int:
     if cfg.agent != "replay" and not shutil.which(cfg.claude_bin if cfg.agent == "claude" else cfg.codex_bin):
         print(f"{cfg.agent} CLI not found on PATH", file=sys.stderr)
         return 1
-    if ns.forge == "cloudflare":
+    if ns.forge == "github":
+        if cfg.dry_run:
+            print("--dry-run is not supported with --forge github", file=sys.stderr)
+            return 1
+        race = make_github_race(cfg, ns, client=GITHUB_CLIENT_FACTORY() if GITHUB_CLIENT_FACTORY else None)
+        if race is None:
+            return 1
+    elif ns.forge == "cloudflare":
         race = make_remote_race(cfg, ns, argv)
         if race is None:
             return 1

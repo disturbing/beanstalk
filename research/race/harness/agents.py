@@ -132,7 +132,8 @@ def agent_env() -> dict:
             continue
         if k.startswith("CODEX_") and k != "CODEX_HOME":
             continue
-        if k in ("MCP_CONFIG", "NODE_OPTIONS"):
+        if k in ("MCP_CONFIG", "NODE_OPTIONS", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN",
+                 "GITHUB_ENTERPRISE_TOKEN"):  # the driver does every forge operation; agents get no forge token
             continue
         env[k] = v
     env["GIT_OPTIONAL_LOCKS"] = "0"  # an agent's `git status` must not lock the index under the harness

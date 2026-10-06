@@ -1,6 +1,6 @@
 # The cloud agent swarm: Beanstalk against GitHub's merge queue, on real tasks
 
-Written 2026-10-06 for Coop, from the `prototype` branch. **Design only: nothing here is built, created, logged into or paid for.** Names as before: a **bean** is one agent's change, the **sprout** is the staged line, the **stalk** is the stable line.
+Written 2026-10-06 for Coop, from the `prototype` branch. **Design only: nothing here is built, created, logged into or paid for.** *Update 2026-10-07:* the GitHub arm is built in its laptop form (§6's first cut line: local agents, a polling driver instead of the App and webhooks): `research/race/GITHUB.md`, `race.py --forge github`, `pair.py`, with race repos in the `kintohubtest` org. Its measured GitHub behaviour is recorded there. Names as before: a **bean** is one agent's change, the **sprout** is the staged line, the **stalk** is the stable line.
 
 Inputs: `AGENTS.md`, `README.md`, this folder's `11` (how races are measured), `16` (product plan, §3.5 BYOA and D8), `exp/e2-real-arena.md` (the one real-repo race so far), `research/race/REMOTE.md`, `harness/remote.py`, `harness/agents.py` (the Codex adapter), `harness/policy_queue.py`, `kth_green.py`, `packages/gateway/README.md` (driver contract), `packages/mcp/README.md`, `docs/claude-06-identity-mcp-and-previews.md`. Web research on 2026-10-06; every external claim cites its source and date, and "unverified" marks what the sources did not settle.
 
@@ -271,7 +271,7 @@ Arm B's controller is the gateway's `RunDO`, deployed today. MatchDO creates the
   | REST requests, App installation | 5,000 per hour, scaling to 12,500 | [REST limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api) | Fine: one race makes well under 1,500 calls |
   | Content creation (PRs, comments, mutations) | 80 per minute and 500 per hour (secondary) | [REST limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api) | A 60-task race needs about 60 PRs and 150 enqueues: inside the limits, but it rules out back-to-back races in one hour on one installation |
   | Pushes to one repo | 6 per minute, recommended | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | 30 agents will exceed this at peak |
-  | Merged PRs | 1 per minute | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | If a merge group counts as one merge, groups of up to 4 keep it out of the way; if every PR counts, a 40-task race cannot finish in under about 40 min, a floor Beanstalk does not have. Unverified; Phase 3 measures it |
+  | Merged PRs | 1 per minute | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | If a merge group counts as one merge, groups of up to 4 keep it out of the way; if every PR counts, a 40-task race cannot finish in under about 40 min, a floor Beanstalk does not have. Measured 2026-10-07 (`research/race/GITHUB.md`): it did not bind; 4 PRs merged in 36 s, and a group's PRs merge in the same second |
 
   - The controller serialises mutations at least 1 s apart, per GitHub's advice.
   - It logs every `403`/`429` with `retry-after` as `gh.rate_limited`.

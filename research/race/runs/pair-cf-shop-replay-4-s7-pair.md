@@ -1,0 +1,7 @@
+| run | policy | model | agents | 4th green min / $ | 6th green min / $ | 7th green min / $ | start to green median / p90 min | last green min | greens | parked | total $ | wall min | red validations | correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| pair-cf-shop-replay-4-s7-github | github-queue | replay | 4 | 2.9 / 0.00 | 4.1 / 0.00 | 4.1 / 0.00 | 1.9 / 2.4 | 5.0 | 8 | 0 | 0.00 | 5.0 | 0 | True |
+| pair-cf-shop-replay-4-s7-beanstalk | beanstalk (v2.5) | replay | 4 | 1.6 / 0.00 | 1.7 / 0.00 | 1.8 / 0.00 | 1.3 / 1.5 | 1.9 | 8 | 0 | 0.00 | 1.9 | 0 | True |
+
+- github (exit 0): `/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-a864b4868bcee161b/research/race/race.py --forge github --policy queue --gh-owner kintohubtest --out runs/pair-cf-shop-replay-4-s7-github --force --gh-enqueue direct --ci-seconds 0 --protect-tests landed --agent replay --agents 4 --ci-slots 2 --batch 4 --seed 7 --repo /Users/coop/Workspace/beanstalk/research/corpora/arena.git --tasks 8`
+- beanstalk (exit 0): `/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-a864b4868bcee161b/research/race/race.py --policy beanstalk-v2 --snapshot head --error-budget 999 --preland-mode optimistic --out runs/pair-cf-shop-replay-4-s7-beanstalk --force --forge cloudflare --preset demo --gateway https://beanstalk-gateway.devaccounts-1password.workers.dev --max-usd 2.0 --ci-seconds 0 --protect-tests landed --agent replay --agents 4 --ci-slots 2 --batch 4 --seed 7 --repo /Users/coop/Workspace/beanstalk/research/corpora/arena.git --tasks 8`
