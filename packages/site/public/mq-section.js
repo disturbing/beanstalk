@@ -1,7 +1,7 @@
 // The merge-queue section: trunk and stalk, side by side, forever.
 // Eight agents write work in two worlds. On the left, green pull requests wait at a gated merge
-// queue; every merge moves main, the whole queue is re-tested on it, and conflicting pull requests
-// go back to their agents to rebase. On the right, each passing bean blooms into a sprout at the
+// queue; when a merge moves main, pull requests that now conflict with it leave the line and go back
+// to their agents to rebase. On the right, each passing bean blooms into a sprout at the
 // tip and its update pulses out to every bean at once; a failed stalk check sends back only the
 // culprit; clashes reconcile, and only a real disagreement reaches a person.
 // Both worlds are seeded simulations stepped in fixed ticks, and every frame is drawn from their
@@ -10,7 +10,6 @@
 // frame per moment.
 const section = document.querySelector('[data-mq]');
 const canvas = section?.querySelector('canvas');
-const buttons = section ? [...section.querySelectorAll('[data-mq-act]')] : [];
 const ctx = canvas?.getContext('2d');
 const params = new URLSearchParams(location.search);
 const frozen = params.has('t') ? Number(params.get('t')) / 1000 : null;
@@ -171,7 +170,6 @@ function makeQueue() {
       bad: ag.bad,
       idx: [],
       track: [[t, 'fly']],
-      retests: [],
       conflict: false,
     };
     ag.bad = false;
@@ -301,12 +299,11 @@ function makeQueue() {
           pr.merged = t;
           pr.track.push([t, 'merge', g]);
         }
-        // main moved: everything still in line is re-tested on top of it
+        // main moved: pull requests that now conflict with it leave the line
         const sweep = { t: t + 0.5, n: s.queue.length, kicks: [] };
         s.sweeps.push(sweep);
         s.queue.forEach((pr, i) => {
           const at2 = sweep.t + i * 0.16;
-          pr.retests.push(at2);
           const forced = !pr.bad && s.forceConflict > 0 && t - s.forceAt < 9;
           if (forced) s.forceConflict--;
           if (!pr.bad && (forced || pr.conflict || rnd() < CONFLICT)) {
@@ -1112,7 +1109,6 @@ function pillAt(q, pr, t) {
   return null;
 }
 function retestLook(pr, t) {
-  if (pr.retests.some((rt) => t >= rt && t < rt + 0.9)) return 'test';
   if (pr.track.some(([tt, k]) => k === 'kick' && tt > t && tt - t < 0.9)) return 'clash';
   return 'green';
 }
@@ -1259,27 +1255,16 @@ function drawQueue(q, t, t0) {
     chip('the rest, tested again', TX, GATE + 40, C.amber, win(t, gb.t0 + 0.4, gb.t1));
   }
 
-  // main moved: a re-test sweeps up the line
+  // main moved: conflicting pull requests leave the line
   for (const sw of q.sweeps) {
-    if (t < sw.t || t > sw.t + 0.4 + sw.n * 0.16 + 0.5) continue;
-    const k = (t - sw.t) / 0.16;
-    const y = GATE - 34 - k * QG + 14;
-    if (y < 110) continue;
-    const lg = ctx.createLinearGradient(TX - 70, 0, TX + 70, 0);
-    lg.addColorStop(0, fade(C.amber, 0));
-    lg.addColorStop(0.5, fade(C.amber, 0.8));
-    lg.addColorStop(1, fade(C.amber, 0));
-    ctx.fillStyle = lg;
-    ctx.fillRect(TX - 70, y, 140, 1.5);
-    if (act === 2 && sw.n > 0) {
-      chip(
-        'main moved: the line is re-tested',
-        TX + 150,
-        GATE - 70,
-        C.amber,
-        win(t, sw.t, sw.t + 2.4),
-      );
-    }
+    if (act !== 2 || !sw.kicks.length || t < sw.t || t > sw.t + 2.4) continue;
+    chip(
+      'main moved: conflicts leave the line',
+      TX + 150,
+      GATE - 70,
+      C.amber,
+      win(t, sw.t, sw.t + 2.4),
+    );
   }
 
   // agents, and branches cut from where main was when they started
@@ -1727,10 +1712,6 @@ if (section && ctx) setup();
 function setup() {
   const gh = makeQueue();
   const bs = makeStalk();
-  const FOOT = [
-    'Ships more of the work, and gets most of it done about twice as fast',
-    'as a GitHub-style merge queue (12 agents, 40 colliding tasks, three runs)',
-  ];
   // Still frames for reduced motion: each half at its own clearest moment of the first cycle.
   function stillTimes(act) {
     gh.run(CYCLE + 2);
@@ -1759,7 +1740,7 @@ function setup() {
   let clock = 0;
   let last = null;
   let visible = false;
-  let stillAct = 0;
+  const stillAct = 0;
   let W0 = 0;
   let H0 = 0;
   function frameTimes() {
@@ -1775,7 +1756,7 @@ function setup() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W0, H0);
     const side = W0 >= 760;
-    const footH = side ? 0 : 44;
+    const footH = 0;
     const halves = side
       ? [
           { x: 0, y: 0, w: W0 / 2, h: H0 },
@@ -1785,7 +1766,6 @@ function setup() {
           { x: 0, y: footH, w: W0, h: (H0 - footH) / 2 },
           { x: 0, y: footH + (H0 - footH) / 2, w: W0, h: (H0 - footH) / 2 },
         ];
-    let scale = 1;
     halves.forEach((r, i) => {
       ctx.save();
       ctx.beginPath();
@@ -1796,7 +1776,6 @@ function setup() {
         ctx.fillRect(r.x, r.y, r.w, r.h);
       }
       const s = Math.min(r.w / W, r.h / H);
-      scale = s;
       ctx.translate(r.x + (r.w - W * s) / 2, r.y + (r.h - H * s) / 2);
       ctx.scale(s, s);
       if (i === 0) drawQueue(gh, tq, 0);
@@ -1812,29 +1791,10 @@ function setup() {
       g.addColorStop(1, fade(C.border, 0));
       ctx.fillStyle = g;
       ctx.fillRect(W0 / 2 - 0.5, 0, 1, H0);
-      const y0 = (H0 - H * scale) / 2 + 148 * scale;
-      FOOT.forEach((l, i) => {
-        text(l, W0 / 2, y0 + i * 14, { size: 10, color: C.fgSubtle, align: 'center' });
-      });
     } else {
       ctx.fillStyle = C.border;
       ctx.fillRect(0, footH + (H0 - footH) / 2 - 0.5, W0, 1);
-      const words = `${FOOT[0]} ${FOOT[1]}`.split(' ');
-      const lines = [''];
-      ctx.font = "500 9.5px 'JetBrains Mono', monospace";
-      for (const wd of words) {
-        const tryL = `${lines[lines.length - 1]} ${wd}`.trim();
-        if (ctx.measureText(tryL).width > W0 - 24) lines.push(wd);
-        else lines[lines.length - 1] = tryL;
-      }
-      lines.forEach((l, i) =>
-        text(l, W0 / 2, 30 + i * 13, { size: 9.5, color: C.fgSubtle, align: 'center' }),
-      );
     }
-    const act = Math.floor((((tq % CYCLE) + CYCLE) % CYCLE) / ACT);
-    buttons.forEach((b, i) =>
-      b.setAttribute('aria-pressed', String(reduced ? i === stillAct : i === act)),
-    );
   }
 
   if (params.has('mqdebug')) {
@@ -1912,20 +1872,5 @@ function setup() {
     attributes: true,
     attributeFilter: ['data-theme'],
   });
-  buttons.forEach((b, i) =>
-    b.addEventListener('click', () => {
-      if (reduced) {
-        stillAct = i;
-        draw();
-        return;
-      }
-      // jump ahead to the next time this moment begins; the stream carries on from there
-      const cyc = Math.floor(clock / CYCLE);
-      let target = cyc * CYCLE + i * ACT;
-      if (target <= clock - 0.5) target += CYCLE;
-      clock = target;
-      draw();
-    }),
-  );
   document.fonts.ready.then(resize, resize);
 }

@@ -219,20 +219,9 @@
           Merge queues make green work wait. <span>Beanstalk shares it instantly.</span>
         </h2>
         <div class="mqs-stage">
-          <div class="mqs-acts" role="group" aria-label="Moments">
-            <button type="button" data-mq-act aria-pressed="true">
-              <i class="g-sprout" aria-hidden="true"></i><span>A check passes</span>
-            </button>
-            <button type="button" data-mq-act aria-pressed="false">
-              <i class="g-cross" aria-hidden="true"></i><span>A batch fails</span>
-            </button>
-            <button type="button" data-mq-act aria-pressed="false">
-              <i class="g-clash" aria-hidden="true"></i><span>Two changes clash</span>
-            </button>
-          </div>
           <canvas
             role="img"
-            aria-label="The same eight agents in two worlds, side by side. Left, a merge queue: green pull requests wait in line behind a gate, and an agent that needs one waits too; one red pull request fails its batch and the whole batch goes back in line to be tested again; each merge moves main, the line is re-tested on it, and pull requests that now conflict go back to their agents to rebase. Right, Beanstalk: each passing bean blooms into a sprout at the tip and its update pulses out to every other bean at once; a failed stalk check sends back only the culprit while the rest join the stalk; clashes reconcile on their own, and only a real disagreement reaches a person. A shipped counter on each side keeps count."
+            aria-label="The same eight agents in two worlds, side by side. Left, a merge queue: green pull requests wait in line behind a gate, and an agent that needs one waits too; one red pull request fails its batch and the whole batch goes back in line to be tested again; when main moves, pull requests that now conflict with it leave the line and go back to their agents to rebase. Right, Beanstalk: each passing bean blooms into a sprout at the tip and its update pulses out to every other bean at once; a failed stalk check sends back only the culprit while the rest join the stalk; clashes reconcile on their own, and only a real disagreement reaches a person. A shipped counter on each side keeps count."
           ></canvas>
         </div>
       </section>
