@@ -1,0 +1,2 @@
+edit hook (touch): median 4.3 ms, p95 6.8 ms, max 7.9 ms over 300 runs
+staging-demo-stream-sonnet-8-s7: agent wall 1461 s, 198 edit tool calls, 141 snapshots, driver diff+post 94948 ms in all (610 ms each)
