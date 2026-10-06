@@ -610,3 +610,31 @@ On Artifacts each blob read is a network round trip; on the recorded runs every 
 4. **Stream the page.** Render the stalk and defaults first, then stream the explorer in with React's streaming render (`Suspense`), so the page appears in under a second while the answer finishes.
 
 **Target:** under 2 s for an answer on a live run, under 300 ms for a repeated question.
+
+**Done (2026-10-06): fixes 1 and 2; 3 and 4 were not needed.**
+
+- **Fix 1, per-request memo.** `shared-ask/forge/memo-source.ts` wraps the live source once per request (the page and the MCP server). The page now passes one source to the home's data, the answer and the featured bean. Inside `gatewaySource`, the app's paging and the reducer's log share event pages. The tree, the beans and the log are read once per request instead of two or three times.
+- **Fix 2, a read index in the RunDO, keyed by git object id.** The gateway's repo RPCs (`repoTree/File/Diff/Log/Grep`, and `testsFor`) now run in the run's Durable Object, through `gateway/src/repo/object-cache.ts`:
+  - Trees, blobs and commits are stored by id in the DO's SQLite (`git_objects`). An object never changes under its id, so the cache is never stale.
+  - Only ref heads go to Artifacts. A head read is reused for 5 s, and a landing clears it.
+  - The repo handle opens only on a cache miss.
+  - On `race.start`, `task.commit` and `green.promote`, the DO warms the new head in the background (`waitUntil`). A landing then costs its new objects only.
+  - Grep, import closures and diffs read the index. A word index or stored patches were not needed at this repository's size.
+
+  The engine is untouched: the warm-up only reads.
+- **Measured** with `packages/web/src/forge/live-ask-timing.test.ts`. The harness is not the deployed gateway: it runs the gateway's own explorer and closure code over a simulated Artifacts repo built from the recorded run `7z4j84eqvl`, under fake timers. One model reproduces the 22 s measured live: the repo answers one call at a time, at 70 ms a call, with 5 ms per RPC hop. Totals for the page with "what changed recently on coupons?":
+
+  | | Calls to Artifacts | One call at a time, 70 ms | Overlapping calls, 70 ms |
+  |---|---|---|---|
+  | Before | 308 | 21.6 s | 4.4 s |
+  | Fix 1 | 276 | 19.4 s | 4.0 s |
+  | Fix 1 + 2, run indexed by its landings | 4 | 0.34 s | 0.34 s |
+  | Repeat question (within 5 s, or later) | 2 or 4 | 0.20 s or 0.34 s | 0.20 s or 0.34 s |
+  | A run never warmed (live before the deploy), first question only | 169 | 11.9 s | 2.6 s |
+
+  CPU time is not in the model; at zero latency the whole page costs about 0.1–0.2 s of CPU on a laptop. The indexed answer equals the direct one (a test checks this).
+- **To verify after deploy:**
+  - In the gateway's traces, an Ask on a live run makes a handful of Artifacts calls, not hundreds.
+  - `git_objects` grows by a landing's objects only.
+  - "read index warm-up failed" does not appear in the logs.
+  - The per-call latency of Artifacts is still unmeasured (`claude-15` B1). If it turns out far above 70 ms, the cold first question on a run that was live during the deploy is the only slow case.

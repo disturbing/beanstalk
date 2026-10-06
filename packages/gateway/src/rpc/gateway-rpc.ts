@@ -8,12 +8,7 @@ import { z } from 'zod';
 import { RunId } from '@beanstalk/shared-race/ids';
 import type {
   GatewayRpc,
-  RepoDiff,
-  RepoFile,
-  RepoGrep,
-  RepoLog,
   RepoRef,
-  RepoTree,
   RpcError,
   RpcResult,
   ViewToken,
@@ -22,14 +17,11 @@ import type {
 import { REPO_REF_PATTERN } from '@beanstalk/shared-race/rpc';
 import { isSafeRepoPath } from '@beanstalk/shared-race/task';
 
-import type { RepoExplorer } from '../adapters/repo-explorer';
-import { repoExplorer } from '../adapters/repo-explorer';
 import { issueToken, verifyToken } from '../auth/tokens';
 import type { Deps } from '../deps';
 import { GatewayError, UpstreamError } from '../errors';
 import type { RunResult } from '../run/run-do';
 import { MAX_LISTED_RUNS, RUN_INDEX_NAME } from '../run/run-index';
-import { runRepoName } from '../run/run-names';
 
 /** View tokens minted for the web app's live socket live an hour. */
 const VIEW_TOKEN_TTL_SECONDS = 3600;
@@ -45,7 +37,6 @@ const Path = z.string().max(512).refine(isSafeRepoPath, 'a relative path inside 
 const Paths = z.array(Path).max(MAX_PATHS);
 
 export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
-  const explorer = (run: string): RepoExplorer => repoExplorer(env.ARTIFACTS, run);
   return {
     async listRuns(limit = 50) {
       const index = env.RUN_INDEX.getByName(RUN_INDEX_NAME);
@@ -75,25 +66,26 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       );
     },
     viewToken: (run) => forRun(run, (id) => viewToken(deps, id)),
+    // Repo reads run in the run's Durable Object, through its read index of git objects.
     repoTree: (run, ref, path = '', recursive = false) =>
-      explore<RepoTree>(run, { ref, paths: path === '' ? [] : [path] }, (id) =>
-        explorer(runRepoName(id)).tree(ref, path, recursive),
+      explore(run, { ref, paths: path === '' ? [] : [path] }, async (id) =>
+        fromRun(await deps.run(id).repoTree(ref, path, recursive)),
       ),
     repoFile: (run, ref, path) =>
-      explore<RepoFile>(run, { ref, paths: [path] }, (id) =>
-        explorer(runRepoName(id)).file(ref, path),
+      explore(run, { ref, paths: [path] }, async (id) =>
+        fromRun(await deps.run(id).repoFile(ref, path)),
       ),
     repoDiff: (run, fromRef, toRef, paths) =>
-      explore<RepoDiff>(run, { ref: fromRef, refs: [toRef], paths: paths ?? [] }, (id) =>
-        explorer(runRepoName(id)).diff(fromRef, toRef, paths ?? null),
+      explore(run, { ref: fromRef, refs: [toRef], paths: paths ?? [] }, async (id) =>
+        fromRun(await deps.run(id).repoDiff(fromRef, toRef, paths ?? null)),
       ),
     repoLog: (run, ref, paths, limit) =>
-      explore<RepoLog>(run, { ref, paths: paths ?? [] }, (id) =>
-        explorer(runRepoName(id)).log(ref, paths, limit),
+      explore(run, { ref, paths: paths ?? [] }, async (id) =>
+        fromRun(await deps.run(id).repoLog(ref, paths, limit)),
       ),
     repoGrep: (run, ref, pattern, paths) =>
-      explore<RepoGrep>(run, { ref, paths: paths ?? [] }, (id) =>
-        explorer(runRepoName(id)).grep(ref, pattern, paths ?? null),
+      explore(run, { ref, paths: paths ?? [] }, async (id) =>
+        fromRun(await deps.run(id).repoGrep(ref, pattern, paths ?? null)),
       ),
     beansByPath: (run, paths) =>
       checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).beans(paths))),
@@ -166,12 +158,12 @@ function checkedPaths<T>(
 function explore<T>(
   run: string,
   args: { ref: RepoRef; refs?: readonly RepoRef[]; paths: readonly string[] },
-  read: (id: RunId) => Promise<T>,
+  read: (id: RunId) => Promise<RpcResult<T>>,
 ): Promise<RpcResult<T>> {
   const refs = [args.ref, ...(args.refs ?? [])];
   const badRef = refs.find((ref) => !Ref.safeParse(ref).success);
   if (badRef !== undefined) return Promise.resolve(invalid(`not a ref of the run repo: ${badRef}`));
-  return checkedPaths(run, args.paths, async (id) => ok(await read(id)));
+  return checkedPaths(run, args.paths, read);
 }
 
 function fromRun<T>(result: RunResult<T>): RpcResult<T> {

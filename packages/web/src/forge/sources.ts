@@ -10,6 +10,7 @@ import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import type { ForgeSource, RunListing } from '@beanstalk/shared-ask/forge/forge-source';
 import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
 import { recordedSource } from './recorded-source';
 
 /** A live listing must answer within this, or the runs page shows recorded runs only. */
@@ -22,6 +23,10 @@ export type RunsListing = {
   readonly liveError: string | null;
 };
 
+/**
+ * The source for one request: a live run's reads are memoised for the request's lifetime
+ * (`docs/claude-opus/14` §11), so call this once per request and pass the source along.
+ */
 export function forgeForRun(
   gateway: Fetcher,
   run: RunId,
@@ -31,7 +36,7 @@ export function forgeForRun(
   const binding = asGatewayBinding(gateway);
   if (binding === undefined)
     throw new ForgeError('the GATEWAY binding has no RPC methods', 'unavailable');
-  return gatewaySource(binding);
+  return memoSource(gatewaySource(binding));
 }
 
 export async function listRuns(gateway: Fetcher): Promise<RunsListing> {
