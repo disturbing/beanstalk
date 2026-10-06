@@ -1,0 +1,9 @@
+# Local secrets for `wrangler dev` (copy to .dev.vars). Remotely: `wrangler secret put <NAME>`.
+# Guards every /v1 route (the race driver sends it as a bearer token).
+SWARM_ADMIN_TOKEN=change-me-to-a-long-random-string
+# 32 random bytes, base64: encrypts leased ChatGPT seats at rest (openssl rand -base64 32).
+SEAT_KEY=
+# Optional. API-key mode: the OpenAI key the model.internal handler adds (never sent to a container).
+# OPENAI_API_KEY=
+# Optional. Lets a match re-issue the gateway's slot tokens after a 401 and stop the gateway run on a halt.
+# GATEWAY_ADMIN_TOKEN=

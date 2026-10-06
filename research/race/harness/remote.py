@@ -117,9 +117,18 @@ class DriverError(RuntimeError):
 INFRA_PATTERNS = (
     ("auth", re.compile(r"request not allowed|/login\b|invalid api key|not logged in|oauth token (?:has )?"
                         r"(?:expired|been revoked)|authentication_error|permission_error|api error: 40[13]\b|"
-                        r"credit balance is too low", re.I)),
-    ("rate-limit", re.compile(r"api error: 429\b|rate_limit_error|rate.?limit|usage limit|hit your limit", re.I)),
-    ("api-unavailable", re.compile(r"api error: 5\d\d\b|overloaded_error|\boverloaded\b", re.I)),
+                        r"credit balance is too low|"
+                        # codex: "unexpected status 401 Unauthorized: Incorrect API key provided, url: ..."
+                        r"unexpected status 40[13]\b|incorrect api key|"
+                        # codex with a ChatGPT login: a 401 makes it refresh at auth.openai.com, which a swarm
+                        # container cannot reach (the seat is refreshed by the swarm's broker instead)
+                        r"auth\.openai\.com/oauth/token", re.I)),
+    ("rate-limit", re.compile(r"api error: 429\b|unexpected status 429\b|rate_limit_error|rate.?limit|usage limit|"
+                              r"hit your limit", re.I)),
+    ("api-unavailable", re.compile(r"api error: 5\d\d\b|unexpected status 5\d\d\b|overloaded_error|"
+                                   r"\boverloaded\b|"
+                                   # codex: the model API could not be reached at all (connection, DNS)
+                                   r"stream disconnected before completion: error sending request", re.I)),
 )
 
 
@@ -833,17 +842,7 @@ class RemoteRace(Race):
                 self.say("live page link withheld from redirected output (it carries a view token); "
                          "pass --live-url to print it")
         try:
-            await self.seed_base()
-            await self.start_run()
-            if self.aborted:  # a signal arrived while seeding
-                await self.send_stop(self.aborted)
-            watchdog = asyncio.create_task(self.wall_watchdog(), name="wall-watchdog")
-            self.loops = [asyncio.create_task(self.slot_loop(slot, i * self.stagger_start), name=f"slot-{slot}")
-                          for i, slot in enumerate(sorted(self.tokens, key=lambda s: int(s[1:])))]
-            try:
-                await asyncio.gather(*self.loops)
-            finally:
-                watchdog.cancel()
+            await self.drive()
         except asyncio.CancelledError:
             if not self.aborted:
                 self.abort("driver cancelled")
@@ -861,6 +860,21 @@ class RemoteRace(Race):
             self.close_log()
         aborted = (self.summary or {}).get("aborted") if self.summary is not None else (self.aborted or "no summary")
         return 0 if not aborted else 2 if str(aborted).startswith("budget") else 3
+
+    async def drive(self) -> None:
+        """Seed and start the run, then one slot loop per agent here until every slot is told ``done``
+        (``swarm.py`` runs the slots in Cloudflare containers instead)."""
+        await self.seed_base()
+        await self.start_run()
+        if self.aborted:  # a signal arrived while seeding
+            await self.send_stop(self.aborted)
+        watchdog = asyncio.create_task(self.wall_watchdog(), name="wall-watchdog")
+        self.loops = [asyncio.create_task(self.slot_loop(slot, i * self.stagger_start), name=f"slot-{slot}")
+                      for i, slot in enumerate(sorted(self.tokens, key=lambda s: int(s[1:])))]
+        try:
+            await asyncio.gather(*self.loops)
+        finally:
+            watchdog.cancel()
 
     def abort(self, reason: str) -> None:
         """A signal, an agent-CLI outage or a driver failure: ask the gateway to stop (it then runs the final

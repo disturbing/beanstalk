@@ -1,0 +1,55 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-swarm",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": {
+    "LOG_LEVEL": "info",
+    // model.internal in api-key mode: the Responses API base the key is sent to (an AI Gateway
+    // URL such as https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/openai also works).
+    "MODEL_UPSTREAM": "https://api.openai.com/v1",
+    // model.internal in lease mode: Codex's ChatGPT backend, and where seat tokens are refreshed.
+    "CHATGPT_UPSTREAM": "https://chatgpt.com/backend-api/codex",
+    "CHATGPT_TOKEN_URL": "https://auth.openai.com/oauth/token",
+    // Containers per match at most (the image's max_instances below bounds all matches together).
+    "MAX_AGENTS": "12",
+  },
+  // SWARM_ADMIN_TOKEN guards /v1; SEAT_KEY encrypts leased ChatGPT seats at rest. Optional,
+  // read only when present: OPENAI_API_KEY (api-key mode) and GATEWAY_ADMIN_TOKEN (token
+  // re-issue and gateway stop on a halt). Locally from .dev.vars, remotely `wrangler secret put`.
+  "secrets": { "required": ["SWARM_ADMIN_TOKEN", "SEAT_KEY"] },
+  "exports": {
+    // One per match: config, start barrier, spend cap, halt, slot logs.
+    "MatchDO": { "type": "durable-object", "storage": "sqlite" },
+    // One ("broker"): leased ChatGPT seats (encrypted), the global halt switch, live matches.
+    "BrokerDO": { "type": "durable-object", "storage": "sqlite" },
+    // One per agent container: its slot, its slot token, its lifecycle.
+    "AgentSandbox": { "type": "durable-object", "storage": "sqlite" },
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MATCHES", "class_name": "MatchDO" },
+      { "name": "BROKER", "class_name": "BrokerDO" },
+      { "name": "AGENTS", "class_name": "AgentSandbox" },
+    ],
+  },
+  // The containers reach the gateway (driver API and git proxy) only through this binding,
+  // from the bs.internal outbound handler; they have no internet of their own.
+  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  // One container per agent slot: Codex CLI + the race driver (agent/Dockerfile). standard-3
+  // (2 vCPU, 8 GiB) because agents run the arena's suite locally (docs/claude-opus/17 §3.2).
+  "containers": [
+    {
+      "class_name": "AgentSandbox",
+      "image": "./agent/Dockerfile",
+      "image_build_context": "../..",
+      "instance_type": "standard-3",
+      "max_instances": 16,
+      // A deploy rolls the new image out to running agents; without a grace period they are
+      // stopped (SIGTERM) mid-race within a minute or two (seen 2026-10-07). Seconds.
+      "rollout_active_grace_period": 3600,
+    },
+  ],
+}

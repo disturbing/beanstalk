@@ -82,6 +82,17 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     f.add_argument("--no-auth-probe", action="store_true",
                    help="--forge cloudflare: skip the one-turn Haiku call (about $0.004) a claude race makes before "
                         "it creates the run, to stop early on refused credentials or a rate limit")
+    f.add_argument("--swarm", metavar="URL",
+                   help="--forge cloudflare: run the agent slots in Cloudflare containers on this beanstalk-swarm "
+                        "Worker instead of here (harness/swarm.py; admin token $SWARM_ADMIN_TOKEN or "
+                        "packages/swarm/.dev.vars). Default $BEANSTALK_SWARM when --swarm-credential is given")
+    f.add_argument("--swarm-credential", choices=["none", "api-key", "lease"], default=None,
+                   help="--swarm: how Codex in the containers is authorised: none (replay), api-key (the swarm's "
+                        "OPENAI_API_KEY secret, injected by its outbound handler) or lease (one leased ChatGPT seat, "
+                        "one agent); containers never hold either")
+    f.add_argument("--swarm-seat", help="--swarm-credential lease: the seat name (default: the swarm's default seat)")
+    f.add_argument("--swarm-max-usd", type=float,
+                   help="--swarm: the match's own cap on agent spend plus container cost (default --max-usd)")
     v = ap.add_argument_group("beanstalk-v2 (both forges; default: the env var, else the harness default)")
     v.add_argument("--preland-mode", choices=["optimistic", "locked"],
                    help="pre-land checks in parallel (optimistic) or inside the committer turn ($PRELAND_MODE, locked)")
@@ -224,10 +235,23 @@ def make_remote_race(cfg: RaceConfig, ns: argparse.Namespace, argv: list[str]):
     if problem:
         print(problem, file=sys.stderr)
         return None
-    return RemoteRace(cfg, gateway=gateway, admin_token=admin, policy=cfg.policy, v2=v2_settings(v2_flags(ns)),
-                      show_live_url=ns.live_url, auth_probe=not ns.no_auth_probe, stagger_start=ns.stagger_start,
-                      guards={"preset": ns.preset, "max_usd": ns.max_usd, "keep_repo": ns.keep_repo or None,
-                              "stream_diffs": ns.stream_diffs or None})
+    kw = dict(gateway=gateway, admin_token=admin, policy=cfg.policy, v2=v2_settings(v2_flags(ns)),
+              show_live_url=ns.live_url, auth_probe=not ns.no_auth_probe, stagger_start=ns.stagger_start,
+              guards={"preset": ns.preset, "max_usd": ns.max_usd, "keep_repo": ns.keep_repo or None,
+                      "stream_diffs": ns.stream_diffs or None})
+    swarm = ns.swarm or (os.environ.get("BEANSTALK_SWARM") if ns.swarm_credential else None)
+    if not swarm:
+        return RemoteRace(cfg, **kw)
+    from harness.swarm import SwarmRace, load_swarm_token
+    token = load_swarm_token()
+    if not token:
+        print("--swarm needs $SWARM_ADMIN_TOKEN or SWARM_ADMIN_TOKEN in packages/swarm/.dev.vars", file=sys.stderr)
+        return None
+    if cfg.agent == "claude":
+        print("--swarm runs replay and codex agents (the agent image has no Claude Code)", file=sys.stderr)
+        return None
+    return SwarmRace(cfg, swarm=swarm, swarm_token=token, credential=ns.swarm_credential or "none",
+                     seat=ns.swarm_seat, swarm_max_usd=ns.swarm_max_usd, **kw)
 
 
 def dry_run(cfg: RaceConfig) -> int:

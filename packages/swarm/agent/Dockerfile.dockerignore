@@ -1,0 +1,6 @@
+# Only what the agent image copies: the race driver, the corpus helpers it imports, the arena.
+*
+!research/common/*.py
+!research/arena/tasks/*.json
+!research/arena/solutions/*.patch
+!research/race/harness/*.py

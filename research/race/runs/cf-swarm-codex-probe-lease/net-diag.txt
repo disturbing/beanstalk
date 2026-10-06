@@ -1,0 +1,74 @@
+== /etc/hosts
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::	ip6-localnet
+ff00::	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+127.0.1.1	cloudchamber
+
+== /etc/resolv.conf
+nameserver 2606:4700:4700::1111
+nameserver 2620:fe::fe
+
+== /etc/nsswitch.conf
+# /etc/nsswitch.conf
+#
+# Example configuration of GNU Name Service Switch functionality.
+# If you have the `glibc-doc-reference' and `info' packages installed, try:
+# `info libc "Name Service Switch"' for information about this file.
+
+passwd:         files
+group:          files
+shadow:         files
+gshadow:        files
+
+hosts:          files dns
+networks:       files
+
+protocols:      db files
+services:       db files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis
+
+== proxy env
+
+== getaddrinfo control.internal: ['11.9.0.1', 'fd00::119:1']
+== getaddrinfo bs.internal: ['11.9.0.1', 'fd00::119:1']
+== getaddrinfo model.internal: ['11.9.0.1', 'fd00::119:1']
+== GET model.internal/v1/models: 404 b'{"error":{"message":"not a model route","type":"swarm_error","code":"swarm_404"}}'
+== GET model.internal/backend-api/codex/models: 401 b'{\n  "error": {\n    "message": "Could not parse your authentication token. Please try signing in again.",\n    "type": null,\n    "code": "unauthorized_unknown",\n    "param": null\n  },\n  "status": 401\n}'
+== codex exit 1
+-- stdout
+{"type":"thread.started","thread_id":"01a11234-3e53-7822-b44b-85fc2e312737"}
+{"type":"turn.started"}
+{"type":"error","message":"Reconnecting... 1/5 (error sending request for url (https://auth.openai.com/oauth/token))"}
+{"type":"error","message":"Reconnecting... 2/5 (error sending request for url (https://auth.openai.com/oauth/token))"}
+{"type":"error","message":"Reconnecting... 3/5 (error sending request for url (https://auth.openai.com/oauth/token))"}
+{"type":"error","message":"Reconnecting... 4/5 (error sending request for url (https://auth.openai.com/oauth/token))"}
+{"type":"error","message":"Reconnecting... 5/5 (error sending request for url (https://auth.openai.com/oauth/token))"}
+{"type":"error","message":"error sending request for url (https://auth.openai.com/oauth/token)"}
+{"type":"turn.failed","error":{"message":"error sending request for url (https://auth.openai.com/oauth/token)"}}
+
+-- stderr
+c2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}:responses.stream_request{transport="responses_http" http.method="POST" api.path="/responses"}:endpoint_session.stream_encoded_json_with{http.method=POST api.path="/responses"}: codex_otel.log_only: event.name="codex.api_request" duration_ms=359 http.response.status_code=401 error.message="http 401" attempt=0 auth.header_attached=true auth.header_name="authorization" auth.retry_after_unauthorized=true auth.recovery_mode="managed" auth.recovery_phase="reload" endpoint="/responses" auth.env_openai_api_key_present=false auth.env_codex_api_key_present=false auth.env_codex_api_key_enabled=true auth.env_refresh_token_url_override_present=false auth.error="401" auth.error_code="unauthorized_unknown" event.timestamp=2026-10-06T17:13:59.103Z conversation.id=01a11234-3e53-7822-b44b-85fc2e312737 app.version=0.160.1 auth_mode="Chatgpt" originator=codex_exec user.account_id="swarm-placeholder" user.email="swarm-agent@beanstalk.invalid" terminal.type=unknown model=gpt-6.1-sol slug=gpt-6.1-sol
+2026-10-06T17:13:59.103773Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}:responses.stream_request{transport="responses_http" http.method="POST" api.path="/responses"}:endpoint_session.stream_encoded_json_with{http.method=POST api.path="/responses"}: codex_otel.trace_safe: event.name="codex.api_request" duration_ms=359 http.response.status_code=401 error.message="http 401" attempt=0 auth.header_attached=true auth.header_name="authorization" auth.retry_after_unauthorized=true auth.recovery_mode="managed" auth.recovery_phase="reload" endpoint="/responses" auth.env_openai_api_key_present=false auth.env_codex_api_key_present=false auth.env_codex_api_key_enabled=true auth.env_refresh_token_url_override_present=false auth.error="401" auth.error_code="unauthorized_unknown" event.timestamp=2026-10-06T17:13:59.103Z conversation.id=01a11234-3e53-7822-b44b-85fc2e312737 app.version=0.160.1 auth_mode="Chatgpt" originator=codex_exec terminal.type=unknown model=gpt-6.1-sol slug=gpt-6.1-sol
+2026-10-06T17:13:59.103786Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}:responses.stream_request{transport="responses_http" http.method="POST" api.path="/responses"}:endpoint_session.stream_encoded_json_with{http.method=POST api.path="/responses"}: feedback_tags: endpoint="/responses" auth_header_attached=true auth_header_name="authorization" auth_mode="Chatgpt" auth_retry_after_unauthorized="true" auth_recovery_mode="managed" auth_recovery_phase="reload" auth_connection_reused="" auth_request_id="" auth_cf_ray="" auth_error="401" auth_error_code="unauthorized_unknown" auth_recovery_followup_success="false" auth_recovery_followup_status="401" auth_env_openai_api_key_present=false auth_env_codex_api_key_present=false auth_env_codex_api_key_enabled=true auth_env_provider_key_name="" auth_env_provider_key_present="" auth_env_refresh_token_url_override_present=false
+2026-10-06T17:13:59.103867Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: codex_login::auth::manager: Refreshing token
+2026-10-06T17:13:59.103948Z  INFO codex_http_client::custom_ca: using system root certificates because no CA override environment variable was selected codex_ca_certificate_configured=false ssl_cert_file_configured=false
+2026-10-06T17:13:59.112526Z DEBUG session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: reqwest::connect: starting new connection: https://auth.openai.com/
+2026-10-06T17:14:01.045962Z TRACE reqwest::retry: shouldn't retry!
+2026-10-06T17:14:04.118148Z TRACE session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: reqwest::retry: shouldn't retry!
+2026-10-06T17:14:04.118209Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: codex_otel.log_only: event.name="codex.auth_recovery" auth.mode="managed" auth.step="refresh_token" auth.outcome="recovery_failed_transient" auth.error="401" auth.error_code="unauthorized_unknown" event.timestamp=2026-10-06T17:14:04.118Z conversation.id=01a11234-3e53-7822-b44b-85fc2e312737 app.version=0.160.1 auth_mode="Chatgpt" originator=codex_exec user.account_id="swarm-placeholder" user.email="swarm-agent@beanstalk.invalid" terminal.type=unknown model=gpt-6.1-sol slug=gpt-6.1-sol
+2026-10-06T17:14:04.118226Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: codex_otel.trace_safe: event.name="codex.auth_recovery" auth.mode="managed" auth.step="refresh_token" auth.outcome="recovery_failed_transient" auth.error="401" auth.error_code="unauthorized_unknown" event.timestamp=2026-10-06T17:14:04.118Z conversation.id=01a11234-3e53-7822-b44b-85fc2e312737 app.version=0.160.1 auth_mode="Chatgpt" originator=codex_exec terminal.type=unknown model=gpt-6.1-sol slug=gpt-6.1-sol
+2026-10-06T17:14:04.118234Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}:model_client.stream_responses_api{model=gpt-6.1-sol wire_api=responses transport="responses_http" http.method="POST" turn.has_metadata_header=true api.path="/responses" api.path="/responses"}: feedback_tags: auth_recovery_mode="managed" auth_recovery_phase="refresh_token" auth_recovery_outcome="recovery_failed_transient" auth_401_request_id="" auth_401_cf_ray="" auth_401_error="401" auth_401_error_code="unauthorized_unknown"
+2026-10-06T17:14:04.120846Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.turn_input" submission.id="01a11234-416b-7473-be6e-2fe5b57eba28" codex.op="turn_input"}:turn{otel.name="session_task.turn" thread.id=01a11234-3e53-7822-b44b-85fc2e312737 turn.id=01a11234-416b-7473-be6e-2fe5b57eba28 model=gpt-6.1-sol codex.turn.reasoning_effort=low}: codex_core::session::turn: Turn error: error sending request for url (https://auth.openai.com/oauth/token)
+2026-10-06T17:14:04.126886Z  INFO codex_http_client::custom_ca: using system root certificates because no CA override environment variable was selected codex_ca_certificate_configured=false ssl_cert_file_configured=false
+2026-10-06T17:14:04.138382Z  WARN codex_mcp::rmcp_client: failed to initialize MCP client during shutdown: MCP startup failed: handshaking with MCP server failed: Send message error Transport [codex_rmcp_client::event_notification_transport::EventNotificationTransport<rmcp::transport::worker::WorkerTransport<rmcp::transport::streamable_http_client::StreamableHttpClientWorker<codex_rmcp_client::http_client_adapter::StreamableHttpClientAdapter>>>] error: Client error: HTTP request failed: http/request failed: error sending request for url (https://chatgpt.com/backend-api/ps/mcp), when send initialize request: Send message error Transport [codex_rmcp_client::event_notification_transport::EventNotificationTransport<rmcp::transport::worker::WorkerTransport<rmcp::transport::streamable_http_client::StreamableHttpClientWorker<codex_rmcp_client::http_client_adapter::StreamableHttpClientAdapter>>>] error: Client error: HTTP request failed: http/request failed: error sending request for url (https://chatgpt.com/backend-api/ps/mcp), when send initialize request
+2026-10-06T17:14:04.138490Z  INFO session_loop{thread_id=01a11234-3e53-7822-b44b-85fc2e312737}:submission_dispatch{otel.name="op.dispatch.shutdown" submission.id="01a11235-47ea-7790-9f7a-c370d138b1f3" codex.op="shutdown"}: codex_core::session::handlers: Shutting down Codex instance
+2026-10-06T17:14:04.144371Z DEBUG reqwest::connect: starting new connection: https://chatgpt.com/
+2026-10-06T17:14:09.148957Z TRACE reqwest::retry: shouldn't retry!
+2026-10-06T17:14:09.149005Z  WARN codex_analytics::client: failed to send events request: error sending request for url (https://chatgpt.com/backend-api/codex/analytics-events/events)
+

@@ -49,6 +49,16 @@ python3 kth_green.py runs/cf-replay-queue-8-s7 runs/cf-replay-v2-8-s7
 - **Live page:** its link carries a view token, so it is printed only when stderr is a terminal or with `--live-url`.
 - **Exit status:** 0 done, 2 aborted on budget, 3 otherwise. Ctrl-C asks the gateway to stop (it then runs the final check) and still downloads the results; a second Ctrl-C stops waiting.
 
+## Agents in Cloudflare containers (`--swarm URL`)
+
+`--swarm https://beanstalk-swarm.<subdomain>.workers.dev` moves the slot loops off this machine (`packages/swarm`, phase 1 of `docs/claude-opus/17-cloud-agent-swarm.md`). The driver creates and seeds the run as above, hands the slot tokens to a swarm match, waits until every container has said hello, then starts the run and releases the match, so all slots begin together and cold starts stay out of race time. Each container runs `python3 -m harness.slot`: the same `RemoteRace` slot loop, against `http://bs.internal` (the gateway through the swarm's outbound handler, which adds the slot token) and Codex against `http://model.internal` (the handler adds the API key or a leased ChatGPT seat's token). Containers hold no token. Outputs add `work/driver-swarm.jsonl` (every slot's driver log), `work/transcripts/<slot>/` and `swarm.json` (cold starts, container seconds and cost, agent spend).
+
+- `--swarm-credential none|api-key|lease` (`none` for replay; codex needs one), `--swarm-seat NAME` (lease, one agent), `--swarm-max-usd` (the match's own cap, default `--max-usd`).
+- `BEANSTALK_OUTAGE_SECONDS` / `BEANSTALK_INFRA_BACKOFF` reach the slots. A slot stops itself after an outage; when every slot has stopped, the driver stops the run.
+- `SWARM_DIAGNOSE=1`: each slot ships `net-diag.txt` (resolver, virtual hosts, one `codex exec`, Codex's sandbox).
+- Codex's own HTTP failures are classified like Claude's: `unexpected status 401/403` and a refresh attempt at `auth.openai.com` are `auth`, `unexpected status 429` is `rate-limit`, `5xx` and `error sending request` are `api-unavailable`.
+- Tests: `tests/test_swarm.py` runs a two-slot race through `tests/fake_swarm.py` (slot processes behind a fake of the swarm's handlers) and checks no slot ever sends or stores a token.
+
 ## What the driver does per invocation (gateway README, "Driver contract")
 
 1. **Workspace:** one clone per task under `work/agents/<task>`. It fetches the bean through the gateway's git proxy with the slot token, checks out `task/<id>` at `head_sha` (`base_sha` before the first push), and writes the acceptance tests before the first run. A worktree whose HEAD and in-progress merge already match is kept as it is, as the harness keeps a task's worktree (markers left from the previous round, or a failed resume retried fresh).
