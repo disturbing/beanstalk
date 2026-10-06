@@ -1,0 +1,16 @@
+posts: 141 total, 141 accepted, reasons {'None': 141}
+posts seen on SSE: 141/141
+bytes per accepted post: median 4051, max 9259
+triggers: {'edit': 135, 'timer': 6}
+post round trip (driver -> gateway -> 200): n=141 median=515 p90=773 max=4460 ms
+diff build on the driver: n=141 median=81 p90=130 max=242 ms
+edit -> post start (debounce + diff): n=135 median=606 p90=1659 max=3641 ms
+post start -> SSE event at this machine: n=141 median=509 p90=771 max=4357 ms
+edit -> SSE event: n=135 median=1191 p90=2304 max=4824 ms
+post start -> journey DOM (diff fetched, drawn): n=77 median=900 p90=4097 max=15020 ms
+edit -> journey DOM: n=76 median=1999 p90=4854 max=15719 ms
+post start -> stalk list DOM (home): n=141 median=537 p90=867 max=4358 ms
+edit -> stalk list DOM (home): n=135 median=1240 p90=2397 max=4825 ms
+SSE connections: 5; errors: 1; closes: 4
+SSE headers: {'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-store', 'content-encoding': None, 'transfer-encoding': 'chunked', 'server-timing': None}
+SSE events: 546; arriving in the same millisecond as the previous one: 50
