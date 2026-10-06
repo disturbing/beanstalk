@@ -223,8 +223,12 @@ export function onCulpritDiffFailed(step: V2Step, wait: { task: TaskId; culprit:
 
 /**
  * v2.5: the culprits a bean is stuck against. A red repeats against a culprit when one of its
- * failing test files failed in the previous red against it too (a card resets the count);
- * after `escalate_after` repeats, or v2.4's third red of an undecided pair, the pair is stuck.
+ * failing test files failed in the previous red against it too; after `escalate_after`
+ * repeats, or v2.4's third red of an undecided pair, the pair is stuck. A card does not reset
+ * the count (the tail fix): a re-executed loser red again on the file its card was raised on
+ * is stuck against the decided counterpart at once, so the drop after the card fires (t032 in
+ * `cf-v25dep-sonnet-12-s7` got a fresh informed repair after its card, and another after its
+ * rescue, each behind a dynamic-culprit search).
  */
 function repeatedCulprits(
   step: V2Step,
@@ -238,19 +242,23 @@ function repeatedCulprits(
     const key = pairKey(task, culprit);
     const decided = isDecided(state, task, culprit);
     const last = state.pairRepeats[key];
-    const isRepeat =
-      last !== undefined && last.decided === decided && files.some((f) => last.files.includes(f));
+    const isRepeat = last !== undefined && files.some((file) => last.files.includes(file));
     const repeats = isRepeat ? last.repeats + 1 : 0;
-    state.pairRepeats[key] = { files, repeats, decided };
+    state.pairRepeats[key] = { files, repeats };
     const isThirdRed = !decided && (state.pairReds[key] ?? 0) >= CARD_AFTER_REDS;
     return repeats >= state.settings.escalateAfter || isThirdRed;
   });
 }
 
-/** A rescued bean starts its repeat count against every culprit over (`rescue`). */
+/**
+ * A rescued bean starts its repeat count over against undecided culprits (`rescue`). Against a
+ * decided one it keeps it: red again on the same file after the rescue, it is dropped.
+ */
 function forgetRepeats(state: V2State, task: TaskId): void {
   for (const key of Object.keys(state.pairRepeats)) {
-    if (key.startsWith(`${task}|`)) delete state.pairRepeats[key];
+    if (key.startsWith(`${task}|`) && state.decidedPairs[key] === undefined) {
+      delete state.pairRepeats[key];
+    }
   }
 }
 

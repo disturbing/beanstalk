@@ -203,6 +203,11 @@ describe('v2: a clean landing', () => {
       'dynamic_culprits',
       'dynamic_culprit_runs',
       'dynamic_culprit_probes',
+      'dynamic_culprit_skips',
+      'max_bean_invocations',
+      'tail_guard_minutes',
+      'invocation_drops',
+      'tail_drops',
       'tests_first',
       'tests_first_accepted',
       'tests_first_fallbacks',
@@ -241,6 +246,8 @@ describe('v2: a clean landing', () => {
       reconcile_parties: 3,
       start_cards: true,
       rescue: true,
+      max_bean_invocations: 10,
+      tail_guard_minutes: 10,
       decision_outcome: 'reexecute',
       variant: 'v2.5',
       variant_additions: [],
@@ -265,6 +272,7 @@ describe('v2: a clean landing', () => {
         '1 / 3 / 0',
       ],
       ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
+      ['Max bean invocations / tail guard minutes / dropped by each', '10 / 10 / 0 / 0'],
       ['Tests first (accepted / fallbacks) / targeted landing checks (red)', 'off / off'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
@@ -355,6 +363,8 @@ describe('v2: a clean landing', () => {
       { start_cards: true },
       { rescue: true },
       { dynamic_culprits: true },
+      { max_bean_invocations: 10 },
+      { tail_guard_minutes: 10 },
     ];
     for (const single of singles) {
       const run = runV2({

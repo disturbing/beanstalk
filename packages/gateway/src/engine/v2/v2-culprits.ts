@@ -7,11 +7,19 @@
  *
  * When the bean's own tests fail (and no landed declared partner's do), the landed beans
  * whose files those tests read are probed, wherever they landed: declared partners first,
- * then the newest, at most 24, four at a time. A probe reverts one bean from the checked tree
- * and runs the suite; the bean is a culprit when its own failing tests pass without it. The
- * confirmed beans replace the read-set guess; none confirmed means none is named. E6 ranked
- * the candidates by covered lines (`git blame` of a coverage run); the runner reports no
- * coverage, so the order here is partners, then recency.
+ * then the newest, at most 6, no more at once than the run has CI slots. A probe reverts one
+ * bean from the checked tree and runs the suite in the bean's sandbox; the bean is a culprit
+ * when its own failing tests pass without it. The confirmed beans replace the read-set guess;
+ * none confirmed means none is named. E6 ranked the candidates by covered lines (`git blame`
+ * of a coverage run); the runner reports no coverage, so the order here is partners, then
+ * recency.
+ *
+ * The tail fix bounds the searches. In `cf-v25dep-sonnet-12-s7` t032's every red ran a fresh
+ * search of 24 candidates (6 to 12 minutes each) that could never confirm one: two landed
+ * beans broke its test together, so leaving either out fixed nothing. Now a bean searches
+ * once per set of counterparts its red names (owners, base and read-set culprits; a repeat
+ * reuses the answer), and not at all once that set includes a counterpart a card decided:
+ * the card already said who the culprit is.
  */
 import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
 import { unionPaths } from '@beanstalk/shared-race/run-config';
@@ -19,15 +27,19 @@ import { unionPaths } from '@beanstalk/shared-race/run-config';
 import { emit, startJob, taskDefinition } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { probeMessage } from '../prompts';
-import { startRepair } from './v2-repair';
+import { isDecided } from './v2-decisions';
+import { culpritTasks, startRepair } from './v2-repair';
 import type { RedCheck } from './v2-repair';
 import { awaitOutcome } from './v2-sprout';
 import { declaredPartners } from './v2-start';
 import type { LandingFlow, LandingStep, V2Step } from './v2-state';
 
-/** Candidates probed at most (E6 raised it from 8, which missed t033). */
-const MAX_CANDIDATES = 24;
-/** Probes run at once. */
+/**
+ * Candidates probed at most. E6 raised it from 8 to 24 (8 missed t033); the tail fix lowers it
+ * to 6, since 24 full suites per red kept t032's searches at 6 to 12 minutes each.
+ */
+const MAX_CANDIDATES = 6;
+/** Probes run at once, at most (and never more than the run's CI slots). */
 const PROBES_AT_ONCE = 4;
 
 type ProbeStep = Extract<LandingStep, { kind: 'culprit-probe' }>;
@@ -46,6 +58,12 @@ export function repairWithCulprits(
     startRepair(step, flow, red);
     return;
   }
+  const known = knownSearch(step, flow.task, red);
+  if (known.kind !== 'search') {
+    step.state.stats.dynamic_culprit_skips = (step.state.stats.dynamic_culprit_skips ?? 0) + 1;
+    startRepair(step, flow, known.kind === 'repeat' ? { ...red, confirmed: known.confirmed } : red);
+    return;
+  }
   step.state.stats.dynamic_culprit_runs += 1;
   flow.step = {
     kind: 'culprit-probe',
@@ -58,8 +76,28 @@ export function repairWithCulprits(
     probed: [],
     probes: [],
     confirmed: [],
+    searchKey: known.key,
   };
   nextBatch(step, flow, flow.step);
+}
+
+type KnownSearch =
+  | { readonly kind: 'search'; readonly key: string }
+  | { readonly kind: 'repeat'; readonly confirmed: readonly TaskId[] }
+  | { readonly kind: 'decided' };
+
+/**
+ * Whether this red needs a search: not when the counterparts it names include one a card
+ * decided, nor when the bean already searched for this set of counterparts (its answer then
+ * stands).
+ */
+function knownSearch(step: V2Step, task: TaskId, red: RedCheck): KnownSearch {
+  const { state } = step;
+  const named = culpritTasks(step, task, { head: red.head, red: red.red, mine: red.mine });
+  if (named.some((culprit) => isDecided(state, task, culprit))) return { kind: 'decided' };
+  const key = `${task}|${named.toSorted().join(',')}`;
+  const confirmed = state.dynamicSearches?.[key];
+  return confirmed === undefined ? { kind: 'search', key } : { kind: 'repeat', confirmed };
 }
 
 /** A probe's revert or suite returned (or failed: `result` null). */
@@ -132,8 +170,9 @@ function nextBatch(step: V2Step, flow: LandingFlow, current: ProbeStep): void {
     finish(step, flow, current);
     return;
   }
-  const batch = current.queue.slice(0, PROBES_AT_ONCE);
-  current.queue = current.queue.slice(PROBES_AT_ONCE);
+  const atOnce = Math.min(PROBES_AT_ONCE, step.ctx.env.config.ci_slots);
+  const batch = current.queue.slice(0, atOnce);
+  current.queue = current.queue.slice(atOnce);
   for (const task of batch) {
     const commit = step.state.commits.findLast(
       (candidate) => candidate.task === task && candidate.kind === 'task' && !candidate.reverted,
@@ -159,6 +198,8 @@ function nextBatch(step: V2Step, flow: LandingFlow, current: ProbeStep): void {
 }
 
 function finish(step: V2Step, flow: LandingFlow, current: ProbeStep): void {
+  const searches = (step.state.dynamicSearches ??= {});
+  if (current.searchKey !== undefined) searches[current.searchKey] = [...current.confirmed];
   emit(step.ctx, 'culprit.dynamic', {
     task: flow.task,
     candidates: [...current.probed],

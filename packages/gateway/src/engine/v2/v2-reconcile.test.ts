@@ -147,8 +147,13 @@ describe('v2.4: stale failures', () => {
   });
 });
 
-/** v2.4's rules for escalation and reconcile (v2.5 changes both). */
-const V24_ESCALATION: Partial<RunConfigInput> = { escalate_after: 2, reconcile_parties: 1 };
+/** v2.4's rules for escalation and reconcile (v2.5 changes both), without v2.5's tail bounds. */
+const V24_ESCALATION: Partial<RunConfigInput> = {
+  escalate_after: 2,
+  reconcile_parties: 1,
+  max_bean_invocations: 0,
+  tail_guard_minutes: 0,
+};
 
 /**
  * The real race's t032 (cf-v24-sonnet-12-s7): its shipping clashes with t005's pinned total

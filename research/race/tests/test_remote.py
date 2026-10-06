@@ -618,6 +618,12 @@ class CommandLine(unittest.TestCase):
                           "start_cards": False, "rescue": True, "dynamic_culprits": False,
                           "structural_merge": False, "start_order": "dependency"})
 
+    def test_tail_bounds_are_sent_only_when_set(self) -> None:
+        self.assertNotIn("max_bean_invocations", v2_settings({}, env={}))
+        self.assertNotIn("tail_guard_minutes", v2_settings({}, env={}))
+        settings = v2_settings({}, env={"MAX_BEAN_INVOCATIONS": "0", "TAIL_GUARD_MINUTES": "12.5"})
+        self.assertEqual((settings["max_bean_invocations"], settings["tail_guard_minutes"]), (0, 12.5))
+
     def test_live_sync_is_sent_only_when_set(self) -> None:
         self.assertNotIn("live_sync", v2_settings({}, env={}))
         self.assertEqual(v2_settings({}, env={"LIVE_SYNC": "overlap"})["live_sync"], "overlap")

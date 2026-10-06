@@ -44,6 +44,7 @@ import {
   sampledRecheck,
   windowAdmits,
 } from './v2-backpressure';
+import { boundedDrop, startProgress } from './v2-bounds';
 import { onProbeJob, repairWithCulprits } from './v2-culprits';
 import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
@@ -126,6 +127,7 @@ export function startLanding(step: V2Step, task: TaskId): void {
     step: { kind: 'queued-locked' },
     ...syncDueAfterInvocation(step),
   };
+  startProgress(step, task);
   attempt(step, task);
 }
 
@@ -1051,10 +1053,22 @@ function landed(step: V2Step, flow: LandingFlow, landing: { sha: Sha; files: str
   settleCarried(step, flow.task);
 }
 
-/** `land`'s loop after an attempt that did not land: back to the author, or drop. */
+/**
+ * `land`'s loop after an attempt that did not land: back to the author, or drop. The v2.5
+ * bounds (`v2-bounds`) come first: no reset of the rounds gets past them.
+ */
 function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void {
   const { ctx, state } = step;
   flow.rounds += 1;
+  const bound = boundedDrop(step, flow.task, {
+    kind: failure.kind,
+    files: failure.kind === 'red' ? (failure.red.failingFiles ?? []) : failure.files,
+  });
+  if (bound !== null) {
+    if (failure.kind === 'red') state.stats.preland_drops += 1;
+    endLanding(step, flow.task, bound);
+    return;
+  }
   if (flow.rounds > ctx.env.config.max_rework) {
     if (rescueOnExhaustion(step, flow, failure.kind === 'red' ? failure.red : null)) return;
     if (failure.kind === 'red') state.stats.preland_drops += 1;

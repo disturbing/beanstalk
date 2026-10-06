@@ -193,9 +193,11 @@ const CheckedFields = z
     rescue: z.boolean().default(true),
     /**
      * v2.5 (E6 `DYNAMIC_CULPRITS`): when a bean's own acceptance tests fail its check, the landed
-     * beans whose files the failing tests read (declared partners first, then newest, at most 24,
-     * 4 at a time), wherever they landed, are confirmed by leave-one-out probes of the checked
-     * tree. Confirmed beans replace the read-set guess among commits since the bean's snapshot.
+     * beans whose files the failing tests read (declared partners first, then newest, at most 6,
+     * no more at once than `ci_slots`), wherever they landed, are confirmed by leave-one-out
+     * probes of the checked tree. Confirmed beans replace the read-set guess among commits since
+     * the bean's snapshot. One search per bean and set of named counterparts; none once the
+     * named counterparts include one a card decided.
      */
     dynamic_culprits: z.boolean().default(true),
     /**
@@ -241,6 +243,18 @@ const CheckedFields = z
      * tells the agent. Independent of `live_sync`. `false`: as before.
      */
     live_sync_midrun: z.boolean().default(false),
+    /**
+     * v2.5 tail fix: agent invocations one bean may use in all (its initial run, informed and
+     * conflict reworks, reconciles, test authors, re-executions, the rescue). A bean whose
+     * check fails after that many is dropped, whatever reset its rounds. `0`: no ceiling.
+     */
+    max_bean_invocations: z.number().int().min(0).max(100).default(10),
+    /**
+     * v2.5 tail fix: when every bean still in play has failed a check and none has made
+     * progress (a failing set it had not seen, or any landing) for this many minutes, each is
+     * dropped at its next failed check, so the run ends. `0`: off.
+     */
+    tail_guard_minutes: z.number().min(0).max(1440).default(10),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -350,6 +364,8 @@ export const V25_RULES_OFF = {
   rescue: false,
   dynamic_culprits: false,
   structural_merge: false,
+  max_bean_invocations: 0,
+  tail_guard_minutes: 0,
 } as const satisfies Partial<RunConfigInput>;
 
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */

@@ -218,6 +218,8 @@ export type LandingStep =
       probed: TaskId[];
       probes: CulpritProbe[];
       confirmed: TaskId[];
+      /** The bean and the counterparts its red named: the answer is kept under this key. */
+      searchKey?: string;
     }
   /** A decided card's pipeline: the winner's diff, the author, its files, the fail-first proof. */
   | { kind: 'card-context'; card: string; jobId: JobId }
@@ -433,6 +435,14 @@ export type V2Stats = {
   /** `live_sync`: sprouts merged into a bean's branch for its agent, and conflicts noted. */
   syncs_applied: number;
   syncs_noted: number;
+  /**
+   * v2.5 tail fix: beans dropped at `max_bean_invocations`, and by the tail guard (absent:
+   * 0, in runs created before the fix).
+   */
+  invocation_drops?: number;
+  tail_drops?: number;
+  /** v2.5 tail fix: dynamic-culprit searches skipped (repeated or decided counterparts). */
+  dynamic_culprit_skips?: number;
   /** `live_sync_midrun`: offers made mid-run, and what the agents' hooks did (absent: 0). */
   midrun_offered?: number;
   midrun_applied?: number;
@@ -478,7 +488,13 @@ export type V2Settings = {
   readonly liveSync?: 'off' | 'overlap' | 'all';
   /** `live_sync_midrun`; absent in runs created before the setting: off. */
   readonly liveSyncMidrun?: boolean;
+  /** v2.5 tail fix (`max_bean_invocations`, `tail_guard_minutes`); absent or 0: off. */
+  readonly maxBeanInvocations?: number;
+  readonly tailGuardMinutes?: number;
 };
+
+/** v2.5 tail guard: when a bean last made progress, and the failing sets it has seen. */
+export type BeanProgress = { at: Seconds; seen: string[] };
 
 export type V2State = {
   kind: 'beanstalk-v2';
@@ -535,9 +551,10 @@ export type V2State = {
   reconciledPairs: Record<string, boolean>;
   /**
    * v2.5 (`escalate_after: 1`): per pair, the failing files of its last red and how many reds
-   * in a row repeated a failing file of the one before; reset when a card decides the pair.
+   * in a row repeated a failing file of the one before. A card no longer resets it (the tail
+   * fix): the same file red again after the card is stuck against the decided counterpart.
    */
-  pairRepeats: Record<string, { files: string[]; repeats: number; decided: boolean }>;
+  pairRepeats: Record<string, { files: string[]; repeats: number }>;
   cards: Record<string, DecisionCard>;
   cardSeq: number;
   /** The card of each running test-author invocation. */
@@ -546,6 +563,13 @@ export type V2State = {
   carried: Record<string, CarriedAmendment[]>;
   /** v2.5: beans already rescued once (`rescue`). */
   rescued: Record<string, boolean>;
+  /**
+   * v2.5 tail fix: the beans a dynamic-culprit search confirmed, by bean and the set of
+   * counterparts its red named (`<task>|<a,b>`): one search per set.
+   */
+  dynamicSearches?: Record<string, TaskId[]>;
+  /** v2.5 tail guard: each bean's last progress (absent: none tracked yet). */
+  progress?: Record<string, BeanProgress>;
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;

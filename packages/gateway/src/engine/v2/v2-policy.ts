@@ -166,6 +166,8 @@ function initialV2State(ctx: StepContext): V2State {
       structuralMerge: usesStructuralMerge(config),
       liveSync: config.live_sync,
       ...(config.live_sync_midrun ? { liveSyncMidrun: true } : {}),
+      maxBeanInvocations: config.max_bean_invocations,
+      tailGuardMinutes: config.tail_guard_minutes,
     },
     sprout: base,
     green: base,
@@ -570,7 +572,7 @@ const V24_WINDOW = { start: 4, growth: 2, max: 16, min: 2 } as const;
 /**
  * Whether any v2.5 rule is on: A's escalation and parties, B's lone-suspect reverts, base
  * culprits, validations first and window sizes, C's structural merge tier, E's start cards,
- * rescue and dynamic culprits. `V25_RULES_OFF` turns every one off.
+ * rescue and dynamic culprits, and the tail fix's bounds. `V25_RULES_OFF` turns every one off.
  */
 function hasV25Rule(settings: V2Settings): boolean {
   const { windowSizes: sizes } = settings;
@@ -590,8 +592,14 @@ function hasV25Rule(settings: V2Settings): boolean {
     settings.structuralMerge ||
     settings.startCards ||
     settings.rescue ||
-    settings.dynamicCulprits
+    settings.dynamicCulprits ||
+    hasTailBounds(settings)
   );
+}
+
+/** v2.5's tail fix: a ceiling on a bean's invocations, or the tail guard. */
+function hasTailBounds(settings: V2Settings): boolean {
+  return (settings.maxBeanInvocations ?? 0) > 0 || (settings.tailGuardMinutes ?? 0) > 0;
 }
 
 /**
@@ -712,6 +720,17 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
     dynamic_culprits: settings.dynamicCulprits,
     dynamic_culprit_runs: stats.dynamic_culprit_runs,
     dynamic_culprit_probes: stats.dynamic_culprit_probes,
+    ...(settings.dynamicCulprits
+      ? { dynamic_culprit_skips: stats.dynamic_culprit_skips ?? 0 }
+      : {}),
+    ...(hasTailBounds(settings)
+      ? {
+          max_bean_invocations: settings.maxBeanInvocations ?? 0,
+          tail_guard_minutes: settings.tailGuardMinutes ?? 0,
+          invocation_drops: stats.invocation_drops ?? 0,
+          tail_drops: stats.tail_drops ?? 0,
+        }
+      : {}),
     tests_first: settings.testsFirst,
     tests_first_accepted: stats.tests_first_accepted,
     tests_first_fallbacks: stats.tests_first_fallbacks,
@@ -825,6 +844,7 @@ function summaryRows(
           ? `${stats.dynamic_culprit_runs} (${stats.dynamic_culprit_probes})`
           : 'off'),
     ],
+    ...tailBoundsRows(settings, stats),
     [
       'Tests first (accepted / fallbacks) / targeted landing checks (red)',
       `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
@@ -875,6 +895,23 @@ function summaryRows(
       `${stats.pauses} / ${pythonFloat(roundTo(rounded.pausedSeconds / 60, 2))}`,
     ],
   ];
+}
+
+/** v2.5's tail fix, when on: its two bounds and the beans each dropped. */
+function tailBoundsRows(settings: V2Settings, stats: V2State['stats']): [string, Json][] {
+  if (!hasTailBounds(settings)) return [];
+  return [
+    [
+      'Max bean invocations / tail guard minutes / dropped by each',
+      `${bound(settings.maxBeanInvocations)} / ${bound(settings.tailGuardMinutes)} / ` +
+        `${stats.invocation_drops ?? 0} / ${stats.tail_drops ?? 0}`,
+    ],
+  ];
+}
+
+/** A tail bound as the summary row shows it: its value, or `off`. */
+function bound(value: number | undefined): string {
+  return value !== undefined && value > 0 ? String(value) : 'off';
 }
 
 /**
