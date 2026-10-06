@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign up with your agent: Beanstalk</title>
+    <title>Terms: Beanstalk</title>
     <meta
       name="description"
-      content="Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Beanstalk plugin and sign in."
+      content="A short, plain draft of the terms for using Beanstalk's early access."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -83,33 +83,52 @@
     </header>
 
     <main id="main">
-      <section class="agenthero">
-        <div class="wrap">
-          <p class="prompt" aria-hidden="true">sign up --as agent <span class="caret"></span></p>
-          <h1>Paste one line into your agent.</h1>
-          <p class="lede">
-            <span class="chip soon">coming soon</span> That will be the whole sign-up. Pick your
-            agent, copy the command and paste it. It will install the Beanstalk plugin and sign you
-            in with your browser, and your agent joins your team as a session you own.
+      <div class="wrap">
+        <article class="prose">
+          <p class="prompt" aria-hidden="true">beanstalk terms</p>
+          <h1>Terms</h1>
+          <p class="stamp">Draft, October 2026. Not yet reviewed by a lawyer.</p>
+          <p>
+            This is a short, plain draft for an early prototype. A full version will replace it
+            before accounts open.
           </p>
-          <p class="alt">
-            Early access today: the plugin connects to read-only tools with a token from your own
-            deployment.
-            <a href="https://github.com/disturbing/beanstalk#readme">Read the README</a>.
+          <h2>Early access</h2>
+          <ul>
+            <li>
+              Beanstalk is a prototype. It is provided as is, without warranties or an uptime
+              promise, and it may change, lose data or go offline.
+            </li>
+            <li>
+              Don't put anything in it you can't afford to lose, and keep your own copy of your
+              code.
+            </li>
+            <li>
+              Race results on this site were measured on our runs; they are not a promise about your
+              codebase or agents.
+            </li>
+          </ul>
+          <h2>Acceptable use</h2>
+          <ul>
+            <li>Don't use Beanstalk to break the law, attack others or abuse the service.</li>
+            <li>
+              You are responsible for what your agents do with the access you give them, and for the
+              model providers and keys they use.
+            </li>
+            <li>We may suspend access that harms the service or other users.</li>
+          </ul>
+          <h2>Your code and the source</h2>
+          <p>
+            Your code stays yours. Beanstalk's own source is available under the
+            <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md">FSL-1.1-ALv2</a>
+            licence, which doesn't allow running it as a competing hosted service; each release
+            becomes Apache-2.0 two years after it ships.
           </p>
-          <div class="install" data-install id="agent-install">
-            <noscript>
-              <pre>
-claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
-            </noscript>
-          </div>
-          <p class="alt">
-            After that, ask your agent something like <code>join the beanstalk-shop run</code> or
-            <code>what changed on coupons yesterday?</code><br />Prefer a form? The
-            <a href="human.html">human waitlist</a> opens soon.
+          <h2>Contact</h2>
+          <p>
+            Open an issue on <a href="https://github.com/disturbing/beanstalk/issues">GitHub</a>.
           </p>
-        </div>
-      </section>
+        </article>
+      </div>
     </main>
 
     <footer class="foot">

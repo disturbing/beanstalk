@@ -119,11 +119,11 @@ const CHOOSE_HTML = `
       <a class="option agent" href="agent.html" autofocus>
         <span class="rec">recommended</span>
         <b>Sign up with Agent</b>
-        <span>Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It installs the plugin and signs you in.</span>
+        <span>Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It will install the plugin and sign you in.</span>
       </a>
       <a class="option" href="human.html">
         <b>Sign up as Human</b>
-        <span>Join early access with your email. We'll be in touch.</span>
+        <span>The email waitlist for early access opens soon.</span>
       </a>
     </div>
   </div>
@@ -165,7 +165,7 @@ function renderInstallPanel(host, item) {
   if (!panel) return;
   panel.setAttribute('aria-labelledby', `${host.id}-tab-${item.id}`);
   panel.innerHTML = `
-    <header><span>${item.name}: ${item.where}</span>
+    <header><span>${item.name}: ${item.where}</span><span class="chip soon">coming soon</span>
       <button type="button" class="btn small copy" data-copy="#${host.id}-code">Copy</button></header>
     <pre class="${item.kind}" id="${host.id}-code" tabindex="0"><code>${escapeHtml(item.code)}</code></pre>
     <p class="copyhint" hidden role="status"></p>
@@ -536,19 +536,19 @@ function setupLanes() {
 }
 
 // ---------------------------------------------------------------------------
-// The race tally: 37 shipped of 40.
+// The race tally: at least 38 shipped of 40 (38–39 across three seeds, research/race/runs/cf-v25dep2-*).
 // ---------------------------------------------------------------------------
 function renderTally() {
   for (const host of document.querySelectorAll('[data-tally]')) {
     host.innerHTML = Array.from({ length: 40 }, (_, i) =>
-      i < 37 ? '<i></i>' : '<i class="miss"></i>',
+      i < 38 ? '<i></i>' : '<i class="miss"></i>',
     ).join('');
   }
 }
 
 // ---------------------------------------------------------------------------
-// Human sign-up: a placeholder early-access form. There is no backend yet, so it only
-// confirms in the page and promises nothing beyond "we'll be in touch".
+// Human sign-up: a placeholder early-access form. There is no backend yet (backlog 0.8), so the
+// form ships disabled; this handler only confirms in the page once it is switched on.
 // ---------------------------------------------------------------------------
 function setupHumanForm() {
   const form = document.querySelector('[data-human-form]');
