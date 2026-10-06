@@ -10,28 +10,40 @@ When a dozen coding agents work on one codebase, a merge queue makes them wait i
 
 ## Measured, not projected
 
-12 real Claude Code agents (Sonnet) worked the same 40 colliding tasks, every landed acceptance test protected, on three seeds (7, 11, 13). Every integration decision ran on the deployed Cloudflare prototype. The engine is v2.5 with dependency-aware starts, which is what `--preset demo` pins.
+**30 agents.** 30 real Claude Code agents (Sonnet) worked the same 40 colliding tasks, every landed acceptance test protected, on three seeds (7, 11, 13). Every integration decision ran on the deployed Cloudflare prototype.
 
-**Beanstalk shipped more (38–39 of 40 tasks green, against the queue's 35–37), and its 35th task was green 1.7–2.1x sooner on every seed. It finished about 1.3x sooner.**
+**Beanstalk shipped more (39–40 of 40 green, against the queue's 34–35), reached its 30th green task 1.7–2.3x sooner on every seed, and finished 1.3–1.6x sooner, with no red stalk check and the same agent spend.**
+
+| Seed | Run | Tasks green | 30th green | 35th green | All done | Agent spend | Red validations | Final stalk correct |
+|---|---|---|---|---|---|---|---|---|
+| 7 | Batched merge queue | 35 of 40 | 22.0 min | 35.3 min | 38.7 min | $4.32 | 11 | yes |
+| 7 | Beanstalk | **39 of 40** | **10.2 min** | **13.5 min** | **30.3 min** | $4.54 | 0 | yes |
+| 11 | Batched merge queue | 35 of 40 | 23.7 min | 34.2 min | 34.2 min | $4.47 | 9 | yes |
+| 11 | Beanstalk | **40 of 40** | **11.9 min** | **15.0 min** | **23.2 min** | $4.03 | 0 | yes |
+| 13 | Batched merge queue | 34 of 40 | 21.7 min | not reached | 44.7 min | $4.41 | 13 | yes |
+| 13 | Beanstalk | **39 of 40** | **12.9 min** | **20.0 min** | **27.3 min** | $4.74 | 0 | yes |
+
+The engine behind these runs is v2.5 with dependency-aware starts, the red-window reset, the scheduler starvation fix and re-checked structural merges (gateway of 2026-10-06). An earlier 30-agent run without those fixes was no faster than the queue (35th green 34.5 against 35.5 min); `docs/claude-opus/11-experiments-summary.md` has that post-mortem. `--preset demo` now also turns on check reuse and per-reset repair chains, which are measured only in the simulator so far.
+
+**12 agents.** On the same arena with 12 agents (v2.5 with dependency starts, the engine before the 30-agent fixes):
 
 | Seed | Run | Tasks green | 35th green | All done | Agent spend | Red validations | Final stalk correct |
 |---|---|---|---|---|---|---|---|
 | 7 | Batched merge queue | 36 of 40 | 35.0 min | 40.6 min | $4.12 | 10 | yes |
-| 7 | Beanstalk v2.5 + dependency starts | **39 of 40** | **17.1 min** | **31.6 min** | $6.08 | 4 | yes |
+| 7 | Beanstalk | **39 of 40** | **17.1 min** | **31.6 min** | $6.08 | 4 | yes |
 | 11 | Batched merge queue | 35 of 40 | 29.2 min | 30.2 min | $4.51 | 8 | yes |
-| 11 | Beanstalk v2.5 + dependency starts | **39 of 40** | **14.9 min** | **24.0 min** | $4.18 | 0 | yes |
+| 11 | Beanstalk | **39 of 40** | **14.9 min** | **24.0 min** | $4.18 | 0 | yes |
 | 13 | Batched merge queue | 37 of 40 | 36.8 min | 39.5 min | $4.54 | 10 | yes |
-| 13 | Beanstalk v2.5 + dependency starts | **38 of 40** | **22.0 min** | **29.8 min** | $5.32 | 4 | yes |
-
-The previous engine, v2.4 (`--preset v24`), was done sooner on the same seeds (17.7, 17.3 and 25.4 min) but shipped less: 37, 32 and 33 green, so it reached the 35th green only on seed 7 (15.2 min).
+| 13 | Beanstalk | **38 of 40** | **22.0 min** | **29.8 min** | $5.32 | 4 | yes |
 
 Read it with care:
-- **Three seeds**, one run each. Seeds swing a lot: v2.5 + dependency starts reached its 35th green at 14.9 to 22.0 minutes.
-- **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x.
-- **Cost is measured, and Beanstalk costs more:** $15.58 of agent spend over the three seeds against the queue's $13.16 (+18%; seed 11 was cheaper). The Cloudflare infrastructure of each v2.5 race, metered, was $0.35–0.42 on top.
-- The agents ran on a laptop; only the decisions ran on Cloudflare.
+- **Three seeds**, one run each, at each size. Seeds swing a lot: at 30 agents Beanstalk's 35th green came at 13.5 to 20.0 minutes.
+- **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x. Races on real repositories against GitHub's own merge queue are being built (`docs/claude-opus/17-cloud-agent-swarm.md`).
+- **The queue is ours**: a batched merge queue built to behave like GitHub's, not GitHub itself.
+- **Cost is measured.** At 30 agents agent spend was even: $13.31 for Beanstalk over the three seeds against the queue's $13.20; at 12 agents Beanstalk cost 18% more. Cloudflare infrastructure, metered, was $0.38–0.43 per Beanstalk race and $0.21–0.24 per queue race.
+- The agents ran on a laptop; only the decisions ran on Cloudflare. Times count from the race's start (`kth_green.py`; `--raw-clock` gives the older numbers from the run's creation, 0.1–0.2 minutes later).
 
-The runs are in `research/race/runs/`: `cf-queue-sonnet-12-s7-landed`, `cf-queue-sonnet-12-s11`, `cf-queue-sonnet-12-s13`, `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13` and `cf-v24-sonnet-12-s7`, `-s11`, `-s13`; `python3 research/race/kth_green.py <runs> --k 35` reproduces the table. The partial v2.5 phases did worse than the full set, and the simulator over-predicted v2.5. That history, and every experiment behind these rules, is in [`docs/claude-opus/11-experiments-summary.md`](docs/claude-opus/11-experiments-summary.md).
+The runs are in `research/race/runs/`: `cf-queue-sonnet-30-s{7,11,13}` and `cf-demo2-sonnet-30-s{7,11,13}` at 30 agents; `cf-queue-sonnet-12-s7-landed`, `cf-queue-sonnet-12-s11`, `-s13`, `cf-v25dep2-sonnet-12-s{7,11,13}` at 12. `python3 research/race/kth_green.py <runs> --k 30` reproduces the tables. The history, and every experiment behind these rules, is in [`docs/claude-opus/11-experiments-summary.md`](docs/claude-opus/11-experiments-summary.md).
 
 ## How it works
 

@@ -536,12 +536,12 @@ function setupLanes() {
 }
 
 // ---------------------------------------------------------------------------
-// The race tally: at least 38 shipped of 40 (38–39 across three seeds, research/race/runs/cf-v25dep2-*).
+// The race tally: at least 39 shipped of 40 (39–40 across three seeds at 30 agents, research/race/runs/cf-demo2-*).
 // ---------------------------------------------------------------------------
 function renderTally() {
   for (const host of document.querySelectorAll('[data-tally]')) {
     host.innerHTML = Array.from({ length: 40 }, (_, i) =>
-      i < 38 ? '<i></i>' : '<i class="miss"></i>',
+      i < 39 ? '<i></i>' : '<i class="miss"></i>',
     ).join('');
   }
 }
