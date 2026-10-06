@@ -51,6 +51,14 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
       for (const episode of redEpisodes(run)) {
         expect((episode.to ?? Infinity) - episode.from).toBeLessThan(2);
       }
+      const [reset] = eventsOf(run.events, 'sprout.reset');
+      const lateVerdicts = eventsOf(run.events, 'ci.end', { purpose: 'validate' }).filter(
+        (event) =>
+          event.t > (reset?.t ?? Infinity) &&
+          event['cancelled'] !== true &&
+          Number(event['trunk_idx']) < Number(reset?.['trunk_idx']),
+      );
+      expect(lateVerdicts).toEqual([]);
       const after = breakNumbers(run);
       expect(after.correct).toBe(true);
       expect(after.green).toBeGreaterThan(before.green);

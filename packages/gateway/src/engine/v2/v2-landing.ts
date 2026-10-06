@@ -10,7 +10,8 @@
  *    re-checking when the commits that landed meanwhile share no file with the bean, or when
  *    the re-check rule lets it through (`recheck`: `sampled` once re-checks keep coming back
  *    green, `adaptive` while pre-land reds are rare, `hunk` when the changed lines are apart,
- *    `never`); otherwise check again. After three re-checks the check runs inside the turn.
+ *    `never`); otherwise check again. A re-squash the runner merged structurally is always checked
+ *    again. After three re-checks the check runs inside the turn.
  * 3. Red or a conflict: the bean goes back to its author (`v2-repair`), until `max_rework`.
  *    A red that is the sprout's (`inherited_reds`) costs no round: the bean waits for the
  *    sprout to move and checks again (at most three times). It is the sprout's when a
@@ -811,7 +812,10 @@ function onResquashed(
     mine,
     landedMeanwhile: delta.length,
   };
-  if (partnerMovedSince(step, flow.task, resquash.head0)) {
+  // A structural resolution means the bean's lines met the ones that landed meanwhile: the
+  // tree it would land is new, so it is checked whatever the re-check rule says (t010 in
+  // cf-demo-sonnet-30-s7 landed such a tree unchecked and broke the whole suite).
+  if (result.resolved === 'structural' || partnerMovedSince(step, flow.task, resquash.head0)) {
     recheck(step, flow, resquash.head0);
     return;
   }

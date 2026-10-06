@@ -484,6 +484,20 @@ describe('v2: landing while the sprout moves', () => {
     expect(squashes.every((job) => job.structural)).toBe(true);
   });
 
+  it('re-checks a bean whose re-squash onto a moved sprout needed the structural tier', () => {
+    const run = runV2({
+      tasks: [changelogTask('t001'), { ...changelogTask('t002'), mergesStructurally: true }],
+      durations: { t001: 20_000, t002: 21_000 },
+      config: { recheck: 'never' },
+    });
+
+    const lands = eventsOf(run.events, 'land');
+    expect(lands.map((event) => event['task'])).toEqual(['t001', 't002']);
+    expect(eventsOf(run.events, 'preland.recheck', { task: 't002' }).length).toBeGreaterThanOrEqual(
+      1,
+    );
+  });
+
   it('asks for no structural tier with structural_merge: false (v2.4)', () => {
     const run = runV2({
       tasks: [changelogTask('t001'), { ...changelogTask('t002'), mergesStructurally: true }],

@@ -13,13 +13,13 @@
  * Every verdict also sizes the sprout window (`v2-backpressure`).
  */
 import { markAborted } from '../abort';
-import { ciAvailable, hasCiRun, requestCi } from '../ci';
+import { cancelCi, ciAvailable, hasCiRun, requestCi } from '../ci';
 import type { CiRequest } from '../ci';
 import { emit, requireTask, startJob } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { STALK_REF } from '../refs';
 import { onSproutGreen, onSproutRed } from './v2-backpressure';
-import { awaitOutcome, requireCommit } from './v2-sprout';
+import { awaitOutcome, requireCommit, takeWait } from './v2-sprout';
 import type { V2State, V2Step } from './v2-state';
 import { activeTickets, closeTicket, isInRedEpisode, openTicket } from './v2-tickets';
 
@@ -186,8 +186,26 @@ function settle(step: V2Step, idx: number, result: CheckResult | 'green'): void 
  * passed, so it is green without CI: the stalk moves forward to it.
  */
 export function promoteReset(step: V2Step, idx: number): void {
+  cancelSuperseded(step, idx);
   step.state.validated[idx] = true;
   onGreen(step, idx);
+}
+
+/**
+ * Validations of the commits a reset left behind can no longer move the stalk: they stop and
+ * free their CI slots (in cf-replay-reset-8-s7 they held both slots, red, after the reset).
+ */
+function cancelSuperseded(step: V2Step, resetIdx: number): void {
+  const { ctx, state } = step;
+  for (const run of Object.values(ctx.state.ci.runs)) {
+    const wait = state.waits[run.id];
+    if (wait?.kind !== 'validate' && wait?.kind !== 'confirm') continue;
+    if (wait.idx >= resetIdx) continue;
+    cancelCi(ctx, run.id);
+    takeWait(state, run.id);
+    state.validating = state.validating.filter((validating) => validating !== wait.idx);
+    delete state.confirming[wait.idx];
+  }
 }
 
 function onGreen(step: V2Step, idx: number): void {
