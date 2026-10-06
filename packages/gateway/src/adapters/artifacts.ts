@@ -41,6 +41,8 @@ const DEFAULT_BRANCH = 'stalk';
 const MAX_DIFF_FILES = 200;
 /** Blob and tree reads in flight at once. */
 const READ_CONCURRENCY = 8;
+/** Bytes of a blob a diff reads; a larger one is shown as a binary file. */
+const MAX_DIFF_BLOB_BYTES = 256 * 1024;
 /** Repos per page of the namespace listing (the binding's maximum). */
 const LIST_PAGE_SIZE = 200;
 /** Pages a listing follows at most (40,000 repos), so a cursor that loops cannot hang a request. */
@@ -203,23 +205,43 @@ async function readContents(
   const files: FileChange[] = [];
   for (let start = 0; start < changed.length; start += READ_CONCURRENCY) {
     const batch = changed.slice(start, start + READ_CONCURRENCY);
-    const reads = batch.map(async (blob) => ({
-      path: blob.path,
-      before: await blobText(repo, blob.beforeId),
-      after: await blobText(repo, blob.afterId),
-      beforeId: blob.beforeId,
-      afterId: blob.afterId,
-    }));
+    const reads = batch.map(async (blob): Promise<FileChange> => {
+      const [before, after] = await Promise.all([
+        blobText(repo, blob.beforeId),
+        blobText(repo, blob.afterId),
+      ]);
+      return Object.assign(
+        {
+          path: blob.path,
+          before: before?.text ?? null,
+          after: after?.text ?? null,
+          beforeId: blob.beforeId,
+          afterId: blob.afterId,
+        },
+        before?.oversized === true || after?.oversized === true
+          ? { binary: true, beforeBytes: before?.bytes ?? 0, afterBytes: after?.bytes ?? 0 }
+          : {},
+      );
+    });
     // oxlint-disable-next-line no-await-in-loop -- batches bound the reads in flight
     files.push(...(await Promise.all(reads)));
   }
   return files;
 }
 
-async function blobText(repo: RepoReader, hash: string | null): Promise<string | null> {
+/**
+ * A blob's text. One over `MAX_DIFF_BLOB_BYTES` is not read (its text is empty and it is
+ * flagged `oversized`), so it shows as binary, as `textOf` treats it in the explorer.
+ */
+async function blobText(
+  repo: RepoReader,
+  hash: string | null,
+): Promise<{ text: string; bytes: number; oversized: boolean } | null> {
   if (hash === null) return null;
   const blob = await repo.readBlob(hash);
-  return blob === null ? null : blob.text();
+  if (blob === null) return null;
+  if (blob.size > MAX_DIFF_BLOB_BYTES) return { text: '', bytes: blob.size, oversized: true };
+  return { text: await blob.text(), bytes: blob.size, oversized: false };
 }
 
 /** Runs `use` with a repo capability and always releases it. */

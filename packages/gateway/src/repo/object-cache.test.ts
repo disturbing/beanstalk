@@ -173,4 +173,30 @@ describe('the read index', () => {
       callsAfterSecond: 0,
     });
   });
+
+  it('tells whether a blob is held without reading it from Artifacts', async () => {
+    const repo = countingRepo();
+    const cached = cachedReader(repo.reader, {
+      store: memoryObjectStore(),
+      refs: new Map(),
+      now: () => 0,
+    });
+
+    expect(cached.hasBlob?.(BLOB)).toBe(false);
+    await cached.readBlob(BLOB);
+    expect(cached.hasBlob?.(BLOB)).toBe(true);
+    expect(repo.calls).toEqual(['readBlob c']);
+  });
+
+  it('tells it from the RunDO SQLite with a lookup that loads no body', async () => {
+    const stub = env.RUNS.getByName('object-cache-has-test');
+    const held = await runInDurableObject(stub, async (_, state) => {
+      const store = sqlObjectStore(state.storage.sql);
+      const before = store.hasBlob(BLOB);
+      store.putBlob(BLOB, new Uint8Array([1, 2, 3]));
+      return { before, after: store.hasBlob(BLOB), other: store.hasBlob(SRC) };
+    });
+
+    expect(held).toEqual({ before: false, after: true, other: false });
+  });
 });

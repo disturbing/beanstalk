@@ -7,7 +7,7 @@ import { engineEnv } from './catalog';
 import { step } from './engine';
 import { initialEngineState } from './lifecycle';
 import type { EngineInput, EngineResponse, JobId } from './model';
-import type { EngineState } from './state';
+import type { EngineState, StepOutput } from './state';
 import { agentResult } from './testing/fake-world';
 
 const T0 = Date.UTC(2026, 9, 3, 12, 0, 0);
@@ -38,11 +38,11 @@ function deepFreeze<T>(value: T): T {
 function run(inputs: readonly EngineInput[]): {
   state: EngineState;
   responses: EngineResponse[];
-  replies: unknown[];
+  replies: StepOutput['effects']['replies'];
 } {
   let state = initialEngineState(env, T0);
   const responses: EngineResponse[] = [];
-  const replies: unknown[] = [];
+  const replies: StepOutput['effects']['replies'][number][] = [];
   for (const input of inputs) {
     const output = step(state, input, env);
     state = output.state;
@@ -223,5 +223,51 @@ describe('step', () => {
     const { state } = run([poll, start, committed, squashed, ...failures('job2', T0 + 4000)]);
 
     expect(state.aborted).toBe('check failed: artifacts unavailable');
+  });
+});
+
+/** Slot a0 polls again (its driver lost the reply to its first poll). */
+function repoll(pollId: string, at: number): EngineInput {
+  return { kind: 'poll', at, slot: 'a0', pollId };
+}
+
+describe('a lost long-poll reply', () => {
+  const delivered = run([poll, start]);
+
+  it('re-delivers the running invocation, exactly as first delivered, to the slot’s next poll', () => {
+    const output = step(delivered.state, repoll('p2', T0 + 30_000), env);
+
+    // The reply is the same instruction, same id: the route attaches a refreshed slot token to
+    // it exactly as it did to the first delivery (it decides that from the poll, not the reply).
+    expect(output.effects.replies).toEqual([{ pollId: 'p2', reply: delivered.replies[0]?.reply }]);
+    expect(output.effects.events.map((event) => event.type)).toEqual([]);
+    expect(output.state.slots.find((slot) => slot.id === 'a0')?.running).toBe('inv0001-initial');
+  });
+
+  it('holds the poll once the driver reported progress on the invocation', () => {
+    const reported = step(
+      delivered.state,
+      { kind: 'progress', at: T0 + 20_000, slot: 'a0', inv: 'inv0001-initial', costUsd: 0.01 },
+      env,
+    );
+    const output = step(reported.state, repoll('p2', T0 + 30_000), env);
+
+    expect(output.effects.replies).toEqual([]);
+  });
+
+  it('holds the poll more than two minutes after the delivery', () => {
+    const output = step(delivered.state, repoll('p2', T0 + 1000 + 121_000), env);
+
+    expect(output.effects.replies).toEqual([]);
+  });
+});
+
+describe('restart', () => {
+  it('does not issue again a job that waits for its retry timer', () => {
+    const waiting = run([poll, start, committed, failed('job1', T0 + 3000)]);
+
+    const output = step(waiting.state, { kind: 'restart', at: T0 + 3500 }, env);
+
+    expect(output.effects.jobs.map((job) => job.id)).not.toContain('job1');
   });
 });

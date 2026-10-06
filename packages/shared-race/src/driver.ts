@@ -261,23 +261,36 @@ export const StreamFile = z.strictObject({
 export type StreamFile = z.infer<typeof StreamFile>;
 
 /**
- * Body of `POST /v1/runs/:run/invocations/:inv/stream` (`stream_diffs`): the bean's working
- * change while its agent writes, `git diff` of the worktree (untracked files included)
- * against the bean's base. `seq` grows per invocation; a snapshot whose `seq` is not newer
- * than the latest one is ignored, so a retried post is harmless. Never logged: the gateway
- * keeps only the latest snapshot per bean, and the commit at the end supersedes it.
+ * Body of `POST /v1/runs/:run/invocations/:inv/stream` (`stream_diffs`): what changed in the
+ * bean's working change (`git diff` of the worktree, untracked files included, against the
+ * bean's base) since the snapshot the gateway accepted as `base_seq`. `files` lists only the
+ * files whose patch changed, `removed` the paths that left the change; `base_seq: 0` is a full
+ * snapshot (everything not in `files` is removed). `seq` grows per invocation, so a retried
+ * post is harmless. A driver of the first design posts no `base_seq` and no `removed`: that
+ * reads as a full snapshot. Never logged (docs/claude-17-streaming-diffs.md).
  */
-export const StreamSnapshot = z.strictObject({
+export const StreamDelta = z.strictObject({
   seq: z.number().int().min(1).max(1_000_000),
+  /** The accepted seq this delta applies to; 0: a full snapshot. */
+  base_seq: z.number().int().min(0).max(1_000_000).default(0),
   files: z.array(StreamFile).max(STREAM_MAX_FILES),
+  removed: z.array(z.string().min(1).max(512)).max(STREAM_MAX_FILES).default([]),
   /** Files or patch text were left out to fit the caps. */
   truncated: z.boolean().default(false),
   /** What made the driver look: an edit tool (`Edit`, `Write` …) or `timer`. */
   trigger: z.string().max(40).default('timer'),
 });
-export type StreamSnapshot = z.infer<typeof StreamSnapshot>;
+export type StreamDelta = z.infer<typeof StreamDelta>;
 
-/** Response to a stream post: kept and broadcast, or ignored (`stale` seq, `rate` limited). */
+/**
+ * Response to a stream post: kept and pushed, or ignored: `stale` (seq not newer), `rate`
+ * (within 400 ms of the last accepted one), `resync` (`base_seq` is not the stored seq: post
+ * a full snapshot). `seq` is the stored seq of the invocation (0: none).
+ */
 export type StreamResponse =
   | { readonly accepted: true; readonly seq: number }
-  | { readonly accepted: false; readonly reason: 'stale' | 'rate'; readonly seq: number };
+  | {
+      readonly accepted: false;
+      readonly reason: 'stale' | 'rate' | 'resync';
+      readonly seq: number;
+    };

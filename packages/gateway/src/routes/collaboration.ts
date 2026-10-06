@@ -1,6 +1,7 @@
 /** The collaboration protocol is also usable by contributors without an MCP plugin. */
 import { Hono } from 'hono';
 import type { Context } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 
@@ -16,10 +17,9 @@ import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import type { AppEnv } from '../app-env';
 import { presentedToken } from '../auth/credentials';
 import { issueToken } from '../auth/tokens';
-import { GatewayError, UnauthorizedError } from '../errors';
+import { GatewayError, NotFoundError, UnauthorizedError } from '../errors';
 import { requireAdmin, requireReader } from '../middleware/auth';
 import { collaborationRpc } from '../rpc/collaboration-rpc';
-import { unwrap } from './respond';
 import { RunParam, validate } from './validation';
 
 const BeanParam = RunParam.extend({ bean: TaskId });
@@ -38,6 +38,19 @@ const InboxQuery = z.object({
   state: z.enum(['all', 'unread']).optional(),
 });
 const MAX_BODY_BYTES = 256 * 1024;
+
+/**
+ * Runs before any body or query is parsed, so an unauthenticated request is refused at once.
+ * The path's run must match the token; the RPC mutation verifies the same token again.
+ */
+const requireContributor = createMiddleware<AppEnv>(async (c, next) => {
+  const token = presentedContributorToken(c);
+  const claims = rpcValue(await collaborationRpc(c.var.deps).verifyMcpToken(token));
+  if (claims.scope !== 'contributor' || claims.run !== c.req.param('run')) {
+    throw new GatewayError('this contributor token cannot access that run', 'forbidden', 403);
+  }
+  await next();
+});
 
 export const collaborationRoutes = new Hono<AppEnv>()
   .use(bodyLimit({ maxSize: MAX_BODY_BYTES }))
@@ -65,7 +78,8 @@ export const collaborationRoutes = new Hono<AppEnv>()
     async (c) => {
       const { run } = c.req.valid('param');
       const { bean, actor, ttl_seconds } = c.req.valid('json');
-      unwrap(await c.var.deps.run(run).bean(bean));
+      if (!(await c.var.deps.run(run).collaborationBeanExists(bean)))
+        throw new NotFoundError('bean', bean);
       const issued = await issueToken(
         c.var.deps.tokenSecret,
         { run, bean, sub: actor, scope: 'contributor' },
@@ -90,11 +104,12 @@ export const collaborationRoutes = new Hono<AppEnv>()
   )
   .post(
     '/:run/beans/:bean/collaboration',
+    requireContributor,
     validate('param', BeanParam),
     validate('json', BeanUpdateInput),
     async (c) => {
       const { bean } = c.req.valid('param');
-      const token = await contributorToken(c);
+      const token = presentedContributorToken(c);
       const input = c.req.valid('json');
       if (input.bean !== bean)
         throw new GatewayError('body bean must match path', 'invalid_request', 400);
@@ -103,11 +118,12 @@ export const collaborationRoutes = new Hono<AppEnv>()
   )
   .post(
     '/:run/beans/:bean/threads',
+    requireContributor,
     validate('param', BeanParam),
     validate('json', BeanThreadPostInput),
     async (c) => {
       const { bean } = c.req.valid('param');
-      const token = await contributorToken(c);
+      const token = presentedContributorToken(c);
       const input = c.req.valid('json');
       if (input.bean !== bean)
         throw new GatewayError('body bean must match path', 'invalid_request', 400);
@@ -116,10 +132,11 @@ export const collaborationRoutes = new Hono<AppEnv>()
   )
   .get(
     '/:run/collaboration/inbox',
+    requireContributor,
     validate('param', RunParam),
     validate('query', InboxQuery),
     async (c) => {
-      const token = await contributorToken(c);
+      const token = presentedContributorToken(c);
       return c.json(
         rpcValue(await collaborationRpc(c.var.deps).beanInboxRead(token, c.req.valid('query'))),
       );
@@ -127,24 +144,20 @@ export const collaborationRoutes = new Hono<AppEnv>()
   )
   .post(
     '/:run/collaboration/inbox/ack',
+    requireContributor,
     validate('param', RunParam),
     validate('json', BeanInboxAckInput),
     async (c) => {
-      const token = await contributorToken(c);
+      const token = presentedContributorToken(c);
       return c.json(
         rpcValue(await collaborationRpc(c.var.deps).beanInboxAck(token, c.req.valid('json'))),
       );
     },
   );
 
-/** Enforce the path's run before handing the same token to a reverified RPC mutation. */
-async function contributorToken(c: Context<AppEnv>): Promise<string> {
+function presentedContributorToken(c: Context<AppEnv>): string {
   const token = presentedToken(c.req.raw);
   if (token === null) throw new UnauthorizedError();
-  const claims = rpcValue(await collaborationRpc(c.var.deps).verifyMcpToken(token));
-  if (claims.scope !== 'contributor' || claims.run !== c.req.param('run')) {
-    throw new GatewayError('this contributor token cannot access that run', 'forbidden', 403);
-  }
   return token;
 }
 

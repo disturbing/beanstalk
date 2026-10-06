@@ -8,9 +8,26 @@ import type { TaskId } from '@beanstalk/shared-race/ids';
 
 import { compareText } from '../repo/paths';
 
+/**
+ * What ranking reads of a peer: current agreements and excerpts, never history. A full
+ * `BeanContext` satisfies it, and so does an excerpt-only peer summary.
+ */
+export type PeerContext = {
+  readonly bean: Pick<BeanContext['bean'], 'bean' | 'revision' | 'intent' | 'approach'>;
+  readonly promises: readonly Pick<
+    BeanPromise,
+    'bean' | 'id' | 'revision' | 'body' | 'conditions' | 'paths'
+  >[];
+  readonly reliance: readonly PromiseReference[];
+  readonly current_cursor: number;
+  readonly truncated: boolean;
+  /** Set when the caller already cut the intent or approach text before ranking. */
+  readonly cut?: { readonly intent: boolean; readonly approach: boolean };
+};
+
 /** A canonical candidate and code paths observed separately from its stated approach. */
 export type CollaborationContextCandidate = {
-  readonly context: BeanContext;
+  readonly context: PeerContext;
   readonly observed_paths?: readonly string[];
 };
 
@@ -202,7 +219,7 @@ function asFolder(path: string): string {
 
 function promiseStatus(
   reference: PromiseReference,
-  promises: readonly BeanPromise[],
+  promises: readonly Pick<BeanPromise, 'bean' | 'id' | 'revision'>[],
 ): CollaborationPromiseStatus {
   const revision = promises.find(
     (promise) => promise.bean === reference.bean && promise.id === reference.promise,
@@ -217,7 +234,7 @@ function promiseStatus(
   };
 }
 
-function scoreContext(context: BeanContext, focus: ReadonlySet<string>) {
+function scoreContext(context: PeerContext, focus: ReadonlySet<string>) {
   const intent = matchingWords(context.bean.intent, focus);
   const approach = matchingWords(context.bean.approach?.summary ?? '', focus);
   const promises = matchingWords(
@@ -229,7 +246,7 @@ function scoreContext(context: BeanContext, focus: ReadonlySet<string>) {
 
 function candidateReasons(
   match: {
-    readonly context: BeanContext;
+    readonly context: PeerContext;
     readonly references: readonly PromiseReference[];
     readonly requests: readonly number[];
     readonly sharedPaths: readonly string[];
@@ -287,8 +304,8 @@ function summarizeCandidate(ranked: RankedCandidate): RelatedBeanContext {
     bean: context.bean.bean,
     revision: context.bean.revision,
     current_cursor: context.current_cursor,
-    intent: excerpt(context.bean.intent),
-    approach: approach === null ? null : excerpt(approach.summary),
+    intent: excerpt(context.bean.intent, context.cut?.intent),
+    approach: approach === null ? null : excerpt(approach.summary, context.cut?.approach),
     shared_paths: ranked.sharedPaths.slice(0, MAX_SHARED_PATHS),
     path_matches: ranked.pathMatches.slice(0, MAX_SHARED_PATHS),
     shared_paths_truncated: ranked.sharedPaths.length > MAX_SHARED_PATHS,
@@ -349,7 +366,7 @@ function uniqueReferences(references: readonly PromiseReference[]): readonly Pro
   return [...unique.values()];
 }
 
-function contextText(context: BeanContext): string {
+function contextText(context: PeerContext): string {
   return [
     context.bean.intent,
     context.bean.approach?.summary ?? '',
@@ -357,7 +374,7 @@ function contextText(context: BeanContext): string {
   ].join(' ');
 }
 
-function contextPaths(context: BeanContext, observed: readonly string[] = []): readonly string[] {
+function contextPaths(context: PeerContext, observed: readonly string[] = []): readonly string[] {
   return [
     ...new Set([
       ...observed,
@@ -398,7 +415,7 @@ function relatedLimit(limit: number = DEFAULT_RELATED_BEAN_LIMIT): number {
     : DEFAULT_RELATED_BEAN_LIMIT;
 }
 
-function excerpt(text: string): CollaborationExcerpt {
+function excerpt(text: string, alreadyCut = false): CollaborationExcerpt {
   const segments = new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(text);
   let end = 0;
   for (const segment of segments) {
@@ -406,5 +423,5 @@ function excerpt(text: string): CollaborationExcerpt {
     if (next > MAX_EXCERPT_CHARS) break;
     end = next;
   }
-  return { text: text.slice(0, end), truncated: end < text.length };
+  return { text: text.slice(0, end), truncated: alreadyCut || end < text.length };
 }

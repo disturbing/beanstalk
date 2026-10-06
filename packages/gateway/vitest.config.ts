@@ -27,8 +27,8 @@ export default defineConfig({
       remoteBindings: false,
       miniflare: {
         bindings: {
-          ADMIN_TOKEN: 'test-admin-token',
-          RUN_TOKEN_SECRET: 'test-run-token-secret',
+          ADMIN_TOKEN: 'test-admin-token-0123456789abcdef0123456789',
+          RUN_TOKEN_SECRET: 'test-run-token-secret-0123456789abcdef0123',
           LOG_LEVEL: 'error',
         },
         serviceBindings: { ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' } },

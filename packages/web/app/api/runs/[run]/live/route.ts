@@ -3,6 +3,7 @@ import { env } from 'cloudflare:workers';
 import { RunId } from '@beanstalk/shared-race/ids';
 
 import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { resumeCursor } from '../../../../../src/race/live-cursor';
 import { liveEventStream } from '../../../../../src/live/live-bridge';
 import { log } from '../../../../../src/log';
 import { isRecordedRun } from '../../../../../src/recorded/recorded-runs';
@@ -20,13 +21,12 @@ export async function GET(request: Request, context: Context): Promise<Response>
     return problem(404, 'a recorded run replays in the browser; it has no live feed');
   const binding = asGatewayBinding(env.GATEWAY);
   if (binding === undefined) return problem(503, 'no gateway is bound');
-  const url = new URL(request.url);
-  const after = Number(url.searchParams.get('after') ?? request.headers.get('last-event-id') ?? 0);
+  const after = resumeCursor(request);
   try {
     const stream = await liveEventStream({
       binding,
       run: run.data,
-      after: Number.isFinite(after) && after >= 0 ? after : 0,
+      after,
       signal: request.signal,
     });
     return new Response(stream, {

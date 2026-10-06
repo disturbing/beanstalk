@@ -8,12 +8,18 @@
  * again: a green check is the proof. A commit that changes nothing is a contradiction, and
  * only then is the card raised.
  *
+ * The author works on the bean's branch with the sprout its red check ran on merged in, so the
+ * landed parties' code is in its tree, as the prompt says. An author that fails to run (a crash,
+ * a timeout, a lost watchdog) found nothing: it is retried once, and a second failure goes on to
+ * an informed repair, leaving the pair unreconciled; it never counts as a contradiction.
+ *
  * v2.5 (`reconcile_parties`): a clash often involves more than one landed task (a third task's
  * rule the two tests both pin). The reconcile takes in every landed party behind the failing
  * tests, up to three, and may amend each one's acceptance tests; a contradiction's card names
  * them all.
  */
 import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
 
 import { failingTestNames } from '../ci';
 import type { ReworkOutcome } from '../context';
@@ -21,17 +27,27 @@ import { acceptanceTests, emit, requireTask, startJob, taskDefinition } from '..
 import { createInvocation } from '../invocations';
 import type { CheckResult, JobResult } from '../model';
 import { reconcilePrompt } from '../prompts';
+import { SPROUT_REF } from '../refs';
 import { holderOf, release } from '../slots';
 import { taskWorkspace } from '../tasks';
+import { requestAgent } from './v2-agents';
 import { amend, beanAcceptance, carriedPaths, carry } from './v2-amendments';
 import { openCard, pairKey } from './v2-decisions';
+import { startInformedRepair } from './v2-repair';
 import { awaitOutcome } from './v2-sprout';
 import type { AgentWork, LandingFlow, LandingStep, V2Step } from './v2-state';
 
 type ReconcileWork = Extract<AgentWork, { kind: 'reconcile' }>;
 type Reading = Extract<LandingStep, { kind: 'reconcile-reading' }>;
+type Reconciling = Extract<LandingStep, { kind: 'reconciling' }>;
 
-/** The test author reconciles the bean's tests with the landed parties', on the bean's branch. */
+/** Informed repairs name at most this many culprits (`v2-repair`'s `[:2]`). */
+const REPAIR_CULPRITS = 2;
+
+/**
+ * The test author reconciles the bean's tests with the landed parties', on the bean's branch
+ * with the sprout its red check ran on merged in.
+ */
 export function startReconcile(
   step: V2Step,
   flow: LandingFlow,
@@ -44,14 +60,14 @@ export function startReconcile(
   const against = partiesTests(step, parties);
   const tests = { ...beanAcceptance(step, flow.task), ...against };
   const failingFiles = new Set(work.red.failingFiles ?? []);
-  for (const party of parties) state.reconciledPairs[pairKey(flow.task, party)] = true;
-  state.stats.reconciles += 1;
+  if (work.retry !== true) state.stats.reconciles += 1;
   flow.step = {
     kind: 'reconciling',
     against: work.against,
     parties,
     red: work.red,
     head: work.head,
+    ...(work.retry === true ? { retry: true } : {}),
   };
   const prompt = reconcilePrompt(
     taskDefinition(ctx, flow.task),
@@ -75,7 +91,7 @@ export function startReconcile(
       taskWorkspace(ctx, task, {
         kind: 'reconcile',
         inv,
-        merge: null,
+        merge: { sha: work.head, ref: SPROUT_REF, conflicts: [] },
         acceptance: tests,
         unprotect: [...carriedPaths(step, flow.task), ...Object.keys(against)],
       }),
@@ -88,8 +104,13 @@ export function onReconcileDone(step: V2Step, outcome: ReworkOutcome): void {
   const { ctx, state } = step;
   const flow = state.landings[outcome.task];
   if (flow?.step.kind !== 'reconciling') return;
+  if (outcome.infraError !== null) {
+    onReconcileFailed(step, flow, { reconciling: flow.step, outcome });
+    return;
+  }
   if (holderOf(ctx, flow.task)?.id === outcome.slot) release(ctx, outcome.slot);
   const { against, parties, red, head } = flow.step;
+  for (const party of parties) state.reconciledPairs[pairKey(flow.task, party)] = true;
   const reason = verdictLine(outcome.resultText);
   const before = { ...beanAcceptance(step, flow.task), ...partiesTests(step, parties) };
   const authored = outcome.headSha;
@@ -111,6 +132,32 @@ export function onReconcileDone(step: V2Step, outcome: ReworkOutcome): void {
     before,
     jobId,
   };
+}
+
+/**
+ * The author failed to run, so it found nothing: retry it once, then repair informed of the
+ * parties without reconciling them (a later stuck red may reconcile the pair again).
+ */
+function onReconcileFailed(
+  step: V2Step,
+  flow: LandingFlow,
+  failed: { reconciling: Reconciling; outcome: ReworkOutcome },
+): void {
+  const { ctx } = step;
+  const { reconciling, outcome } = failed;
+  const { against, parties, red, head } = reconciling;
+  if (releasesOnCheck(ctx.env.config) && holderOf(ctx, flow.task)?.id === outcome.slot) {
+    release(ctx, outcome.slot);
+  }
+  if (reconciling.retry !== true) {
+    emit(ctx, 'invocation.retry', {
+      task: flow.task,
+      reason: `reconcile failed: ${(outcome.infraError ?? '').slice(0, 200)}`,
+    });
+    requestAgent(step, flow, { kind: 'reconcile', against, parties, red, head, retry: true });
+    return;
+  }
+  startInformedRepair(step, flow, { head, red, culprits: parties.slice(0, REPAIR_CULPRITS) });
 }
 
 /** What the test author changed: reconciled (the tests updated as needed), or a contradiction. */

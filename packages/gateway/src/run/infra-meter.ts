@@ -92,17 +92,33 @@ export function countArtifactsOps(meter: InfraMeter, ops: number): InfraMeter {
 
 /** A runner call: its busy time, the instance's up time it adds, and its git fetch. */
 export function recordRunnerCall(meter: InfraMeter, call: RunnerCall): InfraMeter {
-  const tailEnd = call.endMs + RUNNER_SLEEP_AFTER_SECONDS * 1000;
-  const upUntil = meter.upUntilMs[call.instance] ?? 0;
-  const addedUpMs = Math.max(0, tailEnd - Math.max(call.startMs, upUntil));
+  const up = withUpTime(meter, call);
   return {
-    ...meter,
+    ...up,
     runnerCalls: meter.runnerCalls + 1,
     artifactsOps: meter.artifactsOps + 1,
     containerBusySeconds: meter.containerBusySeconds + (call.endMs - call.startMs) / 1000,
+  };
+}
+
+/**
+ * A runner instance started ahead of its first call (the RunDO pre-warms them at the start):
+ * up time from the start through its `sleepAfter` tail, no call and no busy time.
+ */
+export function recordWarmStart(meter: InfraMeter, start: RunnerCall): InfraMeter {
+  return withUpTime(meter, start);
+}
+
+/** The instance's up time a span adds: the span plus its tail, overlaps counted once. */
+function withUpTime(meter: InfraMeter, span: RunnerCall): InfraMeter {
+  const tailEnd = span.endMs + RUNNER_SLEEP_AFTER_SECONDS * 1000;
+  const upUntil = meter.upUntilMs[span.instance] ?? 0;
+  const addedUpMs = Math.max(0, tailEnd - Math.max(span.startMs, upUntil));
+  return {
+    ...meter,
     containerUpSeconds: meter.containerUpSeconds + addedUpMs / 1000,
-    upUntilMs: { ...meter.upUntilMs, [call.instance]: Math.max(upUntil, tailEnd) },
-    lastAtMs: Math.max(meter.lastAtMs, call.endMs),
+    upUntilMs: { ...meter.upUntilMs, [span.instance]: Math.max(upUntil, tailEnd) },
+    lastAtMs: Math.max(meter.lastAtMs, span.endMs),
   };
 }
 

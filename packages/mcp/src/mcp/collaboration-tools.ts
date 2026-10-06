@@ -1,4 +1,5 @@
 import type { McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
+import { z } from 'zod';
 
 import {
   BeanContextInput,
@@ -27,6 +28,20 @@ export const COLLABORATION_TOOL_NAMES = [
   'bean_inbox_ack',
 ] as const;
 
+/** The bean id (t032) or its branch (beans/t032): the same handle every tool accepts. */
+function acceptingBranch<S extends z.ZodType>(schema: S) {
+  return z.preprocess((value) => {
+    if (typeof value !== 'object' || value === null || !('bean' in value)) return value;
+    const { bean } = value;
+    return typeof bean === 'string'
+      ? { ...value, bean: bean.trim().replace(/^beans\//, '') }
+      : value;
+  }, schema);
+}
+const ContextToolInput = acceptingBranch(BeanContextInput);
+const UpdateToolInput = acceptingBranch(BeanUpdateInput);
+const ThreadToolInput = acceptingBranch(BeanThreadPostInput);
+
 const READ: ToolAnnotations = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -49,7 +64,7 @@ export function registerCollaboration(server: McpServer, ctx: ToolContext): void
         title: 'Context and conversation of a bean',
         description:
           'Read current intent, approach, exact promises, reliance and paged discussion. Promise offers and agreement remain separate from implementation check evidence. Pass next_cursor as since to continue history.',
-        inputSchema: BeanContextInput,
+        inputSchema: ContextToolInput,
         annotations: READ,
       },
       async (input) => answer(() => withInbox(ctx, () => beanConversation(ctx, input))),
@@ -69,7 +84,7 @@ function registerUpdate(server: McpServer, ctx: ToolContext): void {
       title: 'Update your bean approach and promises',
       description:
         'Revise only your owning bean with an optimistic expected_revision. Offer a promise or pin exact reliance; the gateway derives actor identity from your contributor token. Reuse an idempotency_key only for an exact retry. A promise offer does not establish passing code evidence.',
-      inputSchema: BeanUpdateInput,
+      inputSchema: UpdateToolInput,
       annotations: WRITE,
     },
     async (input) => answer(() => beanUpdate(ctx, input)),
@@ -84,7 +99,7 @@ function registerThread(server: McpServer, ctx: ToolContext): void {
       title: 'Discuss a change with another bean',
       description:
         'Post a note, request, reply, counterproposal, accept or decline. Responses name thread and exact reply_to event. Acceptance requires one exact promise reference and records reliance for your owning bean. Silence or inbox acknowledgements never imply agreement. Reuse idempotency_key for exact retries.',
-      inputSchema: BeanThreadPostInput,
+      inputSchema: ThreadToolInput,
       annotations: WRITE,
     },
     async (input) => answer(() => beanThreadPost(ctx, input)),

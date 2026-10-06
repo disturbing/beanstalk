@@ -44,9 +44,15 @@ export function raceCounters(state: RaceState): RaceCounters {
   };
 }
 
-/** A bean an agent is still carrying: started, not on a line, not dropped. */
+/** A bean an agent is still carrying: started, not on a line, not dropped, not parked. */
 export function isInFlight(phase: RaceState['beans'][string]['phase']): boolean {
-  return phase !== 'pending' && phase !== 'landed' && phase !== 'green' && phase !== 'dropped';
+  return (
+    phase !== 'pending' &&
+    phase !== 'landed' &&
+    phase !== 'green' &&
+    phase !== 'dropped' &&
+    phase !== 'parked'
+  );
 }
 
 /** When the k-th bean reached the stalk, or null before it did (`kth_green.py`). */

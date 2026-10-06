@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { Sha, TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
 import type { FailRule } from '../testing/fake-world';
 import type { RaceRun, RaceScenario } from '../testing/scenario';
-import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
+import { eventsOf, runRace, soloTask, v2StepAfter, wellFormedProblems } from '../testing/scenario';
+import { maybeValidate } from './v2-validator';
 
 const REUSE: Partial<RunConfigInput> = {
   policy: 'beanstalk-v2',
@@ -105,5 +107,36 @@ describe('v2: check reuse (`reuse_checks`)', () => {
       ci_superseded: 0,
     });
     expect(block).toHaveProperty('variant', 'v2.5');
+  });
+
+  it('takes no reused green while a reset rewrites the sprout', () => {
+    const step = v2StepAfter(runV2({ tasks: [soloTask('t001')], config: { agents: 1 } }));
+    const { state } = step;
+    const sha = Sha.parse('a'.repeat(40));
+    const idx = state.commits.length;
+    state.commits.push({
+      idx,
+      sha,
+      parent: state.sprout,
+      kind: 'task',
+      task: TaskId.parse('t001'),
+      ticket: null,
+      files: [],
+      landedAt: 0,
+      reverted: false,
+    });
+    state.greenChecks = { [sha]: TaskId.parse('t001') };
+    state.reverts['R901'] = { phase: 'reset', head: state.sprout, jobId: 'job9001' };
+
+    maybeValidate(step);
+
+    expect(state.validated[idx]).toBeUndefined();
+    expect(state.greenChecks[sha]).toBe('t001');
+
+    delete state.reverts['R901'];
+    maybeValidate(step);
+
+    expect(state.validated[idx]).toBe(true);
+    expect(state.greenChecks[sha]).toBeUndefined();
   });
 });

@@ -2,13 +2,30 @@ import { createMiddleware } from 'hono/factory';
 
 import type { AppEnv } from '../app-env';
 import type { Deps } from '../deps';
+import { createLogger } from '../log';
 
-/** Puts the request id (Cloudflare's ray id when present) and the deps on the context. */
-export function requestContext(deps: Deps) {
+/**
+ * Puts the request id (Cloudflare's ray id when present) and the deps on the context. The
+ * app is built once; the deps come from the request's env. A misconfigured deployment
+ * (bad vars or short secrets) answers 500 and logs why, once per request.
+ */
+export function requestContext(depsFor: (env: Env) => Deps) {
   return createMiddleware<AppEnv>(async (c, next) => {
-    c.set('requestId', c.req.header('cf-ray') ?? crypto.randomUUID());
+    const requestId = c.req.header('cf-ray') ?? crypto.randomUUID();
+    c.set('requestId', requestId);
+    let deps: Deps;
+    try {
+      deps = depsFor(c.env);
+    } catch (error: unknown) {
+      createLogger('error', { component: 'gateway' }).error('misconfigured deployment', {
+        requestId,
+        error,
+      });
+      return c.json({ error: { code: 'misconfigured', message: 'gateway is misconfigured' } }, 500);
+    }
     c.set('deps', deps);
     await next();
+    return undefined;
   });
 }
 

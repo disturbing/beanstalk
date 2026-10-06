@@ -1,7 +1,8 @@
 /**
  * The runner's §3 HTTP API (packages/runner, `wire/`), spoken through a container stub.
  * Request bodies carry Artifacts tokens: they are never logged, and error messages are the
- * runner's own (it redacts tokens from git output).
+ * runner's own (it redacts tokens from git output). Version checks, capacity waits and error
+ * mapping live in `runner-transport.ts`.
  */
 import { z } from 'zod';
 
@@ -9,11 +10,11 @@ import { Sha } from '@beanstalk/shared-race/ids';
 
 import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
 import { UpstreamError } from '../errors';
+import { createLogger } from '../log';
+import type { RunnerStub, TransportOptions } from './runner-transport';
+import { runnerTransport } from './runner-transport';
 
-/** Longest runner call: a suite has a 300 s timeout in the runner; fetches come on top. */
-const RUNNER_TIMEOUT_MS = 10 * 60 * 1000;
-/** Characters of a failed runner response kept in the error message. */
-const ERROR_EXCERPT_CHARS = 500;
+export type { RunnerStub } from './runner-transport';
 
 /** A git remote and the Artifacts token minted for this one job. */
 export type RunnerRemote = { readonly repo: string; readonly token: string };
@@ -86,9 +87,6 @@ export type RunnerPort = {
   updateRef(instance: string, call: UpdateRefCall): Promise<{ ok: boolean; actual: Sha | null }>;
 };
 
-/** Something with a `fetch`: a container stub, or a fake in tests. */
-export type RunnerStub = { fetch(request: Request): Promise<Response> };
-
 const SquashResponse = z.discriminatedUnion('result', [
   z.object({
     result: z.literal('clean'),
@@ -132,15 +130,25 @@ const CheckResponse = z.object({
 
 const UpdateRefResponse = z.object({ ok: z.boolean(), actual: Sha.nullable().optional() });
 
-/** The runner API over container stubs picked by instance name. */
-export function runnerPort(stubFor: (instance: string) => RunnerStub): RunnerPort {
+/**
+ * The runner API over container stubs picked by instance name. `options` default to a warn-level
+ * logger and real waits.
+ */
+export function runnerPort(
+  stubFor: (instance: string) => RunnerStub,
+  options: Partial<TransportOptions> = {},
+): RunnerPort {
+  const transport = runnerTransport(stubFor, {
+    log: options.log ?? createLogger('warn', { component: 'runner-client' }),
+    sleep: options.sleep ?? sleep,
+  });
   const post = async <T>(
     instance: string,
     path: string,
     body: unknown,
     schema: z.ZodType<T>,
   ): Promise<T> => {
-    const response = await send(stubFor(instance), path, body);
+    const response = await transport.post(instance, path, body);
     const parsed = schema.safeParse(await response.json());
     if (!parsed.success)
       throw new UpstreamError(`runner ${path} answered an unexpected body`, false);
@@ -229,26 +237,10 @@ function squashBody(call: SquashCall): Record<string, unknown> {
   };
 }
 
-async function send(stub: RunnerStub, path: string, body: unknown): Promise<Response> {
-  const request = new Request(`http://runner${path}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(RUNNER_TIMEOUT_MS),
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
-  const response = await callRunner(stub, request, path);
-  if (response.ok) return response;
-  const excerpt = (await response.text()).slice(0, ERROR_EXCERPT_CHARS);
-  const isRetryable = response.status === 429 || response.status >= 500;
-  throw new UpstreamError(`runner ${path} answered ${response.status}: ${excerpt}`, isRetryable);
-}
-
-async function callRunner(stub: RunnerStub, request: Request, path: string): Promise<Response> {
-  try {
-    return await stub.fetch(request);
-  } catch (error: unknown) {
-    throw new UpstreamError(`runner ${path} unreachable`, true, { cause: error });
-  }
 }
 
 function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {

@@ -7,7 +7,10 @@ import {
   ThreadPost,
 } from '@beanstalk/shared-race/collaboration';
 
+import { TaskId } from '@beanstalk/shared-race/ids';
+
 import { selectCollaborationContext } from './context';
+import type { PeerContext } from './context';
 
 const NOW = '2026-10-06T12:00:00.000Z';
 
@@ -312,5 +315,24 @@ describe('bean collaboration context', () => {
     expect(result.missing_required).toHaveLength(32);
     expect(result.missing_required_count).toBe(40);
     expect(result.expansion_truncated).toBe(true);
+  });
+
+  it('ranks an excerpt-only peer and keeps the gateway cut marked as truncated', () => {
+    const focus = context('emails', 'shipping estimates');
+    const peer: PeerContext = {
+      bean: {
+        bean: TaskId.parse('shipping'),
+        revision: 1,
+        intent: 'shipping estimates',
+        approach: null,
+      },
+      promises: [],
+      reliance: [],
+      current_cursor: 11,
+      truncated: false,
+      cut: { intent: true, approach: false },
+    };
+    const selection = selectCollaborationContext({ focus, candidates: [{ context: peer }] });
+    expect(selection.related[0]?.intent).toEqual({ text: 'shipping estimates', truncated: true });
   });
 });

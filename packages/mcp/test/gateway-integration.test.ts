@@ -10,7 +10,7 @@ import {
 } from '@beanstalk/shared-race/collaboration';
 
 const ORIGIN = 'https://mcp.integration.test';
-const ADMIN = 'mcp-test-admin';
+const ADMIN = 'mcp-test-admin-token-0123456789abcdef';
 const clients: Client[] = [];
 const CreatedRun = z.object({
   run: z.string(),

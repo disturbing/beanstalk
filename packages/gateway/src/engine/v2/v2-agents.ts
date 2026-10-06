@@ -18,10 +18,15 @@ export function releaseAgent(step: V2Step, flow: LandingFlow): void {
   if (holderOf(step.ctx, flow.task)?.id === flow.slot) release(step.ctx, flow.slot);
 }
 
-/** The bean needs an agent for `work`. */
+/**
+ * The bean needs an agent for `work`. Without the release, its own slot takes it at once while
+ * the slot still holds the bean. A bean that let its slot go meanwhile (requeued by a reset,
+ * or taken up again after parking) waits for a free one, as with the release.
+ */
 export function requestAgent(step: V2Step, flow: LandingFlow, work: AgentWork): void {
   flow.step = { kind: 'awaiting-agent', work };
-  if (!releasesOnCheck(step.ctx.env.config)) {
+  const isHeld = holderOf(step.ctx, flow.task)?.id === flow.slot;
+  if (!releasesOnCheck(step.ctx.env.config) && isHeld) {
     step.flow.startWork(flow, flow.slot);
     return;
   }

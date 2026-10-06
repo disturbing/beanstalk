@@ -99,8 +99,9 @@ export type RevertFlow =
   | { phase: 'publish'; target: number; head: Sha; sha: Sha; files: string[]; jobId: JobId }
   /** `red_reset`: waiting for the turn, then resetting the sprout to the stalk's tree. */
   | { phase: 'reset-queued' }
-  | { phase: 'reset'; head: Sha; jobId: JobId }
-  | { phase: 'reset-publish'; head: Sha; sha: Sha; files: string[]; jobId: JobId };
+  /** `to`: the stalk whose tree the reset takes (absent in states saved before the guard). */
+  | { phase: 'reset'; head: Sha; to?: Sha; jobId: JobId }
+  | { phase: 'reset-publish'; head: Sha; to?: Sha; sha: Sha; files: string[]; jobId: JobId };
 
 /** Work a bean needs an agent for. With `release_on_check` it waits for a free slot. */
 export type AgentWork =
@@ -125,6 +126,8 @@ export type AgentWork =
       readonly parties: readonly TaskId[];
       readonly red: CheckResult;
       readonly head: Sha;
+      /** The retry after the first author failed to run (absent: the first attempt). */
+      readonly retry?: true;
     }
   | { readonly kind: 'author'; readonly card: string }
   | { readonly kind: 'reexec'; readonly card: string }
@@ -137,6 +140,8 @@ export type AgentWork =
 /** Where a bean is in its landing loop (`land` + `try_optimistic`) or in a decision. */
 export type LandingStep =
   | { kind: 'squash'; head0: Sha; jobId: JobId }
+  /** `red_reset`: a requeued card loser's branch goes back to its own head (`to`) first. */
+  | { kind: 'repoint'; to: Sha; isRetry: boolean; jobId: JobId }
   | {
       kind: 'check';
       /** Inside the turn (the locked fallback, or `preland_mode: locked`). */
@@ -201,7 +206,15 @@ export type LandingStep =
   /** Waiting for a decision card's answer. */
   | { kind: 'decision'; card: string }
   /** v2.4: a test author reconciles the bean's tests with `against`'s, then reads what changed. */
-  | { kind: 'reconciling'; against: TaskId; parties: TaskId[]; red: CheckResult; head: Sha }
+  | {
+      kind: 'reconciling';
+      against: TaskId;
+      parties: TaskId[];
+      red: CheckResult;
+      head: Sha;
+      /** The retry after the first author failed to run (absent: the first attempt). */
+      retry?: true;
+    }
   | {
       kind: 'reconcile-reading';
       against: TaskId;
@@ -610,6 +623,12 @@ export type V2State = {
    * counterparts its red named (`<task>|<a,b>`): one search per set.
    */
   dynamicSearches?: Record<string, TaskId[]>;
+  /**
+   * The candidate sets each bean's searches probed without confirming a culprit: a later search
+   * over a subset of one is skipped (`cf-demo2-sonnet-30-s7`: t032 searched the same six three
+   * times). Absent: none recorded.
+   */
+  emptySearches?: Record<string, TaskId[][]>;
   /** v2.5 tail guard: each bean's last progress (absent: none tracked yet). */
   progress?: Record<string, BeanProgress>;
   /** `red_reset`: how often each bean was requeued by a reset (absent: never). */

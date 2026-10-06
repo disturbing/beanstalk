@@ -212,4 +212,24 @@ describe('independent contributor capabilities', () => {
       value: { phase: 'created', task_status: { t001: 'pending', t002: 'pending' } },
     });
   });
+  it('refuses an unauthenticated mutation before parsing its body', async () => {
+    const run = await createRun();
+    const contributor = await grant(run, 't001');
+    const paths = [
+      `/v1/runs/${run.run}/beans/t001/collaboration`,
+      `/v1/runs/${run.run}/beans/t001/threads`,
+      `/v1/runs/${run.run}/collaboration/inbox/ack`,
+    ];
+    for (const path of paths) {
+      const anonymous = await call('POST', path, { body: { nonsense: true } });
+      const foreign = await call('POST', path, { token: run.view.token, body: { nonsense: true } });
+      const authorised = await call('POST', path, {
+        token: contributor.token,
+        body: { nonsense: true },
+      });
+      expect([anonymous.status, foreign.status, authorised.status]).toEqual([401, 403, 400]);
+    }
+    const inbox = await call('GET', `/v1/runs/${run.run}/collaboration/inbox?limit=0`);
+    expect(inbox.status).toBe(401);
+  });
 });

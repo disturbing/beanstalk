@@ -20,6 +20,7 @@ const DEFAULT_COMMIT_EMAIL: &str = "runner@beanstalk.invalid";
 /// | `REMOTE_SCHEMES` | `https` | comma-separated URL schemes a request may name (`https`, `file`) |
 /// | `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `beanstalk-runner`, `runner@beanstalk.invalid` | identity on squash and revert commits |
 /// | `CLOUDFLARE_DEPLOYMENT_ID` | unset | logged at startup |
+/// | `BEANSTALK_GIT_SHA` | unset | the commit the image was built from (set by the Dockerfile's `GIT_SHA` build arg), reported by `/version` |
 #[derive(Debug, Clone)]
 pub struct Config {
     port: u16,
@@ -27,6 +28,7 @@ pub struct Config {
     remote_schemes: RemoteSchemes,
     identity: CommitIdentity,
     deployment_id: Option<String>,
+    git_sha: Option<String>,
 }
 
 impl Config {
@@ -61,6 +63,7 @@ impl Config {
                 remote_schemes,
                 identity,
                 deployment_id: lookup("CLOUDFLARE_DEPLOYMENT_ID"),
+                git_sha: lookup("BEANSTALK_GIT_SHA").filter(|sha| !sha.trim().is_empty()),
             }),
             (port, work_dir, schemes, identity) => {
                 let problems: Vec<String> =
@@ -91,6 +94,11 @@ impl Config {
 
     pub fn deployment_id(&self) -> Option<&str> {
         self.deployment_id.as_deref()
+    }
+
+    /// The commit the image was built from, when the build said.
+    pub fn git_sha(&self) -> Option<&str> {
+        self.git_sha.as_deref()
     }
 }
 

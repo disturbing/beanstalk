@@ -4,7 +4,14 @@ import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 import { V22_SETTINGS } from '@beanstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
-import { PAIRS, burstScenario, calmScenario, declaredBurst, numbers } from '../testing/burst';
+import {
+  PAIRS,
+  SEEDED_SCENARIOS,
+  burstScenario,
+  calmScenario,
+  declaredBurst,
+  numbers,
+} from '../testing/burst';
 import type { RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
 
@@ -183,5 +190,23 @@ describe('dependency-aware starts on the burst (start_order)', () => {
     expect(fifo.dropped).toBeGreaterThanOrEqual(10);
     expect(dependency.dropped).toBeLessThanOrEqual(4);
     expect(dependency.red_validations).toBeLessThan(fifo.red_validations);
+  });
+});
+
+describe('the window counts a re-checking bean once it left the turn', () => {
+  // A bean whose re-squash needs a re-check passes the turn on: it is squashing again, not
+  // landing, so the next holder's window check must not count it (the earlier race, seed 11,
+  // logged a window.wait for t-next at the very instant of such a handoff).
+  it('logs no window.wait at the instant another bean re-checks and passes the turn on', () => {
+    const run = runRace(SEEDED_SCENARIOS.earlier(11, {}));
+
+    const rechecks = eventsOf(run.events, 'preland.recheck');
+    const spurious = eventsOf(run.events, 'window.wait').filter((wait) =>
+      rechecks.some(
+        (recheck) =>
+          recheck.t === wait.t && recheck['task'] !== wait['task'] && recheck.seq < wait.seq,
+      ),
+    );
+    expect(spurious).toEqual([]);
   });
 });

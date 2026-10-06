@@ -109,8 +109,7 @@ export function gatewaySource(binding: GatewayRpc): ForgeSource {
       return lineCommits(answer.commits, (await runLog(run)).state);
     },
     repoGrep: async (run, ref, pattern, paths) =>
-      unwrap(await binding.repoGrep(run, ref, escapeRegExp(pattern), paths), RepoGrepAnswer)
-        .matches,
+      unwrap(await binding.repoGrep(run, ref, pattern, paths), RepoGrepAnswer).matches,
     beansByPath: async (run, paths) => {
       const [summaries, log] = await Promise.all([binding.beansByPath(run, paths), runLog(run)]);
       return toRecords(unwrap(summaries, BeanSummaries), log.state);
@@ -358,8 +357,4 @@ function toOutcome(result: Awaited<ReturnType<GatewayRpc['decide']>>): DecideOut
   if (code === 'unknown_card' || code === 'invalid_winner' || code === 'invalid_state')
     return { ok: false, code, message };
   return { ok: false, code: 'unavailable', message };
-}
-
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

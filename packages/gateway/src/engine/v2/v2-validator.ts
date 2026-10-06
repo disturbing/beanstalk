@@ -13,14 +13,15 @@
  * Every verdict also sizes the sprout window (`v2-backpressure`).
  */
 import { markAborted } from '../abort';
-import { cancelCi, ciAvailable, hasCiRun, requestCi } from '../ci';
+import { ciAvailable, hasCiRun, requestCi } from '../ci';
 import type { CiRequest } from '../ci';
 import { emit, requireTask, startJob } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { STALK_REF } from '../refs';
 import { onSproutGreen, onSproutRed } from './v2-backpressure';
 import { takeGreenCheck } from './v2-check-reuse';
-import { awaitOutcome, requireCommit, takeWait } from './v2-sprout';
+import { cancelValidations, isSproutRewriting } from './v2-reset';
+import { awaitOutcome, requireCommit } from './v2-sprout';
 import type { V2State, V2Step } from './v2-state';
 import { activeTickets, closeTicket, isInRedEpisode, openTicket } from './v2-tickets';
 
@@ -35,10 +36,11 @@ export function maybeValidate(step: V2Step): void {
     headIdx <= state.greenIdx ||
     state.validating.includes(headIdx) ||
     Object.hasOwn(state.validated, String(headIdx));
-  if (!isKnown && reuseGreenCheck(step, headIdx)) return;
+  // No validation, and no reused green, while a reset or revert rewrites the sprout.
+  if (isKnown || isSproutRewriting(state) || reuseGreenCheck(step, headIdx)) return;
   // `repair_landing`: the validation of a bean that repairs a red sprout queues ahead of probes.
   const isRepair = state.commits[headIdx]?.repair === true;
-  if (isKnown || (ciAvailable(ctx) <= 0 && !canQueueAhead(step) && !isRepair)) return;
+  if (ciAvailable(ctx) <= 0 && !canQueueAhead(step) && !isRepair) return;
   state.validating.push(headIdx);
   const ciId = requestCi(ctx, {
     sha: requireCommit(state, headIdx).sha,
@@ -185,10 +187,11 @@ function settle(step: V2Step, idx: number, result: CheckResult | 'green'): void 
 
 /**
  * `red_reset`: the reset commit at `idx` has the tree of the stalk, which a validation already
- * passed, so it is green without CI: the stalk moves forward to it.
+ * passed, so it is green without CI: the stalk moves forward to it. Validations of the commits
+ * it left behind were cancelled when the reset started; any left stop now.
  */
 export function promoteReset(step: V2Step, idx: number): void {
-  cancelSuperseded(step, idx);
+  cancelValidations(step, (validated) => validated < idx);
   step.state.validated[idx] = true;
   onGreen(step, idx);
 }
@@ -196,13 +199,15 @@ export function promoteReset(step: V2Step, idx: number): void {
 /**
  * `reuse_checks`: the head is the exact commit a bean's full pre-land check passed (it landed
  * on the head it was checked on), so it is green without CI. Validations of older commits can
- * then no longer move the stalk, and stop.
+ * then no longer move the stalk, and stop through the reset's cancellation path (a running
+ * suite keeps its slot until the runner returns it). Like a validation, it never happens while
+ * a reset or revert rewrites the sprout (`maybeValidate`).
  */
 function reuseGreenCheck(step: V2Step, idx: number): boolean {
   const { ctx, state } = step;
   const commit = requireCommit(state, idx);
   if (commit.kind !== 'task' || takeGreenCheck(state, commit.sha) === null) return false;
-  const cancelled = cancelSuperseded(step, idx);
+  const cancelled = cancelValidations(step, (validated) => validated < idx);
   state.validated[idx] = true;
   state.stats.checks_reused = (state.stats.checks_reused ?? 0) + 1;
   state.stats.ci_superseded = (state.stats.ci_superseded ?? 0) + cancelled.length;
@@ -216,27 +221,6 @@ function reuseGreenCheck(step: V2Step, idx: number): boolean {
   if (idx > state.greenIdx) onSproutGreen(step, idx);
   onGreen(step, idx);
   return true;
-}
-
-/**
- * Validations of commits below `idx`, once `idx` is green without CI, can no longer move the
- * stalk: they stop and free their CI slots (in cf-replay-reset-8-s7 they held both slots, red,
- * after the reset). Returns the cancelled runs.
- */
-function cancelSuperseded(step: V2Step, idx: number): string[] {
-  const { ctx, state } = step;
-  const cancelled: string[] = [];
-  for (const run of Object.values(ctx.state.ci.runs)) {
-    const wait = state.waits[run.id];
-    if (wait?.kind !== 'validate' && wait?.kind !== 'confirm') continue;
-    if (wait.idx >= idx) continue;
-    cancelCi(ctx, run.id);
-    takeWait(state, run.id);
-    cancelled.push(run.id);
-    state.validating = state.validating.filter((validating) => validating !== wait.idx);
-    delete state.confirming[wait.idx];
-  }
-  return cancelled;
 }
 
 function onGreen(step: V2Step, idx: number): void {

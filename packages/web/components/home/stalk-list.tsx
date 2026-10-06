@@ -7,7 +7,7 @@ import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream'
 import type { StalkRow } from '@beanstalk/shared-ask/home/stalk';
 import { formatClock } from '../../src/race/race-format';
 import styles from './home.module.css';
-import { useLiveStreams } from './live-streams';
+import { useStreamSummaries } from './live-streams';
 
 const PHASE_WORDS: Readonly<Record<string, string>> = {
   working: 'writing',
@@ -30,7 +30,7 @@ export function StalkList(props: {
   readonly selected: string | null;
   readonly hrefFor: (bean: string) => string;
 }) {
-  const streams = useLiveStreams();
+  const streams = useStreamSummaries();
   const firstKeys = useRef<ReadonlySet<string> | null>(null);
   firstKeys.current ??= new Set(props.rows.map((row) => row.key));
   const isNew = (key: string) => !(firstKeys.current?.has(key) ?? true);

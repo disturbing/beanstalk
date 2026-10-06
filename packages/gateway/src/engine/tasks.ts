@@ -1,4 +1,4 @@
-import type { InvocationKind, InvocationResult, TestFile } from '@beanstalk/shared-race/driver';
+import type { InvocationKind, InvocationResult } from '@beanstalk/shared-race/driver';
 import type { InvocationId, Sha, TaskId } from '@beanstalk/shared-race/ids';
 import { protectTestsMode, unionPaths } from '@beanstalk/shared-race/run-config';
 
@@ -17,7 +17,14 @@ import {
 } from './context';
 import { EngineInvariantError } from './errors';
 import { createInvocation, isResumable } from './invocations';
-import type { EngineWorkspace, OpenInvocation, SlotState, TaskState } from './model';
+import type {
+  EngineWorkspace,
+  OpenInvocation,
+  ProtectedTestRef,
+  SlotState,
+  StoredWorkspace,
+  TaskState,
+} from './model';
 import { initialPrompt, taskCommitMessage } from './prompts';
 import { holderOf, release } from './slots';
 
@@ -112,12 +119,12 @@ export type WorkspaceOptions = {
   readonly unprotect?: readonly string[];
 };
 
-/** The workspace of a task's invocation. */
+/** The workspace of a task's invocation (protected tests by reference, read at delivery). */
 export function taskWorkspace(
   ctx: StepContext,
   task: TaskState,
   options: WorkspaceOptions,
-): EngineWorkspace {
+): StoredWorkspace {
   const definition = taskDefinition(ctx, task.id);
   const base = options.base ?? task.baseSha;
   if (base === null) throw new EngineInvariantError(`task ${task.id} has no base`);
@@ -143,9 +150,9 @@ export function taskBranch(id: string): string {
 
 /**
  * `--protect-tests landed`: every landed (and not dropped) task's acceptance tests except
- * the task's own, in task order. The driver applies the lineage rule.
+ * the task's own, in task order, as references. The driver applies the lineage rule.
  */
-export function protectedTests(ctx: StepContext, exclude: string): readonly TestFile[] {
+export function protectedTests(ctx: StepContext, exclude: string): readonly ProtectedTestRef[] {
   if (protectTestsMode(ctx.env.config) !== 'landed') return [];
   return ctx.state.order.flatMap((id) => {
     const task = ctx.state.tasks[id];
@@ -157,8 +164,7 @@ export function protectedTests(ctx: StepContext, exclude: string): readonly Test
     ) {
       return [];
     }
-    const tests = acceptanceTests(ctx, id);
-    return Object.entries(tests).map(([path, content]) => ({ path, content }));
+    return Object.keys(acceptanceTests(ctx, id)).map((path) => ({ task: id, path }));
   });
 }
 

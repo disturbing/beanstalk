@@ -20,6 +20,11 @@
  * once per set of counterparts its red names (owners, base and read-set culprits; a repeat
  * reuses the answer), and not at all once that set includes a counterpart a card decided:
  * the card already said who the culprit is.
+ *
+ * Nor when every candidate it would probe was probed by an earlier search of the bean that
+ * confirmed none (`cf-demo2-sonnet-30-s7`: t032 spent 8.7 of the race's last 9.5 minutes in three
+ * searches of the same six candidates, each `confirmed: []`, under three different sets of
+ * named counterparts). Leaving out one of them fixed nothing then; it fixes nothing now.
  */
 import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
 import { unionPaths } from '@beanstalk/shared-race/run-config';
@@ -60,8 +65,15 @@ export function repairWithCulprits(
   }
   const known = knownSearch(step, flow.task, red);
   if (known.kind !== 'search') {
-    step.state.stats.dynamic_culprit_skips = (step.state.stats.dynamic_culprit_skips ?? 0) + 1;
+    countSkip(step);
     startRepair(step, flow, known.kind === 'repeat' ? { ...red, confirmed: known.confirmed } : red);
+    return;
+  }
+  const queue = candidates(step, flow.task, red.red, files);
+  if (wasSearchedEmpty(step, flow.task, queue)) {
+    countSkip(step);
+    (step.state.dynamicSearches ??= {})[known.key] = [];
+    startRepair(step, flow, { ...red, confirmed: [] });
     return;
   }
   step.state.stats.dynamic_culprit_runs += 1;
@@ -72,7 +84,7 @@ export function repairWithCulprits(
     mine: red.mine,
     candidate: red.candidate,
     files,
-    queue: candidates(step, flow.task, red.red, files),
+    queue,
     probed: [],
     probes: [],
     confirmed: [],
@@ -98,6 +110,16 @@ function knownSearch(step: V2Step, task: TaskId, red: RedCheck): KnownSearch {
   const key = `${task}|${named.toSorted().join(',')}`;
   const confirmed = state.dynamicSearches?.[key];
   return confirmed === undefined ? { kind: 'search', key } : { kind: 'repeat', confirmed };
+}
+
+function countSkip(step: V2Step): void {
+  step.state.stats.dynamic_culprit_skips = (step.state.stats.dynamic_culprit_skips ?? 0) + 1;
+}
+
+/** Every candidate was probed by one earlier search of the bean that confirmed none. */
+function wasSearchedEmpty(step: V2Step, task: TaskId, queue: readonly TaskId[]): boolean {
+  const searched = step.state.emptySearches?.[task] ?? [];
+  return searched.some((probed) => queue.every((candidate) => probed.includes(candidate)));
 }
 
 /** A probe's revert or suite returned (or failed: `result` null). */
@@ -200,6 +222,10 @@ function nextBatch(step: V2Step, flow: LandingFlow, current: ProbeStep): void {
 function finish(step: V2Step, flow: LandingFlow, current: ProbeStep): void {
   const searches = (step.state.dynamicSearches ??= {});
   if (current.searchKey !== undefined) searches[current.searchKey] = [...current.confirmed];
+  if (current.confirmed.length === 0 && current.probed.length > 0) {
+    const empty = (step.state.emptySearches ??= {});
+    empty[flow.task] = [...(empty[flow.task] ?? []), current.probed.toSorted()];
+  }
   emit(step.ctx, 'culprit.dynamic', {
     task: flow.task,
     candidates: [...current.probed],

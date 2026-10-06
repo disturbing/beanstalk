@@ -229,7 +229,9 @@ pub(crate) struct HealthResponse {
 #[derive(Debug, Serialize)]
 pub(crate) struct VersionResponse {
     pub(crate) version: &'static str,
-    pub(crate) git_sha: &'static str,
+    /// The wire contract's version ([`crate::app::API_VERSION`]); callers compare it, not `version`.
+    pub(crate) api_version: u32,
+    pub(crate) git_sha: String,
 }
 
 #[cfg(test)]

@@ -20,6 +20,7 @@ import type {
   JobOutcome,
   JobSpec,
 } from '../model';
+import { probeMessage } from '../prompts';
 import { SPROUT_REF, STALK_REF } from '../refs';
 import type { Files, ToyGit } from './toy-git';
 import { changedPaths, createToyGit, hasMarkers, mergeFiles, resolveBothSides } from './toy-git';
@@ -88,6 +89,8 @@ export type ScriptedTask = {
    * clash with a task it was not shown): it finds a contradiction and changes nothing.
    */
   readonly reconcile?: Readonly<Record<string, string>>;
+  /** Reconciling test authors on this task's branch that crash (infra errors) before one runs. */
+  readonly reconcileFails?: number;
   /** v2.5: tasks this one declares a semantic coupling with (the arena's `couplings`). */
   readonly coupledWith?: readonly string[];
   /**
@@ -109,6 +112,13 @@ export type WorldOptions = {
    * test fail and adapted). Replay agents otherwise never adapt to synced code.
    */
   readonly adaptsOnSync?: boolean;
+  /**
+   * Emulated seconds a dynamic-culprit probe's suite adds in the bean's sandbox: the real race's
+   * probes cost about a pre-land check each (`cf-demo2-sonnet-30-s7`: 2.5 to 3.7 minutes per
+   * search of 6). Pre-land checks and proofs get their latency from the engine's timers, and
+   * CI-slot runs from `ci_seconds`, so only probes are charged here. Absent: 0.
+   */
+  readonly probeLatencySeconds?: number;
 };
 
 export type World = {
@@ -128,6 +138,8 @@ export type World = {
 
 /** The run repo of the toy world (the sprout and the stalk live here). */
 const REPO = 'repo';
+/** How a dynamic-culprit probe's revert commit message starts. */
+const PROBE_MESSAGE = probeMessage('').trimEnd();
 /** Seconds the fake suite reports; the engine adds `ci_seconds` of emulated latency. */
 const SUITE_SECONDS = 1.5;
 
@@ -144,6 +156,8 @@ export function createWorld(options: WorldOptions): World {
   /** Squashed candidates by sha: the bean each one lands. */
   const squashedBy = new Map<string, string>();
   const reexecutions = new Map<string, number>();
+  const reconcileFailures = new Map<string, number>();
+  const probeMillis = (options.probeLatencySeconds ?? 0) * 1000;
   return {
     git,
     baseSha: base.sha,
@@ -203,7 +217,14 @@ export function createWorld(options: WorldOptions): World {
       if (instruction.kind === 'initial') return initialRun(git, task, instruction, costUsd);
       if (instruction.kind === 'test-author') return authorRun(git, task, instruction);
       if (instruction.kind === 'test-first') return testsFirstRun(git, task, instruction);
-      if (instruction.kind === 'reconcile') return reconcileRun(git, task, instruction);
+      if (instruction.kind === 'reconcile') {
+        const failures = reconcileFailures.get(task.id) ?? 0;
+        if (failures < (task.reconcileFails ?? 0)) {
+          reconcileFailures.set(task.id, failures + 1);
+          return agentResult({ ok: false, infra_error: 'agent crashed', cost_source: 'none' });
+        }
+        return reconcileRun(git, task, instruction);
+      }
       if (instruction.workspace.headSha === null) {
         const nth = (reexecutions.get(task.id) ?? 0) + 1;
         reexecutions.set(task.id, nth);
@@ -216,7 +237,8 @@ export function createWorld(options: WorldOptions): World {
         instruction,
       );
     },
-    jobMillis: (spec) => JOB_MILLIS[spec.kind],
+    jobMillis: (spec) =>
+      JOB_MILLIS[spec.kind] + (probeMillis > 0 && isProbeCheck(git, spec) ? probeMillis : 0),
   };
 }
 
@@ -229,6 +251,15 @@ const JOB_MILLIS: Record<JobSpec['kind'], number> = {
   'read-files': 100,
   'line-ranges': 100,
 };
+
+/** A suite in a bean's sandbox on a dynamic-culprit probe's tree (the revert's message says so). */
+function isProbeCheck(git: ToyGit, spec: JobSpec): boolean {
+  return (
+    spec.kind === 'check' &&
+    spec.instance.kind === 'sandbox' &&
+    git.get(spec.sha).message.startsWith(PROBE_MESSAGE)
+  );
+}
 
 /** A clean squash as the runner reports one its structural tier merged. */
 function structurally(outcome: JobOutcome): JobOutcome {
@@ -524,14 +555,28 @@ function testsFirstRun(
   );
 }
 
-/** A reconcile: the scripted amendments, committed onto the bean's head (it merged the sprout). */
+/**
+ * A reconcile as the driver runs it: the bean's head with the landed line merged in, the
+ * scripted amendments, and a commit (the merge alone when the author changed nothing).
+ */
 function reconcileRun(
   git: ToyGit,
   task: ScriptedTask,
   instruction: EngineInstruction,
 ): InvocationResult {
   const workspace = instruction.workspace;
-  const head = workspace.headSha ?? workspace.baseSha;
+  const branchHead = workspace.headSha ?? workspace.baseSha;
+  const tree = mergeIntoWorktree(
+    git,
+    branchHead,
+    workspace.merge?.sha ?? null,
+    workspace.unionPaths,
+  );
+  const head =
+    tree.parents.length > 1
+      ? git.commit(tree.parents, tree.files, workspace.commitMessage).sha
+      : branchHead;
+  if (head !== branchHead) git.setRef(REPO, `refs/heads/${workspace.branch}`, head);
   const result = {
     ok: true,
     cost_usd: 0.005,
@@ -544,8 +589,8 @@ function reconcileRun(
     return agentResult({
       ...result,
       head_sha: head,
-      new_commit: false,
-      files: [],
+      new_commit: head !== branchHead,
+      files: head === branchHead ? [] : changedPaths(git.get(workspace.baseSha).files, tree.files),
       result_text: 'CONTRADICTION: both intents cannot hold at once.',
     });
   }

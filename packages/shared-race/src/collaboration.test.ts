@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { BeanThreadPostInput, BeanUpdateInput, ContributorTokenClaims } from './collaboration';
+import {
+  BeanDiscoverInput,
+  BeanDiscoverPage,
+  BeanSummariesInput,
+  BeanThreadPostInput,
+  BeanUpdateInput,
+  ContributorTokenClaims,
+} from './collaboration';
 
 const update = {
   bean: 'shipping',
@@ -67,6 +74,26 @@ describe('collaboration contracts', () => {
           },
         },
       }).success,
+    ).toBe(false);
+  });
+
+  it('keeps discovery pages lightweight and bounds peer summary requests', () => {
+    expect(BeanDiscoverInput.parse({ bean: 't001', full: true }).full).toBe(true);
+    const digest = {
+      bean: 't002',
+      revision: 1,
+      updated_at: null,
+      intent: 'Shipping',
+      intent_truncated: false,
+      paths: [],
+    };
+    expect(BeanDiscoverPage.safeParse({ beans: [digest], truncated: false }).success).toBe(true);
+    expect(
+      BeanDiscoverPage.safeParse({ beans: [{ ...digest, actor: null }], truncated: false }).success,
+    ).toBe(false);
+    expect(BeanSummariesInput.safeParse([]).success).toBe(false);
+    expect(
+      BeanSummariesInput.safeParse(Array.from({ length: 33 }, (_e, i) => `t${i}`)).success,
     ).toBe(false);
   });
 });

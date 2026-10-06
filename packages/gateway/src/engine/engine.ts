@@ -9,7 +9,7 @@ import type { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
 
 import { markAborted } from './abort';
 import type { EngineEnv } from './catalog';
-import { onCheckResult, onLatencyElapsed, pumpCi } from './ci';
+import { dropOrphanedCiJob, onCheckResult, onLatencyElapsed, pumpCi } from './ci';
 import type { DecisionAnswer, StepContext } from './context';
 import {
   createContext,
@@ -30,6 +30,7 @@ import {
   recordProgress,
   rememberSession,
   retryAfterFailedResume,
+  toInstruction,
 } from './invocations';
 import { beginShutdown, startRace } from './lifecycle';
 import type {
@@ -41,6 +42,7 @@ import type {
   JobRecord,
   OpenInvocation,
   RunLabels,
+  SlotState,
   TimerPurpose,
 } from './model';
 import { bindPolicy } from './policy';
@@ -56,6 +58,8 @@ const MAX_JOB_ATTEMPTS = 6;
 /** First retry delay for a failed job, doubled per attempt up to the cap. */
 const JOB_RETRY_BASE_SECONDS = 2;
 const JOB_RETRY_MAX_SECONDS = 30;
+/** How long after delivery a running invocation without progress is re-delivered to its slot's poll. */
+const REDELIVERY_SECONDS = 120;
 
 /**
  * Applies one input. Pure: the argument is cloned, never mutated. A thrown error is a bug;
@@ -151,7 +155,23 @@ function poll(ctx: StepContext, slotId: SlotId, pollId: string): EngineResponse 
   }
   slot.pollId = pollId;
   deliverPending(ctx, slot);
+  redeliverUnstarted(ctx, slot);
   return { kind: 'poll', reply: null };
+}
+
+/**
+ * A slot polls again while its invocation runs, before the driver reported any progress on
+ * it, shortly after delivery: the reply that carried it was most likely lost (a dropped long
+ * poll). It is delivered again, same id; a driver already running it ignores the duplicate.
+ * Without this the slot would wait for the watchdog.
+ */
+function redeliverUnstarted(ctx: StepContext, slot: SlotState): void {
+  if (slot.pollId === null || slot.running === null || !isRacing(ctx)) return;
+  const inv = ctx.state.invocations[slot.running];
+  if (inv === undefined || inv.deliveredAt === null || inv.reportedAt !== undefined) return;
+  if (ctx.now - inv.deliveredAt > REDELIVERY_SECONDS) return;
+  ctx.effects.replies.push({ pollId: slot.pollId, reply: { invocation: toInstruction(ctx, inv) } });
+  slot.pollId = null;
 }
 
 function pollExpired(ctx: StepContext, slotId: SlotId, pollId: string): EngineResponse {
@@ -258,6 +278,7 @@ function progress(
     };
   }
   if (inv.slot !== slotId) return refused('wrong_slot', `${invId} belongs to slot ${inv.slot}`);
+  if (inv.deliveredAt !== null) inv.reportedAt = ctx.now;
   const response = recordProgress(ctx, inv, costUsd);
   if (response.abort || inv.deliveredAt === null) return { kind: 'progress', response };
   const offer = policyHooks(ctx).midrunOffer?.(inv, input.files ?? []) ?? null;
@@ -271,6 +292,12 @@ function progress(
 function jobDone(ctx: StepContext, jobId: JobId, outcome: JobOutcome): void {
   const record = ctx.state.jobs[jobId];
   if (record === undefined) return;
+  // A cancelled CI run's suite: neither its result nor its failure concerns anyone any more.
+  if (record.owner.kind === 'ci' && dropOrphanedCiJob(ctx, record.owner.ciId)) {
+    delete ctx.state.jobs[jobId];
+    pumpCi(ctx);
+    return;
+  }
   if (!outcome.ok) {
     if (outcome.retryable && record.attempts < MAX_JOB_ATTEMPTS) {
       record.attempts += 1;
@@ -406,12 +433,18 @@ function expireInvocation(ctx: StepContext, invId: InvocationId): void {
 
 /**
  * The shell restarted (deploy or eviction): open polls died with it, and the jobs it was
- * running are issued again (squash, check and push-with-lease are safe to repeat).
+ * running are issued again (squash, check and push-with-lease are safe to repeat). A job
+ * waiting for its retry timer is not: the timer issues it once.
  */
 function restart(ctx: StepContext): void {
   for (const slot of ctx.state.slots) slot.pollId = null;
+  const retrying = new Set(
+    Object.values(ctx.state.timers).flatMap((timer) =>
+      timer.purpose.kind === 'job-retry' ? [timer.purpose.jobId] : [],
+    ),
+  );
   for (const [id, record] of Object.entries(ctx.state.jobs)) {
-    if (isJobId(id)) ctx.effects.jobs.push({ id, spec: record.spec });
+    if (isJobId(id) && !retrying.has(id)) ctx.effects.jobs.push({ id, spec: record.spec });
   }
 }
 

@@ -1,7 +1,8 @@
 /**
  * Streaming diffs (`stream_diffs`): a bean's working change while its agent writes, as the
- * gateway's live feed announces it (`bean.streaming`, `bean.streaming.end`) and as its
- * `beanStream` RPC serves it. The two RPC methods are optional on the binding, so an older
+ * run's stream socket sends it (`bean.streaming`, `bean.streaming.end` to every viewer;
+ * `bean.snapshot` and `bean.patch` to the viewers of that bean, docs/claude-17-streaming-diffs.md)
+ * and as the `beanStream` RPC serves it. The two RPC methods are optional on the binding, so an older
  * gateway without them still counts as a gateway (`asGatewayBinding` checks the rest).
  */
 import { parsePatch } from 'diff';
@@ -45,11 +46,11 @@ export const BeanStreamEnd = z.object({
 });
 export type BeanStreamEnd = z.infer<typeof BeanStreamEnd>;
 
-/** A `stream` message of the live feed. */
+/** A summary or an end: what every viewer gets. */
 export const BeanStreamMessage = z.discriminatedUnion('type', [BeanStreamSummary, BeanStreamEnd]);
 export type BeanStreamMessage = z.infer<typeof BeanStreamMessage>;
 
-const StreamFile = z.object({
+export const StreamFile = z.object({
   path: z.string(),
   status: Status,
   additions: z.number().int(),
@@ -57,6 +58,38 @@ const StreamFile = z.object({
   binary: z.boolean(),
   patch: z.string().nullable(),
 });
+export type StreamFile = z.infer<typeof StreamFile>;
+
+/** A subscribed bean's whole snapshot, sent when the viewer subscribes to it. */
+export const BeanStreamSnapshot = z.object({
+  type: z.literal('bean.snapshot'),
+  task: z.string(),
+  inv: z.string(),
+  seq: z.number().int(),
+  files: z.array(StreamFile),
+});
+export type BeanStreamSnapshot = z.infer<typeof BeanStreamSnapshot>;
+
+/** What one accepted post changed in a subscribed bean; `base_seq: 0` replaces the snapshot. */
+export const BeanStreamPatch = z.object({
+  type: z.literal('bean.patch'),
+  task: z.string(),
+  inv: z.string(),
+  seq: z.number().int(),
+  base_seq: z.number().int(),
+  files: z.array(StreamFile),
+  removed: z.array(z.string()),
+});
+export type BeanStreamPatch = z.infer<typeof BeanStreamPatch>;
+
+/** Any message of the run's stream socket. */
+export const BeanStreamSocketMessage = z.discriminatedUnion('type', [
+  BeanStreamSummary,
+  BeanStreamEnd,
+  BeanStreamSnapshot,
+  BeanStreamPatch,
+]);
+export type BeanStreamSocketMessage = z.infer<typeof BeanStreamSocketMessage>;
 
 export const BeanStreamAnswer = z
   .object({ summary: BeanStreamSummary, files: z.array(StreamFile) })
@@ -107,7 +140,8 @@ export async function beanStreamView(
   return { summary: answer.summary, files: answer.files.map(toFileDiff) };
 }
 
-function toFileDiff(file: z.infer<typeof StreamFile>): FileDiff {
+/** One streamed file as a file diff: its hunk text parsed into numbered lines. */
+export function toFileDiff(file: StreamFile): FileDiff {
   const { path, status, additions, deletions } = file;
   if (file.patch === null || file.patch === '')
     return { path, status, additions, deletions, hunks: [] };

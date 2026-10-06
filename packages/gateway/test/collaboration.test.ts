@@ -6,12 +6,14 @@ import {
   ContributorTokenClaims,
   BeanContextInput,
   BeanDiscoverInput,
+  EXCERPT_CHARS,
   BeanThreadPostInput,
   BeanUpdateInput,
 } from '@beanstalk/shared-race/collaboration';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import { readBeanContext } from '../src/collaboration/read';
+import { seedCollaboration } from '../src/collaboration/store';
 import { RunDO } from '../src/run/run-do';
 import { createRun } from './helpers';
 
@@ -295,9 +297,11 @@ describe('durable bean collaboration', () => {
       {
         bean: b.bean,
         revision: 1,
-        approach: { summary: 'Preserve existing shipment email fields' },
+        paths: ['src'],
+        intent_truncated: false,
       },
     ]);
+    expect(matches.records).toBeUndefined();
     expect(matches.truncated).toBe(false);
     const reverse = value(
       await stub.beanDiscover(BeanDiscoverInput.parse({ bean: b.bean, query: 'zzzzunmatched' })),
@@ -419,5 +423,114 @@ describe('durable bean collaboration', () => {
     const retried = value(await stub.beanThreadPost(b, input));
     expect(retried.post.event_id).toBe(1);
     expect(value(await stub.beanInboxRead(a, {})).events).toHaveLength(1);
+  });
+  it('discovers lightweight digests by default and full records only on request', async () => {
+    const { stub, a, b } = await contributors();
+    const intent = `shipping ${'long '.repeat(1900)}`.trim();
+    value(
+      await stub.beanUpdate(
+        b,
+        BeanUpdateInput.parse({
+          bean: b.bean,
+          expected_revision: 0,
+          changes: { intent, approach: { summary: 'Shipping estimates', paths: ['src/ship.ts'] } },
+          idempotency_key: 'long-intent',
+        }),
+      ),
+    );
+    const input = { bean: a.bean, query: 'shipping' };
+    const digest = value(await stub.beanDiscover(BeanDiscoverInput.parse(input)));
+    expect(digest.beans).toEqual([
+      {
+        bean: b.bean,
+        revision: 1,
+        updated_at: expect.any(String),
+        intent: intent.slice(0, EXCERPT_CHARS),
+        intent_truncated: true,
+        paths: ['src/ship.ts'],
+      },
+    ]);
+    expect(digest.records).toBeUndefined();
+    const full = value(await stub.beanDiscover(BeanDiscoverInput.parse({ ...input, full: true })));
+    expect(full.records).toMatchObject([{ bean: b.bean, intent }]);
+    expect(full.beans).toEqual(digest.beans);
+  });
+
+  it('summarises peers in excerpts with promises and reliance but no history', async () => {
+    const { stub, a, b } = await agree();
+    value(
+      await stub.beanUpdate(
+        a,
+        BeanUpdateInput.parse({
+          bean: a.bean,
+          expected_revision: 1,
+          changes: { approach: { summary: 'x'.repeat(900), paths: ['src/shipping.ts'] } },
+          idempotency_key: 'long-approach',
+        }),
+      ),
+    );
+    const summaries = value(await stub.beanPeerSummaries(['t002', 't001', 'unknown', 't001']));
+    expect(summaries.map((summary) => summary.bean)).toEqual(['t001', 't002']);
+    const [first, second] = summaries;
+    expect(first).toMatchObject({
+      bean: 't001',
+      revision: 2,
+      approach_summary: 'x'.repeat(EXCERPT_CHARS),
+      approach_summary_truncated: true,
+      paths: ['src/shipping.ts'],
+      promises: [{ id: 'delivery', revision: 1, paths: ['src/shipping.ts'] }],
+      reliance: [],
+    });
+    expect(second).toMatchObject({
+      bean: b.bean,
+      approach_summary: null,
+      reliance: [{ bean: 't001', promise: 'delivery', revision: 1 }],
+    });
+    expect(first).not.toHaveProperty('history');
+    expect(await stub.beanPeerSummaries([])).toMatchObject({ ok: false });
+  });
+
+  it('seeds only beans it has not stored and leaves collaboration state alone', async () => {
+    const { stub, a } = await contributors();
+    value(await stub.beanUpdate(a, promiseUpdate(0, 'offer-seed')));
+    const seeded = await runInDurableObject(stub, (_, state) => {
+      seedCollaboration(state.storage.sql, [
+        { id: 't001', prompt: 'a different prompt' },
+        { id: 'z900', prompt: 'brand new bean' },
+      ]);
+      return state.storage.sql
+        .exec<{ bean: string }>(
+          'SELECT bean FROM collaboration_beans WHERE bean IN (?, ?)',
+          't001',
+          'z900',
+        )
+        .toArray()
+        .map((row) => row.bean)
+        .toSorted();
+    });
+    expect(seeded).toEqual(['t001', 'z900']);
+    const context = value(await stub.beanContext({ bean: a.bean }));
+    expect(context.bean.revision).toBe(1);
+    expect(context.bean.intent).not.toBe('a different prompt');
+    expect(
+      value(await stub.beanContext({ bean: BeanContextInput.shape.bean.parse('z900') })).bean
+        .intent,
+    ).toBe('brand new bean');
+  });
+
+  it('replays an in-flight request resent by a replacement harness under another actor', async () => {
+    const { stub, a, b } = await contributors();
+    const replacement = ContributorTokenClaims.parse({ ...a, actor: 'replacement-harness' });
+    const input = BeanThreadPostInput.parse({
+      bean: b.bean,
+      kind: 'note',
+      body: 'Heads up about shipping',
+      references: [],
+      idempotency_key: 'resend-1',
+    });
+    const first = value(await stub.beanThreadPost(a, input));
+    const resent = value(await stub.beanThreadPost(replacement, input));
+    expect(resent).toEqual(first);
+    expect(value(await stub.beanContext({ bean: b.bean })).current_cursor).toBe(1);
   });
 });

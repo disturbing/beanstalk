@@ -76,7 +76,8 @@ def table(runs: list[str]) -> tuple[list[str], list[list]]:
 
 def timeline(run: str, dest: str) -> int:
     """One row per event with running counters."""
-    landed = green = open_reds = depth = busy = ci = 0
+    landed = green = depth = busy = ci = 0
+    open_tickets: set = set()  # a red ticket counts from ticket.open (or ticket.bisect) until ticket.close
     cost = 0.0
     n = 0
     with open(os.path.join(run, "events.jsonl")) as fh:
@@ -97,11 +98,14 @@ def timeline(run: str, dest: str) -> int:
                 green += len(e.get("tasks") or [])
                 detail = ",".join(e.get("tasks") or [])
             elif typ in ("ticket.open", "ticket.bisect"):
-                open_reds += 1 if typ == "ticket.bisect" or not _bisected(e) else 0
+                open_tickets.add(e.get("ticket"))
                 detail = ",".join(e.get("failing") or [])
-            elif typ in ("ticket.close", "ticket.escalate"):
-                open_reds = max(open_reds - 1, 0)
-                detail = e.get("how") or e.get("why") or ""
+            elif typ == "ticket.close":
+                open_tickets.discard(e.get("ticket"))
+                detail = e.get("how") or ""
+            elif typ in ("ticket.escalate", "ticket.stuck"):  # still red: open until ticket.close
+                detail = e.get("why") or (f"culprit {e.get('culprit_idx')} cannot be reverted"
+                                          if typ == "ticket.stuck" else "")
             elif typ == "queue.enqueue":
                 depth += 1
             elif typ == "batch.start":
@@ -130,14 +134,9 @@ def timeline(run: str, dest: str) -> int:
                 detail = ",".join(e.get("files") or [])
             agent = e.get("agent") if typ != "race.start" else ""
             w.writerow([round(e["t"] - t_start, 3), typ, e.get("task") or e.get("ticket") or "", agent or "", detail, landed,
-                        green, open_reds, max(depth, 0), busy, ci, round(cost, 4)])
+                        green, len(open_tickets), max(depth, 0), busy, ci, round(cost, 4)])
             n += 1
     return n
-
-
-def _bisected(e: dict) -> bool:
-    """A ticket that was bisected first was already counted at ticket.bisect."""
-    return e.get("method") == "bisect"
 
 
 def main(argv: list[str] | None = None) -> int:

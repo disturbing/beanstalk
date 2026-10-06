@@ -22,12 +22,15 @@
     // One instance ("runs") listing every run for the web app.
     "RunIndex": { "type": "durable-object", "storage": "sqlite" },
     "Runner": { "type": "durable-object", "storage": "sqlite" },
+    // stream_diffs: one per run, beside its RunDO (docs/claude-17-streaming-diffs.md).
+    "RunStreamDO": { "type": "durable-object", "storage": "sqlite" },
   },
   "durable_objects": {
     "bindings": [
       { "name": "RUNS", "class_name": "RunDO" },
       { "name": "RUN_INDEX", "class_name": "RunIndex" },
       { "name": "RUNNER", "class_name": "Runner" },
+      { "name": "RUN_STREAMS", "class_name": "RunStreamDO" },
     ],
   },
   // Per run: one committer (squash, revert, update-ref), one instance per emulated CI slot,

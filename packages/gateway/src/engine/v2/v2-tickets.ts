@@ -24,7 +24,7 @@ import { probeMessage, revertMessage } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { dropTask } from '../tasks';
 import { rollBack } from './v2-amendments';
-import { canReset, landReset, startResetJob } from './v2-reset';
+import { canReset, cancelValidations, landReset, startResetJob } from './v2-reset';
 import { awaitOutcome, landRevert, requireCommit, sproutIndex } from './v2-sprout';
 import type { FirstBadSearch, RevertFlow, Ticket, TicketStatus, V2State, V2Step } from './v2-state';
 import { releaseTurn, requestTurn } from './v2-turn';
@@ -106,7 +106,7 @@ export function closeTicket(step: V2Step, ticket: Ticket, how: string): void {
 export function onProbe(step: V2Step, ticketId: string, ciId: CiId, result: CheckResult): void {
   const search = searchOf(step.state, ticketId);
   const point = search?.probes[ciId];
-  if (search === undefined || point === undefined) return;
+  if (search === undefined || point === undefined || isAbandoned(step, ticketId)) return;
   delete search.probes[ciId];
   search.bad[point] = isBad(result, search.files);
   if (Object.keys(search.probes).length > 0) return;
@@ -131,6 +131,7 @@ export function onLeaveOneOutBuilt(
 ): void {
   const flow = step.state.reverts[wait.ticket];
   if (flow?.phase !== 'leave-one-out' || result.kind !== 'revert') return;
+  if (isAbandoned(step, wait.ticket)) return;
   const probe = flow.probes.find((candidate) => candidate.commit === wait.commit);
   if (probe === undefined) return;
   probe.isBuilt = true;
@@ -166,7 +167,7 @@ export function onLeaveOneOutChecked(
 ): void {
   const { state } = step;
   const flow = state.reverts[wait.ticket];
-  if (flow?.phase !== 'leave-one-out') return;
+  if (flow?.phase !== 'leave-one-out' || isAbandoned(step, wait.ticket)) return;
   const probe = flow.probes.find((candidate) => candidate.commit === wait.commit);
   if (probe === undefined) return;
   probe.result = result;
@@ -211,6 +212,11 @@ export function onRevertTurn(step: V2Step, ticketId: string): void {
   const target = requireCommit(state, flow.target);
   const title = target.task === null ? target.sha : taskDefinition(ctx, target.task).title;
   const head = state.sprout;
+  // `red_reset`: once the revert is under way, no validation of a tree holding the culprit may
+  // promote it (and close the ticket) behind the revert's back.
+  if (state.settings.redReset === true) {
+    cancelValidations(step, (idx) => idx >= flow.target);
+  }
   const jobId = startJob(
     ctx,
     {
@@ -234,6 +240,12 @@ export function onTicketRevertJob(
   result: JobResult,
 ): void {
   const flow = step.state.reverts[ticketId];
+  const isUnpublished = flow?.phase === 'revert' || flow?.phase === 'reset';
+  if (isUnpublished && flow?.jobId === jobId && isAbandoned(step, ticketId)) {
+    // A green promotion closed the ticket while the commit was built: it is never published.
+    releaseTurn(step);
+    return;
+  }
   if (flow?.phase === 'revert' && flow.jobId === jobId && result.kind === 'revert') {
     onCulpritReverted(step, ticketId, flow, result);
     return;
@@ -263,6 +275,14 @@ function onResetBuilt(
     markAborted(ctx, `the reset for ${ticketId} conflicted: ${result.files.join(', ')}`);
     return;
   }
+  if (flow.to !== undefined && flow.to !== state.green) {
+    // The stalk moved while the reset was built (its validations are cancelled at the start,
+    // so this is a guard): its tree is no longer the stalk's. Plan the repair again.
+    delete state.reverts[ticketId];
+    releaseTurn(step);
+    startRevert(step, requireTicket(state, ticketId));
+    return;
+  }
   const jobId = startJob(
     ctx,
     { kind: 'update-ref', ref: SPROUT_REF, newSha: result.sha, oldSha: flow.head },
@@ -272,6 +292,7 @@ function onResetBuilt(
   state.reverts[ticketId] = {
     phase: 'reset-publish',
     head: flow.head,
+    ...(flow.to === undefined ? {} : { to: flow.to }),
     sha: result.sha,
     files: [...result.files],
     jobId,
@@ -291,7 +312,9 @@ function onResetPublished(
   }
   const ticket = requireTicket(state, ticketId);
   delete state.reverts[ticketId];
-  closeTicket(step, ticket, `reset to trunk #${state.greenIdx}`);
+  // A ticket a green promotion closed meanwhile is not closed twice (`landReset` then refuses
+  // to promote the reset over the newer stalk).
+  if (ticket.status === 'reverting') closeTicket(step, ticket, `reset to trunk #${state.greenIdx}`);
   const suspects = ticket.suspects.flatMap((idx) => state.commits[idx]?.task ?? []);
   ticket.revertIdx = landReset(step, {
     ...flow,
@@ -491,7 +514,7 @@ function startLeaveOneOut(step: V2Step, ticketId: string, idx: number): void {
 function nextLeaveOneOutBatch(step: V2Step, ticketId: string): void {
   const { ctx, state } = step;
   const flow = state.reverts[ticketId];
-  if (flow?.phase !== 'leave-one-out') return;
+  if (flow?.phase !== 'leave-one-out' || isAbandoned(step, ticketId)) return;
   const width = Math.max(1, ctx.env.config.ci_slots);
   const batch = flow.candidates.slice(flow.offset, flow.offset + width);
   flow.offset += width;
@@ -610,6 +633,7 @@ function onRevertPublished(
   }
   const target = requireCommit(state, flow.target);
   const ticket = requireTicket(state, ticketId);
+  const isOpen = ticket.status === 'reverting';
   const commit = landRevert(step, {
     target,
     head: flow.head,
@@ -617,8 +641,12 @@ function onRevertPublished(
     files: flow.files,
     ticket: ticketId,
   });
-  ticket.status = 'reverted';
-  ticket.revertIdx = commit.idx;
+  // A ticket a green promotion closed meanwhile stays closed; the revert is on the sprout all
+  // the same, so it is recorded and its task leaves.
+  if (isOpen) {
+    ticket.status = 'reverted';
+    ticket.revertIdx = commit.idx;
+  }
   emit(ctx, 'revert', {
     ticket: ticketId,
     task: target.task,
@@ -696,6 +724,18 @@ function concurrentFor(
     }
   }
   return [...found].toSorted((a, b) => a - b);
+}
+
+/**
+ * A green promotion closed the ticket while its revert flow ran (`onGreen` closes every
+ * non-bisecting ticket at or below the green): the flow ends here, spending no more CI.
+ */
+function isAbandoned(step: V2Step, ticketId: string): boolean {
+  const { state } = step;
+  if (state.reverts[ticketId] === undefined || state.bisects[ticketId] !== undefined) return false;
+  if (requireTicket(state, ticketId).status === 'reverting') return false;
+  delete state.reverts[ticketId];
+  return true;
 }
 
 function requireTicket(state: V2State, id: string): Ticket {

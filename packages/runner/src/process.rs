@@ -23,6 +23,9 @@ const MAX_CAPTURE_BYTES: usize = 4_000_000;
 const TERMINATE_GRACE: Duration = Duration::from_secs(3);
 /// Time the output readers get to finish once the tree is dead.
 const DRAIN_GRACE: Duration = Duration::from_secs(5);
+/// Time the output readers get to reach end of file once the child itself has exited, before the
+/// rest of its process group is killed.
+const EXITED_OUTPUT_GRACE: Duration = Duration::from_secs(2);
 const READ_CHUNK_BYTES: usize = 64 * 1024;
 
 /// The runner's environment, captured once at startup and filtered per kind of child.
@@ -110,26 +113,27 @@ impl Finished {
     }
 }
 
-/// Runs a process until it exits and closes its output, or until `spec.timeout`.
+/// Runs a process until it exits, or until `spec.timeout`.
 pub(crate) async fn run(spec: &ProcessSpec<'_>) -> std::io::Result<Finished> {
     let started = Instant::now();
     let mut child = spawn(spec)?;
     let tree = ProcessTree::of(&child);
-    let mut stdout = capture(child.stdout.take());
-    let mut stderr = capture(child.stderr.take());
+    let stdout = capture(child.stdout.take());
+    let stderr = capture(child.stderr.take());
     let stdin = child.stdin.take();
-    let completed = tokio::time::timeout(spec.timeout, async {
+    let exited = tokio::time::timeout(spec.timeout, async {
         let ((), status) = tokio::join!(feed(stdin, spec.stdin), child.wait());
-        (status, (&mut stdout).await, (&mut stderr).await)
+        status
     })
     .await;
-    match completed {
-        Ok((status, out, err)) => {
-            tree.release();
+    match exited {
+        Ok(status) => {
+            let status = status?;
+            let (stdout, stderr) = collect_after_exit(tree, stdout, stderr).await;
             Ok(Finished {
-                code: status?.code(),
-                stdout: joined(out)?,
-                stderr: joined(err)?,
+                code: status.code(),
+                stdout: stdout?,
+                stderr: stderr?,
                 timed_out: false,
                 elapsed: started.elapsed(),
             })
@@ -144,6 +148,47 @@ pub(crate) async fn run(spec: &ProcessSpec<'_>) -> std::io::Result<Finished> {
                 elapsed: started.elapsed(),
             })
         }
+    }
+}
+
+/// The output of a child that has exited. Its pipes normally close with it; a helper it left
+/// running in the background (a test's detached server, say) inherits them and keeps them open.
+/// That must not turn a finished run into a timeout, so the readers get [`EXITED_OUTPUT_GRACE`],
+/// then whatever is left of the process group is killed (closing the pipes) and the readers are
+/// drained. The exit status stays the child's own.
+async fn collect_after_exit(
+    tree: ProcessTree,
+    stdout: Reader,
+    stderr: Reader,
+) -> (std::io::Result<Vec<u8>>, std::io::Result<Vec<u8>>) {
+    let deadline = tokio::time::Instant::now() + EXITED_OUTPUT_GRACE;
+    let stdout = read_until(stdout, deadline).await;
+    let stderr = read_until(stderr, deadline).await;
+    tree.kill();
+    (stdout.finish().await, stderr.finish().await)
+}
+
+/// A reader's state at a deadline: finished, or still waiting for end of file.
+enum ReadState {
+    Done(std::io::Result<Vec<u8>>),
+    Open(Reader),
+}
+
+impl ReadState {
+    /// The bytes read; a reader still open is drained (its pipe should be closed by now).
+    async fn finish(self) -> std::io::Result<Vec<u8>> {
+        match self {
+            Self::Done(result) => result,
+            Self::Open(reader) => Ok(drain(reader).await),
+        }
+    }
+}
+
+async fn read_until(mut reader: Reader, deadline: tokio::time::Instant) -> ReadState {
+    match tokio::time::timeout_at(deadline, &mut reader).await {
+        Ok(result) => ReadState::Done(joined(result)),
+        // Not finished, so the handle has not yielded its output and may be awaited again.
+        Err(_elapsed) => ReadState::Open(reader),
     }
 }
 
@@ -177,7 +222,10 @@ async fn feed(stdin: Option<ChildStdin>, input: Option<&[u8]>) {
     }
 }
 
-fn capture<R>(stream: Option<R>) -> JoinHandle<std::io::Result<Vec<u8>>>
+/// A task reading one output stream to end of file.
+type Reader = JoinHandle<std::io::Result<Vec<u8>>>;
+
+fn capture<R>(stream: Option<R>) -> Reader
 where
     R: AsyncRead + Unpin + Send + 'static,
 {
@@ -208,7 +256,7 @@ fn joined(
     result.map_err(std::io::Error::other)?
 }
 
-async fn drain(mut reader: JoinHandle<std::io::Result<Vec<u8>>>) -> Vec<u8> {
+async fn drain(mut reader: Reader) -> Vec<u8> {
     match tokio::time::timeout(DRAIN_GRACE, &mut reader).await {
         Ok(Ok(Ok(bytes))) => bytes,
         Ok(_) => Vec::new(),
@@ -236,7 +284,9 @@ impl ProcessTree {
         Self { group }
     }
 
-    fn release(mut self) {
+    /// Kills whatever is left of the group (after its leader has exited).
+    fn kill(mut self) {
+        self.signal(Signal::SIGKILL);
         self.group = None;
     }
 
@@ -249,6 +299,10 @@ impl ProcessTree {
         self.group = None;
     }
 
+    /// Signals every process still in the group. A descendant that left it (`setsid`, or its
+    /// own `setpgid`) is out of reach: it survives, and when it holds the output pipes the readers
+    /// are aborted after [`DRAIN_GRACE`] instead of reaching end of file. Only a container restart
+    /// (or a PID namespace per run) would reach it.
     fn signal(&self, signal: Signal) {
         if let Some(group) = self.group {
             // ESRCH only means the group has already gone.
@@ -323,6 +377,22 @@ mod tests {
         );
         assert!(
             finished.elapsed < DRAIN_GRACE,
+            "took {:?}",
+            finished.elapsed
+        );
+    }
+
+    #[tokio::test]
+    async fn a_helper_holding_the_output_does_not_turn_an_exit_into_a_timeout() {
+        // The background sleep inherits stdout and stderr, so they stay open after `sh` exits.
+        let finished = run_shell("sleep 30 & echo $!; exit 4", None, Duration::from_secs(20)).await;
+
+        assert_eq!(finished.code, Some(4));
+        assert!(!finished.timed_out);
+        let helper = String::from_utf8(finished.stdout).unwrap();
+        assert!(helper.trim().parse::<u32>().is_ok(), "stdout: {helper:?}");
+        assert!(
+            finished.elapsed < EXITED_OUTPUT_GRACE + DRAIN_GRACE,
             "took {:?}",
             finished.elapsed
         );

@@ -1,7 +1,7 @@
 import { SELF } from 'cloudflare:test';
 import { expect } from 'vitest';
 
-export const ADMIN = 'test-admin-token';
+export const ADMIN = 'test-admin-token-0123456789abcdef0123456789';
 export const ORIGIN = 'https://gateway.test';
 export const NAMESPACE = 'beanstalk-race';
 export const ZERO_SHA = '0'.repeat(40);

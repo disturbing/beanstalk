@@ -13,14 +13,14 @@ import { couplingPartners } from '@beanstalk/shared-race/task';
 
 import { emit, requireTask, taskDefinition } from '../context';
 import { createInvocation } from '../invocations';
-import type { SlotState } from '../model';
+import type { Seconds, SlotState } from '../model';
 import { startDecisionPrompt } from '../prompts';
 import { release } from '../slots';
 import { taskBranch, taskWorkspace } from '../tasks';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { decisionOf, isDecided, requireCard, scheduleAnswer } from './v2-decisions';
 import { sproutIndex } from './v2-sprout';
-import type { DecisionCard, LandingFlow, V2Step } from './v2-state';
+import type { DecisionCard, LandingFlow, V2State, V2Step } from './v2-state';
 
 /** Red checks against a declared partner that raise its card (E6: the first one). */
 const CARD_AFTER_PARTNER_REDS = 1;
@@ -140,6 +140,15 @@ export function startUnderCard(
       }),
     replay: { reset_to: null, check: null, fixes: [] },
   });
+}
+
+/**
+ * When the bean's start card opened, for a bean that took a slot and waits for its card (it
+ * has no `startedAt` until the card's initial run): the start the stall bound counts from.
+ */
+export function startCardOpenedAt(state: V2State, id: TaskId): Seconds | undefined {
+  return Object.values(state.cards).findLast((card) => card.task === id && card.trigger === 'start')
+    ?.openedAt;
 }
 
 /** A start card: the arriving bean has no work and no red yet, only its spec. */

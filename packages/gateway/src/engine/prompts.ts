@@ -604,7 +604,8 @@ export function testAuthorPrompt(
  * the arriving bean's branch: an assertion that pins a value the other intent legitimately
  * changes is updated (RECONCILED); a genuine disagreement changes nothing (CONTRADICTION).
  * v2.5: every landed party behind the failing tests takes part (the counterpart first); with
- * one, the prompt is v2.4's.
+ * one, the prompt is v2.4's. The tree is the arriving bean's branch with the landed line merged
+ * in, so every party's code is there (the prompt says so).
  */
 export function reconcilePrompt(
   arriving: PromptTask & Pick<ArenaTask, 'id'>,
@@ -622,6 +623,9 @@ export function reconcilePrompt(
   const ids = [arriving.id, ...landed.map((task) => task.id)];
   const lines = [
     `You are the test author for tasks ${listed(ids)}. You write and amend acceptance tests; you never implement features.`,
+    '',
+    `This tree is ${arriving.id}'s branch with the landed line merged in (the sprout its pre-land check ran on): ` +
+      `it holds ${arriving.id}'s change and the code of ${isPair ? 'the landed task' : 'every landed task'} below.`,
     '',
     `Task ${arriving.id} ("${arriving.title}") is arriving; its change is in this tree:`,
     arriving.prompt.trim(),

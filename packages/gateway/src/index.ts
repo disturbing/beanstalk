@@ -9,6 +9,7 @@ import type {
   BeanInboxAckResult,
   BeanInboxPage,
   BeanInboxReadInput,
+  BeanPeerSummary,
   BeanThreadPostInput,
   BeanThreadPostResult,
   BeanUpdateInput,
@@ -44,9 +45,13 @@ import { collaborationRpc } from './rpc/collaboration-rpc';
 
 export { RunDO } from './run/run-do';
 export { RunIndex } from './run/run-index';
+export { RunStreamDO } from './stream/run-stream-do';
 export { Runner } from './runner/runner-container';
 // Required by @cloudflare/containers for outbound interception (allowed and denied hosts).
 export { ContainerProxy } from '@cloudflare/containers';
+
+/** Built once per isolate; the deps are injected per request from the request's env. */
+const app = createApp(createDeps);
 
 /**
  * beanstalk-gateway: race runs, the driver API, the git proxy and the live page over HTTP,
@@ -54,7 +59,6 @@ export { ContainerProxy } from '@cloudflare/containers';
  */
 export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc {
   override async fetch(request: Request): Promise<Response> {
-    const app = createApp(createDeps(this.env));
     return app.fetch(request, this.env, this.ctx);
   }
 
@@ -120,8 +124,9 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     ref: string,
     pattern: string,
     paths?: readonly string[],
+    regex?: boolean,
   ): Promise<RpcResult<RepoGrep>> {
-    return this.#rpc().repoGrep(run, ref, pattern, paths);
+    return this.#rpc().repoGrep(run, ref, pattern, paths, regex);
   }
 
   beansByPath(run: string, paths: readonly string[]): Promise<RpcResult<readonly BeanSummary[]>> {
@@ -162,6 +167,13 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
 
   beanDiscover(run: string, input: BeanDiscoverInput): Promise<RpcResult<BeanDiscoverPage>> {
     return collaborationRpc(createDeps(this.env)).beanDiscover(run, input);
+  }
+
+  beanPeerSummaries(
+    run: string,
+    beans: readonly string[],
+  ): Promise<RpcResult<readonly BeanPeerSummary[]>> {
+    return collaborationRpc(createDeps(this.env)).beanPeerSummaries(run, beans);
   }
 
   beanUpdate(token: string, input: BeanUpdateInput): Promise<RpcResult<BeanUpdateResult>> {

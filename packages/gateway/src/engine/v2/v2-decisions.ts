@@ -39,7 +39,7 @@ import { SPROUT_REF } from '../refs';
 import { holderOf, release } from '../slots';
 import { parkTask, taskBranch, taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
-import { amend, beanAcceptance, carriedPaths, carry, rollBack } from './v2-amendments';
+import { amend, beanAcceptance, carriedPaths, carry } from './v2-amendments';
 import { endLanding, failFirstTimerKey, oracleTimerKey, parks } from './v2-flows';
 import { awaitOutcome, lastTaskCommit } from './v2-sprout';
 import type { DecisionCard, LandingFlow, V2State, V2Step } from './v2-state';
@@ -69,9 +69,23 @@ export function pairKey(task: TaskId, culprit: TaskId): string {
   return `${task}|${culprit}`;
 }
 
-/** Whether a card already decided this pair (a pair is never asked twice). */
+/**
+ * Whether a card already decided this pair (a pair is never asked twice). Either way round: a
+ * reset can requeue the earlier winner, which then arrives against the bean it was decided with.
+ */
 export function isDecided(state: V2State, task: TaskId, culprit: TaskId): boolean {
-  return state.decidedPairs[pairKey(task, culprit)] !== undefined;
+  return (
+    state.decidedPairs[pairKey(task, culprit)] !== undefined ||
+    state.decidedPairs[pairKey(culprit, task)] !== undefined
+  );
+}
+
+/** v2.4: whether the pair was reconciled once already, either way round (as `isDecided`). */
+export function isReconciled(state: V2State, task: TaskId, culprit: TaskId): boolean {
+  return (
+    state.reconciledPairs[pairKey(task, culprit)] === true ||
+    state.reconciledPairs[pairKey(culprit, task)] === true
+  );
 }
 
 /** Opens a card for an arriving bean stuck against landed ones. */
@@ -233,7 +247,9 @@ export function scheduleAnswer(step: V2Step, card: DecisionCard): void {
 /**
  * With `park`, a card only a person answers parks its bean: the race no longer waits for it.
  * The card stays open and the bean keeps its landing flow, so an answer during the race takes
- * it up again (`answerCard`); amendments it carried are rolled back now, as for a drop.
+ * it up again (`answerCard`). The bean keeps the amendments it carries (a reconcile's, an
+ * earlier card's): they only become the losers' specs if it lands, and an answer resumes the
+ * bean with them. A drop rolls them back.
  */
 function parkForPerson(step: V2Step, card: DecisionCard): void {
   if (!parks(step.state)) return;
@@ -243,7 +259,6 @@ function parkForPerson(step: V2Step, card: DecisionCard): void {
     requireTask(step.ctx, card.task),
     `needs a person: decision card ${card.id} (${card.task} vs ${against})`,
   );
-  rollBack(step, card.task);
 }
 
 /** A person answered a parked bean's card during the race: it is back in play. */

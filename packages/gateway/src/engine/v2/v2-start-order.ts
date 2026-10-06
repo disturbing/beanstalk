@@ -17,7 +17,9 @@
  *   tasks have started ahead of it.
  * - Stall bound: the wait for a landing lasts at most `STALL_SECONDS` after the newest start
  *   among the beans in flight a bean clashes with; then that bean starts anyway (`stalled`),
- *   one per chain per stall, and a timer wakes the scheduler when the next bound runs out.
+ *   one per chain per stall, and a timer wakes the scheduler when the next bound runs out. A
+ *   bean waiting for its start card has taken a slot but not started: it counts from when its
+ *   card opened.
  *
  * `fifo` is the head of the list, as before. The choice is a pure function of the run's state.
  */
@@ -28,6 +30,7 @@ import type { StepContext } from '../context';
 import { requireTask, setTimer, taskDefinition } from '../context';
 import { EngineInvariantError } from '../errors';
 import type { Seconds, TaskState } from '../model';
+import { startCardOpenedAt } from './v2-start';
 
 /** Later tasks that may start ahead of a task, per agent, before it goes next regardless. */
 const AGE_BOUND_PER_AGENT = 1 / 2;
@@ -132,30 +135,26 @@ function chooseByDependency(
   unstarted: readonly TaskId[],
 ): StartChoice | StartWait {
   const { order } = ctx.state;
+  const positions = new Map(order.map((id, index) => [id, index] as const));
   const waiting = new Set<string>(unstarted);
   const started = order.filter((id) => !waiting.has(id));
   const inFlight = started.filter((id) => isInFlight(requireTask(ctx, id)));
-  const hubs = hubModules(ctx);
-  const signals = new Map(
-    [...unstarted, ...inFlight].map((id) => [id, signalsOf(ctx, id, hubs)] as const),
-  );
+  const signals = runSignals(ctx);
   const clash = (a: string, b: string): boolean => dependsOn(signals, a, b);
   const heights = chainHeights(unstarted, clash);
+  const startOf = (id: TaskId): Seconds => clashStart(ctx, id);
   const candidates = unstarted.map((id, index): Candidate => {
     const earlier = unstarted.slice(0, index);
     const clashingInFlight = inFlight.filter((other) => clash(id, other));
-    const position = order.indexOf(id);
+    const position = positions.get(id) ?? -1;
     return {
       id,
       inFlightClashes: clashingInFlight.length,
       clashes: clashingInFlight.length + earlier.filter((other) => clash(id, other)).length,
       height: heights[index] ?? 1,
       position,
-      overtaken: started.filter((other) => order.indexOf(other) > position).length,
-      newestClashStart: Math.max(
-        Number.NEGATIVE_INFINITY,
-        ...clashingInFlight.map((other) => requireTask(ctx, other).startedAt ?? ctx.now),
-      ),
+      overtaken: started.filter((other) => (positions.get(other) ?? -1) > position).length,
+      newestClashStart: Math.max(Number.NEGATIVE_INFINITY, ...clashingInFlight.map(startOf)),
     };
   });
   const picked = pick(candidates, ctx) ?? pickStalled(candidates, ctx.now);
@@ -231,6 +230,18 @@ function chainHeights(
   return heights;
 }
 
+/**
+ * When a bean in flight started, for the stall bound: its start, or its start card's opening
+ * while it waits for the card (the slot is taken, the initial run is not).
+ */
+function clashStart(ctx: StepContext, id: TaskId): Seconds {
+  const startedAt = requireTask(ctx, id).startedAt;
+  if (startedAt !== null) return startedAt;
+  const policy = ctx.state.policy;
+  const cardOpenedAt = policy?.kind === 'beanstalk-v2' ? startCardOpenedAt(policy, id) : undefined;
+  return cardOpenedAt ?? ctx.now;
+}
+
 function explain(
   ctx: StepContext,
   choice: {
@@ -271,6 +282,22 @@ function isInFlight(task: TaskState): boolean {
     task.status !== 'dropped' &&
     task.status !== 'parked'
   );
+}
+
+/**
+ * Every task's signals, built once per engine step (a step can choose for several free slots):
+ * the predictions and couplings they read do not change during a run, and the cache lives no
+ * longer than the step's context.
+ */
+const signalsByStep = new WeakMap<StepContext, ReadonlyMap<string, Signals>>();
+
+function runSignals(ctx: StepContext): ReadonlyMap<string, Signals> {
+  const cached = signalsByStep.get(ctx);
+  if (cached !== undefined) return cached;
+  const hubs = hubModules(ctx);
+  const signals = new Map(ctx.state.order.map((id) => [id, signalsOf(ctx, id, hubs)] as const));
+  signalsByStep.set(ctx, signals);
+  return signals;
 }
 
 function signalsOf(ctx: StepContext, id: TaskId, hubs: ReadonlySet<string>): Signals {

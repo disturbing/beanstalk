@@ -7,7 +7,9 @@ use std::time::Duration;
 
 use axum::extract::rejection::JsonRejection;
 use axum::extract::{DefaultBodyLimit, State};
-use axum::http::StatusCode;
+use axum::http::{HeaderName, HeaderValue, StatusCode};
+use axum::middleware;
+use axum::response::Response;
 use axum::routing::{get, post};
 use axum::{Json, Router};
 
@@ -22,6 +24,17 @@ use crate::wire::{
     RevertBody, SquashBody, SquashResponse, UpdateRefBody, UpdateRefResponse, VersionResponse,
 };
 use crate::workspace::Workspace;
+
+/// The version of the wire contract (request and response bodies, plan §3). Bump it with every
+/// change a caller must know about (a new request field above all: bodies refuse unknown fields),
+/// together with `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-client.ts`.
+///
+/// 1: the contract until 2026-10-05 (no version reported). 2: squash and compose
+/// `structural_merge`, revert `to`, check `all_read_sets` and `passing_read_sets`.
+pub const API_VERSION: u32 = 2;
+/// Response header carrying [`API_VERSION`] on every response, so a caller can tell which
+/// contract refused its request.
+pub const API_VERSION_HEADER: &str = "x-beanstalk-runner-api";
 
 /// Request bodies carry acceptance tests in `extra_files`; 16 MiB is far above any task's.
 const MAX_BODY_BYTES: usize = 16 * 1024 * 1024;
@@ -39,7 +52,16 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/update-ref", post(update_ref))
         .route("/v1/check", post(check))
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
+        .layer(middleware::map_response(stamp_api_version))
         .with_state(state)
+}
+
+async fn stamp_api_version(mut response: Response) -> Response {
+    response.headers_mut().insert(
+        HeaderName::from_static(API_VERSION_HEADER),
+        HeaderValue::from(API_VERSION),
+    );
+    response
 }
 
 /// State shared by every request.
@@ -53,6 +75,7 @@ struct Shared {
     workspace: Workspace,
     schemes: RemoteSchemes,
     tools: ToolVersions,
+    git_sha: Option<String>,
 }
 
 impl AppState {
@@ -69,6 +92,7 @@ impl AppState {
                 workspace,
                 schemes: config.remote_schemes().clone(),
                 tools,
+                git_sha: config.git_sha().map(str::to_owned),
             }),
         })
     }
@@ -94,10 +118,15 @@ async fn healthz(State(state): State<AppState>) -> (StatusCode, Json<HealthRespo
     (status, Json(body))
 }
 
-async fn version() -> Json<VersionResponse> {
+async fn version(State(state): State<AppState>) -> Json<VersionResponse> {
     Json(VersionResponse {
         version: env!("CARGO_PKG_VERSION"),
-        git_sha: option_env!("BEANSTALK_GIT_SHA").unwrap_or("unknown"),
+        api_version: API_VERSION,
+        git_sha: state
+            .shared
+            .git_sha
+            .clone()
+            .unwrap_or_else(|| "unknown".to_owned()),
     })
 }
 

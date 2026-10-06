@@ -4,13 +4,18 @@
 private index, so neither the agent's index nor HEAD is touched. The tree id of that index is the snapshot's
 fingerprint: an unchanged tree is not diffed again. Binary files are listed without a patch, patch text is capped
 (64 KB per snapshot, 200 files), and lines that look like secrets are replaced before anything leaves the machine
-(the gateway scans again: ``packages/gateway/src/run/bean-streams.ts``).
+(the gateway scans again: ``packages/gateway/src/stream/stream-rules.ts``).
+
+The driver posts deltas (docs/claude-17-streaming-diffs.md): ``delta`` compares a snapshot's files with the ones the
+gateway last accepted, by a hash of each file, and lists only the changed files and the paths that left the change.
 
 The agent's CLI marks edits through a tiny hook (``touch`` of a marker file after Edit/Write/MultiEdit/NotebookEdit,
 ``edit_hook_command``); the driver polls the marker and also checks on a timer for edits made through Bash.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
 import shlex
@@ -23,7 +28,7 @@ MAX_FILES = 200
 GIT_TIMEOUT = 20
 EDIT_TOOLS_MATCHER = "Edit|Write|MultiEdit|NotebookEdit"
 REDACTED = "[redacted by beanstalk: looks like a secret]"
-# The gateway's list (bean-streams.ts), itself the recorded fixtures' list less the 32-hex id.
+# The gateway's list (src/stream/stream-rules.ts), itself the recorded fixtures' list less the 32-hex id.
 SECRET_PATTERNS = [re.compile(p, f) for p, f in (
     (r"sk-ant-[a-z0-9-]{8,}", re.I),
     (r"\bbst1\.[A-Za-z0-9_-]{8,}", 0),
@@ -52,7 +57,24 @@ class Snapshot:
     ms: float = 0.0
 
     def body(self, seq: int, trigger: str) -> dict:
-        return {"seq": seq, "files": self.files, "truncated": self.truncated, "trigger": trigger[:40]}
+        """A full snapshot (``base_seq: 0``): every file, everything else removed."""
+        return {"seq": seq, "base_seq": 0, "files": self.files, "removed": [], "truncated": self.truncated,
+                "trigger": trigger[:40]}
+
+    def hashes(self) -> dict[str, str]:
+        return {f["path"]: file_hash(f) for f in self.files}
+
+
+def file_hash(file: dict) -> str:
+    """What a file of a snapshot is, for the delta: its status, counts and patch."""
+    return hashlib.sha1(json.dumps(file, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def delta(accepted: dict[str, str], files: list[dict]) -> tuple[list[dict], list[str]]:
+    """The files whose hash differs from the accepted snapshot's (``path -> hash``), and the paths that left it."""
+    changed = [f for f in files if accepted.get(f["path"]) != file_hash(f)]
+    present = {f["path"] for f in files}
+    return changed, sorted(p for p in accepted if p not in present)
 
 
 def tree_of(wt: str, index: str) -> str | None:

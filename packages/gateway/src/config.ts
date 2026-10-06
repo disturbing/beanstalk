@@ -22,6 +22,38 @@ const Vars = z.object({
   ARTIFACTS_TOKEN_TTL_SECONDS: Seconds.max(600),
 });
 
+/** The secrets the gateway signs and authenticates with. */
+export type GatewaySecrets = {
+  readonly adminToken: string;
+  readonly tokenSecret: string;
+};
+
+/** Bytes of entropy a secret needs: a short one is guessable or a weak HMAC key. */
+const MIN_SECRET_CHARS = 32;
+
+const Secrets = z.object({
+  ADMIN_TOKEN: z
+    .string()
+    .min(MIN_SECRET_CHARS, `ADMIN_TOKEN must be at least ${MIN_SECRET_CHARS} characters`),
+  RUN_TOKEN_SECRET: z
+    .string()
+    .min(MIN_SECRET_CHARS, `RUN_TOKEN_SECRET must be at least ${MIN_SECRET_CHARS} characters`),
+});
+
+/**
+ * Checks the Wrangler secrets. Throws a misconfiguration error naming the secret (never its
+ * value) rather than letting an empty key reach `importKey` or the admin comparison.
+ */
+export function readSecrets(env: Pick<Env, keyof z.infer<typeof Secrets>>): GatewaySecrets {
+  const parsed = Secrets.safeParse(env);
+  if (!parsed.success) {
+    throw new Error(
+      `misconfigured secrets: ${parsed.error.issues.map((issue) => issue.message).join('; ')}`,
+    );
+  }
+  return { adminToken: parsed.data.ADMIN_TOKEN, tokenSecret: parsed.data.RUN_TOKEN_SECRET };
+}
+
 /**
  * Parses the vars from `wrangler.jsonc`. Throws on a misconfigured deployment (a bug in
  * the config, not a request error).

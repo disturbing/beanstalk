@@ -8,6 +8,7 @@ import {
   emptyMeter,
   infraReport,
   recordRunnerCall,
+  recordWarmStart,
 } from './infra-meter';
 
 describe('the infra meter', () => {
@@ -29,6 +30,16 @@ describe('the infra meter', () => {
     expect(otherInstance.containerUpSeconds).toBe(320);
     expect(otherInstance.containerBusySeconds).toBe(30);
     expect(otherInstance.artifactsOps).toBe(3);
+  });
+
+  it('counts a pre-warmed instance’s up time without a call, once with the call it serves', () => {
+    const warmed = recordWarmStart(emptyMeter(0), { instance: 'ci-0', startMs: 0, endMs: 5000 });
+    const called = recordRunnerCall(warmed, { instance: 'ci-0', startMs: 30_000, endMs: 40_000 });
+
+    expect(warmed).toMatchObject({ runnerCalls: 0, artifactsOps: 0, containerBusySeconds: 0 });
+    expect(warmed.containerUpSeconds).toBe(125);
+    expect(called.containerUpSeconds).toBe(160);
+    expect(called.runnerCalls).toBe(1);
   });
 
   it('prices each product at its list rate', () => {

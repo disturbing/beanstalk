@@ -3,6 +3,7 @@ import type {
   InvocationResult,
   ProgressResponse,
   ReplayHints,
+  TestFile,
 } from '@beanstalk/shared-race/driver';
 import type { InvocationEndFields, Json } from '@beanstalk/shared-race/events';
 import type { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
@@ -10,6 +11,7 @@ import type { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
 import { budgetMessage, markAborted } from './abort';
 import type { StepContext } from './context';
 import {
+  acceptanceTests,
   cancelTimer,
   emit,
   isRacing,
@@ -18,12 +20,13 @@ import {
   requireSlot,
   setTimer,
 } from './context';
+import { EngineInvariantError } from './errors';
 import type {
   EngineInstruction,
-  EngineWorkspace,
   InvocationStats,
   OpenInvocation,
   SlotState,
+  StoredWorkspace,
   TaskState,
 } from './model';
 import { roundTo } from './numbers';
@@ -43,7 +46,7 @@ export type InvocationSpec = {
   readonly freshPrompt: string;
   readonly resume: string | null;
   /** Built once the invocation id is known (it is part of the commit message). */
-  readonly workspace: (inv: InvocationId) => EngineWorkspace;
+  readonly workspace: (inv: InvocationId) => StoredWorkspace;
   readonly replay: ReplayHints;
   /** The landed-line commit the merge brings in, when it is not `merge.sha` itself. */
   readonly mergedLine?: Sha;
@@ -56,12 +59,18 @@ export function committedCost(state: EngineState): number {
 
 /**
  * Creates an invocation for a slot; the slot's open poll receives it now, or its next poll
- * does. Returns null once the race no longer accepts work.
+ * does. Returns null once the race no longer accepts work. A slot holds one undelivered
+ * invocation at a time: creating a second would silently lose the first, so it is a bug.
  */
 export function createInvocation(ctx: StepContext, spec: InvocationSpec): InvocationId | null {
   if (!isRacing(ctx)) return null;
-  const id = nextInvocationId(ctx, spec.kind);
   const slot = requireSlot(ctx, spec.slot);
+  if (slot.outbox !== null) {
+    throw new EngineInvariantError(
+      `slot ${slot.id} already has ${slot.outbox} waiting for delivery (creating a ${spec.kind} for ${spec.task})`,
+    );
+  }
+  const id = nextInvocationId(ctx, spec.kind);
   ctx.state.invocations[id] = {
     id,
     kind: spec.kind,
@@ -69,7 +78,7 @@ export function createInvocation(ctx: StepContext, spec: InvocationSpec): Invoca
     slot: spec.slot,
     attempt: spec.attempt,
     prompt: spec.prompt,
-    freshPrompt: spec.freshPrompt,
+    freshPrompt: spec.freshPrompt === spec.prompt ? null : spec.freshPrompt,
     resume: spec.resume,
     workspace: spec.workspace(id),
     replay: spec.replay,
@@ -145,9 +154,29 @@ export function toInstruction(ctx: StepContext, inv: OpenInvocation): EngineInst
     max_turns: config.max_turns,
     timeout_seconds: config.agent_timeout,
     budget_cap_usd: roundTo(inv.budgetCapUsd ?? 0, 4),
-    workspace: inv.workspace,
+    workspace: { ...inv.workspace, protect: resolveProtectedTests(ctx, inv.workspace.protect) },
     replay: inv.replay,
   };
+}
+
+/**
+ * A stored workspace's protected tests as the driver receives them: each reference read from
+ * its task's effective acceptance tests now; a full file (an older state) as it is.
+ */
+export function resolveProtectedTests(
+  ctx: StepContext,
+  protect: StoredWorkspace['protect'],
+): readonly TestFile[] {
+  return protect.map((entry) =>
+    'content' in entry
+      ? entry
+      : { path: entry.path, content: acceptanceTests(ctx, entry.task)[entry.path] ?? '' },
+  );
+}
+
+/** The prompt a fresh-session retry of `inv` runs with. */
+function freshPromptOf(inv: OpenInvocation): string {
+  return inv.freshPrompt ?? inv.prompt;
 }
 
 /**
@@ -230,6 +259,8 @@ function invocationEndFields(
     notes: result.notes,
     rate_limit: result.rate_limit === null ? null : jsonRecord(result.rate_limit),
     rate_limited: result.rate_limited,
+    // Only when the driver reported some, so events of runs without them stay as they were.
+    ...(result.merge_conflicts === null ? {} : { merge_conflicts: result.merge_conflicts }),
   };
 }
 
@@ -376,8 +407,8 @@ export function retryAfterFailedResume(
     task: inv.task,
     slot: inv.slot,
     attempt: inv.attempt,
-    prompt: inv.freshPrompt,
-    freshPrompt: inv.freshPrompt,
+    prompt: freshPromptOf(inv),
+    freshPrompt: freshPromptOf(inv),
     resume: null,
     workspace: () => inv.workspace,
     replay: inv.replay,

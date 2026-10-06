@@ -50,7 +50,10 @@ const KEYS = {
   reaped: 'reaped',
 } as const;
 
-/** Creates the events table if it does not exist (idempotent; safe in the constructor). */
+/**
+ * Creates the events table and its by-type index if they do not exist (idempotent; safe in
+ * the constructor). The index serves `readEventsOfTypes` (the web app's bean views).
+ */
 export function migrate(sql: SqlStorage): void {
   sql.exec(
     `CREATE TABLE IF NOT EXISTS events (
@@ -60,6 +63,12 @@ export function migrate(sql: SqlStorage): void {
        body TEXT NOT NULL
      )`,
   );
+  sql.exec('CREATE INDEX IF NOT EXISTS events_by_type ON events (type, seq)');
+}
+
+/** Whether this object ever held a run (a probe or sweep of an unknown run finds none). */
+export function hasRun(storage: DurableObjectStorage): boolean {
+  return storage.kv.get<RunMeta>(KEYS.meta) !== undefined;
 }
 
 export function loadRun(storage: DurableObjectStorage): StoredRun | null {
@@ -79,14 +88,17 @@ export function saveNewRun(storage: DurableObjectStorage, run: StoredRun): void 
   storage.kv.put(KEYS.state, run.state);
 }
 
-/** Persists a step: the new state and its events, atomically (no await in between). */
+/**
+ * Persists a step: the new state, its events and the infra meter, atomically (no await in
+ * between). The state goes first: when it is too large to store, nothing of the step is.
+ */
 export function saveStep(
   storage: DurableObjectStorage,
-  state: EngineState,
-  events: readonly EmittedEvent[],
+  step: { state: EngineState; events: readonly EmittedEvent[]; meter: InfraMeter },
 ): void {
-  storage.kv.put(KEYS.state, state);
-  for (const event of events) {
+  storage.kv.put(KEYS.state, step.state);
+  storage.kv.put(KEYS.meter, step.meter);
+  for (const event of step.events) {
     storage.sql.exec(
       'INSERT INTO events (seq, t, type, body) VALUES (?, ?, ?, ?)',
       event.seq,
@@ -139,4 +151,12 @@ export function readEvents(
       limit,
     )
     .toArray();
+}
+
+/**
+ * Drops the read index's cached git objects (`repo/object-cache.ts`): once the run's repos
+ * are deleted they can never be read again.
+ */
+export function clearObjectCache(sql: SqlStorage): void {
+  sql.exec('DELETE FROM git_objects');
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { diffText, renderDiff } from './diff-text';
+import { diffReport, diffText, renderDiff } from './diff-text';
 
 const change = (path: string, before: string | null, after: string | null) => ({
   path,
@@ -62,16 +62,62 @@ describe('git diff --stat -p', () => {
     );
   });
 
-  it('cuts at the limit and says how much is left, as diff_text does', () => {
-    const full = renderDiff([change('src/a.ts', 'one\n', 'two\n')]);
+  it('cuts at the limit and says how much is left, exactly when every file was rendered', () => {
+    const one = [change('src/a.ts', 'one\n', 'two\n')];
+    const full = renderDiff(one);
 
-    expect(diffText([change('src/a.ts', 'one\n', 'two\n')], 10)).toBe(
-      `${full.slice(0, 10)}\n... [diff truncated, ${full.length - 10} more chars]\n`,
+    expect(diffText(one, full.length - 5)).toBe(
+      `${full.slice(0, full.length - 5)}\n... [diff truncated, 5 more chars]\n`,
     );
-    expect(diffText([change('src/a.ts', 'one\n', 'two\n')], 10_000)).toBe(full);
+    expect(diffText(one, 10_000)).toBe(full);
   });
 
   it('is empty when nothing changed', () => {
     expect(renderDiff([change('same.ts', 'x\n', 'x\n')])).toBe('');
+  });
+});
+
+describe('diffReport', () => {
+  const many = ['a.ts', 'b.ts', 'c.ts'].map((path) => change(path, 'one\n', `${path}\n`));
+
+  it('stops rendering patches once the limit is crossed and keeps every file in the stats', () => {
+    const report = diffReport(many, 150);
+
+    expect(report.truncated).toBe(true);
+    expect(report.text).toContain('diff --git a/a.ts');
+    expect(report.text).not.toContain('diff --git a/c.ts');
+    expect(report.text).toMatch(/\[diff truncated, at least \d+ more chars\]\n$/);
+    expect(report.files).toEqual(
+      many.map((file) => ({ path: file.path, status: 'modified', additions: 1, deletions: 1 })),
+    );
+  });
+
+  it('counts lines from the same diff the patch is rendered from', () => {
+    const report = diffReport(
+      [change('b.ts', null, 'x\ny\n'), change('a.ts', 'gone\n', null)],
+      10_000,
+    );
+
+    expect(report.truncated).toBe(false);
+    expect(report.files).toEqual([
+      { path: 'b.ts', status: 'added', additions: 2, deletions: 0 },
+      { path: 'a.ts', status: 'deleted', additions: 0, deletions: 1 },
+    ]);
+  });
+
+  it('shows a side too large to load as a binary file with its byte counts', () => {
+    const big = {
+      ...change('big.txt', '', 'x'),
+      binary: true,
+      beforeBytes: 300_000,
+      afterBytes: 400_000,
+    };
+    const report = diffReport([big], 10_000);
+
+    expect(report.text).toContain(' big.txt | Bin 300000 -> 400000 bytes\n');
+    expect(report.text).toContain('Binary files a/big.txt and b/big.txt differ\n');
+    expect(report.files).toEqual([
+      { path: 'big.txt', status: 'modified', additions: 0, deletions: 0 },
+    ]);
   });
 });

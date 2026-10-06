@@ -1,6 +1,7 @@
 /** Gateway-backed collaboration records. A message or acknowledgement never proves code. */
 import {
   BeanContext,
+  BeanPeerSummaries,
   BeanInboxAckResult,
   BeanInboxPage,
   BeanThreadPostResult,
@@ -14,6 +15,8 @@ import type {
   BeanUpdateInput,
 } from '@beanstalk/shared-race/collaboration';
 
+import type { TaskId } from '@beanstalk/shared-race/ids';
+
 import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
 
@@ -24,6 +27,12 @@ const INBOX_SUMMARY_LIMIT = 5;
 export async function beanContext(ctx: ToolContext, input: BeanContextInput): Promise<BeanContext> {
   if (typeof ctx.gateway.beanContext !== 'function') throw unavailable();
   return unwrap(await ctx.gateway.beanContext(ctx.run, input), BeanContext);
+}
+
+/** One gateway read of excerpt-only peer summaries; beans the run does not know are omitted. */
+export async function beanPeerSummaries(ctx: ToolContext, beans: readonly TaskId[]) {
+  if (typeof ctx.gateway.beanPeerSummaries !== 'function') throw unavailable();
+  return unwrap(await ctx.gateway.beanPeerSummaries(ctx.run, beans), BeanPeerSummaries);
 }
 
 export async function beanUpdate(

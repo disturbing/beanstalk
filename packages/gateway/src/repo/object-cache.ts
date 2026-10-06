@@ -12,12 +12,17 @@ import { z } from 'zod';
 export type RepoReader = Pick<
   ArtifactsRepo,
   'readTree' | 'readBlob' | 'readCommit' | 'readFile' | 'log'
->;
+> & {
+  /** Whether the blob is already held locally (a cached reader only), without reading it. */
+  readonly hasBlob?: (id: string) => boolean;
+};
 
 /** Where cached objects live: the RunDO's SQLite, or memory in tests. */
 export type ObjectStore = {
   tree(id: string): ArtifactsTreeEntry[] | undefined;
   blob(id: string): Uint8Array<ArrayBuffer> | undefined;
+  /** Whether a blob is stored, without loading its body. */
+  hasBlob(id: string): boolean;
   commit(id: string): ArtifactsCommitMetadata | undefined;
   putTree(id: string, entries: readonly ArtifactsTreeEntry[]): void;
   putBlob(id: string, bytes: Uint8Array<ArrayBuffer>): void;
@@ -128,7 +133,7 @@ export function cachedReader(
     }
     return null;
   };
-  return { readTree, readBlob, readCommit, readFile, log };
+  return { readTree, readBlob, readCommit, readFile, log, hasBlob: (id) => store.hasBlob(id) };
 }
 
 /** The store in the RunDO's SQLite (table `git_objects`, created on first use). */
@@ -151,6 +156,8 @@ export function sqlObjectStore(sql: SqlStorage): ObjectStore {
       .toArray()[0];
     return row?.body;
   };
+  const has = (id: string, kind: string): boolean =>
+    sql.exec('SELECT 1 FROM git_objects WHERE id = ? AND kind = ?', id, kind).toArray().length > 0;
   const put = (id: string, kind: string, body: ArrayBuffer | Uint8Array): void => {
     sql.exec('INSERT OR IGNORE INTO git_objects (id, kind, body) VALUES (?, ?, ?)', id, kind, body);
   };
@@ -174,6 +181,7 @@ export function sqlObjectStore(sql: SqlStorage): ObjectStore {
       const body = get(id, 'blob');
       return body === undefined ? undefined : new Uint8Array(body);
     },
+    hasBlob: (id) => has(id, 'blob'),
     commit: (id) => getJson(id, 'commit', StoredCommit),
     putTree: (id, entries) => putJson(id, 'tree', entries),
     putBlob: (id, bytes) => put(id, 'blob', bytes),
@@ -189,6 +197,7 @@ export function memoryObjectStore(): ObjectStore {
   return {
     tree: (id) => trees.get(id),
     blob: (id) => blobs.get(id),
+    hasBlob: (id) => blobs.has(id),
     commit: (id) => commits.get(id),
     putTree: (id, entries) => trees.set(id, [...entries]),
     putBlob: (id, bytes) => blobs.set(id, bytes),
