@@ -10,15 +10,28 @@ When a dozen coding agents work on one codebase, a merge queue makes them wait i
 
 ## Measured, not projected
 
-12 real Claude Code agents (Sonnet) worked the same 40 colliding tasks with the same seed, with every landed acceptance test protected. Every integration decision ran on the deployed Cloudflare prototype (`research/race/runs/`).
+12 real Claude Code agents (Sonnet) worked the same 40 colliding tasks, every landed acceptance test protected, on three seeds (7, 11, 13). Every integration decision ran on the deployed Cloudflare prototype. The engine is v2.5 with dependency-aware starts, which is what `--preset demo` pins.
 
-| Run | Tasks green | All done | 30th green | 35th green | Agent spend | Final stalk correct |
-|---|---|---|---|---|---|---|
-| Batched merge queue | 36 of 40 | 40.6 min | 19.9 min | 35.0 min | $4.12 | yes |
-| Beanstalk v2.0 | 35 of 40 | 17.5 min | 13.8 min | 17.7 min | $5.00 | yes |
-| Beanstalk v2.4 (current) | 37 of 40 | 17.7 min | 8.9 min | 15.2 min | $4.40 | yes |
+**Beanstalk shipped more (38–39 of 40 tasks green, against the queue's 35–37), and its 35th task was green 1.7–2.1x sooner on every seed. It finished about 1.3x sooner.**
 
-Each Cloudflare row is one seed. On the local harness, v2 finished first in 5 of 5 seed pairs, 1.98x sooner on average (95% CI 1.68–2.28). The v2.2 rules lost their first real race (24 green), and v2.3 and v2.4 are the fixes. That history, and every experiment behind these rules, is in [`docs/claude-opus/11-experiments-summary.md`](docs/claude-opus/11-experiments-summary.md).
+| Seed | Run | Tasks green | 35th green | All done | Agent spend | Red validations | Final stalk correct |
+|---|---|---|---|---|---|---|---|
+| 7 | Batched merge queue | 36 of 40 | 35.0 min | 40.6 min | $4.12 | 10 | yes |
+| 7 | Beanstalk v2.5 + dependency starts | **39 of 40** | **17.1 min** | **31.6 min** | $6.08 | 4 | yes |
+| 11 | Batched merge queue | 35 of 40 | 29.2 min | 30.2 min | $4.51 | 8 | yes |
+| 11 | Beanstalk v2.5 + dependency starts | **39 of 40** | **14.9 min** | **24.0 min** | $4.18 | 0 | yes |
+| 13 | Batched merge queue | 37 of 40 | 36.8 min | 39.5 min | $4.54 | 10 | yes |
+| 13 | Beanstalk v2.5 + dependency starts | **38 of 40** | **22.0 min** | **29.8 min** | $5.32 | 4 | yes |
+
+The previous engine, v2.4 (`--preset v24`), was done sooner on the same seeds (17.7, 17.3 and 25.4 min) but shipped less: 37, 32 and 33 green, so it reached the 35th green only on seed 7 (15.2 min).
+
+Read it with care:
+- **Three seeds**, one run each. Seeds swing a lot: v2.5 + dependency starts reached its 35th green at 14.9 to 22.0 minutes.
+- **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x.
+- **Cost is measured, and Beanstalk costs more:** $15.58 of agent spend over the three seeds against the queue's $13.16 (+18%; seed 11 was cheaper). The Cloudflare infrastructure of each v2.5 race, metered, was $0.35–0.42 on top.
+- The agents ran on a laptop; only the decisions ran on Cloudflare.
+
+The runs are in `research/race/runs/`: `cf-queue-sonnet-12-s7-landed`, `cf-queue-sonnet-12-s11`, `cf-queue-sonnet-12-s13`, `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13` and `cf-v24-sonnet-12-s7`, `-s11`, `-s13`; `python3 research/race/kth_green.py <runs> --k 35` reproduces the table. The partial v2.5 phases did worse than the full set, and the simulator over-predicted v2.5. That history, and every experiment behind these rules, is in [`docs/claude-opus/11-experiments-summary.md`](docs/claude-opus/11-experiments-summary.md).
 
 ## How it works
 
@@ -63,7 +76,7 @@ node scripts/deploy-all.mjs                  # --dry-run checks without uploadin
 
 The account needs Workers Paid (Containers and Durable Objects), and Artifacts and Workers AI enabled. The script creates `packages/gateway/.dev.vars` (`ADMIN_TOKEN`, `RUN_TOKEN_SECRET`) and `packages/web/.dev.vars` (`DEMO_PASSWORD`, which unlocks decision cards) with random values when they are missing, uploads them as secrets with each deploy, points the MCP server's `WEB_URL` at the web app it just deployed, and prints the URLs. Keep the `.dev.vars` files: the race driver reads `ADMIN_TOKEN` from the gateway's.
 
-Then run a race against your gateway. `--preset demo` pins the engine behind the published numbers (v2.4); `--max-usd` caps agent plus infrastructure spend; the run deletes its Artifacts repo when it ends and prints its infrastructure cost. Replay agents are free; real agents need the `claude` CLI, logged in:
+Then run a race against your gateway. `--preset demo` pins the engine behind the published numbers (v2.5 with dependency-aware starts; `--preset v24` pins v2.4); `--max-usd` caps agent plus infrastructure spend; the run deletes its Artifacts repo when it ends and prints its infrastructure cost. Replay agents are free; real agents need the `claude` CLI, logged in:
 
 ```bash
 cd research/race
@@ -72,7 +85,7 @@ python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --preset 
   --ci-seconds 4.5 --ci-slots 2 --seed 7 --preland-mode optimistic --preland-seconds 4.5 \
   --decision-seconds 1 --max-usd 5 --out runs/my-replay
 python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --preset demo --agent claude --model sonnet \
-  --agents 12 --ci-seconds 60 --ci-slots 2 --seed 7 --budget-usd 75 --max-usd 80 --max-wall-minutes 50 \
+  --agents 12 --ci-seconds 60 --ci-slots 2 --seed 7 --budget-usd 75 --max-usd 80 --max-wall-minutes 60 \
   --protect-tests landed --preland-mode optimistic --preland-seconds 60 --decision-seconds 30 \
   --out runs/my-race
 python3 kth_green.py runs/my-race

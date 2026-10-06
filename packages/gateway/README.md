@@ -287,7 +287,7 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 
 ### Presets
 
-`preset: "demo"` pins `V24_SETTINGS` (`RUN_PRESETS` in `@beanstalk/shared-race/run-config`): the v2.4 engine behind the published numbers, whatever the defaults become. A field the preset pins may be repeated with the same value; a different value is refused (`400`), so a stray environment knob cannot change a demo race. The preset is recorded in the run's config and in its `listRuns` row (`preset`). The driver's `--preset demo` sends it.
+`preset: "demo"` pins `DEMO_SETTINGS` (`RUN_PRESETS` in `@beanstalk/shared-race/run-config`): v2.5 with dependency-aware starts and the tail fix, the engine behind the published numbers (the three-seed races `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), whatever the defaults become. It is `V25_SETTINGS` (every v2.5 rule at its v2.5 value, `max_bean_invocations: 10`, `tail_guard_minutes: 10`) plus `start_order: "dependency"`, with `tests_first`, `targeted_landing_check`, `live_sync` and `live_sync_midrun` off. `preset: "v24"` pins `V24_SETTINGS` (the `cf-v24-*` races). A field the preset pins may be repeated with the same value; a different value is refused (`400`), so a stray environment knob cannot change a demo race. With the queue, `structural_merge` is not pinned (it is v2 only; the queue never merges structurally). The preset is recorded in the run's config and in its `listRuns` row (`preset`). The driver's `--preset demo` (or `--preset v24`) sends it.
 
 ### Version labels
 
@@ -319,7 +319,7 @@ The driver passes every knob through from the environment: `PRELAND_RECHECK`, `P
 | v2.5 + live sync | `LIVE_SYNC=overlap` (or `all`) |
 | v2.5 + mid-run live sync | `LIVE_SYNC_MIDRUN=1` (optionally with `LIVE_SYNC=overlap`) |
 
-The phases v2.5a to v2.5d keep the tail fix's two bounds on (it came after their races); add `MAX_BEAN_INVOCATIONS=0 TAIL_GUARD_MINUTES=0` to reproduce a race run before it, such as `cf-v25dep-sonnet-12-s7`. The demo preset and every older preset turn them off.
+The phases v2.5a to v2.5d keep the tail fix's two bounds on (it came after their races); add `MAX_BEAN_INVOCATIONS=0 TAIL_GUARD_MINUTES=0` to reproduce a race run before it, such as `cf-v25dep-sonnet-12-s7`. The `v24` preset and every older preset turn them off; the `demo` preset keeps them on.
 
 ### Fixes and simulator scenarios
 

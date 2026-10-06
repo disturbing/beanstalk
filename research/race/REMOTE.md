@@ -7,7 +7,7 @@
 ```bash
 cd research/race
 GW=https://beanstalk-gateway.<your-subdomain>.workers.dev   # printed by scripts/deploy-all.mjs
-# free control (replay agents), the same flags as a local replay race; --preset demo pins v2.4
+# free control (replay agents), the same flags as a local replay race; --preset demo pins v2.5 + dependency starts
 ../tools/race-slot.sh python3 race.py --forge cloudflare --gateway $GW --policy queue --agent replay \
   --agents 8 --ci-seconds 4.5 --ci-slots 2 --seed 7 --preset demo --max-usd 5 --out runs/cf-replay-queue-8-s7
 ../tools/race-slot.sh python3 race.py --forge cloudflare --gateway $GW --policy beanstalk-v2 --agent replay \
@@ -19,7 +19,7 @@ python3 kth_green.py runs/cf-replay-queue-8-s7 runs/cf-replay-v2-8-s7
 
 - **Admin token:** `$BEANSTALK_ADMIN_TOKEN`, else `ADMIN_TOKEN` in `packages/gateway/.dev.vars`. It is never printed, and it is removed from the environment before any agent starts.
 - **Gateway:** `--gateway URL`, or `$BEANSTALK_GATEWAY`.
-- **Engine pin:** `--preset demo` runs v2.4 (`V24_SETTINGS`), the engine behind the published numbers, whatever the gateway's defaults are. A v2 knob from the environment that contradicts it makes the gateway refuse the run. Without it, v2 runs the current defaults (v2.5).
+- **Engine pin:** `--preset demo` runs v2.5 with dependency-aware starts and the tail fix (`DEMO_SETTINGS`: every v2.5 rule at its v2.5 value, `max_bean_invocations` 10, `tail_guard_minutes` 10, `start_order: dependency`, the other opt-in tracks off), the engine behind the published numbers (`runs/cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), whatever the gateway's defaults are. `--preset v24` runs v2.4 (`V24_SETTINGS`, the `cf-v24-*` races). A v2 knob from the environment that contradicts the preset makes the gateway refuse the run. With the queue, a preset pins no v2-only rule (the queue never merges structurally). Without a preset, v2 runs the current defaults (v2.5, FIFO starts).
 - **Spend guards:** `--max-usd X` aborts the run when agent spend plus its measured infrastructure cost reaches `X` (exit 2, like `--budget-usd`). The run's Artifacts repo is deleted after the final check unless `--keep-repo`; the gateway's hourly sweep deletes anything older than a day. The driver prints the run's infrastructure cost and `summary.json` keeps it under `infra`.
 - **Check without a run:** `--dry-run` sets up locally, builds the run config, and checks that the gateway is up and accepts the admin token. It writes `dry_run.json`.
 - **Fixed gateway bugs (2026-10-03):**

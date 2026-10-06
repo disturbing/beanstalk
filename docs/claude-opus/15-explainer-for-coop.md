@@ -82,44 +82,39 @@ Setup for every race below: 40 colliding tasks in a synthetic TypeScript "shop" 
 
 Beanstalk v2 finished first in **5 of 5 seed pairs, 1.98x sooner on average** (95% CI 1.68–2.28, p = 0.008). The queue was the noisy one (16.5–34.7 min against v2's 11.3–14.4), but it reached the 20th green first in 4 of 5 pairs, and v2 cost about 12% more (`exp/e7`).
 
-### Cloudflare, 12 real agents, seed 7 (every decision made on the deployed prototype)
+### Cloudflare, 12 real agents, three seeds (every decision made on the deployed prototype)
 
-Numbers from `python3 kth_green.py` on the `cf-*` runs:
+The demo engine is **v2.5 with dependency-aware starts** and the tail fix (`--preset demo`). Numbers from `python3 kth_green.py --k 35` and the summaries, seeds 7 / 11 / 13:
 
-| Run | Green | 20th green | 30th green | 35th green | Done | Agent $ | Red validations |
-|---|---|---|---|---|---|---|---|
-| Queue | 36 | 13.0 min | 19.9 | 35.0 | **40.6** | 4.12 | 10 |
-| v2.0 | 35 | 11.3 | 13.8 | 17.7 | **17.5** | 5.00 | 3 |
-| v2.2 | **24** | 25.0 | not reached | not reached | 24.9 | 6.02 | 10 |
-| v2.3 | 34 | 10.4 | 14.3 | not reached | 17.9 | 5.14 | 4 |
-| **v2.4** | **37** | **6.7** | **8.9** | **15.2** | 17.7 | 4.40 | 4 |
+| Run | Green | 35th green (min) | Done (min) | Agent $ | Red validations |
+|---|---|---|---|---|---|
+| Queue (`cf-queue-sonnet-12-s7-landed`, `-s11`, `-s13`) | 36 / 35 / 37 | 35.0 / 29.2 / 36.8 | 40.6 / 30.2 / 39.5 | 4.12 / 4.51 / 4.54 | 10 / 8 / 10 |
+| **v2.5 + dependency starts** (`cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`) | **39 / 39 / 38** | **17.1 / 14.9 / 22.0** | **31.6 / 24.0 / 29.8** | 6.08 / 4.18 / 5.32 | 4 / 0 / 4 |
+| v2.4 (`cf-v24-sonnet-12-s7`, `-s11`, `-s13`) | 37 / 32 / 33 | 15.2 / not reached / not reached | 17.7 / 17.3 / 25.4 | 4.40 / 5.75 / 5.83 | 4 / 5 / 13 |
 
-The final stalk was correct in every run. Two earlier v2 cloud runs hit infrastructure bugs (34 and 27 green) and are kept but excluded (`08` §5.5).
+**The claim:** Beanstalk ships more (38–39 of 40 against the queue's 35–37), its 35th task is green 1.7–2.1x sooner on every seed (2.05x, 1.96x, 1.67x), and it is done about 1.3x sooner (1.28x, 1.26x, 1.33x). The final stalk was correct in every run.
 
-Before any real agents, replay parity was checked: with free replay agents, the cloud and local forges made identical decisions (25/25/15 for both policies).
+How the engine was chosen: every v2.5 phase ran on the same three seeds (`docs/claude-opus/11`, "CF v2.5 phase matrix"). The partial phases (v2.5a to v2.5c) shipped fewer tasks than the queue and about as many as v2.4 or fewer (31–34.7 green on average against 34.0); full v2.5 with FIFO starts shipped 37–39 but was slow (done 22.8–40.5 min); adding dependency starts made it win, once the tail fix stopped one looping bean (t032) from holding two runs to the 60-minute cap (`cf-v25dep-*`, rerun as `cf-v25dep2-*`). The simulator had over-predicted v2.5 (12–16 min done simulated; 24–32 min real for the demo engine).
 
-### Why "done" barely moves while most work ships much sooner
+Earlier single-seed history (seed 7): v2.0 35 green, done 17.5 min; v2.2 24 green (failed); v2.3 34 green, 17.9 min. Two earlier v2 cloud runs hit infrastructure bugs (34 and 27 green) and are kept but excluded (`08` §5.5). Before any real agents, replay parity was checked: with free replay agents, the cloud and local forges made identical decisions (25/25/15 for both policies).
 
-v2.0, v2.3 and v2.4 all finish at about 17.5–17.9 minutes. What changed is the middle of the race:
+### Why "done" moves less than the 35th green
 
-- v2.4 reached its 30th green at **8.9 min**, against the queue's 19.9 and v2.0's 13.8.
-- v2.4's median task went from start to green in **6.1 min**, against 10.5 for the queue. At the 90th percentile it was 13.7 against 25.2.
-
-The end of the race is set by the last few beans: the ones in a rework chain, a revert, or a decision card, plus the final validation. Faster landing doesn't shorten those. For a team, the 30th-green number matters more than "done": most work is usable in half the time.
+v2.4 finished first (17–25 min) but shipped only 32–37 tasks: it gave up on the hard beans early. v2.5 keeps working on them (cards that re-execute the loser, a rescue, dynamic culprits), so it ships 38–39 and its last minutes go to those few beans. The end of a race is set by the last beans: the ones in a rework chain, a revert or a decision card, plus the final validation. For a team, the 35th-green number matters more than "done": most work is usable in about half the time.
 
 ### Cost
 
-Agent spend only:
+Agent spend only, three seeds:
 
-| Run | Agent spend | Against the queue |
-|---|---|---|
-| Queue | $4.12 | baseline |
-| v2.0 | $5.00 | +21% |
-| v2.4 | $4.40 | +7% |
+| Run | Agent spend (7 / 11 / 13) | Total | Against the queue |
+|---|---|---|---|
+| Queue | $4.12 / $4.51 / $4.54 | $13.16 | baseline |
+| v2.5 + dependency starts | $6.08 / $4.18 / $5.32 | $15.58 | +18% (seed 11 was 7% cheaper) |
+| v2.4 | $4.40 / $5.75 / $5.83 | $15.98 | +21% |
 
-Rework is the bulk of v2.4's extra: $2.00 of its $4.40.
+**Measured Cloudflare infrastructure** (the gateway's meter, `infra` in `summary.json`), the three `cf-v25dep2` races: **$0.38 / $0.35 / $0.42** (containers $0.24–0.28, Artifacts $0.11–0.14, Workers and Durable Objects under $0.01), about 7% of the agent spend. The queue and v2.4 races ran before the meter. The estimates below were made before any metered race and came out close (~$0.46 for v2.4).
 
-**Cloudflare infrastructure, per race.** From 2026-10-06 every RunDO meters what its run uses and `summary.json` reports it under `infra` (counts and dollars at list prices; `packages/gateway/src/run/infra-meter.ts`, gateway README "Spend guards"). No race has run on the metering gateway yet, so the figures below are **estimates** from the recorded runs' event counts (`research/race/runs/cf-v24-sonnet-12-s7`, `cf2-replay-v2-8-s7`), priced the way the meter prices them. Replace them with the first metered `infra` block.
+**Cloudflare infrastructure, per race (the pre-meter estimate).** From 2026-10-06 every RunDO meters what its run uses and `summary.json` reports it under `infra` (counts and dollars at list prices; `packages/gateway/src/run/infra-meter.ts`, gateway README "Spend guards"). Before the first metered race, the figures below were **estimates** from the recorded runs' event counts (`research/race/runs/cf-v24-sonnet-12-s7`, `cf2-replay-v2-8-s7`), priced the way the meter prices them.
 
 | | v2.4, 12 Sonnet agents (1,126 s) | Replay, 8 agents (417 s) |
 |---|---|---|
@@ -140,13 +135,14 @@ How it was estimated: container busy time is the events' `suite_seconds` plus ab
 | v2.1 / v2.2 | Re-check adapts to the red rate. Agent released while its check runs (E5). Flake-confirmed reverts (E3). Cards re-execute the loser (E6). Inherited reds | Each won in isolation, in experiments and in the simulator (39/40 predicted) |
 | v2.2 on Cloudflare | **Failed: 24 green** | Releasing agents caused a landing burst (19 in minute 2). The adaptive re-check trusted a lagging signal. Validation fell 27 commits behind. 11 innocent beans burned their rework rounds on reds that weren't theirs. Replay agents didn't reproduce the burst |
 | **v2.3** | Sprout window with AIMD backpressure: at most W unvalidated landings; W grows by 2 per green and halves on a red. Sampled re-checks. Inherited reds by read set. Early revert tickets | Fixes the burst. 34 green, a tie with v2.0. One card blamed the wrong counterpart |
-| **v2.4** | Reconcile before a card: a test author first amends tests that pin a value the other task legitimately changed. Only a real contradiction reaches a human. Stale-failure re-checks | Fewer wasted cards and drops. 37 green, the best run |
+| **v2.4** | Reconcile before a card: a test author first amends tests that pin a value the other task legitimately changed. Only a real contradiction reaches a human. Stale-failure re-checks | Fewer wasted cards and drops. 37 green on seed 7, but 32 and 33 on seeds 11 and 13 |
+| **v2.5 + dependency starts** (the demo) | Escalation after one repeated red, every landed party reconciled, lone-suspect reverts, base and dynamic culprits, a wider window, structural merges, start cards, one rescue; a free agent takes a bean that clashes with nothing in flight; the tail fix (at most 10 invocations per bean, a 10-minute tail guard) | Ships 38–39 of 40 on three seeds. The partial phases alone did worse |
 
 ### Caveats
 
-- **One seed on Cloudflare per version.** The doc itself says part of v2.4's gain over v2.3 is probably run-to-run variance. Only the local harness has 5 seeds, and those are v2.0-era rules.
+- **Three seeds on Cloudflare**, one run each, for the queue, v2.4 and every v2.5 phase; v2.0 to v2.3 have one. Seeds swing a lot (v2.4: 37 green on seed 7, 32 on seed 11).
 - **Short tasks.** Beans take tens of seconds. With 7x-longer tasks (E5), v2's lead shrank to 1.32–1.40x and the queue led on early greens.
-- **The arena is synthetic.** On a real repo with little contention (markedjs/marked, E2), file-level v2 *lost* (19–20 min against 4.4) until the adaptive re-check. E2 hasn't been re-run on v2.4.
+- **The arena is synthetic.** On a real repo with little contention (markedjs/marked, E2), file-level v2 *lost* (19–20 min against 4.4) until the adaptive re-check. E2 hasn't been re-run on v2.4 or v2.5.
 - **Tests are given, not written by the forge.** Without forge-owned tests, v2's stalk went wrong silently (E1: 6 of 39 greens wrong).
 - Agents ran on the laptop. Only the decisions ran on Cloudflare.
 

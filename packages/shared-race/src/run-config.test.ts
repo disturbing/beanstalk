@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEMO_SETTINGS,
   RunConfig,
   V24_SETTINGS,
+  V25_SETTINGS,
   V25_RULES_OFF,
   errorBudget,
   prelandSeconds,
@@ -153,23 +155,50 @@ describe('structural merge tier', () => {
 });
 
 describe('the demo preset', () => {
-  it('pins the v2.4 rules whatever the defaults are', () => {
+  it('pins v2.5 with dependency-aware starts and the tail bounds whatever the defaults are', () => {
     const config = RunConfig.parse({
       policy: 'beanstalk-v2',
       preset: 'demo',
       tasks: [task('t001')],
     });
 
-    expect(config).toMatchObject({ preset: 'demo', ...V24_SETTINGS });
+    expect(config).toMatchObject({ preset: 'demo', ...DEMO_SETTINGS });
+    expect(config).toMatchObject({
+      start_order: 'dependency',
+      max_bean_invocations: 10,
+      tail_guard_minutes: 10,
+    });
+  });
+
+  it('pins the v2.5 rules at the values the defaults have today', () => {
+    const defaults = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
+
+    expect({ ...defaults, structural_merge: usesStructuralMerge(defaults) }).toMatchObject(
+      V25_SETTINGS,
+    );
   });
 
   it('accepts a pinned field repeated with its value and refuses a changed one', () => {
     const base = { policy: 'beanstalk-v2', preset: 'demo', tasks: [task('t001')] };
 
-    expect(RunConfig.safeParse({ ...base, window_start: 4 }).success).toBe(true);
-    const changed = RunConfig.safeParse({ ...base, rescue: true });
+    expect(RunConfig.safeParse({ ...base, window_start: 8 }).success).toBe(true);
+    const changed = RunConfig.safeParse({ ...base, start_order: 'fifo' });
     expect(changed.success).toBe(false);
-    expect(changed.error?.issues[0]?.path).toEqual(['rescue']);
+    expect(changed.error?.issues[0]?.path).toEqual(['start_order']);
+  });
+
+  it('runs the queue without the v2-only structural merge', () => {
+    const config = RunConfig.parse({ policy: 'queue', preset: 'demo', tasks: [task('t001')] });
+
+    expect(usesStructuralMerge(config)).toBe(false);
+    expect(config).toMatchObject({ preset: 'demo', rescue: true });
+  });
+
+  it('keeps v2.4 under the v24 preset', () => {
+    const base = { policy: 'beanstalk-v2', preset: 'v24', tasks: [task('t001')] };
+
+    expect(RunConfig.parse(base)).toMatchObject({ preset: 'v24', ...V24_SETTINGS });
+    expect(RunConfig.safeParse({ ...base, rescue: true }).success).toBe(false);
   });
 
   it('leaves a run without a preset on the defaults, with the spend guard off and reaping on', () => {

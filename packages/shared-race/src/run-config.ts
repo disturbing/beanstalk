@@ -16,10 +16,11 @@ export const AgentKind = z.enum(['claude', 'codex', 'replay']);
 export type AgentKind = z.infer<typeof AgentKind>;
 
 /**
- * Named, pinned engine settings. `demo` is v2.4 (the CF v2.4 races, the published numbers):
- * a run that names it gets exactly those rules whatever the defaults become.
+ * Named, pinned engine settings: a run that names one gets exactly those rules whatever the
+ * defaults become. `demo` is v2.5 with dependency-aware starts (the three-seed CF races behind
+ * the published numbers, `cf-v25dep2-sonnet-12-s*`); `v24` is the v2.4 engine (`cf-v24-*`).
  */
-export const RunPreset = z.enum(['demo']);
+export const RunPreset = z.enum(['demo', 'v24']);
 export type RunPreset = z.infer<typeof RunPreset>;
 
 /** A footprint the driver predicted for a task before the race (the harness's intake step). */
@@ -371,10 +372,61 @@ export const V25_RULES_OFF = {
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
 export const V24_SETTINGS = { ...V25_RULES_OFF } as const satisfies Partial<RunConfigInput>;
 
+/**
+ * Every v2.5 rule at its v2.5 value, the tail fix's two bounds included: the defaults when this
+ * was written, pinned so a later default cannot change a run that names them. `structural_merge`
+ * is pinned for v2 only (`pinnedSettings`): the queue never merges structurally.
+ */
+export const V25_SETTINGS = {
+  escalate_after: 1,
+  reconcile_parties: 3,
+  single_suspect_revert: true,
+  validation_first: false,
+  base_culprits: true,
+  window_start: WINDOW_DEFAULTS.start,
+  start_cards: true,
+  rescue: true,
+  dynamic_culprits: true,
+  structural_merge: true,
+  max_bean_invocations: 10,
+  tail_guard_minutes: 10,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * The demo engine: v2.5 with dependency-aware starts and the tail fix (the CF races
+ * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`). The opt-in tracks it does not use are pinned off.
+ */
+export const DEMO_SETTINGS = {
+  ...V25_SETTINGS,
+  start_order: 'dependency',
+  tests_first: false,
+  targeted_landing_check: false,
+  live_sync: 'off',
+  live_sync_midrun: false,
+} as const satisfies Partial<RunConfigInput>;
+
 /** What each preset pins. */
 export const RUN_PRESETS = {
-  demo: V24_SETTINGS,
+  demo: DEMO_SETTINGS,
+  v24: V24_SETTINGS,
 } as const satisfies Record<RunPreset, Partial<RunConfigInput>>;
+
+/** Pinned fields that only `beanstalk-v2` accepts with a true value; another policy runs without them. */
+const V2_ONLY_PINS: readonly string[] = ['structural_merge'];
+
+/** What a preset pins for a policy: everything for v2; for the queue, all but the v2-only rules. */
+export function pinnedSettings(
+  preset: RunPreset,
+  policy: unknown,
+): Readonly<Record<string, unknown>> {
+  const pinned: Readonly<Record<string, unknown>> = RUN_PRESETS[preset];
+  if (policy === 'beanstalk-v2') return pinned;
+  return Object.fromEntries(
+    Object.entries(pinned).filter(
+      ([key, value]) => !(V2_ONLY_PINS.includes(key) && value === true),
+    ),
+  );
+}
 
 /** The preset's settings under the request's fields; a request that contradicts its preset is refused. */
 function withPreset(input: unknown, refuse: (key: string, message: string) => void): unknown {
@@ -382,7 +434,7 @@ function withPreset(input: unknown, refuse: (key: string, message: string) => vo
   const fields = input;
   const preset = RunPreset.safeParse(fields['preset']);
   if (!preset.success) return input;
-  const pinned: Readonly<Record<string, unknown>> = RUN_PRESETS[preset.data];
+  const pinned = pinnedSettings(preset.data, fields['policy']);
   for (const [key, value] of Object.entries(pinned)) {
     if (key in fields && fields[key] !== value)
       refuse(key, `preset ${preset.data} pins ${key} to ${String(value)}`);
