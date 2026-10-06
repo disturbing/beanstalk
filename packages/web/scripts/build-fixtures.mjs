@@ -32,9 +32,16 @@ const OUT_DIR = join(REPO_ROOT, 'packages/web/fixtures');
 const ARENA_TASKS = join(REPO_ROOT, 'research/arena/tasks');
 const ARENA_GIT = join(REPO_ROOT, 'research/corpora/arena.git');
 
-/** The recorded Cloudflare runs of `docs/claude-opus/08` §5.5 (seed 7, 12 Sonnet agents). */
+/**
+ * The recorded Cloudflare runs of the demo (`docs/claude-opus/12`, seed 7, 12 Sonnet agents):
+ * Beanstalk v2.5 with dependency-aware starts against the merge queue.
+ */
 const RUNS = [
-  { run: '7z4j84eqvl', dir: 'research/race/runs/cf-v2-sonnet-12-s7-r3', policyLabel: 'beanstalk' },
+  {
+    run: 'j6boaclinn',
+    dir: 'research/race/runs/cf-v25dep2-sonnet-12-s7',
+    policyLabel: 'beanstalk',
+  },
   {
     run: 'u0ntf65lbe',
     dir: 'research/race/runs/cf-queue-sonnet-12-s7-landed',
@@ -83,9 +90,19 @@ const SECRET_PATTERNS = [
   /\bgh[pousr]_[A-Za-z0-9]{20,}/,
   /\bAKIA[0-9A-Z]{16}\b/,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
-  /\/Users\/[a-z]+\//,
+  // Local paths: macOS and Linux homes, temp and per-user cache directories.
+  /\/Users\/[A-Za-z0-9._-]+\//,
+  /\/home\/[A-Za-z0-9._-]+\//,
+  /\/(?:private\/var|var\/folders|private\/tmp)\//,
+  // Cloudflare account and zone ids (32 hex digits standing alone; git shas have 40).
+  /(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])/,
+  // A deployed gateway's address names the account's workers.dev subdomain.
+  /\b[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev\b/i,
 ];
-/** Summary keys copied; account details (`subscription`) and footprint research stay out. */
+/**
+ * Summary keys copied; account details (`subscription`), platform usage (`infra`), the run
+ * repo's state (`repos`) and footprint research stay out.
+ */
 const SUMMARY_KEYS = [
   'label',
   'policy',

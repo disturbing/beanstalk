@@ -1,8 +1,8 @@
 /**
  * The recorded runs bundled with the app (`fixtures/`, built from git by
- * `scripts/build-fixtures.mjs`): the Cloudflare race of `docs/claude-opus/08` §5.5, the
- * merge queue against beanstalk v2 with 12 Sonnet agents on seed 7. They power replays, the
- * side-by-side race and the explorer when no gateway is bound.
+ * `scripts/build-fixtures.mjs`): the Cloudflare race of the demo (`docs/claude-opus/12`), the
+ * merge queue against Beanstalk v2.5 with dependency-aware starts, 12 Sonnet agents on seed 7.
+ * They power replays, the side-by-side race and the explorer when no gateway is bound.
  */
 import { z } from 'zod';
 
@@ -12,11 +12,12 @@ import { RunId as RunIdSchema, Sha, TaskId } from '@beanstalk/shared-race/ids';
 import queueEvents from '../../fixtures/u0ntf65lbe/events.jsonl?raw';
 import queueRepo from '../../fixtures/u0ntf65lbe/repo.json?raw';
 import queueTasks from '../../fixtures/u0ntf65lbe/tasks.json?raw';
-import v2Events from '../../fixtures/7z4j84eqvl/events.jsonl?raw';
-import v2Repo from '../../fixtures/7z4j84eqvl/repo.json?raw';
-import v2Tasks from '../../fixtures/7z4j84eqvl/tasks.json?raw';
+import beanstalkEvents from '../../fixtures/j6boaclinn/events.jsonl?raw';
+import beanstalkRepo from '../../fixtures/j6boaclinn/repo.json?raw';
+import beanstalkTasks from '../../fixtures/j6boaclinn/tasks.json?raw';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { parseEventLog } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
 
 const FileStatRecord = z.object({
   path: z.string(),
@@ -74,6 +75,8 @@ export type RecordedRun = {
   readonly label: string;
   readonly policyName: string;
   readonly summary: string;
+  /** The engine's knobs no event states (`summary.json`'s `beanstalk.release_on_check`). */
+  readonly options: RaceOptions;
   readonly events: readonly RaceEvent[];
   readonly tasks: readonly TaskRecord[];
   readonly repo: RepoSnapshot;
@@ -84,23 +87,26 @@ type RecordedSource = {
   readonly label: string;
   readonly policyName: string;
   readonly summary: string;
+  readonly options: RaceOptions;
   readonly texts: { readonly events: string; readonly tasks: string; readonly repo: string };
 };
 
 const SOURCES: readonly RecordedSource[] = [
   {
-    run: '7z4j84eqvl',
-    label: 'Beanstalk v2',
-    policyName: 'beanstalk-v2',
+    run: 'j6boaclinn',
+    label: 'Beanstalk v2.5',
+    policyName: 'beanstalk-v2.5',
     summary:
-      'Pre-land checks on the exact merged tree, informed reworks, revert-first, decision cards',
-    texts: { events: v2Events, tasks: v2Tasks, repo: v2Repo },
+      'Dependency-aware starts, pre-land checks on the exact merged tree, informed reworks, revert-first, decision cards',
+    options: { releaseOnCheck: true },
+    texts: { events: beanstalkEvents, tasks: beanstalkTasks, repo: beanstalkRepo },
   },
   {
     run: 'u0ntf65lbe',
     label: 'Merge queue',
     policyName: 'queue',
     summary: 'A batched, speculative, bisecting merge queue: the baseline',
+    options: { releaseOnCheck: false },
     texts: { events: queueEvents, tasks: queueTasks, repo: queueRepo },
   },
 ];
@@ -108,8 +114,8 @@ const SOURCES: readonly RecordedSource[] = [
 /** Ids of the recorded runs, without parsing them. */
 const RECORDED_RUN_IDS: ReadonlySet<string> = new Set(SOURCES.map((source) => source.run));
 
-/** The recorded v2 run and the queue run, for the side-by-side race. */
-export const RACE_PAIR = { left: 'u0ntf65lbe', right: '7z4j84eqvl' } as const;
+/** The recorded v2.5 run and the queue run, for the side-by-side race. */
+export const RACE_PAIR = { left: 'u0ntf65lbe', right: 'j6boaclinn' } as const;
 
 export function isRecordedRun(run: string): boolean {
   return RECORDED_RUN_IDS.has(run);
@@ -154,6 +160,7 @@ function parseRecorded(source: RecordedSource): RecordedRun {
     label: source.label,
     policyName: source.policyName,
     summary: source.summary,
+    options: source.options,
     events: parsed.events,
     tasks: z.array(TaskRecord).parse(JSON.parse(source.texts.tasks)),
     repo: RepoSnapshot.parse(JSON.parse(source.texts.repo)),

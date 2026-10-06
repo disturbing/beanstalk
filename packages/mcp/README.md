@@ -48,7 +48,7 @@ pnpm -F @beanstalk/mcp mint-token <run> [--gateway <url>]
 ```
 
 Tests (`test/mcp.test.ts`) run the Worker app with a fake `GATEWAY` (`test/fake-gateway.ts`)
-answering the gateway RPC from the web app's recorded v2 run (`packages/web/fixtures/7z4j84eqvl`),
+answering the gateway RPC from the web app's recorded v2.5 run (`packages/web/fixtures/j6boaclinn`),
 and talk to it with the MCP SDK's client.
 
 ## Claude Code plugin

@@ -65,7 +65,19 @@ export type BeanStepKind =
   | 'landed'
   | 'green'
   | 'reverted'
-  | 'dropped';
+  | 'dropped'
+  /** v2.5 `tests_first`: the test author wrote its tests before the bean began. */
+  | 'tests-first'
+  /** v2.4: the test author tried to reconcile its tests with a landed bean's. */
+  | 'reconcile'
+  /** v2.5: rework rounds ran out; re-executed once on the sprout head. */
+  | 'rescue'
+  /** v2.5: the landed beans that break its tests, found by leaving each out. */
+  | 'culprits'
+  /** `live_sync`: beans that landed meanwhile were merged in for its agent. */
+  | 'synced'
+  /** v2.3: green, waiting for room in the sprout window. */
+  | 'window';
 
 /** One thing that happened to a bean, for its timeline. */
 export type BeanStep = {
@@ -186,6 +198,10 @@ export type DecisionCard = {
   readonly specs: Readonly<Record<string, string>>;
   readonly failing: readonly string[];
   readonly attempts: number;
+  /** v2.5: `start` for a start card (raised before the arriving bean began), else null. */
+  readonly trigger: string | null;
+  /** v2.4: the test author's account of the contradiction that raised the card. */
+  readonly reason: string | null;
   readonly openedAt: number;
   readonly status: 'open' | 'decided';
   readonly winner: TaskId | null;

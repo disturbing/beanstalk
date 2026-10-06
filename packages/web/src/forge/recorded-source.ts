@@ -70,8 +70,8 @@ export function recordedSource(options: { readonly asOf?: number } = {}): ForgeS
 
   return {
     listRuns: () => Promise.resolve(recordedRuns().map(listing)),
-    // The recorded runs predate v2.2: their agents waited for their beans' checks.
-    runOptions: () => Promise.resolve({ releaseOnCheck: false }),
+    // v2.2 and later free the agent at the pre-land check; the queue's agents wait.
+    runOptions: (run) => Promise.resolve(context(run).recorded.options),
     runEvents: (run, after, limit) => {
       const events = context(run).events.filter((event) => event.seq > after);
       const page = events.slice(0, limit);
@@ -115,7 +115,7 @@ export function recordedSource(options: { readonly asOf?: number } = {}): ForgeS
 
 function buildContext(recorded: RecordedRun, asOf: number): RecordedContext {
   const events = recorded.events.filter((event) => event.t <= asOf);
-  const state = reduceRace(events);
+  const state = reduceRace(events, recorded.options);
   const reader = openSnapshot(recorded.repo, recorded.tasks);
   const tasks = new Map(recorded.tasks.map((task) => [task.id, task]));
   const visibleLine = recorded.repo.line.filter((commit) => commit.t <= asOf);
@@ -229,7 +229,7 @@ function existsFrom(ctx: RecordedContext, path: string): number {
 }
 
 function listing(recorded: RecordedRun): RunListing {
-  const state = reduceRace(recorded.events);
+  const state = reduceRace(recorded.events, recorded.options);
   const counters = raceCounters(state);
   const createdAt = state.epochMs === null ? null : new Date(state.epochMs).toISOString();
   return {

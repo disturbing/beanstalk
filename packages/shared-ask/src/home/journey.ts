@@ -60,6 +60,18 @@ function sentenceOf(step: BeanStep): string {
       return `Reverted (${detail})`;
     case 'dropped':
       return `Fell off: ${detail.replace('--max-rework', 'the maximum')}`;
+    case 'tests-first':
+      return `Tests written first (${detail})`;
+    case 'reconcile':
+      return `The test author compared specs: ${detail}`;
+    case 'rescue':
+      return `Rescued: re-executed on the sprout head (${detail})`;
+    case 'culprits':
+      return `Searched for what breaks its tests: ${detail}`;
+    case 'synced':
+      return `Caught up with the sprout: ${detail}`;
+    case 'window':
+      return `Waited for room on the sprout (${detail})`;
     default:
       return assertNever(step.kind);
   }
@@ -85,7 +97,14 @@ function toneOf(kind: BeanStepKind): JourneyTone {
     case 'green':
       return 'stalk';
     case 'decision':
+    case 'reconcile':
       return 'decide';
+    case 'rescue':
+    case 'culprits':
+      return 'rework';
+    case 'tests-first':
+    case 'synced':
+    case 'window':
     case 'recheck':
     case 'optimistic':
     case 'enqueued':

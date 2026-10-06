@@ -7,18 +7,22 @@ import { loadCorpus } from '@beanstalk/shared-ask/ask/corpus';
 import type { ResolverCorpus } from '@beanstalk/shared-ask/ask/resolve-files';
 import { MAX_RESOLVED_FILES, resolveFiles } from '@beanstalk/shared-ask/ask/resolve-files';
 
-const v2 = RunId.parse('7z4j84eqvl');
+const v25 = RunId.parse('j6boaclinn');
 
 async function resolveOnFixture(feature: string) {
-  const corpus = await loadCorpus(recordedSource(), { run: v2, ref: 'sprout' }, feature);
+  const corpus = await loadCorpus(recordedSource(), { run: v25, ref: 'sprout' }, feature);
   return resolveFiles(feature, corpus);
 }
 
-describe('resolving a feature to files on the recorded v2 run', () => {
-  it('puts the coupon module first for "coupons", within the file-set limit', async () => {
+describe('resolving a feature to files on the recorded v2.5 run', () => {
+  it('puts the coupon code first for "coupons", within the file-set limit', async () => {
     const ranked = await resolveOnFixture('coupons');
-    expect(ranked[0]?.path).toBe('src/billing/coupons.ts');
-    expect(ranked[0]?.reasons).toEqual(expect.arrayContaining(['path', 'content', 'bean']));
+    // t038 capped coupons in discounts.ts, so it ranks beside the coupon module itself.
+    expect(ranked.slice(0, 2).map((file) => file.path)).toEqual(
+      expect.arrayContaining(['src/billing/coupons.ts', 'src/billing/discounts.ts']),
+    );
+    const coupons = ranked.find((file) => file.path === 'src/billing/coupons.ts');
+    expect(coupons?.reasons).toEqual(expect.arrayContaining(['path', 'content', 'bean']));
     expect(ranked.length).toBeLessThanOrEqual(MAX_RESOLVED_FILES);
     expect(
       ranked.every((file) => file.path.includes('coupon') || file.reasons.includes('content')),

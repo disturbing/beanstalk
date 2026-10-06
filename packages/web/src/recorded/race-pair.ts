@@ -1,7 +1,8 @@
-/** The recorded race of the demo: the merge queue against beanstalk v2, same tasks and seed. */
+/** The recorded race of the demo: the merge queue against Beanstalk v2.5, same tasks and seed. */
 import type { RunId } from '@beanstalk/shared-race/ids';
 
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
 import { raceCounters } from '@beanstalk/shared-ask/race/race-counters';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import type { RecordedRun } from './recorded-runs';
@@ -13,6 +14,7 @@ export type RaceSide = {
   readonly summary: string;
   readonly policy: 'queue' | 'beanstalk';
   readonly events: readonly RaceEvent[];
+  readonly options: RaceOptions;
   readonly titles: Readonly<Record<string, string>>;
   readonly greens: readonly number[];
   readonly endedAt: number | null;
@@ -28,7 +30,7 @@ export function racePair(): { readonly left: RaceSide; readonly right: RaceSide 
 
 function side(run: string): RaceSide {
   const recorded = required(run);
-  const state = reduceRace(recorded.events);
+  const state = reduceRace(recorded.events, recorded.options);
   const counters = raceCounters(state);
   return {
     run: recorded.run,
@@ -36,6 +38,7 @@ function side(run: string): RaceSide {
     summary: recorded.summary,
     policy: state.meta?.policy ?? 'beanstalk',
     events: recorded.events,
+    options: recorded.options,
     titles: titlesOf(recorded),
     greens: counters.greenTimes,
     endedAt: state.endedAt,

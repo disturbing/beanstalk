@@ -77,6 +77,12 @@ const STEP_LABEL: Readonly<Record<BeanStep['kind'], string>> = {
   green: 'On the stalk',
   reverted: 'Reverted',
   dropped: 'Dropped',
+  'tests-first': 'Tests written first',
+  reconcile: 'Specs compared',
+  rescue: 'Rescued',
+  culprits: 'Culprit search',
+  synced: 'Caught up with the sprout',
+  window: 'Waited for the sprout window',
 };
 
 /** A bean's history as beads on a stem. */
@@ -105,7 +111,9 @@ function stepBead(kind: BeanStep['kind']): string {
   if (kind === 'check-red' || kind === 'conflict' || kind === 'ejected' || kind === 'reverted') {
     return `${beadClass('dropped')} ${styles.beadRed ?? ''}`;
   }
-  if (kind === 'decision') return `${beadClass('dropped')} ${styles.beadHuman ?? ''}`;
+  if (kind === 'decision' || kind === 'reconcile') {
+    return `${beadClass('dropped')} ${styles.beadHuman ?? ''}`;
+  }
   if (kind === 'dropped') return beadClass('dropped');
   return beadClass('in-flight');
 }

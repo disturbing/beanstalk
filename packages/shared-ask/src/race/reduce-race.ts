@@ -194,6 +194,39 @@ function applyByType(draft: Draft, event: RaceEvent): void {
       return recordAmendment(draft, event);
     case 'flake.suspected':
       return recordFlake(draft, event);
+    case 'tests.first':
+      return addStep(draft, event.task, {
+        t: event.t,
+        kind: 'tests-first',
+        detail: `${event.status}: ${event.files.join(', ')}`,
+      });
+    case 'decision.reconcile':
+      return recordReconcile(draft, event);
+    case 'rescue.start':
+      return addStep(draft, event.task, {
+        t: event.t,
+        kind: 'rescue',
+        detail:
+          event.rounds > 0
+            ? `${event.why}, after ${plural(event.rounds, 'rework round')}`
+            : event.why,
+      });
+    case 'culprit.dynamic':
+      return recordCulpritSearch(draft, event);
+    case 'sync.applied':
+    case 'sync.noted':
+    case 'sync.midrun.offered':
+    case 'sync.midrun.applied':
+    case 'sync.midrun.noted':
+      return recordSync(draft, event);
+    case 'window.wait':
+      return addStep(draft, event.task, {
+        t: event.t,
+        kind: 'window',
+        detail: `${event.unvalidated} unvalidated on the sprout, window ${event.window}`,
+      });
+    case 'window.resize':
+      return;
     case 'ticket.open':
       draft.tickets.set(event.ticket, {
         ticket: event.ticket,
@@ -348,7 +381,9 @@ function startInvocation(draft: Draft, event: RaceEventOf<'invocation.start'>): 
     const lane = laneOf(draft, event.agent);
     if (lane !== undefined) {
       lane.invocation = { inv: event.inv, kind: event.kind, task: event.task, since: event.t };
-      if (lane.bean === null && event.task !== null) lane.bean = event.task;
+      if (lane.bean === null && event.task !== null && holdsBean(event.kind)) {
+        lane.bean = event.task;
+      }
     }
   }
   if (event.task === null) return;
@@ -356,6 +391,14 @@ function startInvocation(draft: Draft, event: RaceEventOf<'invocation.start'>): 
   target.invocations += 1;
   if (event.agent !== null) target.agent = event.agent;
   if (event.kind !== 'initial') setPhase(draft, event.task, 'rework', event.t);
+}
+
+/**
+ * Whether an invocation's slot carries its bean afterwards. The test author and the
+ * reconciler (v2.4+) borrow a slot for one call about a bean they do not own.
+ */
+function holdsBean(kind: string): boolean {
+  return kind !== 'test-author' && kind !== 'reconcile';
 }
 
 function endInvocation(draft: Draft, event: RaceEventOf<'invocation.end'>): void {
@@ -518,9 +561,14 @@ function land(draft: Draft, event: RaceEventOf<'land'>): void {
   addStep(draft, event.task, {
     t: event.t,
     kind: 'landed',
-    detail: isQueue ? 'on the stalk' : `on the sprout as #${idx}`,
+    detail: isQueue ? 'on the stalk' : `on the sprout as #${idx}${resolvedWords(event.resolved)}`,
   });
   releaseLane(draft, event.task);
+}
+
+/** v2.5: how a landing's merge was resolved, when git's text merge alone could not. */
+function resolvedWords(resolved: string | null | undefined): string {
+  return resolved === undefined || resolved === null ? '' : `, ${resolved} merge`;
 }
 
 function promote(draft: Draft, event: RaceEventOf<'green.promote'>): void {
@@ -689,6 +737,8 @@ function openCard(draft: Draft, event: RaceEventOf<'decision.request'>): void {
     specs: { ...event.specs },
     failing: [...event.failing],
     attempts: event.attempts,
+    trigger: event.trigger ?? null,
+    reason: event.reason ?? null,
     openedAt: event.t,
     status: 'open',
     winner: null,
@@ -701,10 +751,11 @@ function openCard(draft: Draft, event: RaceEventOf<'decision.request'>): void {
   });
   for (const task of [event.task, ...event.against]) bean(draft, task).card = event.card;
   setPhase(draft, event.task, 'deciding', event.t);
+  const start = event.trigger === 'start' ? ', before it started' : '';
   addStep(draft, event.task, {
     t: event.t,
     kind: 'decision',
-    detail: `${event.card} opened against ${event.against.join(', ')}`,
+    detail: `${event.card} opened against ${event.against.join(', ')}${start}`,
   });
 }
 
@@ -738,6 +789,49 @@ function recordAmendment(draft: Draft, event: RaceEventOf<'spec.amended'>): void
     kind: 'decision',
     detail: `${event.card}: tests ${event.status}${event.paths.length > 0 ? ` (${event.paths.join(', ')})` : ''}`,
   });
+}
+
+function recordReconcile(draft: Draft, event: RaceEventOf<'decision.reconcile'>): void {
+  const parties = event.parties ?? [event.against];
+  const what =
+    event.outcome === 'reconciled'
+      ? `reconciled with ${parties.join(', ')}`
+      : `contradicts ${parties.join(', ')}`;
+  addStep(draft, event.task, { t: event.t, kind: 'reconcile', detail: what });
+}
+
+function recordCulpritSearch(draft: Draft, event: RaceEventOf<'culprit.dynamic'>): void {
+  const found =
+    event.confirmed.length > 0
+      ? `confirmed ${event.confirmed.join(', ')}`
+      : 'none confirmed on its own';
+  addStep(draft, event.task, {
+    t: event.t,
+    kind: 'culprits',
+    detail: `left out ${plural(event.candidates.length, 'landed bean')} one at a time: ${found}`,
+  });
+}
+
+type SyncEvent = RaceEventOf<
+  | 'sync.applied'
+  | 'sync.noted'
+  | 'sync.midrun.offered'
+  | 'sync.midrun.applied'
+  | 'sync.midrun.noted'
+>;
+
+function recordSync(draft: Draft, event: SyncEvent): void {
+  addStep(draft, event.task, {
+    t: event.t,
+    kind: 'synced',
+    detail: `${event.landed.join(', ')} ${syncWords(event.type)} (${plural(event.files.length, 'file')})`,
+  });
+}
+
+function syncWords(type: SyncEvent['type']): string {
+  if (type.endsWith('.applied')) return 'merged in';
+  if (type.endsWith('.offered')) return 'offered';
+  return 'noted only';
 }
 
 /** A red validation that did not repeat: the test is flaky and the commit is not to blame. */

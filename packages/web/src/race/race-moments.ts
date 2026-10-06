@@ -24,8 +24,10 @@ export function raceMoments(events: readonly RaceEvent[]): readonly RaceMoment[]
         event.trunk_idx === undefined ? (event.batch ?? 'a batch') : `sprout #${event.trunk_idx}`;
       moments.push({ t: event.t, label: `${subject} went red` });
     }
-    if (event.type === 'decision.request')
-      moments.push({ t: event.t, label: `Decision ${event.card} opened` });
+    if (event.type === 'decision.request') {
+      const start = event.trigger === 'start' ? ' (a start card)' : '';
+      moments.push({ t: event.t, label: `Decision ${event.card} opened${start}` });
+    }
   }
   for (let minute = STEP_MINUTES; minute * 60 < end; minute += STEP_MINUTES) {
     moments.push({ t: minute * 60, label: `Minute ${minute}` });

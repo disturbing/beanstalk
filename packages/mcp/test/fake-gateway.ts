@@ -1,6 +1,6 @@
 /**
- * A fake GATEWAY answering the gateway's RPC from a recorded run (the web app's v2 fixture,
- * run 7z4j84eqvl): its event log, its tasks and its repo snapshot. Answers come back in the
+ * A fake GATEWAY answering the gateway's RPC from a recorded run (the web app's v2.5 fixture,
+ * run j6boaclinn): its event log, its tasks and its repo snapshot. Answers come back in the
  * RPC's wire shapes, so the shared forge adapter validates them as it does live ones.
  */
 import { z } from 'zod';
@@ -13,11 +13,11 @@ import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
-import eventsText from '../../web/fixtures/7z4j84eqvl/events.jsonl?raw';
-import repoText from '../../web/fixtures/7z4j84eqvl/repo.json?raw';
-import tasksText from '../../web/fixtures/7z4j84eqvl/tasks.json?raw';
+import eventsText from '../../web/fixtures/j6boaclinn/events.jsonl?raw';
+import repoText from '../../web/fixtures/j6boaclinn/repo.json?raw';
+import tasksText from '../../web/fixtures/j6boaclinn/tasks.json?raw';
 
-export const RUN = RunId.parse('7z4j84eqvl');
+export const RUN = RunId.parse('j6boaclinn');
 export const VIEW_TOKEN = 'bst1.view-token-for-the-recorded-run';
 export const SLOT_TOKEN = 'bst1.slot-token-for-a1';
 export const WINDOW_SIZE = 8;

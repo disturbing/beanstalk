@@ -127,8 +127,45 @@ function describe(event: RaceEvent): Draft | undefined {
     case 'decision.request':
       return line(
         'human',
-        `Decision ${event.card}: ${event.task} and ${event.against.join(', ')} disagree. A person decides.`,
+        event.trigger === 'start'
+          ? `Start card ${event.card}: ${event.task} would undo ${event.against.join(', ')}. A person decides before it starts.`
+          : `Decision ${event.card}: ${event.task} and ${event.against.join(', ')} disagree. A person decides.`,
         event.task,
+      );
+    case 'decision.reconcile':
+      return line(
+        event.outcome === 'reconciled' ? 'good' : 'human',
+        event.outcome === 'reconciled'
+          ? `The test author reconciles ${event.task}'s tests with ${event.against}.`
+          : `The test author finds ${event.task} contradicts ${(event.parties ?? [event.against]).join(', ')}.`,
+        event.task,
+      );
+    case 'rescue.start':
+      return majorLine(
+        'warn',
+        `${event.task} is rescued: re-executed once on the sprout head (${event.why}).`,
+        event.task,
+      );
+    case 'culprit.dynamic':
+      return line(
+        'warn',
+        `${event.task}: leaving out ${plural(event.candidates.length, 'landed bean')} one at a time${event.confirmed.length > 0 ? ` blames ${event.confirmed.join(', ')}` : ' blames none alone'}.`,
+        event.task,
+      );
+    case 'tests.first':
+      return line('neutral', `${event.task}: tests written first (${event.status}).`, event.task);
+    case 'sync.applied':
+    case 'sync.midrun.applied':
+      return line(
+        'neutral',
+        `${event.task} catches up: ${event.landed.join(', ')} merged in.`,
+        event.task,
+      );
+    case 'window.resize':
+      return line(
+        event.reason === 'red' ? 'warn' : 'neutral',
+        `The sprout window ${event.window > event.previous ? 'grows' : 'shrinks'} to ${event.window}.`,
+        null,
       );
     case 'decision.made':
       return majorLine('human', decisionWords(event), event.winner);
@@ -185,6 +222,10 @@ function describe(event: RaceEvent): Draft | undefined {
     case 'ticket.close':
     case 'ticket.escalate':
     case 'abort':
+    case 'sync.noted':
+    case 'sync.midrun.offered':
+    case 'sync.midrun.noted':
+    case 'window.wait':
       return undefined;
     case 'race.end':
       return majorLine(
@@ -240,9 +281,10 @@ function describeRework(event: Extract<RaceEvent, { type: 'rework.start' }>): Dr
 function describeLanding(event: Extract<RaceEvent, { type: 'land' }>): Draft {
   if (event.target === 'main')
     return line('good', `${event.task ?? 'A batch'} lands on the stalk.`, event.task);
+  const structural = event.resolved === 'structural' ? ', after a structural merge' : '';
   return majorLine(
     'good',
-    `${event.task ?? 'A repair'} lands on the sprout as #${event.trunk_idx ?? '?'}.`,
+    `${event.task ?? 'A repair'} lands on the sprout as #${event.trunk_idx ?? '?'}${structural}.`,
     event.task,
   );
 }
