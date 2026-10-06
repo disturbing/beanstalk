@@ -66,10 +66,11 @@ describe('a finished race', () => {
   });
 
   it('keeps its repos when asked, until a sweep finds it old enough', async () => {
+    const beforeCreation = Date.now();
     const run = await raceToDone({ keep_repo: true });
 
     expect((await summary(run)).repos).toEqual({ status: 'kept' });
-    const young = await env.RUNS.getByName(run.run).sweep(RunId.parse(run.run), Date.now() - 1000);
+    const young = await env.RUNS.getByName(run.run).sweep(RunId.parse(run.run), beforeCreation);
     const old = await env.RUNS.getByName(run.run).sweep(RunId.parse(run.run), Date.now() + 1000);
 
     expect(young).toEqual({ ok: true, value: null });

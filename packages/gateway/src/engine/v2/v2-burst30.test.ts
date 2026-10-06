@@ -11,21 +11,26 @@ import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
  * until a bean happens to fix it forward. The fixture other changes measure against.
  */
 describe('burst30: the 30-agent stall, in the simulator', () => {
-  it('reproduces the stall under the v2.5 demo preset (seed 7, 30 agents)', () => {
-    const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
+  // Like the dependency-chain fixtures, this simulation can exceed 5 s under parallel suite load.
+  it(
+    'reproduces the stall under the v2.5 demo preset (seed 7, 30 agents)',
+    { timeout: 30_000 },
+    () => {
+      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
 
-    expect(wellFormedProblems(run.events)).toEqual([]);
-    expect(eventsOf(run.events, 'revert.conflict').length).toBeGreaterThanOrEqual(1);
-    const [episode] = redEpisodes(run);
-    expect(episode?.to).not.toBeNull();
-    expect((episode?.to ?? 0) - (episode?.from ?? 0)).toBeGreaterThanOrEqual(5);
-    const numbers = breakNumbers(run);
-    // With the scheduler starvation fix (age and stall bounds) one more task parks: 36 green, 4 parked.
-    expect(numbers).toMatchObject({ green: 36, parked: 4, dropped: 0, correct: true });
-    expect(numbers.kth[30]).toBeGreaterThan(15);
-    // The 35th green came at about 27 min before the starvation fix, about 20.5 min after it.
-    expect(numbers.kth[35]).toBeGreaterThan(18);
-  });
+      expect(wellFormedProblems(run.events)).toEqual([]);
+      expect(eventsOf(run.events, 'revert.conflict').length).toBeGreaterThanOrEqual(1);
+      const [episode] = redEpisodes(run);
+      expect(episode?.to).not.toBeNull();
+      expect((episode?.to ?? 0) - (episode?.from ?? 0)).toBeGreaterThanOrEqual(5);
+      const numbers = breakNumbers(run);
+      // With the scheduler starvation fix (age and stall bounds) one more task parks: 36 green, 4 parked.
+      expect(numbers).toMatchObject({ green: 36, parked: 4, dropped: 0, correct: true });
+      expect(numbers.kth[30]).toBeGreaterThan(15);
+      // The 35th green came at about 27 min before the starvation fix, about 20.5 min after it.
+      expect(numbers.kth[35]).toBeGreaterThan(18);
+    },
+  );
 
   it('runs at 12 agents too', () => {
     const run = runRace(burst30Scenario(7, 12, { ...DEMO_SETTINGS }));
