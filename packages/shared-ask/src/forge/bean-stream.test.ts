@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { beanStreamView, currentStreams } from './bean-stream';
+import { BeanStreamSocketMessage, beanStreamView, currentStreams } from './bean-stream';
 
 const SUMMARY = {
   type: 'bean.streaming',
@@ -65,5 +65,30 @@ describe('streamed bean changes', () => {
     expect(await currentStreams({}, 'r1')).toEqual([]);
     expect(await beanStreamView({}, 'r1', 't001')).toBeNull();
     expect(await currentStreams(binding(null), 'r1')).toHaveLength(1);
+  });
+
+  it('reads every message of the stream socket and nothing else', () => {
+    const file = { ...SUMMARY.files[0], binary: false, patch: '@@ -1 +1 @@\n-a\n+b\n' };
+    const messages = [
+      SUMMARY,
+      { type: 'bean.streaming.end', task: 't001', inv: SUMMARY.inv, t: 13 },
+      { type: 'bean.snapshot', task: 't001', inv: SUMMARY.inv, seq: 2, files: [file] },
+      {
+        type: 'bean.patch',
+        task: 't001',
+        inv: SUMMARY.inv,
+        seq: 3,
+        base_seq: 2,
+        files: [file],
+        removed: ['src/old.ts'],
+      },
+    ];
+
+    const types = messages.map((message) => BeanStreamSocketMessage.parse(message).type);
+
+    expect(types).toEqual(['bean.streaming', 'bean.streaming.end', 'bean.snapshot', 'bean.patch']);
+    expect(BeanStreamSocketMessage.safeParse({ type: 'bean.patch', task: 't001' }).success).toBe(
+      false,
+    );
   });
 });

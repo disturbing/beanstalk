@@ -186,6 +186,8 @@ const TicketCulprit = event('ticket.culprit', {
 });
 const TicketClose = event('ticket.close', { ticket: TicketId });
 const TicketEscalate = event('ticket.escalate', { ticket: TicketId });
+/** The engine gave up on a ticket's revert (no culprit it can revert): escalated, no `ticket.escalate`. */
+const TicketStuck = event('ticket.stuck', { ticket: TicketId });
 const Revert = event('revert', {
   ticket: TicketId,
   task: NullableTask,
@@ -343,6 +345,7 @@ export const RaceEvent = z.discriminatedUnion('type', [
   TicketCulprit,
   TicketClose,
   TicketEscalate,
+  TicketStuck,
   Revert,
   SproutReset,
   BeanRequeued,

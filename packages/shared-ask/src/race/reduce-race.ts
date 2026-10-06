@@ -244,6 +244,7 @@ function applyByType(draft: Draft, event: RaceEvent): void {
     case 'ticket.close':
       return setTicketStatus(draft, event.ticket, 'closed');
     case 'ticket.escalate':
+    case 'ticket.stuck':
       return setTicketStatus(draft, event.ticket, 'escalated');
     case 'revert':
       return revert(draft, event);

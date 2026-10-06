@@ -15,6 +15,7 @@ import type {
   BeanContextInput,
   BeanDiscoverInput,
   BeanDiscoverPage,
+  BeanPeerSummary,
   BeanInboxAckInput,
   BeanInboxAckResult,
   BeanInboxPage,
@@ -61,7 +62,7 @@ export type TaskCounts = Readonly<Record<TaskStatus, number>>;
 export type RunListItem = {
   readonly run: string;
   readonly policy: PolicyName;
-  /** The pinned settings the run was created with (`demo`: v2.4), or null. */
+  /** The pinned settings the run was created with (`demo`: v2.5 plus dependency starts, `park` and `red_reset`; `v24`: v2.4), or null. */
   readonly preset: RunPreset | null;
   readonly phase: RunPhase;
   readonly aborted: string | null;
@@ -380,9 +381,9 @@ export type BeanRework = {
 
 /**
  * `stream_diffs`: a bean's working change while its agent writes, without the patches. The
- * live feed broadcasts one per accepted snapshot (`{ type: 'stream', stream }`); it is never
- * in the event log. `bean.streaming.end` follows when the invocation ends: its commit (if
- * any) supersedes the snapshot.
+ * run's stream socket sends one per accepted post; it is never in the event log.
+ * `bean.streaming.end` follows when the invocation ends: its commit (if any) supersedes the
+ * snapshot.
  */
 export type BeanStreamSummary = {
   readonly type: 'bean.streaming';
@@ -418,6 +419,39 @@ export type BeanStream = {
   readonly summary: BeanStreamSummary;
   readonly files: readonly StreamFile[];
 };
+
+/**
+ * The run's stream socket (`GET /runs/:run/streams`, docs/claude-17-streaming-diffs.md): a
+ * subscribed bean's whole snapshot, sent when the socket subscribes to it while it streams.
+ */
+export type BeanStreamSnapshot = {
+  readonly type: 'bean.snapshot';
+  readonly task: string;
+  readonly inv: string;
+  readonly seq: number;
+  readonly files: readonly StreamFile[];
+};
+
+/**
+ * The stream socket: what one accepted post changed in a subscribed bean's snapshot. It
+ * applies to the snapshot at `base_seq`; `base_seq: 0` replaces the whole snapshot.
+ */
+export type BeanStreamPatch = {
+  readonly type: 'bean.patch';
+  readonly task: string;
+  readonly inv: string;
+  readonly seq: number;
+  readonly base_seq: number;
+  readonly files: readonly StreamFile[];
+  readonly removed: readonly string[];
+};
+
+/** The stream socket's messages: summaries and ends to all, snapshots and patches to subscribers. */
+export type BeanStreamSocketMessage =
+  | BeanStreamSummary
+  | BeanStreamEnd
+  | BeanStreamSnapshot
+  | BeanStreamPatch;
 
 /** `beanDetail`: a bean's whole story from the run's event log. */
 export type BeanDetail = BeanSummary & {
@@ -509,6 +543,8 @@ export type GatewayRpc = Partial<CollaborationRpc> & {
     ref: RepoRef,
     pattern: string,
     paths?: readonly string[],
+    /** Treat `pattern` as a safe-subset regular expression; by default it is a literal. */
+    regex?: boolean,
   ): Promise<RpcResult<RepoGrep>>;
   beansByPath(run: string, paths: readonly string[]): Promise<RpcResult<readonly BeanSummary[]>>;
   beanDetail(run: string, bean: string): Promise<RpcResult<BeanDetail>>;
@@ -540,6 +576,11 @@ export type CollaborationRpc = {
   verifyMcpToken(token: string): Promise<RpcResult<McpTokenClaims>>;
   beanContext(run: string, input: BeanContextInput): Promise<RpcResult<BeanContext>>;
   beanDiscover(run: string, input: BeanDiscoverInput): Promise<RpcResult<BeanDiscoverPage>>;
+  /** Excerpt-only summaries of up to 32 beans in one read; unknown beans are omitted. */
+  beanPeerSummaries(
+    run: string,
+    beans: readonly string[],
+  ): Promise<RpcResult<readonly BeanPeerSummary[]>>;
   beanUpdate(token: string, input: BeanUpdateInput): Promise<RpcResult<BeanUpdateResult>>;
   beanThreadPost(
     token: string,

@@ -41,10 +41,24 @@ export function slotIds(agents: number): readonly SlotId[] {
   return Array.from({ length: agents }, (_, index): SlotId => `a${index}`);
 }
 
+/**
+ * Every kind of agent invocation the engine issues; the id suffix of an `InvocationId`.
+ * `InvocationKind` in `driver.ts` is the same set (checked in `ids.test.ts`).
+ */
+export const INVOCATION_KINDS = [
+  'initial',
+  'rework',
+  'fixer',
+  'test-author',
+  'reconcile',
+  'test-first',
+  'sync',
+] as const;
+
 /** An invocation id as the harness writes it: `inv0007-rework`. */
 export type InvocationId = `inv${string}`;
 
 export const InvocationId = z
   .string()
-  .regex(/^inv[0-9]{4,}-(initial|rework|fixer|test-author|reconcile|test-first)$/)
+  .regex(new RegExp(`^inv[0-9]{4,}-(${INVOCATION_KINDS.join('|')})$`))
   .transform((value): InvocationId => `inv${value.slice(3)}`);

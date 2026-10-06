@@ -63,6 +63,8 @@ export type InvocationEndFields = {
   readonly notes: readonly string[];
   readonly rate_limit: Json;
   readonly rate_limited: boolean;
+  /** Paths the driver's own merge left conflicted (diagnostics; absent when it reported none). */
+  readonly merge_conflicts?: readonly string[];
 };
 
 /** `invocation.end` for an invocation killed by an abort (cost estimated from progress). */
@@ -217,6 +219,8 @@ export type RaceEventFields = {
         readonly files: readonly string[];
         readonly unvalidated: number;
         readonly prelanded?: boolean;
+        /** v2.5: `structural` when a structural merge resolved what git's text merge could not. */
+        readonly resolved?: 'structural';
       };
   'green.promote': {
     readonly sha: string;

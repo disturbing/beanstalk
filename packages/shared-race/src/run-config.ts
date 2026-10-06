@@ -17,8 +17,9 @@ export type AgentKind = z.infer<typeof AgentKind>;
 
 /**
  * Named, pinned engine settings: a run that names one gets exactly those rules whatever the
- * defaults become. `demo` is v2.5 with dependency-aware starts (the three-seed CF races behind
- * the published numbers, `cf-v25dep2-sonnet-12-s*`); `v24` is the v2.4 engine (`cf-v24-*`).
+ * defaults become. `demo` is `V25_SETTINGS` plus dependency-aware starts, `park`, `red_reset`
+ * and a 3-minute tail guard (`DEMO_SETTINGS`; its base is the three-seed CF races
+ * `cf-v25dep2-sonnet-12-s*`); `v24` is the v2.4 engine (`cf-v24-*`).
  */
 export const RunPreset = z.enum(['demo', 'v24']);
 export type RunPreset = z.infer<typeof RunPreset>;
@@ -454,9 +455,10 @@ export const V25_SETTINGS = {
 } as const satisfies Partial<RunConfigInput>;
 
 /**
- * The demo engine: v2.5 with dependency-aware starts and the tail fix (the CF races
- * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), plus parking with its 3-minute tail guard and the
- * 30-agent stall fix (`red_reset`). The opt-in tracks it does not use are pinned off.
+ * The demo engine: `V25_SETTINGS` (the CF races `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`) with
+ * dependency-aware starts (`start_order`), parking (`park`), the 30-agent stall fix
+ * (`red_reset`) and the tail guard tightened from 10 to 3 minutes. The opt-in tracks it does
+ * not use are pinned off.
  */
 export const DEMO_SETTINGS = {
   ...V25_SETTINGS,

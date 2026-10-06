@@ -119,6 +119,8 @@ export const BeanDiscoverInput = z.strictObject({
   paths: z.array(Path).max(16).optional(),
   query: z.string().trim().min(1).max(500).optional(),
   limit: z.number().int().min(1).max(32).optional(),
+  /** Also return complete records; the default page carries only digests. */
+  full: z.boolean().optional(),
 });
 export type BeanDiscoverInput = z.infer<typeof BeanDiscoverInput>;
 
@@ -165,8 +167,24 @@ export const BeanRecord = z.strictObject({
 });
 export type BeanRecord = z.infer<typeof BeanRecord>;
 
+/** Excerpt length of every digest and summary text; exact wording is read with bean_context. */
+export const EXCERPT_CHARS = 500;
+
+/** A lightweight view of a bean: an intent excerpt, declared paths and freshness. */
+export const BeanDigest = z.strictObject({
+  bean: TaskId,
+  revision: Cursor,
+  updated_at: z.iso.datetime().nullable(),
+  intent: z.string().max(EXCERPT_CHARS * 2),
+  intent_truncated: z.boolean(),
+  paths: Paths,
+});
+export type BeanDigest = z.infer<typeof BeanDigest>;
+
+/** Digests by default; `records` is present only when the caller asked for `full`. */
 export const BeanDiscoverPage = z.strictObject({
-  beans: z.array(BeanRecord).max(32),
+  beans: z.array(BeanDigest).max(32),
+  records: z.array(BeanRecord).max(32).optional(),
   truncated: z.boolean(),
 });
 export type BeanDiscoverPage = z.infer<typeof BeanDiscoverPage>;
@@ -237,3 +255,30 @@ export const BeanInboxAckResult = z.strictObject({
   unread: Cursor,
 });
 export type BeanInboxAckResult = z.infer<typeof BeanInboxAckResult>;
+
+export const BeanSummariesInput = z.array(TaskId).min(1).max(32);
+export type BeanSummariesInput = z.infer<typeof BeanSummariesInput>;
+
+/** Excerpts of a peer's current agreements, without event history. */
+export const BeanPeerSummary = BeanDigest.extend({
+  approach_summary: z
+    .string()
+    .max(EXCERPT_CHARS * 2)
+    .nullable(),
+  approach_summary_truncated: z.boolean(),
+  promises: z
+    .array(
+      z.strictObject({
+        id: RecordId,
+        revision: Revision,
+        body: z.string().max(EXCERPT_CHARS * 2),
+        conditions: z.string().max(EXCERPT_CHARS * 2),
+        paths: Paths,
+      }),
+    )
+    .max(64),
+  reliance: z.array(PromiseReference).max(128),
+  current_cursor: Cursor,
+});
+export type BeanPeerSummary = z.infer<typeof BeanPeerSummary>;
+export const BeanPeerSummaries = z.array(BeanPeerSummary).max(32);
