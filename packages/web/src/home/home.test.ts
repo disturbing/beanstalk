@@ -16,8 +16,9 @@ import { recordedSource } from '../forge/recorded-source';
 import { titlesOf } from '../recorded/race-pair';
 import { recordedRun } from '../recorded/recorded-runs';
 
-const v2 = RunId.parse('7z4j84eqvl');
-const recorded = recordedRun(v2);
+const v25 = RunId.parse('j6boaclinn');
+const recorded = recordedRun(v25);
+const options = recorded?.options ?? {};
 const events = recorded?.events ?? [];
 const titles = recorded === undefined ? {} : titlesOf(recorded);
 const START = events.find((event) => event.type === 'race.start')?.t ?? 0;
@@ -25,15 +26,16 @@ const START = events.find((event) => event.type === 'race.start')?.t ?? 0;
 function at(seconds: number) {
   const now = START + seconds;
   const visible: readonly RaceEvent[] = events.filter((event) => event.t <= now);
-  return { now, visible, state: reduceRace(visible) };
+  return { now, visible, state: reduceRace(visible, options) };
 }
 
-describe('the stalk of the recorded v2 run', () => {
+describe('the stalk of the recorded v2.5 run', () => {
   it('grows beans at the tip mid-run, then sprout leaves above the stalk leaves', () => {
     const { now, visible, state } = at(760);
     const rows = stalkRows({ state, events: visible, now, titles });
     const kinds = rows.map((row) => row.kind);
-    expect(kinds.slice(0, 6)).toEqual(['bean', 'bean', 'bean', 'bean', 'bean', 'bean']);
+    // Dependency-aware starts hold back the beans that build on others: still queued.
+    expect(kinds.slice(0, 6)).toEqual(['queued', 'bean', 'bean', 'bean', 'bean', 'bean']);
     const leaves = rows.flatMap((row) =>
       row.kind === 'leaf' && row.status !== 'red' ? [row.status] : [],
     );
@@ -42,15 +44,16 @@ describe('the stalk of the recorded v2 run', () => {
     expect(leaves.slice(0, firstStalk).every((status) => status === 'sprout')).toBe(true);
     expect(leaves.slice(firstStalk).every((status) => status === 'stalk')).toBe(true);
     expect(kinds).not.toContain('pointer');
-    expect(rows.some((row) => row.kind === 'fell')).toBe(true);
   });
 
   it('says nothing is growing when the run is over, and keeps the culprit red', () => {
-    const state = reduceRace(events);
+    const state = reduceRace(events, options);
     const rows = stalkRows({ state, events, now: state.endedAt ?? 0, titles });
     expect(rows[0]).toEqual({ kind: 'idle', key: 'idle', finished: true });
-    const culprit = rows.find((row) => row.kind === 'leaf' && row.task === 't018');
+    // R001 blamed t011; its revert conflicted, so it stays on the line, red.
+    const culprit = rows.find((row) => row.kind === 'leaf' && row.task === 't011');
     expect(culprit?.kind === 'leaf' ? culprit.status : null).toBe('red');
+    expect(rows.some((row) => row.kind === 'fell')).toBe(true);
   });
 });
 
@@ -86,7 +89,7 @@ describe('the Files rows', () => {
     const listing = dirListing({ paths, state, now, dir: 'src', changedOnly: true });
     const billing = listing.rows.find((row) => row.path === 'src/billing');
     expect(billing?.dir).toBe(true);
-    expect(billing?.last?.task).toBe('t040');
+    expect(billing?.last?.task).toBe('t039');
     expect(billing?.flying.length).toBeGreaterThan(1);
   });
 });
@@ -96,14 +99,14 @@ describe('people and sessions', () => {
     const { state } = at(760);
     const sessions = placeholderSessions(state, 'coop');
     expect(sessions['a0']).toEqual({ slot: 'a0', owner: 'coop', harness: 'Claude Code' });
-    expect(activeContributors(state, sessions)).toEqual({ people: 1, sessions: 6 });
+    expect(activeContributors(state, sessions)).toEqual({ people: 1, sessions: 4 });
   });
 });
 
 const ask = (question: string, bean: string | null = null) =>
   planAnswer({
     source: recordedSource(),
-    run: v2,
+    run: v25,
     question,
     classifier: keywordClassifier,
     removed: [],
@@ -117,7 +120,7 @@ describe('the generated explorer', () => {
     const composition = composeAnswer(await ask('why did the sprout go red?'), null);
     expect(composition.components[0]).toBe('red');
     expect(composition.components).toContain('files');
-    expect(composition.relevant).toContain('t018');
+    expect(composition.relevant).toContain('t011');
   });
 
   it('opens a bean as its journey, with the decision card when it had one', async () => {

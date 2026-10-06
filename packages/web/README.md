@@ -8,11 +8,11 @@ Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprou
 
 | Route | What it shows |
 |---|---|
-| `/` | Runs: the recorded race (merge queue against v2) as a chart, recorded and live runs |
+| `/` | Runs: the recorded race (merge queue against v2.5) as a chart, recorded and live runs |
 | `/runs/:run` | **The repository home**: the compressed stalk (beans at the tip, sprout and stalk leaves, the culprit red, fallen beans faint) beside a generated explorer: Ask (completions on focus or ⌘K), then Growing now, What happened and Files, or the components a question needs (bean journey + diff, decision and red-validation cards, overlaps and session activity). A status line, day/night and three day modes. Recorded runs replay; live runs follow the gateway |
 | `/runs/:run/files` | The Files explorer: file tree, main pane (diff, file with blame by bean, bean), context rail and its own Ask bar |
 | `/runs/:run/race` | The engine (developer view): counters, the sprout and the stalk as a vine, agent lanes, the code map, decision cards, the event feed. Recorded runs replay (1x, 10x, 60x, scrubbing); live runs follow the gateway |
-| `/race` | Watch the race: the recorded merge queue and v2 runs replayed in sync, with counters and greens over time |
+| `/race` | Watch the race: the recorded merge queue and v2.5 runs replayed in sync, with counters (the 35th green, done in) and greens over time |
 | `/login` | The demo gate for decisions (`DEMO_PASSWORD`) |
 | `/api/runs/:run/live` | A live run's events as Server-Sent Events (bridged from the gateway's WebSocket) |
 | `/api/runs/:run/beans/:bean/diff` | A bean's own diff, for decision cards |
@@ -44,13 +44,15 @@ Keyboard: `/` focuses Ask from anywhere. In a replay, Space plays or pauses, the
 
 ## Recorded runs (fixtures)
 
-`fixtures/<run>/` holds the Cloudflare race of `docs/claude-opus/08` §5.5 (12 Sonnet agents, seed 7): `7z4j84eqvl` (v2, `cf-v2-sonnet-12-s7-r3`) and `u0ntf65lbe` (the queue, `cf-queue-sonnet-12-s7-landed`). They are built from git, never by hand:
+`fixtures/<run>/` holds the Cloudflare race the demo narrates (`docs/claude-opus/12`, 12 Sonnet agents, seed 7): `j6boaclinn` (Beanstalk v2.5 with dependency-aware starts, `cf-v25dep2-sonnet-12-s7`: 39 green, 35th green 17.1 min, done 31.6 min) and `u0ntf65lbe` (the queue, `cf-queue-sonnet-12-s7-landed`: 36 green, 35th green 35.0 min, done 40.6 min). They are built from git, never by hand:
 
 ```bash
 pnpm -F @beanstalk/web fixtures      # node scripts/build-fixtures.mjs
 ```
 
-The script reads `research/race/runs/<run>/` (events, summary, the agents' worktrees) and `research/arena/tasks`, then writes `events.jsonl` (slimmed to the fields the app reads, no local paths), `summary.json` (without account details), `tasks.json` (titles, intents, tests) and `repo.json` (the base, every line commit and bean head, their trees and file contents). The one landing per run that no worktree fetched is rebuilt the way the runner squashes (`git merge-tree --merge-base`, a commit by `beanstalk-runner`) and must hash to the recorded sha, or the build fails; both runs reproduce their final commit exactly. Every file is scanned for secrets before it is written.
+The script reads `research/race/runs/<run>/` (events, summary, the agents' worktrees under `work/`, which git ignores: in a fresh worktree, symlink them and `research/corpora/arena.git` from the checkout that ran the race) and `research/arena/tasks`, then writes `events.jsonl` (slimmed to the fields the app reads, no local paths), `summary.json` (without account details), `tasks.json` (titles, intents, tests) and `repo.json` (the base, every line commit and bean head, their trees and file contents). The one landing per run that no worktree fetched is rebuilt the way the runner squashes (`git merge-tree --merge-base`, a commit by `beanstalk-runner`) and must hash to the recorded sha, or the build fails; both runs reproduce their final commit exactly. Every file is scanned before it is written, for secrets, local paths (`/Users/…`, `/home/…`, temp directories), Cloudflare account ids and `workers.dev` addresses; a match fails the build.
+
+The v2.5 events the app shows beyond v2's: start cards (`decision.request` with `trigger: start`, raised before the arriving bean begins), `decision.reconcile` (the test author compares specs before a card), `rescue.start`, `culprit.dynamic` (leave-one-out culprit search), `window.wait` and `window.resize` (the sprout window), structural landings (`land.resolved`), and, from newer engines, `tests.first` and `sync.*`. Each becomes a step of its bean's journey and, where a reader would care, a feed line. The test author and the reconciler borrow an agent slot for one call without holding the bean, and the v2.5 run frees agents at the pre-land check (`release_on_check`), so the recorded run carries that option for the lane clocks.
 
 ## Run it locally
 
@@ -68,7 +70,7 @@ pnpm -F @beanstalk/web build         # vite build into dist/ (the Worker and its
 pnpm -F @beanstalk/web preview       # build, then run the built Worker with wrangler dev
 ```
 
-The tests check the reducer against both runs' `summary.json` (landed, green, dropped and why, cost, red validations, decision cards, conflicts, invocations, CI runs, every bean's start, landing and green times, task-to-green percentiles, lane clocks within a second) and the k-th green times of `docs/claude-opus/08` §5.5; the keyword router on the catalog; the entity resolver and the planner on the recorded v2 run; and the gateway adapter against a fake binding.
+The tests check the reducer against both runs' `summary.json` (landed, green, dropped and why, cost, red validations, decision cards, conflicts, invocations, CI runs, every bean's start, landing and green times, task-to-green percentiles, lane clocks within a second) and the k-th green times of `research/race/kth_green.py` (Beanstalk 7.7, 15.7 and 17.1 min to the 20th, 30th and 35th green; the queue 13.0, 19.9 and 35.0); the keyword router on the catalog; the entity resolver and the planner on the recorded v2.5 run; and the gateway adapter against a fake binding.
 
 ## Deploy
 

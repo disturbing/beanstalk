@@ -8,7 +8,7 @@ import type { Answer } from '@beanstalk/shared-ask/ask/answer';
 import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 
-const v2 = RunId.parse('7z4j84eqvl');
+const v25 = RunId.parse('j6boaclinn');
 const queue = RunId.parse('u0ntf65lbe');
 const noSelection = { file: null, bean: null, view: null } as const;
 
@@ -22,7 +22,7 @@ function ask(
 ): Promise<Answer> {
   return planAnswer({
     source: recordedSource(options.asOf === undefined ? {} : { asOf: options.asOf }),
-    run: options.run ?? v2,
+    run: options.run ?? v25,
     question,
     classifier: keywordClassifier,
     removed: options.removed ?? [],
@@ -31,7 +31,7 @@ function ask(
   });
 }
 
-describe('asking the recorded v2 run', () => {
+describe('asking the recorded v2.5 run', () => {
   it('answers "what changed recently on coupons?" with a filtered tree and a combined diff', async () => {
     const answer = await ask('what changed recently on coupons?');
     expect(answer.spec.class).toBe('recent-changes');
@@ -97,15 +97,21 @@ describe('asking the recorded v2 run', () => {
     });
   });
 
-  it('traces the red sprout to the repair ticket culprit t018 and the failing test', async () => {
+  it('traces the red sprout to the repair ticket culprit t011 and the failing tests', async () => {
     const answer = await ask('why did the sprout go red?');
-    expect(answer.tree.files).toEqual([
-      'src/notifications/templates.ts',
-      'src/notifications/tracking-email.test.ts',
+    // t011's migration broke the whole suite at sprout #30: its files, then every failing test.
+    expect(answer.tree.files.slice(0, 3)).toEqual([
+      'src/db/migrations/0006_shipment_tracking.ts',
+      'src/db/migrations/0007_shipment_tracking.ts',
+      'src/db/migrations/index.ts',
     ]);
-    expect(answer.main.kind === 'bean' && answer.main.bean.id).toBe('t018');
+    expect(answer.tree.files).toContain('src/billing/discount-split.test.ts');
+    expect(answer.main.kind === 'bean' && answer.main.bean.id).toBe('t011');
     const red = answer.rail.find((block) => block.kind === 'red');
-    expect(red?.kind === 'red' && red.tickets.map((ticket) => ticket.culprit)).toEqual(['t018']);
+    expect(red?.kind === 'red' && red.tickets.map((ticket) => ticket.culprit)).toEqual([
+      't011',
+      null,
+    ]);
   });
 
   it('opens the test that encodes the winning spec of decision D001', async () => {
@@ -114,7 +120,8 @@ describe('asking the recorded v2 run', () => {
       'src/orders/confirmation-grouping.test.ts',
     );
     const cards = answer.rail.find((block) => block.kind === 'decisions');
-    expect(cards?.kind === 'decisions' && cards.cards[0]?.winner).toBe('t005');
+    const winners = cards?.kind === 'decisions' ? cards.cards.map((card) => card.winner) : [];
+    expect(winners).toContain('t005');
   });
 
   it('lists the code and the tests that cover checkout', async () => {

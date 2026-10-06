@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import queueSummaryText from '../../fixtures/u0ntf65lbe/summary.json?raw';
-import v2SummaryText from '../../fixtures/7z4j84eqvl/summary.json?raw';
+import beanstalkSummaryText from '../../fixtures/j6boaclinn/summary.json?raw';
 import { recordedRun } from '../recorded/recorded-runs';
 import { costAt, kthGreenAt, raceCounters } from '@beanstalk/shared-ask/race/race-counters';
 import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
@@ -46,6 +46,7 @@ const Summary = z.object({
   beanstalk: z
     .object({
       cards: z.number(),
+      release_on_check: z.boolean().optional(),
       card_details: z.array(z.object({ card: z.string(), task: z.string(), winner: z.string() })),
     })
     .optional(),
@@ -53,14 +54,18 @@ const Summary = z.object({
 type Summary = z.infer<typeof Summary>;
 
 const FIXTURES = [
-  { name: 'beanstalk v2', run: '7z4j84eqvl', summary: Summary.parse(JSON.parse(v2SummaryText)) },
+  {
+    name: 'beanstalk v2.5',
+    run: 'j6boaclinn',
+    summary: Summary.parse(JSON.parse(beanstalkSummaryText)),
+  },
   { name: 'merge queue', run: 'u0ntf65lbe', summary: Summary.parse(JSON.parse(queueSummaryText)) },
 ];
 
 function finalState(run: string): RaceState {
   const recorded = recordedRun(run);
   if (recorded === undefined) throw new Error(`no fixture ${run}`);
-  return reduceRace(recorded.events);
+  return reduceRace(recorded.events, recorded.options);
 }
 
 function eventsOf(run: string) {
@@ -193,12 +198,12 @@ function kthGreenMinutes(run: string, k: number): string | null {
   return at === null ? null : (at / 60).toFixed(1);
 }
 
-describe('time and money to the k-th green (docs/claude-opus/08 §5.5)', () => {
-  it('puts beanstalk v2 at 11.3, 13.8 and 17.7 minutes to the 20th, 30th and 35th green', () => {
-    expect([20, 30, 35].map((k) => kthGreenMinutes('7z4j84eqvl', k))).toEqual([
-      '11.3',
-      '13.8',
-      '17.7',
+describe('time and money to the k-th green (research/race/kth_green.py, docs/claude-opus/12)', () => {
+  it('puts beanstalk v2.5 at 7.7, 15.7 and 17.1 minutes to the 20th, 30th and 35th green', () => {
+    expect([20, 30, 35].map((k) => kthGreenMinutes('j6boaclinn', k))).toEqual([
+      '7.7',
+      '15.7',
+      '17.1',
     ]);
   });
 
@@ -211,36 +216,68 @@ describe('time and money to the k-th green (docs/claude-opus/08 §5.5)', () => {
   });
 
   it('prices the 20th green from the invocations that ended by then', () => {
-    const events = eventsOf('7z4j84eqvl');
+    const events = eventsOf('j6boaclinn');
     const at = kthGreenAt(raceCounters(reduceRace(events)), 20) ?? 0;
-    expect(costAt(events, at).toFixed(2)).toBe('4.70');
+    expect(costAt(events, at).toFixed(2)).toBe('2.36');
   });
 });
 
-describe('the decision card of the v2 run', () => {
-  it('records D001: t032 against t005, decided for t005 by the landed oracle', () => {
-    const card = finalState('7z4j84eqvl').cards[0];
+describe('the decision cards of the v2.5 run', () => {
+  it('records the start card D001: t022 against t002, decided for t002 by the landed oracle', () => {
+    const card = finalState('j6boaclinn').cards[0];
     expect(card).toMatchObject({
       card: 'D001',
-      task: 't032',
-      against: ['t005'],
+      task: 't022',
+      against: ['t002'],
+      trigger: 'start',
       status: 'decided',
-      winner: 't005',
-      loser: 't032',
+      winner: 't002',
+      loser: 't022',
       oracle: 'landed',
+      outcome: 'keep-landed',
     });
     expect(card?.specs).toEqual({
-      t032: 'The order total shown to customers leaves out shipping',
-      t005: 'Show thousands separators in displayed amounts',
+      t022: 'Customers cannot list their invoices',
+      t002: 'Paged lists should report the total number of results',
     });
   });
 
   it('shows the card open, and the bean waiting on it, between request and answer', () => {
-    const events = eventsOf('7z4j84eqvl');
+    const events = eventsOf('j6boaclinn');
     const requestAt = events.findIndex((event) => event.type === 'decision.request');
     const state = reduceRace(events.slice(0, requestAt + 1));
     expect(raceCounters(state).openCards).toBe(1);
-    expect(state.beans['t032']?.phase).toBe('deciding');
+    expect(state.beans['t022']?.phase).toBe('deciding');
+  });
+
+  it('matches the summary: 8 cards, 3 of them start cards, and the winner of each', () => {
+    const state = finalState('j6boaclinn');
+    expect(state.cards.filter((card) => card.trigger === 'start')).toHaveLength(3);
+    const details = FIXTURES[0]?.summary.beanstalk?.card_details ?? [];
+    expect(state.cards.map(({ card, task, winner }) => ({ card, task, winner }))).toEqual(
+      details.map(({ card, task, winner }) => ({ card, task, winner })),
+    );
+  });
+
+  it('keeps the steps of the v2.5 engine on each bean: rescue, culprit search, reconcile', () => {
+    const steps = Object.values(finalState('j6boaclinn').beans).flatMap((bean) => bean.steps);
+    const kinds = (kind: string) => steps.filter((step) => step.kind === kind).length;
+    expect([kinds('rescue'), kinds('culprits'), kinds('reconcile'), kinds('window')]).toEqual([
+      2, 7, 5, 20,
+    ]);
+    expect(steps.filter((step) => step.detail.includes('structural merge')).length).toBe(
+      eventsOf('j6boaclinn').filter((event) => event.type === 'land' && event.resolved).length,
+    );
+  });
+});
+
+describe('the recorded options', () => {
+  it('free the agent at the pre-land check exactly when the run did', () => {
+    for (const { run, summary } of FIXTURES) {
+      expect(recordedRun(run)?.options.releaseOnCheck ?? false, run).toBe(
+        summary.beanstalk?.release_on_check ?? false,
+      );
+    }
   });
 });
 

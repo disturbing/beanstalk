@@ -11,20 +11,20 @@ import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
 
-const run = RunId.parse('7z4j84eqvl');
+const run = RunId.parse('j6boaclinn');
 const recorded = requireRecorded();
 const landed = recorded.repo.line;
 const firstLanding = requireFirstLanding();
 
 function requireRecorded() {
   const found = recordedRun(run);
-  if (found === undefined) throw new Error('the v2 fixture is missing');
+  if (found === undefined) throw new Error('the v2.5 fixture is missing');
   return found;
 }
 
 function requireFirstLanding() {
   const first = requireRecorded().repo.line[0];
-  if (first === undefined) throw new Error('the v2 fixture has no landing');
+  if (first === undefined) throw new Error('the v2.5 fixture has no landing');
   return first;
 }
 
@@ -155,10 +155,10 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding<Fetche
           branch: 'beans/t005',
           title: 'Show thousands separators in displayed amounts',
           status: 'green' as const,
-          agent: 'a9',
+          agent: 'a0',
           files: ['src/lib/money.ts'],
           head_sha: null,
-          landed_sha: firstLanding.sha,
+          landed_sha: landed[1]?.sha ?? null,
           cards: ['D001'],
         },
       ]),
@@ -230,16 +230,16 @@ describe('the gateway adapter', () => {
   it('keeps only line commits in a log, with their bean, position and race time', async () => {
     const log = await source.repoLog(run, 'sprout');
     expect(log.map((commit) => [commit.task, commit.idx])).toEqual([
-      ['t004', 2],
-      ['t008', 1],
-      ['t005', 0],
+      ['t008', 2],
+      ['t005', 1],
+      ['t012', 0],
     ]);
     expect(log.at(-1)?.t).toBe(firstLanding.t);
   });
 
   it('adds the phase and timings from the event log to each bean', async () => {
     const [bean] = await source.beansByPath(run, ['src/lib/money.ts']);
-    expect(bean).toMatchObject({ id: 't005', status: 'green', agent: 'a9', landedIdx: 0 });
+    expect(bean).toMatchObject({ id: 't005', status: 'green', agent: 'a0', landedIdx: 1 });
     expect(bean?.greenAt).not.toBeNull();
   });
 

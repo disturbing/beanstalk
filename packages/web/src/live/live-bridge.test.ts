@@ -7,7 +7,7 @@ import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { recordedRun } from '../recorded/recorded-runs';
 import { liveEventStream } from './live-bridge';
 
-const run = RunId.parse('7z4j84eqvl');
+const run = RunId.parse('j6boaclinn');
 
 function fixtureEvents() {
   const recorded = recordedRun(run);

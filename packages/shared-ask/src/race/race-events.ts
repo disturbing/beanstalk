@@ -91,6 +91,8 @@ const CiStart = event('ci.start', {
   trunk_idx: z.number().int().optional(),
   batch: BatchId.optional(),
   tasks: z.array(TaskId).optional(),
+  /** v2.5 dynamic bisection: the bean left out of the probe's tree. */
+  without: TaskId.optional(),
 });
 const CiEnd = event('ci.end', {
   ci: z.string(),
@@ -104,6 +106,7 @@ const CiEnd = event('ci.end', {
   tests: z.number().int().optional(),
   trunk_idx: z.number().int().optional(),
   batch: BatchId.optional(),
+  without: TaskId.optional(),
 });
 const Land = event('land', {
   task: NullableTask,
@@ -112,6 +115,8 @@ const Land = event('land', {
   files: Paths,
   trunk_idx: z.number().int().optional(),
   kind: z.string().optional(),
+  /** v2.5: `structural` when a structural merge resolved what git's text merge could not. */
+  resolved: z.string().nullable().optional(),
 });
 const GreenPromote = event('green.promote', {
   sha: Sha,
@@ -212,6 +217,12 @@ const DecisionRequest = event('decision.request', {
   specs: z.record(z.string(), z.string()),
   failing: z.array(z.string()),
   attempts: z.number().int(),
+  /** v2.5: `start` for a start card, raised before the arriving bean began. */
+  trigger: z.string().nullable().optional(),
+  /** v2.4: the test author's account of the contradiction. */
+  reason: z.string().nullable().optional(),
+  /** v2.5: every landed task in the reconcile that led to the card. */
+  parties: z.array(TaskId).optional(),
 });
 const DecisionMade = event('decision.made', {
   card: CardId,
@@ -234,6 +245,55 @@ const SpecAmended = event('spec.amended', {
 const FlakeSuspected = event('flake.suspected', {
   trunk_idx: z.number().int(),
   flaky: Paths,
+});
+/** v2.5 `tests_first`: the test author's tests for a task, proven failing on its base. */
+const TestsFirst = event('tests.first', {
+  task: TaskId,
+  status: z.string(),
+  files: Paths,
+  accepted: Paths.default([]),
+});
+/** v2.4: before a card, the test author reconciled two tasks' tests, or found a contradiction. */
+const DecisionReconcile = event('decision.reconcile', {
+  task: TaskId,
+  against: TaskId,
+  outcome: z.string(),
+  files: Paths,
+  reason: z.string().nullable().default(null),
+  parties: z.array(TaskId).optional(),
+});
+/** v2.5: the bean's rework rounds ran out; it is re-executed once on the sprout head. */
+const RescueStart = event('rescue.start', {
+  task: TaskId,
+  why: z.string(),
+  rounds: z.number().int(),
+});
+/** v2.5: leave-one-out search for the landed beans that break the bean's own tests. */
+const CulpritDynamic = event('culprit.dynamic', {
+  task: TaskId,
+  candidates: z.array(TaskId),
+  confirmed: z.array(TaskId),
+});
+const SyncFields = { task: TaskId, landed: z.array(TaskId), files: Paths };
+/** `live_sync`: beans that landed meanwhile, merged into the bean's branch for its agent. */
+const SyncApplied = event('sync.applied', SyncFields);
+/** `live_sync`: the same merge conflicted; the bean's next prompt names the conflicts. */
+const SyncNoted = event('sync.noted', { ...SyncFields, conflicts: Paths.default([]) });
+/** `live_sync_midrun`: the sprout offered to a running agent, merged by it, or only noted. */
+const SyncMidrunOffered = event('sync.midrun.offered', SyncFields);
+const SyncMidrunApplied = event('sync.midrun.applied', SyncFields);
+const SyncMidrunNoted = event('sync.midrun.noted', SyncFields);
+/** v2.3: a green bean waits for room in the sprout window. */
+const WindowWait = event('window.wait', {
+  task: TaskId,
+  window: z.number().int(),
+  unvalidated: z.number().int(),
+});
+/** v2.3: the sprout window grew after a green validation, or halved on a red sprout. */
+const WindowResize = event('window.resize', {
+  window: z.number().int(),
+  previous: z.number().int(),
+  reason: z.string(),
 });
 
 /** Every event type the web app understands. */
@@ -277,6 +337,17 @@ export const RaceEvent = z.discriminatedUnion('type', [
   DecisionMade,
   SpecAmended,
   FlakeSuspected,
+  TestsFirst,
+  DecisionReconcile,
+  RescueStart,
+  CulpritDynamic,
+  SyncApplied,
+  SyncNoted,
+  SyncMidrunOffered,
+  SyncMidrunApplied,
+  SyncMidrunNoted,
+  WindowWait,
+  WindowResize,
 ]);
 export type RaceEvent = z.infer<typeof RaceEvent>;
 export type RaceEventType = RaceEvent['type'];

@@ -155,11 +155,11 @@ describe('tools/call', () => {
         ),
         summary: z.string(),
       })
-      .parse(await call('checks_get', { bean: 't021' }));
+      .parse(await call('checks_get', { bean: 't010' }));
 
     expect(answer.checks.red).toBeGreaterThan(0);
     expect(answer.history.length).toBeGreaterThan(0);
-    expect(answer.summary).toContain('t021');
+    expect(answer.summary).toContain('t010');
   });
 
   it('run_status gives the lines, the window, work in flight and cost', async () => {

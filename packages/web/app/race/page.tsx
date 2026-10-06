@@ -18,8 +18,8 @@ export default async function RacePage({ searchParams }: PageProps) {
         <h1 className={styles.title}>Watch the race</h1>
         <p className={styles.lede}>
           The same 40 colliding tasks, 12 Claude Code agents (Sonnet), the same seed, on Cloudflare:
-          a batched, speculative, bisecting merge queue against beanstalk v2. Press play; 10x shows
-          the whole race in about four minutes.
+          a batched, speculative, bisecting merge queue against Beanstalk v2.5 with dependency-aware
+          starts. Press play; 10x shows the whole race in about four minutes.
         </p>
       </header>
       <RaceDuel
@@ -29,6 +29,7 @@ export default async function RacePage({ searchParams }: PageProps) {
           summary: left.summary,
           color: 'var(--series-queue)',
           events: left.events,
+          options: left.options,
           titles: left.titles,
         }}
         right={{
@@ -37,6 +38,7 @@ export default async function RacePage({ searchParams }: PageProps) {
           summary: right.summary,
           color: 'var(--series-v2)',
           events: right.events,
+          options: right.options,
           titles: right.titles,
         }}
         initialT={numberParam(query['t']) ?? 0}

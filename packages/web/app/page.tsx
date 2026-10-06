@@ -10,14 +10,17 @@ import { racePair } from '../src/recorded/race-pair';
 
 export const metadata = { title: 'Runs' };
 
+/** The k-th green the demo measures "most of the work" by (`research/race/kth_green.py`). */
+const MOST_GREENS = 35;
+
+function minutesOr(seconds: number | null | undefined): string {
+  return seconds === null || seconds === undefined ? 'n/a' : formatMinutes(seconds);
+}
+
 export default async function RunsPage() {
   const [runs, pair] = await Promise.all([listRuns(env.GATEWAY), Promise.resolve(racePair())]);
-  const { left: queue, right: v2 } = pair;
-  const until = Math.max(queue.endedAt ?? 0, v2.endedAt ?? 0);
-  const speedup =
-    queue.wallSeconds !== null && v2.wallSeconds !== null
-      ? queue.wallSeconds / v2.wallSeconds
-      : null;
+  const { left: queue, right: beanstalk } = pair;
+  const until = Math.max(queue.endedAt ?? 0, beanstalk.endedAt ?? 0);
   return (
     <main className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -26,18 +29,18 @@ export default async function RunsPage() {
             Twelve agents, forty beans, one repo.
           </h1>
           <p className={styles.heroLede}>
-            The same race twice on Cloudflare: a batched merge queue, then beanstalk v2. v2 finished
-            in {v2.wallSeconds === null ? 'n/a' : formatMinutes(v2.wallSeconds)}, the queue in{' '}
-            {queue.wallSeconds === null ? 'n/a' : formatMinutes(queue.wallSeconds)}
-            {speedup === null ? '' : `: ${speedup.toFixed(1)}× sooner`}, for {formatUsd(v2.costUsd)}{' '}
-            against {formatUsd(queue.costUsd)} of agent spend.
+            The same race twice on Cloudflare: a batched merge queue, then Beanstalk v2.5. Beanstalk
+            had {MOST_GREENS} beans on the stalk in {minutesOr(beanstalk.greens[MOST_GREENS - 1])},
+            the queue in {minutesOr(queue.greens[MOST_GREENS - 1])}; it was done in{' '}
+            {minutesOr(beanstalk.wallSeconds)} against {minutesOr(queue.wallSeconds)}, for{' '}
+            {formatUsd(beanstalk.costUsd)} against {formatUsd(queue.costUsd)} of agent spend.
           </p>
           <p className={styles.heroActions}>
             <Link href="/race" className={styles.primary}>
               Watch the race
             </Link>
-            <Link href={`/runs/${v2.run}`} className={styles.secondary}>
-              Explore the v2 repository
+            <Link href={`/runs/${beanstalk.run}`} className={styles.secondary}>
+              Explore the Beanstalk repository
             </Link>
           </p>
         </div>
@@ -53,16 +56,16 @@ export default async function RunsPage() {
                 endedAt: queue.endedAt,
               },
               {
-                id: 'v2',
-                label: v2.label,
+                id: 'beanstalk',
+                label: beanstalk.label,
                 color: 'var(--series-v2)',
-                greens: v2.greens,
-                endedAt: v2.endedAt,
+                greens: beanstalk.greens,
+                endedAt: beanstalk.endedAt,
               },
             ]}
             now={until}
             until={until}
-            beans={v2.beans}
+            beans={beanstalk.beans}
             marks={[20, 30, 35]}
           />
         </div>

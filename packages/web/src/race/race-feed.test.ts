@@ -11,20 +11,30 @@ function eventsOf(run: string) {
 
 describe('the event feed', () => {
   it('lists the newest lines first and skips routine events', () => {
-    const lines = recentFeed(eventsOf('7z4j84eqvl'), 10);
+    const lines = recentFeed(eventsOf('j6boaclinn'), 10);
     expect(lines).toHaveLength(10);
-    expect(lines[0]?.text).toBe('Final check: the stalk is correct, 35 of 40 beans accepted.');
+    expect(lines[0]?.text).toBe('Final check: the stalk is correct, 39 of 40 beans accepted.');
     expect(
       lines.every((line, index) => index === 0 || (lines[index - 1]?.seq ?? 0) > line.seq),
     ).toBe(true);
   });
 
-  it('tells the decision in plain words, as a moment for a person', () => {
-    const lines = recentFeed(eventsOf('7z4j84eqvl'), 1000).filter((line) => line.tone === 'human');
-    expect(lines.map((line) => line.text).toReversed()).toEqual([
-      'Decision D001: t032 and t005 disagree. A person decides.',
-      'D001 decided: keep t005, decline t032.',
-    ]);
+  it('tells a start card and its decision in plain words, as moments for a person', () => {
+    const lines = recentFeed(eventsOf('j6boaclinn'), 1000).filter((line) => line.tone === 'human');
+    const texts = lines.map((line) => line.text).toReversed();
+    expect(texts[0]).toBe(
+      'Start card D001: t022 would undo t002. A person decides before it starts.',
+    );
+    expect(texts[1]).toMatch(/^D001 decided: keep t002, re-execute t022\. "Where the two specs/);
+  });
+
+  it('shows the v2.5 moments: a rescue, a structural merge, the sprout window', () => {
+    const texts = recentFeed(eventsOf('j6boaclinn'), 1000).map((line) => line.text);
+    expect(texts).toContain(
+      't015 is rescued: re-executed once on the sprout head (unresolved conflict).',
+    );
+    expect(texts).toContain('t034 lands on the sprout as #12, after a structural merge.');
+    expect(texts).toContain('The sprout window grows to 10.');
   });
 
   it('announces the queue bisecting a red batch', () => {

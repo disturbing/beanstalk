@@ -5,7 +5,7 @@ import { codeMap, mapFiles, moduleOf } from './code-map';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
 function v2Events() {
-  const recorded = recordedRun('7z4j84eqvl');
+  const recorded = recordedRun('j6boaclinn');
   if (recorded === undefined) throw new Error('fixture missing');
   return recorded.events;
 }
