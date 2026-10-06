@@ -1,0 +1,117 @@
+{
+  "id": "t013",
+  "title": "feat: add request.mediaType",
+  "prompt": "Closes #6650\n\n1. Add `mediaType` readonly property to `request` for public usage.\n2. Add `kRequestContentType` property to `request` for caching the `ContentType` instance and internal usage.\n3. Refactor the code and use `ContentType` to parse the header in all usage.",
+  "acceptance_tests": {
+    "test/request-media-type.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('request.mediaType should match the content-type header', async (t) => {\n  t.plan(2)\n\n  const fastify = Fastify()\n\n  fastify.post('/', (request, reply) => {\n    t.assert.strictEqual(request.mediaType, 'application/json')\n    reply.send({ mediaType: request.mediaType })\n  })\n\n  const response = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    body: JSON.stringify({ hello: 'world' }),\n    headers: {\n      'content-type': 'application/json'\n    }\n  })\n  const body = await response.json()\n  t.assert.strictEqual(body.mediaType, 'application/json')\n})\n\ntest('request.mediaType should strip the charset parameter', async (t) => {\n  t.plan(2)\n\n  const fastify = Fastify()\n\n  fastify.post('/', (request, reply) => {\n    t.assert.strictEqual(request.mediaType, 'application/json')\n    reply.send({ mediaType: request.mediaType })\n  })\n\n  const response = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    body: JSON.stringify({ hello: 'world' }),\n    headers: {\n      'content-type': 'application/json; charset=utf-8'\n    }\n  })\n  const body = await response.json()\n  t.assert.strictEqual(body.mediaType, 'application/json')\n})\n\ntest('request.mediaType should strip the space', async (t) => {\n  t.plan(2)\n\n  const fastify = Fastify()\n\n  fastify.post('/', (request, reply) => {\n    t.assert.strictEqual(request.mediaType, 'application/json')\n    reply.send({ mediaType: request.mediaType })\n  })\n\n  const response = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    body: JSON.stringify({ hello: 'world' }),\n    headers: {\n      'content-type': ' application/json ; charset=utf-8'\n    }\n  })\n  const body = await response.json()\n  t.assert.strictEqual(body.mediaType, 'application/json')\n})\n\ntest('request.mediaType supported in hooks', async (t) => {\n  t.plan(5)\n\n  const fastify = Fastify()\n\n  fastify.post('/', {\n    preParsing: (request, reply, payload, done) => {\n      t.assert.strictEqual(request.mediaType, 'application/json')\n      done(null, payload)\n    },\n    preValidation: (request, reply, done) => {\n      t.assert.strictEqual(request.mediaType, 'application/json')\n      done()\n    },\n    preHandler: (request, reply, done) => {\n      t.assert.strictEqual(request.mediaType, 'application/json')\n      done()\n    }\n  }, (request, reply) => {\n    t.assert.strictEqual(request.mediaType, 'application/json')\n    reply.send({ mediaType: request.mediaType })\n  })\n\n  const response = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    body: JSON.stringify({ hello: 'world' }),\n    headers: {\n      'content-type': 'application/json'\n    }\n  })\n  const body = await response.json()\n  t.assert.strictEqual(body.mediaType, 'application/json')\n})\n",
+    "test/schema-validation.pr6653.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\nconst AJV = require('ajv')\nconst Schema = require('fluent-json-schema')\nconst { waitForCb } = require('./toolkit')\nconst { kRequestContentType } = require('../lib/symbols')\n\nconst customSchemaCompilers = {\n  body: new AJV({\n    coerceTypes: false\n  }),\n  params: new AJV({\n    coerceTypes: true\n  }),\n  querystring: new AJV({\n    coerceTypes: true\n  })\n}\n\nconst customValidatorCompiler = req => {\n  if (!req.httpPart) {\n    throw new Error('Missing httpPart')\n  }\n\n  const compiler = customSchemaCompilers[req.httpPart]\n\n  if (!compiler) {\n    throw new Error(`Missing compiler for ${req.httpPart}`)\n  }\n\n  return compiler.compile(req.schema)\n}\n\nconst schemaA = {\n  $id: 'urn:schema:foo',\n  type: 'object',\n  definitions: {\n    foo: { type: 'integer' }\n  },\n  properties: {\n    foo: { $ref: '#/definitions/foo' }\n  }\n}\nconst schemaBRefToA = {\n  $id: 'urn:schema:response',\n  type: 'object',\n  required: ['foo'],\n  properties: {\n    foo: { $ref: 'urn:schema:foo#/definitions/foo' }\n  }\n}\n\nconst schemaCRefToB = {\n  $id: 'urn:schema:request',\n  type: 'object',\n  required: ['foo'],\n  properties: {\n    foo: { $ref: 'urn:schema:response#/properties/foo' }\n  }\n}\n\nconst schemaArtist = {\n  type: 'object',\n  properties: {\n    name: { type: 'string' },\n    work: { type: 'string' }\n  },\n  required: ['name', 'work']\n}\n\ntest('Schema validation when no content type is provided', async t => {\n  // this case should not be happened in normal use-case,\n  // it is added for the completeness of code branch\n  const fastify = Fastify()\n\n  fastify.post('/', {\n    schema: {\n      body: {\n        content: {\n          'application/json': {\n            schema: {\n              type: 'object',\n              properties: {\n                foo: { type: 'string' }\n              },\n              required: ['foo'],\n              additionalProperties: false\n            }\n          }\n        }\n      }\n    },\n    preValidation: async (request) => {\n      request.headers['content-type'] = undefined\n      request[kRequestContentType] = undefined\n    }\n  }, async () => 'ok')\n\n  await fastify.ready()\n\n  const invalid = await fastify.inject({\n    method: 'POST',\n    url: '/',\n    headers: {\n      'content-type': 'application/json'\n    },\n    body: { invalid: 'string' }\n  })\n  t.assert.strictEqual(invalid.statusCode, 200)\n})\n"
+  },
+  "oracle_paths": [
+    "docs/Reference/Request.md",
+    "lib/handle-request.js",
+    "lib/request.js",
+    "lib/symbols.js",
+    "lib/validation.js",
+    "test/request-media-type.test.js",
+    "test/schema-validation.pr6653.test.js",
+    "test/schema-validation.test.js",
+    "types/request.d.ts"
+  ],
+  "oracle_modules": [
+    "docs/Reference",
+    "lib",
+    "test",
+    "types"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6653,
+    "sha": "890ab7578f14730b2fed6de43acfeee19da1a3e4",
+    "url": "https://github.com/fastify/fastify/pull/6653",
+    "author": "climba03003",
+    "merged_at": "2026-04-14T16:41:54Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "docs/Reference/Request.md",
+      "lib/handle-request.js",
+      "lib/request.js",
+      "lib/symbols.js",
+      "lib/validation.js",
+      "test/schema-validation.test.js",
+      "types/request.d.ts"
+    ],
+    "source_files": [
+      "lib/handle-request.js",
+      "lib/request.js",
+      "lib/symbols.js",
+      "lib/validation.js"
+    ],
+    "test_files": [
+      "test/request-media-type.test.js",
+      "test/schema-validation.pr6653.test.js"
+    ],
+    "source_lines_changed": 36,
+    "notes": [
+      "test/schema-validation.test.js: 1 added/modified case(s) extracted to test/schema-validation.pr6653.test.js",
+      "test/schema-validation.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": false,
+    "background": [
+      {
+        "sha": "3ce3ae6752dbed672759856081af9cb1e2733105",
+        "subject": "Merge commit from fork",
+        "files": [
+          "lib/validation.js",
+          "test/schema-validation.test.js"
+        ]
+      }
+    ],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/request-media-type.test.js"
+    ],
+    "suite_seconds": 16.0,
+    "suite_retried": false,
+    "prerequisites": [
+      "t004",
+      "t005",
+      "t006",
+      "t007",
+      "t009"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/handle-request.js",
+      "lib/request.js",
+      "lib/symbols.js",
+      "lib/validation.js"
+    ],
+    "shares_a_source_file_with": [
+      "t002",
+      "t004",
+      "t007",
+      "t009",
+      "t011",
+      "t012",
+      "t019",
+      "t020",
+      "t025",
+      "t026",
+      "t028",
+      "t036"
+    ],
+    "writes_lines_written_by": [
+      "t007"
+    ],
+    "lines_rewritten_by": [
+      "t020"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

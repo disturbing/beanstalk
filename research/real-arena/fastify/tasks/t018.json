@@ -1,0 +1,60 @@
+{
+  "id": "t018",
+  "title": "fix: use ContentType parser for response schema lookup",
+  "prompt": "The response schema lookup was using a naive `split(';', 1)[0]` to extract the media type from Content-Type headers. This fails when there is whitespace before the semicolon. Switched to the existing `ContentType` parser which handles this correctly.",
+  "acceptance_tests": {
+    "test/schema-serialization.pr6685.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst { waitForCb } = require('./toolkit')\n\nconst echoBody = (req, reply) => { reply.send(req.body) }\n\ntest('response schema is applied when Content-Type has whitespace before parameters', (t, testDone) => {\n  t.plan(3)\n\n  const fastify = Fastify()\n  fastify.get('/', {\n    schema: {\n      response: {\n        200: {\n          content: {\n            'application/json': {\n              schema: {\n                type: 'object',\n                required: ['public'],\n                additionalProperties: false,\n                properties: {\n                  public: { type: 'string' }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }, function (req, reply) {\n    reply.header('Content-Type', 'application/json ; charset=utf-8')\n    reply.send({ public: 'ok', secret: 'SHOULD_BE_STRIPPED' })\n  })\n\n  fastify.inject('/', (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.deepStrictEqual(res.json(), { public: 'ok' })\n    testDone()\n  })\n})\n\ntest('response schema is applied when Content-Type has tab before semicolon', (t, testDone) => {\n  t.plan(3)\n\n  const fastify = Fastify()\n  fastify.get('/', {\n    schema: {\n      response: {\n        200: {\n          content: {\n            'application/json': {\n              schema: {\n                type: 'object',\n                required: ['public'],\n                additionalProperties: false,\n                properties: {\n                  public: { type: 'string' }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }, function (req, reply) {\n    reply.header('Content-Type', 'application/json\\t; charset=utf-8')\n    reply.send({ public: 'ok', secret: 'SHOULD_BE_STRIPPED' })\n  })\n\n  fastify.inject('/', (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.deepStrictEqual(res.json(), { public: 'ok' })\n    testDone()\n  })\n})\n\ntest('response schema is applied when Content-Type has trailing semicolon only', (t, testDone) => {\n  t.plan(3)\n\n  const fastify = Fastify()\n  fastify.get('/', {\n    schema: {\n      response: {\n        200: {\n          content: {\n            'application/json': {\n              schema: {\n                type: 'object',\n                required: ['public'],\n                additionalProperties: false,\n                properties: {\n                  public: { type: 'string' }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }, function (req, reply) {\n    reply.header('Content-Type', 'application/json ;')\n    reply.send({ public: 'ok', secret: 'SHOULD_BE_STRIPPED' })\n  })\n\n  fastify.inject('/', (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.deepStrictEqual(res.json(), { public: 'ok' })\n    testDone()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/schemas.js",
+    "test/schema-serialization.pr6685.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6685,
+    "sha": "c06fc06d33e66354cf6f5dc000b1ef2002a5eb96",
+    "url": "https://github.com/fastify/fastify/pull/6685",
+    "author": "UlisesGascon",
+    "merged_at": "2026-04-21T20:01:18Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/schemas.js"
+    ],
+    "source_files": [
+      "lib/schemas.js"
+    ],
+    "test_files": [
+      "test/schema-serialization.pr6685.test.js"
+    ],
+    "source_lines_changed": 25,
+    "notes": [
+      "test/schema-serialization.test.js: 3 added/modified case(s) extracted to test/schema-serialization.pr6685.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/schema-serialization.pr6685.test.js"
+    ],
+    "suite_seconds": 15.8,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/schemas.js"
+    ],
+    "shares_a_source_file_with": [],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

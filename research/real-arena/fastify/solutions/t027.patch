@@ -1,0 +1,13 @@
+diff --git a/lib/route.js b/lib/route.js
+index c863a104..cf63ad47 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -184,7 +184,7 @@ function buildRouting (options) {
+ 
+   function findRoute (options) {
+     const route = router.find(
+-      options.method,
++      options.method?.toUpperCase() ?? '',
+       options.url || '',
+       options.constraints
+     )

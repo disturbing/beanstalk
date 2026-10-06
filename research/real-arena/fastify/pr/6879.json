@@ -1,0 +1,18 @@
+{
+ "number": 6879,
+ "sha": "0e9a3b35d8b13c9f261bf29bef46168a5d43c28f",
+ "title": "fix: add http method override warning",
+ "body": "Fixes #6284.\r\n\r\nThis supersedes #6608 because the original contributor has not responded to the latest review feedback.\r\nI would like to publish this deprecation at least a few weeks before the Fastify v6 release.\r\n\r\nThis change:\r\n\r\n- Emits `FSTDEP025` when `addHttpMethod` overrides an existing method implicitly.\r\n- Adds `overrideExisting: true` to make the override explicit and suppress the warning.\r\n- Documents that implicit overrides will throw in v6.",
+ "author": "jean-michelet",
+ "created_at": "2026-07-29T11:20:00Z",
+ "merged_at": "2026-07-30T10:00:14Z",
+ "pr_base_sha": "812608e5c9cb0b643b3eb186c2e9e84bbb7ed8ee",
+ "linked_issues": [
+  {
+   "number": 6284,
+   "title": "`addHttpMethod` override existing http standard methods",
+   "body": "### Prerequisites\n\n- [x] I have written a descriptive issue title\n- [x] I have searched existing issues to ensure the issue has not already been raised\n\n\n### Issue\n\nWhile reading ticket #6283 and checking the source code, I realized that `addHttpMethod` override existing methods, including standard http methods.\n\nSurprisingly, the name of the function does not reflect its implementation, nor does [the documentation](https://fastify.dev/docs/latest/Reference/Server/#addhttpmethod).\n\nI wonder if we should do something about this. \n\nHere are a few options:\n1. At a minimum, document this behavior.\n2. Disable the override behavior in the next major and add an alternative method (e.g., `setHttpMethod` or `overrideHttpMethod`) or option (e.g. `override: true`).\n3. Perhaps a combination of both.\n\n",
+   "is_pr": false
+  }
+ ]
+}

@@ -1,0 +1,327 @@
+diff --git a/build/build-validation.js b/build/build-validation.js
+index 0b6d4c8b..266dc33d 100644
+--- a/build/build-validation.js
++++ b/build/build-validation.js
+@@ -112,7 +112,7 @@ const schema = {
+     useSemicolonDelimiter: { type: 'boolean', default: defaultInitOptions.useSemicolonDelimiter },
+     routerOptions: {
+       type: 'object',
+-      additionalProperties: false,
++      additionalProperties: true,
+       properties: {
+         ignoreTrailingSlash: { type: 'boolean', default: defaultInitOptions.routerOptions.ignoreTrailingSlash },
+         ignoreDuplicateSlashes: { type: 'boolean', default: defaultInitOptions.routerOptions.ignoreDuplicateSlashes },
+diff --git a/docs/Reference/Server.md b/docs/Reference/Server.md
+index 926bd46a..0f4358ab 100644
+--- a/docs/Reference/Server.md
++++ b/docs/Reference/Server.md
+@@ -839,6 +839,12 @@ const fastify = require('fastify')({
+ })
+ ```
+ 
++> **Note**
++> The `req` and `res` objects passed to `defaultRoute` are the raw Node.js
++> `IncomingMessage` and `ServerResponse` instances. They do **not** expose the
++> Fastify-specific methods available on `FastifyRequest`/`FastifyReply` (for
++> example, `res.send`).
++
+ ### `ignoreDuplicateSlashes`
+ <a id="factory-ignore-duplicate-slashes"></a>
+ 
+@@ -930,6 +936,9 @@ const fastify = require('fastify')({
+ })
+ ```
+ 
++As with `defaultRoute`, `req` and `res` are the raw Node.js request/response
++objects and do not provide Fastify's decorated helpers.
++
+ ### `querystringParser`
+ <a id="querystringparser"></a>
+ 
+diff --git a/fastify.d.ts b/fastify.d.ts
+index 65891df1..2f34f8b2 100644
+--- a/fastify.d.ts
++++ b/fastify.d.ts
+@@ -6,7 +6,7 @@ import { Socket } from 'node:net'
+ import { Options as AjvOptions, ValidatorFactory } from '@fastify/ajv-compiler'
+ import { FastifyError } from '@fastify/error'
+ import { Options as FJSOptions, SerializerFactory } from '@fastify/fast-json-stringify-compiler'
+-import { ConstraintStrategy, HTTPVersion } from 'find-my-way'
++import { Config as FindMyWayConfig, ConstraintStrategy, HTTPVersion } from 'find-my-way'
+ import { InjectOptions, CallbackFunc as LightMyRequestCallback, Chain as LightMyRequestChain, Response as LightMyRequestResponse } from 'light-my-request'
+ 
+ import { AddContentTypeParser, ConstructorAction, FastifyBodyParser, FastifyContentTypeParser, getDefaultJsonParser, hasContentTypeParser, ProtoAction } from './types/content-type-parser'
+@@ -77,6 +77,7 @@ declare namespace fastify {
+   }
+ 
+   type FindMyWayVersion<RawServer extends RawServerBase> = RawServer extends http.Server ? HTTPVersion.V1 : HTTPVersion.V2
++  type FindMyWayConfigForServer<RawServer extends RawServerBase> = FindMyWayConfig<FindMyWayVersion<RawServer>>
+ 
+   export interface ConnectionError extends Error {
+     code: string,
+@@ -89,20 +90,17 @@ declare namespace fastify {
+ 
+   type TrustProxyFunction = (address: string, hop: number) => boolean
+ 
+-  export type FastifyRouterOptions<RawServer extends RawServerBase> = {
+-    allowUnsafeRegex?: boolean,
+-    buildPrettyMeta?: (route: { [k: string]: unknown, store: { [k: string]: unknown } }) => object,
+-    caseSensitive?: boolean,
+-    constraints?: {
+-      [name: string]: ConstraintStrategy<FindMyWayVersion<RawServer>, unknown>,
+-    },
+-    defaultRoute?: (req: FastifyRequest, res: FastifyReply) => void,
+-    ignoreDuplicateSlashes?: boolean,
+-    ignoreTrailingSlash?: boolean,
+-    maxParamLength?: number,
+-    onBadUrl?: (path: string, req: FastifyRequest, res: FastifyReply) => void,
+-    querystringParser?: (str: string) => { [key: string]: unknown },
+-    useSemicolonDelimiter?: boolean,
++  export type FastifyRouterOptions<RawServer extends RawServerBase> = Omit<FindMyWayConfigForServer<RawServer>, 'defaultRoute' | 'onBadUrl' | 'querystringParser'> & {
++    defaultRoute?: (
++      req: RawRequestDefaultExpression<RawServer>,
++      res: RawReplyDefaultExpression<RawServer>
++    ) => void,
++    onBadUrl?: (
++      path: string,
++      req: RawRequestDefaultExpression<RawServer>,
++      res: RawReplyDefaultExpression<RawServer>
++    ) => void,
++    querystringParser?: (str: string) => { [key: string]: unknown }
+   }
+ 
+   /**
+diff --git a/lib/config-validator.js b/lib/config-validator.js
+index a110fb6b..b44ef0b1 100644
+--- a/lib/config-validator.js
++++ b/lib/config-validator.js
+@@ -3,7 +3,7 @@
+ "use strict";
+ module.exports = validate10;
+ module.exports.default = validate10;
+-const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":false,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
++const schema11 = {"type":"object","additionalProperties":false,"properties":{"connectionTimeout":{"type":"integer","default":0},"keepAliveTimeout":{"type":"integer","default":72000},"forceCloseConnections":{"oneOf":[{"type":"string","pattern":"idle"},{"type":"boolean"}]},"maxRequestsPerSocket":{"type":"integer","default":0,"nullable":true},"requestTimeout":{"type":"integer","default":0},"bodyLimit":{"type":"integer","default":1048576},"caseSensitive":{"type":"boolean","default":true},"allowUnsafeRegex":{"type":"boolean","default":false},"http2":{"type":"boolean"},"https":{"if":{"not":{"oneOf":[{"type":"boolean"},{"type":"null"},{"type":"object","additionalProperties":false,"required":["allowHTTP1"],"properties":{"allowHTTP1":{"type":"boolean"}}}]}},"then":{"setDefaultValue":true}},"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"disableRequestLogging":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"onProtoPoisoning":{"type":"string","default":"error"},"onConstructorPoisoning":{"type":"string","default":"error"},"pluginTimeout":{"type":"integer","default":10000},"requestIdHeader":{"anyOf":[{"type":"boolean"},{"type":"string"}],"default":false},"requestIdLogLabel":{"type":"string","default":"reqId"},"http2SessionTimeout":{"type":"integer","default":72000},"exposeHeadRoutes":{"type":"boolean","default":true},"useSemicolonDelimiter":{"type":"boolean","default":false},"routerOptions":{"type":"object","additionalProperties":true,"properties":{"ignoreTrailingSlash":{"type":"boolean","default":false},"ignoreDuplicateSlashes":{"type":"boolean","default":false},"maxParamLength":{"type":"integer","default":100},"allowUnsafeRegex":{"type":"boolean","default":false},"useSemicolonDelimiter":{"type":"boolean","default":false}}},"constraints":{"type":"object","additionalProperties":{"type":"object","required":["name","storage","validate","deriveConstraint"],"additionalProperties":true,"properties":{"name":{"type":"string"},"storage":{},"validate":{},"deriveConstraint":{}}}}}};
+ const func2 = Object.prototype.hasOwnProperty;
+ const pattern0 = new RegExp("idle", "u");
+ 
+@@ -1022,13 +1022,6 @@ data23.allowUnsafeRegex = false;
+ if(data23.useSemicolonDelimiter === undefined){
+ data23.useSemicolonDelimiter = false;
+ }
+-const _errs71 = errors;
+-for(const key2 in data23){
+-if(!(((((key2 === "ignoreTrailingSlash") || (key2 === "ignoreDuplicateSlashes")) || (key2 === "maxParamLength")) || (key2 === "allowUnsafeRegex")) || (key2 === "useSemicolonDelimiter"))){
+-delete data23[key2];
+-}
+-}
+-if(_errs71 === errors){
+ let data24 = data23.ignoreTrailingSlash;
+ const _errs72 = errors;
+ if(typeof data24 !== "boolean"){
+@@ -1157,7 +1150,6 @@ var valid7 = _errs80 === errors;
+ }
+ }
+ }
+-}
+ else {
+ validate10.errors = [{instancePath:instancePath+"/routerOptions",schemaPath:"#/properties/routerOptions/type",keyword:"type",params:{type: "object"},message:"must be object"}];
+ return false;
+@@ -1174,14 +1166,14 @@ let data29 = data.constraints;
+ const _errs82 = errors;
+ if(errors === _errs82){
+ if(data29 && typeof data29 == "object" && !Array.isArray(data29)){
+-for(const key3 in data29){
+-let data30 = data29[key3];
++for(const key2 in data29){
++let data30 = data29[key2];
+ const _errs85 = errors;
+ if(errors === _errs85){
+ if(data30 && typeof data30 == "object" && !Array.isArray(data30)){
+ let missing1;
+ if(((((data30.name === undefined) && (missing1 = "name")) || ((data30.storage === undefined) && (missing1 = "storage"))) || ((data30.validate === undefined) && (missing1 = "validate"))) || ((data30.deriveConstraint === undefined) && (missing1 = "deriveConstraint"))){
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/required",keyword:"required",params:{missingProperty: missing1},message:"must have required property '"+missing1+"'"}];
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/required",keyword:"required",params:{missingProperty: missing1},message:"must have required property '"+missing1+"'"}];
+ return false;
+ }
+ else {
+@@ -1198,7 +1190,7 @@ else if(data31 === null){
+ coerced31 = "";
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1")+"/name",schemaPath:"#/properties/constraints/additionalProperties/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"}];
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1")+"/name",schemaPath:"#/properties/constraints/additionalProperties/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"}];
+ return false;
+ }
+ }
+@@ -1213,7 +1205,7 @@ data30["name"] = coerced31;
+ }
+ }
+ else {
+-validate10.errors = [{instancePath:instancePath+"/constraints/" + key3.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"}];
++validate10.errors = [{instancePath:instancePath+"/constraints/" + key2.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/properties/constraints/additionalProperties/type",keyword:"type",params:{type: "object"},message:"must be object"}];
+ return false;
+ }
+ }
+diff --git a/test/issue-4959.test.js b/test/issue-4959.test.js
+index 271bc5d9..87c98a3a 100644
+--- a/test/issue-4959.test.js
++++ b/test/issue-4959.test.js
+@@ -11,7 +11,7 @@ const { setTimeout } = require('node:timers')
+ *
+ * @see https://github.com/fastify/fastify/issues/4959
+ */
+-function runBadClientCall (reqOptions, payload) {
++function runBadClientCall (reqOptions, payload, waitBeforeDestroy) {
+   let innerResolve, innerReject
+   const promise = new Promise((resolve, reject) => {
+     innerResolve = resolve
+@@ -30,11 +30,25 @@ function runBadClientCall (reqOptions, payload) {
+     innerReject(new Error('Request should have failed'))
+   })
+ 
+-  // Kill the socket immediately (before sending data)
+-  req.on('socket', (socket) => {
+-    socket.on('connect', () => {
+-      setTimeout(() => { socket.destroy() }, 0)
+-    })
++  // Kill the socket after the request has been fully written.
++  // Destroying it on `connect` can race before any bytes are sent, making the
++  // server-side assertions (hooks/handler) non-deterministic.
++  //
++  // To keep the test deterministic, we optionally wait for a server-side signal
++  // (e.g. onSend entered) before aborting the client.
++  let socket
++  req.on('socket', (s) => { socket = s })
++  req.on('finish', () => {
++    if (waitBeforeDestroy && typeof waitBeforeDestroy.then === 'function') {
++      Promise.race([
++        waitBeforeDestroy,
++        new Promise(resolve => setTimeout(resolve, 200))
++      ]).then(() => {
++        if (socket) socket.destroy()
++      }, innerResolve)
++      return
++    }
++    setTimeout(() => { socket.destroy() }, 0)
+   })
+   req.on('error', innerResolve)
+   req.write(postData)
+@@ -47,6 +61,11 @@ test('should handle a socket error', async (t) => {
+   t.plan(4)
+   const fastify = Fastify()
+ 
++  let resolveOnSendEntered
++  const onSendEntered = new Promise((resolve) => {
++    resolveOnSendEntered = resolve
++  })
++
+   function shouldNotHappen () {
+     t.assert.fail('This should not happen')
+   }
+@@ -70,8 +89,14 @@ test('should handle a socket error', async (t) => {
+     t.assert.ok('onSend hook called')
+     request.onSendCalled = true
+ 
+-    // Introduce a delay
+-    await new Promise(resolve => setTimeout(resolve, 5))
++    if (resolveOnSendEntered) {
++      resolveOnSendEntered()
++      resolveOnSendEntered = null
++    }
++
++    // Introduce a delay (gives time for client-side abort to happen while the
++    // request has already been processed, exercising the original issue).
++    await new Promise(resolve => setTimeout(resolve, 50))
+     return payload
+   })
+ 
+@@ -88,6 +113,6 @@ test('should handle a socket error', async (t) => {
+     port: fastify.server.address().port,
+     path: '/',
+     method: 'PUT'
+-  }, { test: 'me' })
++  }, { test: 'me' }, onSendEntered)
+   t.assert.equal(err.code, 'ECONNRESET')
+ })
+diff --git a/test/types/instance.test-d.ts b/test/types/instance.test-d.ts
+index b975249f..8b7144e9 100644
+--- a/test/types/instance.test-d.ts
++++ b/test/types/instance.test-d.ts
+@@ -1,9 +1,10 @@
+-import { expectAssignable, expectError, expectNotDeprecated, expectType } from 'tsd'
++import { expectAssignable, expectError, expectNotAssignable, expectNotDeprecated, expectType } from 'tsd'
+ import fastify, {
+   FastifyBaseLogger,
+   FastifyBodyParser,
+   FastifyError,
+   FastifyInstance,
++  FastifyRouterOptions,
+   RawReplyDefaultExpression,
+   RawRequestDefaultExpression,
+   RawServerDefault,
+@@ -15,7 +16,7 @@ import { FastifyRequest } from '../../types/request'
+ import { FastifySchemaControllerOptions, FastifySchemaCompiler, FastifySerializerCompiler } from '../../types/schema'
+ import { AddressInfo } from 'node:net'
+ import { Bindings, ChildLoggerOptions } from '../../types/logger'
+-import { ConstraintStrategy } from 'find-my-way'
++import { Config as FindMyWayConfig, ConstraintStrategy } from 'find-my-way'
+ import { FindMyWayVersion } from '../../types/instance'
+ 
+ const server = fastify()
+@@ -332,25 +333,32 @@ type InitialConfig = Readonly<{
+   requestIdLogLabel?: string,
+   http2SessionTimeout?: number,
+   useSemicolonDelimiter?: boolean,
+-  routerOptions?: {
+-    allowUnsafeRegex?: boolean,
+-    buildPrettyMeta?: (route: { [k: string]: unknown, store: { [k: string]: unknown } }) => object,
+-    caseSensitive?: boolean,
+-    constraints?: {
+-      [name: string]: ConstraintStrategy<FindMyWayVersion<RawServerDefault>, unknown>
+-    }
+-    defaultRoute?: (req: FastifyRequest, res: FastifyReply) => void,
+-    ignoreDuplicateSlashes?: boolean,
+-    ignoreTrailingSlash?: boolean,
+-    maxParamLength?: number,
+-    onBadUrl?: (path: string, req: FastifyRequest, res: FastifyReply) => void,
+-    querystringParser?: (str: string) => { [key: string]: unknown },
+-    useSemicolonDelimiter?: boolean,
+-  }
++  routerOptions?: FastifyRouterOptions<RawServerDefault>
+ }>
+ 
+ expectType<InitialConfig>(fastify().initialConfig)
+ 
++const routerOptionsForFindMyWay = {} as FastifyRouterOptions<RawServerDefault>
++expectAssignable<FindMyWayConfig<FindMyWayVersion<RawServerDefault>>>(routerOptionsForFindMyWay)
++
++fastify({
++  routerOptions: {
++    defaultRoute: (req, res) => {
++      expectType<RawRequestDefaultExpression<RawServerDefault>>(req)
++      expectType<RawReplyDefaultExpression<RawServerDefault>>(res)
++      expectNotAssignable<FastifyReply>(res)
++      res.end('foo')
++    },
++    onBadUrl: (path, req, res) => {
++      expectType<string>(path)
++      expectType<RawRequestDefaultExpression<RawServerDefault>>(req)
++      expectType<RawReplyDefaultExpression<RawServerDefault>>(res)
++      expectNotAssignable<FastifyReply>(res)
++      res.end('foo')
++    }
++  }
++})
++
+ expectType<FastifyBodyParser<string>>(server.defaultTextParser)
+ 
+ expectType<FastifyBodyParser<string>>(server.getDefaultJsonParser('ignore', 'error'))
+@@ -562,7 +570,7 @@ expectError(server.decorateReply('typedTestReplyMethod', async function (x) {
+ const foo = server.getDecorator<string>('foo')
+ expectType<string>(foo)
+ 
+-const versionConstraintStrategy = {
++const versionConstraintStrategy: ConstraintStrategy<FindMyWayVersion<RawServerDefault>> = {
+   name: 'version',
+   storage: () => ({
+     get: () => () => {},

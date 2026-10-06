@@ -279,7 +279,7 @@ class BeanstalkRace(Race):
             assert ticket
             prompt = (f"Your fix for repair ticket {ticket.id} conflicts with commits that landed on the trunk "
                       f"meanwhile. The merge is in progress here; conflict markers are in: {', '.join(files)}. "
-                      "Resolve them, keep both sides' intent, and make sure `node --test` passes. "
+                      f"Resolve them, keep both sides' intent, and make sure `{prompts.SUITE_COMMAND}` passes. "
                       f"{prompts.NO_COMMIT}\n")
             replay = {"reset_to": head, "fixes": self.ticket_fixes(ticket)}
         spec = InvocationSpec(inv_id=self.new_inv_id("rework"), kind="rework", task_id=ts.id if ts else ticket.id,

@@ -1,0 +1,11 @@
+{
+ "number": 6528,
+ "sha": "1e0be1294e85734f1e6ac651f3ff664d389d7799",
+ "title": "fix: remove format placeholder from FST_ERR_CTP_INVALID_MEDIA_TYPE message",
+ "body": "## Summary\n\n- The error message template `'Unsupported Media Type: %s'` produced the literal string `%s` when instantiated without arguments (as in `lib/handle-request.js`).\n- Rather than reflecting the raw `content-type` header back to the client (which would expose unsanitized user input in error responses and logs), the template is changed to the static message `'Unsupported Media Type'`.\n- Both callsites (`lib/handle-request.js` and `lib/content-type-parser.js`) now instantiate the error with no arguments.\n\n## Breaking change\n\nThis is a **minor breaking change** for consumers that match on the exact `error.message` string (previously `'Unsupported Media Type: <content-type>'`, now `'Unsupported Media Type'`). The error code `FST_ERR_CTP_INVALID_MEDIA_TYPE` and HTTP status `415` are unchanged and should be used for programmatic error handling instead.\n\n## Test plan\n\n- [x] Added test that sends an invalid content-type header and asserts the error message is `'Unsupported Media Type'` (no `%s` placeholder)\n- [x] Updated existing error unit test to expect the new message\n- [x] All tests pass (2164 pass, 0 fail)\n- [x] Lint passes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+ "author": "super-mcgin",
+ "created_at": "2026-02-23T16:19:13Z",
+ "merged_at": "2026-02-28T09:32:19Z",
+ "pr_base_sha": "c970ed48d3e436f392d08d9e379f632409472743",
+ "linked_issues": []
+}

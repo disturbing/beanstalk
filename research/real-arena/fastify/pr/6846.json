@@ -1,0 +1,11 @@
+{
+ "number": 6846,
+ "sha": "16a74e7cb2d1abdc2feca9097f2936fe8b851a5c",
+ "title": "fix: reset lastIndex before testing global/sticky content-type RegExp parsers",
+ "body": "## Checklist\n\n- [x] run `npm run test` and `npm run benchmark`\n- [x] tests and/or benchmarks are included\n- [x] documentation is changed or added\n- [x] commit message and code follows [Developer's Certification of Origin](https://github.com/fastify/fastify/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11) and the [Code of conduct](https://github.com/fastify/fastify/blob/main/CODE_OF_CONDUCT.md)\n\n## What this does\n\n`ContentTypeParser.getParser` walks `parserRegExpList` and calls `parserRegExp.test(ct)` to find a matching custom parser. When a parser is registered with a RegExp that carries the `g` or `y` flag, `RegExp.prototype.test` is stateful: it advances `lastIndex` on a match and resumes from there on the next call. So the same parser RegExp can match one request and then miss (or partially match) a later one for the same content type, depending on where `lastIndex` was left.\n\nThe fix resets `parserRegExp.lastIndex = 0` before each `test()`, which makes matching independent of previous calls. Parsers registered with non-global RegExps (the common case) are unaffected, since `lastIndex` is not used there.\n\nAdded a regression test that registers a global-flagged content-type RegExp and sends two matching requests; it fails before this change (the second request misses the parser) and passes after.\n",
+ "author": "zelinewang",
+ "created_at": "2026-07-15T00:19:30Z",
+ "merged_at": "2026-08-08T06:37:50Z",
+ "pr_base_sha": "de3752df84bb8dd35a8226bb467f05862f4da57c",
+ "linked_issues": []
+}

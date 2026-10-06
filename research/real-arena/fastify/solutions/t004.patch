@@ -1,0 +1,106 @@
+diff --git a/lib/error-handler.js b/lib/error-handler.js
+index 03d5cab3..f9a1899c 100644
+--- a/lib/error-handler.js
++++ b/lib/error-handler.js
+@@ -2,11 +2,11 @@
+ 
+ const statusCodes = require('node:http').STATUS_CODES
+ const wrapThenable = require('./wrap-thenable.js')
++const { setErrorStatusCode } = require('./error-status.js')
+ const {
+   kReplyHeaders,
+   kReplyNextErrorHandler,
+   kReplyIsRunningOnErrorHook,
+-  kReplyHasStatusCode,
+   kRouteContext,
+   kDisableRequestLogging
+ } = require('./symbols.js')
+@@ -81,10 +81,7 @@ function handleError (reply, error, cb) {
+ 
+ function defaultErrorHandler (error, request, reply) {
+   setErrorHeaders(error, reply)
+-  if (!reply[kReplyHasStatusCode] || reply.statusCode === 200) {
+-    const statusCode = error && (error.statusCode || error.status)
+-    reply.code(statusCode >= 400 ? statusCode : 500)
+-  }
++  setErrorStatusCode(reply, error)
+   if (reply.statusCode < 500) {
+     if (!reply.log[kDisableRequestLogging]) {
+       reply.log.info(
+diff --git a/lib/error-status.js b/lib/error-status.js
+new file mode 100644
+index 00000000..e6baea2b
+--- /dev/null
++++ b/lib/error-status.js
+@@ -0,0 +1,14 @@
++'use strict'
++
++const {
++  kReplyHasStatusCode
++} = require('./symbols')
++
++function setErrorStatusCode (reply, err) {
++  if (!reply[kReplyHasStatusCode] || reply.statusCode === 200) {
++    const statusCode = err && (err.statusCode || err.status)
++    reply.code(statusCode >= 400 ? statusCode : 500)
++  }
++}
++
++module.exports = { setErrorStatusCode }
+diff --git a/lib/handle-request.js b/lib/handle-request.js
+index fe0977f9..12831e6a 100644
+--- a/lib/handle-request.js
++++ b/lib/handle-request.js
+@@ -4,6 +4,7 @@ const diagnostics = require('node:diagnostics_channel')
+ const { validate: validateSchema } = require('./validation')
+ const { preValidationHookRunner, preHandlerHookRunner } = require('./hooks')
+ const wrapThenable = require('./wrap-thenable')
++const { setErrorStatusCode } = require('./error-status')
+ const {
+   kReplyIsError,
+   kRouteContext,
+@@ -143,11 +144,13 @@ function preHandlerCallbackInner (err, request, reply, store) {
+   try {
+     if (err != null) {
+       reply[kReplyIsError] = true
+-      reply.send(err)
+       if (store) {
+         store.error = err
++        // Set status code before publishing so subscribers see the correct value
++        setErrorStatusCode(reply, err)
+         channels.error.publish(store)
+       }
++      reply.send(err)
+       return
+     }
+ 
+@@ -158,6 +161,8 @@ function preHandlerCallbackInner (err, request, reply, store) {
+     } catch (err) {
+       if (store) {
+         store.error = err
++        // Set status code before publishing so subscribers see the correct value
++        setErrorStatusCode(reply, err)
+         channels.error.publish(store)
+       }
+ 
+diff --git a/lib/wrap-thenable.js b/lib/wrap-thenable.js
+index 8dddc72a..6ff5091d 100644
+--- a/lib/wrap-thenable.js
++++ b/lib/wrap-thenable.js
+@@ -4,6 +4,7 @@ const {
+   kReplyIsError,
+   kReplyHijacked
+ } = require('./symbols')
++const { setErrorStatusCode } = require('./error-status')
+ 
+ const diagnostics = require('node:diagnostics_channel')
+ const channels = diagnostics.tracingChannel('fastify.request.handler')
+@@ -52,6 +53,8 @@ function wrapThenable (thenable, reply, store) {
+   }, function (err) {
+     if (store) {
+       store.error = err
++      // Set status code before publishing so subscribers see the correct value
++      setErrorStatusCode(reply, err)
+       channels.error.publish(store) // note that error happens before asyncStart
+       channels.asyncStart.publish(store)
+     }

@@ -25,3 +25,7 @@ contention-replay/out/**/pairs.jsonl
 footprint-prediction/out/**/predictions.jsonl
 footprint-prediction/out/**/jev_inputs.jsonl
 scale-replay/out/run.log
+
+# Real-task arenas: upstream clones and scratch worktrees (rebuild with real-arena/build.py; node_modules above)
+real-arena/upstream/
+real-arena/.work/

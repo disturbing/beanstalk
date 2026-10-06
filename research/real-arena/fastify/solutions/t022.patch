@@ -1,0 +1,96 @@
+diff --git a/docs/Reference/Reply.md b/docs/Reference/Reply.md
+index ed21f975..bcf06343 100644
+--- a/docs/Reference/Reply.md
++++ b/docs/Reference/Reply.md
+@@ -689,6 +689,11 @@ If you are sending a stream and you have not set a `'Content-Type'` header,
+ As noted above, streams are considered to be pre-serialized, so they will be
+ sent unmodified without response validation.
+ 
++When sending streams over HTTP/2, Fastify does not change the chunks emitted by
++the stream. If a stream can emit very large chunks, split them in your
++application code, for example by using `fs.createReadStream()` or a transform
++stream that emits smaller chunks.
++
+ See special note about error handling for streams in
+ [`setErrorHandler`](./Server.md#seterrorhandler).
+ 
+diff --git a/lib/reply.js b/lib/reply.js
+index 82e9acb4..20341bf7 100644
+--- a/lib/reply.js
++++ b/lib/reply.js
+@@ -61,6 +61,7 @@ const {
+ const decorators = require('./decorate')
+ 
+ const toString = Object.prototype.toString
++const HTTP2_WRITE_CHUNK_SIZE = 64 * 1024
+ 
+ function Reply (res, request, log) {
+   this.raw = res
+@@ -678,9 +679,52 @@ function onSendEnd (reply, payload) {
+ 
+   safeWriteHead(reply, statusCode)
+   // write payload first
+-  res.write(payload)
+-  // then send trailers
+-  sendTrailer(payload, res, reply)
++  writePayload(payload, res, reply)
++}
++
++function isHttp2Reply (reply) {
++  return reply.request.raw?.httpVersionMajor === 2
++}
++
++function writePayload (payload, res, reply) {
++  if (!isHttp2Reply(reply) || Buffer.byteLength(payload) <= HTTP2_WRITE_CHUNK_SIZE) {
++    res.write(payload)
++    // then send trailers
++    sendTrailer(payload, res, reply)
++    return
++  }
++
++  writeHttp2Payload(payload, res, () => {
++    // then send trailers
++    sendTrailer(payload, res, reply)
++  })
++}
++
++function writeHttp2Payload (payload, res, done) {
++  const buffer = Buffer.isBuffer(payload) ? payload : Buffer.from(payload)
++  let offset = 0
++
++  function writeChunk () {
++    while (offset < buffer.length) {
++      /* c8 ignore next 3 - defensive guard for aborted responses */
++      if (res.destroyed || res.writableEnded) {
++        return
++      }
++
++      const end = Math.min(offset + HTTP2_WRITE_CHUNK_SIZE, buffer.length)
++      const shouldContinue = res.write(buffer.subarray(offset, end))
++      offset = end
++
++      if (shouldContinue === false) {
++        res.once('drain', writeChunk)
++        return
++      }
++    }
++
++    done()
++  }
++
++  writeChunk()
+ }
+ 
+ function logStreamError (logger, err, res) {
+diff --git a/test/http2/plain.test.js b/test/http2/plain.test.js
+index 3e1d5b4c..3db0345a 100644
+--- a/test/http2/plain.test.js
++++ b/test/http2/plain.test.js
+@@ -1,6 +1,7 @@
+ 'use strict'
+ 
+ const { test } = require('node:test')
++const http2 = require('node:http2')
+ const Fastify = require('../..')
+ const h2url = require('h2url')
+ const msg = { hello: 'world' }

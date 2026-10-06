@@ -1,0 +1,11 @@
+{
+ "number": 7018,
+ "sha": "d266f833f2bff34c6115c026e461b682e94d0b9c",
+ "title": "perf: avoid redundant request-part reads during validation",
+ "body": "Before the patch, validation could read headers twice despite having no header validator. If application code had previously assigned `request.headers = {...}`, those reads copied the merged headers twice in this path. You can see why we copied in the headers getter here:\r\n\r\nhttps://github.com/fastify/fastify/blob/af079bd4c60c3cbebedc7640517d7288468fb5eb/lib/request.js#L277-L286\r\n\r\nThe patch checks for a validator before reading the request part and reads validated parts once. Query-only validation therefore reduces header copies from two to zero; header validation reduces them from two to one.\r\n\r\nHeader assignment may occur in onRequest, preParsing, a content-type parser, or preValidation, including encapsulated hooks.\r\n\r\n```text\r\n   Scenario                                                  Before            After    Change\r\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━\r\n   Query validation + enriched headers                 51,456 req/s     94,349 req/s      +83%\r\n  ─────────────────────────────────────────────────  ───────────────  ───────────────  ────────\r\n   Query + header validation with enriched headers     51,059 req/s     64,957 req/s      +27%\r\n  ─────────────────────────────────────────────────  ───────────────  ───────────────  ────────\r\n   Query validation only                              147,968 req/s    147,024 req/s    −0.64% (flat)\r\n```",
+ "author": "gurgunday",
+ "created_at": "2026-09-10T10:08:27Z",
+ "merged_at": "2026-09-11T08:48:28Z",
+ "pr_base_sha": "d1dd8902ad972703b81a6f0e8395bb10dfd80b5f",
+ "linked_issues": []
+}

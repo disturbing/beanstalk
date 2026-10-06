@@ -1,0 +1,62 @@
+{
+  "id": "t031",
+  "title": "fix: recognize constructor-assigned built-in properties as decorator …",
+  "prompt": "## Summary\n\n`decorate*`'s `dependencies` option rejects the built-in `Request`/`Reply`\nproperties that are assigned in the constructor, even though every other\ndecorator API treats them as present. Fastify currently gives two different\nanswers for the same name:\n\n```js\nconst fastify = Fastify()\n\nfastify.hasRequestDecorator('body')          // true\nfastify.decorateRequest('body', fn)          // FST_ERR_DEC_ALREADY_PRESENT\nfastify.decorateRequest('x', fn, ['body'])   // FST_ERR_DEC_MISSING_DEPENDENCY\n```\n\nA decorator cannot declare `body`, `id`, `params`, `query`, `log` or `raw` as\na dependency, while at the same time it cannot decorate over them and\n`hasRequestDecorator` reports them as present. The same applies to `raw`,\n`request` and `log` on `Reply`.\n\n## Root cause\n\nFollow-up to #6753.\n\n#6753 introduced `hasInstanceProperty` to make Fastify aware of properties\nassigned in the `Request`/`Reply` constructors rather than defined on the\nprototype. It was wired into three call sites: the\n`FST_ERR_DEC_ALREADY_PRESENT` guard in `decorateConstructor`,\n`checkRequestExistence` and `checkReplyExistence`.\n\nThe dependency check was not updated. It still resolves names through\n`checkExistence` alone, which only looks at the instance, its prototype and\n`props`, so constructor-assigned properties fall through and are reported as\nmissing.\n\n## Solution\n\n`checkDependencies` now falls back to `hasInstanceProperty` when\n`checkExistence` does not find a dependency.\n\nThe instance path is unaffected: `decorate()` passes a plain Fastify\ninstance, which has no `instanceProperties`, so the lookup returns `false`\nimmediately. The order also keeps the common case unchanged — for ordinary\ndecorator dependencies `checkExistence` succeeds and the second lookup is\nnever reached.\n\n## Tests\n\nAdded to `test/decorator-instance-properties.test.js`:\n\n- the full built-in sets for both `Request` and `Reply` accepted as\n  dependencies\n- an encapsulated plugin, to exercise the `parent` chain\n- a dependency array mixing built-ins with user decorators\n- a regression test asserting that unknown dependencies still throw\n  `FST_ERR_DEC_MISSING_DEPENDENCY`, and that a `Reply` decorator depending on\n  a `Request`-only property still throws\n\nAll four new cases fail on the base commit and pass with the change. Full\nsuite, lint and type tests are green.",
+  "acceptance_tests": {
+    "test/decorator-instance-properties.pr6892.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('decorateRequest accepts built-in request properties as dependencies', t => {\n  t.plan(6)\n  const fastify = Fastify()\n  for (const name of ['id', 'params', 'raw', 'query', 'log', 'body']) {\n    t.assert.doesNotThrow(() => fastify.decorateRequest(`uses_${name}`, null, [name]))\n  }\n})\n\ntest('decorateReply accepts built-in reply properties as dependencies', t => {\n  t.plan(3)\n  const fastify = Fastify()\n  for (const name of ['raw', 'request', 'log']) {\n    t.assert.doesNotThrow(() => fastify.decorateReply(`uses_${name}`, null, [name]))\n  }\n})\n\ntest('decorateRequest accepts built-in properties as dependencies inside a plugin', (t, done) => {\n  t.plan(2)\n  const fastify = Fastify()\n  fastify.register(async (instance) => {\n    instance.decorateRequest('scopedExtra', null, ['body'])\n    t.assert.equal(instance.hasRequestDecorator('scopedExtra'), true)\n  })\n  fastify.ready((err) => {\n    t.assert.ifError(err)\n    done()\n  })\n})\n\ntest('decorateRequest accepts built-in properties mixed with user decorators as dependencies', t => {\n  t.plan(1)\n  const fastify = Fastify()\n  fastify.decorateRequest('userProp', null)\n  t.assert.doesNotThrow(() => fastify.decorateRequest('mixed', null, ['userProp', 'body']))\n})\n\ntest('decorateRequest still throws FST_ERR_DEC_MISSING_DEPENDENCY for unknown dependencies', t => {\n  t.plan(2)\n  const fastify = Fastify()\n  t.assert.throws(\n    () => fastify.decorateRequest('withUnknown', null, ['nonExistent']),\n    (err) => err.code === 'FST_ERR_DEC_MISSING_DEPENDENCY'\n  )\n  t.assert.throws(\n    () => fastify.decorateReply('withUnknown', null, ['body']),\n    (err) => err.code === 'FST_ERR_DEC_MISSING_DEPENDENCY'\n  )\n})\n"
+  },
+  "oracle_paths": [
+    "lib/decorate.js",
+    "test/decorator-instance-properties.pr6892.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6892,
+    "sha": "27938ac777c15482a81881b29f86c82b025f7fae",
+    "url": "https://github.com/fastify/fastify/pull/6892",
+    "author": "aquie00t",
+    "merged_at": "2026-08-08T06:36:43Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/decorate.js"
+    ],
+    "source_files": [
+      "lib/decorate.js"
+    ],
+    "test_files": [
+      "test/decorator-instance-properties.pr6892.test.js"
+    ],
+    "source_lines_changed": 2,
+    "notes": [
+      "test/decorator-instance-properties.test.js: 5 added/modified case(s) extracted to test/decorator-instance-properties.pr6892.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/decorator-instance-properties.pr6892.test.js"
+    ],
+    "suite_seconds": 16.0,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/decorate.js"
+    ],
+    "shares_a_source_file_with": [
+      "t025"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

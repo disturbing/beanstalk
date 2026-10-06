@@ -1,0 +1,78 @@
+{
+  "id": "t004",
+  "title": "fix: set status code before publishing diagnostics error channel",
+  "prompt": "## Summary\n\nFixes #6409\n\nPreviously, the `tracing:fastify.request.handler:error` diagnostics channel would always report `reply.statusCode` as 200 because the channel was published before the error handler had a chance to set the appropriate status code.\n\nThis fix sets the status code based on the error's `statusCode` or `status` property before publishing the diagnostics channel event, so subscribers can see the correct status code.\n\n## Changes\n\n- `lib/handle-request.js`: Set status code before publishing error channel (both sync error paths)\n- `lib/wrap-thenable.js`: Set status code before publishing error channel (async error path)\n- Added tests verifying the fix\n\n## Test plan\n\n- [x] Added test: `diagnostics channel error event should report correct status code` - verifies error with statusCode\n- [x] Added test: `diagnostics channel error event should report 500 for errors without status` - verifies plain errors default to 500\n- [x] Added test: `diagnostics channel error event should report correct status with custom error handler` - documents behavior with custom error handlers\n- [x] All existing tests pass",
+  "acceptance_tests": {
+    "test/diagnostics-channel/error-status.pr6412.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('../..')\nconst statusCodes = require('node:http').STATUS_CODES\nconst diagnostics = require('node:diagnostics_channel')\n\ntest('diagnostics channel error event should report correct status code', async (t) => {\n  t.plan(3)\n  const fastify = Fastify()\n  t.after(() => fastify.close())\n\n  let diagnosticsStatusCode\n\n  const channel = diagnostics.channel('tracing:fastify.request.handler:error')\n  const handler = (msg) => {\n    diagnosticsStatusCode = msg.reply.statusCode\n  }\n  channel.subscribe(handler)\n  t.after(() => channel.unsubscribe(handler))\n\n  fastify.get('/', async () => {\n    const err = new Error('test error')\n    err.statusCode = 503\n    throw err\n  })\n\n  const res = await fastify.inject('/')\n\n  t.assert.strictEqual(res.statusCode, 503)\n  t.assert.strictEqual(diagnosticsStatusCode, 503, 'diagnostics channel should report correct status code')\n  t.assert.strictEqual(diagnosticsStatusCode, res.statusCode, 'diagnostics status should match response status')\n})\n\ntest('diagnostics channel error event should report 500 for errors without status', async (t) => {\n  t.plan(3)\n  const fastify = Fastify()\n  t.after(() => fastify.close())\n\n  let diagnosticsStatusCode\n\n  const channel = diagnostics.channel('tracing:fastify.request.handler:error')\n  const handler = (msg) => {\n    diagnosticsStatusCode = msg.reply.statusCode\n  }\n  channel.subscribe(handler)\n  t.after(() => channel.unsubscribe(handler))\n\n  fastify.get('/', async () => {\n    throw new Error('plain error without status')\n  })\n\n  const res = await fastify.inject('/')\n\n  t.assert.strictEqual(res.statusCode, 500)\n  t.assert.strictEqual(diagnosticsStatusCode, 500, 'diagnostics channel should report 500 for plain errors')\n  t.assert.strictEqual(diagnosticsStatusCode, res.statusCode, 'diagnostics status should match response status')\n})\n\ntest('diagnostics channel error event should report correct status with custom error handler', async (t) => {\n  t.plan(3)\n  const fastify = Fastify()\n  t.after(() => fastify.close())\n\n  let diagnosticsStatusCode\n\n  const channel = diagnostics.channel('tracing:fastify.request.handler:error')\n  const handler = (msg) => {\n    diagnosticsStatusCode = msg.reply.statusCode\n  }\n  channel.subscribe(handler)\n  t.after(() => channel.unsubscribe(handler))\n\n  fastify.setErrorHandler((error, request, reply) => {\n    reply.status(503).send({ error: error.message })\n  })\n\n  fastify.get('/', async () => {\n    throw new Error('handler error')\n  })\n\n  const res = await fastify.inject('/')\n\n  // Note: The diagnostics channel fires before the custom error handler runs,\n  // so it reports 500 (default) rather than 503 (set by custom handler).\n  // This is expected behavior - the error channel reports the initial error state.\n  t.assert.strictEqual(res.statusCode, 503)\n  t.assert.strictEqual(diagnosticsStatusCode, 500, 'diagnostics channel reports status before custom handler')\n  t.assert.notStrictEqual(diagnosticsStatusCode, res.statusCode, 'custom handler can change status after diagnostics')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/error-handler.js",
+    "lib/error-status.js",
+    "lib/handle-request.js",
+    "lib/wrap-thenable.js",
+    "test/diagnostics-channel/error-status.pr6412.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test/diagnostics-channel"
+  ],
+  "kind": "bug",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6412,
+    "sha": "970c575832521fff01cc018d928d84454811173b",
+    "url": "https://github.com/fastify/fastify/pull/6412",
+    "author": "tt-a1i",
+    "merged_at": "2025-12-14T16:18:39Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/error-handler.js",
+      "lib/error-status.js",
+      "lib/handle-request.js",
+      "lib/wrap-thenable.js"
+    ],
+    "source_files": [
+      "lib/error-handler.js",
+      "lib/error-status.js",
+      "lib/handle-request.js",
+      "lib/wrap-thenable.js"
+    ],
+    "test_files": [
+      "test/diagnostics-channel/error-status.pr6412.test.js"
+    ],
+    "source_lines_changed": 31,
+    "notes": [
+      "test/diagnostics-channel/error-status.test.js: 3 added/modified case(s) extracted to test/diagnostics-channel/error-status.pr6412.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/diagnostics-channel/error-status.pr6412.test.js"
+    ],
+    "suite_seconds": 13.5,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/error-handler.js",
+      "lib/error-status.js",
+      "lib/handle-request.js",
+      "lib/wrap-thenable.js"
+    ],
+    "shares_a_source_file_with": [
+      "t007",
+      "t013",
+      "t020"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [
+      "t007"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

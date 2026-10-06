@@ -1,0 +1,11 @@
+{
+ "number": 6580,
+ "sha": "75d74e1af74598deb18f2c052d64f815a5eec8f8",
+ "title": "feat: introduce log controller layer",
+ "body": "Fixes https://github.com/fastify/fastify/issues/4463\n\nThis is a draft PR to close all these PRs:\n\n- here the user wants to customize the log's keys:\n  - closes https://github.com/fastify/fastify/pull/6405\n  - closes https://github.com/fastify/fastify/pull/6577\n- here the user wants to change the text messages:\n  - closes https://github.com/fastify/fastify/pull/6417\n\nThe final target of this PR is to create a layer between what Fastify would like to log, and what the user wants.\n\nThen, the user will be able to customize the layer (prop names, strings, format or disable the logging itself) without the need to introduce every time a new option on Fastify\n\nThe first step has been reached by removing the `kDisableRequestLogging` symbol.\n\nWe need to define the `InternalFastifyLogger` interface (now it is a dumb 1:1), feedback are welcome.\n\nThis PR:\n- [x] deduplicates the `kDisableRequestLogging` checks\n- [x] removes the `requestIdLogLabel` from the context\n- [x] deprecate the `requestIdLogLabel` option for the new `logController` option\n- [x] deprecate the `disableRequestLogging` option for the new `logController` option\n- [x] rename `LogDispatcher` to `LogController` (aligns with `SchemaController` naming convention)\n\n#### Checklist\n\n- [ ] run `npm run test && npm run benchmark --if-present`\n- [ ] tests and/or benchmarks are included\n- [ ] documentation is changed or added\n- [ ] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\n",
+ "author": "Eomm",
+ "created_at": "2026-03-14T16:47:53Z",
+ "merged_at": "2026-07-05T07:49:15Z",
+ "pr_base_sha": "0c28b57cef28d15b6873df77c0f76a80a0ad2269",
+ "linked_issues": []
+}

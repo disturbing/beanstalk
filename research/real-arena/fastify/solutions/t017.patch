@@ -1,0 +1,155 @@
+diff --git a/docs/Reference/Errors.md b/docs/Reference/Errors.md
+index f1e66374..7f6dfa87 100644
+--- a/docs/Reference/Errors.md
++++ b/docs/Reference/Errors.md
+@@ -82,6 +82,7 @@
+     - [FST_ERR_ROUTE_MISSING_HANDLER](#fst_err_route_missing_handler)
+     - [FST_ERR_ROUTE_METHOD_INVALID](#fst_err_route_method_invalid)
+     - [FST_ERR_ROUTE_METHOD_NOT_SUPPORTED](#fst_err_route_method_not_supported)
++    - [FST_ERR_ROUTE_LOG_LEVEL_INVALID](#fst_err_route_log_level_invalid)
+     - [FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED](#fst_err_route_body_validation_schema_not_supported)
+     - [FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT](#fst_err_route_body_limit_option_not_int)
+     - [FST_ERR_HANDLER_TIMEOUT](#fst_err_handler_timeout)
+@@ -357,6 +358,7 @@ Below is a table with all the error codes used by Fastify.
+ | <a id="fst_err_route_missing_handler">FST_ERR_ROUTE_MISSING_HANDLER</a> | Missing handler function for the route. | Add a handler function. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_route_method_invalid">FST_ERR_ROUTE_METHOD_INVALID</a> | Method is not a valid value. | Use a valid value for the method. | [#4750](https://github.com/fastify/fastify/pull/4750) |
+ | <a id="fst_err_route_method_not_supported">FST_ERR_ROUTE_METHOD_NOT_SUPPORTED</a> | Method is not supported for the route. | Use a supported method. | [#4554](https://github.com/fastify/fastify/pull/4554) |
++| <a id="fst_err_route_log_level_invalid">FST_ERR_ROUTE_LOG_LEVEL_INVALID</a> | `logLevel` must match a configured logger level. | Use one of the configured logger levels for the route. | [#6523](https://github.com/fastify/fastify/pull/6523) |
+ | <a id="fst_err_route_body_validation_schema_not_supported">FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED</a> | Body validation schema route is not supported. | Use a different different method for the route. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_route_body_limit_option_not_int">FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT</a> | `bodyLimit` option must be an integer. | Use an integer for the `bodyLimit` option. | [#4554](https://github.com/fastify/fastify/pull/4554) |
+ | <a id="fst_err_handler_timeout">FST_ERR_HANDLER_TIMEOUT</a> | Request timed out. | Increase the `handlerTimeout` option or optimize the handler. | - |
+diff --git a/lib/errors.js b/lib/errors.js
+index a5ce70dd..14c2b318 100644
+--- a/lib/errors.js
++++ b/lib/errors.js
+@@ -408,6 +408,12 @@ const codes = {
+     '%s method is not supported.',
+     500
+   ),
++  FST_ERR_ROUTE_LOG_LEVEL_INVALID: createError(
++    'FST_ERR_ROUTE_LOG_LEVEL_INVALID',
++    "Log level for '%s:%s' route must be a valid logger level. Received: '%s'",
++    500,
++    TypeError
++  ),
+   FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED: createError(
+     'FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED',
+     'Body validation schema for %s:%s route is not supported!',
+diff --git a/lib/route.js b/lib/route.js
+index 331bf4ed..c863a104 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -24,6 +24,7 @@ const {
+   FST_ERR_ROUTE_MISSING_HANDLER,
+   FST_ERR_ROUTE_METHOD_NOT_SUPPORTED,
+   FST_ERR_ROUTE_METHOD_INVALID,
++  FST_ERR_ROUTE_LOG_LEVEL_INVALID,
+   FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED,
+   FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT,
+   FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT,
+@@ -284,6 +285,7 @@ function buildRouting (options) {
+       opts.routePath = path
+       opts.prefix = prefix
+       opts.logLevel = opts.logLevel || this[kLogLevel]
++      validateLogLevelOption(opts.logLevel, opts.method, opts.url, logger)
+ 
+       if (this[kLogSerializers] || opts.logSerializers) {
+         opts.logSerializers = Object.assign(Object.create(this[kLogSerializers]), opts.logSerializers)
+@@ -636,6 +638,15 @@ function validateHandlerTimeoutOption (handlerTimeout) {
+   }
+ }
+ 
++function validateLogLevelOption (logLevel, method, path, logger) {
++  if (logLevel == null || logLevel === '') return
++  if (logger?.levels?.values == null) return
++
++  if (typeof logLevel !== 'string' || logger.levels.values[logLevel] === undefined) {
++    throw new FST_ERR_ROUTE_LOG_LEVEL_INVALID(method, path, logLevel)
++  }
++}
++
+ function runPreParsing (err, request, reply) {
+   if (reply.sent === true) return
+   if (err != null) {
+diff --git a/test/internals/errors.test.js b/test/internals/errors.test.js
+index e132f385..ebf620c1 100644
+--- a/test/internals/errors.test.js
++++ b/test/internals/errors.test.js
+@@ -5,7 +5,7 @@ const errors = require('../../lib/errors')
+ const { readFileSync } = require('node:fs')
+ const { resolve } = require('node:path')
+ 
+-const expectedErrors = 88
++const expectedErrors = 89
+ 
+ test(`should expose ${expectedErrors} errors`, t => {
+   t.plan(1)
+diff --git a/test/logger/options.test.js b/test/logger/options.test.js
+index 46b1338e..55c7d725 100644
+--- a/test/logger/options.test.js
++++ b/test/logger/options.test.js
+@@ -10,7 +10,7 @@ const Fastify = require('../../fastify')
+ const { on } = stream
+ 
+ t.test('logger options', { timeout: 60000 }, async (t) => {
+-  t.plan(16)
++  t.plan(18)
+ 
+   await t.test('logger can be silenced', (t) => {
+     t.plan(17)
+@@ -479,6 +479,43 @@ t.test('logger options', { timeout: 60000 }, async (t) => {
+     }
+   })
+ 
++  await t.test('Should throw when custom log level for a route is invalid', async (t) => {
++    t.plan(4)
++
++    const fastify = Fastify({
++      logger: true
++    })
++    t.after(() => fastify.close())
++
++    try {
++      fastify.get('/log', { logLevel: 'invalid' }, (req, reply) => {
++        reply.send({ hello: 'world' })
++      })
++      t.assert.fail('fastify.get should throw')
++    } catch (err) {
++      t.assert.ok(err)
++      t.assert.strictEqual(err.code, 'FST_ERR_ROUTE_LOG_LEVEL_INVALID')
++      t.assert.strictEqual(err.statusCode, 500)
++      t.assert.strictEqual(err.message, "Log level for 'GET:/log' route must be a valid logger level. Received: 'invalid'")
++    }
++  })
++
++  await t.test('Should allow null custom log level for a route', async (t) => {
++    t.plan(1)
++
++    const fastify = Fastify({
++      logger: true
++    })
++    t.after(() => fastify.close())
++
++    fastify.get('/log', { logLevel: null }, (req, reply) => {
++      reply.send({ hello: 'world' })
++    })
++
++    const response = await fastify.inject({ method: 'GET', url: '/log' })
++    t.assert.deepEqual(await response.json(), { hello: 'world' })
++  })
++
+   await t.test('should pass when using unWritable props in the logger option', (t) => {
+     t.plan(8)
+     const fastify = Fastify({
+diff --git a/types/errors.d.ts b/types/errors.d.ts
+index 13c5cf40..647b5e63 100644
+--- a/types/errors.d.ts
++++ b/types/errors.d.ts
+@@ -73,6 +73,7 @@ export type FastifyErrorCodes = Record<
+   'FST_ERR_ROUTE_MISSING_HANDLER' |
+   'FST_ERR_ROUTE_METHOD_INVALID' |
+   'FST_ERR_ROUTE_METHOD_NOT_SUPPORTED' |
++  'FST_ERR_ROUTE_LOG_LEVEL_INVALID' |
+   'FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED' |
+   'FST_ERR_ROUTE_BODY_LIMIT_OPTION_NOT_INT' |
+   'FST_ERR_HANDLER_TIMEOUT' |

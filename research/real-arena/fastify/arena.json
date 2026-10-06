@@ -1,0 +1,32 @@
+{
+  "name": "fastify",
+  "upstream": "https://github.com/fastify/fastify",
+  "slug": "fastify/fastify",
+  "licence": "MIT",
+  "base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "end": "0d945819bebc08f4ca666d8283c03a26ed9706a0",
+  "node": "25.8.1",
+  "source_re": "^(lib/|fastify\\.js$)",
+  "test_re": "^test/",
+  "test_exclude_re": "^test/types/",
+  "skip_authors": [
+    "dependabot[bot]",
+    "github-actions[bot]",
+    "renovate[bot]"
+  ],
+  "test_args": [
+    "test/**/*.test.js",
+    "test/**/*.test.mjs"
+  ],
+  "node_args": [
+    "--no-use-env-proxy"
+  ],
+  "deps": "deps/node_modules",
+  "repo": "../../corpora/real-arena-fastify.git",
+  "agent_test_hint": "Run the whole suite with `node --no-use-env-proxy --test 'test/**/*.test.js' 'test/**/*.test.mjs'` (about 15 s), or one file with `node --no-use-env-proxy --test test/<file>.test.js`. Dependencies are installed; there is no network beyond localhost.",
+  "agent_network": "loopback",
+  "env": {},
+  "agent_allowed_bash": [
+    "node --no-use-env-proxy --test"
+  ]
+}

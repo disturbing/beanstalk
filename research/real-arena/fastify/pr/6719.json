@@ -1,0 +1,18 @@
+{
+ "number": 6719,
+ "sha": "6e95cb9f6de47deaf145138661c70a1eec34ec97",
+ "title": "fix: report canonical route url for hidden prefix slash route",
+ "body": "#### Checklist\n\n- [x] run `npm run unit -- test/route-prefix.test.js`\n- [x] run `npm run lint:eslint -- lib/route.js test/route-prefix.test.js`\n\n#### Description of change\n\nWhen a `/` route is registered under a prefix with `prefixTrailingSlash: 'both'`, Fastify registers a hidden trailing-slash route for matching `/prefix/` but only exposes `/prefix` through `onRoute`.\n\nThis updates the request route metadata for that hidden route so `request.routeOptions.url` also reports the canonical `/prefix` value. Non-prefix routes that intentionally include a trailing slash keep reporting their own route URL.\n\nFixes #4424",
+ "author": "paulkagiri",
+ "created_at": "2026-05-08T14:19:21Z",
+ "merged_at": "2026-08-16T13:56:42Z",
+ "pr_base_sha": "d693f43d890f07a8852b4737b048ed76458139a2",
+ "linked_issues": [
+  {
+   "number": 4424,
+   "title": "routerPath returns url with a trailing slash",
+   "body": "### Prerequisites\r\n\r\n- [X] I have written a descriptive issue title\r\n- [X] I have searched existing issues to ensure the issue has not already been raised\r\n\r\n\r\n### Issue\r\n\r\nOriginally this error comes from [fastify-metrics](https://github.com/SkeLLLa/fastify-metrics) plugin. It relies on two things: \r\n - `onRoute` hook to set up a metric for the route;\r\n - request `routerPath` property to find the route metric from the request context.\r\n \r\n The problem happens when you use a plugin prefix with the `prefixTrailingSlash` option set to `both` (default) value. In this case, the `onRoute` hook will be called only once, so `fastify-metrics` will set up only one route, but internally there are two different routes with two different `routerPath` properties. So `fastify-metrics` will not record metrics for requests with trailing slash.\r\n \r\n Example:\r\n ```js\r\n 'use strict'\r\n\r\nconst fastify = require('fastify')()\r\n\r\nfastify.addHook('onRoute', ({ method, url }) => {\r\n  console.log('New route added:', method, url)\r\n})\r\n\r\nfastify.register(async (fastify) => {\r\n  fastify.get('/', async (request) => {\r\n    console.log(request.routerPath)\r\n  })\r\n}, { prefix: '/foo' })\r\n\r\nfastify.ready(() => {\r\n  fastify.inject({ method: 'GET', url: '/foo' })\r\n  fastify.inject({ method: 'GET', url: '/foo/' })\r\n})\r\n ```\r\n \r\n Output:\r\n ```js\r\n New route added: GET /foo\r\nNew route added: HEAD /foo\r\nNew route added: HEAD /foo/\r\n/foo\r\n/foo/\r\n ```\r\n \r\n If we don't call `onRoute` twice, that means that we want to hide the second route from a user. So from the user's perspective, there should be only one route. If it's true, then we should return `routerPath` with a trimmed trailing slash.",
+   "is_pr": false
+  }
+ ]
+}

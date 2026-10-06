@@ -1,0 +1,68 @@
+{
+  "id": "t011",
+  "title": "chore: Fix port parsing",
+  "prompt": "Ensures that `request.port` returns null or an integer correctly.",
+  "acceptance_tests": {
+    "test/request-port.test.js": "'use strict'\n\nconst test = require('node:test')\nconst Request = require('../lib/request')\n\ntest('.port parses port correctly', (t) => {\n  const fixtures = [\n    {\n      expected: 80,\n      req: {\n        headers: {\n          host: 'example.com:80'\n        }\n      }\n    },\n    {\n      expected: 443,\n      req: {\n        headers: {\n          host: 'example.com:443'\n        }\n      }\n    },\n    {\n      expected: 80,\n      req: {\n        headers: {\n          host: '[::1]:80'\n        }\n      }\n    },\n    {\n      expected: 443,\n      req: {\n        headers: {\n          host: '[::1]:443'\n        }\n      }\n    },\n    {\n      expected: null,\n      req: {\n        headers: {\n          host: '[::1]'\n        }\n      }\n    },\n    {\n      expected: 80,\n      req: {\n        headers: {\n          ':authority': '1.2.3.4:80'\n        }\n      }\n    },\n    {\n      expected: null,\n      req: {\n        headers: {}\n      }\n    }\n  ]\n\n  for (const fixture of fixtures) {\n    const req = new Request(1, {}, fixture.req, '', {}, {})\n    t.assert.equal(\n      req.port,\n      fixture.expected,\n      `${fixture.req.headers.host} should parse to ${fixture.expected}`\n    )\n  }\n})\n"
+  },
+  "oracle_paths": [
+    "lib/request.js",
+    "test/request-port.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "chore",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6603,
+    "sha": "39f0f24233cf6da2fef48551f51be2f589f7d5d0",
+    "url": "https://github.com/fastify/fastify/pull/6603",
+    "author": "jsumners",
+    "merged_at": "2026-03-23T11:25:34Z",
+    "prompt_source": "thin",
+    "files_touched": [
+      "lib/request.js"
+    ],
+    "source_files": [
+      "lib/request.js"
+    ],
+    "test_files": [
+      "test/request-port.test.js"
+    ],
+    "source_lines_changed": 18,
+    "notes": [],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/request-port.test.js"
+    ],
+    "suite_seconds": 15.6,
+    "suite_retried": true,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/request.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t012",
+      "t013",
+      "t019",
+      "t025",
+      "t026",
+      "t036"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [
+      "t026"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

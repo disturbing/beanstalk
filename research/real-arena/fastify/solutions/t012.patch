@@ -1,0 +1,168 @@
+diff --git a/lib/request.js b/lib/request.js
+index 569f5ca8..308e6e99 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -43,7 +43,7 @@ function getTrustProxyFn (tp) {
+   }
+   if (tp === true) {
+     // Support trusting everything
+-    return null
++    return function () { return true }
+   }
+   if (typeof tp === 'number') {
+     // Support trusting hop count
+@@ -117,7 +117,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     host: {
+       get () {
+-        if (this.ip !== undefined && this.headers['x-forwarded-host']) {
++        const socketAddr = this.raw.socket?.remoteAddress
++        if (this.headers['x-forwarded-host'] && socketAddr !== null && proxyFn(socketAddr, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-host'])
+         }
+         /**
+@@ -131,7 +132,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     protocol: {
+       get () {
+-        if (this.headers['x-forwarded-proto']) {
++        const socketAddr = this.raw.socket?.remoteAddress
++        if (this.headers['x-forwarded-proto'] && socketAddr !== null && proxyFn(socketAddr, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-proto'])
+         }
+         if (this.socket) {
+@@ -243,6 +245,11 @@ Object.defineProperties(Request.prototype, {
+   },
+   hostname: {
+     get () {
++      // Check for IPV6 Host
++      if (this.host[0] === '[') {
++        return this.host.slice(0, this.host.indexOf(']') + 1)
++      }
++
+       return this.host.split(':', 1)[0]
+     }
+   },
+diff --git a/test/server.test.js b/test/server.test.js
+index 6e11adc8..7fa2b4ad 100644
+--- a/test/server.test.js
++++ b/test/server.test.js
+@@ -67,13 +67,13 @@ test('listen should reject string port', async (t) => {
+ })
+ 
+ test('Test for hostname and port', async (t) => {
++  t.plan(3)
+   const app = Fastify()
+   t.after(() => app.close())
+   app.get('/host', (req, res) => {
+-    const host = 'localhost:8000'
+-    t.assert.strictEqual(req.host, host)
+-    t.assert.strictEqual(req.hostname, req.host.split(':')[0])
+-    t.assert.strictEqual(req.port, Number(req.host.split(':')[1]))
++    t.assert.strictEqual(req.host, 'localhost:8000')
++    t.assert.strictEqual(req.hostname, 'localhost')
++    t.assert.strictEqual(req.port, 8000)
+     res.send('ok')
+   })
+ 
+@@ -81,6 +81,24 @@ test('Test for hostname and port', async (t) => {
+   await fetch('http://localhost:8000/host')
+ })
+ 
++test('Test for IPV6 port', async (t) => {
++  t.plan(3)
++  const app = Fastify()
++  t.after(() => app.close())
++  app.get('/host', (req, res) => {
++    t.assert.strictEqual(req.host, '[::1]:3040')
++    t.assert.strictEqual(req.hostname, '[::1]')
++    t.assert.strictEqual(req.port, 3040)
++    res.send('ok')
++  })
++
++  await app.listen({
++    port: 3040,
++    host: '::1'
++  })
++  await fetch('http://[::1]:3040/host')
++})
++
+ test('abort signal', async t => {
+   await t.test('should close server when aborted after', (t, end) => {
+     t.plan(2)
+diff --git a/test/trust-proxy.test.js b/test/trust-proxy.test.js
+index 0153e631..b24022d6 100644
+--- a/test/trust-proxy.test.js
++++ b/test/trust-proxy.test.js
+@@ -3,6 +3,8 @@
+ const { test, before } = require('node:test')
+ const fastify = require('..')
+ const helper = require('./helper')
++const Request = require('../lib/request')
++const buildRequest = Request.buildRequest
+ 
+ const fetchForwardedRequest = async (fastifyServer, forHeader, path, protoHeader) => {
+   const headers = {
+@@ -160,3 +162,62 @@ test('trust proxy protocol', async t => {
+   await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxynoprotocol', undefined)
+   await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyprotocols', 'ipsum, dolor')
+ })
++
++test('trust proxy ignores forwarded headers from untrusted connections', async t => {
++  t.plan(3)
++
++  // Use a restrictive trust function that does NOT trust localhost
++  // (simulates a direct connection bypassing the proxy)
++  const app = fastify({
++    trustProxy: '10.0.0.1'
++  })
++  t.after(() => app.close())
++
++  app.get('/untrusted', function (req, reply) {
++    // protocol should fall back to socket state, not read x-forwarded-proto
++    t.assert.strictEqual(req.protocol, 'http', 'protocol ignores x-forwarded-proto from untrusted connection')
++    // host should fall back to raw Host header, not read x-forwarded-host
++    t.assert.notStrictEqual(req.host, 'evil.com', 'host ignores x-forwarded-host from untrusted connection')
++    // hostname should also not be spoofed
++    t.assert.notStrictEqual(req.hostname, 'evil.com', 'hostname ignores x-forwarded-host from untrusted connection')
++    reply.code(200).send({ protocol: req.protocol, host: req.host })
++  })
++
++  const fastifyServer = await app.listen({ port: 0 })
++
++  // Attacker connects directly (from localhost, which is NOT in the trust list)
++  // and sends spoofed forwarded headers
++  await fetch(fastifyServer + '/untrusted', {
++    headers: {
++      'X-Forwarded-For': '1.1.1.1',
++      'X-Forwarded-Host': 'evil.com',
++      'X-Forwarded-Proto': 'https'
++    }
++  })
++})
++
++test('trust proxy reads forwarded headers from trusted connections', async t => {
++  t.plan(2)
++
++  // Trust localhost (the actual connecting IP in tests)
++  const app = fastify({
++    trustProxy: (address) => address === localhost
++  })
++  t.after(() => app.close())
++
++  app.get('/trusted', function (req, reply) {
++    t.assert.strictEqual(req.protocol, 'https', 'protocol reads x-forwarded-proto from trusted connection')
++    t.assert.strictEqual(req.host, 'example.com', 'host reads x-forwarded-host from trusted connection')
++    reply.code(200).send({ protocol: req.protocol, host: req.host })
++  })
++
++  const fastifyServer = await app.listen({ port: 0 })
++
++  await fetch(fastifyServer + '/trusted', {
++    headers: {
++      'X-Forwarded-For': '1.1.1.1',
++      'X-Forwarded-Host': 'example.com',
++      'X-Forwarded-Proto': 'https'
++    }
++  })
++})

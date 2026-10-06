@@ -1,0 +1,60 @@
+{
+  "id": "t024",
+  "title": "fix: avoid double slash when joining nested prefixes",
+  "prompt": "## What\n\n`buildRoutePrefix` joins a parent register's prefix with a child register's\nprefix and is meant to keep exactly one `/` between them (per the existing\n`'/first//second'` comment). It misses the case where the parent prefix ends\nwith `/` and the child prefix has no leading `/`: it prepends a `/` anyway and\nproduces a double slash.\n\nFor example:\n\n```js\nfastify.register(function (instance, opts, done) {\n  instance.register(function (sub, opts, done) {\n    sub.get('/route', handler)\n    done()\n  }, { prefix: 'inner' })   // no leading slash\n  done()\n}, { prefix: '/v1/' })      // trailing slash\n```\n\nregisters the route at `/v1//inner/route` instead of `/v1/inner/route`. With the\ndefault `ignoreDuplicateSlashes: false`, `GET /v1/inner/route` then returns 404.\n\n## How\n\nOnly prepend the separating `/` when the parent prefix does not already end with\none. This matches the existing route-path handling in `lib/route.js` (\"Ensure\nthat '/prefix/' + '/route' gets registered as '/prefix/route'\").\n\n## Testing\n\nAdded a test in `test/route-prefix.test.js` for a trailing-slash parent prefix\ncombined with a no-leading-slash child prefix. It fails before the change and\npasses after. Lint, the full unit suite, type tests, and the 100% coverage check\npass locally.",
+  "acceptance_tests": {
+    "test/route-prefix.pr6803.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst { waitForCb } = require('./toolkit')\n\ntest('Prefix with trailing / and nested prefix without leading /', (t, testDone) => {\n  t.plan(4)\n  const fastify = Fastify()\n\n  fastify.register(function (fastify, opts, done) {\n    fastify.register(function (fastify, opts, done) {\n      fastify.get('/route', (req, reply) => {\n        reply.send({ hello: 'world' })\n      })\n      done()\n    }, { prefix: 'inner' })\n    done()\n  }, { prefix: '/v1/' })\n\n  const completion = waitForCb({ steps: 2 })\n  fastify.inject({\n    method: 'GET',\n    url: '/v1/inner/route'\n  }, (err, res) => {\n    t.assert.ifError(err)\n    t.assert.deepStrictEqual(JSON.parse(res.payload), { hello: 'world' })\n    completion.stepIn()\n  })\n  fastify.inject({\n    method: 'GET',\n    url: '/v1//inner/route'\n  }, (err, res) => {\n    t.assert.ifError(err)\n    t.assert.strictEqual(res.statusCode, 404)\n    completion.stepIn()\n  })\n  completion.patience.then(testDone)\n})\n"
+  },
+  "oracle_paths": [
+    "lib/plugin-override.js",
+    "test/route-prefix.pr6803.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6803,
+    "sha": "2f597a9297a3020a9f30bf5548a8442c28ddb1c1",
+    "url": "https://github.com/fastify/fastify/pull/6803",
+    "author": "rohithvegesna",
+    "merged_at": "2026-06-21T12:54:18Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/plugin-override.js"
+    ],
+    "source_files": [
+      "lib/plugin-override.js"
+    ],
+    "test_files": [
+      "test/route-prefix.pr6803.test.js"
+    ],
+    "source_lines_changed": 3,
+    "notes": [
+      "test/route-prefix.test.js: 1 added/modified case(s) extracted to test/route-prefix.pr6803.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/route-prefix.pr6803.test.js"
+    ],
+    "suite_seconds": 13.3,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/plugin-override.js"
+    ],
+    "shares_a_source_file_with": [],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

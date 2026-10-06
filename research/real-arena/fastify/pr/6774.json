@@ -1,0 +1,11 @@
+{
+ "number": 6774,
+ "sha": "c647de44cceaf8ec6ce81796374ff6ffd944d873",
+ "title": "fix: replace `AssertionError` with `FST_ERR_PLUGIN_DEPENDENCY_NOT_REGISTERED` in `checkDependencies`",
+ "body": "## Summary\r\n\r\n`checkDependencies` throws a generic `AssertionError` when a plugin dependency\r\nis not registered, making it impossible to identify the error via `error.code`.\r\nThis was missed during the #2842 improvement pass — `checkDecorators` was\r\nalready migrated to `FST_ERR_PLUGIN_NOT_PRESENT_IN_INSTANCE` but\r\n`checkDependencies` was left with a bare `assert()`.\r\n\r\n## Root cause\r\n\r\n```js\r\ndependencies.forEach(dependency => {\r\n  assert(                              // throws AssertionError ❌\r\n    this[kRegisteredPlugins].indexOf(dependency) > -1,\r\n    `The dependency '${dependency}' of plugin '${meta.name}' is not registered`\r\n  )\r\n})\r\n```\r\n\r\n## Fix\r\n\r\nAdd `FST_ERR_PLUGIN_DEPENDENCY_NOT_REGISTERED` and replace `assert()` with\r\na proper `throw`, matching the existing pattern in `checkDecorators`.\r\n\r\n## Test\r\n\r\n- `test/internals/errors.test.js`: unit test for the new error constructor,\r\n  including interpolated arguments\r\n- `test/internals/plugin.test.js`: updated the existing errored case to also\r\n  assert `error.code === 'FST_ERR_PLUGIN_DEPENDENCY_NOT_REGISTERED'` and\r\n  `error.name === 'FastifyError'`\r\n- `test/types/errors.test-d.ts`: type-level assertion via `expectAssignable<FastifyErrorConstructor>`\r\n\r\n#### Checklist\r\n\r\n- [x] run `npm run test && npm run benchmark --if-present`\r\n- [x] tests and/or benchmarks are included\r\n- [x] documentation is changed or added\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "aquie00t",
+ "created_at": "2026-06-08T19:05:25Z",
+ "merged_at": "2026-06-09T12:27:33Z",
+ "pr_base_sha": "27f4d6222dd945238e96c1fdaa632d5dc3c37b2c",
+ "linked_issues": []
+}

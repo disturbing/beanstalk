@@ -1,0 +1,11 @@
+{
+ "number": 6373,
+ "sha": "e1aee4b872aaeabbd4f7074794c1015a518f8d9a",
+ "title": "fix: parse ipv6 hostname",
+ "body": "#5789",
+ "author": "jean-michelet",
+ "created_at": "2025-11-01T08:02:51Z",
+ "merged_at": "2025-11-05T07:24:31Z",
+ "pr_base_sha": "b5958b3b8ed6fce850ebaabbc4a8a3e5f42b389b",
+ "linked_issues": []
+}

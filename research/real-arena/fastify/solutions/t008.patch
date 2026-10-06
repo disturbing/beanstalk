@@ -1,0 +1,15 @@
+diff --git a/lib/route.js b/lib/route.js
+index 9ecd57d4..bf79e2c2 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -614,7 +614,9 @@ function runPreParsing (err, request, reply) {
+ }
+ 
+ function buildRouterOptions (options, defaultOptions) {
+-  const routerOptions = options.routerOptions || Object.create(null)
++  const routerOptions = options.routerOptions == null
++    ? Object.create(null)
++    : Object.assign(Object.create(null), options.routerOptions)
+ 
+   const usedDeprecatedOptions = routerKeys.filter(key => Object.hasOwn(options, key))
+ 

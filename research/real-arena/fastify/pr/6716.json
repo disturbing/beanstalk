@@ -1,0 +1,18 @@
+{
+ "number": 6716,
+ "sha": "1c49974805e57a17f1616f422678317b1d35b73f",
+ "title": "feat: add support of onMaxParamLength",
+ "body": "Fixes #6697 \r\n\r\n#### Checklist\r\n\r\n- [ ] run `npm run test && npm run benchmark --if-present`\r\n- [ ] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [ ] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "climba03003",
+ "created_at": "2026-05-07T07:26:37Z",
+ "merged_at": "2026-05-07T16:42:03Z",
+ "pr_base_sha": "9026164f5a2e78db59ff8f98933279161a85a6e3",
+ "linked_issues": [
+  {
+   "number": 6697,
+   "title": "Unexpected 404 instead of 414 when exceeding `maxParamLength`",
+   "body": "**Bug description**\n\nWhen a route parameter exceeds [`maxParamLength`](https://fastify.dev/docs/latest/Reference/Server/#maxparamlength), Fastify returns a `404 Not Found` instead of a more appropriate HTTP status such as [`414 URI Too Long`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/414). I consider this a bug.\n\nAlthough this is described in the docs, this is still super misleading. In my case, I spent more time investigating than expected, whether a route is not registered or a string is not properly encoded that led to route mismatch or something like that. The real issue was simply that it exceeded a default limit of 100 characters (my param was 108).\n\n**Expected behaviour**\n\nIf a request exceeds [`maxParamLength`](https://fastify.dev/docs/latest/Reference/Server/#maxparamlength), the server should return a clear and semantically correct error: [`414 URI Too Long`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/414). \n\n",
+   "is_pr": false
+  }
+ ]
+}

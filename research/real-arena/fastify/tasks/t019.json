@@ -1,0 +1,153 @@
+{
+  "id": "t019",
+  "title": "fix: do not trust forwarded host/proto when socket is missing",
+  "prompt": "Fixes #6673\n\n## Description\n\nThe `host` and `protocol` getters in `lib/request.js` were checking\n`this.raw.socket?.remoteAddress !== null`, which still passes when `socket`\nitself is `null` or `undefined` because optional chaining returns `undefined`.\n\nThis change gates forwarded header trust on the socket object itself:\n\n- keep trusting `socket.remoteAddress === undefined` for the IISNode case from `#6606`\n- stop trusting `x-forwarded-host` / `x-forwarded-proto` when `socket` is missing\n\n## Changes\n\n- check `this.raw.socket != null` before trusting forwarded host/protocol\n- add regression tests for missing sockets in `test/internals/request.test.js`\n- add a trust-proxy regression test for `socket: null` in `test/trust-proxy.test.js`\n\n## Testing\n\n- `npm run unit -- test/trust-proxy.test.js test/internals/request.test.js`\n- `npx eslint lib/request.js test/internals/request.test.js test/trust-proxy.test.js`",
+  "acceptance_tests": {
+    "test/internals/request.pr6684.test.js": "'use strict'\n\nconst { test } = require('node:test')\n\nconst Request = require('../../lib/request')\nconst Context = require('../../lib/context')\nconst {\n  kReply,\n  kRequest,\n  kOptions\n} = require('../../lib/symbols')\n\nprocess.removeAllListeners('warning')\n\ntest('Request with trust proxy and undefined socket does not trust x-forwarded-host/proto', t => {\n  t.plan(2)\n  const headers = {\n    host: 'hostname',\n    'x-forwarded-for': '2.2.2.2, 1.1.1.1',\n    'x-forwarded-host': 'fastify.test',\n    'x-forwarded-proto': 'https'\n  }\n  const req = {\n    method: 'GET',\n    url: '/',\n    socket: undefined,\n    headers\n  }\n\n  const TpRequest = Request.buildRequest(Request, true)\n  const request = new TpRequest('id', 'params', req, 'query', 'log')\n  t.assert.strictEqual(request.host, 'hostname')\n  t.assert.deepStrictEqual(request.protocol, undefined)\n})\n\ntest('Request with trust proxy and null socket does not trust x-forwarded-host/proto', t => {\n  t.plan(2)\n  const headers = {\n    host: 'hostname',\n    'x-forwarded-for': '2.2.2.2, 1.1.1.1',\n    'x-forwarded-host': 'fastify.test',\n    'x-forwarded-proto': 'https'\n  }\n  const req = {\n    method: 'GET',\n    url: '/',\n    socket: null,\n    headers\n  }\n\n  const TpRequest = Request.buildRequest(Request, true)\n  const request = new TpRequest('id', 'params', req, 'query', 'log')\n  t.assert.strictEqual(request.host, 'hostname')\n  t.assert.deepStrictEqual(request.protocol, undefined)\n})\n",
+    "test/trust-proxy.pr6684.test.js": "'use strict'\n\nconst { test, before } = require('node:test')\nconst fastify = require('..')\nconst helper = require('./helper')\nconst Request = require('../lib/request')\nconst buildRequest = Request.buildRequest\n\nconst fetchForwardedRequest = async (fastifyServer, forHeader, path, protoHeader) => {\n  const headers = {\n    'X-Forwarded-For': forHeader,\n    'X-Forwarded-Host': 'fastify.test'\n  }\n  if (protoHeader) {\n    headers['X-Forwarded-Proto'] = protoHeader\n  }\n\n  return fetch(fastifyServer + path, {\n    headers\n  })\n}\n\nconst testRequestValues = (t, req, options) => {\n  if (options.ip) {\n    t.assert.ok(req.ip, 'ip is defined')\n    t.assert.strictEqual(req.ip, options.ip, 'gets ip from x-forwarded-for')\n  }\n  if (options.host) {\n    t.assert.ok(req.host, 'host is defined')\n    t.assert.strictEqual(req.host, options.host, 'gets host from x-forwarded-host')\n    t.assert.ok(req.hostname)\n    t.assert.strictEqual(req.hostname, options.host, 'gets hostname from x-forwarded-host')\n  }\n  if (options.ips) {\n    t.assert.deepStrictEqual(req.ips, options.ips, 'gets ips from x-forwarded-for')\n  }\n  if (options.protocol) {\n    t.assert.ok(req.protocol, 'protocol is defined')\n    t.assert.strictEqual(req.protocol, options.protocol, 'gets protocol from x-forwarded-proto')\n  }\n  if (options.port) {\n    t.assert.ok(req.port, 'port is defined')\n    t.assert.strictEqual(req.port, options.port, 'port is taken from x-forwarded-for or host')\n  }\n}\n\nlet localhost\nbefore(async function () {\n  [localhost] = await helper.getLoopbackHost()\n})\n\ntest('trust proxy does not trust x-forwarded-host/proto when socket is null', t => {\n  t.plan(2)\n\n  const headers = {\n    host: 'real.test',\n    'x-forwarded-host': 'spoofed.test',\n    'x-forwarded-proto': 'https'\n  }\n  const req = {\n    method: 'GET',\n    url: '/',\n    socket: null,\n    headers\n  }\n\n  const TpRequest = buildRequest(Request, true)\n  const request = new TpRequest('id', 'params', req, 'query', 'log')\n  t.assert.strictEqual(request.host, 'real.test', 'falls back to host header')\n  t.assert.strictEqual(request.protocol, undefined, 'does not trust x-forwarded-proto')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/request.js",
+    "test/client-timeout.test.js",
+    "test/close.test.js",
+    "test/constrained-routes.test.js",
+    "test/hooks.test.js",
+    "test/http-methods/get.test.js",
+    "test/http-methods/lock.test.js",
+    "test/http-methods/propfind.test.js",
+    "test/http-methods/proppatch.test.js",
+    "test/https/https.test.js",
+    "test/internals/reply.test.js",
+    "test/internals/request.pr6684.test.js",
+    "test/internals/request.test.js",
+    "test/max-requests-per-socket.test.js",
+    "test/request-error.test.js",
+    "test/schema-examples.test.js",
+    "test/schema-feature.test.js",
+    "test/schema-serialization.test.js",
+    "test/schema-special-usage.test.js",
+    "test/schema-validation.test.js",
+    "test/skip-reply-send.test.js",
+    "test/trust-proxy.pr6684.test.js",
+    "test/trust-proxy.test.js",
+    "test/types/logger.test-d.ts",
+    "test/types/register.test-d.ts",
+    "test/types/reply.test-d.ts",
+    "test/types/request.test-d.ts",
+    "test/types/route.test-d.ts",
+    "types/logger.d.ts"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test",
+    "test/http-methods",
+    "test/https",
+    "test/internals",
+    "test/types",
+    "types"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6684,
+    "sha": "21b4c3c101038030e552ad2cfcca3f43a349f464",
+    "url": "https://github.com/fastify/fastify/pull/6684",
+    "author": "mcollina",
+    "merged_at": "2026-04-24T06:59:22Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/request.js",
+      "test/internals/request.test.js"
+    ],
+    "source_files": [
+      "lib/request.js"
+    ],
+    "test_files": [
+      "test/internals/request.pr6684.test.js",
+      "test/trust-proxy.pr6684.test.js"
+    ],
+    "source_lines_changed": 8,
+    "notes": [
+      "test/internals/request.test.js: 2 added/modified case(s) extracted to test/internals/request.pr6684.test.js",
+      "test/internals/request.test.js: modified expectations stay in the solution",
+      "test/trust-proxy.test.js: 1 added/modified case(s) extracted to test/trust-proxy.pr6684.test.js"
+    ],
+    "applies_to_common_base": false,
+    "background": [
+      {
+        "sha": "00f202f35d4a33fe45044995023ef1679200e559",
+        "subject": "chore: update logger types and fix TODO comment (#6470)",
+        "files": [
+          "test/types/logger.test-d.ts",
+          "test/types/register.test-d.ts",
+          "test/types/reply.test-d.ts",
+          "test/types/request.test-d.ts",
+          "types/logger.d.ts"
+        ]
+      },
+      {
+        "sha": "da9b338c295c635e96e87f10b568cbdc38132688",
+        "subject": "test: use fastify.test in test case (#6568)",
+        "files": [
+          "test/client-timeout.test.js",
+          "test/close.test.js",
+          "test/constrained-routes.test.js",
+          "test/hooks.test.js",
+          "test/http-methods/get.test.js",
+          "test/http-methods/lock.test.js",
+          "test/http-methods/propfind.test.js",
+          "test/http-methods/proppatch.test.js",
+          "test/https/https.test.js",
+          "test/internals/reply.test.js",
+          "test/internals/request.test.js",
+          "test/max-requests-per-socket.test.js",
+          "test/request-error.test.js",
+          "test/schema-examples.test.js",
+          "test/schema-feature.test.js",
+          "test/schema-serialization.test.js",
+          "test/schema-special-usage.test.js",
+          "test/schema-validation.test.js",
+          "test/skip-reply-send.test.js",
+          "test/trust-proxy.test.js",
+          "test/types/logger.test-d.ts",
+          "test/types/route.test-d.ts"
+        ]
+      }
+    ],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/internals/request.pr6684.test.js",
+      "test/trust-proxy.pr6684.test.js"
+    ],
+    "suite_seconds": 15.9,
+    "suite_retried": false,
+    "prerequisites": [
+      "t012"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/request.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t011",
+      "t012",
+      "t013",
+      "t025",
+      "t026",
+      "t036"
+    ],
+    "writes_lines_written_by": [
+      "t012"
+    ],
+    "lines_rewritten_by": [
+      "t036"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

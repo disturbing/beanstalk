@@ -1,0 +1,71 @@
+{
+  "id": "t001",
+  "title": "fix: handle web stream payload in HEAD route",
+  "prompt": "Fixes #6371\n\nIssue #6371: HEAD route throws `ERR_INVALID_ARG_TYPE` error when GET route sends a Web Stream\n\n### Prerequisites\n\n- [x] I have written a descriptive issue title\n- [x] I have searched existing issues to ensure the bug has not already been reported\n\n### Fastify version\n\n5.6.1\n\n### Plugin version\n\n_No response_\n\n### Node.js version\n\n22.18.0\n\n### Operating system\n\nmacOS\n\n### Operating system version (i.e. 20.04, 11.3, 10)\n\n15.6\n\n### Description\n\n### Summary\nFastify automatically creates a corresponding `HEAD` route for every `GET` route. However, if the `GET` route handler sends a Web Stream (e.g., a `ReadableStream`), making a request to the `HEAD` route throws a `TypeError`.\n\n### Steps to Reproduce\n1. Register a `GET` route that replies with a Web Stream payload (e.g., `new ReadableStream(...)`).\n2. Start the Fastify server.\n3. Send a `HEAD` request to the same route.\n4. The server crashes with the error below.\n\n### Error Details\nThe following `TypeError` is thrown:\n\n```\nTypeError [ERR_INVALID_ARG_TYPE]: The \"string\" argument must be of type string or an instance of Buffer or ArrayBuffer. Received an instance of ReadableStream\n    at Function.byteLength (node:buffer:777:11)\n    ...\n```\n\n### Analysis\nThis error originates from the `headRouteOnSendHandler` function, specifically at this line:\n\nThis line incorrectly assumes the payload is a Buffer-like type (`string`, `Buffer`, or `ArrayBuffer`, ...) to calculate the `Content-Length`.\nThus `Buffer.byteLength` fails causing the error when the payload is a `ReadableStream`.\n\n### Link to code that reproduces the bug\n\nhttps://github.com/orionmiz/fastify-repro-web-stream-in-head\n\n### Expected Behavior\n\n**HEAD request to a route whose corresponding GET handler sends a Web Stream should not throw an error.**\n\n- The `headRouteOnSendHandler` should not attempt to calculate the `Content-Length` of a stream payload (e.g., by calling `Buffer.byteLength`).\n- Instead, in accordance with the HTTP specification, the `HEAD` response must include the exact same headers (such as `Transfer-Encoding` or `Content-Length`) that would have been sent by the corresponding `GET` request.",
+  "acceptance_tests": {
+    "test/route.6.pr6372.test.js": "'use strict'\n\nconst stream = require('node:stream')\nconst { ReadableStream } = require('node:stream/web')\nconst { test } = require('node:test')\nconst Fastify = require('..')\n\ntest('HEAD route should handle properly each response type', async t => {\n  t.plan(24)\n\n  const fastify = Fastify({ exposeHeadRoutes: true })\n  const resString = 'Found me!'\n  const resJSON = { here: 'is Johnny' }\n  const resBuffer = Buffer.from('I am a buffer!')\n  const resStream = stream.Readable.from('I am a stream!')\n  const resWebStream = ReadableStream.from('I am a web stream!')\n\n  fastify.route({\n    method: 'GET',\n    path: '/json',\n    handler: (req, reply) => {\n      reply.send(resJSON)\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/string',\n    handler: (req, reply) => {\n      reply.send(resString)\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/buffer',\n    handler: (req, reply) => {\n      reply.send(resBuffer)\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/buffer-with-content-type',\n    handler: (req, reply) => {\n      reply.headers({ 'content-type': 'image/jpeg' })\n      reply.send(resBuffer)\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/stream',\n    handler: (req, reply) => {\n      return resStream\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/web-stream',\n    handler: (req, reply) => {\n      return resWebStream\n    }\n  })\n\n  let res = await fastify.inject({\n    method: 'HEAD',\n    url: '/json'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], 'application/json; charset=utf-8')\n  t.assert.strictEqual(res.headers['content-length'], `${Buffer.byteLength(JSON.stringify(resJSON))}`)\n  t.assert.deepStrictEqual(res.body, '')\n\n  res = await fastify.inject({\n    method: 'HEAD',\n    url: '/string'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], 'text/plain; charset=utf-8')\n  t.assert.strictEqual(res.headers['content-length'], `${Buffer.byteLength(resString)}`)\n  t.assert.strictEqual(res.body, '')\n\n  res = await fastify.inject({\n    method: 'HEAD',\n    url: '/buffer'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], 'application/octet-stream')\n  t.assert.strictEqual(res.headers['content-length'], `${resBuffer.byteLength}`)\n  t.assert.strictEqual(res.body, '')\n\n  res = await fastify.inject({\n    method: 'HEAD',\n    url: '/buffer-with-content-type'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], 'image/jpeg')\n  t.assert.strictEqual(res.headers['content-length'], `${resBuffer.byteLength}`)\n  t.assert.strictEqual(res.body, '')\n\n  res = await fastify.inject({\n    method: 'HEAD',\n    url: '/stream'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], undefined)\n  t.assert.strictEqual(res.headers['content-length'], undefined)\n  t.assert.strictEqual(res.body, '')\n\n  res = await fastify.inject({\n    method: 'HEAD',\n    url: '/web-stream'\n  })\n  t.assert.strictEqual(res.statusCode, 200)\n  t.assert.strictEqual(res.headers['content-type'], undefined)\n  t.assert.strictEqual(res.headers['content-length'], undefined)\n  t.assert.strictEqual(res.body, '')\n})\n",
+    "test/route.7.pr6372.test.js": "'use strict'\n\nconst stream = require('node:stream')\nconst { ReadableStream } = require('node:stream/web')\nconst split = require('split2')\nconst { test } = require('node:test')\nconst Fastify = require('..')\nconst createError = require('@fastify/error')\n\ntest('HEAD route should handle ReadableStream.cancel() error', (t, done) => {\n  t.plan(7)\n\n  const logStream = split(JSON.parse)\n  const expectedError = new Error('Cancel error!')\n  const fastify = Fastify({\n    logger: {\n      stream: logStream,\n      level: 'error'\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    path: '/web-stream',\n    exposeHeadRoute: true,\n    handler: (req, reply) => {\n      const webStream = new ReadableStream({\n        start (controller) {\n          controller.enqueue('Hello from web stream!')\n        },\n        cancel (reason) {\n          t.assert.strictEqual(reason, 'Stream cancelled by HEAD route')\n          throw expectedError\n        }\n      })\n      return webStream\n    }\n  })\n\n  logStream.once('data', line => {\n    const { message, stack } = expectedError\n    t.assert.deepStrictEqual(line.err, { type: 'Error', message, stack })\n    t.assert.strictEqual(line.msg, 'Error on Stream found for HEAD route')\n    t.assert.strictEqual(line.level, 50)\n  })\n\n  fastify.inject({\n    method: 'HEAD',\n    url: '/web-stream'\n  }, (error, res) => {\n    t.assert.ifError(error)\n    t.assert.strictEqual(res.statusCode, 200)\n    t.assert.strictEqual(res.headers['content-type'], undefined)\n    done()\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/head-route.js",
+    "test/route.6.pr6372.test.js",
+    "test/route.6.test.js",
+    "test/route.7.pr6372.test.js",
+    "test/route.7.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6372,
+    "sha": "dd02e428ddbfe407a2d114d431e60a6a10335ea0",
+    "url": "https://github.com/fastify/fastify/pull/6372",
+    "author": "orionmiz",
+    "merged_at": "2025-11-03T10:42:10Z",
+    "prompt_source": "linked-issue",
+    "files_touched": [
+      "lib/head-route.js",
+      "test/route.6.test.js",
+      "test/route.7.test.js"
+    ],
+    "source_files": [
+      "lib/head-route.js"
+    ],
+    "test_files": [
+      "test/route.6.pr6372.test.js",
+      "test/route.7.pr6372.test.js"
+    ],
+    "source_lines_changed": 10,
+    "notes": [
+      "test/route.6.test.js: 1 added/modified case(s) extracted to test/route.6.pr6372.test.js",
+      "test/route.6.test.js: modified expectations stay in the solution",
+      "test/route.7.test.js: 1 added/modified case(s) extracted to test/route.7.pr6372.test.js",
+      "test/route.7.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/route.6.pr6372.test.js",
+      "test/route.7.pr6372.test.js"
+    ],
+    "suite_seconds": 12.9,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/head-route.js"
+    ],
+    "shares_a_source_file_with": [],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

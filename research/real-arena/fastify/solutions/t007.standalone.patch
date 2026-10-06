@@ -1,0 +1,879 @@
+diff --git a/lib/content-type-parser.js b/lib/content-type-parser.js
+index 483e9370..f83f010a 100644
+--- a/lib/content-type-parser.js
++++ b/lib/content-type-parser.js
+@@ -3,6 +3,7 @@
+ const { AsyncResource } = require('node:async_hooks')
+ const { FifoMap: Fifo } = require('toad-cache')
+ const { parse: secureJsonParse } = require('secure-json-parse')
++const ContentType = require('./content-type')
+ const {
+   kDefaultJsonParse,
+   kContentTypeParser,
+@@ -75,8 +76,13 @@ ContentTypeParser.prototype.add = function (contentType, opts, parserFn) {
+     this.customParsers.set('', parser)
+   } else {
+     if (contentTypeIsString) {
+-      this.parserList.unshift(contentType)
+-      this.customParsers.set(contentType, parser)
++      const ct = new ContentType(contentType)
++      if (ct.isValid === false) {
++        throw new FST_ERR_CTP_INVALID_TYPE()
++      }
++      const normalizedContentType = ct.toString()
++      this.parserList.unshift(normalizedContentType)
++      this.customParsers.set(normalizedContentType, parser)
+     } else {
+       validateRegExp(contentType)
+       this.parserRegExpList.unshift(contentType)
+@@ -87,7 +93,7 @@ ContentTypeParser.prototype.add = function (contentType, opts, parserFn) {
+ 
+ ContentTypeParser.prototype.hasParser = function (contentType) {
+   if (typeof contentType === 'string') {
+-    contentType = contentType.trim().toLowerCase()
++    contentType = new ContentType(contentType).toString()
+   } else {
+     if (!(contentType instanceof RegExp)) throw new FST_ERR_CTP_INVALID_TYPE()
+     contentType = contentType.toString()
+@@ -97,45 +103,49 @@ ContentTypeParser.prototype.hasParser = function (contentType) {
+ }
+ 
+ ContentTypeParser.prototype.existingParser = function (contentType) {
+-  if (contentType === 'application/json' && this.customParsers.has(contentType)) {
+-    return this.customParsers.get(contentType).fn !== this[kDefaultJsonParse]
+-  }
+-  if (contentType === 'text/plain' && this.customParsers.has(contentType)) {
+-    return this.customParsers.get(contentType).fn !== defaultPlainTextParser
++  if (typeof contentType === 'string') {
++    const ct = new ContentType(contentType).toString()
++    if (contentType === 'application/json' && this.customParsers.has(contentType)) {
++      return this.customParsers.get(ct).fn !== this[kDefaultJsonParse]
++    }
++    if (contentType === 'text/plain' && this.customParsers.has(contentType)) {
++      return this.customParsers.get(ct).fn !== defaultPlainTextParser
++    }
+   }
+ 
+   return this.hasParser(contentType)
+ }
+ 
+ ContentTypeParser.prototype.getParser = function (contentType) {
+-  let parser = this.customParsers.get(contentType)
+-  if (parser !== undefined) return parser
+-  parser = this.cache.get(contentType)
++  if (typeof contentType === 'string') {
++    contentType = new ContentType(contentType)
++  }
++  const ct = contentType.toString()
++
++  let parser = this.cache.get(ct)
+   if (parser !== undefined) return parser
++  parser = this.customParsers.get(ct)
++  if (parser !== undefined) {
++    this.cache.set(ct, parser)
++    return parser
++  }
+ 
+-  const caseInsensitiveContentType = contentType.toLowerCase()
+-  for (let i = 0; i !== this.parserList.length; ++i) {
+-    const parserListItem = this.parserList[i]
+-    if (
+-      caseInsensitiveContentType.slice(0, parserListItem.length) === parserListItem &&
+-      (
+-        caseInsensitiveContentType.length === parserListItem.length ||
+-        caseInsensitiveContentType.charCodeAt(parserListItem.length) === 59 /* `;` */ ||
+-        caseInsensitiveContentType.charCodeAt(parserListItem.length) === 32 /* ` ` */ ||
+-        caseInsensitiveContentType.charCodeAt(parserListItem.length) === 9  /* `\t` */
+-      )
+-    ) {
+-      parser = this.customParsers.get(parserListItem)
+-      this.cache.set(contentType, parser)
+-      return parser
+-    }
++  // We have conflicting desires across our test suite. In some cases, we
++  // expect to get a parser by just passing the media-type. In others, we expect
++  // to get a parser registered under the media-type while also providing
++  // parameters. And in yet others, we expect to register a parser under the
++  // media-type and have it apply to any request with a header that starts
++  // with that type.
++  parser = this.customParsers.get(contentType.mediaType)
++  if (parser !== undefined) {
++    return parser
+   }
+ 
+   for (let j = 0; j !== this.parserRegExpList.length; ++j) {
+     const parserRegExp = this.parserRegExpList[j]
+-    if (parserRegExp.test(contentType)) {
++    if (parserRegExp.test(ct)) {
+       parser = this.customParsers.get(parserRegExp.toString())
+-      this.cache.set(contentType, parser)
++      this.cache.set(ct, parser)
+       return parser
+     }
+   }
+@@ -154,7 +164,7 @@ ContentTypeParser.prototype.remove = function (contentType) {
+   let parsers
+ 
+   if (typeof contentType === 'string') {
+-    contentType = contentType.trim().toLowerCase()
++    contentType = new ContentType(contentType).toString()
+     parsers = this.parserList
+   } else {
+     if (!(contentType instanceof RegExp)) throw new FST_ERR_CTP_INVALID_TYPE()
+diff --git a/lib/content-type.js b/lib/content-type.js
+new file mode 100644
+index 00000000..56f722fa
+--- /dev/null
++++ b/lib/content-type.js
+@@ -0,0 +1,152 @@
++'use strict'
++
++/**
++ * keyValuePairsReg is used to split the parameters list into associated
++ * key value pairings.
++ *
++ * @see https://httpwg.org/specs/rfc9110.html#parameter
++ * @type {RegExp}
++ */
++const keyValuePairsReg = /([\w!#$%&'*+.^`|~-]+)=([^;]*)/gm
++
++/**
++ * typeNameReg is used to validate that the first part of the media-type
++ * does not use disallowed characters.
++ *
++ * @see https://httpwg.org/specs/rfc9110.html#rule.token.separators
++ * @type {RegExp}
++ */
++const typeNameReg = /^[\w!#$%&'*+.^`|~-]+$/
++
++/**
++ * subtypeNameReg is used to validate that the second part of the media-type
++ * does not use disallowed characters.
++ *
++ * @see https://httpwg.org/specs/rfc9110.html#rule.token.separators
++ * @type {RegExp}
++ */
++const subtypeNameReg = /^[\w!#$%&'*+.^`|~-]+\s*/
++
++/**
++ * ContentType parses and represents the value of the content-type header.
++ *
++ * @see https://httpwg.org/specs/rfc9110.html#media.type
++ * @see https://httpwg.org/specs/rfc9110.html#parameter
++ */
++class ContentType {
++  #valid = false
++  #empty = true
++  #type = ''
++  #subtype = ''
++  #parameters = new Map()
++  #string
++
++  constructor (headerValue) {
++    if (headerValue == null || headerValue === '' || headerValue === 'undefined') {
++      return
++    }
++
++    let sepIdx = headerValue.indexOf(';')
++    if (sepIdx === -1) {
++      // The value is the simplest `type/subtype` variant.
++      sepIdx = headerValue.indexOf('/')
++      if (sepIdx === -1) {
++        // Got a string without the correct `type/subtype` format.
++        return
++      }
++
++      const type = headerValue.slice(0, sepIdx).trimStart().toLowerCase()
++      const subtype = headerValue.slice(sepIdx + 1).trimEnd().toLowerCase()
++
++      if (
++        typeNameReg.test(type) === true &&
++        subtypeNameReg.test(subtype) === true
++      ) {
++        this.#valid = true
++        this.#empty = false
++        this.#type = type
++        this.#subtype = subtype
++      }
++
++      return
++    }
++
++    // We have a `type/subtype; params=list...` header value.
++    const mediaType = headerValue.slice(0, sepIdx).toLowerCase()
++    const paramsList = headerValue.slice(sepIdx + 1).trim()
++
++    sepIdx = mediaType.indexOf('/')
++    if (sepIdx === -1) {
++      // We got an invalid string like `something; params=list...`.
++      return
++    }
++    const type = mediaType.slice(0, sepIdx).trimStart()
++    const subtype = mediaType.slice(sepIdx + 1).trimEnd()
++
++    if (
++      typeNameReg.test(type) === false ||
++      subtypeNameReg.test(subtype) === false
++    ) {
++      // Some portion of the media-type is using invalid characters. Therefore,
++      // the content-type header is invalid.
++      return
++    }
++    this.#type = type
++    this.#subtype = subtype
++    this.#valid = true
++    this.#empty = false
++
++    let matches = keyValuePairsReg.exec(paramsList)
++    while (matches) {
++      const key = matches[1]
++      const value = matches[2]
++      if (value[0] === '"') {
++        if (value.at(-1) !== '"') {
++          this.#parameters.set(key, 'invalid quoted string')
++          matches = keyValuePairsReg.exec(paramsList)
++          continue
++        }
++        // We should probably verify the value matches a quoted string
++        // (https://httpwg.org/specs/rfc9110.html#rule.quoted-string) value.
++        // But we are not really doing much with the parameter values, so we
++        // are omitting that at this time.
++        this.#parameters.set(key, value.slice(1, value.length - 1))
++      } else {
++        this.#parameters.set(key, value)
++      }
++      matches = keyValuePairsReg.exec(paramsList)
++    }
++  }
++
++  get [Symbol.toStringTag] () { return 'ContentType' }
++
++  get isEmpty () { return this.#empty }
++
++  get isValid () { return this.#valid }
++
++  get mediaType () { return `${this.#type}/${this.#subtype}` }
++
++  get type () { return this.#type }
++
++  get subtype () { return this.#subtype }
++
++  get parameters () { return this.#parameters }
++
++  toString () {
++    /* c8 ignore next: we don't need to verify the cache */
++    if (this.#string) return this.#string
++    const parameters = []
++    for (const [key, value] of this.#parameters.entries()) {
++      parameters.push(`${key}="${value}"`)
++    }
++    const result = [this.#type, '/', this.#subtype]
++    if (parameters.length > 0) {
++      result.push('; ')
++      result.push(parameters.join('; '))
++    }
++    this.#string = result.join('')
++    return this.#string
++  }
++}
++
++module.exports = ContentType
+diff --git a/lib/error-handler.js b/lib/error-handler.js
+index 03d5cab3..f9a1899c 100644
+--- a/lib/error-handler.js
++++ b/lib/error-handler.js
+@@ -2,11 +2,11 @@
+ 
+ const statusCodes = require('node:http').STATUS_CODES
+ const wrapThenable = require('./wrap-thenable.js')
++const { setErrorStatusCode } = require('./error-status.js')
+ const {
+   kReplyHeaders,
+   kReplyNextErrorHandler,
+   kReplyIsRunningOnErrorHook,
+-  kReplyHasStatusCode,
+   kRouteContext,
+   kDisableRequestLogging
+ } = require('./symbols.js')
+@@ -81,10 +81,7 @@ function handleError (reply, error, cb) {
+ 
+ function defaultErrorHandler (error, request, reply) {
+   setErrorHeaders(error, reply)
+-  if (!reply[kReplyHasStatusCode] || reply.statusCode === 200) {
+-    const statusCode = error && (error.statusCode || error.status)
+-    reply.code(statusCode >= 400 ? statusCode : 500)
+-  }
++  setErrorStatusCode(reply, error)
+   if (reply.statusCode < 500) {
+     if (!reply.log[kDisableRequestLogging]) {
+       reply.log.info(
+diff --git a/lib/error-status.js b/lib/error-status.js
+new file mode 100644
+index 00000000..e6baea2b
+--- /dev/null
++++ b/lib/error-status.js
+@@ -0,0 +1,14 @@
++'use strict'
++
++const {
++  kReplyHasStatusCode
++} = require('./symbols')
++
++function setErrorStatusCode (reply, err) {
++  if (!reply[kReplyHasStatusCode] || reply.statusCode === 200) {
++    const statusCode = err && (err.statusCode || err.status)
++    reply.code(statusCode >= 400 ? statusCode : 500)
++  }
++}
++
++module.exports = { setErrorStatusCode }
+diff --git a/lib/handle-request.js b/lib/handle-request.js
+index fe0977f9..8d81d633 100644
+--- a/lib/handle-request.js
++++ b/lib/handle-request.js
+@@ -1,9 +1,12 @@
+ 'use strict'
+ 
+ const diagnostics = require('node:diagnostics_channel')
++const ContentType = require('./content-type')
++const wrapThenable = require('./wrap-thenable')
+ const { validate: validateSchema } = require('./validation')
+ const { preValidationHookRunner, preHandlerHookRunner } = require('./hooks')
+-const wrapThenable = require('./wrap-thenable')
++const { FST_ERR_CTP_INVALID_MEDIA_TYPE } = require('./errors')
++const { setErrorStatusCode } = require('./error-status')
+ const {
+   kReplyIsError,
+   kRouteContext,
+@@ -30,9 +33,9 @@ function handleRequest (err, request, reply) {
+ 
+   if (this[kSupportedHTTPMethods].bodywith.has(method)) {
+     const headers = request.headers
+-    const contentType = headers['content-type']
++    const ctHeader = headers['content-type']
+ 
+-    if (contentType === undefined) {
++    if (ctHeader === undefined) {
+       const contentLength = headers['content-length']
+       const transferEncoding = headers['transfer-encoding']
+       const isEmptyBody = transferEncoding === undefined &&
+@@ -48,7 +51,13 @@ function handleRequest (err, request, reply) {
+       return
+     }
+ 
+-    request[kRouteContext].contentTypeParser.run(contentType, handler, request, reply)
++    const contentType = new ContentType(ctHeader)
++    if (contentType.isValid === false) {
++      reply[kReplyIsError] = true
++      reply.status(415).send(new FST_ERR_CTP_INVALID_MEDIA_TYPE())
++      return
++    }
++    request[kRouteContext].contentTypeParser.run(contentType.toString(), handler, request, reply)
+     return
+   }
+ 
+@@ -143,11 +152,13 @@ function preHandlerCallbackInner (err, request, reply, store) {
+   try {
+     if (err != null) {
+       reply[kReplyIsError] = true
+-      reply.send(err)
+       if (store) {
+         store.error = err
++        // Set status code before publishing so subscribers see the correct value
++        setErrorStatusCode(reply, err)
+         channels.error.publish(store)
+       }
++      reply.send(err)
+       return
+     }
+ 
+@@ -158,6 +169,8 @@ function preHandlerCallbackInner (err, request, reply, store) {
+     } catch (err) {
+       if (store) {
+         store.error = err
++        // Set status code before publishing so subscribers see the correct value
++        setErrorStatusCode(reply, err)
+         channels.error.publish(store)
+       }
+ 
+diff --git a/lib/wrap-thenable.js b/lib/wrap-thenable.js
+index 8dddc72a..6ff5091d 100644
+--- a/lib/wrap-thenable.js
++++ b/lib/wrap-thenable.js
+@@ -4,6 +4,7 @@ const {
+   kReplyIsError,
+   kReplyHijacked
+ } = require('./symbols')
++const { setErrorStatusCode } = require('./error-status')
+ 
+ const diagnostics = require('node:diagnostics_channel')
+ const channels = diagnostics.tracingChannel('fastify.request.handler')
+@@ -52,6 +53,8 @@ function wrapThenable (thenable, reply, store) {
+   }, function (err) {
+     if (store) {
+       store.error = err
++      // Set status code before publishing so subscribers see the correct value
++      setErrorStatusCode(reply, err)
+       channels.error.publish(store) // note that error happens before asyncStart
+       channels.asyncStart.publish(store)
+     }
+diff --git a/test/content-parser.test.js b/test/content-parser.test.js
+index 0f2319b6..5cd29a3e 100644
+--- a/test/content-parser.test.js
++++ b/test/content-parser.test.js
+@@ -55,6 +55,7 @@ test('getParser', async t => {
+     fastify.addContentTypeParser(/^image\/.*/, first)
+     fastify.addContentTypeParser(/^application\/.+\+xml/, second)
+     fastify.addContentTypeParser('text/html', third)
++    fastify.addContentTypeParser('text/html; charset=utf-8', third)
+ 
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('application/t+xml').fn, second)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('image/png').fn, first)
+@@ -66,14 +67,15 @@ test('getParser', async t => {
+   })
+ 
+   await t.test('should return matching parser with caching /1', t => {
+-    t.plan(6)
++    t.plan(7)
+ 
+     const fastify = Fastify()
+ 
+     fastify.addContentTypeParser('text/html', first)
+ 
+-    t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html').fn, first)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 0)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html').fn, first)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html ').fn, first)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html ').fn, first)
+@@ -81,20 +83,21 @@ test('getParser', async t => {
+   })
+ 
+   await t.test('should return matching parser with caching /2', t => {
+-    t.plan(8)
++    t.plan(9)
+ 
+     const fastify = Fastify()
+ 
+     fastify.addContentTypeParser('text/html', first)
+ 
+-    t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html').fn, first)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 0)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html').fn, first)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/HTML').fn, first)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('TEXT/html').fn, first)
+-    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 2)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('TEXT/html').fn, first)
+-    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 2)
++    t.assert.strictEqual(fastify[keys.kContentTypeParser].cache.size, 1)
+   })
+ 
+   await t.test('should return matching parser with caching /3', t => {
+@@ -125,7 +128,7 @@ test('getParser', async t => {
+   })
+ 
+   await t.test('should return parser that catches all if no other is set', t => {
+-    t.plan(3)
++    t.plan(2)
+ 
+     const fastify = Fastify()
+ 
+@@ -134,7 +137,6 @@ test('getParser', async t => {
+ 
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('image/gif').fn, first)
+     t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text/html').fn, second)
+-    t.assert.strictEqual(fastify[keys.kContentTypeParser].getParser('text').fn, first)
+   })
+ 
+   await t.test('should return undefined if no matching parser exist', t => {
+@@ -208,7 +210,7 @@ test('add', async t => {
+     const fastify = Fastify()
+     const contentTypeParser = fastify[keys.kContentTypeParser]
+ 
+-    t.assert.ifError(contentTypeParser.add('test', {}, first))
++    t.assert.ifError(contentTypeParser.add('test/type', {}, first))
+     t.assert.ifError(contentTypeParser.add(/test/, {}, first))
+     t.assert.throws(
+       () => contentTypeParser.add({}, {}, first),
+@@ -557,7 +559,7 @@ test('content-type match parameters - regexp', async t => {
+ 
+   const fastify = Fastify()
+   fastify.removeAllContentTypeParsers()
+-  fastify.addContentTypeParser(/application\/json; charset=utf8/, function (request, body, done) {
++  fastify.addContentTypeParser(/application\/json; charset="utf8"/, function (request, body, done) {
+     t.assert.ok('should be called')
+     done(null, body)
+   })
+@@ -696,38 +698,3 @@ test('content-type regexp list should be cloned when plugin override', async t =
+     t.assert.strictEqual(payload, 'png')
+   }
+ })
+-
+-test('edge case content-type - ;', async t => {
+-  t.plan(1)
+-
+-  const fastify = Fastify()
+-  fastify.removeAllContentTypeParsers()
+-  fastify.addContentTypeParser(';', function (request, body, done) {
+-    t.assert.fail('should not be called')
+-    done(null, body)
+-  })
+-
+-  fastify.post('/', async () => {
+-    return 'ok'
+-  })
+-
+-  await fastify.inject({
+-    method: 'POST',
+-    path: '/',
+-    headers: {
+-      'content-type': 'application/json; foo=bar; charset=utf8'
+-    },
+-    body: ''
+-  })
+-
+-  await fastify.inject({
+-    method: 'POST',
+-    path: '/',
+-    headers: {
+-      'content-type': 'image/jpeg'
+-    },
+-    body: ''
+-  })
+-
+-  t.assert.ok('end')
+-})
+diff --git a/test/content-type.test.js b/test/content-type.test.js
+index ab9c4583..6009e432 100644
+--- a/test/content-type.test.js
++++ b/test/content-type.test.js
+@@ -1,6 +1,7 @@
+ 'use strict'
+ 
+-const { test } = require('node:test')
++const { describe, test } = require('node:test')
++const ContentType = require('../lib/content-type')
+ const Fastify = require('..')
+ 
+ test('should remove content-type for setErrorHandler', async t => {
+diff --git a/test/custom-parser.0.test.js b/test/custom-parser.0.test.js
+index 28831e3a..69bfe259 100644
+--- a/test/custom-parser.0.test.js
++++ b/test/custom-parser.0.test.js
+@@ -354,57 +354,7 @@ test('catch all content type parser', async (t) => {
+     method: 'POST',
+     body: 'hello',
+     headers: {
+-      'Content-Type': 'very-weird-content-type'
+-    }
+-  })
+-
+-  t.assert.ok(result2.ok)
+-  t.assert.strictEqual(result2.status, 200)
+-  t.assert.strictEqual(await result2.text(), 'hello')
+-})
+-
+-test('catch all content type parser should not interfere with other conte type parsers', async (t) => {
+-  t.plan(6)
+-  const fastify = Fastify()
+-
+-  fastify.post('/', (req, reply) => {
+-    reply.send(req.body)
+-  })
+-
+-  fastify.addContentTypeParser('*', function (req, payload, done) {
+-    let data = ''
+-    payload.on('data', chunk => { data += chunk })
+-    payload.on('end', () => {
+-      done(null, data)
+-    })
+-  })
+-
+-  fastify.addContentTypeParser('application/jsoff', function (req, payload, done) {
+-    jsonParser(payload, function (err, body) {
+-      done(err, body)
+-    })
+-  })
+-
+-  const fastifyServer = await fastify.listen({ port: 0 })
+-  t.after(() => fastify.close())
+-
+-  const result1 = await fetch(fastifyServer, {
+-    method: 'POST',
+-    body: '{"hello":"world"}',
+-    headers: {
+-      'Content-Type': 'application/jsoff'
+-    }
+-  })
+-
+-  t.assert.ok(result1.ok)
+-  t.assert.strictEqual(result1.status, 200)
+-  t.assert.deepStrictEqual(await result1.json(), { hello: 'world' })
+-
+-  const result2 = await fetch(fastifyServer, {
+-    method: 'POST',
+-    body: 'hello',
+-    headers: {
+-      'Content-Type': 'very-weird-content-type'
++      'Content-Type': 'very-weird-content-type/foo'
+     }
+   })
+ 
+diff --git a/test/custom-parser.1.test.js b/test/custom-parser.1.test.js
+index c0ac1ada..ea0fe31c 100644
+--- a/test/custom-parser.1.test.js
++++ b/test/custom-parser.1.test.js
+@@ -89,41 +89,6 @@ test('Should get the body as string /1', async (t) => {
+   t.assert.strictEqual(await result.text(), 'hello world')
+ })
+ 
+-test('Should get the body as string /2', async (t) => {
+-  t.plan(4)
+-  const fastify = Fastify()
+-
+-  fastify.post('/', (req, reply) => {
+-    reply.send(req.body)
+-  })
+-
+-  fastify.addContentTypeParser('text/plain/test', { parseAs: 'string' }, function (req, body, done) {
+-    t.assert.ok('called')
+-    t.assert.ok(typeof body === 'string')
+-    try {
+-      const plainText = body
+-      done(null, plainText)
+-    } catch (err) {
+-      err.statusCode = 400
+-      done(err, undefined)
+-    }
+-  })
+-
+-  const fastifyServer = await fastify.listen({ port: 0 })
+-  t.after(() => fastify.close())
+-
+-  const result = await fetch(fastifyServer, {
+-    method: 'POST',
+-    body: 'hello world',
+-    headers: {
+-      'Content-Type': '   text/plain/test  '
+-    }
+-  })
+-
+-  t.assert.strictEqual(result.status, 200)
+-  t.assert.strictEqual(await result.text(), 'hello world')
+-})
+-
+ test('Should get the body as buffer', async (t) => {
+   t.plan(4)
+   const fastify = Fastify()
+diff --git a/test/custom-parser.3.test.js b/test/custom-parser.3.test.js
+index b359637f..b8758fcb 100644
+--- a/test/custom-parser.3.test.js
++++ b/test/custom-parser.3.test.js
+@@ -189,7 +189,7 @@ test('catch all content type parser should not interfere with content type parse
+ 
+   const assertions = [
+     { body: '{"myKey":"myValue"}', contentType: 'application/json', expected: JSON.stringify({ myKey: 'myValue' }) },
+-    { body: 'body', contentType: 'very-weird-content-type', expected: 'body' },
++    { body: 'body', contentType: 'very-weird-content-type/foo', expected: 'body' },
+     { body: 'my text', contentType: 'text/html', expected: 'my texthtml' }
+   ]
+ 
+diff --git a/test/schema-validation.test.js b/test/schema-validation.test.js
+index cde8063e..86010a5b 100644
+--- a/test/schema-validation.test.js
++++ b/test/schema-validation.test.js
+@@ -1416,7 +1416,7 @@ test('Schema validation will not be bypass by different content type', async t =
+   t.after(() => fastify.close())
+   const address = fastify.listeningOrigin
+ 
+-  const correct1 = await fetch(address, {
++  let found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1424,10 +1424,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ foo: 'string' })
+   })
+-  t.assert.strictEqual(correct1.status, 200)
+-  await correct1.bytes()
++  t.assert.strictEqual(found.status, 200)
++  await found.bytes()
+ 
+-  const correct2 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1435,10 +1435,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ foo: 'string' })
+   })
+-  t.assert.strictEqual(correct2.status, 200)
+-  await correct2.bytes()
++  t.assert.strictEqual(found.status, 200)
++  await found.bytes()
+ 
+-  const correct3 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1446,10 +1446,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ foo: 'string' })
+   })
+-  t.assert.strictEqual(correct2.status, 200)
+-  await correct3.bytes()
++  t.assert.strictEqual(found.status, 200)
++  await found.bytes()
+ 
+-  const invalid1 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1457,10 +1457,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid1.status, 400)
+-  t.assert.strictEqual((await invalid1.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 400)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_VALIDATION')
+ 
+-  const invalid2 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1468,10 +1468,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid2.status, 400)
+-  t.assert.strictEqual((await invalid2.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 400)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_VALIDATION')
+ 
+-  const invalid3 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1479,10 +1479,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid3.status, 400)
+-  t.assert.strictEqual((await invalid3.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 400)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_VALIDATION')
+ 
+-  const invalid4 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1490,10 +1490,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid4.status, 400)
+-  t.assert.strictEqual((await invalid4.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
+ 
+-  const invalid5 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1501,10 +1501,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid5.status, 400)
+-  t.assert.strictEqual((await invalid5.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
+ 
+-  const invalid6 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1512,10 +1512,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid6.status, 400)
+-  t.assert.strictEqual((await invalid6.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
+ 
+-  const invalid7 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1523,10 +1523,10 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid7.status, 400)
+-  t.assert.strictEqual((await invalid7.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 400)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_VALIDATION')
+ 
+-  const invalid8 = await fetch(address, {
++  found = await fetch(address, {
+     method: 'POST',
+     url: '/',
+     headers: {
+@@ -1534,6 +1534,39 @@ test('Schema validation will not be bypass by different content type', async t =
+     },
+     body: JSON.stringify({ invalid: 'string' })
+   })
+-  t.assert.strictEqual(invalid8.status, 400)
+-  t.assert.strictEqual((await invalid8.json()).code, 'FST_ERR_VALIDATION')
++  t.assert.strictEqual(found.status, 400)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_VALIDATION')
++
++  found = await fetch(address, {
++    method: 'POST',
++    url: '/',
++    headers: {
++      'content-type': 'ApPlIcAtIoN/JsOn\ta'
++    },
++    body: JSON.stringify({ invalid: 'string' })
++  })
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
++
++  found = await fetch(address, {
++    method: 'POST',
++    url: '/',
++    headers: {
++      'content-type': 'ApPlIcAtIoN/JsOn\ta; charset=utf-8'
++    },
++    body: JSON.stringify({ invalid: 'string' })
++  })
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
++
++  found = await fetch(address, {
++    method: 'POST',
++    url: '/',
++    headers: {
++      'content-type': 'application/ json'
++    },
++    body: JSON.stringify({ invalid: 'string' })
++  })
++  t.assert.strictEqual(found.status, 415)
++  t.assert.strictEqual((await found.json()).code, 'FST_ERR_CTP_INVALID_MEDIA_TYPE')
+ })

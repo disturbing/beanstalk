@@ -1,0 +1,11 @@
+{
+ "number": 6714,
+ "sha": "9026164f5a2e78db59ff8f98933279161a85a6e3",
+ "title": "fix: ignore duplicate trailer completions",
+ "body": "Add a regression test and fix for trailer handlers that complete twice by mixing the callback and promise styles.\r\n\r\nThe fix adds a per-trailer called-once guard in `sendTrailer()` so the first completion wins and sibling async trailers are not dropped.\r\n",
+ "author": "mcollina",
+ "created_at": "2026-05-06T07:58:10Z",
+ "merged_at": "2026-05-07T08:47:07Z",
+ "pr_base_sha": "10c69d153c6ee4a61878eabfb2a8f3ec34ab9c8c",
+ "linked_issues": []
+}

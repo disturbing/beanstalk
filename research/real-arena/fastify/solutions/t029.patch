@@ -1,0 +1,74 @@
+diff --git a/lib/hooks.js b/lib/hooks.js
+index 1393300c..3895ac46 100644
+--- a/lib/hooks.js
++++ b/lib/hooks.js
+@@ -306,7 +306,11 @@ function onSendHookRunner (functions, request, reply, payload, cb) {
+   }
+ 
+   function handleResolve (newPayload) {
+-    next(null, newPayload)
++    try {
++      next(null, newPayload)
++    } catch (err) {
++      cb(err, request, reply, payload)
++    }
+   }
+ 
+   function handleReject (err) {
+diff --git a/test/reply-error.test.js b/test/reply-error.test.js
+index 8f2a35f3..6ff6177c 100644
+--- a/test/reply-error.test.js
++++ b/test/reply-error.test.js
+@@ -274,52 +274,6 @@ test('Error.status property support', (t, testDone) => {
+   })
+ })
+ 
+-describe('Support rejection with values that are not Error instances', () => {
+-  const objs = [
+-    0,
+-    '',
+-    [],
+-    {},
+-    null,
+-    undefined,
+-    123,
+-    'abc',
+-    new RegExp(),
+-    new Date(),
+-    new Uint8Array()
+-  ]
+-  for (const nonErr of objs) {
+-    test('Type: ' + typeof nonErr, (t, testDone) => {
+-      t.plan(4)
+-      const fastify = Fastify()
+-      t.after(() => fastify.close())
+-
+-      fastify.get('/', () => {
+-        return Promise.reject(nonErr)
+-      })
+-
+-      fastify.setErrorHandler((err, request, reply) => {
+-        if (typeof err === 'object') {
+-          t.assert.deepStrictEqual(err, nonErr)
+-        } else {
+-          t.assert.strictEqual(err, nonErr)
+-        }
+-        reply.code(500).send('error')
+-      })
+-
+-      fastify.inject({
+-        method: 'GET',
+-        url: '/'
+-      }, (error, res) => {
+-        t.assert.ifError(error)
+-        t.assert.strictEqual(res.statusCode, 500)
+-        t.assert.strictEqual(res.payload, 'error')
+-        testDone()
+-      })
+-    })
+-  }
+-})
+-
+ test('invalid schema - ajv', (t, testDone) => {
+   t.plan(4)
+ 

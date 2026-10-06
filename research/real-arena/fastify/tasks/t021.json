@@ -1,0 +1,68 @@
+{
+  "id": "t021",
+  "title": "fix: ignore duplicate trailer completions",
+  "prompt": "Add a regression test and fix for trailer handlers that complete twice by mixing the callback and promise styles.\n\nThe fix adds a per-trailer called-once guard in `sendTrailer()` so the first completion wins and sibling async trailers are not dropped.",
+  "acceptance_tests": {
+    "test/reply-trailers.pr6714.test.js": "'use strict'\n\nconst { test, describe } = require('node:test')\nconst Fastify = require('..')\nconst { Readable } = require('node:stream')\nconst { createHash } = require('node:crypto')\nconst { sleep } = require('./helper')\n\ndescribe('trailer handler counter', () => {\n  const data = JSON.stringify({ hello: 'world' })\n  const hash = createHash('md5')\n  hash.update(data)\n  const md5 = hash.digest('hex')\n\n  test('mixed callback and promise trailers only use the first completion', (t, testDone) => {\n    t.plan(7)\n    const fastify = Fastify()\n\n    fastify.get('/', function (request, reply) {\n      reply.trailer('Async', function (reply, payload, done) {\n        setTimeout(() => done(null, 'async'), 10)\n      })\n      reply.trailer('Mixed', function (reply, payload, done) {\n        done(null, 'correct')\n        return Promise.resolve('corrupted')\n      })\n      reply.send('hello')\n    })\n\n    fastify.inject({\n      method: 'GET',\n      url: '/'\n    }, (error, res) => {\n      t.assert.ifError(error)\n      t.assert.strictEqual(res.statusCode, 200)\n      t.assert.strictEqual(res.headers['transfer-encoding'], 'chunked')\n      t.assert.strictEqual(res.headers.trailer, 'async mixed')\n      t.assert.strictEqual(res.trailers.async, 'async')\n      t.assert.strictEqual(res.trailers.mixed, 'correct')\n      t.assert.ok(!res.headers['content-length'])\n      testDone()\n    })\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/reply.js",
+    "test/reply-trailers.pr6714.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6714,
+    "sha": "9026164f5a2e78db59ff8f98933279161a85a6e3",
+    "url": "https://github.com/fastify/fastify/pull/6714",
+    "author": "mcollina",
+    "merged_at": "2026-05-07T08:47:07Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/reply.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/reply-trailers.pr6714.test.js"
+    ],
+    "source_lines_changed": 5,
+    "notes": [
+      "test/reply-trailers.test.js: 1 added/modified case(s) extracted to test/reply-trailers.pr6714.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/reply-trailers.pr6714.test.js"
+    ],
+    "suite_seconds": 16.1,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t014",
+      "t022",
+      "t023",
+      "t025",
+      "t030",
+      "t038"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

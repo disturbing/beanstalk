@@ -1,0 +1,18 @@
+{
+ "number": 6678,
+ "sha": "d9659819fbbc391d054f1aa4b49ce969a13610dd",
+ "title": "fix: error.code not present on some routing errors",
+ "body": "Fixes #6674",
+ "author": "mcollina",
+ "created_at": "2026-04-19T14:46:02Z",
+ "merged_at": "2026-04-19T17:55:38Z",
+ "pr_base_sha": "c2ba18c17769dacce61472ec0397560b3b4eebde",
+ "linked_issues": [
+  {
+   "number": 6674,
+   "title": "error.code not present on some fastify routing errors",
+   "body": "Minor, but already triaged & patch exists, so why not fix it.\n\n`error.code` present on errors thrown by `method: 'GET'` but not present on `method: ['GET', 'POST']`\n\n```js\ntest('Fastify should throw on multiple assignment to the same route with array method', (t) => {\n  t.plan(1)\n  const fastify = Fastify()\n\n  fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n\n  try {\n    fastify.route({ method: ['GET', 'POST'], url: '/', handler: () => {} })\n    t.assert.fail('Should throw fastify duplicated route declaration')\n  } catch (error) {\n    t.assert.strictEqual(error.code, 'FST_ERR_DUPLICATED_ROUTE')\n  }\n})\n```\n\nSee https://github.com/deepview-autofix/fastify/commit/861abedf68a68841e23e394a016d73fb1b3c2b3e",
+   "is_pr": false
+  }
+ ]
+}

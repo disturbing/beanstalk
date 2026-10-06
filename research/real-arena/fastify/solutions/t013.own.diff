@@ -1,0 +1,157 @@
+diff --git a/docs/Reference/Request.md b/docs/Reference/Request.md
+index 61039bf8..8240441f 100644
+--- a/docs/Reference/Request.md
++++ b/docs/Reference/Request.md
+@@ -33,6 +33,8 @@ Request is a core Fastify object containing the following fields:
+ - `url` - The URL of the incoming request.
+ - `originalUrl` - Similar to `url`, allows access to the original `url` in
+   case of internal re-routing.
++- `mediaType` - The media type extracted from `Content-Type` header. When `Content-Type`
++  header is missing, it will return `undefined`.
+ - `is404` - `true` if request is being handled by 404 handler, `false` otherwise.
+ - `socket` - The underlying connection of the incoming request.
+ - `signal` - An `AbortSignal` that aborts when the handler timeout
+diff --git a/lib/handle-request.js b/lib/handle-request.js
+index 8d81d633..9825a3c0 100644
+--- a/lib/handle-request.js
++++ b/lib/handle-request.js
+@@ -11,7 +11,8 @@ const {
+   kReplyIsError,
+   kRouteContext,
+   kFourOhFourContext,
+-  kSupportedHTTPMethods
++  kSupportedHTTPMethods,
++  kRequestContentType
+ } = require('./symbols')
+ 
+ const channels = diagnostics.tracingChannel('fastify.request.handler')
+@@ -51,13 +52,15 @@ function handleRequest (err, request, reply) {
+       return
+     }
+ 
+-    const contentType = new ContentType(ctHeader)
+-    if (contentType.isValid === false) {
++    // Conditional assignment to avoid creating a new ContentType instance
++    // It can be assigned when accessing the .mediaType in hooks
++    !request[kRequestContentType] && (request[kRequestContentType] = new ContentType(ctHeader))
++    if (request[kRequestContentType].isValid === false) {
+       reply[kReplyIsError] = true
+       reply.status(415).send(new FST_ERR_CTP_INVALID_MEDIA_TYPE())
+       return
+     }
+-    request[kRouteContext].contentTypeParser.run(contentType.toString(), handler, request, reply)
++    request[kRouteContext].contentTypeParser.run(request[kRequestContentType].toString(), handler, request, reply)
+     return
+   }
+ 
+diff --git a/lib/request.js b/lib/request.js
+index 308e6e99..3f4475db 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -10,6 +10,7 @@ const {
+   kSchemaController,
+   kOptions,
+   kRequestCacheValidateFns,
++  kRequestContentType,
+   kRouteContext,
+   kRequestOriginalUrl,
+   kRequestSignal,
+@@ -17,6 +18,7 @@ const {
+ } = require('./symbols')
+ const { FST_ERR_REQ_INVALID_VALIDATION_INVOCATION, FST_ERR_DEC_UNDECLARED } = require('./errors')
+ const decorators = require('./decorate')
++const ContentType = require('./content-type')
+ 
+ const HTTP_PART_SYMBOL_MAP = {
+   body: kSchemaBody,
+@@ -282,6 +284,14 @@ Object.defineProperties(Request.prototype, {
+       this.additionalHeaders = headers
+     }
+   },
++  mediaType: {
++    get () {
++      if (!this[kRequestContentType] && this.headers['content-type'] !== undefined) {
++        this[kRequestContentType] = new ContentType(this.headers['content-type'])
++      }
++      return this[kRequestContentType]?.mediaType
++    }
++  },
+   getValidationFunction: {
+     value: function (httpPartOrSchema) {
+       if (typeof httpPartOrSchema === 'string') {
+diff --git a/lib/symbols.js b/lib/symbols.js
+index a3ad9d88..2ae2b5d7 100644
+--- a/lib/symbols.js
++++ b/lib/symbols.js
+@@ -32,6 +32,7 @@ const keys = {
+   kRequestPayloadStream: Symbol('fastify.RequestPayloadStream'),
+   kRequestAcceptVersion: Symbol('fastify.RequestAcceptVersion'),
+   kRequestCacheValidateFns: Symbol('fastify.request.cache.validateFns'),
++  kRequestContentType: Symbol('fastify.request.contentType'),
+   kRequestOriginalUrl: Symbol('fastify.request.originalUrl'),
+   kRequestSignal: Symbol('fastify.request.signal'),
+   kHandlerTimeout: Symbol('fastify.handlerTimeout'),
+diff --git a/lib/validation.js b/lib/validation.js
+index d94b5ac8..21e0f165 100644
+--- a/lib/validation.js
++++ b/lib/validation.js
+@@ -162,9 +162,7 @@ function validate (context, request, execution) {
+     if (typeof context[bodySchema] === 'function') {
+       validatorFunction = context[bodySchema]
+     } else if (context[bodySchema]) {
+-      // TODO: add request.contentType and reuse it here
+-      const contentType = getEssenceMediaType(request.headers['content-type'])
+-      const contentSchema = context[bodySchema][contentType]
++      const contentSchema = context[bodySchema][request.mediaType]
+       if (contentSchema) {
+         validatorFunction = contentSchema
+       }
+@@ -262,16 +260,6 @@ function wrapValidationError (result, dataVar, schemaErrorFormatter) {
+   return error
+ }
+ 
+-/**
+- * simple function to retrieve the essence media type
+- * @param {string} header
+- * @returns {string} Mimetype string.
+- */
+-function getEssenceMediaType (header) {
+-  if (!header) return ''
+-  return header.trimStart().split(/[ ;]/, 1)[0].trim().toLowerCase()
+-}
+-
+ module.exports = {
+   symbols: { bodySchema, querystringSchema, responseSchema, paramsSchema, headersSchema },
+   compileSchemasForValidation,
+diff --git a/test/schema-validation.test.js b/test/schema-validation.test.js
+index 5d8fcf35..2fd2179d 100644
+--- a/test/schema-validation.test.js
++++ b/test/schema-validation.test.js
+@@ -6,6 +6,7 @@ const Fastify = require('..')
+ const AJV = require('ajv')
+ const Schema = require('fluent-json-schema')
+ const { waitForCb } = require('./toolkit')
++const { kRequestContentType } = require('../lib/symbols')
+ 
+ const customSchemaCompilers = {
+   body: new AJV({
+@@ -1374,6 +1375,7 @@ test('Schema validation when no content type is provided', async t => {
+     },
+     preValidation: async (request) => {
+       request.headers['content-type'] = undefined
++      request[kRequestContentType] = undefined
+     }
+   }, async () => 'ok')
+ 
+diff --git a/types/request.d.ts b/types/request.d.ts
+index e7229b59..618e076e 100644
+--- a/types/request.d.ts
++++ b/types/request.d.ts
+@@ -84,6 +84,7 @@ export interface FastifyRequest<RouteGeneric extends RouteGenericInterface = Rou
+   readonly is404: boolean;
+   readonly socket: RawRequest['socket'];
+   readonly signal: AbortSignal;
++  readonly mediaType: string | undefined;
+ 
+   getValidationFunction(httpPart: HTTPRequestPart): ValidationFunction
+   getValidationFunction(schema: { [key: string]: any }): ValidationFunction

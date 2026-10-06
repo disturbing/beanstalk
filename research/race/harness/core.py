@@ -18,6 +18,7 @@ from .ci import CI, CIResult
 from .footprint import ModuleCatalog, StepTwoPredictor, lexical_predict, normalise, prf, select
 from .gitops import Git, GitError
 from .procs import ProcRegistry, Runner, Sandbox
+from . import suite as suite_mod
 
 
 class Aborted(Exception):
@@ -219,6 +220,7 @@ class Race:
         self.race_t0 = 0.0
         self.arena_snapshot = ""
         self.arena_digest = ""
+        self.suite = suite_mod.SuiteConfig()
 
     # ---- clock, events, wake ----------------------------------------------------------------------
 
@@ -261,6 +263,20 @@ class Race:
             json.dump({k: v for k, v in cfg.__dict__.items()}, fh, indent=2, default=str)
         if not os.path.exists(cfg.repo):
             raise SystemExit(f"arena repository not found: {cfg.repo} (run the arena's materialize.py)")
+        # the arena's suite (default: node --test); a real-task arena brings test globs, a dependency snapshot and
+        # agent settings (arena.json). node_modules is exposed one level above every worktree, so module
+        # resolution finds it while git never sees it
+        self.suite = suite_mod.load_suite(cfg.arena)
+        suite_mod.activate(self.suite)
+        if self.suite.deps:
+            if not os.path.isdir(self.suite.deps):
+                raise SystemExit(f"dependency snapshot not found: {self.suite.deps} (see the arena's README)")
+            link = os.path.join(self.work, "node_modules")
+            if not os.path.lexists(link):
+                os.symlink(self.suite.deps, link)
+        warning = suite_mod.node_mismatch(self.suite)
+        if warning:
+            print(f"warning: {warning}")
         tmp_git = Git(self.runner, self.work)
         # main only, over the pack protocol: the arena's refs/heads/ref/tNNN (reference solutions) and their
         # objects must not be reachable from agent worktrees; then drop origin so nothing can push back
@@ -652,7 +668,14 @@ class Race:
             return []
         with open(path, encoding="utf-8", errors="replace") as fh:
             text = fh.read()
-        return [{"path": path, "strip": patch_strip_level(text, self.repo_files)}]
+        ref = {"path": path, "strip": patch_strip_level(text, self.repo_files)}
+        # a real-task arena's dependent task: its reference is written on top of earlier tasks, so it also ships
+        # tNNN.standalone.patch (the same change plus the prerequisites' parts it needs, against the base), which
+        # the replay agent applies when the reference does not apply to the head it starts from
+        standalone = path[:-len(".patch")] + ".standalone.patch" if path.endswith(".patch") else ""
+        if standalone and os.path.exists(standalone):
+            ref["fallback"] = standalone
+        return [ref]
 
     def involved_fixes(self, task_ids: list[str]) -> list[dict]:
         """Replay-only repair patches for tasks in a red: their own and their coupling partners'."""
@@ -801,7 +824,8 @@ class Race:
         await self.setup()
         cfg = self.cfg
         self.log("race.setup", policy=self.policy, out=self.out, repo=cfg.repo, arena=cfg.arena,
-                 arena_digest=self.arena_digest, setup_seconds=round(self.now(), 3))
+                 arena_digest=self.arena_digest, setup_seconds=round(self.now(), 3),
+                 suite=dict(self.suite.__dict__))
         try:  # intake: footprints are predicted when tasks are filed, before the race clock starts
             await self.predict_footprints()
         except Aborted:

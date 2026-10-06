@@ -1,0 +1,11 @@
+{
+ "number": 6881,
+ "sha": "01ca8393b9d10a897f0d2daedbe2f9eb90076ef5",
+ "title": "fix: uncatchable throws in writeHead when using async hook",
+ "body": "Catch the errors throw by `writeHead` when using async `onSend` and `preSerialization` hooks.\r\n\r\nCredit @matiasinsaurralde - Thanks for the finding.\r\n\r\n#### Checklist\r\n\r\n- [ ] run `npm run test && npm run benchmark --if-present`\r\n- [ ] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [ ] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "climba03003",
+ "created_at": "2026-07-29T13:16:44Z",
+ "merged_at": "2026-07-30T09:20:20Z",
+ "pr_base_sha": "e6db5733121f126e2470edf3e8be831d12c22f66",
+ "linked_issues": []
+}

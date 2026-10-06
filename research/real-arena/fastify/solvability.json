@@ -1,0 +1,1466 @@
+{
+ "model": "gpt-6.1-sol",
+ "effort": "medium",
+ "codex_cli": "codex-cli 0.160.1",
+ "parallel": 4,
+ "tries_per_task": 1,
+ "tasks_tried": 39,
+ "solved": 38,
+ "pass_rate": 0.974,
+ "agent_seconds_median": 72.6,
+ "limit_messages": [],
+ "arena_tasks": 38,
+ "arena_tasks_solved": 38,
+ "dropped_unsolved": [
+  6373
+ ],
+ "results": [
+  {
+   "task": "t001",
+   "pr": 6372,
+   "title": "fix: handle web stream payload in HEAD route",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 76.9,
+   "suite_seconds": 21.9,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 18,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 13,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 22529,
+    "cache_read_input_tokens": 308864,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1739
+   },
+   "files_changed": [
+    "lib/head-route.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:56:34+0800",
+   "upstream_pr": 6372,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2025-11-03T10:42:10Z",
+   "in_arena": true
+  },
+  {
+   "task": null,
+   "pr": 6373,
+   "title": "fix: parse ipv6 hostname",
+   "solved": false,
+   "acceptance_green": true,
+   "failing": [
+    "test/server.test.js"
+   ],
+   "agent_seconds": 81.8,
+   "suite_seconds": 28.4,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 15,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 10,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 23184,
+    "cache_read_input_tokens": 232320,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1641
+   },
+   "files_changed": [
+    "lib/request.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:56:42+0800",
+   "upstream_pr": 6373,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2025-11-05T07:24:31Z",
+   "in_arena": false
+  },
+  {
+   "task": "t002",
+   "pr": 6247,
+   "title": "fix: consistent error handling for custom validators in async validation contexts",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 62.8,
+   "suite_seconds": 25.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 13,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 23602,
+    "cache_read_input_tokens": 153856,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 973
+   },
+   "files_changed": [
+    "lib/validation.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:55:53+0800",
+   "upstream_pr": 6247,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2025-11-08T14:16:10Z",
+   "in_arena": true
+  },
+  {
+   "task": "t003",
+   "pr": 6383,
+   "title": "feat: speed up loading with custom compiler",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 54.3,
+   "suite_seconds": 23.9,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 35204,
+    "cache_read_input_tokens": 139520,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 956
+   },
+   "files_changed": [
+    "lib/schema-controller.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:55:44+0800",
+   "upstream_pr": 6383,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2025-11-10T09:46:42Z",
+   "in_arena": true
+  },
+  {
+   "task": "t004",
+   "pr": 6412,
+   "title": "fix: set status code before publishing diagnostics error channel",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 98.7,
+   "suite_seconds": 30.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 17,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 11,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 22943,
+    "cache_read_input_tokens": 238592,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2620
+   },
+   "files_changed": [
+    "lib/handle-request.js",
+    "lib/wrap-thenable.js",
+    "test/diagnostics-channel/handler-error-status.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:57:55+0800",
+   "upstream_pr": 6412,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2025-12-14T16:18:39Z",
+   "in_arena": true
+  },
+  {
+   "task": "t005",
+   "pr": 6392,
+   "title": "fix(ts): Align routerOptions defaultRoute types with runtime",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 117.3,
+   "suite_seconds": 31.6,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 20,
+   "tools": {
+    "agent_message": 5,
+    "command_execution": 15
+   },
+   "usage": {
+    "input_tokens": 63810,
+    "cache_read_input_tokens": 409984,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2894
+   },
+   "files_changed": [
+    "build/build-validation.js",
+    "docs/Reference/Server.md",
+    "fastify.d.ts",
+    "lib/config-validator.js",
+    "test/types/instance.test-d.ts"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:58:25+0800",
+   "upstream_pr": 6392,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-01-02T16:39:58Z",
+   "in_arena": true
+  },
+  {
+   "task": "t006",
+   "pr": 5732,
+   "title": "feat: implement conditional request logging",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 139.6,
+   "suite_seconds": 24.0,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 21,
+   "tools": {
+    "agent_message": 5,
+    "command_execution": 16
+   },
+   "usage": {
+    "input_tokens": 44997,
+    "cache_read_input_tokens": 411264,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 3897
+   },
+   "files_changed": [
+    "build/build-validation.js",
+    "docs/Reference/Server.md",
+    "fastify.d.ts",
+    "fastify.js",
+    "lib/config-validator.js",
+    "lib/four-oh-four.js",
+    "lib/route.js",
+    "test/logger/logging.test.js",
+    "test/types/fastify.test-d.ts",
+    "test/types/instance.test-d.ts",
+    "types/instance.d.ts"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:59:19+0800",
+   "upstream_pr": 5732,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-01-13T08:08:00Z",
+   "in_arena": true
+  },
+  {
+   "task": "t007",
+   "pr": 6414,
+   "title": "chore: Updated content-type header parsing",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 170.0,
+   "suite_seconds": 16.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 28,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 23,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 51179,
+    "cache_read_input_tokens": 629504,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 5146
+   },
+   "files_changed": [
+    "lib/content-type-parser.js",
+    "lib/validation.js",
+    "test/content-parser.test.js",
+    "test/custom-parser.0.test.js",
+    "test/custom-parser.1.test.js",
+    "test/custom-parser.3.test.js",
+    "test/schema-validation.test.js",
+    "lib/content-type.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:59:50+0800",
+   "upstream_pr": 6414,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-01-26T11:08:02Z",
+   "in_arena": true
+  },
+  {
+   "task": "t008",
+   "pr": 6515,
+   "title": "fix: avoid mutating shared routerOptions across instances",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 81.0,
+   "suite_seconds": 17.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 17,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 12,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 75833,
+    "cache_read_input_tokens": 221568,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1669
+   },
+   "files_changed": [
+    "build/build-validation.js",
+    "lib/config-validator.js",
+    "lib/route.js",
+    "test/router-options.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T02:59:34+0800",
+   "upstream_pr": 6515,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-02-20T22:08:13Z",
+   "in_arena": true
+  },
+  {
+   "task": "t009",
+   "pr": 6521,
+   "title": "feat: First-class support for handler-level timeouts",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 305.8,
+   "suite_seconds": 14.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 39,
+   "tools": {
+    "agent_message": 5,
+    "command_execution": 27,
+    "file_change": 7
+   },
+   "usage": {
+    "input_tokens": 80418,
+    "cache_read_input_tokens": 1234688,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 10275
+   },
+   "files_changed": [
+    "build/build-validation.js",
+    "docs/Reference/Errors.md",
+    "docs/Reference/Request.md",
+    "docs/Reference/Routes.md",
+    "docs/Reference/Server.md",
+    "fastify.d.ts",
+    "fastify.js",
+    "lib/config-validator.js",
+    "lib/context.js",
+    "lib/errors.js",
+    "lib/handle-request.js",
+    "lib/reply.js",
+    "lib/request.js",
+    "lib/route.js",
+    "lib/symbols.js",
+    "lib/wrap-thenable.js",
+    "test/internals/errors.test.js",
+    "test/internals/initial-config.test.js",
+    "test/types/instance.test-d.ts",
+    "test/types/request.test-d.ts",
+    "types/errors.d.ts",
+    "types/instance.d.ts",
+    "types/request.d.ts",
+    "types/route.d.ts",
+    "lib/handler-timeout.js",
+    "test/internals/handler-timeout-lifecycle.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:03:47+0800",
+   "upstream_pr": 6521,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-02-25T22:55:39Z",
+   "in_arena": true
+  },
+  {
+   "task": "t010",
+   "pr": 6528,
+   "title": "fix: remove format placeholder from FST_ERR_CTP_INVALID_MEDIA_TYPE message",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 110.5,
+   "suite_seconds": 15.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 24,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 18,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 24447,
+    "cache_read_input_tokens": 386176,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2823
+   },
+   "files_changed": [
+    "lib/content-type-parser.js",
+    "lib/errors.js",
+    "test/content-parser.test.js",
+    "test/internals/errors.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:01:27+0800",
+   "upstream_pr": 6528,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-02-28T09:32:19Z",
+   "in_arena": true
+  },
+  {
+   "task": "t011",
+   "pr": 6603,
+   "title": "chore: Fix port parsing",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 62.7,
+   "suite_seconds": 18.4,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 13,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 40535,
+    "cache_read_input_tokens": 170112,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1039
+   },
+   "files_changed": [
+    "lib/request.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:00:57+0800",
+   "upstream_pr": 6603,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-03-23T11:25:34Z",
+   "in_arena": true
+  },
+  {
+   "task": "t012",
+   "pr": 6613,
+   "title": "fix: restore trustProxy function for number and string types, add null check for socketAddr",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 87.6,
+   "suite_seconds": 15.8,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 20,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 15,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 50085,
+    "cache_read_input_tokens": 316160,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2198
+   },
+   "files_changed": [
+    "lib/request.js",
+    "test/internals/request.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:01:34+0800",
+   "upstream_pr": 6613,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-03-28T23:40:11Z",
+   "in_arena": true
+  },
+  {
+   "task": "t013",
+   "pr": 6653,
+   "title": "feat: add request.mediaType",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 159.4,
+   "suite_seconds": 15.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 23,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 19
+   },
+   "usage": {
+    "input_tokens": 53353,
+    "cache_read_input_tokens": 617088,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 5039
+   },
+   "files_changed": [
+    "docs/Reference/Request.md",
+    "lib/content-type-parser.js",
+    "lib/reply.js",
+    "lib/request.js",
+    "lib/schemas.js",
+    "lib/symbols.js",
+    "lib/validation.js",
+    "test/internals/request.test.js",
+    "test/types/request.test-d.ts",
+    "types/request.d.ts",
+    "lib/content-type.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:03:53+0800",
+   "upstream_pr": 6653,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-14T16:41:54Z",
+   "in_arena": true
+  },
+  {
+   "task": "t014",
+   "pr": 6676,
+   "title": "fix: prevent duplicate res.end in sendTrailer with sync callbacks",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 53.9,
+   "suite_seconds": 15.5,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 14,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 10,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 18592,
+    "cache_read_input_tokens": 178560,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1006
+   },
+   "files_changed": [
+    "lib/reply.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:02:37+0800",
+   "upstream_pr": 6676,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-19T07:51:05Z",
+   "in_arena": true
+  },
+  {
+   "task": "t015",
+   "pr": 6678,
+   "title": "fix: error.code not present on some routing errors",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 92.5,
+   "suite_seconds": 16.3,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 15,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 10,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 20652,
+    "cache_read_input_tokens": 202240,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1441
+   },
+   "files_changed": [
+    "lib/route.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:03:23+0800",
+   "upstream_pr": 6678,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-19T17:55:38Z",
+   "in_arena": true
+  },
+  {
+   "task": "t016",
+   "pr": 6657,
+   "title": "fix: correct isCustomSerializerCompiler flag check",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 47.3,
+   "suite_seconds": 15.4,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 11,
+   "tools": {
+    "agent_message": 2,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 17394,
+    "cache_read_input_tokens": 119808,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 700
+   },
+   "files_changed": [
+    "lib/schema-controller.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:03:40+0800",
+   "upstream_pr": 6657,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-20T17:37:33Z",
+   "in_arena": true
+  },
+  {
+   "task": "t017",
+   "pr": 6523,
+   "title": "fix: validate invalid route logLevel at registration",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 134.8,
+   "suite_seconds": 15.8,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 22,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 18
+   },
+   "usage": {
+    "input_tokens": 31708,
+    "cache_read_input_tokens": 425088,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 4006
+   },
+   "files_changed": [
+    "docs/Reference/Errors.md",
+    "docs/Reference/Routes.md",
+    "lib/errors.js",
+    "lib/route.js",
+    "test/internals/errors.test.js",
+    "test/logger/options.test.js",
+    "types/errors.d.ts"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:05:54+0800",
+   "upstream_pr": 6523,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-21T09:38:52Z",
+   "in_arena": true
+  },
+  {
+   "task": "t018",
+   "pr": 6685,
+   "title": "fix: use ContentType parser for response schema lookup",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 97.8,
+   "suite_seconds": 14.9,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 25,
+   "tools": {
+    "agent_message": 5,
+    "command_execution": 19,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 30154,
+    "cache_read_input_tokens": 474240,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2221
+   },
+   "files_changed": [
+    "lib/schemas.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:05:34+0800",
+   "upstream_pr": 6685,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-21T20:01:18Z",
+   "in_arena": true
+  },
+  {
+   "task": "t019",
+   "pr": 6684,
+   "title": "fix: do not trust forwarded host/proto when socket is missing",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 67.7,
+   "suite_seconds": 14.3,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 28349,
+    "cache_read_input_tokens": 215296,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1878
+   },
+   "files_changed": [
+    "lib/request.js",
+    "test/internals/request.test.js",
+    "test/trust-proxy.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:05:10+0800",
+   "upstream_pr": 6684,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-04-24T06:59:22Z",
+   "in_arena": true
+  },
+  {
+   "task": "t020",
+   "pr": 6458,
+   "title": "fix: enable diagnostics tracking for async error handlers",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 95.9,
+   "suite_seconds": 14.0,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 19,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 14,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 25649,
+    "cache_read_input_tokens": 307072,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2177
+   },
+   "files_changed": [
+    "lib/error-handler.js",
+    "lib/handle-request.js",
+    "lib/symbols.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:05:44+0800",
+   "upstream_pr": 6458,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-05-07T08:46:30Z",
+   "in_arena": true
+  },
+  {
+   "task": "t021",
+   "pr": 6714,
+   "title": "fix: ignore duplicate trailer completions",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 59.7,
+   "suite_seconds": 14.9,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 16,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 11,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 17840,
+    "cache_read_input_tokens": 182144,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1520
+   },
+   "files_changed": [
+    "lib/reply.js",
+    "test/reply-trailers.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:06:25+0800",
+   "upstream_pr": 6714,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-05-07T08:47:07Z",
+   "in_arena": true
+  },
+  {
+   "task": "t022",
+   "pr": 6746,
+   "title": "fix: chunk large HTTP/2 buffer replies",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 125.1,
+   "suite_seconds": 20.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 25,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 19,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 25359,
+    "cache_read_input_tokens": 336896,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 3366
+   },
+   "files_changed": [
+    "docs/Reference/Reply.md",
+    "lib/reply.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:08:00+0800",
+   "upstream_pr": 6746,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-06-07T13:19:47Z",
+   "in_arena": true
+  },
+  {
+   "task": "t023",
+   "pr": 6799,
+   "title": "fix: clear socket._meta after response to prevent keep-alive leaks",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 72.6,
+   "suite_seconds": 12.8,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 16,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 12,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 11792,
+    "cache_read_input_tokens": 203008,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1342
+   },
+   "files_changed": [
+    "lib/reply.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:07:10+0800",
+   "upstream_pr": 6799,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-06-19T15:21:35Z",
+   "in_arena": true
+  },
+  {
+   "task": "t024",
+   "pr": 6803,
+   "title": "fix: avoid double slash when joining nested prefixes",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 47.2,
+   "suite_seconds": 13.5,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 13,
+   "tools": {
+    "agent_message": 2,
+    "command_execution": 10,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 26112,
+    "cache_read_input_tokens": 160384,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 882
+   },
+   "files_changed": [
+    "lib/plugin-override.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:06:55+0800",
+   "upstream_pr": 6803,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-06-21T12:54:18Z",
+   "in_arena": true
+  },
+  {
+   "task": "t025",
+   "pr": 6753,
+   "title": "fix: hasRequestDecorator/hasReplyDecorator misses constructor-assigned built-in properties",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 69.4,
+   "suite_seconds": 14.6,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 46539,
+    "cache_read_input_tokens": 140672,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1685
+   },
+   "files_changed": [
+    "lib/decorate.js",
+    "lib/reply.js",
+    "lib/request.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:07:50+0800",
+   "upstream_pr": 6753,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-06-28T07:45:40Z",
+   "in_arena": true
+  },
+  {
+   "task": "t026",
+   "pr": 6680,
+   "title": "fix: derive request.port from request.host",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 76.4,
+   "suite_seconds": 22.5,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 16,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 11,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 39710,
+    "cache_read_input_tokens": 264832,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1545
+   },
+   "files_changed": [
+    "lib/request.js",
+    "test/trust-proxy.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:08:35+0800",
+   "upstream_pr": 6680,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-07-05T09:20:22Z",
+   "in_arena": true
+  },
+  {
+   "task": "t027",
+   "pr": 6838,
+   "title": "fix: normalize method in findRoute",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 58.5,
+   "suite_seconds": 17.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 14,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 9,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 16196,
+    "cache_read_input_tokens": 148864,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1231
+   },
+   "files_changed": [
+    "lib/route.js",
+    "test/find-route.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:08:27+0800",
+   "upstream_pr": 6838,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-07-11T14:15:45Z",
+   "in_arena": true
+  },
+  {
+   "task": "t028",
+   "pr": 6483,
+   "title": "fix(validation): correctly update falsy values from validator",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 53.0,
+   "suite_seconds": 14.1,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 2,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 17320,
+    "cache_read_input_tokens": 134784,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 817
+   },
+   "files_changed": [
+    "lib/validation.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:08:58+0800",
+   "upstream_pr": 6483,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-07-26T12:59:26Z",
+   "in_arena": true
+  },
+  {
+   "task": "t029",
+   "pr": 6881,
+   "title": "fix: uncatchable throws in writeHead when using async hook",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 90.2,
+   "suite_seconds": 14.6,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 23,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 17,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 29004,
+    "cache_read_input_tokens": 367232,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1972
+   },
+   "files_changed": [
+    "lib/hooks.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:09:45+0800",
+   "upstream_pr": 6881,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-07-30T09:20:20Z",
+   "in_arena": true
+  },
+  {
+   "task": "t030",
+   "pr": 6845,
+   "title": "fix: clear trailer state when removing all trailers",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 68.8,
+   "suite_seconds": 14.6,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 16,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 11,
+    "file_change": 2
+   },
+   "usage": {
+    "input_tokens": 22407,
+    "cache_read_input_tokens": 188800,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1690
+   },
+   "files_changed": [
+    "lib/reply.js",
+    "test/reply-trailers.test.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:09:51+0800",
+   "upstream_pr": 6845,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-03T13:37:21Z",
+   "in_arena": true
+  },
+  {
+   "task": "t031",
+   "pr": 6892,
+   "title": "fix: recognize constructor-assigned built-in properties as decorator \u2026",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 90.1,
+   "suite_seconds": 16.0,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 21,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 16,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 21525,
+    "cache_read_input_tokens": 329088,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 2218
+   },
+   "files_changed": [
+    "lib/decorate.js",
+    "lib/reply.js",
+    "lib/request.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:10:21+0800",
+   "upstream_pr": 6892,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-08T06:36:43Z",
+   "in_arena": true
+  },
+  {
+   "task": "t032",
+   "pr": 6846,
+   "title": "fix: reset lastIndex before testing global/sticky content-type RegExp parsers",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 52.3,
+   "suite_seconds": 14.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 2,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 27326,
+    "cache_read_input_tokens": 123520,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 830
+   },
+   "files_changed": [
+    "lib/content-type-parser.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:10:06+0800",
+   "upstream_pr": 6846,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-08T06:37:50Z",
+   "in_arena": true
+  },
+  {
+   "task": "t033",
+   "pr": 6940,
+   "title": "fix: run preClose hook exactly once per declaring instance",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 61.2,
+   "suite_seconds": 23.7,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 13,
+   "tools": {
+    "agent_message": 4,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 26945,
+    "cache_read_input_tokens": 150144,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1094
+   },
+   "files_changed": [
+    "fastify.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:11:11+0800",
+   "upstream_pr": 6940,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-14T09:20:56Z",
+   "in_arena": true
+  },
+  {
+   "task": "t034",
+   "pr": 6719,
+   "title": "fix: report canonical route url for hidden prefix slash route",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 53.8,
+   "suite_seconds": 22.4,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 30146,
+    "cache_read_input_tokens": 154752,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1057
+   },
+   "files_changed": [
+    "lib/route.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:11:08+0800",
+   "upstream_pr": 6719,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-16T13:56:42Z",
+   "in_arena": true
+  },
+  {
+   "task": "t035",
+   "pr": 6965,
+   "title": "fix: callNotFound should run not-found preHandler regardless of registration order",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 48.2,
+   "suite_seconds": 19.4,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 14983,
+    "cache_read_input_tokens": 151040,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 896
+   },
+   "files_changed": [
+    "lib/four-oh-four.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:11:14+0800",
+   "upstream_pr": 6965,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-08-23T08:04:18Z",
+   "in_arena": true
+  },
+  {
+   "task": "t036",
+   "pr": 7039,
+   "title": "perf: read the merged headers once in the trust proxy getters",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 51.1,
+   "suite_seconds": 13.6,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 8,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 12874,
+    "cache_read_input_tokens": 135936,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1079
+   },
+   "files_changed": [
+    "lib/request.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:11:27+0800",
+   "upstream_pr": 7039,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-09-22T20:37:05Z",
+   "in_arena": true
+  },
+  {
+   "task": "t037",
+   "pr": 7049,
+   "title": "perf: decode string bodies once instead of per chunk",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 54.1,
+   "suite_seconds": 13.5,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 13,
+   "tools": {
+    "agent_message": 3,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 17786,
+    "cache_read_input_tokens": 178688,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 1260
+   },
+   "files_changed": [
+    "lib/content-type-parser.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:12:16+0800",
+   "upstream_pr": 7049,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-09-25T15:57:13Z",
+   "in_arena": true
+  },
+  {
+   "task": "t038",
+   "pr": 7001,
+   "title": "fix: omit absent compileSerializationSchema metadata instead of passing null",
+   "solved": true,
+   "acceptance_green": true,
+   "failing": [],
+   "agent_seconds": 42.5,
+   "suite_seconds": 12.9,
+   "exit_code": 0,
+   "timed_out": false,
+   "infra_error": "",
+   "items": 12,
+   "tools": {
+    "agent_message": 2,
+    "command_execution": 9,
+    "file_change": 1
+   },
+   "usage": {
+    "input_tokens": 16618,
+    "cache_read_input_tokens": 116224,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 774
+   },
+   "files_changed": [
+    "lib/reply.js"
+   ],
+   "limit_messages": [],
+   "finished": "2026-10-07T03:12:07+0800",
+   "upstream_pr": 7001,
+   "model": "gpt-6.1-sol",
+   "effort": "medium",
+   "merged_at": "2026-09-26T16:32:09Z",
+   "in_arena": true
+  }
+ ]
+}

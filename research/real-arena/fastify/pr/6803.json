@@ -1,0 +1,11 @@
+{
+ "number": 6803,
+ "sha": "2f597a9297a3020a9f30bf5548a8442c28ddb1c1",
+ "title": "fix: avoid double slash when joining nested prefixes",
+ "body": "## What\n\n`buildRoutePrefix` joins a parent register's prefix with a child register's\nprefix and is meant to keep exactly one `/` between them (per the existing\n`'/first//second'` comment). It misses the case where the parent prefix ends\nwith `/` and the child prefix has no leading `/`: it prepends a `/` anyway and\nproduces a double slash.\n\nFor example:\n\n```js\nfastify.register(function (instance, opts, done) {\n  instance.register(function (sub, opts, done) {\n    sub.get('/route', handler)\n    done()\n  }, { prefix: 'inner' })   // no leading slash\n  done()\n}, { prefix: '/v1/' })      // trailing slash\n```\n\nregisters the route at `/v1//inner/route` instead of `/v1/inner/route`. With the\ndefault `ignoreDuplicateSlashes: false`, `GET /v1/inner/route` then returns 404.\n\n## How\n\nOnly prepend the separating `/` when the parent prefix does not already end with\none. This matches the existing route-path handling in `lib/route.js` (\"Ensure\nthat '/prefix/' + '/route' gets registered as '/prefix/route'\").\n\n## Testing\n\nAdded a test in `test/route-prefix.test.js` for a trailing-slash parent prefix\ncombined with a no-leading-slash child prefix. It fails before the change and\npasses after. Lint, the full unit suite, type tests, and the 100% coverage check\npass locally.\n",
+ "author": "rohithvegesna",
+ "created_at": "2026-06-20T03:20:41Z",
+ "merged_at": "2026-06-21T12:54:18Z",
+ "pr_base_sha": "8b9c07b645a8156c23a1d2619267fc84ea879250",
+ "linked_issues": []
+}

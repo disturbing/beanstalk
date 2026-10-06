@@ -1,0 +1,75 @@
+{
+  "id": "t023",
+  "title": "fix: clear socket._meta after response to prevent keep-alive leaks",
+  "prompt": "## Summary\n\n- **`socket._meta` held context/request/reply alive for the full lifetime of a keep-alive socket**; now cleared in `onResFinished` when the current request owns `_meta` (`socket._meta.request === request` check prevents a race where a concurrent request has already updated `_meta`)\n\n## Files changed\n\n| File | Change |\n|---|---|\n| `lib/reply.js` | In `onResFinished`: clears `socket._meta` when this request owns it |\n\n## Test plan\n\n- [x] Added test in `test/hooks.test.js` — registers an `onTimeout` hook (which triggers `_meta` to be set), then asserts `socket._meta === null` inside `onResponse`, which fires after the cleanup runs\n- [x] Existing `test/handler-timeout.test.js` — 19/19 pass\n- [x] Existing `test/hooks.test.js` — 92/92 pass (covers `onRequestAbort` and `onTimeout`)\n- [x] Existing `test/keep-alive-timeout.test.js` — 2/2 pass\n- [x] Existing `test/client-timeout.test.js` — pass",
+  "acceptance_tests": {
+    "test/hooks.pr6799.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst stream = require('node:stream')\nconst Fastify = require('..')\nconst fp = require('fastify-plugin')\nconst fs = require('node:fs')\nconst split = require('split2')\nconst symbols = require('../lib/symbols.js')\nconst payload = { hello: 'world' }\nconst proxyquire = require('proxyquire')\nconst { connect } = require('node:net')\nconst { sleep } = require('./helper')\nconst { waitForCb } = require('./toolkit.js')\nconst { fetch } = require('undici')\n\nprocess.removeAllListeners('warning')\n\ntest('socket._meta is cleared after response to prevent keep-alive leaks', async t => {\n  t.plan(3)\n  const fastify = Fastify({ connectionTimeout: 500 })\n  t.after(() => { fastify.close() })\n\n  fastify.addHook('onTimeout', function (req, res, done) { done() })\n\n  fastify.addHook('onResponse', function (req, reply, done) {\n    t.assert.strictEqual(req.raw.socket._meta, null, 'socket._meta must be null after response')\n    done()\n  })\n\n  fastify.get('/', async (req, reply) => {\n    return { hello: 'world' }\n  })\n\n  const address = await fastify.listen({ port: 0 })\n  const result = await fetch(address)\n  t.assert.ok(result.ok)\n  t.assert.strictEqual(result.status, 200)\n})\n"
+  },
+  "oracle_paths": [
+    "lib/reply.js",
+    "test/hooks.pr6799.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6799,
+    "sha": "8b9c07b645a8156c23a1d2619267fc84ea879250",
+    "url": "https://github.com/fastify/fastify/pull/6799",
+    "author": "nerkoux",
+    "merged_at": "2026-06-19T15:21:35Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/reply.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/hooks.pr6799.test.js"
+    ],
+    "source_lines_changed": 7,
+    "notes": [
+      "test/hooks.test.js: 1 added/modified case(s) extracted to test/hooks.pr6799.test.js"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/hooks.pr6799.test.js"
+    ],
+    "suite_seconds": 13.1,
+    "suite_retried": false,
+    "prerequisites": [
+      "t005",
+      "t006",
+      "t009"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t014",
+      "t021",
+      "t022",
+      "t025",
+      "t030",
+      "t038"
+    ],
+    "writes_lines_written_by": [
+      "t009"
+    ],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

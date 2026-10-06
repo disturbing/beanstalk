@@ -1,0 +1,81 @@
+{
+  "id": "t020",
+  "title": "fix: enable diagnostics tracking for async error handlers",
+  "prompt": "When an async error handler returns a promise, `wrapThenable` was called\nwithout the `store` parameter, causing diagnostics channels to miss async\noperations in error handlers.\n\nThis fix creates a diagnostics store when channels have subscribers and\npasses it to `wrapThenable`, ensuring consistent diagnostics tracking\nacross both regular handlers and error handlers.",
+  "acceptance_tests": {
+    "test/diagnostics-channel/async-error-handler.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst diagnostics = require('node:diagnostics_channel')\nconst Fastify = require('../..')\nconst Request = require('../../lib/request')\nconst Reply = require('../../lib/reply')\n\ntest('diagnostics channel tracks async operations in async error handlers', async t => {\n  t.plan(17)\n  let callOrder = 0\n  let firstEncounteredMessage\n  let asyncStartFired = false\n  let asyncEndFired = false\n\n  const fastify = Fastify()\n\n  function subscribe (name, handler) {\n    const wrapped = (msg) => {\n      if (msg.request.server === fastify) handler(msg)\n    }\n    diagnostics.subscribe(name, wrapped)\n    t.after(() => diagnostics.unsubscribe(name, wrapped))\n  }\n\n  subscribe('tracing:fastify.request.handler:start', (msg) => {\n    t.assert.strictEqual(callOrder++, 0)\n    firstEncounteredMessage = msg\n    t.assert.ok(msg.request instanceof Request)\n    t.assert.ok(msg.reply instanceof Reply)\n  })\n\n  subscribe('tracing:fastify.request.handler:error', (msg) => {\n    t.assert.strictEqual(callOrder++, 1)\n    t.assert.ok(msg.error instanceof Error)\n    t.assert.strictEqual(msg.error.message, 'handler error')\n  })\n\n  subscribe('tracing:fastify.request.handler:end', (msg) => {\n    t.assert.strictEqual(callOrder++, 2)\n    t.assert.strictEqual(msg, firstEncounteredMessage)\n    t.assert.strictEqual(msg.async, true)\n  })\n\n  subscribe('tracing:fastify.request.handler:asyncStart', (msg) => {\n    t.assert.strictEqual(callOrder++, 3)\n    t.assert.strictEqual(msg, firstEncounteredMessage)\n    asyncStartFired = true\n  })\n\n  subscribe('tracing:fastify.request.handler:asyncEnd', (msg) => {\n    t.assert.strictEqual(callOrder++, 4)\n    t.assert.strictEqual(msg, firstEncounteredMessage)\n    asyncEndFired = true\n  })\n\n  fastify.setErrorHandler(async (error, request, reply) => {\n    await new Promise(resolve => setImmediate(resolve))\n    reply.status(503).send({ error: error.message })\n  })\n\n  fastify.get('/', () => {\n    throw new Error('handler error')\n  })\n\n  const fastifyServer = await fastify.listen({ port: 0 })\n  t.after(() => fastify.close())\n\n  const response = await fetch(fastifyServer)\n  t.assert.ok(!response.ok)\n  t.assert.strictEqual(response.status, 503)\n  t.assert.ok(asyncStartFired, 'asyncStart should fire for async error handler')\n  t.assert.ok(asyncEndFired, 'asyncEnd should fire for async error handler')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/error-handler.js",
+    "lib/handle-request.js",
+    "lib/symbols.js",
+    "test/diagnostics-channel/async-error-handler.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test/diagnostics-channel"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6458,
+    "sha": "6d202c6203f33ceb709dbcf6311b2d7152a8a057",
+    "url": "https://github.com/fastify/fastify/pull/6458",
+    "author": "irzix",
+    "merged_at": "2026-05-07T08:46:30Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/error-handler.js",
+      "lib/handle-request.js",
+      "lib/symbols.js"
+    ],
+    "source_files": [
+      "lib/error-handler.js",
+      "lib/handle-request.js",
+      "lib/symbols.js"
+    ],
+    "test_files": [
+      "test/diagnostics-channel/async-error-handler.test.js"
+    ],
+    "source_lines_changed": 14,
+    "notes": [],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/diagnostics-channel/async-error-handler.test.js"
+    ],
+    "suite_seconds": 16.1,
+    "suite_retried": false,
+    "prerequisites": [
+      "t004",
+      "t005",
+      "t006",
+      "t007",
+      "t009",
+      "t013"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/error-handler.js",
+      "lib/handle-request.js",
+      "lib/symbols.js"
+    ],
+    "shares_a_source_file_with": [
+      "t004",
+      "t007",
+      "t009",
+      "t013"
+    ],
+    "writes_lines_written_by": [
+      "t013"
+    ],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

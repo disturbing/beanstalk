@@ -1,0 +1,68 @@
+{
+  "id": "t038",
+  "title": "fix: omit absent compileSerializationSchema metadata instead of passing null",
+  "prompt": "Closes #6988.\n\n`compileSerializationSchema` defaulted both optional parameters to `null`:\n\n```js\nfunction (schema, httpStatus = null, contentType = null)\n```\n\nso a custom serializer compiler called through `reply.compileSerializationSchema(schema)` received `null` for both. `FastifyRouteSchemaDef` declares them as optional strings and the reference docs describe the default as `undefined`, so the implementation was the odd one out. `serializeInput` already declares the same two parameters without defaults and forwards `undefined`, so this also makes the two paths agree.\n\nDropping the defaults is the whole change. Existing tests that touch this assert `!httpStatus` rather than a specific value, so they hold either way, and I could not find anywhere in `lib`, `test` or `types` that compares this to `null`.\n\nAdded one test asserting both values arrive as `undefined` when the metadata is not supplied. It fails without the change.\n\nVerified locally: `node --test test/internals/*.test.js` gives 395 passed / 0 failed, `npm run test:types` passes all 16 files and 1282 assertions, and eslint is clean on both touched files.\n\nI left a separate note on #6987 about the cache-keying half, since fixing that one has a public API consequence for `getSerializationFunction` and I would rather agree the approach first.",
+  "acceptance_tests": {
+    "test/internals/reply-serialize.pr7001.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst { kReplyCacheSerializeFns, kRouteContext } = require('../../lib/symbols')\nconst Fastify = require('../../fastify')\n\nfunction getDefaultSchema () {\n  return {\n    type: 'object',\n    required: ['hello'],\n    properties: {\n      hello: { type: 'string' },\n      world: { type: 'string' }\n    }\n  }\n}\n\nfunction getResponseSchema () {\n  return {\n    201: {\n      type: 'object',\n      required: ['status'],\n      properties: {\n        status: {\n          type: 'string',\n          enum: ['ok']\n        },\n        message: {\n          type: 'string'\n        }\n      }\n    },\n    '4xx': {\n      type: 'object',\n      properties: {\n        status: {\n          type: 'string',\n          enum: ['error']\n        },\n        code: {\n          type: 'integer',\n          minimum: 1\n        },\n        message: {\n          type: 'string'\n        }\n      }\n    },\n    '3xx': {\n      content: {\n        'application/json': {\n          schema: {\n            type: 'object',\n            properties: {\n              fullName: { type: 'string' },\n              phone: { type: 'number' }\n            }\n          }\n        }\n      }\n    }\n  }\n}\n\ntest('Reply#compileSerializationSchema omits absent metadata instead of passing null', async t => {\n  t.plan(2)\n\n  const fastify = Fastify()\n\n  fastify.setSerializerCompiler(({ httpStatus, contentType }) => {\n    t.assert.strictEqual(httpStatus, undefined)\n    t.assert.strictEqual(contentType, undefined)\n\n    return input => JSON.stringify(input)\n  })\n\n  fastify.get('/', (req, reply) => {\n    reply.compileSerializationSchema(getDefaultSchema())\n    reply.send({ hello: 'world' })\n  })\n\n  await fastify.inject({ path: '/', method: 'GET' })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/reply.js",
+    "test/internals/reply-serialize.pr7001.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test/internals"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 7001,
+    "sha": "c3051e5b60c0e0e95ac0638fae342e82099fe534",
+    "url": "https://github.com/fastify/fastify/pull/7001",
+    "author": "Kjubikstronk",
+    "merged_at": "2026-09-26T16:32:09Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/reply.js"
+    ],
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "test_files": [
+      "test/internals/reply-serialize.pr7001.test.js"
+    ],
+    "source_lines_changed": 2,
+    "notes": [
+      "test/internals/reply-serialize.test.js: 1 added/modified case(s) extracted to test/internals/reply-serialize.pr7001.test.js"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/internals/reply-serialize.pr7001.test.js"
+    ],
+    "suite_seconds": 15.9,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/reply.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t014",
+      "t021",
+      "t022",
+      "t023",
+      "t025",
+      "t030"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+ "number": 6680,
+ "sha": "6ac2e953705312d0ac8776166b96f509dd153613",
+ "title": "fix: derive request.port from request.host",
+ "body": "This restores `request.port` to use the same effective host source as `request.host`.\r\n\r\n`#6603` fixed port parsing, but it also changed `request.port` to read directly from `request.headers.host` / `:authority`. When `trustProxy` is enabled, `request.host` may come from `x-forwarded-host`, so `request.host`, `request.hostname`, and `request.port` could disagree.\r\n\r\nThis patch keeps the parsing logic from `#6603`, but parses from `request.host` so the three properties stay aligned again.\r\n\r\nIt also adds coverage for the trust-proxy cases discussed in `#6671`, including `:authority` fallback.\r\n\r\nRefs: #6671\r\nCloses https://github.com/fastify/fastify/pull/6781\r\n\r\n#### Checklist\r\n\r\n- [ ] run `npm run test && npm run benchmark --if-present`\r\n- [x] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n\r\n#### Tests\r\n\r\n- `node --test test/internals/request.test.js`\r\n- `node --test test/request-port.test.js`\r\n- `node --test test/request-header-host.test.js`\r\n- `node --test test/http2/plain.test.js test/http2/secure.test.js`\r\n",
+ "author": "mcollina",
+ "created_at": "2026-04-20T17:38:56Z",
+ "merged_at": "2026-07-05T09:20:22Z",
+ "pr_base_sha": "5f4871f931d45d576bc3385cd1e95f0d668abf4f",
+ "linked_issues": []
+}

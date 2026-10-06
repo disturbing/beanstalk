@@ -1,0 +1,65 @@
+{
+  "id": "t035",
+  "title": "fix: callNotFound should run not-found preHandler regardless of registration order",
+  "prompt": "setContext() in four-oh-four.js takes a detached shallow snapshot of the\nselected not-found context. When a route that calls reply.callNotFound()\nis registered before setNotFoundHandler(), the snapshot is taken before\nthe not-found handler's preReady callback populates its lifecycle hooks,\nso the copied context retains preHandler: null. reply.callNotFound() then\ndispatches the not-found handler directly, skipping the preHandler that\nsetNotFoundHandler() declares.\n\nThis change uses the selected context as the prototype of the route-specific\n404 context instead of copying it, keeping the route's own onSend value, so\nthe route-specific context stays linked to the live one and later hook\npopulation is visible.\n\nAdds a regression test covering the route-first declaration order.",
+  "acceptance_tests": {
+    "test/404s.pr6965.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst fp = require('fastify-plugin')\nconst errors = require('http-errors')\nconst split = require('split2')\nconst Fastify = require('..')\nconst { getServerUrl } = require('./helper')\n\n// https://github.com/fastify/fastify/issues/713\ntest('preHandler option for setNotFoundHandler', async t => {\n  t.plan(11)\n\n  await t.test('preHandler option', (t, done) => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.preHandler = true\n        done()\n      }\n    }, function (req, reply) {\n      reply.code(404).send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/not-found',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { preHandler: true, hello: 'world' })\n      done()\n    })\n  })\n\n  // https://github.com/fastify/fastify/issues/2229\n  await t.test('preHandler hook in setNotFoundHandler should be called when callNotFound', { timeout: 40000 }, (t, done) => {\n    t.plan(3)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.preHandler = true\n        done()\n      }\n    }, function (req, reply) {\n      reply.code(404).send(req.body)\n    })\n\n    fastify.post('/', function (req, reply) {\n      t.assert.strictEqual(reply.callNotFound(), reply)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { preHandler: true, hello: 'world' })\n      done()\n    })\n  })\n\n  // https://github.com/fastify/fastify/security/advisories/GHSA-gm8r-x7h4-fm5r\n  await t.test('preHandler hook in setNotFoundHandler should be called when callNotFound and the route is registered first', (t, done) => {\n    t.plan(3)\n    const fastify = Fastify()\n\n    // Register the route before the not-found handler so that the route's\n    // preReady callback snapshots the not-found context before its lifecycle\n    // hooks are populated.\n    fastify.post('/', function (req, reply) {\n      t.assert.strictEqual(reply.callNotFound(), reply)\n    })\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.preHandler = true\n        done()\n      }\n    }, function (req, reply) {\n      reply.code(404).send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { preHandler: true, hello: 'world' })\n      done()\n    })\n  })\n\n  await t.test('preHandler hook in setNotFoundHandler should accept an array of functions and be called when callNotFound', (t, done) => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: [\n        (req, reply, done) => {\n          req.body.preHandler1 = true\n          done()\n        },\n        (req, reply, done) => {\n          req.body.preHandler2 = true\n          done()\n        }\n      ]\n    }, function (req, reply) {\n      reply.code(404).send(req.body)\n    })\n\n    fastify.post('/', function (req, reply) {\n      reply.callNotFound()\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { preHandler1: true, preHandler2: true, hello: 'world' })\n      done()\n    })\n  })\n\n  await t.test('preHandler option should be called after preHandler hook', (t, done) => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.addHook('preHandler', (req, reply, done) => {\n      req.body.check = 'a'\n      done()\n    })\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.check += 'b'\n        done()\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { check: 'ab', hello: 'world' })\n      done()\n    })\n  })\n\n  await t.test('preHandler option should be unique per prefix', async t => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.hello = 'earth'\n        done()\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.register(function (i, o, n) {\n      i.setNotFoundHandler((req, reply) => {\n        reply.send(req.body)\n      })\n\n      n()\n    }, { prefix: '/no' })\n\n    {\n      const res = await fastify.inject({\n        method: 'POST',\n        url: '/not-found',\n        payload: { hello: 'world' }\n      })\n\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { hello: 'earth' })\n    }\n\n    {\n      const res = await fastify.inject({\n        method: 'POST',\n        url: '/no/not-found',\n        payload: { hello: 'world' }\n      })\n\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { hello: 'world' })\n    }\n  })\n\n  await t.test('preHandler option should handle errors', (t, done) => {\n    t.plan(3)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        done(new Error('kaboom'))\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/not-found',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.strictEqual(res.statusCode, 500)\n      t.assert.deepStrictEqual(payload, {\n        message: 'kaboom',\n        error: 'Internal Server Error',\n        statusCode: 500\n      })\n      done()\n    })\n  })\n\n  await t.test('preHandler option should handle errors with custom status code', (t, done) => {\n    t.plan(3)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        reply.code(401)\n        done(new Error('go away'))\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/not-found',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.strictEqual(res.statusCode, 401)\n      t.assert.deepStrictEqual(payload, {\n        message: 'go away',\n        error: 'Unauthorized',\n        statusCode: 401\n      })\n      done()\n    })\n  })\n\n  await t.test('preHandler option could accept an array of functions', (t, done) => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.setNotFoundHandler({\n      preHandler: [\n        (req, reply, done) => {\n          req.body.preHandler = 'a'\n          done()\n        },\n        (req, reply, done) => {\n          req.body.preHandler += 'b'\n          done()\n        }\n      ]\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/not-found',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { preHandler: 'ab', hello: 'world' })\n      done()\n    })\n  })\n\n  await t.test('preHandler option does not interfere with preHandler', async t => {\n    t.plan(2)\n    const fastify = Fastify()\n\n    fastify.addHook('preHandler', (req, reply, done) => {\n      req.body.check = 'a'\n      done()\n    })\n\n    fastify.setNotFoundHandler({\n      preHandler: (req, reply, done) => {\n        req.body.check += 'b'\n        done()\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.register(function (i, o, n) {\n      i.setNotFoundHandler((req, reply) => {\n        reply.send(req.body)\n      })\n\n      n()\n    }, { prefix: '/no' })\n\n    {\n      const res = await fastify.inject({\n        method: 'post',\n        url: '/not-found',\n        payload: { hello: 'world' }\n      })\n\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { check: 'ab', hello: 'world' })\n    }\n\n    {\n      const res = await fastify.inject({\n        method: 'post',\n        url: '/no/not-found',\n        payload: { hello: 'world' }\n      })\n\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { check: 'a', hello: 'world' })\n    }\n  })\n\n  await t.test('preHandler option should keep the context', (t, done) => {\n    t.plan(3)\n    const fastify = Fastify()\n\n    fastify.decorate('foo', 42)\n\n    fastify.setNotFoundHandler({\n      preHandler: function (req, reply, done) {\n        t.assert.strictEqual(this.foo, 42)\n        this.foo += 1\n        req.body.foo = this.foo\n        done()\n      }\n    }, (req, reply) => {\n      reply.send(req.body)\n    })\n\n    fastify.inject({\n      method: 'POST',\n      url: '/not-found',\n      payload: { hello: 'world' }\n    }, (err, res) => {\n      t.assert.ifError(err)\n      const payload = JSON.parse(res.payload)\n      t.assert.deepStrictEqual(payload, { foo: 43, hello: 'world' })\n      done()\n    })\n  })\n})\n"
+  },
+  "oracle_paths": [
+    "lib/four-oh-four.js",
+    "test/404s.pr6965.test.js",
+    "test/404s.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6965,
+    "sha": "4176096a31f5b4c31512c36f578b08a596a72435",
+    "url": "https://github.com/fastify/fastify/pull/6965",
+    "author": "mcollina",
+    "merged_at": "2026-08-23T08:04:18Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/four-oh-four.js",
+      "test/404s.test.js"
+    ],
+    "source_files": [
+      "lib/four-oh-four.js"
+    ],
+    "test_files": [
+      "test/404s.pr6965.test.js"
+    ],
+    "source_lines_changed": 9,
+    "notes": [
+      "test/404s.test.js: 1 added/modified case(s) extracted to test/404s.pr6965.test.js",
+      "test/404s.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": true,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/404s.pr6965.test.js"
+    ],
+    "suite_seconds": 16.2,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/four-oh-four.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": false
+  }
+}

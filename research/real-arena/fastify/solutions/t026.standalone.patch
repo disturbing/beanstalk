@@ -1,0 +1,1474 @@
+diff --git a/lib/request.js b/lib/request.js
+index 66704d42..508c0efa 100644
+--- a/lib/request.js
++++ b/lib/request.js
+@@ -41,7 +41,7 @@ function getTrustProxyFn (tp) {
+   }
+   if (tp === true) {
+     // Support trusting everything
+-    return null
++    return function () { return true }
+   }
+   if (typeof tp === 'number') {
+     // Support trusting hop count
+@@ -115,7 +115,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     host: {
+       get () {
+-        if (this.ip !== undefined && this.headers['x-forwarded-host']) {
++        const socket = this.raw.socket
++        if (this.headers['x-forwarded-host'] && socket != null && proxyFn(socket.remoteAddress, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-host'])
+         }
+         /**
+@@ -129,7 +130,8 @@ function buildRequestWithTrustProxy (R, trustProxy) {
+     },
+     protocol: {
+       get () {
+-        if (this.headers['x-forwarded-proto']) {
++        const socket = this.raw.socket
++        if (this.headers['x-forwarded-proto'] && socket != null && proxyFn(socket.remoteAddress, 0)) {
+           return getLastEntryInMultiHeaderValue(this.headers['x-forwarded-proto'])
+         }
+         if (this.socket) {
+@@ -226,24 +228,22 @@ Object.defineProperties(Request.prototype, {
+   },
+   hostname: {
+     get () {
++      // Check for IPV6 Host
++      if (this.host[0] === '[') {
++        return this.host.slice(0, this.host.indexOf(']') + 1)
++      }
++
+       return this.host.split(':', 1)[0]
+     }
+   },
+   port: {
+     get () {
+-      // first try taking port from host
+-      const portFromHost = parseInt(this.host.split(':').slice(-1)[0])
+-      if (!isNaN(portFromHost)) {
+-        return portFromHost
+-      }
+-      // now fall back to port from host/:authority header
+-      const host = (this.headers.host ?? this.headers[':authority'] ?? '')
+-      const portFromHeader = parseInt(host.split(':').slice(-1)[0])
+-      if (!isNaN(portFromHeader)) {
+-        return portFromHeader
++      const portReg = /(?<port>:\d+)$/
++      const matches = portReg.exec(this.host)
++      if (matches === null || matches[1] === undefined) {
++        return null
+       }
+-      // fall back to null
+-      return null
++      return parseInt(matches.groups.port.slice(1), 10)
+     }
+   },
+   protocol: {
+diff --git a/test/client-timeout.test.js b/test/client-timeout.test.js
+index 2205b2a4..1b858bc9 100644
+--- a/test/client-timeout.test.js
++++ b/test/client-timeout.test.js
+@@ -24,7 +24,7 @@ test('requestTimeout should return 408', (t, done) => {
+     let data = Buffer.alloc(0)
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('POST / HTTP/1.1\r\nHost: example.com\r\nConnection-Length: 1\r\n')
++    socket.write('POST / HTTP/1.1\r\nHost: fastify.test\r\nConnection-Length: 1\r\n')
+ 
+     socket.on('data', c => (data = Buffer.concat([data, c])))
+     socket.on('end', () => {
+diff --git a/test/close.test.js b/test/close.test.js
+index f80eec87..810ffe4f 100644
+--- a/test/close.test.js
++++ b/test/close.test.js
+@@ -230,7 +230,7 @@ test('Current opened connection should NOT continue to work after closing and re
+ 
+     const port = fastify.server.address().port
+     const client = net.createConnection({ port }, () => {
+-      client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++      client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+       client.on('error', function () {
+         // Depending on the Operating System
+@@ -247,7 +247,7 @@ test('Current opened connection should NOT continue to work after closing and re
+         t.assert.match(data.toString(), /Connection:\s*keep-alive/i)
+         t.assert.match(data.toString(), /200 OK/i)
+ 
+-        client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++        client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+       })
+     })
+   })
+diff --git a/test/constrained-routes.test.js b/test/constrained-routes.test.js
+index b8b057ae..c025cfd5 100644
+--- a/test/constrained-routes.test.js
++++ b/test/constrained-routes.test.js
+@@ -33,7 +33,7 @@ test('Should register a host constrained route', async t => {
+       method: 'GET',
+       url: '/',
+       headers: {
+-        host: 'example.com'
++        host: 'fastify.test'
+       }
+     })
+ 
+@@ -65,9 +65,9 @@ test('Should register the same route with host constraints', async t => {
+   fastify.route({
+     method: 'GET',
+     url: '/',
+-    constraints: { host: 'example.com' },
++    constraints: { host: 'fastify.test' },
+     handler: (req, reply) => {
+-      reply.send('example.com')
++      reply.send('fastify.test')
+     }
+   })
+ 
+@@ -88,12 +88,12 @@ test('Should register the same route with host constraints', async t => {
+       method: 'GET',
+       url: '/',
+       headers: {
+-        host: 'example.com'
++        host: 'fastify.test'
+       }
+     })
+ 
+     t.assert.strictEqual(res.statusCode, 200)
+-    t.assert.strictEqual(res.payload, 'example.com')
++    t.assert.strictEqual(res.payload, 'fastify.test')
+   }
+ 
+   {
+@@ -568,7 +568,7 @@ test('Should allow registering an unconstrained route after a constrained route'
+       method: 'GET',
+       url: '/',
+       headers: {
+-        host: 'example.com'
++        host: 'fastify.test'
+       }
+     })
+     t.assert.deepStrictEqual(JSON.parse(res.payload), { hello: 'from any other domain' })
+diff --git a/test/hooks.test.js b/test/hooks.test.js
+index 0a4e2a7c..f5aab8b2 100644
+--- a/test/hooks.test.js
++++ b/test/hooks.test.js
+@@ -204,10 +204,10 @@ test('onRequest hook should support encapsulation / 2', (t, testDone) => {
+   const fastify = Fastify()
+   let pluginInstance
+ 
+-  fastify.addHook('onRequest', () => {})
++  fastify.addHook('onRequest', () => { })
+ 
+   fastify.register((instance, opts, done) => {
+-    instance.addHook('onRequest', () => {})
++    instance.addHook('onRequest', () => { })
+     pluginInstance = instance
+     done()
+   })
+@@ -650,7 +650,7 @@ test('onRoute hook should preserve system route configuration', (t, testDone) =>
+ test('onRoute hook should preserve handler function in options of shorthand route system configuration', (t, testDone) => {
+   t.plan(2)
+ 
+-  const handler = (req, reply) => {}
++  const handler = (req, reply) => { }
+ 
+   const fastify = Fastify({ exposeHeadRoutes: false })
+   fastify.register((instance, opts, done) => {
+@@ -889,10 +889,10 @@ test('onResponse hook should support encapsulation / 2', (t, testDone) => {
+   const fastify = Fastify()
+   let pluginInstance
+ 
+-  fastify.addHook('onResponse', () => {})
++  fastify.addHook('onResponse', () => { })
+ 
+   fastify.register((instance, opts, done) => {
+-    instance.addHook('onResponse', () => {})
++    instance.addHook('onResponse', () => { })
+     pluginInstance = instance
+     done()
+   })
+@@ -959,10 +959,10 @@ test('onSend hook should support encapsulation / 1', (t, testDone) => {
+   const fastify = Fastify()
+   let pluginInstance
+ 
+-  fastify.addHook('onSend', () => {})
++  fastify.addHook('onSend', () => { })
+ 
+   fastify.register((instance, opts, done) => {
+-    instance.addHook('onSend', () => {})
++    instance.addHook('onSend', () => { })
+     pluginInstance = instance
+     done()
+   })
+@@ -1426,7 +1426,7 @@ test('cannot add hook after binding', (t, testDone) => {
+     t.assert.ifError(err)
+ 
+     try {
+-      instance.addHook('onRequest', () => {})
++      instance.addHook('onRequest', () => { })
+       t.assert.fail()
+     } catch (e) {
+       testDone()
+@@ -2396,10 +2396,10 @@ test('preValidation hook should support encapsulation / 2', (t, testDone) => {
+   const fastify = Fastify()
+   let pluginInstance
+ 
+-  fastify.addHook('preValidation', () => {})
++  fastify.addHook('preValidation', () => { })
+ 
+   fastify.register((instance, opts, done) => {
+-    instance.addHook('preValidation', () => {})
++    instance.addHook('preValidation', () => { })
+     pluginInstance = instance
+     done()
+   })
+@@ -2739,10 +2739,10 @@ test('preParsing hook should support encapsulation / 2', (t, testDone) => {
+   const fastify = Fastify()
+   let pluginInstance
+ 
+-  fastify.addHook('preParsing', function a () {})
++  fastify.addHook('preParsing', function a () { })
+ 
+   fastify.register((instance, opts, done) => {
+-    instance.addHook('preParsing', function b () {})
++    instance.addHook('preParsing', function b () { })
+     pluginInstance = instance
+     done()
+   })
+@@ -3383,7 +3383,7 @@ test('onRequestAbort should be triggered', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+@@ -3434,7 +3434,7 @@ test('onRequestAbort should support encapsulation', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+@@ -3468,7 +3468,7 @@ test('onRequestAbort should handle errors / 1', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+@@ -3502,7 +3502,7 @@ test('onRequestAbort should handle errors / 2', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+@@ -3536,7 +3536,7 @@ test('onRequestAbort should handle async errors / 1', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+@@ -3571,7 +3571,7 @@ test('onRequestAbort should handle async errors / 2', (t, testDone) => {
+ 
+     const socket = connect(fastify.server.address().port)
+ 
+-    socket.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++    socket.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+     sleep(500).then(() => socket.destroy())
+   })
+diff --git a/test/http-methods/get.test.js b/test/http-methods/get.test.js
+index b9dea10d..8522a083 100644
+--- a/test/http-methods/get.test.js
++++ b/test/http-methods/get.test.js
+@@ -401,7 +401,7 @@ test('get test', async t => {
+       path: '/port',
+       method: 'GET',
+       headers: {
+-        host: 'example.com'
++        host: 'fastify.test'
+       }
+     })
+ 
+diff --git a/test/http-methods/lock.test.js b/test/http-methods/lock.test.js
+index b0a00b66..6df05020 100644
+--- a/test/http-methods/lock.test.js
++++ b/test/http-methods/lock.test.js
+@@ -9,7 +9,7 @@ const bodySample = `<?xml version="1.0" encoding="utf-8" ?>
+           <D:lockscope> <D:exclusive/> </D:lockscope>
+           <D:locktype> <D:write/> </D:locktype>
+           <D:owner>
+-            <D:href>http://example.org/~ejw/contact.html</D:href>
++            <D:href>http://fastify.test/~ejw/contact.html</D:href>
+           </D:owner>
+         </D:lockinfo> `
+ 
+@@ -34,14 +34,14 @@ test('can be created - lock', t => {
+                   </D:lockscope>
+                   <D:depth>infinity</D:depth>
+                   <D:owner>
+-                    <D:href>http://example.org/~ejw/contact.html</D:href>
++                    <D:href>http://fastify.test/~ejw/contact.html</D:href>
+                   </D:owner>
+                   <D:timeout>Second-604800</D:timeout>
+                   <D:locktoken>
+                     <D:href>urn:uuid:e71d4fae-5dec-22d6-fea5-00a0c91e6be4</:href>
+                   </D:locktoken>
+                   <D:lockroot>
+-                    <D:href>http://example.com/workspace/webdav/proposal.oc</D:href>
++                    <D:href>http://fastify.test/workspace/webdav/proposal.oc</D:href>
+                   </D:lockroot>
+                 </D:activelock>
+               </D:lockdiscovery>
+diff --git a/test/http-methods/propfind.test.js b/test/http-methods/propfind.test.js
+index 385f5ec5..1d6dd22e 100644
+--- a/test/http-methods/propfind.test.js
++++ b/test/http-methods/propfind.test.js
+@@ -6,7 +6,7 @@ fastify.addHttpMethod('PROPFIND', { hasBody: true })
+ 
+ const bodySample = `<?xml version="1.0" encoding="utf-8" ?>
+         <D:propfind xmlns:D="DAV:">
+-          <D:prop xmlns:R="http://ns.example.com/boxschema/">
++          <D:prop xmlns:R="http://ns.fastify.test/boxschema/">
+             <R:bigbox/> <R:author/> <R:DingALing/> <R:Random/>
+           </D:prop>
+         </D:propfind>
+diff --git a/test/http-methods/proppatch.test.js b/test/http-methods/proppatch.test.js
+index d7ea0a61..c2ec2180 100644
+--- a/test/http-methods/proppatch.test.js
++++ b/test/http-methods/proppatch.test.js
+@@ -6,7 +6,7 @@ fastify.addHttpMethod('PROPPATCH', { hasBody: true })
+ 
+ const bodySample = `<?xml version="1.0" encoding="utf-8" ?>
+         <D:propertyupdate xmlns:D="DAV:"
+-          xmlns:Z="http://ns.example.com/standards/z39.50/">
++          xmlns:Z="http://ns.fastify.test/standards/z39.50/">
+           <D:set>
+             <D:prop>
+               <Z:Authors>
+@@ -33,9 +33,9 @@ test('shorthand - proppatch', t => {
+           .code(207)
+           .send(`<?xml version="1.0" encoding="utf-8" ?>
+             <D:multistatus xmlns:D="DAV:"
+-              xmlns:Z="http://ns.example.com/standards/z39.50/">
++              xmlns:Z="http://ns.fastify.test/standards/z39.50/">
+               <D:response>
+-                <D:href>http://www.example.com/bar.html</D:href>
++                <D:href>http://www.fastify.test/bar.html</D:href>
+                 <D:propstat>
+                   <D:prop>
+                     <Z:Authors/>
+diff --git a/test/https/https.test.js b/test/https/https.test.js
+index 1e42c1fd..7e0a9f3d 100644
+--- a/test/https/https.test.js
++++ b/test/https/https.test.js
+@@ -121,7 +121,7 @@ test('https - headers', async (t) => {
+     const result = await request('https://localhost:' + fastify.server.address().port, {
+       method: 'GET',
+       headers: {
+-        host: 'example.com'
++        host: 'fastify.test'
+       },
+       dispatcher: new Agent({
+         connect: {
+@@ -131,6 +131,6 @@ test('https - headers', async (t) => {
+     })
+ 
+     t.assert.strictEqual(result.statusCode, 200)
+-    t.assert.deepStrictEqual(await result.body.json(), { hello: 'world', hostname: 'example.com', port: null })
++    t.assert.deepStrictEqual(await result.body.json(), { hello: 'world', hostname: 'fastify.test', port: null })
+   })
+ })
+diff --git a/test/internals/reply.test.js b/test/internals/reply.test.js
+index eeb61c5e..adfc352d 100644
+--- a/test/internals/reply.test.js
++++ b/test/internals/reply.test.js
+@@ -692,11 +692,11 @@ test('plain string with custom json content type should NOT be serialized as jso
+   const customSamples = {
+     collectionjson: {
+       mimeType: 'application/vnd.collection+json',
+-      sample: '{"collection":{"version":"1.0","href":"http://api.example.com/people/"}}'
++      sample: '{"collection":{"version":"1.0","href":"http://api.fastify.test/people/"}}'
+     },
+     hal: {
+       mimeType: 'application/hal+json',
+-      sample: '{"_links":{"self":{"href":"https://api.example.com/people/1"}},"name":"John Doe"}'
++      sample: '{"_links":{"self":{"href":"https://api.fastify.test/people/1"}},"name":"John Doe"}'
+     },
+     jsonapi: {
+       mimeType: 'application/vnd.api+json',
+@@ -777,11 +777,11 @@ test('non-string with custom json content type SHOULD be serialized as json', as
+   const customSamples = {
+     collectionjson: {
+       mimeType: 'application/vnd.collection+json',
+-      sample: JSON.parse('{"collection":{"version":"1.0","href":"http://api.example.com/people/"}}')
++      sample: JSON.parse('{"collection":{"version":"1.0","href":"http://api.fastify.test/people/"}}')
+     },
+     hal: {
+       mimeType: 'application/hal+json',
+-      sample: JSON.parse('{"_links":{"self":{"href":"https://api.example.com/people/1"}},"name":"John Doe"}')
++      sample: JSON.parse('{"_links":{"self":{"href":"https://api.fastify.test/people/1"}},"name":"John Doe"}')
+     },
+     jsonapi: {
+       mimeType: 'application/vnd.api+json',
+diff --git a/test/internals/request.test.js b/test/internals/request.test.js
+index 51d9e23f..b024d389 100644
+--- a/test/internals/request.test.js
++++ b/test/internals/request.test.js
+@@ -214,7 +214,7 @@ test('Request with trust proxy', t => {
+   t.plan(18)
+   const headers = {
+     'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'example.com'
++    'x-forwarded-host': 'fastify.test'
+   }
+   const req = {
+     method: 'GET',
+@@ -257,7 +257,7 @@ test('Request with trust proxy', t => {
+   t.assert.strictEqual(request.log, 'log')
+   t.assert.strictEqual(request.ip, '2.2.2.2')
+   t.assert.deepStrictEqual(request.ips, ['ip', '1.1.1.1', '2.2.2.2'])
+-  t.assert.strictEqual(request.host, 'example.com')
++  t.assert.strictEqual(request.host, 'fastify.test')
+   t.assert.strictEqual(request.body, undefined)
+   t.assert.strictEqual(request.method, 'GET')
+   t.assert.strictEqual(request.url, '/')
+@@ -272,7 +272,7 @@ test('Request with trust proxy, encrypted', t => {
+   t.plan(2)
+   const headers = {
+     'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'example.com'
++    'x-forwarded-host': 'fastify.test'
+   }
+   const req = {
+     method: 'GET',
+@@ -331,10 +331,10 @@ test('Request with trust proxy - no x-forwarded-host header', t => {
+ })
+ 
+ test('Request with trust proxy - no x-forwarded-host header and fallback to authority', t => {
+-  t.plan(2)
++  t.plan(3)
+   const headers = {
+     'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    ':authority': 'authority'
++    ':authority': 'authority:4321'
+   }
+   const req = {
+     method: 'GET',
+@@ -370,15 +370,16 @@ test('Request with trust proxy - no x-forwarded-host header and fallback to auth
+   const TpRequest = Request.buildRequest(Request, true)
+   const request = new TpRequest('id', 'params', req, 'query', 'log', context)
+   t.assert.ok(request instanceof TpRequest)
+-  t.assert.strictEqual(request.host, 'authority')
++  t.assert.strictEqual(request.host, 'authority:4321')
++  t.assert.strictEqual(request.port, 4321)
+ })
+ 
+ test('Request with trust proxy - x-forwarded-host header has precedence over host', t => {
+-  t.plan(2)
++  t.plan(4)
+   const headers = {
+     'x-forwarded-for': ' 2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'example.com',
+-    host: 'hostname'
++    'x-forwarded-host': 'fastify.test:1234',
++    host: 'hostname:5678'
+   }
+   const req = {
+     method: 'GET',
+@@ -390,13 +391,15 @@ test('Request with trust proxy - x-forwarded-host header has precedence over hos
+   const TpRequest = Request.buildRequest(Request, true)
+   const request = new TpRequest('id', 'params', req, 'query', 'log')
+   t.assert.ok(request instanceof TpRequest)
+-  t.assert.strictEqual(request.host, 'example.com')
++  t.assert.strictEqual(request.host, 'fastify.test:1234')
++  t.assert.strictEqual(request.hostname, 'fastify.test')
++  t.assert.strictEqual(request.port, 1234)
+ })
+ 
+ test('Request with trust proxy - handles multiple entries in x-forwarded-host/proto', t => {
+   t.plan(3)
+   const headers = {
+-    'x-forwarded-host': 'example2.com, example.com',
++    'x-forwarded-host': 'example2.com, fastify.test',
+     'x-forwarded-proto': 'http, https'
+   }
+   const req = {
+@@ -409,7 +412,7 @@ test('Request with trust proxy - handles multiple entries in x-forwarded-host/pr
+   const TpRequest = Request.buildRequest(Request, true)
+   const request = new TpRequest('id', 'params', req, 'query', 'log')
+   t.assert.ok(request instanceof TpRequest)
+-  t.assert.strictEqual(request.host, 'example.com')
++  t.assert.strictEqual(request.host, 'fastify.test')
+   t.assert.strictEqual(request.protocol, 'https')
+ })
+ 
+@@ -417,7 +420,7 @@ test('Request with trust proxy - plain', t => {
+   t.plan(1)
+   const headers = {
+     'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'example.com'
++    'x-forwarded-host': 'fastify.test'
+   }
+   const req = {
+     method: 'GET',
+@@ -486,21 +489,3 @@ test('Request with undefined socket', t => {
+   t.assert.ok(request.getValidationFunction instanceof Function)
+   t.assert.ok(request.compileValidationSchema instanceof Function)
+ })
+-
+-test('Request with trust proxy and undefined socket', t => {
+-  t.plan(1)
+-  const headers = {
+-    'x-forwarded-for': '2.2.2.2, 1.1.1.1',
+-    'x-forwarded-host': 'example.com'
+-  }
+-  const req = {
+-    method: 'GET',
+-    url: '/',
+-    socket: undefined,
+-    headers
+-  }
+-
+-  const TpRequest = Request.buildRequest(Request, true)
+-  const request = new TpRequest('id', 'params', req, 'query', 'log')
+-  t.assert.deepStrictEqual(request.protocol, undefined)
+-})
+diff --git a/test/max-requests-per-socket.test.js b/test/max-requests-per-socket.test.js
+index 7e4401e5..d27adbbf 100644
+--- a/test/max-requests-per-socket.test.js
++++ b/test/max-requests-per-socket.test.js
+@@ -17,20 +17,20 @@ test('maxRequestsPerSocket', (t, done) => {
+ 
+     const port = fastify.server.address().port
+     const client = net.createConnection({ port }, () => {
+-      client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++      client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+       client.once('data', data => {
+         t.assert.match(data.toString(), /Connection:\s*keep-alive/i)
+         t.assert.match(data.toString(), /Keep-Alive:\s*timeout=\d+/i)
+         t.assert.match(data.toString(), /200 OK/i)
+ 
+-        client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++        client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+         client.once('data', data => {
+           t.assert.match(data.toString(), /Connection:\s*close/i)
+           t.assert.match(data.toString(), /200 OK/i)
+ 
+-          client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++          client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+           client.once('data', data => {
+             t.assert.match(data.toString(), /Connection:\s*close/i)
+@@ -58,21 +58,21 @@ test('maxRequestsPerSocket zero should behave same as null', (t, done) => {
+ 
+     const port = fastify.server.address().port
+     const client = net.createConnection({ port }, () => {
+-      client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++      client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+       client.once('data', data => {
+         t.assert.match(data.toString(), /Connection:\s*keep-alive/i)
+         t.assert.match(data.toString(), /Keep-Alive:\s*timeout=\d+/i)
+         t.assert.match(data.toString(), /200 OK/i)
+ 
+-        client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++        client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+         client.once('data', data => {
+           t.assert.match(data.toString(), /Connection:\s*keep-alive/i)
+           t.assert.match(data.toString(), /Keep-Alive:\s*timeout=\d+/i)
+           t.assert.match(data.toString(), /200 OK/i)
+ 
+-          client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++          client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+           client.once('data', data => {
+             t.assert.match(data.toString(), /Connection:\s*keep-alive/i)
+diff --git a/test/request-error.test.js b/test/request-error.test.js
+index fd5a5cdd..f5bc9d25 100644
+--- a/test/request-error.test.js
++++ b/test/request-error.test.js
+@@ -127,7 +127,7 @@ test('default clientError handler ignores ECONNRESET', (t, done) => {
+ 
+     client.resume()
+     client.write('GET / HTTP/1.1\r\n')
+-    client.write('Host: example.com\r\n')
++    client.write('Host: fastify.test\r\n')
+     client.write('Connection: close\r\n')
+     client.write('\r\n\r\n')
+   })
+@@ -316,10 +316,10 @@ test('default clientError replies with bad request on reused keep-alive connecti
+ 
+     client.resume()
+     client.write('GET / HTTP/1.1\r\n')
+-    client.write('Host: example.com\r\n')
++    client.write('Host: fastify.test\r\n')
+     client.write('\r\n\r\n')
+     client.write('GET /?a b HTTP/1.1\r\n')
+-    client.write('Host: example.com\r\n')
++    client.write('Host: fastify.test\r\n')
+     client.write('Connection: close\r\n')
+     client.write('\r\n\r\n')
+   })
+diff --git a/test/schema-examples.test.js b/test/schema-examples.test.js
+index 96fd03f6..7292a813 100644
+--- a/test/schema-examples.test.js
++++ b/test/schema-examples.test.js
+@@ -8,7 +8,7 @@ test('Example - URI $id', (t, done) => {
+   t.plan(1)
+   const fastify = Fastify()
+   fastify.addSchema({
+-    $id: 'http://example.com/',
++    $id: 'http://fastify.test/',
+     type: 'object',
+     properties: {
+       hello: { type: 'string' }
+@@ -20,7 +20,7 @@ test('Example - URI $id', (t, done) => {
+     schema: {
+       body: {
+         type: 'array',
+-        items: { $ref: 'http://example.com#/properties/hello' }
++        items: { $ref: 'http://fastify.test#/properties/hello' }
+       }
+     }
+   })
+diff --git a/test/schema-feature.test.js b/test/schema-feature.test.js
+index c999bd41..6e54d181 100644
+--- a/test/schema-feature.test.js
++++ b/test/schema-feature.test.js
+@@ -12,7 +12,7 @@ const { waitForCb } = require('./toolkit')
+ const echoParams = (req, reply) => { reply.send(req.params) }
+ const echoBody = (req, reply) => { reply.send(req.body) }
+ 
+-;['addSchema', 'getSchema', 'getSchemas', 'setValidatorCompiler', 'setSerializerCompiler'].forEach(f => {
++  ;['addSchema', 'getSchema', 'getSchemas', 'setValidatorCompiler', 'setSerializerCompiler'].forEach(f => {
+   test(`Should expose ${f} function`, t => {
+     t.plan(1)
+     const fastify = Fastify()
+@@ -130,8 +130,8 @@ test('Get compilers is empty when settle on routes', (t, testDone) => {
+         }
+       }
+     },
+-    validatorCompiler: ({ schema, method, url, httpPart }) => {},
+-    serializerCompiler: ({ schema, method, url, httpPart }) => {}
++    validatorCompiler: ({ schema, method, url, httpPart }) => { },
++    serializerCompiler: ({ schema, method, url, httpPart }) => { }
+   }, function (req, reply) {
+     reply.send('ok')
+   })
+@@ -177,7 +177,7 @@ test('Cannot add schema for query and querystring', (t, testDone) => {
+   const fastify = Fastify()
+ 
+   fastify.get('/', {
+-    handler: () => {},
++    handler: () => { },
+     schema: {
+       query: {
+         type: 'object',
+@@ -956,7 +956,7 @@ test('Get schema anyway should not add `properties` if allOf is present', (t, te
+   })
+ 
+   fastify.get('/', {
+-    handler: () => {},
++    handler: () => { },
+     schema: {
+       querystring: fastify.getSchema('second'),
+       response: { 200: fastify.getSchema('second') }
+@@ -996,7 +996,7 @@ test('Get schema anyway should not add `properties` if oneOf is present', (t, te
+   })
+ 
+   fastify.get('/', {
+-    handler: () => {},
++    handler: () => { },
+     schema: {
+       querystring: fastify.getSchema('second'),
+       response: { 200: fastify.getSchema('second') }
+@@ -1036,7 +1036,7 @@ test('Get schema anyway should not add `properties` if anyOf is present', (t, te
+   })
+ 
+   fastify.get('/', {
+-    handler: () => {},
++    handler: () => { },
+     schema: {
+       querystring: fastify.getSchema('second'),
+       response: { 200: fastify.getSchema('second') }
+@@ -1386,7 +1386,7 @@ test('onReady hook has the compilers ready', (t, testDone) => {
+       done()
+     })
+ 
+-    i.register(async (i, o) => {})
++    i.register(async (i, o) => { })
+ 
+     i.addHook('onReady', function (done) {
+       hookCallCounter++
+@@ -1471,11 +1471,11 @@ test('Add schema order should not break the startup', (t, testDone) => {
+   t.plan(1)
+   const fastify = Fastify()
+ 
+-  fastify.get('/', { schema: { random: 'options' } }, () => {})
++  fastify.get('/', { schema: { random: 'options' } }, () => { })
+ 
+   fastify.register(fp((f, opts) => {
+     f.addSchema({
+-      $id: 'https://example.com/bson/objectId',
++      $id: 'https://fastify.test/bson/objectId',
+       type: 'string',
+       pattern: '\\b[0-9A-Fa-f]{24}\\b'
+     })
+@@ -1487,11 +1487,11 @@ test('Add schema order should not break the startup', (t, testDone) => {
+       params: {
+         type: 'object',
+         properties: {
+-          id: { $ref: 'https://example.com/bson/objectId#' }
++          id: { $ref: 'https://fastify.test/bson/objectId#' }
+         }
+       }
+     }
+-  }, () => {})
++  }, () => { })
+ 
+   fastify.ready(err => {
+     t.assert.ifError(err)
+@@ -2174,7 +2174,7 @@ test('Should return a human-friendly error if response status codes are not spec
+ 
+ test('setSchemaController: custom validator instance should not mutate headers schema', async t => {
+   t.plan(2)
+-  class Headers {}
++  class Headers { }
+   const fastify = Fastify()
+ 
+   fastify.setSchemaController({
+@@ -2182,7 +2182,7 @@ test('setSchemaController: custom validator instance should not mutate headers s
+       buildValidator: function () {
+         return ({ schema, method, url, httpPart }) => {
+           t.assert.ok(schema instanceof Headers)
+-          return () => {}
++          return () => { }
+         }
+       }
+     }
+@@ -2192,7 +2192,7 @@ test('setSchemaController: custom validator instance should not mutate headers s
+     schema: {
+       headers: new Headers()
+     }
+-  }, () => {})
++  }, () => { })
+ 
+   await fastify.ready()
+ })
+diff --git a/test/schema-serialization.test.js b/test/schema-serialization.test.js
+index 72b881ff..d2ed451e 100644
+--- a/test/schema-serialization.test.js
++++ b/test/schema-serialization.test.js
+@@ -521,7 +521,7 @@ test('Shared schema should be pass to serializer and validator ($ref to shared s
+   const fastify = Fastify()
+ 
+   fastify.addSchema({
+-    $id: 'http://example.com/asset.json',
++    $id: 'http://fastify.test/asset.json',
+     $schema: 'http://json-schema.org/draft-07/schema#',
+     title: 'Physical Asset',
+     description: 'A generic representation of a physical asset',
+@@ -539,7 +539,7 @@ test('Shared schema should be pass to serializer and validator ($ref to shared s
+       model: {
+         type: 'string'
+       },
+-      location: { $ref: 'http://example.com/point.json#' }
++      location: { $ref: 'http://fastify.test/point.json#' }
+     },
+     definitions: {
+       inner: {
+@@ -551,7 +551,7 @@ test('Shared schema should be pass to serializer and validator ($ref to shared s
+   })
+ 
+   fastify.addSchema({
+-    $id: 'http://example.com/point.json',
++    $id: 'http://fastify.test/point.json',
+     $schema: 'http://json-schema.org/draft-07/schema#',
+     title: 'Longitude and Latitude Values',
+     description: 'A geographical coordinate.',
+@@ -561,7 +561,7 @@ test('Shared schema should be pass to serializer and validator ($ref to shared s
+       'longitude'
+     ],
+     properties: {
+-      email: { $ref: 'http://example.com/asset.json#/definitions/inner' },
++      email: { $ref: 'http://fastify.test/asset.json#/definitions/inner' },
+       latitude: {
+         type: 'number',
+         minimum: -90,
+@@ -579,11 +579,11 @@ test('Shared schema should be pass to serializer and validator ($ref to shared s
+   })
+ 
+   const schemaLocations = {
+-    $id: 'http://example.com/locations.json',
++    $id: 'http://fastify.test/locations.json',
+     $schema: 'http://json-schema.org/draft-07/schema#',
+     title: 'List of Asset locations',
+     type: 'array',
+-    items: { $ref: 'http://example.com/asset.json#' }
++    items: { $ref: 'http://fastify.test/asset.json#' }
+   }
+ 
+   fastify.post('/', {
+diff --git a/test/schema-special-usage.test.js b/test/schema-special-usage.test.js
+index 1d1cd627..85b466a1 100644
+--- a/test/schema-special-usage.test.js
++++ b/test/schema-special-usage.test.js
+@@ -288,7 +288,7 @@ test("serializer read validator's schemas", (t, testDone) => {
+   const ajvInstance = new AJV()
+ 
+   const baseSchema = {
+-    $id: 'http://example.com/schemas/base',
++    $id: 'http://fastify.test/schemas/base',
+     definitions: {
+       hello: { type: 'string' }
+     },
+@@ -299,10 +299,10 @@ test("serializer read validator's schemas", (t, testDone) => {
+   }
+ 
+   const refSchema = {
+-    $id: 'http://example.com/schemas/ref',
++    $id: 'http://fastify.test/schemas/ref',
+     type: 'object',
+     properties: {
+-      hello: { $ref: 'http://example.com/schemas/base#/definitions/hello' }
++      hello: { $ref: 'http://fastify.test/schemas/base#/definitions/hello' }
+     }
+   }
+ 
+@@ -332,7 +332,7 @@ test("serializer read validator's schemas", (t, testDone) => {
+   fastify.get('/', {
+     schema: {
+       response: {
+-        '2xx': ajvInstance.getSchema('http://example.com/schemas/ref').schema
++        '2xx': ajvInstance.getSchema('http://fastify.test/schemas/ref').schema
+       }
+     },
+     handler (req, res) { res.send({ hello: 'world', evict: 'this' }) }
+@@ -754,7 +754,7 @@ test('The default schema compilers should not be called when overwritten by the
+           200: { type: 'object' }
+         }
+       }
+-    }, () => {})
++    }, () => { })
+ 
+   await fastify.ready()
+ })
+diff --git a/test/schema-validation.test.js b/test/schema-validation.test.js
+index cde8063e..7ac49f45 100644
+--- a/test/schema-validation.test.js
++++ b/test/schema-validation.test.js
+@@ -875,7 +875,7 @@ test('Use items with $ref', (t, testDone) => {
+   const fastify = Fastify()
+ 
+   fastify.addSchema({
+-    $id: 'http://example.com/ref-to-external-validator.json',
++    $id: 'http://fastify.test/ref-to-external-validator.json',
+     type: 'object',
+     properties: {
+       hello: { type: 'string' }
+@@ -884,7 +884,7 @@ test('Use items with $ref', (t, testDone) => {
+ 
+   const body = {
+     type: 'array',
+-    items: { $ref: 'http://example.com/ref-to-external-validator.json#' }
++    items: { $ref: 'http://fastify.test/ref-to-external-validator.json#' }
+   }
+ 
+   fastify.post('/', {
+diff --git a/test/server.test.js b/test/server.test.js
+index 6e11adc8..7fa2b4ad 100644
+--- a/test/server.test.js
++++ b/test/server.test.js
+@@ -67,13 +67,13 @@ test('listen should reject string port', async (t) => {
+ })
+ 
+ test('Test for hostname and port', async (t) => {
++  t.plan(3)
+   const app = Fastify()
+   t.after(() => app.close())
+   app.get('/host', (req, res) => {
+-    const host = 'localhost:8000'
+-    t.assert.strictEqual(req.host, host)
+-    t.assert.strictEqual(req.hostname, req.host.split(':')[0])
+-    t.assert.strictEqual(req.port, Number(req.host.split(':')[1]))
++    t.assert.strictEqual(req.host, 'localhost:8000')
++    t.assert.strictEqual(req.hostname, 'localhost')
++    t.assert.strictEqual(req.port, 8000)
+     res.send('ok')
+   })
+ 
+@@ -81,6 +81,24 @@ test('Test for hostname and port', async (t) => {
+   await fetch('http://localhost:8000/host')
+ })
+ 
++test('Test for IPV6 port', async (t) => {
++  t.plan(3)
++  const app = Fastify()
++  t.after(() => app.close())
++  app.get('/host', (req, res) => {
++    t.assert.strictEqual(req.host, '[::1]:3040')
++    t.assert.strictEqual(req.hostname, '[::1]')
++    t.assert.strictEqual(req.port, 3040)
++    res.send('ok')
++  })
++
++  await app.listen({
++    port: 3040,
++    host: '::1'
++  })
++  await fetch('http://[::1]:3040/host')
++})
++
+ test('abort signal', async t => {
+   await t.test('should close server when aborted after', (t, end) => {
+     t.plan(2)
+diff --git a/test/skip-reply-send.test.js b/test/skip-reply-send.test.js
+index 202a758f..506bf62e 100644
+--- a/test/skip-reply-send.test.js
++++ b/test/skip-reply-send.test.js
+@@ -201,7 +201,7 @@ function testHandlerOrBeforeHandlerHook (test, hookOrHandler) {
+       app.listen({ port: 0 }, err => {
+         t.assert.ifError(err)
+         const client = net.createConnection({ port: (app.server.address()).port }, () => {
+-          client.write('GET / HTTP/1.1\r\nHost: example.com\r\n\r\n')
++          client.write('GET / HTTP/1.1\r\nHost: fastify.test\r\n\r\n')
+ 
+           let chunks = ''
+           client.setEncoding('utf8')
+diff --git a/test/trust-proxy.test.js b/test/trust-proxy.test.js
+index 0153e631..fd049dd2 100644
+--- a/test/trust-proxy.test.js
++++ b/test/trust-proxy.test.js
+@@ -3,11 +3,13 @@
+ const { test, before } = require('node:test')
+ const fastify = require('..')
+ const helper = require('./helper')
++const Request = require('../lib/request')
++const buildRequest = Request.buildRequest
+ 
+-const fetchForwardedRequest = async (fastifyServer, forHeader, path, protoHeader) => {
++const fetchForwardedRequest = async (fastifyServer, forHeader, path, protoHeader, hostHeader = 'fastify.test') => {
+   const headers = {
+     'X-Forwarded-For': forHeader,
+-    'X-Forwarded-Host': 'example.com'
++    'X-Forwarded-Host': hostHeader
+   }
+   if (protoHeader) {
+     headers['X-Forwarded-Proto'] = protoHeader
+@@ -26,8 +28,10 @@ const testRequestValues = (t, req, options) => {
+   if (options.host) {
+     t.assert.ok(req.host, 'host is defined')
+     t.assert.strictEqual(req.host, options.host, 'gets host from x-forwarded-host')
+-    t.assert.ok(req.hostname)
+-    t.assert.strictEqual(req.hostname, options.host, 'gets hostname from x-forwarded-host')
++  }
++  if (options.hostname) {
++    t.assert.ok(req.hostname, 'hostname is defined')
++    t.assert.strictEqual(req.hostname, options.hostname, 'gets hostname from x-forwarded-host')
+   }
+   if (options.ips) {
+     t.assert.deepStrictEqual(req.ips, options.ips, 'gets ips from x-forwarded-for')
+@@ -36,9 +40,8 @@ const testRequestValues = (t, req, options) => {
+     t.assert.ok(req.protocol, 'protocol is defined')
+     t.assert.strictEqual(req.protocol, options.protocol, 'gets protocol from x-forwarded-proto')
+   }
+-  if (options.port) {
+-    t.assert.ok(req.port, 'port is defined')
+-    t.assert.strictEqual(req.port, options.port, 'port is taken from x-forwarded-for or host')
++  if ('port' in options) {
++    t.assert.strictEqual(req.port, options.port, 'port is parsed from x-forwarded-host')
+   }
+ }
+ 
+@@ -48,115 +51,175 @@ before(async function () {
+ })
+ 
+ test('trust proxy, not add properties to node req', async t => {
+-  t.plan(13)
++  t.plan(11)
+   const app = fastify({
+     trustProxy: true
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxy', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   app.get('/trustproxychain', function (req, reply) {
+-    testRequestValues(t, req, { ip: '2.2.2.2', ips: [localhost, '1.1.1.1', '2.2.2.2'], port: app.server.address().port })
++    // x-forwarded-host carries no port, so req.port is null
++    testRequestValues(t, req, { ip: '2.2.2.2', ips: [localhost, '1.1.1.1', '2.2.2.2'], port: null })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+ 
+-  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxy', undefined)
++  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxy', undefined, 'fastify.test:1234')
+   await fetchForwardedRequest(fastifyServer, '2.2.2.2, 1.1.1.1', '/trustproxychain', undefined)
+ })
+ 
+ test('trust proxy chain', async t => {
+-  t.plan(8)
++  t.plan(7)
+   const app = fastify({
+     trustProxy: [localhost, '192.168.1.1']
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxychain', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+-  await fetchForwardedRequest(fastifyServer, '192.168.1.1, 1.1.1.1', '/trustproxychain', undefined)
++  await fetchForwardedRequest(fastifyServer, '192.168.1.1, 1.1.1.1', '/trustproxychain', undefined, 'fastify.test:1234')
+ })
+ 
+ test('trust proxy function', async t => {
+-  t.plan(8)
++  t.plan(7)
+   const app = fastify({
+     trustProxy: (address) => address === localhost
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxyfunc', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+-  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyfunc', undefined)
++  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyfunc', undefined, 'fastify.test:1234')
+ })
+ 
+ test('trust proxy number', async t => {
+-  t.plan(9)
++  t.plan(8)
+   const app = fastify({
+     trustProxy: 1
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxynumber', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', ips: [localhost, '1.1.1.1'], host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', ips: [localhost, '1.1.1.1'], host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+-  await fetchForwardedRequest(fastifyServer, '2.2.2.2, 1.1.1.1', '/trustproxynumber', undefined)
++  await fetchForwardedRequest(fastifyServer, '2.2.2.2, 1.1.1.1', '/trustproxynumber', undefined, 'fastify.test:1234')
+ })
+ 
+ test('trust proxy IP addresses', async t => {
+-  t.plan(9)
++  t.plan(8)
+   const app = fastify({
+     trustProxy: `${localhost}, 2.2.2.2`
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxyipaddrs', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', ips: [localhost, '1.1.1.1'], host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', ips: [localhost, '1.1.1.1'], host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+-  await fetchForwardedRequest(fastifyServer, '3.3.3.3, 2.2.2.2, 1.1.1.1', '/trustproxyipaddrs', undefined)
++  await fetchForwardedRequest(fastifyServer, '3.3.3.3, 2.2.2.2, 1.1.1.1', '/trustproxyipaddrs', undefined, 'fastify.test:1234')
+ })
+ 
+ test('trust proxy protocol', async t => {
+-  t.plan(30)
++  t.plan(27)
+   const app = fastify({
+     trustProxy: true
+   })
+   t.after(() => app.close())
+ 
+   app.get('/trustproxyprotocol', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'lorem', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'lorem', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+   app.get('/trustproxynoprotocol', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'http', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'http', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+   app.get('/trustproxyprotocols', function (req, reply) {
+-    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'dolor', host: 'example.com', port: app.server.address().port })
++    testRequestValues(t, req, { ip: '1.1.1.1', protocol: 'dolor', host: 'fastify.test:1234', hostname: 'fastify.test', port: 1234 })
+     reply.code(200).send({ ip: req.ip, host: req.host })
+   })
+ 
+   const fastifyServer = await app.listen({ port: 0 })
+ 
+-  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyprotocol', 'lorem')
+-  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxynoprotocol', undefined)
+-  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyprotocols', 'ipsum, dolor')
++  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyprotocol', 'lorem', 'fastify.test:1234')
++  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxynoprotocol', undefined, 'fastify.test:1234')
++  await fetchForwardedRequest(fastifyServer, '1.1.1.1', '/trustproxyprotocols', 'ipsum, dolor', 'fastify.test:1234')
++})
++
++test('trust proxy ignores forwarded headers from untrusted connections', async t => {
++  t.plan(3)
++
++  // Use a restrictive trust function that does NOT trust localhost
++  // (simulates a direct connection bypassing the proxy)
++  const app = fastify({
++    trustProxy: '10.0.0.1'
++  })
++  t.after(() => app.close())
++
++  app.get('/untrusted', function (req, reply) {
++    // protocol should fall back to socket state, not read x-forwarded-proto
++    t.assert.strictEqual(req.protocol, 'http', 'protocol ignores x-forwarded-proto from untrusted connection')
++    // host should fall back to raw Host header, not read x-forwarded-host
++    t.assert.notStrictEqual(req.host, 'evil.com', 'host ignores x-forwarded-host from untrusted connection')
++    // hostname should also not be spoofed
++    t.assert.notStrictEqual(req.hostname, 'evil.com', 'hostname ignores x-forwarded-host from untrusted connection')
++    reply.code(200).send({ protocol: req.protocol, host: req.host })
++  })
++
++  const fastifyServer = await app.listen({ port: 0 })
++
++  // Attacker connects directly (from localhost, which is NOT in the trust list)
++  // and sends spoofed forwarded headers
++  await fetch(fastifyServer + '/untrusted', {
++    headers: {
++      'X-Forwarded-For': '1.1.1.1',
++      'X-Forwarded-Host': 'evil.com',
++      'X-Forwarded-Proto': 'https'
++    }
++  })
++})
++
++test('trust proxy reads forwarded headers from trusted connections', async t => {
++  t.plan(2)
++
++  // Trust localhost (the actual connecting IP in tests)
++  const app = fastify({
++    trustProxy: (address) => address === localhost
++  })
++  t.after(() => app.close())
++
++  app.get('/trusted', function (req, reply) {
++    t.assert.strictEqual(req.protocol, 'https', 'protocol reads x-forwarded-proto from trusted connection')
++    t.assert.strictEqual(req.host, 'example.com', 'host reads x-forwarded-host from trusted connection')
++    reply.code(200).send({ protocol: req.protocol, host: req.host })
++  })
++
++  const fastifyServer = await app.listen({ port: 0 })
++
++  await fetch(fastifyServer + '/trusted', {
++    headers: {
++      'X-Forwarded-For': '1.1.1.1',
++      'X-Forwarded-Host': 'example.com',
++      'X-Forwarded-Proto': 'https'
++    }
++  })
+ })
+diff --git a/test/types/logger.test-d.ts b/test/types/logger.test-d.ts
+index e084a46e..847cf768 100644
+--- a/test/types/logger.test-d.ts
++++ b/test/types/logger.test-d.ts
+@@ -1,39 +1,38 @@
++import * as fs from 'node:fs'
++import { IncomingMessage, Server, ServerResponse } from 'node:http'
++import P from 'pino'
+ import { expectAssignable, expectDeprecated, expectError, expectNotAssignable, expectType } from 'tsd'
+ import fastify, {
++  FastifyBaseLogger,
+   FastifyLogFn,
+-  LogLevel,
+-  FastifyLoggerInstance,
+-  FastifyRequest,
+   FastifyReply,
+-  FastifyBaseLogger
++  FastifyRequest,
++  LogLevel
+ } from '../../fastify'
+-import { Server, IncomingMessage, ServerResponse } from 'node:http'
+-import * as fs from 'node:fs'
+-import P from 'pino'
+-import { ResSerializerReply } from '../../types/logger'
++import { FastifyLoggerInstance, ResSerializerReply } from '../../types/logger'
+ 
+-expectType<FastifyLoggerInstance>(fastify().log)
++expectType<FastifyBaseLogger>(fastify().log)
+ 
+-class Foo {}
++class Foo { }
+ 
+ ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].forEach(logLevel => {
+   expectType<FastifyLogFn>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel]
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel]
+   )
+   expectType<void>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel]('')
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel]('')
+   )
+   expectType<void>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel]({})
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel]({})
+   )
+   expectType<void>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel]({ foo: 'bar' })
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel]({ foo: 'bar' })
+   )
+   expectType<void>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel](new Error())
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel](new Error())
+   )
+   expectType<void>(
+-    fastify<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>().log[logLevel as LogLevel](new Foo())
++    fastify<Server, IncomingMessage, ServerResponse, FastifyBaseLogger>().log[logLevel as LogLevel](new Foo())
+   )
+ })
+ 
+@@ -63,19 +62,19 @@ class CustomLoggerImpl implements CustomLogger {
+ const customLogger = new CustomLoggerImpl()
+ 
+ const serverWithCustomLogger = fastify<
+-Server,
+-IncomingMessage,
+-ServerResponse,
+-CustomLoggerImpl
++  Server,
++  IncomingMessage,
++  ServerResponse,
++  CustomLoggerImpl
+ >({ logger: customLogger })
+ 
+ expectType<CustomLoggerImpl>(serverWithCustomLogger.log)
+ 
+ const serverWithPino = fastify<
+-Server,
+-IncomingMessage,
+-ServerResponse,
+-P.Logger
++  Server,
++  IncomingMessage,
++  ServerResponse,
++  P.Logger
+ >({
+   logger: P({
+     level: 'info',
+@@ -100,21 +99,21 @@ serverWithPino.get('/', function (request) {
+ })
+ 
+ const serverWithLogOptions = fastify<
+-Server,
+-IncomingMessage,
+-ServerResponse
++  Server,
++  IncomingMessage,
++  ServerResponse
+ >({
+   logger: {
+     level: 'info'
+   }
+ })
+ 
+-expectType<FastifyLoggerInstance>(serverWithLogOptions.log)
++expectType<FastifyBaseLogger>(serverWithLogOptions.log)
+ 
+ const serverWithFileOption = fastify<
+-Server,
+-IncomingMessage,
+-ServerResponse
++  Server,
++  IncomingMessage,
++  ServerResponse
+ >({
+   logger: {
+     level: 'info',
+@@ -122,7 +121,7 @@ ServerResponse
+   }
+ })
+ 
+-expectType<FastifyLoggerInstance>(serverWithFileOption.log)
++expectType<FastifyBaseLogger>(serverWithFileOption.log)
+ 
+ const serverAutoInferringTypes = fastify({
+   logger: {
+@@ -151,7 +150,7 @@ const serverWithPinoConfig = fastify({
+           method: 'method',
+           url: 'url',
+           version: 'version',
+-          host: 'hostname',
++          host: 'fastify.test',
+           remoteAddress: 'remoteAddress',
+           remotePort: 80,
+           other: ''
+@@ -214,7 +213,7 @@ const serverAutoInferredSerializerObjectOption = fastify({
+           method: 'method',
+           url: 'url',
+           version: 'version',
+-          host: 'hostname',
++          host: 'fastify.test',
+           remoteAddress: 'remoteAddress',
+           remotePort: 80,
+           other: ''
+@@ -266,11 +265,11 @@ expectDeprecated({} as FastifyLoggerInstance)
+ 
+ const childParent = fastify().log
+ // we test different option variant here
+-expectType<FastifyLoggerInstance>(childParent.child({}, { level: 'info' }))
+-expectType<FastifyLoggerInstance>(childParent.child({}, { level: 'silent' }))
+-expectType<FastifyLoggerInstance>(childParent.child({}, { redact: ['pass', 'pin'] }))
+-expectType<FastifyLoggerInstance>(childParent.child({}, { serializers: { key: () => {} } }))
+-expectType<FastifyLoggerInstance>(childParent.child({}, { level: 'info', redact: ['pass', 'pin'], serializers: { key: () => {} } }))
++expectType<FastifyBaseLogger>(childParent.child({}, { level: 'info' }))
++expectType<FastifyBaseLogger>(childParent.child({}, { level: 'silent' }))
++expectType<FastifyBaseLogger>(childParent.child({}, { redact: ['pass', 'pin'] }))
++expectType<FastifyBaseLogger>(childParent.child({}, { serializers: { key: () => { } } }))
++expectType<FastifyBaseLogger>(childParent.child({}, { level: 'info', redact: ['pass', 'pin'], serializers: { key: () => { } } }))
+ 
+ // no option pass
+ expectError(childParent.child())
+diff --git a/test/types/register.test-d.ts b/test/types/register.test-d.ts
+index 0bcf5307..a763a679 100644
+--- a/test/types/register.test-d.ts
++++ b/test/types/register.test-d.ts
+@@ -1,7 +1,7 @@
+ import { expectAssignable, expectError, expectType } from 'tsd'
+ import { IncomingMessage, Server, ServerResponse } from 'node:http'
+ import { Http2Server, Http2ServerRequest, Http2ServerResponse } from 'node:http2'
+-import fastify, { FastifyInstance, FastifyError, FastifyLoggerInstance, FastifyPluginAsync, FastifyPluginCallback, FastifyPluginOptions, RawServerDefault } from '../../fastify'
++import fastify, { FastifyInstance, FastifyError, FastifyBaseLogger, FastifyPluginAsync, FastifyPluginCallback, FastifyPluginOptions, RawServerDefault } from '../../fastify'
+ 
+ const testPluginCallback: FastifyPluginCallback = function (instance, opts, done) { }
+ const testPluginAsync: FastifyPluginAsync = async function (instance, opts) { }
+@@ -97,7 +97,7 @@ type ServerWithTypeProvider = FastifyInstance<
+   Server,
+   IncomingMessage,
+   ServerResponse,
+-  FastifyLoggerInstance,
++  FastifyBaseLogger,
+   TestTypeProvider
+ >
+ const testPluginWithTypeProvider: FastifyPluginCallback<
+diff --git a/test/types/reply.test-d.ts b/test/types/reply.test-d.ts
+index 872a1298..8956863a 100644
+--- a/test/types/reply.test-d.ts
++++ b/test/types/reply.test-d.ts
+@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
+ import { expectAssignable, expectError, expectType } from 'tsd'
+ import fastify, { FastifyContextConfig, FastifyReply, FastifyRequest, FastifySchema, FastifyTypeProviderDefault, RawRequestDefaultExpression, RouteHandler, RouteHandlerMethod } from '../../fastify'
+ import { FastifyInstance } from '../../types/instance'
+-import { FastifyLoggerInstance } from '../../types/logger'
++import { FastifyBaseLogger } from '../../types/logger'
+ import { ResolveReplyTypeWithRouteGeneric } from '../../types/reply'
+ import { FastifyRouteConfig, RouteGenericInterface } from '../../types/route'
+ import { ContextConfigDefault, RawReplyDefaultExpression, RawServerDefault } from '../../types/utils'
+@@ -12,7 +12,7 @@ type DefaultFastifyReplyWithCode<Code extends number> = FastifyReply<RouteGeneri
+ 
+ const getHandler: RouteHandlerMethod = function (_request, reply) {
+   expectType<RawReplyDefaultExpression>(reply.raw)
+-  expectType<FastifyLoggerInstance>(reply.log)
++  expectType<FastifyBaseLogger>(reply.log)
+   expectType<FastifyRequest<RouteGenericInterface, RawServerDefault, RawRequestDefaultExpression>>(reply.request)
+   expectType<<Code extends number>(statusCode: Code) => DefaultFastifyReplyWithCode<Code>>(reply.code)
+   expectType<<Code extends number>(statusCode: Code) => DefaultFastifyReplyWithCode<Code>>(reply.status)
+diff --git a/test/types/request.test-d.ts b/test/types/request.test-d.ts
+index 437112ca..dda0337a 100644
+--- a/test/types/request.test-d.ts
++++ b/test/types/request.test-d.ts
+@@ -15,7 +15,7 @@ import fastify, {
+   SafePromiseLike
+ } from '../../fastify'
+ import { FastifyInstance } from '../../types/instance'
+-import { FastifyLoggerInstance } from '../../types/logger'
++import { FastifyBaseLogger } from '../../types/logger'
+ import { FastifyReply } from '../../types/reply'
+ import { FastifyRequest, RequestRouteOptions } from '../../types/request'
+ import { FastifyRouteConfig, RouteGenericInterface } from '../../types/route'
+@@ -56,7 +56,7 @@ type CustomRequest = FastifyRequest<{
+ type HTTPRequestPart = 'body' | 'query' | 'querystring' | 'params' | 'headers'
+ type ExpectedGetValidationFunction = (input: { [key: string]: unknown }) => boolean
+ 
+-interface CustomLoggerInterface extends FastifyLoggerInstance {
++interface CustomLoggerInterface extends FastifyBaseLogger {
+   foo: FastifyLogFn; // custom severity logger method
+ }
+ 
+@@ -85,7 +85,7 @@ const getHandler: RouteHandler = function (request, _reply) {
+ 
+   expectType<RequestQuerystringDefault>(request.query)
+   expectType<string>(request.id)
+-  expectType<FastifyLoggerInstance>(request.log)
++  expectType<FastifyBaseLogger>(request.log)
+   expectType<RawRequestDefaultExpression['socket']>(request.socket)
+   expectType<Error & { validation: any; validationContext: string } | undefined>(request.validationError)
+   expectType<FastifyInstance>(request.server)
+diff --git a/test/types/route.test-d.ts b/test/types/route.test-d.ts
+index e60dfb9a..6f1989b8 100644
+--- a/test/types/route.test-d.ts
++++ b/test/types/route.test-d.ts
+@@ -475,19 +475,19 @@ expectType<boolean>(fastify().hasRoute({
+ expectType<boolean>(fastify().hasRoute({
+   url: '/',
+   method: 'GET',
+-  constraints: { host: 'auth.fastify.dev' }
++  constraints: { host: 'auth.fastify.test' }
+ }))
+ 
+ expectType<boolean>(fastify().hasRoute({
+   url: '/',
+   method: 'GET',
+-  constraints: { host: /.*\.fastify\.dev$/ }
++  constraints: { host: /.*\.fastify\.test$/ }
+ }))
+ 
+ expectType<boolean>(fastify().hasRoute({
+   url: '/',
+   method: 'GET',
+-  constraints: { host: /.*\.fastify\.dev$/, version: '1.2.3' }
++  constraints: { host: /.*\.fastify\.test$/, version: '1.2.3' }
+ }))
+ 
+ expectType<boolean>(fastify().hasRoute({
+diff --git a/types/logger.d.ts b/types/logger.d.ts
+index c9f64804..7ed40fef 100644
+--- a/types/logger.d.ts
++++ b/types/logger.d.ts
+@@ -28,7 +28,7 @@ export interface FastifyBaseLogger extends Pick<BaseLogger, 'level' | 'info' | '
+   child(bindings: Bindings, options?: ChildLoggerOptions): FastifyBaseLogger
+ }
+ 
+-// TODO delete FastifyBaseLogger in the next major release. It seems that it is enough to have only FastifyBaseLogger.
++// TODO delete FastifyLoggerInstance in the next major release. It seems that it is enough to have only FastifyBaseLogger.
+ /**
+  * @deprecated Use FastifyBaseLogger instead
+  */

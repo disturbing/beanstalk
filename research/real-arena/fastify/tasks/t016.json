@@ -1,0 +1,68 @@
+{
+  "id": "t016",
+  "title": "fix: correct isCustomSerializerCompiler flag check",
+  "prompt": "## Summary\n\nFixes #6652. This replaces PR #6655 which was accidentally closed.\n\nThe `isCustomSerializerCompiler` flag in `lib/schema-controller.js` was incorrectly checking `opts?.compilersFactory?.buildValidator` instead of `opts?.compilersFactory?.buildSerializer`. This caused the flag to always mirror `isCustomValidatorCompiler` rather than independently tracking whether a custom serializer compiler was provided.\n\n## Changes\n\n- **`lib/schema-controller.js`**: Changed the `isCustomSerializerCompiler` initialization to check `buildSerializer` instead of `buildValidator`\n- **`test/internals/schema-controller-perf.test.js`**: Added two test cases verifying that `isCustomSerializerCompiler` and `isCustomValidatorCompiler` are set independently based on which compiler factory functions are provided",
+  "acceptance_tests": {
+    "test/internals/schema-controller-perf.pr6657.test.js": "const { sep } = require('node:path')\nconst { test } = require('node:test')\nconst Fastify = require('../../fastify')\nconst { kSchemaController } = require('../../lib/symbols')\n\ntest('isCustomSerializerCompiler flag is set correctly when only buildSerializer is provided', async t => {\n  const app = Fastify({\n    schemaController: {\n      compilersFactory: {\n        buildSerializer: () => () => { }\n      }\n    }\n  })\n\n  await app.ready()\n\n  const schemaController = app[kSchemaController]\n  t.assert.equal(schemaController.isCustomValidatorCompiler, false, 'isCustomValidatorCompiler should be false')\n  t.assert.equal(schemaController.isCustomSerializerCompiler, true, 'isCustomSerializerCompiler should be true')\n})\n\ntest('isCustomValidatorCompiler flag is set correctly when only buildValidator is provided', async t => {\n  const app = Fastify({\n    schemaController: {\n      compilersFactory: {\n        buildValidator: () => () => { }\n      }\n    }\n  })\n\n  await app.ready()\n\n  const schemaController = app[kSchemaController]\n  t.assert.equal(schemaController.isCustomValidatorCompiler, true, 'isCustomValidatorCompiler should be true')\n  t.assert.equal(schemaController.isCustomSerializerCompiler, false, 'isCustomSerializerCompiler should be false')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/schema-controller.js",
+    "test/internals/schema-controller-perf.pr6657.test.js",
+    "test/internals/schema-controller-perf.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test/internals"
+  ],
+  "kind": "bug",
+  "difficulty": 1,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6657,
+    "sha": "d76dbcd58bf6d82bba167cdc74a79d2f74dbcb97",
+    "url": "https://github.com/fastify/fastify/pull/6657",
+    "author": "eddieran",
+    "merged_at": "2026-04-20T17:37:33Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/schema-controller.js",
+      "test/internals/schema-controller-perf.test.js"
+    ],
+    "source_files": [
+      "lib/schema-controller.js"
+    ],
+    "test_files": [
+      "test/internals/schema-controller-perf.pr6657.test.js"
+    ],
+    "source_lines_changed": 2,
+    "notes": [
+      "test/internals/schema-controller-perf.test.js: 2 added/modified case(s) extracted to test/internals/schema-controller-perf.pr6657.test.js",
+      "test/internals/schema-controller-perf.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/internals/schema-controller-perf.pr6657.test.js"
+    ],
+    "suite_seconds": 16.3,
+    "suite_retried": false,
+    "prerequisites": [
+      "t003"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/schema-controller.js"
+    ],
+    "shares_a_source_file_with": [
+      "t003"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

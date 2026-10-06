@@ -1,0 +1,91 @@
+{
+  "id": "t012",
+  "title": "fix: restore trustProxy function for number and string types, add null check for socketAddr",
+  "prompt": "Fixes #6606\n\n## Description\n\nThe regression was introduced when the proxy trust function was changed to check for null addresses. This caused issues with IISNode on Windows where  may be undefined/null with .\n\n## Changes\n\n- Removed the `a != null` check from number and string trust proxy functions\n- Added explicit null checks in host and protocol getters\n- Added tests for `trustProxy: 1` with undefined and null socket remoteAddress\n\n## Testing\n\nAll existing tests pass, plus new tests for the IISNode scenario.",
+  "acceptance_tests": {
+    "test/trust-proxy.pr6613.test.js": "'use strict'\n\nconst { test, before } = require('node:test')\nconst fastify = require('..')\nconst helper = require('./helper')\nconst Request = require('../lib/request')\nconst buildRequest = Request.buildRequest\n\nconst fetchForwardedRequest = async (fastifyServer, forHeader, path, protoHeader) => {\n  const headers = {\n    'X-Forwarded-For': forHeader,\n    'X-Forwarded-Host': 'fastify.test'\n  }\n  if (protoHeader) {\n    headers['X-Forwarded-Proto'] = protoHeader\n  }\n\n  return fetch(fastifyServer + path, {\n    headers\n  })\n}\n\nconst testRequestValues = (t, req, options) => {\n  if (options.ip) {\n    t.assert.ok(req.ip, 'ip is defined')\n    t.assert.strictEqual(req.ip, options.ip, 'gets ip from x-forwarded-for')\n  }\n  if (options.host) {\n    t.assert.ok(req.host, 'host is defined')\n    t.assert.strictEqual(req.host, options.host, 'gets host from x-forwarded-host')\n    t.assert.ok(req.hostname)\n    t.assert.strictEqual(req.hostname, options.host, 'gets hostname from x-forwarded-host')\n  }\n  if (options.ips) {\n    t.assert.deepStrictEqual(req.ips, options.ips, 'gets ips from x-forwarded-for')\n  }\n  if (options.protocol) {\n    t.assert.ok(req.protocol, 'protocol is defined')\n    t.assert.strictEqual(req.protocol, options.protocol, 'gets protocol from x-forwarded-proto')\n  }\n  if (options.port) {\n    t.assert.ok(req.port, 'port is defined')\n    t.assert.strictEqual(req.port, options.port, 'port is taken from x-forwarded-for or host')\n  }\n}\n\nlet localhost\nbefore(async function () {\n  [localhost] = await helper.getLoopbackHost()\n})\n\ntest('trust proxy with number and undefined socket remoteAddress', t => {\n  t.plan(3)\n\n  // Test case for issue #6606: trustProxy: 1 with undefined/null socket.remoteAddress\n  // This simulates IISNode on Windows where socket.remoteAddress may be undefined\n  const headers = {\n    'x-forwarded-for': '2.2.2.2, 1.1.1.1',\n    'x-forwarded-host': 'fastify.test',\n    'x-forwarded-proto': 'https'\n  }\n  // socket must exist but remoteAddress can be undefined\n  // This is what happens in IISNode with enableXFF=\"true\"\n  const req = {\n    method: 'GET',\n    url: '/',\n    socket: { remoteAddress: undefined },\n    headers\n  }\n\n  const TpRequest = buildRequest(Request, 1)\n  const request = new TpRequest('id', 'params', req, 'query', 'log')\n  // Even with undefined socket.remoteAddress, req.ip should be populated from X-Forwarded-For\n  t.assert.ok(request.ip, 'ip is defined')\n  // With trustProxy: 1, we trust 1 hop from socket. Since socket.remoteAddress is undefined,\n  // the hop count check should skip it and we get 1.1.1.1 (the first trusted address from X-Forwarded-For)\n  t.assert.strictEqual(request.ip, '1.1.1.1', 'gets ip from x-forwarded-for')\n  // The host should also work correctly\n  t.assert.strictEqual(request.host, 'fastify.test', 'gets host from x-forwarded-host')\n})\n\ntest('trust proxy with number and null socket remoteAddress', t => {\n  t.plan(2)\n\n  // Test case for trustProxy: 1 with null socket.remoteAddress\n  const headers = {\n    'x-forwarded-for': '2.2.2.2, 1.1.1.1',\n    'x-forwarded-host': 'fastify.test'\n  }\n  const req = {\n    method: 'GET',\n    url: '/',\n    socket: { remoteAddress: null },\n    headers\n  }\n\n  const TpRequest = buildRequest(Request, 1)\n  const request = new TpRequest('id', 'params', req, 'query', 'log')\n  t.assert.ok(request.ip, 'ip is defined')\n  t.assert.strictEqual(request.ip, '1.1.1.1', 'gets ip from x-forwarded-for')\n})\n"
+  },
+  "oracle_paths": [
+    "lib/request.js",
+    "test/server.test.js",
+    "test/trust-proxy.pr6613.test.js",
+    "test/trust-proxy.test.js"
+  ],
+  "oracle_modules": [
+    "lib",
+    "test"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6613,
+    "sha": "8dee9be05ebf683cd212aeff1d294f6ea1ec405c",
+    "url": "https://github.com/fastify/fastify/pull/6613",
+    "author": "mcollina",
+    "merged_at": "2026-03-28T23:40:11Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "lib/request.js",
+      "test/trust-proxy.test.js"
+    ],
+    "source_files": [
+      "lib/request.js"
+    ],
+    "test_files": [
+      "test/trust-proxy.pr6613.test.js"
+    ],
+    "source_lines_changed": 14,
+    "notes": [
+      "test/trust-proxy.test.js: 2 added/modified case(s) extracted to test/trust-proxy.pr6613.test.js",
+      "test/trust-proxy.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": false,
+    "background": [
+      {
+        "sha": "e1aee4b872aaeabbd4f7074794c1015a518f8d9a",
+        "subject": "fix: parse ipv6 hostname (#6373)",
+        "files": [
+          "lib/request.js",
+          "test/server.test.js"
+        ]
+      },
+      {
+        "sha": "4e1db5bd0012ccf63a49ff105a63e25981b9a747",
+        "subject": "fix: gate host and protocol getters on proxy trust function",
+        "files": [
+          "lib/request.js",
+          "test/trust-proxy.test.js"
+        ]
+      }
+    ],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/trust-proxy.pr6613.test.js"
+    ],
+    "suite_seconds": 15.9,
+    "suite_retried": false,
+    "prerequisites": []
+  },
+  "contention": {
+    "source_files": [
+      "lib/request.js"
+    ],
+    "shares_a_source_file_with": [
+      "t009",
+      "t011",
+      "t013",
+      "t019",
+      "t025",
+      "t026",
+      "t036"
+    ],
+    "writes_lines_written_by": [],
+    "lines_rewritten_by": [
+      "t019"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

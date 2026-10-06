@@ -1,0 +1,94 @@
+{
+  "id": "t017",
+  "title": "fix: validate invalid route logLevel at registration",
+  "prompt": "## Description\n- validate route/plugin `logLevel` values during route registration\n- throw `FST_ERR_ROUTE_LOG_LEVEL_INVALID` instead of failing at request time\n- document the new error code and custom log-level behavior\n- add regression coverage for invalid route `logLevel`\n\n## Testing\n- `node --test test/logger/options.test.js`\n- `node --test test/internals/errors.test.js`\n- `npm run lint:eslint -- lib/route.js lib/errors.js test/logger/options.test.js test/internals/errors.test.js types/errors.d.ts`\n- `npm run lint:markdown -- docs/Reference/Routes.md docs/Reference/Errors.md`\n\nFixes #6124",
+  "acceptance_tests": {
+    "test/internals/errors.pr6523.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst errors = require('../../lib/errors')\nconst { readFileSync } = require('node:fs')\nconst { resolve } = require('node:path')\n\nconst expectedErrors = 89\n\ntest('FST_ERR_ROUTE_LOG_LEVEL_INVALID', t => {\n  t.plan(5)\n  const error = new errors.FST_ERR_ROUTE_LOG_LEVEL_INVALID()\n  t.assert.strictEqual(error.name, 'FastifyError')\n  t.assert.strictEqual(error.code, 'FST_ERR_ROUTE_LOG_LEVEL_INVALID')\n  t.assert.strictEqual(error.message, \"Log level for '%s:%s' route must be a valid logger level. Received: '%s'\")\n  t.assert.strictEqual(error.statusCode, 500)\n  t.assert.ok(error instanceof TypeError)\n})\n"
+  },
+  "oracle_paths": [
+    "docs/Reference/Errors.md",
+    "lib/errors.js",
+    "lib/route.js",
+    "test/internals/errors.pr6523.test.js",
+    "test/internals/errors.test.js",
+    "test/logger/options.test.js",
+    "types/errors.d.ts"
+  ],
+  "oracle_modules": [
+    "docs/Reference",
+    "lib",
+    "test/internals",
+    "test/logger",
+    "types"
+  ],
+  "kind": "bug",
+  "difficulty": 2,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 6523,
+    "sha": "2ae3e1d73491c023080efed566204c470cb49fd0",
+    "url": "https://github.com/fastify/fastify/pull/6523",
+    "author": "maxpetrusenko",
+    "merged_at": "2026-04-21T09:38:52Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "docs/Reference/Errors.md",
+      "lib/errors.js",
+      "lib/route.js",
+      "test/internals/errors.test.js",
+      "test/logger/options.test.js",
+      "types/errors.d.ts"
+    ],
+    "source_files": [
+      "lib/errors.js",
+      "lib/route.js"
+    ],
+    "test_files": [
+      "test/internals/errors.pr6523.test.js"
+    ],
+    "source_lines_changed": 17,
+    "notes": [
+      "test/internals/errors.test.js: 1 added/modified case(s) extracted to test/internals/errors.pr6523.test.js",
+      "test/internals/errors.test.js: modified expectations stay in the solution",
+      "test/logger/options.test.js: modified expectations stay in the solution"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [
+      "docs/Reference/Routes.md"
+    ],
+    "acceptance_failing_before": [
+      "test/internals/errors.pr6523.test.js"
+    ],
+    "suite_seconds": 16.1,
+    "suite_retried": false,
+    "prerequisites": [
+      "t005",
+      "t006",
+      "t009"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "lib/errors.js",
+      "lib/route.js"
+    ],
+    "shares_a_source_file_with": [
+      "t006",
+      "t008",
+      "t009",
+      "t010",
+      "t015",
+      "t027",
+      "t034"
+    ],
+    "writes_lines_written_by": [
+      "t009"
+    ],
+    "lines_rewritten_by": [],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

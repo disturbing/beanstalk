@@ -1,0 +1,207 @@
+{
+ "tasks": 38,
+ "pairs": 703,
+ "avg_files": 4.66,
+ "avg_source_files": 1.63,
+ "tasks_touching_lines_another_task_writes": {
+  "tasks": 15,
+  "share": 0.395
+ },
+ "tasks_sharing_a_source_file": {
+  "tasks": 34,
+  "share": 0.895
+ },
+ "line_overlap_pairs": [
+  [
+   "t004",
+   "t007"
+  ],
+  [
+   "t005",
+   "t006"
+  ],
+  [
+   "t005",
+   "t009"
+  ],
+  [
+   "t006",
+   "t009"
+  ],
+  [
+   "t007",
+   "t013"
+  ],
+  [
+   "t007",
+   "t032"
+  ],
+  [
+   "t009",
+   "t017"
+  ],
+  [
+   "t009",
+   "t023"
+  ],
+  [
+   "t011",
+   "t026"
+  ],
+  [
+   "t012",
+   "t019"
+  ],
+  [
+   "t013",
+   "t020"
+  ],
+  [
+   "t019",
+   "t036"
+  ]
+ ],
+ "pairs_sharing_a_source_file": {
+  "pairs": 101,
+  "share": 0.144
+ },
+ "dependent_tasks": {
+  "t006": [
+   "t005"
+  ],
+  "t007": [
+   "t004"
+  ],
+  "t009": [
+   "t005",
+   "t006"
+  ],
+  "t012": [
+   "(conflict: lib/request.js)"
+  ],
+  "t013": [
+   "t007"
+  ],
+  "t016": [
+   "(conflict: test/internals/schema-controller-perf.test.js)"
+  ],
+  "t017": [
+   "t009"
+  ],
+  "t019": [
+   "t012"
+  ],
+  "t020": [
+   "t013"
+  ],
+  "t023": [
+   "t009"
+  ],
+  "t026": [
+   "t011"
+  ],
+  "t032": [
+   "t007"
+  ],
+  "t036": [
+   "t019"
+  ]
+ },
+ "textual_conflicts": {
+  "standalone_tasks": 25,
+  "standalone_pairs": 300,
+  "conflicting_pairs": 0,
+  "rate": 0.0,
+  "tasks_in_a_conflict": 0,
+  "most_conflicted_files": [],
+  "pairs": []
+ },
+ "source_touch": {
+  "lib/request.js": 8,
+  "lib/reply.js": 8,
+  "lib/route.js": 7,
+  "lib/handle-request.js": 4,
+  "lib/content-type-parser.js": 4,
+  "lib/validation.js": 3,
+  "lib/config-validator.js": 3,
+  "fastify.js": 3,
+  "lib/symbols.js": 3,
+  "lib/errors.js": 3,
+  "lib/schema-controller.js": 2,
+  "lib/error-handler.js": 2,
+  "lib/four-oh-four.js": 2,
+  "lib/decorate.js": 2,
+  "lib/head-route.js": 1,
+  "lib/wrap-thenable.js": 1,
+  "lib/error-status.js": 1,
+  "lib/content-type.js": 1,
+  "lib/context.js": 1,
+  "lib/schemas.js": 1,
+  "lib/plugin-override.js": 1,
+  "lib/hooks.js": 1
+ },
+ "arena": "fastify",
+ "method": "chain: line overlap by blame on the state before each task's own change (background folds belong to no task); conflicts between tasks' own changes re-based onto the base",
+ "designed_arena_for_comparison": {
+  "tasks": 40,
+  "pairs": 780,
+  "avg_files": 3.83,
+  "avg_source_files": 2.1,
+  "tasks_touching_lines_another_task_writes": {
+   "tasks": 30,
+   "share": 0.75
+  },
+  "tasks_sharing_a_source_file": {
+   "tasks": 39,
+   "share": 0.975
+  },
+  "pairs_sharing_a_source_file": {
+   "pairs": 114,
+   "share": 0.146
+  },
+  "dependent_tasks": {},
+  "textual_conflicts": {
+   "standalone_tasks": 40,
+   "standalone_pairs": 780,
+   "conflicting_pairs": 58,
+   "rate": 0.074,
+   "tasks_in_a_conflict": 36,
+   "most_conflicted_files": [
+    [
+     "CHANGELOG.md",
+     25
+    ],
+    [
+     "README.md",
+     7
+    ],
+    [
+     "src/db/migrations/index.ts",
+     6
+    ],
+    [
+     "src/orders/checkout.ts",
+     6
+    ],
+    [
+     "src/billing/handlers.ts",
+     6
+    ],
+    [
+     "src/billing/invoice.ts",
+     4
+    ],
+    [
+     "src/billing/discounts.ts",
+     4
+    ],
+    [
+     "src/billing/service.ts",
+     2
+    ]
+   ]
+  },
+  "arena": "designed (research/arena)",
+  "method": "every task from the base: line overlap by intersecting old-side line ranges; merge-tree of all pairs"
+ }
+}

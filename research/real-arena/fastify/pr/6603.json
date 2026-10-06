@@ -1,0 +1,11 @@
+{
+ "number": 6603,
+ "sha": "39f0f24233cf6da2fef48551f51be2f589f7d5d0",
+ "title": "chore: Fix port parsing",
+ "body": "Ensures that `request.port` returns null or an integer correctly.\r\n\r\n<!--\r\nThank you for your pull request. Please provide a description above and review\r\nthe requirements below.\r\n\r\nBug fixes and new features should include tests and possibly benchmarks.\r\n\r\nContributors guide: https://github.com/fastify/fastify/blob/main/CONTRIBUTING.md\r\n\r\nBy making a contribution to this project, I certify that:\r\n\r\n* (a) The contribution was created in whole or in part by me and I\r\n  have the right to submit it under the open source license\r\n  indicated in the file; or\r\n\r\n* (b) The contribution is based upon previous work that, to the best\r\n  of my knowledge, is covered under an appropriate open source\r\n  license and I have the right under that license to submit that\r\n  work with modifications, whether created in whole or in part\r\n  by me, under the same open source license (unless I am\r\n  permitted to submit under a different license), as indicated\r\n  in the file; or\r\n\r\n* (c) The contribution was provided directly to me by some other\r\n  person who certified (a), (b) or (c) and I have not modified\r\n  it.\r\n\r\n* (d) I understand and agree that this project and the contribution\r\n  are public and that a record of the contribution (including all\r\n  personal information I submit with it, including my sign-off) is\r\n  maintained indefinitely and may be redistributed consistent with\r\n  this project or the open source license(s) involved.\r\n-->\r\n\r\n#### Checklist\r\n\r\n- [x] run `npm run test && npm run benchmark --if-present`\r\n- [x] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [x] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "jsumners",
+ "created_at": "2026-03-23T10:37:56Z",
+ "merged_at": "2026-03-23T11:25:34Z",
+ "pr_base_sha": "af92d0d2a9280a41e23fea4dc2b5cfff41169d5d",
+ "linked_issues": []
+}

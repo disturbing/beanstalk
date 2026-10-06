@@ -1,0 +1,136 @@
+{
+  "id": "t006",
+  "title": "feat: implement conditional request logging",
+  "prompt": "Use-case for this is following: some endpoints generate excessive amount of irrelevant noise (e. g. healthcheck) and are not useful in logs, so it would be great to be able to be able to resolve variable for logging their requests or not conditionally. And the big problem here is that these endpoints (healthchecks, metrics etc) frequently come from 3rd party plugins which register their routes themselves, therefore preventing extra configuration on a route level.\n\nNote: Documentation linting failing does not seem to be related to changes in this PR.",
+  "acceptance_tests": {
+    "test/404s.pr5732.test.js": "'use strict'\n\nconst { test } = require('node:test')\nconst fp = require('fastify-plugin')\nconst errors = require('http-errors')\nconst split = require('split2')\nconst Fastify = require('..')\nconst { getServerUrl } = require('./helper')\n\ntest('should honor disableRequestLogging function for 404', async t => {\n  t.plan(3)\n\n  const Writable = require('node:stream').Writable\n\n  const logStream = new Writable()\n  logStream.logs = []\n  logStream._write = function (chunk, encoding, callback) {\n    this.logs.push(JSON.parse(chunk.toString()))\n    callback()\n  }\n\n  const fastify = Fastify({\n    logger: {\n      level: 'info',\n      stream: logStream\n    },\n    disableRequestLogging: (req) => {\n      // Disable logging for URLs containing 'silent'\n      return req.url.includes('silent')\n    }\n  })\n\n  fastify.get('/', function (req, reply) {\n    reply.send({ hello: 'world' })\n  })\n\n  t.after(() => { fastify.close() })\n\n  // First request to a non-existent route (no 'silent' in URL) - should log\n  const response1 = await fastify.inject({\n    method: 'GET',\n    url: '/not-found'\n  })\n  t.assert.strictEqual(response1.statusCode, 404)\n\n  // Second request to a non-existent route with 'silent' in URL - should not log\n  const response2 = await fastify.inject({\n    method: 'GET',\n    url: '/silent-route'\n  })\n  t.assert.strictEqual(response2.statusCode, 404)\n\n  // Check logs: first request should have logged, second should not\n  // We expect: incoming request, Route not found info, request completed (for first request only)\n  const infoLogs = logStream.logs.filter(log => log.msg && log.msg.includes('Route GET:/not-found not found'))\n  t.assert.strictEqual(infoLogs.length, 1, 'Should log 404 info only for non-silent route')\n})\n",
+    "test/router-options.pr5732.test.js": "'use strict'\n\nconst split = require('split2')\nconst { test } = require('node:test')\nconst querystring = require('node:querystring')\nconst Fastify = require('../')\nconst {\n  FST_ERR_BAD_URL,\n  FST_ERR_ASYNC_CONSTRAINT\n} = require('../lib/errors')\n\ntest('Should honor disableRequestLogging function in frameworkErrors wrapper - FST_ERR_BAD_URL', (t, done) => {\n  t.plan(4)\n\n  let logCallCount = 0\n  const logStream = split(JSON.parse)\n\n  const fastify = Fastify({\n    disableRequestLogging: (req) => {\n      // Disable logging for URLs containing 'silent'\n      return req.url.includes('silent')\n    },\n    frameworkErrors: function (err, req, res) {\n      res.send(`${err.message} - ${err.code}`)\n    },\n    logger: {\n      stream: logStream,\n      level: 'info'\n    }\n  })\n\n  fastify.get('/test/:id', (req, res) => {\n    res.send('{ hello: \\'world\\' }')\n  })\n\n  logStream.on('data', (json) => {\n    if (json.msg === 'incoming request') {\n      logCallCount++\n    }\n  })\n\n  // First request: URL does not contain 'silent', so logging should happen\n  fastify.inject(\n    {\n      method: 'GET',\n      url: '/test/%world'\n    },\n    (err, res) => {\n      t.assert.ifError(err)\n      t.assert.strictEqual(res.body, '\\'/test/%world\\' is not a valid url component - FST_ERR_BAD_URL')\n\n      // Second request: URL contains 'silent', so logging should be disabled\n      fastify.inject(\n        {\n          method: 'GET',\n          url: '/silent/%world'\n        },\n        (err2, res2) => {\n          t.assert.ifError(err2)\n          // Give time for any potential log events\n          setImmediate(() => {\n            // Only the first request should have logged\n            t.assert.strictEqual(logCallCount, 1)\n            done()\n          })\n        }\n      )\n    }\n  )\n})\n\ntest('Should honor disableRequestLogging function in frameworkErrors wrapper - FST_ERR_ASYNC_CONSTRAINT', (t, done) => {\n  t.plan(4)\n\n  let logCallCount = 0\n\n  const constraint = {\n    name: 'secret',\n    storage: function () {\n      const secrets = {}\n      return {\n        get: (secret) => { return secrets[secret] || null },\n        set: (secret, store) => { secrets[secret] = store }\n      }\n    },\n    deriveConstraint: (req, ctx, done) => {\n      done(Error('kaboom'))\n    },\n    validate () { return true }\n  }\n\n  const logStream = split(JSON.parse)\n\n  const fastify = Fastify({\n    constraints: { secret: constraint },\n    disableRequestLogging: (req) => {\n      // Disable logging for URLs containing 'silent'\n      return req.url.includes('silent')\n    },\n    frameworkErrors: function (err, req, res) {\n      res.send(`${err.message} - ${err.code}`)\n    },\n    logger: {\n      stream: logStream,\n      level: 'info'\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    url: '/',\n    constraints: { secret: 'alpha' },\n    handler: (req, reply) => {\n      reply.send({ hello: 'from alpha' })\n    }\n  })\n\n  fastify.route({\n    method: 'GET',\n    url: '/silent',\n    constraints: { secret: 'alpha' },\n    handler: (req, reply) => {\n      reply.send({ hello: 'from alpha' })\n    }\n  })\n\n  logStream.on('data', (json) => {\n    if (json.msg === 'incoming request') {\n      logCallCount++\n    }\n  })\n\n  // First request: URL does not contain 'silent', so logging should happen\n  fastify.inject(\n    {\n      method: 'GET',\n      url: '/'\n    },\n    (err, res) => {\n      t.assert.ifError(err)\n      t.assert.strictEqual(res.body, 'Unexpected error from async constraint - FST_ERR_ASYNC_CONSTRAINT')\n\n      // Second request: URL contains 'silent', so logging should be disabled\n      fastify.inject(\n        {\n          method: 'GET',\n          url: '/silent'\n        },\n        (err2, res2) => {\n          t.assert.ifError(err2)\n          // Give time for any potential log events\n          setImmediate(() => {\n            // Only the first request should have logged\n            t.assert.strictEqual(logCallCount, 1)\n            done()\n          })\n        }\n      )\n    }\n  )\n})\n"
+  },
+  "oracle_paths": [
+    "README.md",
+    "build/build-validation.js",
+    "docs/Guides/Ecosystem.md",
+    "docs/Guides/Migration-Guide-V4.md",
+    "docs/Guides/Testing.md",
+    "docs/Reference/Decorators.md",
+    "docs/Reference/Encapsulation.md",
+    "docs/Reference/Plugins.md",
+    "docs/Reference/Principles.md",
+    "docs/Reference/Reply.md",
+    "docs/Reference/Server.md",
+    "docs/Reference/TypeScript.md",
+    "fastify.d.ts",
+    "fastify.js",
+    "lib/config-validator.js",
+    "lib/four-oh-four.js",
+    "lib/route.js",
+    "test/404s.pr5732.test.js",
+    "test/logger/logging.test.js",
+    "test/router-options.pr5732.test.js",
+    "test/types/fastify.test-d.ts",
+    "test/types/instance.test-d.ts",
+    "types/instance.d.ts"
+  ],
+  "oracle_modules": [
+    "(root)",
+    "build",
+    "docs/Guides",
+    "docs/Reference",
+    "lib",
+    "test",
+    "test/logger",
+    "test/types",
+    "types"
+  ],
+  "kind": "feature",
+  "difficulty": 3,
+  "couplings": [],
+  "upstream": {
+    "repo": "https://github.com/fastify/fastify",
+    "pr": 5732,
+    "sha": "1b3381e73a423b54563c8207b31017a3381aa122",
+    "url": "https://github.com/fastify/fastify/pull/5732",
+    "author": "kibertoad",
+    "merged_at": "2026-01-13T08:08:00Z",
+    "prompt_source": "pr-description",
+    "files_touched": [
+      "README.md",
+      "build/build-validation.js",
+      "docs/Guides/Ecosystem.md",
+      "docs/Guides/Migration-Guide-V4.md",
+      "docs/Guides/Testing.md",
+      "docs/Reference/Decorators.md",
+      "docs/Reference/Encapsulation.md",
+      "docs/Reference/Plugins.md",
+      "docs/Reference/Principles.md",
+      "docs/Reference/Reply.md",
+      "docs/Reference/Server.md",
+      "docs/Reference/TypeScript.md",
+      "fastify.d.ts",
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/four-oh-four.js",
+      "lib/route.js",
+      "test/logger/logging.test.js",
+      "test/types/fastify.test-d.ts",
+      "test/types/instance.test-d.ts",
+      "types/instance.d.ts"
+    ],
+    "source_files": [
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/four-oh-four.js",
+      "lib/route.js"
+    ],
+    "test_files": [
+      "test/404s.pr5732.test.js",
+      "test/router-options.pr5732.test.js"
+    ],
+    "source_lines_changed": 443,
+    "notes": [
+      "test/404s.test.js: 1 added/modified case(s) extracted to test/404s.pr5732.test.js",
+      "test/logger/logging.test.js: modified expectations stay in the solution",
+      "test/router-options.test.js: 2 added/modified case(s) extracted to test/router-options.pr5732.test.js"
+    ],
+    "applies_to_common_base": false,
+    "background": [],
+    "kept_chain_version_of": [],
+    "acceptance_failing_before": [
+      "test/404s.pr5732.test.js",
+      "test/router-options.pr5732.test.js"
+    ],
+    "suite_seconds": 15.2,
+    "suite_retried": false,
+    "prerequisites": [
+      "t005"
+    ],
+    "standalone_acceptance_green": true
+  },
+  "contention": {
+    "source_files": [
+      "fastify.js",
+      "lib/config-validator.js",
+      "lib/four-oh-four.js",
+      "lib/route.js"
+    ],
+    "shares_a_source_file_with": [
+      "t005",
+      "t008",
+      "t009",
+      "t015",
+      "t017",
+      "t027",
+      "t033",
+      "t034",
+      "t035"
+    ],
+    "writes_lines_written_by": [
+      "t005"
+    ],
+    "lines_rewritten_by": [
+      "t009"
+    ],
+    "textual_conflicts_with": [],
+    "depends_on_window": true
+  }
+}

@@ -1,0 +1,21 @@
+diff --git a/lib/route.js b/lib/route.js
+index cf63ad47..e000b369 100644
+--- a/lib/route.js
++++ b/lib/route.js
+@@ -295,6 +295,7 @@ function buildRouting (options) {
+         opts.attachValidation = false
+       }
+ 
++      const routeConfigUrl = prefixing ? prefix : url
+       if (prefixing === false) {
+         // run 'onRoute' hooks
+         for (const hook of this[kHooks].onRoute) {
+@@ -333,7 +334,7 @@ function buildRouting (options) {
+       const constraints = opts.constraints || {}
+       const config = {
+         ...opts.config,
+-        url,
++        url: routeConfigUrl,
+         method: opts.method
+       }
+ 

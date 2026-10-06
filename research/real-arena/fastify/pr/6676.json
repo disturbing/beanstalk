@@ -1,0 +1,11 @@
+{
+ "number": 6676,
+ "sha": "d33f017ffef3a9beec687b4d4b1777e2e1180afa",
+ "title": "fix: prevent duplicate res.end in sendTrailer with sync callbacks",
+ "body": "#### Checklist\r\n\r\n- [ ] run `npm run test && npm run benchmark --if-present`\r\n- [ ] tests and/or benchmarks are included\r\n- [ ] documentation is changed or added\r\n- [ ] commit message and code follows the [Developer's Certification of Origin](https://github.com/fastify/.github/blob/main/CONTRIBUTING.md#developers-certificate-of-origin-11)\r\n      and the [Code of conduct](https://github.com/fastify/.github/blob/main/CODE_OF_CONDUCT.md)\r\n",
+ "author": "climba03003",
+ "created_at": "2026-04-19T04:58:06Z",
+ "merged_at": "2026-04-19T07:51:05Z",
+ "pr_base_sha": "dce0d47a44ecf6605a4e6b39d80f0bef17c2c2ce",
+ "linked_issues": []
+}
