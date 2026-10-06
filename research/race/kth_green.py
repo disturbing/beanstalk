@@ -3,7 +3,8 @@
 
 Usage: python3 kth_green.py runs/<a> runs/<b> ... [--k 20 30 35] [--md out.md]
 
-For each run: when the k-th task reached green (minutes since race start) and the cumulative agent cost at
+For each run: when the k-th task reached green (minutes since ``race.start``, the clock ``summary.wall_seconds``
+uses; ``--raw-clock`` gives the older numbers, minutes since the run's creation) and the cumulative agent cost at
 that moment; the median and p90 of each shipped task's start to its first stable (green) commit; when the last
 green came; plus final greens, total cost, wall clock, red validations and final correctness from summary.json.
 A parked bean (v2 `park`: it waits for a person) is not shipped, like a dropped one; the parked column counts them.
@@ -38,6 +39,12 @@ def green_times(ev: list[dict]) -> list[tuple[float, str]]:
         for t in tasks:
             seen.setdefault(t, e["t"])
     return sorted((t, task) for task, t in seen.items())
+
+
+def race_start(ev: list[dict]) -> float:
+    """``t`` of the run's ``race.start`` (the zero of ``summary.wall_seconds``), or 0 when the log has none. Event
+    times count from the run's creation: a cloud run's race.start comes 6.6-14 s later (seeding, start)."""
+    return next((float(e["t"]) for e in ev if e["type"] == "race.start"), 0.0)
 
 
 def start_times(ev: list[dict]) -> dict[str, float]:
@@ -86,6 +93,9 @@ def main() -> None:
     ap.add_argument("runs", nargs="+")
     ap.add_argument("--k", nargs="+", type=int, default=[20, 30, 35])
     ap.add_argument("--md", help="also write the table to this markdown file")
+    ap.add_argument("--raw-clock", action="store_true",
+                    help="minutes since the run's creation (event t) instead of since race.start, as published "
+                         "before 2026-10-06")
     a = ap.parse_args()
     head = ["run", "policy", "model", "agents"] + [f"{k}th green min / $" for k in a.k] + \
            ["start to green median / p90 min", "last green min", "greens", "parked", "total $", "wall min",
@@ -94,6 +104,7 @@ def main() -> None:
     for run in a.runs:
         ev, s = load(run)
         g = green_times(ev)
+        t0 = 0.0 if a.raw_clock else race_start(ev)
         cfg = s.get("config", {})
         cells = [os.path.basename(run.rstrip("/")), str(s.get("policy", "?")) +
                  (f" ({s['beanstalk'].get('variant')})" if isinstance(s.get("beanstalk"), dict) and
@@ -102,14 +113,15 @@ def main() -> None:
         for k in a.k:
             if len(g) >= k:
                 t = g[k - 1][0]
-                cells.append(f"{t / 60:.1f} / {cost_at(ev, t):.2f}")
+                cells.append(f"{(t - t0) / 60:.1f} / {cost_at(ev, t):.2f}")
             else:
                 cells.append("not reached")
         fc = s.get("final") or s.get("final_check") or {}
         median, p90 = start_to_green(ev, g)
-        cells += [f"{minutes(median)} / {minutes(p90)}", minutes(g[-1][0] / 60 if g else None)]
+        cells += [f"{minutes(median)} / {minutes(p90)}", minutes((g[-1][0] - t0) / 60 if g else None)]
         cells += [str(len(g)), str(parked_count(ev, s)), f"{s.get('cost_usd') if isinstance(s.get('cost_usd'), (int, float)) else sum((e.get('cost_usd') or 0) for e in ev if e['type'] == 'invocation.end'):.2f}",
-                  f"{(s.get('wall_seconds') or ev[-1]['t']) / 60:.1f}", str(s.get("red_validations", "?")),
+                  f"{(s.get('wall_seconds') or ev[-1]['t'] - race_start(ev)) / 60:.1f}",
+                  str(s.get("red_validations", "?")),
                   str(fc.get("correct", "?"))]
         rows.append(cells)
     lines = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]

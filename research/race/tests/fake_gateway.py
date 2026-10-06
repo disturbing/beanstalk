@@ -68,12 +68,17 @@ def push_refs(body: bytes) -> list[str]:
 class FakeGateway:
     def __init__(self, root: str, *, page_limit: int = 3, poll_seconds: float = 0.4,
                  reject_first_result: bool = False, abort_on_progress: bool = False,
-                 broken_bean_reads: bool = False):
+                 broken_bean_reads: bool = False, lose_first_delivery: bool = False, lost_reply_seconds: float = 2.0,
+                 fail_results: int = 0, reaping_summaries: int = 0):
         self.root = os.path.abspath(root)
         os.makedirs(self.root, exist_ok=True)
         self.page_limit, self.poll_seconds = page_limit, poll_seconds
         self.reject_first_result, self.abort_on_progress = reject_first_result, abort_on_progress
         self.broken_bean_reads = broken_bean_reads  # beans answer upload-pack with a 500, as later forks did live
+        # the first instruction's answer arrives after the driver gave up on it; the next poll re-delivers it
+        self.lose_first_delivery, self.lost_reply_seconds = lose_first_delivery, lost_reply_seconds
+        self.fail_results = fail_results            # the first N result posts answer 503 (a gateway hiccup)
+        self.reaping_summaries = reaping_summaries  # the first N summaries say the repos are still being reaped
         self.admin = "admin-" + secrets.token_hex(16)
         self.cv = threading.Condition()
         self.server: ThreadingHTTPServer | None = None
@@ -105,6 +110,11 @@ class FakeGateway:
         self.conflicts = 0
         self.aborted: str | None = None
         self.rejected: list[str] = []
+        self.lost: list[str] = []              # invocations whose first answer the driver never read
+        self.redelivered: list[str] = []
+        self.progressed: set[str] = set()
+        self.unavailable: list[str] = []       # result posts answered 503
+        self.summaries = 0
 
     # ---- server ---------------------------------------------------------------------------------------
 
@@ -145,6 +155,8 @@ class FakeGateway:
             else:
                 status, payload = self.route(h, url, body)
                 self.send_json(h, status, payload)
+        except (BrokenPipeError, ConnectionResetError):  # the client gave up on the answer (lose_first_delivery)
+            status = 499
         except Exception as e:  # noqa: BLE001 - a fake bug must show up in the test, not hang it
             self.fail(f"fake gateway crashed on {h.command} {url.path}: {e!r}")
             status = 500
@@ -210,7 +222,10 @@ class FakeGateway:
             if token not in (self.admin, self.view):
                 return self.err(401, "unauthorized", "missing or invalid credentials")
             if rest == "/summary":
-                return 200, self.summary()
+                with self.cv:
+                    self.summaries += 1
+                    reaping = self.summaries <= self.reaping_summaries
+                return 200, {**self.summary(), "repos": {"status": "reaping" if reaping else "deleted"}}
             if rest == "/events":
                 q = urllib.parse.parse_qs(url.query)
                 after, limit = int(q.get("after", ["0"])[0]), int(q.get("limit", ["5000"])[0])
@@ -361,6 +376,7 @@ class FakeGateway:
         inv, what = m.group(2), m.group(3)
         if what == "progress":
             with self.cv:
+                self.progressed.add(inv)
                 self.progress.append((inv, float(body.get("cost_usd", -1))))
                 if self.abort_on_progress and self.phase == "running":  # the budget is spent mid-invocation
                     self.finish(f"budget: ${body.get('cost_usd'):.2f} of $0.01 (mid-invocation)")
@@ -368,11 +384,23 @@ class FakeGateway:
         return self.result(slot, inv, body)
 
     def poll(self, slot: str) -> tuple[int, dict]:
+        lost = self.poll_locked(slot)
+        if isinstance(lost, dict):  # answered after the driver's read timed out: it never sees this reply
+            time.sleep(self.lost_reply_seconds)
+            return 200, lost
+        return lost
+
+    def poll_locked(self, slot: str) -> tuple[int, dict] | dict:
         deadline = time.monotonic() + self.poll_seconds
         with self.cv:
             while True:
                 if self.phase == "done":
                     return 200, {"done": True, "aborted": None}
+                again = next((inv for inv_id, inv in self.open.items() if inv_id in self.lost and
+                              inv["slot"] == slot and inv_id not in self.progressed), None)
+                if again is not None and self.phase == "running":  # the gateway's re-delivery: same id, no progress
+                    self.redelivered.append(again["inv"])
+                    return 200, {"invocation": again}
                 inv = self.outbox.pop(slot, None) if self.phase == "running" else None
                 if inv:
                     self.open[inv["inv"]] = inv
@@ -384,6 +412,9 @@ class FakeGateway:
                         self.retired.add(self.tokens[slot])
                         self.tokens[slot] = self.refresh.pop(slot)
                         reply["token"] = {"token": self.tokens[slot], "expires_at": "2099-01-01T00:00:00Z"}
+                    if self.lose_first_delivery and not self.lost:
+                        self.lost.append(inv["inv"])
+                        return reply
                     return 200, reply
                 left = deadline - time.monotonic()
                 if left <= 0:
@@ -392,6 +423,9 @@ class FakeGateway:
 
     def result(self, slot: str, inv_id: str, body: dict) -> tuple[int, dict]:
         with self.cv:
+            if len(self.unavailable) < self.fail_results:
+                self.unavailable.append(inv_id)
+                return self.err(503, "unavailable", "the run is busy (fake)")
             if self.reject_first_result and not self.rejected and inv_id in self.open:
                 self.rejected.append(inv_id)  # a field the gateway's schema refuses
                 return self.err(422, "invalid_request", "init: expected record")

@@ -111,6 +111,47 @@ class EditHook(unittest.TestCase):
         self.assertEqual(entry["hooks"][0]["command"], "touch '/tmp/x y/edited'")
 
 
+class FakeStreamGateway:
+    """The gateway's RunStreamDO for one invocation (src/stream/stream-rules.ts): a seq not newer is ``stale``, a
+    ``base_seq`` other than 0 or the stored seq is ``resync``, anything else is applied as a delta. ``answers``
+    forces the next replies (``rate``: the 400 ms limit, which the tests do not wait for)."""
+
+    def __init__(self) -> None:
+        self.seq = 0
+        self.files: dict[str, dict] = {}
+        self.posts: list[dict] = []
+        self.answers: list[str] = []
+
+    async def call_slot(self, slot: str, name: str, inv: str, body: dict, **_: object) -> dict:
+        self.posts.append(body)
+        if self.answers:
+            return {"accepted": False, "reason": self.answers.pop(0), "seq": self.seq}
+        if body["seq"] <= self.seq:
+            return {"accepted": False, "reason": "stale", "seq": self.seq}
+        if body["base_seq"] not in (0, self.seq):
+            return {"accepted": False, "reason": "resync", "seq": self.seq}
+        if body["base_seq"] == 0:
+            self.files = {}
+        for path in body["removed"]:
+            self.files.pop(path, None)
+        self.files.update({f["path"]: f for f in body["files"]})
+        self.seq = body["seq"]
+        return {"accepted": True, "seq": self.seq}
+
+
+class Delta(unittest.TestCase):
+    def test_only_changed_files_and_removed_paths_are_sent(self) -> None:
+        a = {"path": "a.ts", "status": "modified", "additions": 1, "deletions": 0, "binary": False, "patch": "@@ a"}
+        b = {**a, "path": "b.ts", "patch": "@@ b"}
+        accepted = {f["path"]: streamdiff.file_hash(f) for f in (a, b)}
+
+        files, removed = streamdiff.delta(accepted, [{**a, "patch": "@@ a2"}, {**b, "path": "c.ts"}])
+
+        self.assertEqual([f["path"] for f in files], ["a.ts", "c.ts"])
+        self.assertEqual(removed, ["b.ts"])
+        self.assertEqual(streamdiff.delta(accepted, [a, b]), ([], []))
+
+
 class Reporter(unittest.TestCase):
     def setUp(self) -> None:
         cfg = RaceConfig(policy="beanstalk-v2", agent="claude", out=os.path.join(TMP, "driver"), force=True)
@@ -119,13 +160,9 @@ class Reporter(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             self.race.prepare_out()
         self.race.init_local()
-        self.posts: list[dict] = []
-
-        async def call_slot(slot: str, name: str, inv: str, body: dict, **_: object) -> dict:
-            self.posts.append(body)
-            return {"accepted": True, "seq": body["seq"]}
-
-        self.race.call_slot = call_slot  # type: ignore[method-assign]
+        self.gateway = FakeStreamGateway()
+        self.posts = self.gateway.posts
+        self.race.call_slot = self.gateway.call_slot  # type: ignore[method-assign]
         self.timing = (remote.STREAM_POLL, remote.STREAM_SETTLE, remote.STREAM_MIN_INTERVAL, remote.STREAM_TIMER)
         remote.STREAM_POLL, remote.STREAM_SETTLE, remote.STREAM_MIN_INTERVAL, remote.STREAM_TIMER = 0.01, 0, 0, 60
 
@@ -160,6 +197,59 @@ class Reporter(unittest.TestCase):
             logged = [json.loads(line) for line in fh if '"driver.stream"' in line]
         self.assertEqual([e["seq"] for e in logged], [1, 2])
         self.assertTrue(all(e["bytes"] > 0 and e["edit_to_post_ms"] is not None for e in logged))
+
+    def edits(self, edits: list[dict[str, str | None]], *, answers: list[list[str]] | None = None) -> None:
+        """Runs a reporter over ``edits`` (path -> text, None deletes), one look after each; ``answers`` forces the
+        gateway's replies before each look."""
+        wt, base = worktree("t001", under=os.path.join(self.race.work, "agents"))
+        inv = {"inv": "inv0001-initial", "kind": "initial", "task": "t001", "workspace": {"base_sha": base}}
+
+        async def scenario() -> None:
+            reporter = StreamReporter(self.race, "a0", inv, wt)
+            while reporter.tree is None:
+                await asyncio.sleep(0.01)
+            for i, edit in enumerate(edits):
+                self.gateway.answers.extend((answers or [])[i] if answers and i < len(answers) else [])
+                for path, text in edit.items():
+                    if text is None:
+                        os.remove(os.path.join(wt, path))
+                    else:
+                        write(wt, path, text)
+                await reporter.send("edit", None)
+            await reporter.close()
+
+        asyncio.run(scenario())
+
+    def test_after_the_first_full_snapshot_only_the_changed_file_and_removed_paths_are_posted(self) -> None:
+        self.edits([{"src/cart.ts": "export const a = 2;\n", "src/new.ts": "n\n"},
+                    {"src/new.ts": "n2\n"},
+                    {"src/new.ts": None}])
+
+        self.assertEqual([(p["seq"], p["base_seq"]) for p in self.posts], [(1, 0), (2, 1), (3, 2)])
+        self.assertEqual([f["path"] for f in self.posts[0]["files"]], ["src/cart.ts", "src/new.ts"])
+        self.assertEqual(([f["path"] for f in self.posts[1]["files"]], self.posts[1]["removed"]), (["src/new.ts"], []))
+        self.assertEqual((self.posts[2]["files"], self.posts[2]["removed"]), ([], ["src/new.ts"]))
+        self.assertEqual(sorted(self.gateway.files), ["src/cart.ts"])
+        with open(os.path.join(self.race.work, "driver.jsonl"), encoding="utf-8") as fh:
+            logged = [json.loads(line) for line in fh if '"driver.stream"' in line]
+        self.assertEqual([(e["base_seq"], e["delta_files"], e["removed"]) for e in logged],
+                         [(0, 2, 0), (1, 1, 0), (2, 0, 1)])
+
+    def test_a_resync_answer_posts_the_whole_change_right_away(self) -> None:
+        self.edits([{"src/cart.ts": "export const a = 2;\n"}, {"src/new.ts": "n\n"}],
+                   answers=[[], ["resync"]])
+
+        self.assertEqual([(p["seq"], p["base_seq"]) for p in self.posts], [(1, 0), (2, 1), (3, 0)])
+        self.assertEqual([f["path"] for f in self.posts[2]["files"]], ["src/cart.ts", "src/new.ts"])
+        self.assertEqual(self.gateway.seq, 3)
+
+    def test_a_rate_answer_keeps_the_base_and_the_next_look_posts_again(self) -> None:
+        self.edits([{"src/cart.ts": "export const a = 2;\n"}, {"src/new.ts": "n\n"}, {}],
+                   answers=[[], ["rate"]])
+
+        self.assertEqual([(p["seq"], p["base_seq"]) for p in self.posts], [(1, 0), (2, 1), (3, 1)])
+        self.assertEqual([f["path"] for f in self.posts[2]["files"]], ["src/new.ts"])
+        self.assertEqual(sorted(self.gateway.files), ["src/cart.ts", "src/new.ts"])
 
     def test_only_implementer_invocations_stream_and_only_when_the_run_does(self) -> None:
         self.assertTrue(self.race.streams({"kind": "rework"}))

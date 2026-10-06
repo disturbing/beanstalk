@@ -54,6 +54,10 @@ OUTAGE_SECONDS = 300.0      # an agent-CLI outage (auth, rate limit, API down) l
 INFRA_BACKOFF = 15.0        # first pause of a slot after such a failure; doubles per retry
 INFRA_BACKOFF_CAP = 60.0
 WATCHDOG_GRACE = 300.0      # the gateway's watchdog: agent_timeout + this after delivery (engine/invocations.ts)
+RESULT_RETRY_FIRST = 1.0    # a result post that fails is retried after this, doubling up to RESULT_RETRY_CAP, until
+RESULT_RETRY_CAP = 30.0     # the invocation's watchdog deadline (a late post is idempotent)
+RESULT_RETRY_MIN = 15.0     # however late the agent finished, a result post is retried for at least this long
+REAP_WAIT = 5.0             # a summary fetched while the run's repos are still being reaped is fetched again after this
 PROBE_MODEL = "haiku"       # the one-turn auth probe a claude race makes before it creates the run
 POLICIES = ("queue", "beanstalk-v2")
 V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_seconds": 30.0,
@@ -88,10 +92,18 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "repair_landing": ("REPAIR_LANDING", bool)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
-STREAM_POLL = 0.25          # how often the driver looks at the agent's edit marker
+STREAM_POLL = 0.1           # how often the driver looks at the agent's edit marker
 STREAM_SETTLE = 0.3         # after an edit, wait this long for a burst of edits to settle
-STREAM_MIN_INTERVAL = 1.5   # at most one snapshot per invocation this often (the gateway takes one a second)
+STREAM_MIN_INTERVAL = 0.5   # at most one post per invocation this often (the gateway takes one per 400 ms)
 STREAM_TIMER = 3.0          # without an edit mark, look anyway this often (edits through Bash, Codex)
+# The runner's structural tier (packages/runner/src/resolve.rs, git/rules.rs): when git's merge conflicts, the merge is
+# retried with Mergiraf as the merge driver on exactly the conflicted paths, and kept only when it is clean and free of
+# conflict markers; every conflicted path must have one of these extensions (Markdown is left out on purpose).
+STRUCTURAL_EXTENSIONS = frozenset((
+    "ts", "tsx", "mts", "cts", "js", "jsx", "mjs", "cjs", "json", "yml", "yaml", "toml", "rs", "go", "py", "java",
+    "kt", "c", "h", "cc", "cpp", "hpp", "cs", "rb", "php", "scala", "lua", "dart", "ex", "exs", "sol", "html", "xml"))
+MERGIRAF_DRIVER = "mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L"  # the runner's driver line
+MAX_PATTERN_CHARS = 256
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 
@@ -165,6 +177,41 @@ def v2_settings(overrides: dict | None = None, env: dict | None = None) -> dict:
     return out
 
 
+def is_structural(path: str) -> bool:
+    """Whether the runner's structural tier hands ``path`` to Mergiraf: a supported extension (``rules.rs``)."""
+    stem, dot, extension = path.rsplit("/", 1)[-1].rpartition(".")
+    return bool(dot and stem) and extension in STRUCTURAL_EXTENSIONS
+
+
+def structural_pattern(path: str) -> str | None:
+    """``/<path>``, an attributes pattern naming only that file, when the tier takes the path: structural, no glob or
+    escape character, one token of at most 256 characters (``rules.rs`` ``literal_pattern``)."""
+    pattern = f"/{path}"
+    if any(c in path for c in "*?[\\") or not is_structural(path) or len(pattern) > MAX_PATTERN_CHARS:
+        return None
+    if any(c.isspace() or not c.isprintable() for c in pattern):
+        return None
+    return pattern
+
+
+def structural_attributes(conflicts: list[str], union_paths: list[str]) -> str | None:
+    """The retry's attributes file (Mergiraf on each conflicted path, union lines after them so they win), or None
+    when a conflicted path is outside the tier: then, as in the runner, git's conflict stands."""
+    patterns = [structural_pattern(p) for p in conflicts]
+    if not patterns or None in patterns:
+        return None
+    return "".join(f"{p} merge=mergiraf\n" for p in patterns) + "".join(f"{p} merge=union\n" for p in union_paths)
+
+
+def conflict_note(paths: list[str], line: str) -> str:
+    """What the agent reads first when the driver's merge left conflicts the gateway did not report."""
+    listing = "".join(f"- {p}\n" for p in paths)
+    return ("IMPORTANT, before anything else: merging the latest " + line + " into your branch left unresolved merge "
+            "conflicts (conflict markers <<<<<<<, ======= and >>>>>>>) in these files, although the forge's own merge "
+            "reported none:\n" + listing + "Resolve every conflict in these files first, keeping what both sides "
+            "intended, and remove every marker line. Your change cannot be committed while a marker is left.\n\n")
+
+
 class Secrets:
     """Every token the driver holds, so no error message or log line can carry one."""
 
@@ -185,8 +232,10 @@ class Secrets:
 # ---- gateway HTTP client ---------------------------------------------------------------------------
 
 class GatewayError(RuntimeError):
-    def __init__(self, method: str, path: str, status: int | None, code: str, message: str):
+    def __init__(self, method: str, path: str, status: int | None, code: str, message: str,
+                 timed_out: bool = False):
         self.method, self.path, self.status, self.code, self.message = method, path, status, code, message
+        self.timed_out = timed_out  # no answer within the client's timeout (the request may have been served)
         super().__init__(f"{method} {path}: {status if status is not None else 'network error'} {code}: {message}")
 
     @property
@@ -228,7 +277,9 @@ class GatewayClient:
                 pass
             raise GatewayError(method, path, e.code, code, self.secrets.scrub(message)) from None
         except (urllib.error.URLError, OSError, ValueError) as e:  # timeouts, resets, DNS, TLS
-            raise GatewayError(method, path, None, "network", self.secrets.scrub(repr(e))[:600]) from None
+            timed_out = isinstance(e, TimeoutError) or isinstance(getattr(e, "reason", None), TimeoutError)
+            raise GatewayError(method, path, None, "network", self.secrets.scrub(repr(e))[:600],
+                               timed_out=timed_out) from None
         text = raw.decode("utf-8", errors="replace")
         if not as_json:
             return text
@@ -448,9 +499,12 @@ class StreamReporter:
 
     The agent's CLI touches ``work/stream/<inv>/edited`` after each edit tool (Claude Code only; ``edit_hook``). The
     driver looks at the marker every ``STREAM_POLL`` s, lets a burst of edits settle (``STREAM_SETTLE``), and looks
-    anyway every ``STREAM_TIMER`` s (Bash edits, Codex). It posts at most one snapshot per ``STREAM_MIN_INTERVAL``
-    s, and only when the worktree's tree changed. Seqs grow, so a retried post is harmless; a closed invocation
-    (409) stops the stream. Each post is logged as ``driver.stream`` (sizes, diff and post times, edit-to-post)."""
+    anyway every ``STREAM_TIMER`` s (Bash edits, Codex). It posts at most once per ``STREAM_MIN_INTERVAL`` s, and only
+    when the worktree's tree changed. A post is a delta (docs/claude-17-streaming-diffs.md): the files whose patch
+    changed since the snapshot the gateway last accepted (``base_seq``) and the paths that left the change; the first
+    post, and the one after a ``resync`` answer, is the full snapshot (``base_seq: 0``). Seqs grow, so a retried post
+    is harmless; a closed invocation (409) stops the stream. Each post is logged as ``driver.stream`` (delta and
+    snapshot sizes, diff and post times, edit-to-post)."""
 
     def __init__(self, race: "RemoteRace", slot: str, inv: dict, wt: str):
         self.race, self.slot, self.inv, self.wt = race, slot, inv, wt
@@ -462,8 +516,11 @@ class StreamReporter:
         # with a merge of the line in this round, the bean's change is what it adds to that line
         self.base = (ws.get("merge") or {}).get("sha") or ws["base_sha"]
         self.seq, self.tree, self.handled_mark = 0, None, 0.0
+        # the snapshot the gateway last accepted: its seq and its files' hashes (by path)
+        self.accepted_seq = 0
+        self.accepted: dict[str, str] = {}
         self.last_post = self.last_look = time.monotonic()
-        self.closed = False
+        self.closed, self.go_on = False, True
         self.task = asyncio.create_task(self.loop(), name=f"stream-{inv['inv']}")
 
     def hook(self) -> str:
@@ -493,32 +550,52 @@ class StreamReporter:
                 return
 
     async def send(self, trigger: str, edit_at: float | None) -> bool:
-        """One look at the worktree, posted if it changed; False when the stream must stop."""
+        """One look at the worktree, posted (as a delta) if it changed; False when the stream must stop."""
         snap = await asyncio.to_thread(streamdiff.snapshot, self.wt, self.base, previous_tree=self.tree)
         if snap is None or snap.tree == self.tree:
             return True
+        if self.accepted_seq:
+            files, removed = streamdiff.delta(self.accepted, snap.files)
+            if not files and not removed:  # a new tree with the same diff (a mode change, say): nothing to show
+                self.tree = snap.tree
+                return True
+            reply = await self.post(snap, trigger, edit_at, files=files, removed=removed)
+        else:
+            reply = await self.post(snap, trigger, edit_at)
+        if reply is not None and reply.get("reason") == "resync":
+            reply = await self.post(snap, trigger, edit_at)  # the gateway lost our base: the whole change
+        return self.go_on
+
+    async def post(self, snap: streamdiff.Snapshot, trigger: str, edit_at: float | None, *,
+                   files: list[dict] | None = None, removed: list[str] | None = None) -> dict | None:
+        """Posts the snapshot (full without ``files``) and logs it; None when the gateway refused the post."""
         self.seq += 1
+        full = files is None
         body = snap.body(self.seq, trigger)
+        if not full:
+            body.update(base_seq=self.accepted_seq, files=files, removed=removed or [])
         size = len(json.dumps(body, separators=(",", ":")))
         posting = time.monotonic()
         try:
             reply = await self.race.call_slot(self.slot, "stream", self.inv["inv"], body)
         except GatewayError as e:
             self.race.log("driver.stream_error", inv=self.inv["inv"], seq=self.seq, error=str(e)[:300])
-            return e.status != 409  # closed, off, or not a streaming kind: stop
+            self.go_on = e.status != 409  # closed, off, or not a streaming kind: stop
+            return None
         self.last_post = time.monotonic()
         accepted = bool(reply.get("accepted"))
         if accepted:
-            self.tree = snap.tree
+            self.tree, self.accepted_seq, self.accepted = snap.tree, self.seq, snap.hashes()
         elif reply.get("reason") == "rate":
             self.handled_mark = 0.0  # look again at the next chance
-        self.race.log("driver.stream", inv=self.inv["inv"], task=self.inv["task"], seq=self.seq, trigger=trigger,
-                      accepted=accepted, reason=reply.get("reason"), files=len(snap.files), bytes=size,
-                      truncated=snap.truncated, redacted=snap.redacted, diff_ms=snap.ms,
+        self.race.log("driver.stream", inv=self.inv["inv"], task=self.inv["task"], seq=self.seq,
+                      base_seq=body["base_seq"], trigger=trigger, accepted=accepted, reason=reply.get("reason"),
+                      files=len(snap.files), delta_files=len(body["files"]), removed=len(body["removed"]),
+                      bytes=size, truncated=snap.truncated, redacted=snap.redacted, diff_ms=snap.ms,
                       post_ms=round((self.last_post - posting) * 1000, 1), posted_at=round(time.time(), 3),
                       edit_at=None if edit_at is None else round(edit_at, 3),
                       edit_to_post_ms=None if edit_at is None else round((time.time() - edit_at) * 1000, 1))
-        return True
+        return reply
 
     async def close(self) -> None:
         self.closed = True
@@ -567,6 +644,10 @@ class RemoteRace(Race):
         self.outage: dict | None = None  # a run-wide agent-CLI outage in progress: kind, since, message
         self.outage_seconds = float(os.environ.get("BEANSTALK_OUTAGE_SECONDS") or OUTAGE_SECONDS)
         self.infra_backoff = float(os.environ.get("BEANSTALK_INFRA_BACKOFF") or INFRA_BACKOFF)
+        # a re-delivered instruction (its first answer was lost) must not check out or run a bean twice
+        self.running_invs: dict[str, str] = {}  # invocation -> the slot running it
+        self.handled_invs: set[str] = set()
+        self.last_result: dict[str, tuple[str, dict]] = {}  # slot -> (invocation, the result body it posted)
 
     # ---- logging: driver-side events go to work/driver.jsonl, never the gateway's log ----------------
 
@@ -873,7 +954,9 @@ class RemoteRace(Race):
             except GatewayError as e:
                 if e.status in (401, 403, 404):  # a 401 survived a re-issue of the slot tokens
                     raise DriverError(f"slot {slot}: {e}") from None
-                self.log("driver.poll_error", slot=slot, error=str(e)[:500])
+                self.log("driver.poll_error", slot=slot, error=str(e)[:500], timed_out=e.timed_out)
+                if e.timed_out:  # the answer may be lost, not refused: ask again at once (the gateway re-delivers)
+                    continue
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, 30.0)
                 continue
@@ -882,8 +965,32 @@ class RemoteRace(Race):
                 self.on_done(reply.get("aborted"))
                 return
             inv = reply.get("invocation")
-            if inv:
+            if inv and not await self.redelivered(slot, inv):
                 await self.handle(slot, inv)
+
+    async def redelivered(self, slot: str, inv: dict) -> bool:
+        """True when ``inv`` is one this driver already runs or ran (the gateway re-delivers an instruction whose
+        first answer may have been lost): a running one goes on as it is, without a second checkout; a finished one
+        gets its result posted again (idempotent: a closed invocation answers 409)."""
+        inv_id = inv.get("inv")
+        if inv_id in self.running_invs:
+            self.log("driver.redelivered", inv=inv_id, slot=slot, running_on=self.running_invs[inv_id],
+                     action="kept running")
+            return True
+        if inv_id not in self.handled_invs:
+            return False
+        last = self.last_result.get(slot)
+        body = last[1] if last and last[0] == inv_id else None
+        self.log("driver.redelivered", inv=inv_id, slot=slot, action="result posted again" if body else "ignored")
+        if body is None:
+            await asyncio.sleep(1.0)  # nothing to post (killed or skipped): do not spin on the same answer
+            return True
+        try:
+            await self.call_slot(slot, "result", inv_id, body, retries=2)
+        except GatewayError as e:
+            if e.code != "closed_invocation":
+                self.log("driver.error", where="result", inv=inv_id, error=str(e)[:1000], redelivered=True)
+        return True
 
     def on_done(self, aborted: str | None) -> None:
         assert self.run_over is not None
@@ -974,6 +1081,18 @@ class RemoteRace(Race):
                  attempt=inv.get("attempt"), resume=bool(inv.get("resume")), head=ws.get("head_sha"),
                  merge=merge.get("sha"), merge_ref=merge.get("ref"), protect=len(ws.get("protect") or []))
         t0 = time.monotonic()
+        # the gateway's watchdog ends the invocation this long after delivery: until then a result post is useful
+        deadline = t0 + float(inv.get("timeout_seconds") or self.cfg.agent_timeout) + WATCHDOG_GRACE
+        self.running_invs[inv["inv"]] = slot
+        try:
+            await self.handle_invocation(slot, inv, t0, deadline)
+        finally:
+            self.running_invs.pop(inv["inv"], None)
+            self.handled_invs.add(inv["inv"])
+
+    async def handle_invocation(self, slot: str, inv: dict, t0: float, deadline: float) -> None:
+        """``handle`` in the bean's directory, under the task's lock; ``deadline`` bounds the result post."""
+        task = inv["task"]
         if self.aborted:  # stopping: the gateway ends this invocation with the run
             self.log("driver.skipped", inv=inv["inv"], reason=self.aborted)
             return
@@ -993,6 +1112,7 @@ class RemoteRace(Race):
             if res is None:  # a sync whose merge conflicts here is aborted: nothing to run, commit or push
                 res = await self.conflicted_sync(inv, wt, fields["merge_conflicts"])
             if res is None:
+                inv = await self.with_conflict_note(inv, wt, fields["merge_conflicts"])
                 res = await self.run_agent(slot, inv, wt)
                 if res is None:  # killed: the gateway already ended this invocation
                     return
@@ -1006,7 +1126,22 @@ class RemoteRace(Race):
                 steps["commit_push"] = round(time.monotonic() - mark, 3)
             if inv["inv"] in self.midrun_results:
                 fields["midrun_syncs"] = self.midrun_results.pop(inv["inv"])
-            await self.post_result(slot, inv, res, fields, time.monotonic() - t0, steps)
+            await self.post_result(slot, inv, res, fields, time.monotonic() - t0, steps, deadline=deadline)
+
+    async def with_conflict_note(self, inv: dict, wt: str, conflicts: list[str] | None) -> dict:
+        """The instruction, its prompt opened by a note naming the files whose conflicts this driver's merge left
+        although the gateway reported them clean (the gateway's prompt says nothing about them)."""
+        merge = inv["workspace"].get("merge") or {}
+        if not conflicts or not merge:
+            return inv
+        assert self.git
+        unexpected = [p for p in conflicts if p not in set(merge.get("conflicts") or [])]
+        marked = set(await self.git.files_with_markers(wt, unexpected))
+        paths = [p for p in unexpected if p in marked or not os.path.isfile(os.path.join(wt, p))]
+        if not paths:
+            return inv
+        self.log("driver.conflict_note", inv=inv["inv"], task=inv["task"], paths=paths)
+        return {**inv, "prompt": conflict_note(paths, self.line_branch(merge.get("ref") or "")) + inv["prompt"]}
 
     async def conflicted_sync(self, inv: dict, wt: str, conflicts: list[str] | None) -> InvocationResult | None:
         """A ``sync`` (live sprout sync) whose merge conflicts here although the gateway found it clean: abort it and
@@ -1170,21 +1305,24 @@ class RemoteRace(Race):
             self.outage = None
 
     async def post_result(self, slot: str, inv: dict, res: InvocationResult, fields: dict, seconds: float,
-                          steps: dict | None = None) -> None:
+                          steps: dict | None = None, *, deadline: float | None = None) -> None:
         body = result_body(res, fields, self.secrets)
         posting = time.monotonic()
+        deadline = max(deadline or 0.0, posting + RESULT_RETRY_MIN)
+        self.last_result[slot] = (inv["inv"], body)
         closed = False
         try:
             try:
-                await self.call_slot(slot, "result", inv["inv"], body, retries=4)
+                await self.post_until(slot, inv["inv"], body, deadline)
             except GatewayError as e:
                 if e.status not in (400, 422):
                     raise
                 # never leave the gateway waiting for its watchdog over a field it would not take
                 self.log("driver.error", where="result", inv=inv["inv"], error=str(e)[:1500], fallback=True)
                 self.say(f"{slot} {inv['inv']}: the gateway refused the result ({e}); posting the core fields")
-                await self.call_slot(slot, "result", inv["inv"], {k: body[k] for k in CORE_RESULT_KEYS if k in body},
-                                     retries=4)
+                core = {k: body[k] for k in CORE_RESULT_KEYS if k in body}
+                self.last_result[slot] = (inv["inv"], core)
+                await self.post_until(slot, inv["inv"], core, deadline)
             self.counts["results_posted"] += 1
         except GatewayError as e:
             if e.code != "closed_invocation":  # closed: a retry after a lost answer, or the run ended
@@ -1206,6 +1344,26 @@ class RemoteRace(Race):
                  steps={**(steps or {}), "post": round(time.monotonic() - posting, 3)})
         self.say(f"{slot} {inv['inv']} {inv['task']} {status} {res.subtype or ''} {seconds:.1f}s "
                  f"${res.cost_usd:.3f} -> {head}{extra}")
+
+    async def post_until(self, slot: str, inv_id: str, body: dict, deadline: float) -> None:
+        """``POST result``, retried on transient failures with capped exponential backoff until ``deadline`` (the
+        gateway's watchdog for the invocation) or the end of the run. Until the result is in, the bean's pushed
+        commit waits for the watchdog and the slot can take no other work, so giving up early only loses time."""
+        delay, attempt = RESULT_RETRY_FIRST, 0
+        while True:
+            attempt += 1
+            try:
+                await self.call_slot(slot, "result", inv_id, body)
+                return
+            except GatewayError as e:
+                left = deadline - time.monotonic()
+                if not e.transient or left <= 0 or (self.run_over is not None and self.run_over.is_set()):
+                    raise
+                wait = min(delay, RESULT_RETRY_CAP, left)
+                self.log("driver.result_retry", inv=inv_id, slot=slot, attempt=attempt, wait_seconds=round(wait, 3),
+                         left_seconds=round(left, 1), error=str(e)[:300])
+                await asyncio.sleep(wait)
+                delay = min(delay * 2, RESULT_RETRY_CAP)
 
     # ---- the workspace (driver contract steps 1, 2, 4, 5, 6) ------------------------------------------------
 
@@ -1357,12 +1515,55 @@ class RemoteRace(Race):
         anc = await self.git.run("merge-base", "--is-ancestor", sha, "HEAD", cwd=wt, check=False)
         if anc.returncode == 0:
             return []
-        conflicts = await self.git.merge_into_worktree(wt, sha)
+        textual = await self.git.merge_into_worktree(wt, sha)
         expected = sorted(merge.get("conflicts") or [])
+        conflicts = textual
+        if textual and not expected and self.structural_merge():  # the gateway's merge was clean: the runner's tier
+            conflicts = await self.structural_tier(wt, sha, textual, ws.get("union_paths") or [])
         if sorted(conflicts) != expected:
-            self.log("driver.merge_mismatch", task=os.path.basename(wt), merge=sha, local=conflicts,
-                     gateway=expected)
+            task = os.path.basename(wt)
+            unexpected = sorted(set(conflicts) - set(expected))
+            self.log("driver.merge_mismatch", task=task, merge=sha, ref=ref, local=conflicts, gateway=expected,
+                     textual=textual, unexpected=unexpected, missing=sorted(set(expected) - set(conflicts)))
+            if unexpected:
+                self.say(f"{task}: merging {ref} at {sha[:10]} left conflicts here that the gateway did not report: "
+                         f"{', '.join(unexpected)}")
         return conflicts
+
+    def structural_merge(self) -> bool:
+        """Whether the run's squashes use the runner's structural tier (shared-race ``usesStructuralMerge``): v2
+        unless ``structural_merge`` is off (``STRUCTURAL_MERGE=0``, or ``--preset v24``), never the queue."""
+        return (self.policy == "beanstalk-v2" and self.v2.get("structural_merge") is not False
+                and self.guards.get("preset") != "v24")
+
+    async def structural_tier(self, wt: str, sha: str, conflicts: list[str], union_paths: list[str]) -> list[str]:
+        """The runner's structural tier (``resolve.rs``) in the worktree: retry the merge with Mergiraf as the merge
+        driver on exactly the conflicted paths and keep it only when it is clean and free of conflict markers;
+        otherwise git's merge stands again, markers and all. Returns the conflicts left."""
+        assert self.git
+        task = os.path.basename(wt)
+        mergiraf = shutil.which("mergiraf", path=self.git.env.get("PATH"))
+        attributes = structural_attributes(conflicts, union_paths)
+        if mergiraf is None or attributes is None:
+            self.log("driver.merge_structural", task=task, merge=sha, paths=conflicts, outcome="skipped",
+                     reason="mergiraf is not on PATH" if mergiraf is None else "a path outside the structural tier")
+            return conflicts
+        attributes_file = os.path.join(await self.git.git_dir(wt), "beanstalk-structural-attributes")
+        with open(attributes_file, "w", encoding="utf-8") as fh:
+            fh.write(attributes)
+        await self.git.abort_merge(wt)
+        await self.git.run("-c", f"core.attributesFile={attributes_file}", "-c", "merge.mergiraf.name=mergiraf",
+                           "-c", f"merge.mergiraf.driver={MERGIRAF_DRIVER}", "merge", "--no-commit", "--no-ff",
+                           "--no-edit", sha, cwd=wt, check=False, timeout=300)
+        left = await self.git.unmerged_paths(wt)
+        markers = await self.git.files_with_markers(wt, conflicts)
+        if not left and not markers and self.merge_head(wt) == sha:
+            self.log("driver.merge_structural", task=task, merge=sha, paths=conflicts, outcome="resolved")
+            return []
+        self.log("driver.merge_structural", task=task, merge=sha, paths=conflicts, outcome="conflict left",
+                 unmerged=left, markers=markers)
+        await self.git.abort_merge(wt)
+        return await self.git.merge_into_worktree(wt, sha)
 
     async def commit_and_push(self, slot: str, inv: dict, wt: str, res: InvocationResult) -> dict:
         """Steps 4-6, harness-style: no commit when the gateway will retry the invocation or markers are left;
@@ -1484,6 +1685,7 @@ class RemoteRace(Race):
             self.say(f"downloading the summary failed: {e}")
             self.log("driver.error", where="summary", error=str(e)[:500])
             return
+        self.summary = await self.reaped_summary(self.summary)
         with open(os.path.join(self.out, "summary.json"), "w", encoding="utf-8") as fh:
             json.dump(self.summary, fh, indent=2, default=str)
         self.say_infra(self.summary)
@@ -1496,6 +1698,23 @@ class RemoteRace(Race):
         with open(os.path.join(self.out, "summary.md"), "w", encoding="utf-8") as fh:
             fh.write(md)
         self.log("driver.downloaded", events=len(lines), counts=self.counts)
+
+    async def reaped_summary(self, summary: dict) -> dict:
+        """A summary fetched while the run's repos are still being reaped (``repos.status: reaping``) is fetched
+        once more after ``REAP_WAIT`` s, so summary.json records what became of them; the first one stands if the
+        second fetch fails."""
+        assert self.run_id
+        if ((summary.get("repos") if isinstance(summary, dict) else None) or {}).get("status") != "reaping":
+            return summary
+        self.log("driver.summary_reaping", wait_seconds=REAP_WAIT)
+        await asyncio.sleep(REAP_WAIT)
+        try:
+            again = await self.call_admin("summary", self.run_id)
+        except GatewayError as e:
+            self.log("driver.error", where="summary", error=str(e)[:500], refetch=True)
+            return summary
+        self.log("driver.summary_refetched", repos=(again.get("repos") or {}).get("status"))
+        return again
 
     async def dry_run(self) -> int:
         """No run is created: the local setup and run config, the gateway's health, and whether it accepts the
