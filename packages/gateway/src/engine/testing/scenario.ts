@@ -4,10 +4,14 @@
 import { REQUIRED_EVENT_KEYS } from '@beanstalk/shared-race/events';
 import type { RaceEventType } from '@beanstalk/shared-race/events';
 import type { InvocationResult } from '@beanstalk/shared-race/driver';
+import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import { RunConfig, prelandSeconds } from '@beanstalk/shared-race/run-config';
 
-import type { EngineInstruction } from '../model';
+import { createContext } from '../context';
+import type { CheckResult, EngineInstruction } from '../model';
 import type { EngineState } from '../state';
+import type { LandingFlow, V2Step } from '../v2/v2-state';
 import type { FailRule, FlakeInjector, ScriptedTask, World } from './fake-world';
 import { createWorld } from './fake-world';
 import type { SimulationOptions, SimulationResult } from './simulator';
@@ -44,6 +48,8 @@ export type RaceScenario = {
     instruction: EngineInstruction,
     result: InvocationResult,
   ) => InvocationResult;
+  /** Rewrites the runner's side (job timings or outcomes) around the scripted world. */
+  readonly wrapWorld?: (world: World) => World;
 } & Partial<
   Pick<SimulationOptions, 'silentSlots' | 'injections' | 'startAfterMs' | 'lostInvocations'>
 >;
@@ -63,13 +69,19 @@ export type RaceRun = Omit<SimulationResult, 'events'> & {
   readonly state: EngineState;
 };
 
-/** Runs a scripted race on the queue policy (defaults: 2 agents, 2 CI slots, batch 2). */
+/**
+ * Runs a scripted race on the queue policy (defaults: 2 agents, 2 CI slots, batch 2). A
+ * dynamic-culprit probe costs the pre-land latency on top of its suite, as in the real race.
+ */
 export function runRace(scenario: RaceScenario): RaceRun {
+  const seed = scenario.seed ?? 1;
+  const config = raceConfig(scenario, seed);
   const scripted = createWorld({
     baseFiles: scenario.baseFiles ?? { 'README.md': 'arena\n', 'src/app.ts': 'export {};\n' },
     tasks: scenario.tasks,
     rules: scenario.rules ?? [],
     costUsd: scenario.costUsd ?? 0.01,
+    probeLatencySeconds: prelandSeconds(RunConfig.parse(config)),
     ...(scenario.flakes === undefined ? {} : { flakes: scenario.flakes }),
     ...(scenario.adaptsOnSync === true ? { adaptsOnSync: true } : {}),
   });
@@ -81,8 +93,27 @@ export function runRace(scenario: RaceScenario): RaceRun {
           ...scripted,
           runAgent: (instruction) => after(scripted, instruction, scripted.runAgent(instruction)),
         };
-  const seed = scenario.seed ?? 1;
-  const config: RunConfigInput = {
+  const seeded = seededAgentMillis(seed);
+  const durations = scenario.durations ?? {};
+  const result = simulate({
+    config,
+    world: scenario.wrapWorld?.(world) ?? world,
+    agentMillis: (inv, task, kind, attempt) =>
+      (kind === 'initial' ? durations[task] : undefined) ?? seeded(inv, task, kind, attempt),
+    ...(scenario.silentSlots === undefined ? {} : { silentSlots: scenario.silentSlots }),
+    ...(scenario.injections === undefined ? {} : { injections: scenario.injections }),
+    ...(scenario.startAfterMs === undefined ? {} : { startAfterMs: scenario.startAfterMs }),
+    ...(scenario.lostInvocations === undefined
+      ? {}
+      : { lostInvocations: scenario.lostInvocations }),
+  });
+  const events: readonly LooseEvent[] = result.events;
+  return { ...result, events, world };
+}
+
+/** The scenario's run config over the simulator's defaults. */
+function raceConfig(scenario: RaceScenario, seed: number): RunConfigInput {
+  return {
     policy: 'queue',
     agent: 'replay',
     agents: 2,
@@ -99,22 +130,6 @@ export function runRace(scenario: RaceScenario): RaceRun {
     })),
     ...scenario.config,
   };
-  const seeded = seededAgentMillis(seed);
-  const durations = scenario.durations ?? {};
-  const result = simulate({
-    config,
-    world,
-    agentMillis: (inv, task, kind, attempt) =>
-      (kind === 'initial' ? durations[task] : undefined) ?? seeded(inv, task, kind, attempt),
-    ...(scenario.silentSlots === undefined ? {} : { silentSlots: scenario.silentSlots }),
-    ...(scenario.injections === undefined ? {} : { injections: scenario.injections }),
-    ...(scenario.startAfterMs === undefined ? {} : { startAfterMs: scenario.startAfterMs }),
-    ...(scenario.lostInvocations === undefined
-      ? {}
-      : { lostInvocations: scenario.lostInvocations }),
-  });
-  const events: readonly LooseEvent[] = result.events;
-  return { ...result, events, world };
 }
 
 /** Events of one type, optionally matching some fields. */
@@ -183,4 +198,61 @@ export function sortedStrings(value: unknown): string[] {
     throw new Error(`expected a list of strings, got ${JSON.stringify(value)}`);
   }
   return value.toSorted();
+}
+
+/**
+ * A v2 policy step over a copy of a finished run's state, for driving one module by hand
+ * (a situation a race reaches only by a long detour, such as roles swapped after a reset). The
+ * continuations do nothing: the test reads what the module left in the state.
+ */
+export function v2StepAfter(run: RaceRun): V2Step {
+  const state = structuredClone(run.state);
+  const ctx = createContext(state, state.createdAtMs + state.clock * 1000, run.env);
+  const policy = state.policy;
+  if (policy?.kind !== 'beanstalk-v2') throw new Error('not a beanstalk-v2 run');
+  return {
+    ctx,
+    state: policy,
+    flow: { granted: ignore, attempt: ignore, startWork: ignore, promoteReset: ignore },
+  };
+}
+
+/** A continuation that does nothing (`v2StepAfter`). */
+function ignore(): void {
+  return undefined;
+}
+
+/** A fresh landing flow for `task` on `slot`, registered in the step's state. */
+export function landingFlowOf(step: V2Step, task: TaskId, slot: SlotId): LandingFlow {
+  const flow: LandingFlow = {
+    task,
+    slot,
+    rounds: 1,
+    rechecks: 0,
+    inheritedWaits: 0,
+    targeted: 0,
+    resolved: 'textual',
+    step: { kind: 'queued-locked' },
+  };
+  step.state.landings[task] = flow;
+  return flow;
+}
+
+/** A red check result failing one test of `file`, which reads `reads`. */
+export function redCheckOf(file: string, reads: readonly string[]): CheckResult {
+  return {
+    green: false,
+    tests: 1,
+    failures: 1,
+    failingTests: [{ file, name: `${file} fails` }],
+    failingFiles: [file],
+    passingFiles: [],
+    readSet: [file, ...reads],
+    readSets: { [file]: [file, ...reads] },
+    readDepths: {},
+    stackFiles: [],
+    output: `failing tests:\n${file} fails`,
+    suiteSeconds: 1.5,
+    timedOut: false,
+  };
 }

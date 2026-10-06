@@ -64,6 +64,31 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
       expect(after.green).toBeGreaterThan(before.green);
       expect(after.kth[30] ?? Infinity).toBeLessThan(before.kth[30] ?? 0);
       expect(after.kth[35] ?? Infinity).toBeLessThan(before.kth[35] ?? 0);
+      // Seed 7 as measured (README, "Fixes and simulator scenarios"): 39 green, t023 parked.
+      expect(after).toMatchObject({ green: 39, parked: 1, dropped: 0 });
+      expect(after.kth[30]).toBeCloseTo(12.84, 1);
+      expect(after.done).toBeCloseTo(22.04, 1);
+    },
+  );
+
+  it(
+    'a red check on a tree the reset discarded is re-checked: no round, no culprit',
+    { timeout: 30_000 },
+    () => {
+      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
+
+      const [reset] = eventsOf(run.events, 'sprout.reset');
+      const stale = eventsOf(run.events, 'preland.recheck').filter(
+        (event) => event.t >= Number(reset?.t) && event['stale'] !== undefined,
+      );
+      expect(stale.length).toBeGreaterThanOrEqual(1);
+      // t031 was checked on the discarded window: it no longer blames t001 and t002 for it.
+      const blamed = eventsOf(run.events, 'rework.start', { task: 't031' }).flatMap((event) =>
+        Array.isArray(event['culprits']) ? event['culprits'] : [],
+      );
+      expect(blamed).not.toContain('t001');
+      expect(blamed).not.toContain('t002');
+      expect(eventsOf(run.events, 'rework.start')).toHaveLength(12);
     },
   );
 

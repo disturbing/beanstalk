@@ -97,6 +97,21 @@ export type EngineWorkspace = {
   commitMessage: string;
 };
 
+/**
+ * A protected landed test as an open invocation stores it: the task whose acceptance test it
+ * is and its path. The contents are read at delivery (`toInstruction`), so the state does not
+ * carry every landed test once per open invocation.
+ */
+export type ProtectedTestRef = { readonly task: string; readonly path: string };
+
+/**
+ * The workspace an open invocation stores. `protect` holds references; states persisted
+ * before references existed hold full test files, which are delivered as they are.
+ */
+export type StoredWorkspace = Omit<EngineWorkspace, 'protect'> & {
+  protect: readonly (ProtectedTestRef | TestFile)[];
+};
+
 /** An invocation created by the engine and not yet closed by a result. */
 export type OpenInvocation = {
   id: InvocationId;
@@ -105,10 +120,13 @@ export type OpenInvocation = {
   slot: SlotId;
   attempt: number;
   prompt: string;
-  /** Prompt for the fresh-session retry when resuming `resume` fails. */
-  freshPrompt: string;
+  /**
+   * Prompt for the fresh-session retry when resuming `resume` fails; null when it is `prompt`
+   * itself (states persisted before this was optional hold the text either way).
+   */
+  freshPrompt: string | null;
   resume: string | null;
-  workspace: EngineWorkspace;
+  workspace: StoredWorkspace;
   replay: ReplayHints;
   /** The landed-line commit a commit of this invocation has merged, when `merge.sha` is not it. */
   mergedLine: Sha | null;
@@ -116,6 +134,8 @@ export type OpenInvocation = {
   deliveredAt: Seconds | null;
   budgetCapUsd: number | null;
   watchdog: TimerId | null;
+  /** When the driver last reported progress on it (absent: never; a lost reply is re-delivered). */
+  reportedAt?: Seconds;
 };
 
 /** What the summary needs from a closed invocation (`Race.invocations`). */
@@ -199,6 +219,11 @@ export type CiRun = {
   jobId: JobId | null;
   timerId: TimerId | null;
   result: CheckResult | null;
+  /**
+   * Cancelled while its suite runs (a superseded validation): `ci.end` is logged, the slot stays
+   * reserved until the runner's job returns, and that outcome is dropped (absent: not cancelled).
+   */
+  cancelled?: true;
 };
 
 export type CiState = {

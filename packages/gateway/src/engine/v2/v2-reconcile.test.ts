@@ -1,10 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
+import { TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 
+import { SPROUT_REF } from '../refs';
 import type { FailRule } from '../testing/fake-world';
 import type { LooseEvent, RaceRun, RaceScenario } from '../testing/scenario';
-import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
+import {
+  eventsOf,
+  landingFlowOf,
+  redCheckOf,
+  runRace,
+  soloTask,
+  v2StepAfter,
+  wellFormedProblems,
+} from '../testing/scenario';
+import { decisionsInForce, isDecided, isReconciled } from './v2-decisions';
+import { culpritTasks, startRepair } from './v2-repair';
 
 // v2.5 as published: beans that need a person are dropped (parking: v2-park.test.ts).
 const V2: Partial<RunConfigInput> = {
@@ -277,5 +289,220 @@ describe('v2.5: escalate after one repeated red, reconcile every landed party', 
       reason: 'pre-land check still red after --max-rework attempts',
     });
     expect(Number(dropOf(v25)?.t)).toBeLessThan(Number(dropOf(v24)?.t));
+  });
+});
+
+function v2Stats(run: RaceRun): Record<string, unknown> {
+  const policy = run.state.policy;
+  return policy?.kind === 'beanstalk-v2' ? { ...policy.stats } : {};
+}
+
+describe('v2.5 review fixes: the reconcile author', () => {
+  it('works on the bean’s branch with the landed line merged in, and the prompt says so', () => {
+    const run = runV2(totalWithShipping());
+
+    const reconcile = run.world.instructions.find(
+      (instruction) => instruction.kind === 'reconcile',
+    );
+    const merge = reconcile?.workspace.merge;
+    expect(merge).toMatchObject({ ref: SPROUT_REF, conflicts: [] });
+    // The landed party's code is in the tree the author works on.
+    expect(run.world.git.get(merge?.sha ?? '').files.has('src/t005/index.ts')).toBe(true);
+    expect(reconcile?.prompt).toContain(
+      "This tree is t032's branch with the landed line merged in (the sprout its pre-land check ran on): it holds t032's change and the code of the landed task below.",
+    );
+    expect(run.state.tasks['t032']?.status).toBe('green');
+  });
+
+  it('retries an author that crashed, instead of recording a contradiction', () => {
+    const run = runV2({
+      ...totalWithShipping(),
+      tasks: [
+        soloTask('t005'),
+        soloTask('t032', {
+          reconcile: { 'tests/t005.test.ts': RECONCILED_T005 },
+          reconcileFails: 1,
+        }),
+      ],
+    });
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    expect(eventsOf(run.events, 'invocation.retry', { task: 't032' })).toEqual([
+      expect.objectContaining({ reason: 'reconcile failed: agent crashed' }),
+    ]);
+    expect(eventsOf(run.events, 'decision.reconcile')).toEqual([
+      expect.objectContaining({ outcome: 'reconciled' }),
+    ]);
+    expect(eventsOf(run.events, 'decision.request')).toEqual([]);
+    expect(v2Stats(run)).toMatchObject({ reconciles: 1, reconciled: 1, contradictions: 0 });
+    expect(run.state.tasks['t032']?.status).toBe('green');
+  });
+
+  it('goes on to an informed repair after a second crash, leaving the pair unreconciled', () => {
+    const run = runV2({
+      ...totalWithShipping(),
+      tasks: [
+        soloTask('t005'),
+        soloTask('t032', {
+          reconcile: { 'tests/t005.test.ts': RECONCILED_T005 },
+          reconcileFails: 2,
+        }),
+      ],
+    });
+
+    expect(wellFormedProblems(run.events)).toEqual([]);
+    const reconciles = run.world.instructions.filter(
+      (instruction) => instruction.kind === 'reconcile',
+    );
+    // Two crashed authors, an informed repair, and a fresh reconcile at the next stuck red.
+    expect(reconciles).toHaveLength(3);
+    const repairs = eventsOf(run.events, 'rework.start', { task: 't032', reason: 'preland-red' });
+    expect(repairs).toHaveLength(2);
+    expect(repairs[1]).toMatchObject({ culprits: ['t005'] });
+    expect(eventsOf(run.events, 'decision.reconcile')).toEqual([
+      expect.objectContaining({ outcome: 'reconciled' }),
+    ]);
+    expect(v2Stats(run)).toMatchObject({ reconciles: 2, contradictions: 0, cards: 0 });
+    expect(run.state.tasks['t032']?.status).toBe('green');
+  });
+});
+
+/** t032 wins D001 against the landed t005: t005's test is amended in place, both land. */
+function decidedForT032(): RaceRun {
+  return runV2({
+    ...totalWithShipping({ decision_oracle: 'arriving' }, false),
+    tasks: [
+      soloTask('t005', { amendTests: { 'tests/t005.test.ts': RECONCILED_T005 } }),
+      soloTask('t032'),
+    ],
+  });
+}
+
+describe('v2.5 review fixes: a decided pair, roles swapped', () => {
+  const t005 = TaskId.parse('t005');
+  const t032 = TaskId.parse('t032');
+
+  it('t032 won its card against the landed t005: both ship', () => {
+    const run = decidedForT032();
+
+    expect(eventsOf(run.events, 'decision.made')).toEqual([
+      expect.objectContaining({ card: 'D001', winner: 't032', outcome: 'adopt-in-place' }),
+    ]);
+    expect(run.state.tasks['t005']?.status).toBe('green');
+    expect(run.state.tasks['t032']?.status).toBe('green');
+  });
+
+  it('asks no second card when t005 arrives red against the landed t032', () => {
+    const step = v2StepAfter(decidedForT032());
+    const { state } = step;
+    const flow = landingFlowOf(step, t005, 'a1');
+    // A reset requeued t005; it arrives red on t032's test, a repeat of its last red there.
+    state.pairRepeats['t005|t032'] = { files: ['tests/t032.test.ts'], repeats: 0 };
+    const cards = Object.keys(state.cards);
+
+    expect(isDecided(state, t005, t032)).toBe(true);
+    expect(isReconciled(state, t005, t032)).toBe(true);
+    startRepair(step, flow, {
+      head: state.sprout,
+      red: redCheckOf('tests/t032.test.ts', ['src/t005/index.ts', 'src/t032/index.ts']),
+      mine: null,
+    });
+
+    expect(Object.keys(state.cards)).toEqual(cards);
+    expect(flow.step.kind === 'awaiting-agent' ? flow.step.work.kind : flow.step.kind).not.toBe(
+      'reconcile',
+    );
+    expect(decisionsInForce(state, t005, '')).toEqual([
+      expect.stringMatching(/^D001 \(t032 and t005\): /),
+    ]);
+  });
+});
+
+describe('v2.5 review fixes: confirmed culprits a reset took off the sprout', () => {
+  it('names a confirmed culprit only while it is still on the sprout', () => {
+    const step = v2StepAfter(runV2(totalWithShipping()));
+    const t005 = TaskId.parse('t005');
+    const t032 = TaskId.parse('t032');
+    const check = {
+      head: step.state.sprout,
+      red: redCheckOf('tests/t032.test.ts', ['src/t005/index.ts']),
+      mine: null,
+      confirmed: [t005],
+    };
+
+    expect(culpritTasks(step, t032, check)).toEqual(['t005']);
+    for (const commit of step.state.commits) {
+      if (commit.task === 't005') commit.reverted = true;
+    }
+    expect(culpritTasks(step, t032, check)).toEqual([]);
+  });
+});
+
+describe('v2.5 review fixes: a parked card keeps the reconcile’s amendments', () => {
+  /**
+   * t032 clashes with t005 (reconcilable: t005's pinned total) and with t030 (not). The
+   * reconcile with t005 carries t005's amended test; the one with t030 is a contradiction,
+   * whose card only a person answers: t032 parks, and the answer takes it up again.
+   */
+  const RED_WITH_T030: FailRule = {
+    markers: ['impl:t030', 'impl:t032'],
+    file: 'tests/t030.test.ts',
+    name: 'ships free over $75',
+    reads: ['src/t030/index.ts', 'src/t032/index.ts'],
+  };
+  const scenario = (injectAt: number | null): RaceScenario => ({
+    tasks: [
+      soloTask('t005'),
+      soloTask('t030'),
+      soloTask('t032', { reconcile: { 'tests/t005.test.ts': RECONCILED_T005 }, stubborn: true }),
+      // Keeps the race going while the person answers.
+      soloTask('t003'),
+    ],
+    rules: [PINS_OLD_TOTAL, RED_WITH_T030],
+    durations: { t005: 10_000, t030: 12_000, t032: 100_000, t003: 900_000 },
+    config: {
+      agents: 4,
+      park: true,
+      decision_mode: 'human',
+      reconcile_parties: 1,
+      tail_guard_minutes: 0,
+    },
+    ...(injectAt === null
+      ? {}
+      : {
+          injections: [
+            {
+              at: injectAt,
+              input: (at: number) => ({
+                kind: 'decision' as const,
+                at,
+                card: 'D001',
+                winner: 't030',
+                actor: 'coop',
+                text: null,
+              }),
+            },
+          ],
+        }),
+  });
+
+  it('re-executes the loser with the amendment it carried before it was parked', () => {
+    const parked = runV2(scenario(null));
+    const request = eventsOf(parked.events, 'decision.request', { task: 't032' })[0];
+    expect(request).toMatchObject({ against: ['t030'] });
+    expect(eventsOf(parked.events, 'task.parked', { task: 't032' })).toHaveLength(1);
+
+    const run = runV2(scenario(Math.round(Number(request?.t) * 1000) + 5_000));
+    expect(run.refusals).toEqual([]);
+    const answered = Number(eventsOf(run.events, 'decision.made')[0]?.t);
+    const rolledBack = eventsOf(run.events, 'spec.amended', { status: 'rolled-back' });
+    expect(rolledBack.filter((event) => event.t <= answered)).toEqual([]);
+    const reexecution = run.world.instructions.find(
+      (instruction) =>
+        instruction.task === 't032' &&
+        instruction.kind === 'rework' &&
+        instruction.workspace.headSha === null,
+    );
+    expect(reexecution?.workspace.acceptance['tests/t005.test.ts']).toBe(RECONCILED_T005);
   });
 });

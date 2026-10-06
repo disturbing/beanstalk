@@ -40,6 +40,16 @@ export function startProgress(step: V2Step, task: TaskId): void {
   progress[task] ??= { at: step.ctx.now, seen: [] };
 }
 
+/**
+ * A dynamic-culprit search for the bean ended: the search is the engine's own work, not the
+ * bean's stall, so the tail guard's clock starts again from here (a 6-probe search takes about
+ * 3 minutes on the sandbox, the guard's whole budget).
+ */
+export function searchEnded(step: V2Step, task: TaskId): void {
+  const progress = step.state.progress?.[task];
+  if (progress !== undefined) progress.at = step.ctx.now;
+}
+
 /** How a bound ends a bean: dropped (v2.5), or parked for a person (`park`). */
 export type BoundedEnd = { readonly kind: 'drop' | 'park'; readonly reason: string };
 

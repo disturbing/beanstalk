@@ -4,7 +4,7 @@ import type { Sha } from '@beanstalk/shared-race/ids';
 import type { StepContext } from './context';
 import { cancelTimer, emit, setTimer, startJob } from './context';
 import { EngineInvariantError } from './errors';
-import type { CheckResult, CiId, CiPurpose, CiRun, CiState, Seconds } from './model';
+import type { CheckResult, CiId, CiPurpose, CiRun, CiState, JobId, Seconds } from './model';
 import { roundTo } from './numbers';
 
 /** Failing tests listed in `ci.end` (`failing_tests[:30]`). */
@@ -102,6 +102,10 @@ export function pumpCi(ctx: StepContext): void {
 export function onCheckResult(ctx: StepContext, id: CiId, result: CheckResult): CiRun | null {
   const run = ctx.state.ci.runs[id];
   if (run === undefined || run.status !== 'running') return null;
+  if (run.cancelled === true) {
+    releaseRun(ctx, run);
+    return null;
+  }
   run.result = result;
   run.jobId = null;
   if (run.latency > 0) {
@@ -155,13 +159,24 @@ export function failingTestNames(result: CheckResult): string[] {
 }
 
 /**
- * Cancels a run (a speculative batch behind a red one, or shutdown). A run that started
- * logs `ci.end` with `cancelled`; one still waiting for a slot just disappears.
+ * Cancels a run (a speculative batch behind a red one, a superseded validation, or shutdown).
+ * A run that started logs `ci.end` with `cancelled`; one still waiting for a slot just
+ * disappears. `until-done` (a superseded validation): a suite already running on the runner
+ * keeps its slot until the runner's job returns (`dropOrphanedCiJob`), so the next run never
+ * shares the container with it; a job waiting for its retry is not run again.
  */
-export function cancelCi(ctx: StepContext, id: CiId | null): void {
+export function cancelCi(
+  ctx: StepContext,
+  id: CiId | null,
+  slotRelease: 'now' | 'until-done' = 'now',
+): void {
   const ci = ctx.state.ci;
   const run = id === null ? undefined : ci.runs[id];
   if (run === undefined) return;
+  if (run.cancelled === true) {
+    if (slotRelease === 'now') releaseRun(ctx, run);
+    return;
+  }
   if (run.status === 'queued') {
     ci.queue = ci.queue.filter((queued) => queued !== run.id);
     ci.claimed -= 1;
@@ -169,9 +184,29 @@ export function cancelCi(ctx: StepContext, id: CiId | null): void {
     return;
   }
   cancelTimer(ctx, run.timerId);
+  logCancelled(ctx, run);
+  if (slotRelease === 'until-done' && run.status === 'running' && run.jobId !== null) {
+    run.cancelled = true;
+    if (cancelJobRetry(ctx, run.jobId)) releaseRun(ctx, run);
+    return;
+  }
   releaseRun(ctx, run);
+}
+
+/**
+ * The runner's job for a cancelled (or already released) CI run returned: its outcome, success
+ * or failure, concerns nobody. The run's slot is free now. Returns whether it was such a job.
+ */
+export function dropOrphanedCiJob(ctx: StepContext, ciId: CiId): boolean {
+  const run = ctx.state.ci.runs[ciId];
+  if (run !== undefined && run.cancelled !== true) return false;
+  if (run !== undefined) releaseRun(ctx, run);
+  return true;
+}
+
+function logCancelled(ctx: StepContext, run: CiRun): void {
   const seconds = ctx.now - (run.startedAt ?? ctx.now);
-  ci.log.push({ purpose: run.purpose, cancelled: true, seconds });
+  ctx.state.ci.log.push({ purpose: run.purpose, cancelled: true, seconds });
   emit(ctx, 'ci.end', {
     ci: run.id,
     sha: run.sha,
@@ -182,6 +217,17 @@ export function cancelCi(ctx: StepContext, id: CiId | null): void {
     ci_seconds: roundTo(seconds, 3),
     ...run.meta,
   });
+}
+
+/** A job waiting for its retry is not issued again: true when it was waiting (it is gone now). */
+function cancelJobRetry(ctx: StepContext, jobId: JobId): boolean {
+  const pending = Object.entries(ctx.state.timers).filter(
+    ([, timer]) => timer.purpose.kind === 'job-retry' && timer.purpose.jobId === jobId,
+  );
+  for (const [timerId] of pending) delete ctx.state.timers[timerId];
+  if (pending.length === 0) return false;
+  delete ctx.state.jobs[jobId];
+  return true;
 }
 
 /** Cancels every run (shutdown). */

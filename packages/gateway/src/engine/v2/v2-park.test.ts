@@ -44,6 +44,9 @@ const contradiction: RaceScenario = {
 
 describe('parking: a bean that needs a person does not hold the race', () => {
   it('parks t032 after its re-execution is still red against the decided t005', () => {
+    // Its search of six candidates costs a pre-land latency per probe batch (about 3 minutes):
+    // the search's end counts as progress, so the demo's 3-minute bound lets the card decide,
+    // and the card's verdict is what parks it.
     const scenario: RaceScenario = { ...t032Loop(), config: { agents: 4 } };
     const off = runV2(scenario, PARK_OFF);
     const on = runV2(scenario);
@@ -62,7 +65,7 @@ describe('parking: a bean that needs a person does not hold the race', () => {
     expect(eventsOf(on.events, 'task.drop')).toEqual([]);
     expect(eventsOf(on.events, 'final.check')[0]).toMatchObject({ correct: true });
     // Same greens, and the race ends sooner after the last of them (simulator: 3.3 min to the
-    // last green; done at 9.3 min with park off, 8.0 with it on).
+    // last green; done at 12.3 min with park off, 11.0 with it on).
     expect(tailOf(on).lastGreen).toBeCloseTo(tailOf(off).lastGreen, 5);
     expect(tailOf(on).end).toBeLessThan(tailOf(off).end - 1);
     expect(tailOf(on).final - tailOf(on).end).toBeLessThan(0.2);

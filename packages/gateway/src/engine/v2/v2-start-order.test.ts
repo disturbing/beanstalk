@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
 import { V25_RULES_OFF } from '@beanstalk/shared-race/run-config';
 
+import { createContext } from '../context';
 import type { FailRule, ScriptedTask } from '../testing/fake-world';
 import type { RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
-import { STALL_SECONDS, ageBound } from './v2-start-order';
+import { STALL_SECONDS, ageBound, chooseStart } from './v2-start-order';
 
 /**
  * Dependency-aware starts on a synthetic repo with dependency chains (E4's binding
@@ -312,5 +314,86 @@ describe('a declared partner already in the bean’s base (F’s culprit gap)', 
       trigger: 'start',
     });
     for (const culprits of t002Culprits(run)) expect(culprits).toEqual(['t001']);
+  });
+});
+
+describe('the stall bound counts a carded bean from its start card', () => {
+  /** t003 shares one module with each of t002, t004 and t005 (none a hub). */
+  const ids = ['t001', 't002', 't003', 't004', 't005', 't006'];
+  const shared: Readonly<Record<string, readonly string[]>> = {
+    t002: ['src/a'],
+    t003: ['src/a', 'src/b', 'src/c'],
+    t004: ['src/b'],
+    t005: ['src/c'],
+  };
+  const footprints = Object.fromEntries(
+    ids.map((id) => [
+      id,
+      { method: 'oracle', selected: [`src/${id}`, ...(shared[id] ?? [])], probs: {} },
+    ]),
+  );
+  const run = runRace({
+    tasks: ids.map((id) => soloTask(id)),
+    config: { policy: 'beanstalk-v2', ci_seconds: 60, footprints, ...DEPENDENCY },
+  });
+  const t003 = TaskId.parse('t003');
+  const CARD_OPENED = 600;
+
+  /**
+   * The race's end state, rewound: t004 and t005 started at 100 s and are in flight, t002 took
+   * a slot and waits for its start card (opened at 600 s; no `startedAt` until the card's
+   * initial run), and t003, which clashes with all three, is unstarted.
+   */
+  function choiceAt(now: number): ReturnType<typeof chooseStart> {
+    const state = structuredClone(run.state);
+    const policy = state.policy;
+    if (policy?.kind !== 'beanstalk-v2') throw new Error('not a beanstalk-v2 run');
+    state.clock = 0;
+    const rewind = (id: string, fields: Record<string, unknown>): void => {
+      const task = state.tasks[id];
+      if (task === undefined) throw new Error(`no ${id}`);
+      Object.assign(task, { landedSha: null, greenAt: null, ...fields });
+    };
+    rewind('t002', { status: 'running', startedAt: null });
+    rewind('t003', { status: 'pending', startedAt: null });
+    rewind('t004', { status: 'running', startedAt: 100 });
+    rewind('t005', { status: 'running', startedAt: 100 });
+    policy.cards['D001'] = {
+      id: 'D001',
+      task: TaskId.parse('t002'),
+      against: [TaskId.parse('t001')],
+      specs: {},
+      openedAt: CARD_OPENED,
+      status: 'open',
+      timerId: null,
+      red: { head: policy.sprout, failing: [], output: '' },
+      winner: null,
+      loser: null,
+      outcome: null,
+      text: null,
+      by: null,
+      snapshot: null,
+      winnerContext: null,
+      amendment: null,
+      trigger: 'start',
+    };
+    const ctx = createContext(state, state.createdAtMs + now * 1000, run.env);
+    return chooseStart(ctx, [t003], 'dependency');
+  }
+
+  it('waits until the card has been open for the stall bound', () => {
+    // Before the fix the carded bean counted as started now: the wait never ended.
+    expect(choiceAt(CARD_OPENED + 60)).toEqual({
+      kind: 'wait',
+      wakeAt: CARD_OPENED + STALL_SECONDS,
+    });
+  });
+
+  it('then starts the clashing bean anyway, though the card is still open', () => {
+    expect(choiceAt(CARD_OPENED + STALL_SECONDS + 1)).toMatchObject({
+      kind: 'start',
+      task: 't003',
+      rule: 'stalled',
+    });
   });
 });

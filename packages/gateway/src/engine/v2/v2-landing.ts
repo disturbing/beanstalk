@@ -45,11 +45,12 @@ import {
   sampledRecheck,
   windowAdmits,
 } from './v2-backpressure';
-import { boundedEnd, startProgress } from './v2-bounds';
+import { boundedEnd, searchEnded, startProgress } from './v2-bounds';
 import { onProbeJob, repairWithCulprits } from './v2-culprits';
 import { endLanding, latencyTimerKey, parkLanding, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
 import { rescueOnExhaustion } from './v2-rescue';
+import { repointBranch } from './v2-reset';
 import { partnerMovedSince } from './v2-start';
 import { holdForSync, isLiveSync, syncAtBoundary } from './v2-sync';
 import {
@@ -156,6 +157,9 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
     case 'squash':
       if (current.jobId === jobId) onSquashed(step, flow, current.head0, result);
       return;
+    case 'repoint':
+      if (current.jobId === jobId) onRepointed(step, flow, current, result);
+      return;
     case 'check':
       if (current.jobId === jobId) onChecked(step, flow, current, result);
       return;
@@ -176,6 +180,7 @@ export function onLandingJob(step: V2Step, task: TaskId, jobId: JobId, result: J
       return;
     case 'culprit-probe':
       onProbeJob(step, flow, current, { jobId, result });
+      noteSearchEnd(step, flow);
       return;
     case 'queued-land':
     case 'queued-locked':
@@ -212,6 +217,7 @@ export function onLandingJobFailed(
   const current = flow.step;
   if (current.kind === 'culprit-probe') {
     onProbeJob(step, flow, current, { jobId: failure.jobId, result: null });
+    noteSearchEnd(step, flow);
     return true;
   }
   if (!('jobId' in current) || current.jobId !== failure.jobId) return true;
@@ -224,6 +230,11 @@ export function onLandingJobFailed(
   endLanding(step, task, `infrastructure failure: ${failure.error}`);
   if (isHoldingTurn) releaseTurn(step);
   return true;
+}
+
+/** A dynamic-culprit probe returned: when the search is over, the tail guard's clock restarts. */
+function noteSearchEnd(step: V2Step, flow: LandingFlow): void {
+  if (flow.step.kind !== 'culprit-probe') searchEnded(step, flow.task);
 }
 
 /** The emulated latency of a pre-land check elapsed. */
@@ -300,6 +311,25 @@ function unresolvedReason(reason: 'conflict' | 'preland-red' | 'decision' | 'res
     default:
       return assertNever(reason);
   }
+}
+
+/**
+ * `red_reset`: a requeued bean's branch is back on its own head (or already was): its landing
+ * attempt starts. A lease that found another commit is retried once from that commit.
+ */
+function onRepointed(
+  step: V2Step,
+  flow: LandingFlow,
+  repoint: Extract<LandingStep, { kind: 'repoint' }>,
+  result: JobResult,
+): void {
+  if (result.kind !== 'update-ref') throw new EngineInvariantError(`update-ref got ${result.kind}`);
+  const found = result.ok ? null : result.actual;
+  if (found !== null && found !== repoint.to && !repoint.isRetry) {
+    repointBranch(step, flow, { to: repoint.to, from: found, isRetry: true });
+    return;
+  }
+  attempt(step, flow.task);
 }
 
 /** Step 1: squash onto the sprout head as it is now, outside the turn. */
@@ -419,10 +449,12 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   if (check.targets !== null) countTargeted(step.state, result.green);
   learnReadSets(step, result);
   const red = { head: check.head0, result, mine: check.mine };
-  const inherited = inheritedFailures(step, flow, red);
+  const isDiscarded = !result.green && isOnDiscardedTree(step.state, check.head0);
+  const inherited = isDiscarded ? null : inheritedFailures(step, flow, red);
   logCheck(step, flow.task, check, { result, isInherited: inherited !== null });
   if (inherited !== null) sightInherited(step, flow, { ...red, failing: inherited });
-  const stale = inherited === null ? staleFailures(step, check.head0, result) : [];
+  const stale = isDiscarded ? discardedFailures(result) : [];
+  if (!isDiscarded && inherited === null) stale.push(...staleFailures(step, check.head0, result));
   if (check.isInTurn) {
     if (result.green) {
       publish(step, flow, {
@@ -688,16 +720,43 @@ function sightInherited(
 }
 
 /**
+ * `red_reset`: the bean was checked on a sprout commit a reset discarded since (it held beans the
+ * reset took off). Its red says nothing about the bean: the window's own failures fail with it,
+ * so it re-checks on the new sprout without a round and blames nobody (burst30 seed 7: t023 and
+ * t031 blamed t001 and t002 for such reds).
+ */
+function isOnDiscardedTree(state: V2State, head: Sha): boolean {
+  const checkedOn = sproutIndex(state, head);
+  return state.commits
+    .slice(0, checkedOn + 1)
+    .some(
+      (commit) =>
+        commit.reverted &&
+        (commit.revertedAt ?? -1) > checkedOn &&
+        state.commits[commit.revertedAt ?? -1]?.reset === true,
+    );
+}
+
+/** What a red on a discarded tree failed (the suite itself when it reported no file). */
+function discardedFailures(result: CheckResult): string[] {
+  const files = result.failingFiles ?? [];
+  return files.length > 0 ? [...files] : ['(suite crashed)'];
+}
+
+/**
  * v2.4 (`reconcile`): failing tests whose owner was on the checked sprout and was reverted
- * after it. Such a red is stale: it raises no card and costs no round.
+ * after it (or taken off by a reset and requeued). Such a red is stale: it raises no card and
+ * costs no round.
  */
 function staleFailures(step: V2Step, head: Sha, result: CheckResult): string[] {
   if (!step.ctx.env.config.reconcile || result.green || result.failingFiles === null) return [];
   const { ctx, state } = step;
   const checkedOn = sproutIndex(state, head);
+  const requeues = state.requeues ?? {};
   const owners = new Map<string, TaskId>();
   for (const id of ctx.state.order) {
-    if (ctx.state.tasks[id]?.landedSha === null) continue;
+    const isRequeued = (requeues[id] ?? 0) > 0;
+    if (ctx.state.tasks[id]?.landedSha === null && !isRequeued) continue;
     for (const path of Object.keys(acceptanceTests(ctx, id))) owners.set(path, id);
   }
   return result.failingFiles.filter((path) => {
@@ -942,7 +1001,6 @@ function landOnMovedSprout(step: V2Step, flow: LandingFlow, landing: Optimistic)
   }
   const isInTurn = flow.targeted >= MAX_TARGETED_OUTSIDE;
   flow.targeted += 1;
-  if (!isInTurn) releaseTurn(step);
   startCheck(step, flow, {
     isInTurn,
     targets,
@@ -951,6 +1009,8 @@ function landOnMovedSprout(step: V2Step, flow: LandingFlow, landing: Optimistic)
     files: landing.files,
     mine: landing.mine,
   });
+  // The bean left its inbound step first, so the next holder's window does not count it.
+  if (!isInTurn) releaseTurn(step);
 }
 
 /**
@@ -1012,8 +1072,10 @@ function recheck(step: V2Step, flow: LandingFlow, head0: Sha): void {
     head: state.sprout,
     attempt: flow.rechecks,
   });
-  releaseTurn(step);
+  // The bean leaves its inbound step before the turn passes, so the next holder's window
+  // check does not count it as landing.
   squashOntoSprout(step, flow);
+  releaseTurn(step);
 }
 
 /** The locked path (fallback or `preland_mode: locked`): squash and check inside the turn. */

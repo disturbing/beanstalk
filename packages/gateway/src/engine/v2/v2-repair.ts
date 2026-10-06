@@ -28,7 +28,7 @@ import { SPROUT_REF } from '../refs';
 import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
-import { isDecided, openCard, pairKey } from './v2-decisions';
+import { isDecided, isReconciled, openCard, pairKey } from './v2-decisions';
 import { endLanding, parkLanding, parks } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import { rescueOnExhaustion } from './v2-rescue';
@@ -158,8 +158,7 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
         !isDecided(state, flow.task, culprit)),
   );
   const unreconciled = stuck.find(
-    (culprit) =>
-      step.ctx.env.config.reconcile && !state.reconciledPairs[pairKey(flow.task, culprit)],
+    (culprit) => step.ctx.env.config.reconcile && !isReconciled(state, flow.task, culprit),
   );
   if (unreconciled !== undefined) {
     const parties = reconcileParties(step, flow.task, failure, unreconciled);
@@ -192,6 +191,18 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
     );
     return;
   }
+  startInformedRepair(step, flow, { head, red, culprits });
+}
+
+/** Fetches the culprits' diffs, then sends the informed rework (`repair_before_landing`). */
+export function startInformedRepair(
+  step: V2Step,
+  flow: LandingFlow,
+  repair: { head: Sha; red: CheckResult; culprits: readonly TaskId[] },
+): void {
+  const { state } = step;
+  const { head, red } = repair;
+  const culprits = [...repair.culprits];
   const diffs: Record<string, string> = {};
   flow.step = { kind: 'diffs', head, red, culprits, diffs };
   for (const culprit of culprits) {
@@ -261,8 +272,12 @@ function repeatedCulprits(
  * decided one it keeps it: red again on the same file after the rescue, it is dropped.
  */
 function forgetRepeats(state: V2State, task: TaskId): void {
+  const prefix = `${task}|`;
   for (const key of Object.keys(state.pairRepeats)) {
-    if (key.startsWith(`${task}|`) && state.decidedPairs[key] === undefined) {
+    if (!key.startsWith(prefix)) continue;
+    // Decided either way round (`isDecided`): the pair keeps its count.
+    const swapped = `${key.slice(prefix.length)}|${task}`;
+    if (state.decidedPairs[key] === undefined && state.decidedPairs[swapped] === undefined) {
       delete state.pairRepeats[key];
     }
   }
@@ -300,7 +315,8 @@ export function culpritTasks(
     if (owner !== undefined && owner !== task) named.push(owner);
   }
   if (check.confirmed !== undefined) {
-    return [...new Set([...named, ...check.confirmed])].slice(0, limit);
+    const live = check.confirmed.filter((culprit) => isLiveOnSprout(state, culprit, task));
+    return [...new Set([...named, ...live])].slice(0, limit);
   }
   if (ctx.env.config.base_culprits) named.push(...metCulprits(state, task, check));
   const read = new Set(red.readSet);
@@ -334,6 +350,14 @@ function metCulprits(state: V2State, task: TaskId, check: RedCheck): TaskId[] {
     if (owner !== undefined && owner !== null) met.push(owner);
   }
   return met;
+}
+
+/**
+ * A confirmed culprit still on the sprout: a reset or a revert since its search may have taken
+ * it off, and an informed rework must not cite a bean that is no longer there.
+ */
+function isLiveOnSprout(state: V2State, culprit: TaskId, task: TaskId): boolean {
+  return state.commits.some((commit) => isOtherLiveTask(commit, task) && commit.task === culprit);
 }
 
 function isOtherLiveTask(

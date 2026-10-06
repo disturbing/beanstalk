@@ -15,6 +15,11 @@ import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
  * validated green (`rerunsRedFinalSuite`, with `flake_confirm`).
  */
 const FLAKY_SEED_9 = (config: Partial<RunConfigInput>) => SEEDED_SCENARIOS.flaky(9, config);
+/**
+ * Seed 11 hits the same flake in the final suite since the window stopped counting a re-checking
+ * bean as inbound (v2-landing's `recheck`): seed 9's v2.4 run now draws its final suite green.
+ */
+const FLAKY_SEED_11 = (config: Partial<RunConfigInput>) => SEEDED_SCENARIOS.flaky(11, config);
 
 describe('the stalk never holds a red commit (flaky burst, seed 9)', () => {
   it.each([
@@ -28,8 +33,8 @@ describe('the stalk never holds a red commit (flaky burst, seed 9)', () => {
     expect(numbers(run).correct).toBe(true);
   });
 
-  it('v2.4: the final suite flaked once on the validated stalk, and its re-run is green', () => {
-    const run = runRace(FLAKY_SEED_9(V24_SETTINGS));
+  it('v2.4: the final suite flaked once on the validated stalk, and its re-run is green (seed 11)', () => {
+    const run = runRace(FLAKY_SEED_11(V24_SETTINGS));
 
     const finals = eventsOf(run.events, 'ci.end', { purpose: 'final', check: 'suite' });
     expect(finals.map((event) => [event['green'], event['rerun'] ?? false])).toEqual([
