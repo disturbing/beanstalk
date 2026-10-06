@@ -90,6 +90,8 @@ function nextStep(detail: BeanDetail): string {
       return 'Reverted from the sprout: read checks_get.';
     case 'dropped':
       return `Dropped: ${detail.dropReason ?? 'no reason recorded'}.`;
+    case 'parked':
+      return 'Parked: it needs a person (see its last step). Stop working on it.';
     default:
       return assertNever(detail.status);
   }

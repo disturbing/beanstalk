@@ -4,7 +4,9 @@
 Usage: python3 kth_green.py runs/<a> runs/<b> ... [--k 20 30 35] [--md out.md]
 
 For each run: when the k-th task reached green (minutes since race start) and the cumulative agent cost at
-that moment; plus final greens, total cost, wall clock, red validations and final correctness from summary.json.
+that moment; the median and p90 of each shipped task's start to its first stable (green) commit; when the last
+green came; plus final greens, total cost, wall clock, red validations and final correctness from summary.json.
+A parked bean (v2 `park`: it waits for a person) is not shipped, like a dropped one; the parked column counts them.
 """
 from __future__ import annotations
 
@@ -38,6 +40,43 @@ def green_times(ev: list[dict]) -> list[tuple[float, str]]:
     return sorted((t, task) for task, t in seen.items())
 
 
+def start_times(ev: list[dict]) -> dict[str, float]:
+    """Each task's first task.start (a start card's bean starts again later; the first start counts)."""
+    seen: dict[str, float] = {}
+    for e in ev:
+        if e["type"] == "task.start" and e.get("task"):
+            seen.setdefault(e["task"], e["t"])
+    return seen
+
+
+def percentile(values: list[float], q: float) -> float | None:
+    """Linear interpolation between closest ranks (numpy's default), or None for no values."""
+    if not values:
+        return None
+    xs = sorted(values)
+    pos = (len(xs) - 1) * q
+    lo = int(pos)
+    hi = min(lo + 1, len(xs) - 1)
+    return xs[lo] + (xs[hi] - xs[lo]) * (pos - lo)
+
+
+def start_to_green(ev: list[dict], greens: list[tuple[float, str]]) -> tuple[float | None, float | None]:
+    """Median and p90 minutes from a shipped task's start to its first green."""
+    starts = start_times(ev)
+    spans = [(t - starts[task]) / 60 for t, task in greens if task in starts]
+    return percentile(spans, 0.5), percentile(spans, 0.9)
+
+
+def parked_count(ev: list[dict], summary: dict) -> int:
+    if isinstance(summary.get("parked"), list):
+        return len(summary["parked"])
+    return len({e["task"] for e in ev if e["type"] == "task.parked"})
+
+
+def minutes(value: float | None) -> str:
+    return "-" if value is None else f"{value:.1f}"
+
+
 def cost_at(ev: list[dict], t: float) -> float:
     return sum((e.get("cost_usd") or 0.0) for e in ev if e["type"] == "invocation.end" and e["t"] <= t)
 
@@ -49,7 +88,8 @@ def main() -> None:
     ap.add_argument("--md", help="also write the table to this markdown file")
     a = ap.parse_args()
     head = ["run", "policy", "model", "agents"] + [f"{k}th green min / $" for k in a.k] + \
-           ["greens", "total $", "wall min", "red validations", "correct"]
+           ["start to green median / p90 min", "last green min", "greens", "parked", "total $", "wall min",
+            "red validations", "correct"]
     rows = []
     for run in a.runs:
         ev, s = load(run)
@@ -66,7 +106,9 @@ def main() -> None:
             else:
                 cells.append("not reached")
         fc = s.get("final") or s.get("final_check") or {}
-        cells += [str(len(g)), f"{s.get('cost_usd') if isinstance(s.get('cost_usd'), (int, float)) else sum((e.get('cost_usd') or 0) for e in ev if e['type'] == 'invocation.end'):.2f}",
+        median, p90 = start_to_green(ev, g)
+        cells += [f"{minutes(median)} / {minutes(p90)}", minutes(g[-1][0] / 60 if g else None)]
+        cells += [str(len(g)), str(parked_count(ev, s)), f"{s.get('cost_usd') if isinstance(s.get('cost_usd'), (int, float)) else sum((e.get('cost_usd') or 0) for e in ev if e['type'] == 'invocation.end'):.2f}",
                   f"{(s.get('wall_seconds') or ev[-1]['t']) / 60:.1f}", str(s.get("red_validations", "?")),
                   str(fc.get("correct", "?"))]
         rows.append(cells)

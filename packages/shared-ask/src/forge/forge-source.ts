@@ -50,7 +50,15 @@ export type EventsPage = {
 };
 
 /** Where a bean stands, as the explorer's badges and timelines show it. */
-export type BeanStatus = 'pending' | 'in-flight' | 'landed' | 'green' | 'reverted' | 'dropped';
+export type BeanStatus =
+  | 'pending'
+  | 'in-flight'
+  | 'landed'
+  | 'green'
+  | 'reverted'
+  | 'dropped'
+  /** v2 `park`: it needs a person. */
+  | 'parked';
 
 export type BeanRecord = {
   readonly id: TaskId;

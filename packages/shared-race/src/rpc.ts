@@ -35,7 +35,8 @@ export type TaskStatus =
   | 'rework'
   | 'landed'
   | 'green'
-  | 'dropped';
+  | 'dropped'
+  | 'parked';
 
 /** Tasks per status. */
 export type TaskCounts = Readonly<Record<TaskStatus, number>>;

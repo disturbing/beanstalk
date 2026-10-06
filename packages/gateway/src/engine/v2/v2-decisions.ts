@@ -37,10 +37,10 @@ import type { CulpritContext, DecisionContext } from '../prompts';
 import { adoptInPlacePrompt, decisionText, reexecutionPrompt, testAuthorPrompt } from '../prompts';
 import { SPROUT_REF } from '../refs';
 import { holderOf, release } from '../slots';
-import { taskBranch, taskWorkspace } from '../tasks';
+import { parkTask, taskBranch, taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
-import { amend, beanAcceptance, carriedPaths, carry } from './v2-amendments';
-import { endLanding, failFirstTimerKey, oracleTimerKey } from './v2-flows';
+import { amend, beanAcceptance, carriedPaths, carry, rollBack } from './v2-amendments';
+import { endLanding, failFirstTimerKey, oracleTimerKey, parks } from './v2-flows';
 import { awaitOutcome, lastTaskCommit } from './v2-sprout';
 import type { DecisionCard, LandingFlow, V2State, V2Step } from './v2-state';
 
@@ -169,6 +169,7 @@ export function answerCard(step: V2Step, answer: DecisionAnswer): EngineRefusal 
   }
   cancelTimer(step.ctx, card.timerId);
   card.timerId = null;
+  unpark(step, card);
   decide(step, card, {
     winner: answer.winner,
     by: 'human',
@@ -179,9 +180,14 @@ export function answerCard(step: V2Step, answer: DecisionAnswer): EngineRefusal 
   return null;
 }
 
-/** Cards still waiting for an answer, or still being applied. */
-export function hasPendingCards(state: V2State): boolean {
-  return Object.values(state.cards).some((card) => card.status !== 'done');
+/**
+ * Cards still waiting for an answer, or still being applied. A parked bean's card waits for a
+ * person after the race: the race does not wait for it.
+ */
+export function hasPendingCards(step: V2Step): boolean {
+  return Object.values(step.state.cards).some(
+    (card) => card.status !== 'done' && step.ctx.state.tasks[card.task]?.status !== 'parked',
+  );
 }
 
 /** Decisions on a bean's pairs that later amendments and re-executions must keep. */
@@ -203,11 +209,17 @@ export function scheduleAnswer(step: V2Step, card: DecisionCard): void {
   const config = step.ctx.env.config;
   if (config.decision_mode === 'human') {
     const timeout = config.human_timeout_seconds;
-    if (timeout === null || config.decision_oracle === 'none') return;
+    if (timeout === null || config.decision_oracle === 'none') {
+      parkForPerson(step, card);
+      return;
+    }
     card.timerId = setTimer(step.ctx, timeout, { kind: 'policy', key: oracleTimerKey(card.id) });
     return;
   }
-  if (config.decision_oracle === 'none') return;
+  if (config.decision_oracle === 'none') {
+    parkForPerson(step, card);
+    return;
+  }
   if (config.decision_seconds <= 0) {
     onOracle(step, card.id);
     return;
@@ -216,6 +228,30 @@ export function scheduleAnswer(step: V2Step, card: DecisionCard): void {
     kind: 'policy',
     key: oracleTimerKey(card.id),
   });
+}
+
+/**
+ * With `park`, a card only a person answers parks its bean: the race no longer waits for it.
+ * The card stays open and the bean keeps its landing flow, so an answer during the race takes
+ * it up again (`answerCard`); amendments it carried are rolled back now, as for a drop.
+ */
+function parkForPerson(step: V2Step, card: DecisionCard): void {
+  if (!parks(step.state)) return;
+  const against = card.against.join(', ');
+  parkTask(
+    step.ctx,
+    requireTask(step.ctx, card.task),
+    `needs a person: decision card ${card.id} (${card.task} vs ${against})`,
+  );
+  rollBack(step, card.task);
+}
+
+/** A person answered a parked bean's card during the race: it is back in play. */
+function unpark(step: V2Step, card: DecisionCard): void {
+  const task = requireTask(step.ctx, card.task);
+  if (task.status !== 'parked') return;
+  task.status = 'rework';
+  task.parkedReason = null;
 }
 
 function oracleWinner(card: DecisionCard, oracle: 'landed' | 'arriving' | 'none'): string {

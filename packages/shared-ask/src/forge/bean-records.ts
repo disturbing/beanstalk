@@ -28,6 +28,8 @@ function beanStatus(bean: Bean): BeanStatus {
       return 'green';
     case 'dropped':
       return bean.steps.some((step) => step.kind === 'reverted') ? 'reverted' : 'dropped';
+    case 'parked':
+      return 'parked';
     case 'working':
     case 'checking':
     case 'queued':

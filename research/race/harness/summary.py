@@ -129,6 +129,8 @@ def to_markdown(s: dict) -> str:
         ("Tasks green / landed / dropped / total", f"{s['tasks_green']} / {s['tasks_landed']} / "
                                                      f"{s['tasks_dropped']} / {s['tasks']}"),
         ("Drops by reason", "; ".join(f"{k}: {v}" for k, v in s["drops_by_reason"].items()) or "none"),
+        *([("Parked, needs a person", "; ".join(f"{p['task']} ({p['reason']})" for p in s["parked"]) or "none")]
+          if "parked" in s else []),
         ("Wall-clock (min)", round(s["wall_seconds"] / 60, 2)),
         ("Wall-clock to all-green (min)", round(s["wall_to_all_green_seconds"] / 60, 2)
          if s["wall_to_all_green_seconds"] is not None else "not reached"),

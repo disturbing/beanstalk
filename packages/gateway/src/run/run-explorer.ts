@@ -24,6 +24,7 @@ export const EXPLORER_EVENT_TYPES: readonly string[] = [
   'task.commit',
   'land',
   'task.drop',
+  'task.parked',
   'invocation.start',
   'invocation.end',
   'preland.check',

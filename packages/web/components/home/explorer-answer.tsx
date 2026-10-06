@@ -303,6 +303,8 @@ function liveItem(bean: Bean): JourneyItem | null {
     case 'queued':
     case 'testing':
       return { ...base, tone: 'plan', text: 'In the merge queue' };
+    case 'parked':
+      return { ...base, tone: 'decide', text: 'Parked: needs a person' };
     case 'pending':
     case 'landed':
     case 'green':
@@ -326,6 +328,8 @@ function statusOf(bean: BeanDetail): { readonly word: string; readonly tone: str
       return { word: 'on the sprout', tone: 'sprout' };
     case 'dropped':
       return { word: 'fell off', tone: 'red' };
+    case 'parked':
+      return { word: 'needs a person', tone: 'amber' };
     case 'reverted':
       return { word: 'reverted', tone: 'red' };
     case 'in-flight':

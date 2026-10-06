@@ -47,7 +47,9 @@ export type BeanPhase =
   | 'landed'
   /** On the stalk. */
   | 'green'
-  | 'dropped';
+  | 'dropped'
+  /** v2 `park`: it needs a person; the race finishes without it. */
+  | 'parked';
 
 export type BeanStepKind =
   | 'started'
@@ -66,6 +68,7 @@ export type BeanStepKind =
   | 'green'
   | 'reverted'
   | 'dropped'
+  | 'parked'
   /** v2.5 `tests_first`: the test author wrote its tests before the bean began. */
   | 'tests-first'
   /** v2.4: the test author tried to reconcile its tests with a landed bean's. */

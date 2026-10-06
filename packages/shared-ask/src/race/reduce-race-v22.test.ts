@@ -196,3 +196,27 @@ describe('the reducer on v2.2 events', () => {
     expect(state.line.commits[0]?.status).not.toBe('red');
   });
 });
+
+describe('the reducer on a parked bean', () => {
+  it('shows the bean as needing a person and frees its lane', () => {
+    const parsed = parseRaceEvents([
+      {
+        seq: 999,
+        t: 600,
+        ts: new Date(Date.UTC(2026, 9, 4, 10, 10)).toISOString(),
+        type: 'task.parked',
+        task: 't001',
+        reason: 'needs a person: two specs disagree (t002)',
+      },
+    ]);
+    expect(parsed.skipped).toEqual([]);
+    const state = reduceRace([...v22Race().slice(0, 6), ...parsed.events]);
+    const bean = state.beans['t001'];
+    expect(bean?.phase).toBe('parked');
+    expect(bean?.steps.at(-1)).toMatchObject({
+      kind: 'parked',
+      detail: 'needs a person: two specs disagree (t002)',
+    });
+    expect(state.lanes[0]).toMatchObject({ bean: null });
+  });
+});

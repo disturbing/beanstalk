@@ -56,7 +56,7 @@ export function newTaskState(id: TaskId, selected: readonly string[]): TaskState
 }
 
 export function isTerminal(task: TaskState): boolean {
-  return task.status === 'green' || task.status === 'dropped';
+  return task.status === 'green' || task.status === 'dropped' || task.status === 'parked';
 }
 
 /**
@@ -240,6 +240,18 @@ export function dropTask(ctx: StepContext, task: TaskState, reason: string): voi
   task.status = 'dropped';
   task.dropReason = reason;
   emit(ctx, 'task.drop', { task: task.id, reason });
+  if (task.agent !== null && holderOf(ctx, task.id)?.id === task.agent) release(ctx, task.agent);
+}
+
+/**
+ * Parks a task (v2 `park`): it needs a person, so the race stops working on it and finishes
+ * without it. Like a drop it frees the slot holding it; unlike a drop it is not a failure of
+ * the bean's work, and it does not ship.
+ */
+export function parkTask(ctx: StepContext, task: TaskState, reason: string): void {
+  task.status = 'parked';
+  task.parkedReason = reason;
+  emit(ctx, 'task.parked', { task: task.id, reason });
   if (task.agent !== null && holderOf(ctx, task.id)?.id === task.agent) release(ctx, task.agent);
 }
 

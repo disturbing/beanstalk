@@ -208,6 +208,7 @@ describe('v2: a clean landing', () => {
       'tail_guard_minutes',
       'invocation_drops',
       'tail_drops',
+      'park',
       'tests_first',
       'tests_first_accepted',
       'tests_first_fallbacks',
@@ -247,7 +248,8 @@ describe('v2: a clean landing', () => {
       start_cards: true,
       rescue: true,
       max_bean_invocations: 10,
-      tail_guard_minutes: 10,
+      tail_guard_minutes: 3,
+      park: true,
       decision_outcome: 'reexecute',
       variant: 'v2.5',
       variant_additions: [],
@@ -272,7 +274,7 @@ describe('v2: a clean landing', () => {
         '1 / 3 / 0',
       ],
       ['Start cards / rescues / dynamic culprit searches (probes)', '0 / 0 / 0 (0)'],
-      ['Max bean invocations / tail guard minutes / dropped by each', '10 / 10 / 0 / 0'],
+      ['Max bean invocations / tail guard minutes / dropped by each', '10 / 3 / 0 / 0'],
       ['Tests first (accepted / fallbacks) / targeted landing checks (red)', 'off / off'],
       [
         'Sprout window at the end / window waits / early tickets / re-check samples',
@@ -527,7 +529,12 @@ describe('v2: repair before landing', () => {
       tasks: [soloTask('t001'), buggyT002({ stubborn: true })],
       rules: [BREAKS_T001],
       durations: { t001: 20_000, t002: 100_000 },
-      config: { decision_outcome: 'decline', escalate_after: 2 },
+      config: {
+        decision_outcome: 'decline',
+        escalate_after: 2,
+        park: false,
+        tail_guard_minutes: 10,
+      },
     });
 
     expect(
@@ -583,7 +590,7 @@ describe('v2: repair before landing', () => {
       ],
       rules: [{ ...BREAKS_T001, unless: 'accepts BUG:t002' }],
       durations: { t001: 20_000, t002: 100_000 },
-      config: { decision_mode: 'human' },
+      config: { decision_mode: 'human', park: false },
       injections: [adminDecision('t001', 'D009'), adminDecision('t999'), adminDecision('t002')],
     });
 

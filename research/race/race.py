@@ -68,8 +68,8 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
                         "forks the first beans one at a time instead of all at once (default 0: all at once, as "
                         "locally; staggering changes start times, so compare with care)")
     f.add_argument("--preset", choices=["demo", "v24"],
-                   help="--forge cloudflare: pinned engine settings; demo = v2.5 with dependency-aware starts and the "
-                        "tail fix, the engine behind the published numbers (cf-v25dep2-sonnet-12-s7/s11/s13); v24 = "
+                   help="--forge cloudflare: pinned engine settings; demo = v2.5 with dependency-aware starts, the "
+                        "tail fix and parking (a bean that needs a person is parked; the race ends without it), the engine behind the published numbers (cf-v25dep2-sonnet-12-s7/s11/s13); v24 = "
                         "the v2.4 engine (cf-v24-*). A v2 knob that contradicts the preset is refused")
     f.add_argument("--max-usd", type=float,
                    help="--forge cloudflare: abort when agent spend plus the measured infrastructure cost reaches this")

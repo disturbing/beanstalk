@@ -158,6 +158,8 @@ function applyByType(draft: Draft, event: RaceEvent): void {
       return commitBean(draft, event);
     case 'task.drop':
       return dropBean(draft, event);
+    case 'task.parked':
+      return parkBean(draft, event);
     case 'preland.check':
       return recordCheck(draft, event);
     case 'preland.recheck':
@@ -450,6 +452,13 @@ function dropBean(draft: Draft, event: RaceEventOf<'task.drop'>): void {
   addStep(draft, event.task, { t: event.t, kind: 'dropped', detail: event.reason });
   releaseLane(draft, event.task);
   draft.queue = draft.queue.filter((id) => id !== event.task);
+}
+
+/** v2 `park`: the bean waits for a person; its lane is free and the race goes on without it. */
+function parkBean(draft: Draft, event: RaceEventOf<'task.parked'>): void {
+  setPhase(draft, event.task, 'parked', event.t);
+  addStep(draft, event.task, { t: event.t, kind: 'parked', detail: event.reason });
+  releaseLane(draft, event.task);
 }
 
 function recordCheck(draft: Draft, event: RaceEventOf<'preland.check'>): void {

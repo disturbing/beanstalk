@@ -155,7 +155,7 @@ describe('structural merge tier', () => {
 });
 
 describe('the demo preset', () => {
-  it('pins v2.5 with dependency-aware starts and the tail bounds whatever the defaults are', () => {
+  it('pins v2.5 with dependency-aware starts, the tail bounds and parking whatever the defaults are', () => {
     const config = RunConfig.parse({
       policy: 'beanstalk-v2',
       preset: 'demo',
@@ -166,16 +166,19 @@ describe('the demo preset', () => {
     expect(config).toMatchObject({
       start_order: 'dependency',
       max_bean_invocations: 10,
-      tail_guard_minutes: 10,
+      tail_guard_minutes: 3,
+      park: true,
     });
   });
 
-  it('pins the v2.5 rules at the values the defaults have today', () => {
+  it('pins the v2.5 rules at the values the defaults have today, parking aside', () => {
     const defaults = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
 
-    expect({ ...defaults, structural_merge: usesStructuralMerge(defaults) }).toMatchObject(
-      V25_SETTINGS,
-    );
+    expect({ ...defaults, structural_merge: usesStructuralMerge(defaults) }).toMatchObject({
+      ...V25_SETTINGS,
+      park: true,
+      tail_guard_minutes: 3,
+    });
   });
 
   it('accepts a pinned field repeated with its value and refuses a changed one', () => {

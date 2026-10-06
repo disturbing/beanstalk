@@ -83,6 +83,7 @@ const AcceptanceRestored = event('acceptance.restored', {
   paths: Paths,
 });
 const TaskDrop = event('task.drop', { task: TaskId, reason: z.string() });
+const TaskParked = event('task.parked', { task: TaskId, reason: z.string() });
 const CiStart = event('ci.start', {
   ci: z.string(),
   sha: Sha,
@@ -307,6 +308,7 @@ export const RaceEvent = z.discriminatedUnion('type', [
   TaskCommit,
   AcceptanceRestored,
   TaskDrop,
+  TaskParked,
   CiStart,
   CiEnd,
   Land,

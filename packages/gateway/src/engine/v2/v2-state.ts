@@ -491,6 +491,8 @@ export type V2Settings = {
   /** v2.5 tail fix (`max_bean_invocations`, `tail_guard_minutes`); absent or 0: off. */
   readonly maxBeanInvocations?: number;
   readonly tailGuardMinutes?: number;
+  /** `park`: a bean that needs a person is parked, not dropped; absent: off. */
+  readonly park?: boolean;
 };
 
 /** v2.5 tail guard: when a bean last made progress, and the failing sets it has seen. */

@@ -31,7 +31,8 @@ export type TaskStatus =
   | 'rework'
   | 'landed'
   | 'green'
-  | 'dropped';
+  | 'dropped'
+  | 'parked';
 
 /** The harness's `TaskState`, minus what lives in the driver's worktree. */
 export type TaskState = {
@@ -58,6 +59,8 @@ export type TaskState = {
   reworks: number;
   infraRetries: number;
   dropReason: string | null;
+  /** v2 `park`: why the bean waits for a person (absent in runs created before parking). */
+  parkedReason?: string | null;
   tamper: string[];
   /** Predicted footprint modules (reported; the queue never places by them). */
   selected: string[];

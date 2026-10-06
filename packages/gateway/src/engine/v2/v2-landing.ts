@@ -44,9 +44,9 @@ import {
   sampledRecheck,
   windowAdmits,
 } from './v2-backpressure';
-import { boundedDrop, startProgress } from './v2-bounds';
+import { boundedEnd, startProgress } from './v2-bounds';
 import { onProbeJob, repairWithCulprits } from './v2-culprits';
-import { endLanding, latencyTimerKey, requireFlow } from './v2-flows';
+import { endLanding, latencyTimerKey, parkLanding, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
 import { rescueOnExhaustion } from './v2-rescue';
 import { partnerMovedSince } from './v2-start';
@@ -1060,13 +1060,17 @@ function landed(step: V2Step, flow: LandingFlow, landing: { sha: Sha; files: str
 function attemptFailed(step: V2Step, flow: LandingFlow, failure: Failure): void {
   const { ctx, state } = step;
   flow.rounds += 1;
-  const bound = boundedDrop(step, flow.task, {
+  const bound = boundedEnd(step, flow.task, {
     kind: failure.kind,
     files: failure.kind === 'red' ? (failure.red.failingFiles ?? []) : failure.files,
   });
+  if (bound?.kind === 'park') {
+    parkLanding(step, flow.task, bound.reason);
+    return;
+  }
   if (bound !== null) {
     if (failure.kind === 'red') state.stats.preland_drops += 1;
-    endLanding(step, flow.task, bound);
+    endLanding(step, flow.task, bound.reason);
     return;
   }
   if (flow.rounds > ctx.env.config.max_rework) {

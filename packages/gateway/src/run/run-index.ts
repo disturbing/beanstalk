@@ -54,6 +54,8 @@ const StoredItem = z.object({
     landed: Count,
     green: Count,
     dropped: Count,
+    // Rows written before parking have none.
+    parked: Count.default(0),
   }),
   spent_usd: z.number(),
 });

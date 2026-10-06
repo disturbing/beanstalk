@@ -6,7 +6,7 @@ import { TaskId } from '@beanstalk/shared-race/ids';
 
 import { requireTask } from '../context';
 import { EngineInvariantError } from '../errors';
-import { dropTask } from '../tasks';
+import { dropTask, parkTask } from '../tasks';
 import { rollBack } from './v2-amendments';
 import type { LandingFlow, V2State, V2Step } from './v2-state';
 
@@ -30,6 +30,22 @@ export function endLanding(step: V2Step, task: TaskId, reason: string): void {
   delete step.state.agentWaitSince[task];
   dropTask(step.ctx, requireTask(step.ctx, task), reason);
   rollBack(step, task);
+}
+
+/**
+ * Ends a bean's landing loop by parking it (`park`): it needs a person. Its slot is freed and
+ * any in-place amendment it carried is rolled back, as for a drop.
+ */
+export function parkLanding(step: V2Step, task: TaskId, reason: string): void {
+  delete step.state.landings[task];
+  delete step.state.agentWaitSince[task];
+  parkTask(step.ctx, requireTask(step.ctx, task), reason);
+  rollBack(step, task);
+}
+
+/** Whether the run parks beans that need a person instead of dropping them. */
+export function parks(state: V2State): boolean {
+  return state.settings.park === true;
 }
 
 /** The timer that ends a pre-land check's emulated latency. */

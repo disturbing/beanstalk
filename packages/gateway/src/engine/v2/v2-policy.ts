@@ -168,6 +168,7 @@ function initialV2State(ctx: StepContext): V2State {
       ...(config.live_sync_midrun ? { liveSyncMidrun: true } : {}),
       maxBeanInvocations: config.max_bean_invocations,
       tailGuardMinutes: config.tail_guard_minutes,
+      ...(config.park ? { park: true } : {}),
     },
     sprout: base,
     green: base,
@@ -535,7 +536,7 @@ function isFinished(step: V2Step): boolean {
     state.validating.length === 0 &&
     Object.keys(state.reverts).length === 0 &&
     Object.keys(state.bisects).length === 0 &&
-    !hasPendingCards(state) &&
+    !hasPendingCards(step) &&
     isTurnIdle(state) &&
     isStalkSettled(state);
   const headIdx = state.commits.length - 1;
@@ -593,7 +594,8 @@ function hasV25Rule(settings: V2Settings): boolean {
     settings.startCards ||
     settings.rescue ||
     settings.dynamicCulprits ||
-    hasTailBounds(settings)
+    hasTailBounds(settings) ||
+    settings.park === true
   );
 }
 
@@ -731,6 +733,7 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
           tail_drops: stats.tail_drops ?? 0,
         }
       : {}),
+    ...(settings.park === true ? { park: true } : {}),
     tests_first: settings.testsFirst,
     tests_first_accepted: stats.tests_first_accepted,
     tests_first_fallbacks: stats.tests_first_fallbacks,

@@ -8,7 +8,14 @@ import type { FailRule } from '../testing/fake-world';
 import type { RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
 
-const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
+// v2.5 as published: beans that need a person are dropped (parking: v2-park.test.ts).
+const V2: Partial<RunConfigInput> = {
+  policy: 'beanstalk-v2',
+  agents: 2,
+  ci_seconds: 60,
+  park: false,
+  tail_guard_minutes: 10,
+};
 const WITHOUT_E6: Partial<RunConfigInput> = {
   start_cards: false,
   rescue: false,

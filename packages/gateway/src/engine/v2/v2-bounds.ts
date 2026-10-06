@@ -11,6 +11,7 @@
  *   dropped at its next failed check, so the run ends.
  *
  * Both act only where a bean's attempt failed: it then holds no agent, no card and no job.
+ * With `park`, either bound parks the bean (it needs a person) instead of dropping it.
  */
 import type { InvocationKind } from '@beanstalk/shared-race/driver';
 import type { TaskId } from '@beanstalk/shared-race/ids';
@@ -39,24 +40,47 @@ export function startProgress(step: V2Step, task: TaskId): void {
   progress[task] ??= { at: step.ctx.now, seen: [] };
 }
 
+/** How a bound ends a bean: dropped (v2.5), or parked for a person (`park`). */
+export type BoundedEnd = { readonly kind: 'drop' | 'park'; readonly reason: string };
+
 /**
- * A bean's attempt failed: record whether it made progress, then return why the bean must be
- * dropped (its invocation ceiling, or the tail guard), or null to go on.
+ * A bean's attempt failed: record whether it made progress, then return how the bean must end
+ * (its invocation ceiling, or the tail guard), or null to go on.
  */
-export function boundedDrop(step: V2Step, task: TaskId, failed: FailedAttempt): string | null {
+export function boundedEnd(step: V2Step, task: TaskId, failed: FailedAttempt): BoundedEnd | null {
   const progress = noteFailure(step, task, failed);
+  const isParking = step.state.settings.park === true;
   const ceiling = step.state.settings.maxBeanInvocations ?? 0;
   const used = invocationsOf(step.ctx, task);
   if (ceiling > 0 && used >= ceiling) {
+    if (isParking) return parkFor(step, task, `still failing after ${used} attempts`);
     countDrop(step.state, 'invocation_drops');
-    return `still failing after ${used} agent invocations (max_bean_invocations ${ceiling})`;
+    return {
+      kind: 'drop',
+      reason: `still failing after ${used} agent invocations (max_bean_invocations ${ceiling})`,
+    };
   }
   const minutes = step.state.settings.tailGuardMinutes ?? 0;
   if (minutes <= 0 || !onlyStuckBeansLeft(step)) return null;
   const since = Math.max(progress.at, lastLandingAt(step.state));
   if (step.ctx.now - since < minutes * 60) return null;
+  if (isParking) return parkFor(step, task, `no progress for ${minutes} minutes`);
   countDrop(step.state, 'tail_drops');
-  return `no progress for ${minutes} minutes with only stuck beans left (tail_guard_minutes)`;
+  return {
+    kind: 'drop',
+    reason: `no progress for ${minutes} minutes with only stuck beans left (tail_guard_minutes)`,
+  };
+}
+
+/**
+ * Why a bound parks a bean: a card's loser still red disagrees with the card's winner (two
+ * specs disagree), whichever bound caught it first; otherwise the bound itself.
+ */
+function parkFor(step: V2Step, task: TaskId, bound: string): BoundedEnd {
+  const winner =
+    Object.values(step.state.cards).findLast((card) => card.loser === task)?.winner ?? null;
+  const why = winner === null ? bound : `two specs disagree (${winner})`;
+  return { kind: 'park', reason: `needs a person: ${why}` };
 }
 
 /** A failing set the bean had not seen is progress. */

@@ -8,6 +8,7 @@ const LABELS: Readonly<Record<BeanStatus, string>> = {
   green: 'on the stalk',
   reverted: 'reverted',
   dropped: 'dropped',
+  parked: 'needs a person',
 };
 
 const PILL: Readonly<Record<BeanStatus, string | undefined>> = {
@@ -17,6 +18,7 @@ const PILL: Readonly<Record<BeanStatus, string | undefined>> = {
   green: styles.pillGreen,
   reverted: styles.pillRed,
   dropped: styles.pillDropped,
+  parked: styles.pillHuman,
 };
 
 const BEAD: Readonly<Record<BeanStatus, string | undefined>> = {
@@ -26,6 +28,7 @@ const BEAD: Readonly<Record<BeanStatus, string | undefined>> = {
   green: styles.beadGreen,
   reverted: styles.beadRed,
   dropped: styles.beadDropped,
+  parked: styles.beadHuman,
 };
 
 /** A bean's status as a word with its shape, never colour alone. */
@@ -74,6 +77,7 @@ function StatusGlyph({ status }: { readonly status: BeanStatus }) {
         </svg>
       );
     case 'dropped':
+    case 'parked':
     case 'pending':
       return (
         <svg {...common}>

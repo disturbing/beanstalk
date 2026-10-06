@@ -183,6 +183,8 @@ function describe(event: RaceEvent): Draft | undefined {
       );
     case 'task.drop':
       return majorLine('neutral', `${event.task} dropped: ${event.reason}.`, event.task);
+    case 'task.parked':
+      return majorLine('warn', `${event.task} is parked: ${event.reason}.`, event.task);
     case 'queue.enqueue':
       return majorLine(
         'neutral',

@@ -77,6 +77,7 @@ const STEP_LABEL: Readonly<Record<BeanStep['kind'], string>> = {
   green: 'On the stalk',
   reverted: 'Reverted',
   dropped: 'Dropped',
+  parked: 'Parked, needs a person',
   'tests-first': 'Tests written first',
   reconcile: 'Specs compared',
   rescue: 'Rescued',

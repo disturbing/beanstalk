@@ -67,6 +67,7 @@ export function taskCounts(tasks: readonly TaskState[]): TaskCounts {
     landed: 0,
     green: 0,
     dropped: 0,
+    parked: 0,
   };
   for (const task of tasks) counts[task.status] += 1;
   return counts;

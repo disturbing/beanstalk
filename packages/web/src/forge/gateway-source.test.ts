@@ -73,6 +73,7 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding<Fetche
             landed: 2,
             green: 9,
             dropped: 0,
+            parked: 0,
             total: 16,
           },
           spent_usd: 1.25,

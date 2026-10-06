@@ -60,6 +60,8 @@ function sentenceOf(step: BeanStep): string {
       return `Reverted (${detail})`;
     case 'dropped':
       return `Fell off: ${detail.replace('--max-rework', 'the maximum')}`;
+    case 'parked':
+      return `Parked: ${detail.replace(/^needs a person: /, 'needs a person, ')}`;
     case 'tests-first':
       return `Tests written first (${detail})`;
     case 'reconcile':
@@ -98,6 +100,7 @@ function toneOf(kind: BeanStepKind): JourneyTone {
       return 'stalk';
     case 'decision':
     case 'reconcile':
+    case 'parked':
       return 'decide';
     case 'rescue':
     case 'culprits':

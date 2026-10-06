@@ -192,6 +192,8 @@ export type RaceEventFields = {
     readonly others?: readonly string[];
   };
   'task.drop': TaskRef & { readonly reason: string };
+  /** v2 `park`: the bean waits for a person; it is done for the race but does not ship. */
+  'task.parked': TaskRef & { readonly reason: string };
   'ci.start': {
     readonly ci: string;
     readonly sha: string;

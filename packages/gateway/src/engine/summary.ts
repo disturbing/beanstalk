@@ -52,6 +52,7 @@ export function buildSummary(state: EngineState, env: EngineEnv, nowSeconds: num
     tasks_dropped: tasks.filter((task) => task.status === 'dropped').length,
     acceptance_restored: acceptanceRestored(env, tasks),
     drops_by_reason: dropsByReason(tasks),
+    ...parkedBlock(env, tasks),
     changes_green_per_hour: wall > 0 ? roundTo(green.length / (wall / 3600), 3) : null,
     wall_to_all_green_seconds: wallToAllGreen(green, tasks.length, raceT0),
     task_start_to_green_seconds: startToGreen(green),
@@ -136,6 +137,19 @@ function dropsByReason(tasks: readonly TaskState[]): JsonObject {
     counts[reason] = (counts[reason] ?? 0) + 1;
   }
   return Object.fromEntries(Object.entries(counts).toSorted(([a], [b]) => (a < b ? -1 : 1)));
+}
+
+/**
+ * v2 `park`: the beans that wait for a person, with why, after the drops. Only runs that park
+ * report it, so summaries of earlier runs and of the queue stay byte-identical.
+ */
+function parkedBlock(env: EngineEnv, tasks: readonly TaskState[]): JsonObject {
+  if (env.config.policy !== 'beanstalk-v2' || !env.config.park) return {};
+  return {
+    parked: tasks
+      .filter((task) => task.status === 'parked')
+      .map((task) => ({ task: task.id, reason: task.parkedReason ?? '' })),
+  };
 }
 
 function wallToAllGreen(

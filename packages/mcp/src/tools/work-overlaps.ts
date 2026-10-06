@@ -83,6 +83,7 @@ const RANK: Readonly<Record<BeanStatus, number>> = {
   pending: 3,
   reverted: 3,
   dropped: 3,
+  parked: 3,
 };
 
 function rank(status: BeanStatus): number {

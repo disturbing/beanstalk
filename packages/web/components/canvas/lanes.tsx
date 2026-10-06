@@ -98,6 +98,8 @@ function laneStatus(lane: Lane, state: RaceState): LaneStatus {
     case 'green':
     case 'dropped':
       return { glyph: 'blocked', text: `holding ${bean.id}`, bean };
+    case 'parked':
+      return { glyph: 'human', text: `${bean.id} needs a person`, bean };
     default:
       return assertNever(bean.phase);
   }

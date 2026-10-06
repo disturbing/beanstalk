@@ -253,9 +253,17 @@ const CheckedFields = z
     /**
      * v2.5 tail fix: when every bean still in play has failed a check and none has made
      * progress (a failing set it had not seen, or any landing) for this many minutes, each is
-     * dropped at its next failed check, so the run ends. `0`: off.
+     * dropped (with `park`: parked) at its next failed check, so the run ends. `0`: off.
+     * v2.5 ran with 10; parking made it 3.
      */
-    tail_guard_minutes: z.number().min(0).max(1440).default(10),
+    tail_guard_minutes: z.number().min(0).max(1440).default(3),
+    /**
+     * v2 parking: a bean that needs a person (a decided contradiction still red, the invocation
+     * ceiling, the tail guard, a human-mode card nobody answers) is parked, not retried or
+     * dropped. The race finishes when every bean is green, dropped or parked; parked beans do
+     * not ship. The queue ignores it. `false`: drop as v2.5 did.
+     */
+    park: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -367,6 +375,7 @@ export const V25_RULES_OFF = {
   structural_merge: false,
   max_bean_invocations: 0,
   tail_guard_minutes: 0,
+  park: false,
 } as const satisfies Partial<RunConfigInput>;
 
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
@@ -390,14 +399,18 @@ export const V25_SETTINGS = {
   structural_merge: true,
   max_bean_invocations: 10,
   tail_guard_minutes: 10,
+  park: false,
 } as const satisfies Partial<RunConfigInput>;
 
 /**
  * The demo engine: v2.5 with dependency-aware starts and the tail fix (the CF races
- * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`). The opt-in tracks it does not use are pinned off.
+ * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), plus parking with its 3-minute tail guard. The
+ * opt-in tracks it does not use are pinned off.
  */
 export const DEMO_SETTINGS = {
   ...V25_SETTINGS,
+  park: true,
+  tail_guard_minutes: 3,
   start_order: 'dependency',
   tests_first: false,
   targeted_landing_check: false,

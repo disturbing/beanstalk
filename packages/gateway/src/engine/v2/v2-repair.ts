@@ -29,7 +29,7 @@ import { taskWorkspace } from '../tasks';
 import { requestAgent } from './v2-agents';
 import { beanAcceptance, carriedPaths } from './v2-amendments';
 import { isDecided, openCard, pairKey } from './v2-decisions';
-import { endLanding } from './v2-flows';
+import { endLanding, parkLanding, parks } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import { rescueOnExhaustion } from './v2-rescue';
 import { cardAfterReds } from './v2-start';
@@ -172,6 +172,12 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
     return;
   }
   const decided = stuck[0];
+  if (decided !== undefined && parks(state)) {
+    // The card decided and the re-execution is still red against it: only a person can tell
+    // which spec is wrong, so no rescue and no more rounds.
+    parkLanding(step, flow.task, `needs a person: two specs disagree (${decided})`);
+    return;
+  }
   if (decided !== undefined) {
     if (rescueOnExhaustion(step, flow, red)) {
       forgetRepeats(state, flow.task);
