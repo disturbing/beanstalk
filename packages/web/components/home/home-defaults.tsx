@@ -9,7 +9,7 @@ import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import styles from './home.module.css';
-import { useLiveStreams } from './live-streams';
+import { useStreamSummaries } from './live-streams';
 import { BaseChip, BeanChip, FileIcon, InFlightChip } from './marks';
 
 export type DefaultsProps = {
@@ -25,7 +25,7 @@ export type DefaultsProps = {
 
 /** The explorer when nothing is asked: Growing now (while beans fly), What happened, Files. */
 export function HomeDefaults(props: DefaultsProps) {
-  const streams = useLiveStreams();
+  const streams = useStreamSummaries();
   const flying = Object.values(props.state.beans).filter(
     (bean) => isInFlight(bean.phase) && bean.startedAt !== null,
   );

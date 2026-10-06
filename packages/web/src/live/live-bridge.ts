@@ -3,8 +3,7 @@
  * GATEWAY service binding, becomes a Server-Sent Events stream. vinext cannot hold a
  * WebSocket upgrade on its own routes, and SSE reconnects by itself, resuming after the
  * last event id. Events missed before the socket opened are read with `runEvents` first.
- * Streaming diffs (`stream_diffs`) ride along as `stream` events: never in the log, so they
- * carry no id; after the catch-up the beans streaming now are sent first.
+ * Streaming diffs (`stream_diffs`) have their own feed (`stream-bridge.ts`).
  */
 import { z } from 'zod';
 
@@ -13,11 +12,6 @@ import type { RunId } from '@beanstalk/shared-race/ids';
 import { log } from '../log';
 import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { RunEventsPage, ViewToken, unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import type { BeanStreamMessage } from '@beanstalk/shared-ask/forge/bean-stream';
-import {
-  BeanStreamMessage as StreamSchema,
-  currentStreams,
-} from '@beanstalk/shared-ask/forge/bean-stream';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
 
@@ -30,7 +24,6 @@ const FeedMessage = z.object({
   type: z.string(),
   view: z.object({ phase: z.string() }).nullable().optional(),
   events: z.array(z.unknown()).optional(),
-  stream: z.unknown().optional(),
 });
 
 const encoder = new TextEncoder();
@@ -77,11 +70,6 @@ async function pump(input: Pump): Promise<void> {
   let caughtUp = false;
   let closed = false;
   const backlog: RaceEvent[] = [];
-  const streamBacklog: BeanStreamMessage[] = [];
-  const sendStream = (stream: BeanStreamMessage) => {
-    if (closed) return;
-    controller.enqueue(encoder.encode(`event: stream\ndata: ${JSON.stringify(stream)}\n\n`));
-  };
   const send = (events: readonly RaceEvent[]) => {
     const fresh = events.filter((event) => event.seq > lastSent);
     if (fresh.length === 0 || closed) return;
@@ -106,11 +94,6 @@ async function pump(input: Pump): Promise<void> {
     const parsed = parseMessage(message.data);
     if (parsed === undefined) return;
     done ||= parsed.done;
-    if (parsed.stream !== undefined) {
-      if (caughtUp) sendStream(parsed.stream);
-      else streamBacklog.push(parsed.stream);
-      return;
-    }
     if (!caughtUp) {
       backlog.push(...parsed.events);
       return;
@@ -126,15 +109,8 @@ async function pump(input: Pump): Promise<void> {
     // The socket still delivers new steps; the browser's next reconnect retries the catch-up.
     log.warn('live catch-up failed', { run: input.run, error });
   }
-  try {
-    for (const stream of await currentStreams(input.binding, input.run)) sendStream(stream);
-  } catch (error: unknown) {
-    // Only the streams already in flight are missed; the next snapshot of each brings it back.
-    log.warn('live stream catch-up failed', { run: input.run, error });
-  }
   caughtUp = true;
   send(backlog);
-  for (const stream of streamBacklog) sendStream(stream);
   if (done) finish('the run is done');
 }
 
@@ -154,20 +130,12 @@ async function catchUp(
   }
 }
 
-function parseMessage(data: unknown):
-  | {
-      readonly events: readonly RaceEvent[];
-      readonly done: boolean;
-      readonly stream?: BeanStreamMessage;
-    }
-  | undefined {
+function parseMessage(
+  data: unknown,
+): { readonly events: readonly RaceEvent[]; readonly done: boolean } | undefined {
   if (typeof data !== 'string') return undefined;
   const message = FeedMessage.safeParse(jsonOrUndefined(data));
   if (!message.success) return undefined;
-  if (message.data.type === 'stream') {
-    const stream = StreamSchema.safeParse(message.data.stream);
-    return stream.success ? { events: [], done: false, stream: stream.data } : undefined;
-  }
   return {
     events: parseRaceEvents(message.data.events ?? []).events,
     done: message.data.view?.phase === 'done',

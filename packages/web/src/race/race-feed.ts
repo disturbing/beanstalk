@@ -230,6 +230,7 @@ function describe(event: RaceEvent): Draft | undefined {
     case 'bisect.start':
     case 'ticket.close':
     case 'ticket.escalate':
+    case 'ticket.stuck':
     case 'abort':
     case 'sync.noted':
     case 'sync.midrun.offered':

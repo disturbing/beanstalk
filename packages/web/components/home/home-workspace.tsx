@@ -86,7 +86,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
   const validating = visible.some((event) => event.type === 'green.promote' && event.t > now - 6);
   useUrlTime(props.mode === 'replay' && !clock.playing && !finished ? now : null);
   return (
-    <LiveStreamsProvider run={props.run} streams={live.streams}>
+    <LiveStreamsProvider run={props.run} enabled={props.mode === 'live'}>
       <div className={styles.home}>
         <aside
           className={`${styles.stalkcol} ${relevant === null ? '' : styles.asking} ${validating ? styles.validating : ''}`}

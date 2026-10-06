@@ -1,67 +1,163 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { BeanStreamSummary, BeanStreamView } from '@beanstalk/shared-ask/forge/bean-stream';
+import { BeanStreamSocketMessage } from '@beanstalk/shared-ask/forge/bean-stream';
+import type { LiveStreams } from '../../src/live/stream-state';
+import {
+  applyStreamMessage,
+  beanView,
+  seedStream,
+  writingSummaries,
+} from '../../src/live/stream-state';
 
 /**
- * Streaming diffs (`stream_diffs`) on the repository home: the beans whose agents are writing
- * now, from the live feed. The journey card reads its bean's snapshot through it; the stalk
- * and Growing now read the summaries.
+ * Streaming diffs (`stream_diffs`) on the repository home (docs/claude-17-streaming-diffs.md):
+ * one stream feed per page, subscribed to the beans whose diffs are on screen. The beans
+ * come from the components that call `useBeanStream`; the stalk and Growing now read the
+ * summaries of every bean being written.
  */
-type LiveStreams = {
+type StreamsContext = {
   readonly run: string;
-  readonly streams: ReadonlyMap<string, BeanStreamSummary>;
+  readonly enabled: boolean;
+  readonly streams: LiveStreams;
+  readonly summaries: ReadonlyMap<string, BeanStreamSummary>;
+  /** Puts a bean on screen; the returned function takes it off. */
+  readonly watch: (bean: string) => () => void;
+  readonly seed: (view: BeanStreamView) => void;
 };
 
-const NO_STREAMS: LiveStreams = { run: '', streams: new Map() };
+const NO_STREAMS: StreamsContext = {
+  run: '',
+  enabled: false,
+  streams: new Map(),
+  summaries: new Map(),
+  watch: () => () => undefined,
+  seed: () => undefined,
+};
 
-const LiveStreamsContext = createContext<LiveStreams>(NO_STREAMS);
+const LiveStreamsContext = createContext<StreamsContext>(NO_STREAMS);
 
-export function LiveStreamsProvider(props: LiveStreams & { readonly children: ReactNode }) {
-  const { run, streams } = props;
-  return <LiveStreamsContext value={{ run, streams }}>{props.children}</LiveStreamsContext>;
-}
-
-/** The summaries of every bean streaming now, by task. */
-export function useLiveStreams(): ReadonlyMap<string, BeanStreamSummary> {
-  return useContext(LiveStreamsContext).streams;
+export function LiveStreamsProvider(props: {
+  readonly run: string;
+  /** A live run streams; a recorded one replays and has nothing streaming. */
+  readonly enabled: boolean;
+  readonly children: ReactNode;
+}) {
+  const { run, enabled } = props;
+  const { beans, watch } = useWatchedBeans();
+  const { streams, seed } = useLiveStreams(run, beans, enabled);
+  const summaries = useMemo(() => writingSummaries(streams), [streams]);
+  const value = useMemo(
+    () => ({ run, enabled, streams, summaries, watch, seed }),
+    [run, enabled, streams, summaries, watch, seed],
+  );
+  return <LiveStreamsContext value={value}>{props.children}</LiveStreamsContext>;
 }
 
 /**
- * A bean's streamed change: fetched when a newer snapshot is announced (the newest request
- * wins), kept on screen until the next one arrives so the diff updates in place.
- * `writing` is false once the stream ended; the last snapshot stays until the caller has
- * the commit.
+ * Follows a live run's stream feed (`/api/runs/:run/streams?beans=`): every bean's summary,
+ * and the files of `beans`, patched in place as the agents write. Changing `beans` reconnects
+ * this feed only; what is held stays.
+ */
+export function useLiveStreams(
+  run: string,
+  beans: readonly string[],
+  enabled: boolean,
+): { readonly streams: LiveStreams; readonly seed: (view: BeanStreamView) => void } {
+  const [streams, setStreams] = useState<LiveStreams>(new Map());
+  const subscribed = beans.join(',');
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const query = subscribed === '' ? '' : `?beans=${encodeURIComponent(subscribed)}`;
+    const source = new EventSource(`/api/runs/${run}/streams${query}`);
+    source.addEventListener('stream', (message) => {
+      const parsed = BeanStreamSocketMessage.safeParse(parseJson(message.data));
+      if (parsed.success) setStreams((current) => applyStreamMessage(current, parsed.data));
+    });
+    source.addEventListener('end', () => source.close());
+    return () => source.close();
+  }, [run, subscribed, enabled]);
+  const seed = useCallback(
+    (view: BeanStreamView) => setStreams((current) => seedStream(current, view)),
+    [],
+  );
+  return { streams, seed };
+}
+
+/** The summaries of every bean being written now, by task. */
+export function useStreamSummaries(): ReadonlyMap<string, BeanStreamSummary> {
+  return useContext(LiveStreamsContext).summaries;
+}
+
+/**
+ * A bean's streamed change, patched in place as its agent writes. The bean joins the feed's
+ * subscription while the caller is on screen; until its files arrive (first paint) they are
+ * read once through the GET route. `writing` is false once the stream ended; the last files
+ * stay until the caller has the commit.
  */
 export function useBeanStream(bean: string): {
   readonly view: BeanStreamView | null;
   readonly writing: boolean;
 } {
-  const { run, streams } = useContext(LiveStreamsContext);
-  const summary = streams.get(bean);
-  const seq = summary === undefined ? null : `${summary.inv}:${summary.seq}`;
-  const [view, setView] = useState<BeanStreamView | null>(null);
-  const latest = useRef<string | null>(null);
+  const { run, enabled, streams, watch, seed } = useContext(LiveStreamsContext);
+  useEffect(() => watch(bean), [watch, bean]);
+  const live = streams.get(bean);
+  const view = beanView(live);
+  const writing = live?.writing === true;
+  const missing = enabled && writing && view === null ? (live?.summary?.inv ?? null) : null;
   useEffect(() => {
-    if (seq === null || run === '') return undefined;
-    latest.current = seq;
+    if (missing === null) return undefined;
     const controller = new AbortController();
     const load = async () => {
       try {
-        const next = await fetchStream(run, bean, controller.signal);
-        if (latest.current === seq && next !== null) setView(next);
+        const first = await fetchStream(run, bean, controller.signal);
+        if (first !== null) seed(first);
       } catch {
-        // An aborted or failed read keeps the last snapshot; the next announcement retries.
+        // An aborted or failed read is fine: the feed's snapshot fills the view.
       }
     };
     void load();
     return () => controller.abort();
-  }, [run, bean, seq]);
-  // A new invocation (a rework) starts from its own first snapshot, never the last one's.
-  const stale = view !== null && summary !== undefined && view.summary.inv !== summary.inv;
-  return { view: stale ? null : view, writing: summary !== undefined };
+  }, [run, bean, missing, seed]);
+  return { view, writing };
+}
+
+/** The beans on screen, counted per caller, as a sorted list that changes only when they do. */
+function useWatchedBeans(): {
+  readonly beans: readonly string[];
+  readonly watch: (bean: string) => () => void;
+} {
+  const counts = useRef(new Map<string, number>());
+  const [beans, setBeans] = useState<readonly string[]>([]);
+  const publish = useCallback(() => {
+    const next = [...counts.current.keys()].toSorted();
+    setBeans((current) => (current.join(',') === next.join(',') ? current : next));
+  }, []);
+  const watch = useCallback(
+    (bean: string) => {
+      counts.current.set(bean, (counts.current.get(bean) ?? 0) + 1);
+      publish();
+      return () => {
+        const left = (counts.current.get(bean) ?? 1) - 1;
+        if (left > 0) counts.current.set(bean, left);
+        else counts.current.delete(bean);
+        publish();
+      };
+    },
+    [publish],
+  );
+  return { beans, watch };
 }
 
 async function fetchStream(
@@ -76,4 +172,14 @@ async function fetchStream(
   if (!response.ok) return null;
   const body: { readonly stream: BeanStreamView | null } = await response.json();
   return body.stream;
+}
+
+function parseJson(data: unknown): unknown {
+  if (typeof data !== 'string') return undefined;
+  try {
+    return JSON.parse(data);
+  } catch {
+    // A malformed stream message is skipped; the next summary or snapshot replaces it.
+    return undefined;
+  }
 }

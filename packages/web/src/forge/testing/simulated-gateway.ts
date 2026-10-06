@@ -86,6 +86,8 @@ export function simulatedGateway(
   };
   /** A RunDO read: one more hop, from the gateway to the run's Durable Object. */
   const viaRun = <T>(answer: () => Promise<T>): Promise<T> => delay(latency.hopMs).then(answer);
+  /** A stream read: one more hop, from the gateway to the run's RunStreamDO. */
+  const viaStreams = <T>(answer: () => Promise<T>): Promise<T> => delay(latency.hopMs).then(answer);
   /** A repo read: in the gateway Worker before the index, in the RunDO with it. */
   const viaRepo = <T>(answer: () => Promise<T>): Promise<T> =>
     readPath === 'none' ? answer() : viaRun(answer);
@@ -157,8 +159,10 @@ export function simulatedGateway(
     testsFor: (_run, paths) =>
       hop('testsFor', () => viaRun(async () => ok(await testCoverage(recorded, explorer, paths)))),
     verifyViewToken: () => hop('verifyViewToken', () => Promise.resolve(unavailable())),
-    beanStreams: () => hop('beanStreams', () => viaRun(async () => ok([]))),
-    beanStream: () => hop('beanStream', () => viaRun(async () => ok(null))),
+    // Streams answer from the run's RunStreamDO: one more hop, never the RunDO (a recorded
+    // run has nothing streaming).
+    beanStreams: () => hop('beanStreams', () => viaStreams(async () => ok([]))),
+    beanStream: () => hop('beanStream', () => viaStreams(async () => ok(null))),
   };
   return {
     binding: {
