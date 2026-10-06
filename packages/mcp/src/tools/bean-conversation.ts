@@ -1,13 +1,17 @@
-import type { BeanContext, BeanContextInput } from '@beanstalk/shared-race/collaboration';
+import type {
+  BeanContext,
+  BeanContextInput,
+  BeanPeerSummary,
+} from '@beanstalk/shared-race/collaboration';
 import type { TaskId } from '@beanstalk/shared-race/ids';
 
 import { selectCollaborationContext } from '@beanstalk/shared-ask/collaboration/context';
-import { beanContext } from './collaboration';
+import type { PeerContext } from '@beanstalk/shared-ask/collaboration/context';
+import { beanContext, beanPeerSummaries } from './collaboration';
 import { discoverBeanCandidates } from './bean-discovery';
 import type { ToolContext } from './tool-context';
 
 const MAX_CONTEXT_CANDIDATES = 16;
-const CANDIDATE_HISTORY_LIMIT = 20;
 const MAX_EXPANSION_HANDLES = 32;
 
 /** Canonical records plus bounded lexical context. Exact references bypass relevance ranking. */
@@ -38,9 +42,9 @@ async function relatedContext(ctx: ToolContext, focus: BeanContext) {
   const selection = selectCollaborationContext({
     focus,
     observed_paths: sources.focusPaths,
-    candidates: fetched.contexts.map((context) => ({
-      context,
-      observed_paths: sources.observed.get(context.bean.bean) ?? [],
+    candidates: fetched.peers.map((peer) => ({
+      context: peerContext(peer),
+      observed_paths: sources.observed.get(peer.bean) ?? [],
     })),
   });
   return {
@@ -65,21 +69,31 @@ async function relatedContext(ctx: ToolContext, focus: BeanContext) {
   };
 }
 
+/** One read for every peer: excerpts and agreements, without any event history. */
 async function hydrate(ctx: ToolContext, beans: readonly TaskId[]) {
-  const outcomes = await Promise.allSettled(
-    beans.map((bean) => beanContext(ctx, { bean, limit: CANDIDATE_HISTORY_LIMIT })),
-  );
-  const contexts: BeanContext[] = [];
-  const unavailable: TaskId[] = [];
-  for (const [index, outcome] of outcomes.entries()) {
-    if (outcome.status === 'fulfilled') contexts.push(outcome.value);
-    else {
-      const bean = beans[index];
-      if (bean !== undefined) unavailable.push(bean);
-      ctx.log?.warn('related bean read failed', { run: ctx.run, bean, error: outcome.reason });
-    }
-  }
-  return { contexts, unavailable };
+  if (beans.length === 0) return { peers: [], unavailable: [] };
+  const peers = await beanPeerSummaries(ctx, beans);
+  const found = new Set<string>(peers.map((peer) => peer.bean));
+  return { peers, unavailable: beans.filter((bean) => !found.has(bean)) };
+}
+
+function peerContext(peer: BeanPeerSummary): PeerContext {
+  return {
+    bean: {
+      bean: peer.bean,
+      revision: peer.revision,
+      intent: peer.intent,
+      approach:
+        peer.approach_summary === null
+          ? null
+          : { summary: peer.approach_summary, paths: peer.paths },
+    },
+    promises: peer.promises.map((promise) => ({ ...promise, bean: peer.bean })),
+    reliance: peer.reliance,
+    current_cursor: peer.current_cursor,
+    truncated: false,
+    cut: { intent: peer.intent_truncated, approach: peer.approach_summary_truncated },
+  };
 }
 
 function requiredBeans(focus: BeanContext): readonly TaskId[] {

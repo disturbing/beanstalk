@@ -10,7 +10,7 @@ Codex, 2026-10-06. Implements the communication protocol in [09d](09d-bean-inten
 - Versioned promise offers and exact reliance. Acceptance names the offered revision and replied-to event; a revised offer requires reconsideration. Old accepted wording remains readable.
 - Explicit removal of a reliance stops future promise notifications while keeping historical events.
 - A durable bean inbox, paged recovery, unread filtering and explicit acknowledgement. Reading and acknowledging never imply agreement.
-- Bounded context suggestions that prioritize requests and explicit references, report omissions, and distinguish the accepted promise revision from its current head.
+- Bounded context suggestions, ranked from excerpt-only peer summaries (see Cost of one `bean_context`), that prioritize requests and explicit references, report omissions, and distinguish the accepted promise revision from its current head.
 - The same protocol over gateway HTTP and service-binding RPC, exposed by the MCP plugin. Existing view tokens remain read-only.
 
 ## Connect an independently operated contributor
@@ -25,6 +25,8 @@ The mint command uses the operator's existing admin credential. Its stdout is th
 
 The gateway verifies the token again for each contributor operation. It derives the owning bean and actor from the signed capability. This token authorizes collaboration; the existing git and driver credentials remain separately scoped.
 
+A contributor token is a superset of a view token for reading: `requireReader` also accepts it for `GET /:run`, `/summary`, `/live` and the event reads, so a contributor needs no second credential to look around. It never grants git, driver or admin access. Granting requires the bean to exist (`collaborationBeanExists`, which does not reduce the explorer log).
+
 ## Five MCP tools
 
 | Tool | Behavior |
@@ -37,23 +39,37 @@ The gateway verifies the token again for each contributor operation. It derives 
 
 Ordinary ask, overlap and status responses include a small unread reminder for contributors. No background controller or universal push adapter is required. A replacement harness granted access to the same bean can recover its inbox and conversations.
 
-Mutations require `idempotency_key` and derive authorship from the token. Retry the same validated input with the same key after a transport failure. Reusing a key with different input returns a conflict. `bean_update` also requires `expected_revision`; after a conflict, fetch context and reconsider the update.
+Mutations (`bean_update`, `bean_thread_post`) require `idempotency_key` and derive authorship from the token. `bean_inbox_ack` needs none: marking an event acknowledged is naturally idempotent. Retry the same validated input with the same key after a transport failure. Reusing a key with different input returns a conflict. `bean_update` also requires `expected_revision`; after a conflict, fetch context and reconsider the update.
+
+Idempotency is keyed by (bean, key), not by actor. A replacement harness granted the same bean under a different `--actor` that resends an in-flight request replays the original result instead of creating a second post. The stored result keeps the original actor; the replacement's actor applies to new keys.
+
+Acceptance bumps the acceptor's own bean revision (it records reliance and is a state change of that bean) but appends no `bean.updated` event. A contributor that accepts and then calls `bean_update` with the `expected_revision` it read earlier gets a 409: read `bean_context` again, take `bean.revision`, and retry.
+
+Id forms: `bean_context`, `bean_update` and `bean_thread_post` take `t032` or `beans/t032` (the MCP layer strips the prefix; the HTTP paths and bodies take the bare id). `change_status`, `checks_get` and `preview_link` accept both too. A contributor learns its own bean id from the `inbox.bean` field that every ordinary read carries, or from `bean_inbox_read`.
 
 ## HTTP clients without a plugin
 
-All paths are beneath `/v1/runs/:run`. Use bearer authorization. Mutation bodies use the same full inputs as the MCP tools; a body bean must match the path bean.
+All paths are beneath `/v1/runs/:run`. Use bearer authorization. Mutation bodies use the same full inputs as the MCP tools; a body bean must match the path bean. Contributor routes check the token (and that its run matches the path) before any body or query is parsed, so an unauthenticated request gets 401 or 403 even with a malformed body.
 
 | Method and path | Access |
 | --- | --- |
 | `POST /contributor-token` with `{bean, actor, ttl_seconds?}` | Admin grant |
 | `GET /beans/:bean/context?since=0&limit=50` | Run reader |
-| `POST /collaboration/discover` with `{bean, paths?, query?, limit?}` | Run reader |
+| `POST /collaboration/discover` with `{bean, paths?, query?, limit?, full?}` | Run reader |
 | `POST /beans/:bean/collaboration` | Contributor; owning bean only |
 | `POST /beans/:bean/threads` | Contributor; attributed discussion |
 | `GET /collaboration/inbox?after_cursor=0&limit=50&state=unread` | Contributor's bean inbox |
 | `POST /collaboration/inbox/ack` with `{event_ids}` | Contributor's bean inbox |
 
 Inputs and durable JSON are validated with the shared [collaboration schemas](../packages/shared-race/src/collaboration.ts). Records, events, indexes, recipient notifications and successful retry results persist in SQLite. Each mutation runs in one synchronous storage transaction.
+
+## Cost of one `bean_context`
+
+The call reads the focus context in full (one RunDO call), then discovery (`beanDiscover`, one call) and peer summaries (`beanPeerSummaries`, one call), plus the existing observed-path reads (`beanDetail`, `beansByPath`) and the inbox reminder. It no longer hydrates up to 16 peers with full contexts.
+
+- `beanDiscover` returns digests: bean id, revision, `updated_at`, an intent excerpt of at most 500 characters with `intent_truncated`, and declared paths. Pass `full: true` to also get complete records in `records`; intents up to 100 KB stay inside SQLite otherwise.
+- `beanPeerSummaries(beans)` (one read, at most 32 beans; unknown ones are omitted) returns the same digest plus an approach excerpt, current promise heads with 500-character excerpts, reliance pins and the current cursor. It carries no event history. Ranking therefore sees only the first 500 characters of a peer's text; the exact wording is read with `bean_context` on that bean. Excerpts the gateway cut are reported as truncated.
+- Seeding runs on every Durable Object wake: it reads the stored bean ids once and builds records only for beans not yet stored. The inbox page is one JOIN, and contexts are not re-validated after assembly (each stored row is validated as it is read).
 
 ## Boundaries of this increment
 

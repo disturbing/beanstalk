@@ -8,6 +8,7 @@ import {
   BeanDiscoverInput,
   BeanInboxPage,
   BeanInboxReadInput,
+  BeanPeerSummary,
   BeanThreadPostInput,
   BeanUpdateInput,
 } from '@beanstalk/shared-race/collaboration';
@@ -54,6 +55,22 @@ const FOCUS = BeanContext.parse({
   current_cursor: 8,
   truncated: false,
 });
+function peerSummary(bean: string, overrides: Record<string, unknown> = {}) {
+  return BeanPeerSummary.parse({
+    bean,
+    revision: 1,
+    updated_at: null,
+    intent: 'Unrelated vocabulary',
+    intent_truncated: false,
+    paths: [],
+    approach_summary: null,
+    approach_summary_truncated: false,
+    promises: [],
+    reliance: [],
+    current_cursor: 8,
+    ...overrides,
+  });
+}
 const INBOX = BeanInboxPage.parse({
   bean: 't021',
   events: [{ event: { kind: 'thread.posted', event_id: 8, post: POST }, acknowledged: false }],
@@ -214,6 +231,32 @@ describe('contributor MCP capabilities', () => {
     expect(update).toHaveBeenCalledTimes(1);
   });
 
+  it('accepts a bean branch handle in the collaboration tools and still advertises an object schema', async () => {
+    const { gateway, update, context } = collaborationGateway();
+    const client = await connect(gateway, CONTRIBUTOR_TOKEN);
+    const { tools } = await client.listTools();
+    for (const name of ['bean_context', 'bean_update', 'bean_thread_post'])
+      expect(tools.find((tool) => tool.name === name)?.inputSchema).toMatchObject({
+        type: 'object',
+        properties: { bean: expect.anything() },
+      });
+    expect(await call(client, 'bean_context', { bean: 'beans/t021' })).toHaveProperty(
+      'value.bean.bean',
+      't021',
+    );
+    expect(context).toHaveBeenCalledWith(RUN, { bean: 't021' });
+    const input = {
+      expected_revision: 1,
+      changes: { intent: 'Add shipment emails with tracking' },
+      idempotency_key: 'branch-1',
+    };
+    await call(client, 'bean_update', { ...input, bean: 'beans/t021' });
+    expect(update).toHaveBeenCalledWith(CONTRIBUTOR_TOKEN, { ...input, bean: 't021' });
+    expect(await call(client, 'bean_update', { ...input, bean: 'other/t021' })).toHaveProperty(
+      'error',
+    );
+  });
+
   it('passes exact replies and rejects acceptance without a promise revision before the gateway', async () => {
     const { gateway, thread } = collaborationGateway();
     const client = await connect(gateway, CONTRIBUTOR_TOKEN);
@@ -334,17 +377,8 @@ describe('contributor MCP capabilities', () => {
         },
       ],
     });
-    gateway.beanContext = (_run, input) =>
-      Promise.resolve({
-        ok: true,
-        value:
-          input.bean === 't021'
-            ? focus
-            : BeanContext.parse({
-                ...FOCUS,
-                bean: { ...FOCUS.bean, bean: 't005', intent: 'Unrelated vocabulary' },
-              }),
-      });
+    gateway.beanContext = () => Promise.resolve({ ok: true, value: focus });
+    gateway.beanPeerSummaries = () => Promise.resolve({ ok: true, value: [peerSummary('t005')] });
     gateway.beanDetail = () =>
       Promise.resolve({
         ok: false,
@@ -368,6 +402,34 @@ describe('contributor MCP capabilities', () => {
     expect(response).toHaveProperty('value.related_context.truncated', true);
   });
 
+  it('marks a peer excerpt truncated when the gateway cut it and reports beans it could not summarise', async () => {
+    const { gateway } = collaborationGateway();
+    const focus = BeanContext.parse({
+      ...FOCUS,
+      reliance: ['t005', 't006'].map((bean) => ({
+        bean,
+        promise: 'delivery-estimate',
+        revision: 1,
+        actor: 'email-agent',
+        recorded_at: CREATED_AT,
+        accepted_event: null,
+        source: { bean: 't021', revision: 1, event_id: 8 },
+      })),
+    });
+    gateway.beanContext = () => Promise.resolve({ ok: true, value: focus });
+    gateway.beanPeerSummaries = () =>
+      Promise.resolve({ ok: true, value: [peerSummary('t005', { intent_truncated: true })] });
+    gateway.beanDiscover = () =>
+      Promise.resolve({ ok: true, value: { beans: [], truncated: false } });
+    const client = await connect(gateway, VIEW_TOKEN);
+    const response = await call(client, 'bean_context', { bean: 't021' });
+    expect(response).toHaveProperty('value.related_context.related.0.intent.truncated', true);
+    expect(response).toHaveProperty(
+      'value.related_context.unavailable',
+      expect.arrayContaining(['t006']),
+    );
+  });
+
   it('discovers approaches before a diff exists and bounds paths and hydrated peers', async () => {
     const { gateway } = collaborationGateway();
     const focus = BeanContext.parse({
@@ -381,30 +443,38 @@ describe('contributor MCP capabilities', () => {
       },
     });
     const peers = Array.from({ length: 32 }, (_entry, index) =>
-      BeanContext.parse({
-        ...FOCUS,
-        bean: {
-          ...FOCUS.bean,
-          bean: `peer${index}`,
-          approach: { summary: 'Shipping business-day estimates', paths: ['src/shipping-0.ts'] },
-        },
+      peerSummary(`peer${index}`, {
+        approach_summary: 'Shipping business-day estimates',
+        paths: ['src/shipping-0.ts'],
       }),
     );
-    const context = vi.fn<NonNullable<GatewayRpc['beanContext']>>((_run, input) =>
-      Promise.resolve({
-        ok: true,
-        value:
-          input.bean === 't021'
-            ? focus
-            : BeanContext.parse(peers.find((peer) => peer.bean.bean === input.bean)),
-      }),
+    const context = vi.fn<NonNullable<GatewayRpc['beanContext']>>(() =>
+      Promise.resolve({ ok: true, value: focus }),
     );
     gateway.beanContext = context;
+    const summaries = vi.fn<NonNullable<GatewayRpc['beanPeerSummaries']>>((_run, beans) =>
+      Promise.resolve({
+        ok: true,
+        value: peers.filter((peer) => beans.includes(peer.bean)),
+      }),
+    );
+    gateway.beanPeerSummaries = summaries;
     const discover = vi.fn<NonNullable<GatewayRpc['beanDiscover']>>((_run, input) => {
       expect(BeanDiscoverInput.parse(input).paths).toHaveLength(16);
+      expect(input.full).toBeUndefined();
       return Promise.resolve({
         ok: true,
-        value: { beans: peers.map((peer) => peer.bean), truncated: false },
+        value: {
+          beans: peers.map(({ bean, revision, updated_at, intent, intent_truncated, paths }) => ({
+            bean,
+            revision,
+            updated_at,
+            intent,
+            intent_truncated,
+            paths,
+          })),
+          truncated: false,
+        },
       });
     });
     gateway.beanDiscover = discover;
@@ -418,7 +488,9 @@ describe('contributor MCP capabilities', () => {
     expect(response).toHaveProperty('value.related_context.discovery.declared.paths_omitted', 48);
     expect(response).toHaveProperty('value.related_context.unfetched_count', 16);
     expect(response).toHaveProperty('value.related_context.truncated', true);
-    expect(context).toHaveBeenCalledTimes(17);
+    expect(context).toHaveBeenCalledTimes(1);
+    expect(summaries).toHaveBeenCalledTimes(1);
+    expect(summaries.mock.calls[0]?.[1]).toHaveLength(16);
     expect(discover).toHaveBeenCalledTimes(1);
   });
 

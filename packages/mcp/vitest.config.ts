@@ -52,8 +52,8 @@ function auxiliaryWorkers() {
       compatibilityDate,
       compatibilityFlags: ['nodejs_compat'],
       bindings: {
-        ADMIN_TOKEN: 'mcp-test-admin',
-        RUN_TOKEN_SECRET: 'mcp-test-signing-secret',
+        ADMIN_TOKEN: 'mcp-test-admin-token-0123456789abcdef',
+        RUN_TOKEN_SECRET: 'mcp-test-signing-secret-0123456789abcdef',
         LOG_LEVEL: 'error',
         ARTIFACTS_NAMESPACE: 'beanstalk-race',
         RUN_TOKEN_TTL_SECONDS: '3600',

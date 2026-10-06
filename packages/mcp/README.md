@@ -18,7 +18,7 @@ Missing, forged or expired tokens get 401; slot and seed capabilities get 403. E
 stays within the token's run.
 
 View tokens retain read-only access. Contributor tokens identify one owning bean and actor.
-The gateway verifies the contributor token again on every write and inbox call. Contributors
+A contributor token also reads wherever a view token does (the gateway's reader routes accept both). The gateway verifies the contributor token again on every write and inbox call. Contributors
 can update their own bean, post attributed messages on other beans and recover their own
 bean's durable inbox. These capabilities do not grant Git or trunk access.
 
@@ -61,6 +61,12 @@ with source revisions, cursors and handles (`beans/<task>`, `file:<path>@<sha>`,
 | `bean_inbox_read(after_cursor?, limit?, state?)` | Durable event page, unread count and freshness; use `state: "unread"` for pending events |
 | `bean_inbox_ack(event_ids)` | Delivery acknowledgement; never implicit acceptance |
 
+`bean_context`, `bean_update` and `bean_thread_post` accept `t032` or `beans/t032`; `change_status`,
+`checks_get` and `preview_link` accept both as well. Your own bean id is the `inbox.bean` field of any
+contributor read. Acceptance raises your bean's revision without a `bean.updated` event, so re-read
+`bean_context` before your next `bean_update` (a stale `expected_revision` gets 409).
+Idempotency is keyed by (bean, key): a replacement harness resending a key replays the first result.
+
 The last four tools require contributor access. `bean_context` is available to view callers
 on the current gateway. Partial injected clients can retain the original six tools.
 Contributor context, Ask, overlap and status responses include a bounded inbox reminder;
@@ -68,7 +74,9 @@ reading it does not acknowledge events. Recover with explicit inbox reads, conti
 `next_cursor` and acknowledge events after handling them.
 
 Related context uses canonical approach/promise discovery plus observed Git paths and exact
-references. It hydrates at most 16 peers and shows at most eight related summaries. Required
+references. It reads at most 16 peers in one excerpt-only `beanPeerSummaries` gateway call (no history, so
+text beyond 500 characters does not influence ranking) and shows at most eight related summaries; a whole
+`bean_context` makes about three collaboration reads of the run (context, discovery, summaries). Required
 references outrank lexical matches. Source failures, path/query limits, skipped beans and
 missing references are disclosed with expansion handles; fetch those beans individually.
 

@@ -31,10 +31,18 @@ they also expose collaboration tools. Answers are compact JSON with handles
 
 ## Communication belongs to the bean
 
+Your own bean id is the `inbox.bean` field of any ordinary read (`bean_context`, `run_status`,
+`work_overlaps`). `bean_context`, `bean_update` and `bean_thread_post` take `t032` or `beans/t032`;
+the status tools take both too.
+
 You choose what to work on and how to respond. Read `bean_context` for your bean when joining
 or resuming work. Publish an approach when it helps peers understand your assumptions and
 expected paths. `expected_revision` protects a concurrent update; a conflict means fetch the
 current context and reconsider the change. Reuse an idempotency key only for an exact retry.
+A key is scoped to your bean, so a replacement harness resending an in-flight request gets the
+original result rather than a duplicate post. Your revision also rises when you accept a promise
+(no update event is sent): after accepting, read `bean_context` again and use its `bean.revision`
+as `expected_revision`, or `bean_update` fails with 409.
 
 Read the inbox when starting, changing approach or submitting, and when an ordinary context,
 overlap or status response includes an `inbox` summary. Reading never acknowledges events.
