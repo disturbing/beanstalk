@@ -622,7 +622,7 @@ On Artifacts each blob read is a network round trip; on the recorded runs every 
   - Grep, import closures and diffs read the index. A word index or stored patches were not needed at this repository's size.
 
   The engine is untouched: the warm-up only reads.
-- **Measured** with `packages/web/src/forge/live-ask-timing.test.ts`. The harness is not the deployed gateway: it runs the gateway's own explorer and closure code over a simulated Artifacts repo built from the recorded run `7z4j84eqvl`, under fake timers. One model reproduces the 22 s measured live: the repo answers one call at a time, at 70 ms a call, with 5 ms per RPC hop. Totals for the page with "what changed recently on coupons?":
+- **Measured** with `packages/web/src/forge/live-ask-timing.test.ts`. The harness is not the deployed gateway: it runs the gateway's own explorer and closure code over a simulated Artifacts repo built from the recorded run `7z4j84eqvl`, under fake timers. That run is kept as the test's own fixture (`packages/web/src/forge/testing/fixtures/`), so rebuilding the demo fixtures does not move the calibration. One model reproduces the 22 s measured live: the repo answers one call at a time, at 70 ms a call, with 5 ms per RPC hop. Totals for the page with "what changed recently on coupons?":
 
   | | Calls to Artifacts | One call at a time, 70 ms | Overlapping calls, 70 ms |
   |---|---|---|---|

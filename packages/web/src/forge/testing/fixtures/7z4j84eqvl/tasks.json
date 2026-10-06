@@ -1,0 +1,288 @@
+[
+  {
+    "id": "t001",
+    "title": "Limit how many times a coupon can be redeemed",
+    "intent": "Marketing wants to run limited promotions (\"the first 100 orders get 15% off\"). Coupons already have a `maxRedemptions` limit and a `redemptions` counter that goes up with every order, but nothing enforces the limit.\n\nOnce a coupon has been redeemed `maxRedemptions` times, further checkouts using it must fail with a 409 and the message \"coupon has been fully redeemed\". Coupons without a limit are unaffected.",
+    "kind": "feature",
+    "tests": ["src/billing/coupon-limits.test.ts"]
+  },
+  {
+    "id": "t002",
+    "title": "Paged lists should report the total number of results",
+    "intent": "API clients that page through products or orders cannot tell how many pages there are. Change the shared `paginate()` helper in lib/pagination.ts so that it returns `{ items, total }`: the requested page of items, and the number of items there were before paging. Use that on the product and order list endpoints to send the total in an `x-total-count` response header. The response bodies stay plain JSON arrays so existing clients keep working.",
+    "kind": "feature",
+    "tests": ["src/catalog/total-count.test.ts", "src/lib/pagination.test.ts"]
+  },
+  {
+    "id": "t003",
+    "title": "Invoices should show federal and regional tax separately",
+    "intent": "Canadian customers (and our accountant) want to see the federal and the regional part of the sales tax on an invoice, not one lump sum.\n\nAdd a `taxBreakdown` object with `federal` and `regional` amounts (in cents) to every invoice. The two parts must always add up to the invoice's `tax`. For a harmonised provincial tax such as Ontario's 13% HST, the federal part is 5% and the regional part is 8%. In the US, and for any region or country without a specific entry, everything counts as regional. Exempt goods have no tax in either part, and reduced-rate goods get half of each part.\n\nIn billing/tax.ts, expose the split as `taxComponentsFor(address, taxClass, fallback)`, returning `{ federal, regional }` as fractions (Ontario gives `{ federal: 0.05, regional: 0.08 }`); `taxRateFor` keeps returning the combined rate.",
+    "kind": "feature",
+    "tests": ["src/billing/tax-breakdown.test.ts"]
+  },
+  {
+    "id": "t004",
+    "title": "Split the per-line work out of buildInvoice",
+    "intent": "buildInvoice in billing/invoice.ts has grown into one long function. Pull the work for a single invoice line into an exported `buildInvoiceLine(ctx, address, item, discount)` that returns the finished `InvoiceLine`: the item's net amount (quantity times unit price), the line's share of the discount, the tax rate for the destination, and the tax on what is left after the discount. buildInvoice should build its lines with it. Behaviour must not change.",
+    "kind": "refactor",
+    "tests": ["src/billing/invoice-line.test.ts"]
+  },
+  {
+    "id": "t005",
+    "title": "Show thousands separators in displayed amounts",
+    "intent": "Large amounts are hard to read in emails and invoices (\"$1234567.89\"). Format money with a comma between groups of thousands: `$1,234,567.89`, `-$1,234.50`, `€12,000.00`. Amounts below 1,000 look exactly as they do today.",
+    "kind": "feature",
+    "tests": ["src/lib/money-format.test.ts", "src/orders/confirmation-grouping.test.ts"]
+  },
+  {
+    "id": "t006",
+    "title": "Make the invoice payment terms configurable",
+    "intent": "Invoices are always due 30 days after they are issued, and the number is hard-coded in the billing code. Enterprise customers negotiate their own terms, so make it a setting.\n\nAdd `paymentTermsDays` to the shop configuration in src/config.ts (default 30, overridable with the `PAYMENT_TERMS_DAYS` environment variable) and use it when working out an invoice's due date.",
+    "kind": "chore",
+    "tests": ["src/billing/payment-terms.test.ts"]
+  },
+  {
+    "id": "t007",
+    "title": "Customers want to leave delivery notes on an order",
+    "intent": "Customers want to tell the courier things like \"leave with the concierge\". Let them add an optional free-text `note` when checking out.\n\nThe note is trimmed and stored on the order as `note` (an empty string when none was given or it is blank), and is returned wherever the order is. It may be at most 200 characters; a longer note fails checkout with a 400 and the message \"note must be at most 200 characters\". Orders that already exist get an empty note, which needs a numbered migration (registered with the others).",
+    "kind": "feature",
+    "tests": ["src/db/order-note-migration.test.ts", "src/orders/order-note.test.ts"]
+  },
+  {
+    "id": "t008",
+    "title": "Reserving zero or negative quantities should be rejected",
+    "intent": "A caller that passed a negative quantity to the stock reservation code \"released\" stock by accident (the reserved counter went negative), and a fractional quantity corrupted the counters.\n\nReservation must refuse any quantity that is not a positive whole number, with a 400 error and the message \"quantity must be a positive whole number\", instead of applying it.",
+    "kind": "bug",
+    "tests": ["src/inventory/reserve-validation.test.ts"]
+  },
+  {
+    "id": "t009",
+    "title": "Limit how many units of one product fit in an order",
+    "intent": "A bot ordered thousands of units of one cheap product and tied up our stock. Add a per-line quantity limit at checkout: no single product may appear more than `maxLineQuantity` times in one order. The limit defaults to 10 and can be set with the `MAX_LINE_QUANTITY` environment variable.\n\nA cart that breaks the limit must fail checkout with a 400 and the message \"at most N units of <product name> per order\" (N being the limit), without reserving stock or creating an invoice.",
+    "kind": "feature",
+    "tests": ["src/orders/line-limit.test.ts"]
+  },
+  {
+    "id": "t010",
+    "title": "Wholesale customers should not be charged sales tax",
+    "intent": "Our wholesale accounts hold a resale certificate and must not be charged sales tax on any of their orders.\n\nAdd a `taxExempt` flag to users: false for everyone by default, including accounts that already exist. When the customer placing an order is tax exempt, every line on their invoice gets a tax rate of 0 and no tax is charged, whatever the destination or the product's tax class. The flag is set directly in the database for now; no endpoint or UI is needed. Because it changes stored data, add a numbered migration for it (and register it) so existing accounts read `false`.",
+    "kind": "feature",
+    "tests": ["src/billing/tax-exempt.test.ts", "src/db/user-tax-exempt-migration.test.ts"]
+  },
+  {
+    "id": "t011",
+    "title": "Tracking numbers belong to shipments, not orders",
+    "intent": "An order can ship in several parcels, but we keep a single `trackingNumber` on the order itself. Move the tracking number to the shipment.\n\nShipments get a `trackingNumber`, and orders stop having one. `POST /orders/:id/ship` still takes a tracking number and still returns the updated order (which no longer carries it), and `GET /orders/:id/shipment` returns the shipment with its `trackingNumber`. Shipments that already exist take over the tracking number of their order, so a numbered migration is needed to copy it across and remove the order column. The shared types live in src/types.ts.",
+    "kind": "refactor",
+    "tests": [
+      "src/db/shipment-tracking-migration.test.ts",
+      "src/shipping/shipment-tracking.test.ts"
+    ]
+  },
+  {
+    "id": "t012",
+    "title": "Work out session expiry in one place",
+    "intent": "The session lifetime sum (`now + sessionTtlSeconds`) is written out inline in createSession in auth/sessions.ts, and we are about to need it in more places. Move it into an exported helper `sessionExpiry(ctx, from?)` in the same file that returns the ISO timestamp one session lifetime after `from` (default: now, from the context's clock), and use it in createSession. Behaviour must not change.",
+    "kind": "chore",
+    "tests": ["src/auth/session-expiry.test.ts"]
+  },
+  {
+    "id": "t013",
+    "title": "Customers should get a receipt when their invoice is paid",
+    "intent": "Customers have no confirmation that we received their payment. When an invoice is marked as paid, email the customer a receipt: the subject is \"Payment received for order <order number>\" and the body is \"We have received your payment for order <order number>. Thank you!\".\n\nIt is an ordinary notification, so it also appears in the customer's notification list, with the kind `payment_received`.",
+    "kind": "feature",
+    "tests": ["src/billing/payment-receipt.test.ts", "src/notifications/receipt-template.test.ts"]
+  },
+  {
+    "id": "t014",
+    "title": "Active customers are logged out in the middle of a session",
+    "intent": "Sessions expire a fixed time after login even if the customer is busy shopping, which logs people out halfway through checkout.\n\nMake the expiry sliding: every authenticated request moves the session's expiry out to a full session lifetime from now. A session that has already expired stays rejected and is not revived by later requests.",
+    "kind": "feature",
+    "tests": ["src/auth/sliding-sessions.test.ts"]
+  },
+  {
+    "id": "t015",
+    "title": "Move the coupon rules out of discounts.ts into their own module",
+    "intent": "billing/discounts.ts mixes two concerns: the rules for coupons (is this coupon usable, and how much does it take off) and the arithmetic for splitting a discount over invoice lines.\n\nMove `validateCoupon` and `couponDiscount` into a new billing/coupons.ts and leave `allocateDiscount` in discounts.ts. Behaviour must not change. The invoice code should import the coupon functions from the new module, and discounts.ts should keep re-exporting the two moved functions so existing imports keep working.",
+    "kind": "refactor",
+    "tests": ["src/billing/coupons.test.ts"]
+  },
+  {
+    "id": "t016",
+    "title": "Invoice numbers should restart every year",
+    "intent": "Our accountants want invoice numbers in the form `INV-<year>-<sequence>`, with the sequence starting again at 0001 every January 1st. For example INV-2026-0001 and INV-2026-0002, followed by INV-2027-0001 in the new year. The year is the year the invoice is issued, in UTC. Invoice ids are unaffected.",
+    "kind": "feature",
+    "tests": ["src/billing/invoice-numbers.test.ts"]
+  },
+  {
+    "id": "t017",
+    "title": "Customers in Quebec are charged the wrong sales tax",
+    "intent": "A customer in Montreal wrote to support: the sales tax on her order was lower than the amount the tax authority told her to expect.\n\nLooking at a few Quebec orders, we charge 14% in total. The combined federal and provincial sales tax in Quebec is 14.975% (5% federal plus 9.975% provincial). Please make Quebec orders use the correct combined rate, for standard and reduced-rate goods alike. Every other province keeps its current rate.",
+    "kind": "bug",
+    "tests": ["src/billing/quebec-tax.test.ts"]
+  },
+  {
+    "id": "t018",
+    "title": "Shipping emails should include the tracking number",
+    "intent": "Customers keep writing to ask where their parcel is. The \"order shipped\" email should tell them: add a line `Tracking number: <number>` after the existing sentence in the message body, using the tracking number recorded when the order was shipped.",
+    "kind": "feature",
+    "tests": ["src/notifications/tracking-email.test.ts"]
+  },
+  {
+    "id": "t019",
+    "title": "Let customers reorder a previous order",
+    "intent": "Add `POST /orders/:id/reorder`, which puts the lines of one of the caller's earlier orders back into their cart: same products, same quantities, added to whatever is already in the cart. Respond 200 with `{ \"added\": [{ \"productId\", \"quantity\" }], \"skipped\": [productId] }`. Products that are no longer sold (inactive) are skipped rather than failing the request. Someone else's order, or an unknown one, is a 404 (admins do not get to reorder other people's orders either).",
+    "kind": "feature",
+    "tests": ["src/orders/reorder.test.ts"]
+  },
+  {
+    "id": "t020",
+    "title": "Reject weak passwords at registration",
+    "intent": "Registration currently accepts a one-character password. Require passwords to be at least 8 characters long, and reject a password that is the same as the account's email address (compared ignoring case). Registration must fail with a 400 and the message \"password must be at least 8 characters\" or \"password must not be your email address\" respectively, before any account is created.",
+    "kind": "feature",
+    "tests": ["src/users/password-policy.test.ts"]
+  },
+  {
+    "id": "t021",
+    "title": "Retired products are still visible by id",
+    "intent": "When a product is retired (`active` set to false) it disappears from the catalogue list, but `GET /products/:id` still returns it, so old links keep working and customers can see prices for things we no longer sell.\n\nMake the public product endpoint answer 404 for retired products. Admin tooling that reads products through the service layer is not affected, and the product list behaves as before.",
+    "kind": "bug",
+    "tests": ["src/catalog/hidden-product.test.ts"]
+  },
+  {
+    "id": "t022",
+    "title": "Customers cannot list their invoices",
+    "intent": "There is no way for a customer to see all their invoices; they have to know each id. Add `GET /invoices`, returning the signed-in user's invoices, newest first, as a JSON array. Support an optional `status` query parameter (`open`, `paid` or `void`) to filter them (400 for any other value), and the same `limit` / `offset` paging that the other list endpoints support.",
+    "kind": "feature",
+    "tests": ["src/billing/invoice-list.test.ts"]
+  },
+  {
+    "id": "t023",
+    "title": "Tax on multi-line invoices is a cent off from the tax authority's figure",
+    "intent": "Our accountant compared a month of invoices against the tax authority's calculator and found that multi-line invoices are regularly a cent or two off. The authority rounds the tax once per rate on the taxable total of the invoice. We round every line separately and add the results, so the rounding errors pile up.\n\nWork out the tax for each tax rate on the sum of the taxable amounts (after discounts) of the lines at that rate, rounding half up once, and then spread that figure back over those lines so each line keeps its own `tax` and the line taxes always add up to the invoice `tax`. Lines at different rates are rounded independently. Single-line invoices must come out the same as before.\n\nPut the arithmetic in lib/money.ts as `applyRateToTotal(amounts, rate)`: it applies the rate to the sum of the amounts, rounds once, and returns one share per amount, each within a cent of its exact proportional share, adding up to the rounded total.",
+    "kind": "bug",
+    "tests": ["src/billing/tax-rounding.test.ts"]
+  },
+  {
+    "id": "t024",
+    "title": "Cap the discount a percentage coupon can give",
+    "intent": "Our 30%-off launch coupon is far too generous on big baskets. Percentage coupons need an optional cap on the amount they can take off, for example \"20% off, up to $25\".\n\nAdd an optional `maxDiscount` (in cents) to coupons. When it is set, the discount from a percentage coupon is never more than that amount. It has no effect on fixed-amount coupons or coupons without a cap, and coupons that already exist have no cap (`null`). This changes the stored data, so add a numbered migration for it (and register it) rather than special-casing missing values in the code.",
+    "kind": "feature",
+    "tests": [
+      "src/billing/coupon-max-discount.test.ts",
+      "src/db/coupon-max-discount-migration.test.ts"
+    ]
+  },
+  {
+    "id": "t025",
+    "title": "Replace the notification switch with a template table",
+    "intent": "renderNotification in notifications/templates.ts is a switch with one branch per kind, and every new notification kind means editing that function. Turn it into a table: export a `templates` record, keyed by notification kind, whose values are render functions taking `(order, currency)` and returning `{ subject, body }`. renderNotification should just look the kind up in it. The text produced for the existing kinds must not change.",
+    "kind": "refactor",
+    "tests": ["src/notifications/templates.test.ts"]
+  },
+  {
+    "id": "t026",
+    "title": "Line discounts do not add up to the order discount",
+    "intent": "On a three-line order with a $1.00 coupon, the per-line discounts on the invoice add up to 99 cents even though the invoice says the order discount is $1.00. A cent goes missing, and the tax is then calculated on slightly too much.\n\nSplit the cart-level discount across the lines in proportion to their value so the shares always add up to the full discount exactly. Distribute the leftover cents fairly rather than dropping them.",
+    "kind": "bug",
+    "tests": ["src/billing/discount-split.test.ts"]
+  },
+  {
+    "id": "t027",
+    "title": "Customers can register twice with different capitalisation",
+    "intent": "\"Ada@Example.com\" and \"ada@example.com\" are treated as two different customers, so one person can end up with two accounts, and a customer who signed up as \"Ada@Example.com\" cannot log in by typing their address in lower case.\n\nTreat email addresses case-insensitively: store them lower-cased, and look them up regardless of case (whitespace around an address is still ignored). Registering an address that exists in another capitalisation must fail with the usual 409.",
+    "kind": "bug",
+    "tests": ["src/users/email-case.test.ts"]
+  },
+  {
+    "id": "t028",
+    "title": "Require a signature for high-value deliveries",
+    "intent": "Parcels worth $250 or more should be delivered against a signature. When an order is shipped, record `signatureRequired` on its shipment: true if the order's `total` is at least `signatureThreshold`, false otherwise. The threshold is a shop setting, 25000 cents by default and overridable with the `SIGNATURE_THRESHOLD` environment variable. The shipment endpoint returns the new field.",
+    "kind": "feature",
+    "tests": ["src/shipping/signature.test.ts"]
+  },
+  {
+    "id": "t029",
+    "title": "A failed checkout leaves stock reserved",
+    "intent": "When checkout fails after stock has been set aside (for example because the coupon code is wrong, or the cart is below the coupon's minimum), the reserved quantities are never given back. After a few failed attempts a product shows as sold out although nothing was sold.\n\nA failed checkout must leave stock exactly as it was and keep the customer's cart intact, whatever the reason for the failure.",
+    "kind": "bug",
+    "tests": ["src/orders/checkout-rollback.test.ts"]
+  },
+  {
+    "id": "t030",
+    "title": "Checking out an empty cart creates a stray invoice",
+    "intent": "When a customer posts to checkout with nothing in their cart, we answer with a confusing shipping error (\"nothing to ship\"), but by then an invoice has already been created and a number has been used up.\n\nReject an empty cart straight away with a 400 and the message \"cart is empty\", before anything is reserved, invoiced or quoted.",
+    "kind": "bug",
+    "tests": ["src/orders/empty-cart.test.ts"]
+  },
+  {
+    "id": "t031",
+    "title": "Customers want a plain-text copy of their invoice",
+    "intent": "Customers keep asking for an invoice they can paste into an expense report or an email.\n\nAdd `GET /invoices/:id/text`, with the same visibility rules as the existing invoice endpoint, that returns a plain-text rendering with the content type `text/plain; charset=utf-8`. The body has the invoice number on the first line (`Invoice <number>`), then one line per item formatted as `<quantity> x <description> - <net amount>`, then `Subtotal:`, `Discount:` (only when the invoice has a discount, shown as a negative amount), `Tax:` and `Total:` lines. Amounts use the shop's normal currency formatting.",
+    "kind": "feature",
+    "tests": ["src/billing/invoice-text.test.ts"]
+  },
+  {
+    "id": "t032",
+    "title": "The order total shown to customers leaves out shipping",
+    "intent": "Customers complain that the total in their confirmation email is lower than the amount they are asked to pay. The order `total` only covers goods and tax; shipping sits in a separate `shippingCost` field and is never added.\n\nMake `total` the full amount payable: goods after discount, plus tax, plus shipping. `subtotal`, `discount`, `tax` and `shippingCost` keep their meaning. The invoice stays as it is (it does not include shipping), and the confirmation email must show the new order total.",
+    "kind": "bug",
+    "tests": ["src/orders/total-with-shipping.test.ts"]
+  },
+  {
+    "id": "t033",
+    "title": "Free standard shipping on orders over $75",
+    "intent": "Marketing wants free standard shipping for orders whose goods come to $75.00 or more (price times quantity, before any discount and before tax). Express shipping is never free. When the threshold is met, the standard shipping charged on the order, and the standard quote returned by `POST /shipping/quote` for the cart, is 0; delivery time estimates do not change. The threshold is an exported constant, `FREE_SHIPPING_THRESHOLD` (in cents), in shipping/service.ts for now.",
+    "kind": "feature",
+    "tests": ["src/shipping/free-shipping.test.ts"]
+  },
+  {
+    "id": "t034",
+    "title": "Stock reservations should be all or nothing",
+    "intent": "If a cart has three lines and the third is out of stock, checkout fails with a 409, but the first two lines stay reserved, so the stock of those products leaks away with every failed attempt.\n\nReserving a group of lines in inventory/stock.ts must be all or nothing: if any line cannot be covered, nothing at all is reserved and the error names the first line that is short.",
+    "kind": "bug",
+    "tests": ["src/inventory/atomic-reserve.test.ts"]
+  },
+  {
+    "id": "t035",
+    "title": "Carts accept more units than are in stock",
+    "intent": "A customer put 50 units of a product with 3 in stock into their cart and only found out at checkout.\n\nAdding to the cart, or raising a line's quantity, must fail with a 409 and the message \"only N left in stock\" (N being what is still available: on hand minus reserved, never below zero) when the line's resulting quantity would be more than that. Anything within the available stock keeps working, and lowering a quantity is always allowed.",
+    "kind": "bug",
+    "tests": ["src/cart/stock-check.test.ts"]
+  },
+  {
+    "id": "t036",
+    "title": "Support refunding a single invoice line",
+    "intent": "Support staff can currently only void a whole invoice. Customers often return one item from a multi-item order, and we need to refund just that line.\n\nAdd `POST /invoices/:id/refunds` (admin only) taking `{ \"productId\": \"...\" }`. It refunds the whole line for that product: the refund amount is the line's net amount, minus the line's share of the order discount, plus the tax charged on that line (so three identical lines refund identical amounts). Respond 201 with `{ productId, amount, createdAt }` and keep the refund on the invoice in a `refunds` list. Only paid invoices can be refunded (409 otherwise), a line can only be refunded once (409), and an unknown product is a 404.",
+    "kind": "feature",
+    "tests": ["src/billing/line-refunds.test.ts"]
+  },
+  {
+    "id": "t037",
+    "title": "Make product filtering a pure function",
+    "intent": "listProducts in catalog/service.ts reads from the store and applies the filter rules in the same breath, which makes the rules awkward to reuse and to test. Extract them into an exported pure function `filterProducts(products, filter)` that takes an array of products and the same filter object and returns the products that pass, in their original order, without modifying the input. listProducts should use it (and still sort by name). Behaviour must not change.",
+    "kind": "refactor",
+    "tests": ["src/catalog/filter-products.test.ts"]
+  },
+  {
+    "id": "t038",
+    "title": "Fixed-amount coupons can push an order total below zero",
+    "intent": "A $50 fixed-amount coupon applied to a $30 cart produced an invoice with a negative taxable amount and a negative total.\n\nA coupon must never take off more than the cart subtotal: cap the discount at the subtotal. The invoice total must never go negative, and no tax is charged on a fully discounted order.",
+    "kind": "bug",
+    "tests": ["src/billing/coupon-cap.test.ts"]
+  },
+  {
+    "id": "t039",
+    "title": "Finance needs a list of overdue invoices",
+    "intent": "Finance chases late payers by hand. Add `GET /invoices/overdue` (admin only) returning every invoice that is still `open` and whose due date has passed, the one that fell due longest ago first. Each entry is the invoice plus a `daysOverdue` field: the whole days since the due date, and at least 1 for anything that is overdue. Paid and void invoices never appear.",
+    "kind": "feature",
+    "tests": ["src/billing/invoice-overdue.test.ts"]
+  },
+  {
+    "id": "t040",
+    "title": "Expired coupons are still accepted at checkout",
+    "intent": "Coupons carry an optional expiry timestamp (`expiresAt`), but checkout never looks at it: a customer applied a coupon that expired weeks ago and still got the discount.\n\nReject a coupon with a 400 and the message \"coupon has expired\" once the current time has reached its expiry time. Coupons without an expiry, and coupons that expire in the future, keep working.",
+    "kind": "bug",
+    "tests": ["src/billing/coupon-expiry.test.ts"]
+  }
+]

@@ -7,20 +7,19 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
-
 import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
 import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
 import { rulesPicker } from '@beanstalk/shared-ask/pick/picker';
-import { recordedRun } from '../recorded/recorded-runs';
 import { featuredBean } from '../server/featured-bean';
 import { homePageData } from '../server/home-page-data';
+import { calibrationRun } from './testing/calibration-run';
 import type { ReadPath, SimulatedGateway, SimulatedLatency } from './testing/simulated-gateway';
 import { simulatedGateway } from './testing/simulated-gateway';
 
-const run = RunId.parse('7z4j84eqvl');
+const calibration = calibrationRun();
+const run = calibration.run;
 const QUESTION = 'what changed recently on coupons?';
 /** Calls in the repo one at a time, 70 ms each: 21.6 s before the fix, as measured live. */
 const CALIBRATED: SimulatedLatency = { artifactsMs: 70, hopMs: 5, artifacts: 'serial' };
@@ -28,14 +27,8 @@ const OVERLAPPING: SimulatedLatency = { artifactsMs: 70, hopMs: 5, artifacts: 'p
 /** Past the read index's memo of refs: the sprout is resolved from Artifacts again. */
 const LATER_MS = 6000;
 
-function requireRecorded() {
-  const found = recordedRun(run);
-  if (found === undefined) throw new Error('the v2 fixture is missing');
-  return found;
-}
-
 function gateway(latency: SimulatedLatency, readPath: ReadPath = 'objects') {
-  return simulatedGateway(requireRecorded(), latency, readPath);
+  return simulatedGateway(calibration, latency, readPath);
 }
 
 function artifactsCalls(sim: SimulatedGateway): number {

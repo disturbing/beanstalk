@@ -44,15 +44,20 @@ type RecordedContext = {
   readonly stalk: Sha;
 };
 
-/** A source over the recorded runs, as of race second `asOf` (default: the end). */
-export function recordedSource(options: { readonly asOf?: number } = {}): ForgeSource {
+/**
+ * A source over the recorded runs, as of race second `asOf` (default: the end). `fixture`
+ * adds a run that is not bundled with the app (a test's own fixture).
+ */
+export function recordedSource(
+  options: { readonly asOf?: number; readonly fixture?: RecordedRun } = {},
+): ForgeSource {
   const asOf = options.asOf ?? Number.POSITIVE_INFINITY;
   const contexts = new Map<string, RecordedContext>();
 
   function context(run: RunId): RecordedContext {
     const cached = contexts.get(run);
     if (cached !== undefined) return cached;
-    const recorded = recordedRun(run);
+    const recorded = options.fixture?.run === run ? options.fixture : recordedRun(run);
     if (recorded === undefined) throw new ForgeError(`no recorded run ${run}`, 'not_found');
     const created = buildContext(recorded, asOf);
     contexts.set(run, created);

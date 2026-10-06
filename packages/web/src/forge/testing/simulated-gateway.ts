@@ -76,7 +76,7 @@ export function simulatedGateway(
     readPath === 'none'
       ? repoExplorer(artifacts, 'race')
       : repoExplorer(artifacts, 'race', (handle) => cachedReader(handle, index));
-  const forge = recordedSource();
+  const forge = recordedSource({ fixture: recorded });
   const run = recorded.run;
   const hop = <T>(method: string, answer: () => Promise<T>): Promise<T> => {
     bump(counts.rpc, method);

@@ -82,7 +82,8 @@ export type RecordedRun = {
   readonly repo: RepoSnapshot;
 };
 
-type RecordedSource = {
+/** A recorded run's description and its fixture texts, before parsing. */
+export type RecordedFixture = {
   readonly run: string;
   readonly label: string;
   readonly policyName: string;
@@ -91,7 +92,7 @@ type RecordedSource = {
   readonly texts: { readonly events: string; readonly tasks: string; readonly repo: string };
 };
 
-const SOURCES: readonly RecordedSource[] = [
+const SOURCES: readonly RecordedFixture[] = [
   {
     run: 'j6boaclinn',
     label: 'Beanstalk v2.5',
@@ -141,7 +142,7 @@ export function recordedRuns(): readonly RecordedRun[] {
  */
 const parsedFixtures = new Map<string, RecordedRun>();
 
-function parsedOnce(source: RecordedSource): RecordedRun {
+function parsedOnce(source: RecordedFixture): RecordedRun {
   const cached = parsedFixtures.get(source.run);
   if (cached !== undefined) return cached;
   const parsed = parseRecorded(source);
@@ -149,7 +150,8 @@ function parsedOnce(source: RecordedSource): RecordedRun {
   return parsed;
 }
 
-function parseRecorded(source: RecordedSource): RecordedRun {
+/** Parses and validates a fixture; throws when it is malformed (a build bug). */
+export function parseRecorded(source: RecordedFixture): RecordedRun {
   const parsed = parseEventLog(source.texts.events);
   const firstSkip = parsed.skipped.find((skipped) => skipped.kind === 'invalid');
   if (firstSkip !== undefined) {
