@@ -74,6 +74,8 @@ class FakeGitHub:
         self.refuse_auto_merge = False
         self.min_group = 1   # tests: hold the queue until this many entries wait (at most 100 ticks)
         self.held = 0
+        self.merge_lag = True   # GitHub (2026-10-07): "removed: merged" one poll before the PR reads MERGED
+        self.merging: list = []
 
     # -- identity --
     @property
@@ -233,6 +235,9 @@ class FakeGitHub:
         main = self.main()
         if not main:
             return
+        for pr, commit in self.merging:
+            pr.state, pr.merged_at, pr.merge_commit = "MERGED", time.time(), commit
+        self.merging = []
         for pr in self.prs.values():
             if pr.state != "OPEN":
                 continue
@@ -276,8 +281,12 @@ class FakeGitHub:
         if green:
             self.git("update-ref", "refs/heads/main", cur)
             for pr, commit in green:
-                pr.state, pr.merged_at, pr.merge_commit = "MERGED", time.time(), commit
                 self.remove(pr, "merged")
+                if self.merge_lag:  # as GitHub: the removal shows a poll before the PR reads MERGED
+                    pr.mergeable, pr.checked_head = "CONFLICTING", pr.head
+                    self.merging.append((pr, commit))
+                else:
+                    pr.state, pr.merged_at, pr.merge_commit = "MERGED", time.time(), commit
 
     async def snapshot(self) -> Snapshot:
         self.tick()

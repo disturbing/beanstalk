@@ -1,0 +1,512 @@
+{
+  "label": "measured: arena=fastify@810e3d54/76b98b25, 6 tasks, policy=github-queue, agent=replay (replay control: reference patches, synthetic timings)",
+  "policy": "github-queue",
+  "agent": "replay",
+  "model": "replay",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 4,
+    "ci_seconds": 0.0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 1,
+    "budget_usd": 25.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": false,
+    "snapshot": null,
+    "queue_hold": null,
+    "error_budget": null,
+    "footprint": "predictor",
+    "tasks": 6,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 383.69,
+  "tasks": 6,
+  "tasks_green": 5,
+  "tasks_landed": 5,
+  "tasks_dropped": 1,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {
+    "replay could not resolve the conflict or red (limitation of replay agents)": 1
+  },
+  "changes_green_per_hour": 46.913,
+  "wall_to_all_green_seconds": null,
+  "task_start_to_green_seconds": {
+    "median": 176.56,
+    "p90": 258.94,
+    "mean": 208.82
+  },
+  "agent_minutes": {
+    "busy": 2.84,
+    "blocked": 17.96,
+    "idle": 4.79
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 0.62,
+      "blocked": 3.7,
+      "idle": 2.08
+    },
+    "a1": {
+      "busy": 0.53,
+      "blocked": 3.79,
+      "idle": 2.08
+    },
+    "a2": {
+      "busy": 1.27,
+      "blocked": 5.06,
+      "idle": 0.06
+    },
+    "a3": {
+      "busy": 0.42,
+      "blocked": 5.41,
+      "idle": 0.57
+    }
+  },
+  "invocations": {
+    "initial": 6,
+    "rework": 1
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 6,
+      "cost_usd": 0.0,
+      "turns": 6,
+      "wall_s": 140.615,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 1,
+      "cost_usd": 0.0,
+      "turns": 1,
+      "wall_s": 29.675,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0.0,
+  "cost_by_kind": {
+    "initial": 0.0,
+    "rework": 0.0
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    },
+    "rework": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": null,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0.0
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "precheck": 6,
+    "batch": 5
+  },
+  "ci_runs_total": 11,
+  "ci_minutes": {
+    "precheck": 4.98,
+    "batch": 4.22
+  },
+  "ci_minutes_total": 9.2,
+  "textual_conflicts": 1,
+  "red_validations": 0,
+  "final": {
+    "sha": "362169918fc8c781e717708677ab7e27611e51fa",
+    "suite_green": true,
+    "suite_tests": 2082,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 6,
+    "tasks_total": 6,
+    "green_tasks_accepted": 5,
+    "green_tasks": 5,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": [
+      "test/issue-4959.test.js",
+      "test/logger/logging.test.js",
+      "test/route.6.test.js",
+      "test/route.7.test.js",
+      "test/types/fastify.test-d.ts",
+      "test/types/instance.test-d.ts",
+      "test/validation-error-handling.test.js"
+    ]
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.8,
+      "recall": 0.6667,
+      "f1": 0.7,
+      "tasks": 5,
+      "micro_recall": 0.5714,
+      "micro_precision": 0.6667
+    },
+    "vs_oracle": {
+      "precision": 0.8,
+      "recall": 0.6667,
+      "f1": 0.7,
+      "tasks": 5,
+      "micro_recall": 0.5714,
+      "micro_precision": 0.6667
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": 258.945,
+      "green_at": 258.945,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.005,
+      "landed_at": 258.934,
+      "green_at": 258.934,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.005,
+      "landed_at": 176.569,
+      "green_at": 176.569,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types",
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.005,
+      "landed_at": 176.554,
+      "green_at": 176.554,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/diagnostics-channel"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t005": {
+      "status": "dropped",
+      "agent": "a2",
+      "started_at": 176.569,
+      "landed_at": null,
+      "green_at": null,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/types"
+      ],
+      "invocations": 2,
+      "drop_reason": "replay could not resolve the conflict or red (limitation of replay agents)",
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 176.572,
+      "landed_at": 349.684,
+      "green_at": 349.684,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Guides",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/logger",
+        "test/types",
+        "types"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "queue": {
+    "batches": 0,
+    "batches_green": 0,
+    "batches_red": 0,
+    "batches_cancelled": 0,
+    "bisections": 0,
+    "bisect_runs": 0,
+    "ejections_conflict": 1,
+    "ejections_red": 0,
+    "requeued_without_agent": 0,
+    "held_behind_inflight": 0,
+    "mean_batch_size": null
+  },
+  "policy_rows": [
+    [
+      "Ejections (conflict / red)",
+      "1 / 0"
+    ],
+    [
+      "GitHub repo",
+      "https://github.com/kintohubtest/beanstalk-race-fastify-1"
+    ],
+    [
+      "Queue wait to merge, median / p90 (min)",
+      "1.67 / 2.43"
+    ],
+    [
+      "Queue wait to removal, median / p90 (min)",
+      "1.23 / 1.23"
+    ],
+    [
+      "Push to enqueued (PR check + enqueue), median (min)",
+      "0.98"
+    ],
+    [
+      "Kick-outs (by cause)",
+      "1 (conflict 1)"
+    ],
+    [
+      "Kick-outs by GitHub reason",
+      "merge_conflict 1"
+    ],
+    [
+      "Rebases: with agent / without agent",
+      "1 / 0"
+    ],
+    [
+      "Actions runs: PR checks / merge groups",
+      "6 / 5"
+    ],
+    [
+      "Actions minutes (PR / group / total)",
+      "4.98 / 4.21 / 9.19"
+    ],
+    [
+      "Runner pickup, median (s)",
+      3.0
+    ],
+    [
+      "Actions job / suite step, median (s)",
+      "50.0 / 32.0"
+    ],
+    [
+      "Merges: PRs / merge operations / max PRs in 60 s",
+      "5 / 3 / 2"
+    ],
+    [
+      "GitHub API: mutations / pushes / rate-limited",
+      "25 / 7 / 0"
+    ],
+    [
+      "Push wait in rate limiter (s)",
+      20.1
+    ]
+  ],
+  "github": {
+    "repo": "https://github.com/kintohubtest/beanstalk-race-fastify-1",
+    "ruleset": {
+      "check_response_timeout_minutes": 30,
+      "grouping_strategy": "ALLGREEN",
+      "max_entries_to_build": 2,
+      "max_entries_to_merge": 4,
+      "merge_method": "SQUASH",
+      "min_entries_to_merge": 1,
+      "min_entries_to_merge_wait_minutes": 0
+    },
+    "queue_wait_to_merge_s": {
+      "n": 5,
+      "median": 100.0,
+      "p90": 145.6
+    },
+    "queue_wait_to_removal_s": {
+      "n": 1,
+      "median": 74.0,
+      "p90": 74.0
+    },
+    "submit_to_enqueue_s": {
+      "n": 6,
+      "median": 59.05,
+      "p90": 64.85
+    },
+    "kickouts": 1,
+    "kickouts_by_cause": {
+      "conflict": 1
+    },
+    "kickouts_by_gh_reason": {
+      "merge_conflict": 1
+    },
+    "red_prechecks": 0,
+    "rebases_with_agent": 1,
+    "rebases_without_agent": 0,
+    "prs_opened": 6,
+    "actions": {
+      "runs": {
+        "pull_request": 6,
+        "merge_group": 5
+      },
+      "minutes": {
+        "pull_request": 4.98,
+        "merge_group": 4.21
+      },
+      "minutes_total": 9.19,
+      "suite_s": {
+        "n": 11,
+        "median": 32.0,
+        "p90": 36.0
+      },
+      "job_s": {
+        "n": 11,
+        "median": 50.0,
+        "p90": 56.0
+      },
+      "pickup_s_median": 3.0,
+      "billable_minutes": 0,
+      "note": "public repo: Actions minutes are free; measured anyway"
+    },
+    "merges": {
+      "prs": 5,
+      "operations": 3,
+      "max_prs_in_60s": 2,
+      "max_operations_in_60s": 1,
+      "group_sizes": [
+        2,
+        2,
+        1
+      ]
+    },
+    "poll_lag_s": {
+      "n": 5,
+      "median": 5.14,
+      "p90": 5.6
+    },
+    "api": {
+      "pushes": 7,
+      "push_wait_s": 20.1,
+      "mutations": 25,
+      "mutation_wait_s": 3.73,
+      "queries": 103,
+      "rest": 123,
+      "rate_limited": 0,
+      "retry_after_s": 0.0,
+      "hourly_cap_waits": 0
+    },
+    "polls": 90,
+    "poll_errors": 0
+  }
+}

@@ -84,9 +84,20 @@ def _strip_app(path: str, app_prefix: bool) -> str:
     return path
 
 
-def load_tasks(arena_dir: str, subset: list[str] | None = None, app_prefix: bool = True) -> list[Task]:
+def with_note(prompt: str, note: str) -> str:
+    """The task prompt with the arena's ``task_note`` sentence appended (unchanged without one)."""
+    return prompt.rstrip() + f"\n\n{note.strip()}" if note.strip() else prompt
+
+
+def load_tasks(arena_dir: str, subset: list[str] | None = None, app_prefix: bool = True,
+               task_note: str | None = None) -> list[Task]:
     """Load ``tasks/*.json``. ``app_prefix`` strips a leading ``app/`` from acceptance-test paths
-    (the materialized repo has the app at its root)."""
+    (the materialized repo has the app at its root). Every prompt gets ``task_note`` appended (default: the active
+    suite's ``arena.json`` ``task_note``, so every forge's driver loads the same prompt)."""
+    if task_note is None:
+        from . import suite as suite_mod
+        task_note = suite_mod.ACTIVE.task_note
+    note = task_note or ""
     tdir = os.path.join(arena_dir, "tasks")
     if not os.path.isdir(tdir):
         raise FileNotFoundError(f"no tasks/ directory in {arena_dir}")
@@ -100,7 +111,8 @@ def load_tasks(arena_dir: str, subset: list[str] | None = None, app_prefix: bool
         fix = os.path.join(arena_dir, "solutions", f"{tid}.fix.patch")
         acc = {_strip_app(p, app_prefix): c for p, c in (raw.get("acceptance_tests") or {}).items()}
         tasks.append(Task(
-            id=tid, title=raw.get("title", tid), prompt=raw.get("prompt", ""), acceptance_tests=acc,
+            id=tid, title=raw.get("title", tid), prompt=with_note(raw.get("prompt", ""), note),
+            acceptance_tests=acc,
             oracle_paths=[_strip_app(p, app_prefix) for p in raw.get("oracle_paths", [])],
             oracle_modules=[_strip_app(m, app_prefix) for m in raw.get("oracle_modules", [])],
             kind=raw.get("kind", ""), difficulty=int(raw.get("difficulty", 1) or 1),

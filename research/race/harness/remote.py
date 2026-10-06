@@ -696,6 +696,17 @@ class RemoteRace(Race):
         assert self.git
         if not os.path.exists(cfg.repo):
             raise SystemExit(f"arena repository not found: {cfg.repo} (run the arena's materialize.py)")
+        # the arena's suite, as in Race.setup: the agents' test hint, task note, network profile and the dependency
+        # snapshot one level above every worktree are the same as in a local or GitHub race
+        from . import suite as suite_mod
+        self.suite = suite_mod.load_suite(cfg.arena)
+        suite_mod.activate(self.suite)
+        if self.suite.deps:
+            if not os.path.isdir(self.suite.deps):
+                raise SystemExit(f"dependency snapshot not found: {self.suite.deps} (see the arena's README)")
+            link = os.path.join(self.work, "node_modules")
+            if not os.path.lexists(link):
+                os.symlink(self.suite.deps, link)
         # main only, over the pack protocol, so the arena's reference solutions never reach the gateway
         await self.git.run("clone", "-q", "--no-local", "--single-branch", "--branch", "main", "--no-tags",
                            os.path.abspath(cfg.repo), self.seed_dir, cwd=self.work, timeout=600)

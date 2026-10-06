@@ -17,6 +17,9 @@ real-task arena's ``arena.json`` declares (``research/real-arena/<name>/arena.js
                    127.0.0.1, so Codex runs with a permissions profile that allows local binding and loopback
                    connections while its network proxy refuses every domain)
   env              extra environment for every suite run and agent
+  task_note        a sentence appended to every task's prompt when the tasks are loaded (both forges send the task
+                   prompt as loaded, so every arm gets it byte for byte)
+  skipped_tests    {path: reason}: test files the suite leaves out (a record; ``test_args`` does the excluding)
 """
 from __future__ import annotations
 
@@ -41,6 +44,8 @@ class SuiteConfig:
     agent_allowed_bash: list[str] = field(default_factory=list)
     agent_network: str = "none"
     env: dict[str, str] = field(default_factory=dict)
+    task_note: str = ""
+    skipped_tests: dict[str, str] = field(default_factory=dict)
     source: str = "default"           # where the config came from (arena.json path or "default")
 
     @property

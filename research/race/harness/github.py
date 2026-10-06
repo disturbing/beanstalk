@@ -451,6 +451,17 @@ class GhClient:
                 await self.request("PUT", f"repos/{self.full}/rulesets/{r['id']}", {"enforcement": "disabled"},
                                    mutation=True)
 
+    async def cancel_active_runs(self) -> int:
+        """Cancel every queued or running Actions run (a reset: leftovers would hold the job cap)."""
+        n = 0
+        for status in ("queued", "in_progress", "waiting", "pending"):
+            res = await self.request("GET", f"repos/{self.full}/actions/runs?status={status}&per_page=100")
+            for run in (res or {}).get("workflow_runs") or [] if isinstance(res, dict) else []:
+                await self.request("POST", f"repos/{self.full}/actions/runs/{run['id']}/cancel", mutation=True,
+                                   ok=(409,))
+                n += 1
+        return n
+
     async def open_prs(self) -> list[dict]:
         res = await self.request("GET", f"repos/{self.full}/pulls?state=open&per_page=100")
         return res if isinstance(res, list) else []

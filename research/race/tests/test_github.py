@@ -75,6 +75,11 @@ class GitHubArmRace(unittest.TestCase):
         self.assertEqual(seqs, list(range(1, len(ev) + 1)))
         ts = [e["t"] for e in ev]
         self.assertEqual(ts, sorted(ts))
+        merged = {e["task"] for e in of(ev, "gh.dequeued", reason="merged")}
+        for e in of(ev, "queue.eject"):  # a PR removed as merged is never handed back (the fake lags like GitHub)
+            later = [x for x in ev if x["seq"] > e["seq"] and x.get("task") == e["task"]]
+            self.assertFalse(e["task"] in merged and later and later[0]["type"] == "land", e)
+        self.assertEqual(len(of(ev, "land")), len({e["task"] for e in of(ev, "land")}))
         self.assertEqual(ev[-1]["type"], "final.check")
         cis = {e["ci"] for e in ev if e["type"] == "ci.start"}
         self.assertEqual(cis, {e["ci"] for e in ev if e["type"] == "ci.end"})
@@ -277,13 +282,21 @@ class GitHubClientParsing(unittest.TestCase):
             with open(os.path.join(arena, "deps", name), "w") as fh:
                 fh.write("{}\n")
         with open(os.path.join(arena, "arena.json"), "w") as fh:
-            json.dump({"node": "25.8.1", "test_args": ["test/**/*.test.js"], "deps": "deps/node_modules"}, fh)
+            json.dump({"node": "25.8.1", "test_args": ["test/!(listen.5).test.js"], "node_args": ["--no-use-env-proxy"],
+                       "deps": "deps/node_modules"}, fh)
         cmd, node, install, extra = arena_ci(arena)
-        self.assertEqual(cmd, ghmod.DEFAULT_TEST_CMD + " 'test/**/*.test.js'")
+        self.assertEqual(cmd, "node --no-use-env-proxy --test --test-timeout=60000 --test-reporter=spec "
+                              "--test-reporter-destination=stdout 'test/!(listen.5).test.js'")
         self.assertEqual(node, "25.8.1")
         self.assertIn("npm ci", install)
         self.assertEqual(sorted(extra), [".github/race/package-lock.json", ".github/race/package.json"])
         self.assertIn("install", workflow_yaml(cmd, node, install))
+
+    def test_task_note_is_appended_to_every_prompt(self) -> None:
+        from harness.arena import load_tasks
+        plain = load_tasks(FIXTURE, task_note="")
+        noted = load_tasks(FIXTURE, task_note="You may update existing tests.")
+        self.assertEqual(noted[0].prompt, plain[0].prompt.rstrip() + "\n\nYou may update existing tests.")
 
     def test_git_env_never_carries_a_token(self) -> None:
         env = GhClient.git_env()

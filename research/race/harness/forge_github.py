@@ -74,6 +74,8 @@ class PRTrack:
     added_at: float | None = None   # epoch (GitHub) of the latest AddedToMergeQueue
     handled_head_red: str | None = None
     handled_conflict_head: str | None = None
+    merging: bool = False           # removed from the queue as merged; the PR has not read MERGED yet
+    conflict_polls: int = 0         # consecutive polls reading CONFLICTING outside the queue
     enqueue_head: str | None = None  # the head the driver last asked GitHub to enqueue
     enqueue_tries: int = 0
     waiting: bool = False           # the driver waits for GitHub's outcome on this PR
@@ -116,6 +118,7 @@ class GitHubRace(QueueRace):
         self.gh_base = ""
         self.poller: asyncio.Task | None = None
         self.workflow = ""
+        self.upstream_automation_removed: list[str] = []
         self.fetch_lock = asyncio.Lock()
         self.last_snapshot: Snapshot | None = None
         self.outage: dict | None = None
@@ -149,12 +152,26 @@ class GitHubRace(QueueRace):
         # lockfile under .github/race/): the only files the Beanstalk arm's base lacks
         wt = os.path.join(self.work, "gh-base")
         await self.git.add_worktree(wt, self.base_sha, "gh-base")
+        # an upstream repo's own automation must not run in the race repo: its workflows would compete for the
+        # Actions job cap (fastify's CI matrix queued the race's suite for minutes) and dependabot opens PRs that
+        # the merge queue would see. Only these files go; agents' code and tests are untouched.
+        removed = []
+        gh_dir = os.path.join(wt, ".github")
+        for root, _dirs, names in os.walk(os.path.join(gh_dir, "workflows")):
+            removed += [os.path.relpath(os.path.join(root, n), wt) for n in names]
+        removed += [os.path.relpath(os.path.join(gh_dir, n), wt) for n in ("dependabot.yml", "dependabot.yaml")
+                    if os.path.exists(os.path.join(gh_dir, n))]
+        if removed:
+            await self.git.run("rm", "-q", "--", *removed, cwd=wt)
+        self.upstream_automation_removed = sorted(removed)
         test_cmd, node, install, extra = arena_ci(self.cfg.arena)
         for rel, content in extra.items():
             full = os.path.join(wt, rel)
             os.makedirs(os.path.dirname(full), exist_ok=True)
             with open(full, "w", encoding="utf-8") as fh:
                 fh.write(content)
+        if extra:  # an upstream .gitignore may list package-lock.json (fastify's does)
+            await self.git.run("add", "-f", "--", *extra, cwd=wt)
         path = os.path.join(wt, WORKFLOW_PATH)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         self.workflow = workflow_yaml(self.gh.test_cmd or test_cmd, self.gh.node_version or node,
@@ -176,7 +193,8 @@ class GitHubRace(QueueRace):
             json.dump(conf, fh, indent=2, default=str)
         self.log("gh.setup", repo=self.client.full, url=getattr(self.client, "html_url", None), base=self.gh_base,
                  arena_base=self.base_sha, ruleset=self.ruleset(), push_interval=self.gh.push_interval,
-                 poll_seconds=self.gh.poll_seconds, ignored_prs=len(self.ignore_prs))
+                 poll_seconds=self.gh.poll_seconds, ignored_prs=len(self.ignore_prs),
+                 upstream_automation_removed=self.upstream_automation_removed)
 
     def ruleset(self) -> dict:
         return ruleset_body(self.cfg.ci_slots, self.cfg.batch, check_timeout_minutes=self.gh.check_timeout_minutes)
@@ -199,6 +217,8 @@ class GitHubRace(QueueRace):
             await c.disable_ruleset()
             for pr in await c.open_prs():
                 await c.close_pr(int(pr["number"]))
+            if hasattr(c, "cancel_active_runs"):
+                await c.cancel_active_runs()
             self.say(f"reset {c.full}: ruleset disabled, open PRs closed")
         await c.configure_repo()
         await self.push([f"+{self.gh_base}:refs/heads/main"], what="base")
@@ -302,7 +322,7 @@ class GitHubRace(QueueRace):
                 self.gh_stats["prs_opened"] += 1
                 self.log("pr.open", task=ts.id, pr=number, sha=ts.head_sha)
             tr.head, tr.submitted_at, tr.waiting = ts.head_sha, self.now(), True
-            tr.enqueue_head, tr.enqueue_tries = None, 0
+            tr.enqueue_head, tr.enqueue_tries, tr.merging, tr.conflict_polls = None, 0, False, 0
             refused = await self.client.enable_auto_merge(tr.node_id)
             self.gh_stats["auto_merge_refused" if refused else "auto_merge_enabled"] += 1
             self.log("queue.submit", task=ts.id, pr=tr.number, sha=ts.head_sha, auto_merge=refused is None,
@@ -532,6 +552,13 @@ class GitHubRace(QueueRace):
 
     def kickout(self, tr: PRTrack, pr: PRState, removed) -> tuple[str | None, dict]:
         """The cause of a kick-out, or None while GitHub is still working on the PR."""
+        if removed is not None and (removed.reason or "").lower() == "merged":
+            # GitHub logs the removal a poll or two before the PR reads MERGED (and CONFLICTING against the new
+            # main meanwhile): wait for the merge, never hand it back
+            tr.merging = True
+            return None, {}
+        if tr.merging:
+            return None, {}
         if removed is not None and pr.queue_state is None:
             reason = (removed.reason or "").upper()
             red_run = self.latest_red_group(tr.number)
@@ -546,8 +573,12 @@ class GitHubRace(QueueRace):
                 self.gh_stats["red_prechecks"] += 1
                 return "red", self.red_info(red, "PR check")
             if pr.mergeable == "CONFLICTING":
-                self.gh_stats["conflicting_prs"] += 1
-                return "conflict", {"files": []}
+                tr.conflict_polls += 1
+                if tr.conflict_polls >= 2:  # GitHub's mergeability flickers while main moves: two polls in a row
+                    self.gh_stats["conflicting_prs"] += 1
+                    return "conflict", {"files": []}
+                return None, {}
+        tr.conflict_polls = 0
         return None, {}
 
     def latest_red_group(self, number: int) -> RunTrack | None:
@@ -702,8 +733,11 @@ def arena_ci(arena: str) -> tuple[str, str, str | None, dict[str, str]]:
         return DEFAULT_TEST_CMD, "25", None, {}
     with open(meta_path, encoding="utf-8") as fh:
         meta = json.load(fh)
-    args = " ".join(shlex.quote(a) for a in meta.get("test_args") or [])
-    cmd = f"{DEFAULT_TEST_CMD} {args}".strip()
+    from .suite import load_suite
+    suite = load_suite(arena)
+    # the harness CI's argv (suite.test_argv: node options, --test, globs) with a spec reporter for the job log
+    argv = suite.test_argv(test_timeout_ms=60000, reporters=[("spec", "stdout")])
+    cmd = " ".join(shlex.quote(a) for a in argv)
     node = str(meta.get("node") or "25").lstrip("v")
     extra: dict[str, str] = {}
     install = None
