@@ -395,6 +395,21 @@ export type RaceEventFields = {
    */
   'rescue.start': TaskRef & { readonly why: string; readonly rounds: number };
   /**
+   * Stall fix (`red_reset`): ticket `ticket`'s red at `red_idx` reset the sprout to the tree of
+   * the stalk (`green_idx`) with the commit `sha` at `trunk_idx`, promoted without CI. The beans
+   * of the red window (`requeued`, oldest first) go back through their pre-land checks.
+   */
+  'sprout.reset': {
+    readonly ticket: string;
+    readonly red_idx: number;
+    readonly green_idx: number;
+    readonly trunk_idx: number;
+    readonly sha: string;
+    readonly requeued: readonly string[];
+  };
+  /** Stall fix (`red_reset`): a bean the reset took off the sprout (it was `trunk_idx`) lands again. */
+  'bean.requeued': TaskRef & { readonly ticket: string; readonly trunk_idx: number };
+  /**
    * v2.5 (E6 `dynamic_culprits`): the leave-one-out search for the landed beans that break the
    * bean's own failing tests: the candidates probed, and those whose removal fixed the tests.
    */

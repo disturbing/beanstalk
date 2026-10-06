@@ -47,6 +47,20 @@ export function lastTaskCommit(state: V2State, task: TaskId): SproutCommit | und
   return state.commits.findLast((commit) => commit.task === task && commit.kind === 'task');
 }
 
+/**
+ * Files a validation found failing at `head` or below it, back to the last green validation
+ * or revert. Not empty: the sprout at `head` is known red (`repair_landing`, `episode_tickets`).
+ */
+export function knownRedFiles(state: V2State, head: Sha): string[] {
+  const files = new Set<string>();
+  for (let idx = sproutIndex(state, head); idx > state.greenIdx; idx -= 1) {
+    if (state.validated[idx] === true) break;
+    for (const path of state.redValidations[idx] ?? []) files.add(path);
+    if (state.commits[idx]?.kind === 'revert') break;
+  }
+  return [...files].toSorted();
+}
+
 export function requireCommit(state: V2State, idx: number): SproutCommit {
   const commit = state.commits[idx];
   if (commit === undefined) throw new EngineInvariantError(`no sprout commit ${idx}`);

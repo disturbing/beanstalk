@@ -271,6 +271,31 @@ const CheckedFields = z
      * not ship. The queue ignores it. `false`: drop as v2.5 did.
      */
     park: z.boolean().default(true),
+    /**
+     * Stall fix (the 30-agent post-mortem): a red validation whose culprit no lone-suspect
+     * revert removes cleanly resets the sprout to the last green commit (a new commit with that
+     * tree, so the sprout and the stalk only move forward) and requeues the beans that landed
+     * after it. They re-run their pre-land checks in their own sandboxes and land again; the
+     * culprit is named by its own red re-check and repaired by its author. No CI bisection.
+     * `false`: bisect and revert, as v2.5.
+     */
+    red_reset: z.boolean().default(true),
+    /**
+     * Stall fix: one ticket per red episode. While a ticket is open below it, a red validation
+     * opens no ticket and runs no flake re-run, and a bean checked on a sprout known red whose
+     * check fails every file the sprout's validation failed waits for the sprout (an inherited
+     * red, not a culprit). `false`: every red with new failures opens its own ticket, as v2.5.
+     * Off by default: alone it held beans on an unrevertable red and slowed burst30; with
+     * `red_reset` it changed nothing (`docs/claude-opus/11`).
+     */
+    episode_tickets: z.boolean().default(false),
+    /**
+     * Stall fix: a bean whose full pre-land check is green on a sprout commit known red (it
+     * makes the failing tests pass) lands even when the window is full, and the validation of
+     * its landing goes ahead of bisect probes. `false`: it waits for the window, as v2.5.
+     * Off by default: it changed no simulated race (`docs/claude-opus/11`).
+     */
+    repair_landing: z.boolean().default(false),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -364,6 +389,23 @@ export const RunConfig = z.preprocess(
 export type RunConfig = z.infer<typeof RunConfig>;
 export type RunConfigInput = z.input<typeof CheckedFields>;
 
+/** The stall fix of the 30-agent post-mortem off: v2.5 as the `cf-demo-sonnet-30-s7` race ran it. */
+export const STALL_FIX_OFF = {
+  red_reset: false,
+  episode_tickets: false,
+  repair_landing: false,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * The stall fix as the simulator chose it (`docs/claude-opus/11`, "30-agent post-mortem"):
+ * the red-window reset on; one ticket per episode and repair landings measured and left off.
+ */
+export const STALL_FIX_ON = {
+  red_reset: true,
+  episode_tickets: false,
+  repair_landing: false,
+} as const satisfies Partial<RunConfigInput>;
+
 /**
  * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
  * races' engine). Each v2.5 phase turns some back on (`packages/gateway/README.md`,
@@ -383,6 +425,7 @@ export const V25_RULES_OFF = {
   max_bean_invocations: 0,
   tail_guard_minutes: 0,
   park: false,
+  ...STALL_FIX_OFF,
 } as const satisfies Partial<RunConfigInput>;
 
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
@@ -407,12 +450,13 @@ export const V25_SETTINGS = {
   max_bean_invocations: 10,
   tail_guard_minutes: 10,
   park: false,
+  ...STALL_FIX_OFF,
 } as const satisfies Partial<RunConfigInput>;
 
 /**
  * The demo engine: v2.5 with dependency-aware starts and the tail fix (the CF races
- * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), plus parking with its 3-minute tail guard. The
- * opt-in tracks it does not use are pinned off.
+ * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), plus parking with its 3-minute tail guard and the
+ * 30-agent stall fix (`red_reset`). The opt-in tracks it does not use are pinned off.
  */
 export const DEMO_SETTINGS = {
   ...V25_SETTINGS,
@@ -423,6 +467,7 @@ export const DEMO_SETTINGS = {
   targeted_landing_check: false,
   live_sync: 'off',
   live_sync_midrun: false,
+  ...STALL_FIX_ON,
 } as const satisfies Partial<RunConfigInput>;
 
 /** What each preset pins. */

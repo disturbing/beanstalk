@@ -742,6 +742,11 @@ export function revertMessage(title: string, reverted: string, ticket: string): 
   return `Revert ${title}\n\nReverts: ${reverted}\nTicket: ${ticket}\n`;
 }
 
+/** The message of a red-window reset (`red_reset`): the sprout back to the stalk's tree. */
+export function resetMessage(green: string, head: string, ticket: string): string {
+  return `Reset the sprout to ${green.slice(0, 10)}\n\nReverts: ${green}..${head}\nTicket: ${ticket}\n`;
+}
+
 /** The message of a leave-one-out probe commit (`leave_one_out`). */
 export function probeMessage(without: string): string {
   return `probe: without ${without.slice(0, 10)}\n`;

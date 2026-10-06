@@ -70,6 +70,9 @@ class SummaryParkedRowTest(unittest.TestCase):
 class DriverKnobTest(unittest.TestCase):
     def test_park_is_passed_from_the_environment(self) -> None:
         self.assertEqual(remote.V22_ENV["park"], ("PARK", bool))
+        self.assertEqual(remote.V22_ENV["red_reset"], ("RED_RESET", bool))
+        self.assertEqual(remote.V22_ENV["episode_tickets"], ("EPISODE_TICKETS", bool))
+        self.assertEqual(remote.V22_ENV["repair_landing"], ("REPAIR_LANDING", bool))
 
 
 if __name__ == "__main__":

@@ -55,12 +55,13 @@ import {
   appendCommit,
   awaitOutcome,
   filesLandedSince,
+  knownRedFiles,
   lastTaskCommit,
   sproutIndex,
   unvalidatedCount,
 } from './v2-sprout';
 import type { LandingFlow, LandingStep, V2State, V2Step } from './v2-state';
-import { openTicket } from './v2-tickets';
+import { isInRedEpisode, openTicket } from './v2-tickets';
 import { releaseTurn, requestTurn } from './v2-turn';
 import { confirmBySighting, newFailures } from './v2-validator';
 
@@ -423,7 +424,12 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   const stale = inherited === null ? staleFailures(step, check.head0, result) : [];
   if (check.isInTurn) {
     if (result.green) {
-      publish(step, flow, { head: check.head0, sha: check.candidate, files: check.files });
+      publish(step, flow, {
+        head: check.head0,
+        sha: check.candidate,
+        files: check.files,
+        ...(isRepairLanding(step, check.head0) ? { repair: true } : {}),
+      });
       return;
     }
     if (inherited !== null) {
@@ -461,12 +467,28 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     return;
   }
   const { head0, candidate, files, mine } = check;
-  if (isWindowFull(step, false)) {
+  const isRepair = isRepairLanding(step, head0);
+  if (!isRepair && isWindowFull(step, false)) {
     waitForWindow(step, flow, { head0, candidate, files, mine });
     return;
   }
-  flow.step = { kind: 'queued-land', head0, candidate, files, mine };
+  flow.step = {
+    kind: 'queued-land',
+    head0,
+    candidate,
+    files,
+    mine,
+    ...(isRepair ? { repair: true } : {}),
+  };
   requestTurn(step, { kind: 'landing', task: flow.task });
+}
+
+/**
+ * `repair_landing`: the bean's full check was green on a sprout commit known red, so it makes
+ * the failing tests pass: it lands past the window, and its validation goes ahead of probes.
+ */
+function isRepairLanding(step: V2Step, head0: Sha): boolean {
+  return step.state.settings.repairLanding === true && knownRedFiles(step.state, head0).length > 0;
 }
 
 /** v2.3: the window has no room for this bean (`isCounted`: it already queues for the turn). */
@@ -562,6 +584,8 @@ function inheritedFailures(
   const { state } = step;
   const mode = step.ctx.env.config.inherited_reds;
   const failing = check.result.failingFiles;
+  const episode = episodeRed(step, flow, check);
+  if (episode !== null) return episode;
   if (
     mode === 'off' ||
     check.result.green ||
@@ -578,6 +602,27 @@ function inheritedFailures(
           (path) => isUntouched(path, check) || failedValidation(state, check.head, [path]),
         );
   return isInherited ? [...failing] : null;
+}
+
+/**
+ * `episode_tickets`: the bean was checked on a sprout known red, and its check failed every
+ * file the sprout's validation failed: the break is still there, so nothing in the check can
+ * be judged (its own new tests fail with the suite). The bean waits for the sprout, without
+ * the three-wait bound while the sprout is being repaired.
+ */
+function episodeRed(
+  step: V2Step,
+  flow: LandingFlow,
+  check: { head: Sha; result: CheckResult },
+): string[] | null {
+  const { state } = step;
+  const failing = check.result.failingFiles;
+  if (state.settings.episodeTickets !== true || check.result.green || failing === null) return null;
+  const red = knownRedFiles(state, check.head);
+  if (red.length === 0 || !red.every((path) => failing.includes(path))) return null;
+  if (flow.inheritedWaits >= MAX_INHERITED_WAITS && !isSproutRepairing(state)) return null;
+  state.stats.episode_inherited = (state.stats.episode_inherited ?? 0) + 1;
+  return [...failing];
 }
 
 /**
@@ -622,6 +667,7 @@ function sightInherited(
   const { state } = step;
   const idx = sproutIndex(state, red.head);
   if (!step.ctx.env.config.early_tickets || idx <= state.greenIdx) return;
+  if (isInRedEpisode(state, idx)) return;
   const seen = state.sightings[idx] ?? {};
   for (const path of red.failing) {
     const beans = seen[path] ?? [];
@@ -709,7 +755,7 @@ function landInTurn(
   flow: LandingFlow,
   queued: Extract<LandingStep, { kind: 'queued-land' }>,
 ): void {
-  if (isWindowFull(step, true)) {
+  if (queued.repair !== true && isWindowFull(step, true)) {
     const { head0, candidate, files, mine } = queued;
     waitForWindow(step, flow, { head0, candidate, files, mine });
     releaseTurn(step);
@@ -717,7 +763,12 @@ function landInTurn(
   }
   const head = step.state.sprout;
   if (head === queued.head0) {
-    publish(step, flow, { head, sha: queued.candidate, files: queued.files });
+    publish(step, flow, {
+      head,
+      sha: queued.candidate,
+      files: queued.files,
+      ...(queued.repair === true ? { repair: true } : {}),
+    });
     return;
   }
   const jobId = squash(step, flow.task, head);
@@ -987,7 +1038,7 @@ function onLockedSquashed(step: V2Step, flow: LandingFlow, head: Sha, result: Jo
 function publish(
   step: V2Step,
   flow: LandingFlow,
-  landing: { head: Sha; sha: Sha; files: string[] },
+  landing: { head: Sha; sha: Sha; files: string[]; repair?: true },
 ): void {
   const jobId = startJob(
     step.ctx,
@@ -1020,8 +1071,10 @@ function onPublished(
     task: flow.task,
     ticket: null,
     files: landing.files,
+    ...(landing.repair === true ? { repair: true } : {}),
   });
   state.stats.landings += 1;
+  if (landing.repair === true) state.stats.repair_landings = (state.stats.repair_landings ?? 0) + 1;
   emit(ctx, 'land', {
     task: flow.task,
     ticket: null,

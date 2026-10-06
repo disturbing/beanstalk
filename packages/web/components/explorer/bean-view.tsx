@@ -81,6 +81,7 @@ const STEP_LABEL: Readonly<Record<BeanStep['kind'], string>> = {
   'tests-first': 'Tests written first',
   reconcile: 'Specs compared',
   rescue: 'Rescued',
+  requeued: 'Requeued by a sprout reset',
   culprits: 'Culprit search',
   synced: 'Caught up with the sprout',
   window: 'Waited for the sprout window',

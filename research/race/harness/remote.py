@@ -63,7 +63,8 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # read-set inherited reds, early tickets, re-executed losers; v2.5: reconcile with every landed party,
 # escalation after one repeated red, lone-suspect reverts, base culprits, window sizes, E6's start cards,
 # rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts, the tail fix's per-bean
-# invocation ceiling and tail guard (0 turns either off), parking (PARK=0: drop as v2.5 did); live sprout sync; the
+# invocation ceiling and tail guard (0 turns either off), parking (PARK=0: drop as v2.5 did), the 30-agent stall fix
+# (RED_RESET=0: bisect and revert as v2.5; EPISODE_TICKETS, REPAIR_LANDING: measured, off); live sprout sync; the
 # queue never gets these, and the gateway
 # refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
@@ -82,7 +83,9 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "start_order": ("START_ORDER", str), "live_sync": ("LIVE_SYNC", str),
            "live_sync_midrun": ("LIVE_SYNC_MIDRUN", bool),
            "max_bean_invocations": ("MAX_BEAN_INVOCATIONS", int),
-           "tail_guard_minutes": ("TAIL_GUARD_MINUTES", float), "park": ("PARK", bool)}
+           "tail_guard_minutes": ("TAIL_GUARD_MINUTES", float), "park": ("PARK", bool),
+           "red_reset": ("RED_RESET", bool), "episode_tickets": ("EPISODE_TICKETS", bool),
+           "repair_landing": ("REPAIR_LANDING", bool)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
 STREAM_POLL = 0.25          # how often the driver looks at the agent's edit marker

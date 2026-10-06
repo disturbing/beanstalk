@@ -250,6 +250,12 @@ export type JobSpec =
       readonly kind: 'revert';
       readonly onto: Sha;
       readonly commit: Sha;
+      /**
+       * Undo every commit in `to..commit` at once: the merge's other side is `to`, not the
+       * commit's parent. With `commit` = `onto` = the sprout head, the result is exactly `to`'s
+       * tree and never conflicts (v2's red-window reset, `red_reset`).
+       */
+      readonly to?: Sha;
       readonly message: string;
       readonly unionPaths: readonly string[];
     }

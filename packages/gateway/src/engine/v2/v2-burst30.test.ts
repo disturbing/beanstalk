@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEMO_SETTINGS } from '@beanstalk/shared-race/run-config';
+import { DEMO_SETTINGS, STALL_FIX_OFF } from '@beanstalk/shared-race/run-config';
 
 import { breakNumbers, burst30Scenario, redEpisodes } from '../testing/burst30';
 import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
@@ -11,12 +11,12 @@ import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
  * until a bean happens to fix it forward. The fixture other changes measure against.
  */
 describe('burst30: the 30-agent stall, in the simulator', () => {
-  // Like the dependency-chain fixtures, this simulation can exceed 5 s under parallel suite load.
+  // These simulations can exceed 5 s under parallel suite load, like the dependency-chain fixtures.
   it(
     'reproduces the stall under the v2.5 demo preset (seed 7, 30 agents)',
     { timeout: 30_000 },
     () => {
-      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
+      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF }));
 
       expect(wellFormedProblems(run.events)).toEqual([]);
       expect(eventsOf(run.events, 'revert.conflict').length).toBeGreaterThanOrEqual(1);
@@ -29,6 +29,33 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
       expect(numbers.kth[30]).toBeGreaterThan(15);
       // The 35th green came at about 27 min before the starvation fix, about 20.5 min after it.
       expect(numbers.kth[35]).toBeGreaterThan(18);
+    },
+  );
+
+  it(
+    'the red-window reset ends the stall: green again at once, the culprits repaired by their authors',
+    { timeout: 30_000 },
+    () => {
+      const before = breakNumbers(
+        runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF })),
+      );
+      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
+
+      expect(wellFormedProblems(run.events)).toEqual([]);
+      expect(eventsOf(run.events, 'sprout.reset').length).toBeGreaterThanOrEqual(1);
+      expect(eventsOf(run.events, 'ticket.escalate')).toHaveLength(
+        eventsOf(run.events, 'ticket.open').length,
+      );
+      expect(eventsOf(run.events, 'revert')).toEqual([]);
+      expect(eventsOf(run.events, 'ci.start', { purpose: 'bisect' })).toEqual([]);
+      for (const episode of redEpisodes(run)) {
+        expect((episode.to ?? Infinity) - episode.from).toBeLessThan(2);
+      }
+      const after = breakNumbers(run);
+      expect(after.correct).toBe(true);
+      expect(after.green).toBeGreaterThan(before.green);
+      expect(after.kth[30] ?? Infinity).toBeLessThan(before.kth[30] ?? 0);
+      expect(after.kth[35] ?? Infinity).toBeLessThan(before.kth[35] ?? 0);
     },
   );
 

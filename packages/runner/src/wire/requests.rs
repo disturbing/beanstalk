@@ -85,6 +85,9 @@ pub(crate) struct RevertBody {
     token: Token,
     onto: String,
     commit: String,
+    /// Undo `to..commit` (the red-window reset); absent: `commit` alone.
+    #[serde(default)]
+    to: Option<String>,
     message: String,
     #[serde(default)]
     union_paths: Vec<String>,
@@ -218,6 +221,7 @@ impl RevertBody {
             },
             onto: sha("onto", &self.onto)?,
             commit: sha("commit", &self.commit)?,
+            to: self.to.as_deref().map(|to| sha("to", to)).transpose()?,
             message: self.message,
             // A revert undoes a commit exactly; it never guesses structurally.
             rules: rules(&self.union_paths, self.merge_driver, StructuralTier::Off)?,

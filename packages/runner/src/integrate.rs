@@ -49,6 +49,9 @@ pub(crate) struct RevertRequest {
     pub(crate) trunk: Remote,
     pub(crate) onto: CommitSha,
     pub(crate) commit: CommitSha,
+    /// Undo `to..commit` instead of `commit` alone: the merge's other side is `to`, not the
+    /// commit's first parent (the beanstalk policy's red-window reset to the last green commit).
+    pub(crate) to: Option<CommitSha>,
     pub(crate) message: String,
     pub(crate) rules: MergeRules,
 }
@@ -177,7 +180,9 @@ pub(crate) async fn compose(
 }
 
 /// Reverts `commit` on top of `onto`: a 3-way merge with the commit as base and its first parent
-/// as the other side (the beanstalk policy's `revert_culprit` and its probes).
+/// as the other side (the beanstalk policy's `revert_culprit` and its probes). With `to`, the
+/// other side is `to`: every commit in `to..commit` is undone at once (the red-window reset,
+/// with `commit` = `onto` = the sprout head, gives exactly `to`'s tree and never conflicts).
 ///
 /// # Errors
 ///
@@ -188,12 +193,18 @@ pub(crate) async fn revert(workspace: &Workspace, request: &RevertRequest) -> Re
         .ensure_commits(&[&request.onto, &request.commit])
         .await?;
     let repo = cache.repo();
-    let parent = repo
-        .first_parent(&request.commit)
-        .await?
-        .ok_or_else(|| Error::RootCommit {
-            sha: request.commit.to_string(),
-        })?;
+    let parent = match &request.to {
+        Some(to) => {
+            cache.ensure_commits(&[to]).await?;
+            to.clone()
+        }
+        None => repo
+            .first_parent(&request.commit)
+            .await?
+            .ok_or_else(|| Error::RootCommit {
+                sha: request.commit.to_string(),
+            })?,
+    };
     let job = workspace.new_job().await?;
     let setup = request.rules.prepare(job.path()).await?;
     let three_way = ThreeWay {

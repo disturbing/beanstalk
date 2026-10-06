@@ -52,6 +52,8 @@ export type RevertCall = {
   readonly trunk: RunnerRemote;
   readonly onto: Sha;
   readonly commit: Sha;
+  /** Undo `to..commit` at once (the red-window reset); absent: `commit` alone. */
+  readonly to?: Sha;
   readonly message: string;
   readonly unionPaths: readonly string[];
 };
@@ -173,6 +175,7 @@ export function runnerPort(stubFor: (instance: string) => RunnerStub): RunnerPor
         token: call.trunk.token,
         onto: call.onto,
         commit: call.commit,
+        ...(call.to === undefined ? {} : { to: call.to }),
         message: call.message,
         union_paths: call.unionPaths,
       };

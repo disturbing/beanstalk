@@ -247,6 +247,10 @@ function applyByType(draft: Draft, event: RaceEvent): void {
       return setTicketStatus(draft, event.ticket, 'escalated');
     case 'revert':
       return revert(draft, event);
+    case 'sprout.reset':
+      return resetSprout(draft, event);
+    case 'bean.requeued':
+      return requeueBean(draft, event);
     case 'revert.conflict':
       return;
     case 'queue.enqueue':
@@ -630,6 +634,37 @@ function revert(draft: Draft, event: RaceEventOf<'revert'>): void {
   if (event.task !== null) {
     addStep(draft, event.task, { t: event.t, kind: 'reverted', detail: `ticket ${event.ticket}` });
   }
+}
+
+/** `red_reset`: every commit of the red window is off the sprout; the reset commit is on it. */
+function resetSprout(draft: Draft, event: RaceEventOf<'sprout.reset'>): void {
+  for (const commit of draft.commits) {
+    if (commit.idx > event.green_idx && commit.idx < event.trunk_idx) commit.status = 'reverted';
+  }
+  if (commitAt(draft, event.trunk_idx) !== undefined) return;
+  draft.commits.push({
+    idx: event.trunk_idx,
+    sha: event.sha,
+    task: null,
+    kind: 'reset',
+    t: event.t,
+    files: [],
+    status: 'pending',
+    redAt: null,
+  });
+}
+
+function requeueBean(draft: Draft, event: RaceEventOf<'bean.requeued'>): void {
+  const target = bean(draft, event.task);
+  target.landedAt = null;
+  target.landedIdx = null;
+  target.landedSha = null;
+  setPhase(draft, event.task, 'checking', event.t);
+  addStep(draft, event.task, {
+    t: event.t,
+    kind: 'requeued',
+    detail: `ticket ${event.ticket}, was #${event.trunk_idx}`,
+  });
 }
 
 // --- CI: validations, batches, bisection -----------------------------------------------------

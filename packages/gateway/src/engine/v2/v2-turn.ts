@@ -4,11 +4,16 @@
  */
 import type { TurnHolder, V2State, V2Step } from './v2-state';
 
-/** Takes the turn now if it is free, else queues for it; the owner continues on `granted`. */
-export function requestTurn(step: V2Step, holder: TurnHolder): void {
+/**
+ * Takes the turn now if it is free, else queues for it; the owner continues on `granted`.
+ * `isFirst` (a `red_reset`): it goes ahead of the queue, since every landing waiting there
+ * would only join the red window it resets.
+ */
+export function requestTurn(step: V2Step, holder: TurnHolder, isFirst = false): void {
   const turn = step.state.turn;
   if (turn.holder !== null || turn.queue.length > 0) {
-    turn.queue.push(holder);
+    if (isFirst) turn.queue.unshift(holder);
+    else turn.queue.push(holder);
     return;
   }
   turn.holder = holder;

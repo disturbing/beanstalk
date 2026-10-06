@@ -68,6 +68,8 @@ function sentenceOf(step: BeanStep): string {
       return `The test author compared specs: ${detail}`;
     case 'rescue':
       return `Rescued: re-executed on the sprout head (${detail})`;
+    case 'requeued':
+      return `Taken off a red sprout by a reset, to be checked and landed again (${detail})`;
     case 'culprits':
       return `Searched for what breaks its tests: ${detail}`;
     case 'synced':
@@ -104,6 +106,7 @@ function toneOf(kind: BeanStepKind): JourneyTone {
       return 'decide';
     case 'rescue':
     case 'culprits':
+    case 'requeued':
       return 'rework';
     case 'tests-first':
     case 'synced':

@@ -164,6 +164,7 @@ export function createWorld(options: WorldOptions): World {
       }
       if (
         spec.kind === 'revert' &&
+        spec.to === undefined &&
         scripted.get(squashedBy.get(spec.commit) ?? '')?.revertConflicts
       ) {
         const files = changedPaths(
@@ -310,7 +311,7 @@ function squash(git: ToyGit, spec: Extract<JobSpec, { kind: 'squash' }>): JobOut
 /** `merge_tree(commit, onto, parent)`: undo a commit on top of `onto` (`revert_culprit`). */
 function revert(git: ToyGit, spec: Extract<JobSpec, { kind: 'revert' }>): JobOutcome {
   const target = git.get(spec.commit);
-  const parent = target.parents[0];
+  const parent = spec.to ?? target.parents[0];
   if (parent === undefined) throw new Error(`cannot revert the root commit ${spec.commit}`);
   const onto = git.get(spec.onto);
   const merged = mergeFiles(target.files, onto.files, git.get(parent).files, spec.unionPaths);
