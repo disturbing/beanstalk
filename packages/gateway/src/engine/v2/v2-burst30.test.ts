@@ -20,9 +20,11 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
     expect(episode?.to).not.toBeNull();
     expect((episode?.to ?? 0) - (episode?.from ?? 0)).toBeGreaterThanOrEqual(5);
     const numbers = breakNumbers(run);
-    expect(numbers).toMatchObject({ green: 37, parked: 3, dropped: 0, correct: true });
+    // With the scheduler starvation fix (age and stall bounds) one more task parks: 36 green, 4 parked.
+    expect(numbers).toMatchObject({ green: 36, parked: 4, dropped: 0, correct: true });
     expect(numbers.kth[30]).toBeGreaterThan(15);
-    expect(numbers.kth[35]).toBeGreaterThan(25);
+    // The 35th green came at about 27 min before the starvation fix, about 20.5 min after it.
+    expect(numbers.kth[35]).toBeGreaterThan(18);
   });
 
   it('runs at 12 agents too', () => {
