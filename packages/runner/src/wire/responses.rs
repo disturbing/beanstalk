@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
-use crate::check::{CheckReport, FailingTest, ImportDepths};
+use crate::check::{CheckReport, FailingTest, ImportDepths, SuiteNetwork};
 use crate::git::{CommitSha, RefUpdateOutcome};
 use crate::integrate::{Composition, Landing, Squashed};
 use crate::resolve::{ConflictHunk, Resolution};
@@ -194,6 +194,8 @@ pub(crate) struct CheckResponse {
     suite_seconds: f64,
     ci_seconds: f64,
     timed_out: bool,
+    /// The suite's network: `loopback` (a namespace with `lo` only) or `host`.
+    network: SuiteNetwork,
 }
 
 impl From<CheckReport> for CheckResponse {
@@ -215,6 +217,7 @@ impl From<CheckReport> for CheckResponse {
             suite_seconds: report.suite_seconds,
             ci_seconds: report.ci_seconds,
             timed_out: report.timed_out,
+            network: report.network,
         }
     }
 }
@@ -224,6 +227,8 @@ pub(crate) struct HealthResponse {
     pub(crate) ok: bool,
     pub(crate) git: Option<String>,
     pub(crate) node: Option<String>,
+    /// The network suites get on this instance.
+    pub(crate) network: SuiteNetwork,
 }
 
 #[derive(Debug, Serialize)]

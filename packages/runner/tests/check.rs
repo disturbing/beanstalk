@@ -170,6 +170,112 @@ async fn check_reports_passing_read_sets_and_runs_only_the_named_tests_when_aske
     assert_eq!(body["read_sets"], json!({}));
 }
 
+/// A real-task arena in miniature: a test that needs a dependency from the snapshot, an
+/// environment variable from the run's suite and a local port, and a flaky file the suite's
+/// extglob leaves out.
+const ARENA_TEST_MJS: &str = "import assert from 'node:assert/strict';\n\
+                              import net from 'node:net';\n\
+                              import { test } from 'node:test';\n\
+                              import pad from 'leftpad';\n\n\
+                              test('pads from the snapshot', () => assert.equal(pad('7'), '07'));\n\
+                              test('sees the run environment', () => assert.equal(process.env.ARENA_FLAG, 'on'));\n\
+                              test('listens and connects on loopback', async () => {\n\
+                              \x20 const server = net.createServer((socket) => socket.end('hi'));\n\
+                              \x20 await new Promise((done) => server.listen(0, '127.0.0.1', done));\n\
+                              \x20 const socket = net.connect(server.address().port, '127.0.0.1');\n\
+                              \x20 const reply = await new Promise((done) => socket.on('data', (data) => done(String(data))));\n\
+                              \x20 server.close();\n\
+                              \x20 assert.equal(reply, 'hi');\n\
+                              });\n";
+const FLAKY_TEST_MJS: &str = "import { test } from 'node:test';\n\
+                              test('always fails', () => { throw new Error('flaky'); });\n";
+
+fn arena_project(world: &World) -> (Remote, String) {
+    let trunk = world.bare("real");
+    let work = world.work("real");
+    let sha = work.commit(
+        &[
+            ("package.json", "{\"type\": \"module\"}\n"),
+            ("test/arena.test.mjs", ARENA_TEST_MJS),
+            ("test/flaky.test.mjs", FLAKY_TEST_MJS),
+        ],
+        "real-task arena",
+    );
+    work.push(&trunk, "HEAD:refs/heads/main");
+    let leftpad = world.deps_dir().join("arena/node_modules/leftpad");
+    std::fs::create_dir_all(&leftpad).unwrap();
+    std::fs::write(
+        leftpad.join("package.json"),
+        "{\"name\": \"leftpad\", \"type\": \"module\", \"main\": \"index.js\"}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        leftpad.join("index.js"),
+        "export default (text) => text.padStart(2, '0');\n",
+    )
+    .unwrap();
+    (trunk, sha)
+}
+
+#[tokio::test]
+async fn check_runs_an_arena_suite_with_its_env_snapshot_and_loopback() {
+    if !has_node() {
+        return;
+    }
+    let world = World::new().await;
+    let (trunk, sha) = arena_project(&world);
+    let mut request = check_body(&trunk, &sha);
+    request["cmd"] = json!([
+        "node",
+        "--no-use-env-proxy",
+        "--test",
+        "test/!(flaky).test.mjs"
+    ]);
+    request["env"] = json!({"ARENA_FLAG": "on"});
+    request["deps"] = json!("arena");
+
+    let (status, body) = world.post("/v1/check", &request).await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["green"], true, "{body}");
+    assert_eq!(body["tests"], 3, "{body}");
+    assert_eq!(body["passing_files"], json!(["test/arena.test.mjs"]));
+    assert!(
+        ["loopback", "host"].contains(&body["network"].as_str().unwrap()),
+        "{body}"
+    );
+}
+
+#[tokio::test]
+async fn check_without_the_snapshot_cannot_resolve_the_dependency() {
+    if !has_node() {
+        return;
+    }
+    let world = World::new().await;
+    let (trunk, sha) = arena_project(&world);
+    let mut request = check_body(&trunk, &sha);
+    request["cmd"] = json!(["node", "--test", "test/!(flaky).test.mjs"]);
+    request["env"] = json!({"ARENA_FLAG": "on"});
+
+    let (status, body) = world.post("/v1/check", &request).await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["green"], false, "{body}");
+}
+
+#[tokio::test]
+async fn check_refuses_a_snapshot_the_image_does_not_have() {
+    let world = World::new().await;
+    let (trunk, sha) = arena_project(&world);
+    let mut request = check_body(&trunk, &sha);
+    request["deps"] = json!("express");
+
+    let (status, body) = world.post("/v1/check", &request).await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST, "{body}");
+    assert!(body["message"].as_str().unwrap().contains("deps"), "{body}");
+}
+
 #[tokio::test]
 async fn check_reports_failures_with_read_sets_and_stack_files() {
     if !has_node() {

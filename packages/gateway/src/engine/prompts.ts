@@ -4,23 +4,52 @@
  * `policy_beanstalk_v2.py`). Agent behaviour must not differ between a local and a cloud
  * race, so any change here is a change to the experiment: prompts keep the harness's words
  * ("trunk", "main") even where the gateway's API says sprout and stalk.
+ *
+ * What a prompt says about running the tests is the run's (`RunConfig.suite`): the harness's
+ * `TEST_HINT` and `SUITE_COMMAND`, which a real-task arena's `arena.json` sets, so a fastify
+ * task's prompts are byte for byte the GitHub arm's (`prompts.test.ts`).
  */
+import type { RunSuite } from '@beanstalk/shared-race/suite';
+import { filesCommand, suiteCommand } from '@beanstalk/shared-race/suite';
 import type { ArenaTask } from '@beanstalk/shared-race/task';
 import { acceptancePaths } from '@beanstalk/shared-race/task';
 
 export const NO_COMMIT = "Don't stage or commit; the harness commits your changes.";
 
-type PromptTask = Pick<ArenaTask, 'title' | 'prompt' | 'acceptance_tests'>;
+/**
+ * What v2's red reworks say about protected tests. Only the acceptance tests the landing
+ * restores are protected (the bean's own and those of changes already landed); an existing
+ * test whose expectations the task intentionally alters may still be updated, as a real-task
+ * arena's `task_note` allows (`research/real-arena/fastify/arena.json`).
+ */
+export const PROTECTED_TESTS =
+  'Acceptance tests (yours and those of changes that already landed) are protected: edits to them ' +
+  'are discarded before landing, so make them pass by changing the code, not those tests. Other ' +
+  'existing tests are not protected: you may update one whose expectations your change ' +
+  'intentionally alters.';
 
-export function acceptanceLine(paths: readonly string[]): string {
+/** What prompts say about the run's suite: its test hint and its commands. */
+export type PromptSuite = Pick<RunSuite, 'argv' | 'files_argv' | 'test_hint'>;
+
+/** A task as its prompts name it, with the run's suite. */
+export type PromptTask = Pick<ArenaTask, 'title' | 'prompt' | 'acceptance_tests'> & {
+  readonly suite: PromptSuite;
+};
+
+/** The harness's `acceptance_line`, with the run's test hint (`TEST_HINT`). */
+export function acceptanceLine(paths: readonly string[], testHint: string): string {
   return (
     `Acceptance tests are in ${paths.join(', ')}. Make them pass without breaking other tests. ` +
-    "Run `node --test`. Don't edit the acceptance tests. Keep changes minimal."
+    `${testHint} Don't edit the acceptance tests. Keep changes minimal.`
   );
 }
 
+function taskAcceptanceLine(task: PromptTask): string {
+  return acceptanceLine(acceptancePaths(task), task.suite.test_hint);
+}
+
 export function initialPrompt(task: PromptTask): string {
-  return `${task.title}\n\n${task.prompt.trim()}\n\n${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`;
+  return `${task.title}\n\n${task.prompt.trim()}\n\n${taskAcceptanceLine(task)} ${NO_COMMIT}\n`;
 }
 
 function sessionHead(task: PromptTask, resumed: boolean): string {
@@ -38,7 +67,7 @@ export function reworkConflictPrompt(
     `The merge of ${target} into your branch is in progress in this worktree; conflict markers are in: ` +
     `${files.join(', ')}.\n\nResolve every conflict so that your change and the changes already on ${target} ` +
     'both keep working, and remove all conflict markers. ' +
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}\n`
   );
 }
 
@@ -87,7 +116,7 @@ export function informedConflictPrompt(
     authorLines(conflict.authors) +
     `Resolve every conflict so that your change and the changes already on ${target} both keep working: ` +
     'keep both intents, never drop one side to make the merge compile, and remove all conflict markers. ' +
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}\n`
   );
 }
 
@@ -118,10 +147,10 @@ export function syncPrompt(
   return (
     `${sessionHead(task, resumed)}While you worked, these changes landed on the trunk and meet your work:\n` +
     syncedLines(beans) +
-    '\nThe trunk is merged into your branch in this worktree (no conflicts). Run `node --test`. ' +
+    `\nThe trunk is merged into your branch in this worktree (no conflicts). ${task.suite.test_hint} ` +
     'If the merged changes broke your change or theirs, fix it so that both keep working; ' +
     'otherwise change nothing. ' +
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}\n`
   );
 }
 
@@ -178,7 +207,7 @@ export function reworkRedPrompt(
     `changes, these tests failed:\n${tests}\n\nOutput:\n\`\`\`\n${output.trim()}\n\`\`\`\n\n` +
     `The latest ${target} has been merged into this worktree. Fix your change so the whole suite passes ` +
     "(your acceptance tests and everyone else's). Other teams' acceptance tests describe behaviour that " +
-    `must keep working. ${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+    `must keep working. ${taskAcceptanceLine(task)} ${NO_COMMIT}\n`
   );
 }
 
@@ -202,8 +231,9 @@ export type FixerSuspect = {
 export function fixerPrompt(
   ticket: FixerTicket,
   suspects: readonly FixerSuspect[],
-  acceptance: readonly string[],
+  context: { readonly acceptance: readonly string[]; readonly suite: PromptSuite },
 ): string {
+  const { acceptance } = context;
   const failing = ticket.failingTests.map((test) => `- ${test}`);
   const lines = [
     `The fast trunk is red. Repair ticket ${ticket.id} (attempt ${ticket.attempt}).`,
@@ -218,7 +248,7 @@ export function fixerPrompt(
     '',
     ...suspectLines(suspects),
     '',
-    'Make the whole suite pass (`node --test`) with a minimal change that preserves the intent of ' +
+    `Make the whole suite pass (\`${suiteCommand(context.suite)}\`) with a minimal change that preserves the intent of ` +
       "every suspect change: don't revert features. Don't edit acceptance tests " +
       `(${acceptance.length > 0 ? acceptance.join(', ') : 'test files named in the tickets'}). ${NO_COMMIT}`,
   ];
@@ -259,9 +289,8 @@ export function prelandRedPrompt(
     `${sessionHead(task, resumed)}Your change was not landed. Merged onto the latest trunk, these tests failed:\n${tests}\n\n` +
     `Output:\n\`\`\`\n${output.trim()}\n\`\`\`\n\n` +
     'The latest trunk has been merged into this worktree. Fix your change so the whole suite passes. ' +
-    "Acceptance tests (yours and other teams') are protected: edits to them are discarded before landing, " +
-    "so change the code, not the tests. Other teams' acceptance tests describe behaviour that must keep " +
-    `working. ${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}\n`
+    `${PROTECTED_TESTS} Other teams' acceptance tests describe behaviour that must keep ` +
+    `working. ${taskAcceptanceLine(task)} ${NO_COMMIT}\n`
   );
 }
 
@@ -315,9 +344,8 @@ export function informedRedPrompt(
     );
   }
   lines.push(
-    "The latest trunk has been merged into this worktree. Acceptance tests (yours and other teams') are " +
-      'protected: edits to them are discarded before landing, so change the code, not the tests.',
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+    `The latest trunk has been merged into this worktree. ${PROTECTED_TESTS}`,
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}`,
   );
   return `${lines.join('\n')}\n`;
 }
@@ -408,7 +436,7 @@ export function reexecutionPrompt(
     '',
     ...inForceLines(context.inForce),
     ...amendedLine(context.amended),
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}`,
   ];
   return `${lines.join('\n')}\n`;
 }
@@ -442,7 +470,7 @@ export function startDecisionPrompt(
     reason,
     '',
     ...amendedLine(context.amended),
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}`,
   ];
   return `${lines.join('\n')}\n`;
 }
@@ -479,7 +507,7 @@ export function rescuePrompt(
     '',
     ...(extra.length === 0 ? [] : [...extra, '']),
     ...amendedLine(context.amended),
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}`,
   ];
   return `${lines.join('\n')}\n`;
 }
@@ -514,7 +542,7 @@ export function adoptInPlacePrompt(
       'must follow your behaviour.',
     '',
     ...inForceLines(context.inForce),
-    `${acceptanceLine(acceptancePaths(task))} ${NO_COMMIT}`,
+    `${taskAcceptanceLine(task)} ${NO_COMMIT}`,
   ];
   return `${lines.join('\n')}\n`;
 }
@@ -584,9 +612,9 @@ export function testAuthorPrompt(
   const check = context.inPlace
     ? `${loser.id} is implemented in this tree; the amended tests must describe the decided behaviour, ` +
       'which the winning change brings when it lands. Run ' +
-      `\`node --test ${paths.join(' ')}\` to check that they parse.`
+      `\`${filesCommand(loser.suite, paths)}\` to check that they parse.`
     : `${loser.id} is not implemented in this tree, so its tests must still fail here because the ` +
-      `feature is missing: run \`node --test ${paths.join(' ')}\` to check that they fail for that ` +
+      `feature is missing: run \`${filesCommand(loser.suite, paths)}\` to check that they fail for that ` +
       'reason and not because of a syntax error.';
   lines.push(
     '',
@@ -655,7 +683,7 @@ export function reconcilePrompt(
         : " One failing test can clash with more than one landed task: check each landed task's rule before you decide."),
     `- If they do not, update in ${context.paths.join(', ')} only the assertions that pin such a value, ` +
       "so that each task's own intent stays tested. Work out the new expected values from the code in " +
-      `this tree, run \`node --test ${context.paths.join(' ')}\` until they pass, and reply RECONCILED.`,
+      `this tree, run \`${filesCommand(arriving.suite, context.paths)}\` until they pass, and reply RECONCILED.`,
     `- Change a value only when ${othersIntent} intent explains the new one, and say which in your reply. ` +
       "Never delete or loosen an assertion, and never change what a task's own intent requires: if the code " +
       'looks wrong rather than the test, change nothing and reply CONTRADICTION: <what looks wrong>.',

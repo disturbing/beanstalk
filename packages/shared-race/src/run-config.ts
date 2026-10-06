@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { TaskId } from './ids';
+import { DEFAULT_SUITE, RunSuite } from './suite';
 import { ArenaTask } from './task';
 
 /**
@@ -328,6 +329,12 @@ const CheckedFields = z
     footprint: z.string().max(40).default('none'),
     footprint_threshold: z.number().min(0).max(1).default(0.3),
     footprints: z.record(TaskId, TaskFootprint).default({}),
+    /**
+     * The test suite every check runs and the test hint every prompt gives (`suite.ts`). The
+     * default is the designed arena's bare `node --test`; a real-task arena's driver sends its
+     * `arena.json` suite.
+     */
+    suite: RunSuite.default(DEFAULT_SUITE),
     tasks: z.array(ArenaTask).min(1).max(200),
   })
   .superRefine((config, issues) => {

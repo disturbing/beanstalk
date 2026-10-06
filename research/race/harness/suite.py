@@ -75,6 +75,24 @@ class SuiteConfig:
         return env
 
 
+def gateway_suite(cfg: SuiteConfig, suite_timeout: float = 300.0) -> dict | None:
+    """The run config's ``suite`` for the Cloudflare gateway (``packages/shared-race/src/suite.ts``): the argv
+    of the whole suite and of chosen test files, the environment, the runner image's dependency snapshot (named
+    after the arena's directory) and the agents' test hint. ``None`` for the designed arena, whose bare
+    ``node --test`` is the gateway's default (so a gateway without the field still takes the run)."""
+    if cfg.source == "default":
+        return None
+    files_argv = ["node", *cfg.node_args, "--test"]
+    if cfg.test_concurrency:
+        files_argv.append(f"--test-concurrency={cfg.test_concurrency}")
+    if cfg.build:
+        raise ValueError(f"{cfg.source}: the gateway runs no build step; this arena's suite needs one")
+    snapshot = os.path.basename(os.path.dirname(cfg.source)) if cfg.deps else None
+    return {"argv": cfg.test_argv(reporters=[]), "files_argv": files_argv, "env": dict(cfg.env),
+            "deps": snapshot, "timeout_seconds": suite_timeout,
+            "test_hint": cfg.agent_test_hint or DEFAULT_HINT}
+
+
 def load_suite(arena_dir: str) -> SuiteConfig:
     path = os.path.join(arena_dir, "arena.json")
     if not os.path.exists(path):

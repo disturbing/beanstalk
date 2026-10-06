@@ -7,7 +7,9 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
-use crate::check::{CheckRequest, ExtraFile, ReadSets, SuiteCommand, SuiteLimits};
+use crate::check::{
+    CheckRequest, DepsName, ExtraFile, ReadSets, SuiteCommand, SuiteEnv, SuiteLimits,
+};
 use crate::config::RemoteSchemes;
 use crate::error::{Error, Result};
 use crate::git::{
@@ -116,6 +118,12 @@ pub(crate) struct CheckBody {
     sha: String,
     #[serde(default)]
     cmd: Option<Vec<String>>,
+    /// Variables set for the suite (`NODE_OPTIONS`, ...); the runner's own are refused.
+    #[serde(default)]
+    env: BTreeMap<String, String>,
+    /// A dependency snapshot of the image, linked above the checkout.
+    #[serde(default)]
+    deps: Option<String>,
     #[serde(default)]
     extra_files: BTreeMap<String, String>,
     #[serde(default)]
@@ -256,6 +264,13 @@ impl CheckBody {
             None => SuiteCommand::node_test(),
             Some(argv) => SuiteCommand::parse(argv).map_err(|reason| invalid("cmd", reason))?,
         };
+        let env = SuiteEnv::parse(self.env).map_err(|reason| invalid("env", reason))?;
+        let deps = self
+            .deps
+            .as_deref()
+            .map(DepsName::parse)
+            .transpose()
+            .map_err(|reason| invalid("deps", reason))?;
         let extra_files = self
             .extra_files
             .into_iter()
@@ -279,6 +294,8 @@ impl CheckBody {
             },
             sha: sha("sha", &self.sha)?,
             command,
+            env,
+            deps,
             extra_files,
             latency: seconds_between("latency_seconds", self.latency_seconds, 0.0)?,
             limits: SuiteLimits {
@@ -418,8 +435,49 @@ mod tests {
         let request = body.into_request(&schemes()).unwrap();
 
         assert_eq!(request.command, SuiteCommand::node_test());
+        assert_eq!(request.env, SuiteEnv::default());
+        assert_eq!(request.deps, None);
         assert_eq!(request.limits, SuiteLimits::default());
         assert_eq!(request.latency, Duration::ZERO);
+    }
+
+    #[test]
+    fn check_takes_an_arena_suite() {
+        let body: CheckBody = serde_json::from_value(serde_json::json!({
+            "repo": "https://h/r.git", "token": "t", "sha": "a".repeat(40),
+            "cmd": ["node", "--no-use-env-proxy", "--test", "test/!(listen.5).test.js"],
+            "env": {"TZ": "UTC"}, "deps": "fastify",
+        }))
+        .unwrap();
+
+        let request = body.into_request(&schemes()).unwrap();
+
+        assert_eq!(request.deps, Some(DepsName::parse("fastify").unwrap()));
+        assert_eq!(
+            request.env,
+            SuiteEnv::parse([("TZ".to_owned(), "UTC".to_owned())]).unwrap()
+        );
+    }
+
+    #[test]
+    fn check_refuses_a_suite_that_escapes() {
+        let refused = [
+            serde_json::json!({"cmd": ["sh", "-c", "curl evil"]}),
+            serde_json::json!({"env": {"LD_PRELOAD": "/tmp/x.so"}}),
+            serde_json::json!({"env": {"PATH": "/tmp"}}),
+            serde_json::json!({"deps": "../../etc"}),
+        ];
+        for extra in refused {
+            let mut body = serde_json::json!({
+                "repo": "https://h/r.git", "token": "t", "sha": "a".repeat(40),
+            });
+            if let (Some(target), Some(fields)) = (body.as_object_mut(), extra.as_object()) {
+                target.extend(fields.clone());
+            }
+            let parsed: CheckBody = serde_json::from_value(body).unwrap();
+
+            assert!(parsed.into_request(&schemes()).is_err(), "{extra}");
+        }
     }
 
     #[test]

@@ -4,7 +4,7 @@ import type { ArenaTask } from '@beanstalk/shared-race/task';
 import { couplingPartners } from '@beanstalk/shared-race/task';
 
 import type { ReworkOutcome, StepContext } from '../context';
-import { emit, requireTask, startJob, taskDefinition } from '../context';
+import { emit, promptDefinition, requireTask, startJob, taskDefinition } from '../context';
 import { EngineInvariantError } from '../errors';
 import { canResume, createInvocation } from '../invocations';
 import type { JobId, JobResult, SlotState, TaskState } from '../model';
@@ -16,6 +16,7 @@ import {
 } from '../prompts';
 import { hold, holderOf } from '../slots';
 import { dropTask, taskBranch, taskWorkspace } from '../tasks';
+import type { PromptTask } from '../prompts';
 import { STALK_REF } from '../refs';
 import type { EjectInfo, EjectReason, QueueState, ReworkFlow } from './queue-state';
 
@@ -162,7 +163,12 @@ function reworkRound(
   task.reworks += 1;
   const resumed = canResume(ctx, task);
   const prompt = (isResumed: boolean): string =>
-    reworkPrompt(definition, { conflicts, reason, info: flow.info, resumed: isResumed });
+    reworkPrompt(promptDefinition(ctx, task.id), {
+      conflicts,
+      reason,
+      info: flow.info,
+      resumed: isResumed,
+    });
   emit(ctx, 'rework.start', {
     task: task.id,
     reason,
@@ -189,7 +195,7 @@ function reworkRound(
 }
 
 function reworkPrompt(
-  task: ArenaTask,
+  task: PromptTask,
   round: { conflicts: readonly string[]; reason: EjectReason; info: EjectInfo; resumed: boolean },
 ): string {
   if (round.conflicts.length > 0 && round.reason === 'conflict') {

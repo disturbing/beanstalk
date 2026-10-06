@@ -5,8 +5,16 @@ use std::ffi::{OsStr, OsString};
 use std::path::Path;
 use std::time::Duration;
 
+use super::sandbox::SuiteNetwork;
 use crate::error::{Error, Result};
 use crate::process::{self, ChildEnv, ProcessSpec};
+
+/// Variable names a request may not set for the suite: git's own, the dynamic loader's, Node's
+/// test-runner internals, and the basics every child relies on.
+const SUITE_ENV_REFUSED_PREFIXES: [&str; 4] = ["GIT_", "LD_", "NODE_TEST", "BWRAP"];
+const SUITE_ENV_REFUSED: [&str; 3] = ["PATH", "HOME", "CI"];
+/// Variables one request may set.
+const MAX_SUITE_ENV_VARS: usize = 32;
 
 /// `RaceConfig.suite_timeout`: the whole suite run.
 pub(crate) const DEFAULT_SUITE_TIMEOUT: Duration = Duration::from_mins(5);
@@ -63,6 +71,61 @@ impl SuiteCommand {
     }
 }
 
+/// Environment a run asks for on top of the runner's own (`NODE_OPTIONS`, `TZ`, ...).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct SuiteEnv {
+    vars: Vec<(OsString, OsString)>,
+}
+
+impl SuiteEnv {
+    /// # Errors
+    ///
+    /// A reason when a name is not an environment variable name, is one the runner owns, or a
+    /// value holds a NUL byte.
+    pub(crate) fn parse(vars: impl IntoIterator<Item = (String, String)>) -> Result<Self, String> {
+        let vars: Vec<(String, String)> = vars.into_iter().collect();
+        if vars.len() > MAX_SUITE_ENV_VARS {
+            return Err(format!("at most {MAX_SUITE_ENV_VARS} variables"));
+        }
+        for (name, value) in &vars {
+            check_env_name(name)?;
+            if value.contains('\0') {
+                return Err(format!("{name} holds a NUL byte"));
+            }
+        }
+        Ok(Self {
+            vars: vars
+                .into_iter()
+                .map(|(name, value)| (name.into(), value.into()))
+                .collect(),
+        })
+    }
+
+    pub(crate) fn vars(&self) -> &[(OsString, OsString)] {
+        &self.vars
+    }
+}
+
+fn check_env_name(name: &str) -> Result<(), String> {
+    let mut chars = name.chars();
+    let well_formed = chars
+        .next()
+        .is_some_and(|first| first.is_ascii_uppercase() || first == '_')
+        && chars.all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+        && name.len() <= 64;
+    if !well_formed {
+        return Err(format!("{name:?} is not an upper-case variable name"));
+    }
+    let refused = SUITE_ENV_REFUSED.contains(&name)
+        || SUITE_ENV_REFUSED_PREFIXES
+            .iter()
+            .any(|prefix| name.starts_with(prefix));
+    if refused {
+        return Err(format!("{name} is the runner's own"));
+    }
+    Ok(())
+}
+
 /// Limits on one suite run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SuiteLimits {
@@ -87,6 +150,9 @@ pub(crate) struct SuitePlan<'a> {
     pub(crate) checkout: &'a Path,
     pub(crate) junit: &'a Path,
     pub(crate) env: &'a ChildEnv,
+    /// The request's own variables, set on top of `env`.
+    pub(crate) extra_env: &'a SuiteEnv,
+    pub(crate) network: SuiteNetwork,
 }
 
 /// What the suite process did.
@@ -107,12 +173,13 @@ pub(crate) struct SuiteRun {
 /// [`Error::Io`] when node cannot be started.
 pub(crate) async fn run_suite(plan: &SuitePlan<'_>) -> Result<SuiteRun> {
     let args = plan.command.argv(plan.junit, plan.limits.test_timeout_ms);
+    let (program, args) = plan.network.wrap(&plan.command.program, args);
     let spec = ProcessSpec {
-        program: OsStr::new(&plan.command.program),
+        program: &program,
         args: &args,
         cwd: plan.checkout,
         env: plan.env,
-        extra_env: &[],
+        extra_env: plan.extra_env.vars(),
         stdin: None,
         timeout: plan.limits.suite_timeout,
     };
@@ -150,6 +217,59 @@ mod tests {
             ]
             .map(OsString::from)
         );
+    }
+
+    #[test]
+    fn an_arena_command_keeps_its_node_options_and_globs_after_the_reporters() {
+        let command = SuiteCommand::parse(
+            [
+                "node",
+                "--no-use-env-proxy",
+                "--test",
+                "test/!(listen.5).test.js",
+                "test/*/**/*.test.js",
+                "test/**/*.test.mjs",
+            ]
+            .map(String::from)
+            .to_vec(),
+        )
+        .unwrap();
+
+        let argv = command.argv(Path::new("/j/junit.xml"), 60_000);
+
+        assert_eq!(
+            argv[5..],
+            [
+                "--no-use-env-proxy",
+                "--test",
+                "test/!(listen.5).test.js",
+                "test/*/**/*.test.js",
+                "test/**/*.test.mjs",
+            ]
+            .map(OsString::from)
+        );
+    }
+
+    #[test]
+    fn a_run_may_set_node_options_but_not_the_runners_variables() {
+        let env = |name: &str| SuiteEnv::parse([(name.to_owned(), "x".to_owned())]);
+
+        assert!(env("NODE_OPTIONS").is_ok());
+        assert!(env("TZ").is_ok());
+        for refused in [
+            "PATH",
+            "HOME",
+            "CI",
+            "GIT_DIR",
+            "LD_PRELOAD",
+            "NODE_TEST_CONTEXT",
+            "lower",
+            "A-B",
+            "",
+        ] {
+            assert!(env(refused).is_err(), "{refused:?}");
+        }
+        assert!(SuiteEnv::parse([("TZ".to_owned(), "a\0b".to_owned())]).is_err());
     }
 
     #[test]

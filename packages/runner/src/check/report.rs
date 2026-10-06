@@ -6,6 +6,7 @@ use std::path::Path;
 use super::imports::{self, ImportDepths};
 use super::junit::{self, JunitSummary};
 use super::paths;
+use super::sandbox::SuiteNetwork;
 use super::stack;
 use super::suite::SuiteRun;
 use crate::git::CommitSha;
@@ -46,6 +47,8 @@ pub(crate) struct CheckReport {
     /// Checkout, suite and emulated latency; set by the caller once the latency has passed.
     pub(crate) ci_seconds: f64,
     pub(crate) timed_out: bool,
+    /// The suite's network; set by the caller, which knows the instance's.
+    pub(crate) network: SuiteNetwork,
 }
 
 /// Builds the report from a finished run. Reads files (the junit report, sources for read sets),
@@ -82,6 +85,7 @@ pub(crate) fn assess(
         suite_seconds: run.seconds,
         ci_seconds: run.seconds,
         timed_out: run.timed_out,
+        network: SuiteNetwork::Host,
     };
     if let Some(summary) = parsed {
         record_failures(&mut report, summary, &root_real);

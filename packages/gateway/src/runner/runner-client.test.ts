@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { Sha } from '@beanstalk/shared-race/ids';
+import { DEFAULT_SUITE, RunSuite } from '@beanstalk/shared-race/suite';
 
 import { UpstreamError } from '../errors';
 import type { LogFields, Logger } from '../log';
 import { runnerLogLevel } from './runner-container';
 import type { RunnerPort } from './runner-client';
-import { runnerPort } from './runner-client';
+import { checkBody, runnerPort } from './runner-client';
 import {
   RUNNER_API_HEADER,
   RUNNER_API_VERSION,
@@ -74,7 +75,7 @@ function recordingLogger(warnings: string[]): Logger {
 }
 
 function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return Response.json(body, { status, headers: { [RUNNER_API_HEADER]: '2', ...headers } });
+  return Response.json(body, { status, headers: { [RUNNER_API_HEADER]: '3', ...headers } });
 }
 
 function versionThen(answer: Answer): Answer {
@@ -82,7 +83,7 @@ function versionThen(answer: Answer): Answer {
 }
 
 const check = (port: RunnerPort, instance = 'ci-0') =>
-  port.check(instance, { trunk: TRUNK, sha: SHA, extraFiles: null });
+  port.check(instance, { trunk: TRUNK, sha: SHA, extraFiles: null, suite: DEFAULT_SUITE });
 
 const updateRef = (port: RunnerPort) =>
   port.updateRef('committer', {
@@ -118,7 +119,7 @@ describe('the runner version check', () => {
 
     expect(failure).toBeInstanceOf(RunnerVersionMismatchError);
     expect(failure).toMatchObject({ code: 'runner_version_mismatch', retryable: false });
-    expect(String(failure)).toMatch(/^.*runner_version_mismatch: .*runner API 1, .*speaks 2/);
+    expect(String(failure)).toMatch(/^.*runner_version_mismatch: .*runner API 1, .*speaks 3/);
     expect(runner.calls).toEqual(['ci-0/version']);
   });
 
@@ -133,7 +134,7 @@ describe('the runner version check', () => {
       code: 'invalid_request',
       message: 'invalid request: unknown field `to`, expected one of `repo`, `token`',
     };
-    const runner = fakeRunner(versionThen(() => json(refusal, 400, { [RUNNER_API_HEADER]: '3' })));
+    const runner = fakeRunner(versionThen(() => json(refusal, 400, { [RUNNER_API_HEADER]: '4' })));
 
     const failure = await runner.port
       .revert('committer', {
@@ -148,7 +149,7 @@ describe('the runner version check', () => {
 
     expect(failure).toBeInstanceOf(RunnerVersionMismatchError);
     expect(failure).toMatchObject({ retryable: false });
-    expect(String(failure)).toMatch(/runner API 3, this gateway speaks 2 .*unknown field `to`/);
+    expect(String(failure)).toMatch(/runner API 4, this gateway speaks 3 .*unknown field `to`/);
   });
 });
 
@@ -229,6 +230,54 @@ describe('unknown commits', () => {
     });
 
     await expect(squash).rejects.toMatchObject({ retryable: false });
+  });
+});
+
+describe('the check body', () => {
+  const fastify = RunSuite.parse({
+    argv: ['node', '--no-use-env-proxy', '--test', 'test/!(listen.5).test.js'],
+    files_argv: ['node', '--no-use-env-proxy', '--test'],
+    env: { TZ: 'UTC' },
+    deps: 'fastify',
+    timeout_seconds: 600,
+    test_hint: 'Run the suite.',
+  });
+  const call = { trunk: TRUNK, sha: SHA, extraFiles: { 'test/a.pr1.test.js': 'x' } };
+
+  it('runs the bare node --test of the designed arena by default', () => {
+    expect(checkBody({ ...call, suite: DEFAULT_SUITE })).toEqual({
+      repo: TRUNK.repo,
+      token: TRUNK.token,
+      sha: SHA,
+      extra_files: { 'test/a.pr1.test.js': 'x' },
+      latency_seconds: 0,
+      cmd: ['node', '--test'],
+      suite_timeout_seconds: 300,
+    });
+  });
+
+  it("runs the arena's whole suite with its environment and dependency snapshot", () => {
+    expect(checkBody({ ...call, suite: fastify })).toMatchObject({
+      cmd: ['node', '--no-use-env-proxy', '--test', 'test/!(listen.5).test.js'],
+      env: { TZ: 'UTC' },
+      deps: 'fastify',
+      suite_timeout_seconds: 600,
+    });
+  });
+
+  it("runs chosen files with the arena's files argv", () => {
+    const body = checkBody({
+      ...call,
+      suite: fastify,
+      only: ['test/a.pr1.test.js'],
+      allReadSets: true,
+    });
+
+    expect(body).toMatchObject({
+      cmd: ['node', '--no-use-env-proxy', '--test', 'test/a.pr1.test.js'],
+      deps: 'fastify',
+      all_read_sets: true,
+    });
   });
 });
 

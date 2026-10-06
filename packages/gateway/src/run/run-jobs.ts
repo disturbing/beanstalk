@@ -6,6 +6,7 @@
  * instance); none is ever logged.
  */
 import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunSuite } from '@beanstalk/shared-race/suite';
 
 import type {
   ArtifactsPort,
@@ -60,6 +61,8 @@ export type JobContext = {
   readonly tokens: TokenSource;
   readonly log: Logger;
   readonly repos: () => RunRepos;
+  /** The run's test suite (`RunConfig.suite`), sent with every check. */
+  readonly suite: RunSuite;
 };
 
 /** Runs one job; failures come back as outcomes, never as exceptions. */
@@ -159,6 +162,7 @@ async function check(
     trunk: await runRepo(context, 'read'),
     sha: spec.sha,
     extraFiles: spec.extraFiles,
+    suite: context.suite,
     only: spec.only ?? null,
     allReadSets: spec.allReadSets === true,
   });

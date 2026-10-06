@@ -20,6 +20,8 @@ async fn main() -> anyhow::Result<()> {
         deployment = config.deployment_id(),
         git = state.tools().git(),
         node = state.tools().node(),
+        suite_network = state.suite_network(),
+        deps_dir = %config.deps_dir().display(),
         "listening"
     );
     axum::serve(listener, app::router(state))

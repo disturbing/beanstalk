@@ -11,7 +11,7 @@ import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
 import { couplingPartners } from '@beanstalk/shared-race/task';
 
-import { emit, requireTask, taskDefinition } from '../context';
+import { emit, promptDefinition, requireTask, taskDefinition } from '../context';
 import { createInvocation } from '../invocations';
 import type { Seconds, SlotState } from '../model';
 import { startDecisionPrompt } from '../prompts';
@@ -114,7 +114,7 @@ export function startUnderCard(
   const isWinner = card.winner === flow.task;
   const authorHead = isWinner ? (card.amendment?.head ?? null) : null;
   const loser = card.loser;
-  const prompt = startDecisionPrompt(taskDefinition(ctx, flow.task), decisionOf(card), {
+  const prompt = startDecisionPrompt(promptDefinition(ctx, flow.task), decisionOf(card), {
     winner: isWinner ? null : card.winnerContext,
     isWinner,
     amended: isWinner ? [] : Object.keys(card.amendment?.files ?? {}),

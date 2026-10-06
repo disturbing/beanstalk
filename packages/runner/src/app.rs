@@ -13,7 +13,7 @@ use axum::response::Response;
 use axum::routing::{get, post};
 use axum::{Json, Router};
 
-use crate::check;
+use crate::check::{self, DepsName, SuiteNetwork};
 use crate::config::{Config, RemoteSchemes};
 use crate::error::Result;
 use crate::git::{CommitSha, RefUpdateOutcome};
@@ -30,8 +30,9 @@ use crate::workspace::Workspace;
 /// together with `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-client.ts`.
 ///
 /// 1: the contract until 2026-10-05 (no version reported). 2: squash and compose
-/// `structural_merge`, revert `to`, check `all_read_sets` and `passing_read_sets`.
-pub const API_VERSION: u32 = 2;
+/// `structural_merge`, revert `to`, check `all_read_sets` and `passing_read_sets`. 3: check
+/// `env` and `deps` (a run's own suite: real-task arenas), and `network` on checks and `/healthz`.
+pub const API_VERSION: u32 = 3;
 /// Response header carrying [`API_VERSION`] on every response, so a caller can tell which
 /// contract refused its request.
 pub const API_VERSION_HEADER: &str = "x-beanstalk-runner-api";
@@ -100,6 +101,15 @@ impl AppState {
     pub fn tools(&self) -> &ToolVersions {
         &self.shared.tools
     }
+
+    /// The network suites get on this instance (`loopback`, `host` or `unavailable`).
+    pub fn suite_network(&self) -> &'static str {
+        match self.shared.workspace.suite_network() {
+            SuiteNetwork::Loopback => "loopback",
+            SuiteNetwork::Host => "host",
+            SuiteNetwork::Unavailable => "unavailable",
+        }
+    }
 }
 
 async fn healthz(State(state): State<AppState>) -> (StatusCode, Json<HealthResponse>) {
@@ -114,6 +124,7 @@ async fn healthz(State(state): State<AppState>) -> (StatusCode, Json<HealthRespo
         ok,
         git: tools.git.clone(),
         node: tools.node.clone(),
+        network: state.shared.workspace.suite_network(),
     };
     (status, Json(body))
 }
@@ -222,6 +233,8 @@ async fn check(
         failures = report.failures,
         timed_out = report.timed_out,
         suite_seconds = report.suite_seconds,
+        deps = request.deps.as_ref().map(DepsName::as_str),
+        network = ?report.network,
         "checked"
     );
     Ok(Json(report.into()))

@@ -35,7 +35,7 @@ from .arena import Task, placement_modules
 from .ci import CI, CIResult
 from .core import AgentSlot, TaskState
 from .policy_beanstalk import BeanstalkRace, TrunkCommit
-from .prompts import NO_COMMIT, acceptance_line
+from .prompts import NO_COMMIT, PROTECTED_TESTS, acceptance_line
 
 
 def preland_red(task: Task, failing: list[str], output: str, resumed: bool) -> str:
@@ -44,8 +44,7 @@ def preland_red(task: Task, failing: list[str], output: str, resumed: bool) -> s
     return (f"{head}Your change was not landed. Merged onto the latest trunk, these tests failed:\n{tests}\n\n"
             f"Output:\n```\n{output.strip()}\n```\n\n"
             "The latest trunk has been merged into this worktree. Fix your change so the whole suite passes. "
-            "Acceptance tests (yours and other teams') are protected: edits to them are discarded before landing, "
-            "so change the code, not the tests. Other teams' acceptance tests describe behaviour that must keep "
+            f"{PROTECTED_TESTS} Other teams' acceptance tests describe behaviour that must keep "
             f"working. {acceptance_line(task.acceptance_paths)} {NO_COMMIT}\n")
 
 

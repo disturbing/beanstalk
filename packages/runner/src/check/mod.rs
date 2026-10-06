@@ -1,19 +1,24 @@
-//! `POST /v1/check`: the harness's `CI.run` on one commit (checkout, extra files, `node --test`,
-//! junit parsing, read sets, stack files, emulated latency).
+//! `POST /v1/check`: the harness's `CI.run` on one commit (checkout, extra files, the run's
+//! suite command, junit parsing, read sets, stack files, emulated latency), with the run's
+//! dependency snapshot linked above the checkout and a loopback-only network.
 
+mod deps;
 mod imports;
 mod junit;
 mod paths;
 mod report;
+mod sandbox;
 mod stack;
 mod suite;
 
 use std::path::{Component, Path, PathBuf};
 use std::time::{Duration, Instant};
 
+pub(crate) use deps::DepsName;
 pub(crate) use imports::ImportDepths;
 pub(crate) use report::{CheckReport, FailingTest};
-pub(crate) use suite::{SuiteCommand, SuiteLimits};
+pub(crate) use sandbox::SuiteNetwork;
+pub(crate) use suite::{SuiteCommand, SuiteEnv, SuiteLimits};
 
 use crate::error::{Error, Result};
 use crate::git::{CommitSha, Remote};
@@ -58,6 +63,10 @@ pub(crate) struct CheckRequest {
     pub(crate) trunk: Remote,
     pub(crate) sha: CommitSha,
     pub(crate) command: SuiteCommand,
+    /// Variables set for the suite on top of the runner's (`NODE_OPTIONS`, say).
+    pub(crate) env: SuiteEnv,
+    /// The dependency snapshot linked above the checkout (`None`: no dependencies).
+    pub(crate) deps: Option<DepsName>,
     pub(crate) extra_files: Vec<ExtraFile>,
     /// Emulated CI latency: the request holds its slot this long after the suite, as `ci.py`
     /// sleeps while the slot stays busy.
@@ -80,10 +89,20 @@ pub(crate) enum ReadSets {
 ///
 /// # Errors
 ///
-/// Unknown commits, remote and git failures, and a node that cannot start. A red, crashed or
+/// Unknown commits, remote and git failures, an unknown dependency snapshot, a required
+/// loopback network the kernel cannot give, and a node that cannot start. A red, crashed or
 /// timed-out suite is a report, not an error.
 pub(crate) async fn check(workspace: &Workspace, request: &CheckRequest) -> Result<CheckReport> {
     let started = Instant::now();
+    if workspace.suite_network() == SuiteNetwork::Unavailable {
+        return Err(Error::Config(
+            "SUITE_NETWORK=loopback, but this instance cannot make a network namespace".to_owned(),
+        ));
+    }
+    let node_modules = match &request.deps {
+        Some(name) => Some(deps::node_modules(workspace.deps_dir(), name).await?),
+        None => None,
+    };
     let cache = workspace.open_trunk(&request.trunk).await?;
     cache.ensure_commits(&[&request.sha]).await?;
     let job = workspace.new_job().await?;
@@ -97,12 +116,17 @@ pub(crate) async fn check(workspace: &Workspace, request: &CheckRequest) -> Resu
         .checkout(&request.sha, &job.path().join("index"), &checkout)
         .await?;
     write_extra_files(&checkout, &request.extra_files).await?;
+    if let Some(node_modules) = &node_modules {
+        deps::link_above(job.path(), node_modules).await?;
+    }
     let plan = suite::SuitePlan {
         command: &request.command,
         limits: request.limits,
         checkout: &checkout,
         junit: &junit,
         env: workspace.suite_env(),
+        extra_env: &request.env,
+        network: workspace.suite_network(),
     };
     let run = suite::run_suite(&plan).await?;
     let sha = request.sha.clone();
@@ -118,6 +142,7 @@ pub(crate) async fn check(workspace: &Workspace, request: &CheckRequest) -> Resu
     .map_err(|error| Error::io("reading the test results")(std::io::Error::other(error)))?;
     tokio::time::sleep(request.latency).await;
     report.ci_seconds = started.elapsed().as_secs_f64();
+    report.network = workspace.suite_network();
     job.remove().await;
     Ok(report)
 }

@@ -5,6 +5,7 @@
   "exports": {
     "./task": "./src/task.ts",
     "./run-config": "./src/run-config.ts",
+    "./suite": "./src/suite.ts",
     "./driver": "./src/driver.ts",
     "./events": "./src/events.ts",
     "./ids": "./src/ids.ts",

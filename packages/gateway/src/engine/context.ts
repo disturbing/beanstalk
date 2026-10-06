@@ -5,6 +5,7 @@ import type {
 } from '@beanstalk/shared-race/driver';
 import type { RaceEventFields, RaceEventType } from '@beanstalk/shared-race/events';
 import type { InvocationId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunSuite } from '@beanstalk/shared-race/suite';
 import type { ArenaTask } from '@beanstalk/shared-race/task';
 
 import type { EngineEnv } from './catalog';
@@ -246,8 +247,16 @@ export function effectiveTests(
 }
 
 /** The task as its prompts name it: its definition with its effective acceptance tests. */
-export function promptTask(ctx: StepContext, id: string): ArenaTask {
-  return { ...taskDefinition(ctx, id), acceptance_tests: { ...acceptanceTests(ctx, id) } };
+export function promptTask(ctx: StepContext, id: string): ArenaTask & { readonly suite: RunSuite } {
+  return { ...promptDefinition(ctx, id), acceptance_tests: { ...acceptanceTests(ctx, id) } };
+}
+
+/** The task's definition with the run's suite, for prompts that name its given tests. */
+export function promptDefinition(
+  ctx: StepContext,
+  id: string,
+): ArenaTask & { readonly suite: RunSuite } {
+  return { ...taskDefinition(ctx, id), suite: ctx.env.config.suite };
 }
 
 export function requireSlot(ctx: StepContext, id: string | null): SlotState {

@@ -30,7 +30,7 @@ from .arena import Task
 from .ci import CIResult
 from .core import AgentSlot, TaskState
 from .policy_beanstalk_preland import BeanstalkPrelandRace
-from .prompts import NO_COMMIT, acceptance_line
+from .prompts import NO_COMMIT, PROTECTED_TESTS, acceptance_line
 
 
 def informed_red(task: Task, failing: list[str], output: str, culprits: list[dict], resumed: bool) -> str:
@@ -46,8 +46,7 @@ def informed_red(task: Task, failing: list[str], output: str, culprits: list[dic
         lines += ["", "Adapt your change so that your acceptance tests AND theirs pass. Where the two behaviours "
                   "seem to contradict, keep both by scoping your change (a separate helper, an explicit option, "
                   "the new shape at the new call site) rather than changing their accepted behaviour."]
-    lines += ["The latest trunk has been merged into this worktree. Acceptance tests (yours and other teams') are "
-              "protected: edits to them are discarded before landing, so change the code, not the tests.",
+    lines += [f"The latest trunk has been merged into this worktree. {PROTECTED_TESTS}",
               f"{acceptance_line(task.acceptance_paths)} {NO_COMMIT}"]
     return "\n".join(lines) + "\n"
 
