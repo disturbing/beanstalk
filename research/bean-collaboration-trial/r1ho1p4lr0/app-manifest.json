@@ -1,0 +1,16 @@
+{
+  "head": "c033286ddf8dbefb543f6c0dc759a73fbb55c95c",
+  "baseline": "5582f06",
+  "files": {
+    ".gitignore": "c672f932fca343f61e82f7af218e8879b613c7bfbf7fb2737074bdabeed804fe",
+    "AGENTS.md": "45c3c0a2eec537c8b61a210631a0d4fdbdff124cc5c4f7ac3aa2fc141dcc56e1",
+    "README.md": "d07e2457a5d3b2cf269169ef90d270fff7e5bff51376622f5105097ccb076017",
+    "package.json": "04fdbb923bac614ca446d3e84cd42cc1cd7e82bbe00b0fe9878609547ca677e9",
+    "src/checkout.mjs": "28294484e54d8e09943ce4cf34c8ddb4d66db7c40a7108e401b7a4f88d8eab0a",
+    "src/returns.mjs": "216e9bd3b4894acfa9eab4e0b77f32f6bd81d7bdea4b62789ffef6f724949771",
+    "src/shipping.mjs": "2df1cb3982d2cd4f634d7d3bd7af8ec1699a085334c2acda77aa368a3c322c73",
+    "tests/checkout.test.mjs": "7c32dcb5d57180800cfde5153262aed81c290964d1ed88ff91f6dbd304c9b78a",
+    "tests/returns.test.mjs": "b12585bd31d5f7ca7c3f59c442d7db0900a2fbab0c2efcea750473713a2e8090",
+    "tests/shipping.test.mjs": "0b6822d8a24281a110f740dfcc88ed8a36fe16bdd808d9e87325cece0535d4c4"
+  }
+}

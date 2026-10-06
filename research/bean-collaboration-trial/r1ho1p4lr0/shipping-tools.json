@@ -1,0 +1,517 @@
+{
+  "tools": [
+    {
+      "name": "ask_repo",
+      "title": "Ask the repo",
+      "description": "Ask a question about this run's repo in plain words (what is in flight in billing? what tests cover checkout? show bean t032). Answers with the explorer's view as JSON: the view spec, resolved files, beans, decisions and a preview_url.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "ref": {
+            "description": "sprout (staged line, default) or stalk (stable line)",
+            "type": "string",
+            "enum": [
+              "sprout",
+              "stalk"
+            ]
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Ask the repo",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "work_overlaps",
+      "title": "Work overlapping these paths",
+      "description": "Before editing: the beans in flight, awaiting validation, or green in the last 15 minutes that change these files or folders, with title, intent, slot, status and files. Read their intents and fit your change to theirs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "paths": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Work overlapping these paths",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "change_status",
+      "title": "Status of a bean",
+      "description": "Where a bean stands after it was submitted: in flight, landed on the sprout awaiting validation, green on the stalk, sent back, deciding, reverted or dropped; with the next step and recent steps.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A bean id (t032) or its branch (beans/t032)"
+          }
+        },
+        "required": [
+          "bean"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Status of a bean",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "checks_get",
+      "title": "Checks of a bean",
+      "description": "A bean's pre-land checks as structured failures (file, test). Flags reds inherited from the sprout (not your fault) and protected acceptance tests (fix the code, never the test).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A bean id (t032) or its branch (beans/t032)"
+          }
+        },
+        "required": [
+          "bean"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Checks of a bean",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "run_status",
+      "title": "Status of the run",
+      "description": "The run at a glance: sprout and stalk heads, the window of unvalidated landings, beans in flight, open decision cards, red validations and cost.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Status of the run",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "preview_link",
+      "title": "Explorer link",
+      "description": "A web link to see a bean (bean) or a line (ref: sprout or stalk) of this run in the explorer. Give one of the two.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A bean id (t032) or its branch (beans/t032)"
+          },
+          "ref": {
+            "type": "string",
+            "enum": [
+              "sprout",
+              "stalk"
+            ]
+          }
+        },
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      },
+      "annotations": {
+        "title": "Explorer link",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "bean_context",
+      "title": "Context and conversation of a bean",
+      "description": "Read current intent, approach, exact promises, reliance and paged discussion. Promise offers and agreement remain separate from implementation check evidence. Pass next_cursor as since to continue history.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+          },
+          "since": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "bean"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "bean_update",
+      "title": "Update your bean approach and promises",
+      "description": "Revise only your owning bean with an optimistic expected_revision. Offer a promise or pin exact reliance; the gateway derives actor identity from your contributor token. Reuse an idempotency_key only for an exact retry. A promise offer does not establish passing code evidence.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "intent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000
+              },
+              "approach": {
+                "type": "object",
+                "properties": {
+                  "summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "paths": {
+                    "maxItems": 64,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "summary",
+                  "paths"
+                ],
+                "additionalProperties": false
+              },
+              "promises": {
+                "minItems": 1,
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    },
+                    "body": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4000
+                    },
+                    "conditions": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "paths": {
+                      "maxItems": 64,
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "body",
+                    "conditions",
+                    "paths"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "reliance": {
+                "minItems": 1,
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "bean": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+                    },
+                    "promise": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "bean",
+                    "promise",
+                    "revision"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "remove_reliance": {
+                "minItems": 1,
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "bean": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+                    },
+                    "promise": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    }
+                  },
+                  "required": [
+                    "bean",
+                    "promise"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          }
+        },
+        "required": [
+          "bean",
+          "expected_revision",
+          "changes",
+          "idempotency_key"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "bean_thread_post",
+      "title": "Discuss a change with another bean",
+      "description": "Post a note, request, reply, counterproposal, accept or decline. Responses name thread and exact reply_to event. Acceptance requires one exact promise reference and records reliance for your owning bean. Silence or inbox acknowledgements never imply agreement. Reuse idempotency_key for exact retries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bean": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+          },
+          "thread": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "note",
+              "request",
+              "reply",
+              "counterproposal",
+              "accept",
+              "decline"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "references": {
+            "maxItems": 16,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bean": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+                },
+                "promise": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "bean",
+                "promise",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "reply_to": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          }
+        },
+        "required": [
+          "bean",
+          "kind",
+          "body",
+          "references",
+          "idempotency_key"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "bean_inbox_read",
+      "title": "Recover events relevant to your bean",
+      "description": "Read a bounded durable inbox for your owning bean. state defaults to all; use unread to fetch pending events. Reading does not acknowledge or accept messages. Continue with next_cursor as after_cursor; current_cursor describes freshness. Recover after disconnects through this same tool.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "after_cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "all",
+              "unread"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "bean_inbox_ack",
+      "title": "Acknowledge inbox delivery",
+      "description": "Acknowledge handled event_ids only in your owning bean inbox. This records delivery acknowledgement and does not accept a request, change reliance or establish implementation evidence.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "event_ids": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "required": [
+          "event_ids"
+        ],
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

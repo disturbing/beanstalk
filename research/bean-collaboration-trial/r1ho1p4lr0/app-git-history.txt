@@ -1,0 +1,5 @@
+a40a029 feat: calculate calendar return windows from shared delivery dates
+c033286 Merge independently authored returns policy with shipping and checkout
+ebb94c9 feat: display negotiated calendar and business delivery estimates
+05fcbc9 feat: implement negotiated shipping delivery contract
+5582f06 test: define three-agent demo contracts before implementation

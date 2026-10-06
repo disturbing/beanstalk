@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "run": "r1ho1p4lr0",
+  "inboxes_identical": true,
+  "old_accepted_offers_preserved": true,
+  "bundle_hashes_unchanged": {
+    "mcp": "0d4b09a7a14c38a4b07cb6c089950df9961697fe133655ce34040d45dadabdb1",
+    "gateway": "db37e8b01ff322bcc009f9ea0c7db61e1b47c62e14984042629e3ad0bc44fc28"
+  }
+}

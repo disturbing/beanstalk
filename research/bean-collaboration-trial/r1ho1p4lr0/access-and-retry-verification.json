@@ -1,0 +1,31 @@
+{
+  "run": "r1ho1p4lr0",
+  "exact_retry_replays_original": true,
+  "stale_revision_refused": "the forge could not answer: conflict: bean revision changed; fetch current context",
+  "foreign_owner_refused": "the forge could not answer: forbidden: contributors may update only their own bean",
+  "view_tool_names": [
+    "ask_repo",
+    "work_overlaps",
+    "change_status",
+    "checks_get",
+    "run_status",
+    "preview_link",
+    "bean_context"
+  ],
+  "contributor_tools_include_writes": true,
+  "wrong_run_refused": {
+    "error": {
+      "code": "forbidden",
+      "message": "this contributor token cannot access that run"
+    }
+  },
+  "idempotency_payload_conflict_refused": "the forge could not answer: conflict: idempotency key was used with different input",
+  "contributor_git_refused": {
+    "status": 403,
+    "body": "contributor tokens authorize collaboration tools only"
+  },
+  "view_http_mutation_refused": {
+    "status": 403,
+    "body": "{\"error\":{\"code\":\"forbidden\",\"message\":\"this contributor token cannot access that run\"}}"
+  }
+}
