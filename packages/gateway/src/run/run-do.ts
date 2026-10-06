@@ -13,12 +13,17 @@ import type {
   NextResponse,
   InvocationProgress,
   ProgressResponse,
+  StreamResponse,
+  StreamSnapshot,
 } from '@beanstalk/shared-race/driver';
 import type { InvocationId, RunId, Sha, SlotId } from '@beanstalk/shared-race/ids';
 import type { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type {
   BeanDetail,
+  BeanStream,
+  BeanStreamEnd,
+  BeanStreamSummary,
   BeanSummary,
   DecisionRecord,
   RepoDiff,
@@ -50,6 +55,16 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
+import type { StoredStream } from './bean-streams';
+import {
+  beanStreamOf,
+  decideStream,
+  deleteStream,
+  loadStream,
+  loadStreams,
+  migrateStreams,
+  saveStream,
+} from './bean-streams';
 import { toDriverReply } from './driver-reply';
 import type { InfraMeter, InfraReport, RunnerCall } from './infra-meter';
 import {
@@ -104,6 +119,8 @@ const TRACEBACK_CHARS = 4000;
  * sprout or the stalk): the read index warms that head.
  */
 const LINE_MOVES: ReadonlySet<string> = new Set(['race.start', 'task.commit', 'green.promote']);
+/** `stream_diffs`: the invocations whose agent writes the bean's code, and so may stream it. */
+const STREAMING_KINDS: ReadonlySet<string> = new Set(['initial', 'rework', 'sync', 'fixer']);
 
 export type RunFailure = {
   readonly code: string;
@@ -151,6 +168,8 @@ export class RunDO extends DurableObject<Env> {
   /** The warm-up of the line's head in progress, and whether the line moved again meanwhile. */
   #warming: Promise<void> | null = null;
   #warmAgain = false;
+  /** `stream_diffs`: the invocations with a stored snapshot (cleared when they close). */
+  readonly #streaming = new Set<string>();
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -169,6 +188,8 @@ export class RunDO extends DurableObject<Env> {
     });
     migrate(ctx.storage.sql);
     this.#objects = sqlObjectStore(ctx.storage.sql);
+    migrateStreams(ctx.storage.sql);
+    for (const stream of loadStreams(ctx.storage.sql)) this.#streaming.add(stream.inv);
     const stored = loadRun(ctx.storage);
     if (stored !== null) this.#resume(stored);
   }
@@ -490,6 +511,60 @@ export class RunDO extends DurableObject<Env> {
       : { ok: true, value: { abort: false } };
   }
 
+  /**
+   * `stream_diffs`: the driver's snapshot of a bean's working change while its agent writes.
+   * Kept as the bean's latest snapshot (never logged) and broadcast as a summary.
+   */
+  async stream(
+    slot: SlotId,
+    inv: InvocationId,
+    snapshot: StreamSnapshot,
+  ): Promise<RunResult<StreamResponse>> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null) return notFound();
+    const { config, state } = loaded.stored;
+    if (!config.stream_diffs)
+      return failure('stream_off', 409, 'this run does not stream diffs (stream_diffs)');
+    const open = state.invocations[inv];
+    if (open === undefined || state.phase !== 'running')
+      return failure('closed_invocation', 409, `${inv} is not running`);
+    if (open.slot !== slot)
+      return failure('wrong_slot', 403, `${inv} belongs to slot ${open.slot}`);
+    if (!STREAMING_KINDS.has(open.kind))
+      return failure('invalid_state', 409, `a ${open.kind} invocation does not stream`);
+    const nowMs = Date.now();
+    const origin = {
+      task: open.task,
+      inv,
+      slot,
+      nowMs,
+      t: Math.max(state.clock, (nowMs - state.createdAtMs) / 1000),
+    };
+    const decision = decideStream(loadStream(this.ctx.storage.sql, open.task), origin, snapshot);
+    if (decision.kind === 'store') {
+      saveStream(this.ctx.storage.sql, decision.stream);
+      this.#streaming.add(inv);
+      this.#sendAll(JSON.stringify({ type: 'stream', stream: decision.stream.summary }));
+    }
+    return { ok: true, value: decision.response };
+  }
+
+  /** `stream_diffs`: every bean streaming now, latest summary each. */
+  async beanStreams(): Promise<RunResult<BeanStreamSummary[]>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    return { ok: true, value: loadStreams(this.ctx.storage.sql).map((stream) => stream.summary) };
+  }
+
+  /** `stream_diffs`: a bean's latest snapshot with its patches, or null. */
+  async beanStream(bean: string): Promise<RunResult<BeanStream | null>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    const stream = loadStream(this.ctx.storage.sql, bean);
+    return { ok: true, value: stream === null ? null : beanStreamOf(stream) };
+  }
+
   /** Lends the gateway's Artifacts token for one git request, if the principal may make it. */
   async authorizeGit(principal: GitPrincipal, repo: string, access: GitAccess): Promise<GitGrant> {
     this.#countRequest();
@@ -560,6 +635,7 @@ export class RunDO extends DurableObject<Env> {
     if (output.effects.events.some((event) => LINE_MOVES.has(event.type))) this.#lineMoved();
     this.#scheduleAlarm(output.state);
     this.#broadcast(output);
+    this.#settleStreams(output.state);
     this.#deliver(output.effects.replies);
     for (const job of output.effects.jobs) this.ctx.waitUntil(this.#runJob(job.id, job.spec));
     this.#updateIndex();
@@ -777,6 +853,41 @@ export class RunDO extends DurableObject<Env> {
       events: output.effects.events,
     });
     for (const socket of sockets) {
+      try {
+        socket.send(message);
+      } catch (error: unknown) {
+        // A socket that closed mid-send is dropped by the runtime; the others still get it.
+        this.#log.debug('live socket send failed', { error });
+      }
+    }
+  }
+
+  /**
+   * A closed invocation's snapshot is superseded (by its commit, or by nothing): drop it and
+   * tell the live feed, so viewers stop showing the bean as being written.
+   */
+  #settleStreams(state: EngineState): void {
+    if (this.#streaming.size === 0) return;
+    const closed = loadStreams(this.ctx.storage.sql).filter(
+      (stream) => state.invocations[stream.inv] === undefined,
+    );
+    for (const stream of closed) this.#endStream(stream, state.clock);
+  }
+
+  #endStream(stream: StoredStream, t: number): void {
+    deleteStream(this.ctx.storage.sql, stream.task);
+    this.#streaming.delete(stream.inv);
+    const end: BeanStreamEnd = {
+      type: 'bean.streaming.end',
+      task: stream.task,
+      inv: stream.inv,
+      t,
+    };
+    this.#sendAll(JSON.stringify({ type: 'stream', stream: end }));
+  }
+
+  #sendAll(message: string): void {
+    for (const socket of this.ctx.getWebSockets()) {
       try {
         socket.send(message);
       } catch (error: unknown) {

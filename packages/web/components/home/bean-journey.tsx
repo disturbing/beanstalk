@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import type { BeanStreamView } from '@beanstalk/shared-ask/forge/bean-stream';
 
 import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
 import type { JourneyTone } from '@beanstalk/shared-ask/home/journey';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import styles from './home.module.css';
+import { useBeanStream } from './live-streams';
 import { DiffFiles } from './marks';
+import { StreamingDiff } from './streaming-diff';
 
 /** One step of a bean's journey as the card lists it. */
 export type JourneyItem = {
@@ -59,6 +64,7 @@ export function BeanJourney(props: {
   };
   const step = props.steps.find((item) => item.id === selected);
   const { bean } = props;
+  const stream = useStreamUntilCommitted(bean.id, props.files);
   return (
     <div className={styles.box}>
       <div className={styles.beanhead}>
@@ -110,6 +116,7 @@ export function BeanJourney(props: {
             files={props.files}
             now={props.now}
             landed={bean.landedIdx !== null}
+            stream={stream}
           />
         </div>
       </div>
@@ -122,8 +129,19 @@ function StepDetail(props: {
   readonly files: readonly FileDiff[];
   readonly now: number;
   readonly landed: boolean;
+  readonly stream: LiveChange | null;
 }) {
-  const { step, files } = props;
+  const { step, files, stream } = props;
+  const showsStream = stream !== null && (step === undefined || step.tone === 'all' || step.live);
+  if (showsStream) {
+    return (
+      <StreamingDiff
+        view={stream.view}
+        agent={stream.view.summary.agent}
+        writing={stream.writing}
+      />
+    );
+  }
   if (step === undefined || step.tone === 'all') {
     if (files.length === 0) return <div className={styles.empty}>No change yet.</div>;
     return (
@@ -165,6 +183,31 @@ function StepDetail(props: {
       ) : null}
     </>
   );
+}
+
+type LiveChange = { readonly view: BeanStreamView; readonly writing: boolean };
+
+/**
+ * The bean's streamed change while its agent writes; after the stream ends, the last
+ * snapshot until the page has the commit (a refresh of the server render brings new files).
+ */
+function useStreamUntilCommitted(bean: string, files: readonly unknown[]): LiveChange | null {
+  const { view, writing } = useBeanStream(bean);
+  const router = useRouter();
+  const [endedWith, setEndedWith] = useState<readonly unknown[] | null>(null);
+  const ended = !writing && view !== null;
+  useEffect(() => {
+    if (!ended) {
+      setEndedWith(null);
+      return;
+    }
+    setEndedWith((current) => current ?? files);
+    router.refresh();
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- refresh once when the stream ends, not per render
+  }, [ended]);
+  if (view === null) return null;
+  if (writing) return { view, writing };
+  return endedWith === null || endedWith === files ? { view, writing } : null;
 }
 
 function withCode(text: string) {

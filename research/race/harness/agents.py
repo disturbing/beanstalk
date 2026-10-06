@@ -15,7 +15,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Callable
 
-from . import midrun
+from . import midrun, streamdiff
 from .gitops import Git, union_resolve
 from .procs import Runner
 
@@ -74,6 +74,7 @@ class InvocationSpec:
     json_schema: dict | None = None               # classifier only
     no_tools: bool = False                        # classifier only
     post_tool_hook: str | None = None             # live_sync_midrun: a command the CLI runs after every tool call
+    edit_hook: str | None = None                  # stream_diffs: a command the CLI runs after each edit tool
 
 
 @dataclass
@@ -171,6 +172,16 @@ def claude_allowed_tools() -> list[str]:
     return rules
 
 
+def hook_settings(post_tool_hook: str | None, edit_hook: str | None) -> dict:
+    """The ``--settings`` hooks: live sync's after every tool call, streaming diffs' after each edit tool."""
+    settings = midrun.claude_settings(post_tool_hook) if post_tool_hook else {"hooks": {"PostToolUse": []}}
+    if edit_hook:
+        settings["hooks"]["PostToolUse"].append(
+            {"matcher": streamdiff.EDIT_TOOLS_MATCHER,
+             "hooks": [{"type": "command", "command": edit_hook, "timeout": 5}]})
+    return settings
+
+
 class ClaudeAdapter(Adapter):
     name = "claude"
 
@@ -196,7 +207,7 @@ class ClaudeAdapter(Adapter):
         a += ["--permission-mode", "acceptEdits", "--permission-prompts", "none"]
         a += ["--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
         a += ["--setting-sources", "", "--disable-slash-commands"]
-        if spec.post_tool_hook:  # --safe-mode would drop the hook too; --setting-sources "" still keeps
+        if spec.post_tool_hook or spec.edit_hook:  # --safe-mode would drop the hook too; --setting-sources "" keeps
             a += ["--settings", self.hook_settings(spec)]  # every settings file but this one out
         elif self.safe_mode:
             a.append("--safe-mode")
@@ -224,7 +235,7 @@ class ClaudeAdapter(Adapter):
         path = os.path.join(self.transcripts, f"{spec.inv_id}.settings.json")
         os.makedirs(self.transcripts, exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
-            json.dump(midrun.claude_settings(spec.post_tool_hook or ""), fh)
+            json.dump(hook_settings(spec.post_tool_hook, spec.edit_hook), fh)
         return path
 
     def resumable(self, session_id: str | None) -> bool:

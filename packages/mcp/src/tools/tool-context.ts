@@ -9,6 +9,8 @@ import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
 import type { Classifier } from '@beanstalk/shared-ask/ask/classifier';
 import type { Picker } from '@beanstalk/shared-ask/pick/picker';
 import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
+import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
+import { currentStreams } from '@beanstalk/shared-ask/forge/bean-stream';
 import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
@@ -47,6 +49,23 @@ export function toolContext(input: Omit<ToolContext, 'snapshot'>): ToolContext {
 async function loadSnapshot(source: ForgeSource, run: RunId): Promise<RunSnapshot> {
   const [events, options] = await Promise.all([allEvents(source, run), source.runOptions(run)]);
   return { events, state: reduceRace(events, options) };
+}
+
+/**
+ * The beans whose agents are writing now (`stream_diffs`), by task: the files they are
+ * editing before any commit exists. None when the run does not stream, or the gateway
+ * predates it or fails: this is a hint, never a reason to fail a tool.
+ */
+export async function editingNow(
+  ctx: ToolContext,
+): Promise<ReadonlyMap<string, BeanStreamSummary>> {
+  try {
+    const streams = await currentStreams(ctx.gateway, ctx.run);
+    return new Map(streams.map((stream) => [stream.task, stream]));
+  } catch {
+    // An older gateway or a failed read: answer from the event log alone.
+    return new Map();
+  }
 }
 
 /** A bean id from `t032` or `beans/t032`; undefined when it is neither. */

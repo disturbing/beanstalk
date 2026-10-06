@@ -63,6 +63,13 @@ const CheckedFields = z
      * for browsing; the gateway's hourly sweep still deletes them a day after the run began.
      */
     keep_repo: z.boolean().default(false),
+    /**
+     * Streaming diffs: while an implementer invocation runs, the driver posts the bean's
+     * working change (`/stream`), and the gateway keeps the latest snapshot per bean and
+     * broadcasts a summary on the live feed. Display only: the engine never reads it, and
+     * nothing reaches the event log. `false`: as before.
+     */
+    stream_diffs: z.boolean().default(false),
     max_turns: z.number().int().min(1).max(1000).default(40),
     agent_timeout: z.number().positive().max(86_400).default(900),
     seed: z.number().int().default(0),

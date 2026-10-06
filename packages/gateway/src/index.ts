@@ -2,6 +2,8 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 
 import type {
   BeanDetail,
+  BeanStream,
+  BeanStreamSummary,
   BeanSummary,
   DecisionRecord,
   GatewayRpc,
@@ -119,6 +121,14 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
 
   testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>> {
     return this.#rpc().testsFor(run, paths);
+  }
+
+  beanStreams(run: string): Promise<RpcResult<readonly BeanStreamSummary[]>> {
+    return this.#rpc().beanStreams(run);
+  }
+
+  beanStream(run: string, bean: string): Promise<RpcResult<BeanStream | null>> {
+    return this.#rpc().beanStream(run, bean);
   }
 
   verifyViewToken(token: string): Promise<RpcResult<ViewTokenClaims>> {

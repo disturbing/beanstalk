@@ -155,6 +155,8 @@ export function simulatedGateway(
     testsFor: (_run, paths) =>
       hop('testsFor', () => viaRun(async () => ok(await testCoverage(recorded, explorer, paths)))),
     verifyViewToken: () => hop('verifyViewToken', () => Promise.resolve(unavailable())),
+    beanStreams: () => hop('beanStreams', () => viaRun(async () => ok([]))),
+    beanStream: () => hop('beanStream', () => viaRun(async () => ok(null))),
   };
   return {
     binding: {

@@ -507,6 +507,36 @@ Coop asked whether the bean view can show a bean's changeset arriving while its 
 
 A cheaper first step is the timer only (no harness hooks), sending changed-file stats and patches every 5 s: about 1.5 days. It is good enough for the demo, because writing invocations in the recorded runs last 10–40 s. I'd only take it on after the Plot and design-v2 work land, since it touches the driver protocol that both the queue and Beanstalk policies share.
 
+#### Prototype built and measured (2026-10-06)
+
+Streaming diffs now exist behind the run setting `stream_diffs` (default `false`, so parity and the published races are unchanged; `race.py --forge cloudflare --stream-diffs`). The design follows the steps above:
+
+- **Driver** (`research/race/harness/streamdiff.py`, `StreamReporter` in `remote.py`). Claude Code touches a marker after every `Edit`/`Write`/`MultiEdit` (a `PostToolUse` hook running `touch`); the driver polls it every 0.25 s, lets a burst settle for 0.3 s, and also looks every 3 s for Bash or Codex edits. It diffs the worktree through a private index against the bean's base (untracked files in, binaries without a patch, 64 KB of patch text, secret-looking lines redacted), skips an unchanged tree and the state before the agent started, and posts at most once per 1.5 s, with a seq per invocation.
+- **Gateway.** `POST …/invocations/:inv/stream`; the RunDO keeps the latest snapshot per bean in SQLite (never the event log), redacts again, refuses stale seqs and more than one snapshot a second, broadcasts a `bean.streaming` summary (paths and counts, no patches) on the live feed, and drops the snapshot with `bean.streaming.end` when the invocation closes. RPC: `beanStreams(run)`, `beanStream(run, bean)` (gateway README, "Streaming diffs").
+- **Web.** The SSE bridge forwards `stream` events (and the beans streaming now after its catch-up). "All changes" and the live step show the snapshot with the `streaming` chip and "aN is writing" caret; the file written last is open and followed at its end (its last 30 lines), the others folded, in git's order. When the stream ends the card says "finished writing; its commit is on the way" and refreshes the server render, so the committed diff replaces it. Growing now shows "N files +a −d"; the stalk shows a blinking caret on the bean (counts on hover).
+- **MCP.** `change_status` returns `editing_now` (files and counts, the snapshot number); `work_overlaps` counts the files a bean's agent is editing now, so a bean with no commit yet on a path is reported (`editing_now` per bean).
+
+**How it was proven.** Without the deployed gateway: `research/race/stream_e2e/` runs the real gateway Worker and RunDO under `wrangler dev`, the real web app under `vite dev`, the real driver and real `claude -p` sessions. Artifacts is replaced by bare repos behind a local smart-HTTP server, and the runner by a local one that squashes for real and passes every check. Six races (Haiku and Sonnet, 2–3 agents, 3 tasks each, about $0.30 in all), watched by a headless Chrome that timestamps every DOM change. Screenshots: `exp/streaming-diffs/journey-mid-stream.png`, `journey-mid-stream-2.png`, `home-growing-now.png`, `journey-after-commit.png`.
+
+| Measure (local, machine shared with other agents) | Result |
+|---|---|
+| Edit tool call → stalk / Growing now | median 0.55–0.7 s, max 1.5 s (the 1.5 s minimum interval) |
+| Edit tool call → journey diff | median 0.5–1.0 s, max 1.4 s |
+| Gateway accepted → stalk (feed) | median 4–5 ms, max 13 ms |
+| Gateway accepted → journey (feed, then the `beanStream` fetch) | median 40–180 ms, max 360 ms |
+| Snapshot size (POST body) | median 1.2–4.7 KB, max 6.1 KB; the feed summary is a few hundred bytes |
+| Agent overhead: the hook | 12 ms median (p95 27 ms) per edit tool call; 10–12 per invocation, about 0.15 s of an 85–130 s invocation (≈0.15%) |
+| Driver overhead | 50–290 ms of git per snapshot, beside the agent, never in its way |
+
+**Usability, honestly.**
+
+- **No half-written junk, but chunky.** A snapshot is one tool call: Claude Code writes whole files (`Write`) or whole replacements (`Edit`), so a line is never half typed. Haiku wrote each file in one `Write`, so a bean jumped twice and was done: it reads as "appeared", not "streamed". Sonnet on a multi-file task produced 5–6 snapshots in 37 s, a good rhythm. Intermediate states can still be wrong (a helper used before it is written, tests not yet passing): the chip says "streaming", not "passing".
+- **Flicker, found and fixed.** The first cut reordered files to put the newest first (the list jumped every snapshot), showed the driver's acceptance tests as the first "edit", and flashed a rework's previous snapshot for a frame. Now files keep git's order and only which one is open changes; the baseline excludes what was there before the agent started; a new invocation starts empty. What remains is the end: "finished writing", then about 0.8 s later the committed diff replaces the followed view in one step.
+- **Readable.** Following the tail of the file being written works for new files and appends. For an edit in the middle of a long file, the tail is not where the change is; following the hunk that changed is the next improvement.
+- **Debounce.** Keep it edit-triggered: 0.3 s settle, 1.5 s minimum interval, and the 3 s timer as a fallback. Faster gains nothing (one snapshot per tool call is the real granularity); slower makes the stalk lag what the agent visibly did. The web needs no extra debounce: the journey fetches only the bean on screen, the newest request wins, and the old diff stays until the new one arrives.
+
+**To verify in a real Cloudflare race:** the feed through the deployed web's SSE bridge (buffering between Cloudflare and the browser), latency with the driver across the internet, RunDO SQLite writes at 12 agents (about 8 snapshots a second at most, 64 KB each at worst), `router.refresh()` under vinext on Workers, the hook with `--restricted` and without `--safe-mode` on the race box, the secret scan's false positives on real code, and an old web against the new gateway (the stream methods are optional on the binding).
+
 ## 11. Nightshift built into the app, and how real use works (2026-10-05)
 
 The design-v2 direction (Nightshift) replaced the Plot as the repository home at `/runs/:run`.
@@ -538,7 +568,7 @@ The design-v2 direction (Nightshift) replaced the Plot as the repository home at
 - **Jev.** Jev still runs live through the AI binding, with the rule fallback.
   - The rules and keywords now outrank Jev on routing. Jev's route stands only when the keyword router could not place the question (`explore`). In testing, Jev's flat probabilities had sent "why did the sprout go red?" to Explore.
   - Jev still orders suggestions, files and sections.
-- **Not built.** Streaming diffs (backlog, §10 note).
+- **Streaming diffs.** Prototyped behind `stream_diffs` (§10 note, "Prototype built and measured").
 
 ### People, sessions and repositories, not "agents" and "runs"
 

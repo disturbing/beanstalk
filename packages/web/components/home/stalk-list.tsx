@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useRef } from 'react';
 
+import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
 import type { StalkRow } from '@beanstalk/shared-ask/home/stalk';
 import { formatClock } from '../../src/race/race-format';
 import styles from './home.module.css';
+import { useLiveStreams } from './live-streams';
 
 const PHASE_WORDS: Readonly<Record<string, string>> = {
   working: 'writing',
@@ -28,6 +30,7 @@ export function StalkList(props: {
   readonly selected: string | null;
   readonly hrefFor: (bean: string) => string;
 }) {
+  const streams = useLiveStreams();
   const firstKeys = useRef<ReadonlySet<string> | null>(null);
   firstKeys.current ??= new Set(props.rows.map((row) => row.key));
   const isNew = (key: string) => !(firstKeys.current?.has(key) ?? true);
@@ -56,7 +59,7 @@ export function StalkList(props: {
                 <span className={styles.tt}>
                   {row.title} <small>{PHASE_WORDS[row.phase] ?? row.phase}</small>
                 </span>
-                <span />
+                <Writing summary={streams.get(row.task)} />
               </Link>
             );
           case 'queued':
@@ -153,6 +156,20 @@ export function StalkList(props: {
         <span>Fertilized by {props.owner}</span>
       </div>
     </>
+  );
+}
+
+/** A bean whose agent is writing now (`stream_diffs`): a caret; its lines so far on hover. */
+function Writing({ summary }: { readonly summary: BeanStreamSummary | undefined }) {
+  if (summary === undefined) return <span />;
+  return (
+    <span
+      className={styles.writing}
+      data-summary-seq={summary.seq}
+      title={`${summary.agent} is writing: ${summary.files.length} files, +${summary.additions} −${summary.deletions} so far`}
+    >
+      <i className={styles.cur} />
+    </span>
   );
 }
 

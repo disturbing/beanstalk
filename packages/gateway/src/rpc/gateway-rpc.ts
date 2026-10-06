@@ -96,6 +96,9 @@ export function gatewayRpc(env: Env, deps: Deps): GatewayRpc {
       ),
     testsFor: (run, paths) =>
       checkedPaths(run, paths, async (id) => fromRun(await deps.run(id).testsFor(paths))),
+    beanStreams: (run) => forRun(run, async (id) => fromRun(await deps.run(id).beanStreams())),
+    beanStream: (run, bean) =>
+      forRun(run, async (id) => fromRun(await deps.run(id).beanStream(bean))),
     verifyViewToken: (token) => verifyViewToken(deps, token),
   };
 }

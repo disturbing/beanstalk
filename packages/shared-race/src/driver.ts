@@ -240,3 +240,44 @@ export type MidrunSyncOffer = {
 export type ProgressResponse =
   | { readonly abort: false; readonly sync?: MidrunSyncOffer }
   | { readonly abort: true; readonly reason: string };
+
+/** Files per streamed snapshot, and bytes of patch text across them (`stream_diffs`). */
+export const STREAM_MAX_FILES = 200;
+export const STREAM_MAX_PATCH_BYTES = 64 * 1024;
+
+/**
+ * One file of a streamed snapshot: what the agent's worktree changes in it so far. `patch`
+ * is the file's unified diff hunks (from the first `@@`), or null for a binary file or one
+ * past the snapshot's byte cap.
+ */
+export const StreamFile = z.strictObject({
+  path: z.string().min(1).max(512),
+  status: z.enum(['added', 'modified', 'deleted']),
+  additions: z.number().int().min(0).max(10_000_000),
+  deletions: z.number().int().min(0).max(10_000_000),
+  binary: z.boolean().default(false),
+  patch: z.string().max(STREAM_MAX_PATCH_BYTES).nullable().default(null),
+});
+export type StreamFile = z.infer<typeof StreamFile>;
+
+/**
+ * Body of `POST /v1/runs/:run/invocations/:inv/stream` (`stream_diffs`): the bean's working
+ * change while its agent writes, `git diff` of the worktree (untracked files included)
+ * against the bean's base. `seq` grows per invocation; a snapshot whose `seq` is not newer
+ * than the latest one is ignored, so a retried post is harmless. Never logged: the gateway
+ * keeps only the latest snapshot per bean, and the commit at the end supersedes it.
+ */
+export const StreamSnapshot = z.strictObject({
+  seq: z.number().int().min(1).max(1_000_000),
+  files: z.array(StreamFile).max(STREAM_MAX_FILES),
+  /** Files or patch text were left out to fit the caps. */
+  truncated: z.boolean().default(false),
+  /** What made the driver look: an edit tool (`Edit`, `Write` …) or `timer`. */
+  trigger: z.string().max(40).default('timer'),
+});
+export type StreamSnapshot = z.infer<typeof StreamSnapshot>;
+
+/** Response to a stream post: kept and broadcast, or ignored (`stale` seq, `rate` limited). */
+export type StreamResponse =
+  | { readonly accepted: true; readonly seq: number }
+  | { readonly accepted: false; readonly reason: 'stale' | 'rate'; readonly seq: number };

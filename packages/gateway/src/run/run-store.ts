@@ -25,12 +25,16 @@ export type StoredRun = {
   readonly state: EngineState;
 };
 
-/** Fields a run stored before the spend guards existed lacks; they read as their defaults. */
+/**
+ * Fields a run stored before the spend guards (and streaming diffs) existed lacks; they read
+ * as their defaults.
+ */
 const SPEND_GUARD_DEFAULTS = {
   preset: null,
   max_usd: null,
   keep_repo: false,
-} as const satisfies Pick<RunConfig, 'preset' | 'max_usd' | 'keep_repo'>;
+  stream_diffs: false,
+} as const satisfies Pick<RunConfig, 'preset' | 'max_usd' | 'keep_repo' | 'stream_diffs'>;
 type StoredConfig = Omit<RunConfig, keyof typeof SPEND_GUARD_DEFAULTS> &
   Partial<Pick<RunConfig, keyof typeof SPEND_GUARD_DEFAULTS>>;
 

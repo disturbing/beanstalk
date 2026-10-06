@@ -168,7 +168,7 @@ Sizes: **S** is under a day, **M** is 1–3 days, **L** is a week or more. Sizes
 | **Web app** | Plot phases 1–3 | Mostly done (`14` §10) | — |
 | | Jev eval: 60 questions, top-1 agreement against the rules | Not done | M |
 | | Polish: list toggle, time bucketing past 200 rows, Jev warm-up | Not done | M |
-| | Stream a bean's changeset while the agent writes | Simulated in the mockup. 2–2.5 days, or 1.5 for timer-only (`14` streaming note) | M |
+| | Stream a bean's changeset while the agent writes | Prototyped behind `stream_diffs`, proven locally with real `claude -p` (`14` streaming note); verify in a Cloudflare race | S |
 | | Real sign-in to replace `DEMO_PASSWORD` | Not built | M |
 | **MCP / plugin** | Write tools: `task_next`/`task_claim`, `change_submit`, `decision_request`, `context_read`, `marker_drop` | Designed (`06` §4) | M–L |
 | | Previews: `preview_ensure`, `_http`, `_browse`, `_compare`, `_logs`, and `attest` | Designed (`06` §5) | L |
@@ -270,4 +270,4 @@ That's coordination awareness, the thing a plain git host lacks.
 - **Context and notes:** `context_read`, which would log reads into the read set, and `marker_drop`.
 - **Previews:** `preview_link` is only a link into the explorer, not a running app. `preview_ensure`, `_http`, `_browse`, `_compare` and `_logs`, plus `attest`, are designed (`06` §5) but not built.
 - **Real sign-in:** OAuth for MCP clients. Today an operator mints and pastes a view token.
-- **Live work in progress:** streaming a bean's changeset into `change_status` (`14`, optional step 5). This would let overlap warnings fire before a commit exists.
+- **Live work in progress:** with `stream_diffs`, `change_status` reports `editing_now` and `work_overlaps` counts the files a bean's agent is editing now, so overlap warnings fire before a commit exists (`14` streaming note).

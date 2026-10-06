@@ -1534,3 +1534,29 @@
   }
 }
 /* glyphs:end */
+
+/* streaming diffs (stream_diffs): a bean's change arriving while its agent writes */
+.hunk .streaming {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--human);
+  font: 11.5px/20px var(--font-mono);
+}
+.cur {
+  width: 7px;
+  height: 13px;
+  background: var(--human);
+  display: inline-block;
+}
+.writing {
+  color: var(--human);
+  font: 10.5px var(--font-mono);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cur {
+    animation: blink 1s steps(1) infinite;
+  }
+}

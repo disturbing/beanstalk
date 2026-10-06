@@ -7,7 +7,11 @@ import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 
 import type { NextResponse, TokenRefresh } from '@beanstalk/shared-race/driver';
-import { InvocationProgress, InvocationResult } from '@beanstalk/shared-race/driver';
+import {
+  InvocationProgress,
+  InvocationResult,
+  StreamSnapshot,
+} from '@beanstalk/shared-race/driver';
 import { InvocationId, RunId, SlotId } from '@beanstalk/shared-race/ids';
 
 import type { AppEnv } from '../app-env';
@@ -20,6 +24,8 @@ import { validate } from './validation';
 
 /** Invocation results carry an agent's final message and usage, never megabytes. */
 const MAX_RESULT_BYTES = 2 * 1024 * 1024;
+/** A streamed snapshot: 64 KB of patch text, plus paths and JSON escaping. */
+const MAX_STREAM_BYTES = 256 * 1024;
 
 const SlotParams = z.object({ run: RunId, slot: SlotId });
 const InvocationParams = z.object({ run: RunId, inv: InvocationId });
@@ -53,6 +59,18 @@ export const driverRoutes = new Hono<AppEnv>()
       const { run, inv } = c.req.valid('param');
       const slot = SlotId.parse(tokenClaims(c.var.principal).sub);
       return c.json(unwrap(await c.var.deps.run(run).progress(slot, inv, c.req.valid('json'))));
+    },
+  )
+  .post(
+    '/:run/invocations/:inv/stream',
+    requireSlotToken,
+    bodyLimit({ maxSize: MAX_STREAM_BYTES }),
+    validate('param', InvocationParams),
+    validate('json', StreamSnapshot),
+    async (c) => {
+      const { run, inv } = c.req.valid('param');
+      const slot = SlotId.parse(tokenClaims(c.var.principal).sub);
+      return c.json(unwrap(await c.var.deps.run(run).stream(slot, inv, c.req.valid('json'))));
     },
   );
 

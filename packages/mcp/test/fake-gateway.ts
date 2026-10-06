@@ -67,6 +67,8 @@ export function fakeGateway(overrides: Partial<FakeRpc> = {}): GatewayBinding<ob
     decisions: () => ok(decisions()),
     testsFor: () => ok([]),
     verifyViewToken: (token: string) => verify(token),
+    beanStreams: () => ok([]),
+    beanStream: () => ok(null),
     ...overrides,
   };
   const binding = asGatewayBinding(rpc);
