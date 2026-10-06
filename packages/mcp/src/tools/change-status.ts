@@ -9,7 +9,7 @@ import type { BeanDetail, BeanStatus } from '@beanstalk/shared-ask/forge/forge-s
 
 import { previewUrl } from './preview-link';
 import type { ToolContext } from './tool-context';
-import { branchOf, clip, seconds } from './tool-context';
+import { branchOf, clip, editingNow, seconds } from './tool-context';
 
 const STEPS_SHOWN = 5;
 const MESSAGE_CHARS = 300;
@@ -34,6 +34,15 @@ export type ChangeStatus = {
     readonly kind: string;
     readonly detail: string;
   }[];
+  /**
+   * `stream_diffs`: what its agent is editing right now, before the commit (the observed
+   * footprint); null when nothing streams.
+   */
+  readonly editing_now: {
+    readonly files: readonly { path: string; additions: number; deletions: number }[];
+    readonly snapshot: number;
+    readonly at_s: number;
+  } | null;
   readonly next: string;
   readonly preview_url: string;
   readonly summary: string;
@@ -44,8 +53,12 @@ export async function changeStatus(
   ctx: ToolContext,
   bean: TaskId,
 ): Promise<ChangeStatus | undefined> {
-  const detail = await ctx.source.beanDetail(ctx.run, bean);
+  const [detail, editing] = await Promise.all([
+    ctx.source.beanDetail(ctx.run, bean),
+    editingNow(ctx),
+  ]);
   if (detail === undefined) return undefined;
+  const stream = editing.get(bean);
   const next = nextStep(detail);
   return {
     bean,
@@ -67,6 +80,18 @@ export async function changeStatus(
       kind: step.kind,
       detail: step.detail,
     })),
+    editing_now:
+      stream === undefined
+        ? null
+        : {
+            files: stream.files.map(({ path, additions, deletions }) => ({
+              path,
+              additions,
+              deletions,
+            })),
+            snapshot: stream.seq,
+            at_s: seconds(stream.t) ?? 0,
+          },
     next,
     preview_url: previewUrl(ctx.webUrl, ctx.run, { kind: 'bean', bean }),
     summary: `${bean} ${detail.status} (${detail.phase}). ${next}`,

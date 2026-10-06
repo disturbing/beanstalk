@@ -10,6 +10,7 @@
  * Everything is read-only except `decide`. Output sizes are bounded, and a `truncated`
  * flag says when a bound was hit.
  */
+import type { StreamFile } from './driver';
 import type { FinalCheckFields } from './events';
 import type { PolicyName, RunPreset } from './run-config';
 
@@ -362,6 +363,47 @@ export type BeanRework = {
   readonly card: string | null;
 };
 
+/**
+ * `stream_diffs`: a bean's working change while its agent writes, without the patches. The
+ * live feed broadcasts one per accepted snapshot (`{ type: 'stream', stream }`); it is never
+ * in the event log. `bean.streaming.end` follows when the invocation ends: its commit (if
+ * any) supersedes the snapshot.
+ */
+export type BeanStreamSummary = {
+  readonly type: 'bean.streaming';
+  readonly task: string;
+  readonly inv: string;
+  /** The slot whose agent is writing. */
+  readonly agent: string;
+  readonly seq: number;
+  /** Race seconds when the gateway took the snapshot. */
+  readonly t: number;
+  readonly files: readonly {
+    readonly path: string;
+    readonly status: StreamFile['status'];
+    readonly additions: number;
+    readonly deletions: number;
+  }[];
+  readonly additions: number;
+  readonly deletions: number;
+  readonly truncated: boolean;
+  /** Lines the gateway's secret scan replaced. */
+  readonly redacted: number;
+};
+
+export type BeanStreamEnd = {
+  readonly type: 'bean.streaming.end';
+  readonly task: string;
+  readonly inv: string;
+  readonly t: number;
+};
+
+/** `beanStream`: the latest snapshot of a bean, patches included. */
+export type BeanStream = {
+  readonly summary: BeanStreamSummary;
+  readonly files: readonly StreamFile[];
+};
+
 /** `beanDetail`: a bean's whole story from the run's event log. */
 export type BeanDetail = BeanSummary & {
   readonly intent: string;
@@ -457,6 +499,14 @@ export type GatewayRpc = {
   beanDetail(run: string, bean: string): Promise<RpcResult<BeanDetail>>;
   decisions(run: string, paths?: readonly string[]): Promise<RpcResult<readonly DecisionRecord[]>>;
   testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>>;
+  /**
+   * `stream_diffs`: the beans whose agents are writing now, latest snapshot each, no patches.
+   * A gateway deployed before streaming diffs lacks both stream methods, so callers check
+   * for them (`shared-ask/forge/bean-stream.ts`).
+   */
+  beanStreams(run: string): Promise<RpcResult<readonly BeanStreamSummary[]>>;
+  /** `stream_diffs`: a bean's latest snapshot with its patches; null while nothing streams. */
+  beanStream(run: string, bean: string): Promise<RpcResult<BeanStream | null>>;
   /** `unauthorized` (401) for a malformed, forged or expired token; `forbidden` (403) for a slot or seed token. */
   verifyViewToken(token: string): Promise<RpcResult<ViewTokenClaims>>;
 };

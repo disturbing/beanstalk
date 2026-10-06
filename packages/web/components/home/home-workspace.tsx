@@ -18,6 +18,7 @@ import type { ReplayClock } from '../canvas/use-replay-clock';
 import { SPEEDS, useReplayClock } from '../canvas/use-replay-clock';
 import { AskBox } from './ask-box';
 import { HomeDefaults } from './home-defaults';
+import { LiveStreamsProvider } from './live-streams';
 import type { HomeState } from './home-url';
 import { askHomeHref, beanHref } from './home-url';
 import styles from './home.module.css';
@@ -85,7 +86,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
   const validating = visible.some((event) => event.type === 'green.promote' && event.t > now - 6);
   useUrlTime(props.mode === 'replay' && !clock.playing && !finished ? now : null);
   return (
-    <>
+    <LiveStreamsProvider run={props.run} streams={live.streams}>
       <div className={styles.home}>
         <aside
           className={`${styles.stalkcol} ${relevant === null ? '' : styles.asking} ${validating ? styles.validating : ''}`}
@@ -140,7 +141,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
         receipts={props.receipts}
         picker={props.picker}
       />
-    </>
+    </LiveStreamsProvider>
   );
 }
 

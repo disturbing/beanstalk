@@ -51,11 +51,12 @@ A runner job that keeps failing for one bean drops only that bean, with reason `
 | `GET /v1/runs/:run` | admin, view or slot token | The run view (state, slots, CI, cost, `policy_state`) |
 | `GET /v1/runs/:run/summary` | reader | `summary.json` |
 | `GET /v1/runs/:run/events?after=&limit=&format=json\|jsonl` | reader | The event log. `jsonl` is byte-for-byte `events.jsonl` |
-| `GET /v1/runs/:run/live` | reader (`?key=`) | WebSocket feed: the view, then each step's events |
+| `GET /v1/runs/:run/live` | reader (`?key=`) | WebSocket feed: the view, then each step's events; with `stream_diffs`, also `{"type": "stream", "stream": …}` messages |
 | `GET /runs/:run?key=<view token>` | view token in the page URL | Live page: lanes, sprout and stalk, beans, decision cards, CI, cost |
 | `POST /v1/runs/:run/agents/:slot/next` | slot token | Long poll, up to 25 s, for the slot's next invocation |
 | `POST /v1/runs/:run/invocations/:inv/result` | slot token | The invocation's result, posted after the driver commits and pushes |
 | `POST /v1/runs/:run/invocations/:inv/progress` | slot token | `{cost_usd, files?}`, the running estimate. The answer can tell the driver to abort, or carry a mid-run sync offer (`live_sync_midrun`) |
+| `POST /v1/runs/:run/invocations/:inv/stream` | slot token | `stream_diffs` only: the bean's working change while its agent writes (see [Streaming diffs](#streaming-diffs)). `409 stream_off` when the run does not stream, `409 closed_invocation` once the invocation ended |
 | `/git/<namespace>/<repo>.git/*` | slot or seed token, as Bearer or Basic password | Git smart-HTTP proxy. A slot reads the run repo and pushes only its own bean branch `refs/heads/beans/<task>`; the proxy refuses other refs and deletions. The seed token pushes the sprout and the stalk before the start. Bodies stream through; the gateway mints a short-lived Artifacts token server-side |
 
 Errors are `{"error": {"code", "message", "issues?"}}`. Run tokens are `bst1.<claims>.<HMAC>` with scope `slot`, `seed` or `view`.
@@ -161,6 +162,24 @@ POST /v1/runs/:run/invocations/inv0007-rework/result
 The result body is `InvocationResult.to_event()` plus the git fields. Unknown keys are dropped. `turns` and `wall_seconds` are accepted as fallbacks for `num_turns` and `wall_ms`.
 
 Progress uses the same shape: `POST …/progress {"cost_usd": 0.02}` answers `{"abort": false}`, or `{"abort": true, "reason": "budget: …"}`. With `live_sync_midrun`, the driver adds `files` (the paths the agent changed since `base_sha`) and an answer may carry `sync`: `{"sprout": "<sha>", "landed": [{"task", "title", "files"}]}`, the beans that landed while the invocation runs and meet its bean (each offered once). The result then reports what the agent's hook did with each offer in `midrun_syncs`: `[{"sprout", "landed", "outcome": "applied" | "noted", "reason", "files"}]`.
+
+### Streaming diffs
+
+With `stream_diffs: true` in the run config (default `false`; `race.py --stream-diffs`), the driver posts each implementer invocation's (`initial`, `rework`, `sync`, `fixer`) working change while the agent writes:
+
+```json
+POST /v1/runs/:run/invocations/inv0003-initial/stream
+{"seq": 4, "trigger": "edit", "truncated": false,
+ "files": [{"path": "src/report/index.ts", "status": "added", "additions": 56, "deletions": 0,
+            "binary": false, "patch": "@@ -0,0 +1,56 @@\n+/** … */\n…"}]}
+→ 200 {"accepted": true, "seq": 4}   // or {"accepted": false, "reason": "stale" | "rate", "seq": 3}
+```
+
+- **What the driver sends.** `git diff` of the worktree, untracked files included and ignored ones not, against `base_sha` (or `merge.sha` when the round merges the line), through a private index, so neither the agent's index nor HEAD is touched. A binary file has `"patch": null`. Patch text is capped at 64 KB and 200 files (`truncated`). Lines that look like secrets are replaced before the post (`harness/streamdiff.py`). The driver posts only when the worktree's tree changed since its last post, and never the state before the agent started.
+- **When.** Claude Code touches a marker file after each `Edit`, `Write`, `MultiEdit` or `NotebookEdit` (a `PostToolUse` hook; like `live_sync_midrun` it drops `--safe-mode` for those invocations). The driver checks the marker every 0.25 s, waits 0.3 s for a burst of edits to settle, and also looks every 3 s (edits through Bash, Codex). It posts at most one snapshot per invocation every 1.5 s.
+- **What the gateway does.** The RunDO checks the slot owns the open invocation, scans the patches for secrets again (`src/run/bean-streams.ts`), keeps only the latest snapshot per bean in its SQLite (`bean_streams`, never the event log, so replays, `events.jsonl` and summaries are unchanged; the engine never reads it), and broadcasts a summary without patches on the live feed: `{"type": "stream", "stream": {"type": "bean.streaming", "task", "inv", "agent", "seq", "t", "files": [{path, status, additions, deletions}], "additions", "deletions", "truncated", "redacted"}}`. A seq not newer than the stored one of the same invocation is ignored (`stale`, so a retried post is harmless); a second snapshot within 1 s is refused (`rate`).
+- **The commit supersedes it.** When the invocation closes (its result, a watchdog, the end of the run), the snapshot is dropped and the feed gets `{"type": "bean.streaming.end", "task", "inv", "t"}`.
+- **Reading it.** RPC `beanStreams(run)` lists the summaries of every bean streaming now; `beanStream(run, bean)` returns the latest snapshot with its patches, or `null`. A gateway deployed before this has neither method; the web app and the MCP server check for them (`shared-ask/forge/bean-stream.ts`).
 
 Decisions (admin): `POST /v1/runs/:run/decisions/D001 {"winner": "t005", "text": "…"}` answers `200 {"run", "card": "D001", "winner": "t005", "accepted": true}`. `text` is optional, up to 2,000 characters. It is the decision as the test author and the loser's re-execution read it; without it the engine writes one. Errors:
 
@@ -494,6 +513,8 @@ export type GatewayRpc = {
   beanDetail(run: string, bean: string): Promise<RpcResult<BeanDetail>>;
   decisions(run: string, paths?: readonly string[]): Promise<RpcResult<readonly DecisionRecord[]>>;
   testsFor(run: string, paths: readonly string[]): Promise<RpcResult<readonly TestCoverage[]>>;
+  beanStreams(run: string): Promise<RpcResult<readonly BeanStreamSummary[]>>; // stream_diffs
+  beanStream(run: string, bean: string): Promise<RpcResult<BeanStream | null>>; // stream_diffs
 };
 
 type RpcResult<T> =
@@ -555,6 +576,8 @@ pnpm -F @beanstalk/gateway dev            # wrangler dev: needs Docker (runner) 
 pnpm -F @beanstalk/gateway test           # Miniflare; fakes for Artifacts, the git remote and the runner; no network
 pnpm -F @beanstalk/gateway types          # regenerate worker-configuration.d.ts after editing wrangler.jsonc
 ```
+
+Without Docker or a Cloudflare login, `research/race/stream_e2e/devstack.py up` runs this Worker under `wrangler dev` with a local Artifacts stand-in (real bare repos behind `remotes.py`) and a local runner (real squashes, every check green), next to the web app under `vite dev`, so a real driver and real `claude -p` sessions can race against it (`stream_e2e/race.sh`). It was built to prove streaming diffs end to end (`docs/claude-opus/14-repository-experience.md`, streaming note).
 
 The tests cover:
 

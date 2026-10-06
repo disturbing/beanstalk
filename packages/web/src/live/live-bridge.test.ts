@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { RunId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
+import type { BeanStreamSummary, GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
 
 import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
 import { recordedRun } from '../recorded/recorded-runs';
@@ -41,7 +41,11 @@ function unused(): Promise<RpcResult<never>> {
   return Promise.resolve({ ok: false, error: { code: 'unused', status: 500, message: 'unused' } });
 }
 
-function fakeBinding(socket: FakeSocket, upTo: number): GatewayBinding<Fetcher> {
+function fakeBinding(
+  socket: FakeSocket,
+  upTo: number,
+  streams: readonly BeanStreamSummary[] = [],
+): GatewayBinding<Fetcher> {
   const events = fixtureEvents().filter((event) => event.seq <= upTo);
   const rpc: GatewayRpc = {
     listRuns: () => Promise.resolve([]),
@@ -71,6 +75,8 @@ function fakeBinding(socket: FakeSocket, upTo: number): GatewayBinding<Fetcher> 
     decisions: unused,
     testsFor: unused,
     verifyViewToken: unused,
+    beanStreams: () => ok(streams),
+    beanStream: () => ok(null),
   };
   return {
     ...rpc,
@@ -137,6 +143,49 @@ describe('the live bridge', () => {
     expect(sentSeqs(text)).toEqual(expected);
     expect(text).toContain('event: end');
     expect(socket.closed).toBe(true);
+  });
+
+  it('sends the beans streaming now after the catch-up, then each stream message, without ids', async () => {
+    const socket = new FakeSocket();
+    const writing: BeanStreamSummary = {
+      type: 'bean.streaming',
+      task: 't001',
+      inv: 'inv0007-initial',
+      agent: 'a0',
+      seq: 3,
+      t: 42,
+      files: [{ path: 'src/cart.ts', status: 'modified', additions: 4, deletions: 1 }],
+      additions: 4,
+      deletions: 1,
+      truncated: false,
+      redacted: 0,
+    };
+    const stream = await liveEventStream({
+      binding: fakeBinding(socket, 10, [writing]),
+      run,
+      after: 10,
+      signal: new AbortController().signal,
+    });
+    const reading = readAll(stream);
+    await Promise.resolve();
+    socket.push({ type: 'stream', stream: { ...writing, seq: 4 } });
+    socket.push({
+      type: 'stream',
+      stream: { type: 'bean.streaming.end', task: 't001', inv: writing.inv, t: 50 },
+    });
+    socket.push({ type: 'stream', stream: { type: 'bogus' } });
+    socket.push({ type: 'update', view: { phase: 'done' }, events: [] });
+    const text = await reading;
+    const streamed = text
+      .split('\n\n')
+      .filter((block) => block.startsWith('event: stream'))
+      .map((block) => JSON.parse(block.split('data: ')[1] ?? 'null'));
+    expect(streamed.map((message) => [message.type, message.seq ?? null])).toEqual([
+      ['bean.streaming', 3],
+      ['bean.streaming', 4],
+      ['bean.streaming.end', null],
+    ]);
+    expect(text).not.toMatch(/id: [^\n]*\nevent: stream/);
   });
 
   it('stops when the reader leaves', async () => {

@@ -167,6 +167,8 @@ function fakeBinding(overrides: Partial<GatewayRpc> = {}): GatewayBinding<Fetche
     decisions: () => ok([]),
     testsFor: () => ok([]),
     verifyViewToken: () => missing(),
+    beanStreams: () => Promise.resolve({ ok: true, value: [] }),
+    beanStream: () => Promise.resolve({ ok: true, value: null }),
     ...overrides,
   };
   return {

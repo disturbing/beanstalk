@@ -4,11 +4,13 @@
  * few minutes; with each bean's intent, so the agent can fit its change to theirs.
  */
 import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
 
+import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
 import type { BeanRecord, BeanStatus } from '@beanstalk/shared-ask/forge/forge-source';
 
 import type { ToolContext } from './tool-context';
-import { branchOf, clip } from './tool-context';
+import { branchOf, clip, editingNow } from './tool-context';
 
 /** A green bean counts as "recently landed" for this many race seconds. */
 const RECENT_SECONDS = 15 * 60;
@@ -24,6 +26,8 @@ export type Overlap = {
   /** The asked paths this bean changes (or that sit under a folder it changes). */
   readonly overlap: readonly string[];
   readonly files: readonly string[];
+  /** `stream_diffs`: files its agent is editing right now, not committed yet. */
+  readonly editing_now: readonly string[];
 };
 
 export type WorkOverlaps = {
@@ -36,16 +40,37 @@ export async function workOverlaps(
   ctx: ToolContext,
   paths: readonly string[],
 ): Promise<WorkOverlaps> {
-  const [records, { state }] = await Promise.all([
+  const [records, { state }, editing] = await Promise.all([
     ctx.source.beansByPath(ctx.run, paths),
     ctx.snapshot(),
+    editingNow(ctx),
   ]);
   const since = state.clock - RECENT_SECONDS;
-  const beans = records
-    .filter((record) => isLive(record, since))
-    .map((record) => toOverlap(record, paths))
+  const observed = await observedOnly(ctx, records, editing, paths);
+  const beans = [...records, ...observed]
+    .filter((record) => editing.has(record.id) || isLive(record, since))
+    .map((record) => toOverlap(record, paths, editing.get(record.id)))
     .toSorted((a, b) => rank(a.status) - rank(b.status));
   return { paths, beans, summary: summarize(beans) };
+}
+
+/** Beans with no commit on these paths yet whose agents are editing them now. */
+async function observedOnly(
+  ctx: ToolContext,
+  records: readonly BeanRecord[],
+  editing: ReadonlyMap<string, BeanStreamSummary>,
+  paths: readonly string[],
+): Promise<readonly BeanRecord[]> {
+  const known = new Set<string>(records.map((record) => record.id));
+  const tasks = [...editing.values()]
+    .filter((stream) => !known.has(stream.task))
+    .filter((stream) => stream.files.some((file) => paths.some((path) => touches(file.path, path))))
+    .flatMap((stream) => {
+      const task = TaskIdSchema.safeParse(stream.task);
+      return task.success ? [task.data] : [];
+    });
+  const details = await Promise.all(tasks.map((task) => ctx.source.beanDetail(ctx.run, task)));
+  return details.filter((detail) => detail !== undefined);
 }
 
 function isLive(record: BeanRecord, since: number): boolean {
@@ -53,7 +78,13 @@ function isLive(record: BeanRecord, since: number): boolean {
   return record.status === 'green' && (record.landedAt ?? Number.NEGATIVE_INFINITY) >= since;
 }
 
-function toOverlap(record: BeanRecord, paths: readonly string[]): Overlap {
+function toOverlap(
+  record: BeanRecord,
+  paths: readonly string[],
+  stream: BeanStreamSummary | undefined,
+): Overlap {
+  const editing = stream?.files.map((file) => file.path) ?? [];
+  const files = [...new Set([...record.files, ...editing])];
   return {
     bean: record.id,
     branch: branchOf(record.id),
@@ -61,8 +92,9 @@ function toOverlap(record: BeanRecord, paths: readonly string[]): Overlap {
     intent: clip(record.intent, INTENT_CHARS),
     slot: record.agent,
     status: record.status,
-    overlap: paths.filter((path) => record.files.some((file) => touches(file, path))),
+    overlap: paths.filter((path) => files.some((file) => touches(file, path))),
     files: record.files,
+    editing_now: editing,
   };
 }
 

@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 
+import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
 import { dirListing } from '@beanstalk/shared-ask/home/file-rows';
 import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
 import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import styles from './home.module.css';
+import { useLiveStreams } from './live-streams';
 import { BaseChip, BeanChip, FileIcon, InFlightChip } from './marks';
 
 export type DefaultsProps = {
@@ -23,6 +25,7 @@ export type DefaultsProps = {
 
 /** The explorer when nothing is asked: Growing now (while beans fly), What happened, Files. */
 export function HomeDefaults(props: DefaultsProps) {
+  const streams = useLiveStreams();
   const flying = Object.values(props.state.beans).filter(
     (bean) => isInFlight(bean.phase) && bean.startedAt !== null,
   );
@@ -58,6 +61,7 @@ export function HomeDefaults(props: DefaultsProps) {
                     <span className={styles.s}>
                       <PhaseMark phase={bean.phase} />
                       {phaseWord(bean.phase)} {formatSpan(props.now - bean.since)}
+                      <StreamStat summary={streams.get(bean.id)} />
                     </span>
                   </li>
                 );
@@ -73,6 +77,17 @@ export function HomeDefaults(props: DefaultsProps) {
         <FilesTable {...props} />
       </div>
     </>
+  );
+}
+
+/** While its agent writes (`stream_diffs`): the files and lines so far. */
+function StreamStat({ summary }: { readonly summary: BeanStreamSummary | undefined }) {
+  if (summary === undefined) return null;
+  return (
+    <span className={styles.writing}>
+      <i className={styles.cur} /> {plural(summary.files.length, 'file')} +{summary.additions} −
+      {summary.deletions}
+    </span>
   );
 }
 

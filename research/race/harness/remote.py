@@ -29,7 +29,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
-from . import midrun
+from . import midrun, streamdiff
 from .agents import Adapter, ClaudeAdapter, CodexAdapter, InvocationResult, InvocationSpec
 from .arena import load_tasks
 from .core import EventLog, Race, RaceConfig, TaskState, snapshot_arena
@@ -84,6 +84,11 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "max_bean_invocations": ("MAX_BEAN_INVOCATIONS", int),
            "tail_guard_minutes": ("TAIL_GUARD_MINUTES", float), "park": ("PARK", bool)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
+STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
+STREAM_POLL = 0.25          # how often the driver looks at the agent's edit marker
+STREAM_SETTLE = 0.3         # after an edit, wait this long for a burst of edits to settle
+STREAM_MIN_INTERVAL = 1.5   # at most one snapshot per invocation this often (the gateway takes one a second)
+STREAM_TIMER = 3.0          # without an edit mark, look anyway this often (edits through Bash, Codex)
 NET_GIT_ENV_DROP = re.compile(r"^(GIT_TRACE.*|GIT_CURL_VERBOSE|GIT_ASKPASS|SSH_ASKPASS|"
                               r"GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS))$")
 
@@ -273,6 +278,10 @@ class GatewayClient:
         return self.request("POST", f"/v1/runs/{run}/invocations/{inv}/progress", token=token,  # type: ignore
                             body=body, timeout=30)
 
+    def stream(self, run: str, inv: str, token: str, body: dict) -> dict:
+        return self.request("POST", f"/v1/runs/{run}/invocations/{inv}/stream", token=token,  # type: ignore
+                            body=body, timeout=15)
+
 
 def _in_thread(fn, *args) -> asyncio.Future:
     """Run a blocking call on a daemon thread (a long poll in flight never delays interpreter exit)."""
@@ -431,6 +440,89 @@ class MidrunSync:
         return out
 
 
+class StreamReporter:
+    """``stream_diffs`` for one running invocation: posts the bean's working change while the agent writes.
+
+    The agent's CLI touches ``work/stream/<inv>/edited`` after each edit tool (Claude Code only; ``edit_hook``). The
+    driver looks at the marker every ``STREAM_POLL`` s, lets a burst of edits settle (``STREAM_SETTLE``), and looks
+    anyway every ``STREAM_TIMER`` s (Bash edits, Codex). It posts at most one snapshot per ``STREAM_MIN_INTERVAL``
+    s, and only when the worktree's tree changed. Seqs grow, so a retried post is harmless; a closed invocation
+    (409) stops the stream. Each post is logged as ``driver.stream`` (sizes, diff and post times, edit-to-post)."""
+
+    def __init__(self, race: "RemoteRace", slot: str, inv: dict, wt: str):
+        self.race, self.slot, self.inv, self.wt = race, slot, inv, wt
+        self.dir = os.path.join(race.work, "stream", inv["inv"])
+        shutil.rmtree(self.dir, ignore_errors=True)
+        os.makedirs(self.dir)
+        self.marker = os.path.join(self.dir, "edited")
+        ws = inv["workspace"]
+        # with a merge of the line in this round, the bean's change is what it adds to that line
+        self.base = (ws.get("merge") or {}).get("sha") or ws["base_sha"]
+        self.seq, self.tree, self.handled_mark = 0, None, 0.0
+        self.last_post = self.last_look = time.monotonic()
+        self.closed = False
+        self.task = asyncio.create_task(self.loop(), name=f"stream-{inv['inv']}")
+
+    def hook(self) -> str:
+        return streamdiff.edit_hook_command(self.marker)
+
+    def mark(self) -> float:
+        try:
+            return os.stat(self.marker).st_mtime
+        except OSError:
+            return 0.0
+
+    async def loop(self) -> None:
+        # the acceptance tests the driver wrote, or a rework's committed change, are not the agent's new work
+        self.tree = await asyncio.to_thread(streamdiff.fingerprint, self.wt)
+        while not self.closed:
+            await asyncio.sleep(STREAM_POLL)
+            mark, now = self.mark(), time.monotonic()
+            edited = mark > self.handled_mark and time.time() - mark >= STREAM_SETTLE
+            if not edited and now - self.last_look < STREAM_TIMER:
+                continue
+            if now - self.last_post < STREAM_MIN_INTERVAL:
+                continue
+            self.last_look = now
+            if edited:
+                self.handled_mark = mark
+            if not await self.send("edit" if edited else "timer", mark if edited else None):
+                return
+
+    async def send(self, trigger: str, edit_at: float | None) -> bool:
+        """One look at the worktree, posted if it changed; False when the stream must stop."""
+        snap = await asyncio.to_thread(streamdiff.snapshot, self.wt, self.base, previous_tree=self.tree)
+        if snap is None or snap.tree == self.tree:
+            return True
+        self.seq += 1
+        body = snap.body(self.seq, trigger)
+        size = len(json.dumps(body, separators=(",", ":")))
+        posting = time.monotonic()
+        try:
+            reply = await self.race.call_slot(self.slot, "stream", self.inv["inv"], body)
+        except GatewayError as e:
+            self.race.log("driver.stream_error", inv=self.inv["inv"], seq=self.seq, error=str(e)[:300])
+            return e.status != 409  # closed, off, or not a streaming kind: stop
+        self.last_post = time.monotonic()
+        accepted = bool(reply.get("accepted"))
+        if accepted:
+            self.tree = snap.tree
+        elif reply.get("reason") == "rate":
+            self.handled_mark = 0.0  # look again at the next chance
+        self.race.log("driver.stream", inv=self.inv["inv"], task=self.inv["task"], seq=self.seq, trigger=trigger,
+                      accepted=accepted, reason=reply.get("reason"), files=len(snap.files), bytes=size,
+                      truncated=snap.truncated, redacted=snap.redacted, diff_ms=snap.ms,
+                      post_ms=round((self.last_post - posting) * 1000, 1), posted_at=round(time.time(), 3),
+                      edit_at=None if edit_at is None else round(edit_at, 3),
+                      edit_to_post_ms=None if edit_at is None else round((time.time() - edit_at) * 1000, 1))
+        return True
+
+    async def close(self) -> None:
+        self.closed = True
+        self.task.cancel()
+        await asyncio.gather(self.task, return_exceptions=True)
+
+
 # ---- the driver -------------------------------------------------------------------------------------
 
 class RemoteRace(Race):
@@ -445,7 +537,7 @@ class RemoteRace(Race):
             raise SystemExit(f"--forge cloudflare runs {' and '.join(POLICIES)}, not {policy}")
         self.policy = policy
         self.v2 = v2 or v2_settings()
-        # preset, max_usd, keep_repo: sent only when set, so the gateway's defaults apply otherwise
+        # preset, max_usd, keep_repo, stream_diffs: sent only when set, so the gateway's defaults apply otherwise
         self.guards = {k: v for k, v in (guards or {}).items() if v is not None}
         self.gateway_url = gateway.rstrip("/")
         self.secrets = Secrets()
@@ -933,6 +1025,10 @@ class RemoteRace(Race):
             return None
         return MidrunSync(self, slot, inv, wt)
 
+    def streams(self, inv: dict) -> bool:
+        """``stream_diffs``: the run streams and this invocation writes the bean's code."""
+        return bool(self.guards.get("stream_diffs")) and inv["kind"] in STREAM_KINDS
+
     def driver_failure(self, inv: dict, message: str) -> InvocationResult:
         self.log("driver.error", where="prepare", inv=inv["inv"], error=message[:2000])
         return InvocationResult(inv_id=inv["inv"], adapter=self.cfg.agent, model=inv.get("model"),
@@ -982,6 +1078,9 @@ class RemoteRace(Race):
         sync = self.midrun_sync(slot, inv, wt)
         if sync:
             spec.post_tool_hook = sync.hook(self.adapter_for(inv))
+        stream = StreamReporter(self, slot, inv, wt) if self.streams(inv) else None
+        if stream and isinstance(self.adapter_for(inv), ClaudeAdapter):
+            spec.edit_hook = stream.hook()
         reporter = ProgressReporter(self, slot, inv["inv"], sync)
         spent, failures, killed = 0.0, [], False
         try:
@@ -1010,6 +1109,8 @@ class RemoteRace(Race):
                 spec.timeout = max(60.0, min(timeout, left))
         finally:
             self.agent_tasks.pop(slot, None)
+            if stream:
+                await stream.close()
             await reporter.close(flush=not killed)
             if sync:
                 self.midrun_results[inv["inv"]] = sync.collect()

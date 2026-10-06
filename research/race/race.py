@@ -76,6 +76,9 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     f.add_argument("--keep-repo", action="store_true",
                    help="--forge cloudflare: keep the run's Artifacts repo after the final check (the gateway's "
                         "hourly sweep still deletes it a day after the run began)")
+    f.add_argument("--stream-diffs", action="store_true",
+                   help="--forge cloudflare: post each bean's working change while its agent writes (stream_diffs; "
+                        "the web app shows it live). Display only: the engine never reads it")
     f.add_argument("--no-auth-probe", action="store_true",
                    help="--forge cloudflare: skip the one-turn Haiku call (about $0.004) a claude race makes before "
                         "it creates the run, to stop early on refused credentials or a rate limit")
@@ -223,7 +226,8 @@ def make_remote_race(cfg: RaceConfig, ns: argparse.Namespace, argv: list[str]):
         return None
     return RemoteRace(cfg, gateway=gateway, admin_token=admin, policy=cfg.policy, v2=v2_settings(v2_flags(ns)),
                       show_live_url=ns.live_url, auth_probe=not ns.no_auth_probe, stagger_start=ns.stagger_start,
-                      guards={"preset": ns.preset, "max_usd": ns.max_usd, "keep_repo": ns.keep_repo or None})
+                      guards={"preset": ns.preset, "max_usd": ns.max_usd, "keep_repo": ns.keep_repo or None,
+                              "stream_diffs": ns.stream_diffs or None})
 
 
 def dry_run(cfg: RaceConfig) -> int:
