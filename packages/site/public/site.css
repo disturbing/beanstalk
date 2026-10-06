@@ -338,6 +338,11 @@ kbd {
   letter-spacing: -0.03em;
   font-weight: 600;
 }
+.three.three-start {
+  justify-content: flex-start;
+  font-size: clamp(28px, 3.6vw, 48px);
+  margin: 0.25em 0 0.4em;
+}
 .three span {
   display: inline-flex;
   align-items: center;

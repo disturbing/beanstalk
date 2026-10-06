@@ -121,18 +121,23 @@ const HALF: ChainShape = { chains: HALF_CHAINS, total: 100 };
 const HALF_AGENTS: Partial<RunConfigInput> = { agents: 32 };
 
 describe('dependency-aware starts on dependency chains', () => {
-  it('keeps every chained bean that fifo drops under v2.4, at about fifo’s pace', () => {
-    const v24 = { ...V25_RULES_OFF, ...HALF_AGENTS };
-    const fifo = chainNumbers(runRace(chainScenario(v24, HALF)));
-    const run = runRace(chainScenario({ ...v24, ...DEPENDENCY }, HALF));
-    const dependency = chainNumbers(run);
+  // A deterministic but CPU-heavy simulation: about 2 s quiet, more under load, so it gets room.
+  it(
+    'keeps every chained bean that fifo drops under v2.4, at about fifo’s pace',
+    { timeout: 30_000 },
+    () => {
+      const v24 = { ...V25_RULES_OFF, ...HALF_AGENTS };
+      const fifo = chainNumbers(runRace(chainScenario(v24, HALF)));
+      const run = runRace(chainScenario({ ...v24, ...DEPENDENCY }, HALF));
+      const dependency = chainNumbers(run);
 
-    expect(wellFormedProblems(run.events)).toEqual([]);
-    expect(fifo.dropped).toBeGreaterThan(0);
-    expect(dependency).toMatchObject({ green: 100, dropped: 0 });
-    expect(dependency.conflicts).toBeLessThan(fifo.conflicts * 0.7);
-    expect(dependency.green85Minutes).toBeLessThan(fifo.green85Minutes * 1.15);
-  });
+      expect(wellFormedProblems(run.events)).toEqual([]);
+      expect(fifo.dropped).toBeGreaterThan(0);
+      expect(dependency).toMatchObject({ green: 100, dropped: 0 });
+      expect(dependency.conflicts).toBeLessThan(fifo.conflicts * 0.7);
+      expect(dependency.green85Minutes).toBeLessThan(fifo.green85Minutes * 1.15);
+    },
+  );
 
   it('under the v2.5 defaults (rescue keeps fifo’s beans) still cuts the conflicts', () => {
     const fifo = chainNumbers(runRace(chainScenario(HALF_AGENTS, HALF)));
