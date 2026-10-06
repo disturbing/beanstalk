@@ -33,6 +33,7 @@
   --human: #5b34cf;
   --human-fill: #7b52f0;
   --human-wash: #e7dffd;
+  --fresh-wash: color-mix(in srgb, var(--human) 18%, transparent);
   --human-ink: #ffffff;
   --neutral: #566c65;
   --sprout: #5cc41a;
@@ -171,6 +172,7 @@
     --human: #c4a8ff;
     --human-fill: #b691ff;
     --human-wash: rgba(182, 145, 255, 0.12);
+    --fresh-wash: rgba(182, 145, 255, 0.3);
     --human-ink: #150b30;
     --neutral: #8395a8;
     --sprout: #b6ff5c;
@@ -222,6 +224,7 @@
   --human: #c4a8ff;
   --human-fill: #b691ff;
   --human-wash: rgba(182, 145, 255, 0.12);
+  --fresh-wash: rgba(182, 145, 255, 0.3);
   --human-ink: #150b30;
   --neutral: #8395a8;
   --sprout: #b6ff5c;

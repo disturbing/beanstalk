@@ -7,6 +7,7 @@ driver -> gateway -> web streaming path is the production code.
 
     python3 stream_e2e/devstack.py up      # repos :8798, gateway :8797, web :5391; Ctrl-C stops all
     python3 stream_e2e/devstack.py env     # the variables a race against it needs
+    STREAM_E2E_PORTS=git,gateway,web STREAM_E2E_SUFFIX=-me python3 stream_e2e/devstack.py up   # a second stack
 
 Generated configs, secrets and repos live in stream_e2e/.local/ (git-ignored) and packages/web/.wrangler/e2e/.
 """
@@ -28,8 +29,13 @@ GATEWAY = os.path.join(REPO, "packages", "gateway")
 WEB = os.path.join(REPO, "packages", "web")
 LOCAL = os.path.join(HERE, ".local")
 WEB_LOCAL = os.path.join(WEB, ".wrangler", "e2e")
-GIT_PORT, GATEWAY_PORT, WEB_PORT = 8798, 8797, 5391
-E2E_GATEWAY = "beanstalk-gateway-e2e"
+# Several agents may run this loop on one machine: STREAM_E2E_PORTS="git,gateway,web" and STREAM_E2E_SUFFIX
+# (Worker names; the local dev registry is machine-wide) keep their stacks apart.
+GIT_PORT, GATEWAY_PORT, WEB_PORT = (int(p) for p in os.environ.get("STREAM_E2E_PORTS", "8798,8797,5391").split(","))
+SUFFIX = os.environ.get("STREAM_E2E_SUFFIX", "")
+E2E_GATEWAY = f"beanstalk-gateway-e2e{SUFFIX}"
+LOCAL_ARTIFACTS = f"beanstalk-local-artifacts{SUFFIX}"
+LOCAL_RUNNER = f"beanstalk-local-runner{SUFFIX}"
 
 
 def jsonc(path: str) -> dict:
@@ -73,10 +79,10 @@ def configure() -> list[str]:
     for key in ("containers", "artifacts", "secrets", "$schema"):
         gw.pop(key, None)
     gw["main"] = os.path.join(GATEWAY, "src", "index.ts")
-    gw["services"] = [{"binding": "ARTIFACTS", "service": "beanstalk-local-artifacts", "entrypoint": "LocalArtifacts"}]
+    gw["services"] = [{"binding": "ARTIFACTS", "service": LOCAL_ARTIFACTS, "entrypoint": "LocalArtifacts"}]
     gw["durable_objects"]["bindings"] = [
         b if b["name"] != "RUNNER" else {"name": "RUNNER", "class_name": "LocalRunner",
-                                         "script_name": "beanstalk-local-runner"}
+                                         "script_name": LOCAL_RUNNER}
         for b in gw["durable_objects"]["bindings"]]
     gw["vars"] = {**gw["vars"], "LOG_LEVEL": "warn"}
     gw["name"] = E2E_GATEWAY  # the local dev registry is machine-wide: never answer for another dev gateway
@@ -84,10 +90,10 @@ def configure() -> list[str]:
     write(os.path.join(LOCAL, "gateway", ".dev.vars"),
           f"ADMIN_TOKEN={t['ADMIN_TOKEN']}\nRUN_TOKEN_SECRET={t['RUN_TOKEN_SECRET']}\n")
     write(os.path.join(LOCAL, "artifacts", "wrangler.json"), {
-        "name": "beanstalk-local-artifacts", "main": os.path.join(HERE, "fake-artifacts.js"),
+        "name": LOCAL_ARTIFACTS, "main": os.path.join(HERE, "fake-artifacts.js"),
         "compatibility_date": gw["compatibility_date"], "vars": {"GIT_SERVER": f"http://127.0.0.1:{GIT_PORT}"}})
     write(os.path.join(LOCAL, "runner", "wrangler.json"), {
-        "name": "beanstalk-local-runner", "main": os.path.join(HERE, "local-runner.js"),
+        "name": LOCAL_RUNNER, "main": os.path.join(HERE, "local-runner.js"),
         "compatibility_date": gw["compatibility_date"], "vars": {"GIT_SERVER": f"http://127.0.0.1:{GIT_PORT}"},
         "durable_objects": {"bindings": [{"name": "LOCAL_RUNNER", "class_name": "LocalRunner"}]},
         "migrations": [{"tag": "v1", "new_sqlite_classes": ["LocalRunner"]}]})
@@ -96,7 +102,7 @@ def configure() -> list[str]:
         web.pop(key, None)
     web["assets"]["directory"] = os.path.join(WEB, "dist", "client")
     web["vars"] = {**web["vars"], "PICKER": "rules", "ASK_CLASSIFIER": "keywords"}
-    web["name"] = "beanstalk-web-e2e"
+    web["name"] = f"beanstalk-web-e2e{SUFFIX}"
     web["services"] = [{"binding": "GATEWAY", "service": E2E_GATEWAY}]
     write(os.path.join(WEB_LOCAL, "wrangler.json"), web)
     write(os.path.join(WEB_LOCAL, ".dev.vars"), f"DEMO_PASSWORD={t['DEMO_PASSWORD']}\n")
@@ -165,6 +171,7 @@ def up() -> None:
 
 def env() -> None:
     print(f"export BEANSTALK_GATEWAY=http://127.0.0.1:{GATEWAY_PORT}")
+    print(f"export STREAM_E2E_WEB=http://127.0.0.1:{WEB_PORT}")
     print(f"export BEANSTALK_ADMIN_TOKEN={tokens()['ADMIN_TOKEN']}")
 
 
