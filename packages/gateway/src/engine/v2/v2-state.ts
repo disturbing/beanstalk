@@ -467,6 +467,12 @@ export type V2Stats = {
   episode_reds?: number;
   episode_inherited?: number;
   repair_landings?: number;
+  /**
+   * `reuse_checks` (absent: 0): sprout commits counted green from their own pre-land check, and
+   * the CI runs of older commits those promotions cancelled.
+   */
+  checks_reused?: number;
+  ci_superseded?: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -517,7 +523,17 @@ export type V2Settings = {
   readonly redReset?: boolean;
   readonly episodeTickets?: boolean;
   readonly repairLanding?: boolean;
+  /**
+   * `requeue_repair`: each reset's suspects requeue in a chain of their own, the next released
+   * at the current one's verdict, and a pair of suspects goes to reconcile at its first red.
+   */
+  readonly requeueRepair?: boolean;
+  /** `reuse_checks`: a landed commit a full pre-land check passed is green without CI; absent: off. */
+  readonly reuseChecks?: boolean;
 };
+
+/** `red_reset`: held suspects requeued one at a time (`current` is released first). */
+export type RequeueChain = { ticket: string; current: TaskId | null; waiting: TaskId[] };
 
 /** v2.5 tail guard: when a bean last made progress, and the failing sets it has seen. */
 export type BeanProgress = { at: Seconds; seen: string[] };
@@ -602,7 +618,16 @@ export type V2State = {
    * `red_reset`: read-set suspects of a reset, requeued one at a time (`current` lands or
    * leaves first), so each is checked on a sprout holding those before it.
    */
-  requeueChain?: { ticket: string; current: TaskId | null; waiting: TaskId[] };
+  requeueChain?: RequeueChain;
+  /** `red_reset`: the requeue chains in play (one, or one per reset with `requeue_repair`). */
+  requeueChains?: RequeueChain[];
+  /** `requeue_repair`: the read-set suspects each reset held back (groups of two or more). */
+  resetSuspects?: TaskId[][];
+  /**
+   * `reuse_checks`: each bean's newest commit that passed a full pre-land check (the candidate
+   * it lands when the sprout did not move), by commit sha. One per bean, so it stays small.
+   */
+  greenChecks?: Record<string, TaskId>;
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;

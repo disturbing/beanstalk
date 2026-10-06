@@ -14,7 +14,13 @@ import type { FailRule, FlakeInjector, ScriptedTask } from '../testing/fake-worl
 import type { RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, typesOf, wellFormedProblems } from '../testing/scenario';
 
-const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
+/** Check reuse off: these races pin the CI validation of every sprout head (`v2-check-reuse.test.ts` covers reuse). */
+const V2: Partial<RunConfigInput> = {
+  policy: 'beanstalk-v2',
+  agents: 2,
+  ci_seconds: 60,
+  reuse_checks: false,
+};
 
 /** Every v2.2 rule off: the harness's v2. */
 const V20: Partial<RunConfigInput> = V20_SETTINGS;
@@ -233,6 +239,7 @@ describe('v2: a clean landing', () => {
       'red_reset',
       'episode_tickets',
       'repair_landing',
+      'requeue_repair',
       'resets',
       'requeued',
       'episode_reds',

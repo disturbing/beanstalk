@@ -296,6 +296,21 @@ const CheckedFields = z
      * Off by default: it changed no simulated race (`docs/claude-opus/11`).
      */
     repair_landing: z.boolean().default(false),
+    /**
+     * Check reuse: a sprout commit whose exact commit already passed a full pre-land check (the
+     * bean landed on the head it was checked on, so the landed commit is the checked one) is
+     * green without a CI validation, as the reset commit is. Only greens are reused: a red
+     * still needs its flake re-run. `false`: every sprout head is validated on CI.
+     */
+    reuse_checks: z.boolean().default(true),
+    /**
+     * With `red_reset`, the burst tail fix: each reset's read-set suspects requeue in a chain of
+     * their own (not behind an earlier reset's), the next going as soon as the current one's
+     * check is green-and-landed or red (it is then with its author), and two suspects of one
+     * reset that are red against each other go to reconcile and a card at once. `false`: one
+     * chain for every reset, each suspect waiting until the one before landed or left.
+     */
+    requeue_repair: z.boolean().default(true),
     max_rework: z.number().int().min(0).max(20).default(3),
     max_fix_attempts: z.number().int().min(1).max(20).default(2),
     max_wall_minutes: z
@@ -394,17 +409,26 @@ export const STALL_FIX_OFF = {
   red_reset: false,
   episode_tickets: false,
   repair_landing: false,
+  requeue_repair: false,
 } as const satisfies Partial<RunConfigInput>;
 
 /**
- * The stall fix as the simulator chose it (`docs/claude-opus/11`, "30-agent post-mortem"):
- * the red-window reset on; one ticket per episode and repair landings measured and left off.
+ * The stall fix as the simulator chose it (`docs/claude-opus/11`, "30-agent post-mortem" and
+ * "Check reuse and the burst tail"): the red-window reset on with its requeue repair; one
+ * ticket per episode and repair landings measured and left off.
  */
 export const STALL_FIX_ON = {
   red_reset: true,
   episode_tickets: false,
   repair_landing: false,
+  requeue_repair: true,
 } as const satisfies Partial<RunConfigInput>;
+
+/** Check reuse off (`reuse_checks`): every sprout head is validated on CI, as before it existed. */
+export const CHECK_REUSE_OFF = { reuse_checks: false } as const satisfies Partial<RunConfigInput>;
+
+/** Check reuse on: a landed commit its own full pre-land check passed is green without CI. */
+export const CHECK_REUSE_ON = { reuse_checks: true } as const satisfies Partial<RunConfigInput>;
 
 /**
  * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
@@ -426,6 +450,7 @@ export const V25_RULES_OFF = {
   tail_guard_minutes: 0,
   park: false,
   ...STALL_FIX_OFF,
+  ...CHECK_REUSE_OFF,
 } as const satisfies Partial<RunConfigInput>;
 
 /** v2.4 (the CF v2.4 races): every v2.5 rule off. A run with these reports `"v2.4"`. */
@@ -451,12 +476,14 @@ export const V25_SETTINGS = {
   tail_guard_minutes: 10,
   park: false,
   ...STALL_FIX_OFF,
+  ...CHECK_REUSE_OFF,
 } as const satisfies Partial<RunConfigInput>;
 
 /**
  * The demo engine: v2.5 with dependency-aware starts and the tail fix (the CF races
  * `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`), plus parking with its 3-minute tail guard and the
- * 30-agent stall fix (`red_reset`). The opt-in tracks it does not use are pinned off.
+ * 30-agent stall fix (`red_reset` with `requeue_repair`) and check reuse (`reuse_checks`). The
+ * opt-in tracks it does not use are pinned off.
  */
 export const DEMO_SETTINGS = {
   ...V25_SETTINGS,
@@ -468,6 +495,7 @@ export const DEMO_SETTINGS = {
   live_sync: 'off',
   live_sync_midrun: false,
   ...STALL_FIX_ON,
+  ...CHECK_REUSE_ON,
 } as const satisfies Partial<RunConfigInput>;
 
 /** What each preset pins. */

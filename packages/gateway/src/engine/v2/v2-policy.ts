@@ -174,6 +174,8 @@ function initialV2State(ctx: StepContext): V2State {
       ...(config.red_reset ? { redReset: true } : {}),
       ...(config.episode_tickets ? { episodeTickets: true } : {}),
       ...(config.repair_landing ? { repairLanding: true } : {}),
+      ...(config.requeue_repair ? { requeueRepair: true } : {}),
+      ...(config.reuse_checks ? { reuseChecks: true } : {}),
     },
     sprout: base,
     green: base,
@@ -608,6 +610,7 @@ function hasV25Rule(settings: V2Settings): boolean {
     settings.dynamicCulprits ||
     hasTailBounds(settings) ||
     settings.park === true ||
+    settings.reuseChecks === true ||
     stallFixRules(settings).length > 0
   );
 }
@@ -637,6 +640,7 @@ function stallFixRules(settings: V2Settings): string[] {
     ...(settings.redReset === true ? ['red_reset'] : []),
     ...(settings.episodeTickets === true ? ['episode_tickets'] : []),
     ...(settings.repairLanding === true ? ['repair_landing'] : []),
+    ...(settings.requeueRepair === true ? ['requeue_repair'] : []),
   ];
 }
 
@@ -797,11 +801,19 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
           midrun_noted: stats.midrun_noted ?? 0,
         }
       : {}),
+    ...(settings.reuseChecks === true
+      ? {
+          reuse_checks: true,
+          checks_reused: stats.checks_reused ?? 0,
+          ci_superseded: stats.ci_superseded ?? 0,
+        }
+      : {}),
     ...(stallFixRules(settings).length > 0
       ? {
           red_reset: settings.redReset === true,
           episode_tickets: settings.episodeTickets === true,
           repair_landing: settings.repairLanding === true,
+          requeue_repair: settings.requeueRepair === true,
           resets: stats.resets ?? 0,
           requeued: stats.requeued ?? 0,
           episode_reds: stats.episode_reds ?? 0,
@@ -883,6 +895,7 @@ function summaryRows(
     ],
     ...tailBoundsRows(settings, stats),
     ...stallFixRows(settings, stats),
+    ...checkReuseRows(settings, stats),
     [
       'Tests first (accepted / fallbacks) / targeted landing checks (red)',
       `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
@@ -955,6 +968,17 @@ function stallFixRows(settings: V2Settings, stats: V2State['stats']): [string, J
       'Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings',
       `${stats.resets ?? 0} (${stats.requeued ?? 0}) / ${stats.episode_reds ?? 0} ` +
         `(${stats.episode_inherited ?? 0}) / ${stats.repair_landings ?? 0}`,
+    ],
+  ];
+}
+
+/** Check reuse, when on: commits green from their own pre-land check, and CI runs it cancelled. */
+function checkReuseRows(settings: V2Settings, stats: V2State['stats']): [string, Json][] {
+  if (settings.reuseChecks !== true) return [];
+  return [
+    [
+      'Checks reused as validations / superseded CI runs cancelled',
+      `${stats.checks_reused ?? 0} / ${stats.ci_superseded ?? 0}`,
     ],
   ];
 }

@@ -8,7 +8,13 @@ import type { LooseEvent, RaceRun, RaceScenario } from '../testing/scenario';
 import { eventsOf, runRace, soloTask, wellFormedProblems } from '../testing/scenario';
 
 /** The v2.2 rules (adaptive re-check, release on check, flake confirmation, re-executed losers). */
-const V2: Partial<RunConfigInput> = { policy: 'beanstalk-v2', agents: 2, ci_seconds: 60 };
+/** Check reuse off: these races pin the CI validation of every sprout head (`v2-check-reuse.test.ts` covers reuse). */
+const V2: Partial<RunConfigInput> = {
+  policy: 'beanstalk-v2',
+  agents: 2,
+  ci_seconds: 60,
+  reuse_checks: false,
+};
 
 function runV2(scenario: RaceScenario): RaceRun {
   return runRace({ ...scenario, config: { ...V2, ...scenario.config } });

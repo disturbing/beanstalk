@@ -46,6 +46,7 @@ import {
   windowAdmits,
 } from './v2-backpressure';
 import { boundedEnd, startProgress } from './v2-bounds';
+import { rememberGreenCheck } from './v2-check-reuse';
 import { onProbeJob, repairWithCulprits } from './v2-culprits';
 import { endLanding, latencyTimerKey, parkLanding, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
@@ -417,6 +418,7 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   if (result === null) throw new EngineInvariantError('a check finished without a result');
   if (check.isRecheck) recordRecheck(step.state, result.green);
   if (check.targets !== null) countTargeted(step.state, result.green);
+  else if (result.green) rememberGreenCheck(step.state, flow.task, check.candidate);
   learnReadSets(step, result);
   const red = { head: check.head0, result, mine: check.mine };
   const inherited = inheritedFailures(step, flow, red);

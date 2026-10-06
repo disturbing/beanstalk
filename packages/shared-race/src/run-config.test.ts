@@ -171,7 +171,7 @@ describe('the demo preset', () => {
     });
   });
 
-  it('pins the v2.5 rules at the values the defaults have today, parking and the reset aside', () => {
+  it('pins the v2.5 rules at the values the defaults have today, parking, the reset and check reuse aside', () => {
     const defaults = RunConfig.parse({ policy: 'beanstalk-v2', tasks: [task('t001')] });
 
     expect({ ...defaults, structural_merge: usesStructuralMerge(defaults) }).toMatchObject({
@@ -179,13 +179,21 @@ describe('the demo preset', () => {
       park: true,
       tail_guard_minutes: 3,
       red_reset: true,
+      requeue_repair: true,
+      reuse_checks: true,
     });
     expect(DEMO_SETTINGS).toMatchObject({
       red_reset: true,
       episode_tickets: false,
       repair_landing: false,
+      requeue_repair: true,
+      reuse_checks: true,
     });
-    expect(V25_SETTINGS).toMatchObject({ red_reset: false });
+    expect(V25_SETTINGS).toMatchObject({
+      red_reset: false,
+      requeue_repair: false,
+      reuse_checks: false,
+    });
   });
 
   it('accepts a pinned field repeated with its value and refuses a changed one', () => {

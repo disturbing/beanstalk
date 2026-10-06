@@ -65,7 +65,7 @@ function createSimulation(env: EngineEnv, options: SimulationOptions) {
   const pollOwners = new Map<string, SlotId>();
   const scheduledTicks = new Set<number>();
   const finishedSlots = new Set<SlotId>();
-  const clock = { now: SIMULATION_EPOCH_MS, seq: 0, polls: 0 };
+  const clock = { now: SIMULATION_EPOCH_MS, seq: 0, polls: 0, lastTick: 0 };
   let state = initialEngineState(env, SIMULATION_EPOCH_MS);
 
   const schedule = (at: number, run: () => void): void => {
@@ -102,10 +102,15 @@ function createSimulation(env: EngineEnv, options: SimulationOptions) {
   const scheduleNextTick = (): void => {
     const next = Math.min(...Object.values(state.timers).map((timer) => timer.at));
     if (!Number.isFinite(next)) return;
-    const at = Math.ceil(state.createdAtMs + next * 1000);
+    // A timer due at or before the last tick's millisecond (set during it, or not quite due by
+    // float rounding) fires a millisecond later, as a Durable Object alarm set in the past does.
+    const at = Math.max(Math.ceil(state.createdAtMs + next * 1000), clock.lastTick + 1);
     if (scheduledTicks.has(at)) return;
     scheduledTicks.add(at);
-    schedule(Math.max(at, clock.now), () => apply({ kind: 'tick', at: clock.now }));
+    schedule(Math.max(at, clock.now), () => {
+      clock.lastTick = clock.now;
+      apply({ kind: 'tick', at: clock.now });
+    });
   };
 
   const deliver = (pollId: string, reply: EngineReply): void => {

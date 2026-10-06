@@ -64,7 +64,8 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # escalation after one repeated red, lone-suspect reverts, base culprits, window sizes, E6's start cards,
 # rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts, the tail fix's per-bean
 # invocation ceiling and tail guard (0 turns either off), parking (PARK=0: drop as v2.5 did), the 30-agent stall fix
-# (RED_RESET=0: bisect and revert as v2.5; EPISODE_TICKETS, REPAIR_LANDING: measured, off); live sprout sync; the
+# (RED_RESET=0: bisect and revert as v2.5; EPISODE_TICKETS, REPAIR_LANDING: measured, off; REQUEUE_REPAIR=0: one
+# requeue chain as before), check reuse (REUSE_CHECKS=0: validate every sprout head on CI); live sprout sync; the
 # queue never gets these, and the gateway
 # refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
@@ -85,7 +86,8 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "max_bean_invocations": ("MAX_BEAN_INVOCATIONS", int),
            "tail_guard_minutes": ("TAIL_GUARD_MINUTES", float), "park": ("PARK", bool),
            "red_reset": ("RED_RESET", bool), "episode_tickets": ("EPISODE_TICKETS", bool),
-           "repair_landing": ("REPAIR_LANDING", bool)}
+           "repair_landing": ("REPAIR_LANDING", bool), "reuse_checks": ("REUSE_CHECKS", bool),
+           "requeue_repair": ("REQUEUE_REPAIR", bool)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
 STREAM_POLL = 0.25          # how often the driver looks at the agent's edit marker

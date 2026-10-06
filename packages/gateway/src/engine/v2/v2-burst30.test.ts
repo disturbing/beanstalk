@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEMO_SETTINGS, STALL_FIX_OFF } from '@beanstalk/shared-race/run-config';
+import { CHECK_REUSE_OFF, DEMO_SETTINGS, STALL_FIX_OFF } from '@beanstalk/shared-race/run-config';
 
 import { breakNumbers, burst30Scenario, redEpisodes } from '../testing/burst30';
 import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';
@@ -16,7 +16,9 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
     'reproduces the stall under the v2.5 demo preset (seed 7, 30 agents)',
     { timeout: 30_000 },
     () => {
-      const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF }));
+      const run = runRace(
+        burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF, ...CHECK_REUSE_OFF }),
+      );
 
       expect(wellFormedProblems(run.events)).toEqual([]);
       expect(eventsOf(run.events, 'revert.conflict').length).toBeGreaterThanOrEqual(1);
@@ -37,7 +39,7 @@ describe('burst30: the 30-agent stall, in the simulator', () => {
     { timeout: 30_000 },
     () => {
       const before = breakNumbers(
-        runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF })),
+        runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS, ...STALL_FIX_OFF, ...CHECK_REUSE_OFF })),
       );
       const run = runRace(burst30Scenario(7, 30, { ...DEMO_SETTINGS }));
 

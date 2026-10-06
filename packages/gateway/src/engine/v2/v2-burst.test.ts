@@ -127,8 +127,9 @@ describe('v2.5 (forge-owned tests) on the burst and the calm race', () => {
   });
 
   it('keeps every green on the calm race; the author step costs under a third more time', () => {
-    const v24 = numbers(runRace(calmScenario()));
-    const v25 = numbers(runRace(calmScenario(FORGE_TESTS)));
+    // Both validate every head on CI: the ratio measures the author step, not check reuse.
+    const v24 = numbers(runRace(calmScenario({ reuse_checks: false })));
+    const v25 = numbers(runRace(calmScenario({ ...FORGE_TESTS, reuse_checks: false })));
 
     expect(v25.green).toBe(40);
     expect(v25.correct).toBe(true);
