@@ -132,15 +132,9 @@ function StepDetail(props: {
   readonly stream: LiveChange | null;
 }) {
   const { step, files, stream } = props;
-  const showsStream = stream !== null && (step === undefined || step.tone === 'all' || step.live);
-  if (showsStream) {
-    return (
-      <StreamingDiff
-        view={stream.view}
-        agent={stream.view.summary.agent}
-        writing={stream.writing}
-      />
-    );
+  const onAll = step === undefined || step.tone === 'all';
+  if (stream !== null && (onAll || (stream.kind === 'stream' && step.live))) {
+    return <LiveChangeView change={stream} files={files} landed={props.landed} />;
   }
   if (step === undefined || step.tone === 'all') {
     if (files.length === 0) return <div className={styles.empty}>No change yet.</div>;
@@ -185,11 +179,59 @@ function StepDetail(props: {
   );
 }
 
-type LiveChange = { readonly view: BeanStreamView; readonly writing: boolean };
+/**
+ * `stream`: the bean's streamed change, while its agent writes and after, until the page has
+ * the commit. `committed`: the commit that replaced the stream while the reader watched, drawn
+ * by the same view so the swap moves nothing.
+ */
+type LiveChange =
+  | { readonly kind: 'stream'; readonly view: BeanStreamView; readonly writing: boolean }
+  | { readonly kind: 'committed'; readonly view: BeanStreamView };
+
+function LiveChangeView(props: {
+  readonly change: LiveChange;
+  readonly files: readonly FileDiff[];
+  readonly landed: boolean;
+}) {
+  const { change } = props;
+  const { summary } = change.view;
+  const writing = change.kind === 'stream' && change.writing;
+  const files = change.kind === 'stream' ? change.view.files : props.files;
+  return (
+    <>
+      {change.kind === 'stream' ? (
+        <div className={styles.jnote} data-stream-seq={summary.seq}>
+          <span className={styles.chip} data-tone="fly">
+            <i className={styles.mdot} />
+            {writing ? 'streaming' : 'finished writing'}
+          </span>{' '}
+          {plural(files.length, 'file')} so far, +{summary.additions} −{summary.deletions}
+          {summary.truncated ? ', cut to fit' : ''}
+          {writing ? '' : '; its commit is on the way'}
+        </div>
+      ) : (
+        <div className={`${styles.jnote} ${styles.settle}`}>
+          {plural(files.length, 'file')}, its whole change{' '}
+          {props.landed ? 'as it landed' : 'so far'}
+        </div>
+      )}
+      <StreamingDiff
+        files={files}
+        snapshot={{
+          key: change.kind === 'stream' ? `${summary.inv}:${summary.seq}` : 'commit',
+          inv: summary.inv,
+          mode: change.kind === 'stream' ? 'stream' : 'commit',
+        }}
+        writer={writing ? summary.agent : null}
+      />
+    </>
+  );
+}
 
 /**
  * The bean's streamed change while its agent writes; after the stream ends, the last
- * snapshot until the page has the commit (a refresh of the server render brings new files).
+ * snapshot until the page has the commit (a refresh of the server render brings new files),
+ * then the commit in the same view.
  */
 function useStreamUntilCommitted(bean: string, files: readonly unknown[]): LiveChange | null {
   const { view, writing } = useBeanStream(bean);
@@ -205,9 +247,10 @@ function useStreamUntilCommitted(bean: string, files: readonly unknown[]): LiveC
     router.refresh();
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- refresh once when the stream ends, not per render
   }, [ended]);
-  if (view === null) return null;
-  if (writing) return { view, writing };
-  return endedWith === null || endedWith === files ? { view, writing } : null;
+  if (view === null || view.summary.task !== bean) return null;
+  if (writing) return { kind: 'stream', view, writing };
+  if (endedWith === null || endedWith === files) return { kind: 'stream', view, writing };
+  return files.length === 0 ? null : { kind: 'committed', view };
 }
 
 function withCode(text: string) {

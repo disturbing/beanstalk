@@ -13,7 +13,7 @@ eval "$(python3 "$HERE/devstack.py" env)"
 rm -rf "$OUT" "$SHOTS"
 mkdir -p "$SHOTS" "$LOCAL/runs"
 PW=${PLAYWRIGHT_DIR:-$HERE}; cp "$HERE/observe.mjs" "$PW/observe.mjs"
-(cd "$PW" && node "$PW/observe.mjs" http://127.0.0.1:5391 "$OUT" "${BEAN:-t101}" "$SHOTS" > "$SHOTS.observe.log" 2>&1 &)
+(cd "$PW" && node "$PW/observe.mjs" "$STREAM_E2E_WEB" "$OUT" "${BEAN:-t101}" "$SHOTS" > "$SHOTS.observe.log" 2>&1 &)
 python3 race.py --forge cloudflare --policy beanstalk-v2 --agent claude --model "$MODEL" --agents "$AGENTS" \
   --tasks $TASKS --ci-seconds 2 --snapshot head --error-budget 999 --protect-tests landed --max-usd 3 \
   --budget-usd 3 --max-turns 30 --agent-timeout 600 --stream-diffs --keep-repo \

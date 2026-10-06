@@ -1536,12 +1536,78 @@
 /* glyphs:end */
 
 /* streaming diffs (stream_diffs): a bean's change arriving while its agent writes */
-.hunk .streaming {
+.streaming {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 8px;
+  padding: 2px 16px 4px;
   color: var(--human);
   font: 11.5px/20px var(--font-mono);
+  border-top: 1px solid var(--line);
+}
+/* the open file: a box that follows the hunk changed last (never the page) */
+.hunk.follow {
+  position: relative;
+  max-height: min(570px, 60vh);
+  overflow-y: auto;
+}
+.hunk.follow:focus-visible {
+  outline-offset: -2px;
+}
+/* rows the newest snapshot added or deleted: a wash under the text that fades */
+.hunk .fresh {
+  position: relative;
+  isolation: isolate;
+}
+.hunk .fresh::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--fresh-wash);
+  box-shadow: inset 2px 0 0 var(--human);
+  opacity: 0;
+  animation: fresh 2.4s ease-out;
+}
+@keyframes fresh {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no fade: the mark stays until the next snapshot */
+  .hunk .fresh::after {
+    animation-name: none;
+    opacity: 0.7;
+  }
+}
+.followbtn {
+  margin-left: auto;
+  min-height: 26px;
+  padding: 2px 10px;
+  border: 1px solid var(--human);
+  border-radius: 999px;
+  background: var(--human-wash);
+  color: var(--human);
+  font: 11.5px var(--font-mono);
+  cursor: pointer;
+}
+/* the commit replacing the stream: only the note changes, so it settles in */
+@media (prefers-reduced-motion: no-preference) {
+  .settle {
+    animation: settle 0.4s ease-out;
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0.3;
+  }
 }
 .cur {
   width: 7px;

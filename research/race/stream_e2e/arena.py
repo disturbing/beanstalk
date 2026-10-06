@@ -1,5 +1,7 @@
 """A throwaway arena for the streaming-diffs loop: the 5-task fixture app with two of its tasks (t001, t003) and one
-task that makes an agent write a few dozen lines over several edits (t101), so a stream has something to show.
+task that makes an agent write a few dozen lines over several edits (t101), so a stream has something to show,
+one that touches every module (t102) and one that edits the middle of a long existing file (t103: the catalog,
+about 155 lines), so the view must follow a hunk rather than the end of a file.
 
     python3 stream_e2e/arena.py      # writes stream_e2e/.local/arena/ (tasks/) and .local/arena.git (main + ref/*)
 """
@@ -89,6 +91,195 @@ T102 = {
 }
 
 
+SKUS = ["lamp", "mug", "rug", "desk", "chair", "shelf", "vase", "clock", "frame", "pillow", "throw", "candle",
+        "bowl", "plate", "kettle", "toaster", "mirror", "basket", "stool", "bench", "hook", "tray", "jar", "pan"]
+
+CATALOG_HEAD = """/** The shop's product catalog: list prices, weights and discounts. */
+export interface Product {
+  sku: string;
+  priceCents: number;
+  weightGrams: number;
+  discountPercent: number;
+}
+
+export const PRODUCTS: Product[] = [
+%s
+];
+
+function find(sku: string): Product {
+  const product = PRODUCTS.find((p) => p.sku === sku);
+  if (product === undefined) throw new Error(`unknown sku ${sku}`);
+  return product;
+}
+
+/** Every sku in the catalog, in catalog order. */
+export function skus(): string[] {
+  return PRODUCTS.map((p) => p.sku);
+}
+
+/** Whether the catalog sells this sku. */
+export function has(sku: string): boolean {
+  return PRODUCTS.some((p) => p.sku === sku);
+}
+
+/** The list price of a sku, in cents. */
+export function priceOf(sku: string): number {
+  return find(sku).priceCents;
+}
+
+/** The shipping weight of a sku, in grams. */
+export function weightOf(sku: string): number {
+  return find(sku).weightGrams;
+}
+
+/** The cheapest sku. */
+export function cheapest(): string {
+  return [...PRODUCTS].sort((a, b) => a.priceCents - b.priceCents)[0].sku;
+}
+
+/** The heaviest sku. */
+export function heaviest(): string {
+  return [...PRODUCTS].sort((a, b) => b.weightGrams - a.weightGrams)[0].sku;
+}
+
+/**
+ * The discount on a sku, in percent of its list price, as merchandising set it.
+ * Merchandising enters these by hand.
+ */
+export function discountFor(sku: string): number {
+  return find(sku).discountPercent;
+}
+
+/** The price a customer pays for one unit of a sku, after its discount, in cents. */
+export function salePrice(sku: string): number {
+  const price = priceOf(sku);
+  return Math.round(price - (price * discountFor(sku)) / 100);
+}
+
+/** Whether a sku is on sale at all. */
+export function onSale(sku: string): boolean {
+  return discountFor(sku) > 0;
+}
+
+/** What shipping a parcel costs, in cents: a flat 500. */
+export function shippingCents(weightGrams: number): number {
+  return 500;
+}
+
+/** The shipping weight of a list of skus, in grams. */
+export function parcelWeight(items: string[]): number {
+  return items.reduce((sum, sku) => sum + weightOf(sku), 0);
+}
+
+/** Skus sorted by list price, cheapest first. */
+export function byPrice(): string[] {
+  return [...PRODUCTS].sort((a, b) => a.priceCents - b.priceCents).map((p) => p.sku);
+}
+
+/** Skus sorted by weight, lightest first. */
+export function byWeight(): string[] {
+  return [...PRODUCTS].sort((a, b) => a.weightGrams - b.weightGrams).map((p) => p.sku);
+}
+
+/** The skus on sale. */
+export function saleSkus(): string[] {
+  return PRODUCTS.filter((p) => p.discountPercent > 0).map((p) => p.sku);
+}
+
+/** The average list price, in cents. */
+export function averagePrice(): number {
+  return Math.round(PRODUCTS.reduce((s, p) => s + p.priceCents, 0) / PRODUCTS.length);
+}
+
+/** The weight of one of everything, in grams. */
+export function totalWeight(): number {
+  return PRODUCTS.reduce((s, p) => s + p.weightGrams, 0);
+}
+
+/** A one-line description of a sku for the storefront. */
+export function describe(sku: string): string {
+  return `${sku}: $${(salePrice(sku) / 100).toFixed(2)}`;
+}
+
+/** Skus whose name contains the text. */
+export function search(text: string): string[] {
+  return skus().filter((s) => s.includes(text));
+}
+
+/** One page of skus, ten per page, the first page 0. */
+export function pageOf(page: number): string[] {
+  return skus().slice(page * 10, page * 10 + 10);
+}
+
+/** Skus that cost less than a budget, in cents. */
+export function under(budgetCents: number): string[] {
+  return PRODUCTS.filter((p) => p.priceCents < budgetCents).map((p) => p.sku);
+}
+
+/** Skus lighter than a weight, in grams. */
+export function lighterThan(grams: number): string[] {
+  return PRODUCTS.filter((p) => p.weightGrams < grams).map((p) => p.sku);
+}
+
+/** The catalog as CSV, one line per sku with a header. */
+export function toCsv(): string {
+  const lines = PRODUCTS.map((p) => `${p.sku},${p.priceCents},${p.weightGrams},${p.discountPercent}`);
+  return ["sku,priceCents,weightGrams,discountPercent", ...lines].join("\\n");
+}
+"""
+
+
+def catalog_module() -> str:
+    """A long existing file (about 155 lines) for t103, whose two fixes sit in its middle."""
+    rows = "\n".join(f'  {{ sku: "{sku}", priceCents: {1000 + i * 350}, weightGrams: {300 + i * 140}, '
+                     f'discountPercent: {(i * 7) % 45} }},' for i, sku in enumerate(SKUS))
+    return CATALOG_HEAD % rows
+
+
+CATALOG_TEST = """import { test } from "node:test";
+import assert from "node:assert/strict";
+import { byCategory, discountFor, salePrice, shippingCents } from "../../src/catalog/index.ts";
+
+test("products have categories", () => {
+  assert.deepEqual(byCategory("lighting"), ["lamp", "candle"]);
+  assert.equal(byCategory("kitchen").length, 8);
+});
+
+test("discounts are capped at 30 percent", () => {
+  assert.equal(discountFor("vase"), 30);
+  assert.equal(salePrice("vase"), 2170);
+  assert.equal(discountFor("mug"), 7);
+});
+
+test("shipping is 500 cents up to a kilo, then 2 cents a gram over", () => {
+  assert.equal(shippingCents(800), 500);
+  assert.equal(shippingCents(1000), 500);
+  assert.equal(shippingCents(1250), 1000);
+});
+"""
+
+T103 = {
+    "id": "t103",
+    "title": "Catalog categories, capped discounts and shipping by weight",
+    "prompt": ("Five changes to the product catalog, src/catalog/index.ts (a long file: change it in place with "
+               "the Edit tool, one edit per step, in this order). 1. Give Product a `category` field and set it on "
+               "every row of PRODUCTS: kitchen for mug, bowl, plate, kettle, toaster, jar, pan and tray; lighting "
+               "for lamp and candle; home for everything else. 2. At the end of the file add byCategory(category), "
+               "the skus of that category in catalog order, with a JSDoc line. 3. Merchandising typed some "
+               "discounts above what we allow: discountFor(sku) must never return more than 30 (percent), "
+               "whatever the table says; update its JSDoc to say so. 4. Shipping is no longer flat: "
+               "shippingCents(weightGrams) is 500 cents up to and including 1000 grams, plus 2 cents for every "
+               "gram over 1000; update its JSDoc too. 5. Last, rewrite the JSDoc on the first line of the file "
+               "so it also mentions categories. Then add a line to CHANGELOG.md."),
+    "acceptance_tests": {"test/acceptance/t103.test.ts": CATALOG_TEST},
+    "oracle_paths": ["src/catalog/index.ts", "CHANGELOG.md"],
+    "oracle_modules": ["src/catalog"],
+    "kind": "feature",
+    "difficulty": 2,
+    "couplings": [],
+}
+
+
 def git(cwd: str, *args: str) -> None:
     env = dict(os.environ, GIT_AUTHOR_NAME="arena", GIT_AUTHOR_EMAIL="arena@beanstalk.invalid",
                GIT_COMMITTER_NAME="arena", GIT_COMMITTER_EMAIL="arena@beanstalk.invalid")
@@ -99,7 +290,7 @@ def main() -> None:
     shutil.rmtree(ARENA, ignore_errors=True)
     os.makedirs(os.path.join(ARENA, "tasks"))
     os.makedirs(os.path.join(ARENA, "solutions"))
-    tasks = [json.load(open(os.path.join(FIXTURE, "tasks", f"{t}.json"))) for t in ("t001", "t003")] + [T101, T102]
+    tasks = [json.load(open(os.path.join(FIXTURE, "tasks", f"{t}.json"))) for t in ("t001", "t003")] + [T101, T102, T103]
     for t in tasks:
         with open(os.path.join(ARENA, "tasks", f"{t['id']}.json"), "w") as fh:
             json.dump(t, fh, indent=2)
@@ -107,6 +298,9 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         work = os.path.join(tmp, "w")
         shutil.copytree(os.path.join(FIXTURE, "app"), work)
+        os.makedirs(os.path.join(work, "src", "catalog"))
+        with open(os.path.join(work, "src", "catalog", "index.ts"), "w") as fh:
+            fh.write(catalog_module())
         git(work, "init", "-q", "-b", "main")
         git(work, "config", "commit.gpgsign", "false")
         git(work, "add", "-A")
