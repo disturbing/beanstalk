@@ -12,7 +12,10 @@
  *
  * The red's read-set suspects among them are requeued one at a time, oldest first, each when
  * the one before it landed or left: requeued together they would check on the same sprout and
- * land the same break again. The other beans are requeued at once.
+ * land the same break again. The other beans are requeued at once. With `requeue_repair` (the
+ * burst tail fix) each reset's suspects form a chain of their own, the next goes as soon as the
+ * current one has a verdict (landed, left, or red and back with its author), and two suspects
+ * of one reset that are red against each other go to reconcile at once (`brokeTogether`).
  *
  * A bean is requeued at most `MAX_REQUEUES` times; a window holding one that was requeued that
  * often is bisected and reverted as before.
@@ -25,7 +28,7 @@ import type { JobId } from '../model';
 import { resetMessage } from '../prompts';
 import { startProgress } from './v2-bounds';
 import { appendCommit, awaitOutcome } from './v2-sprout';
-import type { SproutCommit, V2State, V2Step } from './v2-state';
+import type { RequeueChain, SproutCommit, V2State, V2Step } from './v2-state';
 
 /** Resets one bean may go through before its windows are bisected again. */
 const MAX_REQUEUES = 2;
@@ -114,26 +117,67 @@ export function landReset(
     if (reset.suspects.includes(id)) held.push(id);
     else startAgain(step, id);
   }
-  const chain = (state.requeueChain ??= { ticket: reset.ticket, current: null, waiting: [] });
-  chain.ticket = reset.ticket;
-  chain.waiting.push(...held);
+  if (held.length > 1 && state.settings.requeueRepair === true) {
+    (state.resetSuspects ??= []).push(held);
+  }
+  holdSuspects(step, { ticket: reset.ticket, held });
   advanceRequeues(step);
   return commit.idx;
 }
 
-/** The next held suspect goes back through its check once the one before it landed or left. */
-export function advanceRequeues(step: V2Step): void {
-  const { state } = step;
-  const chain = state.requeueChain;
-  if (chain === undefined) return;
-  if (chain.current !== null && state.landings[chain.current] !== undefined) return;
-  const next = chain.waiting.shift();
-  if (next === undefined) {
-    delete state.requeueChain;
+/**
+ * The reset's suspects wait to go back one at a time. With `requeue_repair` each reset has a
+ * chain of its own (they run side by side); otherwise every reset's suspects join one.
+ */
+function holdSuspects(step: V2Step, hold: { ticket: string; held: readonly TaskId[] }): void {
+  const chains = requeueChains(step.state);
+  const isPerReset = step.state.settings.requeueRepair === true;
+  const shared = isPerReset ? undefined : chains[0];
+  if (shared === undefined) {
+    chains.push({ ticket: hold.ticket, current: null, waiting: [...hold.held] });
     return;
   }
-  chain.current = next;
-  startAgain(step, next);
+  shared.ticket = hold.ticket;
+  shared.waiting.push(...hold.held);
+}
+
+/** The requeue chains, taking in the single chain of a state written before there were several. */
+function requeueChains(state: V2State): RequeueChain[] {
+  const chains = (state.requeueChains ??= []);
+  if (state.requeueChain !== undefined) {
+    chains.unshift(state.requeueChain);
+    delete state.requeueChain;
+  }
+  return chains;
+}
+
+/** Each chain's next held suspect goes back through its check once the one before it is released. */
+export function advanceRequeues(step: V2Step): void {
+  const { state } = step;
+  if (state.requeueChains === undefined && state.requeueChain === undefined) return;
+  const chains = requeueChains(state);
+  for (const chain of chains) advanceChain(step, chain);
+  const live = chains.filter((chain) => chain.current !== null);
+  if (live.length > 0) state.requeueChains = live;
+  else delete state.requeueChains;
+}
+
+function advanceChain(step: V2Step, chain: RequeueChain): void {
+  if (chain.current !== null && !isReleased(step, chain.current)) return;
+  const next = chain.waiting.shift();
+  chain.current = next ?? null;
+  if (next !== undefined) startAgain(step, next);
+}
+
+/**
+ * The chain's current suspect no longer holds the next one back: it landed or left, or (with
+ * `requeue_repair`) its check came back red or conflicted, so it is with its author and its
+ * next attempt is checked on a sprout that holds whatever lands meanwhile.
+ */
+function isReleased(step: V2Step, task: TaskId): boolean {
+  const flow = step.state.landings[task];
+  if (flow === undefined) return true;
+  return step.state.settings.requeueRepair === true && flow.rounds > 0;
 }
 
 /** A bean of the reset window is off the sprout and requeued (its check comes with `startAgain`). */
@@ -170,4 +214,16 @@ function startAgain(step: V2Step, id: TaskId): void {
   };
   startProgress(step, id);
   step.flow.attempt(id);
+}
+
+/**
+ * `requeue_repair`: `task` and `culprit` were read-set suspects of one red that reset the
+ * sprout. Their pair already broke the sprout once, so a red between them goes to reconcile
+ * and a card at once, without an informed rework first.
+ */
+export function brokeTogether(step: V2Step, task: TaskId, culprit: TaskId): boolean {
+  if (step.state.settings.requeueRepair !== true) return false;
+  return (step.state.resetSuspects ?? []).some(
+    (group) => group.includes(task) && group.includes(culprit),
+  );
 }

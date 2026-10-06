@@ -32,6 +32,7 @@ import { isDecided, openCard, pairKey } from './v2-decisions';
 import { endLanding, parkLanding, parks } from './v2-flows';
 import { awaitOutcome, lastTaskCommit, sproutIndex } from './v2-sprout';
 import { rescueOnExhaustion } from './v2-rescue';
+import { brokeTogether } from './v2-reset';
 import { cardAfterReds } from './v2-start';
 import { takeSyncNote } from './v2-sync';
 import type { AgentWork, LandingFlow, SproutCommit, V2State, V2Step } from './v2-state';
@@ -153,6 +154,7 @@ export function startRepair(step: V2Step, flow: LandingFlow, failure: RedCheck):
   const stuck = culprits.filter(
     (culprit) =>
       repeated.has(culprit) ||
+      (brokeTogether(step, flow.task, culprit) && !isDecided(state, flow.task, culprit)) ||
       ((state.pairReds[pairKey(flow.task, culprit)] ?? 0) >=
         cardAfterReds(step, flow.task, culprit, CARD_AFTER_REDS) &&
         !isDecided(state, flow.task, culprit)),

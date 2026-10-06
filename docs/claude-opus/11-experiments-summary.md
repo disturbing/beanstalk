@@ -336,3 +336,63 @@ No row reverted an innocent bean except v2.5 on flaky (0.1).
 **Defaults.** `red_reset: true` in the schema and in `demo`; `episode_tickets` and `repair_landing` off (pinned off in `demo`). `V25_SETTINGS`, `v24` and the parity settings turn all three off. The driver passes `RED_RESET`, `EPISODE_TICKETS` and `REPAIR_LANDING`.
 
 **For a 30-agent Cloudflare rematch:** `--preset demo` (the reset is in it), the same 30 agents, seed and tasks as `cf-demo-sonnet-30-s7` against `cf-queue-sonnet-30-s7`. The runner image must include the `to` field of `/v1/revert`; an older image rejects the field (`deny_unknown_fields`), so redeploy the runner container with the gateway. Watch `sprout.reset` and `bean.requeued` in `events.jsonl`. For the old engine, run without a preset with `RED_RESET=0` and the other demo settings, or use `cf-demo-sonnet-30-s7` itself.
+
+## Check reuse and the burst tail (2026-10-06)
+
+Two changes to the v2 engine, both behind settings and both on by default and in `demo`. Simulator only: 16 seeds per row, the `demo` preset otherwise; "before" is `demo` as it was after the stall fixes (`reuse_checks` and `requeue_repair` off).
+
+**Check reuse** (`reuse_checks`, `v2-check-reuse.ts`). A bean that lands on the sprout head it was checked on lands the very commit its full pre-land check passed, and the validator used to run the whole suite on that tree again, on one of the two CI slots. Now such a head is green without CI, as the reset commit is (`check.reused`, then `green.promote`); validations of older commits still running are cancelled, since a red below a green head is stale anyway. The key is the commit sha: the runner reports no tree ids (squash and revert return commits only), a commit fixes its tree, and the extra files (none) and the suite (whole; targeted checks never count) are the same for both kinds of run. A tree key would add little: counting trees in the simulator, a validation whose tree, but not commit, had already passed came up 0.0–0.1 times per race, and such a pre-land check 0.1–1.3 times, so the Rust change was not made. Only greens are kept (one per bean); a red validation still waits for its flake re-run unless sighted.
+
+What reuse gives up is the second, independent run of a green tree. A test that fails only sometimes and passed the sandbox check is not run again on that commit; it runs again at the next validation of a later head (every later tree contains this one) and in the final check. That is acceptable: a deterministic break cannot pass the check, and a flaky red at validation would mostly be judged a flake by `flake_confirm` anyway. Reuse also removes the 1-in-400 coincidence where a flake fails both the validation and its re-run of a good tree and opens a ticket. Correct 16/16 in every row below with reuse on.
+
+**The burst tail** (`requeue_repair`, `v2-reset.ts`). Since `red_reset`, the burst's last green moved from 16.0 (v2.5) to 20.4 min. Event traces show why: every reset's read-set suspects waited in one chain, each until the one before it had landed or left. In seed 3, t019's card (red re-check, informed rework, reconcile, card, test author, rework) held t010, t003, t022 and t016 back for ten minutes, and each of them then needed a card too, one after the other; the last green came at 30.0. The fix has three parts:
+
+1. each reset's suspects form a chain of their own, running beside earlier resets' chains;
+2. the next suspect goes as soon as the current one has a verdict: landed or left, or a red or conflicting check (it is then with its author, and its next attempt is checked on a sprout that holds whatever landed meanwhile);
+3. two suspects of one reset that are red against each other skip the informed rework and go to reconcile, and a card on a contradiction, at their first red: the pair already broke the sprout together.
+
+Measured and not kept: checking a requeued suspect inside the turn (locked), to stop it chasing a moving sprout (seed 3: t022 took three re-checks, 5 minutes). It cut done by 0.2 min more but cost 0.5–0.9 min on the 20th to 30th greens, because each locked check holds the turn for 77 s. Parts 1 and 2 alone gave 18.5 min, part 3 alone 18.9 (without reuse).
+
+**burst30** (minutes; Out = parked + dropped; CI slot-min excludes the final check):
+
+| Agents | Engine | Green | Out | 20th | 25th | 30th | 35th | Last green | Done | Red val. | Validations | CI slot-min | Reused | Requeued | Correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 30 | before | 39.0 | 1.0 | 6.0 | 6.5 | 13.1 | 16.6 | 21.1 | 21.1 | 2.5 | 22.7 | 28.0 | 0 | 2.0 | 16/16 |
+| 30 | reuse only | 39.0 | 1.0 | 5.9 | 6.3 | 11.2 | 15.6 | 20.1 | 20.1 | 3.0 | 19.9 | 24.0 | 5.2 | 2.1 | 16/16 |
+| 30 | requeue repair only | 39.0 | 1.0 | 6.0 | 6.5 | 13.1 | 16.6 | 21.1 | 21.1 | 2.5 | 22.7 | 28.0 | 0 | 2.0 | 16/16 |
+| 30 | **both (chosen)** | **39.0** | 1.0 | 5.9 | 6.3 | **11.2** | **15.6** | **20.1** | **20.1** | 3.0 | 19.9 | **24.0** | 5.2 | 2.1 | 16/16 |
+| 12 | before | 39.0 | 1.0 | 5.8 | 6.6 | 11.7 | 16.2 | 21.4 | 21.4 | 2.5 | 22.1 | 27.3 | 0 | 1.7 | 16/16 |
+| 12 | reuse only | 39.0 | 1.0 | 5.7 | 6.3 | 10.2 | 15.7 | 20.2 | 20.2 | 2.5 | 18.6 | 22.4 | 5.2 | 1.5 | 16/16 |
+| 12 | requeue repair only | 39.0 | 1.0 | 5.8 | 6.6 | 11.7 | 16.2 | 21.4 | 21.4 | 2.5 | 22.1 | 27.3 | 0 | 1.7 | 16/16 |
+| 12 | **both (chosen)** | **39.0** | 1.0 | 5.7 | 6.3 | **10.2** | **15.7** | **20.2** | **20.2** | 2.5 | 18.6 | **22.4** | 5.2 | 1.5 | 16/16 |
+
+**The older scenarios:**
+
+| Scenario | Engine | Green | Out | 20th | 25th | 30th | 35th | Last green | Done | Red val. | Validations | CI slot-min | Reused | Requeued | Correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| burst | v2.5 | 38.5 | 1.5 | 9.6 | 11.1 | 12.8 | 13.5 | 16.0 | 16.0 | 2.8 | 18.7 | 24.2 | 0 | 0 | 16/16 |
+| burst | before | 39.6 | 0.4 | 7.9 | 9.4 | 11.4 | 13.4 | 20.4 | 20.4 | 2.8 | 24.2 | 23.7 | 0 | 11.9 | 16/16 |
+| burst | reuse only | 39.6 | 0.4 | 7.5 | 8.9 | 11.0 | 12.5 | 18.2 | 18.2 | 2.6 | 19.3 | 18.5 | 6.0 | 9.1 | 16/16 |
+| burst | requeue repair only | 39.8 | 0.2 | 7.9 | 9.4 | 11.3 | 13.0 | 17.2 | 17.2 | 2.4 | 23.5 | 22.9 | 0 | 11.9 | 16/16 |
+| burst | **both (chosen)** | 39.6 | 0.4 | **7.5** | **8.9** | **11.0** | **12.2** | **15.4** | **15.4** | 2.5 | 19.5 | **18.5** | 5.6 | 9.1 | 16/16 |
+| calm | before (= v2.5) | 40.0 | 0 | 5.4 | 5.5 | 6.8 | 7.4 | 8.3 | 8.3 | 0 | 12.6 | 12.9 | 0 | 0 | 16/16 |
+| calm | both | 40.0 | 0 | 4.7 | 5.5 | 6.1 | 7.2 | 8.1 | 8.1 | 0 | 12.7 | 12.5 | 1.9 | 0 | 16/16 |
+| earlier | v2.5 | 38.9 | 1.1 | 7.0 | 9.0 | 9.6 | 12.0 | 15.6 | 15.6 | 2.8 | 18.0 | 21.3 | 0 | 0 | 16/16 |
+| earlier | before | 39.6 | 0.4 | 6.5 | 7.6 | 8.2 | 10.8 | 15.9 | 15.9 | 1.8 | 19.8 | 19.9 | 0 | 5.4 | 16/16 |
+| earlier | both | 39.3 | 0.7 | 5.8 | 7.4 | 7.6 | 9.3 | 13.2 | 13.2 | 2.1 | 13.9 | 13.5 | 6.0 | 3.5 | 16/16 |
+| flaky | v2.5 | 38.4 | 1.6 | 9.9 | 11.2 | 12.2 | 13.8 | 16.5 | 16.5 | 4.5 | 19.9 | 24.2 | 0 | 0 | 16/16 |
+| flaky | before | 39.3 | 0.7 | 8.4 | 9.3 | 10.7 | 12.8 | 19.7 | 19.7 | 3.0 | 23.3 | 23.0 | 0 | 8.9 | 16/16 |
+| flaky | both | 39.7 | 0.3 | 7.6 | 8.7 | 9.7 | 11.3 | 15.5 | 15.5 | 1.6 | 17.4 | 16.3 | 6.7 | 6.7 | 16/16 |
+
+(The red-validation counts here are first runs only; the "Stall fixes" tables above also count flake re-runs.) Requeue repair alone on flaky was correct 15/16: in seed 7 the flaky test failed both final runs, the injector's coincidence again; no stalk commit was red without flakes in any row.
+
+**What the numbers say.**
+
+- **Reuse is the bigger change.** At 30 agents it takes 2.8 validations and 4 CI slot-minutes off a race (14%), and the 30th, 35th and last greens come 1.9, 1.0 and 1.0 min earlier; at 12 agents 1.5, 0.5 and 1.2. On the older races it saves 22–33% of CI slot-minutes where they go red (earlier: 19.9 → 13.5; calm, never red, 3%) and brings every kth green as early or earlier. About one validation in five is reused.
+- **The burst tail is fixed.** Both together end the burst at 15.4 min, against 20.4 before and 16.0 for v2.5, with 1.1 more beans than v2.5 and every kth green as early or earlier (35th 12.2 against 13.4 and 13.5). Flaky (19.7 → 15.5) and earlier (15.9 → 13.2) gain the same way.
+- **The reset's gains at 30 agents are kept and extended**: 39 green, 35th 15.6 (was 16.6), done 20.1 (was 21.1). The requeue repair alone changes nothing on burst30, whose one reset holds no pair of suspects.
+- Red validations rise from 2.5 to 3.0 at 30 agents: the window grows on reused greens, so slightly more lands optimistically before a red. Every red still gets its flake re-run.
+
+**Simulator fix.** With reuse on, three burst30 seeds hit the simulator's step limit: a start-wake timer due at the instant of the tick that had just run (or a hair after it, by float rounding) never got a tick of its own, and the simulated clock stopped. A timer due at or before the last tick's millisecond now gets a tick a millisecond later, as a Durable Object alarm set in the past fires at once. No other row changed (the "before" rows reproduce the earlier tables exactly).
+
+**Defaults.** `reuse_checks: true` and `requeue_repair: true` in the schema and in `demo`; `V25_SETTINGS`, `v24` and the parity settings turn both off (`CHECK_REUSE_OFF`, `STALL_FIX_OFF`). The driver passes `REUSE_CHECKS` and `REQUEUE_REPAIR`; `REUSE_CHECKS=0 REQUEUE_REPAIR=0` without a preset reproduces the engine of `cf-demo2-sonnet-30-s7`. Nothing was deployed: the deployed gateway still runs the engine before this change.

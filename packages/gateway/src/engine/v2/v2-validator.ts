@@ -19,6 +19,7 @@ import { emit, requireTask, startJob } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';
 import { STALK_REF } from '../refs';
 import { onSproutGreen, onSproutRed } from './v2-backpressure';
+import { takeGreenCheck } from './v2-check-reuse';
 import { awaitOutcome, requireCommit, takeWait } from './v2-sprout';
 import type { V2State, V2Step } from './v2-state';
 import { activeTickets, closeTicket, isInRedEpisode, openTicket } from './v2-tickets';
@@ -34,6 +35,7 @@ export function maybeValidate(step: V2Step): void {
     headIdx <= state.greenIdx ||
     state.validating.includes(headIdx) ||
     Object.hasOwn(state.validated, String(headIdx));
+  if (!isKnown && reuseGreenCheck(step, headIdx)) return;
   // `repair_landing`: the validation of a bean that repairs a red sprout queues ahead of probes.
   const isRepair = state.commits[headIdx]?.repair === true;
   if (isKnown || (ciAvailable(ctx) <= 0 && !canQueueAhead(step) && !isRepair)) return;
@@ -192,20 +194,49 @@ export function promoteReset(step: V2Step, idx: number): void {
 }
 
 /**
- * Validations of the commits a reset left behind can no longer move the stalk: they stop and
- * free their CI slots (in cf-replay-reset-8-s7 they held both slots, red, after the reset).
+ * `reuse_checks`: the head is the exact commit a bean's full pre-land check passed (it landed
+ * on the head it was checked on), so it is green without CI. Validations of older commits can
+ * then no longer move the stalk, and stop.
  */
-function cancelSuperseded(step: V2Step, resetIdx: number): void {
+function reuseGreenCheck(step: V2Step, idx: number): boolean {
   const { ctx, state } = step;
+  const commit = requireCommit(state, idx);
+  if (commit.kind !== 'task' || takeGreenCheck(state, commit.sha) === null) return false;
+  const cancelled = cancelSuperseded(step, idx);
+  state.validated[idx] = true;
+  state.stats.checks_reused = (state.stats.checks_reused ?? 0) + 1;
+  state.stats.ci_superseded = (state.stats.ci_superseded ?? 0) + cancelled.length;
+  emit(ctx, 'check.reused', {
+    sha: commit.sha,
+    trunk_idx: idx,
+    task: commit.task,
+    source: 'preland',
+    cancelled,
+  });
+  if (idx > state.greenIdx) onSproutGreen(step, idx);
+  onGreen(step, idx);
+  return true;
+}
+
+/**
+ * Validations of commits below `idx`, once `idx` is green without CI, can no longer move the
+ * stalk: they stop and free their CI slots (in cf-replay-reset-8-s7 they held both slots, red,
+ * after the reset). Returns the cancelled runs.
+ */
+function cancelSuperseded(step: V2Step, idx: number): string[] {
+  const { ctx, state } = step;
+  const cancelled: string[] = [];
   for (const run of Object.values(ctx.state.ci.runs)) {
     const wait = state.waits[run.id];
     if (wait?.kind !== 'validate' && wait?.kind !== 'confirm') continue;
-    if (wait.idx >= resetIdx) continue;
+    if (wait.idx >= idx) continue;
     cancelCi(ctx, run.id);
     takeWait(state, run.id);
+    cancelled.push(run.id);
     state.validating = state.validating.filter((validating) => validating !== wait.idx);
     delete state.confirming[wait.idx];
   }
+  return cancelled;
 }
 
 function onGreen(step: V2Step, idx: number): void {

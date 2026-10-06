@@ -407,6 +407,18 @@ export type RaceEventFields = {
     readonly sha: string;
     readonly requeued: readonly string[];
   };
+  /**
+   * Check reuse (`reuse_checks`): the sprout commit `sha` at `trunk_idx` is the exact commit
+   * `task`'s full pre-land check passed, so it counts as validated green without CI (a
+   * `green.promote` follows). `cancelled` lists the CI runs of older commits it superseded.
+   */
+  'check.reused': {
+    readonly sha: string;
+    readonly trunk_idx: number;
+    readonly task: string | null;
+    readonly source: 'preland';
+    readonly cancelled: readonly string[];
+  };
   /** Stall fix (`red_reset`): a bean the reset took off the sprout (it was `trunk_idx`) lands again. */
   'bean.requeued': TaskRef & { readonly ticket: string; readonly trunk_idx: number };
   /**

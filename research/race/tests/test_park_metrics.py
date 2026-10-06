@@ -73,6 +73,8 @@ class DriverKnobTest(unittest.TestCase):
         self.assertEqual(remote.V22_ENV["red_reset"], ("RED_RESET", bool))
         self.assertEqual(remote.V22_ENV["episode_tickets"], ("EPISODE_TICKETS", bool))
         self.assertEqual(remote.V22_ENV["repair_landing"], ("REPAIR_LANDING", bool))
+        self.assertEqual(remote.V22_ENV["reuse_checks"], ("REUSE_CHECKS", bool))
+        self.assertEqual(remote.V22_ENV["requeue_repair"], ("REQUEUE_REPAIR", bool))
 
 
 if __name__ == "__main__":
