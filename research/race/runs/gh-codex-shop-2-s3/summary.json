@@ -1,0 +1,410 @@
+{
+  "label": "measured: arena=arena@26eecce0/8c321b35, 4 tasks, policy=github-queue, agent=codex (gpt-6.1-sol)",
+  "policy": "github-queue",
+  "agent": "codex",
+  "model": "gpt-6.1-sol",
+  "arena_base": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+  "arena_digest": "8c321b3577cd83fd",
+  "config": {
+    "agents": 2,
+    "ci_seconds": 0.0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 3,
+    "budget_usd": 5.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": false,
+    "snapshot": null,
+    "queue_hold": null,
+    "error_budget": null,
+    "footprint": "predictor",
+    "tasks": 4,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 239.44,
+  "tasks": 4,
+  "tasks_green": 4,
+  "tasks_landed": 4,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {},
+  "changes_green_per_hour": 60.141,
+  "wall_to_all_green_seconds": 239.44,
+  "task_start_to_green_seconds": {
+    "median": 119.71,
+    "p90": 124.73,
+    "mean": 119.71
+  },
+  "agent_minutes": {
+    "busy": 2.48,
+    "blocked": 5.5,
+    "idle": 0.0
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 1.41,
+      "blocked": 2.58,
+      "idle": 0.0
+    },
+    "a1": {
+      "busy": 1.06,
+      "blocked": 2.93,
+      "idle": 0.0
+    }
+  },
+  "invocations": {
+    "initial": 4
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 4,
+      "cost_usd": 0.1775,
+      "turns": 30,
+      "wall_s": 148.544,
+      "input_tokens": 81564,
+      "output_tokens": 3696,
+      "cache_read_input_tokens": 308992,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 4
+    }
+  },
+  "cost_usd": 0.1775,
+  "cost_by_kind": {
+    "initial": 0.1775
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 81564,
+      "output_tokens": 3696,
+      "cache_read_input_tokens": 308992,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": 239.5,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0.0444
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "precheck": 4,
+    "batch": 4
+  },
+  "ci_runs_total": 8,
+  "ci_minutes": {
+    "precheck": 0.8,
+    "batch": 0.87
+  },
+  "ci_minutes_total": 1.67,
+  "textual_conflicts": 0,
+  "red_validations": 0,
+  "final": {
+    "sha": "3f025b6595facd5b81f134d8c2cd92614977eca4",
+    "suite_green": true,
+    "suite_tests": 93,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 4,
+    "tasks_total": 4,
+    "green_tasks_accepted": 4,
+    "green_tasks": 4,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": []
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.75,
+      "recall": 0.4583,
+      "f1": 0.5417,
+      "tasks": 4,
+      "micro_recall": 0.4286,
+      "micro_precision": 0.75
+    },
+    "vs_oracle": {
+      "precision": 0.75,
+      "recall": 0.4583,
+      "f1": 0.5417,
+      "tasks": 4,
+      "micro_recall": 0.4286,
+      "micro_precision": 0.75
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": 114.689,
+      "green_at": 114.689,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.006,
+      "landed_at": 114.703,
+      "green_at": 114.703,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/orders"
+      ],
+      "actual_modules": [
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src/catalog",
+        "src/lib",
+        "src/orders"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 114.703,
+      "landed_at": 239.437,
+      "green_at": 239.437,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src",
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "src",
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 114.705,
+      "landed_at": 239.421,
+      "green_at": 239.421,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "src/billing"
+      ],
+      "actual_modules": [
+        "src/billing"
+      ],
+      "oracle_modules": [
+        "src/billing"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "queue": {
+    "batches": 0,
+    "batches_green": 0,
+    "batches_red": 0,
+    "batches_cancelled": 0,
+    "bisections": 0,
+    "bisect_runs": 0,
+    "ejections_conflict": 0,
+    "ejections_red": 0,
+    "requeued_without_agent": 0,
+    "held_behind_inflight": 0,
+    "mean_batch_size": null
+  },
+  "policy_rows": [
+    [
+      "Ejections (conflict / red)",
+      "0 / 0"
+    ],
+    [
+      "GitHub repo",
+      "https://github.com/kintohubtest/beanstalk-race-shop-3"
+    ],
+    [
+      "Queue wait to merge, median / p90 (min)",
+      "0.82 / 0.86"
+    ],
+    [
+      "Queue wait to removal, median / p90 (min)",
+      "- / -"
+    ],
+    [
+      "Push to enqueued (PR check + enqueue), median (min)",
+      "0.40"
+    ],
+    [
+      "Kick-outs (by cause)",
+      "0 ()"
+    ],
+    [
+      "Kick-outs by GitHub reason",
+      "none"
+    ],
+    [
+      "Rebases: with agent / without agent",
+      "0 / 0"
+    ],
+    [
+      "Actions runs: PR checks / merge groups",
+      "4 / 4"
+    ],
+    [
+      "Actions minutes (PR / group / total)",
+      "0.81 / 0.88 / 1.69"
+    ],
+    [
+      "Runner pickup, median (s)",
+      4.0
+    ],
+    [
+      "Actions job / suite step, median (s)",
+      "12.5 / 2.0"
+    ],
+    [
+      "Merges: PRs / merge operations / max PRs in 60 s",
+      "4 / 2 / 2"
+    ],
+    [
+      "GitHub API: mutations / pushes / rate-limited",
+      "15 / 5 / 0"
+    ],
+    [
+      "Push wait in rate limiter (s)",
+      3.02
+    ]
+  ],
+  "github": {
+    "repo": "https://github.com/kintohubtest/beanstalk-race-shop-3",
+    "ruleset": {
+      "check_response_timeout_minutes": 30,
+      "grouping_strategy": "ALLGREEN",
+      "max_entries_to_build": 2,
+      "max_entries_to_merge": 4,
+      "merge_method": "SQUASH",
+      "min_entries_to_merge": 1,
+      "min_entries_to_merge_wait_minutes": 0
+    },
+    "queue_wait_to_merge_s": {
+      "n": 4,
+      "median": 49.0,
+      "p90": 51.7
+    },
+    "queue_wait_to_removal_s": {
+      "n": 0,
+      "median": null,
+      "p90": null
+    },
+    "submit_to_enqueue_s": {
+      "n": 4,
+      "median": 24.25,
+      "p90": 33.67
+    },
+    "kickouts": 0,
+    "kickouts_by_cause": {},
+    "kickouts_by_gh_reason": {},
+    "red_prechecks": 0,
+    "rebases_with_agent": 0,
+    "rebases_without_agent": 0,
+    "prs_opened": 4,
+    "actions": {
+      "runs": {
+        "pull_request": 4,
+        "merge_group": 4
+      },
+      "minutes": {
+        "pull_request": 0.81,
+        "merge_group": 0.88
+      },
+      "minutes_total": 1.69,
+      "suite_s": {
+        "n": 8,
+        "median": 2.0,
+        "p90": 3.0
+      },
+      "job_s": {
+        "n": 8,
+        "median": 12.5,
+        "p90": 14.8
+      },
+      "pickup_s_median": 4.0,
+      "billable_minutes": 0,
+      "note": "public repo: Actions minutes are free; measured anyway"
+    },
+    "merges": {
+      "prs": 4,
+      "operations": 2,
+      "max_prs_in_60s": 2,
+      "max_operations_in_60s": 1,
+      "group_sizes": [
+        2,
+        2
+      ]
+    },
+    "poll_lag_s": {
+      "n": 4,
+      "median": 2.46,
+      "p90": 2.8
+    },
+    "api": {
+      "pushes": 5,
+      "push_wait_s": 3.02,
+      "mutations": 15,
+      "mutation_wait_s": 0.0,
+      "queries": 72,
+      "rest": 81,
+      "rate_limited": 0,
+      "retry_after_s": 0.0,
+      "hourly_cap_waits": 0
+    },
+    "polls": 63,
+    "poll_errors": 0
+  }
+}

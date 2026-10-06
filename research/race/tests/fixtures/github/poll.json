@@ -1,0 +1,450 @@
+{
+ "data": {
+  "repository": {
+   "defaultBranchRef": {
+    "target": {
+     "oid": "d58198e120470c50875976c9fc2c78f6a36a7b7c"
+    }
+   },
+   "pullRequests": {
+    "nodes": [
+     {
+      "number": 17,
+      "id": "PR_kwDOU-aGk88AAAABG9JSCw",
+      "headRefOid": "b6b18d43fc25cecd5f32605c7b40600e3afaa923",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:35:22Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "d58198e120470c50875976c9fc2c78f6a36a7b7c"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:34Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:35:22Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 16,
+      "id": "PR_kwDOU-aGk88AAAABG9JPWg",
+      "headRefOid": "435cdcd15ee2c6dac2e77cd80f2408d18df8019a",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:35:22Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "cd3f07e716ffdd0d98bc9bd5838761ea2ab90456"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:25Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:35:22Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 15,
+      "id": "PR_kwDOU-aGk88AAAABG9JMyg",
+      "headRefOid": "4864cea0857a698c879569f323d9c4057ab3204f",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:34:46Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "1fdc52b4fc4e80bd13da45439027479b8965c9da"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:23Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:34:46Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 14,
+      "id": "PR_kwDOU-aGk88AAAABG9JKJQ",
+      "headRefOid": "39fc07a5b4fa7563a4dfbc39c553da56cdaf05f9",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:34:46Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "05e41cb92a86670e6b518077e93ca2ba8d1c9438"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:21Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:34:46Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 13,
+      "id": "PR_kwDOU-aGk88AAAABG9JHbw",
+      "headRefOid": "3781df961245866d67c43ac409e1f3fc7b9b9b91",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:34:10Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "370ce5d3f53b4e4f59f08116801d1f8c00f3630d"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:20Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:34:10Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 12,
+      "id": "PR_kwDOU-aGk88AAAABG9JFDw",
+      "headRefOid": "d8d648246980dde9a9e96f550b295dc702e6d308",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:34:10Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "295ef347d8a6c99b70258de9e328382557735b58"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:11Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:34:10Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 11,
+      "id": "PR_kwDOU-aGk88AAAABG9JCUQ",
+      "headRefOid": "0ebc37f34fcde1dc6b92c374db4e6dcfe41e10a9",
+      "state": "OPEN",
+      "merged": false,
+      "mergedAt": null,
+      "mergeable": "MERGEABLE",
+      "mergeCommit": null,
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:10Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:33:32Z",
+         "reason": "failed_checks"
+        }
+       ]
+      }
+     },
+     {
+      "number": 10,
+      "id": "PR_kwDOU-aGk88AAAABG9I_EQ",
+      "headRefOid": "8b7b85c46dcfb4cac1bb336d3b7f7b896897c8c7",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:32:57Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "af3a02bcdd9e243d3becea47e15e703bb95c1e0e"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:09Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:56Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 9,
+      "id": "PR_kwDOU-aGk88AAAABG9I8iw",
+      "headRefOid": "e12518e0d02ed1daea309689169ac82e8fddb117",
+      "state": "OPEN",
+      "merged": false,
+      "mergedAt": null,
+      "mergeable": "CONFLICTING",
+      "mergeCommit": null,
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:07Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:57Z",
+         "reason": "merge_conflict"
+        }
+       ]
+      }
+     },
+     {
+      "number": 8,
+      "id": "PR_kwDOU-aGk88AAAABG9I57g",
+      "headRefOid": "c897ae578043c39176f739d2550cae19bd34955f",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:32:57Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "483bb596c67567409053a970d3a2953dce407701"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:04Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:32:56Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 7,
+      "id": "PR_kwDOU-aGk88AAAABG9GQEg",
+      "headRefOid": "3b99f45c95ef8f8a89ef4dd5ed1f67be34c1f1d7",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:29:20Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "b0b5fba271afcb257f9bdc9f3a7716f7c2084d53"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:31Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:29:19Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 6,
+      "id": "PR_kwDOU-aGk88AAAABG9GMmw",
+      "headRefOid": "6c452d1d8a3aa8ac2917143ce11cb2490f5a4e20",
+      "state": "OPEN",
+      "merged": false,
+      "mergedAt": null,
+      "mergeable": "CONFLICTING",
+      "mergeCommit": null,
+      "autoMergeRequest": {
+       "enabledAt": "2026-10-06T16:27:24Z"
+      },
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 5,
+      "id": "PR_kwDOU-aGk88AAAABG9GIvg",
+      "headRefOid": "353db4a3a845b1f711f52d12bbb6b613ff9f5993",
+      "state": "OPEN",
+      "merged": false,
+      "mergedAt": null,
+      "mergeable": "MERGEABLE",
+      "mergeCommit": null,
+      "autoMergeRequest": {
+       "enabledAt": "2026-10-06T16:27:19Z"
+      },
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 4,
+      "id": "PR_kwDOU-aGk88AAAABG9GFVA",
+      "headRefOid": "d49b826c417e68a6e1db5ea3c2c9d0fed7628d28",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:29:20Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "fe8e1cc8cd4997f8aa2257b0412b12277da71f7f"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:27Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:29:19Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 3,
+      "id": "PR_kwDOU-aGk88AAAABG9GBGQ",
+      "headRefOid": "12f90b339198f11934207b64a61f07e8a510df5d",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:30:26Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "e3da3687ad95165029cd9958567b2cf6e9bb6f6e"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:29:35Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:30:25Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 2,
+      "id": "PR_kwDOU-aGk88AAAABG9F9PA",
+      "headRefOid": "1151c5416ddf7f1e68fd117c4903deb5f87c7c95",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:28:44Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "7e789515c42d83145684620a6fc6691645b79623"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:07Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:43Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     },
+     {
+      "number": 1,
+      "id": "PR_kwDOU-aGk88AAAABG9F5jQ",
+      "headRefOid": "61ff864157e011354a14b55e440fce9300d9862a",
+      "state": "MERGED",
+      "merged": true,
+      "mergedAt": "2026-10-06T16:28:44Z",
+      "mergeable": "UNKNOWN",
+      "mergeCommit": {
+       "oid": "85abeafa7e810c838be8ac43f4eec0f9a78e9e66"
+      },
+      "autoMergeRequest": null,
+      "mergeQueueEntry": null,
+      "timelineItems": {
+       "nodes": [
+        {
+         "__typename": "AddedToMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:02Z"
+        },
+        {
+         "__typename": "RemovedFromMergeQueueEvent",
+         "createdAt": "2026-10-06T16:28:43Z",
+         "reason": "merged"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+ }
+}
