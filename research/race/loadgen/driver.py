@@ -20,6 +20,26 @@ from .forges import Forge, Outcome
 from .schedule import Schedule
 
 
+BARRIER_ENV = "LOADGEN_BARRIER"
+
+
+async def barrier(name: str, timeout: float = 900.0) -> float:
+    """A pair's start line: with ``$LOADGEN_BARRIER`` (a directory ``run.py --forge both`` sets), write
+    ``<dir>/<name>.ready`` and wait until every arm named in ``<dir>/arms`` is ready, so both clocks start
+    together after each forge's own setup. Returns the seconds waited."""
+    d = os.environ.get(BARRIER_ENV)
+    if not d:
+        return 0.0
+    t0 = time.time()
+    with open(os.path.join(d, f"{name}.ready"), "w") as fh:
+        fh.write(str(t0))
+    with open(os.path.join(d, "arms"), encoding="utf-8") as fh:
+        arms = fh.read().split()
+    while time.time() - t0 < timeout and not all(os.path.exists(os.path.join(d, f"{a}.ready")) for a in arms):
+        await asyncio.sleep(0.5)
+    return round(time.time() - t0, 2)
+
+
 class Events:
     """``events.jsonl`` in the race's schema (``kth_green.py`` reads it). ``at`` (epoch) dates an event at the
     forge's own time instead of when the driver wrote it."""
@@ -144,9 +164,10 @@ class Driver:
         self.forge = self.forge_factory(self.git, self.work, self.log)
         self.ev.write("race.setup", forge=self.forge.name, base=self.base_sha, chain_end=self.chain_end)
         self.line_base = await self.forge.setup(self.base_sha)
-        self.ev.epoch0 = time.time()   # the clock starts once the forge is ready
+        waited = await barrier(os.environ.get("LOADGEN_ARM") or self.forge.name)
+        self.ev.epoch0 = time.time()   # the clock starts once the forge is ready (both forges', in a pair)
         self.ev.write("race.start", forge=self.forge.name, line=self.forge.line, line_base=self.line_base,
-                      workers=self.opts.workers, schedule=self.opts.schedule.describe())
+                      workers=self.opts.workers, schedule=self.opts.schedule.describe(), barrier_wait_s=waited)
 
     def log(self, typ: str, **fields) -> None:
         if self.ev is not None:

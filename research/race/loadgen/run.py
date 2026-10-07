@@ -190,6 +190,11 @@ def run_both(a: argparse.Namespace, argv: list[str]) -> int:
     base = [x for x in argv]
     i = base.index("--forge")
     procs = {}
+    import tempfile
+    from loadgen.driver import BARRIER_ENV
+    gate = tempfile.mkdtemp(prefix="loadgen-barrier-")
+    with open(os.path.join(gate, "arms"), "w") as fh:
+        fh.write("github beanstalk\n")
     for forge in ("github", "beanstalk"):
         args = base[:i] + ["--forge", forge] + base[i + 2:]
         j = args.index("--out")
@@ -197,6 +202,7 @@ def run_both(a: argparse.Namespace, argv: list[str]) -> int:
         log = open(os.path.join(RACE, f"{a.out}-{forge}.log") if not os.path.isabs(a.out) else f"{a.out}-{forge}.log",
                    "w")
         procs[forge] = (subprocess.Popen([sys.executable, "-m", "loadgen.run", *args], cwd=RACE, stdout=log,
+                                         env={**os.environ, BARRIER_ENV: gate},
                                          stderr=subprocess.STDOUT), log)
     codes = {f: p.wait() for f, (p, _log) in procs.items()}
     for _p, log in procs.values():
