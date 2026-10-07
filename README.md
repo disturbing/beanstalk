@@ -10,6 +10,18 @@ When a dozen coding agents work on one codebase, a merge queue makes them wait i
 
 ## Measured, not projected
 
+**Against GitHub's own merge queue, on a real repository.** The same 38 changes from fastify's history (merged upstream PRs, each with its own tests) were pushed in parallel to a public GitHub repository with GitHub's merge queue and Actions, and to a Beanstalk repository, with CI capacity matched (Beanstalk pre-land concurrency 20 = the org's Actions job limit; 2 validation slots = the queue's build concurrency). Changes and timing were replayed without models (`research/race/loadgen/`), and separately worked by real Claude Code agents organising the work themselves (`research/race/ORCHESTRATED.md`).
+
+| Parallel workers | Ready → merged, median (GitHub / Beanstalk) | Faster | All 38 landed (GitHub / Beanstalk) | Sooner |
+|---|---|---|---|---|
+| 4 (seed 13) | 2.9 / 0.7 min | 4.1× | 46.3 / 24.0 min | 1.9× |
+| 8 (seed 13) | 3.7 / 0.8 min | 4.6× | 29.6 / 13.8 min | 2.1× |
+| 16 (seeds 7 / 11 / 13) | 7.1 / 6.6 / 7.1 vs 1.1 / 1.0 / 0.8 min | **6.5–8.9×** | 30.4 / 27.8 / 32.5 vs 10.9 / 12.4 / 9.8 min | **2.2–3.3×** |
+
+GitHub's queue slows as more work arrives (its merge queue builds two groups at a time); Beanstalk keeps landing each change in about a minute. Every run landed all 38 changes correctly on both forges. With real agents (Claude Code lead + Sonnet workers, 38 tasks), the forges tie at 4 workers, where the agents are the bottleneck; at 8 workers Beanstalk's last green came at 22.4 min against GitHub's 41.4 (1.8×). Caveats: the 4- and 8-worker replay rows are one seed each; CI minutes are not like for like (GitHub's include runner setup and `npm ci`); the race repos are public in the `kintohubtest` GitHub organization. Runs: `research/race/runs/lg-fastify-*` and `orch-fastify-*`; tables: `research/race/loadgen/README.md`.
+
+### The synthetic arena
+
 **30 agents.** 30 real Claude Code agents (Sonnet) worked the same 40 colliding tasks, every landed acceptance test protected, on three seeds (7, 11, 13). Every integration decision ran on the deployed Cloudflare prototype.
 
 **Beanstalk shipped more (39–40 of 40 green, against the queue's 34–35), reached its 30th green task 1.7–2.3x sooner on every seed, and finished 1.3–1.6x sooner, with no red stalk check and the same agent spend.**
@@ -38,8 +50,8 @@ The engine behind these runs is v2.5 with dependency-aware starts, the red-windo
 
 Read it with care:
 - **Three seeds**, one run each, at each size. Seeds swing a lot: at 30 agents Beanstalk's 35th green came at 13.5 to 20.0 minutes.
-- **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x. Races on real repositories against GitHub's own merge queue are being built (`docs/claude-opus/17-cloud-agent-swarm.md`).
-- **The queue is ours**: a batched merge queue built to behave like GitHub's, not GitHub itself.
+- **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x. The fastify races above use real changes against GitHub's own merge queue.
+- **The queue in this arena is ours**: a batched merge queue built to behave like GitHub's. The fastify races above use GitHub's real one.
 - **Cost is measured.** At 30 agents agent spend was even: $13.31 for Beanstalk over the three seeds against the queue's $13.20; at 12 agents Beanstalk cost 18% more. Cloudflare infrastructure, metered, was $0.38–0.43 per Beanstalk race and $0.21–0.24 per queue race.
 - The agents ran on a laptop; only the decisions ran on Cloudflare. Times count from the race's start (`kth_green.py`; `--raw-clock` gives the older numbers from the run's creation, 0.1–0.2 minutes later).
 

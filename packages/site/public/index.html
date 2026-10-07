@@ -387,49 +387,50 @@
       <section class="statband" id="race" aria-labelledby="race-title">
         <div class="wrap">
           <div class="sechead">
-            <h2 id="race-title">We raced it against a merge queue.</h2>
+            <h2 id="race-title">We raced it against GitHub's merge queue.</h2>
             <p class="intro">
-              On Cloudflare, 30 Claude agents worked through the same 40 colliding tasks, three
-              times on each side. Beanstalk shipped more of the work and got most of it done about
-              twice as fast as a GitHub-style batched merge queue, for the same agent spend. Each
-              range below covers all three runs.
+              The same 38 real changes from fastify's history, pushed in parallel to GitHub's own
+              merge queue and to Beanstalk, with matched CI capacity. GitHub's queue slows down as
+              more work arrives; Beanstalk keeps landing each change in about a minute.
             </p>
           </div>
           <div class="stats">
             <div class="stat us">
-              <div class="n">39–40</div>
-              <div class="l">of 40 tasks shipped by Beanstalk</div>
-              <div class="tally" aria-hidden="true" data-tally></div>
+              <div class="n">6.5–9×</div>
+              <div class="l">
+                faster to integrate each change with 16 parallel workers: about 1 minute, against 7
+              </div>
+            </div>
+            <div class="stat us">
+              <div class="n">2.2–3.3×</div>
+              <div class="l">sooner to land all 38 changes with 16 workers</div>
+            </div>
+            <div class="stat us">
+              <div class="n">1.8×</div>
+              <div class="l">sooner with 8 Claude agents splitting the work themselves</div>
             </div>
             <div class="stat">
-              <div class="n">34–35</div>
-              <div class="l">of 40 shipped by a GitHub-style batched merge queue</div>
-            </div>
-            <div class="stat us">
-              <div class="n">1.7–2.3×</div>
-              <div class="l">sooner until the 30th task is green</div>
-            </div>
-            <div class="stat us">
-              <div class="n">1.3–1.6×</div>
-              <div class="l">
-                sooner to done, with no red stalk check and a correct stalk in every run
-              </div>
+              <div class="n">38 / 38</div>
+              <div class="l">changes landed correctly on both, in every run</div>
             </div>
           </div>
           <div class="compare" aria-hidden="true">
             <div class="cbar us">
               <span>Beanstalk</span>
-              <span class="track"><span class="fill" style="width: 54%">10–13 min</span></span>
+              <span class="track"><span class="fill" style="width: 14%">~1 min</span></span>
             </div>
             <div class="cbar queue">
-              <span>GitHub-style merge queue</span>
-              <span class="track"><span class="fill">22–24 min</span></span>
+              <span>GitHub merge queue</span>
+              <span class="track"><span class="fill">~7 min</span></span>
             </div>
           </div>
           <p class="fine">
-            Minutes until the 30th of 40 tasks is green, across three seeds; bars are drawn at the
-            median run. Measured with Claude Sonnet agents, not projected. At 12 agents the result
-            was similar: 1.7–2.1× sooner to the 35th green.
+            Median minutes from a change being ready to being merged, with 16 parallel workers,
+            across three seeds. The gap grows with parallelism: 4.1× faster at 4 workers, 4.6× at 8,
+            6.5–8.9× at 16. The 1.8× is the last green of an 8-worker Claude Code race. Every race
+            repo is <a href="https://github.com/kintohubtest?q=beanstalk">public on GitHub</a>, PRs
+            and merge-queue history included. On our synthetic 40-task arena with 30 agents,
+            Beanstalk shipped 39–40 tasks against 34–35 and reached the 30th green 1.7–2.3× sooner.
           </p>
         </div>
       </section>
