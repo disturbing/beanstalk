@@ -75,7 +75,7 @@ function recordingLogger(warnings: string[]): Logger {
 }
 
 function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
-  return Response.json(body, { status, headers: { [RUNNER_API_HEADER]: '3', ...headers } });
+  return Response.json(body, { status, headers: { [RUNNER_API_HEADER]: '4', ...headers } });
 }
 
 function versionThen(answer: Answer): Answer {
@@ -119,7 +119,7 @@ describe('the runner version check', () => {
 
     expect(failure).toBeInstanceOf(RunnerVersionMismatchError);
     expect(failure).toMatchObject({ code: 'runner_version_mismatch', retryable: false });
-    expect(String(failure)).toMatch(/^.*runner_version_mismatch: .*runner API 1, .*speaks 3/);
+    expect(String(failure)).toMatch(/^.*runner_version_mismatch: .*runner API 1, .*speaks 4/);
     expect(runner.calls).toEqual(['ci-0/version']);
   });
 
@@ -134,7 +134,7 @@ describe('the runner version check', () => {
       code: 'invalid_request',
       message: 'invalid request: unknown field `to`, expected one of `repo`, `token`',
     };
-    const runner = fakeRunner(versionThen(() => json(refusal, 400, { [RUNNER_API_HEADER]: '4' })));
+    const runner = fakeRunner(versionThen(() => json(refusal, 400, { [RUNNER_API_HEADER]: '5' })));
 
     const failure = await runner.port
       .revert('committer', {
@@ -149,7 +149,7 @@ describe('the runner version check', () => {
 
     expect(failure).toBeInstanceOf(RunnerVersionMismatchError);
     expect(failure).toMatchObject({ retryable: false });
-    expect(String(failure)).toMatch(/runner API 4, this gateway speaks 3 .*unknown field `to`/);
+    expect(String(failure)).toMatch(/runner API 5, this gateway speaks 4 .*unknown field `to`/);
   });
 });
 
@@ -285,5 +285,87 @@ describe('the runner container', () => {
   it('logs at the Worker’s LOG_LEVEL, and at info when it is not a level', () => {
     expect(runnerLogLevel('error')).toBe('error');
     expect(runnerLogLevel('loud')).toBe('info');
+  });
+});
+
+/** A runner that answers every job with `response`, keeping the request bodies. */
+function recordingRunner(response: unknown): { bodies: unknown[]; port: RunnerPort } {
+  const bodies: unknown[] = [];
+  const port = runnerPort(
+    () => ({
+      fetch: async (request) => {
+        if (new URL(request.url).pathname === '/version') return json(VERSION_OK);
+        bodies.push(await request.json());
+        return json(response);
+      },
+    }),
+    { log: recordingLogger([]), sleep: async () => {} },
+  );
+  return { bodies, port };
+}
+
+describe('traced and selective checks', () => {
+  const MAPS = {
+    status: 'traced',
+    environment: 'node 25.9.0; runner abc',
+    files: [
+      {
+        file: 'src/a.test.ts',
+        passed: true,
+        tests: 2,
+        failures: 0,
+        seconds: 0.3,
+        timed_out: false,
+        traced: true,
+        reads: ['src/a.test.ts', 'src/a.ts'],
+        probes: ['src/package.json'],
+        dirs: [],
+        packages: [],
+        hashes: { 'src/a.ts': 'f'.repeat(40) },
+      },
+    ],
+  };
+  const TREE = {
+    commit: 'a'.repeat(40),
+    extra_files: false,
+    blobs: { 'src/a.ts': 'f'.repeat(40) },
+  };
+
+  it('asks for traces and a manifest by the runner field names', async () => {
+    const runner = recordingRunner(CHECK_GREEN);
+
+    await runner.port.check('sandbox-0', {
+      trunk: TRUNK,
+      sha: SHA,
+      extraFiles: null,
+      suite: DEFAULT_SUITE,
+      only: ['src/a.test.ts'],
+      trace: true,
+      treeManifest: true,
+    });
+
+    expect(runner.bodies[0]).toMatchObject({
+      cmd: ['node', '--test', 'src/a.test.ts'],
+      trace: true,
+      tree_manifest: true,
+    });
+  });
+
+  it('leaves the read-map fields out of an untraced check', async () => {
+    const runner = recordingRunner(CHECK_GREEN);
+
+    await check(runner.port);
+
+    expect(runner.bodies[0]).not.toHaveProperty('trace');
+    expect(runner.bodies[0]).not.toHaveProperty('tree_manifest');
+  });
+
+  it('hands back the read maps and the tree the runner reported', async () => {
+    const runner = recordingRunner({ ...CHECK_GREEN, read_maps: MAPS, tree: TREE });
+
+    const result = await check(runner.port);
+
+    expect(result.readMaps?.files[0]?.reads).toEqual(['src/a.test.ts', 'src/a.ts']);
+    expect(result.tree?.blobs).toEqual(TREE.blobs);
   });
 });

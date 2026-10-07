@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { DecisionBody } from '@beanstalk/shared-race/driver';
 import type { RunId } from '@beanstalk/shared-race/ids';
 import { slotIds } from '@beanstalk/shared-race/ids';
+import { AffectedQuery } from '@beanstalk/shared-race/read-maps';
 import { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type { AppEnv } from '../app-env';
@@ -43,6 +44,11 @@ const EventsQuery = z.object({
 const StopBody = z.strictObject({ reason: z.string().min(1).max(200).default('stopped by admin') });
 
 const ReapBody = z.strictObject({ dry_run: z.boolean().default(true) });
+
+const TreeParams = z.object({
+  run: RunParam.shape.run,
+  tree: z.string().regex(/^[0-9a-f]{40}([0-9a-f]{24})?(\+[0-9a-f]+)?$/),
+});
 
 const CardParams = z.object({ run: RunParam.shape.run, card: z.string().regex(/^D\d{3,6}$/) });
 
@@ -191,6 +197,24 @@ export const readRoutes = new Hono<AppEnv>()
         c,
         `{"events":[${page.bodies.join(',')}],"next_after":${page.last},"done":${page.done}}`,
       );
+    },
+  )
+  .get('/:run/read-maps', requireReader, validate('param', RunParam), async (c) => {
+    return c.json(unwrap(await c.var.deps.run(c.req.valid('param').run).readMapSummary()));
+  })
+  .get('/:run/read-maps/trees/:tree', requireReader, validate('param', TreeParams), async (c) => {
+    const { run, tree } = c.req.valid('param');
+    return c.json(unwrap(await c.var.deps.run(run).readMapTree(tree)));
+  })
+  .post(
+    '/:run/read-maps/affected',
+    requireReader,
+    bodyLimit({ maxSize: MAX_RUN_CONFIG_BYTES }),
+    validate('param', RunParam),
+    validate('json', AffectedQuery),
+    async (c) => {
+      const run = c.var.deps.run(c.req.valid('param').run);
+      return c.json(unwrap(await run.readMapsAffected(c.req.valid('json'))));
     },
   )
   .get('/:run/live', requireReader, validate('param', RunParam), async (c) => {

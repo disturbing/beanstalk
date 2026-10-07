@@ -53,6 +53,12 @@ import type {
   BeanThreadPostResult,
   BeanUpdateResult,
 } from '@beanstalk/shared-race/collaboration';
+import type {
+  AffectedAnswer,
+  AffectedQuery,
+  ReadMapSummary,
+  ReadMapTree,
+} from '@beanstalk/shared-race/read-maps';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import {
@@ -74,7 +80,15 @@ import type { EngineEnv } from '../engine/catalog';
 import { engineEnv } from '../engine/catalog';
 import { step } from '../engine/engine';
 import { initialEngineState } from '../engine/lifecycle';
-import type { EngineInput, EngineReply, EngineResponse, JobId, JobSpec } from '../engine/model';
+import type {
+  EngineInput,
+  EngineReply,
+  EngineResponse,
+  JobId,
+  JobOutcome,
+  JobSpec,
+} from '../engine/model';
+import { migrateReadMaps, recordCheck, sqlReadMapIndex } from '../read-maps/read-map-store';
 import type { EngineState, StepOutput } from '../engine/state';
 import { buildSummary } from '../engine/summary';
 import { runView } from '../engine/view';
@@ -504,7 +518,7 @@ export class RunDO extends DurableObject<Env> {
         runRepoName(input.run),
         `beanstalk race ${input.run}: the sprout and the stalk`,
       );
-      const env = engineEnv(input.config);
+      const env = engineEnv(input.config, sqlReadMapIndex(this.ctx.storage.sql));
       const stored: StoredRun = {
         meta: { run: input.run, createdAtMs: input.createdAtMs },
         config: input.config,
@@ -809,6 +823,30 @@ export class RunDO extends DurableObject<Env> {
     }
   }
 
+  /** What the run's read-map store holds (`read-maps/`). */
+  async readMapSummary(): Promise<RunResult<ReadMapSummary>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    return { ok: true, value: sqlReadMapIndex(this.ctx.storage.sql).summary() };
+  }
+
+  /** The maps traced on one tree and its manifest. */
+  async readMapTree(tree: string): Promise<RunResult<ReadMapTree>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    const view = sqlReadMapIndex(this.ctx.storage.sql).tree(tree);
+    return view === null
+      ? failure('not_found', 404, `no read maps of ${tree}`)
+      : { ok: true, value: view };
+  }
+
+  /** The test files that may observe `query.changes`, from the run's read maps. */
+  async readMapsAffected(query: AffectedQuery): Promise<RunResult<AffectedAnswer>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    return { ok: true, value: sqlReadMapIndex(this.ctx.storage.sql).affectedTests(query) };
+  }
+
   /** The run repo's tree at a ref (one directory, or everything under it), via the read index. */
   async repoTree(ref: string, path: string, recursive: boolean): Promise<RunResult<RepoTree>> {
     return this.#explore((explorer) => explorer.tree(this.#repoRef(ref), path, recursive));
@@ -1000,7 +1038,10 @@ export class RunDO extends DurableObject<Env> {
   }
 
   #resume(stored: StoredRun): void {
-    this.#loaded = { stored, env: engineEnv(stored.config) };
+    this.#loaded = {
+      stored,
+      env: engineEnv(stored.config, sqlReadMapIndex(this.ctx.storage.sql)),
+    };
     const phase = stored.state.phase;
     // A continuous engine's driver polls again after the restart (`#apply` drains it).
     if (phase === 'running' || phase === 'finishing')
@@ -1172,6 +1213,7 @@ export class RunDO extends DurableObject<Env> {
     const sql = this.ctx.storage.sql;
     migrate(sql);
     migrateCollaboration(sql);
+    migrateReadMaps(sql);
     // The first design's snapshots lived here; the run's RunStreamDO holds them now.
     sql.exec('DROP TABLE IF EXISTS bean_streams');
     return sqlObjectStore(sql);
@@ -1348,8 +1390,34 @@ export class RunDO extends DurableObject<Env> {
       repos: () => this.#requireLoaded().stored.repos,
       suite: loaded.env.config.suite,
       engine: loaded.env.config.continuous ? 'continuous' : 'race',
+      readMaps: loaded.stored.config.read_maps,
     });
-    this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome });
+    this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome: this.#keepMaps(outcome) });
+  }
+
+  /**
+   * Stores a check's read maps and tree manifest in the run's SQLite and hands the engine the
+   * result without them (they would bloat its state), with `mappedTree` naming where they went.
+   */
+  #keepMaps(outcome: JobOutcome): JobOutcome {
+    if (!outcome.ok || outcome.result.kind !== 'check') return outcome;
+    const { readMaps, tree, ...check } = outcome.result.check;
+    if (readMaps === undefined && tree === undefined) return outcome;
+    const mappedTree = recordCheck(this.ctx.storage.sql, {
+      tree: tree ?? null,
+      readMaps: readMaps ?? null,
+      atMs: Date.now(),
+    });
+    if (readMaps?.status === 'unavailable') {
+      this.#log.warn('a traced check ran untraced', { reason: readMaps.reason ?? 'unknown' });
+    }
+    return {
+      ok: true,
+      result: {
+        kind: 'check',
+        check: mappedTree === null ? check : { ...check, mappedTree },
+      },
+    };
   }
 
   #deliver(replies: readonly { pollId: string; reply: EngineReply }[]): void {

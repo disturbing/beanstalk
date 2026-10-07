@@ -1,0 +1,3104 @@
+{
+ "lang": "python",
+ "units": [
+  "tests/test_cart.py",
+  "tests/test_catalog.py",
+  "tests/test_currency.py",
+  "tests/test_discounts.py",
+  "tests/test_ids_events_storage.py",
+  "tests/test_inventory.py",
+  "tests/test_invoice.py",
+  "tests/test_money.py",
+  "tests/test_orders.py",
+  "tests/test_payments.py",
+  "tests/test_plugins.py",
+  "tests/test_pricing.py",
+  "tests/test_reports.py",
+  "tests/test_shipping.py",
+  "tests/test_strings_validation.py",
+  "tests/test_tax.py"
+ ],
+ "baseline": {
+  "tests/test_cart.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.27498812502017245,
+   "traced_s": 0.4763820000225678,
+   "files": 43
+  },
+  "tests/test_catalog.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.32736133300932124,
+   "traced_s": 0.631532542000059,
+   "files": 39
+  },
+  "tests/test_currency.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3360004579881206,
+   "traced_s": 0.4805092919850722,
+   "files": 36
+  },
+  "tests/test_discounts.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.27300695795565844,
+   "traced_s": 0.5780490420293063,
+   "files": 47
+  },
+  "tests/test_ids_events_storage.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.27327424997929484,
+   "traced_s": 0.5792535420041531,
+   "files": 35
+  },
+  "tests/test_inventory.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2728879579808563,
+   "traced_s": 0.5789586659520864,
+   "files": 30
+  },
+  "tests/test_invoice.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.27679570904001594,
+   "traced_s": 0.4270694170263596,
+   "files": 64
+  },
+  "tests/test_money.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3421334999729879,
+   "traced_s": 0.5819880840135738,
+   "files": 33
+  },
+  "tests/test_orders.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3826877920073457,
+   "traced_s": 0.5896681669983082,
+   "files": 61
+  },
+  "tests/test_payments.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.282727750018239,
+   "traced_s": 0.4787091260077432,
+   "files": 36
+  },
+  "tests/test_plugins.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.32833125098841265,
+   "traced_s": 0.42480441700899974,
+   "files": 39
+  },
+  "tests/test_pricing.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.32383579097222537,
+   "traced_s": 0.5736815829877742,
+   "files": 57
+  },
+  "tests/test_reports.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.37505075096851215,
+   "traced_s": 0.5267396669951268,
+   "files": 64
+  },
+  "tests/test_shipping.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.32401520799612626,
+   "traced_s": 0.49076791701372713,
+   "files": 49
+  },
+  "tests/test_strings_validation.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3253994580009021,
+   "traced_s": 0.3754239170229994,
+   "files": 34
+  },
+  "tests/test_tax.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3242684999713674,
+   "traced_s": 0.47732775000622496,
+   "files": 40
+  }
+ },
+ "full_s": 0.3777461670106277,
+ "full_traced_s": 0.7340154999983497,
+ "mutations": [
+  {
+   "i": 0,
+   "kind": "code",
+   "desc": "src/shop/sales/discounts.py:7 num 100->101",
+   "files": [
+    "src/shop/sales/discounts.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.37697116599883884,
+   "full_s": 0.37579075095709413,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 1,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.py:4 rename rename luhn_ok",
+   "files": [
+    "src/shop/billing/payments.py"
+   ],
+   "selected": [
+    "tests/test_payments.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.5848653329885565,
+   "full_s": 0.5369671660009772,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 2,
+   "kind": "code",
+   "desc": "src/shop/billing/invoice.py:15 num 20->21",
+   "files": [
+    "src/shop/billing/invoice.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.37540783401345834,
+   "full_s": 0.4318592500058003,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 3,
+   "kind": "code",
+   "desc": "src/shop/fulfil/shipping.py:22 num 1000->1001",
+   "files": [
+    "src/shop/fulfil/shipping.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4344125830102712,
+   "full_s": 0.48000775097170845,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 4,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.py:23 retnull return->null",
+   "files": [
+    "src/shop/billing/payments.py"
+   ],
+   "selected": [
+    "tests/test_payments.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4818747919634916,
+   "full_s": 0.44006020796950907,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 5,
+   "kind": "code",
+   "desc": "src/shop/billing/invoice.py:8 rename rename render",
+   "files": [
+    "src/shop/billing/invoice.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.48101520899217576,
+   "full_s": 0.4775081260013394,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 6,
+   "kind": "code",
+   "desc": "src/shop/core/currency.py:9 rename rename rates",
+   "files": [
+    "src/shop/core/currency.py"
+   ],
+   "selected": [
+    "tests/test_currency.py"
+   ],
+   "failing": [
+    "tests/test_currency.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.37437774997670203,
+   "full_s": 0.3247716249898076,
+   "ablation_missed": {
+    "build": [
+     "tests/test_currency.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 7,
+   "kind": "code",
+   "desc": "src/shop/plugins/service_fee.py:6 rename rename fee",
+   "files": [
+    "src/shop/plugins/service_fee.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5488643329590559,
+   "full_s": 0.42871166701661423,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 8,
+   "kind": "code",
+   "desc": "src/shop/catalog/products.py:38 retnull return->null",
+   "files": [
+    "src/shop/catalog/products.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_catalog.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3755700000328943,
+   "full_s": 0.5748861670144834,
+   "ablation_missed": {
+    "build": [
+     "tests/test_catalog.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 9,
+   "kind": "code",
+   "desc": "src/shop/catalog/products.py:37 rename rename by_category",
+   "files": [
+    "src/shop/catalog/products.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_catalog.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3744114169967361,
+   "full_s": 0.4297614590032026,
+   "ablation_missed": {
+    "build": [
+     "tests/test_catalog.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 10,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.py:15 retnull return->null",
+   "files": [
+    "src/shop/billing/payments.py"
+   ],
+   "selected": [
+    "tests/test_payments.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3748192919883877,
+   "full_s": 0.47986295801820233,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 11,
+   "kind": "code",
+   "desc": "src/shop/util/validation.py:11 rename rename is_email",
+   "files": [
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.42760545801138505,
+   "full_s": 0.42848850099835545,
+   "ablation_missed": {
+    "build": [
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 12,
+   "kind": "code",
+   "desc": "src/shop/core/money.py:24 cmp <-><=",
+   "files": [
+    "src/shop/core/money.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_money.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4883609589887783,
+   "full_s": 0.42494900099700317,
+   "ablation_missed": {
+    "build": [
+     "tests/test_money.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 13
+   }
+  },
+  {
+   "i": 13,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.py:15 rename rename top_skus",
+   "files": [
+    "src/shop/reports/sales.py"
+   ],
+   "selected": [
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.42733154201414436,
+   "full_s": 0.4787839589989744,
+   "ablation_missed": {
+    "build": [
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 14,
+   "kind": "code",
+   "desc": "src/shop/sales/pricing.py:32 str \"amount\"+x",
+   "files": [
+    "src/shop/sales/pricing.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4339744999888353,
+   "full_s": 0.4790497509529814,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 15,
+   "kind": "code",
+   "desc": "src/shop/core/currency.py:14 rename rename convert",
+   "files": [
+    "src/shop/core/currency.py"
+   ],
+   "selected": [
+    "tests/test_currency.py"
+   ],
+   "failing": [
+    "tests/test_currency.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.4762965840054676,
+   "full_s": 0.4762383330380544,
+   "ablation_missed": {
+    "build": [
+     "tests/test_currency.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 16,
+   "kind": "code",
+   "desc": "src/shop/billing/invoice.py:15 num 12->13",
+   "files": [
+    "src/shop/billing/invoice.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5480641250032932,
+   "full_s": 0.635594959021546,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 17,
+   "kind": "code",
+   "desc": "src/shop/util/validation.py:12 retnull return->null",
+   "files": [
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.42757650004932657,
+   "full_s": 0.579824041982647,
+   "ablation_missed": {
+    "build": [
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 18,
+   "kind": "code",
+   "desc": "src/shop/plugins/__init__.py:8 rename rename load",
+   "files": [
+    "src/shop/plugins/__init__.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6896838329848833,
+   "full_s": 0.4848221669672057,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 19,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.py:19 cmp <=-><",
+   "files": [
+    "src/shop/billing/payments.py"
+   ],
+   "selected": [
+    "tests/test_payments.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7180715419817716,
+   "full_s": 0.7607794170035049,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 20,
+   "kind": "code",
+   "desc": "src/shop/sales/coupons.py:15 arith *->+",
+   "files": [
+    "src/shop/sales/coupons.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.47934870899189264,
+   "full_s": 0.6403249169816263,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 21,
+   "kind": "code",
+   "desc": "src/shop/core/ids.py:6 retnull return->null",
+   "files": [
+    "src/shop/core/ids.py"
+   ],
+   "selected": [
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_ids_events_storage.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5097196670249104,
+   "full_s": 0.811444167047739,
+   "ablation_missed": {
+    "build": [
+     "tests/test_ids_events_storage.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 22,
+   "kind": "code",
+   "desc": "src/shop/util/validation.py:3 num 3->4",
+   "files": [
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5810634999652393,
+   "full_s": 0.5855522920028307,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 23,
+   "kind": "code",
+   "desc": "src/shop/sales/discounts.py:6 rename rename percent_off",
+   "files": [
+    "src/shop/sales/discounts.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4827575840172358,
+   "full_s": 0.6326160000171512,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 24,
+   "kind": "code",
+   "desc": "src/shop/core/ids.py:14 rename rename take",
+   "files": [
+    "src/shop/core/ids.py"
+   ],
+   "selected": [
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5342107500182465,
+   "full_s": 0.6141949169686995,
+   "ablation_missed": {
+    "build": [
+     "tests/test_ids_events_storage.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 25,
+   "kind": "code",
+   "desc": "src/shop/plugins/__init__.py:14 str \"fee_plugins\"+x",
+   "files": [
+    "src/shop/plugins/__init__.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5859358749585226,
+   "full_s": 0.4827389999991283,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 26,
+   "kind": "code",
+   "desc": "src/shop/fulfil/orders.py:10 str \"paid\"+x",
+   "files": [
+    "src/shop/fulfil/orders.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.43772016698494554,
+   "full_s": 0.47953000001143664,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 3
+   }
+  },
+  {
+   "i": 27,
+   "kind": "code",
+   "desc": "src/shop/core/money.py:13 str \"Money\"+x",
+   "files": [
+    "src/shop/core/money.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.5895757499965839,
+   "full_s": 0.6348276250064373,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 13
+   }
+  },
+  {
+   "i": 28,
+   "kind": "code",
+   "desc": "src/shop/util/validation.py:8 retnull return->null",
+   "files": [
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.479559083993081,
+   "full_s": 0.5827402499853633,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 29,
+   "kind": "code",
+   "desc": "src/shop/sales/pricing.py:24 rename rename quote",
+   "files": [
+    "src/shop/sales/pricing.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5964057090459391,
+   "full_s": 0.6680424170335755,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 30,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.py:18 rename rename charge",
+   "files": [
+    "src/shop/billing/payments.py"
+   ],
+   "selected": [
+    "tests/test_payments.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 2,
+   "full_exit": 1,
+   "sel_s": 0.5365869170054793,
+   "full_s": 0.6616856260225177,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 31,
+   "kind": "code",
+   "desc": "src/shop/sales/discounts.py:8 num 100->101",
+   "files": [
+    "src/shop/sales/discounts.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py",
+    "tests/test_pricing.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5362487499951385,
+   "full_s": 0.5849229590385221,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py",
+     "tests/test_pricing.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 32,
+   "kind": "code",
+   "desc": "src/shop/storage.py:3 str \"T\"+x",
+   "files": [
+    "src/shop/storage.py"
+   ],
+   "selected": [
+    "tests/test_ids_events_storage.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.7040132919792086,
+   "full_s": 0.7553850000258535,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 33,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.py:12 retnull return->null",
+   "files": [
+    "src/shop/reports/sales.py"
+   ],
+   "selected": [
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5695164170465432,
+   "full_s": 0.7636122080148198,
+   "ablation_missed": {
+    "build": [
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 34,
+   "kind": "code",
+   "desc": "src/shop/sales/cart.py:14 retnull return->null",
+   "files": [
+    "src/shop/sales/cart.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.48030254198238254,
+   "full_s": 0.5871509580174461,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 7
+   }
+  },
+  {
+   "i": 35,
+   "kind": "code",
+   "desc": "src/shop/sales/coupons.py:17 str \"shipping\"+x",
+   "files": [
+    "src/shop/sales/coupons.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py",
+    "tests/test_pricing.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4845375409931876,
+   "full_s": 0.7202256669988856,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py",
+     "tests/test_pricing.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 36,
+   "kind": "helper",
+   "desc": "tests/conftest.py:7 rename rename stocked",
+   "files": [
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_inventory.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5862316659768112,
+   "full_s": 0.6007822920219041,
+   "ablation_missed": {
+    "build": [
+     "tests/test_inventory.py",
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 37,
+   "kind": "helper",
+   "desc": "tests/conftest.py:8 num 3->4",
+   "files": [
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_inventory.py",
+    "tests/test_orders.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5855558330076747,
+   "full_s": 0.6378215829608962,
+   "ablation_missed": {
+    "build": [
+     "tests/test_inventory.py",
+     "tests/test_orders.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 38,
+   "kind": "helper",
+   "desc": "tests/conftest.py:8 retnull return->null",
+   "files": [
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_inventory.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8057319999788888,
+   "full_s": 0.5286525000119582,
+   "ablation_missed": {
+    "build": [
+     "tests/test_inventory.py",
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 39,
+   "kind": "helper",
+   "desc": "tests/conftest.py:8 num 5->6",
+   "files": [
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.5279858760186471,
+   "full_s": 0.57875366701046,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 40,
+   "kind": "helper",
+   "desc": "tests/helpers/factories.py:12 str \"_\"+x",
+   "files": [
+    "tests/helpers/factories.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4263755829888396,
+   "full_s": 0.47571962600341067,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 7
+   }
+  },
+  {
+   "i": 41,
+   "kind": "data",
+   "desc": "data/rates.csv:3 num 0.9->0.0",
+   "files": [
+    "data/rates.csv"
+   ],
+   "selected": [
+    "tests/test_currency.py"
+   ],
+   "failing": [
+    "tests/test_currency.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.37551791698206216,
+   "full_s": 0.4800752500304952,
+   "ablation_missed": {
+    "build": [
+     "tests/test_currency.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 42,
+   "kind": "data",
+   "desc": "tests/fixtures/orders.json:3 str \"lines\"+x",
+   "files": [
+    "tests/fixtures/orders.json"
+   ],
+   "selected": [
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3753542500198819,
+   "full_s": 0.5276062089833431,
+   "ablation_missed": {
+    "build": [
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 43,
+   "kind": "data",
+   "desc": "tests/fixtures/orders.json:4 str \"coupon\"+x",
+   "files": [
+    "tests/fixtures/orders.json"
+   ],
+   "selected": [
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4427909170044586,
+   "full_s": 0.5309038339764811,
+   "ablation_missed": {
+    "build": [
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 44,
+   "kind": "data",
+   "desc": "data/rates.csv:2 num 1.0->1.1",
+   "files": [
+    "data/rates.csv"
+   ],
+   "selected": [
+    "tests/test_currency.py"
+   ],
+   "failing": [
+    "tests/test_currency.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5320731250103563,
+   "full_s": 0.651722917042207,
+   "ablation_missed": {
+    "build": [
+     "tests/test_currency.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 45,
+   "kind": "data",
+   "desc": "data/catalog.csv:7 num 4800->4801",
+   "files": [
+    "data/catalog.csv"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.37470270902849734,
+   "full_s": 0.4299276249948889,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 46,
+   "kind": "data",
+   "desc": "data/shipping_zones.json:1 num 1500->1501",
+   "files": [
+    "data/shipping_zones.json"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_shipping.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.42681529105175287,
+   "full_s": 0.5816970009473152,
+   "ablation_missed": {
+    "build": [
+     "tests/test_shipping.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 47,
+   "kind": "data",
+   "desc": "tests/fixtures/orders.json:4 num 1->2",
+   "files": [
+    "tests/fixtures/orders.json"
+   ],
+   "selected": [
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3727480000234209,
+   "full_s": 0.4785434170044027,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 48,
+   "kind": "data",
+   "desc": "data/shipping_zones.json:1 str \"base_cents\"+x",
+   "files": [
+    "data/shipping_zones.json"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_shipping.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3756980830221437,
+   "full_s": 0.4266538749798201,
+   "ablation_missed": {
+    "build": [
+     "tests/test_shipping.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 49,
+   "kind": "config",
+   "desc": "pyproject.toml:4 num 3.11->3.12",
+   "files": [
+    "pyproject.toml"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.42532512499019504,
+   "full_s": 0.4247305419994518,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 50,
+   "kind": "config",
+   "desc": "pyproject.toml:8 str \"tests\"+x",
+   "files": [
+    "pyproject.toml"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4273310420103371,
+   "full_s": 0.47879362502135336,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 51,
+   "kind": "config",
+   "desc": "config/app.json:3 str \"tax_region\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_tax.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.37330583395669237,
+   "full_s": 0.47576341696549207,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_tax.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 52,
+   "kind": "config",
+   "desc": "config/app.json:4 num 50->51",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.42540399997960776,
+   "full_s": 0.5286810009856708,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 53,
+   "kind": "config",
+   "desc": "config/app.json:7 str \"Thank you for shopping\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4277179589844309,
+   "full_s": 0.47787583398167044,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 54,
+   "kind": "test-edit",
+   "desc": "tests/test_discounts.py:15 num 500->501",
+   "files": [
+    "tests/test_discounts.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4776101250317879,
+   "full_s": 0.4736939590075053,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 16
+   }
+  },
+  {
+   "i": 55,
+   "kind": "test-edit",
+   "desc": "tests/test_tax.py:11 num 10000->10001",
+   "files": [
+    "tests/test_tax.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.5293270419933833,
+   "full_s": 0.4766928760218434,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 16
+   }
+  },
+  {
+   "i": 56,
+   "kind": "delete",
+   "desc": "delete src/shop/fulfil/shipping.py",
+   "files": [
+    "src/shop/fulfil/shipping.py"
+   ],
+   "selected": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3732720839907415,
+   "full_s": 0.3737642500200309,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 57,
+   "kind": "delete",
+   "desc": "delete src/shop/events.py",
+   "files": [
+    "src/shop/events.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.37566091696498916,
+   "full_s": 0.37589320802362636,
+   "ablation_missed": {
+    "build": [
+     "tests/test_ids_events_storage.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 58,
+   "kind": "add",
+   "desc": "add a package dir that shadows shop/core/money.py",
+   "files": [
+    "src/shop/core/money/__init__.py"
+   ],
+   "selected": [],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "missed": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "safe": false,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 1,
+   "sel_s": 0.0,
+   "full_s": 0.4267046669847332,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_currency.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_tax.py"
+    ],
+    "run": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_currency.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_tax.py"
+    ]
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 0
+   }
+  },
+  {
+   "i": 59,
+   "kind": "add",
+   "desc": "add a root conftest.py that fails collection",
+   "files": [
+    "conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 4,
+   "full_exit": 4,
+   "sel_s": 0.2214805000112392,
+   "full_s": 0.2736606659600511,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_currency.py",
+     "tests/test_discounts.py",
+     "tests/test_ids_events_storage.py",
+     "tests/test_inventory.py",
+     "tests/test_invoice.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py",
+     "tests/test_tax.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 60,
+   "kind": "multi",
+   "desc": "src/shop/billing/invoice.py:15 num 20->21 + pyproject.toml:4 num 3.11->3.12",
+   "files": [
+    "pyproject.toml",
+    "src/shop/billing/invoice.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5364116249838844,
+   "full_s": 0.6816779580549337,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 61,
+   "kind": "multi",
+   "desc": "src/shop/storage.py:3 str \"T\"+x + src/shop/util/validation.py:8 retnull return->null",
+   "files": [
+    "src/shop/storage.py",
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5331467920332216,
+   "full_s": 0.4800657500163652,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 10
+   }
+  },
+  {
+   "i": 62,
+   "kind": "multi",
+   "desc": "src/shop/sales/coupons.py:15 arith *->+ + tests/conftest.py:8 num 5->6",
+   "files": [
+    "src/shop/sales/coupons.py",
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5800417080172338,
+   "full_s": 0.4789185830159113,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 63,
+   "kind": "multi",
+   "desc": "tests/conftest.py:8 retnull return->null + src/shop/storage.py:3 str \"T\"+x + src/shop/core/money.py:24 cmp <-><=",
+   "files": [
+    "src/shop/core/money.py",
+    "src/shop/storage.py",
+    "tests/conftest.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_inventory.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_inventory.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.47729825001442805,
+   "full_s": 0.4791129580116831,
+   "ablation_missed": {
+    "build": [
+     "tests/test_inventory.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 64,
+   "kind": "multi",
+   "desc": "config/app.json:3 str \"tax_region\"+x + src/shop/billing/payments.py:18 rename rename charge + src/shop/storage.py:3 str \"T\"+x",
+   "files": [
+    "config/app.json",
+    "src/shop/billing/payments.py",
+    "src/shop/storage.py"
+   ],
+   "selected": [
+    "tests/test_discounts.py",
+    "tests/test_ids_events_storage.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_tax.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.47951000003376976,
+   "full_s": 0.42514212505193427,
+   "ablation_missed": {
+    "build": [
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_tax.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 10
+   }
+  },
+  {
+   "i": 65,
+   "kind": "multi",
+   "desc": "data/rates.csv:2 num 1.0->1.1 + src/shop/reports/sales.py:12 retnull return->null",
+   "files": [
+    "data/rates.csv",
+    "src/shop/reports/sales.py"
+   ],
+   "selected": [
+    "tests/test_currency.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_currency.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.47801291703945026,
+   "full_s": 0.4777112500160001,
+   "ablation_missed": {
+    "build": [
+     "tests/test_currency.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 66,
+   "kind": "multi",
+   "desc": "src/shop/sales/coupons.py:17 str \"shipping\"+x + src/shop/core/money.py:24 cmp <-><=",
+   "files": [
+    "src/shop/core/money.py",
+    "src/shop/sales/coupons.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_discounts.py",
+    "tests/test_money.py",
+    "tests/test_pricing.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5292115000193007,
+   "full_s": 0.4783979590283707,
+   "ablation_missed": {
+    "build": [
+     "tests/test_discounts.py",
+     "tests/test_money.py",
+     "tests/test_pricing.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 13
+   }
+  },
+  {
+   "i": 67,
+   "kind": "multi",
+   "desc": "src/shop/catalog/products.py:38 retnull return->null + src/shop/fulfil/orders.py:10 str \"paid\"+x",
+   "files": [
+    "src/shop/catalog/products.py",
+    "src/shop/fulfil/orders.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py"
+   ],
+   "failing": [
+    "tests/test_catalog.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4603926669806242,
+   "full_s": 0.861722708970774,
+   "ablation_missed": {
+    "build": [
+     "tests/test_catalog.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 68,
+   "kind": "multi",
+   "desc": "src/shop/plugins/__init__.py:14 str \"fee_plugins\"+x + src/shop/util/validation.py:8 retnull return->null",
+   "files": [
+    "src/shop/plugins/__init__.py",
+    "src/shop/util/validation.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "failing": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_orders.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_strings_validation.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4310500419815071,
+   "full_s": 0.7533198340097442,
+   "ablation_missed": {
+    "build": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_discounts.py",
+     "tests/test_invoice.py",
+     "tests/test_orders.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 10
+   }
+  },
+  {
+   "i": 69,
+   "kind": "multi",
+   "desc": "src/shop/billing/payments.py:23 retnull return->null + tests/fixtures/orders.json:3 str \"lines\"+x",
+   "files": [
+    "src/shop/billing/payments.py",
+    "tests/fixtures/orders.json"
+   ],
+   "selected": [
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.435655334033072,
+   "full_s": 0.634280126017984,
+   "ablation_missed": {
+    "build": [
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 3
+   }
+  },
+  {
+   "i": 70,
+   "kind": "multi",
+   "desc": "src/shop/core/money.py:13 str \"Money\"+x + src/shop/billing/payments.py:23 retnull return->null",
+   "files": [
+    "src/shop/billing/payments.py",
+    "src/shop/core/money.py"
+   ],
+   "selected": [
+    "tests/test_cart.py",
+    "tests/test_catalog.py",
+    "tests/test_currency.py",
+    "tests/test_discounts.py",
+    "tests/test_invoice.py",
+    "tests/test_money.py",
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_plugins.py",
+    "tests/test_pricing.py",
+    "tests/test_reports.py",
+    "tests/test_shipping.py",
+    "tests/test_tax.py"
+   ],
+   "failing": [
+    "tests/test_payments.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7009240839979611,
+   "full_s": 0.6938137080287561,
+   "ablation_missed": {
+    "build": [
+     "tests/test_payments.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 13
+   }
+  },
+  {
+   "i": 71,
+   "kind": "multi",
+   "desc": "tests/fixtures/orders.json:3 str \"lines\"+x + src/shop/billing/payments.py:19 cmp <=-><",
+   "files": [
+    "src/shop/billing/payments.py",
+    "tests/fixtures/orders.json"
+   ],
+   "selected": [
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_reports.py"
+   ],
+   "failing": [
+    "tests/test_orders.py",
+    "tests/test_payments.py",
+    "tests/test_reports.py"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5449381250073202,
+   "full_s": 0.7815623750211671,
+   "ablation_missed": {
+    "build": [
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_reports.py"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 3
+   }
+  }
+ ],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "tests/test_fresh_slug.py"
+    ],
+    "selected": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_currency.py",
+     "tests/test_discounts.py",
+     "tests/test_fresh_slug.py",
+     "tests/test_ids_events_storage.py",
+     "tests/test_inventory.py",
+     "tests/test_invoice.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py",
+     "tests/test_tax.py"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 34,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "src/shop/util/strings.py"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "tests/test_fresh_slug.py",
+     "tests/test_invoice.py",
+     "tests/test_strings_validation.py"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "tests/test_payments.py",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": false,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

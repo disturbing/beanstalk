@@ -1,0 +1,190 @@
+{
+ "lang": "java",
+ "units": [
+  "src/test/java/shop/billing/InvoiceTest.java",
+  "src/test/java/shop/billing/PaymentsTest.java",
+  "src/test/java/shop/catalog/CatalogTest.java",
+  "src/test/java/shop/catalog/InventoryTest.java",
+  "src/test/java/shop/core/CurrencyTest.java",
+  "src/test/java/shop/core/IdsEventsStorageTest.java",
+  "src/test/java/shop/core/MoneyTest.java",
+  "src/test/java/shop/fulfil/OrdersTest.java",
+  "src/test/java/shop/fulfil/ShippingTest.java",
+  "src/test/java/shop/plugins/PluginsTest.java",
+  "src/test/java/shop/reports/ReportsTest.java",
+  "src/test/java/shop/sales/CartTest.java",
+  "src/test/java/shop/sales/DiscountsTest.java",
+  "src/test/java/shop/sales/PricingTest.java",
+  "src/test/java/shop/sales/TaxTest.java",
+  "src/test/java/shop/util/StringsValidationTest.java"
+ ],
+ "baseline": {
+  "src/test/java/shop/billing/InvoiceTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.631283082999289,
+   "traced_s": 0.9356192919658497,
+   "files": 76
+  },
+  "src/test/java/shop/billing/PaymentsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.47941320802783594,
+   "traced_s": 0.7330939589883201,
+   "files": 38
+  },
+  "src/test/java/shop/catalog/CatalogTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5302563750301488,
+   "traced_s": 0.834486834006384,
+   "files": 46
+  },
+  "src/test/java/shop/catalog/InventoryTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5782479579793289,
+   "traced_s": 0.9867660000454634,
+   "files": 58
+  },
+  "src/test/java/shop/core/CurrencyTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6300885830423795,
+   "traced_s": 0.8881046260357834,
+   "files": 37
+  },
+  "src/test/java/shop/core/IdsEventsStorageTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5794866250362247,
+   "traced_s": 0.9382537089986727,
+   "files": 34
+  },
+  "src/test/java/shop/core/MoneyTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5803427080390975,
+   "traced_s": 0.8363812499446794,
+   "files": 34
+  },
+  "src/test/java/shop/fulfil/OrdersTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.7378408750519156,
+   "traced_s": 1.0884217509883456,
+   "files": 73
+  },
+  "src/test/java/shop/fulfil/ShippingTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6331576670054346,
+   "traced_s": 0.9864804589888081,
+   "files": 66
+  },
+  "src/test/java/shop/plugins/PluginsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6302744999993593,
+   "traced_s": 0.8851312079932541,
+   "files": 42
+  },
+  "src/test/java/shop/reports/ReportsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.733630417031236,
+   "traced_s": 1.0921262500341982,
+   "files": 75
+  },
+  "src/test/java/shop/sales/CartTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6316690840176307,
+   "traced_s": 0.9857510000001639,
+   "files": 59
+  },
+  "src/test/java/shop/sales/DiscountsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6835130410036072,
+   "traced_s": 0.9868945009657182,
+   "files": 60
+  },
+  "src/test/java/shop/sales/PricingTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.6805676250369288,
+   "traced_s": 1.038079708989244,
+   "files": 72
+  },
+  "src/test/java/shop/sales/TaxTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5800456669530831,
+   "traced_s": 0.935880750999786,
+   "files": 50
+  },
+  "src/test/java/shop/util/StringsValidationTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.5289120420347899,
+   "traced_s": 0.7834402919979766,
+   "files": 27
+  }
+ },
+ "full_s": 0.7826858339831233,
+ "full_traced_s": 1.499220666999463,
+ "mutations": [],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "src/test/java/shop/billing/FreshSlugTest.java"
+    ],
+    "selected": [
+     "src/test/java/shop/billing/FreshSlugTest.java"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 32,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "src/main/java/shop/util/Strings.java"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "src/test/java/shop/billing/FreshSlugTest.java",
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/catalog/CatalogTest.java",
+     "src/test/java/shop/catalog/InventoryTest.java",
+     "src/test/java/shop/fulfil/OrdersTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/reports/ReportsTest.java",
+     "src/test/java/shop/sales/CartTest.java",
+     "src/test/java/shop/sales/DiscountsTest.java",
+     "src/test/java/shop/sales/PricingTest.java",
+     "src/test/java/shop/util/StringsValidationTest.java"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "src/test/java/shop/billing/PaymentsTest.java",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": true,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

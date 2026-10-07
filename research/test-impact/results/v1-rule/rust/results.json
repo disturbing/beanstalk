@@ -1,0 +1,3839 @@
+{
+ "lang": "rust",
+ "units": [
+  "crates/shop-billing/tests/invoice_test.rs",
+  "crates/shop-billing/tests/payments_test.rs",
+  "crates/shop-catalog/tests/catalog_test.rs",
+  "crates/shop-catalog/tests/inventory_test.rs",
+  "crates/shop-core/tests/currency_test.rs",
+  "crates/shop-core/tests/money_test.rs",
+  "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+  "crates/shop-fulfil/tests/orders_test.rs",
+  "crates/shop-reports/tests/reports_test.rs",
+  "crates/shop-sales/tests/cart_test.rs",
+  "crates/shop-sales/tests/discounts_test.rs",
+  "crates/shop-sales/tests/plugins_test.rs",
+  "crates/shop-sales/tests/pricing_test.rs",
+  "crates/shop-sales/tests/shipping_test.rs",
+  "crates/shop-sales/tests/tax_test.rs",
+  "crates/shop-util/tests/strings_validation_test.rs"
+ ],
+ "baseline": {
+  "crates/shop-billing/tests/invoice_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06985437497496605,
+   "traced_s": 0.11995045898947865,
+   "files": 61
+  },
+  "crates/shop-billing/tests/payments_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0728663339978084,
+   "traced_s": 0.27483395900344476,
+   "files": 58
+  },
+  "crates/shop-catalog/tests/catalog_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12984170898562297,
+   "traced_s": 0.1749808750464581,
+   "files": 54
+  },
+  "crates/shop-catalog/tests/inventory_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06995858298614621,
+   "traced_s": 0.17237262497656047,
+   "files": 53
+  },
+  "crates/shop-core/tests/currency_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07053575001191348,
+   "traced_s": 0.1905770840239711,
+   "files": 37
+  },
+  "crates/shop-core/tests/money_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06930754199856892,
+   "traced_s": 0.170572875009384,
+   "files": 36
+  },
+  "crates/shop-fulfil/tests/ids_events_storage_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06874595896806568,
+   "traced_s": 0.17027937498642132,
+   "files": 56
+  },
+  "crates/shop-fulfil/tests/orders_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06891854200512171,
+   "traced_s": 0.1754735839786008,
+   "files": 60
+  },
+  "crates/shop-reports/tests/reports_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06809479097137228,
+   "traced_s": 0.17086129199014977,
+   "files": 61
+  },
+  "crates/shop-sales/tests/cart_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06889641599263996,
+   "traced_s": 0.17106591700576246,
+   "files": 54
+  },
+  "crates/shop-sales/tests/discounts_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06938520801486447,
+   "traced_s": 0.1705776669550687,
+   "files": 55
+  },
+  "crates/shop-sales/tests/plugins_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0693947080289945,
+   "traced_s": 0.12055687501560897,
+   "files": 54
+  },
+  "crates/shop-sales/tests/pricing_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06898437504423782,
+   "traced_s": 0.17246754199732095,
+   "files": 56
+  },
+  "crates/shop-sales/tests/shipping_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0689010419882834,
+   "traced_s": 0.17130120802903548,
+   "files": 56
+  },
+  "crates/shop-sales/tests/tax_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06891958304913715,
+   "traced_s": 0.17164637497626245,
+   "files": 54
+  },
+  "crates/shop-util/tests/strings_validation_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06889079097891226,
+   "traced_s": 0.17087679100222886,
+   "files": 38
+  }
+ },
+ "full_s": 0.2750294590368867,
+ "full_traced_s": 2.006411251029931,
+ "mutations": [
+  {
+   "i": 0,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/coupons.rs:27 str \"OFF\"+x",
+   "files": [
+    "crates/shop-sales/src/coupons.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.5793532090028748,
+   "full_s": 0.851964500034228,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 1,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/inventory.rs:36 num 0->1",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.8990695840329863,
+   "full_s": 1.2657872500130907,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 2,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/inventory.rs:23 rename rename reserve",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.5910039159934968,
+   "full_s": 0.6745588749763556,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 3,
+   "kind": "code",
+   "desc": "crates/shop-billing/src/payments.rs:15 num 9->10",
+   "files": [
+    "crates/shop-billing/src/payments.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.6367251250194386,
+   "full_s": 1.0587845420232043,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/payments_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 0
+   }
+  },
+  {
+   "i": 4,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/shipping.rs:28 num 1->2",
+   "files": [
+    "crates/shop-sales/src/shipping.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.7371690419968218,
+   "full_s": 0.9078844169853255,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 5,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/pricing.rs:25 str \"domestic\"+x",
+   "files": [
+    "crates/shop-sales/src/pricing.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.684402292012237,
+   "full_s": 1.0446428339928389,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 6,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/cart.rs:53 rename rename count",
+   "files": [
+    "crates/shop-sales/src/cart.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.18053312599658966,
+   "full_s": 0.17179083300288767,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 7,
+   "kind": "code",
+   "desc": "crates/shop-core/src/money.rs:78 num 0->1",
+   "files": [
+    "crates/shop-core/src/money.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.4844762919819914,
+   "full_s": 1.726519958989229,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 8,
+   "kind": "code",
+   "desc": "crates/shop-config/src/lib.rs:10 rename rename load",
+   "files": [
+    "crates/shop-config/src/lib.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.5932105840183794,
+   "full_s": 0.37696629198035225,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 9,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/inventory.rs:27 cmp <-><=",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.4754138339776546,
+   "full_s": 1.4655242919689044,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 10,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/shipping.rs:46 arith *->+",
+   "files": [
+    "crates/shop-sales/src/shipping.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.8384074170025997,
+   "full_s": 1.3221540840459056,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 11,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/cart.rs:30 cmp <=-><",
+   "files": [
+    "crates/shop-sales/src/cart.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.052906250988599,
+   "full_s": 1.363796126039233,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 12,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/cart.rs:45 rename rename subtotal",
+   "files": [
+    "crates/shop-sales/src/cart.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.17042266600765288,
+   "full_s": 0.1731984589714557,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 13,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/discounts.rs:11 rename rename threshold_off",
+   "files": [
+    "crates/shop-sales/src/discounts.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-sales/tests/discounts_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.6320327090215869,
+   "full_s": 1.1442144170287065,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-sales/tests/discounts_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 14,
+   "kind": "code",
+   "desc": "crates/shop-core/src/ids.rs:32 rename rename sha1_hex",
+   "files": [
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.2875112500041723,
+   "full_s": 0.23544229101389647,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 15,
+   "kind": "code",
+   "desc": "crates/shop-billing/src/payments.rs:21 num 0->1",
+   "files": [
+    "crates/shop-billing/src/payments.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.7309911260381341,
+   "full_s": 1.6368501259712502,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/payments_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 0
+   }
+  },
+  {
+   "i": 16,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/coupons.rs:28 arith *->+",
+   "files": [
+    "crates/shop-sales/src/coupons.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-sales/tests/discounts_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.098637500021141,
+   "full_s": 1.614493585017044,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-sales/tests/discounts_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 17,
+   "kind": "code",
+   "desc": "crates/shop-util/src/validation.rs:4 rename rename is_sku",
+   "files": [
+    "crates/shop-util/src/validation.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.24927249999018386,
+   "full_s": 0.37803745799465105,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 14,
+    "run": 0
+   }
+  },
+  {
+   "i": 18,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/products.rs:51 cmp ==->!=",
+   "files": [
+    "crates/shop-catalog/src/products.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/catalog_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.4146786680212244,
+   "full_s": 1.8862683339975774,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/catalog_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 19,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/cart.rs:41 rename rename remove",
+   "files": [
+    "crates/shop-sales/src/cart.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-sales/tests/cart_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.3466930010472424,
+   "full_s": 1.4992916259798221,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-sales/tests/cart_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 20,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/plugins/mod.rs:27 arith +->-",
+   "files": [
+    "crates/shop-sales/src/plugins/mod.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.9327814169810154,
+   "full_s": 1.5616716259974055,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 21,
+   "kind": "code",
+   "desc": "crates/shop-util/src/validation.rs:6 num 3->4",
+   "files": [
+    "crates/shop-util/src/validation.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.6085386669728905,
+   "full_s": 1.8242209589807317,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 14,
+    "run": 0
+   }
+  },
+  {
+   "i": 22,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/plugins/service_fee.rs:10 rename rename name",
+   "files": [
+    "crates/shop-sales/src/plugins/service_fee.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.3855204170104116,
+   "full_s": 0.4450449589639902,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 23,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/plugins/service_fee.rs:14 rename rename fee",
+   "files": [
+    "crates/shop-sales/src/plugins/service_fee.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.19823750003706664,
+   "full_s": 0.16951074998360127,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 24,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/products.rs:23 str \"catalog.csv\"+x",
+   "files": [
+    "crates/shop-catalog/src/products.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.1610268339863978,
+   "full_s": 1.875556293001864,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 25,
+   "kind": "code",
+   "desc": "crates/shop-billing/src/invoice.rs:6 rename rename render",
+   "files": [
+    "crates/shop-billing/src/invoice.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.6869324999861419,
+   "full_s": 1.6058403340284713,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 0
+   }
+  },
+  {
+   "i": 26,
+   "kind": "code",
+   "desc": "crates/shop-billing/src/invoice.rs:18 str \"Fees\"+x",
+   "files": [
+    "crates/shop-billing/src/invoice.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.9470051680109464,
+   "full_s": 0.8937239169608802,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 0
+   }
+  },
+  {
+   "i": 27,
+   "kind": "code",
+   "desc": "crates/shop-core/src/currency.rs:9 rename rename rates",
+   "files": [
+    "crates/shop-core/src/currency.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.17184691701550037,
+   "full_s": 0.2796819169889204,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 28,
+   "kind": "code",
+   "desc": "crates/shop-config/src/lib.rs:31 rename rename get_int",
+   "files": [
+    "crates/shop-config/src/lib.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.1425647920113988,
+   "full_s": 0.656647041963879,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 29,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/inventory.rs:24 cmp <=-><",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 2.0819802510086447,
+   "full_s": 2.3730117100058123,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 30,
+   "kind": "code",
+   "desc": "crates/shop-fulfil/src/events.rs:16 rename rename on",
+   "files": [
+    "crates/shop-fulfil/src/events.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "failing": [
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.5380665839766152,
+   "full_s": 1.8340914589934982,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 31,
+   "kind": "code",
+   "desc": "crates/shop-catalog/src/inventory.rs:20 num 0->1",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.630938459013123,
+   "full_s": 2.6710907519445755,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 32,
+   "kind": "code",
+   "desc": "crates/shop-core/src/ids.rs:5 rename rename short_id",
+   "files": [
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.6508944589877501,
+   "full_s": 2.398997584998142,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 33,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/plugins/eco_fee.rs:14 num 25->26",
+   "files": [
+    "crates/shop-sales/src/plugins/eco_fee.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.6250828339834698,
+   "full_s": 1.6976997509482317,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 34,
+   "kind": "code",
+   "desc": "crates/shop-core/src/ids.rs:37 cmp !=->==",
+   "files": [
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.710676709015388,
+   "full_s": 2.4405826670117676,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 35,
+   "kind": "code",
+   "desc": "crates/shop-sales/src/plugins/eco_fee.rs:9 rename rename name",
+   "files": [
+    "crates/shop-sales/src/plugins/eco_fee.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.3265951249632053,
+   "full_s": 0.7420516260317527,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 36,
+   "kind": "helper",
+   "desc": "crates/shop-testkit/src/factories.rs:14 rename rename stocked",
+   "files": [
+    "crates/shop-testkit/src/factories.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.3341578749823384,
+   "full_s": 0.1752243330120109,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 37,
+   "kind": "helper",
+   "desc": "crates/shop-testkit/src/fixtures.rs:24 rename rename fixtures_dir",
+   "files": [
+    "crates/shop-testkit/src/fixtures.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.17180587496841326,
+   "full_s": 0.12475816596997902,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 38,
+   "kind": "helper",
+   "desc": "crates/shop-testkit/src/factories.rs:15 str \"SKU-001\"+x",
+   "files": [
+    "crates/shop-testkit/src/factories.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.1250766249722801,
+   "full_s": 0.9773168340325356,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 39,
+   "kind": "helper",
+   "desc": "crates/shop-testkit/src/fixtures.rs:39 str \"fixture line item needs sku:qty\"+x",
+   "files": [
+    "crates/shop-testkit/src/fixtures.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.8985890839830972,
+   "full_s": 1.4996645009960048,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 40,
+   "kind": "helper",
+   "desc": "crates/shop-testkit/src/factories.rs:5 rename rename cart_of",
+   "files": [
+    "crates/shop-testkit/src/factories.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.11889250000240281,
+   "full_s": 0.1196752090472728,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 41,
+   "kind": "data",
+   "desc": "crates/shop-testkit/fixtures/orders.txt:1 str \"-\"+x",
+   "files": [
+    "crates/shop-testkit/fixtures/orders.txt"
+   ],
+   "selected": [
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4806960839778185,
+   "full_s": 1.15375708299689,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 42,
+   "kind": "data",
+   "desc": "data/catalog.csv:4 num 450->451",
+   "files": [
+    "data/catalog.csv"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/cart_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06919091695453972,
+   "full_s": 0.06788499996764585,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/cart_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 43,
+   "kind": "data",
+   "desc": "data/shipping_zones.txt:2 num 150->151",
+   "files": [
+    "data/shipping_zones.txt"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.0700938330264762,
+   "full_s": 0.07298620895016938,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 44,
+   "kind": "data",
+   "desc": "data/rates.csv:2 num 1.0->1.1",
+   "files": [
+    "data/rates.csv"
+   ],
+   "selected": [
+    "crates/shop-core/tests/currency_test.rs"
+   ],
+   "failing": [
+    "crates/shop-core/tests/currency_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06893358298111707,
+   "full_s": 0.06876916700275615,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-core/tests/currency_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 45,
+   "kind": "data",
+   "desc": "data/rates.csv:6 num 1.35->1.36",
+   "files": [
+    "data/rates.csv"
+   ],
+   "selected": [
+    "crates/shop-core/tests/currency_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.06962099997326732,
+   "full_s": 0.27271683304570615,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 46,
+   "kind": "data",
+   "desc": "crates/shop-testkit/fixtures/orders.txt:2 num 2->3",
+   "files": [
+    "crates/shop-testkit/fixtures/orders.txt"
+   ],
+   "selected": [
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "failing": [
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.07005045801633969,
+   "full_s": 0.12178495898842812,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-reports/tests/reports_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 47,
+   "kind": "data",
+   "desc": "data/tax.txt:5 num 0.0625->0.0626",
+   "files": [
+    "data/tax.txt"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.7349332920275629,
+   "full_s": 1.355854958994314,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 48,
+   "kind": "data",
+   "desc": "data/shipping_zones.txt:3 num 600->601",
+   "files": [
+    "data/shipping_zones.txt"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "failing": [
+    "crates/shop-sales/tests/shipping_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.5800255420035683,
+   "full_s": 0.8498427090235054,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-sales/tests/shipping_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 49,
+   "kind": "config",
+   "desc": "crates/shop-billing/Cargo.toml:12 str \"../shop-sales\"+x",
+   "files": [
+    "crates/shop-billing/Cargo.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06994512502569705,
+   "full_s": 0.06955641601234674,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 50,
+   "kind": "config",
+   "desc": "config/app.toml:7 str \"Thank you for shopping\"+x",
+   "files": [
+    "config/app.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.0705734160146676,
+   "full_s": 0.06873845803784207,
+   "ablation_missed": {
+    "build": [
+     "crates/shop-billing/tests/invoice_test.rs"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 51,
+   "kind": "config",
+   "desc": "crates/shop-billing/Cargo.toml:9 str \"../shop-config\"+x",
+   "files": [
+    "crates/shop-billing/Cargo.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06850595801370218,
+   "full_s": 0.07224462501471862,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 52,
+   "kind": "config",
+   "desc": "crates/shop-testkit/Cargo.toml:9 str \"../shop-catalog\"+x",
+   "files": [
+    "crates/shop-testkit/Cargo.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06808491598349065,
+   "full_s": 0.07001379103166983,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 53,
+   "kind": "config",
+   "desc": "Cargo.toml:2 num 2->3",
+   "files": [
+    "Cargo.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.12248554197140038,
+   "full_s": 0.323674333980307,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 54,
+   "kind": "test-edit",
+   "desc": "crates/shop-core/tests/currency_test.rs:25 str \"XXX\"+x",
+   "files": [
+    "crates/shop-core/tests/currency_test.rs"
+   ],
+   "selected": [
+    "crates/shop-core/tests/currency_test.rs"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3249615830136463,
+   "full_s": 0.5293268749956042,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 1
+   }
+  },
+  {
+   "i": 55,
+   "kind": "test-edit",
+   "desc": "crates/shop-fulfil/tests/ids_events_storage_test.rs:10 num 9->10",
+   "files": [
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+   ],
+   "selected": [
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+   ],
+   "failing": [
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.42394183395663276,
+   "full_s": 0.3737772919703275,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 1
+   }
+  },
+  {
+   "i": 56,
+   "kind": "delete",
+   "desc": "delete crates/shop-fulfil/src/storage.rs",
+   "files": [
+    "crates/shop-fulfil/src/storage.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.17355008301092312,
+   "full_s": 0.122002792020794,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 57,
+   "kind": "delete",
+   "desc": "delete crates/shop-fulfil/src/events.rs",
+   "files": [
+    "crates/shop-fulfil/src/events.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.17185416701249778,
+   "full_s": 0.17611758405109867,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 58,
+   "kind": "add",
+   "desc": "add a build.rs to shop-core that fails (cargo auto-detects build scripts)",
+   "files": [
+    "crates/shop-core/build.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.4013305000262335,
+   "full_s": 0.22067629196681082,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 59,
+   "kind": "multi",
+   "desc": "crates/shop-core/src/ids.rs:5 rename rename short_id + crates/shop-billing/src/payments.rs:21 num 0->1",
+   "files": [
+    "crates/shop-billing/src/payments.rs",
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.56801612500567,
+   "full_s": 1.5056348340003751,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 60,
+   "kind": "multi",
+   "desc": "crates/shop-sales/src/plugins/mod.rs:27 arith +->- + crates/shop-sales/src/coupons.rs:28 arith *->+ + crates/shop-core/src/ids.rs:37 cmp !=->==",
+   "files": [
+    "crates/shop-core/src/ids.rs",
+    "crates/shop-sales/src/coupons.rs",
+    "crates/shop-sales/src/plugins/mod.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.216119208955206,
+   "full_s": 1.7602463759831153,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 61,
+   "kind": "multi",
+   "desc": "Cargo.toml:2 num 2->3 + crates/shop-config/src/lib.rs:10 rename rename load",
+   "files": [
+    "Cargo.toml",
+    "crates/shop-config/src/lib.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.323662041046191,
+   "full_s": 0.5277192500070669,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 62,
+   "kind": "multi",
+   "desc": "data/tax.txt:5 num 0.0625->0.0626 + crates/shop-sales/src/plugins/service_fee.rs:10 rename rename name",
+   "files": [
+    "crates/shop-sales/src/plugins/service_fee.rs",
+    "data/tax.txt"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.2800842919969,
+   "full_s": 0.3865983340074308,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 63,
+   "kind": "multi",
+   "desc": "data/catalog.csv:4 num 450->451 + crates/shop-testkit/src/fixtures.rs:24 rename rename fixtures_dir",
+   "files": [
+    "crates/shop-testkit/src/fixtures.rs",
+    "data/catalog.csv"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.326828541001305,
+   "full_s": 0.17365187499672174,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 8
+   }
+  },
+  {
+   "i": 64,
+   "kind": "multi",
+   "desc": "crates/shop-billing/src/invoice.rs:18 str \"Fees\"+x + crates/shop-testkit/Cargo.toml:9 str \"../shop-catalog\"+x + crates/shop-core/src/ids.rs:5 rename rename short_id",
+   "files": [
+    "crates/shop-billing/src/invoice.rs",
+    "crates/shop-core/src/ids.rs",
+    "crates/shop-testkit/Cargo.toml"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.06956854200689122,
+   "full_s": 0.07020258397096768,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 65,
+   "kind": "multi",
+   "desc": "crates/shop-core/src/ids.rs:37 cmp !=->== + crates/shop-catalog/src/inventory.rs:27 cmp <-><=",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs",
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.45299616799457,
+   "full_s": 3.216773709980771,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 66,
+   "kind": "multi",
+   "desc": "crates/shop-core/src/ids.rs:5 rename rename short_id + crates/shop-catalog/src/inventory.rs:36 num 0->1 + crates/shop-config/src/lib.rs:31 rename rename get_int",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs",
+    "crates/shop-config/src/lib.rs",
+    "crates/shop-core/src/ids.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-core/tests/currency_test.rs",
+    "crates/shop-core/tests/money_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs",
+    "crates/shop-util/tests/strings_validation_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.8921653750003316,
+   "full_s": 0.8420633339555934,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 16,
+    "run": 0
+   }
+  },
+  {
+   "i": 67,
+   "kind": "multi",
+   "desc": "crates/shop-testkit/src/factories.rs:15 str \"SKU-001\"+x + crates/shop-sales/src/coupons.rs:27 str \"OFF\"+x",
+   "files": [
+    "crates/shop-sales/src/coupons.rs",
+    "crates/shop-testkit/src/factories.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 2.0591784170246683,
+   "full_s": 1.7218156669987366,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 68,
+   "kind": "multi",
+   "desc": "crates/shop-sales/src/cart.rs:30 cmp <=->< + crates/shop-catalog/src/inventory.rs:27 cmp <-><=",
+   "files": [
+    "crates/shop-catalog/src/inventory.rs",
+    "crates/shop-sales/src/cart.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.4753007509862073,
+   "full_s": 1.892902833991684,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 69,
+   "kind": "multi",
+   "desc": "crates/shop-testkit/src/fixtures.rs:39 str \"fixture line item needs sku:qty\"+x + crates/shop-testkit/fixtures/orders.txt:2 num 2->3",
+   "files": [
+    "crates/shop-testkit/fixtures/orders.txt",
+    "crates/shop-testkit/src/fixtures.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-reports/tests/reports_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 1.1111973749939352,
+   "full_s": 1.0609379169763997,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 2
+   }
+  },
+  {
+   "i": 70,
+   "kind": "multi",
+   "desc": "crates/shop-sales/src/plugins/eco_fee.rs:9 rename rename name + crates/shop-billing/src/payments.rs:15 num 9->10",
+   "files": [
+    "crates/shop-billing/src/payments.rs",
+    "crates/shop-sales/src/plugins/eco_fee.rs"
+   ],
+   "selected": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "failing": [
+    "crates/shop-billing/tests/invoice_test.rs",
+    "crates/shop-billing/tests/payments_test.rs",
+    "crates/shop-catalog/tests/catalog_test.rs",
+    "crates/shop-catalog/tests/inventory_test.rs",
+    "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+    "crates/shop-fulfil/tests/orders_test.rs",
+    "crates/shop-reports/tests/reports_test.rs",
+    "crates/shop-sales/tests/cart_test.rs",
+    "crates/shop-sales/tests/discounts_test.rs",
+    "crates/shop-sales/tests/plugins_test.rs",
+    "crates/shop-sales/tests/pricing_test.rs",
+    "crates/shop-sales/tests/shipping_test.rs",
+    "crates/shop-sales/tests/tax_test.rs"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 101,
+   "full_exit": 101,
+   "sel_s": 0.122210375033319,
+   "full_s": 0.12031945900525898,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  }
+ ],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "crates/shop-billing/tests/fresh_test.rs"
+    ],
+    "selected": [
+     "crates/shop-billing/tests/fresh_test.rs",
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 59,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "crates/shop-util/src/strings.rs"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "crates/shop-billing/tests/fresh_test.rs",
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "crates/shop-billing/tests/payments_test.rs",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": true,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

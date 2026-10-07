@@ -71,7 +71,8 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # (RED_RESET=0: bisect and revert as v2.5; EPISODE_TICKETS, REPAIR_LANDING: measured, off; REQUEUE_REPAIR=0: one
 # requeue chain as before), check reuse (REUSE_CHECKS=0: validate every sprout head on CI), event-driven promotion
 # (EVIDENCE_PROMOTION, EVIDENCE_READ_SETS, AFFECTED_VALIDATION, AUDIT_EVERY, VALIDATION_DEBOUNCE[_SECONDS],
-# VALIDATION_TICK_SECONDS, CI_OVERHEAD_SECONDS); live sprout sync; the
+# VALIDATION_TICK_SECONDS, CI_OVERHEAD_SECONDS), read maps (READ_MAPS=preland: traced pre-land checks,
+# research/test-impact); live sprout sync; the
 # queue never gets these, and the gateway
 # refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
@@ -99,7 +100,8 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "validation_debounce": ("VALIDATION_DEBOUNCE", bool),
            "validation_debounce_seconds": ("VALIDATION_DEBOUNCE_SECONDS", float),
            "validation_tick_seconds": ("VALIDATION_TICK_SECONDS", float),
-           "ci_overhead_seconds": ("CI_OVERHEAD_SECONDS", float)}
+           "ci_overhead_seconds": ("CI_OVERHEAD_SECONDS", float),
+           "read_maps": ("READ_MAPS", str)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
 STREAM_POLL = 0.1           # how often the driver looks at the agent's edit marker

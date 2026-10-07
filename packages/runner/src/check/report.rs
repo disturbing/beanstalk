@@ -6,9 +6,11 @@ use std::path::Path;
 use super::imports::{self, ImportDepths};
 use super::junit::{self, JunitSummary};
 use super::paths;
+use super::read_maps::ReadMapsReport;
 use super::sandbox::SuiteNetwork;
 use super::stack;
 use super::suite::SuiteRun;
+use super::tree::TreeManifest;
 use crate::git::CommitSha;
 
 /// Characters of output kept (`_excerpt`'s `limit`).
@@ -39,6 +41,9 @@ pub(crate) struct CheckReport {
     pub(crate) read_sets: BTreeMap<String, Vec<String>>,
     /// The passing test files' read sets, when the request asked for them (`ReadSets::All`).
     pub(crate) passing_read_sets: BTreeMap<String, Vec<String>>,
+    /// Whether `passing_read_sets` hold everything each test observed (traced: every file read,
+    /// probed and listed), not static import closures.
+    pub(crate) read_sets_complete: bool,
     pub(crate) read_depths: BTreeMap<String, ImportDepths>,
     pub(crate) stack_files: Vec<String>,
     /// `CIResult.output`: the failure-relevant tail of stdout and stderr.
@@ -49,6 +54,10 @@ pub(crate) struct CheckReport {
     pub(crate) timed_out: bool,
     /// The suite's network; set by the caller, which knows the instance's.
     pub(crate) network: SuiteNetwork,
+    /// Per test file read maps, when the check was traced (or asked to be and could not).
+    pub(crate) read_maps: Option<ReadMapsReport>,
+    /// The checked tree's blob ids, when traced or asked for.
+    pub(crate) tree: Option<TreeManifest>,
 }
 
 /// Builds the report from a finished run. Reads files (the junit report, sources for read sets),
@@ -63,6 +72,16 @@ pub(crate) fn assess(
     let parsed = std::fs::read_to_string(junit_path)
         .ok()
         .and_then(|xml| junit::parse_junit(&xml, &root_real));
+    assess_summary(sha, run, &root_real, parsed)
+}
+
+/// As [`assess`], from an already parsed junit summary (`None`: no well-formed report).
+pub(crate) fn assess_summary(
+    sha: CommitSha,
+    run: &SuiteRun,
+    root_real: &Path,
+    parsed: Option<JunitSummary>,
+) -> CheckReport {
     let green = run.code == Some(0)
         && !run.timed_out
         && parsed
@@ -79,6 +98,7 @@ pub(crate) fn assess(
         read_set: Vec::new(),
         read_sets: BTreeMap::new(),
         passing_read_sets: BTreeMap::new(),
+        read_sets_complete: false,
         read_depths: BTreeMap::new(),
         stack_files: Vec::new(),
         output_excerpt: excerpt(&combined_output(run)),
@@ -86,9 +106,11 @@ pub(crate) fn assess(
         ci_seconds: run.seconds,
         timed_out: run.timed_out,
         network: SuiteNetwork::Host,
+        read_maps: None,
+        tree: None,
     };
     if let Some(summary) = parsed {
-        record_failures(&mut report, summary, &root_real);
+        record_failures(&mut report, summary, root_real);
     }
     report
 }

@@ -1,0 +1,6 @@
+[
+  {"lines": {"SKU-001": 2, "SKU-003": 4}, "coupon": null},
+  {"lines": {"SKU-002": 1}, "coupon": "PCT10"},
+  {"lines": {"SKU-005": 3, "SKU-006": 1}, "coupon": "OFF5"},
+  {"lines": {"SKU-004": 1}, "coupon": "FREESHIP"}
+]

@@ -1,0 +1,8 @@
+{
+  "currency": "USD",
+  "tax_region": "CA",
+  "max_discount_pct": 50,
+  "free_shipping_over": 100,
+  "fee_plugins": ["service_fee"],
+  "invoice_footer": "Thank you for shopping"
+}

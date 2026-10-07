@@ -14,6 +14,7 @@ import type {
   RaceEventType,
 } from '@beanstalk/shared-race/events';
 import type { InvocationId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
 import type { AgentKind, PolicyName } from '@beanstalk/shared-race/run-config';
 
 /** Seconds since the run was created (the harness's `t`, unrounded). */
@@ -211,6 +212,18 @@ export type CheckResult = {
   readonly output: string;
   readonly suiteSeconds: number;
   readonly timedOut: boolean;
+  /**
+   * The runner's read maps of a traced check. The RunDO stores them (`read-maps/`) and removes
+   * them, with `tree`, before the engine sees the result; the engine sees `mappedTree`.
+   */
+  readonly readMaps?: CheckReadMaps;
+  /** The checked tree's blob ids (traced, or asked for with `treeManifest`); removed likewise. */
+  readonly tree?: CheckedTree;
+  /**
+   * The tree key this check's manifest (and maps, when traced) were stored under: the `base`
+   * or `mapsFrom` of a `ReadMapIndex` query about this tree.
+   */
+  readonly mappedTree?: string;
 };
 
 export type CiPurpose = 'batch' | 'bisect' | 'validate' | 'final';
@@ -283,6 +296,10 @@ export type JobSpec =
       readonly only?: readonly string[];
       /** v2.5: also report the passing test files' read sets (the targeted check's third source). */
       readonly allReadSets?: true;
+      /** Trace each test file for read maps; absent, the run's `read_maps` setting decides. */
+      readonly trace?: boolean;
+      /** Report the tree's manifest; absent, the run's `read_maps` setting decides. */
+      readonly treeManifest?: boolean;
     }
   | {
       /** A commit on `onto` that undoes `commit` (published as a candidate, no ref moved). */

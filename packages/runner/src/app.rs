@@ -32,7 +32,9 @@ use crate::workspace::Workspace;
 /// 1: the contract until 2026-10-05 (no version reported). 2: squash and compose
 /// `structural_merge`, revert `to`, check `all_read_sets` and `passing_read_sets`. 3: check
 /// `env` and `deps` (a run's own suite: real-task arenas), and `network` on checks and `/healthz`.
-pub const API_VERSION: u32 = 3;
+/// 4: check `trace`, `only_files` and `tree_manifest`, answered with `read_maps` and `tree`, and
+/// `tracing` on `/healthz`.
+pub const API_VERSION: u32 = 4;
 /// Response header carrying [`API_VERSION`] on every response, so a caller can tell which
 /// contract refused its request.
 pub const API_VERSION_HEADER: &str = "x-beanstalk-runner-api";
@@ -76,6 +78,7 @@ struct Shared {
     workspace: Workspace,
     schemes: RemoteSchemes,
     tools: ToolVersions,
+    tracer: check::Tracer,
     git_sha: Option<String>,
 }
 
@@ -88,12 +91,23 @@ impl AppState {
     pub async fn prepare(config: &Config) -> Result<Self> {
         let workspace = Workspace::prepare(config).await?;
         let tools = ToolVersions::probe(workspace.suite_env()).await;
+        let git_sha = config.git_sha().map(str::to_owned);
+        let environment = format!(
+            "node {}; runner {}",
+            tools.node().unwrap_or("unknown"),
+            git_sha.as_deref().unwrap_or("unknown")
+        );
+        let tracer = check::Tracer::probe(workspace.suite_env(), &environment).await;
+        if let check::Tracer::Unavailable { reason } = &tracer {
+            tracing::warn!(%reason, "traced checks will run untraced");
+        }
         Ok(Self {
             shared: Arc::new(Shared {
                 workspace,
                 schemes: config.remote_schemes().clone(),
                 tools,
-                git_sha: config.git_sha().map(str::to_owned),
+                tracer,
+                git_sha,
             }),
         })
     }
@@ -125,6 +139,7 @@ async fn healthz(State(state): State<AppState>) -> (StatusCode, Json<HealthRespo
         git: tools.git.clone(),
         node: tools.node.clone(),
         network: state.shared.workspace.suite_network(),
+        tracing: state.shared.tracer.is_ready(),
     };
     (status, Json(body))
 }
@@ -224,7 +239,7 @@ async fn check(
     body: Result<Json<CheckBody>, JsonRejection>,
 ) -> Result<Json<CheckResponse>> {
     let request = body?.0.into_request(&state.shared.schemes)?;
-    let report = check::check(&state.shared.workspace, &request).await?;
+    let report = check::check(&state.shared.workspace, &request, &state.shared.tracer).await?;
     tracing::info!(
         repo = %request.trunk.url,
         sha = %request.sha,
@@ -235,6 +250,7 @@ async fn check(
         suite_seconds = report.suite_seconds,
         deps = request.deps.as_ref().map(DepsName::as_str),
         network = ?report.network,
+        traced_files = report.read_maps.as_ref().map(|maps| maps.files.len()),
         "checked"
     );
     Ok(Json(report.into()))

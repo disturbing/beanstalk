@@ -12,7 +12,7 @@ import type { Logger } from '../log';
  * The runner wire contract this gateway speaks: `API_VERSION` in packages/runner/src/app.rs.
  * Bump both together whenever a request or response body changes.
  */
-export const RUNNER_API_VERSION = 3;
+export const RUNNER_API_VERSION = 4;
 /** Response header in which the runner states its contract version. */
 export const RUNNER_API_HEADER = 'x-beanstalk-runner-api';
 
