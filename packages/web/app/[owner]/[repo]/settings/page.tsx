@@ -1,8 +1,11 @@
 import { env } from 'cloudflare:workers';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { CollaboratorsSettings } from '../../../../components/repository/collaborators';
 import { DeployTokens } from '../../../../components/repository/deploy-tokens';
 import { currentSession } from '../../../../src/auth/user';
+import { collaboratorsClient } from '../../../../src/repositories/collaborators-client';
 import { deployTokensClient } from '../../../../src/repositories/deploy-tokens-client';
 
 import { RepoHead } from '../../../../components/home/repo-head';
@@ -25,11 +28,25 @@ export async function generateMetadata({ params }: PageProps) {
   return { title: `Settings, ${decodeURIComponent(owner)}/${decodeURIComponent(repo)}` };
 }
 
-/** Settings: the owner's only (others get the same 404 as a missing repository). */
+/**
+ * Settings. The owner has all of it; a maintainer has deploy tokens; other collaborators are
+ * told whose settings these are; people with no role get the same 404 as a missing repository.
+ * The gateway checks every change again.
+ */
 export default async function RepositorySettingsPage({ params, searchParams }: PageProps) {
   const page = await repositoryPage(params);
-  if (!page.isOwner) notFound();
-  const { record, base } = page;
+  const { record, base, role } = page;
+  if (role === null) notFound();
+  const session = await currentSession();
+  if (session === null) notFound();
+  const actor = { id: session.user.id, handle: session.user.handle };
+  const access = { repoId: record.id, csrf: session.csrfToken, path: `${base}/settings` };
+  const isOwner = role === 'owner';
+  const canDeploy = isOwner || role === 'maintain';
+  const [tokens, people] = await Promise.all([
+    canDeploy ? deployTokensClient(env.GATEWAY).list(actor, record.id) : Promise.resolve(null),
+    isOwner ? collaboratorsClient(env.GATEWAY).people(record.id, actor.id) : Promise.resolve(null),
+  ]);
   const repo = {
     id: record.id,
     owner: record.owner.handle,
@@ -38,9 +55,6 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
     visibility: record.visibility,
   };
   const saved = (await searchParams)['saved'] === 'renamed' ? `Renamed to ${record.name}.` : null;
-  const session = await currentSession();
-  const actor = { id: record.owner.id, handle: record.owner.handle };
-  const tokens = await deployTokensClient(env.GATEWAY).list(actor, record.id);
   return (
     <main>
       <RepoHead
@@ -53,36 +67,32 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
       />
       <div className={`${styles.page} ${styles.narrow}`}>
         <div className={styles.settings}>
-          <GeneralSettings repo={repo} saved={saved} />
-          <VisibilitySettings repo={repo} />
-          <section
-            className={`${styles.panel} ${styles.settingsSection}`}
-            aria-labelledby="people-title"
-          >
-            <h2 id="people-title">Collaborators</h2>
-            <p className={styles.sub}>
-              Only you, and the agent sessions you connect, can change {record.name} today. Inviting
-              people arrives with accounts and teams.
-            </p>
-            <div className={styles.nameRow}>
-              <input
-                className={styles.input}
-                placeholder="Handle or email"
-                disabled
-                aria-label="Invite by handle or email"
-              />
-              <button type="button" className={styles.secondary} disabled>
-                Invite
-              </button>
-            </div>
-          </section>
-          {session === null ? null : (
-            <DeployTokens
-              tokens={tokens.ok ? tokens.value : []}
-              access={{ repoId: record.id, csrf: session.csrfToken, path: `${base}/settings` }}
-            />
+          {isOwner ? null : (
+            <section className={`${styles.panel} ${styles.settingsSection}`}>
+              <h2>Settings</h2>
+              <p className={styles.sub}>
+                You are <b>{role}</b> on {record.name}. Its name, visibility, people and deletion
+                are <b>@{record.owner.handle}</b>&rsquo;s.{' '}
+                {canDeploy ? 'As a maintainer you manage its deploy tokens below. ' : null}
+                <Link href={`${base}/people`}>See who has access</Link>.
+              </p>
+            </section>
           )}
-          <DangerZone repo={repo} />
+          {isOwner ? <GeneralSettings repo={repo} saved={saved} /> : null}
+          {isOwner ? <VisibilitySettings repo={repo} /> : null}
+          {isOwner && people !== null && people.ok ? (
+            <CollaboratorsSettings
+              name={record.name}
+              collaborators={people.value.collaborators}
+              invitations={people.value.invitations}
+              audit={people.value.audit}
+              access={access}
+            />
+          ) : null}
+          {tokens === null ? null : (
+            <DeployTokens tokens={tokens.ok ? tokens.value : []} access={access} />
+          )}
+          {isOwner ? <DangerZone repo={repo} /> : null}
         </div>
       </div>
     </main>

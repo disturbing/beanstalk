@@ -1,3 +1,5 @@
+import { getUser } from '../../../../../src/auth/user';
+import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
 import { RunId } from '@beanstalk/shared-race/ids';
@@ -17,6 +19,8 @@ type Context = { readonly params: Promise<{ readonly run: string }> };
 export async function GET(request: Request, context: Context): Promise<Response> {
   const run = RunId.safeParse((await context.params).run);
   if (!run.success) return problem(400, 'not a run id');
+  if (!(await mayViewEngine(env.GATEWAY, run.data, (await getUser(request))?.id ?? null)))
+    return problem(404, 'no such run');
   if (isRecordedRun(run.data))
     return problem(404, 'a recorded run replays in the browser; it has no live feed');
   const binding = asGatewayBinding(env.GATEWAY);

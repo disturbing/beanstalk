@@ -7,6 +7,7 @@
  */
 import { z } from 'zod';
 
+import type { RepositoryForViewer } from './collaborators';
 import type { RpcResult } from './rpc';
 
 /** Characters of a repository name: the engine's and Artifacts' name limit. */
@@ -139,23 +140,24 @@ export type Viewer = string | null;
 /**
  * The registry RPC on the gateway's default entrypoint. The web app authenticates the user
  * (`requireUser`) before calling; the gateway trusts the binding for identity and checks
- * ownership and visibility itself.
+ * access itself (`mayUseEngine`: owner, collaborators, visibility).
  */
 export type RepositoriesRpc = {
   createRepository(
     owner: RepoOwner,
     input: CreateRepositoryInput,
   ): Promise<RpcResult<RepositoryRecord>>;
-  /** An owner's repositories, newest first; private ones only when the viewer is the owner. */
+  /** An owner's repositories, newest first: those the viewer may read. */
   listRepositories(
     ownerId: string,
     viewer: Viewer,
   ): Promise<RpcResult<readonly RepositoryRecord[]>>;
+  /** The repository with the viewer's role on it; not found when the viewer may not read it. */
   getRepository(
     ownerHandle: string,
     name: string,
     viewer: Viewer,
-  ): Promise<RpcResult<RepositoryRecord>>;
+  ): Promise<RpcResult<RepositoryForViewer>>;
   updateRepository(
     ownerId: string,
     repoId: string,

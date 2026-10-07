@@ -11,7 +11,7 @@ coordinate agents (claims, reserved names) and explain verdicts; none of them mo
 The plugin's `.mcp.json` points the `beanstalk` server at `BEANSTALK_MCP_URL` (default: the
 dev deployment) with no auth header, so the client uses OAuth: run `/mcp` in Claude Code (or
 `claude mcp login beanstalk`) and approve in the browser. Tick **write** on the consent page
-if the agent should open beans; **collaborate** is enough to claim tasks. Without OAuth the
+if the agent should open beans and claim tasks. Every tool also follows the person's role on the repository: read tools need the read role, `bean_open`, `task_claim`, `task_release` and a pushing credential need the write role (`repository_access(repository)` says which you have). Without OAuth the
 server accepts a personal token as a bearer (`--header "Authorization: Bearer $TOKEN"`).
 Deploy tokens (`bsd_`) never open MCP. Never print a token.
 
@@ -29,14 +29,14 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 
 | Tool | Scope | Call it when |
 |---|---|---|
-| `repo_list()` | read | Which repositories you own, your access (`write` = may push beans), clone URLs |
+| `repo_list()` | read | The repositories you own or collaborate on, your role and access (`write` = may push beans), clone URLs |
 | `repo_status(repo)` | read | Stalk and sprout heads, unvalidated window, beans in flight (who), beans sent back, recent reds, open cards |
 | `bean_open(repo, bean, intent, task?)` | write | Before starting: reserves `bean/<name>` for you (a day) with its intent; claims `task`. The intent you reserve is the bean's intent at the push (`-o intent` overrides) |
 | `bean_status(repo, bean)` | read | After a push: phase, failing tests, the landed beans it collided with (intent, files changed), the lines pushes printed, `next` |
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o wait`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s |
 | `task_list(repo)` | read | The backlog (`.beanstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
-| `task_claim(repo, task)` | collaborate or write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
-| `task_release(repo, task)` | collaborate or write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |
+| `task_claim(repo, task)` | write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
+| `task_release(repo, task)` | write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |
 | `git_credentials(repo, ttl_minutes?)` | read (push needs write) | Only when git is not connected: a credential for that one repository, at most an hour, as `git credential approve` input |
 
 Backlog format: `- [ ] <id>: <title>` items (ticked = done), detail indented below. Change

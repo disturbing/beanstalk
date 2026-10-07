@@ -84,6 +84,7 @@ function toolScope(input: Parameters<typeof serveMcp>[1]): ToolScope {
     },
     ...(session === undefined ? {} : { session }),
     ...(agents === undefined ? {} : { agents }),
+    gateway: input.gateway,
     gitOrigin: env.GIT_ORIGIN,
     webUrl: env.WEB_URL,
   };

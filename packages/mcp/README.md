@@ -87,14 +87,14 @@ with source revisions, cursors and handles (`beans/<task>`, `file:<path>@<sha>`,
 
 | Tool | Scope | Answer |
 |---|---|---|
-| `repo_list()` | read | Your repositories: access (`write`/`read`), visibility, clone URL |
+| `repo_list()` | read | Repositories you own or collaborate on: role, access (`write`/`read`), visibility, clone URL |
 | `repo_status(repo)` | read | Stalk and sprout heads, window, beans in flight and sent back (who, phase), recent reds, open cards |
 | `bean_open(repo, bean, intent, task?)` | write | Reserves `bean/<name>` for a day with its intent (claims `task`); branch, `start` and `push` commands, sprout head |
 | `bean_status(repo, bean)` | read | Phase, the pushed bean (actor, intent, verdict), rework (failing tests, collided beans with intent and files), journey, `next` |
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | Holds until the check ends (or the stalk), at most 1,800 s; as `bean_status` plus `waited_s`, `timed_out` |
 | `task_list(repo)` | read | The backlog file on the sprout with each task's state |
-| `task_claim(repo, task)` | collaborate or write | Claims for two hours; refused with who holds it |
-| `task_release(repo, task)` | collaborate or write | Drops your claim and the names you reserved for the task; refused for someone else's claim |
+| `task_claim(repo, task)` | write | Claims for two hours; refused with who holds it |
+| `task_release(repo, task)` | write | Drops your claim and the names you reserved for the task; refused for someone else's claim |
 | `git_credentials(repo, ttl_minutes?)` | read (+write to push) | A `bss_` token bound to that repository, at most an hour, as `git credential approve` input |
 
 `bean_context`, `bean_update` and `bean_thread_post` accept `t032` or `beans/t032`; `change_status`,

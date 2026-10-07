@@ -9,8 +9,9 @@
 import type { TaskId } from '@beanstalk/shared-race/ids';
 import { RunId, Sha } from '@beanstalk/shared-race/ids';
 
-import type { GitCredential, RepositoryAccess } from '../auth/git-credential';
-import { mayUseEngine } from '../auth/git-credential';
+import type { GitCredential, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
+import { mayUseEngine, roleOf } from '../auth/git-credential';
+import { notConnected } from '../auth/connect-hint';
 import type { Deps } from '../deps';
 import { withCapabilities } from '../git/advertisement';
 import { forwardGit } from '../git/forward';
@@ -27,6 +28,8 @@ import {
   withRemoteLines,
   withoutFinalFlush,
 } from '../git/receive-pack-report';
+import { accessFacts } from '../repos/access';
+import type { SessionUse } from '../repos/collaborators';
 import type { RunDO } from '../run/run-do';
 import { PROTECTED_BRANCHES, beanOfPushedRef } from './bean-refs';
 import type { PushProgress } from './push-bean';
@@ -44,7 +47,8 @@ const ZERO_SHA = '0'.repeat(40);
 export type RepoGitRequest = {
   readonly request: Request;
   readonly path: GitPath;
-  readonly credential: GitCredential;
+  /** Null when git sent no credential: a public repository is cloned anonymously. */
+  readonly credential: GitCredential | null;
   readonly deps: Deps;
   readonly ctx: Pick<ExecutionContext, 'waitUntil'>;
 };
@@ -54,17 +58,30 @@ type Engine = DurableObjectStub<RunDO>;
 /** Serves one smart-HTTP request of a repository engine. */
 export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const { path, credential, deps } = input;
-  const repository = await repositoryAt(deps, path);
+  const principal: RepositoryPrincipal =
+    credential === null ? { kind: 'anonymous' } : { kind: 'credential', credential };
+  const repository = await repositoryAt(deps, path, principal);
   const access = accessFor(path.service);
-  // A repository the credential may not use is answered as missing: its existence is not told.
-  const missing = text(404, `no repository ${path.namespace}/${path.repo}`);
-  if (repository === null || !mayUseEngine(credential, repository, access)) return missing;
-  const engineId = repository.engine;
+  // A repository the credential may not use is answered as missing: its existence is not
+  // told. Without a credential git is asked for one instead, as for a missing repository.
+  const missing =
+    credential === null
+      ? notConnected('missing', deps.config.webUrl)
+      : text(404, `no repository ${path.namespace}/${path.repo}`);
+  if (repository === null) return missing;
+  const verdict = mayUseEngine(principal, repository.access, access);
+  if (verdict !== 'allowed') {
+    if (verdict === 'not-found' || credential === null) return missing;
+    return text(403, refusalText(credential, repository.access, access));
+  }
+  const engineId = repository.access.engine;
   const engine = deps.run(engineId);
   if ((await engine.repoEngine()) === null) return missing;
-  if (access === 'write' && !credential.scopes.includes('bean:write'))
-    return text(403, 'this token may read the repository but not push beans');
-  if (path.rest === 'git-receive-pack') return push(input, { engine, engineId });
+  const use = credential === null ? null : sessionUse(credential, repository.repoId);
+  if (path.rest === 'git-receive-pack')
+    // Pushing is never allowed without a credential, so `credential` is set here.
+    return credential === null ? missing : push(input, { engine, engineId, use, credential });
+  if (use !== null) input.ctx.waitUntil(recordUse(deps, use, 'read'));
   const grant = await engine.repoGitGrant(access);
   if (!grant.ok) return text(grant.status, grant.message);
   const response = await forwardGit(input.request, {
@@ -86,19 +103,66 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
  * an engine opened without one (the admin route) the engine derived from the path, private.
  * A repository's old name (its derived engine now belongs to a renamed record) names nothing.
  */
-async function repositoryAt(deps: Deps, path: GitPath): Promise<RepositoryAccess | null> {
+async function repositoryAt(
+  deps: Deps,
+  path: GitPath,
+  principal: RepositoryPrincipal,
+): Promise<{ readonly access: RepositoryAccess; readonly repoId: string | null } | null> {
   const record = await deps.registry.byName(path.namespace, path.repo);
-  const engine = RunId.safeParse(record?.engine_id);
-  if (record !== null && engine.success)
-    return { engine: engine.data, ownerHandle: record.owner.handle, visibility: record.visibility };
+  if (record !== null && RunId.safeParse(record.engine_id).success)
+    return { access: await accessFacts(deps.collaborators, record, principal), repoId: record.id };
   const derived = await repoEngineId(path.namespace, path.repo);
   if ((await deps.registry.byEngine(derived)) !== null) return null;
-  return { engine: derived, ownerHandle: path.namespace, visibility: 'private' };
+  return {
+    access: {
+      engine: derived,
+      owner: { id: null, handle: path.namespace },
+      visibility: 'private',
+      collaboratorRole: null,
+    },
+    repoId: null,
+  };
+}
+
+/** What git prints when someone who can see the repository may not do this. */
+function refusalText(
+  credential: GitCredential,
+  repository: RepositoryAccess,
+  access: 'read' | 'write',
+): string {
+  const role = roleOf({ kind: 'credential', credential }, repository);
+  const needs = access === 'write' ? 'push beans' : 'read';
+  if (credential.engine !== null) return `this token may not ${needs} here (read-only access)`;
+  if (role === null)
+    return `${repository.owner.handle}'s repository is public to read; to ${needs} ask its owner for the write role`;
+  if (role === 'read' && access === 'write')
+    return `your role on this repository is read; to push beans you need the write role`;
+  return `this credential may not ${needs} (its scopes do not include it)`;
+}
+
+type Use = Omit<SessionUse, 'action'>;
+
+/** A person's credential on a registry repository, for its sessions list; null otherwise. */
+function sessionUse(credential: GitCredential, repoId: string | null): Use | null {
+  if (repoId === null || credential.session === null) return null;
+  return {
+    repoId,
+    user: credential.user,
+    via: credential.session.via,
+    credentialId: credential.session.id,
+    label: '',
+  };
+}
+
+async function recordUse(deps: Deps, use: Use, action: 'read' | 'push'): Promise<void> {
+  await deps.collaborators.recordUse({ ...use, action }).catch((error: unknown) => {
+    deps.log.warn('session use not recorded', { repo: use.repoId, error });
+  });
 }
 
 async function push(
   input: RepoGitRequest,
-  target: { engine: Engine; engineId: RunId },
+  target: { engine: Engine; engineId: RunId; use: Use | null; credential: GitCredential },
 ): Promise<Response> {
   if (input.request.headers.get('content-encoding') !== null)
     return text(415, 'compressed pushes are not supported');
@@ -109,7 +173,7 @@ async function push(
   const options = parsePushOptions(request.options);
   const checked = await checkCommands(request, {
     engine: target.engine,
-    actor: input.credential.user.handle,
+    actor: target.credential.user.handle,
   });
   if (!checked.ok) {
     await request.upstreamBody.cancel();
@@ -131,9 +195,11 @@ async function push(
   const submitted = await target.engine.submitPush({
     bean: checked.bean,
     head: checked.head,
-    actor: input.credential.user.handle,
+    actor: target.credential.user.handle,
     options,
   });
+  if (submitted.ok && target.use !== null)
+    input.ctx.waitUntil(recordUse(input.deps, target.use, 'push'));
   if (!submitted.ok) {
     const lines = [
       `beanstalk: the bean's branch moved, but the engine did not take it: ${submitted.reason}`,

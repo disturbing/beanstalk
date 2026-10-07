@@ -34,6 +34,14 @@ export const RepositoryRecord = z.object({
 });
 export type RepositoryRecord = z.infer<typeof RepositoryRecord>;
 
+/** What a person is on a repository: a collaborator role, or its owner. */
+export const ViewerRole = z.enum(['read', 'write', 'maintain', 'owner']);
+export type ViewerRole = z.infer<typeof ViewerRole>;
+
+/** A repository with the viewer's role on it (null: none, reading a public one). */
+export const RepositoryForViewer = RepositoryRecord.extend({ viewer_role: ViewerRole.nullable() });
+export type RepositoryForViewer = z.infer<typeof RepositoryForViewer>;
+
 export const RepositoryActivity = z.object({
   repo_id: z.string(),
   owner_handle: z.string(),
@@ -63,7 +71,7 @@ export type Outcome<T> =
 export type RegistryClient = {
   create(owner: RepoOwner, input: CreateRepositoryInput): Promise<Outcome<RepositoryRecord>>;
   list(ownerId: string, viewer: Viewer): Promise<Outcome<readonly RepositoryRecord[]>>;
-  get(ownerHandle: string, name: string, viewer: Viewer): Promise<Outcome<RepositoryRecord>>;
+  get(ownerHandle: string, name: string, viewer: Viewer): Promise<Outcome<RepositoryForViewer>>;
   update(
     ownerId: string,
     repoId: string,
@@ -107,7 +115,7 @@ export function registryClient(binding: object): RegistryClient {
     list: (ownerId, viewer) =>
       call(z.array(RepositoryRecord), (r) => r.listRepositories(ownerId, viewer)),
     get: (ownerHandle, name, viewer) =>
-      call(RepositoryRecord, (r) => r.getRepository(ownerHandle, name, viewer)),
+      call(RepositoryForViewer, (r) => r.getRepository(ownerHandle, name, viewer)),
     update: (ownerId, repoId, patch) =>
       call(RepositoryRecord, (r) => r.updateRepository(ownerId, repoId, patch)),
     remove: (ownerId, repoId) =>

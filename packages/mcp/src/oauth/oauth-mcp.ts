@@ -71,11 +71,16 @@ function agentSession(
 ): AgentSessionContext {
   const { props, scopes, clientId } = input;
   return {
+    userId: props.userId,
     handle: props.handle,
     clientName: props.clientName,
     via: props.via,
     scopes,
-    principal: { user: { id: props.userId, handle: props.handle }, scopes },
+    principal: {
+      user: { id: props.userId, handle: props.handle },
+      scopes,
+      label: props.clientName,
+    },
     async mintGitToken(repository) {
       const gitScopes = scopes.filter(
         (scope) => scope === 'read' || (scope === 'write' && repository.access === 'write'),

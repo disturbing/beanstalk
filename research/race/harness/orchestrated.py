@@ -365,6 +365,11 @@ class BeanstalkForge:
         base = run_git(base_dir, "rev-parse", "HEAD").strip()
         suite = suite_mod.gateway_suite(suite_mod.load_suite(self.cfg.arena))
         settings = {**({"suite": suite} if suite else {}), "base_branch": "sprout"}
+        preland = self.cfg.extra.get("preland_concurrency")
+        if preland:
+            # Both arms' check concurrency set explicitly (doc 18 §7.1): pre-land checks at once (GitHub: PR check
+            # jobs at once, the Actions limit) and validations at once (GitHub: the merge queue's builds).
+            settings["engine"] = {"preland_sandboxes": int(preland), "ci_slots": self.cfg.ci_slots}
         owner = {"id": f"u-{self.cfg.beanstalk_owner}", "handle": self.cfg.beanstalk_owner}
         if self.cfg.extra.get("bs_seed", "import") == "import":
             url = self.publish_base(base_dir, base)

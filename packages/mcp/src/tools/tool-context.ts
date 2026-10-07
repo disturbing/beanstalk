@@ -24,6 +24,8 @@ import type { Logger } from '../log';
 
 /** A person's agent session (OAuth grant or personal token), for the session tools. */
 export type AgentSessionContext = {
+  /** The person's account id, for repository access (`repository-access.ts`). */
+  readonly userId: string;
   readonly handle: string;
   readonly clientName: string;
   readonly via: 'oauth' | 'token';
@@ -53,6 +55,8 @@ export type ToolScope = {
   readonly session?: AgentSessionContext;
   /** The gateway's repository RPC (sessions only). */
   readonly agents?: AgentReposRpc;
+  /** The gateway binding, for `repository_access` (`repository-access.ts`). */
+  readonly gateway: object;
   /** The gateway's public origin, for clone URLs and credentials. */
   readonly gitOrigin: string;
   readonly webUrl: string;

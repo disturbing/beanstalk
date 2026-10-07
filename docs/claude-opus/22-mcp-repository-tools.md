@@ -4,21 +4,21 @@ Built 2026-10-07 (lane B of persistent repositories, from `prototype` at `f9a229
 
 ## 1. What a session can do
 
-An OAuth session (or a personal `bsu_` token as a bearer) addresses any repository its person may use, named `owner/name`. Access is the git rule: the session becomes a person's git credential and `mayUseEngine` decides (owner, public read; collaborators join there). A repository the person may not use answers "no repository … you can use", like git's 404. Deploy tokens (`bsd_`) and repository-bound git credentials never open `/mcp` (401).
+An OAuth session (or a personal `bsu_` token as a bearer) addresses any repository its person may use, named `owner/name`. Access is the git rule (merged with the collaborators lane at `b58cf65`): the session is its person's credential, the person's role (owner, maintain, write, read, or none on a public repository) capped by the session's scopes, and `mayUseEngine` decides through `repos/access.ts`. Read tools need the read role; `bean_open`, `task_claim`, `task_release` and a pushing `git_credentials` need the write role and the `write` scope (a read role gets a read-only credential). A repository the person may not see answers "repository … not found", like git's 404; every use is recorded in the repository's sessions list as the MCP client. `repository_access(repository)` (from the collaborators lane) tells an agent its role. Deploy tokens (`bsd_`) and repository-bound git credentials never open `/mcp` (401).
 
 | Tool | Scope | What it does |
 |---|---|---|
-| `repo_list()` | read | The person's repositories: access (`write` when the person may push and the session holds `write`), visibility, clone URL |
+| `repo_list()` | read | The repositories the person owns or collaborates on: role, access (`write` when the role and the session's scope both allow pushing), visibility, clone URL |
 | `repo_status(repo)` | read | Stalk and sprout heads, unvalidated window, beans in flight and sent back (who, phase, task), recent red validations, open cards |
 | `bean_open(repo, bean, intent, task?)` | write | Reserves `bean/<name>` for a day with its intent; claims `task`; returns the branch, `start` and `push` commands and the sprout head |
 | `bean_status(repo, bean)` | read | Phase (`open` while reserved), the pushed bean (actor, intent, verdict lines), rework (failing tests, conflicts, the collided-with beans with title, intent, landed sha and files changed), the journey (every line the pushes printed), `next` |
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | The twin of `git push -o wait`: holds until the check ends (`until: "stalk"`: until validated), default 300 s, at most 1,800; `waited_s`, `timed_out` |
 | `task_list(repo)` | read | The backlog with each task's state: open, claimed (by, until), in_progress (whose bean), done |
-| `task_claim(repo, task)` | collaborate or write | Two-hour claim, renewed by claiming again or `bean_open` with it; refused with who holds it |
-| `task_release(repo, task)` | collaborate or write | Gives a task back: the person's claim and the names they reserved for it (added after the first real session, where the agent found its task already done and had no way to free it) |
+| `task_claim(repo, task)` | write | Two-hour claim, renewed by claiming again or `bean_open` with it; refused with who holds it |
+| `task_release(repo, task)` | write | Gives a task back: the person's claim and the names they reserved for it (added after the first real session, where the agent found its task already done and had no way to free it) |
 | `git_credentials(repo, ttl_minutes?)` | read (push needs write) | A `bss_` token bound to that one repository, at most an hour, as `git credential approve` input with the commands to store it |
 
-Acting (bean_open, claims) also needs the person to be able to push to the repository: a reader of a public repository cannot take its tasks. The existing read tools (`ask_repo`, `work_overlaps`, `change_status`, `checks_get`, `run_status`, `preview_link`) take an optional `repo` in a session; without it they read `DEMO_RUN` or the newest run, as before. Sessions no longer get a 404 when no run exists. The old `git_credential` (an unbound session token) is replaced by `git_credentials`.
+The existing read tools (`ask_repo`, `work_overlaps`, `change_status`, `checks_get`, `run_status`, `preview_link`) take an optional `repo` in a session; without it they read `DEMO_RUN` or the newest run, as before. Sessions no longer get a 404 when no run exists. The old `git_credential` (an unbound session token) is replaced by `git_credentials`.
 
 ## 2. How it works
 
@@ -47,8 +47,7 @@ MCP (packages/mcp)                         gateway (packages/gateway)
 ## 4. Gaps and next
 
 - **Not deployed live.** Before it is: apply identity migration `0003` to `beanstalk-identity`, set `GIT_ORIGIN` in the MCP's vars (added to `wrangler.jsonc`), deploy gateway then MCP.
-- The consent page's text for `collaborate` ("post on beans, answer requests, read its inbox") does not yet mention claiming tasks (web, another lane).
-- Contention between two people is tested at the engine (two actors); end to end it needs collaborators (the other lane's `mayUseEngine` change brings it with no change here).
+- Roles end to end: `agent-repos.test.ts` invites a write and a read collaborator; the writer contends with the owner for a task and a bean name, the reader reads and is refused `bean_open` and claims, an outsider gets 404; `repo-tools.test.ts` checks the same through MCP.
 - `preview_url` in repository answers still links `/runs/<engine>`; repository pages are `/<owner>/<repo>`.
 - A repository-bound credential keeps working for its hour if the person loses access to the repository (it is bound to the engine, like deploy tokens); revoking the agent's session revokes it.
 - `bean_wait` polls once a second (as `-o wait`); a hibernatable wait in the engine object would be cheaper.

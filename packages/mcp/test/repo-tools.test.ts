@@ -7,6 +7,7 @@ import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
 
 import type { Person } from './repo-fixtures';
 import {
+  collaborator,
   deployToken,
   digest,
   gitPush,
@@ -113,7 +114,7 @@ describe('repository tools', () => {
     });
     const stranger = await session();
     expect(await tool(stranger.client, 'repo_status', { repo: slug(repo) })).toEqual({
-      error: `no repository ${slug(repo)} you can use`,
+      error: `repository ${slug(repo)} not found`,
     });
     // The read tools take the repository too.
     expect(await tool(client, 'run_status', { repo: slug(repo) })).toMatchObject({
@@ -122,7 +123,7 @@ describe('repository tools', () => {
     expect(
       await tool(stranger.client, 'work_overlaps', { paths: ['src'], repo: slug(repo) }),
     ).toEqual({
-      error: `no repository ${slug(repo)} you can use`,
+      error: `repository ${slug(repo)} not found`,
     });
   });
 
@@ -189,7 +190,7 @@ describe('repository tools', () => {
     });
     const readOnly = await connect(await personalToken(user, ['read']));
     expect(await tool(readOnly, 'task_claim', { repo: slug(repo), task: 'add-total' })).toEqual({
-      error: expect.stringContaining('needs the collaborate or write scope'),
+      error: expect.stringContaining('needs the write scope'),
     });
   });
 
@@ -267,6 +268,35 @@ describe('repository tools', () => {
     });
     expect(await tool(client, 'repo_status', { repo: slug(repo) })).toMatchObject({
       sent_back: [{ bean: 'red-discount', phase: 'red', actor: user.handle }],
+    });
+  });
+
+  it("follows the person's role: a read collaborator reads but opens no bean; outsiders see nothing", async () => {
+    const owner = await person();
+    const repo = await repository(owner);
+    const reader = await collaborator(owner, repo, 'read');
+    const client = await connect(await personalToken(reader, ['read', 'write']));
+    expect(await tool(client, 'repo_status', { repo: slug(repo) })).toMatchObject({
+      repo: slug(repo),
+    });
+    expect(await tool(client, 'repository_access', { repository: slug(repo) })).toMatchObject({
+      role: 'read',
+      may: { read: true, push_beans: false },
+    });
+    expect(await tool(client, 'bean_open', { repo: slug(repo), bean: 'r', intent: 'R' })).toEqual({
+      error: expect.stringContaining('needs the write role'),
+    });
+    expect(
+      z
+        .object({ scopes: z.array(z.string()) })
+        .parse(await tool(client, 'git_credentials', { repo: slug(repo) })).scopes,
+    ).toEqual(['read']);
+    const writer = await collaborator(owner, repo, 'write');
+    const writing = await connect(await personalToken(writer, ['read', 'write']));
+    expect(
+      await tool(writing, 'bean_open', { repo: slug(repo), bean: 'w', intent: 'W' }),
+    ).toMatchObject({
+      branch: 'bean/w',
     });
   });
 

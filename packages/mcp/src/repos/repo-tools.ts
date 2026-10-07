@@ -151,7 +151,7 @@ function registerBacklogTools(server: McpServer, scope: ToolScope): void {
     {
       title: 'Claim a task',
       description:
-        'Before working on a backlog task: claim it so no other agent takes it (two hours; claim again or bean_open with task to keep it; a pushed bean for the task holds it until it lands). Refused, with who holds it, when it is taken. Needs the collaborate or write scope.',
+        'Before working on a backlog task: claim it so no other agent takes it (two hours; claim again or bean_open with task to keep it; a pushed bean for the task holds it until it lands). Refused, with who holds it, when it is taken. Needs the write scope and the write role.',
       inputSchema: z.object({ repo: Repo, task: TaskId }),
       annotations: RESERVES,
     },
@@ -162,7 +162,7 @@ function registerBacklogTools(server: McpServer, scope: ToolScope): void {
     {
       title: 'Give a task back',
       description:
-        'When you will not do a task you claimed (it turned out done, or you are stopping): drops your claim and the bean names you reserved for it, so another agent can take it. A bean you pushed for it still holds it. Needs the collaborate or write scope.',
+        'When you will not do a task you claimed (it turned out done, or you are stopping): drops your claim and the bean names you reserved for it, so another agent can take it. A bean you pushed for it still holds it. Needs the write scope and the write role.',
       inputSchema: z.object({ repo: Repo, task: TaskId }),
       annotations: RESERVES,
     },

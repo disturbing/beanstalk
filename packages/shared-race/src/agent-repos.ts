@@ -11,16 +11,14 @@
  */
 import { z } from 'zod';
 
+import type { AgentPrincipal, ViewerRole } from './collaborators';
 import type { PushedBeanStatus, RpcResult } from './rpc';
+
+/** Who is asking: the person behind an MCP session, its scopes and client (collaborators' type). */
+export type { AgentPrincipal } from './collaborators';
 
 /** The scopes of an agent session (`@beanstalk/shared-identity/scopes`). */
 export type SessionScope = 'read' | 'collaborate' | 'write';
-
-/** Who is asking: the person behind an MCP session and what the session may do. */
-export type AgentPrincipal = {
-  readonly user: { readonly id: string; readonly handle: string };
-  readonly scopes: readonly SessionScope[];
-};
 
 /** `owner/name`, as in `/<owner>/<repo>` and the clone URL. */
 export const RepoSlug = z
@@ -59,7 +57,9 @@ export type AgentRepository = {
   readonly repo: string;
   readonly description: string;
   readonly visibility: 'public' | 'private';
-  /** What the session may do here: push beans (`write`) or only read. */
+  /** The person's role: owner, maintain, write, read, or null (a public repository). */
+  readonly role: ViewerRole | null;
+  /** What the session may do here: push beans (`write`: the write role and scope) or only read. */
   readonly access: 'write' | 'read';
   /** The engine id the run read tools take. */
   readonly engine_id: string;
@@ -159,7 +159,7 @@ export type TaskClaimed = { readonly repo: string; readonly task: BacklogTask };
 
 /** The gateway RPC behind the MCP repository tools. */
 export type AgentReposRpc = {
-  /** The repositories the person owns (others' public ones are addressed by name). */
+  /** The repositories the person owns or collaborates on (public ones are named directly). */
   agentRepositories(principal: AgentPrincipal): Promise<RpcResult<readonly AgentRepository[]>>;
   /** One repository by `owner/name`, when the person may use it; 404 otherwise. */
   agentRepository(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentRepository>>;
@@ -183,13 +183,13 @@ export type AgentReposRpc = {
     input: BeanOpenInput,
   ): Promise<RpcResult<BeanOpened>>;
   agentBacklog(principal: AgentPrincipal, repo: string): Promise<RpcResult<Backlog>>;
-  /** Claims a backlog task for the person; needs `collaborate` or `write`. */
+  /** Claims a backlog task for the person; needs the write role and scope. */
   agentClaimTask(
     principal: AgentPrincipal,
     repo: string,
     task: string,
   ): Promise<RpcResult<TaskClaimed>>;
-  /** Gives a task back (the person's claim and names reserved for it); same scopes as a claim. */
+  /** Gives a task back (the person's claim and names reserved for it); as a claim needs. */
   agentReleaseTask(
     principal: AgentPrincipal,
     repo: string,

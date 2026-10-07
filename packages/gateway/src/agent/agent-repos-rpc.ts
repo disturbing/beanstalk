@@ -29,7 +29,7 @@ import { GatewayError } from '../errors';
 import type { PushBean } from '../push/push-bean';
 import { pushedBeanStatus } from '../rpc/repo-engine-rpc';
 import type { Opened } from './agent-access';
-import { failure, openRepository, ownRepositories } from './agent-access';
+import { failure, openRepository, personRepositories } from './agent-access';
 import type { Reservation, TaskStanding } from './agent-store';
 import type { BacklogEntry } from './backlog';
 import { BACKLOG_FILES, parseBacklog } from './backlog';
@@ -45,7 +45,7 @@ const CHECKING: ReadonlySet<string> = new Set(['checking', 'waiting']);
 
 export function agentReposRpc(deps: Deps): AgentReposRpc {
   return {
-    agentRepositories: (principal) => guarded(() => ownRepositories(deps, principal)),
+    agentRepositories: (principal) => guarded(() => personRepositories(deps, principal)),
     agentRepository: (principal, repo) =>
       guarded(async () =>
         mapped(await openRepository(deps, { principal, repo, need: READ }), (opened) => {
@@ -82,12 +82,12 @@ const READ = { kind: 'read' } as const;
 const OPEN_BEAN = { kind: 'act', scopes: ['write'], what: 'Opening a bean' } as const;
 const RELEASE_TASK = {
   kind: 'act',
-  scopes: ['collaborate', 'write'],
+  scopes: ['write'],
   what: 'Releasing a task',
 } as const;
 const CLAIM_TASK = {
   kind: 'act',
-  scopes: ['collaborate', 'write'],
+  scopes: ['write'],
   what: 'Claiming a task',
 } as const;
 

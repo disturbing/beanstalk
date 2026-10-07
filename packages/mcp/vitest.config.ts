@@ -89,6 +89,8 @@ function auxiliaryWorkers() {
       durableObjects: {
         RUNS: { className: 'RunDO', useSQLite: true },
         RUN_INDEX: { className: 'RunIndex', useSQLite: true },
+        RUN_STREAMS: { className: 'RunStreamDO', useSQLite: true },
+        RUNNER_CAPACITY: { className: 'RunnerCapacity', useSQLite: true },
         RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' },
       },
       outboundService: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },

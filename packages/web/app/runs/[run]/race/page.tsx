@@ -1,3 +1,5 @@
+import { currentUser } from '../../../../src/auth/user';
+import { mayViewEngine } from '../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
@@ -34,6 +36,7 @@ export default async function RaceCanvasPage({ params, searchParams }: PageProps
   const parsedRun = RunId.safeParse((await params).run);
   if (!parsedRun.success) notFound();
   const run = parsedRun.data;
+  if (!(await mayViewEngine(env.GATEWAY, run, (await currentUser())?.id ?? null))) notFound();
   const query = await searchParams;
   const recorded = isRecordedRun(run);
   const data = await racePageData(forgeForRun(env.GATEWAY, run), run).catch((error: unknown) => {

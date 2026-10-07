@@ -66,7 +66,7 @@ export default async function RepositoryPage({ params, searchParams }: PageProps
   const [files, config, session] = await Promise.all([
     registryClient(env.GATEWAY).files(record.id, page.user?.id ?? null),
     startConfig(),
-    page.isOwner ? currentSession() : Promise.resolve(null),
+    page.role === 'owner' || page.role === 'maintain' ? currentSession() : Promise.resolve(null),
   ]);
   return (
     <main>

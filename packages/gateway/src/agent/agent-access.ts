@@ -1,8 +1,10 @@
 /**
- * Which repository an agent session may work on, by the rule git uses: the session's person
- * becomes a git credential (a person's token, bound to no engine) and `mayUseEngine` decides.
- * A repository the person may not use answers 404, as git's proxy does: its existence is not
- * told. Deploy tokens never reach here (MCP sessions are people, verified by the MCP Worker).
+ * Which repository an agent session may work on, by the rule git and the web use: the
+ * session is its person's credential (role capped by the session's scopes) and `mayUseEngine`
+ * decides, through the registry's access facts (`../repos/access.ts`). Reading needs the read
+ * role; opening beans and claiming tasks need the write role and the `write` scope. A
+ * repository the person may not see answers 404, as git does. Deploy tokens never reach here
+ * (MCP sessions are people, verified by the MCP Worker).
  */
 import type {
   AgentPrincipal,
@@ -10,13 +12,16 @@ import type {
   SessionScope,
 } from '@beanstalk/shared-race/agent-repos';
 import { RepoSlug } from '@beanstalk/shared-race/agent-repos';
+import type { RepositoryAction, ViewerRole } from '@beanstalk/shared-race/collaborators';
 import { RunId } from '@beanstalk/shared-race/ids';
 import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+import { parseScopes } from '@beanstalk/shared-identity/scopes';
 
-import type { GitCredential, GitScope, RepositoryAccess } from '../auth/git-credential';
-import { mayUseEngine } from '../auth/git-credential';
+import type { RepositoryPrincipal } from '../auth/git-credential';
+import { gitScopes } from '../auth/git-credential';
 import type { Deps } from '../deps';
+import { accessResult, decideAccess } from '../repos/access';
 import type { RunDO } from '../run/run-do';
 
 /** A repository the session may use, with its engine. */
@@ -44,52 +49,55 @@ export async function openRepository(
   const slug = RepoSlug.safeParse(input.repo);
   if (!slug.success) return failure('invalid_request', 400, 'name the repository as owner/name');
   const [owner = '', name = ''] = slug.data.split('/');
+  const action: RepositoryAction = need.kind === 'read' ? 'read' : 'write';
   const record = await deps.registry.byName(owner, name);
-  const engineId = RunId.safeParse(record?.engine_id);
-  const missing = failure('not_found', 404, `no repository ${slug.data} you can use`);
-  if (record === null || !engineId.success) return missing;
-  const credential = credentialOf(principal);
-  const target = {
-    engine: engineId.data,
-    ownerHandle: record.owner.handle,
-    visibility: record.visibility,
-  };
-  if (!mayUseEngine(credential, target, 'read')) return missing;
-  if (need.kind === 'act' && !isContributor(principal, target))
-    return failure('forbidden', 403, `you may read ${slug.data} but not work on it`);
+  const decided = await accessResult(deps.collaborators, record, {
+    principal: principalOf(principal),
+    action,
+    what: slug.data,
+  });
+  if (!decided.ok) return decided;
+  const engineId = RunId.safeParse(decided.value.engine_id);
+  const missing = failure('not_found', 404, `repository ${slug.data} not found`);
+  if (!engineId.success) return missing;
   const engine = deps.run(engineId.data);
   if ((await engine.repoEngine()) === null) return missing;
+  await recordUse(deps, decided.value, principal);
+  const access = action === 'write' ? 'write' : await accessOf(deps, decided.value, principal);
   return {
     ok: true,
     value: {
-      repository: describe(record, accessOf(principal, target)),
+      repository: describe(decided.value, { access, role: decided.value.viewer_role }),
       engineId: engineId.data,
       engine,
     },
   };
 }
 
-/** The repositories the person owns, as the session may use them. */
-export async function ownRepositories(
+/** The repositories the person owns or collaborates on, as the session may use them. */
+export async function personRepositories(
   deps: Deps,
   principal: AgentPrincipal,
 ): Promise<RpcResult<readonly AgentRepository[]>> {
   if (!principal.scopes.includes('read'))
     return failure('forbidden', 403, 'this session has no read scope');
-  const records = await deps.registry.byOwner(principal.user.id);
-  return {
-    ok: true,
-    value: records.flatMap((record) => {
-      const engine = RunId.safeParse(record.engine_id);
-      if (!engine.success) return [];
-      const target = {
-        engine: engine.data,
-        ownerHandle: record.owner.handle,
-        visibility: record.visibility,
-      };
-      return [describe(record, accessOf(principal, target))];
+  const [owned, memberships] = await Promise.all([
+    deps.registry.byOwner(principal.user.id),
+    deps.collaborators.memberships(principal.user.id),
+  ]);
+  const shared = await deps.registry.byIds(memberships.map((member) => member.repoId));
+  const described = await Promise.all(
+    [...owned, ...shared].map(async (record) => {
+      const read = await decideAccess(deps.collaborators, record, {
+        principal: principalOf(principal),
+        action: 'read',
+      });
+      if (read.verdict !== 'allowed') return [];
+      const access = await accessOf(deps, record, principal);
+      return [describe(record, { access, role: read.role })];
     }),
-  };
+  );
+  return { ok: true, value: described.flat() };
 }
 
 export function failure(
@@ -100,39 +108,60 @@ export function failure(
   return { ok: false, error: { code, status, message } };
 }
 
-/** `write` when both the person may push beans here and the session holds `write`. */
-function accessOf(principal: AgentPrincipal, target: RepositoryAccess): 'write' | 'read' {
-  return principal.scopes.includes('write') && isContributor(principal, target) ? 'write' : 'read';
-}
-
-/**
- * Whether the person (whatever this session's scopes) may push beans here: only they open
- * beans and claim tasks, so a reader of a public repository cannot take its tasks.
- */
-function isContributor(principal: AgentPrincipal, target: RepositoryAccess): boolean {
-  const writer = { ...credentialOf(principal), scopes: ['repo:read', 'bean:write'] as const };
-  return mayUseEngine(writer, target, 'write');
-}
-
-/** The session as git would see it: a person's token with the session's git reach. */
-function credentialOf(principal: AgentPrincipal): GitCredential {
-  const scopes: GitScope[] = ['repo:read'];
-  if (principal.scopes.includes('write')) scopes.push('bean:write');
+/** The session as `mayUseEngine` sees it: its person's credential, capped by its scopes. */
+function principalOf(principal: AgentPrincipal): RepositoryPrincipal {
   return {
-    user: { id: principal.user.id, handle: principal.user.handle },
-    scopes,
-    engine: null,
-    runPrincipal: null,
+    kind: 'credential',
+    credential: {
+      user: { id: principal.user.id, handle: principal.user.handle },
+      scopes: gitScopes(parseScopes(principal.scopes)),
+      engine: null,
+      runPrincipal: null,
+      session: { via: 'mcp', id: `${principal.user.id}/${principal.label}` },
+    },
   };
 }
 
-function describe(record: RepositoryRecord, access: 'write' | 'read'): AgentRepository {
+/** `write` when this session may push beans here (role and scope), else `read`. */
+async function accessOf(
+  deps: Deps,
+  record: RepositoryRecord,
+  principal: AgentPrincipal,
+): Promise<'write' | 'read'> {
+  const write = await decideAccess(deps.collaborators, record, {
+    principal: principalOf(principal),
+    action: 'write',
+  });
+  return write.verdict === 'allowed' ? 'write' : 'read';
+}
+
+/** The repository's sessions list shows this agent, as the collaborators RPC records it. */
+async function recordUse(
+  deps: Deps,
+  record: RepositoryRecord,
+  principal: AgentPrincipal,
+): Promise<void> {
+  await deps.collaborators.recordUse({
+    repoId: record.id,
+    user: principal.user,
+    via: 'mcp',
+    credentialId: `${principal.user.id}/${principal.label}`,
+    label: principal.label,
+    action: 'read',
+  });
+}
+
+function describe(
+  record: RepositoryRecord,
+  input: { readonly access: 'write' | 'read'; readonly role: ViewerRole | null },
+): AgentRepository {
   const repo = `${record.owner.handle}/${record.name}`;
   return {
     repo,
     description: record.description,
     visibility: record.visibility,
-    access,
+    role: input.role,
+    access: input.access,
     engine_id: record.engine_id,
     git_path: `/git/${repo}.git`,
   };

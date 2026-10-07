@@ -37,7 +37,7 @@ function as(
   user: { id: string; handle: string },
   scopes: readonly SessionScope[] = ['read', 'write'],
 ): AgentPrincipal {
-  return { user, scopes };
+  return { user, scopes, label: 'Claude Code' };
 }
 
 async function repository(
@@ -90,6 +90,7 @@ describe('agent repositories: access', () => {
         repo: slug(record),
         description: '',
         visibility: 'private',
+        role: 'owner',
         access: 'write',
         engine_id: record.engine_id,
         git_path: `/git/${slug(record)}.git`,
@@ -322,9 +323,7 @@ describe('agent repositories: backlog', () => {
       ['T-2', 'open'],
       ['T-3', 'done'],
     ]);
-    const claimed = value(
-      await gateway.agentClaimTask(as(coop, ['read', 'collaborate']), repo, 'T-2'),
-    );
+    const claimed = value(await gateway.agentClaimTask(as(coop), repo, 'T-2'));
     expect(claimed.task).toMatchObject({ id: 'T-2', state: 'claimed', by: coop.handle });
     // Another agent with push access (a collaborator's session) asks the same engine.
     const engine = env.RUNS.getByName(record.engine_id);
@@ -356,14 +355,15 @@ describe('agent repositories: backlog', () => {
     expect(await engine.claimTask({ task: 'T-2', actor: 'other-agent' })).toMatchObject({
       ok: true,
     });
-    // A reader of the public repository may not take its tasks.
+    // A reader of the public repository may not take its tasks, nor a session without write.
     const dana = await person();
-    expect(
-      await gateway.agentClaimTask(as(dana, ['read', 'collaborate']), repo, 'T-2'),
-    ).toMatchObject({
+    expect(await gateway.agentClaimTask(as(dana), repo, 'T-2')).toMatchObject({
       ok: false,
-      error: { status: 403 },
+      error: { status: 403, message: expect.stringContaining('needs the write role') },
     });
+    expect(
+      await gateway.agentClaimTask(as(coop, ['read', 'collaborate']), repo, 'T-2'),
+    ).toMatchObject({ ok: false, error: { code: 'insufficient_scope' } });
     expect(await gateway.agentClaimTask(as(dana, ['read']), repo, 'T-2')).toMatchObject({
       ok: false,
       error: { code: 'insufficient_scope' },
@@ -444,5 +444,71 @@ describe('repository-bound session tokens', () => {
       beanPush({ bean: 'bound', newSha: await digest('b2') }),
     );
     expect(elsewhere.status).toBe(404);
+  });
+});
+
+describe('agent repositories: collaborators and roles', () => {
+  async function collaborator(
+    owner: { id: string; handle: string },
+    record: RepositoryRecord,
+    role: 'read' | 'write',
+  ) {
+    const member = await person();
+    const invitation = value(
+      await gateway.inviteCollaborator(owner, record.id, { handle: member.handle, role }),
+    );
+    value(await gateway.answerInvitation(member, invitation.id, 'accept'));
+    return member;
+  }
+
+  it('lets a write collaborator work and contend for tasks; a reader only reads', async () => {
+    const coop = await person();
+    const record = await repository(coop);
+    await plantOnSprout(record, { '.beanstalk/backlog.md': BACKLOG }, await writeToken(coop));
+    const repo = slug(record);
+    const [writer, reader, outsider] = [
+      await collaborator(coop, record, 'write'),
+      await collaborator(coop, record, 'read'),
+      await person(),
+    ];
+    expect(value(await gateway.agentRepositories(as(writer)))).toEqual([
+      expect.objectContaining({ repo, role: 'write', access: 'write' }),
+    ]);
+    expect(value(await gateway.agentRepository(as(reader), repo))).toMatchObject({
+      role: 'read',
+      access: 'read',
+    });
+    expect(await gateway.agentRepository(as(outsider), repo)).toMatchObject({
+      ok: false,
+      error: { status: 404 },
+    });
+    // Two people with push access: one claim each task.
+    value(await gateway.agentClaimTask(as(coop), repo, 'T-2'));
+    expect(await gateway.agentClaimTask(as(writer), repo, 'T-2')).toMatchObject({
+      ok: false,
+      error: { status: 409, message: expect.stringContaining(`claimed by @${coop.handle}`) },
+    });
+    value(
+      await gateway.agentOpenBean(as(writer), repo, { bean: 'w1', intent: 'W', task: 'add-total' }),
+    );
+    expect(
+      await gateway.agentOpenBean(as(coop), repo, { bean: 'w1', intent: 'Mine' }),
+    ).toMatchObject({
+      ok: false,
+      error: { status: 409, message: expect.stringContaining(`reserved by @${writer.handle}`) },
+    });
+    expect(
+      await gateway.agentOpenBean(as(reader), repo, { bean: 'r1', intent: 'R' }),
+    ).toMatchObject({
+      ok: false,
+      error: { status: 403, message: expect.stringContaining('needs the write role') },
+    });
+    expect(await gateway.agentClaimTask(as(reader), repo, 'add-total')).toMatchObject({
+      ok: false,
+      error: { status: 403 },
+    });
+    expect(
+      value(await gateway.agentBacklog(as(reader), repo)).tasks.map((task) => task.state),
+    ).toEqual(['in_progress', 'claimed', 'done']);
   });
 });

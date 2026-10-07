@@ -58,6 +58,22 @@ export async function repository(
   return Repository.parse(okValue(created));
 }
 
+/** A person invited to `repo` with `role`, who accepted. */
+export async function collaborator(
+  owner: Person,
+  repo: Repository,
+  role: 'read' | 'write',
+): Promise<Person> {
+  const member = await person('mcp-member');
+  const invited = await gatewayCall('inviteCollaborator', owner, repo.id, {
+    handle: member.handle,
+    role,
+  });
+  const invitation = z.object({ id: z.string() }).parse(okValue(invited));
+  okValue(await gatewayCall('answerInvitation', member, invitation.id, 'accept'));
+  return member;
+}
+
 export async function deployToken(owner: Person, repo: Repository): Promise<string> {
   const issued = await gatewayCall('createDeployToken', owner, repo.id, {
     name: 'ci',
