@@ -68,7 +68,7 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
       );
       if (found === undefined || (found.visibility === 'private' && found.owner.id !== viewer))
         return fail('not_found', 'repository not found');
-      return ok(found);
+      return ok({ ...found, viewer_role: found.owner.id === viewer ? 'owner' : null });
     },
     async updateRepository(ownerId, repoId, patch: UpdateRepositoryInput) {
       const found = records.get(repoId);

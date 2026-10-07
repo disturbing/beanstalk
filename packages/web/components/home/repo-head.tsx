@@ -3,7 +3,15 @@ import Link from 'next/link';
 import type { Repository } from '../../src/people/repository';
 import styles from './home.module.css';
 
-export type RepoTab = 'code' | 'files' | 'beans' | 'decisions' | 'checks' | 'engine' | 'settings';
+export type RepoTab =
+  | 'code'
+  | 'files'
+  | 'beans'
+  | 'decisions'
+  | 'checks'
+  | 'engine'
+  | 'people'
+  | 'settings';
 
 /** Tabs that are questions: the generated explorer is the page for them. */
 export const TAB_QUESTIONS: Readonly<Partial<Record<RepoTab, string>>> = {
@@ -19,13 +27,14 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
   { tab: 'decisions', name: 'Decisions', keys: 'g d' },
   { tab: 'checks', name: 'Checks', keys: 'g k' },
   { tab: 'engine', name: 'Engine', keys: 'g e' },
+  { tab: 'people', name: 'People', keys: 'g p' },
   { tab: 'settings', name: 'Settings', keys: 'g s' },
 ];
 
 /** A race's repository has the engine canvas; a persistent repository has settings instead. */
 const KIND_TABS: Readonly<Record<RepoKind, ReadonlySet<RepoTab>>> = {
   race: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'engine']),
-  repository: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'settings']),
+  repository: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'people', 'settings']),
 };
 
 export type RepoKind = 'race' | 'repository';
@@ -84,6 +93,7 @@ function hrefOf(base: string, tab: RepoTab): string {
   if (tab === 'files') return `${base}/files`;
   if (tab === 'engine') return `${base}/race`;
   if (tab === 'settings') return `${base}/settings`;
+  if (tab === 'people') return `${base}/people`;
   const question = TAB_QUESTIONS[tab];
   return question === undefined ? base : `${base}?q=${encodeURIComponent(question)}`;
 }

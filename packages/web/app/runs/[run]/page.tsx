@@ -1,3 +1,5 @@
+import { currentUser } from '../../../src/auth/user';
+import { mayViewEngine } from '../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
@@ -25,6 +27,7 @@ export default async function RunHome({ params, searchParams }: PageProps) {
   const parsed = RunId.safeParse((await params).run);
   if (!parsed.success) notFound();
   const run = parsed.data;
+  if (!(await mayViewEngine(env.GATEWAY, run, (await currentUser())?.id ?? null))) notFound();
   // One source per request: a live run's reads are shared by the home and the answer.
   const source = forgeForRun(env.GATEWAY, run);
   const data = await homePageData(source, run).catch(notFoundOr);

@@ -23,6 +23,8 @@ import type { Logger } from '../log';
 
 /** A person's agent session (OAuth grant or personal token), for the session tools. */
 export type AgentSessionContext = {
+  /** The person's account id, for repository access (`repository-access.ts`). */
+  readonly userId: string;
   readonly handle: string;
   readonly clientName: string;
   readonly via: 'oauth' | 'token';

@@ -44,6 +44,8 @@ export type Registry = {
   /** The repository an engine drives, whatever its name is now. */
   byEngine(engineId: string): Promise<RepositoryRecord | null>;
   byOwner(ownerId: string): Promise<readonly RepositoryRecord[]>;
+  /** The ready repositories among `ids`, in no particular order. */
+  byIds(ids: readonly string[]): Promise<readonly RepositoryRecord[]>;
   /** Applies the patch; 'taken' when a rename collides, null when the repository is missing. */
   update(
     id: string,
@@ -157,6 +159,14 @@ export function d1Registry(db: D1Database): Registry {
         .all();
       return results.map(recordOf);
     },
+    async byIds(ids) {
+      if (ids.length === 0) return [];
+      const { results } = await db
+        .prepare(`${SELECT} WHERE state = 'ready' AND id IN (SELECT value FROM json_each(?))`)
+        .bind(JSON.stringify(ids))
+        .all();
+      return results.map(recordOf);
+    },
     async update(id, patch, nowMs) {
       const before = await one(`${SELECT} WHERE id = ? AND state = 'ready'`, id);
       if (before === null) return null;
@@ -196,6 +206,10 @@ export function d1Registry(db: D1Database): Registry {
       await db.batch([
         db.prepare('DELETE FROM repository_activity WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM deploy_tokens WHERE repo_id = ?').bind(id),
+        db.prepare('DELETE FROM repository_members WHERE repo_id = ?').bind(id),
+        db.prepare('DELETE FROM repository_invitations WHERE repo_id = ?').bind(id),
+        db.prepare('DELETE FROM repository_sessions WHERE repo_id = ?').bind(id),
+        db.prepare('DELETE FROM repository_audit WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },

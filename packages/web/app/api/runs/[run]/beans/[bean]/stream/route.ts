@@ -1,3 +1,5 @@
+import { getUser } from '../../../../../../../src/auth/user';
+import { mayViewEngine } from '../../../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
@@ -13,11 +15,13 @@ type Context = { readonly params: Promise<{ readonly run: string; readonly bean:
  * `GET /api/runs/:run/beans/:bean/stream`: the bean's latest streamed change while its agent
  * writes (`stream_diffs`), as file diffs; `{ stream: null }` when nothing streams.
  */
-export async function GET(_request: Request, context: Context): Promise<Response> {
+export async function GET(request: Request, context: Context): Promise<Response> {
   const params = await context.params;
   const run = RunId.safeParse(params.run);
   const bean = TaskId.safeParse(params.bean);
   if (!run.success || !bean.success) return problem(400, 'not a run or a bean id');
+  if (!(await mayViewEngine(env.GATEWAY, run.data, (await getUser(request))?.id ?? null)))
+    return problem(404, 'no such run');
   if (isRecordedRun(run.data)) return Response.json({ stream: null });
   try {
     const stream = await beanStreamView(env.GATEWAY, run.data, bean.data);

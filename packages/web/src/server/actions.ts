@@ -16,6 +16,8 @@ import { SESSION_COOKIE, SESSION_SECONDS, isDemoPassword, sessionToken } from '.
 import { forgeForRun } from '../forge/sources';
 import { log } from '../log';
 import { CardId } from '@beanstalk/shared-ask/race/race-events';
+import { currentUser } from '../auth/user';
+import { engineVerdict } from '../repositories/engine-guard';
 import { demoPassword, isSignedIn } from './viewer';
 
 /** Where to go after signing in: a path on this site only. */
@@ -66,12 +68,16 @@ export async function decideCard(
   _previous: DecisionState,
   formData: FormData,
 ): Promise<DecisionState> {
-  if (!(await isSignedIn()))
-    return { kind: 'refused', message: 'Sign in with the demo password first.' };
   const parsed = DecisionForm.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { kind: 'refused', message: 'That is not a card of this run.' };
   const { run, card, winner, text } = parsed.data;
-  const answer = { winner, actor: 'demo', ...(text === undefined || text === '' ? {} : { text }) };
+  const decider = await deciderOf(run);
+  if (decider.kind === 'refused') return decider;
+  const answer = {
+    winner,
+    actor: decider.actor,
+    ...(text === undefined || text === '' ? {} : { text }),
+  };
   const outcome = await forgeForRun(env.GATEWAY, run).decide(run, card, answer);
   if (!outcome.ok) {
     log.warn('decision refused', { run, card, winner, code: outcome.code });
@@ -79,4 +85,35 @@ export async function decideCard(
   }
   log.info('decision made', { run, card, winner });
   return { kind: 'decided', winner };
+}
+
+type Refusal = Extract<DecisionState, { readonly kind: 'refused' }>;
+
+/**
+ * Who answers a card. A persistent repository's cards are its maintainers' and owner's (the
+ * gateway decides: `mayUseEngine`'s `decide`), answered as their handle; a race's cards stay
+ * behind the demo password.
+ */
+async function deciderOf(
+  run: string,
+): Promise<{ readonly kind: 'allowed'; readonly actor: string } | Refusal> {
+  const user = await currentUser();
+  const verdict = await engineVerdict(env.GATEWAY, {
+    run,
+    viewer: user?.id ?? null,
+    action: 'decide',
+  });
+  if (verdict.kind === 'repository' && user !== null)
+    return { kind: 'allowed', actor: user.handle };
+  if (verdict.kind === 'refused')
+    return {
+      kind: 'refused',
+      message:
+        verdict.code === 'forbidden'
+          ? 'Answering decisions needs the maintain role on this repository.'
+          : 'That is not a card of this run.',
+    };
+  if (!(await isSignedIn()))
+    return { kind: 'refused', message: 'Sign in with the demo password first.' };
+  return { kind: 'allowed', actor: 'demo' };
 }
