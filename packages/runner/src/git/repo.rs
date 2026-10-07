@@ -1,7 +1,7 @@
 //! Local operations on a bare repository: the parts of the harness's `gitops.py` that need no
 //! network, with the same arguments and output handling.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use super::ids::{CommitSha, TreeId};
@@ -170,6 +170,38 @@ impl<'a> Repo<'a> {
         Ok(parse_name_status(&output.stdout()))
     }
 
+    /// Every file of `sha`'s tree with its object id (`git ls-tree -r -z --full-tree`);
+    /// submodules, which have no blob, are left out.
+    pub(crate) async fn blob_ids(&self, sha: &CommitSha) -> Result<BTreeMap<String, String>> {
+        let output = self
+            .command("ls-tree")
+            .args(["-r", "-z", "--full-tree"])
+            .arg(sha.as_str())
+            .success()
+            .await?;
+        Ok(parse_ls_tree(&output.stdout()))
+    }
+
+    /// The object ids `files` would have as blobs here, unfiltered (`git hash-object
+    /// --no-filters --stdin-paths`), in order.
+    pub(crate) async fn hash_files(&self, files: &[PathBuf]) -> Result<Vec<String>> {
+        if files.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut list = String::new();
+        for file in files {
+            list.push_str(&file.to_string_lossy());
+            list.push('\n');
+        }
+        let output = self
+            .command("hash-object")
+            .args(["--no-filters", "--stdin-paths"])
+            .stdin(list.as_bytes())
+            .success()
+            .await?;
+        Ok(output.stdout().lines().map(str::to_owned).collect())
+    }
+
     /// Writes the files of `sha` into `dest` through a throwaway index, leaving no worktree
     /// bookkeeping in the cache. Equivalent to the harness's `checkout -f --detach` plus
     /// `clean -fdx` in a CI slot.
@@ -236,11 +268,37 @@ pub(crate) fn parse_name_status(stdout: &str) -> Vec<String> {
     paths.into_iter().map(str::to_owned).collect()
 }
 
+/// `git ls-tree -r -z` output (`<mode> <type> <id>\t<path>\0` per entry) as path to blob id.
+#[must_use]
+pub(crate) fn parse_ls_tree(stdout: &str) -> BTreeMap<String, String> {
+    stdout
+        .split('\0')
+        .filter_map(|entry| {
+            let (meta, path) = entry.split_once('\t')?;
+            let mut fields = meta.split(' ');
+            let (_mode, kind, id) = (fields.next()?, fields.next()?, fields.next()?);
+            (kind == "blob").then(|| (path.to_owned(), id.to_owned()))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use proptest::prelude::*;
 
     use super::*;
+
+    #[test]
+    fn ls_tree_keeps_blobs_and_paths_exactly() {
+        let stdout = "100644 blob aaa\tsrc/a b.ts\x00160000 commit bbb\tvendor/sub\0\
+                      120000 blob ccc\tlink\0";
+
+        let blobs = parse_ls_tree(stdout);
+
+        assert_eq!(blobs.get("src/a b.ts").map(String::as_str), Some("aaa"));
+        assert_eq!(blobs.get("link").map(String::as_str), Some("ccc"));
+        assert!(!blobs.contains_key("vendor/sub"));
+    }
 
     #[test]
     fn name_status_reports_both_sides_of_a_rename() {

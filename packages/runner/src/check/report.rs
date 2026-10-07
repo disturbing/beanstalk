@@ -6,8 +6,10 @@ use std::path::Path;
 use super::imports::{self, ImportDepths};
 use super::junit::{self, JunitSummary};
 use super::paths;
+use super::read_maps::ReadMapsReport;
 use super::stack;
 use super::suite::SuiteRun;
+use super::tree::TreeManifest;
 use crate::git::CommitSha;
 
 /// Characters of output kept (`_excerpt`'s `limit`).
@@ -46,6 +48,10 @@ pub(crate) struct CheckReport {
     /// Checkout, suite and emulated latency; set by the caller once the latency has passed.
     pub(crate) ci_seconds: f64,
     pub(crate) timed_out: bool,
+    /// Per test file read maps, when the check was traced (or asked to be and could not).
+    pub(crate) read_maps: Option<ReadMapsReport>,
+    /// The checked tree's blob ids, when traced or asked for.
+    pub(crate) tree: Option<TreeManifest>,
 }
 
 /// Builds the report from a finished run. Reads files (the junit report, sources for read sets),
@@ -60,6 +66,16 @@ pub(crate) fn assess(
     let parsed = std::fs::read_to_string(junit_path)
         .ok()
         .and_then(|xml| junit::parse_junit(&xml, &root_real));
+    assess_summary(sha, run, &root_real, parsed)
+}
+
+/// As [`assess`], from an already parsed junit summary (`None`: no well-formed report).
+pub(crate) fn assess_summary(
+    sha: CommitSha,
+    run: &SuiteRun,
+    root_real: &Path,
+    parsed: Option<JunitSummary>,
+) -> CheckReport {
     let green = run.code == Some(0)
         && !run.timed_out
         && parsed
@@ -82,9 +98,11 @@ pub(crate) fn assess(
         suite_seconds: run.seconds,
         ci_seconds: run.seconds,
         timed_out: run.timed_out,
+        read_maps: None,
+        tree: None,
     };
     if let Some(summary) = parsed {
-        record_failures(&mut report, summary, &root_real);
+        record_failures(&mut report, summary, root_real);
     }
     report
 }

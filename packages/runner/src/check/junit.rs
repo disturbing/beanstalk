@@ -24,7 +24,7 @@ pub(crate) struct JunitFailure {
 }
 
 /// Every test case in a report.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(crate) struct JunitSummary {
     pub(crate) failing: Vec<JunitFailure>,
     /// Files with a passing case, sorted.

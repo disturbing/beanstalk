@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { DecisionBody } from '@beanstalk/shared-race/driver';
 import type { RunId } from '@beanstalk/shared-race/ids';
 import { slotIds } from '@beanstalk/shared-race/ids';
+import { AffectedQuery } from '@beanstalk/shared-race/read-maps';
 import { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type { AppEnv } from '../app-env';
@@ -184,6 +185,20 @@ export const readRoutes = new Hono<AppEnv>()
         c,
         `{"events":[${page.bodies.join(',')}],"next_after":${page.last},"done":${page.done}}`,
       );
+    },
+  )
+  .get('/:run/read-maps', requireReader, validate('param', RunParam), async (c) => {
+    return c.json(unwrap(await c.var.deps.run(c.req.valid('param').run).readMapSummary()));
+  })
+  .post(
+    '/:run/read-maps/affected',
+    requireReader,
+    bodyLimit({ maxSize: MAX_RUN_CONFIG_BYTES }),
+    validate('param', RunParam),
+    validate('json', AffectedQuery),
+    async (c) => {
+      const run = c.var.deps.run(c.req.valid('param').run);
+      return c.json(unwrap(await run.readMapsAffected(c.req.valid('json'))));
     },
   )
   .get('/:run/live', requireReader, validate('param', RunParam), async (c) => {

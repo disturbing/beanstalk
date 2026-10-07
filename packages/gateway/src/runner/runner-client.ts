@@ -7,6 +7,7 @@
 import { z } from 'zod';
 
 import { Sha } from '@beanstalk/shared-race/ids';
+import { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
 
 import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
 import { UpstreamError } from '../errors';
@@ -67,10 +68,14 @@ export type CheckCall = {
   readonly trunk: RunnerRemote;
   readonly sha: Sha;
   readonly extraFiles: Readonly<Record<string, string>> | null;
-  /** Run only these test files (`node --test <files>`); null runs the whole suite. */
+  /** Run only these test files (the runner's `only_files`); null runs the whole suite. */
   readonly only?: readonly string[] | null;
   /** Also report the passing test files' read sets. */
   readonly allReadSets?: boolean;
+  /** Run each test file in its own traced process and report read maps (`read_maps`). */
+  readonly trace?: boolean;
+  /** Report the checked tree's blob ids (`tree`); implied by `trace`. */
+  readonly treeManifest?: boolean;
 };
 
 export type UpdateRefCall = {
@@ -126,6 +131,8 @@ const CheckResponse = z.object({
   output_excerpt: z.string().optional(),
   suite_seconds: z.number().min(0),
   timed_out: z.boolean().optional(),
+  read_maps: CheckReadMaps.optional(),
+  tree: CheckedTree.optional(),
 });
 
 const UpdateRefResponse = z.object({ ok: z.boolean(), actual: Sha.nullable().optional() });
@@ -199,10 +206,10 @@ export function runnerPort(
         sha: call.sha,
         extra_files: call.extraFiles ?? {},
         latency_seconds: 0,
-        ...(call.only === undefined || call.only === null
-          ? {}
-          : { cmd: ['node', '--test', ...call.only] }),
+        ...(call.only === undefined || call.only === null ? {} : { only_files: call.only }),
         ...(call.allReadSets === true ? { all_read_sets: true } : {}),
+        ...(call.trace === true ? { trace: true } : {}),
+        ...(call.treeManifest === true ? { tree_manifest: true } : {}),
       };
       return toCheckResult(await post(instance, '/v1/check', body, CheckResponse));
     },
@@ -265,5 +272,7 @@ function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {
     output: response.output_excerpt ?? '',
     suiteSeconds: response.suite_seconds,
     timedOut: response.timed_out ?? false,
+    ...(response.read_maps === undefined ? {} : { readMaps: response.read_maps }),
+    ...(response.tree === undefined ? {} : { tree: response.tree }),
   };
 }

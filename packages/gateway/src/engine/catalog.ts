@@ -2,17 +2,27 @@ import type { TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfig } from '@beanstalk/shared-race/run-config';
 import type { ArenaTask } from '@beanstalk/shared-race/task';
 
+import type { ReadMapIndex } from '../read-maps/read-map-store';
 import { seededRandom } from './numbers';
 
 /** The run's immutable inputs, kept out of the persisted engine state. */
 export type EngineEnv = {
   readonly config: RunConfig;
   readonly tasks: ReadonlyMap<string, ArenaTask>;
+  /**
+   * The run's read maps (`read-maps/read-map-store.ts`): which test files may observe a set of
+   * changed paths. Absent in engine tests that do not give one; the RunDO always does.
+   */
+  readonly readMaps?: ReadMapIndex;
 };
 
 /** Builds the engine environment from a parsed run configuration. */
-export function engineEnv(config: RunConfig): EngineEnv {
-  return { config, tasks: new Map(config.tasks.map((task) => [task.id, task])) };
+export function engineEnv(config: RunConfig, readMaps?: ReadMapIndex): EngineEnv {
+  return {
+    config,
+    tasks: new Map(config.tasks.map((task) => [task.id, task])),
+    ...(readMaps === undefined ? {} : { readMaps }),
+  };
 }
 
 /**

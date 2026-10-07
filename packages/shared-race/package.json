@@ -9,7 +9,8 @@
     "./events": "./src/events.ts",
     "./ids": "./src/ids.ts",
     "./rpc": "./src/rpc.ts",
-    "./collaboration": "./src/collaboration.ts"
+    "./collaboration": "./src/collaboration.ts",
+    "./read-maps": "./src/read-maps.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

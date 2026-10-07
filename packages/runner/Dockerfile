@@ -63,7 +63,7 @@ RUN curl -fsSLo mergiraf.tar.gz "https://codeberg.org/mergiraf/mergiraf/releases
 
 FROM --platform=linux/amd64 debian:${DEBIAN_RELEASE}-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git ca-certificates libatomic1 tini \
+ && apt-get install -y --no-install-recommends git ca-certificates libatomic1 tini strace \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --system --uid 10001 --create-home --home-dir /home/runner --shell /usr/sbin/nologin runner \
  && install -d -o runner -g runner /work

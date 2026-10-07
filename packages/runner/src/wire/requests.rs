@@ -7,7 +7,10 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
-use crate::check::{CheckRequest, ExtraFile, ReadSets, SuiteCommand, SuiteLimits};
+use crate::check::{
+    CheckRequest, ExtraFile, ManifestMode, ReadSets, SuiteCommand, SuiteLimits, TestFile,
+    TestScope, TraceMode,
+};
 use crate::config::RemoteSchemes;
 use crate::error::{Error, Result};
 use crate::git::{
@@ -127,6 +130,15 @@ pub(crate) struct CheckBody {
     /// Also report the passing test files' read sets (`passing_read_sets`).
     #[serde(default)]
     all_read_sets: bool,
+    /// Run each test file in its own traced process and report its read map (`read_maps`).
+    #[serde(default)]
+    trace: bool,
+    /// Run only these test files, with `cmd`'s node options (affected-tests validation).
+    #[serde(default)]
+    only_files: Option<Vec<String>>,
+    /// Report the checked tree's blob ids (`tree`); always on when traced.
+    #[serde(default)]
+    tree_manifest: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
@@ -272,6 +284,27 @@ impl CheckBody {
             Some(0) => return Err(invalid("test_timeout_ms", "must be positive")),
             other => other.unwrap_or(defaults.test_timeout_ms),
         };
+        let scope = match self.only_files {
+            None => TestScope::Suite,
+            Some(files) => TestScope::Only(
+                files
+                    .iter()
+                    .map(|file| TestFile::new(file).map_err(|reason| invalid("only_files", reason)))
+                    .collect::<Result<Vec<_>>>()?,
+            ),
+        };
+        let trace = if self.trace {
+            TraceMode::PerFile
+        } else {
+            TraceMode::Off
+        };
+        let runs_per_file = trace == TraceMode::PerFile || scope != TestScope::Suite;
+        if runs_per_file && !command.runs_tests() {
+            return Err(invalid(
+                if self.trace { "trace" } else { "only_files" },
+                "needs a cmd that runs node --test",
+            ));
+        }
         Ok(CheckRequest {
             trunk: Remote {
                 url: remote_url("repo", &self.repo, schemes)?,
@@ -289,6 +322,13 @@ impl CheckBody {
                 ReadSets::All
             } else {
                 ReadSets::Failing
+            },
+            scope,
+            trace,
+            manifest: if self.tree_manifest {
+                ManifestMode::Include
+            } else {
+                ManifestMode::Omit
             },
         })
     }
