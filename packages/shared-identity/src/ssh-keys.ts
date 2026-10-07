@@ -11,7 +11,26 @@ import { systemClock } from './identity-env';
 import type { Scope } from './scopes';
 import { randomId } from './secrets';
 import { decodeBase64, encodeBase64, fingerprintOf, parsePublicKeyLine } from './ssh-wire';
+import { revokeClientTokens } from './user-tokens';
 import type { SessionUser } from './users';
+
+/** The client id of the HTTPS token setup issued alongside a key: revoked with the key. */
+export function keyTokenClient(keyId: string): string {
+  return `ssh-key:${keyId}`;
+}
+
+/** The id of a person's live key with this fingerprint, if any. */
+export async function activeKeyId(
+  env: IdentityEnv,
+  input: { readonly userId: string; readonly fingerprint: string },
+): Promise<string | null> {
+  const row = await env.IDENTITY_DB.prepare(
+    'SELECT id FROM ssh_keys WHERE user_id = ? AND fingerprint = ? AND removed_at IS NULL',
+  )
+    .bind(input.userId, input.fingerprint)
+    .first<{ readonly id: string }>();
+  return row?.id ?? null;
+}
 
 /** What a key may do over SSH: read and push beans, as a person's git always could. */
 export const SSH_KEY_SCOPES: readonly Scope[] = ['read', 'write'];
@@ -181,6 +200,12 @@ export async function removeSshKey(
     .bind(now, input.keyId, input.userId)
     .run();
   if (result.meta.changes === 0) return false;
+  // The HTTPS token setup handed the same machine with this key goes with it.
+  await revokeClientTokens(
+    env,
+    { userId: input.userId, clientId: keyTokenClient(input.keyId) },
+    now,
+  );
   await recordAudit(
     env,
     { action: 'ssh_key.remove', actorUserId: input.userId, target: input.keyId, ip: input.ip },

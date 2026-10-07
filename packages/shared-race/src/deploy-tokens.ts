@@ -35,6 +35,7 @@ export const DeployTokenSummary = z.object({
   lastUsedAt: z.number().nullable(),
   /** Coarse: the country and the client of the last use ("US · git/2.53.0"). */
   lastUsedFrom: z.string().nullable(),
+  revokedAt: z.number().nullable(),
 });
 export type DeployTokenSummary = z.infer<typeof DeployTokenSummary>;
 

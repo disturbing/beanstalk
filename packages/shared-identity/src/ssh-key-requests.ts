@@ -16,7 +16,7 @@ import { recordAudit } from './audit';
 import type { Clock, IdentityEnv } from './identity-env';
 import { systemClock } from './identity-env';
 import { hashSecret, randomId, randomSecret } from './secrets';
-import { KEY_ALREADY_YOURS, addSshKey } from './ssh-keys';
+import { KEY_ALREADY_YOURS, activeKeyId, addSshKey, keyTokenClient } from './ssh-keys';
 import { parsePublicKeyLine } from './ssh-wire';
 import { PersonalTokenInput, createPersonalToken } from './user-tokens';
 
@@ -172,7 +172,7 @@ export async function pollKeyRequest(
 ): Promise<KeyRequestPoll> {
   if (!/^[A-Za-z0-9_-]{43}$/.test(pollToken)) return { status: 'expired' };
   const row = await env.IDENTITY_DB.prepare(
-    `SELECT r.id, r.status, r.expires_at, r.name, r.wants_https_token, r.token_delivered_at, r.user_id, u.handle
+    `SELECT r.id, r.status, r.expires_at, r.name, r.fingerprint, r.wants_https_token, r.token_delivered_at, r.user_id, u.handle
        FROM ssh_key_requests r LEFT JOIN users u ON u.id = r.user_id WHERE r.poll_hash = ?`,
   )
     .bind(await hashSecret(pollToken))
@@ -210,6 +210,7 @@ type PollRow = {
   readonly status: 'pending' | 'approved' | 'denied';
   readonly expires_at: number;
   readonly name: string;
+  readonly fingerprint: string;
   readonly wants_https_token: number;
   readonly token_delivered_at: number | null;
   readonly user_id: string | null;
@@ -230,12 +231,18 @@ async function deliverToken(
     .bind(now, row.id)
     .run();
   if (claimed.meta.changes === 0) return null;
+  const keyId = await activeKeyId(env, { userId: row.user_id, fingerprint: row.fingerprint });
+  if (keyId === null) return null;
   const request = PersonalTokenInput.parse({
     name: `git on ${row.name}`.slice(0, 60),
     scopes: ['read', 'write'],
     days: HTTPS_TOKEN_DAYS,
   });
-  const issued = await createPersonalToken(env, { userId: row.user_id, request, ip: null }, clock);
+  const issued = await createPersonalToken(
+    env,
+    { userId: row.user_id, request, ip: null, clientId: keyTokenClient(keyId) },
+    clock,
+  );
   return { token: issued.token, expiresAt: issued.summary.expiresAt };
 }
 

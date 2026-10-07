@@ -19,7 +19,8 @@ type PageProps = {
 
 const NOTES: Readonly<Record<string, string>> = {
   added: 'Key added.',
-  removed: 'Key removed. It no longer opens your repositories.',
+  removed:
+    'Key removed. It no longer opens your repositories, and the HTTPS token setup gave that machine is revoked.',
 };
 
 /** Settings → SSH keys: the public keys git over SSH accepts for this person. */

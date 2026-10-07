@@ -67,6 +67,8 @@ export async function createPersonalToken(
     readonly userId: string;
     readonly request: PersonalTokenInput;
     readonly ip?: string | null;
+    /** What the token belongs to, so revoking that revokes it (`ssh-key:<id>` for setup's token). */
+    readonly clientId?: string;
   },
   clock: Clock = systemClock,
 ): Promise<IssuedUserToken> {
@@ -78,7 +80,7 @@ export async function createPersonalToken(
     name: input.request.name,
     scopes: parseScopes(input.request.scopes),
     expiresAt,
-    clientId: null,
+    clientId: input.clientId ?? null,
     ip: input.ip ?? null,
     now,
   });

@@ -500,16 +500,19 @@
 .guide {
   padding: 26px 28px 48px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 26px;
   align-content: start;
   max-width: 860px;
 }
 .steps {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 .step {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 .step h2 {
@@ -680,6 +683,7 @@
 }
 .connectPanel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   padding-top: 4px;
 }

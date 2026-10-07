@@ -21,8 +21,9 @@ The shell names the repository once (`owner / name` plus a private or public pil
 The first screen after "Create repository", so it has one job: say what is there and exactly how to begin.
 
 - **Lead:** "greeter is ready. Its stalk holds the TypeScript starter, 7 files, with tests every bean must pass before it lands."
-- **Hand it to an agent:** the install line for Claude Code, Codex (`codex mcp add … --url <mcp>`) and any MCP client, each with Copy, then the sentence to say to the agent.
-- **Or push a bean with git:** a `bean/<name>` branch is a bean; the six commands (clone, switch, commit, `git push -o wait origin bean/first-change`) with one Copy; the rules (push only `bean/*`; the password is a personal token from Settings, Tokens).
+- **Connect git** (added 2026-10-07, `19-accounts-and-auth.md` §9): three tabs, the choice remembered per viewer. **Plugin** (default): one line that installs the Claude Code plugin and runs `/beanstalk:setup <owner>/<repo>`, plus Codex's line and what to ask it. **HTTPS**: the clone command, a token from Settings at git's password prompt, and the token-in-URL last resort with its warning. **Env vars**: the owner makes a deploy token for this repository there and then, and the `BEANSTALK_TOKEN` + `GIT_CONFIG_*` block (credential-helper and Bearer-header forms) is filled in with it.
+- **Hand it to an agent:** the sentence to say to a connected agent, and the MCP URL for any other client.
+- **Or push a bean with git:** a `bean/<name>` branch is a bean; the six commands (clone, switch, commit, `git push -o wait origin bean/first-change`) with one Copy; the rules (push only `bean/*`; without Connect git, the password is a personal token from Settings, Tokens).
 - **Clone it:** the URL, `https://<gateway>/git/<owner>/<repo>.git`.
 - **On the stalk** (the files, read from Artifacts by the gateway) and **What counts as green** (`.beanstalk/checks.toml`, or a note that a bean lands on a clean merge without one).
 - **The stalk column** is the real one: the root commit as a leaf, "Fertilized by <owner>", and a breathing bean socket above it: "Your first bean grows here". Once a bean starts, the page becomes the repository home.

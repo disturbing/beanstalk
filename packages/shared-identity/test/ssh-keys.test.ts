@@ -197,6 +197,11 @@ describe('registering a key from a terminal', () => {
         now,
       ),
     ).toMatchObject({ ok: false });
+    // Removing the key disconnects that machine: its HTTPS token goes too.
+    const [key] = await listSshKeys(env, user.id);
+    if (key === undefined) throw new Error('key not listed');
+    await removeSshKey(env, { userId: user.id, keyId: key.id, ip: null }, now);
+    expect(await verifyUserToken(env, first.httpsToken.token, now)).toBeNull();
   });
 
   it('is claimed by the first person to open it, can be denied, and expires', async () => {

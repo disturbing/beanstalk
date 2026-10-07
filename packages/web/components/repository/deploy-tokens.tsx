@@ -98,9 +98,11 @@ function TokenRow({
   readonly token: DeployTokenSummary;
   readonly access: Access;
 }) {
-  const [, revoke, pending] = useActionState<DeployTokenState, FormData>(revokeDeployTokenAction, {
-    kind: 'idle',
-  });
+  const [state, revoke, pending] = useActionState<DeployTokenState, FormData>(
+    revokeDeployTokenAction,
+    { kind: 'idle' },
+  );
+  const revoked = token.revokedAt !== null || state.kind === 'revoked';
   const used =
     token.lastUsedAt === null
       ? 'never used'
@@ -115,18 +117,29 @@ function TokenRow({
           {DATE.format(new Date(token.expiresAt))} · {used}
         </span>
       </div>
-      <form action={revoke}>
-        <Hidden access={access} />
-        <input type="hidden" name="token" value={token.id} />
-        <button
-          type="submit"
-          className={styles.danger}
-          disabled={pending}
-          aria-label={`Revoke ${token.name}`}
-        >
-          Revoke
-        </button>
-      </form>
+      {revoked ? (
+        <span className={styles.muted} role="status">
+          Revoked
+        </span>
+      ) : (
+        <form action={revoke}>
+          <Hidden access={access} />
+          <input type="hidden" name="token" value={token.id} />
+          <button
+            type="submit"
+            className={styles.danger}
+            disabled={pending}
+            aria-label={`Revoke ${token.name}`}
+          >
+            Revoke
+          </button>
+          {state.kind === 'refused' ? (
+            <span className={styles.connectWarning} role="alert">
+              {state.message}
+            </span>
+          ) : null}
+        </form>
+      )}
     </li>
   );
 }

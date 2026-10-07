@@ -72,6 +72,9 @@ All in `packages/shared-identity/src/` (import `@beanstalk/shared-identity/<modu
 | Mint a short-lived token for an agent session | `mintSessionToken(env, { userId, label, scopes, ttlSeconds?, clientId? })` | `{ token: 'bss_…', summary }`, at most one hour, revoked with the client's grant |
 | Personal tokens | `createPersonalToken`, `listUserTokens`, `revokeUserToken` | audited, hashed at rest |
 | Audit | `recordAudit(env, { action, actorUserId, target?, ip?, detail? }, now)` | IPs stored as a 16-char hash prefix |
+| Who owns an SSH key (the SSH endpoint, after the client proved possession) | `findUserByKey(env, { fingerprint } \| { blob } \| { publicKey })` (`ssh-keys`) | `{ user, scopes: ['read','write'], key: { id, fingerprint, keyType, blob, lastUsedAt } } \| null` |
+| Record a key's use | `touchKey(env, key)` (`ssh-keys`) | at most one write a minute |
+| SSH keys in Settings | `addSshKey`, `listSshKeys`, `removeSshKey` (`ssh-keys`); browser-approved requests `startKeyRequest`, `describeKeyRequest`, `decideKeyRequest`, `pollKeyRequest` (`ssh-key-requests`) | §9 |
 
 **Web app adapter (one file):** `packages/web/src/auth/user.ts` — `requireUser(request) => Promise<{ id, handle, email }>` (throws `SignInRequired`, whose `response()` is a 401), `getUser(request)`, and `currentUser()` / `currentSession()` for server components and actions. The repository agent should code against `requireUser` only.
 
@@ -125,3 +128,72 @@ All in `packages/shared-identity/src/` (import `@beanstalk/shared-identity/<modu
 | `mcp` | 25 | discovery metadata and the 401 challenge, DCR, authorize → consent → token, wrong/missing PKCE, code replay, refresh, revocation, deny, consent claimed by one person, connected sessions and revoke (with session git tokens), redirect-URI fuzz, PATs on `/mcp`, run tokens still routed to the old path |
 | `gateway` | 5 | `verifyGitCredential` for run, personal and session tokens; `/v1/whoami`; user tokens refused on race repos |
 | `web` | 4 | safe `next` paths, relying party, cross-site refusal |
+
+## 9. Connecting git
+
+Added 2026-10-07 on the worktree branch after `068fd97`. **The problem (Coop, live):** he signed up with a passkey kept in 1Password, then `git clone` asked for a user name and password. Git over HTTPS only knows Basic credentials, and a passkey cannot be typed into a terminal.
+
+**Owner decisions, in order:** an OAuth credential helper (dropped), SSH-signed HTTPS passwords (dropped), then the final design: **real SSH for keys** (another agent builds the SSH endpoint: Spectrum → Worker `connect()` → container SSH server, key auth against the keys below), set up **entirely through Claude** with the plugin, no separate CLI. Until the SSH endpoint is live, setup finishes with HTTPS and a token and says so.
+
+### What a person runs
+
+```bash
+claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup <owner>/<repo>"
+```
+
+`claude "/beanstalk:setup …"` runs the plugin command as the session's first prompt (checked with Claude Code 2.1.x; a folder Claude Code has not seen first asks to trust it). The command (`packages/claude-plugin/commands/setup.md`) drives the bundled script `scripts/beanstalk-setup.sh` (POSIX sh: macOS, Linux, WSL, Git Bash; `beanstalk-setup.ps1` for PowerShell):
+
+1. `detect`: platform, `ssh-keygen` (OpenSSH), browser opener, whether headless, the deployment's git origin and SSH host (`GET <web>/api/setup`), the git credential helper already set for that host, and one `option` line per key: the **1Password SSH agent** (`~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock`, `~/.1password/agent.sock`, Windows' `\\.\pipe\openssh-ssh-agent`), the running **ssh-agent** (`ssh-add -L`), **`~/.ssh/*.pub`**, and **generate**.
+2. Claude asks one question (AskUserQuestion) listing them, 1Password first; "Other" lets the person say what they want. With nothing found it generates `~/.ssh/beanstalk_ed25519` (no passphrase, since a script cannot type one; `ssh-keygen -p` adds one).
+3. `register`: sends the **public key** and the machine's name to `POST <web>/api/ssh-keys/request` (rate limited per IP) and gets an eight-letter code (RFC 8628 alphabet) and a poll secret. With a browser (`open`, `xdg-open`, `$BROWSER`, `wslview`, `start`; not over SSH, not on Linux without a display) it opens `<web>/settings/keys/add?code=…`; otherwise it prints the URL and code for another device. The page (styled as the agent consent screen) shows the machine, key type, code and **fingerprint** to compare with the terminal; the signed-in person clicks Add key (a passkey only when signed out). The script polls `POST /api/ssh-keys/poll` until approved, denied or expired (ten minutes).
+4. While `SSH_HOST` is empty, the first approved poll also hands over, once, a personal token "git on <machine>" (read and write, 90 days). The script gives it to **git's own credential helper** for the Beanstalk host: the one git already uses (macOS: `osxkeychain` from the system config), else `osxkeychain` / `manager` / `libsecret` / `store` scoped to `credential.https://<gateway>/.helper` only (an empty value first, so other helpers are not consulted for that host). The token is never printed. **Removing the key in Settings revokes that token too** (it is minted with `oauth_client_id = ssh-key:<id>`).
+5. `remote <owner>/<repo>` clones (or re-points `origin`): `ssh://git@<SSH_HOST>/<owner>/<repo>.git` once SSH is live (and an `~/.ssh/config` block for that host only, with `IdentityAgent` for an agent key), HTTPS until then. `verify` calls `/v1/whoami` with the stored credential and `git ls-remote` on the repository.
+
+Other agents: `curl -fsSL <web>/setup.sh | sh -s -- detect` (the web serves the plugin's scripts with its own address filled in; `<web>/setup.ps1` for Windows), steps in `AGENTS-snippet.md`.
+
+### The three ways in, on the repository start page
+
+| Tab | For | What it shows |
+|---|---|---|
+| **Plugin** (default) | People with Claude Code, Codex | the line above with this repository; Codex's `mcp add` line and what to ask it |
+| **HTTPS** | git by hand | `git clone <url>`, a token from Settings, Tokens at git's password prompt; the token-in-URL form as a last resort, with why not (plain text in `.git/config` and shell history) |
+| **Env vars** | CI and scripts | the owner makes a **deploy token** right there; the block below is filled in with it (shown once) |
+
+```bash
+export BEANSTALK_TOKEN=bsd_…        # deploy token for this repository
+export GIT_TERMINAL_PROMPT=0
+export GIT_CONFIG_COUNT=1
+export GIT_CONFIG_KEY_0='credential.https://<gateway host>.helper'
+export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'
+# or, as a header: GIT_CONFIG_KEY_0='http.https://<gateway host>/.extraheader'
+#                  GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"
+```
+
+`GIT_CONFIG_*` needs git 2.31+. It is for clean machines: on a machine that already has a helper for the host, git asks that helper first.
+
+### Deploy tokens
+
+`bsd_…`, stored hashed in the **gateway's FORGE D1** beside the registry (`gateway/migrations/0002_deploy_tokens.sql`), so a token follows its repository through a rename and dies with it. One repository, `read` or `read`+`write`, 7/30/90/365 days, last use (time and a coarse "US · git/2.53.0"), revoke; made and listed by the owner only (repository Settings → Deploy tokens, and the Env vars tab). `verifyGitCredential` maps one to the repository's engine (like a run's `git` token, so `mayUseEngine` opens that engine only), with the scopes of its access, pushing as the person who made it. RPC: `DeployTokensRpc` (`shared-race/deploy-tokens.ts`) on the gateway entrypoint.
+
+### What git shows without a credential
+
+Measured with git 2.53: for a **401**, git first prompts `Username for 'https://…':` (or, with `GIT_TERMINAL_PROMPT=0`, fails with `could not read Username … terminal prompts disabled`) and **never shows the `WWW-Authenticate` realm**; once a credential was sent and refused, git prints a `text/plain` body as `remote:` lines before `fatal: Authentication failed`. A **403** body is printed at once with no prompt, but 403 would stop git asking credential helpers, so repositories keep 401 (race URLs keep their old texts). The body (`gateway/src/auth/connect-hint.ts`) names the three ways in:
+
+```
+remote: Beanstalk: this git is not connected to your account yet. Pick one:
+remote:   1. Claude Code (easiest): /beanstalk:setup
+remote:      not installed? claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk
+remote:   2. HTTPS: make a token at <web>/settings/tokens and paste it at git's password prompt
+remote:   3. CI and scripts: a deploy token in BEANSTALK_TOKEN (the repository page, tab "Env vars")
+```
+
+(For a refused credential the first line reads "that credential was refused (expired, revoked, or not for this repository)".)
+
+### For the SSH endpoint
+
+`findUserByKey(env, { fingerprint } | { blob } | { publicKey })` after the SSH userauth signature check, then `touchKey`. Keys: ed25519, ECDSA P-256/384/521, RSA ≥ 2048 bits; `sk-` (security-key) types are refused for now. A key is on one account at a time (unique fingerprint among live keys). `SSH_HOST` in the web's vars turns setup over to SSH: `/api/setup` reports it, setup stops asking for an HTTPS token and writes ssh remotes.
+
+### Verified
+
+- **Tests:** `shared-identity/test/ssh-keys.test.ts` (key parsing with fingerprints `ssh-keygen -l` printed for ed25519, ECDSA 256/384/521 and RSA; refusals; `findUserByKey` by fingerprint, blob and line; `touchKey` once a minute; removal; one account per key; requests: approve, code claimed by the first viewer, deny, expiry, HTTPS token delivered once and revoked with the key). `gateway/test/deploy-tokens.test.ts` (read vs write, other repositories 404, push refused for read, last use recorded, whoami, revoke, expiry, repository deleted, owner-only, the 401 hint texts). `web/src/setup/setup-api.test.ts`, `repositories.test.ts` (plugin line, Env vars block). Script tests `claude-plugin/test/setup-tests.sh` (27 checks, a fake Beanstalk with `git http-backend`, throwaway agents and keys in a throwaway HOME, `GIT_CONFIG_NOSYSTEM`, store helper, never the person's keychain or agent): macOS (git 2.53), Debian 12 (dash), Ubuntu 24.04, Alpine (busybox sh); `setup-tests.ps1` (13 checks) in PowerShell 7.4 on Linux. **Real Windows was not tested.** `pnpm check` exits 0.
+- **Staging** (`beanstalk-{gateway,web,mcp}-staging-cred`, D1 `beanstalk-identity-staging-cred` / `beanstalk-forge-staging-cred`, KV `beanstalk-oauth-staging-cred`, Artifacts `beanstalk-race-staging-cred` / `beanstalk-repos-staging-cred`): headless Chrome with a CDP virtual authenticator, the script in an isolated HOME with a throwaway "1Password" agent: **24 of 24** — sign-up, repository, Plugin/HTTPS/Env vars tabs (tab remembered), deploy token from the Env vars tab used by both env forms, git with no or a refused credential (hint as `remote:` lines), detect lists the agent key, register opens the page with the same fingerprint, Add key, token stored and never printed, clone, verify, `git push -o wait` LANDED, Remove in Settings → next git command refused with the hint, device code approved from a second browser holding the same passkey, push lands again, deploy token revoked in repository Settings → refused, repository deleted.

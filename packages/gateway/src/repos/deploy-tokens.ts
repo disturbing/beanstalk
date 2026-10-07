@@ -145,6 +145,7 @@ async function create(
     expiresAt: input.now + input.input.days * DAY_MS,
     lastUsedAt: null,
     lastUsedFrom: null,
+    revokedAt: null,
   };
   await db
     .prepare(
@@ -202,6 +203,7 @@ type TokenRow = {
   readonly expires_at: number;
   readonly last_used_at: number | null;
   readonly last_used_from: string | null;
+  readonly revoked_at: number | null;
 };
 
 function toSummary(row: TokenRow): DeployTokenSummary {
@@ -215,5 +217,6 @@ function toSummary(row: TokenRow): DeployTokenSummary {
     expiresAt: row.expires_at,
     lastUsedAt: row.last_used_at,
     lastUsedFrom: row.last_used_from,
+    revokedAt: row.revoked_at,
   };
 }
