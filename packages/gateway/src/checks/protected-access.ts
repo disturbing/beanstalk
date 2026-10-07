@@ -34,8 +34,11 @@ export function protectedAccessOf(
   role: ViewerRole | null,
 ): ProtectedAccess {
   const via = credential.session?.via ?? null;
-  const how = via === null ? 'an engine token' : VIA_NAMES[via];
-  const who = `@${credential.user.handle} (${role ?? 'no role'}, with ${how})`;
+  const handle = `@${credential.user.handle}`;
+  const who =
+    credential.engine !== null
+      ? `${via === null ? 'an engine token' : VIA_NAMES[via]} acting for ${handle}`
+      : `${handle} (${role ?? 'no role'}, with ${via === null ? 'an engine token' : VIA_NAMES[via]})`;
   const allowed = via !== null && PEOPLES_OWN.has(via) && role !== null && DECIDING_ROLES.has(role);
   return { allowed, who };
 }

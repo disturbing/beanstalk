@@ -149,7 +149,7 @@ describe("a repository's own checks", () => {
       files: { '.beanstalk/checks.toml': 'command = ["node", "--test", "nothing/"]\n' },
     });
     expect(remote).toContain(
-      'changes protected paths (.beanstalk/checks.toml): refused for @agent (no role, with an engine token)',
+      'changes protected paths (.beanstalk/checks.toml): refused for an engine token acting for @agent',
     );
     expect(remote).toContain('RED: weaken was not landed');
     expect(remote).toContain('.beanstalk/checks.toml > changes a protected path');
@@ -191,7 +191,7 @@ describe("a repository's own checks", () => {
       files: { 'migrations/0002.sql': 'select 1;\n' },
     });
     expect(migration.remote).toContain(
-      'changes protected paths (migrations/0002.sql): refused for @agent',
+      'changes protected paths (migrations/0002.sql): refused for an engine token acting for @agent',
     );
     expect(migration.remote).toContain('RED: migrate was not landed');
     expect(migration.remote).toContain('The sprout protects .beanstalk/**, migrations/**');

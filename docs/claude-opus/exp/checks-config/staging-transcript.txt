@@ -1,0 +1,212 @@
+
+### node-app: owner pushes a bean (the starter's checks run)
+$ git push -o wait origin bean/add-truncate
+remote: Processing objects: 100% (6/6)
+remote: beanstalk: new bean add-truncate received at ddd0a40: "Add truncate"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)
+remote: beanstalk: pre-land check green on the merged tree (5.1 s)
+remote: beanstalk: LANDED: add-truncate passed its pre-land check and is on the sprout as 48a6428
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at 48a6428
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-truncate/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/node-app.git
+ * [new branch]      bean/add-truncate -> bean/add-truncate
+(exit 0, 19 s)
+
+### node-app: a bean whose new test fails is red, naming the test
+$ git push -o wait origin bean/shout
+remote: Processing objects: 100% (6/6)
+remote: beanstalk: new bean shout received at 0a284c4: "Add shout"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)
+remote: beanstalk: pre-land check red (1 failing, 2.1 s)
+remote: beanstalk: RED: shout was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - test/shout.test.ts > shouts with an exclamation mark
+remote: beanstalk: output:
+remote: beanstalk:   failing tests:
+remote: beanstalk:   test at test/shout.test.ts:6:1
+remote: beanstalk:   ✖ shouts with an exclamation mark (2.610586ms)
+remote: beanstalk:     AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+remote: beanstalk:     'GROW' !== 'GROW!'
+remote: beanstalk:       generatedMessage: true,
+remote: beanstalk:       code: 'ERR_ASSERTION',
+remote: beanstalk:       actual: 'GROW',
+remote: beanstalk:       expected: 'GROW!',
+remote: beanstalk:       operator: 'strictEqual',
+remote: beanstalk:       diff: 'simple'
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/shout
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/shout/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/node-app.git
+ * [new branch]      bean/shout -> bean/shout
+(exit 0, 10 s)
+
+### node-app: CI (a deploy token) changes the checks: refused
+$ git push -o wait origin bean/weaken-checks
+remote: Processing objects: 100% (4/4)
+remote: beanstalk: new bean weaken-checks received at 861e4a0: "Run fewer tests"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: changes protected paths (.beanstalk/checks.toml): refused for a deploy token acting for @coop-chk
+remote: beanstalk: pre-land check red (1 failing, 0.7 s)
+remote: beanstalk: RED: weaken-checks was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - .beanstalk/checks.toml > changes a protected path
+remote: beanstalk: output:
+remote: beanstalk:   This bean changes protected paths: .beanstalk/checks.toml.
+remote: beanstalk:   The sprout protects .beanstalk/** (protected_paths in .beanstalk/checks.toml; .beanstalk/** always).
+remote: beanstalk:   Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;
+remote: beanstalk:   this push was by a deploy token acting for @coop-chk.
+remote: beanstalk:   Drop those changes from the bean, or ask a maintainer to push them.
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/weaken-checks
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/weaken-checks/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/node-app.git
+ * [new branch]      bean/weaken-checks -> bean/weaken-checks
+(exit 0, 8 s)
+
+### node-app: the owner pushes an invalid checks file: red, the problem named
+$ git push -o wait origin bean/bad-checks
+remote: Processing objects: 100% (4/4)
+remote: beanstalk: new bean bad-checks received at 2e4efe8: "Run npm test"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: changes protected paths (.beanstalk/checks.toml): allowed for @coop-chk (owner, with a personal token)
+remote: beanstalk: .beanstalk/checks.toml is invalid:
+remote: beanstalk:   command: must be an argv array such as ["node", "--test"]; it never runs through a shell
+remote: beanstalk: pre-land check red (1 failing, 0.7 s)
+remote: beanstalk: RED: bad-checks was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - .beanstalk/checks.toml > the checks config is valid
+remote: beanstalk: output:
+remote: beanstalk:   .beanstalk/checks.toml on the merged tree is invalid, so no tests ran:
+remote: beanstalk:     command: must be an argv array such as ["node", "--test"]; it never runs through a shell
+remote: beanstalk:   Fix the file in this bean; see docs/claude-opus/23-checks-config.md for the format.
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/bad-checks
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/bad-checks/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/node-app.git
+ * [new branch]      bean/bad-checks -> bean/bad-checks
+(exit 0, 10 s)
+
+### kv-spec: no checks file yet: no checks run, the bean lands on a clean merge
+$ git push -o wait origin bean/notes
+remote: Processing objects: 100% (3/3)
+remote: beanstalk: new bean notes received at cf6f521: "Add notes"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: no .beanstalk/checks.toml on this tree: no checks run, and a bean lands when it merges cleanly
+remote: beanstalk: pre-land check green on the merged tree (0.4 s)
+remote: beanstalk: LANDED: notes passed its pre-land check and is on the sprout as 6a789dc
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at 6a789dc
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/notes/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/kv-spec.git
+ * [new branch]      bean/notes -> bean/notes
+(exit 0, 20 s)
+
+### kv-spec: the owner adds checks with another command, layout and env
+$ git push -o wait origin bean/setup
+remote: Processing objects: 100% (11/11)
+remote: beanstalk: new bean setup received at dfe95c4: "Set up the store, its specs and its checks"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: changes protected paths (.beanstalk/checks.toml): allowed for @coop-chk (owner, with a personal token)
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)
+remote: beanstalk: pre-land check green on the merged tree (7.9 s)
+remote: beanstalk: LANDED: setup passed its pre-land check and is on the sprout as 31a740c
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at 31a740c
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/setup/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/kv-spec.git
+ * [new branch]      bean/setup -> bean/setup
+(exit 0, 18 s)
+
+### kv-spec: CI's bean breaks a spec: red, naming spec/kv.spec.mjs
+$ git push -o wait origin bean/off-by-one
+remote: Processing objects: 100% (4/4)
+remote: beanstalk: new bean off-by-one received at 52a8bcd: "Keep one more key"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)
+remote: beanstalk: pre-land check red (1 failing, 3.1 s)
+remote: beanstalk: RED: off-by-one was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - spec/kv.spec.mjs > keeps KV_LIMIT keys from the checks environment
+remote: beanstalk: it collided with these landed beans (accepted behaviour; keep both):
+remote: beanstalk:   - setup "Set up the store, its specs and its checks"
+remote: beanstalk:     intent: Set up the store, its specs and its checks
+remote: beanstalk: output:
+remote: beanstalk:   failing tests:
+remote: beanstalk:   test at spec/kv.spec.mjs:6:1
+remote: beanstalk:   ✖ keeps KV_LIMIT keys from the checks environment (2.071819ms)
+remote: beanstalk:     AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+remote: beanstalk:     4 !== 3
+remote: beanstalk:       generatedMessage: true,
+remote: beanstalk:       code: 'ERR_ASSERTION',
+remote: beanstalk:       actual: 4,
+remote: beanstalk:       expected: 3,
+remote: beanstalk:       operator: 'strictEqual',
+remote: beanstalk:       diff: 'simple'
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/off-by-one
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/off-by-one/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/kv-spec.git
+ * [new branch]      bean/off-by-one -> bean/off-by-one
+(exit 0, 12 s)
+
+### kv-spec: CI changes a protected path from the checks file: refused
+$ git push -o wait origin bean/schema
+remote: Processing objects: 100% (4/4)
+remote: beanstalk: new bean schema received at e7255eb: "Store JSON values"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: changes protected paths (data/schema.json): refused for a deploy token acting for @coop-chk
+remote: beanstalk: pre-land check red (1 failing, 0.2 s)
+remote: beanstalk: RED: schema was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - data/schema.json > changes a protected path
+remote: beanstalk: output:
+remote: beanstalk:   This bean changes protected paths: data/schema.json.
+remote: beanstalk:   The sprout protects .beanstalk/**, data/schema.json (protected_paths in .beanstalk/checks.toml; .beanstalk/** always).
+remote: beanstalk:   Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;
+remote: beanstalk:   this push was by a deploy token acting for @coop-chk.
+remote: beanstalk:   Drop those changes from the bean, or ask a maintainer to push them.
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/schema
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/schema/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/kv-spec.git
+ * [new branch]      bean/schema -> bean/schema
+(exit 0, 9 s)
+
+### kv-spec: CI's good bean lands under the repository's checks
+$ git push -o wait origin bean/get-or
+remote: Processing objects: 100% (6/6)
+remote: beanstalk: new bean get-or received at 1021083: "Get with a fallback"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)
+remote: beanstalk: pre-land check green on the merged tree (3.3 s)
+remote: beanstalk: LANDED: get-or passed its pre-land check and is on the sprout as b69421a
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at b69421a
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/get-or/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/kv-spec.git
+ * [new branch]      bean/get-or -> bean/get-or
+(exit 0, 14 s)
+
+### rust-lib: the owner asks for cargo test in a rust image: red, both problems named
+$ git push -o wait origin bean/crate
+remote: Processing objects: 100% (7/7)
+remote: beanstalk: new bean crate received at 73bfc9e: "A crate with cargo test as its checks"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: changes protected paths (.beanstalk/checks.toml): allowed for @coop-chk (owner, with a personal token)
+remote: beanstalk: .beanstalk/checks.toml is invalid:
+remote: beanstalk:   image: "rust" is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (other images are an open item, docs/claude-opus/23-checks-config.md)
+remote: beanstalk:   command: must start with "node": the runner reads node's test reporter (other test runners need another image; see docs/claude-opus/23-checks-config.md)
+remote: beanstalk:   command: must run node --test
+remote: beanstalk: pre-land check red (1 failing, 0.9 s)
+remote: beanstalk: RED: crate was not landed. Merged onto the sprout, these tests failed:
+remote: beanstalk:   - .beanstalk/checks.toml > the checks config is valid
+remote: beanstalk: output:
+remote: beanstalk:   .beanstalk/checks.toml on the merged tree is invalid, so no tests ran:
+remote: beanstalk:     image: "rust" is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (other images are an open item, docs/claude-opus/23-checks-config.md)
+remote: beanstalk:     command: must start with "node": the runner reads node's test reporter (other test runners need another image; see docs/claude-opus/23-checks-config.md)
+remote: beanstalk:     command: must run node --test
+remote: beanstalk:   Fix the file in this bean; see docs/claude-opus/23-checks-config.md for the format.
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/crate
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/crate/status
+To https://beanstalk-gateway-staging-checks.devaccounts-1password.workers.dev/git/coop-chk/rust-lib.git
+ * [new branch]      bean/crate -> bean/crate
+(exit 0, 13 s)

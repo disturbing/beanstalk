@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { readChecksConfig } from '@beanstalk/shared-race/checks-config';
 import type { SessionVia } from '@beanstalk/shared-race/collaborators';
-import { Sha } from '@beanstalk/shared-race/ids';
+import { RunId, Sha } from '@beanstalk/shared-race/ids';
 
 import type { GitCredential } from '../auth/git-credential';
 import { templateFiles } from '../repos/templates';
@@ -155,6 +155,14 @@ describe('who may change protected paths', () => {
     expect(protectedAccessOf(credential(null), 'owner')).toEqual({
       allowed: false,
       who: '@coop (owner, with an engine token)',
+    });
+  });
+
+  it('names a deploy token as acting for the person who made it', () => {
+    const deploy = { ...credential('deploy-token'), engine: RunId.parse('r0123456789abcdef012') };
+    expect(protectedAccessOf(deploy, null)).toEqual({
+      allowed: false,
+      who: 'a deploy token acting for @coop',
     });
   });
 });

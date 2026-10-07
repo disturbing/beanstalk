@@ -65,7 +65,7 @@ function EffectiveChecks(props: { readonly config: ChecksConfig }) {
       <dt>Runs</dt>
       <dd className={styles.mono}>{suiteCommand({ argv: [...config.command] })}</dd>
       <dt>Image</dt>
-      <dd>{config.image} (Node 25.8.1, no install step, no network but loopback)</dd>
+      <dd>{config.image} (Node 25.8.1; nothing is installed at check time)</dd>
       <dt>Time limit</dt>
       <dd>{config.timeout_seconds} s</dd>
       <dt>Environment</dt>
@@ -73,7 +73,7 @@ function EffectiveChecks(props: { readonly config: ChecksConfig }) {
         {env.length === 0 ? 'none' : env.map(([name, value]) => `${name}=${value}`).join('  ')}
       </dd>
       <dt>Protected</dt>
-      <dd className={styles.mono}>{protectedPaths.join('  ')}</dd>
+      <dd className={styles.mono}>{protectedPaths.join(', ')}</dd>
     </dl>
   );
 }
