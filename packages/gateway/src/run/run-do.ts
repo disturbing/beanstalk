@@ -1669,6 +1669,12 @@ export class RunDO extends DurableObject<Env> {
           },
           queue: this.env.REPO_EVENTS,
         });
+        if (outcome.sent > 0)
+          this.#log.info('repo events sent', {
+            engine: record.engineId,
+            events: outcome.sent,
+            cursor: outcome.cursor,
+          });
       } catch (error: unknown) {
         this.#log.warn('repo events not sent; the next step or alarm retries', {
           engine: record.engineId,

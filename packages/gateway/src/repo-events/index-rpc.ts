@@ -30,13 +30,21 @@ export type IndexRpcDeps = {
 export function repoIndexRpc(deps: IndexRpcDeps): RepoIndexRpc {
   return {
     async repositoryStalk(repoId, viewer) {
-      const record = await accessResult(deps.collaborators, await deps.registry.byId(repoId), {
-        principal: viewerPrincipal(viewer),
-        action: 'read',
-        what: repoId,
-      });
+      // The index is read beside the access check (one round trip, not two); it is only
+      // returned when the check allows it.
+      const started = Date.now();
+      const [record, stalk] = await Promise.all([
+        deps.registry.byId(repoId).then((found) =>
+          accessResult(deps.collaborators, found, {
+            principal: viewerPrincipal(viewer),
+            action: 'read',
+            what: repoId,
+          }),
+        ),
+        readStalk(deps.db, repoId),
+      ]);
+      deps.log.debug('stalk read', { repo: repoId, ms: Date.now() - started });
       if (!record.ok) return record;
-      const stalk = await readStalk(deps.db, repoId);
       if (stalk.lines === null) catchUp(deps, record.value.engine_id);
       return { ok: true, value: stalk };
     },

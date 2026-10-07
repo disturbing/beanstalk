@@ -24,12 +24,15 @@ export function HomeDashboard(props: {
   /** Invitations waiting for an answer (rendered by the page: they are forms). */
   readonly invitations?: ReactNode;
   readonly activity: readonly RepositoryActivity[];
+  /** The person's archived repositories, listed on their own page rather than here. */
+  readonly archivedCount?: number;
   readonly nowMs: number;
   /** A sentence when something just happened (a deletion), or a registry problem. */
   readonly notice: { readonly tone: 'good' | 'warn'; readonly text: string } | null;
   readonly demoHref: string;
 }) {
-  const first = props.repositories.length === 0;
+  const archivedCount = props.archivedCount ?? 0;
+  const first = props.repositories.length === 0 && archivedCount === 0;
   return (
     <main className={styles.page}>
       {props.notice === null ? null : (
@@ -42,7 +45,7 @@ export function HomeDashboard(props: {
       )}
       <div className={styles.homeHead}>
         <div>
-          <h1 className={styles.lead}>{leadOf(props.user, props.repositories)}</h1>
+          <h1 className={styles.lead}>{leadOf(props.user, props.repositories, archivedCount)}</h1>
           <p className={styles.sub}>
             Agents and people push beans; Beanstalk checks each one on the exact tree it would land
             on and grows the stalk.
@@ -58,17 +61,23 @@ export function HomeDashboard(props: {
           <section className={styles.panel} aria-labelledby="repos-title">
             <div className={styles.panelHead}>
               <h2 id="repos-title">Your repositories</h2>
-              <span className={styles.muted}>{props.repositories.length || ''}</span>
+              <span className={styles.muted}>
+                {props.repositories.length || ''}
+                {archivedCount === 0 ? null : (
+                  <>
+                    {' '}
+                    <Link href={`/${props.user.handle}`}>{archivedCount} archived</Link>
+                  </>
+                )}
+              </span>
             </div>
-            {first ? (
-              <FirstSteps demoHref={props.demoHref} />
-            ) : (
-              <ul className={styles.repoList}>
-                {props.repositories.map(({ record, growth }) => (
-                  <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
-                ))}
-              </ul>
-            )}
+            <OwnList
+              first={first}
+              handle={props.user.handle}
+              repositories={props.repositories}
+              demoHref={props.demoHref}
+              nowMs={props.nowMs}
+            />
           </section>
           {(props.shared ?? []).length === 0 ? null : (
             <section className={styles.panel} aria-labelledby="shared-title">
@@ -111,6 +120,32 @@ export function HomeDashboard(props: {
         </section>
       </div>
     </main>
+  );
+}
+
+/** The person's own repositories, the first steps, or a word that they are all archived. */
+function OwnList(props: {
+  readonly first: boolean;
+  readonly handle: string;
+  readonly repositories: readonly DashboardRepository[];
+  readonly demoHref: string;
+  readonly nowMs: number;
+}) {
+  if (props.first) return <FirstSteps demoHref={props.demoHref} />;
+  if (props.repositories.length === 0)
+    return (
+      <p className={styles.empty}>
+        Every repository of yours is archived.{' '}
+        <Link href={`/${props.handle}`}>Your page lists them</Link>; unarchive one from its
+        Settings, or start a new one.
+      </p>
+    );
+  return (
+    <ul className={styles.repoList}>
+      {props.repositories.map(({ record, growth }) => (
+        <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
+      ))}
+    </ul>
   );
 }
 
@@ -175,7 +210,13 @@ function Sprig({ grown }: { readonly grown: boolean }) {
   );
 }
 
-function leadOf(user: SessionUser, repositories: readonly DashboardRepository[]): string {
+function leadOf(
+  user: SessionUser,
+  repositories: readonly DashboardRepository[],
+  archivedCount: number,
+): string {
+  if (repositories.length === 0 && archivedCount > 0)
+    return `Welcome back, ${user.handle}. Your repositories are archived.`;
   if (repositories.length === 0) return `Welcome, ${user.handle}. Start your first repository.`;
   const growing = repositories.filter(
     (repo) => repo.growth.kind === 'grown' && repo.growth.growing > 0,

@@ -24,8 +24,9 @@ export default async function Home({ searchParams }: PageProps) {
   const { user } = session;
   const registry = registryClient(env.GATEWAY);
   const collaborators = collaboratorsClient(env.GATEWAY);
-  const [listed, activity, invitations, shared, query] = await Promise.all([
+  const [listed, archived, activity, invitations, shared, query] = await Promise.all([
     registry.list(user.id, user.id),
+    registry.list(user.id, user.id, 'archived'),
     registry.activity(user.id, 12),
     collaborators.invitations(user.id),
     collaborators.shared(user.id),
@@ -55,6 +56,7 @@ export default async function Home({ searchParams }: PageProps) {
         />
       }
       activity={activity.ok ? activity.value : []}
+      archivedCount={archived.ok ? archived.value.length : 0}
       nowMs={Date.now()}
       notice={notice}
       demoHref={`/runs/${racePair().right.run}`}
