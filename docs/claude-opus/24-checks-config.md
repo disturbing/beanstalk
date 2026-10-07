@@ -88,20 +88,20 @@ Screenshots (staging, night and day, phone): `exp/checks-config/`.
 - `gateway/src/checks/repository-checks.test.ts`: the decision table, protected paths taken from the sprout not the bean, validations not guarded, who may change protected paths per credential and role, the starter's file valid.
 - `gateway/test/checks-config.test.ts`, end to end through the Worker, the engine DO, the fake Artifacts and the fake runner (whose squashes now land in the fake trunk repo as the real runner's candidates do): no file lands with no runner call; an agent's change to the checks is refused; the owner's checks then run with their argv, env and timeout for later beans, and a protected migration is refused; an invalid file is a red naming both problems.
 
-**Staging** (`beanstalk-gateway-staging-checks` with its runner on standard-2, `beanstalk-web-staging-checks`, Artifacts `beanstalk-race-staging-checks` / `beanstalk-repos-staging-checks`, D1 `beanstalk-forge-staging-checks` and `beanstalk-identity-staging-checks`): passkey sign-up as `coop-chk` in headless Chrome, three repositories from the web, a personal token and two deploy tokens from the web, then real `git push -o wait` by hand. Transcript: `exp/checks-config/staging-transcript.txt`.
+**Staging** (`beanstalk-gateway-staging-checks` with its runner on standard-2, `beanstalk-web-staging-checks`, Artifacts `beanstalk-race-staging-checks` / `beanstalk-repos-staging-checks`, D1 `beanstalk-forge-staging-checks` and `beanstalk-identity-staging-checks`): passkey sign-up as `coop-chk` in headless Chrome, three repositories from the web, a personal token and two deploy tokens from the web, then real `git push -o wait` by hand. The run below is on this branch after merging `origin/prototype` (MCP repository tools, repository tabs); an earlier run before the merge gave the same verdicts. Transcript: `exp/checks-config/staging-transcript.txt`; Settings → Checks for each repository and the empty start page in night, day and phone (no sideways scroll): `exp/checks-config/*.png`.
 
 | Repository | Push | Credential | Result |
 |---|---|---|---|
-| `node-app` (TypeScript starter) | `add-truncate` | owner, personal token | `checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)`, green 5.1 s, landed and validated, 19 s |
+| `greeter-ts` (TypeScript starter) | `add-truncate` | owner, personal token | `checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)`, green 6.2 s, landed and validated, 19 s for the push |
 | | `shout` (a failing test) | owner | red, `test/shout.test.ts > shouts with an exclamation mark` |
 | | `weaken-checks` | deploy token | refused: `.beanstalk/checks.toml` is protected |
 | | `bad-checks` (`command = "npm test"`) | owner | allowed to change it, then red: `command: must be an argv array …` |
-| `kv-spec` (empty start, `spec/*.spec.mjs`, ESM) | `notes` | deploy token | `no .beanstalk/checks.toml …: no checks run`, landed, 20 s |
-| | `setup` (adds the checks above) | owner | `node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)`, green 7.9 s; the spec asserts `KV_LIMIT` is `"3"` and sits where `node --test`'s defaults would not look, so the green proves both |
+| `kv-layout` (empty start, `spec/*.spec.mjs`, ESM) | `notes` | deploy token | `no .beanstalk/checks.toml …: no checks run`, landed and validated, 19 s |
+| | `setup` (adds the checks above) | owner | `node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)`, green 6.4 s; the spec asserts `KV_LIMIT` is `"3"` and sits where `node --test`'s defaults would not look, so the green proves both |
 | | `off-by-one` | deploy token | red, `spec/kv.spec.mjs > keeps KV_LIMIT keys from the checks environment`, naming `setup` as the bean it collided with |
 | | `schema` | deploy token | refused: `data/schema.json` is protected by the file |
 | | `get-or` (a new spec) | deploy token | green under the repository's checks, landed |
-| `rust-lib` (a Rust crate) | `crate` (`image = "rust"`, `command = ["cargo", "test"]`) | owner | red, three problems named: the image, `command` must start with `node`, and must run `node --test` |
+| `rust-sum` (a Rust crate) | `crate` (`image = "rust"`, `command = ["cargo", "test"]`) | owner | red, three problems named: the image, `command` must start with `node`, and must run `node --test` |
 
 ## 6. Open items and decisions for Coop
 
@@ -114,4 +114,4 @@ Screenshots (staging, night and day, phone): `exp/checks-config/`.
 4. **Refused, not flagged.** A protected change by an agent is a red the author must drop. A "flag" variant (land it after a maintainer approves a decision card) waits for decision routing (Phase 3).
 5. **Deploy tokens never change protected paths**, even ones a maintainer made for CI. If CI should, a per-token "may change checks" setting is the place.
 6. **Validations read the checks of the tree they validate** (the sprout head), so a landed config change applies to the next validation at once.
-7. Seen on staging, not this lane's: a repository creation whose web request was cut off left its name reserved ("You already have a repository named …") but unlisted; the registry should release or finish such rows.
+7. Seen on staging, not this lane's (backlog 2.2): **a deleted repository's name cannot be used again** by its owner: `/new` answers "Engine r0bb8… drives another repo." because the engine id is derived from `<owner>/<name>` and the closed engine still holds its old record. And a creation whose web request was cut off left its name reserved ("You already have a repository named …") but unlisted. The registry should free the engine id on delete and release or finish half-made rows.
