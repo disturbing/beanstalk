@@ -1,9 +1,11 @@
 import Link from 'next/link';
 
 import styles from '../../components/account/account.module.css';
+import { TurnstileField } from '../../components/account/turnstile';
 import { PasskeySignup } from '../../components/account/passkey-buttons';
 import { NextPath } from '../../src/auth/http';
 import { emailSignIn } from '../../src/auth/services';
+import { turnstileSiteKey } from '../../src/auth/turnstile';
 import { currentUser } from '../../src/auth/user';
 
 export const metadata = { title: 'Sign up' };
@@ -16,9 +18,10 @@ type PageProps = { readonly searchParams: Promise<Query> };
 /** Sign-up: a handle and a passkey. Email sign-up appears only once a sender domain is set. */
 export default async function SignupPage({ searchParams }: PageProps) {
   const query = await searchParams;
-  const next = NextPath.parse(typeof query['next'] === 'string' ? query['next'] : '/settings');
+  const next = NextPath.parse(typeof query['next'] === 'string' ? query['next'] : '/');
   const user = await currentUser();
   const email = emailSignIn() !== null;
+  const siteKey = turnstileSiteKey();
   const connecting = next.startsWith('/connect');
   return (
     <main className={styles.page}>
@@ -34,13 +37,13 @@ export default async function SignupPage({ searchParams }: PageProps) {
           connect to this account over MCP, and you approve each one.
         </p>
         {user === null ? (
-          <PasskeySignup next={next} />
+          <PasskeySignup next={next} turnstileSiteKey={siteKey} />
         ) : (
           <p className={styles.success}>
             You are signed in as <strong>@{user.handle}</strong>. <Link href={next}>Continue</Link>.
           </p>
         )}
-        {email && user === null ? <EmailSignup query={query} /> : null}
+        {email && user === null ? <EmailSignup query={query} siteKey={siteKey} /> : null}
         <p className={styles.note}>
           Already have an account?{' '}
           <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
@@ -50,7 +53,13 @@ export default async function SignupPage({ searchParams }: PageProps) {
   );
 }
 
-function EmailSignup({ query }: { readonly query: Query }) {
+function EmailSignup({
+  query,
+  siteKey,
+}: {
+  readonly query: Query;
+  readonly siteKey: string | null;
+}) {
   if (query['email_sent'] !== undefined)
     return (
       <p className={styles.success}>
@@ -82,6 +91,7 @@ function EmailSignup({ query }: { readonly query: Query }) {
           className={styles.input}
           autoCapitalize="none"
         />
+        <TurnstileField siteKey={siteKey} action="signup" />
         <button type="submit" className={styles.secondary}>
           Email me a sign-up link
         </button>

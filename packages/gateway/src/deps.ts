@@ -1,3 +1,4 @@
+import type { ProductEventsDataset } from '@beanstalk/shared-identity/product-events';
 import type { RunId } from '@beanstalk/shared-race/ids';
 
 import type { RunnerCapacity } from './capacity/runner-capacity';
@@ -33,6 +34,8 @@ export type Deps = {
   readonly registry: Registry;
   /** Collaborators, invitations and sessions (`repos/collaborators.ts`), beside the registry. */
   readonly collaborators: CollaboratorStore;
+  /** Product analytics (Analytics Engine `product_events`): beans pushed by people. */
+  readonly productEvents: ProductEventsDataset;
 };
 
 export function createDeps(env: Env): Deps {
@@ -50,5 +53,6 @@ export function createDeps(env: Env): Deps {
     now: () => Date.now(),
     registry: d1Registry(env.FORGE),
     collaborators: d1Collaborators(env.FORGE, () => Date.now()),
+    productEvents: env.PRODUCT_EVENTS,
   };
 }

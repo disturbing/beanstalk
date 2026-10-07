@@ -1,0 +1,112 @@
+[
+  {
+    "name": "sign-up options without a Turnstile token are refused (403 turnstile)",
+    "ok": true,
+    "detail": "403 turnstile"
+  },
+  {
+    "name": "sign-up options with a (test-key) token pass Siteverify",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "name": "sign-in options without a token are refused",
+    "ok": true,
+    "detail": "403"
+  },
+  {
+    "name": "/signup/agent shows this deployment’s MCP line for Claude Code and Codex",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "sign-up page renders the Turnstile widget and gets a token",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "passkey sign-up (with Turnstile) lands on Home",
+    "ok": true,
+    "detail": "acct-4d9fbb"
+  },
+  {
+    "name": "Home: checklist 0 of 3, demo repository listed, no sessions",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "claude mcp login printed an authorization URL for the staging MCP",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Home lists the Claude Code session within 5 s of approval (no reload)",
+    "ok": true,
+    "detail": "2893 ms"
+  },
+  {
+    "name": "Claude Code: login finished and the server is connected",
+    "ok": true,
+    "detail": "exit 0; beanstalk-acct: <mcp>/mcp (HTTP) - ✔ Connected"
+  },
+  {
+    "name": "Codex: codex mcp login completed with OAuth",
+    "ok": true,
+    "detail": "exit 0; beanstalk-acct <mcp>/mcp - enabled OAuth "
+  },
+  {
+    "name": "scripted OAuth client got an authorization code",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "token exchange (PKCE S256) issued an access token",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "whoami over OAuth names the person",
+    "ok": true,
+    "detail": "{\"handle\":\"acct-4d9fbb\",\"via\":\"oauth\",\"scopes\":[\"read\",\"write\"]}"
+  },
+  {
+    "name": "Home: connect and repository ticked (2 of 3)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "git_credentials minted a session token for the repository",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "git clone with the session credential",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "git push of bean/readme-line accepted",
+    "ok": true,
+    "detail": "remote: beanstalk: validated: on the stalk at 0a62ee1         | remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/readme-line/status        "
+  },
+  {
+    "name": "Home: checklist gone after the first bean",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/ at phone width has no sideways scroll",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/signup/agent at phone width has no sideways scroll",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/settings at phone width has no sideways scroll",
+    "ok": true,
+    "detail": ""
+  }
+]

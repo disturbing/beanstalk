@@ -14,6 +14,7 @@ import {
 import { isWithinLimits } from '@beanstalk/shared-identity/rate-limit';
 import { clientIp, userAgent } from '@beanstalk/shared-identity/request-context';
 import { getWebSession, isValidCsrf } from '@beanstalk/shared-identity/sessions';
+import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
 import { Handle } from '@beanstalk/shared-identity/users';
 import {
   parseAuthenticationResponse,
@@ -29,13 +30,19 @@ import {
   relyingParty,
   sessionCookie,
 } from '../../../../../src/auth/http';
+import { turnstileProblem, turnstileRefusal } from '../../../../../src/auth/turnstile';
 import { log } from '../../../../../src/log';
 
 type Context = { readonly params: Promise<{ readonly ceremony: string }> };
 
 const Ceremony = z.enum(['signup', 'signin', 'add']);
 const Body = z.discriminatedUnion('step', [
-  z.object({ step: z.literal('options'), handle: z.string().max(64).optional() }),
+  z.object({
+    step: z.literal('options'),
+    handle: z.string().max(64).optional(),
+    /** The Turnstile token (sign-up and sign-in, when Turnstile is on). */
+    turnstile: z.string().max(2048).optional(),
+  }),
   z.object({
     step: z.literal('verify'),
     response: z.unknown(),
@@ -75,6 +82,8 @@ export async function POST(request: Request, context: Context): Promise<Response
   ];
   if (!(await isWithinLimits(env.SIGNIN_RATE_LIMIT, keys)))
     return problem(429, 'rate_limited', 'Too many attempts. Wait a minute and try again.');
+  const challenged = await humanCheck(request, ceremony.data, body.data);
+  if (challenged !== null) return challenged;
   try {
     return await CEREMONIES[ceremony.data](request, body.data);
   } catch (error: unknown) {
@@ -105,8 +114,15 @@ async function signup(request: Request, body: Body): Promise<Response> {
     context: ceremonyContext(request, now),
   });
   if (!finished.ok) return problem(400, finished.reason, MESSAGES[finished.reason]);
-  log.info('signed up', { method: 'passkey' });
-  return signedIn(NextPath.parse(body.next ?? '/settings'), finished.session, now);
+  log.info('signed up', {
+    method: 'passkey',
+    ...(await logIdentity({ userId: finished.user.id })),
+  });
+  await recordProductEvent(env.PRODUCT_EVENTS, 'signup', {
+    userId: finished.user.id,
+    detail: 'passkey',
+  });
+  return signedIn(NextPath.parse(body.next ?? '/'), finished.session, now);
 }
 
 async function signin(request: Request, body: Body): Promise<Response> {
@@ -123,6 +139,10 @@ async function signin(request: Request, body: Body): Promise<Response> {
     context: ceremonyContext(request, now),
   });
   if (!finished.ok) return problem(400, finished.reason, MESSAGES[finished.reason]);
+  log.info('signed in', {
+    method: 'passkey',
+    ...(await logIdentity({ userId: finished.user.id })),
+  });
   return signedIn(NextPath.parse(body.next ?? '/'), finished.session, now);
 }
 
@@ -150,6 +170,20 @@ async function add(request: Request, body: Body): Promise<Response> {
   });
   if (!finished.ok) return problem(400, finished.reason, MESSAGES[finished.reason]);
   return noStore(Response.json({ redirect: '/settings' }), [clearChallengeCookie()]);
+}
+
+/**
+ * Turnstile guards the start of sign-up and sign-in (the options step; the verify step is
+ * bound to that step's challenge). Adding a passkey is already signed in.
+ */
+async function humanCheck(
+  request: Request,
+  ceremony: z.infer<typeof Ceremony>,
+  body: Body,
+): Promise<Response | null> {
+  if (ceremony === 'add' || body.step !== 'options') return null;
+  const refusal = await turnstileRefusal(request, body.turnstile, ceremony);
+  return refusal === null ? null : turnstileProblem(refusal);
 }
 
 const CEREMONIES: Readonly<

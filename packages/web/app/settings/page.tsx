@@ -1,17 +1,16 @@
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 
-import type { AgentSession as AgentSessionType } from '@beanstalk/shared-identity/agent-sessions';
-import { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
+import type { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
 import { listPasskeys } from '@beanstalk/shared-identity/passkeys';
 
 import styles from '../../components/account/account.module.css';
 import { AddPasskey } from '../../components/account/passkey-buttons';
 import { ScopeChips, formatDate } from '../../components/account/scope-chips';
 import { SettingsTabs } from '../../components/account/settings-tabs';
-import { agentSessionsRpc, emailSignIn } from '../../src/auth/services';
+import { connectedSessions } from '../../src/auth/connected-sessions';
+import { emailSignIn } from '../../src/auth/services';
 import { currentSession } from '../../src/auth/user';
-import { log } from '../../src/log';
 
 export const metadata = { title: 'Settings' };
 /** Per person and per request: never prerendered or cached. */
@@ -35,7 +34,7 @@ export default async function SettingsPage({ searchParams }: PageProps) {
   const { user, csrfToken } = session;
   const [passkeys, agents] = await Promise.all([
     listPasskeys(env, user.id),
-    connectedAgents(user.id),
+    connectedSessions(user.id),
   ]);
   const passkeyNote =
     typeof query['passkey'] === 'string' ? PASSKEY_NOTES[query['passkey']] : undefined;
@@ -119,7 +118,10 @@ export default async function SettingsPage({ searchParams }: PageProps) {
           ) : (
             <AgentList agents={agents} csrf={csrfToken} mcpUrl={env.MCP_URL} />
           )}
-          <p className={styles.hint}>A new connection can take up to a minute to appear here.</p>
+          <p className={styles.hint}>
+            A connection made in the last minute shows as “connecting” until it can be disconnected
+            here.
+          </p>
         </section>
 
         <section className={styles.section} aria-labelledby="sessions-title">
@@ -152,16 +154,15 @@ function AgentList({
   csrf,
   mcpUrl,
 }: {
-  readonly agents: readonly AgentSessionType[];
+  readonly agents: readonly AgentSession[];
   readonly csrf: string;
   readonly mcpUrl: string;
 }) {
   if (agents.length === 0)
     return (
       <p className={styles.empty}>
-        No agents yet. In Claude Code:{' '}
-        <code>claude mcp add --transport http beanstalk {mcpUrl}</code>, then{' '}
-        <code>claude mcp login beanstalk</code> (or <code>/mcp</code>) to authenticate.
+        No agents yet. <a href="/signup/agent">Connect one</a>: one command for Claude Code or
+        Codex. Any other MCP client: add <code>{mcpUrl}</code> and sign in when it asks.
       </p>
     );
   return (
@@ -185,31 +186,25 @@ function AgentList({
             </td>
             <td className={styles.muted}>{formatDate(agent.createdAt)}</td>
             <td>
-              <form method="post" action="/settings/sessions/revoke">
-                <input type="hidden" name="csrf" value={csrf} />
-                <input type="hidden" name="grant" value={agent.grantId} />
-                <button
-                  type="submit"
-                  className={styles.danger}
-                  aria-label={`Disconnect ${agent.clientName}`}
-                >
-                  Disconnect
-                </button>
-              </form>
+              {agent.settling === true ? (
+                <span className={styles.muted}>connecting…</span>
+              ) : (
+                <form method="post" action="/settings/sessions/revoke">
+                  <input type="hidden" name="csrf" value={csrf} />
+                  <input type="hidden" name="grant" value={agent.grantId} />
+                  <button
+                    type="submit"
+                    className={styles.danger}
+                    aria-label={`Disconnect ${agent.clientName}`}
+                  >
+                    Disconnect
+                  </button>
+                </form>
+              )}
             </td>
           </tr>
         ))}
       </tbody>
     </table>
   );
-}
-
-async function connectedAgents(userId: string): Promise<readonly AgentSessionType[] | null> {
-  try {
-    const parsed = AgentSession.array().safeParse(await agentSessionsRpc().agentSessions(userId));
-    return parsed.success ? parsed.data : null;
-  } catch (error: unknown) {
-    log.error('connected agents unavailable', { error });
-    return null;
-  }
 }

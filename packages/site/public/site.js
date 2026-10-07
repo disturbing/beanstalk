@@ -3,15 +3,15 @@
 // sign-up form. The hero's app replay lives in app-demo.js. No framework.
 
 // ---------------------------------------------------------------------------
-// Install commands. PLACEHOLDERS (owner to confirm): the plugin marketplace repo, the plugin
-// and marketplace names, and the MCP origin. Each install adds the marketplace, installs the
-// plugin, then runs the client's own MCP login, which opens the browser sign-in.
+// Install commands (the same ones the web app's /signup/agent prints, packages/web/src/setup/
+// agent-installs.ts). The plugin comes from the public marketplace repository; its .mcp.json
+// names the hosted MCP server with no auth header, so each client runs its own OAuth sign-in.
+// When the plugin moves to its own organisation, change PLUGIN_REPO here and in the web app.
 // ---------------------------------------------------------------------------
-const PLUGIN_REPO = 'beanstalkdev/beanstalk-plugin';
-const PLUGIN_URL = `https://github.com/${PLUGIN_REPO}`;
+const PLUGIN_REPO = 'disturbing/beanstalk';
 const PLUGIN = 'beanstalk';
 const MARKETPLACE = 'beanstalk';
-const MCP_URL = 'https://mcp.beanstalk.dev/mcp';
+const MCP_URL = 'https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp';
 const CLAUDE_SERVER = `plugin:${PLUGIN}:${PLUGIN}`;
 
 const INSTALLS = [
@@ -20,14 +20,16 @@ const INSTALLS = [
     name: 'Claude Code',
     where: 'paste in your terminal',
     kind: 'shell',
+    verified: true,
     code: `claude plugin marketplace add ${PLUGIN_REPO} && claude plugin install ${PLUGIN}@${MARKETPLACE} && claude mcp login ${CLAUDE_SERVER}`,
-    after: `Your browser opens once: sign in (or create your account) and approve this session. Back in Claude Code, the Beanstalk tools and skill are ready. Already in a session? Type <code>/plugin marketplace add ${PLUGIN_REPO}</code>, then <code>/plugin install ${PLUGIN}@${MARKETPLACE}</code>, then <code>/mcp</code> to sign in.`,
+    after: `Your browser opens once: sign in (or create your account with a passkey) and approve this session. Back in Claude Code, the Beanstalk tools and skill are ready. Already in a session? Type <code>/plugin marketplace add ${PLUGIN_REPO}</code>, then <code>/plugin install ${PLUGIN}@${MARKETPLACE}</code>, then <code>/mcp</code> to sign in.`,
   },
   {
     id: 'codex',
     name: 'Codex',
     where: 'paste in your terminal',
     kind: 'shell',
+    verified: true,
     code: `codex plugin marketplace add ${PLUGIN_REPO} && codex plugin add ${PLUGIN}@${MARKETPLACE} && codex mcp login ${PLUGIN}`,
     after:
       'The last step opens your browser: sign in and approve this session. Codex keeps running on your ChatGPT or Codex plan, with no API key needed, and the session joins your team as yours.',
@@ -35,24 +37,27 @@ const INSTALLS = [
   {
     id: 'cursor',
     name: 'Cursor',
-    where: "paste in Cursor's chat",
-    kind: 'chat',
-    code: `/add-plugin ${PLUGIN_URL}`,
-    after: `Then open Settings &gt; MCP and click "Needs login" next to <code>${PLUGIN}</code>. Approve in the browser and Cursor is connected.`,
+    where: 'add to ~/.cursor/mcp.json, then run in your terminal',
+    kind: 'shell',
+    verified: false,
+    code: `{ "mcpServers": { "${PLUGIN}": { "url": "${MCP_URL}" } } }\ncursor-agent mcp login ${PLUGIN}`,
+    after: `Or open Cursor Settings &gt; MCP and click "Needs login" next to <code>${PLUGIN}</code>. Approve in the browser and Cursor is connected.`,
   },
   {
     id: 'gemini',
     name: 'Gemini CLI',
-    where: 'paste in your terminal',
+    where: 'paste in your terminal, then in Gemini',
     kind: 'shell',
-    code: `gemini extensions install ${PLUGIN_URL} --consent && gemini`,
-    after: `When Gemini starts it asks to authenticate the <code>${PLUGIN}</code> server: press Enter, then approve in the browser.`,
+    verified: false,
+    code: `gemini mcp add --transport http ${PLUGIN} ${MCP_URL}\n/mcp auth ${PLUGIN}`,
+    after: 'The second line runs inside Gemini CLI and opens the browser sign-in.',
   },
   {
     id: 'mcp',
     name: 'Other MCP',
     where: 'add as a remote (HTTP) MCP server',
     kind: 'url',
+    verified: false,
     code: MCP_URL,
     after:
       'Add this URL as a remote MCP server in Claude Desktop, Windsurf or any MCP client. The first call opens the same browser sign-in; approve it and your client is connected.',
@@ -119,7 +124,7 @@ const CHOOSE_HTML = `
       <a class="option agent" href="agent.html" autofocus>
         <span class="rec">recommended</span>
         <b>Sign up with Agent</b>
-        <span>Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It will install the plugin and sign you in.</span>
+        <span>Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It installs the plugin and signs you in.</span>
       </a>
       <a class="option" href="human.html">
         <b>Sign up as Human</b>
@@ -165,7 +170,7 @@ function renderInstallPanel(host, item) {
   if (!panel) return;
   panel.setAttribute('aria-labelledby', `${host.id}-tab-${item.id}`);
   panel.innerHTML = `
-    <header><span>${item.name}: ${item.where}</span><span class="chip soon">coming soon</span>
+    <header><span>${item.name}: ${item.where}</span>${item.verified ? '' : '<span class="chip soon">untested</span>'}
       <button type="button" class="btn small copy" data-copy="#${host.id}-code">Copy</button></header>
     <pre class="${item.kind}" id="${host.id}-code" tabindex="0"><code>${escapeHtml(item.code)}</code></pre>
     <p class="copyhint" hidden role="status"></p>

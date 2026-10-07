@@ -2,7 +2,7 @@
   "mcpServers": {
     "beanstalk": {
       "type": "http",
-      "url": "${BEANSTALK_MCP_URL:-https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp}"
+      "url": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp"
     }
   }
 }

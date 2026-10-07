@@ -95,4 +95,7 @@
       "migrations_dir": "../shared-identity/migrations",
     },
   ],
+  // Product analytics (docs/claude-opus/19 §10): a bean pushed to a person's repository. The
+  // web app writes sign-up, connect and repository-created events to the same dataset.
+  "analytics_engine_datasets": [{ "binding": "PRODUCT_EVENTS", "dataset": "product_events" }],
 }

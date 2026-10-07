@@ -4,6 +4,7 @@ import type { DashboardRepository } from '../components/repository/home-dashboar
 import { HomeDashboard } from '../components/repository/home-dashboard';
 import { RunsLanding } from '../components/runs/runs-landing';
 import { Invitations } from '../components/repository/invitations';
+import { connectedSessions } from '../src/auth/connected-sessions';
 import { currentSession } from '../src/auth/user';
 import { collaboratorsClient } from '../src/repositories/collaborators-client';
 import type { Growth } from '../src/repositories/engine-summary';
@@ -23,19 +24,23 @@ type PageProps = {
   readonly searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
 };
 
-/** Signed in: Home (your repositories, recent activity). Signed out: the benchmark landing. */
+/**
+ * Signed in: Home (first steps, your repositories and the demo, your sessions, recent
+ * activity). Signed out: the benchmark landing.
+ */
 export default async function Home({ searchParams }: PageProps) {
   const session = await currentSession();
   if (session === null) return <RunsLanding />;
   const { user } = session;
   const registry = registryClient(env.GATEWAY);
   const collaborators = collaboratorsClient(env.GATEWAY);
-  const [listed, archived, activity, invitations, shared, query] = await Promise.all([
+  const [listed, archived, activity, invitations, shared, sessions, query] = await Promise.all([
     registry.list(user.id, user.id),
     registry.list(user.id, user.id, 'archived'),
     registry.activity(user.id, 40),
     collaborators.invitations(user.id),
     collaborators.shared(user.id),
+    connectedSessions(user.id),
     searchParams,
   ]);
   // Archived repositories leave the default lists (the owner finds them on their page).
@@ -85,6 +90,7 @@ export default async function Home({ searchParams }: PageProps) {
       nowMs={Date.now()}
       notice={notice}
       demoHref={`/runs/${racePair().right.run}`}
+      sessions={sessions}
     />
   );
 }

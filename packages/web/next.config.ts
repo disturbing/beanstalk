@@ -10,12 +10,18 @@ const ACCOUNT_HEADERS = [
 
 const nextConfig: NextConfig = {
   headers: async () =>
-    ['/login', '/signup', '/connect', '/connect/:path*', '/settings', '/settings/:path*'].map(
-      (source) => ({
-        source,
-        headers: ACCOUNT_HEADERS,
-      }),
-    ),
+    [
+      '/login',
+      '/signup',
+      '/signup/:path*',
+      '/connect',
+      '/connect/:path*',
+      '/settings',
+      '/settings/:path*',
+    ].map((source) => ({
+      source,
+      headers: ACCOUNT_HEADERS,
+    })),
 };
 
 export default nextConfig;

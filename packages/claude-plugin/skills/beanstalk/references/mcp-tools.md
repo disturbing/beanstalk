@@ -8,10 +8,11 @@ coordinate agents (claims, reserved names) and explain verdicts; none of them mo
 
 ## Setup
 
-The plugin's `.mcp.json` points the `beanstalk` server at `BEANSTALK_MCP_URL` (default: the
-dev deployment) with no auth header, so the client uses OAuth: run `/mcp` in Claude Code (or
-`claude mcp login beanstalk`) and approve in the browser. Tick **write** on the consent page
-if the agent should open beans and claim tasks. Every tool also follows the person's role on the repository: read tools need the read role, `bean_open`, `task_claim`, `task_release` and a pushing credential need the write role (`repository_access(repository)` says which you have). Without OAuth the
+The plugin's `.mcp.json` points the `beanstalk` server at the hosted deployment's `/mcp` with
+no auth header, so the client uses OAuth: `claude mcp login plugin:beanstalk:beanstalk` (or
+`/mcp` in a session) and approve in the browser. Another deployment: `claude mcp add
+--transport http beanstalk <its /mcp URL> && claude mcp login beanstalk`. Tick **write** on the
+consent page if the agent should open beans and claim tasks. Every tool also follows the person's role on the repository: read tools need the read role, `bean_open`, `task_claim`, `task_release` and a pushing credential need the write role (`repository_access(repository)` says which you have). Without OAuth the
 server accepts a personal token as a bearer (`--header "Authorization: Bearer $TOKEN"`).
 Deploy tokens (`bsd_`) never open MCP. Never print a token.
 
