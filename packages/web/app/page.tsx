@@ -6,7 +6,9 @@ import { RunsLanding } from '../components/runs/runs-landing';
 import { Invitations } from '../components/repository/invitations';
 import { currentSession } from '../src/auth/user';
 import { collaboratorsClient } from '../src/repositories/collaborators-client';
-import { growthOf } from '../src/repositories/engine-summary';
+import type { Growth } from '../src/repositories/engine-summary';
+import { growthFromIndex, growthOf } from '../src/repositories/engine-summary';
+import { indexClient } from '../src/repositories/index-client';
 import type { RepositoryRecord } from '../src/repositories/registry-client';
 import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';
@@ -29,9 +31,13 @@ export default async function Home({ searchParams }: PageProps) {
     collaborators.shared(user.id),
     searchParams,
   ]);
+  // Archived repositories leave the default lists (the owner finds them on their page).
+  const sharedActive = (shared.ok ? shared.value : []).filter(
+    (record) => record.archived_at === null,
+  );
   const [repositories, sharedRepositories] = await Promise.all([
-    withGrowth(listed.ok ? listed.value : []),
-    withGrowth(shared.ok ? shared.value : []),
+    withGrowth(listed.ok ? listed.value : [], user.id),
+    withGrowth(sharedActive, user.id),
   ]);
   const notice = noticeOf(listed.ok ? null : listed.error.message, {
     deleted: stringParam(query['deleted']),
@@ -70,12 +76,27 @@ function stringParam(value: string | string[] | undefined): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-/** Each repository with what its engine has grown. */
-function withGrowth(records: readonly RepositoryRecord[]): Promise<DashboardRepository[]> {
+/**
+ * Each repository with what it has grown: one D1 read for all of them (the repo-events
+ * index); a repository the index has not heard from yet asks its engine instead.
+ */
+async function withGrowth(
+  records: readonly RepositoryRecord[],
+  viewer: string,
+): Promise<DashboardRepository[]> {
+  const indexed = await indexClient(env.GATEWAY).growth(
+    records.map((record) => record.id),
+    viewer,
+  );
+  const byRepo = new Map((indexed.ok ? indexed.value : []).map((line) => [line.repo_id, line]));
   return Promise.all(
-    records.map(async (record) => ({
-      record,
-      growth: await growthOf(env.GATEWAY, record.engine_id),
-    })),
+    records.map(async (record) => {
+      const line = byRepo.get(record.id);
+      const growth: Growth =
+        line?.indexed === true
+          ? growthFromIndex(line)
+          : await growthOf(env.GATEWAY, record.engine_id);
+      return { record, growth };
+    }),
   );
 }

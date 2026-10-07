@@ -14,7 +14,8 @@
     "./repos": "./src/repos.ts",
     "./deploy-tokens": "./src/deploy-tokens.ts",
     "./collaborators": "./src/collaborators.ts",
-    "./read-maps": "./src/read-maps.ts"
+    "./read-maps": "./src/read-maps.ts",
+    "./repo-events": "./src/repo-events.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

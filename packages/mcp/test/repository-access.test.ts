@@ -57,6 +57,7 @@ function fakeGateway(asked: Asked[]): Pick<CollaboratorsRpc, 'agentRepositoryAcc
           default_branch: 'stalk',
           created_at: '2026-10-07T00:00:00.000Z',
           updated_at: '2026-10-07T00:00:00.000Z',
+          archived_at: null,
           viewer_role: 'read',
         },
       });

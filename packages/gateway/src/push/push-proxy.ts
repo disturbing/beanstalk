@@ -10,7 +10,7 @@ import type { TaskId } from '@beanstalk/shared-race/ids';
 import { RunId, Sha } from '@beanstalk/shared-race/ids';
 
 import type { GitCredential, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
-import { mayUseEngine, roleOf } from '../auth/git-credential';
+import { mayUseEngine, refusedByArchive, roleOf } from '../auth/git-credential';
 import { notConnected } from '../auth/connect-hint';
 import type { Deps } from '../deps';
 import { withCapabilities } from '../git/advertisement';
@@ -28,7 +28,7 @@ import {
   withRemoteLines,
   withoutFinalFlush,
 } from '../git/receive-pack-report';
-import { accessFacts } from '../repos/access';
+import { accessFacts, archivedMessage } from '../repos/access';
 import type { SessionUse } from '../repos/collaborators';
 import type { RunDO } from '../run/run-do';
 import { PROTECTED_BRANCHES, beanOfPushedRef } from './bean-refs';
@@ -72,6 +72,8 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const verdict = mayUseEngine(principal, repository.access, access);
   if (verdict !== 'allowed') {
     if (verdict === 'not-found' || credential === null) return missing;
+    if (refusedByArchive(principal, repository.access, access))
+      return text(403, archivedMessage(`${path.namespace}/${path.repo}`, access));
     return text(403, refusalText(credential, repository.access, access));
   }
   const engineId = repository.access.engine;
@@ -119,6 +121,7 @@ async function repositoryAt(
       owner: { id: null, handle: path.namespace },
       visibility: 'private',
       collaboratorRole: null,
+      archived: false,
     },
     repoId: null,
   };

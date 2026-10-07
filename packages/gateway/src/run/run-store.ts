@@ -147,6 +147,23 @@ export function readEventsOfTypes(sql: SqlStorage, types: readonly string[]): st
     .map((row) => row.body);
 }
 
+/** Events of the given types after `after`, in order, at most `limit` (`events_by_type`). */
+export function readEventsOfTypesAfter(
+  sql: SqlStorage,
+  input: { readonly types: readonly string[]; readonly after: number; readonly limit: number },
+): { seq: number; body: string }[] {
+  if (input.types.length === 0) return [];
+  const marks = input.types.map(() => '?').join(', ');
+  return sql
+    .exec<{ seq: number; body: string }>(
+      `SELECT seq, body FROM events WHERE type IN (${marks}) AND seq > ? ORDER BY seq LIMIT ?`,
+      ...input.types,
+      input.after,
+      input.limit,
+    )
+    .toArray();
+}
+
 /** Event bodies (JSON text) after `after`, in order, at most `limit`. */
 export function readEvents(
   sql: SqlStorage,

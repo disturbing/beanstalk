@@ -601,9 +601,9 @@ function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly
   return (
     <div className={styles.box}>
       <div className={styles.boxhead}>
-        <b>Session {agent}</b>
+        <b>{activityTitle(ctx, agent, beans)}</b>
         <span className={styles.muted}>
-          {session === undefined ? '' : `${session.harness}, ${session.owner}`}
+          {session === undefined || isRepository(ctx) ? '' : `${session.harness}, ${session.owner}`}
         </span>
       </div>
       <table className={styles.agents}>
@@ -627,6 +627,23 @@ function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly
       </table>
     </div>
   );
+}
+
+/**
+ * A race names its slot (`Session a0`); a repository's beans are people's pushes, so it names
+ * who pushed them and never the engine's internal slot.
+ */
+function activityTitle(ctx: ExplorerContext, agent: string, beans: readonly Bean[]): string {
+  if (!isRepository(ctx)) return `Session ${agent}`;
+  const people = [
+    ...new Set(beans.map((bean) => creditOf(bean, ctx.sessions, ctx.pushers).who)),
+  ].filter((who) => who.startsWith('@'));
+  return people.length === 0 ? 'Pushed beans' : `Beans pushed by ${people.join(', ')}`;
+}
+
+/** A persistent repository's explorer: its beans come with the people who pushed them. */
+function isRepository(ctx: ExplorerContext): boolean {
+  return Object.keys(ctx.pushers).length > 0;
 }
 
 /** The journey's "who": the pusher, or the slot and its session (`a0, Claude Code session of coop`). */

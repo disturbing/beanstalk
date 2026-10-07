@@ -14,12 +14,14 @@ import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 import { RunId } from '@beanstalk/shared-race/ids';
 
 import type { AccessVerdict, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
-import { mayUseEngine, personOf, roleOf } from '../auth/git-credential';
+import { mayUseEngine, personOf, refusedByArchive, roleOf } from '../auth/git-credential';
 import type { CollaboratorStore } from './collaborators';
 
 export type Decision = {
   readonly verdict: AccessVerdict;
   readonly role: ViewerRole | null;
+  /** Refused only because the repository is archived. */
+  readonly archived: boolean;
 };
 
 /** The facts about `record` that the rule needs, for this principal. */
@@ -38,6 +40,7 @@ export async function accessFacts(
     owner: { id: record.owner.id, handle: record.owner.handle },
     visibility: record.visibility,
     collaboratorRole,
+    archived: record.archived_at !== null,
   };
 }
 
@@ -48,9 +51,11 @@ export async function decideAccess(
   input: { readonly principal: RepositoryPrincipal; readonly action: RepositoryAction },
 ): Promise<Decision> {
   const facts = await accessFacts(collaborators, record, input.principal);
+  const verdict = mayUseEngine(input.principal, facts, input.action);
   return {
-    verdict: mayUseEngine(input.principal, facts, input.action),
+    verdict,
     role: roleOf(input.principal, facts),
+    archived: refusedByArchive(input.principal, facts, input.action),
   };
 }
 
@@ -70,7 +75,12 @@ export async function accessResult(
     case 'allowed':
       return { ok: true, value: { ...record, viewer_role: decision.role } };
     case 'forbidden':
-      return { ok: false, error: forbidden(input.action, decision.role) };
+      return {
+        ok: false,
+        error: decision.archived
+          ? archivedError(record, input.action)
+          : forbidden(input.action, decision.role),
+      };
     case 'not-found':
       return { ok: false, error: notFound(input.what) };
     default:
@@ -95,6 +105,29 @@ export function forbidden(action: RepositoryAction, role: ViewerRole | null): Rp
   const have = role === null ? 'no role on this repository' : `the ${role} role`;
   return { code: 'forbidden', status: 403, message: `${NEEDS[action]}; you have ${have}` };
 }
+
+/** Why an archived repository refuses this, and what would change it. */
+export function archivedError(record: RepositoryRecord, action: RepositoryAction): RpcError {
+  return {
+    code: 'archived',
+    status: 403,
+    message: archivedMessage(`${record.owner.handle}/${record.name}`, action),
+  };
+}
+
+/** The sentence git, MCP and the web print for a refusal by archive. */
+export function archivedMessage(fullName: string, action: RepositoryAction): string {
+  const what = ARCHIVED_REFUSES[action];
+  return `${fullName} is archived, so it is read-only: ${what}. Its owner can unarchive it in Settings.`;
+}
+
+const ARCHIVED_REFUSES: Readonly<Record<RepositoryAction, string>> = {
+  read: 'reading still works',
+  write: 'pushes are refused',
+  decide: 'decisions cannot be answered',
+  'deploy-tokens': 'deploy tokens cannot be made or changed',
+  administer: 'settings are read-only',
+};
 
 const NEEDS: Readonly<Record<RepositoryAction, string>> = {
   read: 'reading needs the read role',

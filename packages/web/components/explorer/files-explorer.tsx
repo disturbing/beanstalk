@@ -13,6 +13,7 @@ import { MainPane } from './main-pane';
 import { RailBlocks } from './rail-blocks';
 import { RepoHead } from '../home/repo-head';
 import type { HomeFrame, SearchParams } from '../home/repository-home';
+import type { RailBlock } from '@beanstalk/shared-ask/ask/answer';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
@@ -83,6 +84,7 @@ export async function FilesExplorer(props: {
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
+        archived={props.frame.archived === true}
       />
       <AskBar
         base={base}
@@ -117,11 +119,19 @@ export async function FilesExplorer(props: {
           />
         </section>
         <aside className={styles.railPane} aria-label="Context">
-          <RailBlocks base={base} state={state} blocks={answer.rail} />
+          <RailBlocks base={base} state={state} blocks={railFor(props.frame, answer.rail)} />
         </aside>
       </div>
     </main>
   );
+}
+
+/**
+ * The context rail. A persistent repository has no standing agents (beans are people's
+ * pushes, the engine's slots are internal), so the race-only "Agents on it now" block goes.
+ */
+function railFor(frame: HomeFrame, rail: readonly RailBlock[]): readonly RailBlock[] {
+  return frame.kind === 'repository' ? rail.filter((block) => block.kind !== 'agents') : rail;
 }
 
 /**

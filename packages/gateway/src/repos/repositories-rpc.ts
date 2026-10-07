@@ -21,7 +21,7 @@ import { artifactsCode } from '../adapters/artifacts';
 import type { RepositoryStorage } from '../adapters/repository-storage';
 import { GatewayError } from '../errors';
 import type { Logger } from '../log';
-import { accessResult, decideAccess, viewerPrincipal } from './access';
+import { accessResult, archivedError, decideAccess, viewerPrincipal } from './access';
 import type { CollaboratorStore } from './collaborators';
 import type { RepoEnginePort } from './engine-port';
 import type { Registry } from './registry';
@@ -50,9 +50,12 @@ const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
   return {
     createRepository: (owner, input) => guarded(() => create(deps, owner, input)),
-    listRepositories: (ownerId, viewer) =>
+    listRepositories: (ownerId, viewer, listing) =>
       guarded(async () => {
-        const records = await deps.registry.byOwner(ownerId);
+        const records = await deps.registry.byOwner(
+          ownerId,
+          listing === 'archived' ? 'archived' : 'active',
+        );
         const principal = viewerPrincipal(viewer);
         const readable = await Promise.all(
           records.map(async (record) => {
@@ -79,6 +82,8 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? 'invalid change');
         const owned = await administered(deps, actorId, repoId);
         if (!owned.ok) return owned;
+        if (owned.value.archived_at !== null)
+          return { ok: false, error: archivedError(owned.value, 'administer') };
         const updated = await deps.registry.update(repoId, parsed.data, deps.now());
         if (updated === null) return missing(repoId);
         if (updated === 'taken') return taken(owned.value.owner.handle, parsed.data.name ?? '');
@@ -103,6 +108,19 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         await deps.storage.delete(owned.value.artifacts_repo);
         deps.log.info('repository deleted', { repo: repoId });
         return ok({ deleted: true as const });
+      }),
+    archiveRepository: (actorId, repoId, to) =>
+      guarded(async () => {
+        if (to !== 'archived' && to !== 'active')
+          return invalid('archive to "archived" or "active"');
+        const owned = await administered(deps, actorId, repoId);
+        if (!owned.ok) return owned;
+        const changed = await deps.registry.setListing(repoId, to, deps.now());
+        if (changed === null) return missing(repoId);
+        deps.log.info(to === 'archived' ? 'repository archived' : 'repository unarchived', {
+          repo: repoId,
+        });
+        return ok(changed);
       }),
     repositoryActivity: (ownerId, limit) =>
       guarded(async () => ok(await deps.registry.activity(ownerId, limit))),

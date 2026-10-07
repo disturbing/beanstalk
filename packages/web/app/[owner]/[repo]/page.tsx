@@ -52,6 +52,7 @@ export default async function RepositoryPage({ params, searchParams }: PageProps
     kind: 'repository' as const,
     visibility: record.visibility,
     ownerHref: `/${record.owner.handle}`,
+    archived: record.archived_at !== null,
   };
   if (data !== null && source !== null && engine.success && hasGrown(data.events)) {
     return (

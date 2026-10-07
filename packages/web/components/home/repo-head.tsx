@@ -7,6 +7,7 @@ export type RepoTab =
   | 'code'
   | 'files'
   | 'beans'
+  | 'stalk'
   | 'decisions'
   | 'checks'
   | 'engine'
@@ -24,6 +25,7 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
   { tab: 'code', name: 'Code', keys: 'g c' },
   { tab: 'files', name: 'Files', keys: 'g f' },
   { tab: 'beans', name: 'Beans', keys: 'g b' },
+  { tab: 'stalk', name: 'Stalk', keys: 'g t' },
   { tab: 'decisions', name: 'Decisions', keys: 'g d' },
   { tab: 'checks', name: 'Checks', keys: 'g k' },
   { tab: 'engine', name: 'Engine', keys: 'g e' },
@@ -34,7 +36,16 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
 /** A race's repository has the engine canvas; a persistent repository has settings instead. */
 const KIND_TABS: Readonly<Record<RepoKind, ReadonlySet<RepoTab>>> = {
   race: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'engine']),
-  repository: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'people', 'settings']),
+  repository: new Set([
+    'code',
+    'files',
+    'beans',
+    'stalk',
+    'decisions',
+    'checks',
+    'people',
+    'settings',
+  ]),
 };
 
 export type RepoKind = 'race' | 'repository';
@@ -53,6 +64,8 @@ export function RepoHead(props: {
   readonly visibility?: 'public' | 'private';
   /** Where the owner's name links: their repositories, or the repository itself for a race. */
   readonly ownerHref?: string;
+  /** A persistent repository its owner archived: read-only, said under the name. */
+  readonly archived?: boolean;
 }) {
   const tabs = KIND_TABS[props.kind ?? 'race'];
   return (
@@ -64,7 +77,13 @@ export function RepoHead(props: {
         {props.visibility === undefined ? null : (
           <small className={styles.visibility}>{props.visibility}</small>
         )}
+        {props.archived === true ? <small className={styles.visibility}>archived</small> : null}
       </h1>
+      {props.archived === true ? (
+        <p className={styles.archivedNote} role="note">
+          Archived by its owner: read-only. It still clones and fetches; pushes are refused.
+        </p>
+      ) : null}
       <nav className={styles.tabs} aria-label="Repository views">
         {TABS.filter((item) => tabs.has(item.tab)).map((item) => (
           <Link
@@ -91,6 +110,7 @@ export function tabOf(q: string): RepoTab {
 
 function hrefOf(base: string, tab: RepoTab): string {
   if (tab === 'files') return `${base}/files`;
+  if (tab === 'stalk') return `${base}/stalk`;
   if (tab === 'engine') return `${base}/race`;
   if (tab === 'settings') return `${base}/settings`;
   if (tab === 'people') return `${base}/people`;

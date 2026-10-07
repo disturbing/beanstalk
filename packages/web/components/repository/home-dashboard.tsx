@@ -92,8 +92,8 @@ export function HomeDashboard(props: {
             <p className={styles.empty}>What happens in your repositories shows up here.</p>
           ) : (
             <ul className={styles.activity}>
-              {props.activity.map((line) => (
-                <li key={`${line.repo_id}-${line.at}-${line.kind}`}>
+              {props.activity.map((line, index) => (
+                <li key={`${line.repo_id}-${line.at}-${line.kind}-${index}`}>
                   <span>
                     <Link
                       href={repositoryPath(line.owner_handle, line.repo_name)}

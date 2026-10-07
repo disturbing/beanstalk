@@ -11,12 +11,19 @@ import { deployTokensClient } from '../../../../src/repositories/deploy-tokens-c
 import { RepoHead } from '../../../../components/home/repo-head';
 import styles from '../../../../components/repository/repository.module.css';
 import {
+  ArchiveSettings,
   DangerZone,
   GeneralSettings,
   VisibilitySettings,
 } from '../../../../components/repository/settings-forms';
 import type { RepositoryParams } from '../../../../src/server/repository-page';
 import { repositoryPage } from '../../../../src/server/repository-page';
+
+/** What Settings says after an archive or unarchive (`?saved=`). */
+const ARCHIVE_SAVED: Readonly<Record<string, string>> = {
+  archived: 'Archived.',
+  unarchived: 'Unarchived: pushes are accepted again.',
+};
 
 type PageProps = {
   readonly params: RepositoryParams;
@@ -54,7 +61,10 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
     description: record.description,
     visibility: record.visibility,
   };
-  const saved = (await searchParams)['saved'] === 'renamed' ? `Renamed to ${record.name}.` : null;
+  const savedParam = (await searchParams)['saved'];
+  const saved = savedParam === 'renamed' ? `Renamed to ${record.name}.` : null;
+  const archiveSaved = ARCHIVE_SAVED[String(savedParam)] ?? null;
+  const isArchived = record.archived_at !== null;
   return (
     <main>
       <RepoHead
@@ -64,6 +74,7 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
         kind="repository"
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
+        archived={record.archived_at !== null}
       />
       <div className={`${styles.page} ${styles.narrow}`}>
         <div className={styles.settings}>
@@ -73,13 +84,18 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               <p className={styles.sub}>
                 You are <b>{role}</b> on {record.name}. Its name, visibility, people and deletion
                 are <b>@{record.owner.handle}</b>&rsquo;s.{' '}
-                {canDeploy ? 'As a maintainer you manage its deploy tokens below. ' : null}
+                {canDeploy && !isArchived
+                  ? 'As a maintainer you manage its deploy tokens below. '
+                  : null}
                 <Link href={`${base}/people`}>See who has access</Link>.
               </p>
             </section>
           )}
-          {isOwner ? <GeneralSettings repo={repo} saved={saved} /> : null}
-          {isOwner ? <VisibilitySettings repo={repo} /> : null}
+          {isOwner && isArchived ? (
+            <ArchiveSettings repo={repo} archivedAt={record.archived_at} saved={archiveSaved} />
+          ) : null}
+          {isOwner && !isArchived ? <GeneralSettings repo={repo} saved={saved} /> : null}
+          {isOwner && !isArchived ? <VisibilitySettings repo={repo} /> : null}
           {isOwner && people !== null && people.ok ? (
             <CollaboratorsSettings
               name={record.name}
@@ -89,9 +105,12 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               access={access}
             />
           ) : null}
-          {tokens === null ? null : (
+          {tokens === null || isArchived ? null : (
             <DeployTokens tokens={tokens.ok ? tokens.value : []} access={access} />
           )}
+          {isOwner && !isArchived ? (
+            <ArchiveSettings repo={repo} archivedAt={null} saved={archiveSaved} />
+          ) : null}
           {isOwner ? <DangerZone repo={repo} /> : null}
         </div>
       </div>

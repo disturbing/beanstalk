@@ -48,6 +48,7 @@ import type {
   RepoOwner,
   RepositoriesRpc,
   RepositoryActivity,
+  RepositoryListing,
   RepositoryFiles,
   RepositoryRecord,
   UpdateRepositoryInput,
@@ -72,7 +73,15 @@ import type {
   RepositoryPeople,
 } from '@beanstalk/shared-race/collaborators';
 
+import type {
+  RepoIndexRpc,
+  RepositoryGrowth,
+  RepositoryStalk,
+} from '@beanstalk/shared-race/repo-events';
+
 import { repositoryStorage } from './adapters/repository-storage';
+import { consumeRepoEvents } from './repo-events/consumer';
+import { repoIndexRpc } from './repo-events/index-rpc';
 import { sshKeyStore } from './auth/ssh-keys';
 import type { SshDeps, SshKeyAnswer } from './ssh/ssh-git';
 import { lookupSshKey, serveSshGit } from './ssh/ssh-git';
@@ -108,10 +117,47 @@ const app = createApp(createDeps);
  */
 export default class Gateway
   extends WorkerEntrypoint<Env>
-  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc, CollaboratorsRpc
+  implements
+    GatewayRpc,
+    RepositoriesRpc,
+    RepoEngineRpc,
+    DeployTokensRpc,
+    CollaboratorsRpc,
+    RepoIndexRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
+  }
+
+  /** `repo-events`: repository engines' events into the D1 indexes. */
+  override async queue(batch: MessageBatch): Promise<void> {
+    await consumeRepoEvents(batch, {
+      db: this.env.FORGE,
+      registry: d1Registry(this.env.FORGE),
+      log: createLogger(readConfig(this.env).logLevel, { component: 'repo-events' }),
+    });
+  }
+
+  repositoryStalk(repoId: string, viewer: Viewer): Promise<RpcResult<RepositoryStalk>> {
+    return this.#index().repositoryStalk(repoId, viewer);
+  }
+
+  repositoryGrowth(
+    repoIds: readonly string[],
+    viewer: Viewer,
+  ): Promise<RpcResult<readonly RepositoryGrowth[]>> {
+    return this.#index().repositoryGrowth(repoIds, viewer);
+  }
+
+  #index(): RepoIndexRpc {
+    return repoIndexRpc({
+      db: this.env.FORGE,
+      registry: d1Registry(this.env.FORGE),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      engine: (engineId) => this.env.RUNS.getByName(engineId),
+      waitUntil: (work) => this.ctx.waitUntil(work),
+      log: createLogger(readConfig(this.env).logLevel, { component: 'repo-index' }),
+    });
   }
 
   listRuns(limit?: number): Promise<readonly RunListItem[]> {
@@ -257,8 +303,17 @@ export default class Gateway
   listRepositories(
     ownerId: string,
     viewer: Viewer,
+    listing?: RepositoryListing,
   ): Promise<RpcResult<readonly RepositoryRecord[]>> {
-    return this.#repositories().listRepositories(ownerId, viewer);
+    return this.#repositories().listRepositories(ownerId, viewer, listing);
+  }
+
+  archiveRepository(
+    actorId: string,
+    repoId: string,
+    to: RepositoryListing,
+  ): Promise<RpcResult<RepositoryRecord>> {
+    return this.#repositories().archiveRepository(actorId, repoId, to);
   }
 
   getRepository(

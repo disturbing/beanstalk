@@ -11,6 +11,7 @@ import type {
   CreateRepositoryInput,
   RepoOwner,
   RepositoriesRpc,
+  RepositoryListing,
   UpdateRepositoryInput,
   Viewer,
 } from '@beanstalk/shared-race/repos';
@@ -31,6 +32,8 @@ export const RepositoryRecord = z.object({
   default_branch: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
+  /** Null unless archived (an older gateway sends nothing: never archived). */
+  archived_at: z.string().nullable().default(null),
 });
 export type RepositoryRecord = z.infer<typeof RepositoryRecord>;
 
@@ -47,8 +50,11 @@ export const RepositoryActivity = z.object({
   owner_handle: z.string(),
   repo_name: z.string(),
   at: z.string(),
-  kind: z.enum(['created', 'renamed', 'described', 'visibility']),
+  /** The registry's kinds and the engines' (`ACTIVITY_KINDS`); shown as text, so any string. */
+  kind: z.string(),
   text: z.string(),
+  bean: z.string().nullable().default(null),
+  sha: z.string().nullable().default(null),
 });
 export type RepositoryActivity = z.infer<typeof RepositoryActivity>;
 
@@ -70,7 +76,11 @@ export type Outcome<T> =
 
 export type RegistryClient = {
   create(owner: RepoOwner, input: CreateRepositoryInput): Promise<Outcome<RepositoryRecord>>;
-  list(ownerId: string, viewer: Viewer): Promise<Outcome<readonly RepositoryRecord[]>>;
+  list(
+    ownerId: string,
+    viewer: Viewer,
+    listing?: RepositoryListing,
+  ): Promise<Outcome<readonly RepositoryRecord[]>>;
   get(ownerHandle: string, name: string, viewer: Viewer): Promise<Outcome<RepositoryForViewer>>;
   update(
     ownerId: string,
@@ -78,6 +88,12 @@ export type RegistryClient = {
     patch: UpdateRepositoryInput,
   ): Promise<Outcome<RepositoryRecord>>;
   remove(ownerId: string, repoId: string): Promise<Outcome<{ readonly deleted: true }>>;
+  /** Archive (`archived`) or unarchive (`active`); unavailable on a gateway without archive. */
+  archive(
+    actorId: string,
+    repoId: string,
+    to: RepositoryListing,
+  ): Promise<Outcome<RepositoryRecord>>;
   activity(ownerId: string, limit: number): Promise<Outcome<readonly RepositoryActivity[]>>;
   files(repoId: string, viewer: Viewer): Promise<Outcome<RepositoryFiles>>;
 };
@@ -112,12 +128,26 @@ export function registryClient(binding: object): RegistryClient {
   };
   return {
     create: (owner, input) => call(RepositoryRecord, (r) => r.createRepository(owner, input)),
-    list: (ownerId, viewer) =>
-      call(z.array(RepositoryRecord), (r) => r.listRepositories(ownerId, viewer)),
+    list: (ownerId, viewer, listing = 'active') =>
+      call(z.array(RepositoryRecord), (r) =>
+        // An older gateway ignores the listing and has no archived repositories.
+        listing === 'archived' && !hasArchive(r)
+          ? Promise.resolve({ ok: true, value: [] })
+          : r.listRepositories(ownerId, viewer, listing),
+      ),
     get: (ownerHandle, name, viewer) =>
       call(RepositoryForViewer, (r) => r.getRepository(ownerHandle, name, viewer)),
     update: (ownerId, repoId, patch) =>
       call(RepositoryRecord, (r) => r.updateRepository(ownerId, repoId, patch)),
+    archive: (actorId, repoId, to) =>
+      call(RepositoryRecord, (r) =>
+        hasArchive(r)
+          ? r.archiveRepository(actorId, repoId, to)
+          : Promise.resolve({
+              ok: false,
+              error: { code: 'unavailable', status: 503, message: UNAVAILABLE.message },
+            }),
+      ),
     remove: (ownerId, repoId) =>
       call(z.object({ deleted: z.literal(true) }), (r) => r.deleteRepository(ownerId, repoId)),
     activity: (ownerId, limit) =>
@@ -128,4 +158,9 @@ export function registryClient(binding: object): RegistryClient {
 
 function isRepositoriesRpc(binding: object): binding is RepositoriesRpc {
   return METHODS.every((method) => typeof Reflect.get(binding, method) === 'function');
+}
+
+/** Whether the gateway knows archive (added after the first registry methods). */
+function hasArchive(rpc: RepositoriesRpc): boolean {
+  return typeof Reflect.get(rpc, 'archiveRepository') === 'function';
 }

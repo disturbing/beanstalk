@@ -43,6 +43,16 @@ export function growthFromView(result: unknown): Growth {
   return onStalk + growing === 0 ? { kind: 'none' } : { kind: 'grown', onStalk, growing };
 }
 
+/** Counts from the repo-events index (`repositoryGrowth`). */
+export function growthFromIndex(line: {
+  readonly landed: number;
+  readonly growing: number;
+}): Growth {
+  return line.landed + line.growing === 0
+    ? { kind: 'none' }
+    : { kind: 'grown', onStalk: line.landed, growing: line.growing };
+}
+
 export function growthText(growth: Growth): string {
   if (growth.kind === 'none') return 'Nothing grown yet';
   const landed = `${growth.onStalk} ${growth.onStalk === 1 ? 'bean' : 'beans'} landed`;

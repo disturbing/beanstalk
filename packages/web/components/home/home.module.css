@@ -1636,3 +1636,9 @@
   padding: 0 8px;
   margin-left: 4px;
 }
+/* An archived repository's line under its name (repo-head.tsx). */
+.archivedNote {
+  margin: -4px 0 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+}

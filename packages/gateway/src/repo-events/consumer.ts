@@ -1,0 +1,86 @@
+/**
+ * The `repo-events` consumer: each message is validated, its engine looked up in the
+ * registry, and its events written to the D1 indexes. A message that is not a repository
+ * event, or whose engine drives no registered repository (a deleted one, an engine opened
+ * by the admin route), is acknowledged and dropped; a failed write is retried by the queue.
+ */
+import { RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
+
+import type { Logger } from '../log';
+import type { Registry } from '../repos/registry';
+import { applyRepoEvents } from './index-store';
+
+export type ConsumerDeps = {
+  readonly db: D1Database;
+  readonly registry: Pick<Registry, 'byEngine'>;
+  readonly log: Logger;
+};
+
+/** Handles one batch; every message is acked or retried on its own. */
+export async function consumeRepoEvents(batch: MessageBatch, deps: ConsumerDeps): Promise<void> {
+  const owners = new Map<string, Promise<{ id: string; ownerId: string } | null>>();
+  const ownerOf = (engine: string) => {
+    const known = owners.get(engine);
+    if (known !== undefined) return known;
+    const found = deps.registry
+      .byEngine(engine)
+      .then((record) => (record === null ? null : { id: record.id, ownerId: record.owner.id }));
+    owners.set(engine, found);
+    return found;
+  };
+  // Messages of different engines are independent; one engine's go in order.
+  const byEngine = new Map<string, Message[]>();
+  for (const message of batch.messages) {
+    const parsed = RepoEventsMessage.safeParse(message.body);
+    if (!parsed.success) {
+      deps.log.warn('repo event message dropped: not a repository event', { id: message.id });
+      message.ack();
+      continue;
+    }
+    byEngine.set(parsed.data.engine, [...(byEngine.get(parsed.data.engine) ?? []), message]);
+  }
+  await Promise.all(
+    [...byEngine].map(([engine, messages]) => applyInOrder(engine, messages, { deps, ownerOf })),
+  );
+}
+
+async function applyInOrder(
+  engine: string,
+  messages: readonly Message[],
+  context: {
+    readonly deps: ConsumerDeps;
+    readonly ownerOf: (engine: string) => Promise<{ id: string; ownerId: string } | null>;
+  },
+): Promise<void> {
+  const { deps } = context;
+  let repo: { id: string; ownerId: string } | null;
+  try {
+    repo = await context.ownerOf(engine);
+  } catch (error: unknown) {
+    deps.log.error('repo events: registry lookup failed', { engine, error });
+    for (const message of messages) message.retry();
+    return;
+  }
+  for (const message of messages) {
+    const parsed = RepoEventsMessage.parse(message.body);
+    if (repo === null) {
+      message.ack();
+      continue;
+    }
+    try {
+      // oxlint-disable-next-line no-await-in-loop -- one engine's messages apply in order
+      await applyRepoEvents(deps.db, { ...repo, engineId: engine }, parsed.events);
+      message.ack();
+      // How far behind the engine the index is: the 2.6 target is under 5 s.
+      const last = parsed.events.at(-1);
+      deps.log.info('repo events indexed', {
+        engine,
+        events: parsed.events.length,
+        lagMs: last === undefined ? null : Date.now() - Date.parse(last.at),
+      });
+    } catch (error: unknown) {
+      deps.log.error('repo events: index write failed', { engine, id: message.id, error });
+      message.retry();
+    }
+  }
+}

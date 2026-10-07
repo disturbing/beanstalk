@@ -75,6 +75,8 @@ export type RepositoryAccess = {
   readonly visibility: 'public' | 'private';
   /** The asking person's collaborator role as the registry records it; null when none. */
   readonly collaboratorRole: RepoRole | null;
+  /** Archived by its owner: read-only for everyone until it is unarchived. */
+  readonly archived: boolean;
 };
 
 /** Who is asking: nobody signed in, a person on the web, or a credential (token, key, session). */
@@ -98,6 +100,12 @@ const LEAST_ROLE: Readonly<Record<RepositoryAction, ViewerRole>> = {
   administer: 'owner',
 };
 const RANK: Readonly<Record<ViewerRole, number>> = { read: 1, write: 2, maintain: 3, owner: 4 };
+/** What an archived repository refuses everyone: it is read-only (its owner still administers). */
+const ARCHIVE_REFUSES: ReadonlySet<RepositoryAction> = new Set([
+  'write',
+  'decide',
+  'deploy-tokens',
+]);
 
 const USER_TOKEN = /^bs[us]_/;
 
@@ -140,8 +148,36 @@ export async function verifyGitCredential(
  *   none. With no role a private repository is not found and a public one only reads.
  * - A token, key or agent session is its person's role capped by its scopes (`repo:read`,
  *   `bean:write`); deciding, deploy tokens and settings are people's, on the web, only.
+ * - An archived repository is read-only: whoever could push, decide or manage deploy tokens
+ *   is refused (`refusedByArchive` says so); its owner still administers it (to unarchive).
  */
 export function mayUseEngine(
+  principal: RepositoryPrincipal,
+  repository: RepositoryAccess,
+  action: RepositoryAction,
+): AccessVerdict {
+  return refusedByArchive(principal, repository, action)
+    ? 'forbidden'
+    : roleVerdict(principal, repository, action);
+}
+
+/**
+ * Whether `action` is refused only because the repository is archived: the principal's role
+ * and credential would allow it otherwise. Refusals say so, and how to undo it.
+ */
+export function refusedByArchive(
+  principal: RepositoryPrincipal,
+  repository: RepositoryAccess,
+  action: RepositoryAction,
+): boolean {
+  return (
+    repository.archived &&
+    ARCHIVE_REFUSES.has(action) &&
+    roleVerdict(principal, repository, action) === 'allowed'
+  );
+}
+
+function roleVerdict(
   principal: RepositoryPrincipal,
   repository: RepositoryAccess,
   action: RepositoryAction,

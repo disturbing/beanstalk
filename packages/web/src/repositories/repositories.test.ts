@@ -10,8 +10,15 @@ import type {
 } from '@beanstalk/shared-race/repos';
 
 import { readCreateForm } from './create-form';
-import { growthFromView, growthText } from './engine-summary';
-import { createFlow, deleteFlow, hasGrown, lookupRepository, updateFlow } from './flows';
+import { growthFromIndex, growthFromView, growthText } from './engine-summary';
+import {
+  archiveFlow,
+  createFlow,
+  deleteFlow,
+  hasGrown,
+  lookupRepository,
+  updateFlow,
+} from './flows';
 import { envVarsBlock, isReservedOwner, sshEndpoint, startGuide } from './paths';
 import { registryClient } from './registry-client';
 
@@ -51,16 +58,32 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
         default_branch: 'stalk',
         created_at: '2026-10-07T00:00:00.000Z',
         updated_at: '2026-10-07T00:00:00.000Z',
+        archived_at: null,
       };
       records.set(id, record);
       return ok(record);
     },
-    async listRepositories(ownerId, viewer) {
+    async listRepositories(ownerId, viewer, listing = 'active') {
       return ok(
         [...records.values()].filter(
-          (r) => r.owner.id === ownerId && (r.visibility === 'public' || viewer === ownerId),
+          (r) =>
+            r.owner.id === ownerId &&
+            (r.visibility === 'public' || viewer === ownerId) &&
+            (r.archived_at === null) === (listing === 'active'),
         ),
       );
+    },
+    async archiveRepository(actorId, repoId, to) {
+      calls.push(`archive ${repoId} ${to}`);
+      const found = records.get(repoId);
+      if (found === undefined || found.owner.id !== actorId)
+        return fail('forbidden', 'only the owner can change this');
+      const changed: RepositoryRecord = {
+        ...found,
+        archived_at: to === 'archived' ? '2026-10-07T12:00:00.000Z' : null,
+      };
+      records.set(repoId, changed);
+      return ok(changed);
     },
     async getRepository(handle, name, viewer) {
       const found = [...records.values()].find(
@@ -353,5 +376,73 @@ describe("a repository's growth line", () => {
     expect(growthText(growthFromView(view))).toBe('5 beans landed, 2 growing');
     expect(growthFromView({ ok: false, error: { code: 'not_found' } })).toEqual({ kind: 'none' });
     expect(growthText({ kind: 'none' })).toBe('Nothing grown yet');
+  });
+});
+
+describe('archive', () => {
+  it('archives from Settings, leaves the default list, and unarchives', async () => {
+    const gateway = fakeGateway();
+    const registry = registryClient(gateway);
+    const made = await registry.create(coop, {
+      name: 'old-notes',
+      visibility: 'private',
+      start: { kind: 'empty' },
+    });
+    if (!made.ok) throw new Error(made.error.message);
+    const repoId = made.value.id;
+    expect(await archiveFlow(form({ repoId, to: 'archived' }), coop, registry)).toEqual({
+      kind: 'redirect',
+      to: '/coop/old-notes/settings?saved=archived',
+    });
+    expect(await registry.list(coop.id, coop.id)).toEqual({ ok: true, value: [] });
+    const archived = await registry.list(coop.id, coop.id, 'archived');
+    expect(archived.ok && archived.value.map((record) => record.name)).toEqual(['old-notes']);
+    expect(await archiveFlow(form({ repoId, to: 'active' }), coop, registry)).toMatchObject({
+      to: '/coop/old-notes/settings?saved=unarchived',
+    });
+  });
+
+  it('says why when someone else tries, and refuses an unknown choice', async () => {
+    const registry = registryClient(fakeGateway());
+    const made = await registry.create(coop, {
+      name: 'mine',
+      visibility: 'public',
+      start: { kind: 'empty' },
+    });
+    if (!made.ok) throw new Error(made.error.message);
+    expect(
+      await archiveFlow(form({ repoId: made.value.id, to: 'archived' }), dana, registry),
+    ).toEqual({ kind: 'show', state: { saved: null, error: 'Only the owner can change this.' } });
+    expect(await archiveFlow(form({ repoId: made.value.id, to: 'gone' }), coop, registry)).toEqual({
+      kind: 'show',
+      state: { saved: null, error: 'Choose archive or unarchive.' },
+    });
+  });
+
+  it('reads records from a gateway that predates archive as never archived', async () => {
+    const older = Object.fromEntries(
+      Object.entries(fakeGateway()).filter(([method]) => method !== 'archiveRepository'),
+    );
+    const registry = registryClient(older);
+    const made = await registry.create(coop, {
+      name: 'x',
+      visibility: 'public',
+      start: { kind: 'empty' },
+    });
+    expect(made.ok && made.value.archived_at).toBeNull();
+    expect(await registry.list(coop.id, coop.id, 'archived')).toEqual({ ok: true, value: [] });
+    expect(await registry.archive(coop.id, 'r1', 'archived')).toMatchObject({
+      ok: false,
+      error: { code: 'unavailable' },
+    });
+  });
+});
+
+describe('growth from the repo-events index', () => {
+  it('says what landed and what is growing, or nothing yet', () => {
+    expect(growthText(growthFromIndex({ landed: 3, growing: 1 }))).toBe(
+      '3 beans landed, 1 growing',
+    );
+    expect(growthFromIndex({ landed: 0, growing: 0 })).toEqual({ kind: 'none' });
   });
 });
