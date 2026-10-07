@@ -512,6 +512,26 @@ optimistic pre-land checks; the evidence arm adds `evidence_promotion`, `affecte
 - **Tracing cost in these runs** (standard-4): pre-land suite median 3.7 s traced vs 2.3 s untraced (1.6x, p90 7.8
   vs 4.5 s); CI suite median 3.9 vs 3.0 s.
 
+**30 agents** (same settings, `--agents 30`; runs `research/race/runs/rm-evp-*-30-s*`; "affected share" is the mean
+share of the tree's tests an affected validation ran):
+
+| Run | green | k10 | k20 | k25 | done (min) | window waits | validations (green/red) | CI runs / min | evidence promotions / affected / refusals / audits (red) | affected share | correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| demo s7 | 24 | 3.1 | 5.0 | - | 7.9 | 10 | 5 / 0 | 10 / 8.5 | - | - | True |
+| evidence s7 | 26 | 3.9 | 5.2 | 8.4 | 10.9 | 9 | 11 / 0 | 14 / 12.6 | 11 / 12 / 12 / 2 (0) | 80% (0 with no CI) | True |
+| demo s11 | 24 | 4.0 | 5.2 | - | 7.7 | 4 | 7 / 0 | 10 / 9.5 | - | - | True |
+| evidence s11 | 24 | 2.6 | 3.8 | - | 6.7 | 2 | 6 / 0 | 10 / 7.3 | 6 / 9 / 9 / 1 (0) | 80% (0 with no CI) | True |
+| demo s13 | 24 | 3.3 | 5.4 | - | 9.1 | 13 | 7 / 0 | 9 / 8.7 | - | - | True |
+| evidence s13 | 24 | 3.6 | 4.7 | - | 8.4 | 1 | 7 / 0 | 9 / 7.6 | 7 / 8 / 8 / 1 (0) | 79% (0 with no CI) | True |
+
+- **Means over the three seeds:** k20 5.2 → 4.6 min, done 8.2 → 8.7 min (seed 7's evidence arm landed 26 tasks
+  against 24 and ran longer; seeds 11 and 13 finished 1.0 and 0.7 min sooner), window waits 27 → 12, CI minutes
+  8.9 → 9.2, 24 promotions, 0 audit reds, all correct.
+- **Why the gain stays small here:** no promotion was free. Every one followed an affected validation that ran
+  about 80% of the tests, because nearly every shop test loads the whole app. Evidence removes the window waits,
+  but the affected validations still cost most of a full run. Suites whose tests read narrow slices of the code
+  (fastify: 32 repo reads per file) are where it should pay; that A/B is with another agent.
+
 ### What remains
 
 - The engine's evidence rule uses the per-check read sets (above); `EngineEnv.readMaps` (the stored maps across
