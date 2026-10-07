@@ -115,6 +115,9 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     h.add_argument("--gh-enqueue", choices=["direct", "auto"], default="direct",
                    help="direct: enqueuePullRequest as soon as the PR check is green (a bot's speed); auto: only "
                         "auto-merge (gh pr merge --auto), which GitHub acts on lazily")
+    h.add_argument("--start-order", choices=["fifo", "dependency"], default="fifo",
+                   help="which task a free agent starts: fifo, or the Beanstalk engine's dependency-aware rule "
+                        "(harness/start_order.py; --forge github; the cloud arm sets it through its preset/env)")
     h.add_argument("--gh-node", help="Node version for the Actions workflow (default: the arena.json's node, else 25)")
     h.add_argument("--gh-test-cmd", help="the suite command in the workflow (default: node --test with the arena.json's "
                                          "test_args, as the harness CI runs it)")
@@ -307,6 +310,7 @@ def make_github_race(cfg: RaceConfig, ns: argparse.Namespace, client=None):
     opts = GitHubOptions(owner=owner or "fake", repo=gh_repo_name(cfg, ns), poll_seconds=ns.gh_poll,
                          push_interval=ns.gh_push_interval, node_version=ns.gh_node, test_cmd=ns.gh_test_cmd,
                          install=ns.gh_install, reset=ns.gh_reset, enqueue=ns.gh_enqueue,
+                         start_order=ns.start_order,
                          close_on_end=not ns.gh_keep_open)
     return GitHubRace(cfg, opts, client=client)
 

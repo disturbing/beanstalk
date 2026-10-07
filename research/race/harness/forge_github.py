@@ -40,6 +40,7 @@ from .github import (CHECK_NAME, DEFAULT_TEST_CMD, WORKFLOW_PATH, GhClient, GitH
                      ruleset_body, workflow_yaml)
 from .gitops import Git, GitError
 from .policy_queue import QueueRace
+from .start_order import TaskView, choose_start
 
 REPO_MARKER = "Beanstalk race"   # repo description prefix: a repo without it was not created by this harness
 INFRA_BACKOFF = 15.0
@@ -58,6 +59,7 @@ class GitHubOptions:
     install: str | None = None
     check_timeout_minutes: int = 30
     reset: bool = True
+    start_order: str = "fifo"       # fifo | dependency (the engine's rule, harness/start_order.py)
     enqueue: str = "direct"         # direct: enqueuePullRequest once the PR check is green; auto: auto-merge only
     close_on_end: bool = True
     outage_seconds: float = 300.0
@@ -118,6 +120,7 @@ class GitHubRace(QueueRace):
         self.gh_base = ""
         self.poller: asyncio.Task | None = None
         self.workflow = ""
+        self.start_wait_logged: float | None = None
         self.upstream_automation_removed: list[str] = []
         self.fetch_lock = asyncio.Lock()
         self.last_snapshot: Snapshot | None = None
@@ -188,7 +191,9 @@ class GitHubRace(QueueRace):
         conf.update(forge="github", github={"repo": self.client.full, "url": getattr(self.client, "html_url", None),
                                             "base": self.gh_base, "ruleset": self.ruleset()["rules"][0]["parameters"],
                                             "poll_seconds": self.gh.poll_seconds, "enqueue": self.gh.enqueue,
-                                            "push_interval": self.gh.push_interval})
+                                            "push_interval": self.gh.push_interval,
+                                            "start_order": self.gh.start_order,
+                                            "agent_release": "pr-merged" if self.cfg.queue_hold else "pr-enqueued"})
         with open(cfg_path, "w", encoding="utf-8") as fh:
             json.dump(conf, fh, indent=2, default=str)
         self.log("gh.setup", repo=self.client.full, url=getattr(self.client, "html_url", None), base=self.gh_base,
@@ -262,9 +267,53 @@ class GitHubRace(QueueRace):
     # ---- race loop ----------------------------------------------------------------------------------------------
 
     async def dispatch(self) -> None:
+        """Reworks first (oldest first, to the PR's author when it is free, else any free agent: the engine's
+        ``assignAgents``), then new tasks in the run's start order (``--start-order``: ``fifo`` or the engine's
+        dependency-aware rule, ``harness/start_order.py``)."""
         if self.poller is None:
             self.poller = self.spawn(self.poll_loop(), "github-poll")
-        await super().dispatch()
+        while self.rework_jobs:
+            ts, reason, info = self.rework_jobs[0]
+            author = self.agent(ts.agent)
+            a = author if author and not author.holding and not author.running else self.free_agent()
+            if not a:
+                break
+            self.rework_jobs.popleft()
+            if a is not author:
+                self.log("agent.reassigned", task=ts.id, author=ts.agent, agent=a.id)
+            ts.agent = a.id
+            self.hold(a, ts.id)
+            self.spawn(self.rework_flow(ts, a, reason, info), f"rework-{ts.id}")
+        while self.unstarted:
+            a = self.free_agent()
+            if not a:
+                break
+            ts = self.next_task()
+            if ts is None:
+                break
+            ts.status = "running"
+            self.hold(a, ts.id)
+            self.spawn(self.task_flow(ts, a), f"task-{ts.id}")
+        await self.integrate()
+
+    def next_task(self) -> TaskState | None:
+        if self.gh.start_order != "dependency":
+            return self.unstarted.pop(0)
+        views = {t.id: TaskView(t.id, list(t.selected), t.task.partners(), t.status, t.started_at)
+                 for t in self.tasks}
+        order = [t.id for t in sorted(self.tasks, key=lambda t: t.task.order)]
+        choice = choose_start(order, [t.id for t in self.unstarted], views, self.cfg.agents, self.now())
+        if choice.kind == "wait":
+            if self.start_wait_logged != choice.wake_at:
+                self.start_wait_logged = choice.wake_at
+                self.log("placement.wait", wake_at=round(choice.wake_at or 0, 3),
+                         unstarted=[t.id for t in self.unstarted])
+            return None
+        ts = self.by_id[choice.task]
+        self.unstarted.remove(ts)
+        self.log("placement.decision", task=ts.id, rule=choice.rule, overlap=choice.overlap,
+                 skipped=choice.skipped, order="dependency")
+        return ts
 
     async def integrate(self) -> None:  # GitHub's merge queue integrates
         return
@@ -304,11 +353,20 @@ class GitHubRace(QueueRace):
     # ---- submitting a bean: push, PR, auto-merge -------------------------------------------------------------------
 
     def enqueue(self, ts: TaskState) -> None:
+        """The agent's change goes to GitHub. Without ``--queue-hold`` (the default in ``pair.py``) the agent is
+        released once its PR is pushed and enqueued (auto-merge on), as Beanstalk's ``release_on_check`` releases
+        it when the bean's check starts; ``--queue-hold`` keeps it bound until the PR merges (the first smoke pair)."""
         ts.status = "queued"
         self.submitting.add(ts.id)
-        if not self.cfg.queue_hold and ts.agent:
-            self.release(ts.agent)
         self.spawn(self.submit(ts), f"submit-{ts.id}")
+
+    def release_after_submit(self, ts: TaskState) -> None:
+        if self.cfg.queue_hold or not ts.agent:
+            return
+        a = self.agent(ts.agent)
+        if a and a.holding == ts.id:
+            self.log("agent.released", task=ts.id, agent=a.id, on="pr-enqueued")
+            self.release(ts.agent)
 
     async def submit(self, ts: TaskState) -> None:
         try:
@@ -329,6 +387,7 @@ class GitHubRace(QueueRace):
                      refused=refused)
         finally:
             self.submitting.discard(ts.id)
+            self.release_after_submit(ts)
             self.poke()
 
     def pr_body(self, ts: TaskState) -> str:
