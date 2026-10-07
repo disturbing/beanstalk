@@ -1,0 +1,630 @@
+{
+  "label": "measured: arena=fastify@810e3d54/76b98b25, 8 tasks, policy=beanstalk, agent=replay (replay control: reference patches, synthetic timings)",
+  "policy": "beanstalk",
+  "agent": "replay",
+  "model": "replay",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 4,
+    "ci_seconds": 0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 7,
+    "budget_usd": 25,
+    "max_turns": 40,
+    "agent_timeout": 900,
+    "union_merge": true,
+    "snapshot": "head",
+    "queue_hold": null,
+    "error_budget": 999,
+    "footprint": "predictor",
+    "tasks": 8,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 471.71,
+  "tasks": 8,
+  "tasks_green": 8,
+  "tasks_landed": 8,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 0
+  },
+  "drops_by_reason": {},
+  "parked": [],
+  "changes_green_per_hour": 61.054,
+  "wall_to_all_green_seconds": 470.56,
+  "task_start_to_green_seconds": {
+    "median": 288.59,
+    "p90": 343.77,
+    "mean": 285.01
+  },
+  "agent_minutes": {
+    "busy": 15.56,
+    "blocked": 0,
+    "idle": 15.89
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 4.66,
+      "blocked": 0,
+      "idle": 3.2
+    },
+    "a1": {
+      "busy": 3.85,
+      "blocked": 0,
+      "idle": 4.01
+    },
+    "a2": {
+      "busy": 4.64,
+      "blocked": 0,
+      "idle": 3.22
+    },
+    "a3": {
+      "busy": 2.4,
+      "blocked": 0,
+      "idle": 5.46
+    }
+  },
+  "invocations": {
+    "initial": 8,
+    "rework": 1
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 8,
+      "cost_usd": 0,
+      "turns": 8,
+      "wall_s": 166.943,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    },
+    "rework": {
+      "count": 1,
+      "cost_usd": 0,
+      "turns": 1,
+      "wall_s": 33.692,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 0
+    }
+  },
+  "cost_usd": 0,
+  "cost_by_kind": {
+    "initial": 0,
+    "rework": 0
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    },
+    "rework": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": null,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "validate": 1,
+    "validate-cancelled": 2
+  },
+  "ci_runs_total": 3,
+  "ci_minutes": {
+    "validate": 1,
+    "validate-cancelled": 1.92
+  },
+  "ci_minutes_total": 2.92,
+  "textual_conflicts": 1,
+  "red_validations": 0,
+  "final": {
+    "sha": "a8bc4f993051486b0cc8369df7746e5afee1f383",
+    "suite_green": true,
+    "suite_tests": 2107,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 8,
+    "tasks_total": 8,
+    "green_tasks_accepted": 8,
+    "green_tasks": 8,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": [
+      "test/content-parser.test.js",
+      "test/content-type.test.js",
+      "test/custom-parser.0.test.js",
+      "test/custom-parser.1.test.js",
+      "test/custom-parser.3.test.js",
+      "test/issue-4959.test.js",
+      "test/logger/logging.test.js",
+      "test/route.6.test.js",
+      "test/route.7.test.js",
+      "test/schema-validation.test.js",
+      "test/types/fastify.test-d.ts",
+      "test/types/instance.test-d.ts",
+      "test/validation-error-handling.test.js"
+    ]
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.5,
+      "recall": 0.4167,
+      "f1": 0.4375,
+      "tasks": 8,
+      "micro_recall": 0.3636,
+      "micro_precision": 0.4444
+    },
+    "vs_oracle": {
+      "precision": 0.5,
+      "recall": 0.4167,
+      "f1": 0.4375,
+      "tasks": 8,
+      "micro_recall": 0.3636,
+      "micro_precision": 0.4444
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 1.935,
+      "landed_at": 213.073,
+      "green_at": 213.073,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 1.935,
+      "landed_at": 281.394,
+      "green_at": 343.112,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 1.935,
+      "landed_at": 241.888,
+      "green_at": 302.036,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types",
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 2.422,
+      "landed_at": 269.201,
+      "green_at": 343.112,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/diagnostics-channel"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t005": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 101.193,
+      "landed_at": 273.405,
+      "green_at": 343.112,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/types"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 119.954,
+      "landed_at": 397.04,
+      "green_at": 397.04,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Guides",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/logger",
+        "test/types",
+        "types"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t007": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 120.749,
+      "landed_at": 470.557,
+      "green_at": 470.557,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t008": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 124.972,
+      "landed_at": 343.112,
+      "green_at": 343.112,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "beanstalk": {
+    "placements_disjoint": 2,
+    "placements_overlap": 6,
+    "placement_overlap_modules": 6,
+    "landings": 8,
+    "fixer_landings": 0,
+    "reverts": 0,
+    "validations": 1,
+    "validations_green": 1,
+    "validations_red": 0,
+    "stale_reds": 0,
+    "tickets": 0,
+    "tickets_closed": 0,
+    "tickets_escalated": 0,
+    "tickets_by_method": {},
+    "trunk_bisect_runs": 0,
+    "pauses": 0,
+    "paused_seconds": 0,
+    "fixers_without_change": 0,
+    "preland_checks": 12,
+    "preland_red": 0,
+    "preland_seconds": 724.58,
+    "preland_reworks": 0,
+    "preland_drops": 0,
+    "preland_mode": "optimistic",
+    "preland_latency": 0,
+    "preland_optimistic_landings": 4,
+    "preland_rechecks": 3,
+    "preland_locked_fallbacks": 1,
+    "preland_recheck_rule": "sampled",
+    "preland_skipped_rechecks": 0,
+    "preland_hunk_disjoint": 0,
+    "preland_hunk_overlap": 0,
+    "informed_reworks": 0,
+    "cards": 0,
+    "card_details": [],
+    "revert_first": 0,
+    "release_on_check": true,
+    "agent_waits": 0,
+    "agent_wait_seconds": 0,
+    "flake_confirm": true,
+    "validation_reruns": 0,
+    "flakes_suspected": 0,
+    "flaky_tests": {},
+    "inherited_reds": "readset",
+    "inherited_red_waits": 0,
+    "window": "aimd",
+    "window_size": 16,
+    "window_waits": 0,
+    "recheck_samples": 0,
+    "early_tickets": true,
+    "early_tickets_opened": 0,
+    "confirmed_by_sighting": 0,
+    "reconcile": true,
+    "reconciles": 0,
+    "reconciled": 0,
+    "contradictions": 0,
+    "stale_rechecks": 0,
+    "escalate_after": 1,
+    "reconcile_parties": 3,
+    "stuck_drops": 0,
+    "start_cards": true,
+    "start_cards_raised": 0,
+    "rescue": true,
+    "rescues": 0,
+    "dynamic_culprits": true,
+    "dynamic_culprit_runs": 0,
+    "dynamic_culprit_probes": 0,
+    "dynamic_culprit_skips": 0,
+    "max_bean_invocations": 10,
+    "tail_guard_minutes": 3,
+    "invocation_drops": 0,
+    "tail_drops": 0,
+    "park": true,
+    "tests_first": false,
+    "tests_first_accepted": 0,
+    "tests_first_fallbacks": 0,
+    "targeted_landing_check": false,
+    "targeted_checks": 0,
+    "targeted_red": 0,
+    "decision_outcome": "reexecute",
+    "decision_mode": "oracle",
+    "amendments": 0,
+    "amendments_none": 0,
+    "amendments_rejected": 0,
+    "amendments_rolled_back": 0,
+    "reexecutions": 0,
+    "adoptions_in_place": 0,
+    "mean_suspects_per_ticket": null,
+    "final_trunk_idx": 7,
+    "final_green_idx": 7,
+    "open_tickets_at_end": 0,
+    "ticket_details": [],
+    "variant": "v2.5",
+    "variant_additions": [
+      "start_order:dependency"
+    ],
+    "start_order": "dependency",
+    "reuse_checks": true,
+    "checks_reused": 4,
+    "ci_superseded": 2,
+    "red_reset": true,
+    "episode_tickets": false,
+    "repair_landing": false,
+    "requeue_repair": true,
+    "resets": 0,
+    "requeued": 0,
+    "episode_reds": 0,
+    "episode_inherited": 0,
+    "repair_landings": 0
+  },
+  "policy_rows": [
+    [
+      "Variant",
+      "v2.5: v2.4, with escalation after one repeated red, every landed party reconciled, lone suspects reverted at once, base and dynamic culprits, a wider window, structural merges, start cards and one rescue + dependency-aware starts"
+    ],
+    [
+      "Informed reworks / decision cards / revert-first tickets",
+      "0 / 0 / 0"
+    ],
+    [
+      "Agent released on check / reworks that waited for an agent / wait minutes",
+      "yes / 0 / 0.0"
+    ],
+    [
+      "Validation re-runs / suspected flakes",
+      "0 / 0"
+    ],
+    [
+      "Inherited reds waited out (no rework round spent)",
+      "0"
+    ],
+    [
+      "Reconciles (reconciled / contradictions) / stale re-checks",
+      "0 (0 / 0) / 0"
+    ],
+    [
+      "Escalate after (failed repairs) / reconcile parties / dropped stuck after a card",
+      "1 / 3 / 0"
+    ],
+    [
+      "Start cards / rescues / dynamic culprit searches (probes)",
+      "0 / 0 / 0 (0)"
+    ],
+    [
+      "Max bean invocations / tail guard minutes / dropped by each",
+      "10 / 3 / 0 / 0"
+    ],
+    [
+      "Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings",
+      "0 (0) / 0 (0) / 0"
+    ],
+    [
+      "Checks reused as validations / superseded CI runs cancelled",
+      "4 / 2"
+    ],
+    [
+      "Tests first (accepted / fallbacks) / targeted landing checks (red)",
+      "off / off"
+    ],
+    [
+      "Sprout window at the end / window waits / early tickets / re-check samples",
+      "16 / 0 / 0 / 0"
+    ],
+    [
+      "Spec amendments (amended / none / rejected / rolled back) / re-executions / adopted in place",
+      "0 / 0 / 0 / 0 / 0 / 0"
+    ],
+    [
+      "Pre-land checks (red) / reworks / drops",
+      "12 (0) / 0 / 0"
+    ],
+    [
+      "Pre-land check minutes",
+      "12.08"
+    ],
+    [
+      "Re-check rule / skipped (adaptive) / hunk-disjoint / hunk-overlap",
+      "sampled / 0 / 0 / 0"
+    ],
+    [
+      "Pre-land mode / latency s / optimistic landings / rechecks / locked fallbacks",
+      "optimistic / 0.0 / 4 / 3 / 1"
+    ],
+    [
+      "Placements disjoint / overlapping",
+      "2 / 6"
+    ],
+    [
+      "Fast-trunk landings (task / fixer / revert)",
+      "8 / 0 / 0"
+    ],
+    [
+      "Validations (green / red)",
+      "1 / 0"
+    ],
+    [
+      "Repair tickets (closed / escalated / by method)",
+      "0 / 0 / {}"
+    ],
+    [
+      "Error-budget pauses / paused minutes",
+      "0 / 0.0"
+    ]
+  ],
+  "infra": {
+    "worker_requests": 124,
+    "do_requests": 124,
+    "do_active_seconds": 777,
+    "artifacts_ops": 98,
+    "runner_calls": 58,
+    "container_busy_seconds": 1392,
+    "container_up_seconds": 2921.4,
+    "usd": {
+      "workers": 3.72e-05,
+      "durable_objects": 0.00123273,
+      "artifacts": 0.0147,
+      "containers": 0.07411584,
+      "total": 0.09008577
+    }
+  },
+  "repos": {
+    "status": "reaped",
+    "deleted": [
+      "race-uvis16a7v0"
+    ],
+    "failed": []
+  }
+}

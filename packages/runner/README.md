@@ -105,6 +105,17 @@ Replayed on 2026-10-05 through this runner (release build, Mergiraf 0.20.0) from
 
 So the tier turns half of the conflicts into candidates, and about half of those are right. The rest are semantic conflicts that a line conflict used to stop and the pre-land check now catches as a red: all 31 structural merges of `src/db/migrations/index.ts` were unsound (two beans each add a `migration0006`; Mergiraf keeps both imports under one name and one array entry, a duplicate binding that fails every suite), against 14 of 29 for `src/billing/invoice.ts`, 14 of 21 for `src/billing/handlers.ts` and 7 of 7 for `src/billing/service.ts`. Of the beans dropped for "unresolved conflict" in `cf-v23-sonnet-12-s7` (t010, t022, t024, t036) and `cf-v2-sonnet-12-s7-r3` (t006, t007, t010), only t036 had every replayed conflict merged soundly; t022 had one of two; t010's and t024's merged unsoundly (migrations and invoice); t006's and t007's stayed conflicts. The tier is safe only because the check runs on its result.
 
+## Fastify on the runner, measured (staging, 2026-10-07)
+
+The fastify suite (2,107 tests at the end of 8 replay tasks, `network: loopback` on every check) against GitHub Actions' numbers for the same suite (job about 50 s, suite step about 32 s, 4-vCPU runner):
+
+| Instance | Suite (`suite_seconds`) | Whole check on the runner (`ci_seconds`: fetch, checkout, suite) | Run |
+|---|---|---|---|
+| `standard-2` (1 vCPU, live today) | 84 to 144 s, median about 90 s | final check 106 to 128 s | `research/race/runs/staging-fastify-replay-4-s7` |
+| `standard-4` (4 vCPU) | 35 to 43 s (one 59 s), median about 40 s | 42 to 93 s, median about 58 s; final check 56 to 64 s | `research/race/runs/staging-fastify-replay-s4-4-s7` |
+
+`node --test` runs `availableParallelism() - 1` files at once, so on one vCPU it runs them one by one; a fair pairing with Actions' 4-vCPU runners needs `standard-4` (an owner decision: it is the runner class for every run, about four times the vCPU cost per instance). The shop arena's suite is unaffected either way.
+
 ## Notes for the gateway (`Runner` Container class)
 
 - `defaultPort = 8080`; image `../runner/Dockerfile` with `image_build_context: "../.."`. Start at `instance_type: "standard-1"`.
