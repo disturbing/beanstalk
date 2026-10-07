@@ -575,7 +575,16 @@ class OrchestratedRace:
                 os.symlink(deps, link)
         return wt
 
-    def claude_argv(self, prompt: str) -> list[str]:
+    def unintegrated(self, forge, tasks: list[Task]) -> set[str]:
+        """Tasks with no integrated change on the forge yet (a forge error counts as all integrated: no resume)."""
+        try:
+            changes, _ = forge.collect(self.t0)
+        except Exception:  # noqa: BLE001 - the decision to resume must not end the race
+            return set()
+        done = {c.task for c in changes if c.integrated_at is not None and c.task}
+        return {t.id for t in tasks} - done
+
+    def claude_argv(self, prompt: str, budget: float | None = None, resume: str | None = None) -> list[str]:
         cfg = self.cfg
         agents = {"worker": {"description": "An engineer who implements one change in its own git worktree, runs "
                                             "the tests and commits.",
@@ -584,7 +593,9 @@ class OrchestratedRace:
         return [cfg.claude_bin, "-p", prompt, "--model", cfg.model, "--output-format", "stream-json", "--verbose",
                 "--tools", CLAUDE_TOOLS, "--agents", json.dumps(agents), "--permission-mode", "acceptEdits",
                 "--permission-prompts", "none", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
-                "--setting-sources", "", "--disable-slash-commands", "--max-budget-usd", f"{cfg.max_usd:.2f}",
+                "--setting-sources", "", "--disable-slash-commands",
+                "--max-budget-usd", f"{(cfg.max_usd if budget is None else budget):.2f}",
+                *(["--resume", resume] if resume else []),
                 "--allowedTools", "Bash(*)", "Read", "Edit", "Write", "Glob", "Grep", "Agent", "TodoWrite",
                 "--disallowedTools", *DENIED]
 
@@ -603,20 +614,47 @@ class OrchestratedRace:
         self.log("race.start", at=self.t0, policy=f"orchestrated-{cfg.forge}", agent=cfg.orchestrator,
                  model=cfg.model, agents=cfg.subagents, tasks=[t.id for t in tasks])
         aborted = None
-        with open(transcript, "w", encoding="utf-8") as out:
-            proc = subprocess.Popen(self.claude_argv(prompt), cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
-                                    start_new_session=True)
-            try:
-                proc.wait(timeout=cfg.max_wall_minutes * 60)
-            except subprocess.TimeoutExpired:
-                aborted = f"wall-clock limit of {cfg.max_wall_minutes} minutes"
-                os.killpg(proc.pid, 15)
+        deadline = self.t0 + cfg.max_wall_minutes * 60
+        segments: list[str] = []
+        resumes: list[dict] = []
+        session_id = None
+        while True:
+            segment = os.path.join(self.work, f"transcript.{len(segments)}.jsonl")
+            segments.append(segment)
+            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments[:-1])
+            argv = self.claude_argv(prompt if session_id is None else orch_prompt.CONTINUE,
+                                    budget=max(0.5, cfg.max_usd - spent), resume=session_id)
+            with open(segment, "w", encoding="utf-8") as out:
+                proc = subprocess.Popen(argv, cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
+                                        start_new_session=True)
                 try:
-                    proc.wait(timeout=30)
+                    proc.wait(timeout=max(1.0, deadline - time.time()))
                 except subprocess.TimeoutExpired:
-                    os.killpg(proc.pid, 9)
+                    aborted = f"wall-clock limit of {cfg.max_wall_minutes} minutes"
+                    os.killpg(proc.pid, 15)
+                    try:
+                        proc.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(proc.pid, 9)
+            session_id = session_id or session_of(segment)
+            if aborted or not session_id:
+                break
+            # ``claude -p`` exits when the lead ends its turn, and stops background workers then; a lead that ended
+            # its turn with work left gets one fixed continuation (the same on both arms), as a person would type
+            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments)
+            left = self.unintegrated(forge, tasks)
+            if (not left or len(resumes) >= MAX_RESUMES or spent >= cfg.max_usd - 0.5
+                    or deadline - time.time() < 120):
+                break
+            resumes.append({"at": round(time.time() - self.t0, 1), "unintegrated": sorted(left)})
+            self.log("orchestrator.resume", unintegrated=sorted(left), spent_usd=round(spent, 4))
+        with open(transcript, "w", encoding="utf-8") as out:
+            for segment in segments:
+                with open(segment, encoding="utf-8", errors="replace") as fh:
+                    out.write(fh.read())
         ended = time.time()
-        session = parse_transcript(transcript, secrets=[getattr(forge, "token", "")])
+        session = merge_sessions([parse_transcript(s, secrets=[getattr(forge, "token", "")]) for s in segments])
+        session["resumes"] = resumes
         self.log("invocation.end", at=ended, inv="orchestrator", kind="orchestrator", task=None, agent="lead",
                  cost_usd=session["cost_usd"], ok=session["ok"], subtype=session["subtype"], num_turns=session["turns"])
         self.log("race.end", at=ended, aborted=aborted, spent_usd=session["cost_usd"])
@@ -704,6 +742,39 @@ class OrchestratedRace:
         shutil.copy(os.path.join(self.work, "transcript.jsonl"), os.path.join(self.out, "transcript.jsonl"))
         scrub(os.path.join(self.out, "transcript.jsonl"), [getattr(forge, "token", "")])
         return 0 if not aborted else 3
+
+
+MAX_RESUMES = 6
+
+
+def session_of(path: str) -> str | None:
+    """The session id a ``claude -p`` transcript reports (its init line)."""
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if e.get("session_id"):
+                return e["session_id"]
+    return None
+
+
+def merge_sessions(parts: list[dict]) -> dict:
+    """One session's figures from its processes: costs and turns add up (each process reports its own)."""
+    if not parts:
+        return parse_transcript("/dev/null", [])
+    commands: dict[str, int] = {}
+    for p in parts:
+        for k, v in p["commands"].items():
+            commands[k] = commands.get(k, 0) + v
+    return {"model_usage": [p["model_usage"] for p in parts], "cost_usd": round(sum(p["cost_usd"] for p in parts), 4),
+            "ok": parts[-1]["ok"], "subtype": parts[-1]["subtype"], "turns": sum(p["turns"] for p in parts),
+            "agent_calls": sum(p["agent_calls"] for p in parts),
+            "max_agent_calls_in_one_message": max(p["max_agent_calls_in_one_message"] for p in parts),
+            "background_agent_calls": sum(p["background_agent_calls"] for p in parts),
+            "max_concurrent_subagents": max(p["max_concurrent_subagents"] for p in parts),
+            "processes": len(parts), "commands": dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])}
 
 
 def parse_transcript(path: str, secrets: list[str]) -> dict:
