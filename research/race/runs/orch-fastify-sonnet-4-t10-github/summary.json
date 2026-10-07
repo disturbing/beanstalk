@@ -1,0 +1,590 @@
+{
+  "label": "orchestrated race: arena=fastify, 10 tasks, forge=github, claude (sonnet) with 4 sonnet subagents",
+  "policy": "orchestrated-github",
+  "agent": "claude",
+  "model": "sonnet",
+  "forge": "github",
+  "repo": "https://github.com/kintohubtest/beanstalk-orch-fastify-7",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 4,
+    "tasks": 10,
+    "seed": 7,
+    "max_usd": 20.0,
+    "max_wall_minutes": 90.0,
+    "ci_slots": 2,
+    "batch": 4,
+    "worker_model": "sonnet"
+  },
+  "aborted": null,
+  "wall_seconds": 1076.13,
+  "settled_seconds": 1078.57,
+  "tasks": 10,
+  "tasks_green": 10,
+  "cost_usd": 2.1997,
+  "red_validations": 0,
+  "ci_minutes": {
+    "batch": 10.77,
+    "precheck": 10.75
+  },
+  "ci_minutes_total": 21.52,
+  "ci_runs": {
+    "batch": 12,
+    "precheck": 12
+  },
+  "integration": {
+    "changes": 12,
+    "integrated": 12,
+    "submitted_to_integrated_s": {
+      "n": 12,
+      "median": 203.5,
+      "p90": 244.1,
+      "max": 305.0
+    },
+    "ready_to_integrated_s": {
+      "n": 12,
+      "median": 94.5,
+      "p90": 110.9,
+      "max": 131.0
+    },
+    "ready_to_stable_s": null,
+    "waiting_share_of_wall": 0.6518,
+    "mean_changes_waiting": 1.073,
+    "max_changes_waiting": 4,
+    "integrated_per_10min": [
+      7,
+      5
+    ],
+    "kickouts": 0,
+    "red_checks": 0,
+    "conflicts": 0,
+    "repushes": 0
+  },
+  "changes": [
+    {
+      "id": "#14",
+      "task": "t005",
+      "ready_at": 1791368497.0,
+      "integrated_at": 1791368596.0,
+      "stable_at": null,
+      "created_at": 1791368423.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t005fix",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#13",
+      "task": "t009",
+      "ready_at": 1791368580.0,
+      "integrated_at": 1791368690.0,
+      "stable_at": null,
+      "created_at": 1791368385.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t009",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#12",
+      "task": "t010",
+      "ready_at": 1791368346.0,
+      "integrated_at": 1791368447.0,
+      "stable_at": null,
+      "created_at": 1791368251.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t010",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#11",
+      "task": "t008",
+      "ready_at": 1791368297.0,
+      "integrated_at": 1791368388.0,
+      "stable_at": null,
+      "created_at": 1791368204.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t008",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#10",
+      "task": "t007",
+      "ready_at": 1791368253.0,
+      "integrated_at": 1791368337.0,
+      "stable_at": null,
+      "created_at": 1791368126.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t007",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#9",
+      "task": "t006",
+      "ready_at": 1791368068.0,
+      "integrated_at": 1791368153.0,
+      "stable_at": null,
+      "created_at": 1791367965.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t006",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#8",
+      "task": "t005",
+      "ready_at": 1791368072.0,
+      "integrated_at": 1791368170.0,
+      "stable_at": null,
+      "created_at": 1791367949.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t005",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#7",
+      "task": "t002",
+      "ready_at": 1791368032.0,
+      "integrated_at": 1791368117.0,
+      "stable_at": null,
+      "created_at": 1791367895.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t002fix",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#6",
+      "task": "t004",
+      "ready_at": 1791367810.0,
+      "integrated_at": 1791367941.0,
+      "stable_at": null,
+      "created_at": 1791367714.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t004",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#5",
+      "task": "t001",
+      "ready_at": 1791367830.0,
+      "integrated_at": 1791367941.0,
+      "stable_at": null,
+      "created_at": 1791367695.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t001",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#4",
+      "task": "t002",
+      "ready_at": 1791367763.0,
+      "integrated_at": 1791367847.0,
+      "stable_at": null,
+      "created_at": 1791367693.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t002",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#3",
+      "task": "t003",
+      "ready_at": 1791367769.0,
+      "integrated_at": 1791367847.0,
+      "stable_at": null,
+      "created_at": 1791367687.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t003",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    }
+  ],
+  "orchestrator": {
+    "cost_usd": 2.1997,
+    "ok": true,
+    "subtype": "success",
+    "turns": 1,
+    "agent_calls": 12,
+    "max_agent_calls_in_one_message": 1,
+    "background_agent_calls": 12,
+    "commands": {
+      "cd": 107,
+      "git fetch": 9,
+      "git worktree": 4,
+      "gh pr": 3,
+      "for": 3,
+      "sed": 2,
+      "W=.worktrees/t002fix;": 1,
+      "grep": 1,
+      "ls": 1,
+      "sleep": 1
+    }
+  },
+  "greens": {
+    "t002": {
+      "sha": "d8deab989537bcd70e725aa58ec4410df0c70669",
+      "seconds": 135.38
+    },
+    "t003": {
+      "sha": "404861768ae0c9e04092543bbfe44fd58f98cf23",
+      "seconds": 141.38
+    },
+    "t004": {
+      "sha": "2a23b0005a0444dc56825efc0d33d4ae159c168e",
+      "seconds": 182.38
+    },
+    "t001": {
+      "sha": "f0725b2018ab9ee849e4eb3b8ae4f6d40b9637d4",
+      "seconds": 201.38
+    },
+    "t006": {
+      "sha": "a5fd9453a648d0680087386b336d8fcaf91e61dc",
+      "seconds": 440.38
+    },
+    "t005": {
+      "sha": "6e61cf02fdeb7f2077ee753f4c83d70e3d1fd5b5",
+      "seconds": 444.38
+    },
+    "t007": {
+      "sha": "7820d03eae0a52f9fd5061c8da54283e9e344741",
+      "seconds": 625.38
+    },
+    "t008": {
+      "sha": "1bc027cfd15706399d1ba54f271d66ca0a864182",
+      "seconds": 669.38
+    },
+    "t010": {
+      "sha": "e19be1387f7fdc2857a9660846879875445fb759",
+      "seconds": 718.38
+    },
+    "t009": {
+      "sha": "892bd12c36b66a7668fc610be748ad9d8cbbe451",
+      "seconds": 952.38
+    }
+  },
+  "replay": [
+    {
+      "sha": "d8deab989537bcd70e725aa58ec4410df0c70669",
+      "at": 1791367763.0,
+      "green": [
+        "t002"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "404861768ae0c9e04092543bbfe44fd58f98cf23",
+      "at": 1791367769.0,
+      "green": [
+        "t003"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "2a23b0005a0444dc56825efc0d33d4ae159c168e",
+      "at": 1791367810.0,
+      "green": [
+        "t004"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "f0725b2018ab9ee849e4eb3b8ae4f6d40b9637d4",
+      "at": 1791367829.0,
+      "green": [
+        "t001"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "15fd30ad3711badca58c2f5dac82a023b422836e",
+      "at": 1791368032.0,
+      "green": [],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "a5fd9453a648d0680087386b336d8fcaf91e61dc",
+      "at": 1791368068.0,
+      "green": [
+        "t006"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "6e61cf02fdeb7f2077ee753f4c83d70e3d1fd5b5",
+      "at": 1791368072.0,
+      "green": [
+        "t005"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "7820d03eae0a52f9fd5061c8da54283e9e344741",
+      "at": 1791368253.0,
+      "green": [
+        "t007"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6528.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr6515.test.js"
+      ]
+    },
+    {
+      "sha": "1bc027cfd15706399d1ba54f271d66ca0a864182",
+      "at": 1791368297.0,
+      "green": [
+        "t008"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6528.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js"
+      ]
+    },
+    {
+      "sha": "e19be1387f7fdc2857a9660846879875445fb759",
+      "at": 1791368346.0,
+      "green": [
+        "t010"
+      ],
+      "failing_files": [
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js"
+      ]
+    },
+    {
+      "sha": "2ee65bddb131e6ba7c79d67db931171db9dd699e",
+      "at": 1791368497.0,
+      "green": [],
+      "failing_files": [
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js"
+      ]
+    },
+    {
+      "sha": "892bd12c36b66a7668fc610be748ad9d8cbbe451",
+      "at": 1791368580.0,
+      "green": [
+        "t009"
+      ],
+      "failing_files": []
+    }
+  ],
+  "final": {
+    "sha": "892bd12c36b66a7668fc610be748ad9d8cbbe451",
+    "suite_green": true,
+    "suite_retried": false,
+    "suite_failed": [],
+    "tasks_accepted": 10,
+    "tasks_total": 10,
+    "failing_files": [],
+    "correct": true,
+    "per_task": {
+      "t001": true,
+      "t002": true,
+      "t003": true,
+      "t004": true,
+      "t005": true,
+      "t006": true,
+      "t007": true,
+      "t008": true,
+      "t009": true,
+      "t010": true
+    }
+  }
+}

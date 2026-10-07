@@ -201,7 +201,11 @@ class GitHubForge:
         no check until they were reopened). Then close it and delete its branch."""
         c = self.client
         env = {**os.environ, **c.git_env()}
-        run_git(base_dir, *IDENTITY, "commit", "-q", "--allow-empty", "-m", "harness: warm-up (not a task)")
+        # a PR with no diff gets no pull_request run, so the probe changes one file
+        with open(os.path.join(base_dir, ".github", "race", "warm-up.txt"), "w", encoding="utf-8") as fh:
+            fh.write(f"warm-up {time.time()}\n")
+        run_git(base_dir, "add", "-f", ".github/race/warm-up.txt")
+        run_git(base_dir, *IDENTITY, "commit", "-q", "-m", "harness: warm-up (not a task)")
         probe = run_git(base_dir, "rev-parse", "HEAD").strip()
         run_git(base_dir, "reset", "-q", "--hard", base)
         subprocess.run(["git", "push", "-q", "-f", c.push_url, f"{probe}:refs/heads/harness-warmup"], cwd=base_dir,
@@ -366,13 +370,13 @@ class BeanstalkForge:
         artifacts_repo = (run.get("repo") or {}).get("name") or f"race-{self.seed_run}"
         env = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "http.extraHeader",
                "GIT_CONFIG_VALUE_0": f"Authorization: Bearer {seed['token']}"}
-        run_git(base_dir, "push", "-q", "--no-verify", url,
-                *[f"{base}:refs/heads/{r}" for r in ("main", "sprout", "stalk")], env=env)
+        refs = seed.get("refs") or ["refs/heads/sprout", "refs/heads/stalk"]   # the seed token's refs only
+        run_git(base_dir, "push", "-q", "--no-verify", url, *[f"{base}:{r}" for r in refs], env=env)
         suite = suite_mod.gateway_suite(suite_mod.load_suite(self.cfg.arena))
         opened = self.call("POST", "/v1/repos", {
             "repoName": self.repo, "artifactsRepo": artifacts_repo,
             "owner": {"id": f"u-{self.cfg.beanstalk_owner}", "handle": self.cfg.beanstalk_owner},
-            "settings": {**({"suite": suite} if suite else {}), "base_branch": "main"}})
+            "settings": {**({"suite": suite} if suite else {}), "base_branch": "sprout"}})
         self.engine, self.git_path = opened["engineId"], opened["git_path"]
         self.token = self.call("POST", f"/v1/repos/{self.engine}/git-token",
                                {"user": {"id": "u-orchestrator", "handle": "orchestrator"},
@@ -436,9 +440,13 @@ class BeanstalkForge:
             elif typ == "merge.conflict" and task:
                 change(task).conflicts += 1
                 change(task).kickouts += 1
-            elif typ in ("preland.red", "preland.check") and task and e.get("green") is False:
-                change(task).red_checks += 1
-                change(task).kickouts += 1
+            elif typ == "preland.check":
+                if task and e.get("green") is False:
+                    change(task).red_checks += 1
+                    change(task).kickouts += 1
+                secs = float(e.get("check_seconds") or e.get("suite_seconds") or 0)
+                ci.append({"purpose": "preland", "green": e.get("green"), "start": (at or 0) - secs, "end": at,
+                           "id": f"preland-{e.get('seq')}"})
             elif typ == "ci.end":
                 end = at
                 secs = float(e.get("ci_seconds") or e.get("suite_seconds") or 0)
@@ -660,14 +668,14 @@ def parse_transcript(path: str, secrets: list[str]) -> dict:
             if e.get("type") == "assistant":
                 for c in (e.get("message") or {}).get("content") or []:
                     if c.get("type") == "tool_use" and c.get("name") == "Bash":
-                        cmd = str((c.get("input") or {}).get("command", "")).strip().split()
+                        cmd = str((c.get("input") or {}).get("command", "")).strip().split("&&")[-1].split()
                         key = " ".join(cmd[:2]) if cmd[:1] in (["git"], ["gh"]) else (cmd[0] if cmd else "")
                         commands[key] = commands.get(key, 0) + 1
             if e.get("type") == "result":
-                cost = float(e.get("total_cost_usd") or 0.0)
+                cost = max(cost, float(e.get("total_cost_usd") or 0.0))  # one result per wake-up; cumulative
                 ok = not e.get("is_error")
                 subtype = e.get("subtype") or "?"
-                turns = int(e.get("num_turns") or 0)
+                turns += int(e.get("num_turns") or 0)
     top = dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])
     return {"cost_usd": round(cost, 4), "ok": ok, "subtype": subtype, "turns": turns, "agent_calls": agent_calls,
             "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background, "commands": top}
