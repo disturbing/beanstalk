@@ -1,0 +1,16 @@
+{
+  "name": "beanstalk",
+  "owner": { "name": "Beanstalk" },
+  "metadata": {
+    "description": "Beanstalk's Claude Code plugin: push beans with git, read the pre-land verdict, and use the Beanstalk MCP server for context."
+  },
+  "plugins": [
+    {
+      "name": "beanstalk",
+      "source": "./packages/claude-plugin",
+      "description": "Work on a Beanstalk repository: git push a bean branch, read the pre-land verdict, fix reds and conflicts, and use MCP for context (overlaps, decision cards, bean conversation).",
+      "category": "development",
+      "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare", "agents"]
+    }
+  ]
+}

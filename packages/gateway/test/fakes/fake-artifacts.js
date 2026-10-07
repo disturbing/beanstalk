@@ -1,13 +1,21 @@
 // A stand-in for the Artifacts binding (the RPC surface the gateway uses) and for the git
 // remotes it hands out. Tests only: Artifacts has no local simulator. Repos live in module
 // memory of this auxiliary worker; every test uses fresh run ids, so names never collide.
+// Two namespaces, as deployed: races (FakeArtifacts, the ARTIFACTS binding) and people's
+// repositories (FakeRepositories, the REPOS binding); each lists and deletes only its own.
 import { RpcTarget, WorkerEntrypoint } from 'cloudflare:workers';
 
 const HOST = 'https://acct.artifacts.test';
 const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 const PERSON = { name: 'fake', email: 'fake@beanstalk.invalid' };
-const NAMESPACE = 'beanstalk-race';
-const repos = new Map();
+const RACE_NAMESPACE = 'beanstalk-race';
+const REPOS_NAMESPACE = 'beanstalk-repos';
+const namespaces = new Map();
+
+function storeOf(namespace) {
+  if (!namespaces.has(namespace)) namespaces.set(namespace, new Map());
+  return namespaces.get(namespace);
+}
 const counter = { tokens: 0 };
 
 function artifactsError(code, message) {
@@ -17,10 +25,11 @@ function artifactsError(code, message) {
   return error;
 }
 
-function newRepo(name, refs = new Map(), defaultBranch = 'main') {
+function newRepo(namespace, name, refs = new Map(), defaultBranch = 'main') {
   const repo = {
     name,
-    remote: `${HOST}/git/${NAMESPACE}/${name}.git`,
+    namespace,
+    remote: `${HOST}/git/${namespace}/${name}.git`,
     refs,
     defaultBranch,
     files: new Map(),
@@ -30,7 +39,7 @@ function newRepo(name, refs = new Map(), defaultBranch = 'main') {
     trees: new Map(),
     blobs: new Map(),
   };
-  repos.set(name, repo);
+  storeOf(namespace).set(name, repo);
   return repo;
 }
 
@@ -81,12 +90,14 @@ class FakeRepo extends RpcTarget {
   }
 
   async fork(target, options = {}) {
-    if (repos.has(target)) throw artifactsError('ALREADY_EXISTS', `${target} exists`);
+    if (storeOf(this.#repo.namespace).has(target))
+      throw artifactsError('ALREADY_EXISTS', `${target} exists`);
     const keep = (ref) =>
       options.defaultBranchOnly === false
         ? ref.startsWith('refs/heads/')
         : ref === branchRef(this.#repo.defaultBranch);
     const fork = newRepo(
+      this.#repo.namespace,
       target,
       new Map([...this.#repo.refs].filter(([ref]) => keep(ref))),
       this.#repo.defaultBranch,
@@ -138,24 +149,32 @@ class FakeRepo extends RpcTarget {
 }
 
 export class FakeArtifacts extends WorkerEntrypoint {
+  get namespace() {
+    return RACE_NAMESPACE;
+  }
+
+  get #repos() {
+    return storeOf(this.namespace);
+  }
+
   async create(name, options = {}) {
-    if (repos.has(name)) throw artifactsError('ALREADY_EXISTS', `${name} exists`);
-    const repo = newRepo(name, new Map(), options.setDefaultBranch ?? 'main');
+    if (this.#repos.has(name)) throw artifactsError('ALREADY_EXISTS', `${name} exists`);
+    const repo = newRepo(this.namespace, name, new Map(), options.setDefaultBranch ?? 'main');
     return { ...describe(repo), token: 'art_v1_create' };
   }
 
   async get(name) {
-    const repo = repos.get(name);
+    const repo = this.#repos.get(name);
     if (repo === undefined) throw artifactsError('NOT_FOUND', `${name} not found`);
     return new FakeRepo(repo);
   }
 
   async delete(name) {
-    return repos.delete(name);
+    return this.#repos.delete(name);
   }
 
   async list() {
-    return { repos: [...repos.values()].map(describe), total: repos.size };
+    return { repos: [...this.#repos.values()].map(describe), total: this.#repos.size };
   }
 
   // Imports are faked for one URL shape: https://git.example.test/<anything>.git gives a repo
@@ -163,8 +182,9 @@ export class FakeArtifacts extends WorkerEntrypoint {
   async import({ source, target }) {
     if (!source.url.startsWith('https://git.example.test/'))
       throw artifactsError('REMOTE_AUTH_REQUIRED', 'imports are not faked for this URL');
-    if (repos.has(target.name)) throw artifactsError('ALREADY_EXISTS', `${target.name} exists`);
-    const repo = newRepo(target.name, new Map(), 'main');
+    if (this.#repos.has(target.name))
+      throw artifactsError('ALREADY_EXISTS', `${target.name} exists`);
+    const repo = newRepo(this.namespace, target.name, new Map(), 'main');
     const files = { 'README.md': '# imported\n', 'src/index.ts': 'export {};\n' };
     const sha = objectId(`commit:${source.url}`);
     repo.commits.set(sha, {
@@ -176,6 +196,12 @@ export class FakeArtifacts extends WorkerEntrypoint {
     });
     repo.refs.set('refs/heads/main', sha);
     return { ...describe(repo), token: 'art_v1_import' };
+  }
+}
+
+export class FakeRepositories extends FakeArtifacts {
+  get namespace() {
+    return REPOS_NAMESPACE;
   }
 }
 
@@ -280,7 +306,7 @@ export class FakeGitRemote extends WorkerEntrypoint {
   async fetch(request) {
     const url = new URL(request.url);
     const match = /^\/git\/([^/]+)\/([^/]+)\.git\/(.+)$/.exec(url.pathname);
-    const repo = match === null ? undefined : repos.get(match[2]);
+    const repo = match === null ? undefined : storeOf(match[1]).get(match[2]);
     if (repo === undefined) return new Response('no such repo', { status: 404 });
     const authorization = request.headers.get('authorization') ?? '';
     const token = authorization.replace(/^Bearer /, '');

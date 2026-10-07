@@ -15,9 +15,12 @@ import { RepoHead } from '../home/repo-head';
 import type { HomeFrame, SearchParams } from '../home/repository-home';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
+import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
 import { CATALOG } from '@beanstalk/shared-ask/ask/view-spec';
 import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../src/forge/sources';
+import { REPOSITORY_SUGGESTIONS } from '../../src/repositories/questions';
+import { pushersOf } from '../../src/repositories/pushers';
 import { raceMoments } from '../../src/race/race-moments';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 import { recordedRun } from '../../src/recorded/recorded-runs';
@@ -46,6 +49,8 @@ export async function FilesExplorer(props: {
   const state = readExplorerState(props.searchParams);
   const recorded = recordedRun(run);
   const source = forgeForRun(env.GATEWAY, run, state.at === null ? {} : { asOf: state.at });
+  const pushers: Promise<Pushers> =
+    props.frame.kind === 'repository' ? pushersOf(env.GATEWAY, run) : Promise.resolve({});
   const answer = await planAnswer({
     source,
     run,
@@ -68,10 +73,7 @@ export async function FilesExplorer(props: {
   });
   const events = recorded?.events ?? [];
   const race = reduceRace(events);
-  const suggestions =
-    recorded?.label === 'Beanstalk v2'
-      ? V2_SUGGESTIONS
-      : Object.values(CATALOG).map((entry) => ({ q: entry.example }));
+  const suggestions = suggestionsFor(props.frame, recorded?.label);
   return (
     <main className={styles.page}>
       <RepoHead
@@ -111,6 +113,7 @@ export async function FilesExplorer(props: {
             state={state}
             main={answer.main}
             railBean={answer.rail.find((block) => block.kind === 'checks')?.bean ?? null}
+            pushers={await pushers}
           />
         </section>
         <aside className={styles.railPane} aria-label="Context">
@@ -119,4 +122,17 @@ export async function FilesExplorer(props: {
       </div>
     </main>
   );
+}
+
+/**
+ * The Ask's examples: the recorded v2 demo's, a repository's (questions that need no slot,
+ * bean id or demo area to make sense), or the catalog's for any other race.
+ */
+function suggestionsFor(
+  frame: HomeFrame,
+  recordedLabel: string | undefined,
+): readonly Suggestion[] {
+  if (recordedLabel === 'Beanstalk v2') return V2_SUGGESTIONS;
+  if (frame.kind === 'repository') return REPOSITORY_SUGGESTIONS.map((q) => ({ q }));
+  return Object.values(CATALOG).map((entry) => ({ q: entry.example }));
 }

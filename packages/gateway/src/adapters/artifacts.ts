@@ -125,6 +125,26 @@ export function artifactsPort(binding: Artifacts): ArtifactsPort {
 }
 
 /**
+ * A port that asks `pick` for the namespace's port on every call. A run's Durable Object
+ * learns whether it drives a race or a person's repository only once it is opened, and the
+ * two live in different namespaces (ARTIFACTS and REPOS).
+ */
+export function selectedArtifactsPort(pick: () => ArtifactsPort): ArtifactsPort {
+  return {
+    createRepo: (name, description) => pick().createRepo(name, description),
+    mintToken: (repo, scope, ttlSeconds) => pick().mintToken(repo, scope, ttlSeconds),
+    branchHead: (repo, branch) => pick().branchHead(repo, branch),
+    readFile: (repo, ref, path) => pick().readFile(repo, ref, path),
+    changedFiles: (repo, range) => pick().changedFiles(repo, range),
+    listRepos: (matches) => pick().listRepos(matches),
+    deleteRepo: (name) => pick().deleteRepo(name),
+    describeRepo: (name) => pick().describeRepo(name),
+    commitMessage: (repo, sha) => pick().commitMessage(repo, sha),
+    history: (repo, ref, limit) => pick().history(repo, ref, limit),
+  };
+}
+
+/**
  * The files that differ between two commits of an open repo, with both contents (at most
  * 200, by path), optionally only under `paths`; null when a commit is missing.
  */

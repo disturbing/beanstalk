@@ -4,7 +4,8 @@ import Link from 'next/link';
 
 import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
 import { dirListing } from '@beanstalk/shared-ask/home/file-rows';
-import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
+import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
+import { creditOf } from '@beanstalk/shared-ask/home/sessions';
 import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
@@ -19,6 +20,7 @@ export type DefaultsProps = {
   readonly files: readonly string[];
   readonly titles: Readonly<Record<string, string>>;
   readonly sessions: SessionDirectory;
+  readonly pushers: Pushers;
   readonly hrefFor: (bean: string) => string;
   readonly askHref: (q: string) => string;
 };
@@ -42,18 +44,14 @@ export function HomeDefaults(props: DefaultsProps) {
             </div>
             <ul className={styles.list}>
               {flying.map((bean) => {
-                const session = bean.agent === null ? undefined : props.sessions[bean.agent];
+                const credit = creditOf(bean, props.sessions, props.pushers);
                 return (
                   <li key={bean.id}>
                     <span
                       className={styles.a}
-                      title={
-                        session === undefined
-                          ? undefined
-                          : `${session.harness} session of ${session.owner}`
-                      }
+                      title={credit.detail === '' ? undefined : credit.detail}
                     >
-                      {bean.agent ?? ''}
+                      {credit.who}
                     </span>
                     <Link className={styles.t} href={props.hrefFor(bean.id)}>
                       {props.titles[bean.id] ?? bean.id}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { MainPane as MainPaneModel } from '@beanstalk/shared-ask/ask/answer';
+import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
 import { BeanList, BeanView } from './bean-view';
 import { DiffView } from './diff-view';
 import styles from './explorer.module.css';
@@ -15,6 +16,8 @@ export function MainPane(props: {
   readonly main: MainPaneModel;
   /** The bean whose history the rail already shows, if any. */
   readonly railBean: string | null;
+  /** Who pushed each bean (a repository's); empty for races. */
+  readonly pushers: Pushers;
 }) {
   const { base, state, main } = props;
   switch (main.kind) {
@@ -71,6 +74,7 @@ export function MainPane(props: {
           bean={main.bean}
           diff={main.diff}
           showSteps={props.railBean !== main.bean.id}
+          pusher={props.pushers[main.bean.id] ?? null}
         />
       );
     case 'beans':
@@ -79,7 +83,7 @@ export function MainPane(props: {
           <div className={styles.mainHead}>
             <h2 className={styles.mainTitle}>{main.title}</h2>
           </div>
-          <BeanList base={base} state={state} beans={main.beans} />
+          <BeanList base={base} state={state} beans={main.beans} pushers={props.pushers} />
         </>
       );
     case 'empty':

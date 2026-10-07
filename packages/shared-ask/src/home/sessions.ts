@@ -43,6 +43,60 @@ export function activeContributors(
   return { people: people.size, sessions: busy.size };
 }
 
+/**
+ * Who pushed each bean of a persistent repository, by bean id (a pushed bean's id is its
+ * name): the handle the gateway records for the push. Empty for races, whose beans come
+ * from agent sessions.
+ */
+export type Pushers = Readonly<Record<string, string>>;
+
+/**
+ * Who grew a bean, as a page names them: a short label (`@coop`, `a0`) and a longer
+ * description (empty when nothing more is known).
+ */
+export type Credit = {
+  readonly kind: 'pusher' | 'session' | 'slot';
+  readonly who: string;
+  readonly detail: string;
+};
+
+/** A pushed bean's person, else the slot's session (races), else the bare slot. */
+export function creditOf(
+  bean: { readonly id: string; readonly agent: string | null },
+  directory: SessionDirectory,
+  pushers: Pushers,
+): Credit {
+  const pusher = pushers[bean.id];
+  if (pusher !== undefined)
+    return { kind: 'pusher', who: `@${pusher}`, detail: `pushed by @${pusher}` };
+  const session = bean.agent === null ? undefined : directory[bean.agent];
+  if (session === undefined) return { kind: 'slot', who: bean.agent ?? '', detail: '' };
+  return {
+    kind: 'session',
+    who: bean.agent ?? '',
+    detail: `${session.harness} session of ${session.owner}`,
+  };
+}
+
+export type LastPush = {
+  readonly pusher: string;
+  readonly bean: string;
+  /** Distinct people who pushed a bean so far. */
+  readonly people: number;
+};
+
+/** The newest pushed bean that has started, and who pushed it; null before the first push. */
+export function lastPush(state: RaceState, pushers: Pushers): LastPush | null {
+  const pushed = Object.values(state.beans).filter(
+    (bean) => pushers[bean.id] !== undefined && bean.startedAt !== null,
+  );
+  const newest = pushed.toSorted((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
+  const pusher = newest === undefined ? undefined : pushers[newest.id];
+  if (newest === undefined || pusher === undefined) return null;
+  const people = new Set(pushed.flatMap((bean) => pushers[bean.id] ?? [])).size;
+  return { pusher, bean: newest.id, people };
+}
+
 function harnessName(agent: string): string {
   if (agent === 'claude') return 'Claude Code';
   if (agent === 'codex') return 'Codex';

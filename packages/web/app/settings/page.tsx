@@ -117,7 +117,7 @@ export default async function SettingsPage({ searchParams }: PageProps) {
               Connected agents could not be loaded. Reload to try again.
             </p>
           ) : (
-            <AgentList agents={agents} csrf={csrfToken} />
+            <AgentList agents={agents} csrf={csrfToken} mcpUrl={env.MCP_URL} />
           )}
           <p className={styles.hint}>A new connection can take up to a minute to appear here.</p>
         </section>
@@ -150,16 +150,18 @@ export default async function SettingsPage({ searchParams }: PageProps) {
 function AgentList({
   agents,
   csrf,
+  mcpUrl,
 }: {
   readonly agents: readonly AgentSessionType[];
   readonly csrf: string;
+  readonly mcpUrl: string;
 }) {
   if (agents.length === 0)
     return (
       <p className={styles.empty}>
         No agents yet. In Claude Code:{' '}
-        <code>claude mcp add --transport http beanstalk &lt;mcp url&gt;</code>, then{' '}
-        <code>/mcp</code> to authenticate.
+        <code>claude mcp add --transport http beanstalk {mcpUrl}</code>, then{' '}
+        <code>claude mcp login beanstalk</code> (or <code>/mcp</code>) to authenticate.
       </p>
     );
   return (

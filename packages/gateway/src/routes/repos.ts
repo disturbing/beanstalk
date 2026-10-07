@@ -66,7 +66,7 @@ export const repoRoutes = new Hono<AppEnv>()
   );
 
 async function ensureArtifactsRepo(env: Env, name: string): Promise<void> {
-  const artifacts = artifactsPort(env.ARTIFACTS);
+  const artifacts = artifactsPort(env.REPOS);
   const existing = await artifacts.listRepos((candidate) => candidate === name);
   if (existing.length === 0) await artifacts.createRepo(name, `beanstalk repository ${name}`);
 }

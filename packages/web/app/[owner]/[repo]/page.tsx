@@ -9,6 +9,7 @@ import { StartHere } from '../../../components/repository/start-here';
 import { forgeForRun } from '../../../src/forge/sources';
 import { hasGrown } from '../../../src/repositories/flows';
 import { startGuide } from '../../../src/repositories/paths';
+import { pushersOf } from '../../../src/repositories/pushers';
 import { registryClient } from '../../../src/repositories/registry-client';
 import type { HomePageData } from '../../../src/server/home-page-data';
 import { homePageData } from '../../../src/server/home-page-data';
@@ -37,7 +38,11 @@ export default async function RepositoryPage({ params, searchParams }: PageProps
   const data =
     source === null || !engine.success
       ? null
-      : await homePageData(source, engine.data, record.owner.handle).catch(
+      : await Promise.all([
+          homePageData(source, engine.data, record.owner.handle),
+          pushersOf(env.GATEWAY, engine.data),
+        ]).then(
+          ([home, pushers]): HomePageData => ({ ...home, pushers }),
           (): HomePageData | null => null,
         );
   const frame = {

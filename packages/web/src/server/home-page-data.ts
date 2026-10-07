@@ -7,7 +7,7 @@ import type { RunId } from '@beanstalk/shared-race/ids';
 
 import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
 import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
-import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
+import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
@@ -22,6 +22,8 @@ export type HomePageData = {
   /** The repository's files at the sprout. */
   readonly files: readonly string[];
   readonly sessions: SessionDirectory;
+  /** Who pushed each bean (a persistent repository's); empty for races. */
+  readonly pushers: Pushers;
 };
 
 /** `owner` names whom the sessions belong to (a persistent repository's owner); races use theirs. */
@@ -47,6 +49,7 @@ export async function homePageData(
     titles,
     files,
     sessions: sessionsFor(run, reduceRace(events, options), owner),
+    pushers: {},
   };
 }
 

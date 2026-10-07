@@ -6,7 +6,8 @@ import type { ComponentId, Composition } from '@beanstalk/shared-ask/home/compos
 import { COMPONENT_LABELS } from '@beanstalk/shared-ask/home/composition';
 import { fileRows } from '@beanstalk/shared-ask/home/file-rows';
 import { journeyOf } from '@beanstalk/shared-ask/home/journey';
-import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
+import type { Credit, Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
+import { creditOf } from '@beanstalk/shared-ask/home/sessions';
 import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { Bean, RaceState } from '@beanstalk/shared-ask/race/race-state';
@@ -31,6 +32,8 @@ export type ExplorerContext = {
   readonly now: number;
   readonly titles: Readonly<Record<string, string>>;
   readonly sessions: SessionDirectory;
+  /** Who pushed each bean (a repository's); empty for races. */
+  readonly pushers: Pushers;
   /** A bean the answer features (the newest one it is about), with its change. */
   readonly featured: { readonly bean: BeanDetail; readonly files: readonly FileDiff[] } | null;
 };
@@ -228,7 +231,7 @@ function Journey({
   readonly bean: BeanDetail;
   readonly files: readonly FileDiff[];
 }) {
-  const session = bean.agent === null ? undefined : ctx.sessions[bean.agent];
+  const credit = creditOf(bean, ctx.sessions, ctx.pushers);
   return (
     <BeanJourney
       bean={{
@@ -236,10 +239,7 @@ function Journey({
         title: bean.title,
         intent: bean.intent,
         status: statusOf(bean),
-        session:
-          session === undefined
-            ? (bean.agent ?? 'no session')
-            : `${bean.agent ?? ''}, ${session.harness} session of ${session.owner}`,
+        session: journeySession(credit, bean.agent),
         landedIdx: bean.landedIdx,
         reworks: bean.reworks,
       }}
@@ -516,14 +516,12 @@ function Overlaps({ ctx }: { readonly ctx: ExplorerContext }) {
           <table className={styles.agents}>
             <tbody>
               {here.map((bean) => {
-                const session = bean.agent === null ? undefined : ctx.sessions[bean.agent];
+                const credit = creditOf(bean, ctx.sessions, ctx.pushers);
                 return (
                   <tr key={bean.id}>
                     <td className={styles.who}>
-                      {bean.agent ?? '?'}
-                      <small>
-                        {session === undefined ? '' : `${session.owner}, ${session.harness}`}
-                      </small>
+                      {credit.who === '' ? '?' : credit.who}
+                      <small>{whoNote(bean, ctx)}</small>
                     </td>
                     <td>
                       <Link href={beanHref(ctx.base, ctx.url, bean.id)}>
@@ -569,7 +567,7 @@ function Overlaps({ ctx }: { readonly ctx: ExplorerContext }) {
                   data-tone="fly"
                   style={{ marginLeft: 4 }}
                 >
-                  {bean.agent}
+                  {creditOf(bean, ctx.sessions, ctx.pushers).who}
                 </span>
               ))}
             </span>
@@ -629,6 +627,20 @@ function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly
       </table>
     </div>
   );
+}
+
+/** The journey's "who": the pusher, or the slot and its session (`a0, Claude Code session of coop`). */
+function journeySession(credit: Credit, agent: string | null): string {
+  if (credit.kind === 'pusher') return credit.detail;
+  if (credit.kind === 'session') return `${credit.who}, ${credit.detail}`;
+  return agent ?? 'no session';
+}
+
+/** The small print under a race's slot: its owner and harness; nothing under a pusher. */
+function whoNote(bean: Bean, ctx: ExplorerContext): string {
+  if (ctx.pushers[bean.id] !== undefined) return '';
+  const session = bean.agent === null ? undefined : ctx.sessions[bean.agent];
+  return session === undefined ? '' : `${session.owner}, ${session.harness}`;
 }
 
 function phaseTone(phase: string): string {

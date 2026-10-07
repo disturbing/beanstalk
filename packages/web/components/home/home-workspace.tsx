@@ -3,13 +3,13 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 
-import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import { activeContributors } from '@beanstalk/shared-ask/home/sessions';
+import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
 import { stalkRows } from '@beanstalk/shared-ask/home/stalk';
 import type { PickReceipt } from '@beanstalk/shared-ask/pick/picker';
 import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { RaceOptions, RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { lastPushLine, sessionsActiveLine } from '../../src/people/contributor-line';
 import { formatClock, plural } from '../../src/race/race-format';
 import type { LiveStatus } from '../canvas/use-live-events';
 import { useLiveEvents } from '../canvas/use-live-events';
@@ -36,6 +36,10 @@ export type HomeWorkspaceProps = {
   readonly titles: Readonly<Record<string, string>>;
   readonly files: readonly string[];
   readonly sessions: SessionDirectory;
+  /** Who pushed each bean (a repository's); empty for races. */
+  readonly pushers: Pushers;
+  /** A race names agent sessions; a repository names the people who push. */
+  readonly subject: 'race' | 'repository';
   readonly url: HomeState;
   /** Beans an answer is about (their leaves stay bright); null when nothing is asked. */
   readonly relevant: readonly string[] | null;
@@ -105,6 +109,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
             <StalkList
               rows={rows}
               owner={props.owner}
+              pushers={props.pushers}
               relevant={relevant}
               selected={props.url.bean}
               hrefFor={hrefFor}
@@ -128,6 +133,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
               files={props.files}
               titles={props.titles}
               sessions={props.sessions}
+              pushers={props.pushers}
               hrefFor={hrefFor}
               askHref={askHref}
             />
@@ -138,6 +144,8 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
         state={state}
         now={now}
         sessions={props.sessions}
+        pushers={props.pushers}
+        subject={props.subject}
         mode={props.mode}
         liveStatus={live.status}
         receipts={props.receipts}
@@ -191,6 +199,8 @@ function StatusLine(props: {
   readonly state: RaceState;
   readonly now: number;
   readonly sessions: SessionDirectory;
+  readonly pushers: Pushers;
+  readonly subject: 'race' | 'repository';
   readonly mode: 'replay' | 'live';
   readonly liveStatus: LiveStatus;
   readonly receipts: readonly PickReceipt[];
@@ -200,7 +210,6 @@ function StatusLine(props: {
   const sprout = state.line.commits.filter((commit) => commit.t <= props.now).length - 1;
   const validations = state.ci.filter((run) => run.purpose === 'validate' && run.green !== null);
   const red = validations.at(-1)?.green === false;
-  const active = activeContributors(state, props.sessions);
   const growing = Object.values(state.beans).filter(
     (bean) =>
       bean.startedAt !== null && !['pending', 'landed', 'green', 'dropped'].includes(bean.phase),
@@ -226,8 +235,9 @@ function StatusLine(props: {
         {plural(growing, 'bean')} growing
       </span>
       <span className={styles.sl}>
-        {active.people} {active.people === 1 ? 'person' : 'people'},{' '}
-        {plural(active.sessions, 'session')} active
+        {props.subject === 'race'
+          ? sessionsActiveLine(state, props.sessions)
+          : lastPushLine(state, props.pushers)}
       </span>
       <span className={styles.slsp} />
       <PicksDrawer receipts={props.receipts} picker={props.picker} />

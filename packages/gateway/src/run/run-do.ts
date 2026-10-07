@@ -67,7 +67,7 @@ import { updateBean } from '../collaboration/update';
 import { postBeanThread } from '../collaboration/thread';
 
 import type { ArtifactsPort, RepoRemote } from '../adapters/artifacts';
-import { artifactsPort } from '../adapters/artifacts';
+import { artifactsPort, selectedArtifactsPort } from '../adapters/artifacts';
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { repoExplorer } from '../adapters/repo-explorer';
 import type { EngineEnv } from '../engine/catalog';
@@ -223,6 +223,11 @@ export class RunDO extends DurableObject<Env> {
   readonly #waiters = new Map<string, Waiter>();
   readonly #log: Logger;
   readonly #artifacts: ArtifactsPort;
+  /**
+   * Whether this object drives a person's repository (REPOS namespace) rather than a race
+   * (ARTIFACTS namespace). Known from storage on wake, or from `openRepoEngine`.
+   */
+  #drivesRepository: boolean;
   readonly #runner: RunnerPort;
   readonly #tokens: TokenSource;
   #meter: InfraMeter;
@@ -261,8 +266,12 @@ export class RunDO extends DurableObject<Env> {
     const config = readConfig(env);
     this.#log = createLogger(config.logLevel, { component: 'run' });
     this.#meter = loadMeter(ctx.storage) ?? emptyMeter(Date.now());
-    this.#artifacts = meteredArtifacts(artifactsPort(env.ARTIFACTS), () =>
-      this.#setMeter(countArtifactsOps(this.#meter, 1)),
+    this.#drivesRepository = ctx.storage.kv.get(REPO_ENGINE_KEY) !== undefined;
+    const races = artifactsPort(env.ARTIFACTS);
+    const repositories = artifactsPort(env.REPOS);
+    this.#artifacts = meteredArtifacts(
+      selectedArtifactsPort(() => (this.#drivesRepository ? repositories : races)),
+      () => this.#setMeter(countArtifactsOps(this.#meter, 1)),
     );
     this.#runner = runnerPort((instance) =>
       meteredRunner(instance, env.RUNNER.getByName(instance), (call) => this.#recordRunner(call)),
@@ -323,6 +332,7 @@ export class RunDO extends DurableObject<Env> {
     }
     if (this.#creating) return failure('conflict', 409, 'the engine is being opened');
     this.#creating = true;
+    this.#drivesRepository = true;
     try {
       return await this.#createRepoEngine(input);
     } catch (error: unknown) {
@@ -331,6 +341,7 @@ export class RunDO extends DurableObject<Env> {
       return upstreamFailure(error, 'opening the repository engine');
     } finally {
       this.#creating = false;
+      this.#drivesRepository = this.#repoEngine() !== null;
     }
   }
 
@@ -1226,7 +1237,8 @@ export class RunDO extends DurableObject<Env> {
 
   /** The run repo's explorer, reading through the read index. */
   #explorer(repo: string): RepoExplorer {
-    return repoExplorer(this.env.ARTIFACTS, repo, (handle) =>
+    const binding = this.#drivesRepository ? this.env.REPOS : this.env.ARTIFACTS;
+    return repoExplorer(binding, repo, (handle) =>
       cachedReader(handle, { store: this.#objects, refs: this.#refs, now: () => Date.now() }),
     );
   }

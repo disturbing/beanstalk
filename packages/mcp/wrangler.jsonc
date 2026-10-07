@@ -30,14 +30,15 @@
   // Every read goes through the gateway over RPC; the run-token check too (`verifyMcpToken`).
   "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
   // OAuth clients, grants and tokens (@cloudflare/workers-oauth-provider stores only hashes),
-  // plus pending consent requests. Provisioned on first deploy.
-  "kv_namespaces": [{ "binding": "OAUTH_KV" }],
+  // plus pending consent requests. KV namespace `beanstalk-oauth`.
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "57771ee6fadf4d8ab0064c7c219525ea" }],
   // Accounts (docs/claude-opus/19-accounts-and-auth.md): grants are audited here and session
   // git tokens minted here. Schema: packages/shared-identity/migrations.
   "d1_databases": [
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
+      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],

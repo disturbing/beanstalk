@@ -3,24 +3,10 @@
  * take (an owner or repository can never be one of them), and how a person or an agent
  * starts: the clone URL, a first bean pushed with plain git, and the agent install lines.
  */
+import { isReservedHandle } from '@beanstalk/shared-identity/reserved-handles';
 
-/** Top-level paths the app serves itself; handles must avoid them (accounts enforce it). */
-export const RESERVED_OWNERS: ReadonlySet<string> = new Set([
-  'api',
-  'assets',
-  'auth',
-  'login',
-  'logout',
-  'new',
-  'race',
-  'races',
-  'runs',
-  'settings',
-  'signup',
-  'connect',
-  'inbox',
-  'favicon.ico',
-]);
+/** Top-level static files the build serves, beside the routes accounts reserve as handles. */
+const STATIC_PATHS: ReadonlySet<string> = new Set(['_next', 'assets', 'favicon.ico']);
 
 /** Sub-paths of a repository the app serves. */
 export const REPOSITORY_VIEWS = ['files', 'settings'] as const;
@@ -29,8 +15,12 @@ export function repositoryPath(owner: string, name: string): string {
   return `/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`;
 }
 
+/**
+ * Whether `owner` is a path the app serves itself: a reserved handle (accounts refuse them at
+ * sign-up; `reserved-routes.test.ts` checks every top-level route is one) or a static file.
+ */
 export function isReservedOwner(owner: string): boolean {
-  return RESERVED_OWNERS.has(owner.toLowerCase());
+  return isReservedHandle(owner) || STATIC_PATHS.has(owner.toLowerCase());
 }
 
 /** The deployment's public addresses for git and MCP (vars, so each environment sets its own). */
@@ -51,7 +41,11 @@ export type StartGuide = {
   readonly prompt: string;
 };
 
-const PLUGIN_REPO = 'beanstalkdev/beanstalk-plugin';
+/**
+ * The public repository whose `.claude-plugin/marketplace.json` lists the plugin (its default
+ * branch, `prototype`, holds the code; `owner/repo#branch` names another branch).
+ */
+const PLUGIN_MARKETPLACE = 'disturbing/beanstalk';
 
 export function startGuide(config: StartConfig, owner: string, name: string): StartGuide {
   const cloneUrl = `${config.gitOrigin.replace(/\/+$/, '')}/git/${owner}/${name}.git`;
@@ -69,9 +63,12 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
     agents: [
       {
         harness: 'Claude Code',
-        line: `claude plugin marketplace add ${PLUGIN_REPO} && claude plugin install beanstalk@beanstalk`,
+        line: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install beanstalk@beanstalk`,
       },
-      { harness: 'Codex', line: `codex mcp add beanstalk --url ${config.mcpUrl}` },
+      {
+        harness: 'Codex',
+        line: `codex mcp add beanstalk --url ${config.mcpUrl} && codex mcp login beanstalk`,
+      },
       { harness: 'Any MCP client', line: config.mcpUrl },
     ],
     prompt: `Work on ${owner}/${name} on Beanstalk: clone it, make the change as a bean, and push it.`,

@@ -5,6 +5,7 @@
 import { z } from 'zod';
 
 import type { IdentityEnv } from './identity-env';
+import { isReservedHandle } from './reserved-handles';
 
 /** What every other package sees of a signed-in person. */
 export type SessionUser = {
@@ -18,57 +19,6 @@ export type UserRecord = SessionUser & {
   readonly createdAt: number;
 };
 
-/** Names a route or a git remote could collide with, or that read as official. */
-const RESERVED_HANDLES = new Set([
-  'about',
-  'admin',
-  'api',
-  'app',
-  'auth',
-  'authorize',
-  'beanstalk',
-  'beans',
-  'billing',
-  'blog',
-  'connect',
-  'dashboard',
-  'docs',
-  'explore',
-  'git',
-  'help',
-  'home',
-  'login',
-  'logout',
-  'mcp',
-  'new',
-  'oauth',
-  'org',
-  'orgs',
-  'pricing',
-  'privacy',
-  'race',
-  'register',
-  'root',
-  'runs',
-  'security',
-  'settings',
-  'signin',
-  'signout',
-  'signup',
-  'site',
-  'sprout',
-  'stalk',
-  'status',
-  'support',
-  'system',
-  'terms',
-  'token',
-  'tokens',
-  'user',
-  'users',
-  'www',
-]);
-
 /** 2–39 characters: lowercase letters, digits and single hyphens, not at either end. */
 export const Handle = z
   .string()
@@ -78,7 +28,7 @@ export const Handle = z
     /^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){1,38}$/,
     'use 2–39 lowercase letters, digits or single hyphens',
   )
-  .refine((handle) => !RESERVED_HANDLES.has(handle), 'that handle is reserved');
+  .refine((handle) => !isReservedHandle(handle), 'that handle is reserved');
 
 export const Email = z.string().trim().toLowerCase().pipe(z.email()).pipe(z.string().max(254));
 

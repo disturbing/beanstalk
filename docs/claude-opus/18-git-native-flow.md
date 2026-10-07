@@ -215,7 +215,7 @@ The preset field is `null` (the demo preset would refuse these changes); the run
 ```ts
 openRepoEngine(input: {
   repoName: string;                                // clone URL: /git/<owner.handle>/<repoName>.git
-  artifactsRepo: string;                           // existing Artifacts repo in the gateway's namespace
+  artifactsRepo: string;                           // existing Artifacts repo in the repositories' namespace (REPOS)
   owner: { id: string; handle: string };
   settings?: {
     suite?: RunSuite;                              // the checks (default: node --test)

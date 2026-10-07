@@ -46,16 +46,28 @@
       "max_instances": 48,
     },
   ],
-  "artifacts": [{ "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true }],
+  // Two namespaces, kept apart: ARTIFACTS holds race repos (`race-<run>`), which the hourly
+  // sweep deletes once their race is over; REPOS holds people's repositories (`repo-<id>`),
+  // which the sweep never lists (docs/claude-opus/20-repositories.md §2).
+  "artifacts": [
+    { "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true },
+    { "binding": "REPOS", "namespace": "beanstalk-repos", "remote": true },
+  ],
   // The repository registry (FORGE, docs/claude-opus/20-repositories.md): records, per-owner
   // name uniqueness and repository activity; migrations in migrations/. Accounts (IDENTITY_DB):
   // git credentials may be people's tokens (bsu_, bss_), verified against the identity database
   // (packages/shared-identity, docs/claude-opus/19-accounts-and-auth.md).
   "d1_databases": [
-    { "binding": "FORGE", "database_name": "beanstalk-forge", "migrations_dir": "migrations" },
+    {
+      "binding": "FORGE",
+      "database_name": "beanstalk-forge",
+      "database_id": "e19b5975-8fb2-4158-9dc8-3ca013b1de2a",
+      "migrations_dir": "migrations",
+    },
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
+      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],

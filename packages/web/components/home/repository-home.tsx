@@ -64,9 +64,10 @@ export async function RepositoryHome(props: {
   const state = reduceRace(visible, data.options);
   const now = url.t ?? state.endedAt ?? state.clock;
   const finished = isFinished(state, now);
-  const items = suggestions(state, now);
+  const subject = props.frame.kind === 'repository' ? 'repository' : 'race';
+  const items = suggestions(state, now, subject);
   const [suggest, explorer] = await Promise.all([
-    picker.decide(suggestDecision(items, !finished)),
+    picker.decide(suggestDecision(items, !finished, subject)),
     explorerFor({ run, base, url, picker, data, finished, now, source }),
   ]);
   const ordered = suggest.chosen.flatMap((id) =>
@@ -92,6 +93,8 @@ export async function RepositoryHome(props: {
         titles={data.titles}
         files={data.files}
         sessions={data.sessions}
+        pushers={data.pushers}
+        subject={subject}
         url={url}
         relevant={explorer?.relevant ?? null}
         questions={[
@@ -195,6 +198,7 @@ async function explorerFor(input: {
         now={input.now}
         titles={data.titles}
         sessions={data.sessions}
+        pushers={data.pushers}
         featured={featured}
       />
     ),

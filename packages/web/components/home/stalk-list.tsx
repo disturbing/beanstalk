@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRef } from 'react';
 
 import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
+import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
 import type { StalkRow } from '@beanstalk/shared-ask/home/stalk';
 import { formatClock } from '../../src/race/race-format';
 import styles from './home.module.css';
@@ -26,6 +27,8 @@ const PHASE_WORDS: Readonly<Record<string, string>> = {
 export function StalkList(props: {
   readonly rows: readonly StalkRow[];
   readonly owner: string;
+  /** Who pushed each bean (a repository's): named at the tip instead of the slot. */
+  readonly pushers: Pushers;
   readonly relevant: ReadonlySet<string> | null;
   readonly selected: string | null;
   readonly hrefFor: (bean: string) => string;
@@ -52,7 +55,9 @@ export function StalkList(props: {
                 aria-current={props.selected === row.task ? 'true' : undefined}
                 title={row.title}
               >
-                <span className={styles.ag}>{row.slot ?? ''}</span>
+                <span className={styles.ag}>
+                  {pusherLabel(props.pushers, row.task) ?? row.slot ?? ''}
+                </span>
                 <span className={styles.stem}>
                   <i className={styles.bud} />
                 </span>
@@ -175,4 +180,9 @@ function Writing({ summary }: { readonly summary: BeanStreamSummary | undefined 
 
 function assertNever(value: never): never {
   throw new Error(`unexpected row ${JSON.stringify(value)}`);
+}
+
+function pusherLabel(pushers: Pushers, bean: string): string | null {
+  const pusher = pushers[bean];
+  return pusher === undefined ? null : `@${pusher}`;
 }

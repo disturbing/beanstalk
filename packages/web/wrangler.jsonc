@@ -20,6 +20,7 @@
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
+      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],

@@ -24,7 +24,7 @@ function value<T>(result: RpcResult<T>): T {
 }
 
 async function artifactsRefs(name: string): Promise<{ stalk: string; sprout: string }> {
-  using repo = await env.ARTIFACTS.get(name);
+  using repo = await env.REPOS.get(name);
   const [[stalk], [sprout]] = await Promise.all([
     repo.log({ ref: 'stalk', limit: 1 }),
     repo.log({ ref: 'sprout', limit: 1 }),
@@ -214,7 +214,7 @@ describe('changing and deleting a repository', () => {
     );
     value(await gateway.deleteRepository(coop.id, repo.id));
     expect(await gateway.getRepository(coop.handle, 'gone', coop.id)).toMatchObject({ ok: false });
-    const listed = await env.ARTIFACTS.list();
+    const listed = await env.REPOS.list();
     expect(listed.repos.map((entry) => entry.name)).not.toContain(repo.artifacts_repo);
     expect(value(await gateway.repositoryActivity(coop.id, 10))).toEqual([]);
   });

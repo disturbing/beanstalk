@@ -272,7 +272,7 @@ export default class Gateway
   #repositories(): RepositoriesRpc {
     return repositoriesRpc({
       registry: d1Registry(this.env.FORGE),
-      storage: repositoryStorage(this.env.ARTIFACTS),
+      storage: repositoryStorage(this.env.REPOS),
       engine: repoEnginePort(createDeps(this.env)),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
       now: () => Date.now(),

@@ -93,6 +93,39 @@ describe('the hourly sweep', () => {
     expect(await repoNames(young)).toEqual([young.repo.name]);
   });
 
+  it('never deletes a person’s repository, however old', async () => {
+    const name = `keep${crypto.randomUUID().replaceAll('-', '').slice(0, 8)}`;
+    const opened = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: name,
+        artifactsRepo: `repo-${name}`,
+        owner: { id: 'u-sweep', handle: 'sweeper' },
+        create_artifacts_repo: true,
+      },
+    });
+    const { engineId } = await json<{ engineId: string }>(opened);
+    // Even a race-shaped name in the repositories' namespace is out of the sweep's reach.
+    const lookalike = `race-s${crypto.randomUUID().replaceAll('-', '').slice(0, 11)}`;
+    await env.REPOS.create(lookalike);
+
+    const response = await call('POST', '/v1/admin/sweep', {
+      token: ADMIN,
+      body: { older_than_hours: 0 },
+    });
+    const report = await json<{ deleted: string[] }>(response);
+    const direct = await env.RUNS.getByName(engineId).sweep(RunId.parse(engineId), Date.now());
+    const kept = (await env.REPOS.list()).repos.map((repo) => repo.name);
+
+    expect(opened.status).toBe(201);
+    expect(report.deleted).not.toContain(engineId);
+    expect(direct).toMatchObject({ ok: false, error: { status: 409 } });
+    expect(kept).toEqual(expect.arrayContaining([`repo-${name}`, lookalike]));
+    expect((await env.ARTIFACTS.list()).repos.map((repo) => repo.name)).not.toContain(
+      `repo-${name}`,
+    );
+  });
+
   it('is scheduled once runs are indexed', async () => {
     await createRun();
 

@@ -8,6 +8,8 @@ Built 2026-10-07 on branch `auth-accounts` (from `prototype` at `fed4f54`). This
 
 ## 1. What works on staging
 
+**Live since 2026-10-07** (gateway, web and MCP on the main workers.dev stack, D1 `beanstalk-identity`, KV `beanstalk-oauth`): passkey sign-up, personal tokens on git, and Claude Code over OAuth (`claude mcp login`, `whoami`) passed on live; `20-repositories.md` §5 has the walk-through. Handles that clash with the app's routes are refused at sign-up (`shared-identity/src/reserved-handles.ts`).
+
 Staging: `beanstalk-web-staging` and `beanstalk-mcp-staging` on the devaccounts workers.dev subdomain, D1 `beanstalk-identity-staging`, KV `beanstalk-oauth-staging`. The staging gateway was **not** redeployed (§7).
 
 | Check (headless Chrome, CDP virtual authenticator) | Result |

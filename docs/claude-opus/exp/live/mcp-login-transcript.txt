@@ -1,0 +1,7 @@
+Starting authentication for "beanstalk-smoke"…
+Visit this URL to authorize:
+  https://beanstalk-mcp.<sub>.workers.dev/authorize?response_type=code&client_id=<…>&code_challenge=<…>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A52954%2Fcallback&state=<…>&scope=read&resource=https%3A%2F%2Fbeanstalk-mcp.<sub>.workers.dev%2Fmcp
+
+Waiting for authorization… (^C to cancel)
+Or paste the redirect URL here: 
+Authenticated with "beanstalk-smoke". Its tools are now available in Claude Code.

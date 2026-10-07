@@ -13,8 +13,18 @@ export function isFinished(state: RaceState, now: number): boolean {
   return state.endedAt !== null && now >= state.endedAt;
 }
 
+/**
+ * Whose page asks: a race (agent sessions in slots `a0` …) or a persistent repository, whose
+ * beans are pushed by people and their agents (no slot means anything to its readers).
+ */
+export type SuggestionSubject = 'race' | 'repository';
+
 /** Questions worth asking now, filled with this run's own areas, files and agents. */
-export function suggestions(state: RaceState, now: number): readonly Suggestion[] {
+export function suggestions(
+  state: RaceState,
+  now: number,
+  subject: SuggestionSubject = 'race',
+): readonly Suggestion[] {
   const inFlight = Object.values(state.beans).filter((bean) => isInFlight(bean.phase));
   const busiest = busiestBed(state);
   const hasRed = state.ci.some((run) => run.purpose === 'validate' && run.green === false);
@@ -27,7 +37,11 @@ export function suggestions(state: RaceState, now: number): readonly Suggestion[
           'recent changes in the busiest area',
         ),
     inFlight.length > 0
-      ? suggestion('swarm', "what's being worked on right now?", 'where agents are working now')
+      ? suggestion(
+          'swarm',
+          "what's being worked on right now?",
+          subject === 'race' ? 'where agents are working now' : 'beans being checked now',
+        )
       : null,
     hasRed
       ? suggestion('red', 'why did the sprout go red?', 'the red validation and its culprit')
@@ -38,17 +52,23 @@ export function suggestions(state: RaceState, now: number): readonly Suggestion[
     unpromoted(state, now) > 0
       ? suggestion('pending', "what's on sprout but not on stalk?", 'beans waiting for validation')
       : null,
-    busiestAgent(state) === null
-      ? null
-      : suggestion('agent', `what has ${busiestAgent(state)} done?`, "one agent's work"),
+    subject === 'race' ? agentSuggestion(state) : whoSuggestion(state),
   ];
   return candidates.filter((item): item is Suggestion => item !== null);
 }
 
-export function suggestDecision(items: readonly Suggestion[], live: boolean): PickDecision {
+export function suggestDecision(
+  items: readonly Suggestion[],
+  live: boolean,
+  subject: SuggestionSubject = 'race',
+): PickDecision {
   const order = live
-    ? ['swarm', 'red', 'pending', 'decision', 'area', 'agent']
-    : ['area', 'decision', 'red', 'agent', 'swarm', 'pending'];
+    ? ['swarm', 'red', 'pending', 'decision', 'area', 'agent', 'who']
+    : ['area', 'decision', 'red', 'agent', 'who', 'swarm', 'pending'];
+  const liveWhy =
+    subject === 'race'
+      ? 'Rule: a running race suggests what is happening now.'
+      : 'Rule: a growing repository suggests what is happening now.';
   return {
     id: 'suggest',
     title: 'Suggest questions',
@@ -58,9 +78,7 @@ export function suggestDecision(items: readonly Suggestion[], live: boolean): Pi
     slots: 4,
     rule: () => ({
       chosen: order.filter((id) => items.some((item) => item.id === id)),
-      why: live
-        ? 'Rule: a running race suggests what is happening now.'
-        : 'Rule: a finished run suggests what happened, by area first.',
+      why: live ? liveWhy : 'Rule: a finished run suggests what happened, by area first.',
     }),
   };
 }
@@ -80,6 +98,27 @@ function busiestBed(state: RaceState): string | null {
   for (const path of paths) counts.set(bedOf(path), (counts.get(bedOf(path)) ?? 0) + 1);
   counts.delete('core');
   const best = [...counts].toSorted((a, b) => b[1] - a[1])[0];
+  return best === undefined ? null : best[0];
+}
+
+function agentSuggestion(state: RaceState): Suggestion | null {
+  const agent = busiestAgent(state);
+  return agent === null ? null : suggestion('agent', `what has ${agent} done?`, "one agent's work");
+}
+
+/** A repository's "who": the file its landed beans changed most, and who changed it and why. */
+function whoSuggestion(state: RaceState): Suggestion | null {
+  const file = mostChangedFile(state);
+  return file === null
+    ? null
+    : suggestion('who', `who changed ${file} and why?`, 'who changed the busiest file, and why');
+}
+
+function mostChangedFile(state: RaceState): string | null {
+  const counts = new Map<string, number>();
+  for (const path of state.line.commits.flatMap((commit) => commit.files))
+    counts.set(path, (counts.get(path) ?? 0) + 1);
+  const best = [...counts].toSorted((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
   return best === undefined ? null : best[0];
 }
 

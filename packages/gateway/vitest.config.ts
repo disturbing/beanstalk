@@ -9,7 +9,8 @@ import { defineConfig } from 'vitest/config';
 /**
  * Tests run the real Worker and RunDO on Miniflare. Two bindings have no local simulator:
  * Artifacts (remote only) and the runner container (needs Docker). The tests use
- * wrangler.jsonc without those two blocks, bind ARTIFACTS to a fake Artifacts worker that
+ * wrangler.jsonc without those two blocks, bind ARTIFACTS and REPOS (two namespaces, as
+ * deployed) to a fake Artifacts worker that
  * also serves the git remotes the proxy forwards to (all outbound fetches go there), and
  * point RUNNER at a fake runner Durable Object. No test touches the network.
  *
@@ -37,7 +38,10 @@ export default defineConfig({
           TEST_MIGRATIONS: identityMigrations,
           FORGE_MIGRATIONS: registryMigrations,
         },
-        serviceBindings: { ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' } },
+        serviceBindings: {
+          ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' },
+          REPOS: { name: 'fake-artifacts', entrypoint: 'FakeRepositories' },
+        },
         durableObjects: { RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' } },
         outboundService: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },
         workers: [

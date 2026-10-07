@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { BeanDetail, BeanRecord } from '@beanstalk/shared-ask/forge/forge-source';
+import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
 import type { BeanStep } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatUsd, plural } from '../../src/race/race-format';
 import type { RepoDiff } from '@beanstalk/shared-ask/repo/repo-types';
@@ -18,6 +19,8 @@ export function BeanView(props: {
   readonly diff: RepoDiff | null;
   /** False when the rail already tells the bean's history. */
   readonly showSteps: boolean;
+  /** Who pushed the bean (a repository's); null for an agent's bean in a race. */
+  readonly pusher: string | null;
 }) {
   const { bean } = props;
   return (
@@ -28,14 +31,14 @@ export function BeanView(props: {
         </h2>
         <div className={styles.beanFacts}>
           <StatusPill status={bean.status} />
-          {bean.agent === null ? null : <span>agent {bean.agent}</span>}
+          {carrierFact(bean.agent, props.pusher)}
           {bean.landedIdx === null ? null : <span>sprout #{bean.landedIdx}</span>}
           <span>{plural(bean.reworks, 'rework')}</span>
           <span>
             {plural(bean.checks, 'pre-land check')}
             {bean.redChecks > 0 ? `, ${bean.redChecks} red` : ''}
           </span>
-          <span>{formatUsd(bean.costUsd)} agent spend</span>
+          {props.pusher === null ? <span>{formatUsd(bean.costUsd)} agent spend</span> : null}
           {bean.card === null ? null : <span>decision {bean.card}</span>}
         </div>
         {bean.intent === '' ? null : <p className={styles.intent}>{bean.intent}</p>}
@@ -125,6 +128,8 @@ export function BeanList(props: {
   readonly base: string;
   readonly state: ExplorerState;
   readonly beans: readonly BeanRecord[];
+  /** Who pushed each bean (a repository's); empty for races. */
+  readonly pushers: Pushers;
 }) {
   return (
     <ul className={styles.beanList}>
@@ -139,7 +144,7 @@ export function BeanList(props: {
           <span className={styles.beanName}>{bean.title}</span>
           <StatusPill status={bean.status} />
           <span className={styles.beanSub}>
-            {bean.agent === null ? 'no agent yet' : `agent ${bean.agent}`},{' '}
+            {carrierText(bean.agent, props.pushers[bean.id] ?? null)},{' '}
             {plural(bean.files.length, 'file')}
             {bean.reworks > 0 ? `, ${plural(bean.reworks, 'rework')}` : ''}
           </span>
@@ -147,4 +152,16 @@ export function BeanList(props: {
       ))}
     </ul>
   );
+}
+
+/** Who carried the bean, in the facts line: its pusher, or its agent slot. */
+function carrierFact(agent: string | null, pusher: string | null) {
+  if (pusher !== null) return <span>pushed by @{pusher}</span>;
+  return agent === null ? null : <span>agent {agent}</span>;
+}
+
+/** Who carried the bean, in a list: its pusher, its agent slot, or nobody yet. */
+function carrierText(agent: string | null, pusher: string | null): string {
+  if (pusher !== null) return `pushed by @${pusher}`;
+  return agent === null ? 'no agent yet' : `agent ${agent}`;
 }
