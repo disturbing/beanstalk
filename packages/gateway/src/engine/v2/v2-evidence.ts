@@ -17,8 +17,8 @@
  * - A test is touched when its read set (always including the test file) meets the difference,
  *   when the difference holds a file every test depends on (`GLOBAL_FILE`), or when a changed
  *   file is another resolution of a module the test reads (`src/a.ts` beside `src/a/index.ts`:
- *   an added file a test probes). Listings (globs, fixtures directories) are the runner's to
- *   report as reads.
+ *   an added file a test probes), or when a changed file is under a directory the test listed
+ *   (a read set entry ending in `/`, which the runner reports for globs and fixture folders).
  * - The tests of H are every test any voucher's tree has, plus every test file a commit
  *   changed. A test no voucher vouches for is affected; one with no read set is never vouched for.
  * - No evidence at all while the sprout is known red (a ticket, a red validation at or below H,
@@ -364,8 +364,15 @@ function touched(test: string, reads: readonly string[], changed: readonly strin
   if (changed.length === 0) return [];
   const read = new Set([test, ...reads]);
   const modules = new Set([...read].map(moduleOf));
+  // A read ending in `/` is a directory the test listed (a glob, a fixtures folder): any file
+  // added, changed or removed under it may change what the test sees.
+  const listed = reads.filter((path) => path.endsWith('/'));
   return changed.filter(
-    (path) => read.has(path) || GLOBAL_FILE.test(path) || modules.has(moduleOf(path)),
+    (path) =>
+      read.has(path) ||
+      GLOBAL_FILE.test(path) ||
+      modules.has(moduleOf(path)) ||
+      listed.some((dir) => path.startsWith(dir)),
   );
 }
 

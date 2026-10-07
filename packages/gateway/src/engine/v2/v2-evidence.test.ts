@@ -223,12 +223,16 @@ describe('v2: promotion by evidence (`evidence_promotion`)', () => {
  * A finished one-bean race, then t009 (whose check read the report test) and t010 (`files`)
  * landed above the stalk: the evidence for t010's commit.
  */
-function judge(files: readonly string[], extra: { structural?: true } = {}) {
+function judge(
+  files: readonly string[],
+  extra: { structural?: true } = {},
+  reportReads: readonly string[] = [REPORT_TEST, 'src/report/index.ts'],
+) {
   const step = v2StepAfter(runEvidence({ tasks: [soloTask('t001')], config: { agents: 1 } }));
   const { state } = step;
   const evidence = evidenceState(state);
   const report = evidence.sets.length;
-  evidence.sets.push([REPORT_TEST, 'src/report/index.ts']);
+  evidence.sets.push([...reportReads]);
   // The report test imports its module in every tree the race checked, too.
   for (const [key, voucher] of Object.entries(evidence.vouchers)) {
     evidence.vouchers[key] = { ...voucher, reads: { ...voucher.reads, [REPORT_TEST]: report } };
@@ -281,6 +285,14 @@ describe('v2: evidence rules on a hand-built sprout', () => {
 
   it('counts another resolution of a module a test reads (an added file it probes) as read', () => {
     const proof = judge(['src/t010/index.ts', 'src/report.ts']);
+    expect(proof.affected).toContain(REPORT_TEST);
+  });
+
+  it('counts a file added under a directory a test listed as read', () => {
+    const proof = judge(['src/t010/index.ts', 'src/report/templates/new.txt'], {}, [
+      REPORT_TEST,
+      'src/report/templates/',
+    ]);
     expect(proof.affected).toContain(REPORT_TEST);
   });
 
