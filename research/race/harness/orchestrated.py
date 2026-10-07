@@ -24,6 +24,7 @@ import os
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -328,8 +329,11 @@ class BeanstalkForge:
                                      headers={"authorization": f"Bearer {self.admin}",
                                               "content-type": "application/json",
                                               "user-agent": "beanstalk-orchestrated-race"})
-        with urllib.request.urlopen(req, timeout=120) as res:
-            data = res.read()
+        try:
+            with urllib.request.urlopen(req, timeout=120) as res:
+                data = res.read()
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"{method} {path}: {e.code} {e.read()[:600].decode(errors='replace')}") from None
         return data.decode() if raw else json.loads(data or b"{}")
 
     @property
@@ -353,10 +357,53 @@ class BeanstalkForge:
                 "GIT_CONFIG_VALUE_0": "", "GIT_CONFIG_KEY_1": "credential.helper", "GIT_CONFIG_VALUE_1": helper}
 
     def setup(self, base_dir: str) -> str:
-        """Seed an Artifacts repo with the arena base through a race run's seed token (the admin API has no other
-        way to put existing history into a repository), then open a repository engine on it with the arena's
-        suite and mint a git token for the orchestrator."""
+        """Open a repository engine on the arena base with the arena's suite and mint a git token for the
+        orchestrator. The base reaches the repository by import (default): it is pushed to a public GitHub repo
+        (``<gh_owner>/beanstalk-race-<arena>-base``) and the gateway's admin route imports it (``import_url``,
+        the repository side's "import a public git URL"). ``bs_seed=race-run`` instead seeds a race run's repo
+        through its seed token (only where race and repository repos share a namespace: the local stack)."""
         base = run_git(base_dir, "rev-parse", "HEAD").strip()
+        suite = suite_mod.gateway_suite(suite_mod.load_suite(self.cfg.arena))
+        settings = {**({"suite": suite} if suite else {}), "base_branch": "sprout"}
+        owner = {"id": f"u-{self.cfg.beanstalk_owner}", "handle": self.cfg.beanstalk_owner}
+        if self.cfg.extra.get("bs_seed", "import") == "import":
+            url = self.publish_base(base_dir, base)
+            opened = self.call("POST", "/v1/repos", {"repoName": self.repo, "artifactsRepo": f"repo-{self.repo}",
+                                                     "owner": owner, "settings": settings, "import_url": url})
+            self.adopt(opened)
+            if opened.get("base_sha") != base:
+                raise SystemExit(f"imported base {opened.get('base_sha')} is not the arena base {base}")
+            return base
+        return self.seed_through_race_run(base_dir, base, owner, settings)
+
+    def adopt(self, opened: dict) -> None:
+        self.engine, self.git_path = opened["engineId"], opened["git_path"]
+        self.token = self.call("POST", f"/v1/repos/{self.engine}/git-token",
+                               {"user": {"id": "u-orchestrator", "handle": "orchestrator"},
+                                "ttl_seconds": int(self.cfg.max_wall_minutes * 60 + 3600)})["token"]
+
+    def publish_base(self, base_dir: str, base: str) -> str:
+        """The arena base as a public GitHub repo the gateway can import (created by the harness if missing)."""
+        from .forge_github import REPO_MARKER
+        from .github import GhClient
+        owner = self.cfg.gh_owner or os.environ.get("BEANSTALK_GH_OWNER")
+        if not owner:
+            raise SystemExit("--forge beanstalk imports the base from GitHub: pass --gh-owner")
+        name = f"beanstalk-race-{os.path.basename(os.path.normpath(self.cfg.arena))}-base"
+        c = GhClient(owner, name)
+
+        async def ensure() -> None:
+            info = await c.repo_info()
+            if info is None:
+                await c.create_repo(f"{REPO_MARKER}: the arena base, imported by the Beanstalk arm")
+            elif not str(info.get("description") or "").startswith(REPO_MARKER):
+                raise SystemExit(f"{c.full} exists and was not created by the race harness")
+        asyncio.run(ensure())
+        subprocess.run(["git", "push", "-q", "-f", c.push_url, f"{base}:refs/heads/main"], cwd=base_dir, check=True,
+                       capture_output=True, env={**os.environ, **c.git_env()})
+        return f"https://github.com/{c.full}.git"
+
+    def seed_through_race_run(self, base_dir: str, base: str, owner: dict, settings: dict) -> str:
         tasks = load_tasks(os.path.join(self.work, "arena"), self.cfg.tasks)
         run = self.call("POST", "/v1/runs", {
             "policy": "beanstalk-v2", "agent": "replay", "agents": 1, "ci_slots": 1, "seed": self.cfg.seed,
@@ -372,15 +419,8 @@ class BeanstalkForge:
                "GIT_CONFIG_VALUE_0": f"Authorization: Bearer {seed['token']}"}
         refs = seed.get("refs") or ["refs/heads/sprout", "refs/heads/stalk"]   # the seed token's refs only
         run_git(base_dir, "push", "-q", "--no-verify", url, *[f"{base}:{r}" for r in refs], env=env)
-        suite = suite_mod.gateway_suite(suite_mod.load_suite(self.cfg.arena))
-        opened = self.call("POST", "/v1/repos", {
-            "repoName": self.repo, "artifactsRepo": artifacts_repo,
-            "owner": {"id": f"u-{self.cfg.beanstalk_owner}", "handle": self.cfg.beanstalk_owner},
-            "settings": {**({"suite": suite} if suite else {}), "base_branch": "sprout"}})
-        self.engine, self.git_path = opened["engineId"], opened["git_path"]
-        self.token = self.call("POST", f"/v1/repos/{self.engine}/git-token",
-                               {"user": {"id": "u-orchestrator", "handle": "orchestrator"},
-                                "ttl_seconds": int(self.cfg.max_wall_minutes * 60 + 3600)})["token"]
+        self.adopt(self.call("POST", "/v1/repos", {"repoName": self.repo, "artifactsRepo": artifacts_repo,
+                                                   "owner": owner, "settings": settings}))
         return base
 
     def beans(self) -> list[dict]:

@@ -1,0 +1,557 @@
+{
+  "label": "orchestrated race: arena=fastify, 10 tasks, forge=github, claude (sonnet) with 4 sonnet subagents",
+  "policy": "orchestrated-github",
+  "agent": "claude",
+  "model": "sonnet",
+  "forge": "github",
+  "repo": "https://github.com/kintohubtest/beanstalk-orch-fastify-7",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 4,
+    "tasks": 10,
+    "seed": 7,
+    "max_usd": 20.0,
+    "max_wall_minutes": 90.0,
+    "ci_slots": 2,
+    "batch": 4,
+    "worker_model": "sonnet"
+  },
+  "aborted": null,
+  "wall_seconds": 2146.32,
+  "settled_seconds": 2326.37,
+  "tasks": 10,
+  "tasks_green": 10,
+  "cost_usd": 2.8629,
+  "red_validations": 0,
+  "ci_minutes": {
+    "batch": 9.13,
+    "precheck": 10.02
+  },
+  "ci_minutes_total": 19.15,
+  "ci_runs": {
+    "batch": 10,
+    "precheck": 12
+  },
+  "integration": {
+    "changes": 10,
+    "integrated": 10,
+    "submitted_to_integrated_s": {
+      "n": 10,
+      "median": 245.5,
+      "p90": 800.8,
+      "max": 1474.0
+    },
+    "ready_to_integrated_s": {
+      "n": 10,
+      "median": 109.5,
+      "p90": 156.1,
+      "max": 184.0
+    },
+    "ready_to_stable_s": null,
+    "waiting_share_of_wall": 0.3323,
+    "mean_changes_waiting": 0.497,
+    "max_changes_waiting": 4,
+    "integrated_per_10min": [
+      4,
+      4,
+      1,
+      1
+    ],
+    "kickouts": 0,
+    "red_checks": 0,
+    "conflicts": 0,
+    "repushes": 0
+  },
+  "changes": [
+    {
+      "id": "#25",
+      "task": "t010",
+      "ready_at": 1791371087.0,
+      "integrated_at": 1791371199.0,
+      "stable_at": null,
+      "created_at": 1791371001.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t010",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#24",
+      "task": "t009",
+      "ready_at": 1791372321.0,
+      "integrated_at": 1791372438.0,
+      "stable_at": null,
+      "created_at": 1791370964.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t009",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#23",
+      "task": "t006",
+      "ready_at": 1791371538.0,
+      "integrated_at": 1791371644.0,
+      "stable_at": null,
+      "created_at": 1791370918.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t006",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#22",
+      "task": "t007",
+      "ready_at": 1791370797.0,
+      "integrated_at": 1791370875.0,
+      "stable_at": null,
+      "created_at": 1791370642.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t007",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#21",
+      "task": "t008",
+      "ready_at": 1791370835.0,
+      "integrated_at": 1791370925.0,
+      "stable_at": null,
+      "created_at": 1791370639.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t008",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#20",
+      "task": "t005",
+      "ready_at": 1791370681.0,
+      "integrated_at": 1791370790.0,
+      "stable_at": null,
+      "created_at": 1791370608.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t005",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#19",
+      "task": "t004",
+      "ready_at": 1791370263.0,
+      "integrated_at": 1791370447.0,
+      "stable_at": null,
+      "created_at": 1791370189.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t004",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#18",
+      "task": "t001",
+      "ready_at": 1791370294.0,
+      "integrated_at": 1791370447.0,
+      "stable_at": null,
+      "created_at": 1791370187.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t001",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#17",
+      "task": "t002",
+      "ready_at": 1791370246.0,
+      "integrated_at": 1791370356.0,
+      "stable_at": null,
+      "created_at": 1791370181.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t002",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#16",
+      "task": "t003",
+      "ready_at": 1791370259.0,
+      "integrated_at": 1791370356.0,
+      "stable_at": null,
+      "created_at": 1791370170.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t003",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    }
+  ],
+  "orchestrator": {
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 364,
+        "outputTokens": 80627,
+        "cacheReadInputTokens": 4098371,
+        "cacheCreationInputTokens": 491867,
+        "webSearchRequests": 0,
+        "costUSD": 2.862936700000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 12910,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "cost_usd": 2.8629,
+    "ok": true,
+    "subtype": "success",
+    "turns": 20,
+    "agent_calls": 10,
+    "max_agent_calls_in_one_message": 1,
+    "background_agent_calls": 10,
+    "commands": {
+      "node": 25,
+      "grep": 21,
+      "python3": 12,
+      "sed": 12,
+      "git push": 11,
+      "git worktree": 10,
+      "gh pr": 10,
+      "tail": 4,
+      "sleep": 4,
+      "git status": 3,
+      "git diff": 3,
+      "GIT_EDITOR=true": 3,
+      "shopt": 2,
+      "B=/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-a864b4868bcee161b/research/race/runs/orch-fastify-sonnet-4-t10b-github/work/orchestrator/BACKLOG.md": 2,
+      "npx": 2,
+      "git rebase": 2,
+      "W=/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-a864b4868bcee161b/research/race/runs/orch-fastify-sonnet-4-t10b-github/work/orchestrator;": 1,
+      "(err.statusCode": 1,
+      "/^```/{print": 1,
+      "cd": 1,
+      "npm": 1,
+      "ls": 1,
+      "normalized": 1,
+      "for": 1,
+      "contentType": 1
+    }
+  },
+  "greens": {
+    "t002": {
+      "sha": "d4ec7fae40f34de2e0678b9356620d785a63a926",
+      "seconds": 127.19
+    },
+    "t003": {
+      "sha": "492b9887a3c4193d6c20f0961f310a8d890eec1c",
+      "seconds": 140.19
+    },
+    "t004": {
+      "sha": "fecc08b8f31aef8db23942e27eb21f58bc1ae6ac",
+      "seconds": 144.19
+    },
+    "t001": {
+      "sha": "5bd062d22192f2116ec0d298ce8b7f82b495d48b",
+      "seconds": 175.19
+    },
+    "t005": {
+      "sha": "6a09b16f0ae18652a2040fd6345cf97bea15ff8c",
+      "seconds": 562.19
+    },
+    "t007": {
+      "sha": "d189ced25ffa599e07c01c7c59797b2ab1a2665c",
+      "seconds": 678.19
+    },
+    "t008": {
+      "sha": "8f832f7097f52c08eeebf6f747654fe52a11256c",
+      "seconds": 716.19
+    },
+    "t010": {
+      "sha": "ea600c4a93ddcb45fa7d39901cb254c90fb6e744",
+      "seconds": 968.19
+    },
+    "t006": {
+      "sha": "c08f412be801651be5921a55b0a9efa48e81a5a8",
+      "seconds": 1419.19
+    },
+    "t009": {
+      "sha": "ed36a50a3d6d99089e80bbfe630c35771e9584bb",
+      "seconds": 2202.19
+    }
+  },
+  "replay": [
+    {
+      "sha": "d4ec7fae40f34de2e0678b9356620d785a63a926",
+      "at": 1791370246.0,
+      "green": [
+        "t002"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "492b9887a3c4193d6c20f0961f310a8d890eec1c",
+      "at": 1791370259.0,
+      "green": [
+        "t003"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "fecc08b8f31aef8db23942e27eb21f58bc1ae6ac",
+      "at": 1791370263.0,
+      "green": [
+        "t004"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "5bd062d22192f2116ec0d298ce8b7f82b495d48b",
+      "at": 1791370294.0,
+      "green": [
+        "t001"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "6a09b16f0ae18652a2040fd6345cf97bea15ff8c",
+      "at": 1791370681.0,
+      "green": [
+        "t005"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-validation.pr6414.test.js"
+      ]
+    },
+    {
+      "sha": "d189ced25ffa599e07c01c7c59797b2ab1a2665c",
+      "at": 1791370797.0,
+      "green": [
+        "t007"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6515.test.js"
+      ]
+    },
+    {
+      "sha": "8f832f7097f52c08eeebf6f747654fe52a11256c",
+      "at": 1791370835.0,
+      "green": [
+        "t008"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js"
+      ]
+    },
+    {
+      "sha": "ea600c4a93ddcb45fa7d39901cb254c90fb6e744",
+      "at": 1791371087.0,
+      "green": [
+        "t010"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/router-options.pr5732.test.js"
+      ]
+    },
+    {
+      "sha": "c08f412be801651be5921a55b0a9efa48e81a5a8",
+      "at": 1791371538.0,
+      "green": [
+        "t006"
+      ],
+      "failing_files": [
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js"
+      ]
+    },
+    {
+      "sha": "ed36a50a3d6d99089e80bbfe630c35771e9584bb",
+      "at": 1791372321.0,
+      "green": [
+        "t009"
+      ],
+      "failing_files": []
+    }
+  ],
+  "final": {
+    "sha": "ed36a50a3d6d99089e80bbfe630c35771e9584bb",
+    "suite_green": true,
+    "suite_retried": false,
+    "suite_failed": [],
+    "tasks_accepted": 10,
+    "tasks_total": 10,
+    "failing_files": [],
+    "correct": true,
+    "per_task": {
+      "t001": true,
+      "t002": true,
+      "t003": true,
+      "t004": true,
+      "t005": true,
+      "t006": true,
+      "t007": true,
+      "t008": true,
+      "t009": true,
+      "t010": true
+    }
+  }
+}
