@@ -479,10 +479,43 @@ only the new file (`own-change`); a type-only module affects none; each file's n
 marks 56 of 63 `stale` (most maps were traced on trees that differ from T in a file every app test loads),
 so affected validation on this arena gains little until maps are traced on the validated line itself.
 
+### Evidence promotion on traced read sets (staging A/B, seeds 7/11/13)
+
+The engine's event-driven promotion (`packages/gateway/src/engine/v2/v2-evidence.ts`,
+`docs/claude-opus/11-experiments-summary.md`, "Event-driven promotion") only accepts read sets the runner marks
+complete. A traced check with `all_read_sets` now reports each passing test's observed read set (the file,
+every path read or probed, listed directories and loaded packages as `dir/` entries), `passing_files` and
+`failing_files` from the per-file runs, and `read_sets_complete: true` only when every file that ran was traced.
+Under `read_maps: preland` the gateway traces every check that asks for read sets.
+
+Replay races on a separate stack (`beanstalk-gateway-staging-rm`, standard-4 runners, Artifacts namespace
+`beanstalk-race-staging-rm`), `--preset demo`, 8 agents, 2 CI slots, `ci_seconds` 60, `--preland-seconds 30`,
+optimistic pre-land checks; the evidence arm adds `evidence_promotion`, `affected_validation`, `audit_every: 4`,
+`evidence_read_sets: complete` and `read_maps: preland` (`runner/ab_table.py`; runs `research/race/runs/rm-evp-*`):
+
+| Run | green | k10 | k20 | k25 | done (min) | window waits | validations (green/red) | CI runs / min | evidence promotions / affected / refusals / audits (red) | correct |
+|---|---|---|---|---|---|---|---|---|---|---|
+| demo s7 | 25 | 3.3 | 4.7 | 7.0 | 7.9 | 11 | 6 / 0 | 9 / 8.4 | - | True |
+| evidence s7 | 25 | 2.9 | 4.9 | 7.3 | 7.4 | 0 | 8 / 0 | 11 / 9.9 | 8 / 9 / 9 / 2 (0) | True |
+| demo s11 | 24 | 3.3 | 4.8 | - | 7.0 | 6 | 6 / 0 | 7 / 7.0 | - | True |
+| evidence s11 | 24 | 3.7 | 6.8 | - | 7.7 | 1 | 9 / 0 | 12 / 9.5 | 9 / 11 / 11 / 1 (0) | True |
+| demo s13 | 24 | 3.9 | 6.1 | - | 8.1 | 6 | 7 / 0 | 10 / 9.4 | - | True |
+| evidence s13 | 24 | 2.9 | 5.6 | - | 9.4 | 0 | 6 / 0 | 9 / 7.8 | 6 / 8 / 8 / 1 (0) | True |
+
+- **Evidence now works on staging:** 23 promotions in three races (the static import closures promoted none),
+  window waits 23 → 1, no audit red, every final green correct. Every refusal was `affected`: the commit ran an
+  affected validation instead.
+- **It does not yet pay on this arena:** k20 and done are mixed (done 7.4/7.7/9.4 vs 7.9/7.0/8.1 min) and CI minutes
+  rise slightly (9.1 vs 8.3 mean), because nearly every shop test loads the whole app through `createTestApp()`,
+  so affected validations run most of the suite, and the audits add full runs (the spot-check above found the
+  same: 74% of tests selected).
+- **Tracing cost in these runs** (standard-4): pre-land suite median 3.7 s traced vs 2.3 s untraced (1.6x, p90 7.8
+  vs 4.5 s); CI suite median 3.9 vs 3.0 s.
+
 ### What remains
 
-- The engine side (`evidence_promotion`, `affected_validation`) is not wired here; it calls
-  `EngineEnv.readMaps` (gateway README).
+- The engine's evidence rule uses the per-check read sets (above); `EngineEnv.readMaps` (the stored maps across
+  trees) is there for rules that need maps from other checks (gateway README).
 - Paths outside the repo and outside dependency packages are dropped, so a test that reads a file the
   bean cannot change is unaffected by it, which is correct; environment variables are keyed only through
   the `environment` string (node version and runner image).
