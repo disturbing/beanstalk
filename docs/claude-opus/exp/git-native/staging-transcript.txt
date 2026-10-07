@@ -1,13 +1,13 @@
 # staging: https://beanstalk-gateway-staging.devaccounts-1password.workers.dev (real Artifacts, real runner containers)
-# 2026-10-07 15:16:33 +08, engine rebe2ca3f5602d313a5c, clone URL https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git
+# 2026-10-07 15:22:34 +08, engine r7a762705559a18460de, clone URL https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
 
 # clone with git's credential helper (the token is never in the URL or the output)
 
-$ git -c credential.helper= -c credential.helper=<token helper> clone https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git repo 
+$ git -c credential.helper= -c credential.helper=<token helper> clone https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git repo 
 Cloning into 'repo'...
 
 $ git fetch origin sprout stalk 
-From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f
  * branch            sprout     -> FETCH_HEAD
  * branch            stalk      -> FETCH_HEAD
 
@@ -19,16 +19,180 @@ branch 'base' set up to track 'origin/sprout'.
 
 $ git push -o wait origin HEAD:refs/heads/bean/add-total 
 remote: Processing objects: 100% (6/6)        
-remote: beanstalk: new bean add-total received at 39875d3: "Add a total helper"        
+remote: beanstalk: new bean add-total received at 87fca8c: "Add a total helper"        
 remote: beanstalk:   for task DEMO-1        
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
-remote: beanstalk: DROPPED: add-total: infrastructure failure: squash failed: runner_version_mismatch: runner instance run-rebe2ca3f5602d313a5c-committer speaks runner API 4, this gateway speaks 3 (image commit b086fa1251da89586753a3ded4840acb54fbdc13); deploy the gateway and the runner image from the same commit        
-remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/rebe2ca3f5602d313a5c?bean=add-total        
+remote: beanstalk: pre-land check green on the merged tree (5.1 s)        
+remote: beanstalk: LANDED: add-total passed its pre-land check and is on the sprout as 182d6c1        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/r7a762705559a18460de?bean=add-total        
+remote: beanstalk: validated: on the stalk at 182d6c1        
 remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-total/status        
-To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
  * [new branch]      HEAD -> bean/add-total
 
-# expected "LANDED: add-total"; stopping
+# two agents start from the same sprout
 
-# demo exit 1 after 12 s
+$ git fetch origin sprout 
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f
+ * branch            sprout     -> FETCH_HEAD
+   7605365..182d6c1  sprout     -> origin/sprout
+
+# agent A, bean 2: discounts, built on total()
+
+$ git push -o wait origin HEAD:refs/heads/bean/add-discount 
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean add-discount received at fee9a0d: "Add percentage discounts"        
+remote: beanstalk:   for task DEMO-2        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (2.0 s)        
+remote: beanstalk: LANDED: add-discount passed its pre-land check and is on the sprout as 79d2a0c        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/r7a762705559a18460de?bean=add-discount        
+remote: beanstalk: validated: on the stalk at 79d2a0c        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-discount/status        
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
+ * [new branch]      HEAD -> bean/add-discount
+
+# agent B, bean 3 (written in parallel, from the old sprout): tax inside total()
+
+$ git push -o wait origin HEAD:refs/heads/bean/tax-in-total 
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean tax-in-total received at 47ac914: "Charge 10% tax in totals"        
+remote: beanstalk:   for task DEMO-3        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check red (1 failing, 2.2 s)        
+remote: beanstalk: RED: tax-in-total was not landed. Merged onto the sprout, these tests failed:        
+remote: beanstalk:   - test/discount.test.js > a 10% discount on 100 is 90        
+remote: beanstalk: it collided with these landed beans (accepted behaviour; keep both):        
+remote: beanstalk:   - add-discount "Add percentage discounts"        
+remote: beanstalk:     intent: Add percentage discounts discounted(items, rate) takes rate off the cart total.        
+remote: beanstalk: output:        
+remote: beanstalk:   test at test/discount.test.js:4:1        
+remote: beanstalk:   ✖ a 10% discount on 100 is 90 (3.024691ms)        
+remote: beanstalk:     AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:        
+remote: beanstalk:     + actual - expected        
+remote: beanstalk:     + 99.00000000000001        
+remote: beanstalk:     - 90        
+remote: beanstalk:       generatedMessage: true,        
+remote: beanstalk:       code: 'ERR_ASSERTION',        
+remote: beanstalk:       actual: 99.00000000000001,        
+remote: beanstalk:       expected: 90,        
+remote: beanstalk:       operator: 'strictEqual',        
+remote: beanstalk:       diff: 'simple'        
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout        
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total        
+remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/r7a762705559a18460de?bean=tax-in-total        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
+ * [new branch]      HEAD -> bean/tax-in-total
+
+# landing is never a push: the sprout refuses it
+
+$ git push --force origin HEAD:refs/heads/sprout 
+remote: beanstalk: push refused: refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green        
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
+ ! [remote rejected] HEAD -> sprout (refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green)
+error: failed to push some refs to 'https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git'
+
+# the verdict is also a ref anyone can fetch
+
+$ git fetch origin +refs/beans/*:refs/beans/* 
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f
+ * [new ref]         refs/beans/add-discount/status -> refs/beans/add-discount/status
+ * [new ref]         refs/beans/add-total/status -> refs/beans/add-total/status
+ * [new ref]         refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status
+
+$ git cat-file -p refs/beans/tax-in-total/status 
+object 47ac9148c0da6d33e59d45fb1cbb91db1852d3e4
+type commit
+tag beans/tax-in-total/status
+tagger beanstalk <engine@beanstalk.invalid> 1791357803 +0000
+
+red: 1 failing test(s) on the merged tree
+
+bean: tax-in-total
+title: Charge 10% tax in totals
+head: 47ac9148c0da6d33e59d45fb1cbb91db1852d3e4
+push: 1
+task: DEMO-3
+
+RED: tax-in-total was not landed. Merged onto the sprout, these tests failed:
+  - test/discount.test.js > a 10% discount on 100 is 90
+it collided with these landed beans (accepted behaviour; keep both):
+  - add-discount "Add percentage discounts"
+    intent: Add percentage discounts discounted(items, rate) takes rate off the cart total.
+output:
+  test at test/discount.test.js:4:1
+  ✖ a 10% discount on 100 is 90 (3.024691ms)
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    + actual - expected
+    + 99.00000000000001
+    - 90
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: 99.00000000000001,
+      expected: 90,
+      operator: 'strictEqual',
+      diff: 'simple'
+fix: git fetch origin sprout && git rebase origin/sprout
+     then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total
+  web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/r7a762705559a18460de?bean=tax-in-total
+
+# agent B fixes as told: rebase onto the sprout, keep both intents (tax as its own function)
+
+$ git fetch origin sprout 
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f
+ * branch            sprout     -> FETCH_HEAD
+   182d6c1..79d2a0c  sprout     -> origin/sprout
+
+$ git rebase origin/sprout 
+Rebasing (1/1)Successfully rebased and updated refs/heads/tax.
+
+$ git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total 
+remote: Processing objects: 100% (12/12)        
+remote: beanstalk: bean tax-in-total received at 059b7fa: "Charge 10% tax in totals"        
+remote: beanstalk:   for task DEMO-3        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (2.1 s)        
+remote: beanstalk: LANDED: tax-in-total passed its pre-land check and is on the sprout as e603892        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/r7a762705559a18460de?bean=tax-in-total        
+remote: beanstalk: validated: on the stalk at e603892        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f.git
+ + 47ac914...059b7fa HEAD -> bean/tax-in-total (forced update)
+
+# the stalk follows once CI validates the sprout
+
+$ git fetch origin sprout stalk +refs/beans/*:refs/beans/* 
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-dc7f8f
+ * branch            sprout     -> FETCH_HEAD
+ * branch            stalk      -> FETCH_HEAD
+ + 47ac914...3fee7f1 refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status  (forced update)
+   79d2a0c..e603892  sprout     -> origin/sprout
+   7605365..e603892  stalk      -> origin/stalk
+
+$ git log --oneline -5 origin/sprout 
+e603892 Charge 10% tax in totals
+79d2a0c Add percentage discounts
+182d6c1 Add a total helper
+7605365 Start the repository
+
+$ git cat-file -p refs/beans/tax-in-total/status 
+object 059b7fa99973be374311416a40e354c9ce13e341
+type commit
+tag beans/tax-in-total/status
+tagger beanstalk <engine@beanstalk.invalid> 1791357824 +0000
+
+green: validated; on the stalk at e603892
+
+bean: tax-in-total
+title: Charge 10% tax in totals
+head: 059b7fa99973be374311416a40e354c9ce13e341
+push: 2
+task: DEMO-3
+landed: e603892dd6bf2c2d51acd4f4ff974d82cdfcedab
+
+# demo exit 0 after 73 s
 # engine closed and repo deleted: {"closed": true}
