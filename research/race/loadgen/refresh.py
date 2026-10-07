@@ -99,6 +99,8 @@ def main() -> None:
                 with open(ev_path, encoding="utf-8") as fh:
                     events = [json.loads(line) for line in fh if line.strip()]
                 s["forge_detail"].update(engine_ci(events))
+                from loadgen.forges import apply_settings
+                apply_settings(s["forge_detail"])
                 s["ci_minutes"] = s["forge_detail"]["ci_minutes"]
                 s["red_validations"] = s["forge_detail"]["red_validations"]
         if s["forge"] == "github" and "concurrency" not in s["forge_detail"]:

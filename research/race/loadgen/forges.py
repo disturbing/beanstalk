@@ -385,6 +385,7 @@ class BeanstalkForge(Forge):
         self.base = ""
         self.engine_events: list[dict] = []
         self.stats = {"pushes": 0, "refused": 0, "timeouts": 0, "verdicts": {}}
+        self.capacity: dict | None = None
 
     def bean(self, tid: str) -> str:
         return tid
@@ -404,6 +405,11 @@ class BeanstalkForge(Forge):
                 break
             await asyncio.sleep(2.0)
         self.base = await self.lines.get(force=True)
+        try:  # the runner pool's limits (gateways from 9709edee on), recorded beside the engine's own settings
+            cap = await self.client.call("GET", "/v1/admin/capacity")
+            self.capacity = {"limits": cap.get("limits")} if isinstance(cap, dict) else None
+        except Exception:  # noqa: BLE001 - older gateways have no such route
+            self.capacity = None
         self.poller = asyncio.ensure_future(self._poll_beans())
         return self.base
 
@@ -515,8 +521,12 @@ class BeanstalkForge(Forge):
                 await self.client.close(True)
             except Exception as e:  # noqa: BLE001
                 self.log("bs.error", where="close", error=str(e)[:300])
-        return {"engine": self.client.engine, **engine_ci(self.engine_events), **self.stats,
-                "git_calls": dict(getattr(self.client, "calls", {}))}
+        out = {"engine": self.client.engine, **engine_ci(self.engine_events), **self.stats,
+               "git_calls": dict(getattr(self.client, "calls", {})),
+               "engine_settings": dict(getattr(self.client, "engine_settings", {}) or {}),
+               "gateway_capacity": self.capacity}
+        apply_settings(out)
+        return out
 
 
 def max_overlap(intervals: list[tuple[float, float]]) -> int:
@@ -529,10 +539,26 @@ def max_overlap(intervals: list[tuple[float, float]]) -> int:
     return best
 
 
-# A continuous engine's pre-land checks run on a pool of this many shared sandboxes (one standard-4 container
-# each; slot i uses sandbox i % 2), whatever the number of beans checking at once: packages/gateway
-# src/run/run-names.ts SHARED_SANDBOXES at the gateway versions measured (live before and at 48ed740e, staging-lg).
+# Before the capacity fix (live up to 48ed740e, staging-lg) a continuous engine's pre-land checks ran on a pool of
+# 2 shared sandboxes (one standard-4 container each; slot i used sandbox i % 2), whatever the number of beans
+# checking at once (packages/gateway src/run/run-names.ts SHARED_SANDBOXES). From 9709edee on, each checking bean
+# gets its own sandbox on demand, up to settings.engine.preland_sandboxes (default 32): ``apply_settings``.
 PRELAND_SANDBOXES = 2
+
+
+def apply_settings(detail: dict) -> None:
+    """Record the engine's pre-land sandbox cap and CI slots from the settings the run opened it with."""
+    s = detail.get("engine_settings") or {}
+    cap = detail.get("preland_capacity")
+    if cap is None:
+        return
+    if "preland_sandboxes" in s:
+        cap["sandboxes"] = s["preland_sandboxes"]
+        cap["model"] = "on demand, one per checking bean, up to the cap"
+    else:
+        cap.setdefault("model", "2 shared sandboxes (pre-fix gateways)")
+    if "ci_slots" in s:
+        cap["ci_slots"] = s["ci_slots"]
 
 
 def engine_ci(events: list[dict]) -> dict:

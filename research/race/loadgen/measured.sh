@@ -14,7 +14,7 @@ for SEED in $SEEDS; do
     while pgrep -f "$HOST|orchestrated" >/dev/null; do sleep 30; done
     echo "== $(date -u +%H:%M:%S) N=$N seed=$SEED"
     python3 -m loadgen.run --forge both --workers "$N" --seed "$SEED" --gateway "$GW" --dev-vars "$DEV_VARS" \
-      --label "measured${GW_VERSION:+ gateway $GW_VERSION}" --out "$OUT"
+      --label "measured${GW_VERSION:+ gateway $GW_VERSION}" --out "$OUT" ${EXTRA:-}
     # stop when GitHub rate limits bit (recorded in the run); the caller decides
     if grep -q '"gh.rate_limited"' "$OUT-github/events.jsonl" 2>/dev/null; then
       echo "GitHub rate limits hit in $OUT-github; stopping"; exit 4
