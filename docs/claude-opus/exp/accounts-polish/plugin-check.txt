@@ -1,0 +1,10 @@
+== Claude Code (public marketplace disturbing/beanstalk, installed earlier in an isolated config)
+plugin:beanstalk:beanstalk: https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp (HTTP) - ! Needs authentication
+authorize host: beanstalk-mcp.devaccounts-1password.workers.dev
+authorize → 302 https://beanstalk-web.devaccounts-1password.workers.dev/connect?request=…
+== Codex (this branch's marketplace, from the worktree: the fixed .mcp.json)
+Added marketplace `beanstalk` from /Users/coop/Workspace/beanstalk/.claude/worktrees/agent-a9d729668b05c20e6.
+Added plugin `beanstalk` from marketplace `beanstalk`.
+beanstalk https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp - enabled Not logged in
+authorize host: beanstalk-mcp.devaccounts-1password.workers.dev
+authorize → 302 https://beanstalk-web.devaccounts-1password.workers.dev/connect?request=…

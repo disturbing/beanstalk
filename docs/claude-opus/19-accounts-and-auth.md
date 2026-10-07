@@ -4,7 +4,7 @@ Built 2026-10-07 on branch `auth-accounts` (from `prototype` at `fed4f54`). This
 
 **Owner decisions applied:** 100% Cloudflare; vinext web; OAuth on MCP; passkeys are the primary sign-up path (Coop, 2026-10-07); email magic links are built and tested but switched off and hidden until a sender domain is configured.
 
-**Open for Coop:** the sender domain for sign-in mail (§6). That is the only thing blocking email sign-in.
+**Open for Coop:** the sender domain for sign-in mail (§6). That is the only thing blocking email sign-in. Since §10 (Phase 1 polish): the Turnstile widget for live, the plugin's home (which GitHub organisation), and merging this branch so the public marketplace serves the fixed `.mcp.json` (§10.5).
 
 ## 1. What works on staging
 
@@ -100,6 +100,7 @@ All in `packages/shared-identity/src/` (import `@beanstalk/shared-identity/<modu
 - **Sessions:** 32 random bytes in `__Host-bs_session` (HttpOnly, Secure, SameSite=Lax, Path=/), SHA-256 in D1, 30 days sliding (one write a day), sign out and sign out everywhere.
 - **CSRF:** every state-changing endpoint checks `Origin` (or `Sec-Fetch-Site: same-origin` when the origin is withheld); signed-in forms also carry a session-bound token (hash of the session secret); passkey endpoints require `application/json`.
 - **Rate limits:** Workers Rate Limiting binding `SIGNIN_RATE_LIMIT`, 10 per minute per IP and per handle or email (keys hashed).
+- **Turnstile** (§10.1): the start of a passkey sign-up or sign-in (the `options` step) and the email forms carry a Turnstile token; the server redeems it at Siteverify and requires `success`, the surface's action (`signup` or `signin`) and this deployment's hostname, after the rate limit. Off until `TURNSTILE_SITE_KEY` is set; a site key without `TURNSTILE_SECRET_KEY` fails closed.
 - **Constant-time compares** for token and CSRF checks; every secret stored only as SHA-256; tokens never logged (logs carry ids and reasons only).
 - **Audit events** in D1: `user.signup`, `session.signin`/`signout`/`signout_all`, `passkey.add`/`remove`, `magic_link.request`, `token.create`/`revoke`, `session_token.mint`, `oauth.grant`/`deny`/`revoke`.
 - Account pages send `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `Referrer-Policy: same-origin` and `no-store`. (`no-referrer` made Chrome send `Origin: null` on form posts, which the origin check refused; caught on staging.)
@@ -118,7 +119,7 @@ All in `packages/shared-identity/src/` (import `@beanstalk/shared-identity/<modu
 
 - **Gateway staging not redeployed.** The staging gateway hosts other agents' live races (its RunDOs would pick up this branch's code mid-race, and its container image would rebuild). `verifyGitCredential` and `/v1/whoami` are covered by Miniflare tests (5) instead. Deploying it needs only the `IDENTITY_DB` binding added to the staging template.
 - `beanstalk-web-staging` was redeployed from this branch (previous version `17a5b302`, deployed by another agent at 06:56Z; `wrangler rollback` restores it).
-- Not in this change: Turnstile on sign-in (rate limits only), the six-digit email code, orgs/teams, a separate identity Worker, the plugin's `.mcp.json` switch to OAuth (1.4), and repository-scoped authorization (Phase 2).
+- Not in this change: the six-digit email code, orgs/teams, a separate identity Worker. Since done: Turnstile, the plugin's OAuth `.mcp.json`, Home and product events (§10); repository-scoped authorization (`20`, `22`).
 
 ## 8. Tests
 
@@ -206,3 +207,65 @@ remote:   3. CI and scripts: a deploy token in BEANSTALK_TOKEN (the repository p
 - With 1Password's agent, listing keys needs 1Password unlocked; signing (once SSH is live) will ask 1Password to approve per its settings.
 - Windows: `beanstalk-setup.ps1` is tested in PowerShell 7 on Linux only.
 - Generated keys have no passphrase (said in the output, with the command to add one).
+
+## 10. Phase 1 polish: Turnstile, the plugin line, Home, product events
+
+Built 2026-10-07 on a worktree branch from `prototype` at `b58cf65`: backlog `16` items 1.4, 1.6, 1.7 and the Turnstile half of 1.2. Email magic links are unchanged (off until the sender domain, §6).
+
+### 10.1 Turnstile on sign-in and sign-up
+
+- **Where:** `/signup` and `/login` render a managed widget (explicit rendering, `components/account/turnstile.tsx`, one widget id per form, reset after every try because a token is redeemed once). The passkey `options` step sends the token as `turnstile`; the email forms send Turnstile's own `cf-turnstile-response` field. Adding a passkey (signed in) and the `verify` step (bound to the options step's challenge) take none.
+- **Server:** `@beanstalk/shared-identity/turnstile` (`verifyTurnstile`): POST to Siteverify with the secret, the token and the client IP, a 10 s timeout; `success`, `action` equal to the surface's, and `hostname` in the allowlist (`TURNSTILE_HOSTNAMES`, default the request's own host) are all required; a network error, a non-2xx or an answer that does not parse fails closed (503 "the human check is not answering"); anything else refused is a 403 with "Complete the check above, then try again." It runs after the existing rate limit, so a flood is limited before it costs Siteverify calls.
+- **Config:** `TURNSTILE_SITE_KEY` (var, public), `TURNSTILE_SECRET_KEY` (Wrangler secret, read only in `web/src/auth/turnstile.ts`), `TURNSTILE_HOSTNAMES`, `TURNSTILE_TEST_KEYS`. Cloudflare's test keys answer without an action and with `hostname: example.com` (and `metadata.result_with_testing_key`), so their results are accepted only with `TURNSTILE_TEST_KEYS=allow` (staging) and refused everywhere else: a test secret left on live cannot open sign-in.
+- **Live today:** off (empty site key), so nothing changes on live until Coop creates the widget (§10.5).
+
+### 10.2 The agent line (1.4)
+
+- **`/signup/agent`** (web) prints one block per harness: Claude Code, Codex, Cursor, Gemini CLI, any MCP client, each with Copy. On the hosted deployment (its `MCP_URL` equals the plugin's) Claude Code and Codex get the plugin line; any other deployment gets `mcp add` lines for its own address (the plugin would connect to the hosted server). Signed out it is the sign-up page; signed in it says "Connect another agent". Commands live in `web/src/setup/agent-installs.ts`; the marketing site's picker (`site/public/site.js`) carries the same text.
+
+```bash
+claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk
+codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@beanstalk && codex mcp login beanstalk
+```
+
+- **`.mcp.json` fix:** the plugin's URL was `${BEANSTALK_MCP_URL:-https://…/mcp}`. Claude Code expands that; **Codex 0.160 does not** (`codex mcp login beanstalk` failed with "invalid MCP server URL `${BEANSTALK_MCP_URL:-…}`", reproduced against the public marketplace). The URL is now literal, with no auth header; `web/src/setup/agent-installs.test.ts` reads the file and keeps it equal to the web's constant. Another deployment adds its own server (`claude mcp add --transport http beanstalk <url>`).
+- **Cursor and Gemini CLI** lines follow those clients' documented MCP OAuth (`cursor-agent mcp login`, Gemini's `/mcp auth`); they were not run here and are marked so on the page and the site ("untested").
+- **Marketplace:** today the marketplace is this repository (`disturbing/beanstalk`, public, default branch `prototype`, `.claude-plugin/marketplace.json` → `packages/claude-plugin`); both CLIs install from it. Moving it to its own organisation is Coop's call (§10.5).
+
+### 10.3 Home (1.6)
+
+- **First steps:** "Get started" lists connect an agent session, create or import a repository, push a first bean, each ticked from facts Home already has (sessions, repositories, a repository whose engine grew a bean); the panel goes once all three are done (`web/src/home/first-steps.ts`). New accounts land on Home after sign-up (it was Settings).
+- **The demo repository** (`demo/beanstalk-shop`, the recorded v2.5 run) is a row in "Your repositories" for everyone, with a `demo` pill.
+- **Your sessions within 5 s:** connected agents come from the MCP Worker's grant list, which is a KV list and can lag a new grant by up to a minute. `withSettlingSessions` (`shared-identity/agent-sessions.ts`) adds approvals from the last two minutes from the `oauth.grant` audit rows in D1 (read-your-writes) that the list does not show yet and no later `oauth.revoke` undid; they show as "connecting" (Settings shows them without Disconnect until the grant id is known). Home's panel asks `GET /api/sessions` every 3 s until a session is connected and settled, then every 30 s, only while the page is visible. Measured on staging: the Claude Code session appeared on an open Home **3.5–3.6 s** after Allow, without a reload.
+
+### 10.4 Observability and product events (1.7)
+
+- **Logs:** people and sessions are logged as `user_id` / `session_id` = `h_` + 16 hex of SHA-256 (`logIdentity`, `hashedId` in `shared-identity/product-events.ts`): web sign-up and sign-in, consent decisions, repository created; every OAuth request in the MCP Worker (`mcp session request`, session = the OAuth client); a bean pushed in the gateway (session = the credential).
+- **Analytics Engine** dataset `product_events` (binding `PRODUCT_EVENTS` in web and gateway), one point per event: `index1` and `blob2` the hashed user, `blob1` the event, `blob3` a short detail, `double1` 1. Events: `signup` (detail `passkey`), `connect` (the client's name, e.g. "Claude Code"), `repo_create` (`template`, `empty` or `import`), `bean_push` (the credential kind). "First repository" and "first bean" are the distinct people per event. A missing binding records nothing; a failing write never fails the request.
+- **Admin read:** `CLOUDFLARE_ACCOUNT_ID=… CLOUDFLARE_API_TOKEN=… pnpm product-events [--days 30] [--dataset product_events]` (`scripts/product-events.mjs`; the token needs Account Analytics Read). The SQL:
+
+```sql
+SELECT blob1 AS event, SUM(_sample_interval) AS events, COUNT(DISTINCT blob2) AS people
+FROM product_events WHERE timestamp > NOW() - INTERVAL '30' DAY GROUP BY event
+```
+
+### 10.5 What Coop decides or does
+
+1. **Turnstile on live:** create a managed widget for `beanstalk-web.devaccounts-1password.workers.dev` (and later the product domain) in the dashboard or with `wrangler turnstile widget create`, put its site key in `packages/web/wrangler.jsonc` `TURNSTILE_SITE_KEY`, and `wrangler secret put TURNSTILE_SECRET_KEY` on `beanstalk-web` (from the widget, never in the repo). Leave `TURNSTILE_TEST_KEYS` empty on live. Deploying web with a site key but no secret refuses every sign-in (fails closed).
+2. **The plugin's home:** keep `disturbing/beanstalk` (works today) or create an organisation repository (the backlog's `beanstalkdev/beanstalk-plugin`). For a separate repository: copy `packages/claude-plugin` to the new repository's root as `plugins/beanstalk/` (or its root) with a `.claude-plugin/marketplace.json` whose `plugins[0].source` points at it (`name: beanstalk` for both marketplace and plugin keeps every command unchanged); then change `PLUGIN_MARKETPLACE` in `web/src/setup/agent-installs.ts` and `PLUGIN_REPO` in `site/public/site.js`. No repository was created here.
+3. **Merge and push this branch** to `prototype` (the public default branch): until then the public marketplace still serves the `${BEANSTALK_MCP_URL:-…}` URL, so the Codex line fails at `codex mcp login` (Claude Code's works already).
+4. **Deploy live** web (vars and the `PRODUCT_EVENTS` binding), gateway (`PRODUCT_EVENTS`) and MCP (log fields). No D1 migration is needed.
+
+### 10.6 Verified
+
+- **Tests:** `shared-identity/test/turnstile.test.ts` (setup off/misconfigured/on, success with secret and IP sent, missing and oversized tokens never sent, refused, wrong action, wrong host, test keys only when allowed, Siteverify down/throwing/nonsense fails closed), `test/product-events.test.ts` (hashed points, no raw id, no binding, failing binding, log fields; settling sessions shown until the list has them, dropped after revoke or after two minutes, never another person's) with real D1; web `src/home/first-steps.test.ts`, `src/setup/agent-installs.test.ts` (the plugin's `.mcp.json` is literal, no header, equal to the web's constant; per-deployment lines). `pnpm check` exits 0.
+- **Staging** (`beanstalk-{web,mcp,gateway}-staging-acct`, D1 `beanstalk-identity-staging-acct` and `beanstalk-forge-staging-acct`, KV `beanstalk-oauth-staging-acct`, Artifacts `beanstalk-race-staging-acct` / `beanstalk-repos-staging-acct`, dataset `product_events_staging_acct`, Turnstile test keys), headless Chromium with a CDP virtual authenticator, real Claude Code 2.1.292 and Codex 0.160.1 in isolated config directories (pseudo-terminals): **22 of 22** (`exp/accounts-polish/e2e-results.json`): sign-up options without a token 403, with a token 200, sign-in options without a token 403; `/signup/agent` lines for the deployment; sign-up through the widget and a passkey lands on Home; 0 of 3 with the demo row and no sessions; `claude mcp login` → consent → Allow → **the session on the open Home in 3.6 s**, `claude mcp list` ✔ Connected; `codex mcp login` → Allow → exit 0, OAuth; a scripted DCR + PKCE client with `write`: `whoami` names the person, `git_credential` mints a `bss_` token; New repository → 2 of 3; clone and `git push -o wait` of `bean/readme-line` validated on the stalk → the checklist is gone; no sideways scroll at 390 px on Home, `/signup/agent`, Settings. Then with the always-fail test secret: sign-in refused (403) with the message (`12-login-turnstile-refused-day.png`). `pnpm product-events` on the staging dataset counted the walk-throughs, and `wrangler tail` showed hashed `user_id`/`session_id` on an OAuth request (`exp/accounts-polish/evidence.txt`).
+- **The verbatim lines against live, up to the browser only** (`exp/accounts-polish/plugin-check.txt`): Claude Code installed the plugin from the public marketplace and `claude mcp login plugin:beanstalk:beanstalk` printed an authorization URL that redirects (302) to the live web's `/connect`; Codex with this branch's marketplace (local path) installed the plugin and `codex mcp login beanstalk` did the same. No account was created and nothing approved on live.
+- Screenshots: `exp/accounts-polish/01-…12-*.png` (night, day, phone).
+
+### 10.7 Rough edges
+
+- On a deployment with **no runs** (a fresh stack), every OAuth `/mcp` request answers 404 "no run to read yet", `whoami` included, because a session reads one run until repositories reach MCP (`mcp/src/oauth/oauth-mcp.ts`, `sessionRun`). Staging set `DEMO_RUN`; live has runs. The MCP write-verbs lane owns that file.
+- Settling sessions are matched to listed grants by client and a 30 s window; two approvals of the same client within 30 s show as one until the list catches up.
+- The Turnstile test widget says "For testing only" on staging, as Cloudflare draws it.
+

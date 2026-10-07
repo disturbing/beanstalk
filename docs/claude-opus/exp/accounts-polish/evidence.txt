@@ -1,0 +1,16 @@
+Accounts polish (doc 19 §10), staging stack beanstalk-{web,mcp,gateway}-staging-acct, 2026-10-07.
+
+Turnstile, Siteverify refusing (web secret switched to Cloudflare's always-fail test secret):
+PASS sign-in refused when Siteverify fails (403), message shown, widget reset   (12-login-turnstile-refused-day.png)
+
+Admin read (pnpm product-events --dataset product_events_staging_acct --days 1), after two
+full walk-throughs and one that stopped after sign-up:
+product_events_staging_acct, last 1 days (events are sample-weighted)
+event        events  people
+signup            3       3
+connect           6       2
+repo_create       2       2
+bean_push         2       2
+
+A structured log line from beanstalk-mcp-staging-acct (wrangler tail) for an OAuth request:
+{"level":"info","msg":"mcp session request","worker":"beanstalk-mcp","user_id":"h_c4a7671771651b06","session_id":"h_26e0450e4e77f876","via":"oauth"}
