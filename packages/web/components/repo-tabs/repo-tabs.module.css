@@ -1,0 +1,768 @@
+/* A person's repository: Code, Changes and History (docs/claude-opus/20 §6). Nightshift
+   tokens from globals; the stalk's marks carry state: a green leaf is on the stalk, a lime
+   leaf on the sprout waiting for validation, a violet bean is open, a red leaf went red. */
+
+.page {
+  --leaf: var(--good-fill);
+  --sprout-leaf: var(--sprout);
+  --bean: var(--human-fill);
+  --red: var(--bad-fill);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px 24px 64px;
+}
+
+.single {
+  max-width: 100%;
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+/* ---------- Glyphs ---------- */
+.glyph {
+  flex: none;
+  display: inline-block;
+  vertical-align: -2px;
+}
+.glyph[data-kind='stalk'] {
+  color: var(--leaf);
+  filter: drop-shadow(0 0 3px var(--glow));
+}
+.glyph[data-kind='sprout'] {
+  color: var(--sprout-leaf);
+}
+.glyph[data-kind='bean'] {
+  color: var(--bean);
+}
+.glyph[data-kind='red'] {
+  color: var(--red);
+}
+.glyph[data-kind='parked'] {
+  color: var(--ink-3);
+}
+.glyph[data-kind='seed'] {
+  color: var(--ink-3);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .glyph[data-live] {
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+}
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- The bar above the files: ref, path ---------- */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.refs {
+  position: relative;
+}
+.refs > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  font: 500 13px var(--font-mono);
+  cursor: pointer;
+}
+.refs > summary::-webkit-details-marker {
+  display: none;
+}
+.refs > summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--ink-3);
+  border-bottom: 1.5px solid var(--ink-3);
+  transform: translateY(-2px) rotate(45deg);
+}
+.refs > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.refMenu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(340px, calc(100vw - 32px));
+  max-height: 60vh;
+  overflow: auto;
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 6px 0;
+}
+.refMenu h3 {
+  font: 600 12px var(--font-sans);
+  color: var(--ink-3);
+  padding: 8px 14px 4px;
+}
+.refMenu a {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 14px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: var(--step--1);
+}
+.refMenu a:hover,
+.refMenu a:focus-visible {
+  background: var(--wash);
+}
+.refMenu a[aria-current='true'] {
+  background: var(--good-wash);
+}
+.refName {
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.refNote {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font: 14px var(--font-mono);
+  min-width: 0;
+}
+.crumbs a {
+  color: var(--good);
+}
+.crumbs span {
+  color: var(--ink-3);
+}
+.crumbs strong {
+  font-weight: 600;
+}
+
+/* ---------- File list ---------- */
+.box {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.boxHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--sheet-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--step--1);
+  min-width: 0;
+}
+.boxHead a {
+  color: var(--ink);
+}
+.headTitle {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.headMeta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.headMeta a {
+  color: var(--ink-2);
+}
+.files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.files li + li {
+  border-top: 1px solid var(--rule);
+}
+.files a {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 16px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: var(--step--1);
+}
+.files a:hover {
+  background: var(--wash);
+}
+.files a:hover .fileName {
+  color: var(--good);
+  text-decoration: underline;
+}
+.files a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.fileName {
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.icon {
+  color: var(--ink-3);
+}
+.icon[data-dir] {
+  color: var(--good);
+}
+.size {
+  color: var(--ink-3);
+  font: 12px var(--font-mono);
+}
+
+/* ---------- README ---------- */
+.readme {
+  margin-top: 20px;
+}
+.prose {
+  padding: 8px 28px 24px;
+  font-size: var(--step-0);
+  line-height: 1.6;
+  max-width: 78ch;
+}
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin: 22px 0 8px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.prose h1 {
+  font-size: var(--step-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.prose h2 {
+  font-size: var(--step-2);
+}
+.prose h3 {
+  font-size: var(--step-1);
+}
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose pre {
+  margin: 0 0 12px;
+}
+.prose ul,
+.prose ol {
+  padding-left: 22px;
+}
+.prose blockquote {
+  padding: 2px 14px;
+  border-left: 3px solid var(--rule-strong);
+  color: var(--ink-2);
+}
+.prose code {
+  font: 0.88em var(--font-mono);
+  background: var(--wash);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.prose pre {
+  background: var(--sheet-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font: 13px/1.55 var(--font-mono);
+}
+.prose pre code {
+  background: none;
+  padding: 0;
+  font: inherit;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 20px 0;
+}
+.prose a {
+  color: var(--good);
+}
+
+/* ---------- File view ---------- */
+.code {
+  overflow-x: auto;
+  font: 13px/1.6 var(--font-mono);
+  /* Code shows the characters written: no ligatures turning <= into one glyph. */
+  font-variant-ligatures: none;
+}
+.code table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.code td {
+  padding: 0 14px;
+  white-space: pre;
+  vertical-align: top;
+}
+.lineNo {
+  width: 1%;
+  min-width: 44px;
+  text-align: right;
+  color: var(--ink-3);
+  user-select: none;
+  border-right: 1px solid var(--rule);
+}
+.lineNo a {
+  color: inherit;
+  text-decoration: none;
+}
+.code tr:target {
+  background: var(--code-hl);
+}
+.note {
+  padding: 18px 16px;
+  color: var(--ink-2);
+}
+
+.t-comment {
+  color: var(--ink-3);
+  font-style: italic;
+}
+.t-string {
+  color: var(--good);
+}
+.t-number {
+  color: var(--warn);
+}
+.t-keyword {
+  color: var(--human);
+}
+.t-type {
+  color: var(--accent);
+}
+.t-regex {
+  color: var(--warn);
+}
+.t-key {
+  color: var(--human);
+}
+
+/* ---------- The side column ---------- */
+.aside {
+  display: grid;
+  gap: 18px;
+  font-size: var(--step--1);
+}
+.aside h2 {
+  font-size: var(--step-0);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.aside p {
+  color: var(--ink-2);
+}
+.facts {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.facts li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cloneUrl {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.cloneUrl input {
+  flex: 1;
+  min-width: 0;
+  font: 12.5px var(--font-mono);
+  padding: 6px 8px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+}
+
+/* ---------- Changes ---------- */
+.filters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+.filter:hover {
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+.filter[aria-current='page'] {
+  color: var(--ink);
+  border-color: var(--good-fill);
+  background: var(--good-wash);
+}
+.count {
+  font: 500 11.5px var(--font-mono);
+  color: var(--ink-3);
+}
+.changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.changes > li + li {
+  border-top: 1px solid var(--rule);
+}
+.change {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  padding: 12px 16px;
+}
+.changeTitle {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.changeTitle:hover {
+  color: var(--good);
+  text-decoration: underline;
+}
+.changeMeta {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.beanName {
+  font: 12.5px var(--font-mono);
+  color: var(--human);
+}
+.person {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.failing {
+  grid-column: 2 / -1;
+  margin: 4px 0 0;
+  padding: 6px 10px;
+  list-style: none;
+  border-left: 3px solid var(--bad-fill);
+  background: var(--bad-wash);
+  border-radius: 0 6px 6px 0;
+  font: 12px/1.6 var(--font-mono);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.state {
+  font: 600 11.5px/20px var(--font-sans);
+  padding: 0 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
+  align-self: start;
+}
+.state[data-state='checking'],
+.state[data-state='waiting'] {
+  color: var(--warn);
+  border-color: var(--warn-fill);
+  background: var(--warn-wash);
+}
+.state[data-state='red'],
+.state[data-state='conflict'],
+.state[data-state='fell-off'] {
+  color: var(--bad);
+  border-color: var(--bad-fill);
+  background: var(--bad-wash);
+}
+.state[data-state='landed'] {
+  color: var(--ink);
+  border-color: var(--sprout);
+}
+.state[data-state='validated'] {
+  color: var(--good);
+  border-color: var(--good-fill);
+  background: var(--good-wash);
+}
+.empty {
+  padding: 22px 16px;
+  color: var(--ink-2);
+}
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-left: auto;
+}
+.live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.live[data-status='live'] i {
+  background: var(--good-fill);
+  box-shadow: 0 0 6px var(--glow);
+}
+
+/* ---------- One change ---------- */
+.changeHead {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.changeHead h2 {
+  font-size: var(--step-3);
+  font-weight: 650;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.changeHead p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+.back {
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+.journey {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  position: relative;
+}
+.journey > li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 16px;
+}
+.journey > li::before {
+  content: '';
+  position: absolute;
+  left: 26px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--rule);
+}
+.journey > li:first-child::before {
+  top: 14px;
+}
+.journey > li:last-child::before {
+  bottom: calc(100% - 14px);
+}
+.dot {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  margin: 4px 0 0 5px;
+  border-radius: 50%;
+  border: 2px solid var(--sheet);
+  background: var(--ink-3);
+}
+.dot[data-tone='push'] {
+  background: var(--bean);
+}
+.dot[data-tone='good'] {
+  background: var(--good-fill);
+}
+.dot[data-tone='bad'] {
+  background: var(--red);
+}
+.dot[data-tone='rework'] {
+  background: var(--warn-fill);
+}
+.dot[data-tone='land'] {
+  background: var(--sprout-leaf);
+}
+.dot[data-tone='stalk'] {
+  background: var(--leaf);
+  box-shadow: 0 0 6px var(--glow);
+}
+.dot[data-tone='decide'] {
+  background: var(--human-fill);
+}
+.stepText {
+  font-size: var(--step--1);
+}
+.stepText time {
+  margin-left: 8px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.stepLines {
+  margin: 4px 0 2px;
+  padding: 0;
+  list-style: none;
+  font: 12px/1.6 var(--font-mono);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.stepBeans {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.stepBeans a {
+  font: 12px var(--font-mono);
+  color: var(--human);
+}
+.verdict {
+  margin: 0;
+  padding: 12px 16px;
+  font: 12.5px/1.6 var(--font-mono);
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.section {
+  margin-top: 20px;
+}
+.section > h3 {
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ---------- History ---------- */
+.commits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.commits li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 10px 16px;
+  align-items: start;
+}
+.commits li + li {
+  border-top: 1px solid var(--rule);
+}
+.commitTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.commitMeta {
+  grid-column: 2 / 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.sha {
+  font: 12.5px var(--font-mono);
+  color: var(--ink-2);
+  grid-row: 1 / 3;
+  grid-column: 3;
+}
+.pendingBox {
+  border-color: color-mix(in srgb, var(--sprout) 60%, var(--rule));
+  margin-bottom: 20px;
+}
+.pendingBox .boxHead {
+  background: color-mix(in srgb, var(--sprout) 10%, var(--sheet-2));
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .page {
+    padding: 14px 16px 48px;
+  }
+  .prose {
+    padding: 4px 16px 16px;
+  }
+  .size {
+    display: none;
+  }
+  .files a {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+  .sha {
+    grid-row: auto;
+    grid-column: 2;
+  }
+  .commits li,
+  .change {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+  .state {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

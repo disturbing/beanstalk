@@ -13,7 +13,6 @@ import { MainPane } from './main-pane';
 import { RailBlocks } from './rail-blocks';
 import { RepoHead } from '../home/repo-head';
 import type { HomeFrame, SearchParams } from '../home/repository-home';
-import type { RailBlock } from '@beanstalk/shared-ask/ask/answer';
 import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
 import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
 import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
@@ -75,12 +74,13 @@ export async function FilesExplorer(props: {
   const events = recorded?.events ?? [];
   const race = reduceRace(events);
   const suggestions = suggestionsFor(props.frame, recorded?.label);
+  const resolvedPushers = await pushers;
   return (
     <main className={styles.page}>
       <RepoHead
         base={base}
         repository={repository}
-        current="files"
+        current={props.frame.kind === 'repository' ? 'ask' : 'files'}
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
@@ -115,23 +115,21 @@ export async function FilesExplorer(props: {
             state={state}
             main={answer.main}
             railBean={answer.rail.find((block) => block.kind === 'checks')?.bean ?? null}
-            pushers={await pushers}
+            pushers={resolvedPushers}
           />
         </section>
         <aside className={styles.railPane} aria-label="Context">
-          <RailBlocks base={base} state={state} blocks={railFor(props.frame, answer.rail)} />
+          <RailBlocks
+            base={base}
+            state={state}
+            blocks={answer.rail}
+            subject={props.frame.kind === 'repository' ? 'repository' : 'race'}
+            pushers={resolvedPushers}
+          />
         </aside>
       </div>
     </main>
   );
-}
-
-/**
- * The context rail. A persistent repository has no standing agents (beans are people's
- * pushes, the engine's slots are internal), so the race-only "Agents on it now" block goes.
- */
-function railFor(frame: HomeFrame, rail: readonly RailBlock[]): readonly RailBlock[] {
-  return frame.kind === 'repository' ? rail.filter((block) => block.kind !== 'agents') : rail;
 }
 
 /**

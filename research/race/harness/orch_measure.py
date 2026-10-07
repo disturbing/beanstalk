@@ -20,6 +20,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 
+from .locked_suite import SuiteLock
+
 
 @dataclass
 class Change:
@@ -60,7 +62,8 @@ def run_files(checkout: str, argv_prefix: list[str], files: list[str], env: dict
     argv = argv_prefix + [f"--test-reporter=junit", f"--test-reporter-destination={junit}",
                           "--test-reporter=dot", "--test-reporter-destination=stdout", *files]
     try:
-        subprocess.run(argv, cwd=checkout, capture_output=True, text=True, timeout=timeout, env=env)
+        with SuiteLock():
+            subprocess.run(argv, cwd=checkout, capture_output=True, text=True, timeout=timeout, env=env)
     except subprocess.TimeoutExpired:
         return set(), set(files)
     passing, failing = set(), set()
@@ -128,10 +131,12 @@ def final_check(repo: str, ref: str, tasks: dict[str, dict[str, str]], suite_arg
     sha = git(repo, "rev-parse", ref).strip()
     try:
         git(repo, "worktree", "add", "-q", "--detach", wt, sha)
-        res = subprocess.run(suite_argv, cwd=wt, capture_output=True, text=True, timeout=1200, env=env)
+        with SuiteLock():
+            res = subprocess.run(suite_argv, cwd=wt, capture_output=True, text=True, timeout=1200, env=env)
         suite_green = res.returncode == 0
         if not suite_green:  # one retry, as the chain build allows a flaky red (the arena's suite has some)
-            res = subprocess.run(suite_argv, cwd=wt, capture_output=True, text=True, timeout=1200, env=env)
+            with SuiteLock():
+                res = subprocess.run(suite_argv, cwd=wt, capture_output=True, text=True, timeout=1200, env=env)
             retried = True
         else:
             retried = False

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps) {
  */
 export default async function StalkPage({ params }: PageProps) {
   const page = await repositoryPage(params);
-  const { record, base, user } = page;
+  const { record, base, user, role } = page;
   const started = performance.now();
   const stalk = await indexClient(env.GATEWAY).stalk(record.id, user?.id ?? null);
   const readMs = performance.now() - started;
@@ -35,6 +35,7 @@ export default async function StalkPage({ params }: PageProps) {
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
         archived={record.archived_at !== null}
+        canAdminister={role !== null}
       />
       {stalk.ok ? (
         <StalkView base={base} stalk={stalk.value} nowMs={Date.now()} readMs={readMs} />

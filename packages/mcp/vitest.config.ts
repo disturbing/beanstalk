@@ -22,6 +22,13 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const compatibilityDate = poolWorkerdCompatibilityDate();
 const gatewayScript = bundleGateway();
 const identityMigrations = await readD1Migrations(path.join(here, '../shared-identity/migrations'));
+const forgeMigrations = await readD1Migrations(path.join(here, '../gateway/migrations'));
+/**
+ * One identity database and one registry for both Workers, as deployed: a session token the
+ * MCP Worker mints is the credential the gateway's git proxy checks.
+ */
+const IDENTITY_DB_ID = 'bd0e58e5-4b1b-4a40-a143-a0eee6fa5075';
+const FORGE_DB_ID = 'beanstalk-forge-mcp-test';
 
 export default defineConfig({
   plugins: [
@@ -34,11 +41,17 @@ export default defineConfig({
           LOG_LEVEL: 'error',
           PUBLIC_URL: 'https://beanstalk-mcp.example.workers.dev',
           WEB_URL: 'https://beanstalk-web.devaccounts-1password.workers.dev',
+          GIT_ORIGIN: 'https://gateway.example.test',
           DEMO_RUN: 'j6boaclinn',
           TEST_MIGRATIONS: identityMigrations,
+          FORGE_MIGRATIONS: forgeMigrations,
         },
+        d1Databases: { FORGE: FORGE_DB_ID },
         serviceBindings: {
           GATEWAY: 'beanstalk-gateway',
+          // Tests plant files on a repository's sprout in the fake Artifacts.
+          FAKE_REPOS: { name: 'fake-artifacts', entrypoint: 'FakeRepositories' },
+          FAKE_GIT: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },
         },
         workers: auxiliaryWorkers(),
       },
@@ -68,11 +81,16 @@ function auxiliaryWorkers() {
         RUN_TOKEN_TTL_SECONDS: '3600',
         ARTIFACTS_TOKEN_TTL_SECONDS: '600',
       },
-      serviceBindings: { ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' } },
-      d1Databases: { IDENTITY_DB: 'beanstalk-identity-gateway-test' },
+      serviceBindings: {
+        ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' },
+        REPOS: { name: 'fake-artifacts', entrypoint: 'FakeRepositories' },
+      },
+      d1Databases: { IDENTITY_DB: IDENTITY_DB_ID, FORGE: FORGE_DB_ID },
       durableObjects: {
         RUNS: { className: 'RunDO', useSQLite: true },
         RUN_INDEX: { className: 'RunIndex', useSQLite: true },
+        RUN_STREAMS: { className: 'RunStreamDO', useSQLite: true },
+        RUNNER_CAPACITY: { className: 'RunnerCapacity', useSQLite: true },
         RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' },
       },
       outboundService: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },

@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
+import type { EngineFeed, EngineFeedRpc } from '@beanstalk/shared-race/engine-feed';
 import type {
   BeanContext,
   BeanContextInput,
@@ -74,12 +75,25 @@ import type {
 } from '@beanstalk/shared-race/collaborators';
 
 import type {
+  AgentBean,
+  AgentReposRpc,
+  AgentRepository,
+  Backlog,
+  BeanOpenInput,
+  BeanOpened,
+  BeanWaitUntil,
+  BeanWaited,
+  TaskClaimed,
+} from '@beanstalk/shared-race/agent-repos';
+
+import type {
   RepoIndexRpc,
   RepositoryGrowth,
   RepositoryStalk,
 } from '@beanstalk/shared-race/repo-events';
 
 import { repositoryStorage } from './adapters/repository-storage';
+import { agentReposRpc } from './agent/agent-repos-rpc';
 import { consumeRepoEvents } from './repo-events/consumer';
 import { repoIndexRpc } from './repo-events/index-rpc';
 import { sshKeyStore } from './auth/ssh-keys';
@@ -91,6 +105,7 @@ import { readConfig } from './config';
 import { d1Collaborators } from './repos/collaborators';
 import { collaboratorsRpc } from './repos/collaborators-rpc';
 import { deployTokensRpc } from './repos/deploy-tokens-rpc';
+import { engineFeedRpc } from './repos/engine-feed';
 import { peopleDirectory } from './repos/people';
 import { repoEnginePort } from './repos/engine-port';
 import { d1Registry } from './repos/registry';
@@ -123,6 +138,8 @@ export default class Gateway
     RepoEngineRpc,
     DeployTokensRpc,
     CollaboratorsRpc,
+    AgentReposRpc,
+    EngineFeedRpc,
     RepoIndexRpc
 {
   override async fetch(request: Request): Promise<Response> {
@@ -489,11 +506,79 @@ export default class Gateway
     return repoEngineRpc(createDeps(this.env)).pushedBeans(engineId);
   }
 
+  /** What happened lately in each engine, for a person's Home (`EngineFeedRpc`). */
+  engineFeeds(
+    engineIds: readonly string[],
+    limit: number,
+  ): Promise<RpcResult<readonly EngineFeed[]>> {
+    return engineFeedRpc(createDeps(this.env)).engineFeeds(engineIds, limit);
+  }
+
   closeRepoEngine(
     engineId: string,
     options: { readonly deleteRepo: boolean },
   ): Promise<RpcResult<{ readonly closed: true }>> {
     return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
+  }
+
+  agentRepositories(principal: AgentPrincipal): Promise<RpcResult<readonly AgentRepository[]>> {
+    return this.#agents().agentRepositories(principal);
+  }
+
+  agentRepository(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentRepository>> {
+    return this.#agents().agentRepository(principal, repo);
+  }
+
+  agentPushedBeans(
+    principal: AgentPrincipal,
+    repo: string,
+  ): Promise<RpcResult<readonly PushedBeanStatus[]>> {
+    return this.#agents().agentPushedBeans(principal, repo);
+  }
+
+  agentBean(principal: AgentPrincipal, repo: string, bean: string): Promise<RpcResult<AgentBean>> {
+    return this.#agents().agentBean(principal, repo, bean);
+  }
+
+  agentWaitBean(
+    principal: AgentPrincipal,
+    repo: string,
+    bean: string,
+    wait: { readonly until: BeanWaitUntil; readonly seconds: number },
+  ): Promise<RpcResult<BeanWaited>> {
+    return this.#agents().agentWaitBean(principal, repo, bean, wait);
+  }
+
+  agentOpenBean(
+    principal: AgentPrincipal,
+    repo: string,
+    input: BeanOpenInput,
+  ): Promise<RpcResult<BeanOpened>> {
+    return this.#agents().agentOpenBean(principal, repo, input);
+  }
+
+  agentBacklog(principal: AgentPrincipal, repo: string): Promise<RpcResult<Backlog>> {
+    return this.#agents().agentBacklog(principal, repo);
+  }
+
+  agentClaimTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentClaimTask(principal, repo, task);
+  }
+
+  agentReleaseTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentReleaseTask(principal, repo, task);
+  }
+
+  #agents(): AgentReposRpc {
+    return agentReposRpc(createDeps(this.env));
   }
 
   /**

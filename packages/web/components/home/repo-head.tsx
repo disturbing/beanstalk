@@ -7,10 +7,13 @@ export type RepoTab =
   | 'code'
   | 'files'
   | 'beans'
-  | 'stalk'
   | 'decisions'
   | 'checks'
   | 'engine'
+  | 'changes'
+  | 'history'
+  | 'stalk'
+  | 'ask'
   | 'people'
   | 'settings';
 
@@ -25,28 +28,26 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
   { tab: 'code', name: 'Code', keys: 'g c' },
   { tab: 'files', name: 'Files', keys: 'g f' },
   { tab: 'beans', name: 'Beans', keys: 'g b' },
-  { tab: 'stalk', name: 'Stalk', keys: 'g t' },
   { tab: 'decisions', name: 'Decisions', keys: 'g d' },
   { tab: 'checks', name: 'Checks', keys: 'g k' },
   { tab: 'engine', name: 'Engine', keys: 'g e' },
-  { tab: 'people', name: 'People', keys: 'g p' },
-  { tab: 'settings', name: 'Settings', keys: 'g s' },
 ];
 
-/** A race's repository has the engine canvas; a persistent repository has settings instead. */
-const KIND_TABS: Readonly<Record<RepoKind, ReadonlySet<RepoTab>>> = {
-  race: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'engine']),
-  repository: new Set([
-    'code',
-    'files',
-    'beans',
-    'stalk',
-    'decisions',
-    'checks',
-    'people',
-    'settings',
-  ]),
-};
+/**
+ * A person's repository (`docs/claude-opus/20`): GitHub's shape with Beanstalk's words. Code
+ * is the stalk's files, Changes the beans, History the stalk's commits, Stalk what is validated
+ * and promoted (from the repo-events index, `20` §6), Ask the generated explorer over the engine
+ * (the race view's home).
+ */
+const REPOSITORY_TABS: readonly { readonly tab: RepoTab; readonly name: string }[] = [
+  { tab: 'code', name: 'Code' },
+  { tab: 'changes', name: 'Changes' },
+  { tab: 'history', name: 'History' },
+  { tab: 'stalk', name: 'Stalk' },
+  { tab: 'ask', name: 'Ask' },
+  { tab: 'people', name: 'People' },
+  { tab: 'settings', name: 'Settings' },
+];
 
 export type RepoKind = 'race' | 'repository';
 
@@ -64,10 +65,55 @@ export function RepoHead(props: {
   readonly visibility?: 'public' | 'private';
   /** Where the owner's name links: their repositories, or the repository itself for a race. */
   readonly ownerHref?: string;
+  /** A repository's open beans, counted on its Changes tab. */
+  readonly openChanges?: number;
+  /** Whether the viewer may open Settings (the owner); others do not see the tab. */
+  readonly canAdminister?: boolean;
   /** A persistent repository its owner archived: read-only, said under the name. */
   readonly archived?: boolean;
 }) {
-  const tabs = KIND_TABS[props.kind ?? 'race'];
+  if (props.kind === 'repository') return <RepositoryHead {...props} />;
+  return (
+    <div className={styles.repohead}>
+      <h1 className={styles.repotitle}>
+        <Link href={props.ownerHref ?? props.base}>{props.repository.owner}</Link>
+        <span>/</span>
+        <Link href={props.base}>{props.repository.name}</Link>
+        {props.visibility === undefined ? null : (
+          <small className={styles.visibility}>{props.visibility}</small>
+        )}
+      </h1>
+      <nav className={styles.tabs} aria-label="Repository views">
+        {TABS.map((item) => (
+          <Link
+            key={item.tab}
+            href={hrefOf(props.base, item.tab)}
+            className={styles.tab}
+            aria-current={props.current === item.tab ? 'page' : undefined}
+            title={item.tab === 'engine' ? 'The engine’s race canvas, for developers' : undefined}
+          >
+            {item.name}
+            <kbd className={styles.kh}>{item.keys}</kbd>
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function RepositoryHead(props: {
+  readonly base: string;
+  readonly repository: Repository;
+  readonly current: RepoTab;
+  readonly visibility?: 'public' | 'private';
+  readonly ownerHref?: string;
+  readonly openChanges?: number;
+  readonly canAdminister?: boolean;
+  readonly archived?: boolean;
+}) {
+  const tabs = REPOSITORY_TABS.filter(
+    (item) => item.tab !== 'settings' || props.canAdminister !== false,
+  );
   return (
     <div className={styles.repohead}>
       <h1 className={styles.repotitle}>
@@ -85,21 +131,30 @@ export function RepoHead(props: {
         </p>
       ) : null}
       <nav className={styles.tabs} aria-label="Repository views">
-        {TABS.filter((item) => tabs.has(item.tab)).map((item) => (
+        {tabs.map((item) => (
           <Link
             key={item.tab}
-            href={hrefOf(props.base, item.tab)}
+            href={repositoryTabHref(props.base, item.tab)}
             className={styles.tab}
             aria-current={props.current === item.tab ? 'page' : undefined}
-            title={item.tab === 'engine' ? 'The engine’s race canvas, for developers' : undefined}
           >
             {item.name}
-            <kbd className={styles.kh}>{item.keys}</kbd>
+            {item.tab === 'changes' && (props.openChanges ?? 0) > 0 ? (
+              <span className={styles.tabCount} title="Beans in check, red or waiting">
+                {props.openChanges}
+              </span>
+            ) : null}
           </Link>
         ))}
       </nav>
     </div>
   );
+}
+
+/** A repository tab's address. */
+export function repositoryTabHref(base: string, tab: RepoTab): string {
+  if (tab === 'code') return base;
+  return `${base}/${tab}`;
 }
 
 /** Which tab a question belongs to, if it is one of the tabs' own questions. */
@@ -110,7 +165,6 @@ export function tabOf(q: string): RepoTab {
 
 function hrefOf(base: string, tab: RepoTab): string {
   if (tab === 'files') return `${base}/files`;
-  if (tab === 'stalk') return `${base}/stalk`;
   if (tab === 'engine') return `${base}/race`;
   if (tab === 'settings') return `${base}/settings`;
   if (tab === 'people') return `${base}/people`;

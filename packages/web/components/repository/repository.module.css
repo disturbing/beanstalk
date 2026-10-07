@@ -188,6 +188,23 @@
   background: var(--leaf);
   box-shadow: 0 0 6px var(--glow);
 }
+.activity li[data-tone='bad']::before {
+  background: var(--bad-fill);
+  box-shadow: 0 0 6px var(--glow-red);
+}
+.activity li[data-tone='decide']::before {
+  background: var(--human-fill);
+  box-shadow: 0 0 6px var(--glow-bean);
+}
+.activity li[data-tone='neutral']::before {
+  background: var(--rule-strong);
+  box-shadow: none;
+}
+.activityBean {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--human);
+}
 .activity time {
   display: block;
   color: var(--ink-3);
@@ -878,4 +895,19 @@
     border: 0;
     padding: 2px 4px;
   }
+}
+
+/* The Code tab's side column holds the same Connect git tabs, set small. */
+.connectCompact {
+  gap: 8px;
+  font-size: var(--step--1);
+}
+.connectCompact h2 {
+  font-size: var(--step-0);
+}
+.connectCompact .connectTab {
+  padding: 6px 9px;
+}
+.connectCompact .connectPanel p {
+  font-size: var(--step--1);
 }

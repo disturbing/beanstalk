@@ -43,6 +43,9 @@ expectations your change intentionally alters.
 per change unless you deliberately combine them.
 - Integration happens only through the forge as described below; never push to `{line}` yourself.
 - `BACKLOG.md` and `{WORKTREES}/` are local notes and scratch space: never commit them.
+- Your session ends as soon as you end your turn, and that stops any worker still running. After starting workers in \
+the background, keep waiting for their notifications and following your changes on the forge; don't end your turn \
+while a worker is running or a change is not yet integrated.
 - You have about {wall_minutes:.0f} minutes. When every task is integrated (or you judge a task impossible), stop and \
 reply with one line per task: its id, integrated or not, and why not.
 """
@@ -83,6 +86,11 @@ def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: 
     section = github_section(repo_url) if arm == "github" else beanstalk_section(repo_url)
     return shared(n_tasks, subagents, line, test_hint, wall_minutes) + "\n" + section
 
+
+CONTINUE = ("Continue. Your session ended while work remained. Check the state of every task in BACKLOG.md (your "
+            "worktrees, branches and the forge), restart what was stopped, and carry on until every task is integrated "
+            "or you judge it impossible. Keep waiting for your workers' notifications; don't end your turn while a "
+            "worker is running or a change is not yet integrated.")
 
 WORKER_PROMPT = ("You are a software engineer working on one change in your own git worktree, whose absolute path "
                  "the lead gives you. Each shell command starts in the lead's directory, so use `git -C <worktree>` "

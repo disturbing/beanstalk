@@ -28,7 +28,13 @@ export const MAX_SESSION_TOKEN_SECONDS = 3600;
 export type VerifiedUserToken = {
   readonly user: SessionUser;
   readonly scopes: readonly Scope[];
-  readonly token: { readonly id: string; readonly kind: TokenKind; readonly expiresAt: number };
+  readonly token: {
+    readonly id: string;
+    readonly kind: TokenKind;
+    readonly expiresAt: number;
+    /** The one repository (engine id) a bound session token opens; null: not bound. */
+    readonly repository: string | null;
+  };
 };
 
 export type TokenSummary = {
@@ -81,6 +87,7 @@ export async function createPersonalToken(
     scopes: parseScopes(input.request.scopes),
     expiresAt,
     clientId: input.clientId ?? null,
+    repository: null,
     ip: input.ip ?? null,
     now,
   });
@@ -99,6 +106,8 @@ export async function mintSessionToken(
     readonly ttlSeconds?: number;
     /** The OAuth client of the agent session, so revoking its grant revokes these too. */
     readonly clientId?: string;
+    /** Binds the token to one repository (its engine id): git opens only that one. */
+    readonly repository?: string;
   },
   clock: Clock = systemClock,
 ): Promise<IssuedUserToken> {
@@ -113,6 +122,7 @@ export async function mintSessionToken(
     scopes: input.scopes,
     expiresAt: now + ttl * 1000,
     clientId: input.clientId ?? null,
+    repository: input.repository ?? null,
     ip: null,
     now,
   });
@@ -132,7 +142,7 @@ export async function verifyUserToken(
   const tokenHash = await hashSecret(token);
   const now = clock();
   const row = await env.IDENTITY_DB.prepare(
-    `SELECT t.id, t.kind, t.token_hash, t.scopes, t.expires_at, t.last_used_at,
+    `SELECT t.id, t.kind, t.token_hash, t.scopes, t.expires_at, t.last_used_at, t.repository,
             u.id AS user_id, u.handle, u.email
        FROM user_tokens t JOIN users u ON u.id = t.user_id
       WHERE t.token_hash = ? AND t.revoked_at IS NULL AND t.expires_at > ? AND u.disabled_at IS NULL`,
@@ -146,7 +156,12 @@ export async function verifyUserToken(
   return {
     user: { id: row.user_id, handle: row.handle, email: row.email },
     scopes: parseScopes(row.scopes),
-    token: { id: row.id, kind: row.kind, expiresAt: row.expires_at },
+    token: {
+      id: row.id,
+      kind: row.kind,
+      expiresAt: row.expires_at,
+      repository: row.repository,
+    },
   };
 }
 
@@ -215,6 +230,7 @@ type TokenRow = {
   readonly scopes: string;
   readonly expires_at: number;
   readonly last_used_at: number | null;
+  readonly repository: string | null;
   readonly user_id: string;
   readonly handle: string;
   readonly email: string | null;
@@ -241,6 +257,7 @@ async function issue(
     readonly scopes: readonly Scope[];
     readonly expiresAt: number;
     readonly clientId: string | null;
+    readonly repository: string | null;
     readonly ip: string | null;
     readonly now: number;
   },
@@ -251,8 +268,8 @@ async function issue(
   const hint = `${prefix}…${token.slice(-4)}`;
   const scopes = input.scopes.join(' ');
   const insert = env.IDENTITY_DB.prepare(
-    `INSERT INTO user_tokens (id, token_hash, user_id, kind, name, scopes, hint, created_at, expires_at, oauth_client_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO user_tokens (id, token_hash, user_id, kind, name, scopes, hint, created_at, expires_at, oauth_client_id, repository)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).bind(
     id,
     await hashSecret(token),
@@ -264,6 +281,7 @@ async function issue(
     input.now,
     input.expiresAt,
     input.clientId,
+    input.repository,
   );
   const audit = await auditStatement(
     env,
@@ -276,6 +294,7 @@ async function issue(
         scopes: [...input.scopes],
         expires_at: input.expiresAt,
         ...(input.clientId === null ? {} : { client: input.clientId }),
+        ...(input.repository === null ? {} : { repository: input.repository }),
       },
     },
     input.now,

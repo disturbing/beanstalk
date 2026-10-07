@@ -10,7 +10,8 @@ import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';
 import { growthText } from '../../src/repositories/engine-summary';
 import { repositoryPath } from '../../src/repositories/paths';
-import type { RepositoryActivity, RepositoryRecord } from '../../src/repositories/registry-client';
+import type { ActivityLine } from '../../src/repositories/home-activity';
+import type { RepositoryRecord } from '../../src/repositories/registry-client';
 import { timeAgo } from '../../src/repositories/when';
 import styles from './repository.module.css';
 
@@ -19,11 +20,12 @@ export type DashboardRepository = { readonly record: RepositoryRecord; readonly 
 export function HomeDashboard(props: {
   readonly user: SessionUser;
   readonly repositories: readonly DashboardRepository[];
+  /** The engines' events and the registry's, newest first. */
+  readonly activity: readonly ActivityLine[];
   /** Repositories others invited this person to (accepted). */
   readonly shared?: readonly DashboardRepository[];
   /** Invitations waiting for an answer (rendered by the page: they are forms). */
   readonly invitations?: ReactNode;
-  readonly activity: readonly RepositoryActivity[];
   /** The person's archived repositories, listed on their own page rather than here. */
   readonly archivedCount?: number;
   readonly nowMs: number;
@@ -101,15 +103,22 @@ export function HomeDashboard(props: {
             <p className={styles.empty}>What happens in your repositories shows up here.</p>
           ) : (
             <ul className={styles.activity}>
-              {props.activity.map((line, index) => (
-                <li key={`${line.repo_id}-${line.at}-${line.kind}-${index}`}>
+              {props.activity.map((line) => (
+                <li key={line.key} data-tone={line.tone}>
                   <span>
-                    <Link
-                      href={repositoryPath(line.owner_handle, line.repo_name)}
-                      className={styles.mono}
-                    >
-                      {line.owner_handle}/{line.repo_name}
+                    <Link href={repositoryPath(line.owner, line.repo)} className={styles.mono}>
+                      {line.owner}/{line.repo}
                     </Link>{' '}
+                    {line.bean === null ? null : (
+                      <>
+                        <Link
+                          href={`${repositoryPath(line.owner, line.repo)}/changes/${encodeURIComponent(line.bean)}`}
+                          className={styles.activityBean}
+                        >
+                          {line.bean}
+                        </Link>{' '}
+                      </>
+                    )}
                     {line.text}
                     <time dateTime={line.at}>{timeAgo(line.at, props.nowMs)}</time>
                   </span>

@@ -11,7 +11,8 @@
  *   - `contributor`: the collaboration tools only, no git;
  * - people's tokens (`bsu_…` personal, `bss_…` minted for an MCP session), verified against the
  *   identity database by `verifyUserToken` (@beanstalk/shared-identity). They are bound to no
- *   engine (`engine: null`); `mayUseEngine` asks the person's role on the repository instead;
+ *   engine (`engine: null`); `mayUseEngine` asks the person's role on the repository instead. A
+ *   session token minted by the MCP tool `git_credentials` is bound to its one repository;
  * - deploy tokens (`bsd_…`), made by a repository's owner or maintainers for CI and other
  *   machines: bound to that repository's engine, read or read and write, pushing as the person
  *   who made them (../repos/deploy-tokens.ts), independent of collaborators.
@@ -254,10 +255,14 @@ async function verifyPersonToken(
   if (env.identity === undefined) return null;
   const verified = await verifyUserToken(env.identity, token, env.now);
   if (verified === null) return null;
+  // A session token minted for one repository (MCP `git_credentials`) opens that one only.
+  const bound = verified.token.repository;
+  const engine = bound === null ? null : RunId.safeParse(bound);
+  if (engine !== null && !engine.success) return null;
   return {
     user: { id: verified.user.id, handle: verified.user.handle },
     scopes: gitScopes(verified.scopes),
-    engine: null,
+    engine: engine === null ? null : engine.data,
     runPrincipal: null,
     session: {
       via: verified.token.kind === 'personal' ? 'personal-token' : 'agent-session',

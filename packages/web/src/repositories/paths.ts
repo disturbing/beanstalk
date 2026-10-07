@@ -16,7 +16,15 @@ const STATIC_PATHS: ReadonlySet<string> = new Set([
 ]);
 
 /** Sub-paths of a repository the app serves. */
-export const REPOSITORY_VIEWS = ['files', 'settings'] as const;
+export const REPOSITORY_VIEWS = [
+  'tree',
+  'blob',
+  'changes',
+  'history',
+  'ask',
+  'files',
+  'settings',
+] as const;
 
 export function repositoryPath(owner: string, name: string): string {
   return `/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`;

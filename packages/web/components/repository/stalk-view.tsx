@@ -207,7 +207,7 @@ function BeanRows(props: {
       {props.beans.map((bean) => (
         <li key={bean.bean} className={styles.bean}>
           <Link
-            href={`${props.base}?bean=${encodeURIComponent(bean.bean)}`}
+            href={`${props.base}/changes/${encodeURIComponent(bean.bean)}`}
             className={styles.beanName}
           >
             {bean.bean}

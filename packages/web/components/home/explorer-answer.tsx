@@ -598,12 +598,22 @@ function Overlaps({ ctx }: { readonly ctx: ExplorerContext }) {
 function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly agent: string }) {
   const beans = Object.values(ctx.state.beans).filter((bean) => bean.agent === agent);
   const session = ctx.sessions[agent];
+  // A repository's beans were pushed by people: name them, not the engine slot that held them.
+  const people = [
+    ...new Set(
+      beans.flatMap((bean) => (ctx.pushers[bean.id] === undefined ? [] : [ctx.pushers[bean.id]])),
+    ),
+  ];
   return (
     <div className={styles.box}>
       <div className={styles.boxhead}>
-        <b>{activityTitle(ctx, agent, beans)}</b>
+        <b>
+          {people.length > 0
+            ? `Pushed by ${people.map((who) => `@${who}`).join(', ')}`
+            : `Session ${agent}`}
+        </b>
         <span className={styles.muted}>
-          {session === undefined || isRepository(ctx) ? '' : `${session.harness}, ${session.owner}`}
+          {people.length > 0 || session === undefined ? '' : `${session.harness}, ${session.owner}`}
         </span>
       </div>
       <table className={styles.agents}>
@@ -627,23 +637,6 @@ function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly
       </table>
     </div>
   );
-}
-
-/**
- * A race names its slot (`Session a0`); a repository's beans are people's pushes, so it names
- * who pushed them and never the engine's internal slot.
- */
-function activityTitle(ctx: ExplorerContext, agent: string, beans: readonly Bean[]): string {
-  if (!isRepository(ctx)) return `Session ${agent}`;
-  const people = [
-    ...new Set(beans.map((bean) => creditOf(bean, ctx.sessions, ctx.pushers).who)),
-  ].filter((who) => who.startsWith('@'));
-  return people.length === 0 ? 'Pushed beans' : `Beans pushed by ${people.join(', ')}`;
-}
-
-/** A persistent repository's explorer: its beans come with the people who pushed them. */
-function isRepository(ctx: ExplorerContext): boolean {
-  return Object.keys(ctx.pushers).length > 0;
 }
 
 /** The journey's "who": the pusher, or the slot and its session (`a0, Claude Code session of coop`). */
