@@ -12,6 +12,7 @@ PR is enqueued with ``enqueuePullRequest`` as soon as its own check is green (th
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import time
 from dataclasses import dataclass, field
@@ -341,12 +342,14 @@ class GitHubForge(Forge):
         runs = [r for r in self.runs.values() if r.ended]
         by_event: dict[str, dict] = {}
         for r in runs:
-            d = by_event.setdefault(r.event, {"runs": 0, "minutes": 0.0, "red": 0})
+            d = by_event.setdefault(r.event, {"runs": 0, "minutes": 0.0, "suite_minutes": 0.0, "red": 0})
             d["runs"] += 1
             d["minutes"] = round(d["minutes"] + r.seconds / 60, 2)
+            d["suite_minutes"] = round(d["suite_minutes"] + (r.suite_seconds or 0) / 60, 2)
             d["red"] += r.green is False
         return {"repo": getattr(self.client, "html_url", self.client.full), "ruleset": self.ruleset()["rules"][0]
                 ["parameters"], "ci": by_event, "ci_minutes": round(sum(d["minutes"] for d in by_event.values()), 2),
+                "suite_minutes": round(sum(d["suite_minutes"] for d in by_event.values()), 2),
                 "red_validations": by_event.get("merge_group", {}).get("red", 0),
                 "api": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in self.limiter.stats.items()},
                 **{k: v for k, v in self.stats.items()}}
@@ -493,6 +496,9 @@ class BeanstalkForge(Forge):
             self.poller.cancel()
         try:
             self.engine_events = await self.client.events()
+            with open(os.path.join(os.path.dirname(self.work), "engine-events.jsonl"), "w", encoding="utf-8") as fh:
+                for e in self.engine_events:
+                    fh.write(json.dumps(e, default=str) + "\n")
         except Exception as e:  # noqa: BLE001
             self.log("bs.error", where="events", error=str(e)[:300])
         if not self.keep_repo:
@@ -517,8 +523,12 @@ def engine_ci(events: list[dict]) -> dict:
     def minutes(es: list[dict], key: str = "ci_seconds") -> float:
         return round(sum(float(e.get(key) or e.get("suite_seconds") or 0) for e in es) / 60, 2)
 
-    pre_min = minutes(pre, "check_seconds")
+    pre_min = minutes(pre, "suite_seconds")          # the sandbox ran the suite (a check's own busy time)
+    pre_check_min = minutes(pre, "check_seconds")    # push of the check to its verdict, queueing for a sandbox too
     ci_min = minutes(ci)
+    targeted = [e for e in vals if e.get("targeted")]
+    affected = [e.get("affected_count", 0) / max(1, e.get("tests") or 1) for e in events
+                if e.get("type") == "evidence.refused" and e.get("reason") == "affected"]
     # window waits: a green bean found the sprout window full; its wait ends when it lands
     waits, wait_s, open_wait = 0, 0.0, {}
     for e in events:
@@ -531,11 +541,13 @@ def engine_ci(events: list[dict]) -> dict:
     for e in events:
         if e.get("type") == "evidence.refused":
             refused[str(e.get("reason"))] = refused.get(str(e.get("reason")), 0) + 1
-    return {"ci": {"preland": {"runs": len(pre), "minutes": pre_min,
+    return {"ci": {"preland": {"runs": len(pre), "minutes": pre_min, "check_minutes": pre_check_min,
                                "red": sum(1 for e in pre if e.get("green") is False)},
                    "validation": {"runs": len(vals), "minutes": minutes(vals),
                                   "red": sum(1 for e in vals if e.get("green") is False),
-                                  "cancelled": sum(1 for e in vals if e.get("cancelled"))},
+                                  "cancelled": sum(1 for e in vals if e.get("cancelled")),
+                                  "targeted": len(targeted), "targeted_tests": sum(int(e.get("tests") or 0)
+                                                                                   for e in targeted)},
                    "audit": {"runs": len(audits), "minutes": minutes(audits),
                              "red": sum(1 for e in audits if e.get("green") is False)}},
             "ci_minutes": round(pre_min + ci_min, 2),
@@ -545,5 +557,6 @@ def engine_ci(events: list[dict]) -> dict:
             "window_waits": waits, "window_wait_bean_min": round(wait_s / 60, 2),
             "evidence_promotions": sum(1 for e in events if e.get("type") == "promote.evidence"),
             "evidence_refusals": refused,
+            "evidence_affected_share": round(sum(affected) / len(affected), 3) if affected else None,
             "demotions": sum(1 for e in events if e.get("type") == "green.demote"),
             "engine_event_types": sorted({e.get("type") for e in events if e.get("type")})}

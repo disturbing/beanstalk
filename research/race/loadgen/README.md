@@ -30,7 +30,7 @@ Credentials: GitHub through the `gh` CLI (Coop's login; the token never enters t
 - **waiting share**: time changes spent with the forge (push → verdict, every push) over their life (worker start → integrated), and over N × wall time.
 - **rework**: kick-outs by kind (red, conflict), re-makes (`rebase`), upstream files taken, upstream-after-red.
 - **throughput**: integrated per 10 min (and the peak 10-minute window), max changes waiting on the forge at once.
-- **CI minutes**: GitHub Actions job time (PR checks + merge groups); Beanstalk pre-land checks (`check_seconds`) + validations + audits.
+- **CI minutes** (runner busy time): GitHub Actions job time (PR checks + merge groups, setup and `npm ci` included; `suite_minutes` is the suite step alone); Beanstalk pre-land suites (`suite_seconds`; `check_minutes` adds squash and waiting for a sandbox) + validations + audits (`ci_seconds`). `python3 -m loadgen.refresh <run>` recomputes them from `engine-events.jsonl`.
 - **final correctness**: on the final `main` / stalk, locally, the whole suite, then every task's acceptance tests written in; correct = suite green and every integrated task's acceptance tests committed intact and passing. `matches_chain_build` compares the final tree with the chain build (outside `.github/`).
 - `events.jsonl` is in the race's schema (`race.start`, `task.start`, `task.commit`, `queue.submit`, `queue.eject`, `rework.start`, `land`, `task.green` / `green.promote`), so `kth_green.py` reads it.
 
