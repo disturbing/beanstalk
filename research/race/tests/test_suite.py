@@ -17,6 +17,7 @@ TESTS = os.path.dirname(os.path.abspath(__file__))
 RACE = os.path.dirname(TESTS)
 sys.path.insert(0, RACE)
 
+import gateway_fixture  # noqa: E402
 import race  # noqa: E402
 from harness import prompts, suite as suite_mod  # noqa: E402
 from harness.agents import CodexAdapter, InvocationSpec, claude_allowed_tools  # noqa: E402
@@ -92,6 +93,45 @@ class Loading(unittest.TestCase):
         self.assertEqual(argv[argv.index("-s") + 1], "workspace-write")
         self.assertIn("sandbox_workspace_write.network_access=false", argv)
         self.assertIn("Run `node --test`.", prompts.acceptance_line(["x"]))
+
+
+class GatewaySuite(unittest.TestCase):
+    """The run config's ``suite`` for the Cloudflare gateway (``packages/shared-race/src/suite.ts``)."""
+
+    def test_the_designed_arena_sends_none(self) -> None:
+        self.assertIsNone(suite_mod.gateway_suite(suite_mod.load_suite(FIXTURE)))
+
+    def test_an_arena_json_sends_its_argv_env_snapshot_and_hint(self) -> None:
+        arena = make_arena()
+        with open(os.path.join(arena, "arena.json"), "w", encoding="utf-8") as fh:
+            json.dump(ARENA_JSON | {"deps": "deps/node_modules"}, fh)
+        sent = suite_mod.gateway_suite(suite_mod.load_suite(arena), 120.0)
+        self.assertEqual(sent, {
+            "argv": ["node", "--no-warnings", "--test", "test/**/*.test.ts"],
+            "files_argv": ["node", "--no-warnings", "--test"],
+            "env": {"ARENA_SUITE_PROBE": "1"}, "deps": "arena", "timeout_seconds": 120.0,
+            "test_hint": "Run `node --no-warnings --test 'test/**/*.test.ts'`."})
+
+    def test_fastify_is_sent_with_its_globs_and_snapshot(self) -> None:
+        sent = suite_mod.gateway_suite(suite_mod.load_suite(gateway_fixture.ARENA))
+        assert sent is not None
+        self.assertEqual(sent["argv"][:3], ["node", "--no-use-env-proxy", "--test"])
+        self.assertIn("test/!(listen.5).test.js", sent["argv"])
+        self.assertEqual(sent["deps"], "fastify")
+
+    def test_the_gateways_prompt_fixture_is_current(self) -> None:
+        """packages/gateway/test/fixtures/fastify-prompts.json: regenerate with ``python3 gateway_fixture.py``."""
+        with open(gateway_fixture.FIXTURE, encoding="utf-8") as fh:
+            self.assertEqual(json.load(fh), gateway_fixture.build())
+
+    def test_red_reworks_protect_only_the_restored_acceptance_tests(self) -> None:
+        from harness.arena import Task
+        from harness.policy_beanstalk_preland import preland_red
+        from harness.policy_beanstalk_v2 import informed_red
+        task = Task(id="t1", title="T", prompt="P", acceptance_tests={"test/a.test.js": "x"})
+        for text in (preland_red(task, [], "", True), informed_red(task, [], "", [], True)):
+            self.assertIn(prompts.PROTECTED_TESTS, text)
+            self.assertNotIn("change the code, not the tests.", text)
 
 
 class StandaloneFallback(unittest.TestCase):

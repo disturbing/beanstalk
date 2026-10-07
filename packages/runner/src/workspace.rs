@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use crate::check::SuiteNetwork;
 use crate::config::Config;
 use crate::error::{Error, Result};
 use crate::git::{Git, Remote, RepoCaches, TrunkCache};
@@ -20,6 +21,8 @@ pub(crate) struct Workspace {
     jobs_root: PathBuf,
     next_job: AtomicU64,
     suite_env: ChildEnv,
+    deps_dir: PathBuf,
+    suite_network: SuiteNetwork,
 }
 
 impl Workspace {
@@ -43,18 +46,32 @@ impl Workspace {
             .await
             .map_err(Error::io(format!("creating {}", jobs_root.display())))?;
         let inherited = ChildEnv::inherit();
+        let suite_env = inherited.without_prefixes(&SUITE_ENV_DROP).with("CI", "1");
+        let suite_network = SuiteNetwork::resolve(config.suite_network(), &suite_env).await;
         Ok(Self {
             git: Git::new(&inherited, config.identity()),
             caches: RepoCaches::new(root.to_path_buf()),
             jobs_root,
             next_job: AtomicU64::new(0),
-            suite_env: inherited.without_prefixes(&SUITE_ENV_DROP).with("CI", "1"),
+            suite_env,
+            deps_dir: config.deps_dir().to_path_buf(),
+            suite_network,
         })
     }
 
     /// The environment the test suite runs with.
     pub(crate) fn suite_env(&self) -> &ChildEnv {
         &self.suite_env
+    }
+
+    /// Where the image's dependency snapshots live.
+    pub(crate) fn deps_dir(&self) -> &Path {
+        &self.deps_dir
+    }
+
+    /// The network every suite on this instance gets.
+    pub(crate) fn suite_network(&self) -> SuiteNetwork {
+        self.suite_network
     }
 
     /// The bare cache of `trunk`.

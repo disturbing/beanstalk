@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { Sha } from '@beanstalk/shared-race/ids';
 import { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
+import type { RunSuite } from '@beanstalk/shared-race/suite';
 
 import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
 import { UpstreamError } from '../errors';
@@ -68,7 +69,9 @@ export type CheckCall = {
   readonly trunk: RunnerRemote;
   readonly sha: Sha;
   readonly extraFiles: Readonly<Record<string, string>> | null;
-  /** Run only these test files (the runner's `only_files`); null runs the whole suite. */
+  /** The run's suite: its argv, environment and dependency snapshot. */
+  readonly suite: RunSuite;
+  /** Run only these test files (the suite's `files_argv` plus them); null runs the whole suite. */
   readonly only?: readonly string[] | null;
   /** Also report the passing test files' read sets. */
   readonly allReadSets?: boolean;
@@ -85,10 +88,18 @@ export type UpdateRefCall = {
   readonly oldSha: Sha;
 };
 
+/** A check's result plus what the runner says about the run itself (logged, never in the engine). */
+export type RunnerCheck = CheckResult & {
+  /** The suite's network: `loopback` (a namespace with `lo` only) or `host`; null: not reported. */
+  readonly network: string | null;
+  /** Fetch, checkout, suite and emulated latency on the runner; null: not reported. */
+  readonly ciSeconds: number | null;
+};
+
 export type RunnerPort = {
   squash(instance: string, call: SquashCall): Promise<SquashOutcome>;
   revert(instance: string, call: RevertCall): Promise<RevertOutcome>;
-  check(instance: string, call: CheckCall): Promise<CheckResult>;
+  check(instance: string, call: CheckCall): Promise<RunnerCheck>;
   updateRef(instance: string, call: UpdateRefCall): Promise<{ ok: boolean; actual: Sha | null }>;
 };
 
@@ -130,7 +141,9 @@ const CheckResponse = z.object({
   stack_files: z.array(z.string()).optional(),
   output_excerpt: z.string().optional(),
   suite_seconds: z.number().min(0),
+  ci_seconds: z.number().min(0).optional(),
   timed_out: z.boolean().optional(),
+  network: z.string().max(20).optional(),
   read_maps: CheckReadMaps.optional(),
   tree: CheckedTree.optional(),
 });
@@ -200,18 +213,7 @@ export function runnerPort(
         : { result: 'conflict', files: response.files };
     },
     async check(instance, call) {
-      const body = {
-        repo: call.trunk.repo,
-        token: call.trunk.token,
-        sha: call.sha,
-        extra_files: call.extraFiles ?? {},
-        latency_seconds: 0,
-        ...(call.only === undefined || call.only === null ? {} : { only_files: call.only }),
-        ...(call.allReadSets === true ? { all_read_sets: true } : {}),
-        ...(call.trace === true ? { trace: true } : {}),
-        ...(call.treeManifest === true ? { tree_manifest: true } : {}),
-      };
-      return toCheckResult(await post(instance, '/v1/check', body, CheckResponse));
+      return toCheckResult(await post(instance, '/v1/check', checkBody(call), CheckResponse));
     },
     async updateRef(instance, call) {
       const body = {
@@ -250,8 +252,36 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {
+/**
+ * `POST /v1/check`'s body: the run's suite argv (or its files argv with the chosen files), its
+ * environment and its dependency snapshot, on every check alike.
+ */
+export function checkBody(call: CheckCall): Readonly<Record<string, unknown>> {
+  const { suite } = call;
+  const cmd =
+    call.only === undefined || call.only === null
+      ? [...suite.argv]
+      : [...suite.files_argv, ...call.only];
   return {
+    repo: call.trunk.repo,
+    token: call.trunk.token,
+    sha: call.sha,
+    extra_files: call.extraFiles ?? {},
+    latency_seconds: 0,
+    cmd,
+    ...(Object.keys(suite.env).length === 0 ? {} : { env: suite.env }),
+    ...(suite.deps === null ? {} : { deps: suite.deps }),
+    suite_timeout_seconds: suite.timeout_seconds,
+    ...(call.allReadSets === true ? { all_read_sets: true } : {}),
+    ...(call.trace === true ? { trace: true } : {}),
+    ...(call.treeManifest === true ? { tree_manifest: true } : {}),
+  };
+}
+
+function toCheckResult(response: z.infer<typeof CheckResponse>): RunnerCheck {
+  return {
+    network: response.network ?? null,
+    ciSeconds: response.ci_seconds ?? null,
     green: response.green,
     tests: response.tests,
     failures: response.failures,

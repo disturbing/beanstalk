@@ -8,7 +8,7 @@
 import type { SlotId } from '@beanstalk/shared-race/ids';
 
 import { failingTestNames } from '../ci';
-import { emit, requireTask, taskDefinition } from '../context';
+import { emit, promptDefinition, requireTask } from '../context';
 import { createInvocation } from '../invocations';
 import type { CheckResult } from '../model';
 import { rescuePrompt } from '../prompts';
@@ -58,7 +58,7 @@ export function startRescue(step: V2Step, flow: LandingFlow, slot: SlotId, work:
   task.reworks += 1;
   flow.rounds = 0;
   flow.rechecks = 0;
-  const prompt = rescuePrompt(taskDefinition(ctx, flow.task), {
+  const prompt = rescuePrompt(promptDefinition(ctx, flow.task), {
     failing: work.failing,
     inForce: decisionsInForce(state, flow.task, ''),
     amended: Object.keys(ctx.state.amendedTests[flow.task] ?? {}).toSorted(),

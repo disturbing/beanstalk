@@ -10,3 +10,6 @@ docs
 research
 .agents
 .claude
+# The real-task arenas' lockfiles: the runner image installs their dependency snapshots.
+!research/real-arena/*/deps/package.json
+!research/real-arena/*/deps/package-lock.json

@@ -1,7 +1,9 @@
-//! `POST /v1/check`: the harness's `CI.run` on one commit (checkout, extra files, `node --test`,
-//! junit parsing, read sets, stack files, emulated latency), optionally one traced process per
-//! test file for read maps ([`trace`]), or only a given set of test files.
+//! `POST /v1/check`: the harness's `CI.run` on one commit (checkout, extra files, the run's
+//! suite command, junit parsing, read sets, stack files, emulated latency), with the run's
+//! dependency snapshot linked above the checkout and a loopback-only network; optionally one
+//! traced process per test file for read maps ([`trace`]), or only a given set of test files.
 
+mod deps;
 mod discover;
 mod imports;
 mod junit;
@@ -9,6 +11,7 @@ mod paths;
 mod per_file;
 mod read_maps;
 mod report;
+mod sandbox;
 mod stack;
 mod suite;
 mod trace;
@@ -17,10 +20,12 @@ mod tree;
 use std::path::{Component, Path, PathBuf};
 use std::time::{Duration, Instant};
 
+pub(crate) use deps::DepsName;
 pub(crate) use imports::ImportDepths;
 pub(crate) use read_maps::{ReadMapsReport, TestFileMap, TraceStatus};
 pub(crate) use report::{CheckReport, FailingTest};
-pub(crate) use suite::{SuiteCommand, SuiteLimits};
+pub(crate) use sandbox::SuiteNetwork;
+pub(crate) use suite::{SuiteCommand, SuiteEnv, SuiteLimits};
 pub(crate) use trace::Tracer;
 pub(crate) use tree::TreeManifest;
 
@@ -105,6 +110,10 @@ pub(crate) struct CheckRequest {
     pub(crate) trunk: Remote,
     pub(crate) sha: CommitSha,
     pub(crate) command: SuiteCommand,
+    /// Variables set for the suite on top of the runner's (`NODE_OPTIONS`, say).
+    pub(crate) env: SuiteEnv,
+    /// The dependency snapshot linked above the checkout (`None`: no dependencies).
+    pub(crate) deps: Option<DepsName>,
     pub(crate) extra_files: Vec<ExtraFile>,
     /// Emulated CI latency: the request holds its slot this long after the suite, as `ci.py`
     /// sleeps while the slot stays busy.
@@ -158,7 +167,8 @@ pub(crate) enum ManifestMode {
 ///
 /// # Errors
 ///
-/// Unknown commits, remote and git failures, and a node that cannot start. A red, crashed or
+/// Unknown commits, remote and git failures, an unknown dependency snapshot, a required
+/// loopback network the kernel cannot give, and a node that cannot start. A red, crashed or
 /// timed-out suite is a report, not an error.
 pub(crate) async fn check(
     workspace: &Workspace,
@@ -166,6 +176,15 @@ pub(crate) async fn check(
     tracer: &Tracer,
 ) -> Result<CheckReport> {
     let started = Instant::now();
+    if workspace.suite_network() == SuiteNetwork::Unavailable {
+        return Err(Error::Config(
+            "SUITE_NETWORK=loopback, but this instance cannot make a network namespace".to_owned(),
+        ));
+    }
+    let node_modules = match &request.deps {
+        Some(name) => Some(deps::node_modules(workspace.deps_dir(), name).await?),
+        None => None,
+    };
     let cache = workspace.open_trunk(&request.trunk).await?;
     cache.ensure_commits(&[&request.sha]).await?;
     let job = workspace.new_job().await?;
@@ -178,6 +197,9 @@ pub(crate) async fn check(
         .checkout(&request.sha, &job.path().join("index"), &checkout)
         .await?;
     write_extra_files(&checkout, &request.extra_files).await?;
+    if let Some(node_modules) = &node_modules {
+        deps::link_above(job.path(), node_modules).await?;
+    }
     let wants_manifest =
         request.manifest == ManifestMode::Include || request.trace == TraceMode::PerFile;
     let manifest = if wants_manifest {
@@ -205,6 +227,7 @@ pub(crate) async fn check(
     report.tree = manifest;
     tokio::time::sleep(request.latency).await;
     report.ci_seconds = started.elapsed().as_secs_f64();
+    report.network = workspace.suite_network();
     job.remove().await;
     Ok(report)
 }
@@ -238,6 +261,8 @@ async fn run_untraced(context: &RunContext<'_>) -> Result<CheckReport> {
         checkout: context.checkout,
         junit: &junit,
         env: context.workspace.suite_env(),
+        extra_env: &request.env,
+        network: context.workspace.suite_network(),
         trace_into: None,
     };
     let run = suite::run_suite(&plan).await?;
@@ -280,6 +305,8 @@ async fn run_traced(
         checkout_real: checkout_real.clone(),
         job_dir: context.job.path().to_path_buf(),
         env: context.workspace.suite_env().clone(),
+        extra_env: request.env.clone(),
+        network: context.workspace.suite_network(),
         concurrency: std::thread::available_parallelism().map_or(1, usize::from),
     };
     let started = Instant::now();

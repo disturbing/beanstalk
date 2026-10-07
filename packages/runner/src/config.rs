@@ -10,6 +10,7 @@ const DEFAULT_WORK_DIR: &str = "/work";
 const DEFAULT_REMOTE_SCHEMES: &str = "https";
 const DEFAULT_COMMIT_NAME: &str = "beanstalk-runner";
 const DEFAULT_COMMIT_EMAIL: &str = "runner@beanstalk.invalid";
+const DEFAULT_DEPS_DIR: &str = "/opt/arena-deps";
 
 /// Runtime configuration of the runner.
 ///
@@ -19,6 +20,8 @@ const DEFAULT_COMMIT_EMAIL: &str = "runner@beanstalk.invalid";
 /// | `WORK_DIR` | `/work` | bare-repo caches and per-request scratch directories |
 /// | `REMOTE_SCHEMES` | `https` | comma-separated URL schemes a request may name (`https`, `file`) |
 /// | `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `beanstalk-runner`, `runner@beanstalk.invalid` | identity on squash and revert commits |
+/// | `DEPS_DIR` | `/opt/arena-deps` | dependency snapshots a check may name (`<name>/node_modules`) |
+/// | `SUITE_NETWORK` | `auto` | the suite's network: `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
 /// | `CLOUDFLARE_DEPLOYMENT_ID` | unset | logged at startup |
 /// | `BEANSTALK_GIT_SHA` | unset | the commit the image was built from (set by the Dockerfile's `GIT_SHA` build arg), reported by `/version` |
 #[derive(Debug, Clone)]
@@ -27,6 +30,8 @@ pub struct Config {
     work_dir: PathBuf,
     remote_schemes: RemoteSchemes,
     identity: CommitIdentity,
+    deps_dir: PathBuf,
+    suite_network: NetworkPolicy,
     deployment_id: Option<String>,
     git_sha: Option<String>,
 }
@@ -56,21 +61,46 @@ impl Config {
         );
         let identity =
             CommitIdentity::parse(lookup("COMMIT_AUTHOR_NAME"), lookup("COMMIT_AUTHOR_EMAIL"));
-        match (port, work_dir, remote_schemes, identity) {
-            (Ok(port), Ok(work_dir), Ok(remote_schemes), Ok(identity)) => Ok(Self {
+        let deps_dir = parse_deps_dir(lookup("DEPS_DIR"));
+        let suite_network =
+            NetworkPolicy::parse(lookup("SUITE_NETWORK").as_deref().unwrap_or("auto"));
+        match (
+            port,
+            work_dir,
+            remote_schemes,
+            identity,
+            deps_dir,
+            suite_network,
+        ) {
+            (
+                Ok(port),
+                Ok(work_dir),
+                Ok(remote_schemes),
+                Ok(identity),
+                Ok(deps_dir),
+                Ok(suite_network),
+            ) => Ok(Self {
                 port,
                 work_dir,
                 remote_schemes,
                 identity,
+                deps_dir,
+                suite_network,
                 deployment_id: lookup("CLOUDFLARE_DEPLOYMENT_ID"),
                 git_sha: lookup("BEANSTALK_GIT_SHA").filter(|sha| !sha.trim().is_empty()),
             }),
-            (port, work_dir, schemes, identity) => {
-                let problems: Vec<String> =
-                    [port.err(), work_dir.err(), schemes.err(), identity.err()]
-                        .into_iter()
-                        .flatten()
-                        .collect();
+            (port, work_dir, schemes, identity, deps_dir, suite_network) => {
+                let problems: Vec<String> = [
+                    port.err(),
+                    work_dir.err(),
+                    schemes.err(),
+                    identity.err(),
+                    deps_dir.err(),
+                    suite_network.err(),
+                ]
+                .into_iter()
+                .flatten()
+                .collect();
                 Err(Error::Config(problems.join("; ")))
             }
         }
@@ -90,6 +120,15 @@ impl Config {
 
     pub fn identity(&self) -> &CommitIdentity {
         &self.identity
+    }
+
+    /// Where dependency snapshots live: `<deps_dir>/<name>/node_modules`.
+    pub fn deps_dir(&self) -> &Path {
+        &self.deps_dir
+    }
+
+    pub fn suite_network(&self) -> NetworkPolicy {
+        self.suite_network
     }
 
     pub fn deployment_id(&self) -> Option<&str> {
@@ -113,14 +152,53 @@ fn parse_port(raw: Option<String>) -> Result<u16, String> {
 }
 
 fn parse_work_dir(raw: Option<String>) -> Result<PathBuf, String> {
-    let path = PathBuf::from(raw.unwrap_or_else(|| DEFAULT_WORK_DIR.to_owned()));
+    absolute_dir(
+        "WORK_DIR",
+        raw.unwrap_or_else(|| DEFAULT_WORK_DIR.to_owned()),
+    )
+}
+
+fn parse_deps_dir(raw: Option<String>) -> Result<PathBuf, String> {
+    absolute_dir(
+        "DEPS_DIR",
+        raw.unwrap_or_else(|| DEFAULT_DEPS_DIR.to_owned()),
+    )
+}
+
+fn absolute_dir(name: &str, raw: String) -> Result<PathBuf, String> {
+    let path = PathBuf::from(raw);
     if path.is_absolute() {
         Ok(path)
     } else {
         Err(format!(
-            "WORK_DIR must be an absolute path, got {}",
+            "{name} must be an absolute path, got {}",
             path.display()
         ))
+    }
+}
+
+/// `SUITE_NETWORK`: the network the operator asks for the test suite.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum NetworkPolicy {
+    /// Loopback when the kernel allows a network namespace, else the host's network (logged).
+    Auto,
+    /// Loopback or no suite at all: checks are refused when the namespace cannot be made.
+    Loopback,
+    /// The host's network (local development).
+    Host,
+}
+
+impl NetworkPolicy {
+    fn parse(raw: &str) -> Result<Self, String> {
+        match raw.trim() {
+            "auto" => Ok(Self::Auto),
+            "loopback" => Ok(Self::Loopback),
+            "host" => Ok(Self::Host),
+            other => Err(format!(
+                "SUITE_NETWORK must be auto, loopback or host, got {other:?}"
+            )),
+        }
     }
 }
 
@@ -242,6 +320,8 @@ mod tests {
         assert!(config.remote_schemes().allows("https"));
         assert!(!config.remote_schemes().allows("file"));
         assert_eq!(config.identity().name(), "beanstalk-runner");
+        assert_eq!(config.deps_dir(), Path::new("/opt/arena-deps"));
+        assert_eq!(config.suite_network(), NetworkPolicy::Auto);
     }
 
     #[test]
@@ -253,8 +333,13 @@ mod tests {
             ("COMMIT_AUTHOR_NAME", "race-harness"),
             ("COMMIT_AUTHOR_EMAIL", "race@beanstalk.invalid"),
             ("CLOUDFLARE_DEPLOYMENT_ID", "dep-1"),
+            ("DEPS_DIR", "/deps"),
+            ("SUITE_NETWORK", "loopback"),
         ])
         .unwrap();
+
+        assert_eq!(config.deps_dir(), Path::new("/deps"));
+        assert_eq!(config.suite_network(), NetworkPolicy::Loopback);
 
         assert_eq!(config.port(), 9090);
         assert_eq!(config.work_dir(), Path::new("/tmp/work"));
@@ -269,9 +354,14 @@ mod tests {
             ("PORT", "eighty"),
             ("WORK_DIR", "relative/dir"),
             ("REMOTE_SCHEMES", "http"),
+            ("DEPS_DIR", "deps"),
+            ("SUITE_NETWORK", "none"),
         ])
         .unwrap_err()
         .to_string();
+
+        assert!(error.contains("DEPS_DIR"), "{error}");
+        assert!(error.contains("SUITE_NETWORK"), "{error}");
 
         assert!(error.contains("PORT"), "{error}");
         assert!(error.contains("WORK_DIR"), "{error}");

@@ -1127,6 +1127,7 @@ export class RunDO extends DurableObject<Env> {
       tokens: this.#tokens,
       log: this.#log.with({ run: loaded.stored.meta.run, job: id }),
       repos: () => this.#requireLoaded().stored.repos,
+      suite: loaded.env.config.suite,
       readMaps: loaded.stored.config.read_maps,
     });
     this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome: this.#keepMaps(outcome) });

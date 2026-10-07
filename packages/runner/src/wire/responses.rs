@@ -6,7 +6,8 @@ use std::collections::BTreeMap;
 use serde::Serialize;
 
 use crate::check::{
-    CheckReport, FailingTest, ImportDepths, ReadMapsReport, TestFileMap, TraceStatus, TreeManifest,
+    CheckReport, FailingTest, ImportDepths, ReadMapsReport, SuiteNetwork, TestFileMap, TraceStatus,
+    TreeManifest,
 };
 use crate::git::{CommitSha, RefUpdateOutcome};
 use crate::integrate::{Composition, Landing, Squashed};
@@ -196,6 +197,8 @@ pub(crate) struct CheckResponse {
     suite_seconds: f64,
     ci_seconds: f64,
     timed_out: bool,
+    /// The suite's network: `loopback` (a namespace with `lo` only) or `host`.
+    network: SuiteNetwork,
     /// Present when the check was asked to trace.
     #[serde(skip_serializing_if = "Option::is_none")]
     read_maps: Option<ReadMapsBody>,
@@ -308,6 +311,7 @@ impl From<CheckReport> for CheckResponse {
             suite_seconds: report.suite_seconds,
             ci_seconds: report.ci_seconds,
             timed_out: report.timed_out,
+            network: report.network,
             read_maps: report.read_maps.map(Into::into),
             tree: report.tree.map(Into::into),
         }
@@ -319,6 +323,8 @@ pub(crate) struct HealthResponse {
     pub(crate) ok: bool,
     pub(crate) git: Option<String>,
     pub(crate) node: Option<String>,
+    /// The network suites get on this instance.
+    pub(crate) network: SuiteNetwork,
     /// Whether traced checks can trace here (they run untraced otherwise).
     pub(crate) tracing: bool,
 }

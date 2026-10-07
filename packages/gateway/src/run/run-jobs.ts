@@ -6,6 +6,7 @@
  * instance); none is ever logged.
  */
 import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunSuite } from '@beanstalk/shared-race/suite';
 import type { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type {
@@ -61,6 +62,8 @@ export type JobContext = {
   readonly tokens: TokenSource;
   readonly log: Logger;
   readonly repos: () => RunRepos;
+  /** The run's test suite (`RunConfig.suite`), sent with every check. */
+  readonly suite: RunSuite;
   /** Which checks trace (the run's `read_maps`); absent: none. */
   readonly readMaps?: RunConfig['read_maps'];
 };
@@ -158,13 +161,26 @@ async function check(
   spec: Extract<JobSpec, { kind: 'check' }>,
   context: JobContext,
 ): Promise<JobResult> {
-  const result = await context.runner.check(checkInstance(context.run, spec.instance), {
-    trunk: await runRepo(context, 'read'),
+  const { network, ciSeconds, ...result } = await context.runner.check(
+    checkInstance(context.run, spec.instance),
+    {
+      trunk: await runRepo(context, 'read'),
+      sha: spec.sha,
+      extraFiles: spec.extraFiles,
+      suite: context.suite,
+      only: spec.only ?? null,
+      allReadSets: spec.allReadSets === true,
+      ...readMapOptions(spec, context.readMaps ?? 'off'),
+    },
+  );
+  context.log.info('suite checked', {
     sha: spec.sha,
-    extraFiles: spec.extraFiles,
-    only: spec.only ?? null,
-    allReadSets: spec.allReadSets === true,
-    ...readMapOptions(spec, context.readMaps ?? 'off'),
+    green: result.green,
+    tests: result.tests,
+    suite_seconds: result.suiteSeconds,
+    ci_seconds: ciSeconds,
+    network,
+    deps: context.suite.deps,
   });
   return { kind: 'check', check: result };
 }

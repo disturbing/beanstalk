@@ -6,6 +6,13 @@ from .arena import Task
 NO_COMMIT = "Don't stage or commit; the harness commits your changes."
 TEST_HINT = "Run `node --test`."      # a real-task arena's arena.json sets these (suite.activate)
 SUITE_COMMAND = "node --test"
+# What the beanstalk policies' red reworks say about protected tests: only the acceptance tests the landing
+# restores (the task's own and those of landed changes); an existing test whose expectations the task intentionally
+# alters may still be updated, as a real-task arena's task_note allows. The gateway's PROTECTED_TESTS is the same.
+PROTECTED_TESTS = ("Acceptance tests (yours and those of changes that already landed) are protected: edits to them "
+                   "are discarded before landing, so make them pass by changing the code, not those tests. Other "
+                   "existing tests are not protected: you may update one whose expectations your change "
+                   "intentionally alters.")
 
 
 def acceptance_line(paths: list[str]) -> str:

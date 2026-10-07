@@ -23,7 +23,7 @@ import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
 
 import { failingTestNames } from '../ci';
 import type { ReworkOutcome } from '../context';
-import { acceptanceTests, emit, requireTask, startJob, taskDefinition } from '../context';
+import { acceptanceTests, emit, promptDefinition, requireTask, startJob } from '../context';
 import { createInvocation } from '../invocations';
 import type { CheckResult, JobResult } from '../model';
 import { reconcilePrompt } from '../prompts';
@@ -70,8 +70,8 @@ export function startReconcile(
     ...(work.retry === true ? { retry: true } : {}),
   };
   const prompt = reconcilePrompt(
-    taskDefinition(ctx, flow.task),
-    parties.map((party) => taskDefinition(ctx, party)),
+    promptDefinition(ctx, flow.task),
+    parties.map((party) => promptDefinition(ctx, party)),
     {
       failing: failingTestNames(work.red),
       output: work.red.output,

@@ -87,7 +87,8 @@ curl -s -H "$A" $GW/v1/runs/$RUN/summary > summary.json   # infra cost under "in
 - E6's remaining rules, also on by default: `start_cards`, `rescue` and `dynamic_culprits` (see [Start cards, rescue and dynamic culprits](#start-cards-rescue-and-dynamic-culprits-e6));
 - the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section);
 - `live_sync`: `off` (the default), `overlap` or `all` (live sprout sync, same section);
-- `live_sync_midrun`: `false` (the default) or `true` (mid-run sync, same section).
+- `live_sync_midrun`: `false` (the default) or `true` (mid-run sync, same section);
+- `suite` (`@beanstalk/shared-race/suite`): the test suite of a real-task arena. `argv` (the whole suite: `node`, its options, `--test`, the globs), `files_argv` (chosen files are appended: confirm runs, targeted checks, leave-one-out probes), `env`, `deps` (the runner image's dependency snapshot, `/opt/arena-deps/<name>`), `timeout_seconds` and `test_hint` (the sentence every prompt's acceptance line and `live_sync` prompt give; test-author and reconcile prompts name `files_argv`). Every check the run makes sends it: pre-land, validation, re-checks, confirm runs, targeted checks and the final check. The driver (`remote.py`) sends the arena's `arena.json` suite (`harness/suite.py`, `gateway_suite`) and nothing for the designed arena, whose bare `node --test` is the default. Argv and environment are validated here (node only, `--test` required, no shell, no runner-owned variables) and again by the runner. A fastify task's prompts are byte for byte the harness's, so the GitHub arm's (`prompts.test.ts` against `test/fixtures/fastify-prompts.json`, which `research/race/gateway_fixture.py` writes and the Python tests keep current).
 
 ## Spend guards
 

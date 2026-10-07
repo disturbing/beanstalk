@@ -86,14 +86,19 @@ impl World {
 
     async fn with_schemes(schemes: &str) -> Self {
         let root = tempfile::tempdir().expect("temp dir");
-        let router = runner_router(&root.path().join("work"), schemes).await;
+        let router = runner_router(root.path(), "work", schemes).await;
         Self { root, router }
+    }
+
+    /// The runner's `DEPS_DIR`: dependency snapshots a check may name.
+    pub fn deps_dir(&self) -> PathBuf {
+        self.root.path().join("deps")
     }
 
     /// Another runner instance (its own `WORK_DIR`) over the same remotes, like a second
     /// container in the pool.
     pub async fn second_runner(&self) -> Router {
-        runner_router(&self.root.path().join("work-2"), "https,file").await
+        runner_router(self.root.path(), "work-2", "https,file").await
     }
 
     /// A new, empty bare repository.
@@ -149,11 +154,13 @@ impl World {
     }
 }
 
-async fn runner_router(work_dir: &Path, schemes: &str) -> Router {
-    let work_dir = work_dir.to_string_lossy().into_owned();
+async fn runner_router(root: &Path, work: &str, schemes: &str) -> Router {
+    let work_dir = root.join(work).to_string_lossy().into_owned();
+    let deps_dir = root.join("deps").to_string_lossy().into_owned();
     let schemes = schemes.to_owned();
     let config = Config::from_lookup(|name| match name {
         "WORK_DIR" => Some(work_dir.clone()),
+        "DEPS_DIR" => Some(deps_dir.clone()),
         "REMOTE_SCHEMES" => Some(schemes.clone()),
         "BEANSTALK_GIT_SHA" => Some(IMAGE_GIT_SHA.to_owned()),
         _ => None,

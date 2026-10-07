@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
+import { TaskId } from '@beanstalk/shared-race/ids';
+import { RunConfig } from '@beanstalk/shared-race/run-config';
+import { DEFAULT_SUITE, RunSuite, suiteCommand } from '@beanstalk/shared-race/suite';
+
+import fastify from '../../test/fixtures/fastify-prompts.json';
 import {
   fixerPrompt,
   informedConflictPrompt,
+  informedRedPrompt,
   initialPrompt,
   prelandRedPrompt,
   reworkConflictPrompt,
   reworkRedPrompt,
+  syncPrompt,
+  testAuthorPrompt,
 } from './prompts';
 
 // Expected strings were produced by research/race/harness/prompts.py (and preland_red) for
@@ -16,6 +24,7 @@ const task = {
   title: 'Paged lists should report the total number of results',
   prompt: '  API clients cannot tell how many pages there are.\nUse `x-total-count`.  \n',
   acceptance_tests: { 'src/lib/pagination.test.ts': 'x', 'src/catalog/total-count.test.ts': 'y' },
+  suite: DEFAULT_SUITE,
 };
 
 const ACCEPTANCE =
@@ -134,7 +143,7 @@ describe('prompts (ported verbatim from prompts.py)', () => {
             diff: '+x\n',
           },
         ],
-        ['src/a.test.ts'],
+        { acceptance: ['src/a.test.ts'], suite: DEFAULT_SUITE },
       ),
     ).toBe(
       'The fast trunk is red. Repair ticket R001 (attempt 2).\n\nFailing tests:\n- src/a.test.ts > adds\n\n' +
@@ -143,7 +152,12 @@ describe('prompts (ported verbatim from prompts.py)', () => {
         '(marked):\n- 0123456789 t002: Paged\n  Intent: do it\n  Diff:\n```diff\n+x\n```\n\n' +
         `${rules} (src/a.test.ts). Don't stage or commit; the harness commits your changes.\n`,
     );
-    expect(fixerPrompt({ id: 'R002', attempt: 1, failingTests: [], output: '' }, [], [])).toBe(
+    expect(
+      fixerPrompt({ id: 'R002', attempt: 1, failingTests: [], output: '' }, [], {
+        acceptance: [],
+        suite: DEFAULT_SUITE,
+      }),
+    ).toBe(
       'The fast trunk is red. Repair ticket R002 (attempt 1).\n\nFailing tests:\n- (see output)\n\n' +
         'Output:\n```\n\n```\n\nNo suspect could be isolated; the failure appeared between the last green ' +
         `commit and the head.\n\n${rules} (test files named in the tickets). Don't stage or commit; the ` +
@@ -155,10 +169,88 @@ describe('prompts (ported verbatim from prompts.py)', () => {
     expect(prelandRedPrompt(task, ['src/a.test.ts > adds'], 'out', false)).toBe(
       `${HEAD}Your change was not landed. Merged onto the latest trunk, these tests failed:\n` +
         '- src/a.test.ts > adds\n\nOutput:\n```\nout\n```\n\nThe latest trunk has been merged into this ' +
-        "worktree. Fix your change so the whole suite passes. Acceptance tests (yours and other teams') are " +
-        'protected: edits to them are discarded before landing, so change the code, not the tests. Other ' +
+        'worktree. Fix your change so the whole suite passes. Acceptance tests (yours and those of ' +
+        'changes that already landed) are protected: edits to them are discarded before landing, so make ' +
+        'them pass by changing the code, not those tests. Other existing tests are not protected: you may ' +
+        'update one whose expectations your change intentionally alters. Other ' +
         "teams' acceptance tests describe behaviour that must keep working. " +
         ACCEPTANCE,
+    );
+  });
+
+  it('keeps the protection to the restored acceptance tests in the informed red prompt', () => {
+    const prompt = informedRedPrompt(task, ['src/a.test.ts > adds'], 'out', [], true);
+
+    expect(prompt).toContain('Acceptance tests (yours and those of changes that already landed)');
+    expect(prompt).toContain('edits to them are discarded before landing');
+    expect(prompt).toContain(
+      'you may update one whose expectations your change intentionally alters',
+    );
+    expect(prompt).not.toContain('change the code, not the tests.');
+  });
+});
+
+/**
+ * A real-task arena: the run's suite as `remote.py` sends it, and prompts the harness rendered
+ * for three fastify tasks with that suite active (`research/race/gateway_fixture.py`, which the
+ * Python tests keep current). The GitHub arm sends the harness's prompts, so these are what
+ * make the two arms' agents read the same words.
+ */
+describe('fastify prompts (byte-identical to the harness and the GitHub arm)', () => {
+  const suite = RunSuite.parse(fastify.suite);
+  const tasks = fastify.tasks.map((definition) => ({ ...definition, suite }));
+
+  it('takes the suite remote.py sends, as a run config field', () => {
+    const config = RunConfig.parse({
+      policy: 'beanstalk-v2',
+      suite: fastify.suite,
+      tasks: fastify.tasks,
+    });
+
+    expect(config.suite).toEqual(suite);
+    expect(suite.deps).toBe('fastify');
+    expect(suiteCommand(suite)).toBe(fastify.suite_command);
+  });
+
+  it.each(tasks.map((task) => [task.id, task] as const))(
+    'renders %s as the harness does',
+    (id, task) => {
+      const expected = fastify.prompts[id as keyof typeof fastify.prompts];
+      const { failing, output } = fastify;
+
+      expect(initialPrompt(task)).toBe(expected.initial);
+      expect(reworkConflictPrompt(task, ['lib/route.js'], 'main', false)).toBe(
+        expected.rework_conflict,
+      );
+      expect(reworkRedPrompt(task, failing, output, 'main', true)).toBe(expected.rework_red);
+      expect(prelandRedPrompt(task, failing, output, false)).toBe(expected.preland_red);
+    },
+  );
+
+  it('gives the test hint and the files command in beanstalk-only prompts too', () => {
+    const [task] = tasks;
+    if (task === undefined) throw new Error('fixture has no tasks');
+    const sync = syncPrompt(
+      task,
+      [{ task: 't002', title: 'Other', files: ['lib/route.js'] }],
+      true,
+    );
+    const author = testAuthorPrompt(
+      { ...task, id: TaskId.parse('t001') },
+      { card: 'C1', text: 'decided' },
+      {
+        winner: { task: 't002', title: 'Other', intent: 'x', diff: '+x' },
+        failing: [],
+        output: '',
+        inForce: [],
+        inPlace: true,
+      },
+    );
+
+    expect(sync).toContain(`(no conflicts). ${suite.test_hint} If the merged changes`);
+    expect(sync).not.toContain('Run `node --test`.');
+    expect(author).toContain(
+      '`node --no-use-env-proxy --test test/route.6.pr6372.test.js test/route.7.pr6372.test.js`',
     );
   });
 });

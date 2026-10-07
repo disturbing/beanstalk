@@ -7,6 +7,7 @@ use super::imports::{self, ImportDepths};
 use super::junit::{self, JunitSummary};
 use super::paths;
 use super::read_maps::ReadMapsReport;
+use super::sandbox::SuiteNetwork;
 use super::stack;
 use super::suite::SuiteRun;
 use super::tree::TreeManifest;
@@ -48,6 +49,8 @@ pub(crate) struct CheckReport {
     /// Checkout, suite and emulated latency; set by the caller once the latency has passed.
     pub(crate) ci_seconds: f64,
     pub(crate) timed_out: bool,
+    /// The suite's network; set by the caller, which knows the instance's.
+    pub(crate) network: SuiteNetwork,
     /// Per test file read maps, when the check was traced (or asked to be and could not).
     pub(crate) read_maps: Option<ReadMapsReport>,
     /// The checked tree's blob ids, when traced or asked for.
@@ -98,6 +101,7 @@ pub(crate) fn assess_summary(
         suite_seconds: run.seconds,
         ci_seconds: run.seconds,
         timed_out: run.timed_out,
+        network: SuiteNetwork::Host,
         read_maps: None,
         tree: None,
     };

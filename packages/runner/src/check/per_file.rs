@@ -10,7 +10,8 @@ use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 
 use super::junit::{self, JunitFailure, JunitSummary};
-use super::suite::{self, SuiteCommand, SuiteLimits, SuitePlan, SuiteRun};
+use super::sandbox::SuiteNetwork;
+use super::suite::{self, SuiteCommand, SuiteEnv, SuiteLimits, SuitePlan, SuiteRun};
 use super::trace::{self, CheckoutRoots, RepoAccesses};
 use crate::error::{Error, Result};
 use crate::process::ChildEnv;
@@ -30,6 +31,9 @@ pub(crate) struct FilePlan {
     pub(crate) checkout_real: PathBuf,
     pub(crate) job_dir: PathBuf,
     pub(crate) env: ChildEnv,
+    /// The request's own variables, set on top of `env`.
+    pub(crate) extra_env: SuiteEnv,
+    pub(crate) network: SuiteNetwork,
     /// Files run at once.
     pub(crate) concurrency: usize,
 }
@@ -112,6 +116,8 @@ async fn run_one(
         checkout: &plan.checkout,
         junit: &junit,
         env: &plan.env,
+        extra_env: &plan.extra_env,
+        network: plan.network,
         trace_into: Some(&log_dir),
     };
     let run = suite::run_suite(&suite_plan).await?;

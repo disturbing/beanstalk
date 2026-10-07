@@ -798,6 +798,12 @@ class RemoteRace(Race):
                        "oracle_modules": t.task.oracle_modules, "kind": t.task.kind,
                        "difficulty": t.task.difficulty, "couplings": t.task.couplings} for t in self.tasks],
         }
+        # a real-task arena's suite: every check runs it, every prompt gives its hint (the designed arena: omitted)
+        from . import suite as suite_mod
+        active = getattr(self, "suite", None) or suite_mod.SuiteConfig()
+        gateway_suite = suite_mod.gateway_suite(active, cfg.suite_timeout)
+        if gateway_suite is not None:
+            body["suite"] = gateway_suite
         if self.policy == "queue":
             body.update(error_budget=cfg.error_budget, protect_tests=cfg.protect_tests)
         else:  # v2 implies --snapshot head --error-budget 999 --protect-tests landed (race.py checks the flags)
