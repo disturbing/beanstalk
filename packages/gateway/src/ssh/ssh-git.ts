@@ -7,7 +7,7 @@
  */
 import type { GitCredential } from '../auth/git-credential';
 import type { SshKeyOwner, SshKeyStore } from '../auth/ssh-keys';
-import { parsePublicKey, sshFingerprint, sshGitScopes } from '../auth/ssh-keys';
+import { sshGitScopes } from '../auth/ssh-keys';
 import type { Deps } from '../deps';
 import { parseGitPath } from '../git/git-path';
 import { repoGit } from '../push/push-proxy';
@@ -27,7 +27,7 @@ export async function lookupSshKey(
   const found = await ownerOf(input.publicKey, keys);
   if (found === null) return null;
   if (input.confirm) {
-    await keys.touchKey(found.owner.key.id).catch((error: unknown) => {
+    await keys.touchKey(found.owner.key).catch((error: unknown) => {
       deps.log.warn('ssh key touch failed', { fingerprint: found.fingerprint, error });
     });
     deps.log.info('ssh key used', {
@@ -68,11 +68,8 @@ async function ownerOf(
   publicKey: string,
   keys: SshKeyStore,
 ): Promise<{ owner: SshKeyOwner; fingerprint: string } | null> {
-  const key = parsePublicKey(publicKey);
-  if (key === null) return null;
-  const fingerprint = await sshFingerprint(key);
-  const owner = await keys.findUserByKey(fingerprint);
-  return owner === null ? null : { owner, fingerprint };
+  const owner = await keys.findUserByKey(publicKey);
+  return owner === null ? null : { owner, fingerprint: owner.key.fingerprint };
 }
 
 function text(status: number, message: string): Response {

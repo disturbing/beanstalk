@@ -37,10 +37,6 @@ export default defineConfig({
           LOG_LEVEL: 'error',
           TEST_MIGRATIONS: identityMigrations,
           FORGE_MIGRATIONS: registryMigrations,
-          // Git over SSH (test/ssh-git.test.ts): one throwaway public key registered to @acme.
-          SSH_STAGING_KEYS: JSON.stringify({
-            'SHA256:O+CEc3U9EWkmw9BOf2FM3jRlkKVlSI65II9p6TrH2rI': { id: 'u-acme', handle: 'acme' },
-          }),
         },
         serviceBindings: {
           ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' },

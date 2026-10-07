@@ -12,10 +12,8 @@
     "RUN_TOKEN_TTL_SECONDS": "3600",
     // §3: per-job Artifacts tokens live at most 10 minutes.
     "ARTIFACTS_TOKEN_TTL_SECONDS": "600",
-    // Git over SSH (docs/claude-opus/21-git-over-ssh.md): keys a test or staging stack accepts
-    // before accounts can register keys, as JSON { "SHA256:<fingerprint>": { "id", "handle" } }.
-    // Always empty in production: people's keys come from the accounts store.
-    "SSH_STAGING_KEYS": "",
+    // The web app, named in the hint a request without a usable credential gets.
+    "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
   },
   // ADMIN_TOKEN guards the admin API; RUN_TOKEN_SECRET signs slot, seed and view tokens.
   // Locally they come from .dev.vars (see .dev.vars.example); remotely from `wrangler secret put`.

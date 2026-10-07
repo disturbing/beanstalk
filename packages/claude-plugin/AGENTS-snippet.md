@@ -1,7 +1,9 @@
 <!-- Paste into your repo's AGENTS.md (Codex, Cursor, Copilot, Gemini CLI). Items marked COMING are not live on the server yet. -->
 ## Working on this Beanstalk repository
 
-Git is the interface; the Beanstalk MCP server is optional context. The remote is a Beanstalk gateway (`https://<gateway>/git/<owner>/<repo>.git`); the only client setup is a credential (token in the URL or git credential helper). Never print or commit it.
+Git is the interface; the Beanstalk MCP server is optional context. The remote is a Beanstalk gateway (`https://<gateway>/git/<owner>/<repo>.git`).
+
+Connecting git (once per machine; do it when git says `Authentication failed`, `terminal prompts disabled` or `remote: Beanstalk: this git is not connected`): run `curl -fsSL <web>/setup.sh | sh -s -- detect` (Windows: download `<web>/setup.ps1` and run it with `detect`). Ask the person ONE question listing the `option` lines (1Password key first, then ssh-agent keys, key files, "generate a new key"). Then run the same script with `generate` if they chose that, `register --key <file.pub>` or `register --agent-key <fingerprint> --agent "<socket>"` (allow it 10 minutes: the person approves in the browser, or enters the printed code on another device), then `remote <owner>/<repo>` and `verify <owner>/<repo>`. Only public keys are sent. Never ask for a password or token in the chat, never put one in a URL, never print `~/.git-credentials`. CI uses a deploy token in `BEANSTALK_TOKEN` (the repository page, tab "Env vars").
 
 Terms: a **bean** = one small change on branch `bean/<short-name>`. **Sprout** = latest integrated state; build on it. **Stalk** = validated line. Never push to `sprout`, `stalk` or `main` (refused).
 
@@ -16,4 +18,4 @@ Rules: one intent per bean, keep beans small. Acceptance tests (yours and landed
 
 Optional MCP (`beanstalk` server, OAuth): before starting (`ask_repo`; `work_overlaps(paths)` shows who is editing the same files now), on a red needing more context (`checks_get`), for decision cards and bean-to-bean conversation (`bean_context`, `bean_thread_post`, `bean_inbox_read`). Not needed for the normal clone, branch, commit, push cycle.
 
-COMING: git-native intake (pushing `bean/<name>`, push options, `remote:` verdicts, status refs), MCP OAuth, task claim and `bean_open` tools. Today beans are `beans/<task>` branches pushed by a driver and verdicts come through MCP `change_status` / `checks_get`.
+COMING: git over SSH (setup then switches the remote to `ssh://git@<ssh host>/<owner>/<repo>.git`), task claim and `bean_open` tools.

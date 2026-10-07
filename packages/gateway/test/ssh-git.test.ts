@@ -1,12 +1,16 @@
+import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+
+import { addSshKey, removeSshKey } from '@beanstalk/shared-identity/ssh-keys';
+import { insertUser } from '@beanstalk/shared-identity/users';
 
 import { ADMIN, call, json, pkt, sha } from './helpers';
 
 /**
  * Git over SSH, the gateway's half: the `beanstalk-ssh` Worker calls these two RPC methods with
- * the client's public key once the SSH server has checked its signature. The test stack's
- * `SSH_STAGING_KEYS` (vitest.config.ts) registers ACME_KEY to @acme; OTHER_KEY is nobody's.
+ * the client's public key once the SSH server has checked its signature. ACME_KEY is registered
+ * to @acme in the accounts store (as Settings → SSH keys does); OTHER_KEY is nobody's.
  */
 const gateway = exports.default;
 
@@ -18,6 +22,13 @@ const OTHER_KEY =
   'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGi6Zk1I7+Ej4DwhyafmTEha4T4GOsMQpqv8GnrSnyAx';
 const ZERO = '0'.repeat(40);
 const INTERNAL = 'http://gateway.internal';
+const ACME = { id: 'u-acme-ssh', handle: 'acme' };
+
+beforeAll(async () => {
+  await insertUser(env, { ...ACME, email: null }, Date.now()).run();
+  const added = await addSshKey(env, { userId: ACME.id, publicKey: ACME_KEY, name: 'laptop', ip: null });
+  expect(added.ok).toBe(true);
+});
 
 async function openRepo(repo: string, owner = 'acme'): Promise<string> {
   const response = await call('POST', '/v1/repos', {
@@ -84,6 +95,15 @@ describe('git over SSH: keys', () => {
       fingerprint: ACME_FINGERPRINT,
     });
     expect(await gateway.sshKeyLookup(ACME_KEY, true)).toMatchObject({ handle: 'acme' });
+  });
+
+  it('forgets a key its owner removed', async () => {
+    const user = { id: 'u-gone', handle: 'gone' };
+    await insertUser(env, { ...user, email: null }, Date.now()).run();
+    const added = await addSshKey(env, { userId: user.id, publicKey: OTHER_KEY, name: 'old', ip: null });
+    expect(await gateway.sshKeyLookup(OTHER_KEY, false)).toMatchObject({ handle: 'gone' });
+    if (added.ok) await removeSshKey(env, { userId: user.id, keyId: added.key.id, ip: null });
+    expect(await gateway.sshKeyLookup(OTHER_KEY, false)).toBeNull();
   });
 
   it('knows nothing of an unregistered key or a line that is no key', async () => {

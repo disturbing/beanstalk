@@ -5,7 +5,7 @@ outbound handler) and the real gateway Worker and engine, all under ``wrangler d
 The gateway runs on the git-native local stack (``local_e2e.py``: Artifacts as bare repos behind ``git http-backend``,
 real squashes and ``node --test`` checks). Throwaway keys are generated under ``stream_e2e/.local/ssh`` (git-ignored):
 a host key (passed to the container as SSH_HOST_KEY through the Worker's .dev.vars) and a client key registered to
-``acme`` through the gateway's ``SSH_STAGING_KEYS``. git runs with an isolated HOME, ``IdentityAgent=none``,
+``acme`` in the local identity database (the ``ssh_keys`` table Settings → SSH keys writes). git runs with an isolated HOME, ``IdentityAgent=none``,
 ``IdentitiesOnly`` and its own known_hosts, so no personal key, agent, ssh config or known_hosts is read or written.
 
     python3 research/race/git_native/ssh_local_e2e.py [transcript.txt]
@@ -71,6 +71,19 @@ def configure_ssh_worker(host_key: str) -> str:
     return os.path.join(directory, "wrangler.json")
 
 
+def register_key(gateway_config: str, client_key: str) -> None:
+    """@acme and its key in the local identity database, as sign-up and Settings → SSH keys write them."""
+    key_type, blob = open(client_key + ".pub", encoding="utf-8").read().split()[:2]
+    now = int(time.time() * 1000)
+    sql = ("DELETE FROM ssh_keys WHERE user_id = 'u-acme'; DELETE FROM users WHERE id = 'u-acme'; "
+           f"INSERT INTO users (id, handle, email, created_at) VALUES ('u-acme', 'acme', NULL, {now}); "
+           "INSERT INTO ssh_keys (id, user_id, name, key_type, public_key, fingerprint, created_at) VALUES "
+           f"('key_e2e', 'u-acme', 'e2e', '{key_type}', '{blob}', '{fingerprint(client_key + '.pub')}', {now});")
+    subprocess.run(["npx", "wrangler", "d1", "execute", "beanstalk-identity", "--local", "-c", gateway_config,
+                    "--persist-to", os.path.join(devstack.LOCAL, "state"), "--command", sql],
+                   cwd=devstack.GATEWAY, check=True, capture_output=True)
+
+
 def admin(path: str, body: dict) -> dict:
     request = urllib.request.Request(
         f"http://127.0.0.1:{devstack.GATEWAY_PORT}{path}", data=json.dumps(body).encode(), method="POST",
@@ -123,7 +136,6 @@ def main() -> None:
     configs = devstack.configure()
     gateway_config = os.path.join(devstack.LOCAL, "gateway", "wrangler.json")
     gateway = devstack.jsonc(gateway_config)
-    gateway["vars"]["SSH_STAGING_KEYS"] = json.dumps({fingerprint(client_key + ".pub"): {"id": "u-acme", "handle": "acme"}})
     for database in gateway.get("d1_databases", []):
         database["migrations_dir"] = os.path.normpath(os.path.join(devstack.GATEWAY, database["migrations_dir"]))
     devstack.write(gateway_config, gateway)
@@ -131,6 +143,7 @@ def main() -> None:
         subprocess.run(["npx", "wrangler", "d1", "migrations", "apply", database["database_name"], "--local",
                         "-c", gateway_config, "--persist-to", os.path.join(devstack.LOCAL, "state")],
                        cwd=devstack.GATEWAY, check=True, capture_output=True, input=b"y\n")
+    register_key(gateway_config, client_key)
     ssh_config = configure_ssh_worker(host_key)
     logs = os.path.join(devstack.LOCAL, "logs")
     os.makedirs(logs, exist_ok=True)
