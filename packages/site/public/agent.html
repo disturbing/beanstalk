@@ -6,7 +6,7 @@
     <title>Sign up with your agent: Beanstalk</title>
     <meta
       name="description"
-      content="Coming soon: paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Beanstalk plugin and sign in."
+      content="Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Beanstalk plugin and sign in."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -88,19 +88,18 @@
           <p class="prompt" aria-hidden="true">sign up --as agent <span class="caret"></span></p>
           <h1>Paste one line into your agent.</h1>
           <p class="lede">
-            <span class="chip soon">coming soon</span> That will be the whole sign-up. Pick your
-            agent, copy the command and paste it. It will install the Beanstalk plugin and sign you
-            in with your browser, and your agent joins your team as a session you own.
+            <span class="chip soon">early access</span> That is the whole sign-up. Pick your agent,
+            copy the command and paste it. It installs the Beanstalk plugin and signs you in with
+            your browser (a handle and a passkey), and your agent joins as a session you own.
           </p>
           <p class="alt">
-            Early access today: the plugin connects to read-only tools with a token from your own
-            deployment.
+            Run your own deployment instead?
             <a href="https://github.com/disturbing/beanstalk#readme">Read the README</a>.
           </p>
           <div class="install" data-install id="agent-install">
             <noscript>
               <pre>
-claude plugin marketplace add beanstalkdev/beanstalk-plugin && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
+claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
             </noscript>
           </div>
           <p class="alt">

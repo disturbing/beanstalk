@@ -6,6 +6,7 @@
  * lines (received, check started; with `-o wait`, the verdict). Pushes to the lines, other
  * branches and deletions are refused in the protocol, so git prints why.
  */
+import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
 import type { TaskId } from '@beanstalk/shared-race/ids';
 import { RunId, Sha } from '@beanstalk/shared-race/ids';
 
@@ -160,6 +161,19 @@ async function recordUse(deps: Deps, use: Use, action: 'read' | 'push'): Promise
   });
 }
 
+/** The product event and log line for a bean a person pushed (hashed ids only). */
+async function recordPush(deps: Deps, credential: GitCredential): Promise<void> {
+  const userId = credential.user.id;
+  await recordProductEvent(deps.productEvents, 'bean_push', {
+    userId,
+    detail: credential.session?.via ?? '',
+  });
+  deps.log.info(
+    'bean pushed',
+    await logIdentity({ userId, sessionId: credential.session?.id ?? null }),
+  );
+}
+
 async function push(
   input: RepoGitRequest,
   target: { engine: Engine; engineId: RunId; use: Use | null; credential: GitCredential },
@@ -197,6 +211,7 @@ async function push(
   });
   if (submitted.ok && target.use !== null)
     input.ctx.waitUntil(recordUse(input.deps, target.use, 'push'));
+  if (submitted.ok) input.ctx.waitUntil(recordPush(input.deps, target.credential));
   if (!submitted.ok) {
     const lines = [
       `beanstalk: the bean's branch moved, but the engine did not take it: ${submitted.reason}`,

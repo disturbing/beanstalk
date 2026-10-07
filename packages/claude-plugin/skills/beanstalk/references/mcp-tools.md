@@ -4,11 +4,12 @@ Contents: setup; read tools; collaboration tools; coming; errors.
 
 ## Setup
 
-The plugin's `.mcp.json` points the `beanstalk` server at `BEANSTALK_MCP_URL` (default: the
-dev deployment) with no auth header, so the client uses OAuth: run `/mcp` in Claude Code and
-log in. OAuth is **coming**. Until it lands the server accepts a bearer token:
-`claude mcp add --transport http beanstalk <url> --header "Authorization: Bearer $BEANSTALK_TOKEN"`
-(user scope; disable the plugin's own server entry to avoid a clash). Never print the token.
+The plugin's `.mcp.json` points the `beanstalk` server at the hosted deployment's `/mcp` with
+no auth header, so the client uses OAuth: `claude mcp login plugin:beanstalk:beanstalk` (or
+`/mcp` in a session) opens the browser, the person signs in and approves the session. Another
+deployment: `claude mcp add --transport http beanstalk <its /mcp URL> && claude mcp login beanstalk`.
+Race view and contributor tokens still work as a bearer header on a separately added server.
+Never print a token.
 
 ## Read tools (live)
 

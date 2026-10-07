@@ -1,10 +1,12 @@
 import Link from 'next/link';
 
 import styles from '../../components/account/account.module.css';
+import { TurnstileField } from '../../components/account/turnstile';
 import { PasskeySignin } from '../../components/account/passkey-buttons';
 import loginStyles from '../../components/shell/login.module.css';
 import { NextPath } from '../../src/auth/http';
 import { emailSignIn } from '../../src/auth/services';
+import { turnstileSiteKey } from '../../src/auth/turnstile';
 import { currentUser } from '../../src/auth/user';
 import { signIn } from '../../src/server/actions';
 import { demoPassword, isSignedIn } from '../../src/server/viewer';
@@ -25,6 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const next = NextPath.parse(typeof query['next'] === 'string' ? query['next'] : '/');
   const user = await currentUser();
   const email = emailSignIn() !== null;
+  const siteKey = turnstileSiteKey();
   return (
     <main className={styles.page}>
       <div className={styles.stack}>
@@ -37,8 +40,8 @@ export default async function LoginPage({ searchParams }: PageProps) {
           </h1>
           {user === null ? (
             <>
-              <PasskeySignin next={next} />
-              {email ? <EmailSignin query={query} /> : null}
+              <PasskeySignin next={next} turnstileSiteKey={siteKey} />
+              {email ? <EmailSignin query={query} siteKey={siteKey} /> : null}
               <p className={styles.note}>
                 New here?{' '}
                 <Link href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</Link>
@@ -57,7 +60,13 @@ export default async function LoginPage({ searchParams }: PageProps) {
   );
 }
 
-function EmailSignin({ query }: { readonly query: Query }) {
+function EmailSignin({
+  query,
+  siteKey,
+}: {
+  readonly query: Query;
+  readonly siteKey: string | null;
+}) {
   if (query['email_sent'] !== undefined)
     return (
       <p className={styles.success}>
@@ -79,6 +88,7 @@ function EmailSignin({ query }: { readonly query: Query }) {
           required
           className={styles.input}
         />
+        <TurnstileField siteKey={siteKey} action="signin" />
         <button type="submit" className={styles.secondary}>
           Email me a sign-in link
         </button>

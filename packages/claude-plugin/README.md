@@ -19,7 +19,7 @@ git never asks for a password. Until Beanstalk's SSH endpoint is live, setup als
 HTTPS token in your OS keychain through git's own credential helper, for the Beanstalk host
 only, and says so.
 
-For MCP (optional): `/mcp` in a session, sign in, approve.
+For MCP (optional): `claude mcp login plugin:beanstalk:beanstalk` (or `/mcp` in a session), sign in, approve.
 
 ## Without Claude Code
 
@@ -49,8 +49,16 @@ For MCP (optional): `/mcp` in a session, sign in, approve.
 
 From a checkout: `claude --plugin-dir packages/claude-plugin`; `claude plugin validate .` checks
 the marketplace, `claude plugin validate packages/claude-plugin` the plugin. A branch other than
-the default is named as `disturbing/beanstalk#<branch>`. `BEANSTALK_MCP_URL` and
-`BEANSTALK_WEB` point at another deployment.
+the default is named as `disturbing/beanstalk#<branch>`. `BEANSTALK_WEB` points setup at
+another deployment; for its MCP server use `claude mcp add --transport http beanstalk <url>`
+(the plugin's `.mcp.json` URL is literal, because Codex does not expand `${VAR:-default}` there).
+
+Sign-up through the agent, verbatim (also on the site and the web app's `/signup/agent`):
+
+```bash
+claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk
+codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@beanstalk && codex mcp login beanstalk
+```
 
 ## Status of the server side
 

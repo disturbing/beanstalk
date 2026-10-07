@@ -197,17 +197,64 @@
   padding: 18px 16px;
   color: var(--ink-2);
 }
-.checklist {
+/* Home's first steps: a mark that fills when the step is done. */
+.steps {
+  list-style: none;
   margin: 0;
-  padding: 6px 16px 14px 36px;
+  padding: 6px 16px 14px;
   display: grid;
+  gap: 12px;
+}
+.steps li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
   gap: 10px;
+  align-items: start;
+  font-size: var(--step--1);
+  color: var(--ink-2);
 }
-.checklist li::marker {
-  color: var(--ink-3);
-  font-family: var(--font-mono);
+.steps strong {
+  font-weight: 600;
+  color: var(--ink);
 }
-.checklist strong {
+.stepMark {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--rule-strong);
+  display: grid;
+  place-items: center;
+  font: 700 11px/1 var(--font-mono);
+  color: var(--accent-ink);
+}
+.stepDone .stepMark {
+  background: var(--good-fill);
+  border-color: var(--good-fill);
+}
+.stepDone strong {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-3);
+  color: var(--ink-2);
+}
+.sessionRow {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.sessionRow:last-child {
+  border-bottom: 0;
+}
+.sessionDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--human);
+}
+.sessionName {
   font-weight: 600;
 }
 .notice {

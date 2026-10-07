@@ -127,7 +127,6 @@ existing external-service fixtures. Remote AI is removed only from the local tes
 `packages/claude-plugin` wires this server into Claude Code with the `beanstalk` skill:
 
 ```bash
-export BEANSTALK_TOKEN=...                     # a view or contributor token for the run
-export BEANSTALK_MCP_URL=https://...workers.dev/mcp   # optional; defaults to the deployed URL
-claude --plugin-dir packages/claude-plugin
+claude --plugin-dir packages/claude-plugin     # its server is the hosted /mcp, signed in with OAuth
+claude mcp add --transport http beanstalk-dev https://...workers.dev/mcp   # another deployment
 ```

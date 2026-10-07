@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import { ConsentRedirect } from '@beanstalk/shared-identity/agent-sessions';
+import { ConsentRedirect, ConsentView } from '@beanstalk/shared-identity/agent-sessions';
+import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
 import { clientIp } from '@beanstalk/shared-identity/request-context';
 import { getWebSession } from '@beanstalk/shared-identity/sessions';
 
@@ -22,8 +23,12 @@ export async function POST(request: Request): Promise<Response> {
   const user = { id: session.user.id, handle: session.user.handle };
   const rpc = agentSessionsRpc();
   const ip = clientIp(request);
+  const approving = form.get('decision') === 'approve';
+  const who = await logIdentity({ userId: user.id, sessionId: session.sessionHash });
+  // The client's name for analytics, read before the request is consumed.
+  const client = approving ? ConsentView.safeParse(await rpc.consentRequest(id, user)) : null;
   const decided = ConsentRedirect.safeParse(
-    form.get('decision') === 'approve'
+    approving
       ? await rpc.approveConsent(
           id,
           user,
@@ -33,14 +38,18 @@ export async function POST(request: Request): Promise<Response> {
       : await rpc.denyConsent(id, user, ip),
   );
   if (!decided.success || decided.data === null) {
-    log.info('consent request gone', {
-      decision: form.get('decision') === 'approve' ? 'approve' : 'deny',
-    });
+    log.info('consent request gone', { decision: approving ? 'approve' : 'deny', ...who });
     return new Response(null, {
       status: 303,
       headers: { location: new URL('/connect?expired=1', request.url).toString() },
     });
   }
+  log.info('consent decided', { decision: approving ? 'approve' : 'deny', ...who });
+  if (approving)
+    await recordProductEvent(env.PRODUCT_EVENTS, 'connect', {
+      userId: user.id,
+      detail: client?.success === true ? client.data.clientName : '',
+    });
   return new Response(null, {
     status: 303,
     headers: { location: decided.data.redirectTo, 'cache-control': 'no-store' },

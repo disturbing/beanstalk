@@ -8,9 +8,12 @@
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 
+import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
+
 import { signedInUser } from './signed-in';
 import { log } from '../log';
 import type { CreateState, FormOutcome, SettingsState } from '../repositories/flows';
+import { readCreateForm } from '../repositories/create-form';
 import { createFlow, deleteFlow, updateFlow } from '../repositories/flows';
 import { registryClient } from '../repositories/registry-client';
 
@@ -19,7 +22,16 @@ export async function createRepository(
   form: FormData,
 ): Promise<CreateState> {
   const user = await signedInUser('/new');
-  return settle(await createFlow(form, user, registryClient(env.GATEWAY)), 'create');
+  const outcome = await createFlow(form, user, registryClient(env.GATEWAY));
+  if (outcome.kind === 'redirect') {
+    const start = readCreateForm(form);
+    await recordProductEvent(env.PRODUCT_EVENTS, 'repo_create', {
+      userId: user.id,
+      detail: start.ok ? start.input.start.kind : '',
+    });
+    log.info('repository created', await logIdentity({ userId: user.id }));
+  }
+  return settle(outcome, 'create');
 }
 
 export async function updateRepository(

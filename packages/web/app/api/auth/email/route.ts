@@ -9,11 +9,12 @@ import { Email, Handle } from '@beanstalk/shared-identity/users';
 
 import { crossSiteRefusal, problem, seeOther } from '../../../../src/auth/http';
 import { emailSignIn } from '../../../../src/auth/services';
+import { TURNSTILE_FIELD, turnstileRefusal } from '../../../../src/auth/turnstile';
 import { log } from '../../../../src/log';
 
 /**
  * Asks for an email sign-in link (or a sign-up link, with a handle). 404 while email sign-in
- * is off. Same origin, rate limited per IP and per address; the answer never says whether
+ * is off. Same origin, rate limited per IP and per address, Turnstile when it is on; the answer never says whether
  * the address has an account.
  */
 export async function POST(request: Request): Promise<Response> {
@@ -36,6 +37,14 @@ export async function POST(request: Request): Promise<Response> {
     !(await isWithinLimits(env.SIGNIN_RATE_LIMIT, [`ip:${ip ?? 'unknown'}`, `email:${email.data}`]))
   )
     return seeOther(request, `${back}?email_error=rate`);
+  if (
+    (await turnstileRefusal(
+      request,
+      form.get(TURNSTILE_FIELD),
+      handle === null ? 'signin' : 'signup',
+    )) !== null
+  )
+    return seeOther(request, `${back}?email_error=check`);
   const browserSecret = randomSecret();
   try {
     await requestMagicLink(env, config, {

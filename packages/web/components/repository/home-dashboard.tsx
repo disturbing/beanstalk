@@ -1,10 +1,13 @@
 /**
- * Home after sign-in (`docs/claude-opus/16` §2.3, first slice): your repositories with what
- * each has grown, recent activity across them, and New repository. A first visit gets the
- * three steps that start a project, and the demo repository to look around in.
+ * Home after sign-in (`docs/claude-opus/16` §2.3 and item 1.6): your repositories with what
+ * each has grown (and the demo repository, for everyone), your agent sessions, recent activity
+ * and New repository. Until the first bean, a checklist: connect a session, create or import a
+ * repository, push a bean.
  */
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+
+import type { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
 
 import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';
@@ -12,6 +15,7 @@ import { growthText } from '../../src/repositories/engine-summary';
 import { repositoryPath } from '../../src/repositories/paths';
 import type { RepositoryActivity, RepositoryRecord } from '../../src/repositories/registry-client';
 import { timeAgo } from '../../src/repositories/when';
+import { FirstSteps, LiveSessions, SessionsPanel } from './home-sessions';
 import styles from './repository.module.css';
 
 export type DashboardRepository = { readonly record: RepositoryRecord; readonly growth: Growth };
@@ -28,89 +32,97 @@ export function HomeDashboard(props: {
   /** A sentence when something just happened (a deletion), or a registry problem. */
   readonly notice: { readonly tone: 'good' | 'warn'; readonly text: string } | null;
   readonly demoHref: string;
+  /** Connected agent sessions when the page was rendered (null: not available). */
+  readonly sessions: readonly AgentSession[] | null;
 }) {
-  const first = props.repositories.length === 0;
+  const withBeans = props.repositories.filter(({ growth }) => growth.kind === 'grown').length;
   return (
-    <main className={styles.page}>
-      {props.notice === null ? null : (
-        <p
-          className={`${styles.notice} ${props.notice.tone === 'good' ? styles.noticeGood : ''}`}
-          role="status"
-        >
-          {props.notice.text}
-        </p>
-      )}
-      <div className={styles.homeHead}>
-        <div>
-          <h1 className={styles.lead}>{leadOf(props.user, props.repositories)}</h1>
-          <p className={styles.sub}>
-            Agents and people push beans; Beanstalk checks each one on the exact tree it would land
-            on and grows the stalk.
+    <LiveSessions initial={props.sessions} nowMs={props.nowMs}>
+      <main className={styles.page}>
+        {props.notice === null ? null : (
+          <p
+            className={`${styles.notice} ${props.notice.tone === 'good' ? styles.noticeGood : ''}`}
+            role="status"
+          >
+            {props.notice.text}
           </p>
+        )}
+        <div className={styles.homeHead}>
+          <div>
+            <h1 className={styles.lead}>{leadOf(props.user, props.repositories)}</h1>
+            <p className={styles.sub}>
+              Agents and people push beans; Beanstalk checks each one on the exact tree it would
+              land on and grows the stalk.
+            </p>
+          </div>
+          <Link href="/new" className={styles.primary}>
+            New repository
+          </Link>
         </div>
-        <Link href="/new" className={styles.primary}>
-          New repository
-        </Link>
-      </div>
-      {props.invitations}
-      <div className={styles.homeGrid}>
-        <div className={styles.homeColumn}>
-          <section className={styles.panel} aria-labelledby="repos-title">
-            <div className={styles.panelHead}>
-              <h2 id="repos-title">Your repositories</h2>
-              <span className={styles.muted}>{props.repositories.length || ''}</span>
-            </div>
-            {first ? (
-              <FirstSteps demoHref={props.demoHref} />
-            ) : (
+        {props.invitations}
+        <div className={styles.homeGrid}>
+          <div className={styles.homeColumn}>
+            <FirstSteps
+              repositories={props.repositories.length}
+              repositoriesWithBeans={withBeans}
+            />
+            <section className={styles.panel} aria-labelledby="repos-title">
+              <div className={styles.panelHead}>
+                <h2 id="repos-title">Your repositories</h2>
+                <span className={styles.muted}>{props.repositories.length || ''}</span>
+              </div>
               <ul className={styles.repoList}>
                 {props.repositories.map(({ record, growth }) => (
                   <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
                 ))}
-              </ul>
-            )}
-          </section>
-          {(props.shared ?? []).length === 0 ? null : (
-            <section className={styles.panel} aria-labelledby="shared-title">
-              <div className={styles.panelHead}>
-                <h2 id="shared-title">Shared with you</h2>
-                <span className={styles.muted}>{props.shared?.length}</span>
-              </div>
-              <ul className={styles.repoList}>
-                {(props.shared ?? []).map(({ record, growth }) => (
-                  <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
-                ))}
+                <DemoRow href={props.demoHref} />
               </ul>
             </section>
-          )}
-        </div>
-        <section className={styles.panel} aria-labelledby="activity-title">
-          <div className={styles.panelHead}>
-            <h2 id="activity-title">Recent activity</h2>
+            {(props.shared ?? []).length === 0 ? null : (
+              <section className={styles.panel} aria-labelledby="shared-title">
+                <div className={styles.panelHead}>
+                  <h2 id="shared-title">Shared with you</h2>
+                  <span className={styles.muted}>{props.shared?.length}</span>
+                </div>
+                <ul className={styles.repoList}>
+                  {(props.shared ?? []).map(({ record, growth }) => (
+                    <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
-          {props.activity.length === 0 ? (
-            <p className={styles.empty}>What happens in your repositories shows up here.</p>
-          ) : (
-            <ul className={styles.activity}>
-              {props.activity.map((line) => (
-                <li key={`${line.repo_id}-${line.at}-${line.kind}`}>
-                  <span>
-                    <Link
-                      href={repositoryPath(line.owner_handle, line.repo_name)}
-                      className={styles.mono}
-                    >
-                      {line.owner_handle}/{line.repo_name}
-                    </Link>{' '}
-                    {line.text}
-                    <time dateTime={line.at}>{timeAgo(line.at, props.nowMs)}</time>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-    </main>
+          <div className={styles.homeColumn}>
+            <SessionsPanel />
+            <section className={styles.panel} aria-labelledby="activity-title">
+              <div className={styles.panelHead}>
+                <h2 id="activity-title">Recent activity</h2>
+              </div>
+              {props.activity.length === 0 ? (
+                <p className={styles.empty}>What happens in your repositories shows up here.</p>
+              ) : (
+                <ul className={styles.activity}>
+                  {props.activity.map((line) => (
+                    <li key={`${line.repo_id}-${line.at}-${line.kind}`}>
+                      <span>
+                        <Link
+                          href={repositoryPath(line.owner_handle, line.repo_name)}
+                          className={styles.mono}
+                        >
+                          {line.owner_handle}/{line.repo_name}
+                        </Link>{' '}
+                        {line.text}
+                        <time dateTime={line.at}>{timeAgo(line.at, props.nowMs)}</time>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        </div>
+      </main>
+    </LiveSessions>
   );
 }
 
@@ -139,28 +151,21 @@ function RepoRow(props: {
   );
 }
 
-function FirstSteps({ demoHref }: { readonly demoHref: string }) {
+/** The demo repository, listed for everyone: a recorded day of twelve agent sessions. */
+function DemoRow({ href }: { readonly href: string }) {
   return (
-    <>
-      <ol className={styles.checklist}>
-        <li>
-          <strong>Create a repository.</strong> Start from the TypeScript starter to see checks work
-          on the first bean. <Link href="/new">New repository</Link>
-        </li>
-        <li>
-          <strong>Connect an agent.</strong> Its start page has the one line to paste into Claude
-          Code or Codex.
-        </li>
-        <li>
-          <strong>Push a bean.</strong> Ask your agent for a change, or push a{' '}
-          <code>bean/&lt;name&gt;</code> branch yourself.
-        </li>
-      </ol>
-      <p className={styles.empty}>
-        Want to look around first? <Link href={demoHref}>Open the demo repository</Link>, a recorded
-        day of twelve agent sessions.
-      </p>
-    </>
+    <li className={styles.repoRow}>
+      <Sprig grown />
+      <div>
+        <Link href={href} className={styles.repoName}>
+          demo/beanstalk-shop
+        </Link>
+        <p className={styles.repoDescription}>
+          A recorded day of twelve agent sessions on one shop: look around before your own.
+        </p>
+      </div>
+      <span className={styles.pill}>demo</span>
+    </li>
   );
 }
 

@@ -32,6 +32,9 @@
       "simple": { "limit": 10, "period": 60 },
     },
   ],
+  // Product analytics (docs/claude-opus/19 §10): sign-up, connect, repository created. The
+  // dataset is created on first write; `scripts/product-events.mjs` reads the counts.
+  "analytics_engine_datasets": [{ "binding": "PRODUCT_EVENTS", "dataset": "product_events" }],
   "vars": {
     "LOG_LEVEL": "info",
     // How Ask turns a question into a view spec: "keywords" (deterministic, the default) or
@@ -47,6 +50,14 @@
     // Cloudflare Email Service. To turn them on: set this to the domain (mail comes from
     // signin@<domain>) and add `"send_email": [{ "name": "EMAIL" }]`. See doc 19.
     "EMAIL_SENDER_DOMAIN": "",
+    // Turnstile on sign-in and sign-up (docs/claude-opus/19 §5): off while the site key is
+    // empty. To turn it on: create a managed widget for this deployment's hostname, set its
+    // site key here and `wrangler secret put TURNSTILE_SECRET_KEY`. A site key without the
+    // secret fails closed. TURNSTILE_HOSTNAMES (comma-separated) defaults to the request's own
+    // host. TURNSTILE_TEST_KEYS=allow accepts Cloudflare's test keys (staging only, never live).
+    "TURNSTILE_SITE_KEY": "",
+    "TURNSTILE_HOSTNAMES": "",
+    "TURNSTILE_TEST_KEYS": "",
     // Repositories (docs/claude-opus/20-repositories.md): the public addresses a new repository's start page prints: git (the gateway) and MCP.
     "GIT_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
     "MCP_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp",

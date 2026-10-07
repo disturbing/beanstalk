@@ -8,6 +8,7 @@ import type { OAuthResourceAuth } from '@cloudflare/workers-oauth-provider';
 import { insufficientScope } from '@cloudflare/workers-oauth-provider';
 import { z } from 'zod';
 
+import { logIdentity } from '@beanstalk/shared-identity/product-events';
 import type { Scope } from '@beanstalk/shared-identity/scopes';
 import { parseScopes } from '@beanstalk/shared-identity/scopes';
 import { mintSessionToken } from '@beanstalk/shared-identity/user-tokens';
@@ -53,11 +54,17 @@ export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHand
         scopes,
         clientId: auth.clientId ?? null,
       });
+      // Every line about this request names the person and the session, hashed (doc 19 §10).
+      const who = await logIdentity({
+        userId: props.data.userId,
+        sessionId: auth.clientId ?? null,
+      });
+      log.info('mcp session request', { ...who, via: props.data.via });
       return serveMcp(request, {
         env,
         ctx,
         gateway,
-        log,
+        log: log.with(who),
         caller: { run, sub: props.data.userId, session },
       });
     },

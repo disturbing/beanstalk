@@ -16,11 +16,21 @@ export type CeremonyOutcome =
 
 export async function runPasskeyCeremony(
   ceremony: Ceremony,
-  input: { readonly handle?: string; readonly next?: string; readonly csrf?: string },
+  input: {
+    readonly handle?: string;
+    readonly next?: string;
+    readonly csrf?: string;
+    /** A Turnstile token for the first step (sign-up and sign-in, when Turnstile is on). */
+    readonly turnstile?: string;
+  },
 ): Promise<CeremonyOutcome> {
   const started = await post(
     ceremony,
-    { step: 'options', ...(input.handle === undefined ? {} : { handle: input.handle }) },
+    {
+      step: 'options',
+      ...(input.handle === undefined ? {} : { handle: input.handle }),
+      ...(input.turnstile === undefined ? {} : { turnstile: input.turnstile }),
+    },
     input.csrf,
   );
   if (started.kind === 'failed') return started;

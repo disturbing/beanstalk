@@ -9,32 +9,61 @@ import { useId, useState } from 'react';
 import styles from './account.module.css';
 import type { Ceremony } from './passkey-client';
 import { runPasskeyCeremony } from './passkey-client';
+import type { TurnstileState } from './turnstile';
+import { TurnstileBox, useTurnstile } from './turnstile';
 
 type Status =
   | { readonly kind: 'idle' }
   | { readonly kind: 'busy' }
   | { readonly kind: 'error'; readonly message: string };
 
-function usePasskey(ceremony: Ceremony) {
+const CHECK_FIRST = 'Complete the check above first.';
+
+/**
+ * Runs a ceremony; with a Turnstile widget (sign-up, sign-in) its token goes with the first
+ * step, and the widget is reset after every try that does not navigate away.
+ */
+function usePasskey(ceremony: Ceremony, human: TurnstileState | null = null) {
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const run = async (input: {
     readonly handle?: string;
     readonly next?: string;
     readonly csrf?: string;
   }) => {
+    if (human !== null && human.token === null) {
+      setStatus({ kind: 'error', message: CHECK_FIRST });
+      return;
+    }
     setStatus({ kind: 'busy' });
-    const outcome = await runPasskeyCeremony(ceremony, input);
+    const outcome = await runPasskeyCeremony(ceremony, {
+      ...input,
+      ...(human?.token === null || human === null ? {} : { turnstile: human.token }),
+    });
     if (outcome.kind === 'done') {
       window.location.assign(outcome.redirect);
       return;
     }
+    human?.reset();
     setStatus({ kind: 'error', message: outcome.message });
   };
   return { status, run };
 }
 
-export function PasskeySignup({ next }: { readonly next: string }) {
-  const { status, run } = usePasskey('signup');
+/** The widget's state when Turnstile is on, else null (no token is needed). */
+function useHumanCheck(siteKey: string | null, action: 'signin' | 'signup') {
+  const state = useTurnstile(siteKey, action);
+  return { state, required: siteKey === null ? null : state };
+}
+
+export function PasskeySignup({
+  next,
+  turnstileSiteKey,
+}: {
+  readonly next: string;
+  readonly turnstileSiteKey: string | null;
+}) {
+  const human = useHumanCheck(turnstileSiteKey, 'signup');
+  const { status, run } = usePasskey('signup', human.required);
   const [handle, setHandle] = useState('');
   const handleId = useId();
   const errorId = useId();
@@ -70,6 +99,7 @@ export function PasskeySignup({ next }: { readonly next: string }) {
       <p id={`${handleId}-hint`} className={styles.hint}>
         2–39 lowercase letters, digits or hyphens. It names you on beans, decisions and git.
       </p>
+      <TurnstileBox siteKey={turnstileSiteKey} state={human.state} />
       <button type="submit" className={styles.primary} disabled={status.kind === 'busy'}>
         {status.kind === 'busy' ? 'Waiting for your passkey…' : 'Create account with a passkey'}
       </button>
@@ -78,11 +108,19 @@ export function PasskeySignup({ next }: { readonly next: string }) {
   );
 }
 
-export function PasskeySignin({ next }: { readonly next: string }) {
-  const { status, run } = usePasskey('signin');
+export function PasskeySignin({
+  next,
+  turnstileSiteKey,
+}: {
+  readonly next: string;
+  readonly turnstileSiteKey: string | null;
+}) {
+  const human = useHumanCheck(turnstileSiteKey, 'signin');
+  const { status, run } = usePasskey('signin', human.required);
   const errorId = useId();
   return (
     <div className={styles.form}>
+      <TurnstileBox siteKey={turnstileSiteKey} state={human.state} />
       <button
         type="button"
         className={styles.primary}
