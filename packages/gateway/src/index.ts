@@ -38,7 +38,24 @@ import type {
   ViewTokenClaims,
 } from '@beanstalk/shared-race/rpc';
 
+import type {
+  CreateRepositoryInput,
+  RepoOwner,
+  RepositoriesRpc,
+  RepositoryActivity,
+  RepositoryFiles,
+  RepositoryRecord,
+  UpdateRepositoryInput,
+  Viewer,
+} from '@beanstalk/shared-race/repos';
+
+import { repositoryStorage } from './adapters/repository-storage';
 import { createApp } from './app';
+import { createLogger } from './log';
+import { readConfig } from './config';
+import { repoEnginePort } from './repos/engine-port';
+import { d1Registry } from './repos/registry';
+import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
 import { createDeps } from './deps';
 import { gatewayRpc } from './rpc/gateway-rpc';
 import { collaborationRpc } from './rpc/collaboration-rpc';
@@ -57,7 +74,7 @@ const app = createApp(createDeps);
  * beanstalk-gateway: race runs, the driver API, the git proxy and the live page over HTTP,
  * and the web app's RPC surface (`GatewayRpc`) over its service binding.
  */
-export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc {
+export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc, RepositoriesRpc {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
   }
@@ -193,6 +210,59 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
 
   beanInboxAck(token: string, input: BeanInboxAckInput): Promise<RpcResult<BeanInboxAckResult>> {
     return collaborationRpc(createDeps(this.env)).beanInboxAck(token, input);
+  }
+
+  createRepository(
+    owner: RepoOwner,
+    input: CreateRepositoryInput,
+  ): Promise<RpcResult<RepositoryRecord>> {
+    return this.#repositories().createRepository(owner, input);
+  }
+
+  listRepositories(ownerId: string, viewer: Viewer): Promise<RpcResult<readonly RepositoryRecord[]>> {
+    return this.#repositories().listRepositories(ownerId, viewer);
+  }
+
+  getRepository(
+    ownerHandle: string,
+    name: string,
+    viewer: Viewer,
+  ): Promise<RpcResult<RepositoryRecord>> {
+    return this.#repositories().getRepository(ownerHandle, name, viewer);
+  }
+
+  updateRepository(
+    ownerId: string,
+    repoId: string,
+    patch: UpdateRepositoryInput,
+  ): Promise<RpcResult<RepositoryRecord>> {
+    return this.#repositories().updateRepository(ownerId, repoId, patch);
+  }
+
+  deleteRepository(ownerId: string, repoId: string): Promise<RpcResult<{ readonly deleted: true }>> {
+    return this.#repositories().deleteRepository(ownerId, repoId);
+  }
+
+  repositoryActivity(
+    ownerId: string,
+    limit: number,
+  ): Promise<RpcResult<readonly RepositoryActivity[]>> {
+    return this.#repositories().repositoryActivity(ownerId, limit);
+  }
+
+  repositoryFiles(repoId: string, viewer: Viewer): Promise<RpcResult<RepositoryFiles>> {
+    return this.#repositories().repositoryFiles(repoId, viewer);
+  }
+
+  #repositories(): RepositoriesRpc {
+    return repositoriesRpc({
+      registry: d1Registry(this.env.FORGE),
+      storage: repositoryStorage(this.env.ARTIFACTS),
+      engine: repoEnginePort(),
+      log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
+      now: () => Date.now(),
+      newId: newRepositoryId,
+    });
   }
 
   #rpc(): GatewayRpc {
