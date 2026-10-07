@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Git over SSH (docs/claude-opus/21-git-over-ssh.md): Spectrum routes TCP port 22 of the SSH
+  // hostname to this Worker's `connect(socket)` handler; a Durable Object forwards the socket to
+  // its container's SSH server (packages/ssh-server), which asks the gateway (service binding)
+  // whose key it is and serves git through the gateway's smart-HTTP proxy.
+  "name": "beanstalk-ssh",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": {
+    "LOG_LEVEL": "info",
+    // Container instances connections are spread over; each serves many connections.
+    "SSH_POOL_SIZE": "2",
+    // Open connections one instance takes before it refuses more (the SSH server's MAX_SESSIONS).
+    "SSH_MAX_CONNECTIONS": "64",
+    // The host key's public fingerprint (`SHA256:…`), shown on /host-key; set at deploy beside
+    // the SSH_HOST_KEY secret. Not secret.
+    "SSH_HOST_KEY_FINGERPRINT": "",
+    // "on" opens GET /tunnel, a WebSocket carrying one SSH connection, for testing a stack that
+    // has no Spectrum app yet. Off in production: Spectrum is the way in.
+    "SSH_TUNNEL": "off",
+  },
+  // SSH_HOST_KEY: the host's OpenSSH private key, generated once (`ssh-keygen -t ed25519`),
+  // stored with `wrangler secret put SSH_HOST_KEY` and never printed or committed.
+  "secrets": { "required": ["SSH_HOST_KEY"] },
+  // `wrangler dev` listens here for raw TCP and hands each connection to `connect(socket)`;
+  // deployed, Spectrum does that on port 22.
+  "connect": [{ "protocol": "tcp", "port": 2222 }],
+  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  "exports": {
+    "SshServer": { "type": "durable-object", "storage": "sqlite" },
+  },
+  "durable_objects": { "bindings": [{ "name": "SSH_SERVERS", "class_name": "SshServer" }] },
+  // One small instance per pool slot; the binary needs a few MiB and little CPU.
+  "containers": [
+    {
+      "class_name": "SshServer",
+      "image": "../ssh-server/Dockerfile",
+      "image_build_context": "../..",
+      "instance_type": "lite",
+      "max_instances": 3,
+    },
+  ],
+}

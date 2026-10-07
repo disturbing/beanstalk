@@ -55,6 +55,9 @@ import type {
 } from '@beanstalk/shared-race/repos';
 
 import { repositoryStorage } from './adapters/repository-storage';
+import { sshKeyStore } from './auth/ssh-keys';
+import type { SshDeps, SshKeyAnswer } from './ssh/ssh-git';
+import { lookupSshKey, serveSshGit } from './ssh/ssh-git';
 import { createApp } from './app';
 import { createLogger } from './log';
 import { readConfig } from './config';
@@ -301,6 +304,23 @@ export default class Gateway
     options: { readonly deleteRepo: boolean },
   ): Promise<RpcResult<{ readonly closed: true }>> {
     return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
+  }
+
+  /**
+   * Git over SSH (the `beanstalk-ssh` Worker's binding): whose key `publicKey` is. `confirm`
+   * marks a signature-checked use. Null for a key nobody registered.
+   */
+  sshKeyLookup(publicKey: string, confirm: boolean): Promise<SshKeyAnswer | null> {
+    return lookupSshKey({ publicKey, confirm }, this.#ssh());
+  }
+
+  /** Git over SSH: one smart-HTTP request served as the owner of `publicKey`. */
+  sshGit(publicKey: string, request: Request): Promise<Response> {
+    return serveSshGit({ publicKey, request }, this.#ssh(), this.ctx);
+  }
+
+  #ssh(): SshDeps {
+    return { deps: createDeps(this.env), keys: sshKeyStore(this.env) };
   }
 
   #rpc(): GatewayRpc {

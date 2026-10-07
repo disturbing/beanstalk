@@ -8,7 +8,7 @@ export class LocalRunner extends DurableObject {
     const url = new URL(request.url);
     // The wire contract the gateway checks first (RUNNER_API_VERSION in runner-transport.ts).
     if (url.pathname === '/version')
-      return Response.json({ version: 'local', api_version: 3, git_sha: 'local' });
+      return Response.json({ version: 'local', api_version: 4, git_sha: 'local' });
     return fetch(`${this.env.GIT_SERVER}/__runner${url.pathname}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
