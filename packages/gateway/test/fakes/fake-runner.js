@@ -21,17 +21,35 @@ export class FakeRunner extends DurableObject {
     const requests = (await this.ctx.storage.get('requests')) ?? [];
     requests.push({ path: url.pathname, body });
     await this.ctx.storage.put('requests', requests);
-    return Response.json(await answer(url.pathname, body), {
+    return Response.json(await answer(this, url.pathname, body), {
       status: url.pathname.startsWith('/v1/') ? 200 : 404,
     });
   }
 }
 
-async function answer(path, body) {
+async function answer(this_, path, body) {
   switch (path) {
     case '/v1/squash': {
+      // A bean whose ref names `conflict` conflicts with the line once (then merges).
+      if (
+        body.change.ref.includes('conflict') &&
+        (await firstTime(this_, `conflict:${body.change.ref}`))
+      )
+        return {
+          result: 'conflict',
+          files: ['src/shared.ts'],
+          merge_base: body.change.base ?? body.onto,
+          hunks: [
+            {
+              path: 'src/shared.ts',
+              onto: 'export const total = 1;\n',
+              change: 'export const total = 2;\n',
+            },
+          ],
+        };
       const sha = await sha1(`${body.onto}:${body.change.ref}:${body.message}`);
       const files = [`src/${body.change.ref.split('/').at(-1)}.ts`];
+      SQUASHED.set(sha, body.change.ref);
       return {
         result: 'clean',
         sha,
@@ -47,6 +65,10 @@ async function answer(path, body) {
     }
     case '/v1/check': {
       const extra = Object.keys(body.extra_files ?? {});
+      // The first check of a squash of a bean whose ref names `red` fails (its next push passes).
+      const squashed = SQUASHED.get(body.sha) ?? '';
+      if (squashed.includes('red') && (await firstTime(this_, `red:${squashed}`)))
+        return redCheck(body.sha, [squashed, ...SQUASHED.values()].map(beanFile));
       return {
         sha: body.sha,
         green: true,
@@ -70,4 +92,42 @@ async function answer(path, body) {
     default:
       return { code: 'not_found', message: path };
   }
+}
+
+// Runner instances are separate objects (committer, sandboxes, CI) in one isolate: what one
+// squashed and which first failures were served are shared here, as one repo would share them.
+const SQUASHED = new Map();
+const SEEN = new Set();
+
+async function firstTime(_runner, key) {
+  if (SEEN.has(key)) return false;
+  SEEN.add(key);
+  return true;
+}
+
+function beanFile(ref) {
+  return `src/${ref.split('/').at(-1)}.ts`;
+}
+
+/** A red suite whose failing test reads the bean's own file and every file squashed before. */
+function redCheck(sha, readSet) {
+  return {
+    sha,
+    green: false,
+    tests: 3,
+    failures: 1,
+    failing_tests: [
+      { file: 'test/total.test.js', name: 'total adds tax', message: 'expected 110, got 100' },
+    ],
+    failing_files: ['test/total.test.js'],
+    passing_files: [],
+    read_set: [...new Set(readSet)],
+    read_sets: { 'test/total.test.js': [...new Set(readSet)] },
+    read_depths: {},
+    stack_files: [],
+    output_excerpt: 'not ok 1 - total adds tax\n  expected 110, got 100',
+    suite_seconds: 0.05,
+    ci_seconds: 0.05,
+    timed_out: false,
+  };
 }

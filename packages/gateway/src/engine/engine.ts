@@ -32,6 +32,7 @@ import {
   retryAfterFailedResume,
   toInstruction,
 } from './invocations';
+import { admitTask } from './intake';
 import { beginShutdown, startRace } from './lifecycle';
 import type {
   CiRun,
@@ -94,6 +95,8 @@ function handle(ctx: StepContext, input: EngineInput): EngineResponse {
     case 'tick':
       tick(ctx);
       return { kind: 'none' };
+    case 'admit':
+      return admitTask(ctx, input.task, input.base);
     case 'restart':
       restart(ctx);
       return { kind: 'none' };
@@ -120,7 +123,9 @@ function handle(ctx: StepContext, input: EngineInput): EngineResponse {
 function settle(ctx: StepContext): void {
   if (ctx.state.phase !== 'running') return;
   if (ctx.state.aborted === null) policyHooks(ctx).dispatch();
-  if (ctx.state.aborted !== null || policyHooks(ctx).isFinished()) beginShutdown(ctx);
+  // A continuous engine never runs out of work: the next bean may arrive by push at any time.
+  const isOver = !ctx.env.config.continuous && policyHooks(ctx).isFinished();
+  if (ctx.state.aborted !== null || isOver) beginShutdown(ctx);
 }
 
 function start(ctx: StepContext, baseSha: Sha, labels: RunLabels): EngineResponse {

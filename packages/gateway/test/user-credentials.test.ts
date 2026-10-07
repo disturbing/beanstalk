@@ -8,8 +8,10 @@ import {
   revokeUserToken,
 } from '@beanstalk/shared-identity/user-tokens';
 import { insertUser } from '@beanstalk/shared-identity/users';
+import { RunId } from '@beanstalk/shared-race/ids';
 
-import { verifyGitCredential } from '../src/auth/git-credential';
+import { mayUseEngine, verifyGitCredential } from '../src/auth/git-credential';
+import type { GitCredentialEnv } from '../src/auth/git-credential';
 import { ADMIN, call, createRun, gitPath, json, slotToken } from './helpers';
 
 async function person(handle: string): Promise<{ id: string; handle: string }> {
@@ -18,14 +20,20 @@ async function person(handle: string): Promise<{ id: string; handle: string }> {
   return user;
 }
 
+const creds: GitCredentialEnv = {
+  tokenSecret: env.RUN_TOKEN_SECRET,
+  now: () => Date.now(),
+  identity: env,
+};
+
 describe('verifyGitCredential', () => {
   it('accepts run tokens as before', async () => {
     const run = await createRun({ agents: 1 });
-    const credential = await verifyGitCredential(env, slotToken(run, 'a0'));
+    const credential = await verifyGitCredential(creds, slotToken(run, 'a0'));
     expect(credential).toMatchObject({
-      ok: true,
-      kind: 'run',
-      claims: { run: run.run, scope: 'slot', sub: 'a0' },
+      engine: run.run,
+      runPrincipal: { scope: 'slot', sub: 'a0' },
+      scopes: ['repo:read', 'bean:write'],
     });
   });
 
@@ -40,35 +48,47 @@ describe('verifyGitCredential', () => {
       label: 'Claude Code',
       scopes: ['read'],
     });
-    expect(await verifyGitCredential(env, pat.token)).toEqual({
-      ok: true,
-      kind: 'user',
-      user: { ...user, email: null },
-      scopes: ['read', 'write'],
-      tokenKind: 'personal',
+    expect(await verifyGitCredential(creds, pat.token)).toEqual({
+      user,
+      scopes: ['repo:read', 'bean:write'],
+      engine: null,
+      runPrincipal: null,
     });
-    expect(await verifyGitCredential(env, session.token)).toMatchObject({
-      ok: true,
-      kind: 'user',
-      scopes: ['read'],
-      tokenKind: 'session',
+    expect(await verifyGitCredential(creds, session.token)).toMatchObject({
+      user,
+      scopes: ['repo:read'],
+      engine: null,
     });
     await revokeUserToken(env, { userId: user.id, tokenId: pat.summary.id });
-    expect(await verifyGitCredential(env, pat.token)).toEqual({
-      ok: false,
-      reason: 'unknown_user_token',
-    });
+    expect(await verifyGitCredential(creds, pat.token)).toBeNull();
   });
 
   it('refuses forged tokens of both kinds', async () => {
-    expect(await verifyGitCredential(env, 'bst1.forged.token')).toEqual({
-      ok: false,
-      reason: 'malformed',
+    expect(await verifyGitCredential(creds, 'bst1.forged.token')).toBeNull();
+    expect(await verifyGitCredential(creds, `bsu_${'x'.repeat(43)}`)).toBeNull();
+  });
+});
+
+describe('mayUseEngine', () => {
+  it("opens a person's own repositories to their token, nobody else's", async () => {
+    const user = await person('repo-owner');
+    const pat = await createPersonalToken(env, {
+      userId: user.id,
+      request: PersonalTokenInput.parse({ name: 'cli', scopes: ['write'], days: 7 }),
     });
-    expect(await verifyGitCredential(env, `bsu_${'x'.repeat(43)}`)).toEqual({
-      ok: false,
-      reason: 'unknown_user_token',
-    });
+    const credential = await verifyGitCredential(creds, pat.token);
+    if (credential === null) throw new Error('token refused');
+    const engine = RunId.parse('repoengine1');
+    expect(mayUseEngine(credential, engine, 'repo-owner')).toBe(true);
+    expect(mayUseEngine(credential, engine, 'someone-else')).toBe(false);
+  });
+
+  it('keeps run tokens bound to their own engine', async () => {
+    const run = await createRun({ agents: 1 });
+    const credential = await verifyGitCredential(creds, slotToken(run, 'a0'));
+    if (credential === null) throw new Error('token refused');
+    expect(mayUseEngine(credential, RunId.parse(run.run), 'anyone')).toBe(true);
+    expect(mayUseEngine(credential, RunId.parse('otherrun01'), 'anyone')).toBe(false);
   });
 });
 
@@ -84,8 +104,7 @@ describe('user tokens over HTTP', () => {
     expect(await json(response)).toEqual({
       kind: 'user',
       handle: 'whoami-person',
-      token: 'personal',
-      scopes: ['read'],
+      scopes: ['repo:read'],
     });
     const refused = await call('GET', '/v1/whoami', { token: `bsu_${'y'.repeat(43)}` });
     expect(refused.status).toBe(401);
@@ -104,7 +123,7 @@ describe('user tokens over HTTP', () => {
       { token },
     );
     expect(response.status).toBe(403);
-    expect(await response.text()).toContain('race repos take run tokens');
+    expect(await response.text()).toContain('does not open race repos');
     const admin = await call('GET', '/v1/whoami', { token: ADMIN });
     expect(admin.status).toBe(401);
   });

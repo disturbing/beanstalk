@@ -61,6 +61,11 @@ export type TaskState = {
   dropReason: string | null;
   /** v2 `park`: why the bean waits for a person (absent in runs created before parking). */
   parkedReason?: string | null;
+  /**
+   * A pushed bean's fork point: the sprout commit its pushed head grew from, which its start
+   * takes as its base instead of the sprout head (absent: an arena task, or not found).
+   */
+  pushedBase?: Sha | null;
   tamper: string[];
   /** Predicted footprint modules (reported; the queue never places by them). */
   selected: string[];
@@ -481,6 +486,17 @@ export type EngineInput =
       readonly outcome: JobOutcome;
     }
   | { readonly kind: 'tick'; readonly at: number }
+  | {
+      /**
+       * A continuous engine takes a bean that arrived by push (`intake.ts`). The shell adds
+       * the bean's definition to the run's tasks first; this makes it a pending task.
+       */
+      readonly kind: 'admit';
+      readonly at: number;
+      readonly task: TaskId;
+      /** The sprout commit the pushed head grew from, when the shell found it. */
+      readonly base: Sha | null;
+    }
   | {
       /** An answer to a decision card (the admin route); the oracle answers with a timer. */
       readonly kind: 'decision';

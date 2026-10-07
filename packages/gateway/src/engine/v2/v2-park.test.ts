@@ -201,8 +201,10 @@ describe('parking changes nothing else', () => {
     expect(on.events).toEqual(off.events);
   });
 
+  // Four simulations per case: CPU-heavy, so they get the same room as the other race fixtures.
   it.each(['burst', 'calm', 'earlier', 'flaky'] as const)(
     'runs the %s race exactly as v2.5 did (seeds 1 and 7)',
+    { timeout: 30_000 },
     (name) => {
       for (const seed of [1, 7]) {
         const make = SEEDED_SCENARIOS[name];

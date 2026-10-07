@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 
 import type { AppEnv } from '../app-env';
 import { presentedToken } from '../auth/credentials';
-import { credentialFailure, verifyGitCredential } from '../auth/git-credential';
+import { verifyGitCredential } from '../auth/git-credential';
 
 export const whoamiRoutes = new Hono<AppEnv>().get('/', async (c) => {
   const token = presentedToken(c.req.raw);
@@ -17,24 +17,22 @@ export const whoamiRoutes = new Hono<AppEnv>().get('/', async (c) => {
       401,
       challenge,
     );
-  const check = await verifyGitCredential(c.env, token, c.var.deps.now());
-  if (!check.ok)
+  const credential = await verifyGitCredential({ ...c.var.deps, identity: c.env }, token);
+  if (credential === null)
     return c.json(
-      { error: { code: 'unauthorized', message: credentialFailure(check) } },
+      { error: { code: 'unauthorized', message: 'invalid, expired or revoked token' } },
       401,
       challenge,
     );
-  if (check.kind === 'run')
+  if (credential.engine !== null) {
+    const contributor = credential.scopes.length === 0 ? 'contributor' : 'git';
     return c.json({
       kind: 'run',
-      run: check.claims.run,
-      scope: check.claims.scope,
-      sub: check.claims.sub,
+      run: credential.engine,
+      scope: credential.runPrincipal?.scope ?? contributor,
+      sub: credential.user.handle,
+      scopes: credential.scopes,
     });
-  return c.json({
-    kind: 'user',
-    handle: check.user.handle,
-    token: check.tokenKind,
-    scopes: check.scopes,
-  });
+  }
+  return c.json({ kind: 'user', handle: credential.user.handle, scopes: credential.scopes });
 });
