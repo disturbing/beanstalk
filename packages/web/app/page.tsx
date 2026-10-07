@@ -4,7 +4,8 @@ import type { DashboardRepository } from '../components/repository/home-dashboar
 import { HomeDashboard } from '../components/repository/home-dashboard';
 import { RunsLanding } from '../components/runs/runs-landing';
 import { currentUser } from '../src/auth/user';
-import { growthOf } from '../src/repositories/engine-summary';
+import { growthFromCounts, growthOf } from '../src/repositories/engine-summary';
+import { activityLines, readEngineFeeds } from '../src/repositories/home-activity';
 import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';
 
@@ -23,11 +24,21 @@ export default async function Home({ searchParams }: PageProps) {
     searchParams,
   ]);
   const records = listed.ok ? listed.value : [];
+  // One call for every repository's counts and recent engine events.
+  const feeds = await readEngineFeeds(
+    env.GATEWAY,
+    records.map((record) => record.engine_id),
+  );
   const repositories: DashboardRepository[] = await Promise.all(
-    records.map(async (record) => ({
-      record,
-      growth: await growthOf(env.GATEWAY, record.engine_id),
-    })),
+    records.map(async (record) => {
+      const feed = feeds.get(record.engine_id);
+      // An older gateway without engine feeds: one summary per repository, as before.
+      const growth =
+        feed === undefined
+          ? await growthOf(env.GATEWAY, record.engine_id)
+          : growthFromCounts(feed.tasks);
+      return { record, growth };
+    }),
   );
   const deleted = typeof query['deleted'] === 'string' ? query['deleted'] : null;
   const notice = noticeOf(listed.ok ? null : listed.error.message, deleted);
@@ -35,7 +46,12 @@ export default async function Home({ searchParams }: PageProps) {
     <HomeDashboard
       user={user}
       repositories={repositories}
-      activity={activity.ok ? activity.value : []}
+      activity={activityLines({
+        records,
+        registry: activity.ok ? activity.value : [],
+        feeds,
+        limit: 14,
+      })}
       nowMs={Date.now()}
       notice={notice}
       demoHref={`/runs/${racePair().right.run}`}

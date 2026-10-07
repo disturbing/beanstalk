@@ -9,7 +9,8 @@ import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';
 import { growthText } from '../../src/repositories/engine-summary';
 import { repositoryPath } from '../../src/repositories/paths';
-import type { RepositoryActivity, RepositoryRecord } from '../../src/repositories/registry-client';
+import type { ActivityLine } from '../../src/repositories/home-activity';
+import type { RepositoryRecord } from '../../src/repositories/registry-client';
 import { timeAgo } from '../../src/repositories/when';
 import styles from './repository.module.css';
 
@@ -18,7 +19,8 @@ export type DashboardRepository = { readonly record: RepositoryRecord; readonly 
 export function HomeDashboard(props: {
   readonly user: SessionUser;
   readonly repositories: readonly DashboardRepository[];
-  readonly activity: readonly RepositoryActivity[];
+  /** The engines' events and the registry's, newest first. */
+  readonly activity: readonly ActivityLine[];
   readonly nowMs: number;
   /** A sentence when something just happened (a deletion), or a registry problem. */
   readonly notice: { readonly tone: 'good' | 'warn'; readonly text: string } | null;
@@ -72,14 +74,21 @@ export function HomeDashboard(props: {
           ) : (
             <ul className={styles.activity}>
               {props.activity.map((line) => (
-                <li key={`${line.repo_id}-${line.at}-${line.kind}`}>
+                <li key={line.key} data-tone={line.tone}>
                   <span>
-                    <Link
-                      href={repositoryPath(line.owner_handle, line.repo_name)}
-                      className={styles.mono}
-                    >
-                      {line.owner_handle}/{line.repo_name}
+                    <Link href={repositoryPath(line.owner, line.repo)} className={styles.mono}>
+                      {line.owner}/{line.repo}
                     </Link>{' '}
+                    {line.bean === null ? null : (
+                      <>
+                        <Link
+                          href={`${repositoryPath(line.owner, line.repo)}/changes/${encodeURIComponent(line.bean)}`}
+                          className={styles.activityBean}
+                        >
+                          {line.bean}
+                        </Link>{' '}
+                      </>
+                    )}
                     {line.text}
                     <time dateTime={line.at}>{timeAgo(line.at, props.nowMs)}</time>
                   </span>

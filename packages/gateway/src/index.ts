@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
+import type { EngineFeed, EngineFeedRpc } from '@beanstalk/shared-race/engine-feed';
 import type {
   BeanContext,
   BeanContextInput,
@@ -69,6 +70,7 @@ import { createApp } from './app';
 import { createLogger } from './log';
 import { readConfig } from './config';
 import { deployTokensRpc } from './repos/deploy-tokens';
+import { engineFeedRpc } from './repos/engine-feed';
 import { repoEnginePort } from './repos/engine-port';
 import { d1Registry } from './repos/registry';
 import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
@@ -93,7 +95,7 @@ const app = createApp(createDeps);
  */
 export default class Gateway
   extends WorkerEntrypoint<Env>
-  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc
+  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc, EngineFeedRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -332,6 +334,14 @@ export default class Gateway
 
   pushedBeans(engineId: string): Promise<RpcResult<readonly PushedBeanStatus[]>> {
     return repoEngineRpc(createDeps(this.env)).pushedBeans(engineId);
+  }
+
+  /** What happened lately in each engine, for a person's Home (`EngineFeedRpc`). */
+  engineFeeds(
+    engineIds: readonly string[],
+    limit: number,
+  ): Promise<RpcResult<readonly EngineFeed[]>> {
+    return engineFeedRpc(createDeps(this.env)).engineFeeds(engineIds, limit);
   }
 
   closeRepoEngine(

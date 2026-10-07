@@ -123,6 +123,14 @@ export function hasGrown(events: readonly { readonly type: string }[]): boolean 
   return events.some((event) => event.type === 'task.start');
 }
 
+/** A repository has grown once a bean started or was pushed: its tabs replace the start page. */
+export function hasGrownRepository(
+  events: readonly { readonly type: string }[],
+  pushed: readonly unknown[],
+): boolean {
+  return pushed.length > 0 || hasGrown(events);
+}
+
 function valuesFrom(form: FormData): CreateValues {
   return {
     name: text(form, 'name'),
