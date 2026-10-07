@@ -11,9 +11,10 @@ Built 2026-10-07 on branch `worktree-agent-repos` (from `prototype`, merged up t
 | `/<owner>/<repo>` before the first bean | The start page (below). |
 | `/<owner>/<repo>` after | The repository home from `14` §11, unchanged: the stalk, Growing now, What happened, Ask, Files, beans, decisions, checks, read from the repository's engine. |
 | `/<owner>/<repo>/files` | The Files explorer once something grew; the stalk's file list before. |
-| `/<owner>/<repo>/settings` | The owner: rename and description, visibility, collaborators (`22-collaborators.md`), deploy tokens, delete after typing `<owner>/<name>`. Maintainers: deploy tokens. People with no role get the same 404 as a missing repository. |
+| `/<owner>/<repo>/stalk` | The Stalk tab (§7): the stalk's and the sprout's heads, the last 7 days' counts, what is landed and still validating, every stalk move with the beans it validated and their commits, what is growing, what was taken off, and the repository's activity. Read from D1. |
+| `/<owner>/<repo>/settings` | The owner: rename and description, visibility, collaborators (`22-collaborators.md`), deploy tokens, archive (§8), delete after typing `<owner>/<name>`. Maintainers: deploy tokens. People with no role get the same 404 as a missing repository. |
 | `/<owner>/<repo>/people` | Who has access, and which sessions and tokens acted for whom (`22`). |
-| `/<owner>` | The owner's repositories (for now only on your own page; listing someone else's needs a handle lookup from accounts). |
+| `/<owner>` | The owner's repositories, then an **Archived** section (for now only on your own page; listing someone else's needs a handle lookup from accounts). |
 
 The shell names the repository once (`owner / name` plus a private or public pill), then its tabs. A race keeps its Engine tab; a repository has Settings instead. Night, day (phosphor, paper, blueprint) and phone widths all work; screenshots are in `exp/repos/`.
 
@@ -64,8 +65,9 @@ git /git/<owner>/<repo>.git ──▶ registry (name → engine, owner, visibili
 
 ## 4. Open
 
-- **Archive**, the Stalk and Insights tabs, org owners. (Collaborators and visibility: done, `22-collaborators.md`.)
-- ~~Home's activity from the registry only~~ and ~~the Files rail's "agents" sections~~: done in §6.
+- **Insights** tab (`repo_daily` holds its first counts) and org owners. (Collaborators and visibility: done, `22-collaborators.md`; repository tabs, §6; the Stalk tab, engine activity on Home from D1, archive: §7 and §8.)
+- **Index lag outliers:** queue delivery took 1.3 to 6.3 s on staging, so the index was 1.5 to 7 s behind the engine (most under 5 s); one earlier pair of messages, before the engine logged its sends, arrived 45 to 50 s late, cause not found (§7).
+- **Stalk and History overlap:** History (§6, from the engine) lists the stalk's and the unvalidated sprout's commits; Stalk (§7, from D1) groups them by validation with the week's counts. Both were built the same day by parallel lanes; one could absorb the other. Changes (§6) still reads the engine's event log whole per page; the D1 `beans` and `decisions` indexes can serve it.
 
 Done 2026-10-07 (live rollout, §5): repository pages name the pushing person (`last push @coop: add-truncate`, `@coop` where a race shows `a0`, "pushed by @coop") and suggest repository questions; handles that clash with routes are refused at sign-up; the plugin install line is real.
 
@@ -104,3 +106,31 @@ A person's repository no longer borrows the race views. The shell names it once 
 
 **Open:** the event log is read whole per page (fine for hundreds of events, not for years of them: backlog 2.6's D1 indexes); no per-file "last change" column (it would cost a log per path); diffs are not syntax-highlighted.
 
+## 7. Repository events and the Stalk tab (backlog 2.6, 2.7; 2026-10-07)
+
+```
+RunDO (repository engine) ── its own events table, cursor `repo-events-cursor` ──▶ Queue beanstalk-repo-events
+   step with a published event type / alarm / wake / catchUpRepoEvents()          │ max_batch_timeout 0
+                                                                                  ▼
+gateway queue() ── RepoEventsMessage (Zod) ── registry.byEngine ──▶ D1 FORGE: repository_activity (engine lines),
+                                                                    beans, decisions, repo_daily, repo_lines
+web Home (repositoryActivity, repositoryGrowth) · Stalk tab (repositoryStalk) ◀── one D1 batch per page
+```
+
+- **What is published** (`gateway/src/repo-events/map-events.ts`): `task.start` → `bean.opened` (with the pusher and title from the push driver), `land` (a bean's own) → `bean.landed`, `rework.start`, `task.drop` / `task.parked` → `bean.ended`, `revert` → `bean.reverted`, `green.promote` → `stalk.promoted`, `green.demote` → `stalk.demoted`, `ticket.open` → `sprout.red`, `decision.request` / `decision.made`. Contract: `@beanstalk/shared-race/repo-events`.
+- **Nothing is lost:** the engine sends from a cursor over its own event log (`publisher.ts`), moving it only after `sendBatch` succeeded; a failed send goes again with the next step, alarm or wake, and a reader that finds a repository missing from the index (`repo_lines` has no row) asks its engine to catch up. A repository that grew before this change sends its whole history the first time its engine wakes. Races never publish.
+- **Idempotent consumer** (`consumer.ts`, `index-store.ts`): activity lines are unique by `<engine>:<seq>`; a bean's state and a line's head move only for a newer engine seq; daily counts are recounted from the activity lines; so redelivery and reordering change nothing (test: `test/repo-events.test.ts`). Messages for engines no repository owns are acked and dropped; bad messages are acked with a warning; a failed D1 write is retried by the queue (10 times).
+- **Tables** (migration `0004_repo_events.sql`): `beans` (repo, bean, title, pusher, state growing/landed/promoted/reverted/dropped/parked, landed and promoted commits, reworks), `decisions`, `repo_daily`, `repo_lines`; `repository_activity` gains `event_key`, `bean`, `sha`. Home's activity now covers your repositories and those shared with you.
+- **Web:** Home reads D1 first: one `repositoryGrowth` read for every repository's counts, and its activity is the registry's lines with the engines' (each bean linked to its Changes page; a bean's push and landing give way to its newer lines). Only repositories the index has not heard from yet go through §6's `engineFeeds` (and an older gateway through `runView`). The Stalk tab is one `repositoryStalk` read (the access check runs beside it); its beans link to Changes.
+- **Files rail:** §6's wording stands ("People and sessions on it now", "Pushed by @coop").
+
+**Verified on staging** (`beanstalk-gateway-staging-repoev` with runner app `beanstalk-gateway-staging-repoev-runner` at 4 × standard-4, `beanstalk-web-staging-repoev`, D1 `beanstalk-forge-staging-repoev` / `beanstalk-identity-staging-repoev`, queue `beanstalk-repo-events-staging-repoev`, Artifacts `beanstalk-race-staging-repoev` / `beanstalk-repos-staging-repoev`; headless Chrome with a CDP virtual authenticator, real git): passkey sign-up, `greeter` from the starter, a personal token, six beans pushed with `git push -o wait`, each LANDED and validated on the stalk in 11 to 25 s. Index lag (engine event to D1 row, from the Worker logs, `exp/repo-events/index-lag.txt`): 1.5 to 7.0 s across 14 messages, median about 3 s; the queue's delivery is most of it (1.3 to 6.3 s after the send); one early pair 45 to 50 s (above). Stalk tab D1 read through the web: 87 to 160 ms warm (213 ms cold), the gateway's own D1 batch 17 to 90 ms; D1's primary is in SIN. Screenshots: `exp/repo-events/03-stalk.png`, `09-stalk-phone.png` (390 px, no sideways scroll), `09-home.png`, `03-files.png`; push transcript `push-transcript.txt`. Stack torn down afterwards.
+
+## 8. Archive (backlog 2.2)
+
+- **Who:** the owner, from Settings ("Archive <owner>/<name>"; "Unarchive" while archived). Gateway RPC `archiveRepository(actorId, repoId, 'archived' | 'active')`, checked by `mayUseEngine`'s `administer`; an activity line each way.
+- **What it does:** `mayUseEngine` refuses `write`, `decide` and `deploy-tokens` on an archived repository to everyone who could otherwise do them (`refusedByArchive`), so HTTPS and SSH pushes, MCP writes, decision answers and deploy tokens all stop in one place, with one sentence: `remote: <owner>/<name> is archived, so it is read-only: pushes are refused. Its owner can unarchive it in Settings.` Reads, clones and fetches still work (public stays public). Rename, description and visibility are refused while archived (unarchive first); collaborators and deletion still work.
+- **Lists:** `listRepositories` returns active repositories by default and archived ones with `'archived'`; Home leaves them out (with "N archived" linking to your page, and its own sentence when all are archived); `/<owner>` lists them under Archived; every repository page says "Archived by its owner: read-only…" under its name.
+- **Verified:** `test/repo-archive.test.ts` (owner only; out of the default list; clone 200 for owner and anonymous; push 403 with the sentence; deploy token, decision and settings refused with `archived`; unarchive takes pushes again); on staging: archived from Settings, `git push` answered with the `remote:` line above and a 403, `git fetch` fine, Home and the owner page as described, unarchived, the next push LANDED (`exp/repo-events/04-*.png` to `07-*.png`, `push-transcript.txt`).
+
+**Live rollout:** create the queue (`wrangler queues create beanstalk-repo-events`), apply `beanstalk-forge` migration `0004_repo_events.sql` before deploying the gateway (it only adds a table set and nullable columns), then deploy the gateway and the web. Existing repositories fill their index the first time their engine wakes or their page is read.

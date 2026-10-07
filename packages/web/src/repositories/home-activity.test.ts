@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Feed, FeedItem } from './home-activity';
-import { activityLines, latestPerBean, readEngineFeeds } from './home-activity';
+import { activityLines, indexLines, latestPerBean, readEngineFeeds } from './home-activity';
 import type { RepositoryRecord } from './registry-client';
 
 const record: RepositoryRecord = {
@@ -16,6 +16,7 @@ const record: RepositoryRecord = {
   default_branch: 'stalk',
   created_at: '2026-10-07T13:39:40Z',
   updated_at: '2026-10-07T13:39:40Z',
+  archived_at: null,
 };
 
 function item(seq: number, kind: FeedItem['kind'], bean: string, detail = ''): FeedItem {
@@ -62,6 +63,8 @@ describe('Home activity from the engines', () => {
           at: '2026-10-07T13:39:40Z',
           kind: 'created',
           text: 'Created from the TypeScript starter.',
+          bean: null,
+          sha: null,
         },
       ],
       feeds,
@@ -86,5 +89,33 @@ describe('Home activity from the engines', () => {
         }),
     };
     expect([...(await readEngineFeeds(answering, ['r1', 'r2'])).keys()]).toEqual(['r1', 'r2']);
+  });
+});
+
+describe('Home activity from the repo-events index', () => {
+  const line = (kind: string, bean: string | null, text: string, second: number) => ({
+    repo_id: record.id,
+    owner_handle: 'coop',
+    repo_name: 'greeter',
+    at: new Date(Date.UTC(2026, 9, 7, 14, 0, second)).toISOString(),
+    kind,
+    text,
+    bean,
+    sha: null,
+  });
+
+  it('links each bean, and keeps only its newest step', () => {
+    const lines = indexLines([
+      line('promoted', 'add-truncate', 'The stalk moved to 75c0ebb: add-truncate validated.', 9),
+      line('landed', 'add-truncate', 'add-truncate landed on the sprout at 75c0ebb.', 5),
+      line('opened', 'add-truncate', '@coop pushed bean add-truncate: Add truncate.', 1),
+      line('rework', 'shout', 'shout went back to its author: red.', 4),
+      line('created', null, 'Created from the TypeScript starter.', 0),
+    ]);
+    expect(lines.map((each) => [each.tone, each.bean, each.text])).toEqual([
+      ['good', null, 'The stalk moved to 75c0ebb: add-truncate validated.'],
+      ['neutral', 'shout', 'went back to its author: red.'],
+      ['neutral', null, 'Created from the TypeScript starter.'],
+    ]);
   });
 });

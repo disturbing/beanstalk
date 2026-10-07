@@ -72,6 +72,7 @@ async function StartPage({ tab }: { readonly tab: RepositoryTab }) {
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
         canAdminister={tab.role !== null}
+        archived={record.archived_at !== null}
       />
       <StartHere
         record={record}

@@ -28,6 +28,7 @@ export function RepositoryShell(props: {
         ownerHref={`/${record.owner.handle}`}
         openChanges={props.openChanges}
         canAdminister={role !== null}
+        archived={record.archived_at !== null}
       />
       <div className={styles.page}>{props.children}</div>
     </main>

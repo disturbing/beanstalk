@@ -36,6 +36,7 @@ export default async function RepositoryPeoplePage({ params }: PageProps) {
         kind="repository"
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
+        archived={record.archived_at !== null}
         canAdminister={role !== null}
       />
       <div className={`${styles.page} ${styles.narrow}`}>

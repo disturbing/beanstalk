@@ -107,7 +107,37 @@ export type RepositoryRecord = {
   /** ISO 8601. */
   readonly created_at: string;
   readonly updated_at: string;
+  /**
+   * ISO 8601 when its owner archived it, else null. An archived repository is read-only (no
+   * pushes, no decisions, no deploy tokens) and left out of default lists.
+   */
+  readonly archived_at: string | null;
 };
+
+/** Which of an owner's repositories a list holds: the active ones (default) or the archived. */
+export type RepositoryListing = 'active' | 'archived';
+
+/** Kinds of activity line: the registry's own, then the engine's (through `repo-events`). */
+export const ACTIVITY_KINDS = [
+  'created',
+  'renamed',
+  'described',
+  'visibility',
+  'archived',
+  'unarchived',
+  'opened',
+  'landed',
+  'rework',
+  'dropped',
+  'parked',
+  'reverted',
+  'promoted',
+  'demoted',
+  'red',
+  'decision',
+  'decided',
+] as const;
+export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
 /** One line of a repository's own history (created, renamed …), newest first in listings. */
 export type RepositoryActivity = {
@@ -116,9 +146,13 @@ export type RepositoryActivity = {
   readonly repo_name: string;
   /** ISO 8601. */
   readonly at: string;
-  readonly kind: 'created' | 'renamed' | 'described' | 'visibility';
+  readonly kind: ActivityKind;
   /** A sentence for a person: "Created from the TypeScript starter." */
   readonly text: string;
+  /** The bean an engine line is about, when it is about one. */
+  readonly bean: string | null;
+  /** The commit an engine line names (a landing, the stalk's new head). */
+  readonly sha: string | null;
 };
 
 /** The stalk's files, for the empty-repository page (read from Artifacts by the gateway). */
@@ -147,10 +181,11 @@ export type RepositoriesRpc = {
     owner: RepoOwner,
     input: CreateRepositoryInput,
   ): Promise<RpcResult<RepositoryRecord>>;
-  /** An owner's repositories, newest first: those the viewer may read. */
+  /** An owner's repositories, newest first: those the viewer may read (active by default). */
   listRepositories(
     ownerId: string,
     viewer: Viewer,
+    listing?: RepositoryListing,
   ): Promise<RpcResult<readonly RepositoryRecord[]>>;
   /** The repository with the viewer's role on it; not found when the viewer may not read it. */
   getRepository(
@@ -164,7 +199,16 @@ export type RepositoriesRpc = {
     patch: UpdateRepositoryInput,
   ): Promise<RpcResult<RepositoryRecord>>;
   deleteRepository(ownerId: string, repoId: string): Promise<RpcResult<{ readonly deleted: true }>>;
-  /** The owner's repositories' own history, newest first. */
+  /** Archives (`archived`: read-only, out of default lists) or unarchives (`active`); the owner only. */
+  archiveRepository(
+    actorId: string,
+    repoId: string,
+    to: RepositoryListing,
+  ): Promise<RpcResult<RepositoryRecord>>;
+  /**
+   * What happened in the person's repositories (their own and those shared with them): the
+   * registry's lines and the engines' (landings, promotions, reverts, decisions), newest first.
+   */
   repositoryActivity(
     ownerId: string,
     limit: number,

@@ -1,0 +1,245 @@
+/* The Stalk tab (stalk-view.tsx): the two lines, the week, then what is validated, landed,
+   growing and taken off. Nightshift tokens from globals.css. */
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 24px 64px;
+}
+.muted {
+  color: var(--ink-3);
+}
+
+/* ---------- The two lines ---------- */
+.lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin-bottom: 14px;
+}
+.line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--step--1);
+}
+.lineLabel {
+  font-weight: 600;
+}
+.line[data-tone='stalk'] .lineLabel {
+  color: var(--good);
+}
+.line[data-tone='sprout'] .lineLabel {
+  color: var(--sprout);
+}
+.lineSha {
+  font: 500 14px var(--font-mono);
+}
+
+/* ---------- The week ---------- */
+.week {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 22px;
+}
+.stat {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.stat dt {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.stat dd {
+  margin: 2px 0 0;
+  font: 600 var(--step-1) var(--font-mono);
+}
+
+/* ---------- Panels ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.column {
+  display: grid;
+  gap: 22px;
+}
+.panel {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  min-width: 0;
+}
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.panelHead h2 {
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+.explain {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+  padding: 10px 16px 0;
+}
+.empty {
+  padding: 14px 16px;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+/* ---------- Beans ---------- */
+.beans {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.bean {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 16px;
+  font-size: var(--step--1);
+}
+.beanName {
+  font: 500 13px var(--font-mono);
+  color: var(--good);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.beanName:hover {
+  text-decoration: underline;
+}
+.beanTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.reason {
+  display: block;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.beanMeta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  white-space: nowrap;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.sha {
+  font: 500 12px var(--font-mono);
+  color: var(--ink-2);
+}
+
+/* ---------- Stalk moves ---------- */
+.moves {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.move {
+  border-bottom: 1px solid var(--rule);
+  padding: 6px 0;
+}
+.move:last-child {
+  border-bottom: 0;
+}
+.moveHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 16px 2px;
+  font-size: var(--step--1);
+}
+.moveHead time {
+  color: var(--ink-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.move[data-kind='promoted'] .moveHead .sha {
+  color: var(--good);
+}
+.move[data-kind='demoted'] .moveHead .sha {
+  color: var(--bad);
+}
+.move .beans {
+  padding: 0 0 4px 18px;
+}
+
+/* ---------- Activity ---------- */
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+.activity li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 16px;
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+.activity li::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.activity li[data-kind='landed']::before {
+  background: var(--sprout);
+}
+.activity li[data-kind='promoted']::before {
+  background: var(--good);
+}
+.activity li[data-kind='red']::before,
+.activity li[data-kind='reverted']::before,
+.activity li[data-kind='demoted']::before {
+  background: var(--bad);
+}
+.activity time {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.smallPrint {
+  margin-top: 18px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .week {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .page {
+    padding: 16px 16px 48px;
+  }
+  .bean {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .beanTitle {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

@@ -87,6 +87,7 @@ describe('mayUseEngine with real credentials', () => {
       owner,
       visibility,
       collaboratorRole: null,
+      archived: false,
     });
     const someone = { id: 'u_someone', handle: 'someone-else' };
     expect(mayUseEngine(principal, of(user), 'write')).toBe('allowed');
@@ -115,6 +116,7 @@ function engineAt(engine: string) {
     owner: { id: null, handle: 'anyone' },
     visibility: 'public' as const,
     collaboratorRole: null,
+    archived: false,
   };
 }
 

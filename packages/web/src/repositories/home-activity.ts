@@ -1,5 +1,7 @@
 /**
- * Home's "Recent activity": the engines' feeds (beans pushed, reds, landings, validations,
+ * Home's "Recent activity": the repo-events index (D1: the registry's lines and the engines'
+ * landings, promotions, reverts and decisions in one list, `indexLines`) and, for a repository
+ * the index has not heard from yet, the engines' feeds (beans pushed, reds, landings, validations,
  * decisions) merged with the registry's own lines (created, renamed …), newest first. The
  * feeds come from one `engineFeeds` call for every repository on the page, which also
  * answers each repository's counts, so Home makes no call per repository.
@@ -169,4 +171,39 @@ function failingText(detail: string): string {
   const tests = detail === '' ? [] : detail.split(', ');
   if (tests.length === 0) return 'its pre-land check failed';
   return tests.length === 1 ? `${tests[0]} failed` : `${tests.length} tests failed`;
+}
+
+/** Index kinds a later line about the same bean implies (a push that landed, a landing promoted). */
+const SUPERSEDED_KINDS: ReadonlySet<string> = new Set(['opened', 'landed']);
+
+/**
+ * Home's lines from the repo-events index (newest first, as the registry answers them): each
+ * engine line links its bean, and a bean's push and landing give way to its newer lines.
+ */
+export function indexLines(lines: readonly RepositoryActivity[]): readonly ActivityLine[] {
+  const seen = new Set<string>();
+  return lines.flatMap((line, index): ActivityLine[] => {
+    const beanKey = line.bean === null ? null : `${line.repo_id}:${line.bean}`;
+    const later = beanKey !== null && seen.has(beanKey);
+    if (beanKey !== null) seen.add(beanKey);
+    if (later && SUPERSEDED_KINDS.has(line.kind)) return [];
+    const bean = line.bean !== null && line.text.startsWith(`${line.bean} `) ? line.bean : null;
+    return [
+      {
+        key: `${line.repo_id}:${line.at}:${line.kind}:${index}`,
+        at: line.at,
+        owner: line.owner_handle,
+        repo: line.repo_name,
+        tone: indexTone(line.kind),
+        bean,
+        text: bean === null ? line.text : line.text.slice(bean.length + 1),
+      },
+    ];
+  });
+}
+
+function indexTone(kind: string): ActivityLine['tone'] {
+  if (kind === 'landed' || kind === 'promoted') return 'good';
+  if (['red', 'reverted', 'demoted', 'dropped'].includes(kind)) return 'bad';
+  return kind === 'decision' || kind === 'parked' ? 'decide' : 'neutral';
 }

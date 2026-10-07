@@ -41,6 +41,8 @@ export type HomeFrame = {
   readonly kind: RepoKind;
   readonly visibility?: 'public' | 'private';
   readonly ownerHref?: string;
+  /** A persistent repository its owner archived. */
+  readonly archived?: boolean;
 };
 
 /**
@@ -82,6 +84,7 @@ export async function RepositoryHome(props: {
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
+        archived={props.frame.archived === true}
       />
       <HomeWorkspace
         run={run}

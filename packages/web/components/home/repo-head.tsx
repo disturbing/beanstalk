@@ -12,6 +12,7 @@ export type RepoTab =
   | 'engine'
   | 'changes'
   | 'history'
+  | 'stalk'
   | 'ask'
   | 'people'
   | 'settings';
@@ -34,13 +35,15 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
 
 /**
  * A person's repository (`docs/claude-opus/20`): GitHub's shape with Beanstalk's words. Code
- * is the stalk's files, Changes the beans, History the stalk's commits, Ask the generated
- * explorer over the engine (the race view's home).
+ * is the stalk's files, Changes the beans, History the stalk's commits, Stalk what is validated
+ * and promoted (from the repo-events index, `20` §6), Ask the generated explorer over the engine
+ * (the race view's home).
  */
 const REPOSITORY_TABS: readonly { readonly tab: RepoTab; readonly name: string }[] = [
   { tab: 'code', name: 'Code' },
   { tab: 'changes', name: 'Changes' },
   { tab: 'history', name: 'History' },
+  { tab: 'stalk', name: 'Stalk' },
   { tab: 'ask', name: 'Ask' },
   { tab: 'people', name: 'People' },
   { tab: 'settings', name: 'Settings' },
@@ -66,6 +69,8 @@ export function RepoHead(props: {
   readonly openChanges?: number;
   /** Whether the viewer may open Settings (the owner); others do not see the tab. */
   readonly canAdminister?: boolean;
+  /** A persistent repository its owner archived: read-only, said under the name. */
+  readonly archived?: boolean;
 }) {
   if (props.kind === 'repository') return <RepositoryHead {...props} />;
   return (
@@ -104,6 +109,7 @@ function RepositoryHead(props: {
   readonly ownerHref?: string;
   readonly openChanges?: number;
   readonly canAdminister?: boolean;
+  readonly archived?: boolean;
 }) {
   const tabs = REPOSITORY_TABS.filter(
     (item) => item.tab !== 'settings' || props.canAdminister !== false,
@@ -117,7 +123,13 @@ function RepositoryHead(props: {
         {props.visibility === undefined ? null : (
           <small className={styles.visibility}>{props.visibility}</small>
         )}
+        {props.archived === true ? <small className={styles.visibility}>archived</small> : null}
       </h1>
+      {props.archived === true ? (
+        <p className={styles.archivedNote} role="note">
+          Archived by its owner: read-only. It still clones and fetches; pushes are refused.
+        </p>
+      ) : null}
       <nav className={styles.tabs} aria-label="Repository views">
         {tabs.map((item) => (
           <Link

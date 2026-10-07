@@ -1,0 +1,36 @@
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean add-truncate received at fc13eec: "Add truncate"        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (7.5 s)        
+remote: beanstalk: LANDED: add-truncate passed its pre-land check and is on the sprout as 75c0ebb        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: validated: on the stalk at 75c0ebb        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-truncate/status        
+To https://beanstalk-gateway-staging-repoev.devaccounts-1password.workers.dev/git/repoev-przv/greeter.git
+ * [new branch]      bean/add-truncate -> bean/add-truncate
+push took 25 s
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean add-ellipsize received at 7bd35d4: "Add ellipsize"        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (3.1 s)        
+remote: beanstalk: LANDED: add-ellipsize passed its pre-land check and is on the sprout as 9439587        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: validated: on the stalk at 9439587        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-ellipsize/status        
+To https://beanstalk-gateway-staging-repoev.devaccounts-1password.workers.dev/git/repoev-przv/greeter.git
+ * [new branch]      bean/add-ellipsize -> bean/add-ellipsize
+push took 13 s
+remote: repoev-przv/greeter is archived, so it is read-only: pushes are refused. Its owner can unarchive it in Settings.
+fatal: unable to access 'https://beanstalk-gateway-staging-repoev.devaccounts-1password.workers.dev/git/repoev-przv/greeter.git/': The requested URL returned error: 403
+push took 1 s
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean add-late received at 8ec6e9e: "Add late"        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (4.4 s)        
+remote: beanstalk: LANDED: add-late passed its pre-land check and is on the sprout as 3df0f33        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: validated: on the stalk at 3df0f33        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-late/status        
+To https://beanstalk-gateway-staging-repoev.devaccounts-1password.workers.dev/git/repoev-przv/greeter.git
+ * [new branch]      bean/add-late -> bean/add-late
+push took 14 s

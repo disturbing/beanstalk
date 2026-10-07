@@ -101,6 +101,25 @@ export async function deleteFlow(
   return { kind: 'redirect', to: '/?deleted=' + encodeURIComponent(expected) };
 }
 
+/** Archives or unarchives (`to` in the form), then shows Settings again with what changed. */
+export async function archiveFlow(
+  form: FormData,
+  user: SessionUser,
+  registry: RegistryClient,
+): Promise<FormOutcome<SettingsState>> {
+  const to = text(form, 'to');
+  if (to !== 'archived' && to !== 'active')
+    return { kind: 'show', state: { saved: null, error: 'Choose archive or unarchive.' } };
+  const changed = await registry.archive(user.id, text(form, 'repoId'), to);
+  if (!changed.ok)
+    return { kind: 'show', state: { saved: null, error: sentence(changed.error.message) } };
+  const { owner, name } = changed.value;
+  return {
+    kind: 'redirect',
+    to: `${repositoryPath(owner.handle, name)}/settings?saved=${to === 'archived' ? 'archived' : 'unarchived'}`,
+  };
+}
+
 /** What `/<owner>/<repo>` resolves to for this viewer. */
 export type RepositoryLookup =
   | { readonly kind: 'not-found' }

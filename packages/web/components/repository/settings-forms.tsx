@@ -4,7 +4,11 @@ import { useActionState } from 'react';
 
 import type { SettingsState } from '../../src/repositories/flows';
 import { EMPTY_SETTINGS_STATE } from '../../src/repositories/flows';
-import { deleteRepository, updateRepository } from '../../src/server/repository-actions';
+import {
+  archiveRepository,
+  deleteRepository,
+  updateRepository,
+} from '../../src/server/repository-actions';
 import styles from './repository.module.css';
 
 type Repo = {
@@ -124,6 +128,48 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
       <div className={styles.actions}>
         <button type="submit" className={styles.secondary} disabled={pending}>
           Change visibility
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Archive or unarchive. Archived: read-only (clones and fetches work; pushes, decisions and
+ * deploy tokens are refused) and out of Home's lists; unarchive brings everything back.
+ */
+export function ArchiveSettings({
+  repo,
+  archivedAt,
+  saved,
+}: {
+  readonly repo: Repo;
+  readonly archivedAt: string | null;
+  readonly saved: string | null;
+}) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(archiveRepository, {
+    ...EMPTY_SETTINGS_STATE,
+    saved,
+  });
+  const isArchived = archivedAt !== null;
+  return (
+    <form
+      action={action}
+      className={`${styles.panel} ${styles.settingsSection}`}
+      aria-labelledby="archive-title"
+    >
+      <h2 id="archive-title">{isArchived ? 'This repository is archived' : 'Archive'}</h2>
+      <p className={styles.sub}>
+        {isArchived
+          ? `Archived ${archivedAt.slice(0, 10)}. It is read-only: it still clones and fetches, but pushes, decision answers and deploy tokens are refused, and it is left out of Home. Its name, description and visibility are fixed until you unarchive it.`
+          : 'Make it read-only: it still clones and fetches, but pushes, decision answers and deploy tokens are refused, and it leaves Home. Your page lists it under Archived, and you can unarchive it at any time.'}
+      </p>
+      <input type="hidden" name="repoId" value={repo.id} />
+      <input type="hidden" name="to" value={isArchived ? 'active' : 'archived'} />
+      <Status state={state} />
+      <div className={styles.actions}>
+        <button type="submit" className={styles.secondary} disabled={pending}>
+          {isArchived ? 'Unarchive' : `Archive ${repo.owner}/${repo.name}`}
         </button>
       </div>
     </form>

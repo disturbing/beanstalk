@@ -62,6 +62,21 @@
     { "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true },
     { "binding": "REPOS", "namespace": "beanstalk-repos", "remote": true },
   ],
+  // repo-events (docs/claude-opus/20-repositories.md §6, backlog 2.6): repository engines send
+  // landings, promotions, reverts, decisions and bean events; this Worker's own consumer
+  // writes the D1 indexes (beans, decisions, repo_daily, repo_lines, activity). Batches do not
+  // wait to fill (max_batch_timeout 0): delivery is the index's whole delay.
+  "queues": {
+    "producers": [{ "binding": "REPO_EVENTS", "queue": "beanstalk-repo-events" }],
+    "consumers": [
+      {
+        "queue": "beanstalk-repo-events",
+        "max_batch_size": 100,
+        "max_batch_timeout": 0,
+        "max_retries": 10,
+      },
+    ],
+  },
   // The repository registry (FORGE, docs/claude-opus/20-repositories.md): records, per-owner
   // name uniqueness and repository activity; migrations in migrations/. Accounts (IDENTITY_DB):
   // git credentials may be people's tokens (bsu_, bss_), verified against the identity database

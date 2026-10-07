@@ -16,7 +16,8 @@
     "./read-maps": "./src/read-maps.ts",
     "./agent-repos": "./src/agent-repos.ts",
     "./collaborators": "./src/collaborators.ts",
-    "./engine-feed": "./src/engine-feed.ts"
+    "./engine-feed": "./src/engine-feed.ts",
+    "./repo-events": "./src/repo-events.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

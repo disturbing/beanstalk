@@ -84,6 +84,7 @@ export async function FilesExplorer(props: {
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
+        archived={props.frame.archived === true}
       />
       <AskBar
         base={base}

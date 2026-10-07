@@ -125,6 +125,9 @@ import type { OpenRepoEngineInput, RepoEngineRecord } from '../push/repo-engine'
 import { RepoEngineRecord as RepoEngineSchema, beanLink } from '../push/repo-engine';
 import { prepareRepoLines } from '../push/repo-lines';
 import { StatusPublisher } from '../push/status-publisher';
+import { PUBLISHED_TYPES } from '../repo-events/map-events';
+import type { PublishOutcome } from '../repo-events/publisher';
+import { REPO_EVENTS_CURSOR_KEY, publishRepoEvents } from '../repo-events/publisher';
 import { toDriverReply } from './driver-reply';
 import type { InfraMeter, InfraReport, RunnerCall } from './infra-meter';
 import {
@@ -163,6 +166,7 @@ import {
   migrate,
   readEvents,
   readEventsOfTypes,
+  readEventsOfTypesAfter,
   saveMeter,
   saveNewRun,
   saveConfig,
@@ -209,6 +213,8 @@ const LINE_MOVES: ReadonlySet<string> = new Set([
   'green.promote',
   'green.demote',
 ]);
+/** Engine event types that become repository events (`repo-events`). */
+const PUBLISHED: ReadonlySet<string> = new Set(PUBLISHED_TYPES);
 /** The infra meter is written with every stored step, and otherwise at most this often. */
 const METER_SAVE_INTERVAL_MS = 5000;
 /** How long `summary()` waits for a reap in flight, so a capture at `done` sees its outcome. */
@@ -290,6 +296,9 @@ export class RunDO extends DurableObject<Env> {
   /** A continuous engine's driver: pushes in, verdicts out (`push/push-driver.ts`). */
   readonly #push: PushDriver;
   readonly #statuses: StatusPublisher;
+  /** `repo-events`: the publish in flight, and whether more events arrived meanwhile. */
+  #publishing: Promise<PublishOutcome | null> | null = null;
+  #publishAgain = false;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -341,6 +350,8 @@ export class RunDO extends DurableObject<Env> {
       seedCollaboration(ctx.storage.sql, stored.config.tasks);
       this.#resume(stored);
     }
+    // A repository engine sends what it has not sent yet (all of it, the first time).
+    this.#publishRepoEvents();
   }
 
   /**
@@ -431,6 +442,17 @@ export class RunDO extends DurableObject<Env> {
   repoEngine(): RepoEngineRecord | null {
     this.#countRequest();
     return this.#repoEngine();
+  }
+
+  /**
+   * `repo-events`: sends the events the index has not had yet and says how many went out
+   * (null: nothing to send from here, a race or an engine without the queue). Readers that
+   * find a repository missing from the index call it; steps and alarms publish on their own.
+   */
+  async catchUpRepoEvents(): Promise<PublishOutcome | null> {
+    this.#countRequest();
+    this.#publishRepoEvents();
+    return (await this.#publishing) ?? null;
   }
 
   /** Lends a token for one git request of a repository engine (refs are the caller's to police). */
@@ -1139,6 +1161,8 @@ export class RunDO extends DurableObject<Env> {
     this.#alarmAt = null;
     this.#setMeter(countAlarm(this.#meter, Date.now()));
     if (this.#loaded !== null) this.#apply({ kind: 'tick', at: Date.now() });
+    // A send that failed earlier goes out again with the next alarm.
+    this.#publishRepoEvents();
   }
 
   #resume(stored: StoredRun): void {
@@ -1190,6 +1214,8 @@ export class RunDO extends DurableObject<Env> {
     this.#reportStreams(output);
     if (output.effects.events.length > 0 && loaded.stored.config.continuous)
       this.#push.onEvents(output.effects.events);
+    if (write === 'state' && output.effects.events.some((event) => PUBLISHED.has(event.type)))
+      this.#publishRepoEvents();
     this.#deliver(output.effects.replies);
     for (const job of output.effects.jobs) this.ctx.waitUntil(this.#runJob(job.id, job.spec));
     if (write === 'state') this.#updateIndex();
@@ -1674,6 +1700,62 @@ export class RunDO extends DurableObject<Env> {
       await scheduler.wait(COMMIT_READ_PAUSE_MS);
     }
     return null;
+  }
+
+  /**
+   * Starts a `repo-events` publish for a repository engine (one at a time; a call while one
+   * runs makes it go round again). Failures are logged; the cursor stays, so the next step,
+   * alarm or catch-up sends them.
+   */
+  #publishRepoEvents(): void {
+    if (!this.#drivesRepository) return;
+    if (this.#publishing !== null) {
+      this.#publishAgain = true;
+      return;
+    }
+    const publishing = this.#publishRounds().finally(() => {
+      this.#publishing = null;
+    });
+    this.#publishing = publishing;
+    this.ctx.waitUntil(publishing);
+  }
+
+  async #publishRounds(): Promise<PublishOutcome | null> {
+    const record = this.#repoEngine();
+    if (record === null) return null;
+    const { sql, kv } = this.ctx.storage;
+    let outcome: PublishOutcome | null = null;
+    do {
+      this.#publishAgain = false;
+      try {
+        // oxlint-disable-next-line no-await-in-loop -- one publish at a time, from the cursor
+        outcome = await publishRepoEvents({
+          engine: record.engineId,
+          cursor: () => kv.get<number>(REPO_EVENTS_CURSOR_KEY) ?? 0,
+          setCursor: (seq) => kv.put(REPO_EVENTS_CURSOR_KEY, seq),
+          rows: (after, limit) =>
+            readEventsOfTypesAfter(sql, { types: PUBLISHED_TYPES, after, limit }),
+          lookup: (bean) => {
+            const pushed = readPushBean(sql, bean);
+            return pushed === null ? null : { title: pushed.title, actor: pushed.actor };
+          },
+          queue: this.env.REPO_EVENTS,
+        });
+        if (outcome.sent > 0)
+          this.#log.info('repo events sent', {
+            engine: record.engineId,
+            events: outcome.sent,
+            cursor: outcome.cursor,
+          });
+      } catch (error: unknown) {
+        this.#log.warn('repo events not sent; the next step or alarm retries', {
+          engine: record.engineId,
+          error,
+        });
+        return outcome;
+      }
+    } while (this.#publishAgain);
+    return outcome;
   }
 
   #repoEngine(): RepoEngineRecord | null {

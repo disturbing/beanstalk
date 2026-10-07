@@ -13,8 +13,11 @@ import type {
   RepoOwner,
   RepoVisibility,
   RepositoryActivity,
+  RepositoryListing,
   RepositoryRecord,
 } from '@beanstalk/shared-race/repos';
+
+import { activityOf, activityQuery, indexDeletes } from '../repo-events/index-store';
 
 /** What creating a record needs; the registry stamps the times. */
 export type NewRepository = {
@@ -43,7 +46,8 @@ export type Registry = {
   byName(ownerHandle: string, name: string): Promise<RepositoryRecord | null>;
   /** The repository an engine drives, whatever its name is now. */
   byEngine(engineId: string): Promise<RepositoryRecord | null>;
-  byOwner(ownerId: string): Promise<readonly RepositoryRecord[]>;
+  /** The owner's active repositories (default) or archived ones, newest first. */
+  byOwner(ownerId: string, listing?: RepositoryListing): Promise<readonly RepositoryRecord[]>;
   /** The ready repositories among `ids`, in no particular order. */
   byIds(ids: readonly string[]): Promise<readonly RepositoryRecord[]>;
   /** Applies the patch; 'taken' when a rename collides, null when the repository is missing. */
@@ -52,8 +56,14 @@ export type Registry = {
     patch: RegistryPatch,
     nowMs: number,
   ): Promise<RepositoryRecord | 'taken' | null>;
+  /** Archives (`archived`) or unarchives (`active`), with its activity line; null when missing. */
+  setListing(id: string, to: RepositoryListing, nowMs: number): Promise<RepositoryRecord | null>;
   remove(id: string): Promise<void>;
-  activity(ownerId: string, limit: number): Promise<readonly RepositoryActivity[]>;
+  /**
+   * Activity in the person's repositories, their own and those shared with them: the
+   * registry's lines and the engines' (written by the `repo-events` consumer), newest first.
+   */
+  activity(userId: string, limit: number): Promise<readonly RepositoryActivity[]>;
 };
 
 const MAX_ACTIVITY = 100;
@@ -72,6 +82,7 @@ const Row = z.object({
   state: z.enum(['provisioning', 'ready']),
   created_at: z.string(),
   updated_at: z.string(),
+  archived_at: z.string().nullable(),
 });
 
 const Origin = z.discriminatedUnion('kind', [
@@ -79,15 +90,6 @@ const Origin = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('template'), template: z.enum(['typescript-starter']) }),
   z.object({ kind: z.literal('import'), url: z.string() }),
 ]);
-
-const ActivityRow = z.object({
-  repo_id: z.string(),
-  owner_handle: z.string(),
-  repo_name: z.string(),
-  at: z.string(),
-  kind: z.enum(['created', 'renamed', 'described', 'visibility']),
-  text: z.string(),
-});
 
 const SELECT = 'SELECT * FROM repositories';
 
@@ -152,9 +154,13 @@ export function d1Registry(db: D1Database): Registry {
         name.toLowerCase(),
       ),
     byEngine: (engineId) => one(`${SELECT} WHERE engine_id = ? AND state = 'ready'`, engineId),
-    async byOwner(ownerId) {
+    async byOwner(ownerId, listing = 'active') {
+      const archived = listing === 'archived' ? 'IS NOT NULL' : 'IS NULL';
       const { results } = await db
-        .prepare(`${SELECT} WHERE owner_id = ? AND state = 'ready' ORDER BY created_at DESC, id`)
+        .prepare(
+          `${SELECT} WHERE owner_id = ? AND state = 'ready' AND archived_at ${archived}
+           ORDER BY created_at DESC, id`,
+        )
         .bind(ownerId)
         .all();
       return results.map(recordOf);
@@ -202,8 +208,30 @@ export function d1Registry(db: D1Database): Registry {
       }
       return after;
     },
+    async setListing(id, to, nowMs) {
+      const before = await one(`${SELECT} WHERE id = ? AND state = 'ready'`, id);
+      if (before === null) return null;
+      const isArchived = before.archived_at !== null;
+      if (isArchived === (to === 'archived')) return before;
+      const at = iso(nowMs);
+      const after: RepositoryRecord = {
+        ...before,
+        archived_at: to === 'archived' ? at : null,
+        updated_at: at,
+      };
+      await db.batch([
+        db
+          .prepare('UPDATE repositories SET archived_at = ?, updated_at = ? WHERE id = ?')
+          .bind(after.archived_at, at, id),
+        to === 'archived'
+          ? activityInsert(db, after, at, 'archived', 'Archived: read-only, pushes refused.')
+          : activityInsert(db, after, at, 'unarchived', 'Unarchived: pushes are accepted again.'),
+      ]);
+      return after;
+    },
     async remove(id) {
       await db.batch([
+        ...indexDeletes(db, id),
         db.prepare('DELETE FROM repository_activity WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM deploy_tokens WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repository_members WHERE repo_id = ?').bind(id),
@@ -213,16 +241,15 @@ export function d1Registry(db: D1Database): Registry {
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },
-    async activity(ownerId, limit) {
-      const { results } = await db
-        .prepare(
-          `SELECT a.repo_id, r.owner_handle, r.name AS repo_name, a.at, a.kind, a.text
-           FROM repository_activity a JOIN repositories r ON r.id = a.repo_id
-           WHERE a.owner_id = ? ORDER BY a.seq DESC LIMIT ?`,
-        )
-        .bind(ownerId, Math.max(1, Math.min(MAX_ACTIVITY, Math.trunc(limit))))
+    async activity(userId, limit) {
+      const { results } = await activityQuery(
+        db,
+        `(a.owner_id = ?1 OR a.repo_id IN (SELECT repo_id FROM repository_members WHERE user_id = ?1))
+         AND r.state = 'ready'`,
+      )
+        .bind(userId, Math.max(1, Math.min(MAX_ACTIVITY, Math.trunc(limit))))
         .all();
-      return results.map((row) => ActivityRow.parse(row));
+      return results.map(activityOf);
     },
   };
 }
@@ -241,6 +268,7 @@ function recordOf(row: unknown): RepositoryRecord {
     default_branch: parsed.default_branch,
     created_at: parsed.created_at,
     updated_at: parsed.updated_at,
+    archived_at: parsed.archived_at,
   };
 }
 

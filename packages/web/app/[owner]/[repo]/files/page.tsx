@@ -34,6 +34,7 @@ export default async function RepositoryFilesPage({ params, searchParams }: Page
     kind: 'repository' as const,
     visibility: record.visibility,
     ownerHref: `/${record.owner.handle}`,
+    archived: record.archived_at !== null,
   };
   const engine = RunId.safeParse(record.engine_id);
   if (engine.success) {
