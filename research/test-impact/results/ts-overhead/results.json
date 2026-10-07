@@ -1,0 +1,182 @@
+{
+ "lang": "ts",
+ "units": [
+  "test/cart.test.ts",
+  "test/catalog.test.ts",
+  "test/currency.test.ts",
+  "test/discounts.test.ts",
+  "test/ids_events_storage.test.ts",
+  "test/inventory.test.ts",
+  "test/invoice.test.ts",
+  "test/money.test.ts",
+  "test/orders.test.ts",
+  "test/payments.test.ts",
+  "test/plugins.test.ts",
+  "test/pricing.test.ts",
+  "test/reports.test.ts",
+  "test/shipping.test.ts",
+  "test/strings_validation.test.ts",
+  "test/tax.test.ts"
+ ],
+ "baseline": {
+  "test/cart.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0709512920002453,
+   "traced_s": 0.12336974998470396,
+   "files": 28
+  },
+  "test/catalog.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06891241599805653,
+   "traced_s": 0.12124537496129051,
+   "files": 23
+  },
+  "test/currency.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0693930410197936,
+   "traced_s": 0.12036883301334456,
+   "files": 12
+  },
+  "test/discounts.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07019504101481289,
+   "traced_s": 0.12037308403523639,
+   "files": 32
+  },
+  "test/ids_events_storage.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06903229199815542,
+   "traced_s": 0.1212825839756988,
+   "files": 9
+  },
+  "test/inventory.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06960662495112047,
+   "traced_s": 0.12052883399883285,
+   "files": 27
+  },
+  "test/invoice.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12552937504369766,
+   "traced_s": 0.12198058300418779,
+   "files": 49
+  },
+  "test/money.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07011525001144037,
+   "traced_s": 0.1230648749624379,
+   "files": 7
+  },
+  "test/orders.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1253887499915436,
+   "traced_s": 0.1200070830527693,
+   "files": 45
+  },
+  "test/payments.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07121029100380838,
+   "traced_s": 0.1200036249938421,
+   "files": 9
+  },
+  "test/plugins.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06962304201442748,
+   "traced_s": 0.12035937502514571,
+   "files": 13
+  },
+  "test/pricing.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06887966702925041,
+   "traced_s": 0.12135958299040794,
+   "files": 41
+  },
+  "test/reports.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06947612500516698,
+   "traced_s": 0.12008424999658018,
+   "files": 47
+  },
+  "test/shipping.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0690112910233438,
+   "traced_s": 0.12009462504647672,
+   "files": 33
+  },
+  "test/strings_validation.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07026854198193178,
+   "traced_s": 0.12096458300948143,
+   "files": 16
+  },
+  "test/tax.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06938291597180068,
+   "traced_s": 0.12081766698975116,
+   "files": 13
+  }
+ },
+ "full_s": 0.12176637502852827,
+ "full_traced_s": 0.22441033303039148,
+ "mutations": [],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "test/fresh_slug.test.ts"
+    ],
+    "selected": [
+     "test/fresh_slug.test.ts"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 13,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "packages/utils/src/strings.ts"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "test/fresh_slug.test.ts",
+     "test/invoice.test.ts",
+     "test/strings_validation.test.ts"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "test/payments.test.ts",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": false,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

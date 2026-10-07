@@ -1,0 +1,26 @@
+18 test units
+full suite exit=0 t=0.32s
+  internal/cart/cart_test.go: exit=0/0 plain=0.12s traced=0.48s reads=25
+  internal/catalog/catalog_test.go: exit=0/0 plain=0.12s traced=0.33s reads=15
+  internal/currency/currency_test.go: exit=0/0 plain=0.12s traced=0.32s reads=11
+  internal/discounts/discounts_test.go: exit=0/0 plain=0.12s traced=0.32s reads=33
+  internal/ids/ids_test.go: exit=0/0 plain=0.12s traced=0.32s reads=5
+  internal/inventory/inventory_test.go: exit=0/0 plain=0.12s traced=0.32s reads=24
+  internal/invoice/invoice_test.go: exit=0/0 plain=0.12s traced=0.32s reads=69
+  internal/money/money_test.go: exit=0/0 plain=0.12s traced=0.32s reads=5
+  internal/orders/orders_test.go: exit=0/0 plain=0.12s traced=0.32s reads=64
+  internal/payments/payments_test.go: exit=0/0 plain=0.07s traced=0.32s reads=8
+  internal/plugins/plugins_test.go: exit=0/0 plain=0.12s traced=0.32s reads=19
+  internal/pricing/pricing_test.go: exit=0/0 plain=0.12s traced=0.32s reads=54
+  internal/reports/reports_test.go: exit=0/0 plain=0.12s traced=0.32s reads=67
+  internal/shipping/shipping_test.go: exit=0/0 plain=0.12s traced=0.32s reads=32
+  internal/storage/storage_test.go: exit=0/0 plain=0.12s traced=0.32s reads=7
+  internal/tax/tax_test.go: exit=0/0 plain=0.12s traced=0.32s reads=14
+  internal/util/strutil/strutil_test.go: exit=0/0 plain=0.12s traced=0.32s reads=6
+  internal/util/validation/validation_test.go: exit=0/0 plain=0.12s traced=0.33s reads=6
+0 mutations
+freshness: {"step": "add new test", "changed": ["internal/payments/fresh_test.go"], "selected": ["internal/payments/fresh_test.go", "internal/payments/payments_test.go"], "new_test_selected": true, "had_map": false}
+freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 13, "dep_in_map": true}
+freshness: {"step": "break its dependency", "changed": ["internal/util/strutil/strutil.go"], "new_test_selected": true, "new_test_fails": true, "selected": ["internal/invoice/invoice_test.go", "internal/payments/fresh_test.go", "internal/util/strutil/strutil_test.go"]}
+freshness: {"step": "edit existing test to use a new module", "test": "internal/payments/payments_test.go", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": false, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+done

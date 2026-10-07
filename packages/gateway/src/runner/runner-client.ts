@@ -7,6 +7,7 @@
 import { z } from 'zod';
 
 import { Sha } from '@beanstalk/shared-race/ids';
+import { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
 import type { RunSuite } from '@beanstalk/shared-race/suite';
 
 import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
@@ -74,6 +75,10 @@ export type CheckCall = {
   readonly only?: readonly string[] | null;
   /** Also report the passing test files' read sets. */
   readonly allReadSets?: boolean;
+  /** Run each test file in its own traced process and report read maps (`read_maps`). */
+  readonly trace?: boolean;
+  /** Report the checked tree's blob ids (`tree`); implied by `trace`. */
+  readonly treeManifest?: boolean;
 };
 
 export type UpdateRefCall = {
@@ -141,6 +146,8 @@ const CheckResponse = z.object({
   ci_seconds: z.number().min(0).optional(),
   timed_out: z.boolean().optional(),
   network: z.string().max(20).optional(),
+  read_maps: CheckReadMaps.optional(),
+  tree: CheckedTree.optional(),
 });
 
 const UpdateRefResponse = z.object({ ok: z.boolean(), actual: Sha.nullable().optional() });
@@ -268,6 +275,8 @@ export function checkBody(call: CheckCall): Readonly<Record<string, unknown>> {
     ...(suite.deps === null ? {} : { deps: suite.deps }),
     suite_timeout_seconds: suite.timeout_seconds,
     ...(call.allReadSets === true ? { all_read_sets: true } : {}),
+    ...(call.trace === true ? { trace: true } : {}),
+    ...(call.treeManifest === true ? { tree_manifest: true } : {}),
   };
 }
 
@@ -298,5 +307,7 @@ function toCheckResult(response: z.infer<typeof CheckResponse>): RunnerCheck {
     output: response.output_excerpt ?? '',
     suiteSeconds: response.suite_seconds,
     timedOut: response.timed_out ?? false,
+    ...(response.read_maps === undefined ? {} : { readMaps: response.read_maps }),
+    ...(response.tree === undefined ? {} : { tree: response.tree }),
   };
 }

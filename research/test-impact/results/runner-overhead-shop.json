@@ -1,0 +1,67 @@
+{
+ "label": "shop",
+ "sha": "26eecce0d764943d0c89a6139e3491055e9ff00c",
+ "cpus": 18,
+ "test_files": 20,
+ "untraced_suite_s": 2.88148096,
+ "traced_suite_s": 5.827520045,
+ "ratio": 2.022404494735929,
+ "per_file_untraced_sequential_s": 4.080797252000593,
+ "per_file_traced_sum_s": 5.730674172,
+ "trace_vs_per_file_ratio": 1.4043025953300083,
+ "mean_reads": 44.2,
+ "mean_probes": 9.85,
+ "mean_dirs": 0.0,
+ "mean_packages": 0.0,
+ "map_json_bytes": 78287,
+ "all_traced": true,
+ "verdicts_agree": true,
+ "runs": {
+  "untraced": [
+   {
+    "wall": 2.3898222930001793,
+    "suite_seconds": 2.3818469589999998,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   },
+   {
+    "wall": 2.965729709999323,
+    "suite_seconds": 2.956477668,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   },
+   {
+    "wall": 2.890488502000153,
+    "suite_seconds": 2.88148096,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   }
+  ],
+  "traced": [
+   {
+    "wall": 5.6427433360004216,
+    "suite_seconds": 5.611745211,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   },
+   {
+    "wall": 5.930369336000695,
+    "suite_seconds": 5.886262211,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   },
+   {
+    "wall": 5.901549710999461,
+    "suite_seconds": 5.827520045,
+    "green": true,
+    "tests": 80,
+    "failing_files": []
+   }
+  ]
+ }
+}

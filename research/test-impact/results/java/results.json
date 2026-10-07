@@ -1,0 +1,2972 @@
+{
+ "lang": "java",
+ "units": [
+  "src/test/java/shop/billing/InvoiceTest.java",
+  "src/test/java/shop/billing/PaymentsTest.java",
+  "src/test/java/shop/catalog/CatalogTest.java",
+  "src/test/java/shop/catalog/InventoryTest.java",
+  "src/test/java/shop/core/CurrencyTest.java",
+  "src/test/java/shop/core/IdsEventsStorageTest.java",
+  "src/test/java/shop/core/MoneyTest.java",
+  "src/test/java/shop/fulfil/OrdersTest.java",
+  "src/test/java/shop/fulfil/ShippingTest.java",
+  "src/test/java/shop/plugins/PluginsTest.java",
+  "src/test/java/shop/reports/ReportsTest.java",
+  "src/test/java/shop/sales/CartTest.java",
+  "src/test/java/shop/sales/DiscountsTest.java",
+  "src/test/java/shop/sales/PricingTest.java",
+  "src/test/java/shop/sales/TaxTest.java",
+  "src/test/java/shop/util/StringsValidationTest.java"
+ ],
+ "baseline": {
+  "src/test/java/shop/billing/InvoiceTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 1.79891975101782,
+   "traced_s": 3.8272836270043626,
+   "files": 76
+  },
+  "src/test/java/shop/billing/PaymentsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.646187585021835,
+   "traced_s": 3.7644687930005603,
+   "files": 38
+  },
+  "src/test/java/shop/catalog/CatalogTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.3263235419872217,
+   "traced_s": 4.300961293978617,
+   "files": 46
+  },
+  "src/test/java/shop/catalog/InventoryTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 3.5964644189807586,
+   "traced_s": 4.863650501007214,
+   "files": 58
+  },
+  "src/test/java/shop/core/CurrencyTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.387439625978004,
+   "traced_s": 3.778983501950279,
+   "files": 37
+  },
+  "src/test/java/shop/core/IdsEventsStorageTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.9536977929528803,
+   "traced_s": 6.25033779500518,
+   "files": 34
+  },
+  "src/test/java/shop/core/MoneyTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 3.1554282510187477,
+   "traced_s": 4.512130293005612,
+   "files": 34
+  },
+  "src/test/java/shop/fulfil/OrdersTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 4.048000336042605,
+   "traced_s": 5.794715169002302,
+   "files": 73
+  },
+  "src/test/java/shop/fulfil/ShippingTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 4.318966834980529,
+   "traced_s": 5.323792585986666,
+   "files": 66
+  },
+  "src/test/java/shop/plugins/PluginsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 3.8861236270167865,
+   "traced_s": 4.092592919012532,
+   "files": 42
+  },
+  "src/test/java/shop/reports/ReportsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 3.542840543028433,
+   "traced_s": 4.704506753012538,
+   "files": 75
+  },
+  "src/test/java/shop/sales/CartTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.0152127930196,
+   "traced_s": 3.7866817099857144,
+   "files": 59
+  },
+  "src/test/java/shop/sales/DiscountsTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.3283452930045314,
+   "traced_s": 3.447262794012204,
+   "files": 60
+  },
+  "src/test/java/shop/sales/PricingTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.531945000984706,
+   "traced_s": 4.092242834973149,
+   "files": 72
+  },
+  "src/test/java/shop/sales/TaxTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 1.8507243759813718,
+   "traced_s": 3.359225543041248,
+   "files": 50
+  },
+  "src/test/java/shop/util/StringsValidationTest.java": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 2.1325505009735934,
+   "traced_s": 5.2147732530138455,
+   "files": 27
+  }
+ },
+ "full_s": 2.5220087930210866,
+ "full_traced_s": 8.460817378014326,
+ "mutations": [
+  {
+   "i": 0,
+   "kind": "code",
+   "desc": "src/main/java/shop/plugins/Plugins.java:28 str \"fee_plugins\"+x",
+   "files": [
+    "src/main/java/shop/plugins/Plugins.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 4.383168126980308,
+   "full_s": 4.877446794009302,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 5
+   }
+  },
+  {
+   "i": 1,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Inventory.java:37 num 0->1",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 2.0622854590183124,
+   "full_s": 1.9616935009835288,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 2,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Inventory.java:22 rename rename available",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.2935226670233533,
+   "full_s": 1.044487583974842,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/sales/CartTest.java",
+     "src/test/java/shop/sales/DiscountsTest.java",
+     "src/test/java/shop/sales/PricingTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 3,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Catalog.java:26 num 2->3",
+   "files": [
+    "src/main/java/shop/catalog/Catalog.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.95818070898531,
+   "full_s": 2.1146879590232857,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 8
+   }
+  },
+  {
+   "i": 4,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Discounts.java:11 num 100->101",
+   "files": [
+    "src/main/java/shop/sales/Discounts.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 2.7396435019909404,
+   "full_s": 3.3278206269606017,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 5,
+   "kind": "code",
+   "desc": "src/main/java/shop/config/Resources.java:18 cmp ==->!=",
+   "files": [
+    "src/main/java/shop/config/Resources.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.78686920896871,
+   "full_s": 2.3859132090001367,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 11
+   }
+  },
+  {
+   "i": 6,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Coupons.java:15 num 3->4",
+   "files": [
+    "src/main/java/shop/sales/Coupons.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 3.028352167981211,
+   "full_s": 2.5279350010096096,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 7,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Catalog.java:34 rename rename find",
+   "files": [
+    "src/main/java/shop/catalog/Catalog.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8363573749666102,
+   "full_s": 0.8403109170030802,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 8
+   }
+  },
+  {
+   "i": 8,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Currency.java:16 rename rename rates",
+   "files": [
+    "src/main/java/shop/core/Currency.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.24673241795972,
+   "full_s": 1.09224012598861,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 9,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Limits.java:13 num 3->4",
+   "files": [
+    "src/main/java/shop/core/Limits.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.7046273759915493,
+   "full_s": 1.601054208993446,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/reports/ReportsTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 0
+   }
+  },
+  {
+   "i": 10,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Money.java:12 arith +->-",
+   "files": [
+    "src/main/java/shop/core/Money.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.0658613339764997,
+   "full_s": 1.9644262089859694,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 13
+   }
+  },
+  {
+   "i": 11,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Repo.java:22 rename rename all",
+   "files": [
+    "src/main/java/shop/core/Repo.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/IdsEventsStorageTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.376356833963655,
+   "full_s": 1.8146624169894494,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 12,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Quote.java:6 rename rename total",
+   "files": [
+    "src/main/java/shop/sales/Quote.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8862165010068566,
+   "full_s": 1.0423428760259412,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 13,
+   "kind": "code",
+   "desc": "src/main/java/shop/util/Strings.java:21 arith -->+",
+   "files": [
+    "src/main/java/shop/util/Strings.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.2946230010129511,
+   "full_s": 1.9672503340407275,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 2
+   }
+  },
+  {
+   "i": 14,
+   "kind": "code",
+   "desc": "src/main/java/shop/plugins/EcoFee.java:8 num 25->26",
+   "files": [
+    "src/main/java/shop/plugins/EcoFee.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.403423042036593,
+   "full_s": 1.1912304169964045,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 5
+   }
+  },
+  {
+   "i": 15,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Ids.java:21 arith +->-",
+   "files": [
+    "src/main/java/shop/core/Ids.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/IdsEventsStorageTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0404654999729246,
+   "full_s": 0.9387306679855101,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 16,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Catalog.java:27 num 4->5",
+   "files": [
+    "src/main/java/shop/catalog/Catalog.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.3974492499837652,
+   "full_s": 1.3521548339631408,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 8
+   }
+  },
+  {
+   "i": 17,
+   "kind": "code",
+   "desc": "src/main/java/shop/plugins/Plugins.java:21 arith +->-",
+   "files": [
+    "src/main/java/shop/plugins/Plugins.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8864582920214161,
+   "full_s": 0.9346984589938074,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 5
+   }
+  },
+  {
+   "i": 18,
+   "kind": "code",
+   "desc": "src/main/java/shop/util/Strings.java:9 rename rename slugify",
+   "files": [
+    "src/main/java/shop/util/Strings.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.9377471670159139,
+   "full_s": 0.8880004169768654,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 2
+   }
+  },
+  {
+   "i": 19,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Inventory.java:30 cmp <-><=",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.4495518340263516,
+   "full_s": 1.292302792018745,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 20,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Ids.java:21 num 0->1",
+   "files": [
+    "src/main/java/shop/core/Ids.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.497599166992586,
+   "full_s": 1.855626500037033,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 21,
+   "kind": "code",
+   "desc": "src/main/java/shop/util/Strings.java:10 num 9->10",
+   "files": [
+    "src/main/java/shop/util/Strings.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 2.0156060839653946,
+   "full_s": 2.3396461670054123,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 2
+   }
+  },
+  {
+   "i": 22,
+   "kind": "code",
+   "desc": "src/main/java/shop/fulfil/Shipping.java:40 str \".\"+x",
+   "files": [
+    "src/main/java/shop/fulfil/Shipping.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.347426959022414,
+   "full_s": 1.2978067079675384,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 5
+   }
+  },
+  {
+   "i": 23,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Line.java:23 rename rename addQty",
+   "files": [
+    "src/main/java/shop/sales/Line.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7840367090539075,
+   "full_s": 0.7837041259626858,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 7
+   }
+  },
+  {
+   "i": 24,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Currency.java:20 num 1->2",
+   "files": [
+    "src/main/java/shop/core/Currency.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.5504969180328771,
+   "full_s": 1.342970666999463,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 25,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Currency.java:17 cmp ==->!=",
+   "files": [
+    "src/main/java/shop/core/Currency.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.4510373339871876,
+   "full_s": 1.192128917959053,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 26,
+   "kind": "code",
+   "desc": "src/main/java/shop/billing/Invoice.java:20 rename rename render",
+   "files": [
+    "src/main/java/shop/billing/Invoice.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6302569169783965,
+   "full_s": 0.8363989170175046,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 1
+   }
+  },
+  {
+   "i": 27,
+   "kind": "code",
+   "desc": "src/main/java/shop/fulfil/OrderService.java:22 cmp ==->!=",
+   "files": [
+    "src/main/java/shop/fulfil/OrderService.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0895758760161698,
+   "full_s": 1.1923935419763438,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 3
+   }
+  },
+  {
+   "i": 28,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Cart.java:22 arith +->-",
+   "files": [
+    "src/main/java/shop/sales/Cart.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7335464589996263,
+   "full_s": 0.7366347920033149,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 7
+   }
+  },
+  {
+   "i": 29,
+   "kind": "code",
+   "desc": "src/main/java/shop/util/Validation.java:7 num 2->3",
+   "files": [
+    "src/main/java/shop/util/Validation.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.2433561260113493,
+   "full_s": 1.4540334589546546,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 9
+   }
+  },
+  {
+   "i": 30,
+   "kind": "code",
+   "desc": "src/main/java/shop/config/AppConfig.java:28 rename rename getLong",
+   "files": [
+    "src/main/java/shop/config/AppConfig.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.99435320898192,
+   "full_s": 0.9584934170125052,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 8
+   }
+  },
+  {
+   "i": 31,
+   "kind": "code",
+   "desc": "src/main/java/shop/catalog/Inventory.java:27 cmp <=-><",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/InventoryTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.297995708999224,
+   "full_s": 1.2443797930027358,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 32,
+   "kind": "code",
+   "desc": "src/main/java/shop/core/Repo.java:11 rename rename put",
+   "files": [
+    "src/main/java/shop/core/Repo.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/IdsEventsStorageTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.091611001000274,
+   "full_s": 1.0433327089995146,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 1
+   }
+  },
+  {
+   "i": 33,
+   "kind": "code",
+   "desc": "src/main/java/shop/config/Resources.java:19 arith +->-",
+   "files": [
+    "src/main/java/shop/config/Resources.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7840775830554776,
+   "full_s": 0.7399187089758925,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 11
+   }
+  },
+  {
+   "i": 34,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Cart.java:17 num 1->2",
+   "files": [
+    "src/main/java/shop/sales/Cart.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.0941254170029424,
+   "full_s": 1.0040869169752114,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 7
+   }
+  },
+  {
+   "i": 35,
+   "kind": "code",
+   "desc": "src/main/java/shop/sales/Cart.java:12 rename rename lines",
+   "files": [
+    "src/main/java/shop/sales/Cart.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7346637499867938,
+   "full_s": 0.6307865420239978,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 7
+   }
+  },
+  {
+   "i": 36,
+   "kind": "helper",
+   "desc": "src/test/java/shop/testkit/Factories.java:49 rename rename fixtureOrders",
+   "files": [
+    "src/test/java/shop/testkit/Factories.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6827237920369953,
+   "full_s": 0.6815599590190686,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 37,
+   "kind": "helper",
+   "desc": "src/test/java/shop/testkit/Factories.java:37 rename rename stocked",
+   "files": [
+    "src/test/java/shop/testkit/Factories.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7839389590080827,
+   "full_s": 0.7826872919686139,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 38,
+   "kind": "helper",
+   "desc": "src/test/java/shop/testkit/Factories.java:40 str \"SKU-002\"+x",
+   "files": [
+    "src/test/java/shop/testkit/Factories.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.193460750975646,
+   "full_s": 0.9382547500426881,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 39,
+   "kind": "helper",
+   "desc": "src/test/java/shop/testkit/Factories.java:52 cmp ==->!=",
+   "files": [
+    "src/test/java/shop/testkit/Factories.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0899858339689672,
+   "full_s": 0.9879861670196988,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 40,
+   "kind": "helper",
+   "desc": "src/test/java/shop/testkit/Factories.java:23 rename rename cartOf",
+   "files": [
+    "src/test/java/shop/testkit/Factories.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7327072499901988,
+   "full_s": 0.8375786250107922,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 41,
+   "kind": "data",
+   "desc": "src/main/resources/data/rates.csv:6 num 1.35->1.36",
+   "files": [
+    "src/main/resources/data/rates.csv"
+   ],
+   "selected": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.0404475840041414,
+   "full_s": 1.39449691795744,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 42,
+   "kind": "data",
+   "desc": "src/main/resources/data/shipping_zones.properties:3 num 1500->1501",
+   "files": [
+    "src/main/resources/data/shipping_zones.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/fulfil/ShippingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.4038076259894297,
+   "full_s": 1.2435704999952577,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/fulfil/ShippingTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 43,
+   "kind": "data",
+   "desc": "src/main/resources/data/rates.csv:3 num 0.9->0.0",
+   "files": [
+    "src/main/resources/data/rates.csv"
+   ],
+   "selected": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8857580840121955,
+   "full_s": 1.1951500420109369,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/core/CurrencyTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 44,
+   "kind": "data",
+   "desc": "src/main/resources/data/tax.properties:2 num 0.04->0.05",
+   "files": [
+    "src/main/resources/data/tax.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.705458374985028,
+   "full_s": 1.6535412929952145,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 45,
+   "kind": "data",
+   "desc": "src/main/resources/data/shipping_zones.properties:1 num 500->501",
+   "files": [
+    "src/main/resources/data/shipping_zones.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.1457073340425268,
+   "full_s": 1.396760458999779,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/sales/PricingTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 46,
+   "kind": "data",
+   "desc": "src/main/resources/data/shipping_zones.properties:2 num 150->151",
+   "files": [
+    "src/main/resources/data/shipping_zones.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.1917908759787679,
+   "full_s": 1.1464559170417488,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/sales/PricingTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 47,
+   "kind": "data",
+   "desc": "src/main/resources/data/catalog.csv:7 num 006->7",
+   "files": [
+    "src/main/resources/data/catalog.csv"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.3949217090266757,
+   "full_s": 1.4495521259959787,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/catalog/CatalogTest.java",
+     "src/test/java/shop/fulfil/OrdersTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/reports/ReportsTest.java",
+     "src/test/java/shop/sales/CartTest.java",
+     "src/test/java/shop/sales/DiscountsTest.java",
+     "src/test/java/shop/sales/PricingTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 48,
+   "kind": "data",
+   "desc": "src/test/resources/fixtures/orders.txt:4 num 3->4",
+   "files": [
+    "src/test/resources/fixtures/orders.txt"
+   ],
+   "selected": [
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.7097826679819264,
+   "full_s": 1.5536781669943593,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/reports/ReportsTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 49,
+   "kind": "config",
+   "desc": "src/main/resources/app.properties:3 num 50->51",
+   "files": [
+    "src/main/resources/app.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/sales/DiscountsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.064081459015142,
+   "full_s": 1.6603657500236295,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/sales/DiscountsTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 50,
+   "kind": "config",
+   "desc": "src/main/resources/app.properties:4 num 100->101",
+   "files": [
+    "src/main/resources/app.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.5047462090151384,
+   "full_s": 1.5528995009954087,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 51,
+   "kind": "test-edit",
+   "desc": "src/test/java/shop/sales/PricingTest.java:13 num 650->651",
+   "files": [
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.604565043002367,
+   "full_s": 1.655519583960995,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 1
+   }
+  },
+  {
+   "i": 52,
+   "kind": "test-edit",
+   "desc": "src/test/java/shop/catalog/CatalogTest.java:30 str \"SKU-004\"+x",
+   "files": [
+    "src/test/java/shop/catalog/CatalogTest.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/CatalogTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.502054084034171,
+   "full_s": 1.4971878339420073,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 1
+   }
+  },
+  {
+   "i": 53,
+   "kind": "delete",
+   "desc": "delete src/main/java/shop/core/Money.java",
+   "files": [
+    "src/main/java/shop/core/Money.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.6538531669648364,
+   "full_s": 1.1991750010056421,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 13
+   }
+  },
+  {
+   "i": 54,
+   "kind": "delete",
+   "desc": "delete src/main/java/shop/sales/Coupon.java",
+   "files": [
+    "src/main/java/shop/sales/Coupon.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.1496214169892482,
+   "full_s": 0.9906935419421643,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/billing/InvoiceTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 4
+   }
+  },
+  {
+   "i": 55,
+   "kind": "add",
+   "desc": "add a test-resources app.properties that shadows the main config (classpath order)",
+   "files": [
+    "src/test/resources/app.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.1200763340457343,
+   "full_s": 2.2830485429731198,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/plugins/PluginsTest.java",
+     "src/test/java/shop/sales/DiscountsTest.java",
+     "src/test/java/shop/sales/PricingTest.java",
+     "src/test/java/shop/sales/TaxTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 56,
+   "kind": "multi",
+   "desc": "src/main/java/shop/plugins/EcoFee.java:8 num 25->26 + src/main/resources/app.properties:4 num 100->101",
+   "files": [
+    "src/main/java/shop/plugins/EcoFee.java",
+    "src/main/resources/app.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.3982684590155259,
+   "full_s": 1.554889208986424,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 8
+   }
+  },
+  {
+   "i": 57,
+   "kind": "multi",
+   "desc": "src/main/java/shop/plugins/Plugins.java:28 str \"fee_plugins\"+x + src/main/java/shop/sales/Cart.java:17 num 1->2 + src/main/java/shop/catalog/Inventory.java:30 cmp <-><=",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java",
+    "src/main/java/shop/plugins/Plugins.java",
+    "src/main/java/shop/sales/Cart.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.601430792012252,
+   "full_s": 1.5493399589904584,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 11,
+    "run": 9
+   }
+  },
+  {
+   "i": 58,
+   "kind": "multi",
+   "desc": "src/main/java/shop/plugins/Plugins.java:21 arith +->- + src/main/java/shop/core/Ids.java:21 num 0->1",
+   "files": [
+    "src/main/java/shop/core/Ids.java",
+    "src/main/java/shop/plugins/Plugins.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0923934589955024,
+   "full_s": 1.0426970419939607,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 6
+   }
+  },
+  {
+   "i": 59,
+   "kind": "multi",
+   "desc": "src/main/java/shop/core/Ids.java:21 arith +->- + src/main/java/shop/config/AppConfig.java:28 rename rename getLong + src/main/java/shop/config/Resources.java:19 arith +->-",
+   "files": [
+    "src/main/java/shop/config/AppConfig.java",
+    "src/main/java/shop/config/Resources.java",
+    "src/main/java/shop/core/Ids.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8897262089885771,
+   "full_s": 0.7837623749510385,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 12
+   }
+  },
+  {
+   "i": 60,
+   "kind": "multi",
+   "desc": "src/main/java/shop/sales/Cart.java:12 rename rename lines + src/main/java/shop/core/Ids.java:21 arith +->-",
+   "files": [
+    "src/main/java/shop/core/Ids.java",
+    "src/main/java/shop/sales/Cart.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/core/MoneyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/core/IdsEventsStorageTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0958419580128975,
+   "full_s": 0.937820001039654,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 15,
+    "run": 8
+   }
+  },
+  {
+   "i": 61,
+   "kind": "multi",
+   "desc": "src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/resources/data/shipping_zones.properties:1 num 500->501",
+   "files": [
+    "src/main/java/shop/billing/Invoice.java",
+    "src/main/resources/data/shipping_zones.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.783074875944294,
+   "full_s": 0.88737479201518,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/sales/PricingTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 5
+   }
+  },
+  {
+   "i": 62,
+   "kind": "multi",
+   "desc": "src/main/java/shop/catalog/Inventory.java:27 cmp <=->< + src/main/resources/data/rates.csv:3 num 0.9->0.0",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java",
+    "src/main/resources/data/rates.csv"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.4038850009674206,
+   "full_s": 1.6005632090382278,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/core/CurrencyTest.java"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 5
+   }
+  },
+  {
+   "i": 63,
+   "kind": "multi",
+   "desc": "src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/java/shop/config/Resources.java:18 cmp ==->!= + src/main/java/shop/catalog/Catalog.java:27 num 4->5",
+   "files": [
+    "src/main/java/shop/billing/Invoice.java",
+    "src/main/java/shop/catalog/Catalog.java",
+    "src/main/java/shop/config/Resources.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.938961667008698,
+   "full_s": 1.1451552090002224,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 11
+   }
+  },
+  {
+   "i": 64,
+   "kind": "multi",
+   "desc": "src/main/resources/data/shipping_zones.properties:3 num 1500->1501 + src/main/java/shop/fulfil/OrderService.java:22 cmp ==->!=",
+   "files": [
+    "src/main/java/shop/fulfil/OrderService.java",
+    "src/main/resources/data/shipping_zones.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.5490478340070695,
+   "full_s": 1.3983529589604586,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 5
+   }
+  },
+  {
+   "i": 65,
+   "kind": "multi",
+   "desc": "src/main/java/shop/plugins/EcoFee.java:8 num 25->26 + src/main/java/shop/catalog/Inventory.java:27 cmp <=-><",
+   "files": [
+    "src/main/java/shop/catalog/Inventory.java",
+    "src/main/java/shop/plugins/EcoFee.java"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/plugins/PluginsTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/catalog/InventoryTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 2.792918418010231,
+   "full_s": 2.323020293028094,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 6
+   }
+  },
+  {
+   "i": 66,
+   "kind": "multi",
+   "desc": "src/main/resources/data/tax.properties:2 num 0.04->0.05 + src/main/java/shop/util/Strings.java:10 num 9->10",
+   "files": [
+    "src/main/java/shop/util/Strings.java",
+    "src/main/resources/data/tax.properties"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/CatalogTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java",
+    "src/test/java/shop/util/StringsValidationTest.java"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 1.397660167014692,
+   "full_s": 1.2426434589433484,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 6
+   }
+  },
+  {
+   "i": 67,
+   "kind": "multi",
+   "desc": "src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/java/shop/sales/Line.java:23 rename rename addQty + src/main/resources/data/rates.csv:3 num 0.9->0.0",
+   "files": [
+    "src/main/java/shop/billing/Invoice.java",
+    "src/main/java/shop/sales/Line.java",
+    "src/main/resources/data/rates.csv"
+   ],
+   "selected": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/billing/PaymentsTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java",
+    "src/test/java/shop/sales/TaxTest.java"
+   ],
+   "failing": [
+    "src/test/java/shop/billing/InvoiceTest.java",
+    "src/test/java/shop/catalog/InventoryTest.java",
+    "src/test/java/shop/core/CurrencyTest.java",
+    "src/test/java/shop/fulfil/OrdersTest.java",
+    "src/test/java/shop/fulfil/ShippingTest.java",
+    "src/test/java/shop/reports/ReportsTest.java",
+    "src/test/java/shop/sales/CartTest.java",
+    "src/test/java/shop/sales/DiscountsTest.java",
+    "src/test/java/shop/sales/PricingTest.java"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7840785419684835,
+   "full_s": 0.8359823749633506,
+   "ablation_missed": {
+    "build": [
+     "src/test/java/shop/core/CurrencyTest.java"
+    ],
+    "run": [
+     "src/test/java/shop/catalog/InventoryTest.java"
+    ]
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 8
+   }
+  }
+ ],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "src/test/java/shop/billing/FreshSlugTest.java"
+    ],
+    "selected": [
+     "src/test/java/shop/billing/FreshSlugTest.java"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 32,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "src/main/java/shop/util/Strings.java"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "src/test/java/shop/billing/FreshSlugTest.java",
+     "src/test/java/shop/billing/InvoiceTest.java",
+     "src/test/java/shop/catalog/CatalogTest.java",
+     "src/test/java/shop/catalog/InventoryTest.java",
+     "src/test/java/shop/fulfil/OrdersTest.java",
+     "src/test/java/shop/fulfil/ShippingTest.java",
+     "src/test/java/shop/reports/ReportsTest.java",
+     "src/test/java/shop/sales/CartTest.java",
+     "src/test/java/shop/sales/DiscountsTest.java",
+     "src/test/java/shop/sales/PricingTest.java",
+     "src/test/java/shop/util/StringsValidationTest.java"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "src/test/java/shop/billing/PaymentsTest.java",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": true,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

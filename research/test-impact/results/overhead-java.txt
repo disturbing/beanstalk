@@ -1,0 +1,24 @@
+[java] 16 test units
+[java] full suite exit=0 t=0.78s
+[java]   src/test/java/shop/billing/InvoiceTest.java: exit=0/0 plain=0.63s traced=0.94s reads=76
+[java]   src/test/java/shop/billing/PaymentsTest.java: exit=0/0 plain=0.48s traced=0.73s reads=38
+[java]   src/test/java/shop/catalog/CatalogTest.java: exit=0/0 plain=0.53s traced=0.83s reads=46
+[java]   src/test/java/shop/catalog/InventoryTest.java: exit=0/0 plain=0.58s traced=0.99s reads=58
+[java]   src/test/java/shop/core/CurrencyTest.java: exit=0/0 plain=0.63s traced=0.89s reads=37
+[java]   src/test/java/shop/core/IdsEventsStorageTest.java: exit=0/0 plain=0.58s traced=0.94s reads=34
+[java]   src/test/java/shop/core/MoneyTest.java: exit=0/0 plain=0.58s traced=0.84s reads=34
+[java]   src/test/java/shop/fulfil/OrdersTest.java: exit=0/0 plain=0.74s traced=1.09s reads=73
+[java]   src/test/java/shop/fulfil/ShippingTest.java: exit=0/0 plain=0.63s traced=0.99s reads=66
+[java]   src/test/java/shop/plugins/PluginsTest.java: exit=0/0 plain=0.63s traced=0.89s reads=42
+[java]   src/test/java/shop/reports/ReportsTest.java: exit=0/0 plain=0.73s traced=1.09s reads=75
+[java]   src/test/java/shop/sales/CartTest.java: exit=0/0 plain=0.63s traced=0.99s reads=59
+[java]   src/test/java/shop/sales/DiscountsTest.java: exit=0/0 plain=0.68s traced=0.99s reads=60
+[java]   src/test/java/shop/sales/PricingTest.java: exit=0/0 plain=0.68s traced=1.04s reads=72
+[java]   src/test/java/shop/sales/TaxTest.java: exit=0/0 plain=0.58s traced=0.94s reads=50
+[java]   src/test/java/shop/util/StringsValidationTest.java: exit=0/0 plain=0.53s traced=0.78s reads=27
+[java] 0 mutations
+[java] freshness: {"step": "add new test", "changed": ["src/test/java/shop/billing/FreshSlugTest.java"], "selected": ["src/test/java/shop/billing/FreshSlugTest.java"], "new_test_selected": true, "had_map": false}
+[java] freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 32, "dep_in_map": true}
+[java] freshness: {"step": "break its dependency", "changed": ["src/main/java/shop/util/Strings.java"], "new_test_selected": true, "new_test_fails": true, "selected": ["src/test/java/shop/billing/FreshSlugTest.java", "src/test/java/shop/billing/InvoiceTest.java", "src/test/java/shop/catalog/CatalogTest.java", "src/test/java/shop/catalog/InventoryTest.java", "src/test/java/shop/fulfil/OrdersTest.java", "src/test/java/shop/fulfil/ShippingTest.java", "src/test/java/shop/reports/ReportsTest.java", "src/test/java/shop/sales/CartTest.java", "src/test/java/shop/sales/DiscountsTest.java", "src/test/java/shop/sales/PricingTest.java", "src/test/java/shop/util/StringsValidationTest.java"]}
+[java] freshness: {"step": "edit existing test to use a new module", "test": "src/test/java/shop/billing/PaymentsTest.java", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": true, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+[java] done

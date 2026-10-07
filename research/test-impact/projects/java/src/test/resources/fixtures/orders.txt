@@ -1,0 +1,5 @@
+# one order per line: <sku>:<qty>[,<sku>:<qty>...] | <coupon or ->
+SKU-001:2,SKU-003:4 | -
+SKU-002:1 | PCT10
+SKU-005:3,SKU-006:1 | OFF5
+SKU-004:1 | FREESHIP

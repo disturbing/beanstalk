@@ -7,6 +7,7 @@
  */
 import type { RunId } from '@beanstalk/shared-race/ids';
 import type { RunSuite } from '@beanstalk/shared-race/suite';
+import type { RunConfig } from '@beanstalk/shared-race/run-config';
 
 import type {
   ArtifactsPort,
@@ -69,6 +70,8 @@ export type JobContext = {
    * `refs/heads/bean/<name>` branches, and its slots share a small pool of sandboxes.
    */
   readonly engine: 'race' | 'continuous';
+  /** Which checks trace (the run's `read_maps`); absent: none. */
+  readonly readMaps?: RunConfig['read_maps'];
 };
 
 /** Runs one job; failures come back as outcomes, never as exceptions. */
@@ -177,6 +180,7 @@ async function check(
       suite: context.suite,
       only: spec.only ?? null,
       allReadSets: spec.allReadSets === true,
+      ...readMapOptions(spec, context.readMaps ?? 'off'),
     },
   );
   context.log.info('suite checked', {
@@ -189,6 +193,27 @@ async function check(
     deps: context.suite.deps,
   });
   return { kind: 'check', check: result };
+}
+
+/**
+ * `preland` traces the pre-land checks (agents' sandboxes, off the CI slots) and asks every
+ * other check for its tree's manifest, so maps from bean trees can be compared with the
+ * validated sprout; `all` traces every check. With either, a check that asks for every test's
+ * read set (`allReadSets`: evidence promotion's checks and validations) is traced too, so its
+ * read sets are what the tests observed and complete (`read_sets_complete`). A job's own
+ * `trace`/`treeManifest` wins.
+ */
+export function readMapOptions(
+  spec: Extract<JobSpec, { kind: 'check' }>,
+  mode: RunConfig['read_maps'],
+): { trace: boolean; treeManifest: boolean } {
+  const traced =
+    mode === 'all' ||
+    (mode === 'preland' && (spec.instance.kind === 'sandbox' || spec.allReadSets === true));
+  return {
+    trace: spec.trace ?? traced,
+    treeManifest: spec.treeManifest ?? mode !== 'off',
+  };
 }
 
 function checkInstance(context: JobContext, instance: CheckInstance): string {

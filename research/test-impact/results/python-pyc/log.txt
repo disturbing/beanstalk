@@ -1,0 +1,24 @@
+16 test units
+full suite exit=0 t=0.28s
+  tests/test_cart.py: exit=0/0 plain=0.17s traced=0.48s reads=44
+  tests/test_catalog.py: exit=0/0 plain=0.18s traced=0.43s reads=40
+  tests/test_currency.py: exit=0/0 plain=0.18s traced=0.33s reads=37
+  tests/test_discounts.py: exit=0/0 plain=0.12s traced=0.22s reads=48
+  tests/test_ids_events_storage.py: exit=0/0 plain=0.12s traced=0.22s reads=36
+  tests/test_inventory.py: exit=0/0 plain=0.12s traced=0.22s reads=31
+  tests/test_invoice.py: exit=0/0 plain=0.12s traced=0.32s reads=65
+  tests/test_money.py: exit=0/0 plain=0.12s traced=0.33s reads=34
+  tests/test_orders.py: exit=0/0 plain=0.12s traced=0.27s reads=62
+  tests/test_payments.py: exit=0/0 plain=0.12s traced=0.22s reads=37
+  tests/test_plugins.py: exit=0/0 plain=0.13s traced=0.22s reads=40
+  tests/test_pricing.py: exit=0/0 plain=0.12s traced=0.22s reads=58
+  tests/test_reports.py: exit=0/0 plain=0.12s traced=0.22s reads=65
+  tests/test_shipping.py: exit=0/0 plain=0.12s traced=0.32s reads=50
+  tests/test_strings_validation.py: exit=0/0 plain=0.23s traced=0.94s reads=35
+  tests/test_tax.py: exit=0/0 plain=0.18s traced=0.32s reads=41
+0 mutations
+freshness: {"step": "add new test", "changed": ["tests/test_fresh_slug.py"], "selected": ["tests/test_cart.py", "tests/test_catalog.py", "tests/test_currency.py", "tests/test_discounts.py", "tests/test_fresh_slug.py", "tests/test_ids_events_storage.py", "tests/test_inventory.py", "tests/test_invoice.py", "tests/test_money.py", "tests/test_orders.py", "tests/test_payments.py", "tests/test_plugins.py", "tests/test_pricing.py", "tests/test_reports.py", "tests/test_shipping.py", "tests/test_strings_validation.py", "tests/test_tax.py"], "new_test_selected": true, "had_map": false}
+freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 35, "dep_in_map": true}
+freshness: {"step": "break its dependency", "changed": ["src/shop/util/strings.py"], "new_test_selected": true, "new_test_fails": true, "selected": ["tests/test_fresh_slug.py", "tests/test_invoice.py", "tests/test_strings_validation.py"]}
+freshness: {"step": "edit existing test to use a new module", "test": "tests/test_payments.py", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": false, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+done

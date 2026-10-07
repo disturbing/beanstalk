@@ -1,0 +1,13 @@
+[package]
+name = "shop-sales"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+shop-core = { path = "../shop-core" }
+shop-config = { path = "../shop-config" }
+shop-catalog = { path = "../shop-catalog" }
+
+[dev-dependencies]
+shop-testkit = { path = "../shop-testkit" }

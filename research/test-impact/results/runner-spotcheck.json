@@ -1,0 +1,4053 @@
+{
+ "run": "umtpy30wkb",
+ "tree": "457abcc1db065d0654157b9225c61795ebd6d35a",
+ "test_files": 47,
+ "mutations": 20,
+ "breaking": 15,
+ "safe_breaking": 15,
+ "mean_selected": 0.7425531914893617,
+ "mean_selected_breaking": 0.8283687943262411,
+ "mean_failing_breaking": 0.4524822695035461,
+ "results": [
+  {
+   "kind": "number",
+   "desc": "src/auth/sessions.ts: '24' -> '25'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    }
+   }
+  },
+  {
+   "kind": "comparison",
+   "desc": "src/auth/sessions.ts: ' <= ' -> ' > '",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/auth/sessions.ts"
+    }
+   }
+  },
+  {
+   "kind": "number",
+   "desc": "src/auth/password.ts: '16' -> '17'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/auth/password.ts"
+    }
+   }
+  },
+  {
+   "kind": "rename",
+   "desc": "src/notifications/queue.ts: 'export function createMemoryMailer(' -> 'export function createMemoryMailerRenamed('",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/queue.ts"
+    }
+   }
+  },
+  {
+   "kind": "number",
+   "desc": "src/catalog/handlers.ts: '200' -> '201'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/catalog/handlers.ts"
+    }
+   }
+  },
+  {
+   "kind": "rename",
+   "desc": "src/db/migrate.ts: 'export function runMigrations(' -> 'export function runMigrationsRenamed('",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/db/migrate.test.ts",
+    "src/db/order-note-migration.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/db/migrate.test.ts",
+    "src/db/order-note-migration.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/db/migrate.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/db/order-note-migration.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrate.ts"
+    }
+   }
+  },
+  {
+   "kind": "number",
+   "desc": "src/lib/validate.ts: '0' -> '1'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/lib/validate.ts"
+    }
+   }
+  },
+  {
+   "kind": "number",
+   "desc": "src/db/migrations/0005_user_roles.ts: '5' -> '6'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/db/migrate.test.ts",
+    "src/db/order-note-migration.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/db/migrate.test.ts",
+    "src/db/order-note-migration.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/db/migrate.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/db/order-note-migration.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/db/migrations/0005_user_roles.ts"
+    }
+   }
+  },
+  {
+   "kind": "rename",
+   "desc": "src/lib/money.ts: 'export function parseMoney(' -> 'export function parseMoneyRenamed('",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/coupons.test.ts",
+    "src/billing/discounts.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/lib/money-format.test.ts",
+    "src/lib/money.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/lib/money.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/coupons.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/discounts.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/lib/money-format.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/lib/money.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    }
+   }
+  },
+  {
+   "kind": "rename",
+   "desc": "src/notifications/templates.ts: 'export function renderNotification(' -> 'export function renderNotificationRenamed('",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    }
+   }
+  },
+  {
+   "kind": "string",
+   "desc": "src/billing/coupons.ts: \"'percent'\" -> \"'percent!'\"",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/coupons.test.ts",
+    "src/billing/discounts.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/billing/coupons.test.ts",
+    "src/billing/discounts.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/orders/checkout.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/coupons.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/discounts.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/billing/coupons.ts"
+    }
+   }
+  },
+  {
+   "kind": "string",
+   "desc": "src/billing/service.ts: \"'coupon has been fully redeemed'\" -> \"'coupon has been fully redeemed!'\"",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/billing/coupon-limits.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/billing/service.ts"
+    }
+   }
+  },
+  {
+   "kind": "rename",
+   "desc": "src/lib/money.ts: 'export function roundCents(' -> 'export function roundCentsRenamed('",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/coupons.test.ts",
+    "src/billing/discounts.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/lib/money-format.test.ts",
+    "src/lib/money.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/coupons.test.ts",
+    "src/billing/discounts.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/lib/money.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/coupons.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/discounts.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/lib/money-format.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/lib/money.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/lib/money.ts"
+    }
+   }
+  },
+  {
+   "kind": "string",
+   "desc": "src/users/service.ts: \"'email is invalid'\" -> \"'email is invalid!'\"",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/users/service.ts"
+    }
+   }
+  },
+  {
+   "kind": "string",
+   "desc": "src/shipping/rates.ts: \"'express'\" -> \"'express!'\"",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    }
+   }
+  },
+  {
+   "kind": "number",
+   "desc": "src/shipping/rates.ts: '500' -> '501'",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/shipping/rates.ts"
+    }
+   }
+  },
+  {
+   "kind": "string",
+   "desc": "src/types.ts: \"'confirmed'\" -> \"'confirmed!'\"",
+   "selected": [],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "reasons": {}
+  },
+  {
+   "kind": "delete",
+   "desc": "delete src/notifications/templates.ts",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/router.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    },
+    "src/users/users.test.ts": {
+     "reason": "read",
+     "path": "src/notifications/templates.ts"
+    }
+   }
+  },
+  {
+   "kind": "add",
+   "desc": "add src/shipping/package.json (type: commonjs)",
+   "selected": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "failing": [
+    "src/app.test.ts",
+    "src/auth/auth.test.ts",
+    "src/auth/session-expiry.test.ts",
+    "src/auth/sliding-sessions.test.ts",
+    "src/billing/billing.test.ts",
+    "src/billing/coupon-limits.test.ts",
+    "src/billing/invoice-line.test.ts",
+    "src/billing/invoice-numbers.test.ts",
+    "src/billing/invoice.test.ts",
+    "src/billing/line-refunds.test.ts",
+    "src/billing/payment-receipt.test.ts",
+    "src/billing/payment-terms.test.ts",
+    "src/billing/tax-breakdown.test.ts",
+    "src/billing/tax.test.ts",
+    "src/cart/cart.test.ts",
+    "src/catalog/catalog.test.ts",
+    "src/catalog/filter-products.test.ts",
+    "src/catalog/hidden-product.test.ts",
+    "src/catalog/total-count.test.ts",
+    "src/inventory/inventory.test.ts",
+    "src/inventory/reserve-validation.test.ts",
+    "src/notifications/notifications.test.ts",
+    "src/notifications/receipt-template.test.ts",
+    "src/notifications/tracking-email.test.ts",
+    "src/orders/checkout.test.ts",
+    "src/orders/confirmation-grouping.test.ts",
+    "src/orders/empty-cart.test.ts",
+    "src/orders/line-limit.test.ts",
+    "src/orders/order-note.test.ts",
+    "src/orders/orders.test.ts",
+    "src/orders/reorder.test.ts",
+    "src/router.test.ts",
+    "src/shipping/free-shipping.test.ts",
+    "src/shipping/shipping.test.ts",
+    "src/shipping/signature.test.ts",
+    "src/users/email-case.test.ts",
+    "src/users/password-policy.test.ts",
+    "src/users/users.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "reasons": {
+    "src/app.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/auth/auth.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/auth/session-expiry.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/auth/sliding-sessions.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/billing.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/coupon-limits.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/invoice-line.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/invoice-numbers.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/invoice.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/line-refunds.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/payment-receipt.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/payment-terms.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/tax-breakdown.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/billing/tax.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/cart/cart.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/catalog/catalog.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/catalog/filter-products.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/catalog/hidden-product.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/catalog/total-count.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/inventory/inventory.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/inventory/reserve-validation.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/notifications/notifications.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/notifications/receipt-template.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/notifications/tracking-email.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/checkout.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/confirmation-grouping.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/empty-cart.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/line-limit.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/order-note.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/orders.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/orders/reorder.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/router.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/shipping/free-shipping.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/shipping/shipping.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/shipping/signature.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/users/email-case.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/users/password-policy.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    },
+    "src/users/users.test.ts": {
+     "reason": "probe",
+     "path": "src/shipping/package.json"
+    }
+   }
+  },
+  {
+   "kind": "add",
+   "desc": "add an unrelated doc",
+   "selected": [],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "reasons": {}
+  }
+ ]
+}

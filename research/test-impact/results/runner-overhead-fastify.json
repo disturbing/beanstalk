@@ -1,0 +1,61 @@
+{
+ "label": "fastify",
+ "sha": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+ "cpus": 18,
+ "test_files": 184,
+ "untraced_suite_s": 108.63643684,
+ "traced_suite_s": 123.351518848,
+ "ratio": 1.135452546457064,
+ "per_file_untraced_sequential_s": 11.189281006001693,
+ "per_file_traced_sum_s": 107.544267006,
+ "trace_vs_per_file_ratio": 9.61136528328456,
+ "mean_reads": 32.27717391304348,
+ "mean_probes": 26.35326086956522,
+ "mean_dirs": 0.0,
+ "mean_packages": 31.51086956521739,
+ "map_json_bytes": 791631,
+ "all_traced": true,
+ "verdicts_agree": true,
+ "runs": {
+  "untraced": [
+   {
+    "wall": 108.68144142399979,
+    "suite_seconds": 108.63643684,
+    "green": false,
+    "tests": 2069,
+    "failing_files": [
+     "test/build/error-serializer.test.js"
+    ]
+   },
+   {
+    "wall": 96.6570385440009,
+    "suite_seconds": 96.620547878,
+    "green": false,
+    "tests": 2069,
+    "failing_files": [
+     "test/build/error-serializer.test.js"
+    ]
+   }
+  ],
+  "traced": [
+   {
+    "wall": 123.44120259899864,
+    "suite_seconds": 123.351518848,
+    "green": false,
+    "tests": 2069,
+    "failing_files": [
+     "test/build/error-serializer.test.js"
+    ]
+   },
+   {
+    "wall": 109.2359598410003,
+    "suite_seconds": 109.18632555,
+    "green": false,
+    "tests": 2069,
+    "failing_files": [
+     "test/build/error-serializer.test.js"
+    ]
+   }
+  ]
+ }
+}
