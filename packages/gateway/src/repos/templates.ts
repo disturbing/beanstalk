@@ -69,7 +69,7 @@ function typescriptStarter(repoName: string, description: string): readonly Seed
       path: '.beanstalk/checks.toml',
       content: [
         '# What a bean must pass before it lands, run on the exact tree it would land on.',
-        '# Format: docs/claude-opus/23-checks-config.md. Only the owner or a maintainer, pushing',
+        '# Format: docs/claude-opus/24-checks-config.md. Only the owner or a maintainer, pushing',
         '# with a personal token or an SSH key, may change .beanstalk/ (always protected).',
         'image = "node"',
         'command = ["node", "--test"]',

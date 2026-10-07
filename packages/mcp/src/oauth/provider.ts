@@ -50,7 +50,8 @@ export function providerOptions(env: Env, handlers: ProviderHandlers): OAuthProv
     // A personal access token (bsu_) also works as the bearer, for clients without OAuth.
     resolveExternalToken: async ({ token, env: tokenEnv }) => {
       const verified = await verifyUserToken(tokenEnv, token);
-      if (verified === null) return null;
+      // A token bound to one repository is a git credential (`git_credentials`), not a session.
+      if (verified === null || verified.token.repository !== null) return null;
       const props: GrantProps = {
         userId: verified.user.id,
         handle: verified.user.handle,

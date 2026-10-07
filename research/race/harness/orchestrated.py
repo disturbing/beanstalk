@@ -243,9 +243,16 @@ class GitHubForge:
         return asyncio.run(check())
 
     def fetch_line(self, repo: str) -> tuple[str, dict[str, float]]:
+        """``main`` and, per merge commit, when its PR merged: the merge queue's squash commits carry an earlier
+        committer date (seen 2026-10-07: up to 2 min before ``mergedAt``), so the commit date is not the merge."""
         run_git(repo, "fetch", "-q", "--no-tags", self.clone_url, "+refs/heads/main:refs/remotes/forge/main",
                 env=self.client.git_env())
-        return "refs/remotes/forge/main", {}
+        data = asyncio.run(self.client.graphql(PRS_QUERY, {"owner": self.client.owner, "name": self.client.repo},
+                                               what="prs"))
+        nodes = (((data.get("data") or {}).get("repository") or {}).get("pullRequests") or {}).get("nodes") or []
+        merged = {(n.get("mergeCommit") or {}).get("oid"): iso_epoch(n.get("mergedAt")) for n in nodes
+                  if n.get("merged") and n.get("mergeCommit")}
+        return "refs/remotes/forge/main", {sha: at for sha, at in merged.items() if sha and at}
 
     def collect(self, start: float) -> tuple[list[M.Change], list[dict]]:
         async def gather() -> tuple[dict, list]:
@@ -464,7 +471,8 @@ class BeanstalkForge:
         def change(task_id: str) -> M.Change:
             b = beans.get(task_id) or next((x for x in beans.values() if x.get("bean") == task_id), {})
             if task_id not in per:
-                per[task_id] = M.Change(id=task_id, task=b.get("task"), ready_at=None, integrated_at=None,
+                per[task_id] = M.Change(id=task_id, task=b.get("task") or task_of(f"{task_id} {b.get('title', '')}"),
+                                        ready_at=None, integrated_at=None,
                                         pushes=int(b.get("pushes") or 1), state=b.get("phase", ""))
             return per[task_id]
 
@@ -498,6 +506,16 @@ class BeanstalkForge:
                 ci.append({"purpose": e.get("purpose"), "green": e.get("green"), "start": (end or 0) - secs,
                            "end": end, "id": e.get("ci")})
         return list(per.values()), ci
+
+
+def locked_hint() -> str:
+    """What workers are told about running tests (both arms): only through the machine-wide lock, because
+    fastify's suite listens on fixed ports and parallel suites on one machine fail each other."""
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locked_suite.py")
+    return (f"Run the tests only with `python3 {script}` from the worktree: `cd <worktree> && python3 {script}` "
+            f"runs the whole suite (about 15 s), `cd <worktree> && python3 {script} test/<file>.test.js` runs chosen "
+            "files. It waits while another test run on this machine finishes (the suite listens on fixed ports, so "
+            "two at once fail each other); never run `node --test` directly.")
 
 
 def task_of(text: str) -> str | None:
@@ -541,7 +559,7 @@ class OrchestratedRace:
         base = forge.setup(base_dir)
         self.arena_base = run_git(base_dir, "rev-parse", "HEAD~1" if cfg.forge == "github" else "HEAD").strip()
         self.arena_digest = digest
-        return tasks, forge, base, suite.agent_test_hint
+        return tasks, forge, base, locked_hint()
 
     def checkout(self, forge, tasks: list[Task], hint: str) -> str:
         wt = os.path.join(self.work, "orchestrator")
@@ -562,7 +580,16 @@ class OrchestratedRace:
                 os.symlink(deps, link)
         return wt
 
-    def claude_argv(self, prompt: str) -> list[str]:
+    def unintegrated(self, forge, tasks: list[Task]) -> set[str]:
+        """Tasks with no integrated change on the forge yet (a forge error counts as all integrated: no resume)."""
+        try:
+            changes, _ = forge.collect(self.t0)
+        except Exception:  # noqa: BLE001 - the decision to resume must not end the race
+            return set()
+        done = {c.task for c in changes if c.integrated_at is not None and c.task}
+        return {t.id for t in tasks} - done
+
+    def claude_argv(self, prompt: str, budget: float | None = None, resume: str | None = None) -> list[str]:
         cfg = self.cfg
         agents = {"worker": {"description": "An engineer who implements one change in its own git worktree, runs "
                                             "the tests and commits.",
@@ -571,7 +598,9 @@ class OrchestratedRace:
         return [cfg.claude_bin, "-p", prompt, "--model", cfg.model, "--output-format", "stream-json", "--verbose",
                 "--tools", CLAUDE_TOOLS, "--agents", json.dumps(agents), "--permission-mode", "acceptEdits",
                 "--permission-prompts", "none", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
-                "--setting-sources", "", "--disable-slash-commands", "--max-budget-usd", f"{cfg.max_usd:.2f}",
+                "--setting-sources", "", "--disable-slash-commands",
+                "--max-budget-usd", f"{(cfg.max_usd if budget is None else budget):.2f}",
+                *(["--resume", resume] if resume else []),
                 "--allowedTools", "Bash(*)", "Read", "Edit", "Write", "Glob", "Grep", "Agent", "TodoWrite",
                 "--disallowedTools", *DENIED]
 
@@ -584,26 +613,53 @@ class OrchestratedRace:
         with open(os.path.join(self.out, "prompt.txt"), "w", encoding="utf-8") as fh:
             fh.write(prompt)
         transcript = os.path.join(self.work, "transcript.jsonl")
-        env = {**agent_env(), **forge.agent_env()}
+        env = {**agent_env(), **forge.agent_env(), "ORCH_ARENA": os.path.abspath(cfg.arena)}
         self.t0 = time.time()
         self.log("race.setup", at=self.t0, forge=cfg.forge, repo=forge.url, base=base, tasks=[t.id for t in tasks])
         self.log("race.start", at=self.t0, policy=f"orchestrated-{cfg.forge}", agent=cfg.orchestrator,
                  model=cfg.model, agents=cfg.subagents, tasks=[t.id for t in tasks])
         aborted = None
-        with open(transcript, "w", encoding="utf-8") as out:
-            proc = subprocess.Popen(self.claude_argv(prompt), cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
-                                    start_new_session=True)
-            try:
-                proc.wait(timeout=cfg.max_wall_minutes * 60)
-            except subprocess.TimeoutExpired:
-                aborted = f"wall-clock limit of {cfg.max_wall_minutes} minutes"
-                os.killpg(proc.pid, 15)
+        deadline = self.t0 + cfg.max_wall_minutes * 60
+        segments: list[str] = []
+        resumes: list[dict] = []
+        session_id = None
+        while True:
+            segment = os.path.join(self.work, f"transcript.{len(segments)}.jsonl")
+            segments.append(segment)
+            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments[:-1])
+            argv = self.claude_argv(prompt if session_id is None else orch_prompt.CONTINUE,
+                                    budget=max(0.5, cfg.max_usd - spent), resume=session_id)
+            with open(segment, "w", encoding="utf-8") as out:
+                proc = subprocess.Popen(argv, cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
+                                        start_new_session=True)
                 try:
-                    proc.wait(timeout=30)
+                    proc.wait(timeout=max(1.0, deadline - time.time()))
                 except subprocess.TimeoutExpired:
-                    os.killpg(proc.pid, 9)
+                    aborted = f"wall-clock limit of {cfg.max_wall_minutes} minutes"
+                    os.killpg(proc.pid, 15)
+                    try:
+                        proc.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(proc.pid, 9)
+            session_id = session_id or session_of(segment)
+            if aborted or not session_id:
+                break
+            # ``claude -p`` exits when the lead ends its turn, and stops background workers then; a lead that ended
+            # its turn with work left gets one fixed continuation (the same on both arms), as a person would type
+            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments)
+            left = self.unintegrated(forge, tasks)
+            if (not left or len(resumes) >= MAX_RESUMES or spent >= cfg.max_usd - 0.5
+                    or deadline - time.time() < 120):
+                break
+            resumes.append({"at": round(time.time() - self.t0, 1), "unintegrated": sorted(left)})
+            self.log("orchestrator.resume", unintegrated=sorted(left), spent_usd=round(spent, 4))
+        with open(transcript, "w", encoding="utf-8") as out:
+            for segment in segments:
+                with open(segment, encoding="utf-8", errors="replace") as fh:
+                    out.write(fh.read())
         ended = time.time()
-        session = parse_transcript(transcript, secrets=[getattr(forge, "token", "")])
+        session = merge_sessions([parse_transcript(s, secrets=[getattr(forge, "token", "")]) for s in segments])
+        session["resumes"] = resumes
         self.log("invocation.end", at=ended, inv="orchestrator", kind="orchestrator", task=None, agent="lead",
                  cost_usd=session["cost_usd"], ok=session["ok"], subtype=session["subtype"], num_turns=session["turns"])
         self.log("race.end", at=ended, aborted=aborted, spent_usd=session["cost_usd"])
@@ -693,18 +749,55 @@ class OrchestratedRace:
         return 0 if not aborted else 3
 
 
-def parse_transcript(path: str, secrets: list[str]) -> dict:
-    """What the orchestrator did: cost, turns, subagent calls and how many ran at once, commands it ran."""
-    cost, ok, subtype, turns = 0.0, False, "none", 0
-    model_usage: dict = {}
-    agent_calls, max_parallel, background = 0, 0, 0
-    commands: dict[str, int] = {}
+MAX_RESUMES = 6
+
+
+def session_of(path: str) -> str | None:
+    """The session id a ``claude -p`` transcript reports (its init line)."""
     with open(path, encoding="utf-8", errors="replace") as fh:
         for line in fh:
             try:
                 e = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if e.get("session_id"):
+                return e["session_id"]
+    return None
+
+
+def merge_sessions(parts: list[dict]) -> dict:
+    """One session's figures from its processes: costs and turns add up (each process reports its own)."""
+    if not parts:
+        return parse_transcript("/dev/null", [])
+    commands: dict[str, int] = {}
+    for p in parts:
+        for k, v in p["commands"].items():
+            commands[k] = commands.get(k, 0) + v
+    return {"model_usage": [p["model_usage"] for p in parts], "cost_usd": round(sum(p["cost_usd"] for p in parts), 4),
+            "ok": parts[-1]["ok"], "subtype": parts[-1]["subtype"], "turns": sum(p["turns"] for p in parts),
+            "agent_calls": sum(p["agent_calls"] for p in parts),
+            "max_agent_calls_in_one_message": max(p["max_agent_calls_in_one_message"] for p in parts),
+            "background_agent_calls": sum(p["background_agent_calls"] for p in parts),
+            "max_concurrent_subagents": max(p["max_concurrent_subagents"] for p in parts),
+            "processes": len(parts), "commands": dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])}
+
+
+def parse_transcript(path: str, secrets: list[str]) -> dict:
+    """What the orchestrator did: cost, turns, subagent calls and how many ran at once, commands it ran."""
+    cost, ok, subtype, turns = 0.0, False, "none", 0
+    model_usage: dict = {}
+    agent_calls, max_parallel, background = 0, 0, 0
+    commands: dict[str, int] = {}
+    spans: dict[str, list[int]] = {}   # subagent (its parent tool-use id) -> first and last transcript line
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for index, line in enumerate(fh):
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            parent = e.get("parent_tool_use_id")
+            if parent:
+                spans.setdefault(parent, [index, index])[1] = index
             if e.get("type") == "assistant" and not e.get("parent_tool_use_id"):
                 uses = [c for c in (e.get("message") or {}).get("content") or [] if c.get("type") == "tool_use"]
                 calls = [u for u in uses if u.get("name") in ("Agent", "Task")]
@@ -724,10 +817,17 @@ def parse_transcript(path: str, secrets: list[str]) -> dict:
                 turns += int(e.get("num_turns") or 0)
                 model_usage = e.get("modelUsage") or model_usage
     top = dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])
+    # subagents running at once: the most whose transcript lines interleave (their output streams overlap)
+    marks = sorted([(a, 1) for a, _ in spans.values()] + [(b + 0.5, -1) for _, b in spans.values()])
+    depth = concurrent = 0
+    for _, step in marks:
+        depth += step
+        concurrent = max(concurrent, depth)
     # total_cost_usd covers the lead and every subagent: modelUsage's cache reads and writes equal the sum over the
     # lead's and the workers' assistant messages (checked on orch-fastify-sonnet-4-t10-github, 2026-10-07)
     return {"model_usage": model_usage, "cost_usd": round(cost, 4), "ok": ok, "subtype": subtype, "turns": turns, "agent_calls": agent_calls,
-            "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background, "commands": top}
+            "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background,
+            "max_concurrent_subagents": concurrent, "commands": top}
 
 
 def scrub(path: str, secrets: list[str]) -> None:
@@ -763,9 +863,8 @@ def to_markdown(s: dict) -> str:
         ("Wall (orchestrator) / settled (min)", f"{_m(s['wall_seconds'])} / {_m(s['settled_seconds'])}"),
         ("Model spend (USD)", s["cost_usd"]),
         ("CI minutes", f"{s['ci_minutes_total']} ({', '.join(f'{k} {v}' for k, v in s['ci_minutes'].items())})"),
-        ("Subagent calls / max in one message / background",
-         f"{s['orchestrator']['agent_calls']} / {s['orchestrator']['max_agent_calls_in_one_message']} / "
-         f"{s['orchestrator']['background_agent_calls']}"),
+        ("Subagent calls / most running at once", f"{s['orchestrator']['agent_calls']} / "
+                                                   f"{s['orchestrator'].get('max_concurrent_subagents')}"),
         ("Final: suite green / tasks accepted / correct",
          f"{s['final']['suite_green']} / {s['final']['tasks_accepted']} of {s['final']['tasks_total']} / "
          f"{s['final']['correct']}"),

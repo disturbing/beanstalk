@@ -1,6 +1,6 @@
 /**
  * A repository's checks, decided per checked tree (backlog 2.3,
- * `docs/claude-opus/23-checks-config.md`): `.beanstalk/checks.toml` is read from the exact
+ * `docs/claude-opus/24-checks-config.md`): `.beanstalk/checks.toml` is read from the exact
  * tree the check runs on, so a bean that changes it is checked by its own config. Before any
  * suite runs, a bean's pre-land check applies the sprout's protected paths to the files the
  * bean changes. The answer is a suite for the runner, or a check result that needs none:
@@ -147,7 +147,7 @@ function invalidRed(problems: readonly string[]): CheckResult {
     [
       `${CHECKS_PATH} on the merged tree is invalid, so no tests ran:`,
       ...problems.map((problem) => `  ${problem}`),
-      'Fix the file in this bean; see docs/claude-opus/23-checks-config.md for the format.',
+      'Fix the file in this bean; see docs/claude-opus/24-checks-config.md for the format.',
     ].join('\n'),
   );
 }

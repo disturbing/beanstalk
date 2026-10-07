@@ -86,7 +86,8 @@ export async function openRepoEngine(
   return { ok: true, value };
 }
 
-function pushedBeanStatus(bean: PushBean): PushedBeanStatus {
+/** A pushed bean in the RPC's shape. */
+export function pushedBeanStatus(bean: PushBean): PushedBeanStatus {
   return {
     bean: bean.bean,
     title: bean.title,

@@ -58,6 +58,15 @@
   border-bottom-color: var(--leaf);
   color: var(--good);
 }
+.tabCount {
+  font: 500 11px/16px var(--font-mono);
+  min-width: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--wash-strong);
+}
 .kh {
   font: 500 10px/14px var(--font-mono);
   color: var(--ink-3);

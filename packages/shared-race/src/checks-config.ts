@@ -1,6 +1,6 @@
 /**
  * A repository's checks: `.beanstalk/checks.toml`, read from the exact tree a check runs on
- * (`docs/claude-opus/23-checks-config.md`). One suite per repository, an argv for the runner
+ * (`docs/claude-opus/24-checks-config.md`). One suite per repository, an argv for the runner
  * (never a shell), its environment and time limit, the image it runs in, and the paths a bean
  * may change only when a person with the maintain role pushes it.
  *
@@ -80,7 +80,7 @@ const Command = z
   .max(MAX_ARGS, `must have at most ${MAX_ARGS} arguments`)
   .refine(
     (argv) => argv[0] === 'node',
-    'must start with "node": the runner reads node\'s test reporter (other test runners need another image; see docs/claude-opus/23-checks-config.md)',
+    'must start with "node": the runner reads node\'s test reporter (other test runners need another image; see docs/claude-opus/24-checks-config.md)',
   )
   .refine((argv) => argv.includes('--test'), 'must run node --test');
 
@@ -123,7 +123,7 @@ const ChecksFile = z.strictObject({
   image: z
     .enum(CHECK_IMAGES, {
       error: (issue) =>
-        `${JSON.stringify(issue.input)} is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (other images are an open item, docs/claude-opus/23-checks-config.md)`,
+        `${JSON.stringify(issue.input)} is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (other images are an open item, docs/claude-opus/24-checks-config.md)`,
     })
     .default('node'),
   command: Command.default([...DEFAULT_COMMAND]),

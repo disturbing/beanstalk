@@ -33,6 +33,8 @@ export type DeployTokenAccess = {
 export function ConnectTabs(props: {
   readonly guide: StartGuide;
   readonly deploy: DeployTokenAccess;
+  /** The Code tab's side column: the same three tabs, set small. */
+  readonly compact?: boolean;
 }) {
   const [tab, setTab] = useState<TabId>('plugin');
   const baseId = useId();
@@ -49,7 +51,10 @@ export function ConnectTabs(props: {
     }
   };
   return (
-    <section className={styles.step} aria-labelledby={`${baseId}-title`}>
+    <section
+      className={props.compact === true ? `${styles.step} ${styles.connectCompact}` : styles.step}
+      aria-labelledby={`${baseId}-title`}
+    >
       <h2 id={`${baseId}-title`}>Connect git</h2>
       <div role="tablist" aria-label="How to connect git" className={styles.connectTabs}>
         {TABS.map((entry) => (

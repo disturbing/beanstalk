@@ -71,16 +71,24 @@ Step by step: `references/reds-conflicts-cards.md`.
 
 ## When to call MCP (optional)
 
-MCP (`/mcp`, OAuth login) adds context git cannot give:
+Git does the work; MCP (`/mcp`, OAuth login) coordinates it and adds context git cannot
+give. Tools take the repository as `repo: "owner/name"`.
 
-- **Before starting:** `ask_repo` to orient; `work_overlaps(paths)` to see who is editing the
-  same files now (fit your change to theirs, prefer additive edits); claim a task (coming).
-- **On a red** that git output does not explain: `checks_get`, and the culprit bean's diff.
+- **Before starting:** if the repository has a backlog, `task_list` then `task_claim` so no
+  other agent takes the same task (a refused claim names who holds it: pick another;
+  `task_release` gives back one you will not do). Then
+  `bean_open(repo, bean, intent, task?)` reserves the name and intent and returns the
+  branch and push commands; `work_overlaps(paths, repo)` shows who is editing those files.
+- **After pushing:** `git push -o wait` prints the verdict. Pushed without `-o wait`, or
+  want the details: `bean_wait` (blocks until the check ends) and `bean_status` (failing
+  tests, the landed bean you collided with, its intent and what it changed, next step).
+- **Credentials:** only if git is not connected and `/beanstalk:setup` is not an option:
+  `git_credentials(repo)` gives a one-hour credential for `git credential approve`.
 - **Decision cards** and **bean-to-bean conversation** (`bean_context`, `bean_thread_post`,
   `bean_inbox_read`): when your approach contradicts another bean's.
 
-Do not use MCP for the normal cycle: clone, branch, commit, push, read the verdict.
-Tools and what is live vs coming: `references/mcp-tools.md`.
+Never use MCP to move code: clone, branch, commit and push stay git.
+Tools and their scopes: `references/mcp-tools.md`.
 
 ## Before you push
 

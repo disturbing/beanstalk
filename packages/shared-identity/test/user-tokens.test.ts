@@ -38,7 +38,7 @@ describe('personal access tokens', () => {
     expect(await verifyUserToken(env, token, () => T0 + 1)).toEqual({
       user,
       scopes: ['read', 'write'],
-      token: { id: summary.id, kind: 'personal', expiresAt: T0 + 30 * DAY },
+      token: { id: summary.id, kind: 'personal', expiresAt: T0 + 30 * DAY, repository: null },
     });
     const stored = await env.IDENTITY_DB.prepare('SELECT * FROM user_tokens WHERE id = ?')
       .bind(summary.id)
@@ -129,5 +129,28 @@ describe('session tokens for agent sessions', () => {
     expect(await verifyUserToken(env, token, () => T0 + 3600 * 1000)).toBeNull();
     expect(await revokeClientTokens(env, { userId: user.id, clientId: 'client-1' }, T0)).toBe(1);
     expect(await verifyUserToken(env, token, () => T0 + 1)).toBeNull();
+  });
+
+  it('carries the one repository it was minted for (MCP git_credentials)', async () => {
+    const { user } = await signUp('bound');
+    const bound = await mintSessionToken(
+      env,
+      {
+        userId: user.id,
+        label: 'git',
+        scopes: ['read', 'write'],
+        repository: 'r0123456789abcdef012',
+      },
+      () => T0,
+    );
+    const free = await mintSessionToken(
+      env,
+      { userId: user.id, label: 'git', scopes: ['read'] },
+      () => T0,
+    );
+    expect((await verifyUserToken(env, bound.token, () => T0 + 1))?.token.repository).toBe(
+      'r0123456789abcdef012',
+    );
+    expect((await verifyUserToken(env, free.token, () => T0 + 1))?.token.repository).toBeNull();
   });
 });

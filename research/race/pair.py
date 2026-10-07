@@ -23,6 +23,7 @@ says. Extra arguments after ``--`` go to both arms.
 from __future__ import annotations
 
 import argparse
+import urllib.parse
 import json
 import os
 import shlex
@@ -44,7 +45,7 @@ SHARED_VALUE = ("agent", "model", "effort", "agents", "ci_slots", "batch", "seed
                 "claude_bin", "max_wall_minutes", "suite_timeout")
 
 
-GATEWAY_RACES = r"race\.py.*--forge cloudflare|orchestrated\.py.*--forge beanstalk"
+GATEWAY_RACES = r"race\.py.*--forge cloudflare|orchestrated\.py.*--forge beanstalk|loadgen[./]run.*--forge (beanstalk|both)"
 
 
 def ancestors() -> set[int]:
@@ -57,15 +58,29 @@ def ancestors() -> set[int]:
     return pids
 
 
-def wait_for_gateway(poll: float = 30.0) -> None:
-    """Block while another race on the gateway (``race.py --forge cloudflare`` or an orchestrated Beanstalk arm)
-    runs on this machine."""
+def gateway_races(host: str | None = None) -> list[str]:
+    """Other processes on this machine that drive a race on a gateway: ``race.py --forge cloudflare``, an
+    orchestrated Beanstalk arm, or the push-replay load generator (``loadgen.run --forge beanstalk|both``). With
+    ``host``, a process whose command line names another gateway (``--gateway https://<other>``) is not counted."""
+    mine = ancestors()
+    out = subprocess.run(["pgrep", "-fl", GATEWAY_RACES], capture_output=True, text=True).stdout
+    found = []
+    for line in out.splitlines():
+        pid, _, cmd = line.partition(" ")
+        if not pid.isdigit() or int(pid) in mine:
+            continue
+        if host and "--gateway" in cmd and host not in cmd:
+            continue
+        found.append(pid)
+    return found
+
+
+def wait_for_gateway(poll: float = 30.0, host: str | None = None) -> None:
+    """Block while another race on the gateway (see ``gateway_races``) runs on this machine."""
     import time
     said = False
-    mine = ancestors()
     while True:
-        out = subprocess.run(["pgrep", "-f", GATEWAY_RACES], capture_output=True, text=True).stdout
-        others = [p for p in out.split() if p.strip() and int(p) not in mine]
+        others = gateway_races(host)
         if not others:
             return
         if not said:
@@ -175,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     codes = {}
     for arm in arms:
         if arm == "beanstalk" and a.b_forge == "cloudflare" and a.wait_gateway:
-            wait_for_gateway()
+            wait_for_gateway(host=urllib.parse.urlparse(a.gateway or "").hostname)
         env = dict(os.environ)
         if arm == "beanstalk" and a.b_forge == "cloudflare" and a.start_order == "fifo":
             env.update(DEMO_ENV_FIFO)
