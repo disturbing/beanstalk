@@ -48,6 +48,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--bs-owner", default="race")
     ap.add_argument("--bs-repo")
     ap.add_argument("--claude-bin", default="claude")
+    ap.add_argument("--wait-gateway", action="store_true",
+                    help="--forge beanstalk: first wait while another race on this machine uses a gateway")
     a = ap.parse_args(argv)
     if a.forge == "github" and not a.gh_owner:
         ap.error("--forge github needs --gh-owner")
@@ -61,6 +63,9 @@ def main(argv: list[str] | None = None) -> int:
                      gh_owner=a.gh_owner, gh_repo=a.gh_repo, ci_slots=a.ci_slots, batch=a.batch, gateway=a.gateway,
                      beanstalk_owner=a.bs_owner, force=a.force, claude_bin=a.claude_bin,
                      extra={"bs_repo": a.bs_repo} if a.bs_repo else {})
+    if a.wait_gateway and a.forge == "beanstalk":
+        from pair import wait_for_gateway
+        wait_for_gateway()
     code = OrchestratedRace(cfg).run()
     summary = os.path.join(OrchestratedRace(cfg).out, "summary.md")
     if os.path.exists(summary):

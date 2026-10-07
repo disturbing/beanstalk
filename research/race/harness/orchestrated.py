@@ -651,6 +651,7 @@ class OrchestratedRace:
 def parse_transcript(path: str, secrets: list[str]) -> dict:
     """What the orchestrator did: cost, turns, subagent calls and how many ran at once, commands it ran."""
     cost, ok, subtype, turns = 0.0, False, "none", 0
+    model_usage: dict = {}
     agent_calls, max_parallel, background = 0, 0, 0
     commands: dict[str, int] = {}
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -676,8 +677,11 @@ def parse_transcript(path: str, secrets: list[str]) -> dict:
                 ok = not e.get("is_error")
                 subtype = e.get("subtype") or "?"
                 turns += int(e.get("num_turns") or 0)
+                model_usage = e.get("modelUsage") or model_usage
     top = dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])
-    return {"cost_usd": round(cost, 4), "ok": ok, "subtype": subtype, "turns": turns, "agent_calls": agent_calls,
+    # total_cost_usd covers the lead and every subagent: modelUsage's cache reads and writes equal the sum over the
+    # lead's and the workers' assistant messages (checked on orch-fastify-sonnet-4-t10-github, 2026-10-07)
+    return {"model_usage": model_usage, "cost_usd": round(cost, 4), "ok": ok, "subtype": subtype, "turns": turns, "agent_calls": agent_calls,
             "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background, "commands": top}
 
 
