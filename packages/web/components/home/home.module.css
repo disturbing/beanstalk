@@ -1626,3 +1626,13 @@
     animation: blink 1s steps(1) infinite;
   }
 }
+
+/* A persistent repository's visibility, beside its name in the header. */
+.visibility {
+  font: 500 11px/18px var(--font-mono);
+  color: var(--ink-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 0 8px;
+  margin-left: 4px;
+}

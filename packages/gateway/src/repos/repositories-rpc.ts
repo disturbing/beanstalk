@@ -125,16 +125,25 @@ async function create(
   );
   if (!reserved) return taken(owner.data.handle, input.name);
   try {
-    await provision(deps, { artifactsRepo, name: input.name, description: input.description, origin });
+    await provision(deps, {
+      artifactsRepo,
+      name: input.name,
+      description: input.description,
+      origin,
+    });
     const { engineId } = await deps.engine.open({
       repoId: id,
-      repoName: `${owner.data.handle}/${input.name}`,
+      repoName: input.name,
       artifactsRepo,
       owner: owner.data,
     });
     const record = await deps.registry.markReady(id, engineId, deps.now());
     if (record === null) throw new GatewayError(`repository ${id} vanished`, 'conflict', 409);
-    deps.log.info('repository created', { repo: id, origin: origin.kind, engine: deps.engine.kind });
+    deps.log.info('repository created', {
+      repo: id,
+      origin: origin.kind,
+      engine: deps.engine.kind,
+    });
     return ok(record);
   } catch (error: unknown) {
     await undo(deps, id, artifactsRepo);
@@ -156,7 +165,8 @@ async function provision(
   if (repo.origin.kind === 'import') {
     await storage.importFrom(repo.artifactsRepo, repo.origin.url, description);
     const head = await storage.lineFromDefault(repo.artifactsRepo);
-    if (head === null) throw new GatewayError('the imported repository is empty', 'invalid_request', 422);
+    if (head === null)
+      throw new GatewayError('the imported repository is empty', 'invalid_request', 422);
     return;
   }
   await storage.create(repo.artifactsRepo, description);

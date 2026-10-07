@@ -43,7 +43,7 @@ export default async function RaceCanvasPage({ params, searchParams }: PageProps
   const meta = runMeta(run, reduceRace(data.events));
   return (
     <main className={styles.page}>
-      <RepoHead run={run} repository={repositoryOf(run)} current="engine" />
+      <RepoHead base={`/runs/${run}`} repository={repositoryOf(run)} current="engine" />
       <RaceCanvas
         run={run}
         label={meta.label}

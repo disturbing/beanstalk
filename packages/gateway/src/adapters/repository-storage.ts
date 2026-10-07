@@ -100,7 +100,8 @@ async function pushLines(
     const report = await response.text();
     if (!response.ok) throw new UpstreamError(`seeding ${name}: HTTP ${response.status}`, true);
     const refused = refusedRefs(report);
-    if (refused.length > 0) throw new UpstreamError(`seeding ${name}: ${refused.join('; ')}`, false);
+    if (refused.length > 0)
+      throw new UpstreamError(`seeding ${name}: ${refused.join('; ')}`, false);
   } finally {
     await withRepo(binding, name, (repo) => repo.revokeToken(token.id)).catch(() => false);
   }

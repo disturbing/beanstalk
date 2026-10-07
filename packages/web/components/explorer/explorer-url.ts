@@ -40,9 +40,9 @@ export function readExplorerState(params: SearchParams): ExplorerState {
   };
 }
 
-/** The Files explorer's URL for a run with some state changed. */
+/** The Files explorer's URL under a repository's base path (`/runs/<run>` or `/<owner>/<repo>`). */
 export function explorerHref(
-  run: string,
+  base: string,
   state: ExplorerState,
   change: Partial<ExplorerState> = {},
 ): string {
@@ -56,10 +56,10 @@ export function explorerHref(
   if (next.view !== null) params.set('view', next.view);
   if (next.at !== null) params.set('at', String(Math.round(next.at)));
   const query = params.toString();
-  return `/runs/${run}/files${query === '' ? '' : `?${query}`}`;
+  return `${base}/files${query === '' ? '' : `?${query}`}`;
 }
 
 /** A fresh question: keeps the line and the moment, drops removals and selection. */
-export function askHref(run: string, state: ExplorerState, q: string): string {
-  return explorerHref(run, state, { q, removed: [], file: null, bean: null, view: null });
+export function askHref(base: string, state: ExplorerState, q: string): string {
+  return explorerHref(base, state, { q, removed: [], file: null, bean: null, view: null });
 }

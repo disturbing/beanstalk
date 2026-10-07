@@ -4,6 +4,7 @@
  * files directly on Node 23.6+, the runner's Node 25 included), so checks mean something
  * from the first bean.
  */
+import { assertNever } from '../engine/errors';
 import type { RepoTemplate } from '@beanstalk/shared-race/repos';
 
 import type { SeedFile } from '../git/pack-writer';
@@ -21,6 +22,8 @@ export function templateFiles(
   switch (template) {
     case 'typescript-starter':
       return typescriptStarter(repoName, description);
+    default:
+      return assertNever(template);
   }
 }
 

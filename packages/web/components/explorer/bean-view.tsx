@@ -12,7 +12,7 @@ import { explorerHref } from './explorer-url';
 
 /** One bean: what it is for, who carried it, what happened to it, and its own diff. */
 export function BeanView(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly bean: BeanDetail;
   readonly diff: RepoDiff | null;
@@ -122,7 +122,7 @@ function stepBead(kind: BeanStep['kind']): string {
 
 /** Beans as a list: id, title, status, agent; each opens its bean view. */
 export function BeanList(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly beans: readonly BeanRecord[];
 }) {
@@ -132,7 +132,7 @@ export function BeanList(props: {
         <li key={bean.id} className={styles.beanItem}>
           <Link
             className={styles.beanId}
-            href={explorerHref(props.run, props.state, { bean: bean.id, file: null, view: null })}
+            href={explorerHref(props.base, props.state, { bean: bean.id, file: null, view: null })}
           >
             {bean.id}
           </Link>

@@ -9,14 +9,15 @@ import { z } from 'zod';
 
 import type { RpcResult } from './rpc';
 
-/** Characters of a repository name; GitHub's limit. */
-export const MAX_REPO_NAME = 100;
+/** Characters of a repository name: the engine's and Artifacts' name limit. */
+export const MAX_REPO_NAME = 63;
 /** Characters of a description. */
 export const MAX_REPO_DESCRIPTION = 350;
 
 /**
- * A repository name as it appears in `/<owner>/<repo>` and the clone URL: letters, digits,
- * `.`, `-` and `_`, not `.` or `..`, and not ending in `.git` (the URL adds it).
+ * A repository name as it appears in `/<owner>/<repo>` and the clone URL: a letter or digit,
+ * then letters, digits, `.`, `-` and `_`, not ending in `.git` (the URL adds it). The engine
+ * takes the same names (`openRepoEngine`'s `repoName`).
  */
 export const RepoName = z
   .string()
@@ -24,7 +25,7 @@ export const RepoName = z
   .min(1, 'Give the repository a name.')
   .max(MAX_REPO_NAME, `Keep the name under ${MAX_REPO_NAME + 1} characters.`)
   .regex(/^[A-Za-z0-9._-]+$/, 'Use letters, digits, ".", "-" and "_" only.')
-  .refine((name) => name !== '.' && name !== '..', 'Pick a name other than "." or "..".')
+  .regex(/^[A-Za-z0-9]/, 'Start with a letter or a digit.')
   .refine((name) => !name.toLowerCase().endsWith('.git'), 'Leave ".git" off; the URL adds it.');
 
 export const RepoVisibility = z.enum(['public', 'private']);
@@ -65,7 +66,10 @@ export const UpdateRepositoryInput = z
     description: z.string().trim().max(MAX_REPO_DESCRIPTION).optional(),
     visibility: RepoVisibility.optional(),
   })
-  .refine((patch) => Object.values(patch).some((value) => value !== undefined), 'Change something.');
+  .refine(
+    (patch) => Object.values(patch).some((value) => value !== undefined),
+    'Change something.',
+  );
 export type UpdateRepositoryInput = z.input<typeof UpdateRepositoryInput>;
 
 /** The user a repository belongs to, as accounts name them (`requireUser`). */
@@ -143,7 +147,10 @@ export type RepositoriesRpc = {
     input: CreateRepositoryInput,
   ): Promise<RpcResult<RepositoryRecord>>;
   /** An owner's repositories, newest first; private ones only when the viewer is the owner. */
-  listRepositories(ownerId: string, viewer: Viewer): Promise<RpcResult<readonly RepositoryRecord[]>>;
+  listRepositories(
+    ownerId: string,
+    viewer: Viewer,
+  ): Promise<RpcResult<readonly RepositoryRecord[]>>;
   getRepository(
     ownerHandle: string,
     name: string,

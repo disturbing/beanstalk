@@ -5,6 +5,7 @@
  * owner's list, a handle and name lookup, activity across repositories) and the uniqueness
  * is one index; the engine's hot state stays in its own Durable Object.
  */
+import { assertNever } from '../engine/errors';
 import { z } from 'zod';
 
 import type {
@@ -42,7 +43,11 @@ export type Registry = {
   byName(ownerHandle: string, name: string): Promise<RepositoryRecord | null>;
   byOwner(ownerId: string): Promise<readonly RepositoryRecord[]>;
   /** Applies the patch; 'taken' when a rename collides, null when the repository is missing. */
-  update(id: string, patch: RegistryPatch, nowMs: number): Promise<RepositoryRecord | 'taken' | null>;
+  update(
+    id: string,
+    patch: RegistryPatch,
+    nowMs: number,
+  ): Promise<RepositoryRecord | 'taken' | null>;
   remove(id: string): Promise<void>;
   activity(ownerId: string, limit: number): Promise<readonly RepositoryActivity[]>;
 };
@@ -127,7 +132,9 @@ export function d1Registry(db: D1Database): Registry {
       const at = iso(nowMs);
       await db.batch([
         db
-          .prepare(`UPDATE repositories SET state = 'ready', engine_id = ?, updated_at = ? WHERE id = ?`)
+          .prepare(
+            `UPDATE repositories SET state = 'ready', engine_id = ?, updated_at = ? WHERE id = ?`,
+          )
           .bind(engineId, at, id),
         activityInsert(db, record, at, 'created', createdText(record.origin)),
       ]);
@@ -240,6 +247,8 @@ function createdText(origin: RepoOrigin): string {
       return 'Created from the TypeScript starter.';
     case 'import':
       return `Imported from ${origin.url}.`;
+    default:
+      return assertNever(origin);
   }
 }
 

@@ -21,11 +21,11 @@ const KIND_LABEL: Readonly<Record<Chip['kind'], string>> = {
  * as chips. Removing a chip re-runs the question without it.
  */
 export function AnswerPanel(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly answer: Answer;
 }) {
-  const { run, state, answer } = props;
+  const { base, state, answer } = props;
   const hiddenFiles = Math.max(
     0,
     answer.fileSet.filter((file) => answer.tree.matched.includes(file.path)).length -
@@ -44,7 +44,7 @@ export function AnswerPanel(props: {
           {answer.chips.map((chip) => (
             <Link
               key={chip.id}
-              href={explorerHref(run, state, {
+              href={explorerHref(base, state, {
                 removed: [...state.removed, chip.id],
                 file: null,
                 bean: null,
@@ -70,7 +70,7 @@ export function AnswerPanel(props: {
             <span className={styles.chipsNote}>and {hiddenFiles} more files</span>
           ) : null}
           {state.removed.length > 0 ? (
-            <Link href={explorerHref(run, state, { removed: [] })} className={styles.restore}>
+            <Link href={explorerHref(base, state, { removed: [] })} className={styles.restore}>
               Restore {state.removed.length} removed
             </Link>
           ) : null}

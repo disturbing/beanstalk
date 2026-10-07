@@ -167,7 +167,13 @@ export class FakeArtifacts extends WorkerEntrypoint {
     const repo = newRepo(target.name, new Map(), 'main');
     const files = { 'README.md': '# imported\n', 'src/index.ts': 'export {};\n' };
     const sha = objectId(`commit:${source.url}`);
-    repo.commits.set(sha, { parents: [], message: 'imported', time: 0, files, tree: storeTree(repo, files) });
+    repo.commits.set(sha, {
+      parents: [],
+      message: 'imported',
+      time: 0,
+      files,
+      tree: storeTree(repo, files),
+    });
     repo.refs.set('refs/heads/main', sha);
     return { ...describe(repo), token: 'art_v1_import' };
   }

@@ -66,14 +66,13 @@ describe('creating a repository', () => {
   });
 
   it('rejects names the URL cannot carry', async () => {
-    for (const name of ['', 'a/b', '..', 'x.git', 'has space']) {
-      const result = await gateway.createRepository(owner(), {
-        name,
-        visibility: 'public',
-        start: { kind: 'empty' },
-      });
+    const results = await Promise.all(
+      ['', 'a/b', '..', 'x.git', 'has space'].map((name) =>
+        gateway.createRepository(owner(), { name, visibility: 'public', start: { kind: 'empty' } }),
+      ),
+    );
+    for (const result of results)
       expect(result).toMatchObject({ ok: false, error: { code: 'invalid_request' } });
-    }
   });
 
   it('imports a public git URL and points the stalk at its default branch', async () => {
@@ -106,30 +105,30 @@ describe('creating a repository', () => {
   });
 });
 
-describe('reading repositories', () => {
-  async function two(): Promise<{
-    coop: ReturnType<typeof owner>;
-    open: RepositoryRecord;
-    secret: RepositoryRecord;
-  }> {
-    const coop = owner();
-    const open = value(
-      await gateway.createRepository(coop, {
-        name: 'open',
-        visibility: 'public',
-        start: { kind: 'empty' },
-      }),
-    );
-    const secret = value(
-      await gateway.createRepository(coop, {
-        name: 'secret',
-        visibility: 'private',
-        start: { kind: 'empty' },
-      }),
-    );
-    return { coop, open, secret };
-  }
+async function two(): Promise<{
+  coop: ReturnType<typeof owner>;
+  open: RepositoryRecord;
+  secret: RepositoryRecord;
+}> {
+  const coop = owner();
+  const open = value(
+    await gateway.createRepository(coop, {
+      name: 'open',
+      visibility: 'public',
+      start: { kind: 'empty' },
+    }),
+  );
+  const secret = value(
+    await gateway.createRepository(coop, {
+      name: 'secret',
+      visibility: 'private',
+      start: { kind: 'empty' },
+    }),
+  );
+  return { coop, open, secret };
+}
 
+describe('reading repositories', () => {
   it('lists private repositories to their owner only', async () => {
     const { coop } = await two();
     const mine = value(await gateway.listRepositories(coop.id, coop.id));
@@ -166,11 +165,20 @@ describe('changing and deleting a repository', () => {
         visibility: 'public',
       }),
     );
-    expect(updated).toMatchObject({ name: 'final', visibility: 'public', artifacts_repo: repo.artifacts_repo });
+    expect(updated).toMatchObject({
+      name: 'final',
+      visibility: 'public',
+      artifacts_repo: repo.artifacts_repo,
+    });
     expect(value(await gateway.getRepository(coop.handle, 'final', null)).id).toBe(repo.id);
     const activity = value(await gateway.repositoryActivity(coop.id, 10));
     // Newest first; one update's changes are recorded in the order renamed, described, visibility.
-    expect(activity.map((line) => line.kind)).toEqual(['visibility', 'described', 'renamed', 'created']);
+    expect(activity.map((line) => line.kind)).toEqual([
+      'visibility',
+      'described',
+      'renamed',
+      'created',
+    ]);
     expect(activity[2]).toMatchObject({ repo_name: 'final', text: 'Renamed from draft.' });
   });
 
@@ -178,7 +186,9 @@ describe('changing and deleting a repository', () => {
     const coop = owner();
     const start = { kind: 'empty' } as const;
     value(await gateway.createRepository(coop, { name: 'a', visibility: 'public', start }));
-    const b = value(await gateway.createRepository(coop, { name: 'b', visibility: 'public', start }));
+    const b = value(
+      await gateway.createRepository(coop, { name: 'b', visibility: 'public', start }),
+    );
     expect(await gateway.updateRepository(coop.id, b.id, { name: 'A' })).toMatchObject({
       ok: false,
       error: { code: 'name_taken' },

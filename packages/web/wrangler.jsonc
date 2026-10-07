@@ -20,6 +20,15 @@
     // Any Jev failure falls back to the rules, and every pick leaves a receipt.
     "PICKER": "jev",
     "JEV_GATEWAY": "default",
+    // Repositories (docs/claude-opus/20-repositories.md). DEV_USER_HANDLE signs every request
+    // in as a fixed dev user until accounts land: set it in staging only, never here.
+    "DEV_USER_HANDLE": "",
+    // The public addresses a new repository's start page prints: git (the gateway) and MCP.
+    "GIT_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
+    "MCP_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp",
+    // "ready" once the gateway takes beans by `git push` to bean/<name>; until then the start
+    // page says pushes are coming.
+    "GIT_INTAKE": "pending",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
   // Billed to the account; no API key is involved. `remote` makes local dev call it too.

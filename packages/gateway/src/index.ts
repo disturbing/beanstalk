@@ -219,7 +219,10 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     return this.#repositories().createRepository(owner, input);
   }
 
-  listRepositories(ownerId: string, viewer: Viewer): Promise<RpcResult<readonly RepositoryRecord[]>> {
+  listRepositories(
+    ownerId: string,
+    viewer: Viewer,
+  ): Promise<RpcResult<readonly RepositoryRecord[]>> {
     return this.#repositories().listRepositories(ownerId, viewer);
   }
 
@@ -239,7 +242,10 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     return this.#repositories().updateRepository(ownerId, repoId, patch);
   }
 
-  deleteRepository(ownerId: string, repoId: string): Promise<RpcResult<{ readonly deleted: true }>> {
+  deleteRepository(
+    ownerId: string,
+    repoId: string,
+  ): Promise<RpcResult<{ readonly deleted: true }>> {
     return this.#repositories().deleteRepository(ownerId, repoId);
   }
 

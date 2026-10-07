@@ -21,7 +21,7 @@ import { BaseChip, BeanChip, FileIcon, HunkLines, InFlightChip } from './marks';
 import { InfoReceipt } from './receipts';
 
 export type ExplorerContext = {
-  readonly run: string;
+  readonly base: string;
   readonly url: HomeState;
   readonly answer: Answer;
   readonly composition: Composition;
@@ -45,7 +45,9 @@ export function ExplorerAnswer(ctx: ExplorerContext) {
           <div className={styles.answer}>{ctx.answer.headline}</div>
           <div className={styles.sub}>
             You asked “{ctx.url.q}”.
-            <Link href={homeHref(ctx.run, ctx.url, { q: '', removed: [], bean: null, step: null })}>
+            <Link
+              href={homeHref(ctx.base, ctx.url, { q: '', removed: [], bean: null, step: null })}
+            >
               Clear the question
             </Link>
           </div>
@@ -63,7 +65,7 @@ export function ExplorerAnswer(ctx: ExplorerContext) {
 
 /** When the run has finished, "who is working now?" has an honest answer. */
 export function FinishedAnswer(props: {
-  readonly run: string;
+  readonly base: string;
   readonly url: HomeState;
   readonly finishedAt: number;
   readonly busiest: number | null;
@@ -75,13 +77,15 @@ export function FinishedAnswer(props: {
       </div>
       <div className={styles.sub}>
         You asked “{props.url.q}”.
-        <Link href={homeHref(props.run, props.url, { q: '', removed: [], bean: null, step: null })}>
+        <Link
+          href={homeHref(props.base, props.url, { q: '', removed: [], bean: null, step: null })}
+        >
           Clear the question
         </Link>
       </div>
       {props.busiest === null ? null : (
         <div className={styles.acts} style={{ marginTop: 12 }}>
-          <Link href={homeHref(props.run, props.url, { t: props.busiest })}>
+          <Link href={homeHref(props.base, props.url, { t: props.busiest })}>
             Show the busiest moment ({formatClock(props.busiest)})
           </Link>
         </div>
@@ -383,9 +387,9 @@ function DecisionCards({ ctx }: { readonly ctx: ExplorerContext }) {
                 {card.oracle === null ? '' : ` Decided by ${card.oracle}.`}
               </p>
               <div className={styles.acts}>
-                <Link href={beanHref(ctx.run, ctx.url, card.task)}>Follow {card.task}</Link>
+                <Link href={beanHref(ctx.base, ctx.url, card.task)}>Follow {card.task}</Link>
                 {against === undefined ? null : (
-                  <Link href={beanHref(ctx.run, ctx.url, against)}>Follow {against}</Link>
+                  <Link href={beanHref(ctx.base, ctx.url, against)}>Follow {against}</Link>
                 )}
               </div>
             </div>
@@ -459,7 +463,7 @@ function RedCard({ ctx }: { readonly ctx: ExplorerContext }) {
         </div>
         {culprit === null ? null : (
           <div className={styles.acts}>
-            <Link href={beanHref(ctx.run, ctx.url, culprit)}>Open {culprit}&apos;s journey</Link>
+            <Link href={beanHref(ctx.base, ctx.url, culprit)}>Open {culprit}&apos;s journey</Link>
           </div>
         )}
       </div>
@@ -522,7 +526,7 @@ function Overlaps({ ctx }: { readonly ctx: ExplorerContext }) {
                       </small>
                     </td>
                     <td>
-                      <Link href={beanHref(ctx.run, ctx.url, bean.id)}>
+                      <Link href={beanHref(ctx.base, ctx.url, bean.id)}>
                         {ctx.titles[bean.id] ?? bean.id}
                       </Link>
                       <div className={styles.files}>
@@ -610,7 +614,7 @@ function AgentActivity({ ctx, agent }: { readonly ctx: ExplorerContext; readonly
             <tr key={bean.id}>
               <td className={styles.who}>{bean.id}</td>
               <td>
-                <Link href={beanHref(ctx.run, ctx.url, bean.id)}>
+                <Link href={beanHref(ctx.base, ctx.url, bean.id)}>
                   {ctx.titles[bean.id] ?? bean.id}
                 </Link>
               </td>
