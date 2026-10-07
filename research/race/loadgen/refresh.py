@@ -122,6 +122,8 @@ def main() -> None:
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(s, fh, indent=2, default=str)
         write_md(run, s)
+        from loadgen.run import mask
+        mask(run, a.gateway)
         print(run, "ci_minutes", s.get("ci_minutes"), "correct", (s.get("final") or {}).get("correct"))
 
 

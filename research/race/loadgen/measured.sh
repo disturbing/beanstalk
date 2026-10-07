@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 NS=${1:-"4 8 16"}; SEEDS=${2:-"7 11 13"}
 for SEED in $SEEDS; do
   for N in $NS; do
-    OUT=runs/lg-fastify-$N-s$SEED
+    OUT=runs/lg-fastify-$N-s$SEED${SUFFIX:-}
     if [ -f "$OUT-github/summary.json" ] && [ -f "$OUT-beanstalk/summary.json" ]; then continue; fi
     # never overlap another live run (another agent's orchestrated races share the gateway and the Actions cap)
     HOST=$(echo "$GW" | sed -E 's|https?://([^/]+).*|\1|; s|\.|\\.|g')

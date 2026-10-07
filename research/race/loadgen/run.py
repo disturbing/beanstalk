@@ -115,20 +115,24 @@ def engine_settings(a: argparse.Namespace) -> dict:
     return out
 
 
-def mask(path: str, gateway: str) -> None:
-    """Mask the gateway's workers.dev subdomain in every output file (committed runs carry no account names)."""
+ACCOUNT_HOST = re.compile(r"\b[0-9a-f]{32}(?=\.(?:artifacts|r2|workers)\b)")
+
+
+def mask(path: str, gateway: str | None) -> None:
+    """Mask the gateway's workers.dev subdomain and Cloudflare account ids (as in ``<id>.artifacts…`` hosts the
+    engine's errors quote) in every output file: committed runs carry no account names."""
     m = re.match(r"https?://[^.]+\.([^.]+)\.workers\.dev", gateway or "")
-    if not m:
-        return
-    sub = m.group(1)
-    for name in ("events.jsonl", "summary.json", "config.json", "summary.md"):
+    sub = m.group(1) if m else None
+    for name in ("events.jsonl", "summary.json", "config.json", "summary.md", "engine-events.jsonl"):
         p = os.path.join(path, name)
-        if os.path.exists(p):
-            with open(p, encoding="utf-8") as fh:
-                text = fh.read()
-            if sub in text:
-                with open(p, "w", encoding="utf-8") as fh:
-                    fh.write(text.replace(sub, "<account>"))
+        if not os.path.exists(p):
+            continue
+        with open(p, encoding="utf-8") as fh:
+            text = fh.read()
+        new = ACCOUNT_HOST.sub("<account-id>", text.replace(sub, "<account>") if sub else text)
+        if new != text:
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write(new)
 
 
 def run_one(a: argparse.Namespace) -> dict:

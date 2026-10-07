@@ -1,0 +1,386 @@
+{"seq": 1, "t": 0.001, "ts": "2026-10-07T10:22:25.119+00:00", "type": "race.setup", "forge": "beanstalk", "base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce", "chain_end": "4d5802491c7dac604ebcffccc4a77f42a750377d"}
+{"seq": 2, "t": 11.457, "ts": "2026-10-07T10:22:36.575+00:00", "type": "bs.open", "engine": "r2207ad6275286a5d0ec", "created": true}
+{"seq": 3, "t": 83.897, "ts": "2026-10-07T10:23:49.015+00:00", "type": "bs.seed", "verdict": "landed", "check_seconds": 44.5, "seconds": 60.0}
+{"seq": 4, "t": 0.0, "ts": "2026-10-07T10:23:54.287+00:00", "type": "race.start", "forge": "beanstalk", "line": "sprout", "line_base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "workers": 8, "schedule": {"kind": "closed", "seed": 7, "think": {"median": 88.25, "sigma": 0.462, "n": 76, "source": "fitted: pair-fastify-codex-4-s7-github, pair-fastify-codex-4-s7-beanstalk"}, "fix": {"median": 65.07, "sigma": 0.311, "n": 10, "source": "fitted: pair-fastify-codex-4-s7-github, pair-fastify-codex-4-s7-beanstalk"}, "time_scale": 1.0, "hold": "integrate"}}
+{"seq": 5, "t": 0.002, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t001", "agent": "w0", "think_s": 72.65}
+{"seq": 6, "t": 0.002, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t002", "agent": "w1", "think_s": 52.57}
+{"seq": 7, "t": 0.002, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t003", "agent": "w2", "think_s": 52.28}
+{"seq": 8, "t": 0.003, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t004", "agent": "w3", "think_s": 63.75}
+{"seq": 9, "t": 0.003, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t005", "agent": "w4", "think_s": 54.13}
+{"seq": 10, "t": 0.003, "ts": "2026-10-07T10:23:54.289+00:00", "type": "task.start", "task": "t006", "agent": "w5", "think_s": 79.77}
+{"seq": 11, "t": 0.003, "ts": "2026-10-07T10:23:54.290+00:00", "type": "task.start", "task": "t007", "agent": "w6", "think_s": 106.64}
+{"seq": 12, "t": 0.003, "ts": "2026-10-07T10:23:54.290+00:00", "type": "task.start", "task": "t008", "agent": "w7", "think_s": 64.16}
+{"seq": 13, "t": 56.043, "ts": "2026-10-07T10:24:50.330+00:00", "type": "task.commit", "task": "t003", "agent": "w2", "sha": "ad4e806577e0c80822ad7194c7763408750f7672", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 14, "t": 56.043, "ts": "2026-10-07T10:24:50.330+00:00", "type": "queue.submit", "task": "t003", "sha": "ad4e806577e0c80822ad7194c7763408750f7672", "attempt": 1, "agent": "w2"}
+{"seq": 15, "t": 56.2, "ts": "2026-10-07T10:24:50.487+00:00", "type": "task.commit", "task": "t002", "agent": "w1", "sha": "6dabfdca8aeed85fa133a692692420780eae098e", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 16, "t": 56.2, "ts": "2026-10-07T10:24:50.487+00:00", "type": "queue.submit", "task": "t002", "sha": "6dabfdca8aeed85fa133a692692420780eae098e", "attempt": 1, "agent": "w1"}
+{"seq": 17, "t": 56.308, "ts": "2026-10-07T10:24:50.594+00:00", "type": "task.commit", "task": "t005", "agent": "w4", "sha": "bb2b7a2575f6b405b253315311f861959d5f6c65", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 18, "t": 56.308, "ts": "2026-10-07T10:24:50.595+00:00", "type": "queue.submit", "task": "t005", "sha": "bb2b7a2575f6b405b253315311f861959d5f6c65", "attempt": 1, "agent": "w4"}
+{"seq": 19, "t": 61.128, "ts": "2026-10-07T10:24:55.415+00:00", "type": "bs.phase", "task": "t002", "phase": "checking", "landed_sha": null}
+{"seq": 20, "t": 61.128, "ts": "2026-10-07T10:24:55.415+00:00", "type": "bs.phase", "task": "t003", "phase": "checking", "landed_sha": null}
+{"seq": 21, "t": 61.128, "ts": "2026-10-07T10:24:55.415+00:00", "type": "bs.phase", "task": "t005", "phase": "checking", "landed_sha": null}
+{"seq": 22, "t": 66.814, "ts": "2026-10-07T10:25:01.101+00:00", "type": "task.commit", "task": "t004", "agent": "w3", "sha": "32bc7061bea394c2aadc6e2a2f1b9f6bfaf6a886", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 23, "t": 66.814, "ts": "2026-10-07T10:25:01.101+00:00", "type": "queue.submit", "task": "t004", "sha": "32bc7061bea394c2aadc6e2a2f1b9f6bfaf6a886", "attempt": 1, "agent": "w3"}
+{"seq": 24, "t": 66.897, "ts": "2026-10-07T10:25:01.184+00:00", "type": "task.commit", "task": "t008", "agent": "w7", "sha": "02e87035575194921bc623f38e9f9c23a3db8f2f", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 25, "t": 66.897, "ts": "2026-10-07T10:25:01.184+00:00", "type": "queue.submit", "task": "t008", "sha": "02e87035575194921bc623f38e9f9c23a3db8f2f", "attempt": 1, "agent": "w7"}
+{"seq": 26, "t": 71.957, "ts": "2026-10-07T10:25:06.244+00:00", "type": "bs.phase", "task": "t004", "phase": "checking", "landed_sha": null}
+{"seq": 27, "t": 71.957, "ts": "2026-10-07T10:25:06.244+00:00", "type": "bs.phase", "task": "t008", "phase": "checking", "landed_sha": null}
+{"seq": 28, "t": 74.439, "ts": "2026-10-07T10:25:08.726+00:00", "type": "task.commit", "task": "t001", "agent": "w0", "sha": "518d37af132cc2cad75bf9e0d78ada741ec98d5d", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 29, "t": 74.44, "ts": "2026-10-07T10:25:08.726+00:00", "type": "queue.submit", "task": "t001", "sha": "518d37af132cc2cad75bf9e0d78ada741ec98d5d", "attempt": 1, "agent": "w0"}
+{"seq": 30, "t": 78.701, "ts": "2026-10-07T10:25:12.988+00:00", "type": "bs.phase", "task": "t001", "phase": "checking", "landed_sha": null}
+{"seq": 31, "t": 82.189, "ts": "2026-10-07T10:25:16.476+00:00", "type": "task.commit", "task": "t006", "agent": "w5", "sha": "0ebe1bb4b7c5e9beefcdf6700cba3eff3136c266", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": true, "upstream_files": [], "notes": ["applied t006.standalone.patch (prerequisites not on the head)"]}
+{"seq": 32, "t": 82.189, "ts": "2026-10-07T10:25:16.476+00:00", "type": "queue.submit", "task": "t006", "sha": "0ebe1bb4b7c5e9beefcdf6700cba3eff3136c266", "attempt": 1, "agent": "w5"}
+{"seq": 33, "t": 85.459, "ts": "2026-10-07T10:25:19.746+00:00", "type": "bs.phase", "task": "t006", "phase": "checking", "landed_sha": null}
+{"seq": 34, "t": 109.823, "ts": "2026-10-07T10:25:44.109+00:00", "type": "task.commit", "task": "t007", "agent": "w6", "sha": "30917b8302f94232a5dfd26d22349ad4d4de8241", "base": "de474b612c507153077b58c21f6e71fe1c4a0d7b", "standalone": true, "upstream_files": [], "notes": ["applied t007.standalone.patch (prerequisites not on the head)"]}
+{"seq": 35, "t": 109.823, "ts": "2026-10-07T10:25:44.110+00:00", "type": "queue.submit", "task": "t007", "sha": "30917b8302f94232a5dfd26d22349ad4d4de8241", "attempt": 1, "agent": "w6"}
+{"seq": 36, "t": 113.199, "ts": "2026-10-07T10:25:47.486+00:00", "type": "bs.phase", "task": "t007", "phase": "checking", "landed_sha": null}
+{"seq": 37, "t": 203.388, "ts": "2026-10-07T10:27:17.674+00:00", "type": "bs.push", "task": "t002", "bean": "t002", "sha": "6dabfdca8aeed85fa133a692692420780eae098e", "verdict": "landed", "check_seconds": 139.8, "push_s": 147.18, "rc": 0, "tail": null}
+{"seq": 38, "t": 203.376, "ts": "2026-10-07T10:27:17.663+00:00", "type": "land", "task": "t002", "sha": "a1a7d74", "target": "trunk", "attempt": 1}
+{"seq": 39, "t": 203.388, "ts": "2026-10-07T10:27:17.675+00:00", "type": "task.start", "task": "t009", "agent": "w1", "think_s": 89.45}
+{"seq": 40, "t": 204.272, "ts": "2026-10-07T10:27:18.559+00:00", "type": "bs.phase", "task": "t002", "phase": "green", "landed_sha": "a1a7d74df91cdacb07618f685a8ed2c0b63014c9"}
+{"seq": 41, "t": 210.981, "ts": "2026-10-07T10:27:25.268+00:00", "type": "bs.push", "task": "t003", "bean": "t003", "sha": "ad4e806577e0c80822ad7194c7763408750f7672", "verdict": "landed", "check_seconds": 144.9, "push_s": 154.93, "rc": 0, "tail": null}
+{"seq": 42, "t": 210.973, "ts": "2026-10-07T10:27:25.260+00:00", "type": "land", "task": "t003", "sha": "a056a92", "target": "trunk", "attempt": 1}
+{"seq": 43, "t": 210.981, "ts": "2026-10-07T10:27:25.268+00:00", "type": "task.start", "task": "t010", "agent": "w2", "think_s": 44.43}
+{"seq": 44, "t": 211.309, "ts": "2026-10-07T10:27:25.596+00:00", "type": "bs.phase", "task": "t003", "phase": "landed", "landed_sha": "a056a9285a93c96cce4bb5a96e806229f3194639"}
+{"seq": 45, "t": 213.81, "ts": "2026-10-07T10:27:28.097+00:00", "type": "bs.push", "task": "t005", "bean": "t005", "sha": "bb2b7a2575f6b405b253315311f861959d5f6c65", "verdict": "landed", "check_seconds": 146.3, "push_s": 157.5, "rc": 0, "tail": null}
+{"seq": 46, "t": 213.803, "ts": "2026-10-07T10:27:28.090+00:00", "type": "land", "task": "t005", "sha": "99c2577", "target": "trunk", "attempt": 1}
+{"seq": 47, "t": 213.81, "ts": "2026-10-07T10:27:28.097+00:00", "type": "task.start", "task": "t011", "agent": "w4", "think_s": 81.39}
+{"seq": 48, "t": 214.742, "ts": "2026-10-07T10:27:29.029+00:00", "type": "bs.phase", "task": "t005", "phase": "landed", "landed_sha": "99c2577cc0490f89163ef0f71bae68f035c659b0"}
+{"seq": 49, "t": 231.727, "ts": "2026-10-07T10:27:46.014+00:00", "type": "bs.phase", "task": "t004", "phase": "landed", "landed_sha": "2b59a2cd471aa5982c62e164be6ca5c4e7bb3f7c"}
+{"seq": 50, "t": 232.055, "ts": "2026-10-07T10:27:46.342+00:00", "type": "bs.push", "task": "t004", "bean": "t004", "sha": "32bc7061bea394c2aadc6e2a2f1b9f6bfaf6a886", "verdict": "landed", "check_seconds": 154.8, "push_s": 165.23, "rc": 0, "tail": null}
+{"seq": 51, "t": 232.043, "ts": "2026-10-07T10:27:46.330+00:00", "type": "land", "task": "t004", "sha": "2b59a2c", "target": "trunk", "attempt": 1}
+{"seq": 52, "t": 232.055, "ts": "2026-10-07T10:27:46.342+00:00", "type": "task.start", "task": "t012", "agent": "w3", "think_s": 117.82}
+{"seq": 53, "t": 235.195, "ts": "2026-10-07T10:27:49.482+00:00", "type": "bs.push", "task": "t001", "bean": "t001", "sha": "518d37af132cc2cad75bf9e0d78ada741ec98d5d", "verdict": "landed", "check_seconds": 151.8, "push_s": 160.75, "rc": 0, "tail": null}
+{"seq": 54, "t": 235.187, "ts": "2026-10-07T10:27:49.474+00:00", "type": "land", "task": "t001", "sha": "6c565bd", "target": "trunk", "attempt": 1}
+{"seq": 55, "t": 235.195, "ts": "2026-10-07T10:27:49.482+00:00", "type": "task.start", "task": "t013", "agent": "w0", "think_s": 49.95}
+{"seq": 56, "t": 235.225, "ts": "2026-10-07T10:27:49.512+00:00", "type": "bs.phase", "task": "t001", "phase": "landed", "landed_sha": "6c565bdb2c36f71ee985f25f6424e143b1d659b9"}
+{"seq": 57, "t": 242.07, "ts": "2026-10-07T10:27:56.357+00:00", "type": "bs.phase", "task": "t006", "phase": "conflict", "landed_sha": null}
+{"seq": 58, "t": 242.093, "ts": "2026-10-07T10:27:56.380+00:00", "type": "bs.push", "task": "t006", "bean": "t006", "sha": "0ebe1bb4b7c5e9beefcdf6700cba3eff3136c266", "verdict": "conflict", "check_seconds": 151.9, "push_s": 159.89, "rc": 0, "tail": null}
+{"seq": 59, "t": 242.083, "ts": "2026-10-07T10:27:56.369+00:00", "type": "queue.eject", "task": "t006", "reason": "conflict", "gh_reason": "conflict", "failing": [], "files": ["lib/config-validator.js"]}
+{"seq": 60, "t": 242.093, "ts": "2026-10-07T10:27:56.380+00:00", "type": "rework.start", "task": "t006", "reason": "conflict", "attempt": 1, "fix_s": 44.25}
+{"seq": 61, "t": 244.707, "ts": "2026-10-07T10:27:58.994+00:00", "type": "bs.push", "task": "t008", "bean": "t008", "sha": "02e87035575194921bc623f38e9f9c23a3db8f2f", "verdict": "red", "check_seconds": 155.0, "push_s": 177.8, "rc": 0, "tail": null}
+{"seq": 62, "t": 244.699, "ts": "2026-10-07T10:27:58.986+00:00", "type": "queue.eject", "task": "t008", "reason": "red", "gh_reason": "red", "failing": ["test/router-options.pr6515.test.js > Should support extra find-my-way options"], "files": []}
+{"seq": 63, "t": 244.707, "ts": "2026-10-07T10:27:58.994+00:00", "type": "rework.start", "task": "t008", "reason": "red", "attempt": 1, "fix_s": 69.15}
+{"seq": 64, "t": 245.518, "ts": "2026-10-07T10:27:59.805+00:00", "type": "bs.phase", "task": "t008", "phase": "red", "landed_sha": null}
+{"seq": 65, "t": 252.56, "ts": "2026-10-07T10:28:06.847+00:00", "type": "bs.phase", "task": "t003", "phase": "green", "landed_sha": "a056a9285a93c96cce4bb5a96e806229f3194639"}
+{"seq": 66, "t": 256.311, "ts": "2026-10-07T10:28:10.598+00:00", "type": "bs.phase", "task": "t005", "phase": "green", "landed_sha": "99c2577cc0490f89163ef0f71bae68f035c659b0"}
+{"seq": 67, "t": 258.595, "ts": "2026-10-07T10:28:12.882+00:00", "type": "task.commit", "task": "t010", "agent": "w2", "sha": "48ac197cecf200f0f5685808980d1393f5ad130e", "base": "6c565bdb2c36f71ee985f25f6424e143b1d659b9", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 68, "t": 258.595, "ts": "2026-10-07T10:28:12.882+00:00", "type": "queue.submit", "task": "t010", "sha": "48ac197cecf200f0f5685808980d1393f5ad130e", "attempt": 1, "agent": "w2"}
+{"seq": 69, "t": 263.235, "ts": "2026-10-07T10:28:17.522+00:00", "type": "bs.phase", "task": "t010", "phase": "checking", "landed_sha": null}
+{"seq": 70, "t": 288.277, "ts": "2026-10-07T10:28:42.564+00:00", "type": "task.commit", "task": "t013", "agent": "w0", "sha": "59dc0302b23af8cd7f9aaeafb4b50a7b7f70de96", "base": "6c565bdb2c36f71ee985f25f6424e143b1d659b9", "standalone": false, "upstream_files": ["lib/handle-request.js", "test/schema-validation.test.js", "types/request.d.ts"], "notes": ["union-resolved t013.patch: lib/handle-request.js, test/schema-validation.test.js, types/request.d.ts"]}
+{"seq": 71, "t": 288.277, "ts": "2026-10-07T10:28:42.564+00:00", "type": "queue.submit", "task": "t013", "sha": "59dc0302b23af8cd7f9aaeafb4b50a7b7f70de96", "attempt": 1, "agent": "w0"}
+{"seq": 72, "t": 289.645, "ts": "2026-10-07T10:28:43.932+00:00", "type": "task.commit", "task": "t006", "agent": "w5", "sha": "0dce293b1a2c77065b08faed4058333c9b7b8c39", "base": "6c565bdb2c36f71ee985f25f6424e143b1d659b9", "attempt": 2, "upstream_files": [], "notes": []}
+{"seq": 73, "t": 289.645, "ts": "2026-10-07T10:28:43.932+00:00", "type": "queue.submit", "task": "t006", "sha": "0dce293b1a2c77065b08faed4058333c9b7b8c39", "attempt": 2, "agent": "w5"}
+{"seq": 74, "t": 290.982, "ts": "2026-10-07T10:28:45.269+00:00", "type": "bs.phase", "task": "t001", "phase": "green", "landed_sha": "6c565bdb2c36f71ee985f25f6424e143b1d659b9"}
+{"seq": 75, "t": 290.983, "ts": "2026-10-07T10:28:45.270+00:00", "type": "bs.phase", "task": "t004", "phase": "green", "landed_sha": "2b59a2cd471aa5982c62e164be6ca5c4e7bb3f7c"}
+{"seq": 76, "t": 294.847, "ts": "2026-10-07T10:28:49.134+00:00", "type": "task.commit", "task": "t009", "agent": "w1", "sha": "13d1fb8a6a144a45ab70eea8f6397d3f917d7cb5", "base": "6c565bdb2c36f71ee985f25f6424e143b1d659b9", "standalone": false, "upstream_files": ["lib/config-validator.js"], "notes": ["union-resolved t009.patch: lib/config-validator.js"]}
+{"seq": 77, "t": 294.847, "ts": "2026-10-07T10:28:49.134+00:00", "type": "queue.submit", "task": "t009", "sha": "13d1fb8a6a144a45ab70eea8f6397d3f917d7cb5", "attempt": 1, "agent": "w1"}
+{"seq": 78, "t": 295.331, "ts": "2026-10-07T10:28:49.618+00:00", "type": "bs.push", "task": "t007", "bean": "t007", "sha": "30917b8302f94232a5dfd26d22349ad4d4de8241", "verdict": "landed", "check_seconds": 45.1, "push_s": 185.5, "rc": 0, "tail": null}
+{"seq": 79, "t": 295.323, "ts": "2026-10-07T10:28:49.610+00:00", "type": "land", "task": "t007", "sha": "a4d6727", "target": "trunk", "attempt": 1}
+{"seq": 80, "t": 295.331, "ts": "2026-10-07T10:28:49.618+00:00", "type": "task.start", "task": "t014", "agent": "w6", "think_s": 77.99}
+{"seq": 81, "t": 295.504, "ts": "2026-10-07T10:28:49.791+00:00", "type": "task.commit", "task": "t011", "agent": "w4", "sha": "c6fcd32d2bfc1c294899033dc4d1b376e2b50497", "base": "6c565bdb2c36f71ee985f25f6424e143b1d659b9", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 82, "t": 295.504, "ts": "2026-10-07T10:28:49.791+00:00", "type": "queue.submit", "task": "t011", "sha": "c6fcd32d2bfc1c294899033dc4d1b376e2b50497", "attempt": 1, "agent": "w4"}
+{"seq": 83, "t": 300.356, "ts": "2026-10-07T10:28:54.643+00:00", "type": "bs.phase", "task": "t006", "phase": "checking", "landed_sha": null}
+{"seq": 84, "t": 300.356, "ts": "2026-10-07T10:28:54.643+00:00", "type": "bs.phase", "task": "t007", "phase": "green", "landed_sha": "a4d6727730a5e4d73c2e1693652fd4046a55214b"}
+{"seq": 85, "t": 300.356, "ts": "2026-10-07T10:28:54.643+00:00", "type": "bs.phase", "task": "t011", "phase": "checking", "landed_sha": null}
+{"seq": 86, "t": 300.356, "ts": "2026-10-07T10:28:54.643+00:00", "type": "bs.phase", "task": "t013", "phase": "checking", "landed_sha": null}
+{"seq": 87, "t": 303.871, "ts": "2026-10-07T10:28:58.158+00:00", "type": "bs.phase", "task": "t009", "phase": "checking", "landed_sha": null}
+{"seq": 88, "t": 316.391, "ts": "2026-10-07T10:29:10.678+00:00", "type": "task.commit", "task": "t008", "agent": "w7", "sha": "6b2626e4562283ee6359b594a8c044aac91a53fe", "base": "a4d6727730a5e4d73c2e1693652fd4046a55214b", "attempt": 2, "upstream_files": [], "notes": []}
+{"seq": 89, "t": 316.391, "ts": "2026-10-07T10:29:10.678+00:00", "type": "queue.submit", "task": "t008", "sha": "6b2626e4562283ee6359b594a8c044aac91a53fe", "attempt": 2, "agent": "w7"}
+{"seq": 90, "t": 321.698, "ts": "2026-10-07T10:29:15.985+00:00", "type": "bs.phase", "task": "t008", "phase": "checking", "landed_sha": null}
+{"seq": 91, "t": 329.427, "ts": "2026-10-07T10:29:23.714+00:00", "type": "bs.push", "task": "t013", "bean": "t013", "sha": "59dc0302b23af8cd7f9aaeafb4b50a7b7f70de96", "verdict": "red", "check_seconds": 17.1, "push_s": 41.14, "rc": 0, "tail": null}
+{"seq": 92, "t": 329.421, "ts": "2026-10-07T10:29:23.708+00:00", "type": "queue.eject", "task": "t013", "reason": "red", "gh_reason": "red", "failing": ["test/404s.test.js > test/404s.test.js", "test/500s.test.js > test/500s.test.js", "test/allow-unsafe-regex.test.js > test/allow-unsafe-regex.test.js", "test/als.test.js > test/als.test.js", "test/async-await.test.js > test/async-await.test.js", "test/async-dispose.test.js > test/async-dispose.test.js", "test/async_hooks.test.js > test/async_hooks.test.js", "test/body-limit.test.js > test/body-limit.test.js", "test/buffer.test.js > test/buffer.test.js", "test/build/version.test.js > test/build/version.test.js"], "files": []}
+{"seq": 93, "t": 329.428, "ts": "2026-10-07T10:29:23.714+00:00", "type": "rework.start", "task": "t013", "reason": "red", "attempt": 1, "fix_s": 43.63}
+{"seq": 94, "t": 332.183, "ts": "2026-10-07T10:29:26.470+00:00", "type": "bs.phase", "task": "t013", "phase": "red", "landed_sha": null}
+{"seq": 95, "t": 351.815, "ts": "2026-10-07T10:29:46.101+00:00", "type": "task.commit", "task": "t012", "agent": "w3", "sha": "962b7126134170c8fd98f387162fc5a8c20ad3b5", "base": "a4d6727730a5e4d73c2e1693652fd4046a55214b", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 96, "t": 351.815, "ts": "2026-10-07T10:29:46.102+00:00", "type": "queue.submit", "task": "t012", "sha": "962b7126134170c8fd98f387162fc5a8c20ad3b5", "attempt": 1, "agent": "w3"}
+{"seq": 97, "t": 356.61, "ts": "2026-10-07T10:29:50.896+00:00", "type": "bs.phase", "task": "t012", "phase": "checking", "landed_sha": null}
+{"seq": 98, "t": 374.562, "ts": "2026-10-07T10:30:08.849+00:00", "type": "bs.push", "task": "t008", "bean": "t008", "sha": "6b2626e4562283ee6359b594a8c044aac91a53fe", "verdict": "landed", "check_seconds": 51.1, "push_s": 58.16, "rc": 0, "tail": null}
+{"seq": 99, "t": 374.554, "ts": "2026-10-07T10:30:08.841+00:00", "type": "land", "task": "t008", "sha": "8648428", "target": "trunk", "attempt": 2}
+{"seq": 100, "t": 374.562, "ts": "2026-10-07T10:30:08.849+00:00", "type": "task.start", "task": "t015", "agent": "w7", "think_s": 54.54}
+{"seq": 101, "t": 374.649, "ts": "2026-10-07T10:30:08.936+00:00", "type": "bs.phase", "task": "t008", "phase": "green", "landed_sha": "8648428915e0bca7917e44987a80f064481702c5"}
+{"seq": 102, "t": 376.132, "ts": "2026-10-07T10:30:10.419+00:00", "type": "task.commit", "task": "t013", "agent": "w0", "sha": "37e794281eea27466131f4810952d29d9b34630d", "base": "8648428915e0bca7917e44987a80f064481702c5", "attempt": 2, "upstream_files": ["types/request.d.ts"], "notes": ["union-resolved t013.patch: types/request.d.ts"]}
+{"seq": 103, "t": 376.132, "ts": "2026-10-07T10:30:10.419+00:00", "type": "queue.submit", "task": "t013", "sha": "37e794281eea27466131f4810952d29d9b34630d", "attempt": 2, "agent": "w0"}
+{"seq": 104, "t": 376.136, "ts": "2026-10-07T10:30:10.423+00:00", "type": "task.commit", "task": "t014", "agent": "w6", "sha": "ccff8c9e012b729cbee7041ed81a3f827dea4551", "base": "8648428915e0bca7917e44987a80f064481702c5", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 105, "t": 376.136, "ts": "2026-10-07T10:30:10.423+00:00", "type": "queue.submit", "task": "t014", "sha": "ccff8c9e012b729cbee7041ed81a3f827dea4551", "attempt": 1, "agent": "w6"}
+{"seq": 106, "t": 381.594, "ts": "2026-10-07T10:30:15.881+00:00", "type": "bs.phase", "task": "t013", "phase": "checking", "landed_sha": null}
+{"seq": 107, "t": 381.594, "ts": "2026-10-07T10:30:15.881+00:00", "type": "bs.phase", "task": "t014", "phase": "checking", "landed_sha": null}
+{"seq": 108, "t": 391.433, "ts": "2026-10-07T10:30:25.720+00:00", "type": "bs.push", "task": "t011", "bean": "t011", "sha": "c6fcd32d2bfc1c294899033dc4d1b376e2b50497", "verdict": "landed", "check_seconds": 87.5, "push_s": 95.92, "rc": 0, "tail": null}
+{"seq": 109, "t": 391.424, "ts": "2026-10-07T10:30:25.711+00:00", "type": "land", "task": "t011", "sha": "619b01c", "target": "trunk", "attempt": 1}
+{"seq": 110, "t": 391.434, "ts": "2026-10-07T10:30:25.720+00:00", "type": "task.start", "task": "t016", "agent": "w4", "think_s": 69.3}
+{"seq": 111, "t": 392.218, "ts": "2026-10-07T10:30:26.505+00:00", "type": "bs.phase", "task": "t011", "phase": "landed", "landed_sha": "619b01cae8267d810bb607276dab1ee3a8c900b2"}
+{"seq": 112, "t": 412.629, "ts": "2026-10-07T10:30:46.916+00:00", "type": "bs.phase", "task": "t010", "phase": "landed", "landed_sha": "a4135b5aa10b2c66f731cfa012a746d2977ddd2f"}
+{"seq": 113, "t": 413.016, "ts": "2026-10-07T10:30:47.302+00:00", "type": "bs.push", "task": "t010", "bean": "t010", "sha": "48ac197cecf200f0f5685808980d1393f5ad130e", "verdict": "landed", "check_seconds": 94.3, "push_s": 154.41, "rc": 0, "tail": null}
+{"seq": 114, "t": 413.009, "ts": "2026-10-07T10:30:47.296+00:00", "type": "land", "task": "t010", "sha": "a4135b5", "target": "trunk", "attempt": 1}
+{"seq": 115, "t": 413.016, "ts": "2026-10-07T10:30:47.303+00:00", "type": "task.start", "task": "t017", "agent": "w2", "think_s": 143.34}
+{"seq": 116, "t": 433.215, "ts": "2026-10-07T10:31:07.502+00:00", "type": "task.commit", "task": "t015", "agent": "w7", "sha": "720063138abbe97105b9881511ffaf2e0a94c928", "base": "a4135b5aa10b2c66f731cfa012a746d2977ddd2f", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 117, "t": 433.215, "ts": "2026-10-07T10:31:07.502+00:00", "type": "queue.submit", "task": "t015", "sha": "720063138abbe97105b9881511ffaf2e0a94c928", "attempt": 1, "agent": "w7"}
+{"seq": 118, "t": 437.146, "ts": "2026-10-07T10:31:11.433+00:00", "type": "bs.phase", "task": "t015", "phase": "checking", "landed_sha": null}
+{"seq": 119, "t": 443.871, "ts": "2026-10-07T10:31:18.158+00:00", "type": "bs.phase", "task": "t011", "phase": "green", "landed_sha": "619b01cae8267d810bb607276dab1ee3a8c900b2"}
+{"seq": 120, "t": 457.025, "ts": "2026-10-07T10:31:31.312+00:00", "type": "bs.phase", "task": "t010", "phase": "green", "landed_sha": "a4135b5aa10b2c66f731cfa012a746d2977ddd2f"}
+{"seq": 121, "t": 462.103, "ts": "2026-10-07T10:31:36.390+00:00", "type": "task.commit", "task": "t016", "agent": "w4", "sha": "c46edac940bceb51d32062811ee6a5d6e4714e5c", "base": "a4135b5aa10b2c66f731cfa012a746d2977ddd2f", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 122, "t": 462.103, "ts": "2026-10-07T10:31:36.390+00:00", "type": "queue.submit", "task": "t016", "sha": "c46edac940bceb51d32062811ee6a5d6e4714e5c", "attempt": 1, "agent": "w4"}
+{"seq": 123, "t": 467.499, "ts": "2026-10-07T10:31:41.786+00:00", "type": "bs.phase", "task": "t016", "phase": "checking", "landed_sha": null}
+{"seq": 124, "t": 518.184, "ts": "2026-10-07T10:32:32.471+00:00", "type": "bs.push", "task": "t006", "bean": "t006", "sha": "0dce293b1a2c77065b08faed4058333c9b7b8c39", "verdict": "landed", "check_seconds": 131.1, "push_s": 228.53, "rc": 0, "tail": null}
+{"seq": 125, "t": 518.171, "ts": "2026-10-07T10:32:32.458+00:00", "type": "land", "task": "t006", "sha": "a677721", "target": "trunk", "attempt": 2}
+{"seq": 126, "t": 518.184, "ts": "2026-10-07T10:32:32.471+00:00", "type": "task.start", "task": "t018", "agent": "w5", "think_s": 151.21}
+{"seq": 127, "t": 519.804, "ts": "2026-10-07T10:32:34.091+00:00", "type": "bs.phase", "task": "t006", "phase": "landed", "landed_sha": "a677721f09ad07350105ad539738d44c6e1382c4"}
+{"seq": 128, "t": 521.154, "ts": "2026-10-07T10:32:35.441+00:00", "type": "bs.push", "task": "t014", "bean": "t014", "sha": "ccff8c9e012b729cbee7041ed81a3f827dea4551", "verdict": "landed", "check_seconds": 132.1, "push_s": 145.01, "rc": 0, "tail": null}
+{"seq": 129, "t": 521.146, "ts": "2026-10-07T10:32:35.433+00:00", "type": "land", "task": "t014", "sha": "983dfaf", "target": "trunk", "attempt": 1}
+{"seq": 130, "t": 521.154, "ts": "2026-10-07T10:32:35.441+00:00", "type": "task.start", "task": "t019", "agent": "w6", "think_s": 126.57}
+{"seq": 131, "t": 522.876, "ts": "2026-10-07T10:32:37.163+00:00", "type": "bs.phase", "task": "t014", "phase": "landed", "landed_sha": "983dfaf2a538cb017789aa6c7e008e20b892906a"}
+{"seq": 132, "t": 533.66, "ts": "2026-10-07T10:32:47.947+00:00", "type": "bs.phase", "task": "t009", "phase": "conflict", "landed_sha": null}
+{"seq": 133, "t": 534.375, "ts": "2026-10-07T10:32:48.662+00:00", "type": "bs.push", "task": "t009", "bean": "t009", "sha": "13d1fb8a6a144a45ab70eea8f6397d3f917d7cb5", "verdict": "conflict", "check_seconds": 131.5, "push_s": 239.52, "rc": 0, "tail": null}
+{"seq": 134, "t": 534.367, "ts": "2026-10-07T10:32:48.654+00:00", "type": "queue.eject", "task": "t009", "reason": "conflict", "gh_reason": "conflict", "failing": [], "files": ["lib/config-validator.js"]}
+{"seq": 135, "t": 534.375, "ts": "2026-10-07T10:32:48.662+00:00", "type": "rework.start", "task": "t009", "reason": "conflict", "attempt": 1, "fix_s": 71.19}
+{"seq": 136, "t": 559.831, "ts": "2026-10-07T10:33:14.118+00:00", "type": "task.commit", "task": "t017", "agent": "w2", "sha": "a924aff70df0a34323a80a472ef382e5ec2475f1", "base": "983dfaf2a538cb017789aa6c7e008e20b892906a", "standalone": false, "upstream_files": ["lib/route.js", "test/internals/errors.test.js"], "notes": ["union-resolved t017.patch: lib/route.js, test/internals/errors.test.js"]}
+{"seq": 137, "t": 559.832, "ts": "2026-10-07T10:33:14.119+00:00", "type": "queue.submit", "task": "t017", "sha": "a924aff70df0a34323a80a472ef382e5ec2475f1", "attempt": 1, "agent": "w2"}
+{"seq": 138, "t": 560.954, "ts": "2026-10-07T10:33:15.241+00:00", "type": "bs.phase", "task": "t006", "phase": "green", "landed_sha": "a677721f09ad07350105ad539738d44c6e1382c4"}
+{"seq": 139, "t": 560.955, "ts": "2026-10-07T10:33:15.241+00:00", "type": "bs.phase", "task": "t014", "phase": "green", "landed_sha": "983dfaf2a538cb017789aa6c7e008e20b892906a"}
+{"seq": 140, "t": 564.44, "ts": "2026-10-07T10:33:18.727+00:00", "type": "bs.phase", "task": "t017", "phase": "checking", "landed_sha": null}
+{"seq": 141, "t": 582.118, "ts": "2026-10-07T10:33:36.405+00:00", "type": "bs.push", "task": "t016", "bean": "t016", "sha": "c46edac940bceb51d32062811ee6a5d6e4714e5c", "verdict": "landed", "check_seconds": 111.5, "push_s": 120.0, "rc": 0, "tail": null}
+{"seq": 142, "t": 582.103, "ts": "2026-10-07T10:33:36.390+00:00", "type": "land", "task": "t016", "sha": "0759c8d", "target": "trunk", "attempt": 1}
+{"seq": 143, "t": 582.118, "ts": "2026-10-07T10:33:36.405+00:00", "type": "task.start", "task": "t020", "agent": "w4", "think_s": 72.18}
+{"seq": 144, "t": 584.403, "ts": "2026-10-07T10:33:38.690+00:00", "type": "bs.phase", "task": "t016", "phase": "landed", "landed_sha": "0759c8d468b5b201748b0a6663668de5b406378b"}
+{"seq": 145, "t": 587.212, "ts": "2026-10-07T10:33:41.499+00:00", "type": "bs.push", "task": "t012", "bean": "t012", "sha": "962b7126134170c8fd98f387162fc5a8c20ad3b5", "verdict": "landed", "check_seconds": 109.0, "push_s": 235.38, "rc": 0, "tail": null}
+{"seq": 146, "t": 587.195, "ts": "2026-10-07T10:33:41.482+00:00", "type": "land", "task": "t012", "sha": "d11c31b", "target": "trunk", "attempt": 1}
+{"seq": 147, "t": 587.212, "ts": "2026-10-07T10:33:41.499+00:00", "type": "task.start", "task": "t021", "agent": "w3", "think_s": 78.66}
+{"seq": 148, "t": 588.141, "ts": "2026-10-07T10:33:42.428+00:00", "type": "bs.phase", "task": "t012", "phase": "landed", "landed_sha": "d11c31b633223ad01ac6a6aaa405a71cc66388c7"}
+{"seq": 149, "t": 601.284, "ts": "2026-10-07T10:33:55.571+00:00", "type": "bs.push", "task": "t013", "bean": "t013", "sha": "37e794281eea27466131f4810952d29d9b34630d", "verdict": "landed", "check_seconds": 82.6, "push_s": 225.14, "rc": 0, "tail": null}
+{"seq": 150, "t": 601.275, "ts": "2026-10-07T10:33:55.562+00:00", "type": "land", "task": "t013", "sha": "374ecaf", "target": "trunk", "attempt": 2}
+{"seq": 151, "t": 601.285, "ts": "2026-10-07T10:33:55.572+00:00", "type": "task.start", "task": "t022", "agent": "w0", "think_s": 71.68}
+{"seq": 152, "t": 602.969, "ts": "2026-10-07T10:33:57.255+00:00", "type": "bs.phase", "task": "t013", "phase": "landed", "landed_sha": "374ecaf076d9a14b90756a414d7af4834fa90f93"}
+{"seq": 153, "t": 608.729, "ts": "2026-10-07T10:34:03.016+00:00", "type": "task.commit", "task": "t009", "agent": "w1", "sha": "3ed2eddc557b112a91705f31e2747f7e69e87a03", "base": "374ecaf076d9a14b90756a414d7af4834fa90f93", "attempt": 2, "upstream_files": ["types/request.d.ts"], "notes": ["union-resolved t009.patch: types/request.d.ts"]}
+{"seq": 154, "t": 608.729, "ts": "2026-10-07T10:34:03.016+00:00", "type": "queue.submit", "task": "t009", "sha": "3ed2eddc557b112a91705f31e2747f7e69e87a03", "attempt": 2, "agent": "w1"}
+{"seq": 155, "t": 612.999, "ts": "2026-10-07T10:34:07.286+00:00", "type": "bs.phase", "task": "t009", "phase": "checking", "landed_sha": null}
+{"seq": 156, "t": 619.668, "ts": "2026-10-07T10:34:13.955+00:00", "type": "bs.phase", "task": "t016", "phase": "green", "landed_sha": "0759c8d468b5b201748b0a6663668de5b406378b"}
+{"seq": 157, "t": 623.36, "ts": "2026-10-07T10:34:17.647+00:00", "type": "bs.phase", "task": "t015", "phase": "landed", "landed_sha": "41d489e2d77b5bf09ab6ffa8e281bee292d39786"}
+{"seq": 158, "t": 623.97, "ts": "2026-10-07T10:34:18.257+00:00", "type": "bs.push", "task": "t015", "bean": "t015", "sha": "720063138abbe97105b9881511ffaf2e0a94c928", "verdict": "landed", "check_seconds": 50.0, "push_s": 190.74, "rc": 0, "tail": null}
+{"seq": 159, "t": 623.956, "ts": "2026-10-07T10:34:18.243+00:00", "type": "land", "task": "t015", "sha": "41d489e", "target": "trunk", "attempt": 1}
+{"seq": 160, "t": 623.971, "ts": "2026-10-07T10:34:18.258+00:00", "type": "task.start", "task": "t023", "agent": "w7", "think_s": 55.82}
+{"seq": 161, "t": 634.061, "ts": "2026-10-07T10:34:28.348+00:00", "type": "bs.phase", "task": "t012", "phase": "green", "landed_sha": "d11c31b633223ad01ac6a6aaa405a71cc66388c7"}
+{"seq": 162, "t": 642.286, "ts": "2026-10-07T10:34:36.573+00:00", "type": "bs.push", "task": "t017", "bean": "t017", "sha": "a924aff70df0a34323a80a472ef382e5ec2475f1", "verdict": "red", "check_seconds": 75.3, "push_s": 82.45, "rc": 0, "tail": null}
+{"seq": 163, "t": 642.277, "ts": "2026-10-07T10:34:36.564+00:00", "type": "queue.eject", "task": "t017", "reason": "red", "gh_reason": "red", "failing": ["test/internals/errors.test.js > should expose 89 errors", "test/internals/errors.test.js > ensure name and codes of Errors are identical", "test/internals/errors.test.js > Ensure that all errors are in Errors.md TOC", "test/internals/errors.test.js > Ensure that non-existing errors are not in Errors.md TOC", "test/internals/errors.test.js > Ensure that all errors are in Errors.md documented", "test/internals/errors.test.js > Ensure that non-existing errors are not in Errors.md documented", "test/internals/errors.test.js > Ensure that all errors are in errors.d.ts", "test/internals/errors.test.js > Ensure that non-existing errors are not in errors.d.ts"], "files": []}
+{"seq": 164, "t": 642.286, "ts": "2026-10-07T10:34:36.573+00:00", "type": "rework.start", "task": "t017", "reason": "red", "attempt": 1, "fix_s": 75.97}
+{"seq": 165, "t": 644.19, "ts": "2026-10-07T10:34:38.477+00:00", "type": "bs.phase", "task": "t017", "phase": "red", "landed_sha": null}
+{"seq": 166, "t": 650.716, "ts": "2026-10-07T10:34:45.003+00:00", "type": "task.commit", "task": "t019", "agent": "w6", "sha": "272c26fd711cbeb550824946c3275138622ee9b1", "base": "41d489e2d77b5bf09ab6ffa8e281bee292d39786", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 167, "t": 650.716, "ts": "2026-10-07T10:34:45.003+00:00", "type": "queue.submit", "task": "t019", "sha": "272c26fd711cbeb550824946c3275138622ee9b1", "attempt": 1, "agent": "w6"}
+{"seq": 168, "t": 654.428, "ts": "2026-10-07T10:34:48.715+00:00", "type": "bs.phase", "task": "t019", "phase": "checking", "landed_sha": null}
+{"seq": 169, "t": 656.098, "ts": "2026-10-07T10:34:50.384+00:00", "type": "task.commit", "task": "t020", "agent": "w4", "sha": "90b17861cfe7205f66dfb65f04da585a65516548", "base": "41d489e2d77b5bf09ab6ffa8e281bee292d39786", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 170, "t": 656.098, "ts": "2026-10-07T10:34:50.384+00:00", "type": "queue.submit", "task": "t020", "sha": "90b17861cfe7205f66dfb65f04da585a65516548", "attempt": 1, "agent": "w4"}
+{"seq": 171, "t": 659.348, "ts": "2026-10-07T10:34:53.635+00:00", "type": "bs.push", "task": "t009", "bean": "t009", "sha": "3ed2eddc557b112a91705f31e2747f7e69e87a03", "verdict": "landed", "check_seconds": 42.4, "push_s": 50.61, "rc": 0, "tail": null}
+{"seq": 172, "t": 659.334, "ts": "2026-10-07T10:34:53.621+00:00", "type": "land", "task": "t009", "sha": "59cd411", "target": "trunk", "attempt": 2}
+{"seq": 173, "t": 659.348, "ts": "2026-10-07T10:34:53.635+00:00", "type": "task.start", "task": "t024", "agent": "w1", "think_s": 67.99}
+{"seq": 174, "t": 661.145, "ts": "2026-10-07T10:34:55.432+00:00", "type": "bs.phase", "task": "t009", "phase": "landed", "landed_sha": "59cd411d091b4491f5ecc4d13582e9762e0a9b80"}
+{"seq": 175, "t": 661.145, "ts": "2026-10-07T10:34:55.432+00:00", "type": "bs.phase", "task": "t013", "phase": "green", "landed_sha": "374ecaf076d9a14b90756a414d7af4834fa90f93"}
+{"seq": 176, "t": 661.145, "ts": "2026-10-07T10:34:55.432+00:00", "type": "bs.phase", "task": "t020", "phase": "checking", "landed_sha": null}
+{"seq": 177, "t": 668.65, "ts": "2026-10-07T10:35:02.937+00:00", "type": "task.commit", "task": "t021", "agent": "w3", "sha": "31d8930cb2909db3e19591e64aea0ccb1d484c2e", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 178, "t": 668.65, "ts": "2026-10-07T10:35:02.937+00:00", "type": "queue.submit", "task": "t021", "sha": "31d8930cb2909db3e19591e64aea0ccb1d484c2e", "attempt": 1, "agent": "w3"}
+{"seq": 179, "t": 669.679, "ts": "2026-10-07T10:35:03.966+00:00", "type": "task.commit", "task": "t018", "agent": "w5", "sha": "40afab1240c01a590e157f7384645a2ba07ac986", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 180, "t": 669.679, "ts": "2026-10-07T10:35:03.966+00:00", "type": "queue.submit", "task": "t018", "sha": "40afab1240c01a590e157f7384645a2ba07ac986", "attempt": 1, "agent": "w5"}
+{"seq": 181, "t": 671.218, "ts": "2026-10-07T10:35:05.505+00:00", "type": "bs.phase", "task": "t021", "phase": "checking", "landed_sha": null}
+{"seq": 182, "t": 674.726, "ts": "2026-10-07T10:35:09.013+00:00", "type": "bs.phase", "task": "t018", "phase": "checking", "landed_sha": null}
+{"seq": 183, "t": 675.201, "ts": "2026-10-07T10:35:09.488+00:00", "type": "task.commit", "task": "t022", "agent": "w0", "sha": "bdf3b9f2126c3a8efb6a4f00c3a92cc57c8a6cd1", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 184, "t": 675.201, "ts": "2026-10-07T10:35:09.488+00:00", "type": "queue.submit", "task": "t022", "sha": "bdf3b9f2126c3a8efb6a4f00c3a92cc57c8a6cd1", "attempt": 1, "agent": "w0"}
+{"seq": 185, "t": 677.787, "ts": "2026-10-07T10:35:12.074+00:00", "type": "bs.phase", "task": "t022", "phase": "checking", "landed_sha": null}
+{"seq": 186, "t": 681.742, "ts": "2026-10-07T10:35:16.029+00:00", "type": "task.commit", "task": "t023", "agent": "w7", "sha": "1b01af5d3ad3b692226a6fa645ec92709cd77e92", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 187, "t": 681.742, "ts": "2026-10-07T10:35:16.029+00:00", "type": "queue.submit", "task": "t023", "sha": "1b01af5d3ad3b692226a6fa645ec92709cd77e92", "attempt": 1, "agent": "w7"}
+{"seq": 188, "t": 682.065, "ts": "2026-10-07T10:35:16.352+00:00", "type": "bs.phase", "task": "t015", "phase": "green", "landed_sha": "41d489e2d77b5bf09ab6ffa8e281bee292d39786"}
+{"seq": 189, "t": 685.551, "ts": "2026-10-07T10:35:19.837+00:00", "type": "bs.phase", "task": "t023", "phase": "checking", "landed_sha": null}
+{"seq": 190, "t": 699.314, "ts": "2026-10-07T10:35:33.600+00:00", "type": "bs.phase", "task": "t009", "phase": "green", "landed_sha": "59cd411d091b4491f5ecc4d13582e9762e0a9b80"}
+{"seq": 191, "t": 720.674, "ts": "2026-10-07T10:35:54.961+00:00", "type": "task.commit", "task": "t017", "agent": "w2", "sha": "0abb1738d95ae89764977e926e88c97bccd63edb", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "attempt": 2, "upstream_files": [], "notes": []}
+{"seq": 192, "t": 720.674, "ts": "2026-10-07T10:35:54.961+00:00", "type": "queue.submit", "task": "t017", "sha": "0abb1738d95ae89764977e926e88c97bccd63edb", "attempt": 2, "agent": "w2"}
+{"seq": 193, "t": 726.839, "ts": "2026-10-07T10:36:01.126+00:00", "type": "bs.phase", "task": "t017", "phase": "checking", "landed_sha": null}
+{"seq": 194, "t": 729.493, "ts": "2026-10-07T10:36:03.780+00:00", "type": "task.commit", "task": "t024", "agent": "w1", "sha": "6508e70d97c4d535cc33b2020c6d74424e919661", "base": "59cd411d091b4491f5ecc4d13582e9762e0a9b80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 195, "t": 729.493, "ts": "2026-10-07T10:36:03.780+00:00", "type": "queue.submit", "task": "t024", "sha": "6508e70d97c4d535cc33b2020c6d74424e919661", "attempt": 1, "agent": "w1"}
+{"seq": 196, "t": 733.914, "ts": "2026-10-07T10:36:08.201+00:00", "type": "bs.phase", "task": "t024", "phase": "checking", "landed_sha": null}
+{"seq": 197, "t": 754.332, "ts": "2026-10-07T10:36:28.619+00:00", "type": "bs.push", "task": "t019", "bean": "t019", "sha": "272c26fd711cbeb550824946c3275138622ee9b1", "verdict": "landed", "check_seconds": 94.4, "push_s": 103.59, "rc": 0, "tail": null}
+{"seq": 198, "t": 754.309, "ts": "2026-10-07T10:36:28.595+00:00", "type": "land", "task": "t019", "sha": "e883b28", "target": "trunk", "attempt": 1}
+{"seq": 199, "t": 754.333, "ts": "2026-10-07T10:36:28.619+00:00", "type": "task.start", "task": "t025", "agent": "w6", "think_s": 185.48}
+{"seq": 200, "t": 754.906, "ts": "2026-10-07T10:36:29.193+00:00", "type": "bs.phase", "task": "t019", "phase": "landed", "landed_sha": "e883b28839db65373121eedb7ee5a49458c23ef8"}
+{"seq": 201, "t": 799.469, "ts": "2026-10-07T10:37:13.756+00:00", "type": "bs.phase", "task": "t017", "phase": "landed", "landed_sha": "62fa84689ea5e21929a585d34b5e1dba8bcff23b"}
+{"seq": 202, "t": 799.615, "ts": "2026-10-07T10:37:13.901+00:00", "type": "bs.push", "task": "t017", "bean": "t017", "sha": "0abb1738d95ae89764977e926e88c97bccd63edb", "verdict": "landed", "check_seconds": 69.8, "push_s": 78.92, "rc": 0, "tail": null}
+{"seq": 203, "t": 799.597, "ts": "2026-10-07T10:37:13.884+00:00", "type": "land", "task": "t017", "sha": "62fa846", "target": "trunk", "attempt": 2}
+{"seq": 204, "t": 799.615, "ts": "2026-10-07T10:37:13.902+00:00", "type": "task.start", "task": "t026", "agent": "w2", "think_s": 76.48}
+{"seq": 205, "t": 803.001, "ts": "2026-10-07T10:37:17.288+00:00", "type": "bs.phase", "task": "t019", "phase": "green", "landed_sha": "e883b28839db65373121eedb7ee5a49458c23ef8"}
+{"seq": 206, "t": 813.142, "ts": "2026-10-07T10:37:27.429+00:00", "type": "bs.phase", "task": "t021", "phase": "landed", "landed_sha": "c14e8d62111366984519af9265f01856f85f5f0c"}
+{"seq": 207, "t": 813.922, "ts": "2026-10-07T10:37:28.209+00:00", "type": "bs.push", "task": "t021", "bean": "t021", "sha": "31d8930cb2909db3e19591e64aea0ccb1d484c2e", "verdict": "landed", "check_seconds": 137.4, "push_s": 145.26, "rc": 0, "tail": null}
+{"seq": 208, "t": 813.914, "ts": "2026-10-07T10:37:28.201+00:00", "type": "land", "task": "t021", "sha": "c14e8d6", "target": "trunk", "attempt": 1}
+{"seq": 209, "t": 813.922, "ts": "2026-10-07T10:37:28.209+00:00", "type": "task.start", "task": "t027", "agent": "w3", "think_s": 108.08}
+{"seq": 210, "t": 816.299, "ts": "2026-10-07T10:37:30.586+00:00", "type": "bs.push", "task": "t018", "bean": "t018", "sha": "40afab1240c01a590e157f7384645a2ba07ac986", "verdict": "landed", "check_seconds": 138.0, "push_s": 146.61, "rc": 0, "tail": null}
+{"seq": 211, "t": 816.291, "ts": "2026-10-07T10:37:30.577+00:00", "type": "land", "task": "t018", "sha": "bcee43e", "target": "trunk", "attempt": 1}
+{"seq": 212, "t": 816.299, "ts": "2026-10-07T10:37:30.586+00:00", "type": "task.start", "task": "t028", "agent": "w5", "think_s": 44.3}
+{"seq": 213, "t": 816.374, "ts": "2026-10-07T10:37:30.661+00:00", "type": "bs.phase", "task": "t018", "phase": "landed", "landed_sha": "bcee43ed4866edd62ca71847d24e6869eac0e97a"}
+{"seq": 214, "t": 822.473, "ts": "2026-10-07T10:37:36.760+00:00", "type": "bs.push", "task": "t022", "bean": "t022", "sha": "bdf3b9f2126c3a8efb6a4f00c3a92cc57c8a6cd1", "verdict": "landed", "check_seconds": 139.3, "push_s": 147.26, "rc": 0, "tail": null}
+{"seq": 215, "t": 822.464, "ts": "2026-10-07T10:37:36.751+00:00", "type": "land", "task": "t022", "sha": "3fff978", "target": "trunk", "attempt": 1}
+{"seq": 216, "t": 822.473, "ts": "2026-10-07T10:37:36.760+00:00", "type": "task.start", "task": "t029", "agent": "w0", "think_s": 36.49}
+{"seq": 217, "t": 823.232, "ts": "2026-10-07T10:37:37.519+00:00", "type": "bs.phase", "task": "t022", "phase": "landed", "landed_sha": "3fff97872c202c49a99ca43aee30219e34b644be"}
+{"seq": 218, "t": 826.642, "ts": "2026-10-07T10:37:40.929+00:00", "type": "bs.push", "task": "t023", "bean": "t023", "sha": "1b01af5d3ad3b692226a6fa645ec92709cd77e92", "verdict": "landed", "check_seconds": 136.8, "push_s": 144.86, "rc": 0, "tail": null}
+{"seq": 219, "t": 826.602, "ts": "2026-10-07T10:37:40.889+00:00", "type": "land", "task": "t023", "sha": "297ac66", "target": "trunk", "attempt": 1}
+{"seq": 220, "t": 826.642, "ts": "2026-10-07T10:37:40.929+00:00", "type": "task.start", "task": "t030", "agent": "w7", "think_s": 138.03}
+{"seq": 221, "t": 826.798, "ts": "2026-10-07T10:37:41.084+00:00", "type": "bs.phase", "task": "t023", "phase": "landed", "landed_sha": "297ac66dc3f4471e44a4d6f10b9761849be0d93d"}
+{"seq": 222, "t": 840.933, "ts": "2026-10-07T10:37:55.220+00:00", "type": "bs.phase", "task": "t017", "phase": "green", "landed_sha": "62fa84689ea5e21929a585d34b5e1dba8bcff23b"}
+{"seq": 223, "t": 844.083, "ts": "2026-10-07T10:37:58.370+00:00", "type": "bs.push", "task": "t024", "bean": "t024", "sha": "6508e70d97c4d535cc33b2020c6d74424e919661", "verdict": "landed", "check_seconds": 105.1, "push_s": 114.58, "rc": 0, "tail": null}
+{"seq": 224, "t": 844.075, "ts": "2026-10-07T10:37:58.362+00:00", "type": "land", "task": "t024", "sha": "13f1a96", "target": "trunk", "attempt": 1}
+{"seq": 225, "t": 844.083, "ts": "2026-10-07T10:37:58.370+00:00", "type": "task.start", "task": "t031", "agent": "w1", "think_s": 146.9}
+{"seq": 226, "t": 844.26, "ts": "2026-10-07T10:37:58.547+00:00", "type": "bs.phase", "task": "t024", "phase": "landed", "landed_sha": "13f1a96e8db3689876a170eb955d4367d9de5838"}
+{"seq": 227, "t": 854.575, "ts": "2026-10-07T10:38:08.862+00:00", "type": "bs.phase", "task": "t020", "phase": "landed", "landed_sha": "03cb85f6f95ba246a45335fdc693eab6403cc223"}
+{"seq": 228, "t": 854.989, "ts": "2026-10-07T10:38:09.276+00:00", "type": "bs.push", "task": "t020", "bean": "t020", "sha": "90b17861cfe7205f66dfb65f04da585a65516548", "verdict": "landed", "check_seconds": 76.8, "push_s": 198.89, "rc": 0, "tail": null}
+{"seq": 229, "t": 854.983, "ts": "2026-10-07T10:38:09.270+00:00", "type": "land", "task": "t020", "sha": "03cb85f", "target": "trunk", "attempt": 1}
+{"seq": 230, "t": 854.989, "ts": "2026-10-07T10:38:09.276+00:00", "type": "task.start", "task": "t032", "agent": "w4", "think_s": 73.0}
+{"seq": 231, "t": 861.711, "ts": "2026-10-07T10:38:15.998+00:00", "type": "bs.phase", "task": "t021", "phase": "green", "landed_sha": "c14e8d62111366984519af9265f01856f85f5f0c"}
+{"seq": 232, "t": 862.12, "ts": "2026-10-07T10:38:16.407+00:00", "type": "task.commit", "task": "t029", "agent": "w0", "sha": "583893618b6b20f9711b47fc07e93d4d9f83c5eb", "base": "03cb85f6f95ba246a45335fdc693eab6403cc223", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 233, "t": 862.12, "ts": "2026-10-07T10:38:16.407+00:00", "type": "queue.submit", "task": "t029", "sha": "583893618b6b20f9711b47fc07e93d4d9f83c5eb", "attempt": 1, "agent": "w0"}
+{"seq": 234, "t": 862.294, "ts": "2026-10-07T10:38:16.581+00:00", "type": "task.commit", "task": "t028", "agent": "w5", "sha": "c6084b865f7affa619f161df7d867b747f12fa99", "base": "03cb85f6f95ba246a45335fdc693eab6403cc223", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 235, "t": 862.295, "ts": "2026-10-07T10:38:16.581+00:00", "type": "queue.submit", "task": "t028", "sha": "c6084b865f7affa619f161df7d867b747f12fa99", "attempt": 1, "agent": "w5"}
+{"seq": 236, "t": 865.198, "ts": "2026-10-07T10:38:19.485+00:00", "type": "bs.phase", "task": "t029", "phase": "checking", "landed_sha": null}
+{"seq": 237, "t": 868.258, "ts": "2026-10-07T10:38:22.545+00:00", "type": "bs.phase", "task": "t028", "phase": "checking", "landed_sha": null}
+{"seq": 238, "t": 877.475, "ts": "2026-10-07T10:38:31.762+00:00", "type": "task.commit", "task": "t026", "agent": "w2", "sha": "712f1856c113a666bcdb520f10684e224350bcd1", "base": "03cb85f6f95ba246a45335fdc693eab6403cc223", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 239, "t": 877.475, "ts": "2026-10-07T10:38:31.762+00:00", "type": "queue.submit", "task": "t026", "sha": "712f1856c113a666bcdb520f10684e224350bcd1", "attempt": 1, "agent": "w2"}
+{"seq": 240, "t": 881.637, "ts": "2026-10-07T10:38:35.923+00:00", "type": "bs.phase", "task": "t018", "phase": "green", "landed_sha": "bcee43ed4866edd62ca71847d24e6869eac0e97a"}
+{"seq": 241, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "bs.phase", "task": "t022", "phase": "green", "landed_sha": "3fff97872c202c49a99ca43aee30219e34b644be"}
+{"seq": 242, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "bs.phase", "task": "t023", "phase": "green", "landed_sha": "297ac66dc3f4471e44a4d6f10b9761849be0d93d"}
+{"seq": 243, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "bs.phase", "task": "t026", "phase": "checking", "landed_sha": null}
+{"seq": 244, "t": 912.79, "ts": "2026-10-07T10:39:07.077+00:00", "type": "bs.phase", "task": "t020", "phase": "green", "landed_sha": "03cb85f6f95ba246a45335fdc693eab6403cc223"}
+{"seq": 245, "t": 912.79, "ts": "2026-10-07T10:39:07.077+00:00", "type": "bs.phase", "task": "t024", "phase": "green", "landed_sha": "13f1a96e8db3689876a170eb955d4367d9de5838"}
+{"seq": 246, "t": 925.58, "ts": "2026-10-07T10:39:19.867+00:00", "type": "task.commit", "task": "t027", "agent": "w3", "sha": "13e7024c13f138ac0126b85450180aaedcf608f0", "base": "03cb85f6f95ba246a45335fdc693eab6403cc223", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 247, "t": 925.58, "ts": "2026-10-07T10:39:19.867+00:00", "type": "queue.submit", "task": "t027", "sha": "13e7024c13f138ac0126b85450180aaedcf608f0", "attempt": 1, "agent": "w3"}
+{"seq": 248, "t": 929.738, "ts": "2026-10-07T10:39:24.025+00:00", "type": "bs.phase", "task": "t027", "phase": "checking", "landed_sha": null}
+{"seq": 249, "t": 929.777, "ts": "2026-10-07T10:39:24.064+00:00", "type": "task.commit", "task": "t032", "agent": "w4", "sha": "8a73167038ced1be0afb5546e2744f7c8599d663", "base": "03cb85f6f95ba246a45335fdc693eab6403cc223", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 250, "t": 929.777, "ts": "2026-10-07T10:39:24.064+00:00", "type": "queue.submit", "task": "t032", "sha": "8a73167038ced1be0afb5546e2744f7c8599d663", "attempt": 1, "agent": "w4"}
+{"seq": 251, "t": 933.314, "ts": "2026-10-07T10:39:27.601+00:00", "type": "bs.push", "task": "t029", "bean": "t029", "sha": "583893618b6b20f9711b47fc07e93d4d9f83c5eb", "verdict": "landed", "check_seconds": 64.3, "push_s": 71.19, "rc": 0, "tail": null}
+{"seq": 252, "t": 933.309, "ts": "2026-10-07T10:39:27.596+00:00", "type": "land", "task": "t029", "sha": "6183464", "target": "trunk", "attempt": 1}
+{"seq": 253, "t": 933.314, "ts": "2026-10-07T10:39:27.601+00:00", "type": "task.start", "task": "t033", "agent": "w0", "think_s": 58.19}
+{"seq": 254, "t": 933.414, "ts": "2026-10-07T10:39:27.701+00:00", "type": "bs.phase", "task": "t029", "phase": "green", "landed_sha": "61834642570ac8b1413d778c7ebac5ea52615276"}
+{"seq": 255, "t": 933.414, "ts": "2026-10-07T10:39:27.701+00:00", "type": "bs.phase", "task": "t032", "phase": "checking", "landed_sha": null}
+{"seq": 256, "t": 939.736, "ts": "2026-10-07T10:39:34.022+00:00", "type": "bs.push", "task": "t028", "bean": "t028", "sha": "c6084b865f7affa619f161df7d867b747f12fa99", "verdict": "landed", "check_seconds": 68.7, "push_s": 77.43, "rc": 0, "tail": null}
+{"seq": 257, "t": 939.728, "ts": "2026-10-07T10:39:34.015+00:00", "type": "land", "task": "t028", "sha": "21761d7", "target": "trunk", "attempt": 1}
+{"seq": 258, "t": 939.736, "ts": "2026-10-07T10:39:34.023+00:00", "type": "task.start", "task": "t034", "agent": "w5", "think_s": 173.43}
+{"seq": 259, "t": 939.967, "ts": "2026-10-07T10:39:34.254+00:00", "type": "bs.phase", "task": "t028", "phase": "landed", "landed_sha": "21761d7c0055f05d0873b2f704c298f020a11f18"}
+{"seq": 260, "t": 943.211, "ts": "2026-10-07T10:39:37.498+00:00", "type": "task.commit", "task": "t025", "agent": "w6", "sha": "c217fcb039bb9fc73c35eb9b1e0f4546140126dd", "base": "21761d7c0055f05d0873b2f704c298f020a11f18", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 261, "t": 943.212, "ts": "2026-10-07T10:39:37.498+00:00", "type": "queue.submit", "task": "t025", "sha": "c217fcb039bb9fc73c35eb9b1e0f4546140126dd", "attempt": 1, "agent": "w6"}
+{"seq": 262, "t": 946.992, "ts": "2026-10-07T10:39:41.279+00:00", "type": "bs.phase", "task": "t025", "phase": "checking", "landed_sha": null}
+{"seq": 263, "t": 957.264, "ts": "2026-10-07T10:39:51.551+00:00", "type": "bs.phase", "task": "t026", "phase": "landed", "landed_sha": "387b02a6fd2e2c4251df27d97a8f4cfc4e9bd6f6"}
+{"seq": 264, "t": 957.881, "ts": "2026-10-07T10:39:52.168+00:00", "type": "bs.push", "task": "t026", "bean": "t026", "sha": "712f1856c113a666bcdb520f10684e224350bcd1", "verdict": "landed", "check_seconds": 71.8, "push_s": 80.4, "rc": 0, "tail": null}
+{"seq": 265, "t": 957.875, "ts": "2026-10-07T10:39:52.162+00:00", "type": "land", "task": "t026", "sha": "387b02a", "target": "trunk", "attempt": 1}
+{"seq": 266, "t": 957.881, "ts": "2026-10-07T10:39:52.168+00:00", "type": "task.start", "task": "t035", "agent": "w2", "think_s": 122.59}
+{"seq": 267, "t": 967.4, "ts": "2026-10-07T10:40:01.687+00:00", "type": "task.commit", "task": "t030", "agent": "w7", "sha": "fce1e39c91dd4084f758beee5579f4f5d73e50c5", "base": "387b02a6fd2e2c4251df27d97a8f4cfc4e9bd6f6", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 268, "t": 967.4, "ts": "2026-10-07T10:40:01.687+00:00", "type": "queue.submit", "task": "t030", "sha": "fce1e39c91dd4084f758beee5579f4f5d73e50c5", "attempt": 1, "agent": "w7"}
+{"seq": 269, "t": 971.287, "ts": "2026-10-07T10:40:05.574+00:00", "type": "bs.phase", "task": "t030", "phase": "checking", "landed_sha": null}
+{"seq": 270, "t": 981.317, "ts": "2026-10-07T10:40:15.604+00:00", "type": "bs.phase", "task": "t028", "phase": "green", "landed_sha": "21761d7c0055f05d0873b2f704c298f020a11f18"}
+{"seq": 271, "t": 993.451, "ts": "2026-10-07T10:40:27.738+00:00", "type": "task.commit", "task": "t031", "agent": "w1", "sha": "082c6dcbecebcded0045632a95a2d50b61d2b6cf", "base": "387b02a6fd2e2c4251df27d97a8f4cfc4e9bd6f6", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 272, "t": 993.451, "ts": "2026-10-07T10:40:27.738+00:00", "type": "queue.submit", "task": "t031", "sha": "082c6dcbecebcded0045632a95a2d50b61d2b6cf", "attempt": 1, "agent": "w1"}
+{"seq": 273, "t": 993.5, "ts": "2026-10-07T10:40:27.787+00:00", "type": "task.commit", "task": "t033", "agent": "w0", "sha": "5d0e6801167a2c9ebad1afca8a383f993fea897d", "base": "387b02a6fd2e2c4251df27d97a8f4cfc4e9bd6f6", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 274, "t": 993.5, "ts": "2026-10-07T10:40:27.787+00:00", "type": "queue.submit", "task": "t033", "sha": "5d0e6801167a2c9ebad1afca8a383f993fea897d", "attempt": 1, "agent": "w0"}
+{"seq": 275, "t": 998.74, "ts": "2026-10-07T10:40:33.027+00:00", "type": "bs.phase", "task": "t031", "phase": "checking", "landed_sha": null}
+{"seq": 276, "t": 998.74, "ts": "2026-10-07T10:40:33.027+00:00", "type": "bs.phase", "task": "t033", "phase": "checking", "landed_sha": null}
+{"seq": 277, "t": 1008.763, "ts": "2026-10-07T10:40:43.050+00:00", "type": "bs.phase", "task": "t026", "phase": "green", "landed_sha": "387b02a6fd2e2c4251df27d97a8f4cfc4e9bd6f6"}
+{"seq": 278, "t": 1017.737, "ts": "2026-10-07T10:40:52.024+00:00", "type": "bs.push", "task": "t027", "bean": "t027", "sha": "13e7024c13f138ac0126b85450180aaedcf608f0", "verdict": "landed", "check_seconds": 84.4, "push_s": 92.15, "rc": 0, "tail": null}
+{"seq": 279, "t": 1017.731, "ts": "2026-10-07T10:40:52.018+00:00", "type": "land", "task": "t027", "sha": "de9249e", "target": "trunk", "attempt": 1}
+{"seq": 280, "t": 1017.737, "ts": "2026-10-07T10:40:52.024+00:00", "type": "task.start", "task": "t036", "agent": "w3", "think_s": 43.92}
+{"seq": 281, "t": 1020.108, "ts": "2026-10-07T10:40:54.395+00:00", "type": "bs.phase", "task": "t027", "phase": "landed", "landed_sha": "de9249e01455841301528fbb31d97b3ab2b811d6"}
+{"seq": 282, "t": 1031.814, "ts": "2026-10-07T10:41:06.101+00:00", "type": "bs.push", "task": "t032", "bean": "t032", "sha": "8a73167038ced1be0afb5546e2744f7c8599d663", "verdict": "landed", "check_seconds": 94.7, "push_s": 102.03, "rc": 0, "tail": null}
+{"seq": 283, "t": 1031.806, "ts": "2026-10-07T10:41:06.092+00:00", "type": "land", "task": "t032", "sha": "89746ae", "target": "trunk", "attempt": 1}
+{"seq": 284, "t": 1031.814, "ts": "2026-10-07T10:41:06.101+00:00", "type": "task.start", "task": "t037", "agent": "w4", "think_s": 37.5}
+{"seq": 285, "t": 1033.96, "ts": "2026-10-07T10:41:08.247+00:00", "type": "bs.phase", "task": "t032", "phase": "landed", "landed_sha": "89746aed11468fb0acc6f6aea29f54370700ed80"}
+{"seq": 286, "t": 1057.863, "ts": "2026-10-07T10:41:32.150+00:00", "type": "bs.phase", "task": "t027", "phase": "green", "landed_sha": "de9249e01455841301528fbb31d97b3ab2b811d6"}
+{"seq": 287, "t": 1064.766, "ts": "2026-10-07T10:41:39.053+00:00", "type": "task.commit", "task": "t036", "agent": "w3", "sha": "34c7e900a0902db4a73e554d5d8aa15ea93b3808", "base": "89746aed11468fb0acc6f6aea29f54370700ed80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 288, "t": 1064.766, "ts": "2026-10-07T10:41:39.053+00:00", "type": "queue.submit", "task": "t036", "sha": "34c7e900a0902db4a73e554d5d8aa15ea93b3808", "attempt": 1, "agent": "w3"}
+{"seq": 289, "t": 1067.819, "ts": "2026-10-07T10:41:42.106+00:00", "type": "bs.phase", "task": "t036", "phase": "checking", "landed_sha": null}
+{"seq": 290, "t": 1070.739, "ts": "2026-10-07T10:41:45.026+00:00", "type": "task.commit", "task": "t037", "agent": "w4", "sha": "d3c24925da83242d1f1761392c57e5abfd213dc4", "base": "89746aed11468fb0acc6f6aea29f54370700ed80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 291, "t": 1070.739, "ts": "2026-10-07T10:41:45.026+00:00", "type": "queue.submit", "task": "t037", "sha": "d3c24925da83242d1f1761392c57e5abfd213dc4", "attempt": 1, "agent": "w4"}
+{"seq": 292, "t": 1075.226, "ts": "2026-10-07T10:41:49.513+00:00", "type": "bs.phase", "task": "t037", "phase": "checking", "landed_sha": null}
+{"seq": 293, "t": 1082.421, "ts": "2026-10-07T10:41:56.708+00:00", "type": "task.commit", "task": "t035", "agent": "w2", "sha": "2d3c566433ac501e09a61f99a4a619226cc3a698", "base": "89746aed11468fb0acc6f6aea29f54370700ed80", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 294, "t": 1082.421, "ts": "2026-10-07T10:41:56.708+00:00", "type": "queue.submit", "task": "t035", "sha": "2d3c566433ac501e09a61f99a4a619226cc3a698", "attempt": 1, "agent": "w2"}
+{"seq": 295, "t": 1082.436, "ts": "2026-10-07T10:41:56.723+00:00", "type": "bs.phase", "task": "t032", "phase": "green", "landed_sha": "89746aed11468fb0acc6f6aea29f54370700ed80"}
+{"seq": 296, "t": 1085.176, "ts": "2026-10-07T10:41:59.463+00:00", "type": "bs.push", "task": "t030", "bean": "t030", "sha": "fce1e39c91dd4084f758beee5579f4f5d73e50c5", "verdict": "landed", "check_seconds": 109.2, "push_s": 117.77, "rc": 0, "tail": null}
+{"seq": 297, "t": 1085.17, "ts": "2026-10-07T10:41:59.457+00:00", "type": "land", "task": "t030", "sha": "7ed9759", "target": "trunk", "attempt": 1}
+{"seq": 298, "t": 1085.176, "ts": "2026-10-07T10:41:59.463+00:00", "type": "task.start", "task": "t038", "agent": "w7", "think_s": 93.69}
+{"seq": 299, "t": 1085.95, "ts": "2026-10-07T10:42:00.237+00:00", "type": "bs.phase", "task": "t030", "phase": "landed", "landed_sha": "7ed9759bdc8d50d4ab381267cbf08523a4197979"}
+{"seq": 300, "t": 1085.95, "ts": "2026-10-07T10:42:00.237+00:00", "type": "bs.phase", "task": "t035", "phase": "checking", "landed_sha": null}
+{"seq": 301, "t": 1115.689, "ts": "2026-10-07T10:42:29.976+00:00", "type": "task.commit", "task": "t034", "agent": "w5", "sha": "b646d348981f44fe6acda0c705ce582a4fbe5b19", "base": "7ed9759bdc8d50d4ab381267cbf08523a4197979", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 302, "t": 1115.689, "ts": "2026-10-07T10:42:29.976+00:00", "type": "queue.submit", "task": "t034", "sha": "b646d348981f44fe6acda0c705ce582a4fbe5b19", "attempt": 1, "agent": "w5"}
+{"seq": 303, "t": 1116.328, "ts": "2026-10-07T10:42:30.615+00:00", "type": "bs.push", "task": "t033", "bean": "t033", "sha": "5d0e6801167a2c9ebad1afca8a383f993fea897d", "verdict": "landed", "check_seconds": 113.8, "push_s": 122.82, "rc": 0, "tail": null}
+{"seq": 304, "t": 1116.319, "ts": "2026-10-07T10:42:30.606+00:00", "type": "land", "task": "t033", "sha": "0c8f7b0", "target": "trunk", "attempt": 1}
+{"seq": 305, "t": 1117.27, "ts": "2026-10-07T10:42:31.557+00:00", "type": "bs.phase", "task": "t033", "phase": "landed", "landed_sha": "0c8f7b0c43531f3e7e54202600bbd9e602c9bb24"}
+{"seq": 306, "t": 1120.349, "ts": "2026-10-07T10:42:34.636+00:00", "type": "bs.push", "task": "t031", "bean": "t031", "sha": "082c6dcbecebcded0045632a95a2d50b61d2b6cf", "verdict": "red", "check_seconds": 120.2, "push_s": 126.89, "rc": 0, "tail": null}
+{"seq": 307, "t": 1120.341, "ts": "2026-10-07T10:42:34.628+00:00", "type": "queue.eject", "task": "t031", "reason": "red", "gh_reason": "red", "failing": ["test/decorator-instance-properties.pr6892.test.js > decorateRequest accepts built-in request properties as dependencies", "test/decorator-instance-properties.pr6892.test.js > decorateReply accepts built-in reply properties as dependencies", "test/decorator-instance-properties.pr6892.test.js > decorateRequest accepts built-in properties as dependencies inside a plugin", "test/decorator-instance-properties.pr6892.test.js > decorateRequest accepts built-in properties mixed with user decorators as dependencies", "test/decorator-instance-properties.pr6892.test.js > decorateRequest still throws FST_ERR_DEC_MISSING_DEPENDENCY for unknown dependencies", "test/decorator.test.js > decorate should throw if a declared dependency is not present", "test/internals/decorator.test.js > checkDependencies should throw if a dependency is not present", "test/internals/decorator.test.js > decorate should internally call checkDependencies", "test/plugin.2.test.js > check dependencies - should throw", "test/throw.test.js > Should throw if request decorator dependencies are not met"], "files": []}
+{"seq": 308, "t": 1120.349, "ts": "2026-10-07T10:42:34.636+00:00", "type": "rework.start", "task": "t031", "reason": "red", "attempt": 1, "fix_s": 72.35}
+{"seq": 309, "t": 1120.527, "ts": "2026-10-07T10:42:34.814+00:00", "type": "bs.phase", "task": "t031", "phase": "red", "landed_sha": null}
+{"seq": 310, "t": 1120.527, "ts": "2026-10-07T10:42:34.814+00:00", "type": "bs.phase", "task": "t034", "phase": "checking", "landed_sha": null}
+{"seq": 311, "t": 1127.274, "ts": "2026-10-07T10:42:41.561+00:00", "type": "bs.phase", "task": "t030", "phase": "green", "landed_sha": "7ed9759bdc8d50d4ab381267cbf08523a4197979"}
+{"seq": 312, "t": 1165.621, "ts": "2026-10-07T10:43:19.908+00:00", "type": "bs.phase", "task": "t033", "phase": "green", "landed_sha": "0c8f7b0c43531f3e7e54202600bbd9e602c9bb24"}
+{"seq": 313, "t": 1181.601, "ts": "2026-10-07T10:43:35.888+00:00", "type": "task.commit", "task": "t038", "agent": "w7", "sha": "45a45c829a2cfbc5a5ecf60fff981306d56144fa", "base": "0c8f7b0c43531f3e7e54202600bbd9e602c9bb24", "standalone": false, "upstream_files": [], "notes": []}
+{"seq": 314, "t": 1181.602, "ts": "2026-10-07T10:43:35.888+00:00", "type": "queue.submit", "task": "t038", "sha": "45a45c829a2cfbc5a5ecf60fff981306d56144fa", "attempt": 1, "agent": "w7"}
+{"seq": 315, "t": 1181.723, "ts": "2026-10-07T10:43:36.010+00:00", "type": "bs.push", "task": "t025", "bean": "t025", "sha": "c217fcb039bb9fc73c35eb9b1e0f4546140126dd", "verdict": "landed", "check_seconds": 123.3, "push_s": 238.5, "rc": 0, "tail": null}
+{"seq": 316, "t": 1181.715, "ts": "2026-10-07T10:43:36.002+00:00", "type": "land", "task": "t025", "sha": "cd4c979", "target": "trunk", "attempt": 1}
+{"seq": 317, "t": 1182.735, "ts": "2026-10-07T10:43:37.022+00:00", "type": "bs.phase", "task": "t025", "phase": "landed", "landed_sha": "cd4c9797eba85054aeecb7298bd7123b668c65fd"}
+{"seq": 318, "t": 1186.25, "ts": "2026-10-07T10:43:40.537+00:00", "type": "bs.phase", "task": "t038", "phase": "checking", "landed_sha": null}
+{"seq": 319, "t": 1194.475, "ts": "2026-10-07T10:43:48.762+00:00", "type": "bs.push", "task": "t036", "bean": "t036", "sha": "34c7e900a0902db4a73e554d5d8aa15ea93b3808", "verdict": "landed", "check_seconds": 121.8, "push_s": 129.69, "rc": 0, "tail": null}
+{"seq": 320, "t": 1194.458, "ts": "2026-10-07T10:43:48.745+00:00", "type": "land", "task": "t036", "sha": "43d5b92", "target": "trunk", "attempt": 1}
+{"seq": 321, "t": 1195.664, "ts": "2026-10-07T10:43:49.951+00:00", "type": "task.commit", "task": "t031", "agent": "w1", "sha": "840224e1508606bfc0dd6e1153ebae2637499602", "base": "43d5b9228dca981fafa6092a38962449bf0f483c", "attempt": 2, "upstream_files": [], "notes": []}
+{"seq": 322, "t": 1195.664, "ts": "2026-10-07T10:43:49.951+00:00", "type": "queue.submit", "task": "t031", "sha": "840224e1508606bfc0dd6e1153ebae2637499602", "attempt": 2, "agent": "w1"}
+{"seq": 323, "t": 1196.892, "ts": "2026-10-07T10:43:51.179+00:00", "type": "bs.phase", "task": "t036", "phase": "landed", "landed_sha": "43d5b9228dca981fafa6092a38962449bf0f483c"}
+{"seq": 324, "t": 1200.114, "ts": "2026-10-07T10:43:54.401+00:00", "type": "bs.push", "task": "t037", "bean": "t037", "sha": "d3c24925da83242d1f1761392c57e5abfd213dc4", "verdict": "landed", "check_seconds": 121.3, "push_s": 129.36, "rc": 0, "tail": null}
+{"seq": 325, "t": 1200.099, "ts": "2026-10-07T10:43:54.385+00:00", "type": "land", "task": "t037", "sha": "e7c884e", "target": "trunk", "attempt": 1}
+{"seq": 326, "t": 1200.488, "ts": "2026-10-07T10:43:54.775+00:00", "type": "bs.phase", "task": "t031", "phase": "checking", "landed_sha": null}
+{"seq": 327, "t": 1200.488, "ts": "2026-10-07T10:43:54.775+00:00", "type": "bs.phase", "task": "t037", "phase": "landed", "landed_sha": "e7c884e3ce6ad0277e07fbdff98fd143b7306e95"}
+{"seq": 328, "t": 1207.539, "ts": "2026-10-07T10:44:01.826+00:00", "type": "bs.push", "task": "t035", "bean": "t035", "sha": "2d3c566433ac501e09a61f99a4a619226cc3a698", "verdict": "landed", "check_seconds": 117.2, "push_s": 125.1, "rc": 0, "tail": null}
+{"seq": 329, "t": 1207.523, "ts": "2026-10-07T10:44:01.810+00:00", "type": "land", "task": "t035", "sha": "96dc0a1", "target": "trunk", "attempt": 1}
+{"seq": 330, "t": 1207.628, "ts": "2026-10-07T10:44:01.915+00:00", "type": "bs.phase", "task": "t035", "phase": "landed", "landed_sha": "96dc0a13b2b70a9d4a624701fe0fd2c73ebeb610"}
+{"seq": 331, "t": 1219.726, "ts": "2026-10-07T10:44:14.013+00:00", "type": "bs.push", "task": "t034", "bean": "t034", "sha": "b646d348981f44fe6acda0c705ce582a4fbe5b19", "verdict": "landed", "check_seconds": 96.6, "push_s": 104.02, "rc": 0, "tail": null}
+{"seq": 332, "t": 1219.71, "ts": "2026-10-07T10:44:13.997+00:00", "type": "land", "task": "t034", "sha": "886e870", "target": "trunk", "attempt": 1}
+{"seq": 333, "t": 1221.688, "ts": "2026-10-07T10:44:15.975+00:00", "type": "bs.phase", "task": "t034", "phase": "landed", "landed_sha": "886e87004bcede256524b20e90338acc44ac1e18"}
+{"seq": 334, "t": 1225.212, "ts": "2026-10-07T10:44:19.499+00:00", "type": "bs.phase", "task": "t025", "phase": "green", "landed_sha": "cd4c9797eba85054aeecb7298bd7123b668c65fd"}
+{"seq": 335, "t": 1233.681, "ts": "2026-10-07T10:44:27.968+00:00", "type": "bs.push", "task": "t038", "bean": "t038", "sha": "45a45c829a2cfbc5a5ecf60fff981306d56144fa", "verdict": "landed", "check_seconds": 44.4, "push_s": 52.07, "rc": 0, "tail": null}
+{"seq": 336, "t": 1233.667, "ts": "2026-10-07T10:44:27.954+00:00", "type": "land", "task": "t038", "sha": "a148299", "target": "trunk", "attempt": 1}
+{"seq": 337, "t": 1235.577, "ts": "2026-10-07T10:44:29.864+00:00", "type": "bs.phase", "task": "t038", "phase": "landed", "landed_sha": "a1482995b23795a99d41c4dd732b3d5cec836f5e"}
+{"seq": 338, "t": 1245.699, "ts": "2026-10-07T10:44:39.986+00:00", "type": "bs.phase", "task": "t036", "phase": "green", "landed_sha": "43d5b9228dca981fafa6092a38962449bf0f483c"}
+{"seq": 339, "t": 1247.46, "ts": "2026-10-07T10:44:41.747+00:00", "type": "bs.push", "task": "t031", "bean": "t031", "sha": "840224e1508606bfc0dd6e1153ebae2637499602", "verdict": "landed", "check_seconds": 44.3, "push_s": 51.78, "rc": 0, "tail": null}
+{"seq": 340, "t": 1247.446, "ts": "2026-10-07T10:44:41.733+00:00", "type": "land", "task": "t031", "sha": "2677d3d", "target": "trunk", "attempt": 2}
+{"seq": 341, "t": 1249.532, "ts": "2026-10-07T10:44:43.819+00:00", "type": "bs.phase", "task": "t031", "phase": "landed", "landed_sha": "2677d3d547dc026efc8d0c79a18583d86a9c2949"}
+{"seq": 342, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "bs.phase", "task": "t034", "phase": "green", "landed_sha": "886e87004bcede256524b20e90338acc44ac1e18"}
+{"seq": 343, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "bs.phase", "task": "t035", "phase": "green", "landed_sha": "96dc0a13b2b70a9d4a624701fe0fd2c73ebeb610"}
+{"seq": 344, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "bs.phase", "task": "t037", "phase": "green", "landed_sha": "e7c884e3ce6ad0277e07fbdff98fd143b7306e95"}
+{"seq": 345, "t": 1292.002, "ts": "2026-10-07T10:45:26.289+00:00", "type": "bs.phase", "task": "t038", "phase": "green", "landed_sha": "a1482995b23795a99d41c4dd732b3d5cec836f5e"}
+{"seq": 346, "t": 1302.355, "ts": "2026-10-07T10:45:36.642+00:00", "type": "bs.phase", "task": "t031", "phase": "green", "landed_sha": "2677d3d547dc026efc8d0c79a18583d86a9c2949"}
+{"seq": 347, "t": 290.983, "ts": "2026-10-07T10:28:45.270+00:00", "type": "green.promote", "tasks": ["t001"], "sha": null}
+{"seq": 348, "t": 203.376, "ts": "2026-10-07T10:27:17.663+00:00", "type": "green.promote", "tasks": ["t002"], "sha": null}
+{"seq": 349, "t": 252.56, "ts": "2026-10-07T10:28:06.847+00:00", "type": "green.promote", "tasks": ["t003"], "sha": null}
+{"seq": 350, "t": 290.983, "ts": "2026-10-07T10:28:45.270+00:00", "type": "green.promote", "tasks": ["t004"], "sha": null}
+{"seq": 351, "t": 256.311, "ts": "2026-10-07T10:28:10.598+00:00", "type": "green.promote", "tasks": ["t005"], "sha": null}
+{"seq": 352, "t": 560.955, "ts": "2026-10-07T10:33:15.241+00:00", "type": "green.promote", "tasks": ["t006"], "sha": null}
+{"seq": 353, "t": 295.323, "ts": "2026-10-07T10:28:49.610+00:00", "type": "green.promote", "tasks": ["t007"], "sha": null}
+{"seq": 354, "t": 374.554, "ts": "2026-10-07T10:30:08.841+00:00", "type": "green.promote", "tasks": ["t008"], "sha": null}
+{"seq": 355, "t": 699.314, "ts": "2026-10-07T10:35:33.601+00:00", "type": "green.promote", "tasks": ["t009"], "sha": null}
+{"seq": 356, "t": 457.025, "ts": "2026-10-07T10:31:31.312+00:00", "type": "green.promote", "tasks": ["t010"], "sha": null}
+{"seq": 357, "t": 443.871, "ts": "2026-10-07T10:31:18.158+00:00", "type": "green.promote", "tasks": ["t011"], "sha": null}
+{"seq": 358, "t": 634.061, "ts": "2026-10-07T10:34:28.348+00:00", "type": "green.promote", "tasks": ["t012"], "sha": null}
+{"seq": 359, "t": 661.145, "ts": "2026-10-07T10:34:55.432+00:00", "type": "green.promote", "tasks": ["t013"], "sha": null}
+{"seq": 360, "t": 560.955, "ts": "2026-10-07T10:33:15.241+00:00", "type": "green.promote", "tasks": ["t014"], "sha": null}
+{"seq": 361, "t": 682.065, "ts": "2026-10-07T10:35:16.352+00:00", "type": "green.promote", "tasks": ["t015"], "sha": null}
+{"seq": 362, "t": 619.668, "ts": "2026-10-07T10:34:13.955+00:00", "type": "green.promote", "tasks": ["t016"], "sha": null}
+{"seq": 363, "t": 840.933, "ts": "2026-10-07T10:37:55.220+00:00", "type": "green.promote", "tasks": ["t017"], "sha": null}
+{"seq": 364, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "green.promote", "tasks": ["t018"], "sha": null}
+{"seq": 365, "t": 803.001, "ts": "2026-10-07T10:37:17.288+00:00", "type": "green.promote", "tasks": ["t019"], "sha": null}
+{"seq": 366, "t": 912.79, "ts": "2026-10-07T10:39:07.077+00:00", "type": "green.promote", "tasks": ["t020"], "sha": null}
+{"seq": 367, "t": 861.711, "ts": "2026-10-07T10:38:15.998+00:00", "type": "green.promote", "tasks": ["t021"], "sha": null}
+{"seq": 368, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "green.promote", "tasks": ["t022"], "sha": null}
+{"seq": 369, "t": 881.637, "ts": "2026-10-07T10:38:35.924+00:00", "type": "green.promote", "tasks": ["t023"], "sha": null}
+{"seq": 370, "t": 912.791, "ts": "2026-10-07T10:39:07.077+00:00", "type": "green.promote", "tasks": ["t024"], "sha": null}
+{"seq": 371, "t": 1225.212, "ts": "2026-10-07T10:44:19.499+00:00", "type": "green.promote", "tasks": ["t025"], "sha": null}
+{"seq": 372, "t": 1008.763, "ts": "2026-10-07T10:40:43.050+00:00", "type": "green.promote", "tasks": ["t026"], "sha": null}
+{"seq": 373, "t": 1057.863, "ts": "2026-10-07T10:41:32.150+00:00", "type": "green.promote", "tasks": ["t027"], "sha": null}
+{"seq": 374, "t": 981.317, "ts": "2026-10-07T10:40:15.604+00:00", "type": "green.promote", "tasks": ["t028"], "sha": null}
+{"seq": 375, "t": 933.309, "ts": "2026-10-07T10:39:27.596+00:00", "type": "green.promote", "tasks": ["t029"], "sha": null}
+{"seq": 376, "t": 1127.274, "ts": "2026-10-07T10:42:41.561+00:00", "type": "green.promote", "tasks": ["t030"], "sha": null}
+{"seq": 377, "t": 1302.356, "ts": "2026-10-07T10:45:36.642+00:00", "type": "green.promote", "tasks": ["t031"], "sha": null}
+{"seq": 378, "t": 1082.436, "ts": "2026-10-07T10:41:56.723+00:00", "type": "green.promote", "tasks": ["t032"], "sha": null}
+{"seq": 379, "t": 1165.621, "ts": "2026-10-07T10:43:19.908+00:00", "type": "green.promote", "tasks": ["t033"], "sha": null}
+{"seq": 380, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "green.promote", "tasks": ["t034"], "sha": null}
+{"seq": 381, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "green.promote", "tasks": ["t035"], "sha": null}
+{"seq": 382, "t": 1245.699, "ts": "2026-10-07T10:44:39.986+00:00", "type": "green.promote", "tasks": ["t036"], "sha": null}
+{"seq": 383, "t": 1264.052, "ts": "2026-10-07T10:44:58.339+00:00", "type": "green.promote", "tasks": ["t037"], "sha": null}
+{"seq": 384, "t": 1292.003, "ts": "2026-10-07T10:45:26.289+00:00", "type": "green.promote", "tasks": ["t038"], "sha": null}
+{"seq": 385, "t": 1342.192, "ts": "2026-10-07T10:46:16.479+00:00", "type": "final.check", "sha": "2677d3d547dc026efc8d0c79a18583d86a9c2949", "suite_green": true, "acceptance_green": true}
+{"seq": 386, "t": 1342.192, "ts": "2026-10-07T10:46:16.479+00:00", "type": "race.end", "aborted": null}
