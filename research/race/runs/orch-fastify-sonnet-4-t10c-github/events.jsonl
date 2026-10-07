@@ -1,0 +1,55 @@
+{"seq": 1, "t": 0.0, "ts": "2026-10-07T12:21:08.192+00:00", "type": "race.setup", "forge": "github", "repo": "https://github.com/kintohubtest/beanstalk-orch-fastify-7", "base": "8f23ef7ca8a042112bd8bd2477392ebc40cf0966", "tasks": ["t001", "t002", "t003", "t004", "t005", "t006", "t007", "t008", "t009", "t010"]}
+{"seq": 2, "t": 0.0, "ts": "2026-10-07T12:21:08.192+00:00", "type": "race.start", "policy": "orchestrated-github", "agent": "claude", "model": "sonnet", "agents": 4, "tasks": ["t001", "t002", "t003", "t004", "t005", "t006", "t007", "t008", "t009", "t010"]}
+{"seq": 3, "t": 166.808, "ts": "2026-10-07T12:23:55.000+00:00", "type": "ci.end", "ci": "c0", "purpose": "precheck", "green": true, "ci_seconds": 54.0}
+{"seq": 4, "t": 205.808, "ts": "2026-10-07T12:24:34.000+00:00", "type": "ci.end", "ci": "c1", "purpose": "precheck", "green": true, "ci_seconds": 44.0}
+{"seq": 5, "t": 209.808, "ts": "2026-10-07T12:24:38.000+00:00", "type": "change.ready", "change": "#30", "task": "t004"}
+{"seq": 6, "t": 267.808, "ts": "2026-10-07T12:25:36.000+00:00", "type": "ci.end", "ci": "c2", "purpose": "precheck", "green": true, "ci_seconds": 57.0}
+{"seq": 7, "t": 331.808, "ts": "2026-10-07T12:26:40.000+00:00", "type": "change.ready", "change": "#29", "task": "t003"}
+{"seq": 8, "t": 335.808, "ts": "2026-10-07T12:26:44.000+00:00", "type": "ci.end", "ci": "c3", "purpose": "precheck", "green": true, "ci_seconds": 47.0}
+{"seq": 9, "t": 351.808, "ts": "2026-10-07T12:27:00.000+00:00", "type": "ci.end", "ci": "c4", "purpose": "precheck", "green": true, "ci_seconds": 58.0}
+{"seq": 10, "t": 353.808, "ts": "2026-10-07T12:27:02.000+00:00", "type": "change.ready", "change": "#28", "task": "t001"}
+{"seq": 11, "t": 366.808, "ts": "2026-10-07T12:27:15.000+00:00", "type": "change.ready", "change": "#31", "task": "t005"}
+{"seq": 12, "t": 376.808, "ts": "2026-10-07T12:27:25.000+00:00", "type": "ci.end", "ci": "c5", "purpose": "precheck", "green": true, "ci_seconds": 58.0}
+{"seq": 13, "t": 425.808, "ts": "2026-10-07T12:28:14.000+00:00", "type": "change.ready", "change": "#33", "task": "t008"}
+{"seq": 14, "t": 446.808, "ts": "2026-10-07T12:28:35.000+00:00", "type": "change.ready", "change": "#27", "task": "t002"}
+{"seq": 15, "t": 472.808, "ts": "2026-10-07T12:29:01.000+00:00", "type": "ci.end", "ci": "c6", "purpose": "precheck", "green": true, "ci_seconds": 52.0}
+{"seq": 16, "t": 502.808, "ts": "2026-10-07T12:29:31.000+00:00", "type": "ci.end", "ci": "c7", "purpose": "batch", "green": true, "ci_seconds": 50.0}
+{"seq": 17, "t": 518.808, "ts": "2026-10-07T12:29:47.000+00:00", "type": "ci.end", "ci": "c8", "purpose": "precheck", "green": true, "ci_seconds": 44.0}
+{"seq": 18, "t": 528.808, "ts": "2026-10-07T12:29:57.000+00:00", "type": "ci.end", "ci": "c9", "purpose": "precheck", "green": true, "ci_seconds": 55.0}
+{"seq": 19, "t": 536.808, "ts": "2026-10-07T12:30:05.000+00:00", "type": "change.integrated", "change": "#30", "task": "t004", "target": "main"}
+{"seq": 20, "t": 536.808, "ts": "2026-10-07T12:30:05.000+00:00", "type": "task.green", "task": "t004", "sha": "91c2463cd651a7d0de65f503f29170d8dfc8d80f", "target": "main"}
+{"seq": 21, "t": 574.808, "ts": "2026-10-07T12:30:43.000+00:00", "type": "change.ready", "change": "#35", "task": "t007"}
+{"seq": 22, "t": 597.808, "ts": "2026-10-07T12:31:06.000+00:00", "type": "change.ready", "change": "#32", "task": "t006"}
+{"seq": 23, "t": 645.808, "ts": "2026-10-07T12:31:54.000+00:00", "type": "change.ready", "change": "#34", "task": "t010"}
+{"seq": 24, "t": 653.808, "ts": "2026-10-07T12:32:02.000+00:00", "type": "ci.end", "ci": "c10", "purpose": "batch", "green": true, "ci_seconds": 58.0}
+{"seq": 25, "t": 655.808, "ts": "2026-10-07T12:32:04.000+00:00", "type": "ci.end", "ci": "c11", "purpose": "batch", "green": true, "ci_seconds": 48.0}
+{"seq": 26, "t": 662.808, "ts": "2026-10-07T12:32:11.000+00:00", "type": "change.integrated", "change": "#29", "task": "t003", "target": "main"}
+{"seq": 27, "t": 662.808, "ts": "2026-10-07T12:32:11.000+00:00", "type": "change.integrated", "change": "#28", "task": "t001", "target": "main"}
+{"seq": 28, "t": 662.808, "ts": "2026-10-07T12:32:11.000+00:00", "type": "task.green", "task": "t003", "sha": "532323719ece5ff84003ba4be7daab9c93d5b49f", "target": "main"}
+{"seq": 29, "t": 662.808, "ts": "2026-10-07T12:32:11.000+00:00", "type": "task.green", "task": "t001", "sha": "78b4688e30f0f0d2ae1e7f154450b752022aac8f", "target": "main"}
+{"seq": 30, "t": 724.808, "ts": "2026-10-07T12:33:13.000+00:00", "type": "ci.end", "ci": "c12", "purpose": "batch", "green": true, "ci_seconds": 53.0}
+{"seq": 31, "t": 731.808, "ts": "2026-10-07T12:33:20.000+00:00", "type": "ci.end", "ci": "c13", "purpose": "batch", "green": true, "ci_seconds": 43.0}
+{"seq": 32, "t": 757.808, "ts": "2026-10-07T12:33:46.000+00:00", "type": "change.integrated", "change": "#31", "task": "t005", "target": "main"}
+{"seq": 33, "t": 757.808, "ts": "2026-10-07T12:33:46.000+00:00", "type": "change.integrated", "change": "#33", "task": "t008", "target": "main"}
+{"seq": 34, "t": 757.808, "ts": "2026-10-07T12:33:46.000+00:00", "type": "task.green", "task": "t005", "sha": "9fe2cf4e4d3a70ce299bca19a7e03b6af5f43d41", "target": "main"}
+{"seq": 35, "t": 757.808, "ts": "2026-10-07T12:33:46.000+00:00", "type": "task.green", "task": "t008", "sha": "a8280064b581b1cb3391004a97455d346a54c967", "target": "main"}
+{"seq": 36, "t": 807.808, "ts": "2026-10-07T12:34:36.000+00:00", "type": "ci.end", "ci": "c14", "purpose": "batch", "green": true, "ci_seconds": 44.0}
+{"seq": 37, "t": 853.808, "ts": "2026-10-07T12:35:22.000+00:00", "type": "ci.end", "ci": "c15", "purpose": "batch", "green": true, "ci_seconds": 55.0}
+{"seq": 38, "t": 885.808, "ts": "2026-10-07T12:35:54.000+00:00", "type": "change.integrated", "change": "#27", "task": "t002", "target": "main"}
+{"seq": 39, "t": 885.808, "ts": "2026-10-07T12:35:54.000+00:00", "type": "change.integrated", "change": "#35", "task": "t007", "target": "main"}
+{"seq": 40, "t": 885.808, "ts": "2026-10-07T12:35:54.000+00:00", "type": "task.green", "task": "t002", "sha": "3fa0500e96a64d971a85652a4ed9d59bc4ef3d4a", "target": "main"}
+{"seq": 41, "t": 885.808, "ts": "2026-10-07T12:35:54.000+00:00", "type": "task.green", "task": "t007", "sha": "391b33ba5e35bfbb061ca5d3b277f6362bf7a3ca", "target": "main"}
+{"seq": 42, "t": 895.808, "ts": "2026-10-07T12:36:04.000+00:00", "type": "ci.end", "ci": "c16", "purpose": "batch", "green": true, "ci_seconds": 58.0}
+{"seq": 43, "t": 921.808, "ts": "2026-10-07T12:36:30.000+00:00", "type": "change.integrated", "change": "#32", "task": "t006", "target": "main"}
+{"seq": 44, "t": 921.808, "ts": "2026-10-07T12:36:30.000+00:00", "type": "task.green", "task": "t006", "sha": "7bcbc1ad2e86cd4820987d5b29e8a49ac501f96a", "target": "main"}
+{"seq": 45, "t": 950.808, "ts": "2026-10-07T12:36:59.000+00:00", "type": "ci.end", "ci": "c17", "purpose": "batch", "green": true, "ci_seconds": 59.0}
+{"seq": 46, "t": 984.808, "ts": "2026-10-07T12:37:33.000+00:00", "type": "change.integrated", "change": "#34", "task": "t010", "target": "main"}
+{"seq": 47, "t": 984.808, "ts": "2026-10-07T12:37:33.000+00:00", "type": "task.green", "task": "t010", "sha": "c438185cbf8bb59046c5f69b49d94800b9ca5f76", "target": "main"}
+{"seq": 48, "t": 1613.808, "ts": "2026-10-07T12:48:02.000+00:00", "type": "ci.end", "ci": "c18", "purpose": "precheck", "green": true, "ci_seconds": 57.0}
+{"seq": 49, "t": 1653.808, "ts": "2026-10-07T12:48:42.000+00:00", "type": "change.ready", "change": "#36", "task": "t009"}
+{"seq": 50, "t": 1735.808, "ts": "2026-10-07T12:50:04.000+00:00", "type": "ci.end", "ci": "c19", "purpose": "batch", "green": true, "ci_seconds": 60.0}
+{"seq": 51, "t": 1769.808, "ts": "2026-10-07T12:50:38.000+00:00", "type": "change.integrated", "change": "#36", "task": "t009", "target": "main"}
+{"seq": 52, "t": 1769.808, "ts": "2026-10-07T12:50:38.000+00:00", "type": "task.green", "task": "t009", "sha": "be21b1c4a3f1a7a130c06e4f3d1f493c2e65368e", "target": "main"}
+{"seq": 53, "t": 1782.605, "ts": "2026-10-07T12:50:50.797+00:00", "type": "invocation.end", "inv": "orchestrator", "kind": "orchestrator", "task": null, "agent": "lead", "cost_usd": 2.4514, "ok": true, "subtype": "success", "num_turns": 43}
+{"seq": 54, "t": 1782.605, "ts": "2026-10-07T12:50:50.797+00:00", "type": "race.end", "aborted": null, "spent_usd": 2.4514}
+{"seq": 55, "t": 1785.44, "ts": "2026-10-07T12:50:53.632+00:00", "type": "final.check", "sha": "be21b1c4a3f1a7a130c06e4f3d1f493c2e65368e", "suite_green": true, "suite_retried": false, "suite_failed": [], "tasks_accepted": 10, "tasks_total": 10, "failing_files": []}

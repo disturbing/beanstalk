@@ -265,7 +265,7 @@ FROM product_events WHERE timestamp > NOW() - INTERVAL '30' DAY GROUP BY event
 
 ### 10.7 Rough edges
 
-- On a deployment with **no runs** (a fresh stack), every OAuth `/mcp` request answers 404 "no run to read yet", `whoami` included, because a session reads one run until repositories reach MCP (`mcp/src/oauth/oauth-mcp.ts`, `sessionRun`). Staging set `DEMO_RUN`; live has runs. The MCP write-verbs lane owns that file.
+- The staging walk-through ran before merging the MCP repository tools (`23`); on that code a deployment with no runs answered every OAuth `/mcp` request 404 "no run to read yet", so staging set `DEMO_RUN`. The merged code no longer stops there.
 - Settling sessions are matched to listed grants by client and a 30 s window; two approvals of the same client within 30 s show as one until the list catches up.
 - The Turnstile test widget says "For testing only" on staging, as Cloudflare draws it.
 

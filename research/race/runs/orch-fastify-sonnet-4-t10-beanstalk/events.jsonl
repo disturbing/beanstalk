@@ -1,0 +1,59 @@
+{"seq": 1, "t": 0.0, "ts": "2026-10-07T12:03:45.934+00:00", "type": "race.setup", "forge": "beanstalk", "repo": "https://beanstalk-gateway.<account>.workers.dev/git/race/orch-fastify-7-74560.git", "base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce", "tasks": ["t001", "t002", "t003", "t004", "t005", "t006", "t007", "t008", "t009", "t010"]}
+{"seq": 2, "t": 0.0, "ts": "2026-10-07T12:03:45.934+00:00", "type": "race.start", "policy": "orchestrated-beanstalk", "agent": "claude", "model": "sonnet", "agents": 4, "tasks": ["t001", "t002", "t003", "t004", "t005", "t006", "t007", "t008", "t009", "t010"]}
+{"seq": 3, "t": 62.131, "ts": "2026-10-07T12:04:48.066+00:00", "type": "change.ready", "change": "t001", "task": null}
+{"seq": 4, "t": 138.229, "ts": "2026-10-07T12:06:04.164+00:00", "type": "ci.end", "ci": "c0", "purpose": "preland", "green": true, "ci_seconds": 57.149}
+{"seq": 5, "t": 139.545, "ts": "2026-10-07T12:06:05.480+00:00", "type": "change.integrated", "change": "t001", "task": null, "target": "sprout"}
+{"seq": 6, "t": 139.545, "ts": "2026-10-07T12:06:05.480+00:00", "type": "change.stable", "change": "t001", "task": null, "target": "stalk"}
+{"seq": 7, "t": 139.545, "ts": "2026-10-07T12:06:05.480+00:00", "type": "task.green", "task": "t001", "sha": "5f832648dc1472fe24e55c4b9deda3610f1e3b3e", "target": "main"}
+{"seq": 8, "t": 156.091, "ts": "2026-10-07T12:06:22.026+00:00", "type": "change.ready", "change": "t002", "task": null}
+{"seq": 9, "t": 206.214, "ts": "2026-10-07T12:07:12.149+00:00", "type": "ci.end", "ci": "c1", "purpose": "preland", "green": true, "ci_seconds": 43.841}
+{"seq": 10, "t": 207.761, "ts": "2026-10-07T12:07:13.696+00:00", "type": "change.integrated", "change": "t002", "task": null, "target": "sprout"}
+{"seq": 11, "t": 207.761, "ts": "2026-10-07T12:07:13.696+00:00", "type": "change.stable", "change": "t002", "task": null, "target": "stalk"}
+{"seq": 12, "t": 207.761, "ts": "2026-10-07T12:07:13.696+00:00", "type": "task.green", "task": "t002", "sha": "07be9292b2837894e5ae36df00faa9285f73d4f5", "target": "main"}
+{"seq": 13, "t": 216.507, "ts": "2026-10-07T12:07:22.442+00:00", "type": "change.ready", "change": "t003", "task": null}
+{"seq": 14, "t": 269.043, "ts": "2026-10-07T12:08:14.978+00:00", "type": "ci.end", "ci": "c2", "purpose": "preland", "green": true, "ci_seconds": 46.067}
+{"seq": 15, "t": 270.286, "ts": "2026-10-07T12:08:16.221+00:00", "type": "change.integrated", "change": "t003", "task": null, "target": "sprout"}
+{"seq": 16, "t": 270.286, "ts": "2026-10-07T12:08:16.221+00:00", "type": "change.stable", "change": "t003", "task": null, "target": "stalk"}
+{"seq": 17, "t": 270.286, "ts": "2026-10-07T12:08:16.221+00:00", "type": "task.green", "task": "t003", "sha": "c5caa60b7467aeb814ef088dc7bcf8bb78689613", "target": "main"}
+{"seq": 18, "t": 274.829, "ts": "2026-10-07T12:08:20.764+00:00", "type": "change.ready", "change": "t004", "task": null}
+{"seq": 19, "t": 326.199, "ts": "2026-10-07T12:09:12.134+00:00", "type": "ci.end", "ci": "c3", "purpose": "preland", "green": true, "ci_seconds": 44.758}
+{"seq": 20, "t": 328.133, "ts": "2026-10-07T12:09:14.068+00:00", "type": "change.integrated", "change": "t004", "task": null, "target": "sprout"}
+{"seq": 21, "t": 328.133, "ts": "2026-10-07T12:09:14.068+00:00", "type": "change.stable", "change": "t004", "task": null, "target": "stalk"}
+{"seq": 22, "t": 328.133, "ts": "2026-10-07T12:09:14.068+00:00", "type": "task.green", "task": "t004", "sha": "7a6be942b341969e0f9de4b18749519f69355f2c", "target": "main"}
+{"seq": 23, "t": 352.634, "ts": "2026-10-07T12:09:38.569+00:00", "type": "change.ready", "change": "t005", "task": null}
+{"seq": 24, "t": 403.545, "ts": "2026-10-07T12:10:29.480+00:00", "type": "ci.end", "ci": "c4", "purpose": "preland", "green": true, "ci_seconds": 44.9}
+{"seq": 25, "t": 405.379, "ts": "2026-10-07T12:10:31.314+00:00", "type": "change.integrated", "change": "t005", "task": null, "target": "sprout"}
+{"seq": 26, "t": 405.379, "ts": "2026-10-07T12:10:31.314+00:00", "type": "change.stable", "change": "t005", "task": null, "target": "stalk"}
+{"seq": 27, "t": 405.379, "ts": "2026-10-07T12:10:31.314+00:00", "type": "task.green", "task": "t005", "sha": "598bc200097d9800132013d0535ea9c7dffe7600", "target": "main"}
+{"seq": 28, "t": 424.576, "ts": "2026-10-07T12:10:50.511+00:00", "type": "change.ready", "change": "t006", "task": null}
+{"seq": 29, "t": 476.241, "ts": "2026-10-07T12:11:42.176+00:00", "type": "ci.end", "ci": "c5", "purpose": "preland", "green": true, "ci_seconds": 45.23}
+{"seq": 30, "t": 478.457, "ts": "2026-10-07T12:11:44.392+00:00", "type": "change.integrated", "change": "t006", "task": null, "target": "sprout"}
+{"seq": 31, "t": 478.457, "ts": "2026-10-07T12:11:44.392+00:00", "type": "change.stable", "change": "t006", "task": null, "target": "stalk"}
+{"seq": 32, "t": 478.457, "ts": "2026-10-07T12:11:44.392+00:00", "type": "task.green", "task": "t006", "sha": "76cf8edb3ca85b4d3ebab7d44cbe8073ffd89140", "target": "main"}
+{"seq": 33, "t": 487.022, "ts": "2026-10-07T12:11:52.957+00:00", "type": "change.ready", "change": "t007", "task": null}
+{"seq": 34, "t": 540.072, "ts": "2026-10-07T12:12:46.007+00:00", "type": "ci.end", "ci": "c6", "purpose": "preland", "green": true, "ci_seconds": 45.846}
+{"seq": 35, "t": 541.329, "ts": "2026-10-07T12:12:47.264+00:00", "type": "change.integrated", "change": "t007", "task": null, "target": "sprout"}
+{"seq": 36, "t": 541.329, "ts": "2026-10-07T12:12:47.264+00:00", "type": "change.stable", "change": "t007", "task": null, "target": "stalk"}
+{"seq": 37, "t": 541.329, "ts": "2026-10-07T12:12:47.264+00:00", "type": "task.green", "task": "t007", "sha": "21b3eb67e716a0b8fec5b571de953f7dc01e79e5", "target": "main"}
+{"seq": 38, "t": 552.955, "ts": "2026-10-07T12:12:58.890+00:00", "type": "change.ready", "change": "t008", "task": null}
+{"seq": 39, "t": 607.488, "ts": "2026-10-07T12:13:53.423+00:00", "type": "ci.end", "ci": "c7", "purpose": "preland", "green": true, "ci_seconds": 48.339}
+{"seq": 40, "t": 609.012, "ts": "2026-10-07T12:13:54.947+00:00", "type": "change.integrated", "change": "t008", "task": null, "target": "sprout"}
+{"seq": 41, "t": 609.012, "ts": "2026-10-07T12:13:54.947+00:00", "type": "change.stable", "change": "t008", "task": null, "target": "stalk"}
+{"seq": 42, "t": 609.012, "ts": "2026-10-07T12:13:54.947+00:00", "type": "task.green", "task": "t008", "sha": "391076ebfe8eb1a0860ee50b76e8218e45b2b2f0", "target": "main"}
+{"seq": 43, "t": 622.796, "ts": "2026-10-07T12:14:08.731+00:00", "type": "change.ready", "change": "t010", "task": null}
+{"seq": 44, "t": 676.224, "ts": "2026-10-07T12:15:02.159+00:00", "type": "ci.end", "ci": "c8", "purpose": "preland", "green": true, "ci_seconds": 46.471}
+{"seq": 45, "t": 677.733, "ts": "2026-10-07T12:15:03.668+00:00", "type": "change.integrated", "change": "t010", "task": null, "target": "sprout"}
+{"seq": 46, "t": 677.733, "ts": "2026-10-07T12:15:03.668+00:00", "type": "change.stable", "change": "t010", "task": null, "target": "stalk"}
+{"seq": 47, "t": 677.733, "ts": "2026-10-07T12:15:03.668+00:00", "type": "task.green", "task": "t010", "sha": "4565b088508b05c33f715b5789b9da9d2f6ab4b0", "target": "main"}
+{"seq": 48, "t": 686.472, "ts": "2026-10-07T12:15:12.407+00:00", "type": "change.ready", "change": "t009", "task": "t010"}
+{"seq": 49, "t": 736.596, "ts": "2026-10-07T12:16:02.531+00:00", "type": "ci.end", "ci": "c9", "purpose": "preland", "green": true, "ci_seconds": 47.8}
+{"seq": 50, "t": 737.932, "ts": "2026-10-07T12:16:03.867+00:00", "type": "change.integrated", "change": "t009", "task": "t010", "target": "sprout"}
+{"seq": 51, "t": 737.932, "ts": "2026-10-07T12:16:03.867+00:00", "type": "change.stable", "change": "t009", "task": "t010", "target": "stalk"}
+{"seq": 52, "t": 779.015, "ts": "2026-10-07T12:16:44.950+00:00", "type": "change.ready", "change": "t009-b", "task": null}
+{"seq": 53, "t": 833.748, "ts": "2026-10-07T12:17:39.683+00:00", "type": "ci.end", "ci": "c10", "purpose": "preland", "green": true, "ci_seconds": 48.108}
+{"seq": 54, "t": 835.154, "ts": "2026-10-07T12:17:41.089+00:00", "type": "change.integrated", "change": "t009-b", "task": null, "target": "sprout"}
+{"seq": 55, "t": 835.154, "ts": "2026-10-07T12:17:41.089+00:00", "type": "change.stable", "change": "t009-b", "task": null, "target": "stalk"}
+{"seq": 56, "t": 835.154, "ts": "2026-10-07T12:17:41.089+00:00", "type": "task.green", "task": "t009", "sha": "d9fb1728cfb19a297fcbeeedb5f0a3b20436704b", "target": "main"}
+{"seq": 57, "t": 839.701, "ts": "2026-10-07T12:17:45.635+00:00", "type": "invocation.end", "inv": "orchestrator", "kind": "orchestrator", "task": null, "agent": "lead", "cost_usd": 2.1, "ok": true, "subtype": "success", "num_turns": 32}
+{"seq": 58, "t": 839.701, "ts": "2026-10-07T12:17:45.635+00:00", "type": "race.end", "aborted": null, "spent_usd": 2.1}
+{"seq": 59, "t": 840.427, "ts": "2026-10-07T12:17:46.361+00:00", "type": "final.check", "sha": "d9fb1728cfb19a297fcbeeedb5f0a3b20436704b", "suite_green": true, "suite_retried": false, "suite_failed": [], "tasks_accepted": 10, "tasks_total": 10, "failing_files": []}

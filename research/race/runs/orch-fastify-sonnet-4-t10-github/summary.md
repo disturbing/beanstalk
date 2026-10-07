@@ -18,7 +18,7 @@ _orchestrated race: arena=fastify, 10 tasks, forge=github, claude (sonnet) with 
 | Wall (orchestrator) / settled (min) | 17.9 / 18.0 |
 | Model spend (USD) | 2.1997 |
 | CI minutes | 21.52 (batch 10.77, precheck 10.75) |
-| Subagent calls / max in one message / background | 12 / 1 / 12 |
+| Subagent calls / most running at once | 12 / 5 |
 | Final: suite green / tasks accepted / correct | True / 10 of 10 / True |
 
 ## Changes

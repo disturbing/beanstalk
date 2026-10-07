@@ -14,8 +14,10 @@
     // The web app the tools link to (`preview_url`, `preview_link`) and where /authorize sends
     // people to sign in and approve a client (`/connect`).
     "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
-    // The run OAuth sessions read until persistent repositories exist (Phase 2). Empty: the
-    // newest run the gateway lists.
+    // The gateway's public origin: clone URLs and the host of git_credentials' credential.
+    "GIT_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
+    // The run OAuth sessions read when a tool names no repository (`repo`). Empty: the newest
+    // run the gateway lists.
     "DEMO_RUN": "",
     // Ask's classifier, as in packages/web: keywords unless an AI binding is added.
     "ASK_CLASSIFIER": "keywords",

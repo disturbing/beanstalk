@@ -20,6 +20,11 @@ const SESSION: AgentSessionContext = {
   clientName: 'Claude Code',
   via: 'oauth',
   scopes: ['read', 'write'],
+  principal: {
+    user: { id: 'u_dana', handle: 'dana' },
+    scopes: ['read', 'write'],
+    label: 'Claude Code',
+  },
   mintGitToken: () => Promise.resolve(null),
 };
 

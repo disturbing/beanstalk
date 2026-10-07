@@ -304,72 +304,104 @@
     }
   ],
   "orchestrator": {
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 334,
+        "outputTokens": 71121,
+        "cacheReadInputTokens": 3813033,
+        "cacheCreationInputTokens": 257155,
+        "webSearchRequests": 0,
+        "costUSD": 2.1996651000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 10994,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
     "cost_usd": 2.1997,
     "ok": true,
     "subtype": "success",
-    "turns": 1,
+    "turns": 28,
     "agent_calls": 12,
     "max_agent_calls_in_one_message": 1,
     "background_agent_calls": 12,
+    "max_concurrent_subagents": 5,
     "commands": {
-      "cd": 107,
-      "git fetch": 9,
-      "git worktree": 4,
-      "gh pr": 3,
-      "for": 3,
-      "sed": 2,
-      "W=.worktrees/t002fix;": 1,
-      "grep": 1,
-      "ls": 1,
-      "sleep": 1
+      "grep": 21,
+      "node": 20,
+      "cd": 15,
+      "git worktree": 12,
+      "sed": 12,
+      "python3": 9,
+      "git push": 6,
+      "break;": 6,
+      "gh pr": 6,
+      "git show": 3,
+      "git diff": 3,
+      "ls": 3,
+      "(err.statusCode": 2,
+      "for": 2,
+      "sleep": 2,
+      "validatorFunction(isUndefined": 1,
+      "git status": 1,
+      "$1<400'": 1,
+      "typeof": 1,
+      "cat": 1,
+      "npm": 1,
+      "new": 1,
+      "ln": 1,
+      "request[kRouteContext]": 1,
+      "req.socket.destroyed": 1
     }
   },
   "greens": {
     "t002": {
       "sha": "d8deab989537bcd70e725aa58ec4410df0c70669",
-      "seconds": 135.38
+      "seconds": 219.38
     },
     "t003": {
       "sha": "404861768ae0c9e04092543bbfe44fd58f98cf23",
-      "seconds": 141.38
+      "seconds": 219.38
     },
     "t004": {
       "sha": "2a23b0005a0444dc56825efc0d33d4ae159c168e",
-      "seconds": 182.38
+      "seconds": 313.38
     },
     "t001": {
       "sha": "f0725b2018ab9ee849e4eb3b8ae4f6d40b9637d4",
-      "seconds": 201.38
+      "seconds": 313.38
     },
     "t006": {
       "sha": "a5fd9453a648d0680087386b336d8fcaf91e61dc",
-      "seconds": 440.38
+      "seconds": 525.38
     },
     "t005": {
       "sha": "6e61cf02fdeb7f2077ee753f4c83d70e3d1fd5b5",
-      "seconds": 444.38
+      "seconds": 542.38
     },
     "t007": {
       "sha": "7820d03eae0a52f9fd5061c8da54283e9e344741",
-      "seconds": 625.38
+      "seconds": 709.38
     },
     "t008": {
       "sha": "1bc027cfd15706399d1ba54f271d66ca0a864182",
-      "seconds": 669.38
+      "seconds": 760.38
     },
     "t010": {
       "sha": "e19be1387f7fdc2857a9660846879875445fb759",
-      "seconds": 718.38
+      "seconds": 819.38
     },
     "t009": {
       "sha": "892bd12c36b66a7668fc610be748ad9d8cbbe451",
-      "seconds": 952.38
+      "seconds": 1062.38
     }
   },
   "replay": [
     {
       "sha": "d8deab989537bcd70e725aa58ec4410df0c70669",
-      "at": 1791367763.0,
+      "at": 1791367847.0,
       "green": [
         "t002"
       ],
@@ -393,7 +425,7 @@
     },
     {
       "sha": "404861768ae0c9e04092543bbfe44fd58f98cf23",
-      "at": 1791367769.0,
+      "at": 1791367847.0,
       "green": [
         "t003"
       ],
@@ -416,7 +448,7 @@
     },
     {
       "sha": "2a23b0005a0444dc56825efc0d33d4ae159c168e",
-      "at": 1791367810.0,
+      "at": 1791367941.0,
       "green": [
         "t004"
       ],
@@ -438,7 +470,7 @@
     },
     {
       "sha": "f0725b2018ab9ee849e4eb3b8ae4f6d40b9637d4",
-      "at": 1791367829.0,
+      "at": 1791367941.0,
       "green": [
         "t001"
       ],
@@ -458,7 +490,7 @@
     },
     {
       "sha": "15fd30ad3711badca58c2f5dac82a023b422836e",
-      "at": 1791368032.0,
+      "at": 1791368117.0,
       "green": [],
       "failing_files": [
         "test/404s.pr5732.test.js",
@@ -476,7 +508,7 @@
     },
     {
       "sha": "a5fd9453a648d0680087386b336d8fcaf91e61dc",
-      "at": 1791368068.0,
+      "at": 1791368153.0,
       "green": [
         "t006"
       ],
@@ -494,7 +526,7 @@
     },
     {
       "sha": "6e61cf02fdeb7f2077ee753f4c83d70e3d1fd5b5",
-      "at": 1791368072.0,
+      "at": 1791368170.0,
       "green": [
         "t005"
       ],
@@ -511,7 +543,7 @@
     },
     {
       "sha": "7820d03eae0a52f9fd5061c8da54283e9e344741",
-      "at": 1791368253.0,
+      "at": 1791368337.0,
       "green": [
         "t007"
       ],
@@ -525,7 +557,7 @@
     },
     {
       "sha": "1bc027cfd15706399d1ba54f271d66ca0a864182",
-      "at": 1791368297.0,
+      "at": 1791368388.0,
       "green": [
         "t008"
       ],
@@ -538,7 +570,7 @@
     },
     {
       "sha": "e19be1387f7fdc2857a9660846879875445fb759",
-      "at": 1791368346.0,
+      "at": 1791368447.0,
       "green": [
         "t010"
       ],
@@ -549,7 +581,7 @@
     },
     {
       "sha": "2ee65bddb131e6ba7c79d67db931171db9dd699e",
-      "at": 1791368497.0,
+      "at": 1791368596.0,
       "green": [],
       "failing_files": [
         "test/handler-timeout.test.js",
@@ -558,7 +590,7 @@
     },
     {
       "sha": "892bd12c36b66a7668fc610be748ad9d8cbbe451",
-      "at": 1791368580.0,
+      "at": 1791368690.0,
       "green": [
         "t009"
       ],
@@ -586,5 +618,6 @@
       "t009": true,
       "t010": true
     }
-  }
+  },
+  "greens_timing": "merge time of the PR whose squash commit first passes (re-timed 2026-10-07)"
 }
