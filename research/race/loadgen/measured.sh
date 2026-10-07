@@ -9,9 +9,12 @@ for SEED in $SEEDS; do
   for N in $NS; do
     OUT=runs/lg-fastify-$N-s$SEED
     if [ -f "$OUT-github/summary.json" ] && [ -f "$OUT-beanstalk/summary.json" ]; then continue; fi
+    # never overlap another live run (another agent's orchestrated races share the gateway and the Actions cap)
+    HOST=$(echo "$GW" | sed -E 's|https?://([^/]+).*|\1|; s|\.|\\.|g')
+    while pgrep -f "$HOST|orchestrated" >/dev/null; do sleep 30; done
     echo "== $(date -u +%H:%M:%S) N=$N seed=$SEED"
     python3 -m loadgen.run --forge both --workers "$N" --seed "$SEED" --gateway "$GW" --dev-vars "$DEV_VARS" \
-      --label measured --out "$OUT"
+      --label "measured${GW_VERSION:+ gateway $GW_VERSION}" --out "$OUT"
     # stop when GitHub rate limits bit (recorded in the run); the caller decides
     if grep -q '"gh.rate_limited"' "$OUT-github/events.jsonl" 2>/dev/null; then
       echo "GitHub rate limits hit in $OUT-github; stopping"; exit 4
