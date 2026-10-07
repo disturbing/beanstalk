@@ -27,7 +27,7 @@
   {
     "name": "passkey sign-up (with Turnstile) lands on Home",
     "ok": true,
-    "detail": "acct-92373f"
+    "detail": "acct-4d9fbb"
   },
   {
     "name": "Home: checklist 0 of 3, demo repository listed, no sessions",
@@ -42,7 +42,7 @@
   {
     "name": "Home lists the Claude Code session within 5 s of approval (no reload)",
     "ok": true,
-    "detail": "3636 ms"
+    "detail": "2893 ms"
   },
   {
     "name": "Claude Code: login finished and the server is connected",
@@ -67,15 +67,15 @@
   {
     "name": "whoami over OAuth names the person",
     "ok": true,
-    "detail": "{\"handle\":\"acct-92373f\",\"via\":\"oauth\",\"scopes\":[\"read\",\"write\"]}"
+    "detail": "{\"handle\":\"acct-4d9fbb\",\"via\":\"oauth\",\"scopes\":[\"read\",\"write\"]}"
   },
   {
-    "name": "git_credential minted a session token",
+    "name": "Home: connect and repository ticked (2 of 3)",
     "ok": true,
     "detail": ""
   },
   {
-    "name": "Home: connect and repository ticked (2 of 3)",
+    "name": "git_credentials minted a session token for the repository",
     "ok": true,
     "detail": ""
   },
@@ -87,7 +87,7 @@
   {
     "name": "git push of bean/readme-line accepted",
     "ok": true,
-    "detail": "remote: beanstalk: validated: on the stalk at 7a446c4         | remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/readme-line/status        "
+    "detail": "remote: beanstalk: validated: on the stalk at 0a62ee1         | remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/readme-line/status        "
   },
   {
     "name": "Home: checklist gone after the first bean",
