@@ -282,6 +282,17 @@ Every git request goes through it (race URLs too). To add user tokens: verify th
 
 ---
 
+- **Pre-land capacity** (§7.1, 2026-10-07): Miniflare tests for the pool's rule (`src/capacity/sandbox-pool.test.ts`: lowest index, renewal, 32 at once, the cap, race reservations, the floor, standing instances, fair share), the lease wait (`sandbox-lease.test.ts`: nothing runs while it waits, the wait is counted, an unreachable pool falls back to the floor), suite timeouts (`run/run-jobs.test.ts`: re-run on the same instance, a bean's check that always times out fails as `suite_timeout` and never as a red, a validation's goes to the engine), the pool Durable Object and a race's reservation and release (`test/runner-capacity.test.ts`), and five concurrent pushes landing on at most `preland_sandboxes` sandboxes with every lease given back (`test/git-native.test.ts`). On a separate stack (`beanstalk-gateway-staging-cap`, its own runner app at standard-4 and `max_instances` 48, Artifacts `beanstalk-race-staging-cap` / `beanstalk-repos-staging-cap`), the load generator (fastify, seed 7, closed loop, `-o wait`), first on `prototype` at `6608170` (as live), then on this change:
+
+  | run | integrated | wall | ready→integrated med / p90 | timeouts reported as red | other reds | suite s med / max | sandboxes at once |
+  |---|---|---|---|---|---|---|---|
+  | before, N = 16 | 38/38 | 35.8 min | 8.5 / 28.8 min | 36 | 7 | 271 / 300 | 2 (shared) |
+  | before, N = 32 | 37/38 | 25.5 min | 15.3 / 21.4 min | 37 | 13 | 231 / 300 | 2 (shared) |
+  | after, N = 16 | 38/38 | 10.1 min | 1.2 / 3.4 min | 0 | 2 | 40 / 88 | 14 at peak, 0 waits |
+  | after, N = 32 | 38/38 | 11.5 min | 2.5 / 7.0 min | 0 | 16 | 39 / 67 | 22 at peak, 0 waits |
+
+  Live's run (`lg-fastify-16-s7-beanstalk`, the load generator's branch) had 101 timeouts reported as red. After the change no suite timed out at all (the pool's `timeouts` count stayed 0), every lease was back at the end, and CI minutes fell from 410 to 54 (N = 16): the timed-out suites were the cost. The 3 `error` verdicts per run are pushes refused within 3 s at the start (before and after; the load generator re-pushes), and the after-32 run's 3 `timeout` verdicts are verdicts its parser did not classify (checks of 16 to 48 s), not suite timeouts. Runs: `research/race/runs/cap-{before,after}-{16,32}/`, the pool's state every 5 s in `research/race/runs/cap-after-pool-watch.jsonl`.
+
 ## 10. Gaps and next steps
 
 - **Slots bound beans waiting for their authors.** Each red bean holds one of 32 slots until its next push; a 33rd simultaneous red would delay new beans' checks (not lose them). Next: release a slot while its rework waits for a push (a pushed bean needs no agent seat), or grow slots on demand.
