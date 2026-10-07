@@ -35,7 +35,11 @@ export async function growthOf(binding: object, engineId: string): Promise<Growt
 export function growthFromView(result: unknown): Growth {
   const ok = z.object({ ok: z.literal(true), value: View }).safeParse(result);
   if (!ok.success) return { kind: 'none' };
-  const tasks = ok.data.value.tasks;
+  return growthFromCounts(ok.data.value.tasks);
+}
+
+/** Counts by bean status (a view's or an engine feed's): landed or validated, and in flight. */
+export function growthFromCounts(tasks: Readonly<Record<string, number>>): Growth {
   const count = (...statuses: string[]): number =>
     statuses.reduce((total, status) => total + (tasks[status] ?? 0), 0);
   const onStalk = count('landed', 'green');

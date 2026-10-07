@@ -6,7 +6,9 @@ import { RunsLanding } from '../components/runs/runs-landing';
 import { Invitations } from '../components/repository/invitations';
 import { currentSession } from '../src/auth/user';
 import { collaboratorsClient } from '../src/repositories/collaborators-client';
-import { growthOf } from '../src/repositories/engine-summary';
+import { growthFromCounts, growthOf } from '../src/repositories/engine-summary';
+import type { Feed } from '../src/repositories/home-activity';
+import { activityLines, readEngineFeeds } from '../src/repositories/home-activity';
 import type { RepositoryRecord } from '../src/repositories/registry-client';
 import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';
@@ -29,9 +31,16 @@ export default async function Home({ searchParams }: PageProps) {
     collaborators.shared(user.id),
     searchParams,
   ]);
+  const own = listed.ok ? listed.value : [];
+  const others = shared.ok ? shared.value : [];
+  // One call for every repository's counts and recent engine events (own and shared).
+  const feeds = await readEngineFeeds(
+    env.GATEWAY,
+    [...own, ...others].map((record) => record.engine_id),
+  );
   const [repositories, sharedRepositories] = await Promise.all([
-    withGrowth(listed.ok ? listed.value : []),
-    withGrowth(shared.ok ? shared.value : []),
+    withGrowth(own, feeds),
+    withGrowth(others, feeds),
   ]);
   const notice = noticeOf(listed.ok ? null : listed.error.message, {
     deleted: stringParam(query['deleted']),
@@ -48,7 +57,12 @@ export default async function Home({ searchParams }: PageProps) {
           csrf={session.csrfToken}
         />
       }
-      activity={activity.ok ? activity.value : []}
+      activity={activityLines({
+        records: [...own, ...others],
+        registry: activity.ok ? activity.value : [],
+        feeds,
+        limit: 14,
+      })}
       nowMs={Date.now()}
       notice={notice}
       demoHref={`/runs/${racePair().right.run}`}
@@ -70,12 +84,22 @@ function stringParam(value: string | string[] | undefined): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-/** Each repository with what its engine has grown. */
-function withGrowth(records: readonly RepositoryRecord[]): Promise<DashboardRepository[]> {
+/**
+ * Each repository with what its engine has grown, from the engine feeds; an older gateway
+ * without engine feeds is asked once per repository, as before.
+ */
+function withGrowth(
+  records: readonly RepositoryRecord[],
+  feeds: ReadonlyMap<string, Feed>,
+): Promise<DashboardRepository[]> {
   return Promise.all(
-    records.map(async (record) => ({
-      record,
-      growth: await growthOf(env.GATEWAY, record.engine_id),
-    })),
+    records.map(async (record) => {
+      const feed = feeds.get(record.engine_id);
+      const growth =
+        feed === undefined
+          ? await growthOf(env.GATEWAY, record.engine_id)
+          : growthFromCounts(feed.tasks);
+      return { record, growth };
+    }),
   );
 }
