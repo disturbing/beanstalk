@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""Token-free push replay: how fast a forge integrates parallel work. GitHub's merge queue vs Beanstalk, plain git.
+
+  python3 -m loadgen.run --forge github    --workers 8 --seed 7 --out runs/lg-fastify-8-s7-github
+  python3 -m loadgen.run --forge beanstalk --workers 8 --seed 7 --out runs/lg-fastify-8-s7-beanstalk
+  python3 -m loadgen.run --forge both      --workers 8 --seed 7 --out runs/lg-fastify-8-s7   # both at once
+
+Run from research/race. See loadgen/README.md.
+"""
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RACE = os.path.dirname(HERE)
+sys.path.insert(0, RACE)
+
+from loadgen.driver import Driver, Options  # noqa: E402
+from loadgen.schedule import Schedule, fit, recorded_pushes  # noqa: E402
+
+DEFAULT_ARENA = os.path.normpath(os.path.join(RACE, "..", "real-arena", "fastify"))
+DEFAULT_FIT = ["runs/pair-fastify-codex-4-s7-github", "runs/pair-fastify-codex-4-s7-beanstalk"]
+DEFAULT_GATEWAY = os.environ.get("BEANSTALK_GATEWAY", "")
+DEFAULT_DEV_VARS = os.path.normpath(os.path.join(RACE, "..", "..", "packages", "gateway", ".dev.vars"))
+
+# test hooks: factories returning fake clients
+GITHUB_CLIENT_FACTORY = None
+BEANSTALK_CLIENT_FACTORY = None
+
+
+def parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--forge", choices=["github", "beanstalk", "both"], required=True)
+    ap.add_argument("--out", required=True, help="output directory (both: <out>-github and <out>-beanstalk)")
+    ap.add_argument("--arena", default=DEFAULT_ARENA)
+    ap.add_argument("--repo", help="the arena's materialized repo (default: arena.json repo)")
+    ap.add_argument("--tasks", nargs="*", help="a subset: ids, or one number for the first n")
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--mode", choices=["standalone", "chain"], default="standalone",
+                    help="dependent tasks: standalone patch whenever started, or wait for prerequisites")
+    ap.add_argument("--schedule", choices=["closed", "open", "recorded"], default="closed")
+    ap.add_argument("--hold", choices=["integrate", "push"], default="integrate",
+                    help="closed loop: a worker waits for its change's verdict (integrate) or moves on (push)")
+    ap.add_argument("--fit-runs", nargs="*", default=DEFAULT_FIT, help="runs whose agent invocations fit the "
+                    "think (initial) and fix (rework) lognormals")
+    ap.add_argument("--think-median", type=float, help="override the fitted think median (s)")
+    ap.add_argument("--fix-median", type=float, help="override the fitted fix median (s)")
+    ap.add_argument("--time-scale", type=float, default=1.0, help="multiply every think/fix/arrival time")
+    ap.add_argument("--rate", type=float, default=0.0, help="open loop: changes per minute")
+    ap.add_argument("--fixed", action="store_true", help="open loop: fixed spacing instead of Poisson")
+    ap.add_argument("--record", help="recorded: the run whose push times to replay")
+    ap.add_argument("--speed", type=float, default=1.0, help="recorded: compression (2 = twice as fast)")
+    ap.add_argument("--max-attempts", type=int, default=8)
+    ap.add_argument("--max-wall-minutes", type=float, default=120.0)
+    ap.add_argument("--ci-slots", type=int, default=2, help="GitHub max_entries_to_build (= Beanstalk CI slots, "
+                    "fixed at 2 on a continuous engine)")
+    ap.add_argument("--batch", type=int, default=4, help="GitHub max_entries_to_merge")
+    ap.add_argument("--no-final-check", action="store_true")
+    ap.add_argument("--label", default="")
+    g = ap.add_argument_group("GitHub")
+    g.add_argument("--gh-owner", default="kintohubtest")
+    g.add_argument("--gh-repo", help="default beanstalk-loadgen-<arena>-<workers>-<seed>")
+    g.add_argument("--gh-poll", type=float, default=3.0)
+    g.add_argument("--gh-push-interval", type=float, default=2.0)
+    b = ap.add_argument_group("Beanstalk")
+    b.add_argument("--gateway", default=DEFAULT_GATEWAY)
+    b.add_argument("--dev-vars", default=DEFAULT_DEV_VARS, help="the gateway's .dev.vars (ADMIN_TOKEN)")
+    b.add_argument("--bs-owner", default="loadgen")
+    b.add_argument("--bs-repo", help="default lg-<arena>-<workers>-<seed>-<random>")
+    b.add_argument("--keep-repo", action="store_true")
+    return ap
+
+
+def schedule_of(a: argparse.Namespace) -> Schedule:
+    runs = [p if os.path.isabs(p) else os.path.join(RACE, p) for p in a.fit_runs or []]
+    think, fix = fit(runs)
+    if a.think_median:
+        think.median, think.source = a.think_median, think.source + " (median overridden)"
+    if a.fix_median:
+        fix.median, fix.source = a.fix_median, fix.source + " (median overridden)"
+    s = Schedule(kind=a.schedule, seed=a.seed, think=think, fix=fix, time_scale=a.time_scale, rate_per_min=a.rate,
+                 poisson=not a.fixed, hold=a.hold, speed=a.speed)
+    if a.schedule == "recorded":
+        if not a.record:
+            raise SystemExit("--schedule recorded needs --record <run>")
+        rec = a.record if os.path.isabs(a.record) else os.path.join(RACE, a.record)
+        s.recorded, s.recorded_reworks = recorded_pushes(rec)
+        s.recorded_source = os.path.basename(rec.rstrip("/"))
+    return s
+
+
+def mask(path: str, gateway: str) -> None:
+    """Mask the gateway's workers.dev subdomain in every output file (committed runs carry no account names)."""
+    m = re.match(r"https?://[^.]+\.([^.]+)\.workers\.dev", gateway or "")
+    if not m:
+        return
+    sub = m.group(1)
+    for name in ("events.jsonl", "summary.json", "config.json", "summary.md"):
+        p = os.path.join(path, name)
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as fh:
+                text = fh.read()
+            if sub in text:
+                with open(p, "w", encoding="utf-8") as fh:
+                    fh.write(text.replace(sub, "<account>"))
+
+
+def run_one(a: argparse.Namespace) -> dict:
+    from harness.suite import gateway_suite, load_suite
+    arena = os.path.abspath(a.arena)
+    repo = a.repo or load_suite(arena).repo
+    if not repo:
+        raise SystemExit("no --repo and the arena names none")
+    out = a.out if os.path.isabs(a.out) else os.path.join(RACE, a.out)
+    os.makedirs(out, exist_ok=True)
+    name = os.path.basename(arena)
+    sched = schedule_of(a)
+    opts = Options(arena=arena, repo=repo, out=out, workers=a.workers, schedule=sched, mode=a.mode,
+                   tasks=a.tasks or None, max_attempts=a.max_attempts, max_wall_minutes=a.max_wall_minutes,
+                   final_check=not a.no_final_check, ci_slots=a.ci_slots, batch=a.batch, label=a.label)
+    config = {k: v for k, v in vars(a).items() if k not in ("dev_vars",)}
+    config["schedule_resolved"] = sched.describe()
+
+    if a.forge == "github":
+        from loadgen.forges import GitHubForge
+        gh_repo = a.gh_repo or f"beanstalk-loadgen-{name}-{a.workers}-{a.seed}"
+        config["github_repo"] = f"{a.gh_owner}/{gh_repo}"
+
+        def factory(git, work, log):
+            client = GITHUB_CLIENT_FACTORY() if GITHUB_CLIENT_FACTORY else None
+            return GitHubForge(git, work, arena, owner=a.gh_owner, repo=gh_repo, build_concurrency=a.ci_slots,
+                               max_merge=a.batch, poll=a.gh_poll, push_interval=a.gh_push_interval, client=client,
+                               log=log)
+    else:
+        from loadgen.beanstalk import BeanstalkClient, admin_token
+        from loadgen.forges import BeanstalkForge
+        import secrets
+        bs_repo = a.bs_repo or f"lg-{name}-{a.workers}-{a.seed}-{secrets.token_hex(2)}"
+        suite = gateway_suite(load_suite(arena))
+        config["beanstalk_repo"] = f"{a.bs_owner}/{bs_repo}"
+
+        def factory(git, work, log):
+            if BEANSTALK_CLIENT_FACTORY:
+                client = BEANSTALK_CLIENT_FACTORY()
+            else:
+                if not a.gateway:
+                    raise SystemExit("--gateway (or $BEANSTALK_GATEWAY) is required")
+                client = BeanstalkClient(a.gateway, admin_token(a.dev_vars), a.bs_owner, bs_repo)
+            config["beanstalk_engine"] = client.engine
+            return BeanstalkForge(git, work, client, suite=suite, log=log, keep_repo=a.keep_repo)
+
+    driver = Driver(opts, factory)
+    summary = asyncio.run(driver.run())
+    with open(os.path.join(out, "config.json"), "w", encoding="utf-8") as fh:
+        json.dump(config, fh, indent=2, default=str)
+    from loadgen.report import write_md
+    write_md(out, summary)
+    mask(out, a.gateway)
+    return summary
+
+
+def run_both(a: argparse.Namespace, argv: list[str]) -> int:
+    """Both forges at once (no model quota is involved): two processes, same arguments."""
+    base = [x for x in argv]
+    i = base.index("--forge")
+    procs = {}
+    for forge in ("github", "beanstalk"):
+        args = base[:i] + ["--forge", forge] + base[i + 2:]
+        j = args.index("--out")
+        args[j + 1] = f"{a.out}-{forge}"
+        log = open(os.path.join(RACE, f"{a.out}-{forge}.log") if not os.path.isabs(a.out) else f"{a.out}-{forge}.log",
+                   "w")
+        procs[forge] = (subprocess.Popen([sys.executable, "-m", "loadgen.run", *args], cwd=RACE, stdout=log,
+                                         stderr=subprocess.STDOUT), log)
+    codes = {f: p.wait() for f, (p, _log) in procs.items()}
+    for _p, log in procs.values():
+        log.close()
+    from loadgen.report import pair_table
+    print(pair_table([f"{a.out}-github", f"{a.out}-beanstalk"]))
+    return max(codes.values())
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    a = parser().parse_args(argv)
+    if a.forge == "both":
+        return run_both(a, argv)
+    s = run_one(a)
+    from loadgen.report import pair_table
+    print(pair_table([a.out]))
+    return 0 if not s.get("aborted") else 3
+
+
+if __name__ == "__main__":
+    sys.exit(main())
