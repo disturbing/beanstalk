@@ -72,6 +72,9 @@ import { migrateCollaboration, seedCollaboration, readBean } from '../collaborat
 import { updateBean } from '../collaboration/update';
 import { postBeanThread } from '../collaboration/thread';
 
+import type { RunnerCapacity } from '../capacity/runner-capacity';
+import { DEFAULT_PRELAND_SANDBOXES, RUNNER_POOL_NAME } from '../capacity/runner-capacity';
+import { leaseSandbox, needsSandboxLease, releaseSandbox } from '../capacity/sandbox-lease';
 import type { ArtifactsPort, RepoRemote } from '../adapters/artifacts';
 import { artifactsPort, selectedArtifactsPort } from '../adapters/artifacts';
 import type { RepoExplorer } from '../adapters/repo-explorer';
@@ -100,12 +103,23 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
+import type { Refusable, Reservation, TaskStanding } from '../agent/agent-store';
+import {
+  claimTask,
+  dropReservation,
+  migrateAgentStore,
+  readReservation,
+  releaseTask,
+  reservationRefusal,
+  reserveBean,
+  taskStandings,
+} from '../agent/agent-store';
 import { continuousRef } from '../push/bean-refs';
 import type { PushBean, PushProgress } from '../push/push-bean';
 import { listPushBeans, migratePushBeans, readPushBean, savePushBean } from '../push/push-bean';
 import type { Submitted } from '../push/push-driver';
 import { PushDriver } from '../push/push-driver';
-import type { PushOptions } from '../push/push-intent';
+import type { PushIntent, PushOptions } from '../push/push-intent';
 import { pushIntent } from '../push/push-intent';
 import type { OpenRepoEngineInput, RepoEngineRecord } from '../push/repo-engine';
 import { RepoEngineRecord as RepoEngineSchema, beanLink } from '../push/repo-engine';
@@ -199,6 +213,8 @@ const LINE_MOVES: ReadonlySet<string> = new Set([
 const METER_SAVE_INTERVAL_MS = 5000;
 /** How long `summary()` waits for a reap in flight, so a capture at `done` sees its outcome. */
 const SUMMARY_REAP_WAIT_MS = 5000;
+/** A race's runner reservation outlives its wall clock by this much if it never reports done. */
+const RESERVATION_MARGIN_MINUTES = 30;
 
 export type RunFailure = {
   readonly code: string;
@@ -296,6 +312,7 @@ export class RunDO extends DurableObject<Env> {
     });
     this.#objects = this.#migrate();
     migratePushBeans(ctx.storage.sql);
+    migrateAgentStore(ctx.storage.sql);
     this.#push = new PushDriver({
       sql: ctx.storage.sql,
       log: this.#log,
@@ -379,6 +396,7 @@ export class RunDO extends DurableObject<Env> {
       arena: 'repository',
       tasks: [],
       ...(input.settings?.suite === undefined ? {} : { suite: input.settings.suite }),
+      ...input.settings?.engine,
     });
     const record: RepoEngineRecord = {
       engineId: input.engineId,
@@ -431,11 +449,16 @@ export class RunDO extends DurableObject<Env> {
     }
   }
 
-  /** Why a push to `bean` must be refused now (before it reaches the repo), or null. */
-  pushRefusal(bean: TaskId): string | null {
+  /**
+   * Why a push to `bean` by `actor` must be refused now (before it reaches the repo), or null:
+   * the bean's own state, or another person's reservation of the name.
+   */
+  pushRefusal(bean: TaskId, actor?: string): string | null {
     this.#countRequest();
     if (this.#repoEngine() === null) return 'not a repository engine';
-    return this.#push.refusal(bean);
+    const stateRefusal = this.#push.refusal(bean);
+    if (stateRefusal !== null || actor === undefined) return stateRefusal;
+    return reservationRefusal(this.ctx.storage.sql, { bean, actor, nowMs: Date.now() });
   }
 
   /** A push of `bean` reached the repo: it becomes a bean, or answers the bean's rework. */
@@ -456,13 +479,19 @@ export class RunDO extends DurableObject<Env> {
         this.#log.warn('reading a pushed history failed', { head: input.head, error });
         return [];
       });
-    return this.#push.submit({
+    const reservation = readReservation(this.ctx.storage.sql, input.bean, Date.now());
+    const submitted = this.#push.submit({
       bean: input.bean,
       head: input.head,
       actor: input.actor,
-      intent: pushIntent(message ?? '', input.options),
+      intent: reservedIntent(pushIntent(message ?? '', input.options), {
+        reservation,
+        options: input.options,
+      }),
       history,
     });
+    if (submitted.ok && reservation !== null) dropReservation(this.ctx.storage.sql, input.bean);
+    return submitted;
   }
 
   /** What a push waiting on `bean` sees after line `after`. */
@@ -497,6 +526,55 @@ export class RunDO extends DurableObject<Env> {
   pushedBeans(): readonly PushBean[] {
     this.#countRequest();
     return listPushBeans(this.ctx.storage.sql);
+  }
+
+  /** One bean as an agent sees it: pushed (with its rework facts), reserved, or neither. */
+  agentBean(bean: string): { pushed: PushBean | null; reservation: Reservation | null } {
+    this.#countRequest();
+    const sql = this.ctx.storage.sql;
+    return { pushed: readPushBean(sql, bean), reservation: readReservation(sql, bean, Date.now()) };
+  }
+
+  /** Reserves a bean name with its intent for `actor` (`bean_open`), claiming its task. */
+  reserveBean(input: {
+    bean: TaskId;
+    actor: string;
+    intent: string;
+    task: string | null;
+  }): Refusable<Reservation> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return reserveBean(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Claims a backlog task for `actor`; one claim at a time (this object serialises them). */
+  claimTask(input: { task: string; actor: string }): Refusable<TaskStanding> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return claimTask(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Gives a backlog task back: `actor`'s claim and reserved names for it go. */
+  releaseTask(input: { task: string; actor: string }): Refusable<TaskStanding> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return releaseTask(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Where each backlog task stands in this engine. */
+  taskStandings(tasks: readonly string[]): Readonly<Record<string, TaskStanding>> {
+    this.#countRequest();
+    return taskStandings(this.ctx.storage.sql, tasks, Date.now());
+  }
+
+  /** Why agents may not start work here now (not a repository, or closed), or null. */
+  #agentWorkRefusal(): string | null {
+    if (this.#repoEngine() === null || this.#loaded === null) return 'not a repository engine';
+    const { phase } = this.#loaded.stored.state;
+    return phase === 'running' ? null : `the repository engine is ${phase}`;
   }
 
   /** Creates the run: the run repo, then the engine state with every task pending. */
@@ -664,7 +742,33 @@ export class RunDO extends DurableObject<Env> {
     });
     if (response.kind === 'refused') return failure('invalid_state', 409, response.refusal.message);
     this.#prewarmRunners(loaded.stored.meta.run, loaded.env.config.ci_slots);
+    this.ctx.waitUntil(this.#reserveRunners(loaded.stored.meta.run, loaded.env.config));
     return { ok: true, value: { baseSha: base.value } };
+  }
+
+  /**
+   * A race holds `agents + ci_slots + 1` runner instances until it is done: the pool counts
+   * them, so repositories' sandboxes grow only into what races leave free. Never blocks the
+   * race; a failure is logged.
+   */
+  async #reserveRunners(run: RunId, config: RunConfig): Promise<void> {
+    try {
+      await this.#pool().reserveRace({
+        run,
+        instances: config.agents + config.ci_slots + 1,
+        untilMs: Date.now() + (config.max_wall_minutes + RESERVATION_MARGIN_MINUTES) * 60_000,
+      });
+    } catch (error: unknown) {
+      this.#log.warn('reserving runners for the race failed', { run, error });
+    }
+  }
+
+  async #releaseRunners(run: RunId): Promise<void> {
+    try {
+      await this.#pool().releaseRace(run);
+    } catch (error: unknown) {
+      this.#log.warn('releasing the race runners failed', { run, error });
+    }
   }
 
   /**
@@ -1238,6 +1342,7 @@ export class RunDO extends DurableObject<Env> {
   /** The final check is done: log what the run cost and delete its repos. */
   #finished(): void {
     const { meta, config, state } = this.#requireLoaded().stored;
+    this.ctx.waitUntil(this.#releaseRunners(meta.run));
     this.#log.info('run cost', {
       run: meta.run,
       agentUsd: state.spent,
@@ -1381,18 +1486,58 @@ export class RunDO extends DurableObject<Env> {
 
   async #runJob(id: JobId, spec: JobSpec): Promise<void> {
     const loaded = this.#requireLoaded();
-    const outcome = await executeJob(spec, {
-      run: loaded.stored.meta.run,
-      artifacts: this.#artifacts,
-      runner: this.#runner,
-      tokens: this.#tokens,
-      log: this.#log.with({ run: loaded.stored.meta.run, job: id }),
-      repos: () => this.#requireLoaded().stored.repos,
-      suite: loaded.env.config.suite,
-      engine: loaded.env.config.continuous ? 'continuous' : 'race',
-      readMaps: loaded.stored.config.read_maps,
-    });
+    const run = loaded.stored.meta.run;
+    const log = this.#log.with({ run, job: id });
+    const config = loaded.env.config;
+    const lease = needsSandboxLease(spec, config) ? { engine: run, job: id } : null;
+    const held =
+      lease === null
+        ? null
+        : await leaseSandbox(
+            this.#pool(),
+            {
+              ...lease,
+              cap: config.preland_sandboxes ?? DEFAULT_PRELAND_SANDBOXES,
+              base: config.ci_slots + 1,
+            },
+            { clock: { now: () => Date.now(), sleep: pause }, log },
+          );
+    if (held !== null && held.waitedMs > 0)
+      log.info('sandbox leased', { index: held.index, waited_ms: held.waitedMs });
+    let outcome: JobOutcome;
+    try {
+      outcome = await executeJob(spec, {
+        run,
+        artifacts: this.#artifacts,
+        runner: this.#runner,
+        tokens: this.#tokens,
+        log,
+        repos: () => this.#requireLoaded().stored.repos,
+        suite: config.suite,
+        engine: config.continuous ? 'continuous' : 'race',
+        readMaps: loaded.stored.config.read_maps,
+        ...(held === null ? {} : { sandboxIndex: held.index }),
+        onSuiteTimeout: () => this.ctx.waitUntil(this.#noteTimeout(run)),
+      });
+    } finally {
+      // Before the step: the check it starts next may take this very sandbox.
+      if (lease !== null) await releaseSandbox(this.#pool(), lease, log);
+    }
     this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome: this.#keepMaps(outcome) });
+  }
+
+  /** The runner pool races and repositories share (`capacity/runner-capacity.ts`). */
+  #pool(): DurableObjectStub<RunnerCapacity> {
+    return this.env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME);
+  }
+
+  /** Counted in the pool's per-owner numbers; a failure to count is only logged. */
+  async #noteTimeout(owner: RunId): Promise<void> {
+    try {
+      await this.#pool().noteTimeout(owner);
+    } catch (error: unknown) {
+      this.#log.warn('counting a suite timeout failed', { owner, error });
+    }
   }
 
   /**
@@ -1630,6 +1775,13 @@ function refusal(response: Extract<EngineResponse, { kind: 'refused' }>): {
   return failure(code, REFUSAL_STATUS[code] ?? 409, message);
 }
 
+/** Waits `ms` (a sandbox lease's pause between asks of the pool). */
+async function pause(ms: number): Promise<void> {
+  const { promise, resolve } = Promise.withResolvers<void>();
+  setTimeout(resolve, ms);
+  await promise;
+}
+
 /** Waits for `work` to settle, or `ms`, whichever comes first. */
 async function settledWithin(work: Promise<void>, ms: number): Promise<void> {
   const { promise: timeout, resolve } = Promise.withResolvers<void>();
@@ -1639,4 +1791,21 @@ async function settledWithin(work: Promise<void>, ms: number): Promise<void> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * A reserved bean's first push: the intent reserved with `bean_open` stands unless the push
+ * names one (`-o intent`), and the reservation's task unless the push links another.
+ */
+function reservedIntent(
+  intent: PushIntent,
+  input: { readonly reservation: Reservation | null; readonly options: PushOptions },
+): PushIntent {
+  const { reservation, options } = input;
+  if (reservation === null) return intent;
+  return {
+    title: intent.title,
+    intent: options.intent === null ? reservation.intent : intent.intent,
+    task: intent.task ?? reservation.task,
+  };
 }

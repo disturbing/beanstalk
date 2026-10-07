@@ -18,10 +18,11 @@ Two paths (`docs/claude-opus/19-accounts-and-auth.md`):
   `/oauth/register` (DCR), Client ID Metadata Documents, `/authorize` (sends the browser to the web
   app's `/connect` consent screen), `/oauth/token` (PKCE S256, refresh, revocation). Scopes
   `read` (required), `collaborate`, `write`. Grants and tokens live hashed in `OAUTH_KV`. A session
-  gets the read tools plus `whoami` and `git_credential` (a one-hour `bss_` git token), over one
-  run (`DEMO_RUN`, or the newest) until persistent repositories exist. A `bsu_` personal access
-  token also works as the bearer. `claude mcp add --transport http beanstalk <url>/mcp`, then
-  `claude mcp login beanstalk`.
+  works on any repository its person may use (the git rule, `mayUseEngine`): the read tools take
+  `repo: "owner/name"` (without it they read `DEMO_RUN`, or the newest run), plus `whoami` and the
+  repository tools below. A `bsu_` personal access token also works as the bearer; deploy tokens
+  (`bsd_`) and repository-bound `bss_` git credentials do not. `claude mcp add --transport http
+  beanstalk <url>/mcp`, then `claude mcp login beanstalk`.
 - **Run tokens** (`bst1.…`, below) are routed before the OAuth provider and behave exactly as before.
 
 RPC for the web app (`AgentSessionsRpc`): `consentRequest`, `approveConsent`, `denyConsent`,
@@ -80,6 +81,21 @@ with source revisions, cursors and handles (`beans/<task>`, `file:<path>@<sha>`,
 | `bean_thread_post(bean, kind, body, references, idempotency_key, thread?, reply_to?)` | Attributed discussion; responses point to the exact prior event and acceptance pins an exact promise revision |
 | `bean_inbox_read(after_cursor?, limit?, state?)` | Durable event page, unread count and freshness; use `state: "unread"` for pending events |
 | `bean_inbox_ack(event_ids)` | Delivery acknowledgement; never implicit acceptance |
+
+**Repository tools** (agent sessions only; `src/repos/`, gateway RPC `AgentReposRpc`;
+`docs/claude-opus/23-mcp-repository-tools.md`):
+
+| Tool | Scope | Answer |
+|---|---|---|
+| `repo_list()` | read | Repositories you own or collaborate on: role, access (`write`/`read`), visibility, clone URL |
+| `repo_status(repo)` | read | Stalk and sprout heads, window, beans in flight and sent back (who, phase), recent reds, open cards |
+| `bean_open(repo, bean, intent, task?)` | write | Reserves `bean/<name>` for a day with its intent (claims `task`); branch, `start` and `push` commands, sprout head |
+| `bean_status(repo, bean)` | read | Phase, the pushed bean (actor, intent, verdict), rework (failing tests, collided beans with intent and files), journey, `next` |
+| `bean_wait(repo, bean, until?, timeout_s?)` | read | Holds until the check ends (or the stalk), at most 1,800 s; as `bean_status` plus `waited_s`, `timed_out` |
+| `task_list(repo)` | read | The backlog file on the sprout with each task's state |
+| `task_claim(repo, task)` | write | Claims for two hours; refused with who holds it |
+| `task_release(repo, task)` | write | Drops your claim and the names you reserved for the task; refused for someone else's claim |
+| `git_credentials(repo, ttl_minutes?)` | read (+write to push) | A `bss_` token bound to that repository, at most an hour, as `git credential approve` input |
 
 `bean_context`, `bean_update` and `bean_thread_post` accept `t032` or `beans/t032`; `change_status`,
 `checks_get` and `preview_link` accept both as well. Your own bean id is the `inbox.bean` field of any

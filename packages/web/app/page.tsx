@@ -3,8 +3,13 @@ import { env } from 'cloudflare:workers';
 import type { DashboardRepository } from '../components/repository/home-dashboard';
 import { HomeDashboard } from '../components/repository/home-dashboard';
 import { RunsLanding } from '../components/runs/runs-landing';
-import { currentUser } from '../src/auth/user';
-import { growthOf } from '../src/repositories/engine-summary';
+import { Invitations } from '../components/repository/invitations';
+import { currentSession } from '../src/auth/user';
+import { collaboratorsClient } from '../src/repositories/collaborators-client';
+import { growthFromCounts, growthOf } from '../src/repositories/engine-summary';
+import type { Feed } from '../src/repositories/home-activity';
+import { activityLines, readEngineFeeds } from '../src/repositories/home-activity';
+import type { RepositoryRecord } from '../src/repositories/registry-client';
 import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';
 
@@ -14,28 +19,50 @@ type PageProps = {
 
 /** Signed in: Home (your repositories, recent activity). Signed out: the benchmark landing. */
 export default async function Home({ searchParams }: PageProps) {
-  const user = await currentUser();
-  if (user === null) return <RunsLanding />;
+  const session = await currentSession();
+  if (session === null) return <RunsLanding />;
+  const { user } = session;
   const registry = registryClient(env.GATEWAY);
-  const [listed, activity, query] = await Promise.all([
+  const collaborators = collaboratorsClient(env.GATEWAY);
+  const [listed, activity, invitations, shared, query] = await Promise.all([
     registry.list(user.id, user.id),
     registry.activity(user.id, 12),
+    collaborators.invitations(user.id),
+    collaborators.shared(user.id),
     searchParams,
   ]);
-  const records = listed.ok ? listed.value : [];
-  const repositories: DashboardRepository[] = await Promise.all(
-    records.map(async (record) => ({
-      record,
-      growth: await growthOf(env.GATEWAY, record.engine_id),
-    })),
+  const own = listed.ok ? listed.value : [];
+  const others = shared.ok ? shared.value : [];
+  // One call for every repository's counts and recent engine events (own and shared).
+  const feeds = await readEngineFeeds(
+    env.GATEWAY,
+    [...own, ...others].map((record) => record.engine_id),
   );
-  const deleted = typeof query['deleted'] === 'string' ? query['deleted'] : null;
-  const notice = noticeOf(listed.ok ? null : listed.error.message, deleted);
+  const [repositories, sharedRepositories] = await Promise.all([
+    withGrowth(own, feeds),
+    withGrowth(others, feeds),
+  ]);
+  const notice = noticeOf(listed.ok ? null : listed.error.message, {
+    deleted: stringParam(query['deleted']),
+    left: stringParam(query['left']),
+  });
   return (
     <HomeDashboard
       user={user}
       repositories={repositories}
-      activity={activity.ok ? activity.value : []}
+      shared={sharedRepositories}
+      invitations={
+        <Invitations
+          invitations={invitations.ok ? invitations.value : []}
+          csrf={session.csrfToken}
+        />
+      }
+      activity={activityLines({
+        records: [...own, ...others],
+        registry: activity.ok ? activity.value : [],
+        feeds,
+        limit: 14,
+      })}
       nowMs={Date.now()}
       notice={notice}
       demoHref={`/runs/${racePair().right.run}`}
@@ -45,9 +72,34 @@ export default async function Home({ searchParams }: PageProps) {
 
 function noticeOf(
   listError: string | null,
-  deleted: string | null,
+  done: { readonly deleted: string | null; readonly left: string | null },
 ): { readonly tone: 'good' | 'warn'; readonly text: string } | null {
   if (listError !== null)
     return { tone: 'warn', text: `Your repositories could not be listed: ${listError}` };
-  return deleted === null ? null : { tone: 'good', text: `Deleted ${deleted}.` };
+  if (done.left !== null) return { tone: 'good', text: `You left ${done.left}.` };
+  return done.deleted === null ? null : { tone: 'good', text: `Deleted ${done.deleted}.` };
+}
+
+function stringParam(value: string | string[] | undefined): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+/**
+ * Each repository with what its engine has grown, from the engine feeds; an older gateway
+ * without engine feeds is asked once per repository, as before.
+ */
+function withGrowth(
+  records: readonly RepositoryRecord[],
+  feeds: ReadonlyMap<string, Feed>,
+): Promise<DashboardRepository[]> {
+  return Promise.all(
+    records.map(async (record) => {
+      const feed = feeds.get(record.engine_id);
+      const growth =
+        feed === undefined
+          ? await growthOf(env.GATEWAY, record.engine_id)
+          : growthFromCounts(feed.tasks);
+      return { record, growth };
+    }),
+  );
 }

@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
+import type { EngineFeed, EngineFeedRpc } from '@beanstalk/shared-race/engine-feed';
 import type {
   BeanContext,
   BeanContextInput,
@@ -60,15 +61,43 @@ import type {
   DeployTokensRpc,
   IssuedDeployToken,
 } from '@beanstalk/shared-race/deploy-tokens';
+import type {
+  AgentPrincipal,
+  Collaborator,
+  CollaboratorsRpc,
+  Invitation,
+  InviteInput,
+  RepoRole,
+  RepositoryAction,
+  RepositoryForViewer,
+  RepositoryPeople,
+} from '@beanstalk/shared-race/collaborators';
+
+import type {
+  AgentBean,
+  AgentReposRpc,
+  AgentRepository,
+  Backlog,
+  BeanOpenInput,
+  BeanOpened,
+  BeanWaitUntil,
+  BeanWaited,
+  TaskClaimed,
+} from '@beanstalk/shared-race/agent-repos';
 
 import { repositoryStorage } from './adapters/repository-storage';
+import { agentReposRpc } from './agent/agent-repos-rpc';
 import { sshKeyStore } from './auth/ssh-keys';
 import type { SshDeps, SshKeyAnswer } from './ssh/ssh-git';
 import { lookupSshKey, serveSshGit } from './ssh/ssh-git';
 import { createApp } from './app';
 import { createLogger } from './log';
 import { readConfig } from './config';
-import { deployTokensRpc } from './repos/deploy-tokens';
+import { d1Collaborators } from './repos/collaborators';
+import { collaboratorsRpc } from './repos/collaborators-rpc';
+import { deployTokensRpc } from './repos/deploy-tokens-rpc';
+import { engineFeedRpc } from './repos/engine-feed';
+import { peopleDirectory } from './repos/people';
 import { repoEnginePort } from './repos/engine-port';
 import { d1Registry } from './repos/registry';
 import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
@@ -81,6 +110,7 @@ export { RunDO } from './run/run-do';
 export { RunIndex } from './run/run-index';
 export { RunStreamDO } from './stream/run-stream-do';
 export { Runner } from './runner/runner-container';
+export { RunnerCapacity } from './capacity/runner-capacity';
 // Required by @cloudflare/containers for outbound interception (allowed and denied hosts).
 export { ContainerProxy } from '@cloudflare/containers';
 
@@ -93,7 +123,14 @@ const app = createApp(createDeps);
  */
 export default class Gateway
   extends WorkerEntrypoint<Env>
-  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc
+  implements
+    GatewayRpc,
+    RepositoriesRpc,
+    RepoEngineRpc,
+    DeployTokensRpc,
+    CollaboratorsRpc,
+    AgentReposRpc,
+    EngineFeedRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -250,7 +287,7 @@ export default class Gateway
     ownerHandle: string,
     name: string,
     viewer: Viewer,
-  ): Promise<RpcResult<RepositoryRecord>> {
+  ): Promise<RpcResult<RepositoryForViewer>> {
     return this.#repositories().getRepository(ownerHandle, name, viewer);
   }
 
@@ -303,13 +340,98 @@ export default class Gateway
     return this.#deployTokens().revokeDeployToken(actor, repoId, tokenId);
   }
 
+  repositoryPeople(repoId: string, viewer: Viewer): Promise<RpcResult<RepositoryPeople>> {
+    return this.#collaborators().repositoryPeople(repoId, viewer);
+  }
+
+  inviteCollaborator(
+    actor: RepoOwner,
+    repoId: string,
+    input: InviteInput,
+  ): Promise<RpcResult<Invitation>> {
+    return this.#collaborators().inviteCollaborator(actor, repoId, input);
+  }
+
+  cancelInvitation(
+    actor: RepoOwner,
+    repoId: string,
+    invitationId: string,
+  ): Promise<RpcResult<{ readonly cancelled: true }>> {
+    return this.#collaborators().cancelInvitation(actor, repoId, invitationId);
+  }
+
+  setCollaboratorRole(
+    actor: RepoOwner,
+    repoId: string,
+    userId: string,
+    role: RepoRole,
+  ): Promise<RpcResult<Collaborator>> {
+    return this.#collaborators().setCollaboratorRole(actor, repoId, userId, role);
+  }
+
+  removeCollaborator(
+    actor: RepoOwner,
+    repoId: string,
+    userId: string,
+  ): Promise<RpcResult<{ readonly removed: true }>> {
+    return this.#collaborators().removeCollaborator(actor, repoId, userId);
+  }
+
+  myInvitations(userId: string): Promise<RpcResult<readonly Invitation[]>> {
+    return this.#collaborators().myInvitations(userId);
+  }
+
+  answerInvitation(
+    user: RepoOwner,
+    invitationId: string,
+    answer: 'accept' | 'decline',
+  ): Promise<RpcResult<{ readonly owner_handle: string; readonly repo_name: string }>> {
+    return this.#collaborators().answerInvitation(user, invitationId, answer);
+  }
+
+  sharedRepositories(userId: string): Promise<RpcResult<readonly RepositoryForViewer[]>> {
+    return this.#collaborators().sharedRepositories(userId);
+  }
+
+  engineAccess(
+    engineId: string,
+    viewer: Viewer,
+    action: RepositoryAction,
+  ): Promise<RpcResult<{ readonly repository: RepositoryForViewer | null }>> {
+    return this.#collaborators().engineAccess(engineId, viewer, action);
+  }
+
+  agentRepositoryAccess(
+    agent: AgentPrincipal,
+    ownerHandle: string,
+    name: string,
+    action: RepositoryAction,
+  ): Promise<RpcResult<RepositoryForViewer>> {
+    return this.#collaborators().agentRepositoryAccess(agent, ownerHandle, name, action);
+  }
+
+  #collaborators(): CollaboratorsRpc {
+    return collaboratorsRpc({
+      registry: d1Registry(this.env.FORGE),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      people: peopleDirectory(this.env, this.env.FORGE),
+      log: createLogger(readConfig(this.env).logLevel, { component: 'collaborators' }),
+    });
+  }
+
   #deployTokens(): DeployTokensRpc {
-    return deployTokensRpc({ db: this.env.FORGE, now: () => Date.now() });
+    return deployTokensRpc({
+      db: this.env.FORGE,
+      now: () => Date.now(),
+      registry: d1Registry(this.env.FORGE),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+    });
   }
 
   #repositories(): RepositoriesRpc {
     return repositoriesRpc({
       registry: d1Registry(this.env.FORGE),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
       storage: repositoryStorage(this.env.REPOS),
       engine: repoEnginePort(createDeps(this.env)),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
@@ -334,11 +456,79 @@ export default class Gateway
     return repoEngineRpc(createDeps(this.env)).pushedBeans(engineId);
   }
 
+  /** What happened lately in each engine, for a person's Home (`EngineFeedRpc`). */
+  engineFeeds(
+    engineIds: readonly string[],
+    limit: number,
+  ): Promise<RpcResult<readonly EngineFeed[]>> {
+    return engineFeedRpc(createDeps(this.env)).engineFeeds(engineIds, limit);
+  }
+
   closeRepoEngine(
     engineId: string,
     options: { readonly deleteRepo: boolean },
   ): Promise<RpcResult<{ readonly closed: true }>> {
     return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
+  }
+
+  agentRepositories(principal: AgentPrincipal): Promise<RpcResult<readonly AgentRepository[]>> {
+    return this.#agents().agentRepositories(principal);
+  }
+
+  agentRepository(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentRepository>> {
+    return this.#agents().agentRepository(principal, repo);
+  }
+
+  agentPushedBeans(
+    principal: AgentPrincipal,
+    repo: string,
+  ): Promise<RpcResult<readonly PushedBeanStatus[]>> {
+    return this.#agents().agentPushedBeans(principal, repo);
+  }
+
+  agentBean(principal: AgentPrincipal, repo: string, bean: string): Promise<RpcResult<AgentBean>> {
+    return this.#agents().agentBean(principal, repo, bean);
+  }
+
+  agentWaitBean(
+    principal: AgentPrincipal,
+    repo: string,
+    bean: string,
+    wait: { readonly until: BeanWaitUntil; readonly seconds: number },
+  ): Promise<RpcResult<BeanWaited>> {
+    return this.#agents().agentWaitBean(principal, repo, bean, wait);
+  }
+
+  agentOpenBean(
+    principal: AgentPrincipal,
+    repo: string,
+    input: BeanOpenInput,
+  ): Promise<RpcResult<BeanOpened>> {
+    return this.#agents().agentOpenBean(principal, repo, input);
+  }
+
+  agentBacklog(principal: AgentPrincipal, repo: string): Promise<RpcResult<Backlog>> {
+    return this.#agents().agentBacklog(principal, repo);
+  }
+
+  agentClaimTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentClaimTask(principal, repo, task);
+  }
+
+  agentReleaseTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentReleaseTask(principal, repo, task);
+  }
+
+  #agents(): AgentReposRpc {
+    return agentReposRpc(createDeps(this.env));
   }
 
   /**

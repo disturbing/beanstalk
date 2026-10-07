@@ -6,6 +6,7 @@ import type {
   DecisionRecord,
   TestRecord,
 } from '@beanstalk/shared-ask/forge/forge-source';
+import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
 import type { Lane } from '@beanstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import { StatusPill, beadClass, statusLabel } from './bean-status';
@@ -14,15 +15,29 @@ import styles from './explorer.module.css';
 import type { ExplorerState } from './explorer-url';
 import { explorerHref } from './explorer-url';
 
-type Context = { readonly base: string; readonly state: ExplorerState };
+type Context = {
+  readonly base: string;
+  readonly state: ExplorerState;
+  /** A persistent repository names people (`@coop`) where a race names agent slots. */
+  readonly subject: 'race' | 'repository';
+  /** Who pushed each bean, for a repository. */
+  readonly pushers: Pushers;
+};
 
 /** The context rail, in the catalog's order for the question's class. */
 export function RailBlocks(props: {
   readonly base: string;
   readonly state: ExplorerState;
   readonly blocks: readonly RailBlock[];
+  readonly subject?: 'race' | 'repository';
+  readonly pushers?: Pushers;
 }) {
-  const context = { base: props.base, state: props.state };
+  const context: Context = {
+    base: props.base,
+    state: props.state,
+    subject: props.subject ?? 'race',
+    pushers: props.pushers ?? {},
+  };
   return (
     <>
       {props.blocks.map((block, index) => (
@@ -69,9 +84,15 @@ function RailBlockView({
     case 'agents':
       return (
         <Block
-          title="Agents on it now"
+          title={
+            context.subject === 'repository' ? 'People and sessions on it now' : 'Agents on it now'
+          }
           count={block.lanes.length}
-          empty="No agent holds a bean on these files right now."
+          empty={
+            context.subject === 'repository'
+              ? 'Nobody has a bean on these files right now.'
+              : 'No agent holds a bean on these files right now.'
+          }
         >
           {block.lanes.map((lane) => (
             <LaneRow key={lane.slot} lane={lane} now={block.now} context={context} />
@@ -138,12 +159,20 @@ function BeanTimeline({
           </div>
           <div className={styles.timelineSub}>
             {bean.title}
-            {bean.agent === null ? '' : `, by ${bean.agent}`}
+            {carrier(bean.id, bean.agent, context)}
           </div>
         </li>
       ))}
     </ol>
   );
+}
+
+/** ", by @coop" for a pushed bean, ", by a3" for a race's agent, nothing for neither. */
+function carrier(bean: string, agent: string | null, context: Context): string {
+  const pusher = context.pushers[bean];
+  if (pusher !== undefined) return `, by @${pusher}`;
+  if (context.subject === 'repository') return '';
+  return agent === null ? '' : `, by ${agent}`;
 }
 
 function beanTime(bean: BeanRecord): string {
@@ -258,7 +287,11 @@ function LaneRow({
 }) {
   return (
     <div className={styles.laneRow}>
-      <span className={styles.slot}>{lane.slot}</span>
+      <span className={styles.slot}>
+        {lane.bean !== null && context.pushers[lane.bean] !== undefined
+          ? `@${context.pushers[lane.bean]}`
+          : lane.slot}
+      </span>
       <span>
         {lane.bean === null ? 'idle' : <Link href={beanHref(context, lane.bean)}>{lane.bean}</Link>}{' '}
         {laneDoing(lane)}

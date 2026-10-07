@@ -74,12 +74,13 @@ export async function FilesExplorer(props: {
   const events = recorded?.events ?? [];
   const race = reduceRace(events);
   const suggestions = suggestionsFor(props.frame, recorded?.label);
+  const resolvedPushers = await pushers;
   return (
     <main className={styles.page}>
       <RepoHead
         base={base}
         repository={repository}
-        current="files"
+        current={props.frame.kind === 'repository' ? 'ask' : 'files'}
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
@@ -113,11 +114,17 @@ export async function FilesExplorer(props: {
             state={state}
             main={answer.main}
             railBean={answer.rail.find((block) => block.kind === 'checks')?.bean ?? null}
-            pushers={await pushers}
+            pushers={resolvedPushers}
           />
         </section>
         <aside className={styles.railPane} aria-label="Context">
-          <RailBlocks base={base} state={state} blocks={answer.rail} />
+          <RailBlocks
+            base={base}
+            state={state}
+            blocks={answer.rail}
+            subject={props.frame.kind === 'repository' ? 'repository' : 'race'}
+            pushers={resolvedPushers}
+          />
         </aside>
       </div>
     </main>

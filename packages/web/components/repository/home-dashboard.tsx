@@ -4,12 +4,14 @@
  * three steps that start a project, and the demo repository to look around in.
  */
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';
 import { growthText } from '../../src/repositories/engine-summary';
 import { repositoryPath } from '../../src/repositories/paths';
-import type { RepositoryActivity, RepositoryRecord } from '../../src/repositories/registry-client';
+import type { ActivityLine } from '../../src/repositories/home-activity';
+import type { RepositoryRecord } from '../../src/repositories/registry-client';
 import { timeAgo } from '../../src/repositories/when';
 import styles from './repository.module.css';
 
@@ -18,7 +20,12 @@ export type DashboardRepository = { readonly record: RepositoryRecord; readonly 
 export function HomeDashboard(props: {
   readonly user: SessionUser;
   readonly repositories: readonly DashboardRepository[];
-  readonly activity: readonly RepositoryActivity[];
+  /** The engines' events and the registry's, newest first. */
+  readonly activity: readonly ActivityLine[];
+  /** Repositories others invited this person to (accepted). */
+  readonly shared?: readonly DashboardRepository[];
+  /** Invitations waiting for an answer (rendered by the page: they are forms). */
+  readonly invitations?: ReactNode;
   readonly nowMs: number;
   /** A sentence when something just happened (a deletion), or a registry problem. */
   readonly notice: { readonly tone: 'good' | 'warn'; readonly text: string } | null;
@@ -47,22 +54,38 @@ export function HomeDashboard(props: {
           New repository
         </Link>
       </div>
+      {props.invitations}
       <div className={styles.homeGrid}>
-        <section className={styles.panel} aria-labelledby="repos-title">
-          <div className={styles.panelHead}>
-            <h2 id="repos-title">Your repositories</h2>
-            <span className={styles.muted}>{props.repositories.length || ''}</span>
-          </div>
-          {first ? (
-            <FirstSteps demoHref={props.demoHref} />
-          ) : (
-            <ul className={styles.repoList}>
-              {props.repositories.map(({ record, growth }) => (
-                <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
-              ))}
-            </ul>
+        <div className={styles.homeColumn}>
+          <section className={styles.panel} aria-labelledby="repos-title">
+            <div className={styles.panelHead}>
+              <h2 id="repos-title">Your repositories</h2>
+              <span className={styles.muted}>{props.repositories.length || ''}</span>
+            </div>
+            {first ? (
+              <FirstSteps demoHref={props.demoHref} />
+            ) : (
+              <ul className={styles.repoList}>
+                {props.repositories.map(({ record, growth }) => (
+                  <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
+                ))}
+              </ul>
+            )}
+          </section>
+          {(props.shared ?? []).length === 0 ? null : (
+            <section className={styles.panel} aria-labelledby="shared-title">
+              <div className={styles.panelHead}>
+                <h2 id="shared-title">Shared with you</h2>
+                <span className={styles.muted}>{props.shared?.length}</span>
+              </div>
+              <ul className={styles.repoList}>
+                {(props.shared ?? []).map(({ record, growth }) => (
+                  <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
+                ))}
+              </ul>
+            </section>
           )}
-        </section>
+        </div>
         <section className={styles.panel} aria-labelledby="activity-title">
           <div className={styles.panelHead}>
             <h2 id="activity-title">Recent activity</h2>
@@ -72,14 +95,21 @@ export function HomeDashboard(props: {
           ) : (
             <ul className={styles.activity}>
               {props.activity.map((line) => (
-                <li key={`${line.repo_id}-${line.at}-${line.kind}`}>
+                <li key={line.key} data-tone={line.tone}>
                   <span>
-                    <Link
-                      href={repositoryPath(line.owner_handle, line.repo_name)}
-                      className={styles.mono}
-                    >
-                      {line.owner_handle}/{line.repo_name}
+                    <Link href={repositoryPath(line.owner, line.repo)} className={styles.mono}>
+                      {line.owner}/{line.repo}
                     </Link>{' '}
+                    {line.bean === null ? null : (
+                      <>
+                        <Link
+                          href={`${repositoryPath(line.owner, line.repo)}/changes/${encodeURIComponent(line.bean)}`}
+                          className={styles.activityBean}
+                        >
+                          {line.bean}
+                        </Link>{' '}
+                      </>
+                    )}
                     {line.text}
                     <time dateTime={line.at}>{timeAgo(line.at, props.nowMs)}</time>
                   </span>

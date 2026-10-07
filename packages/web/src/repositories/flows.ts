@@ -9,7 +9,7 @@ import type { User as SessionUser } from '../auth/user';
 import type { CreateFormResult, CreateValues } from './create-form';
 import { DEFAULT_VALUES, readCreateForm } from './create-form';
 import { isReservedOwner, repositoryPath } from './paths';
-import type { RegistryClient, RepositoryRecord } from './registry-client';
+import type { RegistryClient, RepositoryRecord, ViewerRole } from './registry-client';
 
 /** What a form action answers: go somewhere, or show the form again with messages. */
 export type FormOutcome<State> =
@@ -104,7 +104,13 @@ export async function deleteFlow(
 /** What `/<owner>/<repo>` resolves to for this viewer. */
 export type RepositoryLookup =
   | { readonly kind: 'not-found' }
-  | { readonly kind: 'found'; readonly record: RepositoryRecord; readonly isOwner: boolean };
+  | {
+      readonly kind: 'found';
+      readonly record: RepositoryRecord;
+      /** What the viewer is on it: owner, a collaborator role, or null (reading a public one). */
+      readonly role: ViewerRole | null;
+      readonly isOwner: boolean;
+    };
 
 export async function lookupRepository(
   owner: string,
@@ -115,12 +121,21 @@ export async function lookupRepository(
   if (isReservedOwner(owner)) return { kind: 'not-found' };
   const found = await registry.get(owner, name, user?.id ?? null);
   if (!found.ok) return { kind: 'not-found' };
-  return { kind: 'found', record: found.value, isOwner: user?.id === found.value.owner.id };
+  const role = found.value.viewer_role;
+  return { kind: 'found', record: found.value, role, isOwner: role === 'owner' };
 }
 
 /** Whether the engine has grown anything yet: no bean has started on an empty repository. */
 export function hasGrown(events: readonly { readonly type: string }[]): boolean {
   return events.some((event) => event.type === 'task.start');
+}
+
+/** A repository has grown once a bean started or was pushed: its tabs replace the start page. */
+export function hasGrownRepository(
+  events: readonly { readonly type: string }[],
+  pushed: readonly unknown[],
+): boolean {
+  return pushed.length > 0 || hasGrown(events);
 }
 
 function valuesFrom(form: FormData): CreateValues {

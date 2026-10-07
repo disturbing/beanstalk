@@ -49,10 +49,10 @@ export function sandboxInstance(run: RunId, slot: SlotId): string {
   return `run-${run}-sandbox-${slot}`;
 }
 
-/** Sandboxes a continuous engine's slots share (it has many slots, most waiting for a push). */
-const SHARED_SANDBOXES = 2;
-
-/** A continuous engine's sandbox for a slot's pre-land checks: one of a small shared pool. */
-export function sharedSandboxInstance(run: RunId, slot: SlotId): string {
-  return `run-${run}-sandbox-${Number(slot.slice(1)) % SHARED_SANDBOXES}`;
+/**
+ * A repository engine's pre-land sandbox `index`, leased for one bean's check
+ * (`capacity/sandbox-pool.ts`): indexes are reused lowest first, so warm sandboxes serve again.
+ */
+export function poolSandboxInstance(run: RunId, index: number): string {
+  return `run-${run}-sandbox-${index}`;
 }

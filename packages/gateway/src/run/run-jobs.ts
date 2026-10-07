@@ -16,14 +16,14 @@ import type {
   RepoRemote,
   TokenScope,
 } from '../adapters/artifacts';
-import type { CheckInstance, JobOutcome, JobResult, JobSpec } from '../engine/model';
+import type { CheckInstance, CheckResult, JobOutcome, JobResult, JobSpec } from '../engine/model';
 import { assertNever } from '../engine/errors';
 import { UpstreamError } from '../errors';
 import { changedRanges, diffText } from '../git/diff-text';
 import type { Logger } from '../log';
 import type { RunnerPort, RunnerRemote } from '../runner/runner-client';
 import { continuousRef } from '../push/bean-refs';
-import { ciInstance, committerInstance, sandboxInstance, sharedSandboxInstance } from './run-names';
+import { ciInstance, committerInstance, poolSandboxInstance, sandboxInstance } from './run-names';
 
 /** Re-mint a cached token when it has less than this left. */
 const TOKEN_REFRESH_MARGIN_MS = 2 * 60 * 1000;
@@ -31,6 +31,12 @@ const TOKEN_REFRESH_MARGIN_MS = 2 * 60 * 1000;
 const READ_CONCURRENCY = 4;
 /** What a diff shows when the binding cannot read one of the commits. */
 const DIFF_UNAVAILABLE = '(diff unavailable)';
+/**
+ * Runs of one check before a suite timeout becomes the job's failure. A timeout is never a
+ * verdict on the change (a suite that ran out of time reported nothing): it is re-run, and
+ * only a suite that times out every time fails the job, as an infrastructure failure.
+ */
+export const SUITE_TIMEOUT_ATTEMPTS = 3;
 
 /** The run's repo, as the RunDO stores it: the sprout, the stalk and every bean branch. */
 export type RunRepos = { readonly repo: RepoRemote };
@@ -67,11 +73,15 @@ export type JobContext = {
   readonly suite: RunSuite;
   /**
    * `continuous`: a repository's engine (`RunConfig.continuous`). Its beans are the pushed
-   * `refs/heads/bean/<name>` branches, and its slots share a small pool of sandboxes.
+   * `refs/heads/bean/<name>` branches, and each pre-land check runs in a sandbox leased for it.
    */
   readonly engine: 'race' | 'continuous';
   /** Which checks trace (the run's `read_maps`); absent: none. */
   readonly readMaps?: RunConfig['read_maps'];
+  /** The sandbox index leased for this job (a repository engine's pre-land check). */
+  readonly sandboxIndex?: number;
+  /** A suite ran past its timeout (it is re-run, or the job fails): for the pool's counts. */
+  readonly onSuiteTimeout?: () => void;
 };
 
 /** Runs one job; failures come back as outcomes, never as exceptions. */
@@ -166,33 +176,69 @@ async function revert(
     : { kind: 'revert', outcome: 'conflict', files: outcome.files };
 }
 
-/** Suites never run on the committer and never get a write token. */
+/**
+ * Suites never run on the committer and never get a write token. A suite that times out is
+ * run again (`SUITE_TIMEOUT_ATTEMPTS`). A bean's check (its sandbox) that times out every time
+ * fails as infrastructure, never as a red of the change; a CI slot's run (a validation, a
+ * probe, the final check) that does is the shared line's own result and goes to the engine as
+ * before, since failing the job there would abort the run.
+ */
 async function check(
   spec: Extract<JobSpec, { kind: 'check' }>,
   context: JobContext,
 ): Promise<JobResult> {
-  const { network, ciSeconds, ...result } = await context.runner.check(
-    checkInstance(context, spec.instance),
-    {
-      trunk: await runRepo(context, 'read'),
-      sha: spec.sha,
-      extraFiles: spec.extraFiles,
-      suite: context.suite,
-      only: spec.only ?? null,
-      allReadSets: spec.allReadSets === true,
-      ...readMapOptions(spec, context.readMaps ?? 'off'),
-    },
-  );
+  const instance = checkInstance(context, spec.instance);
+  for (let attempt = 1; ; attempt += 1) {
+    // oxlint-disable-next-line no-await-in-loop -- a re-run follows its timed-out run
+    const result = await runCheck(spec, context, instance);
+    if (!result.timedOut) return { kind: 'check', check: result };
+    context.onSuiteTimeout?.();
+    context.log.warn('suite timed out', { sha: spec.sha, instance, attempt });
+    if (attempt < SUITE_TIMEOUT_ATTEMPTS) continue;
+    if (spec.instance.kind === 'ci') return { kind: 'check', check: result };
+    throw suiteTimeout(context, { instance, attempt });
+  }
+}
+
+async function runCheck(
+  spec: Extract<JobSpec, { kind: 'check' }>,
+  context: JobContext,
+  instance: string,
+): Promise<CheckResult> {
+  const { network, ciSeconds, ...result } = await context.runner.check(instance, {
+    trunk: await runRepo(context, 'read'),
+    sha: spec.sha,
+    extraFiles: spec.extraFiles,
+    suite: context.suite,
+    only: spec.only ?? null,
+    allReadSets: spec.allReadSets === true,
+    ...readMapOptions(spec, context.readMaps ?? 'off'),
+  });
   context.log.info('suite checked', {
     sha: spec.sha,
     green: result.green,
     tests: result.tests,
     suite_seconds: result.suiteSeconds,
     ci_seconds: ciSeconds,
+    timed_out: result.timedOut,
+    instance,
     network,
     deps: context.suite.deps,
   });
-  return { kind: 'check', check: result };
+  return result;
+}
+
+/** The job's failure once every run timed out: infrastructure, and worded so for the author. */
+function suiteTimeout(
+  context: JobContext,
+  ran: { instance: string; attempt: number },
+): UpstreamError {
+  return new UpstreamError(
+    `suite_timeout: the suite ran past its ${context.suite.timeout_seconds} s limit ${ran.attempt} times ` +
+      `on ${ran.instance}, so it reported nothing; this is an infrastructure delay, not a test failure, ` +
+      'and the change was not judged',
+    false,
+  );
 }
 
 /**
@@ -222,7 +268,7 @@ function checkInstance(context: JobContext, instance: CheckInstance): string {
       return ciInstance(context.run, instance.slot);
     case 'sandbox':
       return context.engine === 'continuous'
-        ? sharedSandboxInstance(context.run, instance.slot)
+        ? poolSandboxInstance(context.run, context.sandboxIndex ?? 0)
         : sandboxInstance(context.run, instance.slot);
     default:
       return assertNever(instance);

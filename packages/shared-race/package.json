@@ -13,7 +13,10 @@
     "./collaboration": "./src/collaboration.ts",
     "./repos": "./src/repos.ts",
     "./deploy-tokens": "./src/deploy-tokens.ts",
-    "./read-maps": "./src/read-maps.ts"
+    "./read-maps": "./src/read-maps.ts",
+    "./agent-repos": "./src/agent-repos.ts",
+    "./collaborators": "./src/collaborators.ts",
+    "./engine-feed": "./src/engine-feed.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

@@ -1,5 +1,7 @@
+import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
+import type { PoolSnapshot } from '../src/capacity/runner-capacity';
 import { ADMIN, call, json, pkt, sha } from './helpers';
 
 /**
@@ -23,14 +25,20 @@ type Bean = {
   verdict: string[];
 };
 
-async function openRepo(repo: string): Promise<{ opened: Opened; token: string }> {
+async function openRepo(
+  repo: string,
+  engine?: Record<string, unknown>,
+): Promise<{ opened: Opened; token: string }> {
   const response = await call('POST', '/v1/repos', {
     token: ADMIN,
     body: {
       repoName: repo,
       artifactsRepo: `repo-${repo}`,
       owner: { id: 'u1', handle: 'acme' },
-      settings: { bean_url: 'https://web.test/acme/beans/{bean}' },
+      settings: {
+        bean_url: 'https://web.test/acme/beans/{bean}',
+        ...(engine === undefined ? {} : { engine }),
+      },
       create_artifacts_repo: true,
     },
   });
@@ -368,5 +376,68 @@ describe('git-native flow', () => {
       ),
     );
     expect(report).toMatch(/ng refs\/heads\/bean\/late the repository engine is (finishing|done)/);
+  });
+});
+
+/** Suites the fake runner instance ran. */
+async function checksOn(instance: string): Promise<number> {
+  const requests = await json<{ path: string }[]>(
+    await env.RUNNER.getByName(instance).fetch('http://runner/__requests'),
+  );
+  return requests.filter((request) => request.path === '/v1/check').length;
+}
+
+describe('pre-land sandboxes of a repository engine', () => {
+  it('checks beans at once, each in a sandbox leased for it, within the cap, and gives them back', async () => {
+    const { opened, token } = await openRepo('pool', { preland_sandboxes: 3, ci_slots: 1 });
+    const engine = opened.engineId;
+    const names = ['p-one', 'p-two', 'p-three', 'p-four', 'p-five'];
+
+    const pushed = await Promise.all(
+      names.map(async (name, index) =>
+        push(
+          opened.git_path,
+          token,
+          pushBody({ ref: `refs/heads/bean/${name}`, newSha: await sha(`pool-${index}`) }),
+        ),
+      ),
+    );
+    expect(pushed.map((response) => response.status)).toEqual(names.map(() => 200));
+    for (const name of names) {
+      // oxlint-disable-next-line no-await-in-loop -- each bean is awaited in turn
+      await until(engine, name, ['landed', 'green']);
+    }
+
+    const perSandbox = await Promise.all(
+      [0, 1, 2, 3].map((index) => checksOn(`run-${engine}-sandbox-${index}`)),
+    );
+    expect(perSandbox[3]).toBe(0);
+    expect(perSandbox.reduce((sum, checks) => sum + checks, 0)).toBeGreaterThanOrEqual(
+      names.length,
+    );
+    expect(await checksOn(`run-${engine}-ci-1`)).toBe(0);
+    const pool = await json<PoolSnapshot>(
+      await call('GET', '/v1/admin/capacity', { token: ADMIN }),
+    );
+    expect(pool.limits).toEqual({ instances: 48, headroom: 2, floor: 2 });
+    expect(pool.leases.filter((lease) => lease.engine === engine)).toEqual([]);
+    const stats = pool.stats.find((owner) => owner.owner === engine);
+    expect(stats?.granted).toBeGreaterThanOrEqual(names.length);
+    expect(stats?.peak).toBeLessThanOrEqual(3);
+    expect(stats?.timeouts).toBe(0);
+  });
+
+  it('refuses an engine setting it does not know', async () => {
+    const response = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: 'unknown-setting',
+        artifactsRepo: 'repo-unknown-setting',
+        owner: { id: 'u1', handle: 'acme' },
+        settings: { engine: { agents: 64 } },
+        create_artifacts_repo: true,
+      },
+    });
+    expect(response.status).toBe(400);
   });
 });

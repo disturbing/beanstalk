@@ -20,7 +20,7 @@ import { ExplorerAnswer, FinishedAnswer, workingOn } from './explorer-answer';
 import type { HomeState } from './home-url';
 import { readHomeState } from './home-url';
 import { HomeWorkspace } from './home-workspace';
-import type { RepoKind } from './repo-head';
+import type { RepoKind, RepoTab } from './repo-head';
 import { RepoHead, TAB_QUESTIONS, tabOf } from './repo-head';
 import { forgeForRun } from '../../src/forge/sources';
 import type { Repository } from '../../src/people/repository';
@@ -78,7 +78,7 @@ export async function RepositoryHome(props: {
       <RepoHead
         base={base}
         repository={repository}
-        current={url.bean === null ? tabOf(url.q) : 'code'}
+        current={currentTab(props.frame.kind, url)}
         kind={props.frame.kind}
         {...(props.frame.visibility === undefined ? {} : { visibility: props.frame.visibility })}
         {...(props.frame.ownerHref === undefined ? {} : { ownerHref: props.frame.ownerHref })}
@@ -205,6 +205,12 @@ async function explorerFor(input: {
     relevant: [...composition.relevant, ...swarm],
     receipts: answer.picks,
   };
+}
+
+/** A repository's explorer is its Ask tab; a race's follows the question's tab. */
+function currentTab(kind: RepoKind, url: HomeState): RepoTab {
+  if (kind === 'repository') return 'ask';
+  return url.bean === null ? tabOf(url.q) : 'code';
 }
 
 export function notFoundOr(error: unknown): never {
