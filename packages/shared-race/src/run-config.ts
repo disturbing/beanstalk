@@ -393,6 +393,13 @@ const CheckedFields = z
      * watchdog on an invocation waiting for its author's next push). `false`: a race.
      */
     continuous: z.boolean().default(false),
+    /**
+     * A continuous engine's pre-land concurrency: at most this many sandboxes run its beans'
+     * checks at once, one bean per sandbox, leased on demand from the gateway's runner pool and
+     * released when the check ends (`docs/claude-opus/18-git-native-flow.md` §7). null: the
+     * gateway's default (32). A race ignores it: each agent slot has its own sandbox.
+     */
+    preland_sandboxes: z.number().int().min(1).max(64).nullable().default(null),
     tasks: z.array(ArenaTask).max(200),
   })
   .superRefine((config, issues) => {

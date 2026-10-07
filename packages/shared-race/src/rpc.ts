@@ -607,6 +607,13 @@ export type OpenRepoEngineInput = {
     readonly base_branch?: string;
     /** A bean's web page, `{bean}` replaced by its name; shown in push verdicts. */
     readonly bean_url?: string;
+    /**
+     * Engine settings over the continuous defaults, for load tests and paired comparisons:
+     * `preland_sandboxes` (pre-land checks at once, one sandbox per bean; default 32),
+     * `ci_slots` (validations at once; default 2), and the evidence-promotion track
+     * (`read_maps`, `evidence_promotion`, `evidence_read_sets`, `affected_validation`, `audit_every`).
+     */
+    readonly engine?: Readonly<Record<string, unknown>>;
   };
 };
 

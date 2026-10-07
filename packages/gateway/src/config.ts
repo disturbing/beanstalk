@@ -13,6 +13,8 @@ export type GatewayConfig = {
   readonly artifactsTokenTtlSeconds: number;
   /** The web app people sign in to, named in the hint a credential-less request gets (may be empty). */
   readonly webUrl: string;
+  /** The runner container class's `max_instances`: the pool races and repositories share. */
+  readonly runnerMaxInstances: number;
 };
 
 const Seconds = z.coerce.number().int().min(60);
@@ -23,6 +25,8 @@ const Vars = z.object({
   RUN_TOKEN_TTL_SECONDS: Seconds.max(24 * 3600),
   ARTIFACTS_TOKEN_TTL_SECONDS: Seconds.max(600),
   WEB_URL: z.union([z.url(), z.literal('')]).default(''),
+  /** Must match `containers[].max_instances` in wrangler.jsonc. */
+  RUNNER_MAX_INSTANCES: z.coerce.number().int().min(4).max(1000).default(48),
 });
 
 /** The secrets the gateway signs and authenticates with. */
@@ -69,5 +73,6 @@ export function readConfig(env: Pick<Env, keyof z.infer<typeof Vars>>): GatewayC
     runTokenTtlSeconds: vars.RUN_TOKEN_TTL_SECONDS,
     artifactsTokenTtlSeconds: vars.ARTIFACTS_TOKEN_TTL_SECONDS,
     webUrl: vars.WEB_URL,
+    runnerMaxInstances: vars.RUNNER_MAX_INSTANCES,
   };
 }
