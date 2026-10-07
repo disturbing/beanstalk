@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { receivePackBody, refusedRefs } from '../adapters/repository-storage';
-import { emptyPack, objectId, seedPack } from './pack-writer';
+import { emptyPack, objectId, seedPack } from './seed-pack';
 
 const encoder = new TextEncoder();
 

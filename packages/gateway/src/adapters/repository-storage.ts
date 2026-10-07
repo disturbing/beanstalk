@@ -6,8 +6,8 @@
 import type { RepositoryFiles } from '@beanstalk/shared-race/repos';
 
 import { UpstreamError } from '../errors';
-import type { SeedCommit } from '../git/pack-writer';
-import { emptyPack, seedPack } from '../git/pack-writer';
+import type { SeedCommit } from '../git/seed-pack';
+import { emptyPack, seedPack } from '../git/seed-pack';
 import { call, withRepo } from './artifacts';
 
 export type RepositoryStorage = {

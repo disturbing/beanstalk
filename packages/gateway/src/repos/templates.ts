@@ -7,7 +7,7 @@
 import { assertNever } from '../engine/errors';
 import type { RepoTemplate } from '@beanstalk/shared-race/repos';
 
-import type { SeedFile } from '../git/pack-writer';
+import type { SeedFile } from '../git/seed-pack';
 
 export function emptyStart(repoName: string, description: string): readonly SeedFile[] {
   const about = description === '' ? '' : `\n${description}\n`;
