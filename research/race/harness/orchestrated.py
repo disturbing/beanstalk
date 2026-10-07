@@ -495,6 +495,16 @@ class BeanstalkForge:
         return list(per.values()), ci
 
 
+def locked_hint() -> str:
+    """What workers are told about running tests (both arms): only through the machine-wide lock, because
+    fastify's suite listens on fixed ports and parallel suites on one machine fail each other."""
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locked_suite.py")
+    return (f"Run the tests only with `python3 {script}` from the worktree: `cd <worktree> && python3 {script}` "
+            f"runs the whole suite (about 15 s), `cd <worktree> && python3 {script} test/<file>.test.js` runs chosen "
+            "files. It waits while another test run on this machine finishes (the suite listens on fixed ports, so "
+            "two at once fail each other); never run `node --test` directly.")
+
+
 def task_of(text: str) -> str | None:
     import re
     m = re.search(r"\bTask:\s*([A-Za-z0-9_.-]+)", text or "")
@@ -536,7 +546,7 @@ class OrchestratedRace:
         base = forge.setup(base_dir)
         self.arena_base = run_git(base_dir, "rev-parse", "HEAD~1" if cfg.forge == "github" else "HEAD").strip()
         self.arena_digest = digest
-        return tasks, forge, base, suite.agent_test_hint
+        return tasks, forge, base, locked_hint()
 
     def checkout(self, forge, tasks: list[Task], hint: str) -> str:
         wt = os.path.join(self.work, "orchestrator")
@@ -579,7 +589,7 @@ class OrchestratedRace:
         with open(os.path.join(self.out, "prompt.txt"), "w", encoding="utf-8") as fh:
             fh.write(prompt)
         transcript = os.path.join(self.work, "transcript.jsonl")
-        env = {**agent_env(), **forge.agent_env()}
+        env = {**agent_env(), **forge.agent_env(), "ORCH_ARENA": os.path.abspath(cfg.arena)}
         self.t0 = time.time()
         self.log("race.setup", at=self.t0, forge=cfg.forge, repo=forge.url, base=base, tasks=[t.id for t in tasks])
         self.log("race.start", at=self.t0, policy=f"orchestrated-{cfg.forge}", agent=cfg.orchestrator,

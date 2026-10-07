@@ -68,7 +68,8 @@ def main(argv: list[str] | None = None) -> int:
                      extra={"bs_seed": a.bs_seed, **({"bs_repo": a.bs_repo} if a.bs_repo else {})})
     if a.wait_gateway and a.forge == "beanstalk":
         from pair import wait_for_gateway
-        wait_for_gateway()
+        import urllib.parse
+        wait_for_gateway(host=urllib.parse.urlparse(a.gateway or "").hostname)
     code = OrchestratedRace(cfg).run()
     summary = os.path.join(OrchestratedRace(cfg).out, "summary.md")
     if os.path.exists(summary):

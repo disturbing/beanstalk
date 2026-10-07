@@ -103,6 +103,28 @@ class Measure(unittest.TestCase):
         self.assertEqual((m["kickouts"], m["conflicts"], m["repushes"]), (1, 1, 1))
 
 
+class LockedSuite(unittest.TestCase):
+    def test_runs_the_suite_under_a_lock_another_process_waits_for(self) -> None:
+        import subprocess as sp
+        import time
+        from harness.locked_suite import SuiteLock
+        lock = os.path.join(TESTS, "tmp", "orch-suite.lock")
+        holder = sp.Popen([sys.executable, "-c", (
+            "import sys,time; sys.path.insert(0, %r); from harness.locked_suite import SuiteLock\n"
+            "with SuiteLock(%r):\n print('held', flush=True); time.sleep(1.5)") % (RACE, lock)],
+            stdout=sp.PIPE, text=True)
+        self.assertEqual(holder.stdout.readline().strip(), "held")
+        t0 = time.monotonic()
+        with SuiteLock(lock) as got:
+            self.assertGreater(time.monotonic() - t0, 0.5)
+            self.assertGreater(got.waited, 0.5)
+        holder.wait()
+        env = {k: v for k, v in os.environ.items() if k != "ORCH_ARENA"}
+        res = sp.run([sys.executable, os.path.join(RACE, "harness", "locked_suite.py")],
+                     cwd=os.path.join(FIXTURE, "app"), capture_output=True, text=True, env=env)
+        self.assertEqual(res.returncode, 0, res.stdout[-500:])
+
+
 class Transcript(unittest.TestCase):
     def test_parallel_subagents_and_cost(self) -> None:
         path = os.path.join(TESTS, "tmp", "orch-transcript.jsonl")
