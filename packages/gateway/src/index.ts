@@ -81,6 +81,7 @@ export { RunDO } from './run/run-do';
 export { RunIndex } from './run/run-index';
 export { RunStreamDO } from './stream/run-stream-do';
 export { Runner } from './runner/runner-container';
+export { RunnerCapacity } from './capacity/runner-capacity';
 // Required by @cloudflare/containers for outbound interception (allowed and denied hosts).
 export { ContainerProxy } from '@cloudflare/containers';
 

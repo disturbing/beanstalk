@@ -14,6 +14,8 @@
     "ARTIFACTS_TOKEN_TTL_SECONDS": "600",
     // The web app, named in the hint a request without a usable credential gets.
     "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
+    // The runner pool races and repositories share (RunnerCapacity): containers[].max_instances.
+    "RUNNER_MAX_INSTANCES": "48",
   },
   // ADMIN_TOKEN guards the admin API; RUN_TOKEN_SECRET signs slot, seed and view tokens.
   // Locally they come from .dev.vars (see .dev.vars.example); remotely from `wrangler secret put`.
@@ -26,6 +28,8 @@
     "Runner": { "type": "durable-object", "storage": "sqlite" },
     // stream_diffs: one per run, beside its RunDO (docs/claude-17-streaming-diffs.md).
     "RunStreamDO": { "type": "durable-object", "storage": "sqlite" },
+    // One instance ("pool"): race reservations and repositories' pre-land sandbox leases.
+    "RunnerCapacity": { "type": "durable-object", "storage": "sqlite" },
   },
   "durable_objects": {
     "bindings": [
@@ -33,10 +37,13 @@
       { "name": "RUN_INDEX", "class_name": "RunIndex" },
       { "name": "RUNNER", "class_name": "Runner" },
       { "name": "RUN_STREAMS", "class_name": "RunStreamDO" },
+      { "name": "RUNNER_CAPACITY", "class_name": "RunnerCapacity" },
     ],
   },
   // Per run: one committer (squash, revert, update-ref), one instance per emulated CI slot,
   // and one sandbox per agent slot for v2's pre-land checks: agents + ci_slots + 1 (§5, §6).
+  // A repository engine: committer + CI slots, plus one sandbox per bean in check, leased from
+  // RunnerCapacity (RUNNER_MAX_INSTANCES above must equal max_instances).
   // standard-2 (1 vCPU): on standard-1 (1/2 vCPU) suites took 12.7 s median, 0.9 s locally.
   // 24 instances fit a 12-agent v2 run (15) beside a 12-agent queue run (3).
   "containers": [
