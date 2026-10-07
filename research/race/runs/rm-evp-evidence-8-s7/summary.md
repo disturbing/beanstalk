@@ -1,6 +1,6 @@
 # Race: beanstalk / replay
 
-_forge: cloudflare, run qrdbeb6zkt on https://beanstalk-gateway-staging-rm.devaccounts-1password.workers.dev_
+_forge: cloudflare, run qrdbeb6zkt on https://beanstalk-gateway-staging-rm.<subdomain>.workers.dev_
 
 _measured: arena=arena@26eecce0/8c321b35, 40 tasks, policy=beanstalk, agent=replay (replay control: reference patches, synthetic timings)_
 

@@ -46,7 +46,7 @@
     10.0
   ],
   "forge": "cloudflare",
-  "gateway": "https://beanstalk-gateway-staging.devaccounts-1password.workers.dev",
+  "gateway": "https://beanstalk-gateway-staging.<subdomain>.workers.dev",
   "run": "umtpy30wkb",
   "v2": {
     "preland_mode": "optimistic",
