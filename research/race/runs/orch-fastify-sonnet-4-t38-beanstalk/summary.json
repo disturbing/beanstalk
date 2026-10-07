@@ -22,7 +22,7 @@
   "settled_seconds": 2567.85,
   "tasks": 38,
   "tasks_green": 38,
-  "cost_usd": 8.9512,
+  "cost_usd": 4.7282,
   "red_validations": 5,
   "ci_minutes": {
     "preland": 51.15,
@@ -618,60 +618,26 @@
     }
   ],
   "orchestrator": {
-    "model_usage": [
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 180,
-          "outputTokens": 48918,
-          "cacheReadInputTokens": 2546675,
-          "cacheCreationInputTokens": 193721,
-          "webSearchRequests": 0,
-          "costUSD": 1.4902920000000004,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 9338,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
-      },
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 360,
-          "outputTokens": 84700,
-          "thinkingTokens": 12711,
-          "cacheReadInputTokens": 4620787,
-          "cacheCreationInputTokens": 360301,
-          "webSearchRequests": 0,
-          "costUSD": 2.7327319000000028,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
-      },
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 580,
-          "outputTokens": 140052,
-          "thinkingTokens": 20675,
-          "cacheReadInputTokens": 8354422,
-          "cacheCreationInputTokens": 632455,
-          "webSearchRequests": 0,
-          "costUSD": 4.728160399999999,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 580,
+        "outputTokens": 140052,
+        "thinkingTokens": 20675,
+        "cacheReadInputTokens": 8354422,
+        "cacheCreationInputTokens": 632455,
+        "webSearchRequests": 0,
+        "costUSD": 4.728160399999999,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
       }
-    ],
-    "cost_usd": 8.9512,
+    },
+    "cost_usd": 4.7282,
     "ok": true,
     "subtype": "success",
-    "turns": 38,
+    "turns": 20,
     "agent_calls": 12,
     "max_agent_calls_in_one_message": 1,
     "background_agent_calls": 12,
@@ -2001,5 +1967,6 @@
     }
   },
   "gateway_version": "9709edee",
-  "preland_concurrency": 20
+  "preland_concurrency": 20,
+  "cost_note": "recomputed 2026-10-08: resumed processes report the session's cumulative cost; the first figure (8.9512) summed them"
 }

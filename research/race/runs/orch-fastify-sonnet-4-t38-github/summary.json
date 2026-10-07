@@ -22,7 +22,7 @@
   "settled_seconds": 2775.88,
   "tasks": 38,
   "tasks_green": 38,
-  "cost_usd": 7.9025,
+  "cost_usd": 5.4981,
   "red_validations": 1,
   "ci_minutes": {
     "batch": 35.77,
@@ -828,44 +828,26 @@
     }
   ],
   "orchestrator": {
-    "model_usage": [
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 320,
-          "outputTokens": 72673,
-          "cacheReadInputTokens": 5144771,
-          "cacheCreationInputTokens": 251049,
-          "webSearchRequests": 0,
-          "costUSD": 2.4044142000000006,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 12246,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
-      },
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 660,
-          "outputTokens": 144541,
-          "thinkingTokens": 28247,
-          "cacheReadInputTokens": 13655312,
-          "cacheCreationInputTokens": 511919,
-          "webSearchRequests": 0,
-          "costUSD": 5.4981184000000045,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 660,
+        "outputTokens": 144541,
+        "thinkingTokens": 28247,
+        "cacheReadInputTokens": 13655312,
+        "cacheCreationInputTokens": 511919,
+        "webSearchRequests": 0,
+        "costUSD": 5.4981184000000045,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
       }
-    ],
-    "cost_usd": 7.9025,
+    },
+    "cost_usd": 5.4981,
     "ok": true,
     "subtype": "success",
-    "turns": 19,
+    "turns": 11,
     "agent_calls": 8,
     "max_agent_calls_in_one_message": 1,
     "background_agent_calls": 8,
@@ -2302,5 +2284,6 @@
       "t037": true,
       "t038": true
     }
-  }
+  },
+  "cost_note": "recomputed 2026-10-08: resumed processes report the session's cumulative cost; the first figure (7.9025) summed them"
 }

@@ -237,6 +237,6 @@
 {"seq": 237, "t": 2375.008, "ts": "2026-10-07T15:33:46.014+00:00", "type": "change.integrated", "change": "t038", "task": "t038", "target": "sprout"}
 {"seq": 238, "t": 2375.008, "ts": "2026-10-07T15:33:46.014+00:00", "type": "change.stable", "change": "t038", "task": "t038", "target": "stalk"}
 {"seq": 239, "t": 2375.008, "ts": "2026-10-07T15:33:46.014+00:00", "type": "task.green", "task": "t038", "sha": "0536441fbc2e32dd6ff773730359a58e2e1fed44", "target": "main"}
-{"seq": 240, "t": 2567.406, "ts": "2026-10-07T15:36:58.411+00:00", "type": "invocation.end", "inv": "orchestrator", "kind": "orchestrator", "task": null, "agent": "lead", "cost_usd": 8.9512, "ok": true, "subtype": "success", "num_turns": 38}
-{"seq": 241, "t": 2567.406, "ts": "2026-10-07T15:36:58.411+00:00", "type": "race.end", "aborted": null, "spent_usd": 8.9512}
+{"seq": 240, "t": 2567.406, "ts": "2026-10-07T15:36:58.411+00:00", "type": "invocation.end", "inv": "orchestrator", "kind": "orchestrator", "task": null, "agent": "lead", "cost_usd": 4.7282, "ok": true, "subtype": "success", "num_turns": 38}
+{"seq": 241, "t": 2567.406, "ts": "2026-10-07T15:36:58.411+00:00", "type": "race.end", "aborted": null, "spent_usd": 4.7282}
 {"seq": 242, "t": 2567.85, "ts": "2026-10-07T15:36:58.855+00:00", "type": "final.check", "sha": "0536441fbc2e32dd6ff773730359a58e2e1fed44", "suite_green": true, "suite_retried": false, "suite_failed": [], "tasks_accepted": 38, "tasks_total": 38, "failing_files": []}

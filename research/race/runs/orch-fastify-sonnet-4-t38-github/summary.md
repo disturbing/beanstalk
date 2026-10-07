@@ -16,7 +16,7 @@ _orchestrated race: arena=fastify, 38 tasks, forge=github, claude (sonnet) with 
 | Kick-outs / red checks / conflicts / re-pushes | 1 / 1 / 1 / 1 |
 | Tasks green (acceptance tests on the line) | 38 / 38 |
 | Wall (orchestrator) / settled (min) | 46.2 / 46.3 |
-| Model spend (USD) | 7.9025 |
+| Model spend (USD) | 5.4981 |
 | CI minutes | 76.0 (batch 35.77, precheck 40.23) |
 | Subagent calls / most running at once | 8 / 4 |
 | Final: suite green / tasks accepted / correct | True / 38 of 38 / True |

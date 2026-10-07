@@ -602,24 +602,22 @@
     }
   ],
   "orchestrator": {
-    "model_usage": [
-      {
-        "claude-sonnet-5-5": {
-          "inputTokens": 658,
-          "outputTokens": 146155,
-          "cacheReadInputTokens": 12787364,
-          "cacheCreationInputTokens": 489882,
-          "webSearchRequests": 0,
-          "costUSD": 5.252158299999996,
-          "contextWindow": 1000000,
-          "maxOutputTokens": 128000,
-          "thinkingTokens": 22794,
-          "canonicalModel": "claude-sonnet-5-5",
-          "provider": "firstParty",
-          "costBasis": "list"
-        }
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 658,
+        "outputTokens": 146155,
+        "cacheReadInputTokens": 12787364,
+        "cacheCreationInputTokens": 489882,
+        "webSearchRequests": 0,
+        "costUSD": 5.252158299999996,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 22794,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
       }
-    ],
+    },
     "cost_usd": 5.2522,
     "ok": true,
     "subtype": "success",
@@ -1907,5 +1905,6 @@
     }
   },
   "gateway_version": "9709edee",
-  "preland_concurrency": 20
+  "preland_concurrency": 20,
+  "cost_note": "recomputed 2026-10-08: resumed processes report the session's cumulative cost; the first figure (5.2522) summed them"
 }

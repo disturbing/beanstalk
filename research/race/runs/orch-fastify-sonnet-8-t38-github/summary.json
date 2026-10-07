@@ -1,0 +1,2170 @@
+{
+  "label": "orchestrated race: arena=fastify, 38 tasks, forge=github, claude (sonnet) with 8 sonnet subagents",
+  "policy": "orchestrated-github",
+  "agent": "claude",
+  "model": "sonnet",
+  "forge": "github",
+  "repo": "https://github.com/kintohubtest/beanstalk-orch-fastify-7",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 8,
+    "tasks": 38,
+    "seed": 7,
+    "max_usd": 40.0,
+    "max_wall_minutes": 150.0,
+    "ci_slots": 2,
+    "batch": 4,
+    "worker_model": "sonnet"
+  },
+  "aborted": null,
+  "wall_seconds": 3053.98,
+  "settled_seconds": 3059.38,
+  "tasks": 38,
+  "tasks_green": 38,
+  "cost_usd": 6.5333,
+  "red_validations": 2,
+  "ci_minutes": {
+    "batch": 35.48,
+    "precheck": 39.4
+  },
+  "ci_minutes_total": 74.88,
+  "ci_runs": {
+    "batch": 37,
+    "precheck": 41
+  },
+  "integration": {
+    "changes": 37,
+    "integrated": 37,
+    "submitted_to_integrated_s": {
+      "n": 37,
+      "median": 326.0,
+      "p90": 832.6,
+      "max": 1202.0
+    },
+    "ready_to_integrated_s": {
+      "n": 37,
+      "median": 182.0,
+      "p90": 377.2,
+      "max": 796.0
+    },
+    "ready_to_stable_s": null,
+    "waiting_share_of_wall": 0.6243,
+    "mean_changes_waiting": 2.658,
+    "max_changes_waiting": 9,
+    "integrated_per_10min": [
+      9,
+      13,
+      11,
+      3,
+      1,
+      0
+    ],
+    "kickouts": 1,
+    "red_checks": 2,
+    "conflicts": 1,
+    "repushes": 1
+  },
+  "changes": [
+    {
+      "id": "#137",
+      "task": "t029",
+      "ready_at": 1791401756.0,
+      "integrated_at": 1791401858.0,
+      "stable_at": null,
+      "created_at": 1791401532.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t029",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#136",
+      "task": "t030",
+      "ready_at": 1791401396.0,
+      "integrated_at": 1791401481.0,
+      "stable_at": null,
+      "created_at": 1791401308.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t030",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#135",
+      "task": "t021",
+      "ready_at": 1791401131.0,
+      "integrated_at": 1791401233.0,
+      "stable_at": null,
+      "created_at": 1791401061.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t021",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#134",
+      "task": "t032",
+      "ready_at": 1791401035.0,
+      "integrated_at": 1791401136.0,
+      "stable_at": null,
+      "created_at": 1791400862.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t032",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#133",
+      "task": "t018",
+      "ready_at": 1791400993.0,
+      "integrated_at": 1791401071.0,
+      "stable_at": null,
+      "created_at": 1791400835.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t018",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#132",
+      "task": "t014",
+      "ready_at": 1791400912.0,
+      "integrated_at": 1791401009.0,
+      "stable_at": null,
+      "created_at": 1791400815.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t014",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#131",
+      "task": "t013",
+      "ready_at": 1791401352.0,
+      "integrated_at": 1791401480.0,
+      "stable_at": null,
+      "created_at": 1791400799.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t013",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#130",
+      "task": "t023",
+      "ready_at": 1791401054.0,
+      "integrated_at": 1791401136.0,
+      "stable_at": null,
+      "created_at": 1791400325.0,
+      "kickouts": 0,
+      "red_checks": 2,
+      "conflicts": 0,
+      "pushes": 2,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t023",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#129",
+      "task": "t011",
+      "ready_at": 1791400339.0,
+      "integrated_at": 1791400674.0,
+      "stable_at": null,
+      "created_at": 1791400246.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t011",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#128",
+      "task": "t034",
+      "ready_at": 1791400378.0,
+      "integrated_at": 1791400770.0,
+      "stable_at": null,
+      "created_at": 1791400219.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t034",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#127",
+      "task": "t010",
+      "ready_at": 1791400283.0,
+      "integrated_at": 1791400674.0,
+      "stable_at": null,
+      "created_at": 1791400127.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t010",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#126",
+      "task": "t008",
+      "ready_at": 1791400255.0,
+      "integrated_at": 1791400587.0,
+      "stable_at": null,
+      "created_at": 1791400117.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t008",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#125",
+      "task": "t038",
+      "ready_at": 1791400219.0,
+      "integrated_at": 1791400587.0,
+      "stable_at": null,
+      "created_at": 1791400095.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t038",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#124",
+      "task": "t017",
+      "ready_at": 1791400109.0,
+      "integrated_at": 1791400356.0,
+      "stable_at": null,
+      "created_at": 1791400032.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t017",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#123",
+      "task": "t028",
+      "ready_at": 1791400122.0,
+      "integrated_at": 1791400485.0,
+      "stable_at": null,
+      "created_at": 1791399993.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t028",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#122",
+      "task": "t005",
+      "ready_at": 1791400086.0,
+      "integrated_at": 1791400272.0,
+      "stable_at": null,
+      "created_at": 1791399988.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t005",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#121",
+      "task": "t009",
+      "ready_at": 1791400491.0,
+      "integrated_at": 1791400904.0,
+      "stable_at": null,
+      "created_at": 1791399966.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t009",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#120",
+      "task": "t037",
+      "ready_at": 1791400087.0,
+      "integrated_at": 1791400356.0,
+      "stable_at": null,
+      "created_at": 1791399922.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t037",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#119",
+      "task": "t036",
+      "ready_at": 1791399996.0,
+      "integrated_at": 1791400186.0,
+      "stable_at": null,
+      "created_at": 1791399897.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t036",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#118",
+      "task": "t015",
+      "ready_at": 1791400014.0,
+      "integrated_at": 1791400272.0,
+      "stable_at": null,
+      "created_at": 1791399871.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t015",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#117",
+      "task": "t022",
+      "ready_at": 1791399919.0,
+      "integrated_at": 1791400031.0,
+      "stable_at": null,
+      "created_at": 1791399848.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t022",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#116",
+      "task": "t026",
+      "ready_at": 1791399961.0,
+      "integrated_at": 1791400104.0,
+      "stable_at": null,
+      "created_at": 1791399821.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t026",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#115",
+      "task": "t016",
+      "ready_at": 1791399931.0,
+      "integrated_at": 1791400104.0,
+      "stable_at": null,
+      "created_at": 1791399808.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t016",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#114",
+      "task": "t007",
+      "ready_at": 1791399869.0,
+      "integrated_at": 1791400031.0,
+      "stable_at": null,
+      "created_at": 1791399771.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t007",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#113",
+      "task": "t006",
+      "ready_at": 1791399793.0,
+      "integrated_at": 1791399937.0,
+      "stable_at": null,
+      "created_at": 1791399705.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t006",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#112",
+      "task": "t033",
+      "ready_at": 1791400004.0,
+      "integrated_at": 1791400186.0,
+      "stable_at": null,
+      "created_at": 1791399696.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t033",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#111",
+      "task": "t035",
+      "ready_at": 1791400169.0,
+      "integrated_at": 1791400504.0,
+      "stable_at": null,
+      "created_at": 1791399633.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t035",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#110",
+      "task": "t020",
+      "ready_at": 1791399689.0,
+      "integrated_at": 1791400485.0,
+      "stable_at": null,
+      "created_at": 1791399620.0,
+      "kickouts": 1,
+      "red_checks": 0,
+      "conflicts": 1,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t020",
+        "enqueues": 2,
+        "removals": [
+          "merge_conflict",
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#109",
+      "task": "t003",
+      "ready_at": 1791399662.0,
+      "integrated_at": 1791399867.0,
+      "stable_at": null,
+      "created_at": 1791399578.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t003",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#108",
+      "task": "t001",
+      "ready_at": 1791400468.0,
+      "integrated_at": 1791400770.0,
+      "stable_at": null,
+      "created_at": 1791399568.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t001",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#107",
+      "task": "t027",
+      "ready_at": 1791399685.0,
+      "integrated_at": 1791399937.0,
+      "stable_at": null,
+      "created_at": 1791399557.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t027",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#106",
+      "task": "t004",
+      "ready_at": 1791399633.0,
+      "integrated_at": 1791399771.0,
+      "stable_at": null,
+      "created_at": 1791399543.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t004",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#105",
+      "task": "t019",
+      "ready_at": 1791399580.0,
+      "integrated_at": 1791399679.0,
+      "stable_at": null,
+      "created_at": 1791399506.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t019",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#104",
+      "task": "t025",
+      "ready_at": 1791399647.0,
+      "integrated_at": 1791399867.0,
+      "stable_at": null,
+      "created_at": 1791399481.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t025",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#103",
+      "task": "t024",
+      "ready_at": 1791399593.0,
+      "integrated_at": 1791399702.0,
+      "stable_at": null,
+      "created_at": 1791399455.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t024",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#102",
+      "task": "t002",
+      "ready_at": 1791399546.0,
+      "integrated_at": 1791399622.0,
+      "stable_at": null,
+      "created_at": 1791399444.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t002",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    },
+    {
+      "id": "#101",
+      "task": "t012",
+      "ready_at": 1791399606.0,
+      "integrated_at": 1791399771.0,
+      "stable_at": null,
+      "created_at": 1791399428.0,
+      "kickouts": 0,
+      "red_checks": 0,
+      "conflicts": 0,
+      "pushes": 1,
+      "state": "MERGED",
+      "extra": {
+        "branch": "t012",
+        "enqueues": 1,
+        "removals": [
+          "merged"
+        ]
+      }
+    }
+  ],
+  "orchestrator": {
+    "model_usage": {
+      "claude-sonnet-5-5": {
+        "inputTokens": 772,
+        "outputTokens": 146319,
+        "thinkingTokens": 20982,
+        "cacheReadInputTokens": 15882765,
+        "cacheCreationInputTokens": 716036,
+        "webSearchRequests": 0,
+        "costUSD": 6.533293000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-sonnet-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "cost_usd": 6.5333,
+    "ok": true,
+    "subtype": "success",
+    "turns": 19,
+    "agent_calls": 9,
+    "max_agent_calls_in_one_message": 1,
+    "background_agent_calls": 9,
+    "max_concurrent_subagents": 9,
+    "processes": 7,
+    "commands": {
+      "python3": 63,
+      "cd": 42,
+      "sleep": 36,
+      "gh pr": 36,
+      "sed": 32,
+      "grep": 27,
+      "git worktree": 16,
+      "break;": 12,
+      "for": 9,
+      "git push": 7,
+      "git fetch": 6,
+      "cat": 5,
+      "git rebase": 5,
+      "/^##": 4,
+      "git status": 3,
+      "git diff": 3,
+      "GIT_EDITOR=true": 3,
+      "git stash": 3,
+      "ls": 2,
+      "this.headers['x-forwarded-proto'])": 2,
+      "head": 2,
+      "Buffer.byteLength(payload)": 2,
+      "node": 2,
+      "git remote": 1,
+      "echo": 1
+    },
+    "resumes": [
+      {
+        "at": 2687.3,
+        "unintegrated": [
+          "t031"
+        ]
+      },
+      {
+        "at": 2743.5,
+        "unintegrated": [
+          "t031"
+        ]
+      },
+      {
+        "at": 2825.1,
+        "unintegrated": [
+          "t031"
+        ]
+      },
+      {
+        "at": 2882.6,
+        "unintegrated": [
+          "t031"
+        ]
+      },
+      {
+        "at": 2937.6,
+        "unintegrated": [
+          "t031"
+        ]
+      },
+      {
+        "at": 2997.0,
+        "unintegrated": [
+          "t031"
+        ]
+      }
+    ]
+  },
+  "greens": {
+    "t002": {
+      "sha": "6fa328fc6c6e76986aab845c61a64750dcb60e99",
+      "seconds": 250.18
+    },
+    "t012": {
+      "sha": "6fa328fc6c6e76986aab845c61a64750dcb60e99",
+      "seconds": 250.18
+    },
+    "t023": {
+      "sha": "6fa328fc6c6e76986aab845c61a64750dcb60e99",
+      "seconds": 250.18
+    },
+    "t026": {
+      "sha": "6fa328fc6c6e76986aab845c61a64750dcb60e99",
+      "seconds": 250.18
+    },
+    "t019": {
+      "sha": "3a3768b6fd8b0065011bab617e7631c1ccd85858",
+      "seconds": 307.18
+    },
+    "t024": {
+      "sha": "4e3667d84f1b773f033118f5d1a24df7a15e9a05",
+      "seconds": 330.18
+    },
+    "t004": {
+      "sha": "c6c4a554444359a49c22d954e20d0a22a7030ef4",
+      "seconds": 399.18
+    },
+    "t025": {
+      "sha": "5ace89ee6b81ae8e546443aa408241ea47e0904d",
+      "seconds": 495.18
+    },
+    "t031": {
+      "sha": "5ace89ee6b81ae8e546443aa408241ea47e0904d",
+      "seconds": 495.18
+    },
+    "t003": {
+      "sha": "9c6cd8ec235f7ef739a74cd69af33de0303b6c57",
+      "seconds": 495.18
+    },
+    "t027": {
+      "sha": "7560ca6e729f5cad4e356fd33f87f0a7dbc7a2f2",
+      "seconds": 565.18
+    },
+    "t006": {
+      "sha": "c96a6eb9b9b2fa1f649051228818c2b4d294c66b",
+      "seconds": 565.18
+    },
+    "t007": {
+      "sha": "3ad32563c974a21d4acfda06e40d6788458b7cd7",
+      "seconds": 659.18
+    },
+    "t022": {
+      "sha": "d6b061fce4b94bdf6a373ed496a315a01951207c",
+      "seconds": 659.18
+    },
+    "t016": {
+      "sha": "ef2f2c985a0f4f854030bdf5afb9dfb51cedd80c",
+      "seconds": 732.18
+    },
+    "t036": {
+      "sha": "5f40cc55245d393b10663ee82a9f61ec2fa30a59",
+      "seconds": 814.18
+    },
+    "t033": {
+      "sha": "87a5ede861aff24d4e4b54af96c48820890e32c4",
+      "seconds": 814.18
+    },
+    "t015": {
+      "sha": "4e5df24183a27804e0eb2c90569e7105ad357f38",
+      "seconds": 900.18
+    },
+    "t005": {
+      "sha": "e7c3a0dafdf58fe9995637b4cd0b517c1079de65",
+      "seconds": 900.18
+    },
+    "t037": {
+      "sha": "0049f3b4cf75708cc15a08daae1b9564522b50ad",
+      "seconds": 984.18
+    },
+    "t017": {
+      "sha": "cdd25c574988660292c2295a04c15b684c031f61",
+      "seconds": 984.18
+    },
+    "t020": {
+      "sha": "497cd177c17157d1312ef8c79fa72f781d1c2c56",
+      "seconds": 1113.18
+    },
+    "t028": {
+      "sha": "deccf294a693ab108c65ea7a0a23d8031403ec5a",
+      "seconds": 1113.18
+    },
+    "t035": {
+      "sha": "777fe9c671549a350cf9885f1856418f27385f04",
+      "seconds": 1132.18
+    },
+    "t038": {
+      "sha": "57f3dca2d7e5f548ad8d494b992c9a6fab977060",
+      "seconds": 1215.18
+    },
+    "t008": {
+      "sha": "38aafd5a07f5b9dac373760443799ce7d0257e15",
+      "seconds": 1215.18
+    },
+    "t010": {
+      "sha": "3d7e281269bf4ebd3ffad014f1108e5049edd367",
+      "seconds": 1302.18
+    },
+    "t011": {
+      "sha": "7ef8525c86b64be3ec72029d83217ff9aad81fb4",
+      "seconds": 1302.18
+    },
+    "t034": {
+      "sha": "62ffc7b623c1853c11eb912273e195d1aca095b8",
+      "seconds": 1398.18
+    },
+    "t001": {
+      "sha": "009ab0d862c239c8a9d9500d0166696dbcfa38c5",
+      "seconds": 1398.18
+    },
+    "t009": {
+      "sha": "2dd336d725d8b3c2c07f4c00dfdcd7db44aff9bb",
+      "seconds": 1532.18
+    },
+    "t014": {
+      "sha": "3904e63e746a633a6cac7f8c1a2eac114714534f",
+      "seconds": 1637.18
+    },
+    "t018": {
+      "sha": "433668b79b67046892f7fbb445ad87c9ce6be5a2",
+      "seconds": 1699.18
+    },
+    "t032": {
+      "sha": "5e0aff2c27e9aba0be1536fca63b70bc7dac560a",
+      "seconds": 1764.18
+    },
+    "t021": {
+      "sha": "00c6817ddc8fb1922796620cee242770709885d3",
+      "seconds": 1861.18
+    },
+    "t013": {
+      "sha": "a1845f96d48213a7663d293a742b00beba3c9499",
+      "seconds": 2108.18
+    },
+    "t030": {
+      "sha": "c5d3a892a70de00ffa74015af45bb8d1d086165c",
+      "seconds": 2109.18
+    },
+    "t029": {
+      "sha": "8e2b9576d2c39171ab312af087694d00998f8488",
+      "seconds": 2486.18
+    }
+  },
+  "replay": [
+    {
+      "sha": "6fa328fc6c6e76986aab845c61a64750dcb60e99",
+      "at": 1791399622.0,
+      "green": [
+        "t002",
+        "t012",
+        "t023",
+        "t026"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/decorator-instance-properties.pr6892.test.js",
+        "test/decorator-instance-properties.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr6684.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route-prefix.pr6803.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js",
+        "test/trust-proxy.pr6684.test.js"
+      ]
+    },
+    {
+      "sha": "3a3768b6fd8b0065011bab617e7631c1ccd85858",
+      "at": 1791399679.0,
+      "green": [
+        "t019"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/decorator-instance-properties.pr6892.test.js",
+        "test/decorator-instance-properties.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route-prefix.pr6803.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "4e3667d84f1b773f033118f5d1a24df7a15e9a05",
+      "at": 1791399702.0,
+      "green": [
+        "t024"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/decorator-instance-properties.pr6892.test.js",
+        "test/decorator-instance-properties.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "7c8a1d5f555646270779d946452b73a08cb27e7a",
+      "at": 1791399771.0,
+      "green": [],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/decorator-instance-properties.pr6892.test.js",
+        "test/decorator-instance-properties.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/diagnostics-channel/error-status.pr6412.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "c6c4a554444359a49c22d954e20d0a22a7030ef4",
+      "at": 1791399771.0,
+      "green": [
+        "t004"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/decorator-instance-properties.pr6892.test.js",
+        "test/decorator-instance-properties.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "5ace89ee6b81ae8e546443aa408241ea47e0904d",
+      "at": 1791399867.0,
+      "green": [
+        "t025",
+        "t031"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/internals/schema-controller-perf.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "9c6cd8ec235f7ef739a74cd69af33de0303b6c57",
+      "at": 1791399867.0,
+      "green": [
+        "t003"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/find-route.pr6838.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "7560ca6e729f5cad4e356fd33f87f0a7dbc7a2f2",
+      "at": 1791399937.0,
+      "green": [
+        "t027"
+      ],
+      "failing_files": [
+        "test/404s.pr5732.test.js",
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr5732.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "c96a6eb9b9b2fa1f649051228818c2b4d294c66b",
+      "at": 1791399937.0,
+      "green": [
+        "t006"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6414.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/content-type.pr6414.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/schema-validation.pr6414.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "3ad32563c974a21d4acfda06e40d6788458b7cd7",
+      "at": 1791400031.0,
+      "green": [
+        "t007"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/http2/plain.pr6746.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "d6b061fce4b94bdf6a373ed496a315a01951207c",
+      "at": 1791400031.0,
+      "green": [
+        "t022"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/internals/schema-controller-perf.pr6657.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "ef2f2c985a0f4f854030bdf5afb9dfb51cedd80c",
+      "at": 1791400104.0,
+      "green": [
+        "t016"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "8707dfd6334052249c5e7069b0514889cd51f7be",
+      "at": 1791400104.0,
+      "green": [],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/internals/request.pr7039.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "5f40cc55245d393b10663ee82a9f61ec2fa30a59",
+      "at": 1791400186.0,
+      "green": [
+        "t036"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/close.pr6940.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "87a5ede861aff24d4e4b54af96c48820890e32c4",
+      "at": 1791400186.0,
+      "green": [
+        "t033"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js",
+        "test/throw.pr6678.test.js"
+      ]
+    },
+    {
+      "sha": "4e5df24183a27804e0eb2c90569e7105ad357f38",
+      "at": 1791400272.0,
+      "green": [
+        "t015"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6392.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "e7c3a0dafdf58fe9995637b4cd0b517c1079de65",
+      "at": 1791400272.0,
+      "green": [
+        "t005"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/content-parser.pr7049.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "0049f3b4cf75708cc15a08daae1b9564522b50ad",
+      "at": 1791400356.0,
+      "green": [
+        "t037"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6523.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "cdd25c574988660292c2295a04c15b684c031f61",
+      "at": 1791400356.0,
+      "green": [
+        "t017"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/diagnostics-channel/async-error-handler.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "497cd177c17157d1312ef8c79fa72f781d1c2c56",
+      "at": 1791400485.0,
+      "green": [
+        "t020"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/fix-6411.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "deccf294a693ab108c65ea7a0a23d8031403ec5a",
+      "at": 1791400485.0,
+      "green": [
+        "t028"
+      ],
+      "failing_files": [
+        "test/404s.pr6965.test.js",
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "777fe9c671549a350cf9885f1856418f27385f04",
+      "at": 1791400504.0,
+      "green": [
+        "t035"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/internals/reply-serialize.pr7001.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "57f3dca2d7e5f548ad8d494b992c9a6fab977060",
+      "at": 1791400587.0,
+      "green": [
+        "t038"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/router-options.pr6515.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "38aafd5a07f5b9dac373760443799ce7d0257e15",
+      "at": 1791400587.0,
+      "green": [
+        "t008"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6528.test.js",
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/errors.pr6528.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "3d7e281269bf4ebd3ffad014f1108e5049edd367",
+      "at": 1791400674.0,
+      "green": [
+        "t010"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/request-port.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "7ef8525c86b64be3ec72029d83217ff9aad81fb4",
+      "at": 1791400674.0,
+      "green": [
+        "t011"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/route-prefix.pr6719.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "62ffc7b623c1853c11eb912273e195d1aca095b8",
+      "at": 1791400770.0,
+      "green": [
+        "t034"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/route.6.pr6372.test.js",
+        "test/route.7.pr6372.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "009ab0d862c239c8a9d9500d0166696dbcfa38c5",
+      "at": 1791400770.0,
+      "green": [
+        "t001"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/handler-timeout.test.js",
+        "test/internals/initial-config.pr6521.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "2dd336d725d8b3c2c07f4c00dfdcd7db44aff9bb",
+      "at": 1791400904.0,
+      "green": [
+        "t009"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6676.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "3904e63e746a633a6cac7f8c1a2eac114714534f",
+      "at": 1791401009.0,
+      "green": [
+        "t014"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js",
+        "test/schema-serialization.pr6685.test.js"
+      ]
+    },
+    {
+      "sha": "433668b79b67046892f7fbb445ad87c9ce6be5a2",
+      "at": 1791401071.0,
+      "green": [
+        "t018"
+      ],
+      "failing_files": [
+        "test/content-parser.pr6846.test.js",
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js"
+      ]
+    },
+    {
+      "sha": "5e0aff2c27e9aba0be1536fca63b70bc7dac560a",
+      "at": 1791401136.0,
+      "green": [
+        "t032"
+      ],
+      "failing_files": [
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js"
+      ]
+    },
+    {
+      "sha": "fd03eb41a5bd40155625a3bc77a4ecfad2993ab1",
+      "at": 1791401136.0,
+      "green": [],
+      "failing_files": [
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6714.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js"
+      ]
+    },
+    {
+      "sha": "00c6817ddc8fb1922796620cee242770709885d3",
+      "at": 1791401233.0,
+      "green": [
+        "t021"
+      ],
+      "failing_files": [
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6845.test.js",
+        "test/request-media-type.test.js"
+      ]
+    },
+    {
+      "sha": "a1845f96d48213a7663d293a742b00beba3c9499",
+      "at": 1791401480.0,
+      "green": [
+        "t013"
+      ],
+      "failing_files": [
+        "test/reply-error.pr6881.test.js",
+        "test/reply-trailers.pr6845.test.js"
+      ]
+    },
+    {
+      "sha": "c5d3a892a70de00ffa74015af45bb8d1d086165c",
+      "at": 1791401481.0,
+      "green": [
+        "t030"
+      ],
+      "failing_files": [
+        "test/reply-error.pr6881.test.js"
+      ]
+    },
+    {
+      "sha": "8e2b9576d2c39171ab312af087694d00998f8488",
+      "at": 1791401858.0,
+      "green": [
+        "t029"
+      ],
+      "failing_files": []
+    }
+  ],
+  "final": {
+    "sha": "8e2b9576d2c39171ab312af087694d00998f8488",
+    "suite_green": true,
+    "suite_retried": false,
+    "suite_failed": [],
+    "tasks_accepted": 38,
+    "tasks_total": 38,
+    "failing_files": [],
+    "correct": true,
+    "per_task": {
+      "t001": true,
+      "t002": true,
+      "t003": true,
+      "t004": true,
+      "t005": true,
+      "t006": true,
+      "t007": true,
+      "t008": true,
+      "t009": true,
+      "t010": true,
+      "t011": true,
+      "t012": true,
+      "t013": true,
+      "t014": true,
+      "t015": true,
+      "t016": true,
+      "t017": true,
+      "t018": true,
+      "t019": true,
+      "t020": true,
+      "t021": true,
+      "t022": true,
+      "t023": true,
+      "t024": true,
+      "t025": true,
+      "t026": true,
+      "t027": true,
+      "t028": true,
+      "t029": true,
+      "t030": true,
+      "t031": true,
+      "t032": true,
+      "t033": true,
+      "t034": true,
+      "t035": true,
+      "t036": true,
+      "t037": true,
+      "t038": true
+    }
+  },
+  "cost_note": "recomputed 2026-10-08: resumed processes report the session's cumulative cost; the first figure (44.9916) summed them"
+}

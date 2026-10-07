@@ -581,12 +581,16 @@ class OrchestratedRace:
         return wt
 
     def unintegrated(self, forge, tasks: list[Task]) -> set[str]:
-        """Tasks with no integrated change on the forge yet (a forge error counts as all integrated: no resume)."""
+        """Tasks no commit on the forge's line names (``Task: <id>`` trailers, forge-agnostic: a change may carry
+        several tasks). A forge error counts as all integrated: no resume."""
+        import re
+        repo = os.path.join(self.work, "base")
         try:
-            changes, _ = forge.collect(self.t0)
+            ref, _ = forge.fetch_line(repo)
+            log = run_git(repo, "log", "--format=%B", f"{self.base_sha}..{ref}")
         except Exception:  # noqa: BLE001 - the decision to resume must not end the race
             return set()
-        done = {c.task for c in changes if c.integrated_at is not None and c.task}
+        done = set(re.findall(r"\bTask:\s*([A-Za-z0-9_.-]+)", log))
         return {t.id for t in tasks} - done
 
     def claude_argv(self, prompt: str, budget: float | None = None, resume: str | None = None) -> list[str]:
@@ -607,6 +611,7 @@ class OrchestratedRace:
     def run(self) -> int:
         cfg = self.cfg
         tasks, forge, base, hint = self.prepare()
+        self.base_sha = base
         wt = self.checkout(forge, tasks, hint)
         prompt = orch_prompt.prompt(cfg.forge, repo_url=forge.url, n_tasks=len(tasks), subagents=cfg.subagents,
                                     test_hint=hint, wall_minutes=cfg.max_wall_minutes)
@@ -626,7 +631,7 @@ class OrchestratedRace:
         while True:
             segment = os.path.join(self.work, f"transcript.{len(segments)}.jsonl")
             segments.append(segment)
-            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments[:-1])
+            spent = max([parse_transcript(s, [])["cost_usd"] for s in segments[:-1]] or [0.0])
             argv = self.claude_argv(prompt if session_id is None else orch_prompt.CONTINUE,
                                     budget=max(0.5, cfg.max_usd - spent), resume=session_id)
             with open(segment, "w", encoding="utf-8") as out:
@@ -646,7 +651,7 @@ class OrchestratedRace:
                 break
             # ``claude -p`` exits when the lead ends its turn, and stops background workers then; a lead that ended
             # its turn with work left gets one fixed continuation (the same on both arms), as a person would type
-            spent = sum(parse_transcript(s, [])["cost_usd"] for s in segments)
+            spent = max(parse_transcript(s, [])["cost_usd"] for s in segments)
             left = self.unintegrated(forge, tasks)
             if (not left or len(resumes) >= MAX_RESUMES or spent >= cfg.max_usd - 0.5
                     or deadline - time.time() < 120):
@@ -766,15 +771,17 @@ def session_of(path: str) -> str | None:
 
 
 def merge_sessions(parts: list[dict]) -> dict:
-    """One session's figures from its processes: costs and turns add up (each process reports its own)."""
+    """One session's figures from its processes (resumes of one session)."""
     if not parts:
         return parse_transcript("/dev/null", [])
     commands: dict[str, int] = {}
     for p in parts:
         for k, v in p["commands"].items():
             commands[k] = commands.get(k, 0) + v
-    return {"model_usage": [p["model_usage"] for p in parts], "cost_usd": round(sum(p["cost_usd"] for p in parts), 4),
-            "ok": parts[-1]["ok"], "subtype": parts[-1]["subtype"], "turns": sum(p["turns"] for p in parts),
+    # a resumed process reports the session's cumulative cost and usage (checked on the 38-task runs: each
+    # segment's total_cost_usd and modelUsage continue from the previous one), so the session's figure is the last
+    return {"model_usage": parts[-1]["model_usage"], "cost_usd": round(max(p["cost_usd"] for p in parts), 4),
+            "ok": parts[-1]["ok"], "subtype": parts[-1]["subtype"], "turns": max(p["turns"] for p in parts),
             "agent_calls": sum(p["agent_calls"] for p in parts),
             "max_agent_calls_in_one_message": max(p["max_agent_calls_in_one_message"] for p in parts),
             "background_agent_calls": sum(p["background_agent_calls"] for p in parts),
