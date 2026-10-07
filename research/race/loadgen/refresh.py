@@ -101,6 +101,20 @@ def main() -> None:
                 s["forge_detail"].update(engine_ci(events))
                 s["ci_minutes"] = s["forge_detail"]["ci_minutes"]
                 s["red_validations"] = s["forge_detail"]["red_validations"]
+        if s["forge"] == "github" and "concurrency" not in s["forge_detail"]:
+            from loadgen.forges import max_overlap
+            with open(os.path.join(run, "events.jsonl"), encoding="utf-8") as fh:
+                ends = [e for e in (json.loads(line) for line in fh) if e["type"] == "ci.end"]
+
+            def spans(purpose: str | None) -> list:
+                return [(e["t"] - (e.get("ci_seconds") or 0), e["t"]) for e in ends
+                        if purpose is None or e.get("purpose") == purpose]
+            s["forge_detail"]["concurrency"] = {
+                "max_concurrent_jobs": max_overlap(spans(None)),
+                "max_concurrent_pr_checks": max_overlap(spans("precheck")),
+                "max_concurrent_merge_groups": max_overlap(spans("batch")),
+                "org_job_cap": 20, "runner": "ubuntu-latest (4 vCPU, public repo)",
+                "note": "from ci.end events (observation time minus job seconds)"}
         if a.rerun_final:
             rerun_final(run, s, a.arena)
         else:
