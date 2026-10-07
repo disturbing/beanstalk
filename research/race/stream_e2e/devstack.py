@@ -79,7 +79,9 @@ def configure() -> list[str]:
     for key in ("containers", "artifacts", "secrets", "$schema"):
         gw.pop(key, None)
     gw["main"] = os.path.join(GATEWAY, "src", "index.ts")
-    gw["services"] = [{"binding": "ARTIFACTS", "service": LOCAL_ARTIFACTS, "entrypoint": "LocalArtifacts"}]
+    # Race repos (ARTIFACTS) and people's repositories (REPOS) share the local bare-repo server.
+    gw["services"] = [{"binding": "ARTIFACTS", "service": LOCAL_ARTIFACTS, "entrypoint": "LocalArtifacts"},
+                      {"binding": "REPOS", "service": LOCAL_ARTIFACTS, "entrypoint": "LocalArtifacts"}]
     gw["durable_objects"]["bindings"] = [
         b if b["name"] != "RUNNER" else {"name": "RUNNER", "class_name": "LocalRunner",
                                          "script_name": LOCAL_RUNNER}

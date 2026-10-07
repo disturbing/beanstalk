@@ -1,0 +1,30 @@
+[package]
+name = "ssh-server"
+version = "0.1.0"
+description = "Git over SSH for beanstalk: public-key auth, git-upload-pack and git-receive-pack bridged to the gateway's smart-HTTP proxy"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+reqwest.workspace = true
+russh.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+rand.workspace = true
+
+[lints]
+workspace = true

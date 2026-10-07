@@ -12,7 +12,7 @@ import type {
 import { readCreateForm } from './create-form';
 import { growthFromView, growthText } from './engine-summary';
 import { createFlow, deleteFlow, hasGrown, lookupRepository, updateFlow } from './flows';
-import { envVarsBlock, isReservedOwner, startGuide } from './paths';
+import { envVarsBlock, isReservedOwner, sshEndpoint, startGuide } from './paths';
 import { registryClient } from './registry-client';
 
 const coop = { id: 'u_dev_coop', handle: 'coop', email: 'coop@dev.beanstalk.invalid' };
@@ -297,6 +297,25 @@ describe('the start page', () => {
       'Any MCP client',
     ]);
     expect(guide.prompt).toContain('coop/notes');
+    expect(guide.ssh).toBeNull();
+  });
+
+  it('adds the SSH clone URL and the host key fingerprint once the deployment serves SSH', () => {
+    const ssh = sshEndpoint({
+      SSH_HOST: ' ssh.example.test ',
+      SSH_HOST_KEY_FINGERPRINT: 'SHA256:abc',
+    });
+    expect(sshEndpoint({ SSH_HOST: '', SSH_HOST_KEY_FINGERPRINT: 'SHA256:abc' })).toBeUndefined();
+    const config = {
+      gitOrigin: 'https://git.example.test',
+      mcpUrl: 'https://mcp.example.test/mcp',
+      webOrigin: 'https://web.example.test',
+    };
+    const guide = startGuide(ssh === undefined ? config : { ...config, ssh }, 'coop', 'notes');
+    expect(guide.ssh).toEqual({
+      cloneUrl: 'ssh://git@ssh.example.test/coop/notes.git',
+      hostKeyFingerprint: 'SHA256:abc',
+    });
   });
 });
 

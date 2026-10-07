@@ -41,6 +41,25 @@ export function StartHere(props: {
               <input readOnly value={guide.cloneUrl} aria-label="Clone URL" spellCheck={false} />
               <CopyButton text={guide.cloneUrl} label="the clone URL" />
             </div>
+            {guide.ssh === null ? null : (
+              <>
+                <div className={styles.cloneRow}>
+                  <input
+                    readOnly
+                    value={guide.ssh.cloneUrl}
+                    aria-label="SSH clone URL"
+                    spellCheck={false}
+                  />
+                  <CopyButton text={guide.ssh.cloneUrl} label="the SSH clone URL" />
+                </div>
+                {guide.ssh.hostKeyFingerprint === '' ? null : (
+                  <p>
+                    Over SSH, check the server&apos;s host key on first connect:{' '}
+                    <code>{guide.ssh.hostKeyFingerprint}</code>
+                  </p>
+                )}
+              </>
+            )}
           </section>
         </div>
         <Facts files={files} />

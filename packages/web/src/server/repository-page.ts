@@ -10,7 +10,7 @@ import { currentUser } from '../auth/user';
 import type { User as SessionUser } from '../auth/user';
 import { lookupRepository } from '../repositories/flows';
 import type { StartConfig } from '../repositories/paths';
-import { repositoryPath } from '../repositories/paths';
+import { repositoryPath, sshEndpoint } from '../repositories/paths';
 import type { RepositoryRecord } from '../repositories/registry-client';
 import { registryClient } from '../repositories/registry-client';
 
@@ -46,5 +46,7 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
 export async function startConfig(): Promise<StartConfig> {
   const host = (await headers()).get('host') ?? 'localhost';
   const scheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? 'http' : 'https';
-  return { gitOrigin: env.GIT_ORIGIN, mcpUrl: env.MCP_URL, webOrigin: `${scheme}://${host}` };
+  const ssh = sshEndpoint(env);
+  const base = { gitOrigin: env.GIT_ORIGIN, mcpUrl: env.MCP_URL, webOrigin: `${scheme}://${host}` };
+  return ssh === undefined ? base : { ...base, ssh };
 }
