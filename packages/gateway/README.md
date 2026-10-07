@@ -512,6 +512,45 @@ Where every pipelined chain bean really conflicts with the one before (the synth
 
 The default stays `fifo` until a real-agent race confirms it. The gap found here (a bean started on top of its landed coupled partner could not name it as a culprit, because culprits were commits since the bean's base, so a semantic clash reworked to a drop instead of a card) is closed in v2.5: `start_cards` raises the declared pair's card before the bean starts, `base_culprits` names a partner in the base when the failing test reads what the bean changed, and `dynamic_culprits` probes it when the bean's own tests fail (`v2-start-order.test.ts`, "F's culprit gap"). The 200-task row was measured with the v2.4 rules; under v2.5's rescue, FIFO keeps all 200 too (dependency starts still cut the conflicts by about 40%), and the test runs a 100-task, 32-agent version to keep `pnpm check` fast.
 
+## Read maps in the runner
+
+Per-test-file read maps (`research/test-impact`, where the method caught 298/298 breaking mutations in five languages): the runner can run each test file in its own `strace --seccomp-bpf` process and report what it read, probed and listed (`packages/runner/README.md`, "Read maps"). The gateway stores them per run and answers one question for the engine: **given changed paths, which test files may observe them?** That is the evidence behind promoting a checked bean without a re-check and validating a sprout with only the affected tests.
+
+**Which checks trace** (`read_maps` in the run config, driver env `READ_MAPS`; default `off`). `preland` traces the pre-land checks, which run in the agents' sandbox instances, off the CI slots, so the maps stay fresh at no CI cost; every other check (validations, bisect probes, the final check) stays untraced but reports its tree's manifest, so maps traced on bean trees can be compared with the validated sprout. `all` traces every check. A check job may also say `trace` / `treeManifest` itself (`JobSpec`), which wins over the run's setting (`readMapOptions`, `run/run-jobs.ts`).
+
+**Store** (`src/read-maps/read-map-store.ts`, the RunDO's SQLite). `read_maps(tree, test, environment, passed, traced_at, body)`: one row per traced tree and test file (`body`: reads, probes, dirs, packages, hashes, seconds); `read_map_trees(tree, commit_sha, blobs, recorded_at)`: the manifest of every traced tree and of every check that asked for one. A tree key is the commit, or `<commit>+<digest>` when extra files were written over it. The RunDO records a check's maps when its job finishes (`#keepMaps`) and hands the engine the result without `readMaps` and `tree` (they would bloat its state) but with `mappedTree`, the key they went under. Kept: each test file's newest map, all maps of the newest 200 traced trees, the newest 400 manifests.
+
+**The engine's interface.** `EngineEnv.readMaps?: ReadMapIndex` (set by the RunDO; absent in engine tests that do not give one):
+
+```ts
+type ReadMapIndex = {
+  affectedTests(query: AffectedQuery): AffectedAnswer;
+  hasMaps(tree: string): boolean;          // did a traced check of this tree report?
+  tree(tree: string): ReadMapTree | null;  // its maps and manifest, for inspection
+  summary(): ReadMapSummary;
+};
+// @beanstalk/shared-race/read-maps
+type AffectedQuery = {
+  changes: { path: string; op: 'M' | 'A' | 'D' }[]; // a rename is a D plus an A
+  base?: string;      // the tree the changes apply to (a commit sha, or a CheckResult.mappedTree)
+  mapsFrom?: string;  // only the maps traced on this tree (default: each file's newest)
+  tests?: string[];   // the test files that exist (default: every mapped file + added test files)
+};
+type AffectedAnswer = {
+  affected: string[];   // run these (sorted)
+  unaffected: string[]; // their maps prove the changes cannot reach them
+  unknown: string[];    // affected because unmapped (a subset of affected)
+  reasons: Record<string, { reason: 'own-change' | 'unmapped' | 'stale' | 'read' | 'probe'
+                                    | 'listing' | 'dependency'; path: string | null }>;
+};
+```
+
+Synchronous (SQLite), so a step can call it. For **evidence promotion** (a bean checked green on tree T, the sprout moved by the paths P since): `affectedTests({ base: T, mapsFrom: T, changes: P })`, with `T = check.result.mappedTree`; an empty `affected` means no test the bean's check ran can see what landed meanwhile. For **affected validation** (sprout S validated, S' now): `affectedTests({ base: S, changes: diff(S, S') })`; maps traced on bean trees are compared with S through both manifests, so S's validation must have reported its manifest (it does under `preland`). Run `affected` only; the rest are proven.
+
+**The rule** (`src/read-maps/affected-tests.ts`, the prototype's `select()`): a test file is affected when it changed itself; it has no map; its map is stale (another toolchain `environment`, or traced on a tree that differs from `base` in a path it observed, or either manifest unknown); a modified path is one it read or probed; a deleted path is one it read or sits in a directory it listed; an added path, or any ancestor the add creates, is one it probed or sits in a directory it listed; a lockfile or `package.json` changed and it loads installed packages or looked for one (the prototype's dependency gap, handled conservatively); or a changed path lies inside a package it loaded. Nothing else.
+
+**Routes** (admin or view token): `GET /v1/runs/:run/read-maps` (summary), `GET /v1/runs/:run/read-maps/trees/:tree` (one tree's maps and manifest), `POST /v1/runs/:run/read-maps/affected` (an `AffectedQuery`; the answer). Measurements and the staging spot-check: `research/test-impact/README.md`, "Read maps in the runner".
+
 ## RPC for the web app
 
 The web app (`packages/web`) calls the gateway over Workers RPC, never HTTP. It uses a service binding to this Worker's default entrypoint, `Gateway` (a `WorkerEntrypoint`). The types live in `@beanstalk/shared-race/rpc`:
