@@ -1,0 +1,105 @@
+/**
+ * The registry's half of access: the facts `mayUseEngine` decides on (owner, visibility, the
+ * asking person's collaborator role) gathered for a repository record, and the verdict as an
+ * RPC answer. Every repository question from git, MCP and the web comes through here, and
+ * here asks `mayUseEngine` and nothing else.
+ */
+import type {
+  RepositoryAction,
+  RepositoryForViewer,
+  ViewerRole,
+} from '@beanstalk/shared-race/collaborators';
+import type { RepositoryRecord, Viewer } from '@beanstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+import { RunId } from '@beanstalk/shared-race/ids';
+
+import type { AccessVerdict, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
+import { mayUseEngine, personOf, roleOf } from '../auth/git-credential';
+import type { CollaboratorStore } from './collaborators';
+
+export type Decision = {
+  readonly verdict: AccessVerdict;
+  readonly role: ViewerRole | null;
+};
+
+/** The facts about `record` that the rule needs, for this principal. */
+export async function accessFacts(
+  collaborators: CollaboratorStore,
+  record: RepositoryRecord,
+  principal: RepositoryPrincipal,
+): Promise<RepositoryAccess> {
+  const person = personOf(principal);
+  const isOwner = person !== null && person.id === record.owner.id;
+  const collaboratorRole =
+    person === null || isOwner ? null : await collaborators.roleOf(record.id, person.id);
+  return {
+    // Records from before engines had run ids would fail here; every created record has one.
+    engine: RunId.parse(record.engine_id),
+    owner: { id: record.owner.id, handle: record.owner.handle },
+    visibility: record.visibility,
+    collaboratorRole,
+  };
+}
+
+/** May `principal` do `action` with `record`, and what are they on it. */
+export async function decideAccess(
+  collaborators: CollaboratorStore,
+  record: RepositoryRecord,
+  input: { readonly principal: RepositoryPrincipal; readonly action: RepositoryAction },
+): Promise<Decision> {
+  const facts = await accessFacts(collaborators, record, input.principal);
+  return {
+    verdict: mayUseEngine(input.principal, facts, input.action),
+    role: roleOf(input.principal, facts),
+  };
+}
+
+/** The decision as an RPC answer: the record with the viewer's role, or 404 / 403. */
+export async function accessResult(
+  collaborators: CollaboratorStore,
+  record: RepositoryRecord | null,
+  input: {
+    readonly principal: RepositoryPrincipal;
+    readonly action: RepositoryAction;
+    readonly what: string;
+  },
+): Promise<RpcResult<RepositoryForViewer>> {
+  if (record === null) return { ok: false, error: notFound(input.what) };
+  const decision = await decideAccess(collaborators, record, input);
+  switch (decision.verdict) {
+    case 'allowed':
+      return { ok: true, value: { ...record, viewer_role: decision.role } };
+    case 'forbidden':
+      return { ok: false, error: forbidden(input.action, decision.role) };
+    case 'not-found':
+      return { ok: false, error: notFound(input.what) };
+    default:
+      return decision.verdict;
+  }
+}
+
+/** A web viewer (a signed-in person's id, or nobody) as a principal. */
+export function viewerPrincipal(viewer: Viewer): RepositoryPrincipal {
+  // Registry records always carry the owner's id, so the person is matched by id alone.
+  return viewer === null
+    ? { kind: 'anonymous' }
+    : { kind: 'person', user: { id: viewer, handle: '' } };
+}
+
+export function notFound(what: string): RpcError {
+  return { code: 'not_found', status: 404, message: `repository ${what} not found` };
+}
+
+/** Why a person who can see a repository may not do this, in their words. */
+export function forbidden(action: RepositoryAction, role: ViewerRole | null): RpcError {
+  const have = role === null ? 'no role on this repository' : `the ${role} role`;
+  return { code: 'forbidden', status: 403, message: `${NEEDS[action]}; you have ${have}` };
+}
+
+const NEEDS: Readonly<Record<RepositoryAction, string>> = {
+  read: 'reading needs the read role',
+  write: 'pushing beans needs the write role',
+  decide: 'answering decisions needs the maintain role',
+  'deploy-tokens': 'deploy tokens need the maintain role',
+  administer: 'only the owner can change this',
+};

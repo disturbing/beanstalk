@@ -72,6 +72,9 @@ import { migrateCollaboration, seedCollaboration, readBean } from '../collaborat
 import { updateBean } from '../collaboration/update';
 import { postBeanThread } from '../collaboration/thread';
 
+import type { RunnerCapacity } from '../capacity/runner-capacity';
+import { DEFAULT_PRELAND_SANDBOXES, RUNNER_POOL_NAME } from '../capacity/runner-capacity';
+import { leaseSandbox, needsSandboxLease, releaseSandbox } from '../capacity/sandbox-lease';
 import type { ArtifactsPort, RepoRemote } from '../adapters/artifacts';
 import { artifactsPort, selectedArtifactsPort } from '../adapters/artifacts';
 import type { RepoExplorer } from '../adapters/repo-explorer';
@@ -199,6 +202,8 @@ const LINE_MOVES: ReadonlySet<string> = new Set([
 const METER_SAVE_INTERVAL_MS = 5000;
 /** How long `summary()` waits for a reap in flight, so a capture at `done` sees its outcome. */
 const SUMMARY_REAP_WAIT_MS = 5000;
+/** A race's runner reservation outlives its wall clock by this much if it never reports done. */
+const RESERVATION_MARGIN_MINUTES = 30;
 
 export type RunFailure = {
   readonly code: string;
@@ -379,6 +384,7 @@ export class RunDO extends DurableObject<Env> {
       arena: 'repository',
       tasks: [],
       ...(input.settings?.suite === undefined ? {} : { suite: input.settings.suite }),
+      ...input.settings?.engine,
     });
     const record: RepoEngineRecord = {
       engineId: input.engineId,
@@ -664,7 +670,33 @@ export class RunDO extends DurableObject<Env> {
     });
     if (response.kind === 'refused') return failure('invalid_state', 409, response.refusal.message);
     this.#prewarmRunners(loaded.stored.meta.run, loaded.env.config.ci_slots);
+    this.ctx.waitUntil(this.#reserveRunners(loaded.stored.meta.run, loaded.env.config));
     return { ok: true, value: { baseSha: base.value } };
+  }
+
+  /**
+   * A race holds `agents + ci_slots + 1` runner instances until it is done: the pool counts
+   * them, so repositories' sandboxes grow only into what races leave free. Never blocks the
+   * race; a failure is logged.
+   */
+  async #reserveRunners(run: RunId, config: RunConfig): Promise<void> {
+    try {
+      await this.#pool().reserveRace({
+        run,
+        instances: config.agents + config.ci_slots + 1,
+        untilMs: Date.now() + (config.max_wall_minutes + RESERVATION_MARGIN_MINUTES) * 60_000,
+      });
+    } catch (error: unknown) {
+      this.#log.warn('reserving runners for the race failed', { run, error });
+    }
+  }
+
+  async #releaseRunners(run: RunId): Promise<void> {
+    try {
+      await this.#pool().releaseRace(run);
+    } catch (error: unknown) {
+      this.#log.warn('releasing the race runners failed', { run, error });
+    }
   }
 
   /**
@@ -1238,6 +1270,7 @@ export class RunDO extends DurableObject<Env> {
   /** The final check is done: log what the run cost and delete its repos. */
   #finished(): void {
     const { meta, config, state } = this.#requireLoaded().stored;
+    this.ctx.waitUntil(this.#releaseRunners(meta.run));
     this.#log.info('run cost', {
       run: meta.run,
       agentUsd: state.spent,
@@ -1381,18 +1414,58 @@ export class RunDO extends DurableObject<Env> {
 
   async #runJob(id: JobId, spec: JobSpec): Promise<void> {
     const loaded = this.#requireLoaded();
-    const outcome = await executeJob(spec, {
-      run: loaded.stored.meta.run,
-      artifacts: this.#artifacts,
-      runner: this.#runner,
-      tokens: this.#tokens,
-      log: this.#log.with({ run: loaded.stored.meta.run, job: id }),
-      repos: () => this.#requireLoaded().stored.repos,
-      suite: loaded.env.config.suite,
-      engine: loaded.env.config.continuous ? 'continuous' : 'race',
-      readMaps: loaded.stored.config.read_maps,
-    });
+    const run = loaded.stored.meta.run;
+    const log = this.#log.with({ run, job: id });
+    const config = loaded.env.config;
+    const lease = needsSandboxLease(spec, config) ? { engine: run, job: id } : null;
+    const held =
+      lease === null
+        ? null
+        : await leaseSandbox(
+            this.#pool(),
+            {
+              ...lease,
+              cap: config.preland_sandboxes ?? DEFAULT_PRELAND_SANDBOXES,
+              base: config.ci_slots + 1,
+            },
+            { clock: { now: () => Date.now(), sleep: pause }, log },
+          );
+    if (held !== null && held.waitedMs > 0)
+      log.info('sandbox leased', { index: held.index, waited_ms: held.waitedMs });
+    let outcome: JobOutcome;
+    try {
+      outcome = await executeJob(spec, {
+        run,
+        artifacts: this.#artifacts,
+        runner: this.#runner,
+        tokens: this.#tokens,
+        log,
+        repos: () => this.#requireLoaded().stored.repos,
+        suite: config.suite,
+        engine: config.continuous ? 'continuous' : 'race',
+        readMaps: loaded.stored.config.read_maps,
+        ...(held === null ? {} : { sandboxIndex: held.index }),
+        onSuiteTimeout: () => this.ctx.waitUntil(this.#noteTimeout(run)),
+      });
+    } finally {
+      // Before the step: the check it starts next may take this very sandbox.
+      if (lease !== null) await releaseSandbox(this.#pool(), lease, log);
+    }
     this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome: this.#keepMaps(outcome) });
+  }
+
+  /** The runner pool races and repositories share (`capacity/runner-capacity.ts`). */
+  #pool(): DurableObjectStub<RunnerCapacity> {
+    return this.env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME);
+  }
+
+  /** Counted in the pool's per-owner numbers; a failure to count is only logged. */
+  async #noteTimeout(owner: RunId): Promise<void> {
+    try {
+      await this.#pool().noteTimeout(owner);
+    } catch (error: unknown) {
+      this.#log.warn('counting a suite timeout failed', { owner, error });
+    }
   }
 
   /**
@@ -1628,6 +1701,13 @@ function refusal(response: Extract<EngineResponse, { kind: 'refused' }>): {
 } {
   const { code, message } = response.refusal;
   return failure(code, REFUSAL_STATUS[code] ?? 409, message);
+}
+
+/** Waits `ms` (a sandbox lease's pause between asks of the pool). */
+async function pause(ms: number): Promise<void> {
+  const { promise, resolve } = Promise.withResolvers<void>();
+  setTimeout(resolve, ms);
+  await promise;
 }
 
 /** Waits for `work` to settle, or `ms`, whichever comes first. */

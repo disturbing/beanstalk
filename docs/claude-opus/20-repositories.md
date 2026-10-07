@@ -11,7 +11,8 @@ Built 2026-10-07 on branch `worktree-agent-repos` (from `prototype`, merged up t
 | `/<owner>/<repo>` before the first bean | The start page (below). |
 | `/<owner>/<repo>` after | The repository home from `14` §11, unchanged: the stalk, Growing now, What happened, Ask, Files, beans, decisions, checks, read from the repository's engine. |
 | `/<owner>/<repo>/files` | The Files explorer once something grew; the stalk's file list before. |
-| `/<owner>/<repo>/settings` | Owner only (others get the same 404 as a missing repository): rename and description, visibility, a collaborators placeholder, delete after typing `<owner>/<name>`. |
+| `/<owner>/<repo>/settings` | The owner: rename and description, visibility, collaborators (`22-collaborators.md`), deploy tokens, delete after typing `<owner>/<name>`. Maintainers: deploy tokens. People with no role get the same 404 as a missing repository. |
+| `/<owner>/<repo>/people` | Who has access, and which sessions and tokens acted for whom (`22`). |
 | `/<owner>` | The owner's repositories (for now only on your own page; listing someone else's needs a handle lookup from accounts). |
 
 The shell names the repository once (`owner / name` plus a private or public pill), then its tabs. A race keeps its Engine tab; a repository has Settings instead. Night, day (phosphor, paper, blueprint) and phone widths all work; screenshots are in `exp/repos/`.
@@ -47,7 +48,7 @@ git /git/<owner>/<repo>.git ──▶ registry (name → engine, owner, visibili
 - **The first commit is written in the gateway.** `src/git/seed-pack.ts` builds the blobs, trees and commit as a git pack (zlib via `CompressionStream`, SHA-1 ids, checked against `git fsck --strict`); `src/adapters/repository-storage.ts` mints a one-minute write token, pushes `stalk` and `sprout` in one receive-pack request, and revokes it. No token leaves the gateway, and the web never sees one.
 - **The TypeScript starter** has no dependencies: `src/text.ts`, `test/text.test.ts` (Node's test runner on `.ts` files, Node 23.6+), `package.json` (`npm test`), `tsconfig.json`, `.beanstalk/checks.toml`, README. The engine's default suite is `node --test`, which runs those tests, so the first bean's pre-land check is real.
 - **A failure on the way undoes itself** (registry row and Artifacts repo removed), so the name is free again; a private import URL comes back as an error on the form.
-- **Git access has one rule** (`mayUseEngine` in `gateway/src/auth/git-credential.ts`): a token bound to an engine uses that engine; a person's token (`bsu_`, `bss_`) uses the repositories its person owns and reads public ones; run tokens never reach repositories. The git proxy resolves `/git/<owner>/<repo>.git` through the registry, so a renamed repository keeps its engine at its new URL and its old URL answers 404. Engines opened without a registry record (the admin route) keep the derived-id path and are private.
+- **Git access has one rule** (`mayUseEngine` in `gateway/src/auth/git-credential.ts`): a token bound to an engine uses that engine; a person's token (`bsu_`, `bss_`) has its person's role (owner or collaborator, `22-collaborators.md`) capped by its scopes, and reads public ones; run tokens never reach repositories. The git proxy resolves `/git/<owner>/<repo>.git` through the registry, so a renamed repository keeps its engine at its new URL and its old URL answers 404. Engines opened without a registry record (the admin route) keep the derived-id path and are private.
 - **Web adapters:** accounts through `src/auth/user.ts` (accounts' module; `src/server/signed-in.ts` redirects to sign in), the registry through `src/repositories/registry-client.ts` (every answer validated with Zod), the engine through the existing run read RPCs keyed by `engine_id`. The repository home and Files explorer are shared components keyed by a base path (`/runs/<run>` or `/<owner>/<repo>`), so races and repositories render the same views.
 
 ## 3. Verified
@@ -63,7 +64,7 @@ git /git/<owner>/<repo>.git ──▶ registry (name → engine, owner, visibili
 
 ## 4. Open
 
-- **Archive**, the Stalk and Insights tabs, collaborators (the settings section is a placeholder; `mayUseEngine` is where they join), org owners.
+- **Archive**, the Stalk and Insights tabs, org owners. (Collaborators and visibility: done, `22-collaborators.md`.)
 - **Home's activity** shows registry events only (created, renamed, visibility); landings should come from the engine (backlog 2.6's event queue).
 - **Files rail:** the right-hand context rail on the Files page still has its "agents" sections, and an "agent activity" answer says "Session a0"; both show only when someone asks about a slot.
 

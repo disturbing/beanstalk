@@ -102,7 +102,7 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
           />
           <span>
             <b>Private</b>
-            <span>Only you can see it.</span>
+            <span>Only you and the people you invite can see it.</span>
           </span>
         </label>
         <label className={styles.choice}>
@@ -114,7 +114,9 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
           />
           <span>
             <b>Public</b>
-            <span>Anyone with the link can read it.</span>
+            <span>
+              Anyone, signed in or not, can read and clone it. Pushing still needs a role.
+            </span>
           </span>
         </label>
       </fieldset>

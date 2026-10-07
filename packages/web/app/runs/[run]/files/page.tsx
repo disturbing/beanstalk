@@ -1,3 +1,6 @@
+import { env } from 'cloudflare:workers';
+import { currentUser } from '../../../../src/auth/user';
+import { mayViewEngine } from '../../../../src/repositories/engine-guard';
 import { notFound } from 'next/navigation';
 
 import { RunId } from '@beanstalk/shared-race/ids';
@@ -20,6 +23,7 @@ export default async function RunFilesPage({ params, searchParams }: PageProps) 
   const parsed = RunId.safeParse((await params).run);
   if (!parsed.success) notFound();
   const run = parsed.data;
+  if (!(await mayViewEngine(env.GATEWAY, run, (await currentUser())?.id ?? null))) notFound();
   return (
     <FilesExplorer
       frame={{ run, base: `/runs/${run}`, repository: repositoryOf(run), kind: 'race' }}

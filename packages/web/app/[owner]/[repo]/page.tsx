@@ -60,7 +60,7 @@ async function StartPage({ tab }: { readonly tab: RepositoryTab }) {
   const [files, config, session] = await Promise.all([
     registryClient(env.GATEWAY).files(record.id, tab.user?.id ?? null),
     startConfig(),
-    tab.isOwner ? currentSession() : Promise.resolve(null),
+    tab.role === 'owner' || tab.role === 'maintain' ? currentSession() : Promise.resolve(null),
   ]);
   return (
     <main>
@@ -71,7 +71,7 @@ async function StartPage({ tab }: { readonly tab: RepositoryTab }) {
         kind="repository"
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
-        canAdminister={tab.isOwner}
+        canAdminister={tab.role !== null}
       />
       <StartHere
         record={record}

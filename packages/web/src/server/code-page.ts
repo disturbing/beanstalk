@@ -27,7 +27,7 @@ export async function codePage(tab: RepositoryTab, input: CodeInput): Promise<Co
   const { reads, record } = tab;
   const [config, session, data] = await Promise.all([
     startConfig(),
-    tab.isOwner ? currentSession() : Promise.resolve(null),
+    tab.role === 'owner' || tab.role === 'maintain' ? currentSession() : Promise.resolve(null),
     reads === null ? Promise.resolve(UNREACHABLE) : codeData(reads, input),
   ]);
   return {

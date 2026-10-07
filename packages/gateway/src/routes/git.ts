@@ -34,9 +34,16 @@ export const gitRoutes = new Hono<AppEnv>().all('/*', async (c) => {
   const isRace = parsed.path.namespace === deps.config.namespace;
   const token = presentedToken(c.req.raw);
   if (token === null)
+    // A public repository clones without a credential; anything else asks git for one.
     return isRace
       ? c.text('a beanstalk token is required', 401, CHALLENGE)
-      : notConnected('missing', deps.config.webUrl);
+      : repoGit({
+          request: c.req.raw,
+          path: parsed.path,
+          credential: null,
+          deps,
+          ctx: c.executionCtx,
+        });
   const credential = await verifyGitCredential(
     { ...deps, identity: c.env, forge: c.env.FORGE, usedFrom: usedFrom(c.req.raw) },
     token,

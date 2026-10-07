@@ -13,6 +13,7 @@ export type RepoTab =
   | 'changes'
   | 'history'
   | 'ask'
+  | 'people'
   | 'settings';
 
 /** Tabs that are questions: the generated explorer is the page for them. */
@@ -41,6 +42,7 @@ const REPOSITORY_TABS: readonly { readonly tab: RepoTab; readonly name: string }
   { tab: 'changes', name: 'Changes' },
   { tab: 'history', name: 'History' },
   { tab: 'ask', name: 'Ask' },
+  { tab: 'people', name: 'People' },
   { tab: 'settings', name: 'Settings' },
 ];
 
@@ -153,6 +155,7 @@ function hrefOf(base: string, tab: RepoTab): string {
   if (tab === 'files') return `${base}/files`;
   if (tab === 'engine') return `${base}/race`;
   if (tab === 'settings') return `${base}/settings`;
+  if (tab === 'people') return `${base}/people`;
   const question = TAB_QUESTIONS[tab];
   return question === undefined ? base : `${base}?q=${encodeURIComponent(question)}`;
 }

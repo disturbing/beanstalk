@@ -16,7 +16,7 @@ export function RepositoryShell(props: {
   readonly openChanges: number;
   readonly children: ReactNode;
 }) {
-  const { record, base, isOwner } = props.page;
+  const { record, base, role } = props.page;
   return (
     <main>
       <RepoHead
@@ -27,7 +27,7 @@ export function RepositoryShell(props: {
         visibility={record.visibility}
         ownerHref={`/${record.owner.handle}`}
         openChanges={props.openChanges}
-        canAdminister={isOwner}
+        canAdminister={role !== null}
       />
       <div className={styles.page}>{props.children}</div>
     </main>

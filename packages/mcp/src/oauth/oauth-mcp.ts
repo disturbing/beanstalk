@@ -74,6 +74,7 @@ function agentSession(
 ): AgentSessionContext {
   const { props, scopes, clientId } = input;
   return {
+    userId: props.userId,
     handle: props.handle,
     clientName: props.clientName,
     via: props.via,

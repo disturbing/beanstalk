@@ -1,0 +1,63 @@
+### anonymous clone of a public repository
+$ git clone https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git anon-public
+Cloning into 'anon-public'...
+(exit 0)
+
+### outsider clones the public repository
+$ git clone https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git erin
+Cloning into 'erin'...
+(exit 0)
+
+### outsider push to a public repository
+$ git push -o wait origin bean/outsider-change
+remote: owner-nfve's repository is public to read; to push beans ask its owner for the write role
+fatal: unable to access 'https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git/': The requested URL returned error: 403
+(exit 128)
+
+### collaborator clones
+$ git clone https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git dana
+Cloning into 'dana'...
+(exit 0)
+
+### collaborator pushes a bean with -o wait
+$ git push -o wait origin bean/add-shout
+remote: Processing objects: 100% (4/4)        
+remote: beanstalk: new bean add-shout received at f05809c: "Add add-shout"        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (5.6 s)        
+remote: beanstalk: LANDED: add-shout passed its pre-land check and is on the sprout as 6f5d9ab        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: validated: on the stalk at 6f5d9ab        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-shout/status        
+To https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git
+ * [new branch]      bean/add-shout -> bean/add-shout
+(exit 0)
+
+### collaborator demoted to read pushes again
+$ git push -o wait origin bean/second-change
+remote: your role on this repository is read; to push beans you need the write role
+fatal: unable to access 'https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git/': The requested URL returned error: 403
+(exit 128)
+
+### read collaborator fetches
+$ git fetch origin
+From https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app
+   bbca67b..6f5d9ab  sprout     -> origin/sprout
+   bbca67b..6f5d9ab  stalk      -> origin/stalk
+(exit 0)
+
+### anonymous clone after private
+$ git clone https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git anon-private
+Cloning into 'anon-private'...
+fatal: could not read Username for 'https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev': terminal prompts disabled
+(exit 128)
+
+### outsider fetch after private
+$ git fetch origin
+remote: no repository owner-nfve/team-app
+fatal: repository 'https://beanstalk-gateway-staging-c.devaccounts-1password.workers.dev/git/owner-nfve/team-app.git/' not found
+(exit 128)
+
+### read collaborator fetches the private repository
+$ git fetch origin
+(exit 0)

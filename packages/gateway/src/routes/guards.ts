@@ -1,6 +1,7 @@
 /**
- * Gateway-wide spend guards, admin only: the kill switch (`/halt`) and an on-demand run of the
- * hourly repo sweep (`/sweep`, for runs older than `older_than_hours`).
+ * Gateway-wide spend guards, admin only: the kill switch (`/halt`), an on-demand run of the
+ * hourly repo sweep (`/sweep`, for runs older than `older_than_hours`), and the runner pool's
+ * state (`/capacity`: race reservations, repositories' sandbox leases, per-owner counts).
  */
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -32,6 +33,9 @@ export const guardRoutes = new Hono<AppEnv>()
   .delete('/halt', requireAdmin, async (c) => {
     await c.var.deps.runIndex().resume();
     return c.json({ halt: null });
+  })
+  .get('/capacity', requireAdmin, async (c) => {
+    return c.json(await c.var.deps.runnerPool().snapshot());
   })
   .post('/sweep', requireAdmin, validate('json', SweepBody), async (c) => {
     const deps = c.var.deps;

@@ -61,7 +61,13 @@ export async function serveSshGit(
 
 /** A key's owner as a git credential: a person's, bound to no engine (like a personal token). */
 function sshCredential(owner: SshKeyOwner): GitCredential {
-  return { user: owner.user, scopes: sshGitScopes(owner), engine: null, runPrincipal: null };
+  return {
+    user: owner.user,
+    scopes: sshGitScopes(owner),
+    engine: null,
+    runPrincipal: null,
+    session: { via: 'ssh-key', id: owner.key.id },
+  };
 }
 
 async function ownerOf(

@@ -8,6 +8,7 @@ import type { Scope } from '@beanstalk/shared-identity/scopes';
 import { findUserByKey, touchKey } from '@beanstalk/shared-identity/ssh-keys';
 
 import type { GitScope, GitUser } from './git-credential';
+import { gitScopes } from './git-credential';
 
 /** A registered key and its owner. */
 export type SshKeyOwner = {
@@ -50,8 +51,5 @@ export function sshKeyStore(env: IdentityEnv): SshKeyStore {
 
 /** The git scopes a key carries (an account's keys read and push beans; never land). */
 export function sshGitScopes(owner: SshKeyOwner): GitScope[] {
-  const git: GitScope[] = [];
-  if (owner.scopes.includes('read') || owner.scopes.includes('write')) git.push('repo:read');
-  if (owner.scopes.includes('write')) git.push('bean:write');
-  return git;
+  return gitScopes(owner.scopes);
 }

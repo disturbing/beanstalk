@@ -1,3 +1,5 @@
+import { getUser } from '../../../../../../../src/auth/user';
+import { mayViewEngine } from '../../../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
 import { RunId, TaskId } from '@beanstalk/shared-race/ids';
@@ -9,11 +11,13 @@ import { log } from '../../../../../../../src/log';
 type Context = { readonly params: Promise<{ readonly run: string; readonly bean: string }> };
 
 /** A bean's own diff (its landing, or its newest head against the line), for decision cards. */
-export async function GET(_request: Request, context: Context): Promise<Response> {
+export async function GET(request: Request, context: Context): Promise<Response> {
   const params = await context.params;
   const run = RunId.safeParse(params.run);
   const bean = TaskId.safeParse(params.bean);
   if (!run.success || !bean.success) return problem(400, 'not a run or a bean id');
+  if (!(await mayViewEngine(env.GATEWAY, run.data, (await getUser(request))?.id ?? null)))
+    return problem(404, 'no such run');
   try {
     const source = forgeForRun(env.GATEWAY, run.data);
     const detail = await source.beanDetail(run.data, bean.data);
