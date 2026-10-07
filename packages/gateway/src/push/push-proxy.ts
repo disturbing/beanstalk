@@ -107,7 +107,10 @@ async function push(
   const { request } = read;
   const mode = reportMode(request.capabilities);
   const options = parsePushOptions(request.options);
-  const checked = await checkCommands(request, target.engine);
+  const checked = await checkCommands(request, {
+    engine: target.engine,
+    actor: input.credential.user.handle,
+  });
   if (!checked.ok) {
     await request.upstreamBody.cancel();
     return refused(request, mode, checked.reason);
@@ -162,8 +165,14 @@ type Checked =
   | { readonly ok: true; readonly ref: string; readonly bean: TaskId; readonly head: Sha }
   | { readonly ok: false; readonly reason: string };
 
-/** One bean per push, a branch under `refs/heads/bean/`, never a line, never a deletion. */
-async function checkCommands(request: PushRequest, engine: Engine): Promise<Checked> {
+/**
+ * One bean per push, a branch under `refs/heads/bean/`, never a line, never a deletion, and
+ * not a name someone else reserved.
+ */
+async function checkCommands(
+  request: PushRequest,
+  target: { readonly engine: Engine; readonly actor: string },
+): Promise<Checked> {
   const { commands } = request;
   const lines = commands.find((command) => PROTECTED_BRANCHES.includes(command.ref));
   if (lines !== undefined) {
@@ -185,7 +194,7 @@ async function checkCommands(request: PushRequest, engine: Engine): Promise<Chec
       reason: `only beans are pushed: refs/heads/bean/<name> (letters, digits, . _ -; up to 32), not ${command.ref}`,
     };
   }
-  const refusal = await engine.pushRefusal(bean);
+  const refusal = await target.engine.pushRefusal(bean, target.actor);
   if (refusal !== null) return { ok: false, reason: refusal };
   return { ok: true, ref: command.ref, bean, head: Sha.parse(command.newSha) };
 }

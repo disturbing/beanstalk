@@ -1,8 +1,9 @@
 /**
  * `/mcp` for a person's agent session: an OAuth access token (or a personal `bsu_` token),
  * already validated by the provider, which hands over the grant's props and the token's
- * scopes. Until persistent repositories exist (Phase 2) a session reads one run: DEMO_RUN,
- * or the newest run the gateway lists. Collaboration writes stay with contributor tokens.
+ * scopes. A session works on any repository its person may use (tools name it `owner/name`);
+ * a tool that names none reads DEMO_RUN, or the newest run the gateway lists. Collaboration
+ * writes on race beans stay with contributor tokens.
  */
 import type { OAuthResourceAuth } from '@cloudflare/workers-oauth-provider';
 import { insufficientScope } from '@cloudflare/workers-oauth-provider';
@@ -25,7 +26,7 @@ export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHand
 } {
   return {
     async fetch(request, env, ctx) {
-      const { gateway, log } = depsFor(env);
+      const { gateway, agents, log } = depsFor(env);
       const auth = resourceAuth(ctx);
       const props = GrantProps.safeParse(Reflect.get(ctx, 'props'));
       if (auth === null || !props.success) {
@@ -43,11 +44,6 @@ export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHand
           { status: 503 },
         );
       const run = await sessionRun(env, gateway);
-      if (run === null)
-        return Response.json(
-          { error: { code: 'not_found', message: 'no run to read yet' } },
-          { status: 404 },
-        );
       const session = agentSession(env, {
         props: props.data,
         scopes,
@@ -57,6 +53,7 @@ export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHand
         env,
         ctx,
         gateway,
+        ...(agents === undefined ? {} : { agents }),
         log,
         caller: { run, sub: props.data.userId, session },
       });
@@ -78,13 +75,18 @@ function agentSession(
     clientName: props.clientName,
     via: props.via,
     scopes,
-    async mintGitToken() {
-      const gitScopes = scopes.filter((scope) => scope === 'read' || scope === 'write');
+    principal: { user: { id: props.userId, handle: props.handle }, scopes },
+    async mintGitToken(repository) {
+      const gitScopes = scopes.filter(
+        (scope) => scope === 'read' || (scope === 'write' && repository.access === 'write'),
+      );
       if (gitScopes.length === 0) return null;
       const { token, summary } = await mintSessionToken(env, {
         userId: props.userId,
-        label: `${props.clientName} (MCP session)`,
+        label: `${props.clientName} (MCP git)`,
         scopes: gitScopes,
+        ttlSeconds: repository.ttlSeconds,
+        repository: repository.engineId,
         ...(clientId === null ? {} : { clientId }),
       });
       return {

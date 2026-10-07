@@ -13,6 +13,8 @@ import {
 } from '@beanstalk/shared-identity/user-tokens';
 import { insertUser } from '@beanstalk/shared-identity/users';
 
+import { repository, slug } from './repo-fixtures';
+
 const ORIGIN = 'https://beanstalk-mcp.example.workers.dev';
 const WEB_URL = 'https://beanstalk-web.devaccounts-1password.workers.dev';
 const REDIRECT = 'http://localhost:33418/callback';
@@ -159,8 +161,12 @@ async function mcpClient(bearer: string): Promise<Client> {
   return client;
 }
 
-async function callTool(client: Client, name: string): Promise<unknown> {
-  const result = await client.callTool({ name, arguments: {} });
+async function callTool(
+  client: Client,
+  name: string,
+  input: Record<string, unknown> = {},
+): Promise<unknown> {
+  const result = await client.callTool({ name, arguments: input });
   const [content] = z
     .array(z.object({ type: z.literal('text'), text: z.string() }))
     .parse(result.content);
@@ -234,7 +240,7 @@ describe('the authorization code flow', () => {
     const client = await mcpClient(tokens.access_token);
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name)).toEqual(
-      expect.arrayContaining(['ask_repo', 'run_status', 'whoami', 'git_credential']),
+      expect.arrayContaining(['ask_repo', 'run_status', 'whoami', 'git_credentials', 'repo_list']),
     );
     expect(tools.map((tool) => tool.name)).not.toContain('bean_update');
     expect(await callTool(client, 'whoami')).toMatchObject({
@@ -249,24 +255,22 @@ describe('the authorization code flow', () => {
     expect(audit.map((event) => event.action)).toContain('oauth.grant');
   });
 
-  it('mints a one-hour git credential no wider than the session', async () => {
+  it('mints a one-hour git credential for one repository, no wider than the session', async () => {
     const { user, tokens } = await connectAgent(['read', 'collaborate']);
+    const repo = await repository(user);
     const client = await mcpClient(tokens.access_token);
     const minted = z
-      .object({
-        token: z.string(),
-        scopes: z.array(z.string()),
-        expiresAt: z.string(),
-        username: z.string(),
-      })
-      .parse(await callTool(client, 'git_credential'));
+      .object({ credential: z.string(), scopes: z.array(z.string()), expires_at: z.string() })
+      .parse(await callTool(client, 'git_credentials', { repo: slug(repo) }));
     await client.close();
-    expect(minted.token).toMatch(/^bss_/);
+    const token = /^password=(\S+)$/m.exec(minted.credential)?.[1] ?? '';
+    expect(token).toMatch(/^bss_/);
     expect(minted.scopes).toEqual(['read']);
-    expect(Date.parse(minted.expiresAt) - Date.now()).toBeLessThanOrEqual(3600 * 1000);
-    const verified = await verifyUserToken(env, minted.token);
+    expect(Date.parse(minted.expires_at) - Date.now()).toBeLessThanOrEqual(3600 * 1000);
+    const verified = await verifyUserToken(env, token);
     expect(verified?.user.id).toBe(user.id);
     expect(verified?.scopes).toEqual(['read']);
+    expect(verified?.token.repository).toBe(repo.engine_id);
   });
 
   it('refuses a code with the wrong PKCE verifier or none, and a code used twice', async () => {
@@ -342,9 +346,13 @@ describe('the authorization code flow', () => {
 
   it('lists connected sessions and revokes one, with its session git tokens', async () => {
     const { user, tokens } = await connectAgent(['read', 'write']);
+    const repo = await repository(user);
     const client = await mcpClient(tokens.access_token);
-    const minted = z.object({ token: z.string() }).parse(await callTool(client, 'git_credential'));
+    const minted = z
+      .object({ credential: z.string() })
+      .parse(await callTool(client, 'git_credentials', { repo: slug(repo) }));
     await client.close();
+    const gitToken = /^password=(\S+)$/m.exec(minted.credential)?.[1] ?? '';
     const [session] = await mcp().agentSessions(user.id);
     expect(session).toMatchObject({ clientName: 'Claude Code', scopes: ['read', 'write'] });
     expect(await mcp().revokeAgentSession('u_someone_else', session?.grantId ?? '', null)).toBe(
@@ -352,7 +360,7 @@ describe('the authorization code flow', () => {
     );
     expect(await mcp().revokeAgentSession(user.id, session?.grantId ?? '', null)).toBe(true);
     expect(await mcp().agentSessions(user.id)).toEqual([]);
-    expect(await verifyUserToken(env, minted.token)).toBeNull();
+    expect(await verifyUserToken(env, gitToken)).toBeNull();
     expect((await postMcp(tokens.refresh_token)).status).toBe(401);
     const actions = (await listAudit(env, user.id)).map((event) => event.action);
     expect(actions).toEqual(

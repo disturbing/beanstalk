@@ -100,12 +100,22 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
+import type { Refusable, Reservation, TaskStanding } from '../agent/agent-store';
+import {
+  claimTask,
+  dropReservation,
+  migrateAgentStore,
+  readReservation,
+  reservationRefusal,
+  reserveBean,
+  taskStandings,
+} from '../agent/agent-store';
 import { continuousRef } from '../push/bean-refs';
 import type { PushBean, PushProgress } from '../push/push-bean';
 import { listPushBeans, migratePushBeans, readPushBean, savePushBean } from '../push/push-bean';
 import type { Submitted } from '../push/push-driver';
 import { PushDriver } from '../push/push-driver';
-import type { PushOptions } from '../push/push-intent';
+import type { PushIntent, PushOptions } from '../push/push-intent';
 import { pushIntent } from '../push/push-intent';
 import type { OpenRepoEngineInput, RepoEngineRecord } from '../push/repo-engine';
 import { RepoEngineRecord as RepoEngineSchema, beanLink } from '../push/repo-engine';
@@ -296,6 +306,7 @@ export class RunDO extends DurableObject<Env> {
     });
     this.#objects = this.#migrate();
     migratePushBeans(ctx.storage.sql);
+    migrateAgentStore(ctx.storage.sql);
     this.#push = new PushDriver({
       sql: ctx.storage.sql,
       log: this.#log,
@@ -431,11 +442,16 @@ export class RunDO extends DurableObject<Env> {
     }
   }
 
-  /** Why a push to `bean` must be refused now (before it reaches the repo), or null. */
-  pushRefusal(bean: TaskId): string | null {
+  /**
+   * Why a push to `bean` by `actor` must be refused now (before it reaches the repo), or null:
+   * the bean's own state, or another person's reservation of the name.
+   */
+  pushRefusal(bean: TaskId, actor?: string): string | null {
     this.#countRequest();
     if (this.#repoEngine() === null) return 'not a repository engine';
-    return this.#push.refusal(bean);
+    const stateRefusal = this.#push.refusal(bean);
+    if (stateRefusal !== null || actor === undefined) return stateRefusal;
+    return reservationRefusal(this.ctx.storage.sql, { bean, actor, nowMs: Date.now() });
   }
 
   /** A push of `bean` reached the repo: it becomes a bean, or answers the bean's rework. */
@@ -456,13 +472,19 @@ export class RunDO extends DurableObject<Env> {
         this.#log.warn('reading a pushed history failed', { head: input.head, error });
         return [];
       });
-    return this.#push.submit({
+    const reservation = readReservation(this.ctx.storage.sql, input.bean, Date.now());
+    const submitted = this.#push.submit({
       bean: input.bean,
       head: input.head,
       actor: input.actor,
-      intent: pushIntent(message ?? '', input.options),
+      intent: reservedIntent(pushIntent(message ?? '', input.options), {
+        reservation,
+        options: input.options,
+      }),
       history,
     });
+    if (submitted.ok && reservation !== null) dropReservation(this.ctx.storage.sql, input.bean);
+    return submitted;
   }
 
   /** What a push waiting on `bean` sees after line `after`. */
@@ -497,6 +519,47 @@ export class RunDO extends DurableObject<Env> {
   pushedBeans(): readonly PushBean[] {
     this.#countRequest();
     return listPushBeans(this.ctx.storage.sql);
+  }
+
+  /** One bean as an agent sees it: pushed (with its rework facts), reserved, or neither. */
+  agentBean(bean: string): { pushed: PushBean | null; reservation: Reservation | null } {
+    this.#countRequest();
+    const sql = this.ctx.storage.sql;
+    return { pushed: readPushBean(sql, bean), reservation: readReservation(sql, bean, Date.now()) };
+  }
+
+  /** Reserves a bean name with its intent for `actor` (`bean_open`), claiming its task. */
+  reserveBean(input: {
+    bean: TaskId;
+    actor: string;
+    intent: string;
+    task: string | null;
+  }): Refusable<Reservation> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return reserveBean(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Claims a backlog task for `actor`; one claim at a time (this object serialises them). */
+  claimTask(input: { task: string; actor: string }): Refusable<TaskStanding> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return claimTask(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Where each backlog task stands in this engine. */
+  taskStandings(tasks: readonly string[]): Readonly<Record<string, TaskStanding>> {
+    this.#countRequest();
+    return taskStandings(this.ctx.storage.sql, tasks, Date.now());
+  }
+
+  /** Why agents may not start work here now (not a repository, or closed), or null. */
+  #agentWorkRefusal(): string | null {
+    if (this.#repoEngine() === null || this.#loaded === null) return 'not a repository engine';
+    const { phase } = this.#loaded.stored.state;
+    return phase === 'running' ? null : `the repository engine is ${phase}`;
   }
 
   /** Creates the run: the run repo, then the engine state with every task pending. */
@@ -1639,4 +1702,21 @@ async function settledWithin(work: Promise<void>, ms: number): Promise<void> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * A reserved bean's first push: the intent reserved with `bean_open` stands unless the push
+ * names one (`-o intent`), and the reservation's task unless the push links another.
+ */
+function reservedIntent(
+  intent: PushIntent,
+  input: { readonly reservation: Reservation | null; readonly options: PushOptions },
+): PushIntent {
+  const { reservation, options } = input;
+  if (reservation === null) return intent;
+  return {
+    title: intent.title,
+    intent: options.intent === null ? reservation.intent : intent.intent,
+    task: intent.task ?? reservation.task,
+  };
 }

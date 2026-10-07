@@ -61,7 +61,21 @@ import type {
   IssuedDeployToken,
 } from '@beanstalk/shared-race/deploy-tokens';
 
+import type {
+  AgentBean,
+  AgentPrincipal,
+  AgentReposRpc,
+  AgentRepository,
+  Backlog,
+  BeanOpenInput,
+  BeanOpened,
+  BeanWaitUntil,
+  BeanWaited,
+  TaskClaimed,
+} from '@beanstalk/shared-race/agent-repos';
+
 import { repositoryStorage } from './adapters/repository-storage';
+import { agentReposRpc } from './agent/agent-repos-rpc';
 import { sshKeyStore } from './auth/ssh-keys';
 import type { SshDeps, SshKeyAnswer } from './ssh/ssh-git';
 import { lookupSshKey, serveSshGit } from './ssh/ssh-git';
@@ -93,7 +107,7 @@ const app = createApp(createDeps);
  */
 export default class Gateway
   extends WorkerEntrypoint<Env>
-  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc
+  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc, AgentReposRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -339,6 +353,58 @@ export default class Gateway
     options: { readonly deleteRepo: boolean },
   ): Promise<RpcResult<{ readonly closed: true }>> {
     return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
+  }
+
+  agentRepositories(principal: AgentPrincipal): Promise<RpcResult<readonly AgentRepository[]>> {
+    return this.#agents().agentRepositories(principal);
+  }
+
+  agentRepository(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentRepository>> {
+    return this.#agents().agentRepository(principal, repo);
+  }
+
+  agentPushedBeans(
+    principal: AgentPrincipal,
+    repo: string,
+  ): Promise<RpcResult<readonly PushedBeanStatus[]>> {
+    return this.#agents().agentPushedBeans(principal, repo);
+  }
+
+  agentBean(principal: AgentPrincipal, repo: string, bean: string): Promise<RpcResult<AgentBean>> {
+    return this.#agents().agentBean(principal, repo, bean);
+  }
+
+  agentWaitBean(
+    principal: AgentPrincipal,
+    repo: string,
+    bean: string,
+    wait: { readonly until: BeanWaitUntil; readonly seconds: number },
+  ): Promise<RpcResult<BeanWaited>> {
+    return this.#agents().agentWaitBean(principal, repo, bean, wait);
+  }
+
+  agentOpenBean(
+    principal: AgentPrincipal,
+    repo: string,
+    input: BeanOpenInput,
+  ): Promise<RpcResult<BeanOpened>> {
+    return this.#agents().agentOpenBean(principal, repo, input);
+  }
+
+  agentBacklog(principal: AgentPrincipal, repo: string): Promise<RpcResult<Backlog>> {
+    return this.#agents().agentBacklog(principal, repo);
+  }
+
+  agentClaimTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentClaimTask(principal, repo, task);
+  }
+
+  #agents(): AgentReposRpc {
+    return agentReposRpc(createDeps(this.env));
   }
 
   /**

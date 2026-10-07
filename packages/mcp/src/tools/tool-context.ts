@@ -17,6 +17,7 @@ import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
 import type { Scope } from '@beanstalk/shared-identity/scopes';
+import type { AgentPrincipal, AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
 
 import type { ContributorSession } from '../auth/bearer';
 import type { Logger } from '../log';
@@ -27,8 +28,34 @@ export type AgentSessionContext = {
   readonly clientName: string;
   readonly via: 'oauth' | 'token';
   readonly scopes: readonly Scope[];
-  /** Mints a short-lived git credential no wider than the session; null when it may not. */
-  mintGitToken(): Promise<MintedGitToken | null>;
+  /** The person and scopes, as the gateway's repository RPC takes them. */
+  readonly principal: AgentPrincipal;
+  /**
+   * Mints a short-lived git credential for one repository (its engine id), no wider than the
+   * session and than the person's access there; null when the session has no git scope.
+   */
+  mintGitToken(repository: {
+    readonly engineId: string;
+    readonly access: 'read' | 'write';
+    readonly ttlSeconds: number;
+  }): Promise<MintedGitToken | null>;
+};
+
+/**
+ * What a server's tools read with: the caller's own run (run tokens always have one; agent
+ * sessions the demo or newest run, if any) and, for sessions, any repository the person may
+ * use, named per call as `owner/name`.
+ */
+export type ToolScope = {
+  readonly own: ToolContext | null;
+  /** The context a call reads: its `repo`, or the caller's own run. */
+  context(repo: string | undefined): Promise<ToolContext>;
+  readonly session?: AgentSessionContext;
+  /** The gateway's repository RPC (sessions only). */
+  readonly agents?: AgentReposRpc;
+  /** The gateway's public origin, for clone URLs and credentials. */
+  readonly gitOrigin: string;
+  readonly webUrl: string;
 };
 
 export type MintedGitToken = {
@@ -93,9 +120,9 @@ export async function editingNow(
   }
 }
 
-/** A bean id from `t032` or `beans/t032`; undefined when it is neither. */
+/** A bean id from `t032`, `beans/t032` or `bean/<name>`; undefined when it is none. */
 export function parseBean(value: string): TaskId | undefined {
-  const parsed = TaskIdSchema.safeParse(value.trim().replace(/^beans\//, ''));
+  const parsed = TaskIdSchema.safeParse(value.trim().replace(/^beans?\//, ''));
   return parsed.success ? parsed.data : undefined;
 }
 
