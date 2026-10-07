@@ -5,6 +5,7 @@ import { poolInstance, readConfig } from '../src/config';
 import type { GatewaySsh } from '../src/gateway-outbound';
 import { KEY_HEADER, gatewaySsh, routeOutbound } from '../src/gateway-outbound';
 import { pipeBothWays } from '../src/socket-pipe';
+import { webSocketDuplex } from '../src/tunnel';
 
 const KNOWN = 'ssh-ed25519 KNOWNKEY';
 
@@ -96,6 +97,27 @@ describe('connection plumbing', () => {
     await writer.close();
     expect(await piping).toEqual({ bytesIn: 14, bytesOut: 14 });
     expect(activity).toBe(2);
+  });
+
+  it('carries tunnel bytes both ways over a WebSocket', async () => {
+    const [client, server] = Object.values(new WebSocketPair());
+    if (client === undefined || server === undefined) throw new Error('no websocket pair');
+    server.accept();
+    client.accept();
+    const tunnel = webSocketDuplex(server);
+    const received = new Promise<string>((resolve) => {
+      client.addEventListener('message', (event) => {
+        // A binary message may be a Blob here, as on the tunnel's server end.
+        resolve(new Response(event.data).text());
+      });
+    });
+    client.send(new TextEncoder().encode('SSH-2.0-client\r\n'));
+    const reader = tunnel.readable.getReader();
+    const first = await reader.read();
+    expect(new TextDecoder().decode(first.value)).toBe('SSH-2.0-client\r\n');
+    const writer = tunnel.writable.getWriter();
+    await writer.write(new TextEncoder().encode('SSH-2.0-beanstalk\r\n'));
+    expect(await received).toBe('SSH-2.0-beanstalk\r\n');
   });
 
   it('reads its settings, with the tunnel off by default', () => {

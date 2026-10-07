@@ -9,11 +9,11 @@ import type { Duplex } from './socket-pipe';
 export function webSocketDuplex(socket: WebSocket): Duplex {
   const readable = new ReadableStream<Uint8Array>({
     start(controller) {
+      // Binary messages may arrive as Blobs (reading one is async), so chunks are queued in order.
+      let queued = Promise.resolve();
       socket.addEventListener('message', (event) => {
-        const data = event.data;
-        controller.enqueue(
-          typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data),
-        );
+        const data: unknown = event.data;
+        queued = queued.then(async () => controller.enqueue(await messageBytes(data)));
       });
       socket.addEventListener('close', () => {
         try {
@@ -37,4 +37,14 @@ export function webSocketDuplex(socket: WebSocket): Duplex {
     },
   });
   return { readable, writable };
+}
+
+/** A message's bytes, whatever form the runtime delivered it in. */
+async function messageBytes(data: unknown): Promise<Uint8Array> {
+  if (typeof data === 'string') return new TextEncoder().encode(data);
+  if (data instanceof ArrayBuffer) return new Uint8Array(data);
+  if (ArrayBuffer.isView(data))
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  if (data instanceof Blob) return new Uint8Array(await data.arrayBuffer());
+  throw new TypeError('unexpected websocket message');
 }

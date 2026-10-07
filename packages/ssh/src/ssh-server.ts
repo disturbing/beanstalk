@@ -6,11 +6,15 @@ import type { SshConfig } from './config';
 import { gatewaySsh, routeOutbound } from './gateway-outbound';
 import { createLogger } from './log';
 import type { Logger } from './log';
+import type { Duplex } from './socket-pipe';
 import { pipeBothWays } from './socket-pipe';
+import { webSocketDuplex } from './tunnel';
 
 /** The SSH server's ports in the container: SSH, and HTTP for the readiness probe. */
 export const SSH_PORT = 2222;
 export const HEALTH_PORT = 8080;
+/** The test tunnel's path, on the Worker and on the object it forwards to. */
+export const TUNNEL_PATH = '/tunnel';
 /** A connection's whole life, a little over the SSH server's own limit (it closes first). */
 const MAX_CONNECTION_MS = 65 * 60 * 1000;
 /** How often a live connection renews the container's sleep timer. */
@@ -66,18 +70,36 @@ export class SshServer extends Container<Env> {
     };
   }
 
-  /** One inbound SSH connection, forwarded to the container until either side closes. */
+  /** One inbound SSH connection (from the Worker's `connect`), forwarded to the container. */
   override async connect(socket: Socket): Promise<void> {
+    await this.#serve(socket, () => socket.close());
+  }
+
+  /**
+   * `GET /tunnel` (test stacks only; the Worker checks SSH_TUNNEL): the WebSocket is accepted
+   * here, in the object that owns the container, so both directions live as long as it does.
+   */
+  override async fetch(request: Request): Promise<Response> {
+    if (new URL(request.url).pathname !== TUNNEL_PATH) return super.fetch(request);
+    const [client, server] = Object.values(new WebSocketPair());
+    if (client === undefined || server === undefined)
+      return new Response('no websocket', { status: 500 });
+    server.accept();
+    this.ctx.waitUntil(this.#serve(webSocketDuplex(server), () => server.close(1011, 'failed')));
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async #serve(client: Duplex, abandon: () => unknown): Promise<void> {
     const connection = crypto.randomUUID();
     if (this.#open >= this.#config.maxConnections) {
       this.#log.warn('ssh connection refused: instance full', { connection, open: this.#open });
-      await socket.close();
+      await Promise.resolve(abandon()).catch(() => undefined);
       return;
     }
     this.#open += 1;
     const startedMs = Date.now();
     try {
-      const totals = await this.#forward(socket);
+      const totals = await this.#forward(client);
       this.#log.info('ssh connection closed', {
         connection,
         ...totals,
@@ -85,13 +107,13 @@ export class SshServer extends Container<Env> {
       });
     } catch (error) {
       this.#log.error('ssh connection failed', { connection, error });
-      await socket.close().catch(() => undefined);
+      await Promise.resolve(abandon()).catch(() => undefined);
     } finally {
       this.#open -= 1;
     }
   }
 
-  async #forward(socket: Socket): Promise<{ bytesIn: number; bytesOut: number }> {
+  async #forward(client: Duplex): Promise<{ bytesIn: number; bytesOut: number }> {
     const container = this.ctx.container;
     if (container === undefined) throw new Error('this Durable Object has no container');
     await this.startAndWaitForPorts(HEALTH_PORT).catch((error: unknown) => {
@@ -102,7 +124,7 @@ export class SshServer extends Container<Env> {
     const upstream = container.getTcpPort(SSH_PORT).connect(`10.0.0.1:${SSH_PORT}`);
     await upstream.opened;
     let renewedMs = 0;
-    return pipeBothWays(socket, upstream, {
+    return pipeBothWays(client, upstream, {
       signal: AbortSignal.timeout(MAX_CONNECTION_MS),
       onActivity: () => {
         if (Date.now() - renewedMs < ACTIVITY_RENEW_MS) return;
