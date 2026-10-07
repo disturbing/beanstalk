@@ -269,7 +269,7 @@ async function blobText(
 }
 
 /** Runs `use` with a repo capability and always releases it. */
-async function withRepo<T>(
+export async function withRepo<T>(
   binding: Artifacts,
   name: string,
   use: (repo: ArtifactsRepo) => Promise<T>,
@@ -282,7 +282,7 @@ async function withRepo<T>(
   }
 }
 
-async function call<T>(what: string, operation: () => Promise<T>): Promise<T> {
+export async function call<T>(what: string, operation: () => Promise<T>): Promise<T> {
   try {
     return await operation();
   } catch (error: unknown) {

@@ -79,16 +79,29 @@ describe('mayUseEngine', () => {
     const credential = await verifyGitCredential(creds, pat.token);
     if (credential === null) throw new Error('token refused');
     const engine = RunId.parse('repoengine1');
-    expect(mayUseEngine(credential, engine, 'repo-owner')).toBe(true);
-    expect(mayUseEngine(credential, engine, 'someone-else')).toBe(false);
+    const of = (ownerHandle: string, visibility: 'public' | 'private' = 'private') => ({
+      engine,
+      ownerHandle,
+      visibility,
+    });
+    expect(mayUseEngine(credential, of('repo-owner'), 'write')).toBe(true);
+    expect(mayUseEngine(credential, of('someone-else'), 'read')).toBe(false);
+    // A public repository reads for everyone and still takes beans from its owner only.
+    expect(mayUseEngine(credential, of('someone-else', 'public'), 'read')).toBe(true);
+    expect(mayUseEngine(credential, of('someone-else', 'public'), 'write')).toBe(false);
   });
 
   it('keeps run tokens bound to their own engine', async () => {
     const run = await createRun({ agents: 1 });
     const credential = await verifyGitCredential(creds, slotToken(run, 'a0'));
     if (credential === null) throw new Error('token refused');
-    expect(mayUseEngine(credential, RunId.parse(run.run), 'anyone')).toBe(true);
-    expect(mayUseEngine(credential, RunId.parse('otherrun01'), 'anyone')).toBe(false);
+    const at = (engine: string) => ({
+      engine: RunId.parse(engine),
+      ownerHandle: 'anyone',
+      visibility: 'public' as const,
+    });
+    expect(mayUseEngine(credential, at(run.run), 'write')).toBe(true);
+    expect(mayUseEngine(credential, at('otherrun01'), 'read')).toBe(false);
   });
 });
 

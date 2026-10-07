@@ -18,7 +18,7 @@ type Folder = {
  * file carries badges: changes in the range, beans in flight, red tests, decisions.
  */
 export function FileTree(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly tree: TreeModel;
   readonly selected: string | null;
@@ -37,7 +37,7 @@ export function FileTree(props: {
 }
 
 type Context = {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly tree: TreeModel;
   readonly selected: string | null;
@@ -75,7 +75,7 @@ function FileItem({ path, context }: { readonly path: string; readonly context: 
   const tone = toneOf(context, path);
   return (
     <Link
-      href={explorerHref(context.run, context.state, { file: path, bean: null, view: null })}
+      href={explorerHref(context.base, context.state, { file: path, bean: null, view: null })}
       className={`${styles.fileLink} ${tone}`}
       aria-current={context.selected === path ? 'true' : undefined}
       title={path}

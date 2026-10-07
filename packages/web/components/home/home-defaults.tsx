@@ -13,7 +13,7 @@ import { useStreamSummaries } from './live-streams';
 import { BaseChip, BeanChip, FileIcon, InFlightChip } from './marks';
 
 export type DefaultsProps = {
-  readonly run: string;
+  readonly base: string;
   readonly state: RaceState;
   readonly now: number;
   readonly files: readonly string[];
@@ -193,7 +193,7 @@ function FilesTable(props: DefaultsProps) {
         <span className={styles.right}>
           sprout #{sproutIdx}, stalk #{stalkIdx}
           {sproutIdx > stalkIdx ? `, ${sproutIdx - stalkIdx} behind` : ', caught up'}
-          <Link href={`/runs/${props.run}/files`}>Browse all files</Link>
+          <Link href={`${props.base}/files`}>Browse all files</Link>
         </span>
       </div>
       <table className={styles.ftable}>
@@ -205,8 +205,8 @@ function FilesTable(props: DefaultsProps) {
                 <Link
                   href={
                     row.dir
-                      ? `/runs/${props.run}/files`
-                      : `/runs/${props.run}/files?file=${encodeURIComponent(row.path)}`
+                      ? `${props.base}/files`
+                      : `${props.base}/files?file=${encodeURIComponent(row.path)}`
                   }
                 >
                   {row.name}

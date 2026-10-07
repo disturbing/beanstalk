@@ -99,9 +99,29 @@ export async function verifyGitCredential(
  * then say how). Run tokens are bound to one engine. People's tokens open the repositories
  * their user owns; collaborators come with the repository registry.
  */
-export function mayUseEngine(credential: GitCredential, engine: RunId, owner: string): boolean {
-  if (credential.engine !== null) return credential.engine === engine;
-  return credential.runPrincipal === null && credential.user.handle === owner;
+/** The repository a git request names, as access rules see it. */
+export type RepositoryAccess = {
+  readonly engine: RunId;
+  /** The owner's handle (the registry's, or the URL's for an engine opened without one). */
+  readonly ownerHandle: string;
+  readonly visibility: 'public' | 'private';
+};
+
+/**
+ * Whether a credential may use a repository: the one place git access is decided. A token
+ * bound to an engine uses that engine only; a person's token (`bsu_`, `bss_`) uses the
+ * repositories its person owns, and reads public ones. Collaborators join here when the
+ * registry records them. Race run tokens never reach repository engines.
+ */
+export function mayUseEngine(
+  credential: GitCredential,
+  repository: RepositoryAccess,
+  access: 'read' | 'write',
+): boolean {
+  if (credential.engine !== null) return credential.engine === repository.engine;
+  if (credential.runPrincipal !== null) return false;
+  if (credential.user.handle.toLowerCase() === repository.ownerHandle.toLowerCase()) return true;
+  return access === 'read' && repository.visibility === 'public';
 }
 
 async function verifyPersonToken(

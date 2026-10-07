@@ -6,10 +6,10 @@
  * lines (received, check started; with `-o wait`, the verdict). Pushes to the lines, other
  * branches and deletions are refused in the protocol, so git prints why.
  */
-import type { RunId, TaskId } from '@beanstalk/shared-race/ids';
-import { Sha } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, Sha } from '@beanstalk/shared-race/ids';
 
-import type { GitCredential } from '../auth/git-credential';
+import type { GitCredential, RepositoryAccess } from '../auth/git-credential';
 import { mayUseEngine } from '../auth/git-credential';
 import type { Deps } from '../deps';
 import { withCapabilities } from '../git/advertisement';
@@ -54,13 +54,14 @@ type Engine = DurableObjectStub<RunDO>;
 /** Serves one smart-HTTP request of a repository engine. */
 export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const { path, credential, deps } = input;
-  const engineId = await repoEngineId(path.namespace, path.repo);
+  const repository = await repositoryAt(deps, path);
+  const access = accessFor(path.service);
   // A repository the credential may not use is answered as missing: its existence is not told.
   const missing = text(404, `no repository ${path.namespace}/${path.repo}`);
-  if (!mayUseEngine(credential, engineId, path.namespace)) return missing;
+  if (repository === null || !mayUseEngine(credential, repository, access)) return missing;
+  const engineId = repository.engine;
   const engine = deps.run(engineId);
   if ((await engine.repoEngine()) === null) return missing;
-  const access = accessFor(path.service);
   if (access === 'write' && !credential.scopes.includes('bean:write'))
     return text(403, 'this token may read the repository but not push beans');
   if (path.rest === 'git-receive-pack') return push(input, { engine, engineId });
@@ -78,6 +79,21 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const headers = new Headers(response.headers);
   headers.delete('content-length');
   return new Response(withCapabilities(advertisement, ADVERTISED), { status: 200, headers });
+}
+
+/**
+ * The repository a path names: the registry's record (its engine survives a rename), or for
+ * an engine opened without one (the admin route) the engine derived from the path, private.
+ * A repository's old name (its derived engine now belongs to a renamed record) names nothing.
+ */
+async function repositoryAt(deps: Deps, path: GitPath): Promise<RepositoryAccess | null> {
+  const record = await deps.registry.byName(path.namespace, path.repo);
+  const engine = RunId.safeParse(record?.engine_id);
+  if (record !== null && engine.success)
+    return { engine: engine.data, ownerHandle: record.owner.handle, visibility: record.visibility };
+  const derived = await repoEngineId(path.namespace, path.repo);
+  if ((await deps.registry.byEngine(derived)) !== null) return null;
+  return { engine: derived, ownerHandle: path.namespace, visibility: 'private' };
 }
 
 async function push(

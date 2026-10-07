@@ -21,7 +21,8 @@ export async function SiteHeader() {
         <span className={styles.wordmark}>beanstalk</span>
       </Link>
       <nav aria-label="Site" className={styles.nav}>
-        <Link href="/">Benchmark runs</Link>
+        {user === null ? null : <Link href="/">Home</Link>}
+        <Link href={user === null ? '/' : '/races'}>Benchmark runs</Link>
         <Link href="/race">Watch the race</Link>
       </nav>
       <div className={styles.tools}>
@@ -32,6 +33,11 @@ export async function SiteHeader() {
             </button>
           </form>
         ) : null}
+        {user === null ? null : (
+          <Link href="/new" className={styles.newRepo}>
+            New repository
+          </Link>
+        )}
         {user === null ? (
           <Link href="/login" className={styles.signIn}>
             Sign in

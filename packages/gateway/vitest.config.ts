@@ -21,6 +21,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const compatibilityDate = poolWorkerdCompatibilityDate();
 // The identity database (people's git tokens), migrated before each test file.
 const identityMigrations = await readD1Migrations(path.join(here, '../shared-identity/migrations'));
+/** The repository registry's D1 migrations, applied to the test database by test/apply-migrations.ts. */
+const registryMigrations = await readD1Migrations(path.join(here, 'migrations'));
 
 export default defineConfig({
   plugins: [
@@ -33,6 +35,7 @@ export default defineConfig({
           RUN_TOKEN_SECRET: 'test-run-token-secret-0123456789abcdef0123',
           LOG_LEVEL: 'error',
           TEST_MIGRATIONS: identityMigrations,
+          FORGE_MIGRATIONS: registryMigrations,
         },
         serviceBindings: { ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' } },
         durableObjects: { RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' } },

@@ -1,81 +1,53 @@
 import { env } from 'cloudflare:workers';
-import Link from 'next/link';
 
-import { GreensChart } from '../components/race/greens-chart';
-import { RunsTable } from '../components/runs/runs-table';
-import styles from '../components/runs/runs.module.css';
-import { listRuns } from '../src/forge/sources';
-import { formatMinutes, formatUsd } from '../src/race/race-format';
+import type { DashboardRepository } from '../components/repository/home-dashboard';
+import { HomeDashboard } from '../components/repository/home-dashboard';
+import { RunsLanding } from '../components/runs/runs-landing';
+import { currentUser } from '../src/auth/user';
+import { growthOf } from '../src/repositories/engine-summary';
+import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';
 
-export const metadata = { title: 'Runs' };
+type PageProps = {
+  readonly searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+};
 
-/** The k-th green the demo measures "most of the work" by (`research/race/kth_green.py`). */
-const MOST_GREENS = 35;
-
-function minutesOr(seconds: number | null | undefined): string {
-  return seconds === null || seconds === undefined ? 'n/a' : formatMinutes(seconds);
+/** Signed in: Home (your repositories, recent activity). Signed out: the benchmark landing. */
+export default async function Home({ searchParams }: PageProps) {
+  const user = await currentUser();
+  if (user === null) return <RunsLanding />;
+  const registry = registryClient(env.GATEWAY);
+  const [listed, activity, query] = await Promise.all([
+    registry.list(user.id, user.id),
+    registry.activity(user.id, 12),
+    searchParams,
+  ]);
+  const records = listed.ok ? listed.value : [];
+  const repositories: DashboardRepository[] = await Promise.all(
+    records.map(async (record) => ({
+      record,
+      growth: await growthOf(env.GATEWAY, record.engine_id),
+    })),
+  );
+  const deleted = typeof query['deleted'] === 'string' ? query['deleted'] : null;
+  const notice = noticeOf(listed.ok ? null : listed.error.message, deleted);
+  return (
+    <HomeDashboard
+      user={user}
+      repositories={repositories}
+      activity={activity.ok ? activity.value : []}
+      nowMs={Date.now()}
+      notice={notice}
+      demoHref={`/runs/${racePair().right.run}`}
+    />
+  );
 }
 
-export default async function RunsPage() {
-  const [runs, pair] = await Promise.all([listRuns(env.GATEWAY), Promise.resolve(racePair())]);
-  const { left: queue, right: beanstalk } = pair;
-  const until = Math.max(queue.endedAt ?? 0, beanstalk.endedAt ?? 0);
-  return (
-    <main className={styles.page}>
-      <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={styles.heroText}>
-          <h1 id="hero-title" className={styles.heroTitle}>
-            Twelve agents, forty beans, one repo.
-          </h1>
-          <p className={styles.heroLede}>
-            The same race twice on Cloudflare: a batched merge queue, then Beanstalk v2.5. Beanstalk
-            had {MOST_GREENS} beans on the stalk in {minutesOr(beanstalk.greens[MOST_GREENS - 1])},
-            the queue in {minutesOr(queue.greens[MOST_GREENS - 1])}; it was done in{' '}
-            {minutesOr(beanstalk.wallSeconds)} against {minutesOr(queue.wallSeconds)}, for{' '}
-            {formatUsd(beanstalk.costUsd)} against {formatUsd(queue.costUsd)} of agent spend.
-          </p>
-          <p className={styles.heroActions}>
-            <Link href="/race" className={styles.primary}>
-              Watch the race
-            </Link>
-            <Link href={`/runs/${beanstalk.run}`} className={styles.secondary}>
-              Explore the Beanstalk repository
-            </Link>
-          </p>
-        </div>
-        <div className={styles.heroChart}>
-          <GreensChart
-            title="Beans on the stalk"
-            series={[
-              {
-                id: 'queue',
-                label: queue.label,
-                color: 'var(--series-queue)',
-                greens: queue.greens,
-                endedAt: queue.endedAt,
-              },
-              {
-                id: 'beanstalk',
-                label: beanstalk.label,
-                color: 'var(--series-v2)',
-                greens: beanstalk.greens,
-                endedAt: beanstalk.endedAt,
-              },
-            ]}
-            now={until}
-            until={until}
-            beans={beanstalk.beans}
-            marks={[20, 30, 35]}
-          />
-        </div>
-      </section>
-      <RunsTable title="Recorded runs" runs={runs.recorded} empty="No recorded runs are bundled." />
-      <RunsTable
-        title="Live runs"
-        runs={runs.live}
-        empty={runs.liveError ?? 'The gateway has no runs yet. Start one with the race driver.'}
-      />
-    </main>
-  );
+function noticeOf(
+  listError: string | null,
+  deleted: string | null,
+): { readonly tone: 'good' | 'warn'; readonly text: string } | null {
+  if (listError !== null)
+    return { tone: 'warn', text: `Your repositories could not be listed: ${listError}` };
+  return deleted === null ? null : { tone: 'good', text: `Deleted ${deleted}.` };
 }

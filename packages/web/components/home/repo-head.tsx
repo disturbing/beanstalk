@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Repository } from '../../src/people/repository';
 import styles from './home.module.css';
 
-export type RepoTab = 'code' | 'files' | 'beans' | 'decisions' | 'checks' | 'engine';
+export type RepoTab = 'code' | 'files' | 'beans' | 'decisions' | 'checks' | 'engine' | 'settings';
 
 /** Tabs that are questions: the generated explorer is the page for them. */
 export const TAB_QUESTIONS: Readonly<Partial<Record<RepoTab, string>>> = {
@@ -19,29 +19,48 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
   { tab: 'decisions', name: 'Decisions', keys: 'g d' },
   { tab: 'checks', name: 'Checks', keys: 'g k' },
   { tab: 'engine', name: 'Engine', keys: 'g e' },
+  { tab: 'settings', name: 'Settings', keys: 'g s' },
 ];
+
+/** A race's repository has the engine canvas; a persistent repository has settings instead. */
+const KIND_TABS: Readonly<Record<RepoKind, ReadonlySet<RepoTab>>> = {
+  race: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'engine']),
+  repository: new Set(['code', 'files', 'beans', 'decisions', 'checks', 'settings']),
+};
+
+export type RepoKind = 'race' | 'repository';
 
 /**
  * The repository's header: owner and name once, then its views. Beans, Decisions and Checks
- * open the home explorer on their question; Engine is the race canvas, for developers.
+ * open the home explorer on their question; Engine is a race's canvas, for developers, and
+ * Settings belongs to a persistent repository. `base` is `/runs/<run>` or `/<owner>/<repo>`.
  */
 export function RepoHead(props: {
-  readonly run: string;
+  readonly base: string;
   readonly repository: Repository;
   readonly current: RepoTab;
+  readonly kind?: RepoKind;
+  /** A persistent repository's visibility, shown beside its name. */
+  readonly visibility?: 'public' | 'private';
+  /** Where the owner's name links: their repositories, or the repository itself for a race. */
+  readonly ownerHref?: string;
 }) {
+  const tabs = KIND_TABS[props.kind ?? 'race'];
   return (
     <div className={styles.repohead}>
       <h1 className={styles.repotitle}>
-        <Link href={`/runs/${props.run}`}>{props.repository.owner}</Link>
+        <Link href={props.ownerHref ?? props.base}>{props.repository.owner}</Link>
         <span>/</span>
-        <Link href={`/runs/${props.run}`}>{props.repository.name}</Link>
+        <Link href={props.base}>{props.repository.name}</Link>
+        {props.visibility === undefined ? null : (
+          <small className={styles.visibility}>{props.visibility}</small>
+        )}
       </h1>
       <nav className={styles.tabs} aria-label="Repository views">
-        {TABS.map((item) => (
+        {TABS.filter((item) => tabs.has(item.tab)).map((item) => (
           <Link
             key={item.tab}
-            href={hrefOf(props.run, item.tab)}
+            href={hrefOf(props.base, item.tab)}
             className={styles.tab}
             aria-current={props.current === item.tab ? 'page' : undefined}
             title={item.tab === 'engine' ? 'The engine’s race canvas, for developers' : undefined}
@@ -61,9 +80,10 @@ export function tabOf(q: string): RepoTab {
   return match === undefined ? 'code' : (TABS.find((item) => item.tab === match[0])?.tab ?? 'code');
 }
 
-function hrefOf(run: string, tab: RepoTab): string {
-  if (tab === 'files') return `/runs/${run}/files`;
-  if (tab === 'engine') return `/runs/${run}/race`;
+function hrefOf(base: string, tab: RepoTab): string {
+  if (tab === 'files') return `${base}/files`;
+  if (tab === 'engine') return `${base}/race`;
+  if (tab === 'settings') return `${base}/settings`;
   const question = TAB_QUESTIONS[tab];
-  return question === undefined ? `/runs/${run}` : `/runs/${run}?q=${encodeURIComponent(question)}`;
+  return question === undefined ? base : `${base}?q=${encodeURIComponent(question)}`;
 }

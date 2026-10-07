@@ -11,6 +11,6 @@ import { placeholderSessions } from '@beanstalk/shared-ask/home/sessions';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { repositoryOf } from './repository';
 
-export function sessionsFor(run: RunId, state: RaceState): SessionDirectory {
-  return placeholderSessions(state, repositoryOf(run).owner);
+export function sessionsFor(run: RunId, state: RaceState, owner?: string): SessionDirectory {
+  return placeholderSessions(state, owner ?? repositoryOf(run).owner);
 }

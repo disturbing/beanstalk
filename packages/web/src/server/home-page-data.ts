@@ -24,7 +24,12 @@ export type HomePageData = {
   readonly sessions: SessionDirectory;
 };
 
-export async function homePageData(source: ForgeSource, run: RunId): Promise<HomePageData> {
+/** `owner` names whom the sessions belong to (a persistent repository's owner); races use theirs. */
+export async function homePageData(
+  source: ForgeSource,
+  run: RunId,
+  owner?: string,
+): Promise<HomePageData> {
   const recorded = recordedRun(run);
   const [options, events, titles, files] = await Promise.all([
     source.runOptions(run),
@@ -41,7 +46,7 @@ export async function homePageData(source: ForgeSource, run: RunId): Promise<Hom
     events,
     titles,
     files,
-    sessions: sessionsFor(run, reduceRace(events, options)),
+    sessions: sessionsFor(run, reduceRace(events, options), owner),
   };
 }
 

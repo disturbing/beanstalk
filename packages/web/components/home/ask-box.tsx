@@ -12,7 +12,7 @@ import { InfoReceipt } from './receipts';
  * blur; under the closed box, a few example questions run with one click.
  */
 export function AskBox(props: {
-  readonly run: string;
+  readonly base: string;
   readonly q: string;
   readonly t: number | null;
   /** Questions in the picker's order: the first few are the examples, all are completions. */
@@ -55,7 +55,7 @@ export function AskBox(props: {
         data-open={open ? '' : undefined}
         onBlur={closeIfOutside}
       >
-        <form action={`/runs/${props.run}`} method="get" className={styles.ask} role="search">
+        <form action={props.base} method="get" className={styles.ask} role="search">
           <span className={styles.q} aria-hidden="true">
             ?
           </span>

@@ -200,6 +200,11 @@ export type CheckResult = {
   readonly readSets: Readonly<Record<string, readonly string[]>>;
   /** v2.5: the passing test files' read sets, when the check asked for them (`allReadSets`). */
   readonly passingReadSets?: Readonly<Record<string, readonly string[]>>;
+  /**
+   * The runner vouches that every read set it reported is complete: every file the test resolved,
+   * probed or listed (`evidence_read_sets: complete` trusts no other). Absent: static closures.
+   */
+  readonly readSetsComplete?: boolean;
   /** Import hops from each failing test file to each file it reads (suspect ranking). */
   readonly readDepths: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly stackFiles: readonly string[];
@@ -224,6 +229,10 @@ export type CiRun = {
   jobId: JobId | null;
   timerId: TimerId | null;
   result: CheckResult | null;
+  /** Only these test files (`affected_validation`); absent: the whole suite. */
+  only?: readonly string[];
+  /** Every passing test's read set is reported too (`evidence_promotion`). */
+  allReadSets?: true;
   /**
    * Cancelled while its suite runs (a superseded validation): `ci.end` is logged, the slot stays
    * reserved until the runner's job returns, and that outcome is dropped (absent: not cancelled).

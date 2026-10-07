@@ -1,0 +1,707 @@
+/* Repositories: the signed-in home, New repository, a new repository's start page and its
+   settings (docs/claude-opus/20-repositories.md). Nightshift tokens from globals.css. */
+
+.page {
+  --leaf: var(--good-fill);
+  --bean: var(--human-fill);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+.narrow {
+  max-width: 720px;
+}
+
+/* ---------- Shared type ---------- */
+.lead {
+  font-size: var(--step-2);
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  max-width: 34em;
+  text-wrap: pretty;
+}
+.sub {
+  color: var(--ink-2);
+  max-width: 40em;
+  margin-top: 8px;
+}
+.sectionTitle {
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.muted {
+  color: var(--ink-3);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* ---------- Buttons ---------- */
+.primary,
+.secondary,
+.danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: var(--step--1);
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  line-height: 1.3;
+}
+.primary {
+  background: var(--good-fill);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 0 var(--glow);
+}
+.primary:hover {
+  text-decoration: none;
+  box-shadow: 0 0 14px -2px var(--glow);
+}
+.secondary {
+  background: var(--sheet);
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+.secondary:hover {
+  background: var(--sheet-2);
+  text-decoration: none;
+}
+.danger {
+  background: var(--sheet);
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 45%, var(--rule));
+}
+.danger:hover {
+  background: var(--bad-wash);
+}
+.primary:disabled,
+.danger:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* ---------- Home ---------- */
+.homeHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.homeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.panel {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.panelHead h2 {
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+.repoList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.repoRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+.repoRow:last-child {
+  border-bottom: 0;
+}
+.repoName {
+  font: 500 14px var(--font-mono);
+  color: var(--good);
+  text-decoration: none;
+}
+.repoName:hover {
+  text-decoration: underline;
+}
+.repoDescription {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+  margin-top: 2px;
+}
+.repoMeta {
+  color: var(--ink-3);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.pill {
+  font: 500 11px/18px var(--font-mono);
+  color: var(--ink-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.sprig {
+  width: 14px;
+  height: 22px;
+  margin-top: 1px;
+  color: var(--leaf);
+}
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+.activity li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 16px;
+  font-size: var(--step--1);
+}
+.activity li::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--leaf);
+  box-shadow: 0 0 6px var(--glow);
+}
+.activity time {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.empty {
+  padding: 18px 16px;
+  color: var(--ink-2);
+}
+.checklist {
+  margin: 0;
+  padding: 6px 16px 14px 36px;
+  display: grid;
+  gap: 10px;
+}
+.checklist li::marker {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+}
+.checklist strong {
+  font-weight: 600;
+}
+.notice {
+  border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--warn-fill);
+  background: var(--warn-wash);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: var(--step--1);
+  margin-bottom: 20px;
+}
+.noticeGood {
+  border-left-color: var(--good-fill);
+  background: var(--good-wash);
+}
+
+/* ---------- Forms ---------- */
+.form {
+  display: grid;
+  gap: 22px;
+  margin-top: 24px;
+}
+.field {
+  display: grid;
+  gap: 6px;
+}
+.label {
+  font-weight: 600;
+  font-size: var(--step--1);
+}
+.hint {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+  border-color: transparent;
+}
+.input[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nameRow .owner {
+  font: 500 14px var(--font-mono);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.nameRow .input {
+  font-family: var(--font-mono);
+  max-width: 340px;
+}
+.error {
+  color: var(--bad);
+  font-size: 12.5px;
+}
+.choices {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.choices legend {
+  font-weight: 600;
+  font-size: var(--step--1);
+  margin-bottom: 6px;
+}
+.choice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  cursor: pointer;
+}
+.choice:has(input:checked) {
+  border-color: var(--good-fill);
+  box-shadow: inset 3px 0 0 var(--good-fill);
+}
+.choice input {
+  margin: 3px 0 0;
+  accent-color: var(--good-fill);
+}
+.choice b {
+  font-weight: 600;
+}
+.choice span {
+  display: block;
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.importUrl {
+  margin-top: 8px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- Settings ---------- */
+.settings {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+.settingsSection {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+.settingsSection h2 {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+.dangerZone {
+  border-color: color-mix(in srgb, var(--bad) 40%, var(--rule));
+}
+.saved {
+  color: var(--good);
+  font-size: 12.5px;
+}
+
+/* ---------- A new repository's start page ---------- */
+.start {
+  --leaf: var(--good-fill);
+  --bean: var(--human-fill);
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: calc(100vh - 140px);
+}
+.seedling {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: calc(100vh - 140px);
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px 0 28px;
+  border-right: 1px solid var(--rule);
+  background: var(--sheet);
+}
+.seedlingHead {
+  margin: 0 20px auto;
+  font: 600 13px var(--font-mono);
+  color: var(--good);
+}
+.seedlingHead span {
+  display: block;
+  color: var(--ink-3);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.plant {
+  display: grid;
+  grid-template-columns: 40px 26px minmax(0, 1fr);
+  align-items: center;
+  font-size: 12.5px;
+  position: relative;
+}
+.stemLine {
+  position: relative;
+  align-self: stretch;
+}
+.stemLine::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--leaf);
+  box-shadow: 0 0 7px 1px var(--glow);
+}
+.socketRow {
+  height: 64px;
+}
+.socketRow .stemLine::before {
+  top: 50%;
+  background: repeating-linear-gradient(var(--bean) 0 3px, transparent 3px 7px);
+  box-shadow: none;
+  opacity: 0.6;
+}
+.socket {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px dashed var(--bean);
+  background: var(--human-wash);
+  animation: breathe 3.2s ease-in-out infinite;
+}
+.socketText {
+  color: var(--human);
+  font-weight: 600;
+  padding-left: 6px;
+}
+.socketText small {
+  display: block;
+  color: var(--ink-3);
+  font: 11px var(--font-mono);
+  font-weight: 400;
+}
+.leafRow {
+  height: 40px;
+}
+.leafMark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 1px;
+  border-radius: 1px 8px 1px 8px;
+  background: var(--leaf);
+  box-shadow: 0 0 8px var(--glow);
+}
+.leafText {
+  padding-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leafText small {
+  display: block;
+  color: var(--ink-3);
+  font: 11px var(--font-mono);
+}
+.tick {
+  color: var(--ink-3);
+  font: 10.5px var(--font-mono);
+  text-align: right;
+  padding-right: 6px;
+}
+.rootRow {
+  height: 34px;
+  font: 11.5px var(--font-mono);
+  color: var(--ink-3);
+}
+.rootRow .stemLine::before {
+  bottom: 50%;
+}
+.rootRow .stemLine::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 13px;
+  height: 8px;
+  margin: -2px 0 0 -6.5px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 0 var(--glow-bean);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 14px 2px var(--glow-bean);
+  }
+}
+
+.guide {
+  padding: 26px 28px 48px;
+  display: grid;
+  gap: 26px;
+  align-content: start;
+  max-width: 860px;
+}
+.steps {
+  display: grid;
+  gap: 22px;
+}
+.step {
+  display: grid;
+  gap: 10px;
+}
+.step h2 {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+.step p {
+  color: var(--ink-2);
+  max-width: 44em;
+}
+.terminal {
+  position: relative;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: 13px/1.65 var(--font-mono);
+  overflow-x: auto;
+}
+.terminal code {
+  font-size: inherit;
+  display: block;
+  white-space: pre;
+}
+.terminal .prompt::before {
+  content: '$ ';
+  color: var(--ink-3);
+  user-select: none;
+}
+.terminal .comment {
+  color: var(--ink-3);
+}
+.terminalBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: -4px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.harnesses {
+  display: grid;
+  gap: 8px;
+}
+.harness {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 8px 8px 8px 12px;
+}
+.harness b {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+.harness code {
+  font-size: 12.5px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+.say {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-left: 3px solid var(--bean);
+  background: var(--human-wash);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 10px 10px 14px;
+}
+.say q {
+  quotes: none;
+  font-size: var(--step-0);
+}
+.cloneRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cloneRow input {
+  flex: 1;
+  min-width: 0;
+  font: 13px var(--font-mono);
+  padding: 7px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+.copyButton {
+  border: 1px solid var(--rule-strong);
+  background: var(--sheet);
+  color: var(--ink-2);
+  border-radius: var(--radius-small);
+  font: 12px var(--font-mono);
+  padding: 3px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.copyButton:hover {
+  color: var(--ink);
+  background: var(--wash);
+}
+.copyButton[data-copied] {
+  color: var(--good);
+  border-color: var(--good-fill);
+}
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.fileList {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  font: 12.5px/1.9 var(--font-mono);
+  max-height: 340px;
+  overflow-y: auto;
+}
+.fileList li {
+  padding: 0 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fileList li span {
+  color: var(--ink-3);
+}
+.checksFile {
+  margin: 0;
+  padding: 12px 14px;
+  font: 12.5px/1.6 var(--font-mono);
+  white-space: pre-wrap;
+  color: var(--ink-2);
+}
+.rules {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+  display: grid;
+  gap: 6px;
+  font-size: var(--step--1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .socket {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .homeGrid,
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .start {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .seedling {
+    position: static;
+    height: auto;
+    min-height: 0;
+    order: 2;
+    border-right: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .seedlingHead {
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 20px var(--gutter) 48px;
+  }
+  .guide {
+    padding: 20px var(--gutter) 36px;
+  }
+  .harness {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .harness b {
+    grid-column: 1 / -1;
+  }
+  .nameRow {
+    flex-wrap: wrap;
+  }
+  .say {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -74,6 +74,7 @@ import {
 } from './v2-repair';
 import { startRescue } from './v2-rescue';
 import { advanceRequeues } from './v2-reset';
+import { isAuditOwed, maybeAudit, onAudited } from './v2-audit';
 import { takeWait } from './v2-sprout';
 import { openStartCard, startUnderCard } from './v2-start';
 import { chooseStart, wakeForStart } from './v2-start-order';
@@ -176,6 +177,23 @@ function initialV2State(ctx: StepContext): V2State {
       ...(config.repair_landing ? { repairLanding: true } : {}),
       ...(config.requeue_repair ? { requeueRepair: true } : {}),
       ...(config.reuse_checks ? { reuseChecks: true } : {}),
+      ...(config.evidence_promotion
+        ? {
+            evidence: {
+              readSets: config.evidence_read_sets,
+              affectedValidation: config.affected_validation,
+              auditEvery: config.audit_every,
+            },
+          }
+        : {}),
+      ...(config.validation_debounce
+        ? {
+            debounce: {
+              seconds: config.validation_debounce_seconds,
+              tick: config.validation_tick_seconds,
+            },
+          }
+        : {}),
     },
     sprout: base,
     green: base,
@@ -364,6 +382,7 @@ function dispatch(step: V2Step): void {
     else startTask(ctx, slot, id, state.sprout);
   }
   maybeValidate(step);
+  maybeAudit(step);
 }
 
 function countPlacement(state: V2State, overlapModules: number): void {
@@ -451,6 +470,8 @@ function routeJob(step: V2Step, jobId: JobId, result: JobResult): void {
     case 'confirm':
     case 'probe':
     case 'loo-check':
+    case 'audit':
+    case 'audit-confirm':
       throw new EngineInvariantError(`CI wait ${wait.kind} got a job result`);
     default:
       assertNever(wait);
@@ -502,6 +523,10 @@ function routeCi(step: V2Step, ciId: CiId, result: CheckResult): void {
     case 'loo-check':
       onLeaveOneOutChecked(step, wait, result);
       return;
+    case 'audit':
+    case 'audit-confirm':
+      onAudited(step, { idx: wait.idx, result, isRerun: wait.kind === 'audit-confirm' });
+      return;
     case 'landing':
     case 'diff':
     case 'loo-revert':
@@ -548,6 +573,7 @@ function isFinished(step: V2Step): boolean {
     activeTickets(state).length === 0 &&
     !tasks.some((task) => task.status === 'running' || task.status === 'rework') &&
     state.validating.length === 0 &&
+    !isAuditOwed(state) &&
     Object.keys(state.reverts).length === 0 &&
     Object.keys(state.bisects).length === 0 &&
     !hasPendingCards(step) &&
@@ -808,6 +834,27 @@ function v2Summary(state: V2State, nowSeconds: number): PolicySummary {
           ci_superseded: stats.ci_superseded ?? 0,
         }
       : {}),
+    ...(settings.evidence === undefined
+      ? {}
+      : {
+          evidence_promotion: true,
+          evidence_read_sets: settings.evidence.readSets,
+          affected_validation: settings.evidence.affectedValidation,
+          audit_every: settings.evidence.auditEvery,
+          evidence_promotions: stats.evidence_promotions ?? 0,
+          affected_validations: stats.affected_validations ?? 0,
+          evidence_refusals: stats.evidence_refusals ?? 0,
+          audits: stats.audits ?? 0,
+          audit_reds: stats.audit_reds ?? 0,
+        }),
+    ...(settings.debounce === undefined
+      ? {}
+      : {
+          validation_debounce: true,
+          validation_debounce_seconds: settings.debounce.seconds,
+          validation_tick_seconds: settings.debounce.tick,
+          debounced: stats.debounced ?? 0,
+        }),
     ...(stallFixRules(settings).length > 0
       ? {
           red_reset: settings.redReset === true,
@@ -896,6 +943,7 @@ function summaryRows(
     ...tailBoundsRows(settings, stats),
     ...stallFixRows(settings, stats),
     ...checkReuseRows(settings, stats),
+    ...eventDrivenRows(settings, stats),
     [
       'Tests first (accepted / fallbacks) / targeted landing checks (red)',
       `${settings.testsFirst ? `${stats.tests_first_accepted} / ${stats.tests_first_fallbacks}` : 'off'} / ` +
@@ -981,6 +1029,22 @@ function checkReuseRows(settings: V2Settings, stats: V2State['stats']): [string,
       `${stats.checks_reused ?? 0} / ${stats.ci_superseded ?? 0}`,
     ],
   ];
+}
+
+/** Event-driven promotion, when on: evidence promotions, affected runs, audits, debounces. */
+function eventDrivenRows(settings: V2Settings, stats: V2State['stats']): [string, Json][] {
+  const rows: [string, Json][] = [];
+  if (settings.evidence !== undefined) {
+    rows.push([
+      'Evidence promotions / affected validations / refusals / audits (red)',
+      `${stats.evidence_promotions ?? 0} / ${stats.affected_validations ?? 0} / ` +
+        `${stats.evidence_refusals ?? 0} / ${stats.audits ?? 0} (${stats.audit_reds ?? 0})`,
+    ]);
+  }
+  if (settings.debounce !== undefined) {
+    rows.push(['Validations debounced', String(stats.debounced ?? 0)]);
+  }
+  return rows;
 }
 
 /** A tail bound as the summary row shows it: its value, or `off`. */

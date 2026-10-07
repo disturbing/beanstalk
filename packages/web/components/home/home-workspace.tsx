@@ -27,6 +27,8 @@ import { StalkList } from './stalk-list';
 
 export type HomeWorkspaceProps = {
   readonly run: string;
+  /** Where the repository lives: `/runs/<run>` for a race, `/<owner>/<repo>` for a repository. */
+  readonly base: string;
   readonly owner: string;
   readonly mode: 'replay' | 'live';
   readonly events: readonly RaceEvent[];
@@ -81,8 +83,8 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
     () => (props.relevant === null ? null : new Set(props.relevant)),
     [props.relevant],
   );
-  const hrefFor = useCallback((bean: string) => beanHref(props.run, url, bean), [props.run, url]);
-  const askHref = useCallback((q: string) => askHomeHref(props.run, url, q), [props.run, url]);
+  const hrefFor = useCallback((bean: string) => beanHref(props.base, url, bean), [props.base, url]);
+  const askHref = useCallback((q: string) => askHomeHref(props.base, url, q), [props.base, url]);
   const validating = visible.some((event) => event.type === 'green.promote' && event.t > now - 6);
   useUrlTime(props.mode === 'replay' && !clock.playing && !finished ? now : null);
   return (
@@ -112,7 +114,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
         </aside>
         <section className={styles.explorer} aria-label="Explorer">
           <AskBox
-            run={props.run}
+            base={props.base}
             q={props.url.q}
             t={url.t}
             questions={props.questions.map((q) => ({ q, href: askHref(q) }))}
@@ -120,7 +122,7 @@ export function HomeWorkspace(props: HomeWorkspaceProps) {
           />
           {props.children ?? (
             <HomeDefaults
-              run={props.run}
+              base={props.base}
               state={state}
               now={now}
               files={props.files}

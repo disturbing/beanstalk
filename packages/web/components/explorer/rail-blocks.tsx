@@ -14,15 +14,15 @@ import styles from './explorer.module.css';
 import type { ExplorerState } from './explorer-url';
 import { explorerHref } from './explorer-url';
 
-type Context = { readonly run: string; readonly state: ExplorerState };
+type Context = { readonly base: string; readonly state: ExplorerState };
 
 /** The context rail, in the catalog's order for the question's class. */
 export function RailBlocks(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly blocks: readonly RailBlock[];
 }) {
-  const context = { run: props.run, state: props.state };
+  const context = { base: props.base, state: props.state };
   return (
     <>
       {props.blocks.map((block, index) => (
@@ -115,7 +115,7 @@ function Block(props: {
 }
 
 function beanHref(context: Context, bean: string): string {
-  return explorerHref(context.run, context.state, { bean, file: null, view: null });
+  return explorerHref(context.base, context.state, { bean, file: null, view: null });
 }
 
 /** Beans as beads on a stem, newest activity first, each with its agent. */
@@ -201,7 +201,11 @@ function TestRow({ test, context }: { readonly test: TestRecord; readonly contex
     <div className={styles.testRow}>
       <Link
         className={styles.testPath}
-        href={explorerHref(context.run, context.state, { file: test.path, bean: null, view: null })}
+        href={explorerHref(context.base, context.state, {
+          file: test.path,
+          bean: null,
+          view: null,
+        })}
       >
         {test.path}
       </Link>

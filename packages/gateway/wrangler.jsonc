@@ -47,9 +47,12 @@
     },
   ],
   "artifacts": [{ "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true }],
-  // Accounts: git credentials may be people's tokens (bsu_, bss_), verified against the
-  // identity database (packages/shared-identity, docs/claude-opus/19-accounts-and-auth.md).
+  // The repository registry (FORGE, docs/claude-opus/20-repositories.md): records, per-owner
+  // name uniqueness and repository activity; migrations in migrations/. Accounts (IDENTITY_DB):
+  // git credentials may be people's tokens (bsu_, bss_), verified against the identity database
+  // (packages/shared-identity, docs/claude-opus/19-accounts-and-auth.md).
   "d1_databases": [
+    { "binding": "FORGE", "database_name": "beanstalk-forge", "migrations_dir": "migrations" },
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",

@@ -30,7 +30,7 @@ export function readHomeState(params: SearchParams): HomeState {
   };
 }
 
-export function homeHref(run: string, state: HomeState, change: Partial<HomeState> = {}): string {
+export function homeHref(base: string, state: HomeState, change: Partial<HomeState> = {}): string {
   const next = { ...state, ...change };
   const params = new URLSearchParams();
   if (next.q !== '') params.set('q', next.q);
@@ -39,15 +39,15 @@ export function homeHref(run: string, state: HomeState, change: Partial<HomeStat
   if (next.bean !== null && next.step !== null) params.set('step', next.step);
   if (next.t !== null) params.set('t', String(Math.round(next.t)));
   const query = params.toString();
-  return `/runs/${run}${query === '' ? '' : `?${query}`}`;
+  return `${base}${query === '' ? '' : `?${query}`}`;
 }
 
 /** A fresh question: keeps the moment, drops removals and the selection. */
-export function askHomeHref(run: string, state: HomeState, q: string): string {
-  return homeHref(run, state, { q, removed: [], bean: null, step: null });
+export function askHomeHref(base: string, state: HomeState, q: string): string {
+  return homeHref(base, state, { q, removed: [], bean: null, step: null });
 }
 
 /** A bean opened from anywhere: its journey, "All changes" first. */
-export function beanHref(run: string, state: HomeState, bean: string): string {
-  return homeHref(run, state, { bean, step: null });
+export function beanHref(base: string, state: HomeState, bean: string): string {
+  return homeHref(base, state, { bean, step: null });
 }

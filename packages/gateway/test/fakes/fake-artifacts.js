@@ -158,8 +158,24 @@ export class FakeArtifacts extends WorkerEntrypoint {
     return { repos: [...repos.values()].map(describe), total: repos.size };
   }
 
-  async import() {
-    throw artifactsError('REMOTE_AUTH_REQUIRED', 'imports are not faked');
+  // Imports are faked for one URL shape: https://git.example.test/<anything>.git gives a repo
+  // with one commit on `main` holding a README and a source file; anything else needs auth.
+  async import({ source, target }) {
+    if (!source.url.startsWith('https://git.example.test/'))
+      throw artifactsError('REMOTE_AUTH_REQUIRED', 'imports are not faked for this URL');
+    if (repos.has(target.name)) throw artifactsError('ALREADY_EXISTS', `${target.name} exists`);
+    const repo = newRepo(target.name, new Map(), 'main');
+    const files = { 'README.md': '# imported\n', 'src/index.ts': 'export {};\n' };
+    const sha = objectId(`commit:${source.url}`);
+    repo.commits.set(sha, {
+      parents: [],
+      message: 'imported',
+      time: 0,
+      files,
+      tree: storeTree(repo, files),
+    });
+    repo.refs.set('refs/heads/main', sha);
+    return { ...describe(repo), token: 'art_v1_import' };
   }
 }
 

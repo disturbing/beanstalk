@@ -17,17 +17,17 @@ const INPUT_ID = 'ask-input';
  * recorded run the moment of the race to look at.
  */
 export function AskBar(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly policy: 'queue' | 'beanstalk' | null;
   readonly moments: readonly RaceMoment[] | null;
   readonly endedAt: number | null;
   readonly suggestions: readonly Suggestion[];
 }) {
-  const { run, state } = props;
+  const { base, state } = props;
   return (
     <div className={styles.askWrap}>
-      <form action={`/runs/${run}/files`} method="get" className={styles.ask} role="search">
+      <form action={`${base}/files`} method="get" className={styles.ask} role="search">
         <div className={styles.askForm}>
           <label htmlFor={INPUT_ID} className={styles.askLabel}>
             <AskGlyph />
@@ -100,7 +100,7 @@ export function AskBar(props: {
             <Link
               key={suggestion.q}
               className={styles.suggestion}
-              href={askHref(run, { ...state, at: suggestion.at ?? state.at }, suggestion.q)}
+              href={askHref(base, { ...state, at: suggestion.at ?? state.at }, suggestion.q)}
             >
               {suggestion.q}
               {suggestion.at === undefined ? '' : ` (at ${formatClock(suggestion.at)})`}

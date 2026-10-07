@@ -10,13 +10,13 @@ import { FileView } from './file-view';
 
 /** The centre of the explorer: a diff, a file, a bean, or a list of beans. */
 export function MainPane(props: {
-  readonly run: string;
+  readonly base: string;
   readonly state: ExplorerState;
   readonly main: MainPaneModel;
   /** The bean whose history the rail already shows, if any. */
   readonly railBean: string | null;
 }) {
-  const { run, state, main } = props;
+  const { base, state, main } = props;
   switch (main.kind) {
     case 'diff': {
       const additions = main.diff.files.reduce((sum, file) => sum + file.additions, 0);
@@ -48,13 +48,15 @@ export function MainPane(props: {
                 : `${main.highlights.length} lines changed in this range are marked.`}
             </span>
             <span className={styles.viewSwitch}>
-              <Link href={explorerHref(run, state, { file: main.title, view: 'diff', bean: null })}>
+              <Link
+                href={explorerHref(base, state, { file: main.title, view: 'diff', bean: null })}
+              >
                 Diff in this range
               </Link>
             </span>
           </div>
           <FileView
-            beanHref={(bean) => explorerHref(run, state, { bean, file: null, view: null })}
+            beanHref={(bean) => explorerHref(base, state, { bean, file: null, view: null })}
             text={main.file.text}
             highlights={main.highlights}
             blame={main.blame}
@@ -64,7 +66,7 @@ export function MainPane(props: {
     case 'bean':
       return (
         <BeanView
-          run={run}
+          base={base}
           state={state}
           bean={main.bean}
           diff={main.diff}
@@ -77,7 +79,7 @@ export function MainPane(props: {
           <div className={styles.mainHead}>
             <h2 className={styles.mainTitle}>{main.title}</h2>
           </div>
-          <BeanList run={run} state={state} beans={main.beans} />
+          <BeanList base={base} state={state} beans={main.beans} />
         </>
       );
     case 'empty':

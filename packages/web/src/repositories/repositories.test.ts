@@ -1,0 +1,302 @@
+import { describe, expect, it } from 'vitest';
+
+import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type {
+  CreateRepositoryInput,
+  RepoOwner,
+  RepositoriesRpc,
+  RepositoryRecord,
+  UpdateRepositoryInput,
+} from '@beanstalk/shared-race/repos';
+
+import { readCreateForm } from './create-form';
+import { growthFromView, growthText } from './engine-summary';
+import { createFlow, deleteFlow, hasGrown, lookupRepository, updateFlow } from './flows';
+import { isReservedOwner, startGuide } from './paths';
+import { registryClient } from './registry-client';
+
+const coop = { id: 'u_dev_coop', handle: 'coop', email: 'coop@dev.beanstalk.invalid' };
+const dana = { id: 'u_dana', handle: 'dana', email: 'dana@example.test' };
+
+const fail = (code: string, message: string) => ({
+  ok: false as const,
+  error: { code, status: code === 'not_found' ? 404 : 409, message },
+});
+const ok = <T>(value: T): RpcResult<T> => ({ ok: true, value });
+
+/** The registry RPC in memory, with the gateway's rules for names, owners and visibility. */
+function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
+  const records = new Map<string, RepositoryRecord>();
+  const calls: string[] = [];
+  const taken = (owner: string, name: string, except = '') =>
+    [...records.values()].some(
+      (r) => r.owner.id === owner && r.name.toLowerCase() === name.toLowerCase() && r.id !== except,
+    );
+  return {
+    calls,
+    async createRepository(owner: RepoOwner, input: CreateRepositoryInput) {
+      calls.push(`create ${input.name}`);
+      if (taken(owner.id, input.name))
+        return fail('name_taken', `${owner.handle} already has a repository named ${input.name}`);
+      const id = `r${records.size + 1}`.padEnd(12, '0');
+      const record: RepositoryRecord = {
+        id,
+        owner,
+        name: input.name,
+        description: input.description ?? '',
+        visibility: input.visibility,
+        origin: input.start,
+        artifacts_repo: `repo-${id}`,
+        engine_id: id,
+        default_branch: 'stalk',
+        created_at: '2026-10-07T00:00:00.000Z',
+        updated_at: '2026-10-07T00:00:00.000Z',
+      };
+      records.set(id, record);
+      return ok(record);
+    },
+    async listRepositories(ownerId, viewer) {
+      return ok(
+        [...records.values()].filter(
+          (r) => r.owner.id === ownerId && (r.visibility === 'public' || viewer === ownerId),
+        ),
+      );
+    },
+    async getRepository(handle, name, viewer) {
+      const found = [...records.values()].find(
+        (r) => r.owner.handle === handle && r.name.toLowerCase() === name.toLowerCase(),
+      );
+      if (found === undefined || (found.visibility === 'private' && found.owner.id !== viewer))
+        return fail('not_found', 'repository not found');
+      return ok(found);
+    },
+    async updateRepository(ownerId, repoId, patch: UpdateRepositoryInput) {
+      const found = records.get(repoId);
+      if (found === undefined || found.owner.id !== ownerId)
+        return fail('forbidden', 'only the owner can change this');
+      if (patch.name !== undefined && taken(ownerId, patch.name, repoId))
+        return fail(
+          'name_taken',
+          `${found.owner.handle} already has a repository named ${patch.name}`,
+        );
+      const updated: RepositoryRecord = {
+        ...found,
+        name: patch.name ?? found.name,
+        description: patch.description ?? found.description,
+        visibility: patch.visibility ?? found.visibility,
+      };
+      records.set(repoId, updated);
+      return ok(updated);
+    },
+    async deleteRepository(ownerId, repoId) {
+      const found = records.get(repoId);
+      if (found === undefined || found.owner.id !== ownerId)
+        return fail('forbidden', 'only the owner can change this');
+      records.delete(repoId);
+      return ok({ deleted: true as const });
+    },
+    async repositoryActivity() {
+      return ok([]);
+    },
+    async repositoryFiles() {
+      return ok({
+        ref: 'stalk',
+        sha: null,
+        files: [],
+        readme: null,
+        checks: null,
+        truncated: false,
+      });
+    },
+  };
+}
+
+function form(fields: Record<string, string>): FormData {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  return data;
+}
+
+const starter = {
+  name: 'notes',
+  description: '',
+  visibility: 'private',
+  start: 'template:typescript-starter',
+};
+
+describe('the New repository form', () => {
+  it('reads a template start', () => {
+    expect(readCreateForm(form(starter))).toEqual({
+      ok: true,
+      input: {
+        name: 'notes',
+        description: '',
+        visibility: 'private',
+        start: { kind: 'template', template: 'typescript-starter' },
+      },
+    });
+  });
+
+  it('puts each problem beside its field and keeps what was typed', () => {
+    const read = readCreateForm(
+      form({ ...starter, name: 'my notes', start: 'import', importUrl: 'http://x' }),
+    );
+    expect(read.ok).toBe(false);
+    if (read.ok) return;
+    expect(read.errors.name).toMatch(/letters, digits/i);
+    expect(read.errors.importUrl).toMatch(/https/);
+    expect(read.values.name).toBe('my notes');
+  });
+
+  it('refuses import URLs that carry credentials', () => {
+    const read = readCreateForm(
+      form({ ...starter, start: 'import', importUrl: 'https://me:pw@github.com/a/b.git' }),
+    );
+    expect(read.ok).toBe(false);
+  });
+});
+
+describe('creating a repository from the web', () => {
+  it('lands on the new repository', async () => {
+    const gateway = fakeGateway();
+    const outcome = await createFlow(form(starter), coop, registryClient(gateway));
+    expect(outcome).toEqual({ kind: 'redirect', to: '/coop/notes' });
+  });
+
+  it('shows a taken name beside the name field', async () => {
+    const registry = registryClient(fakeGateway());
+    await createFlow(form(starter), coop, registry);
+    const again = await createFlow(form({ ...starter, name: 'Notes' }), coop, registry);
+    expect(again).toMatchObject({
+      kind: 'show',
+      state: {
+        errors: { name: 'You already have a repository named Notes.' },
+        values: { name: 'Notes' },
+      },
+    });
+  });
+
+  it('never calls the gateway with an invalid form', async () => {
+    const gateway = fakeGateway();
+    await createFlow(form({ ...starter, name: '' }), coop, registryClient(gateway));
+    expect(gateway.calls).toEqual([]);
+  });
+
+  it('says so when the deployment has no registry', async () => {
+    const outcome = await createFlow(form(starter), coop, registryClient({}));
+    expect(outcome).toMatchObject({
+      kind: 'show',
+      state: { errors: { form: expect.stringMatching(/not reachable/) } },
+    });
+  });
+});
+
+async function created() {
+  const registry = registryClient(fakeGateway());
+  await createFlow(form(starter), coop, registry);
+  const record = await registry.get('coop', 'notes', coop.id);
+  if (!record.ok) throw new Error('not created');
+  return { registry, id: record.value.id };
+}
+
+describe('settings', () => {
+  it('renames and goes to the settings at the new address', async () => {
+    const { registry, id } = await created();
+    const outcome = await updateFlow(
+      form({ repoId: id, currentName: 'notes', name: 'journal', description: '' }),
+      coop,
+      registry,
+    );
+    expect(outcome).toEqual({ kind: 'redirect', to: '/coop/journal/settings?saved=renamed' });
+  });
+
+  it('saves a visibility change in place', async () => {
+    const { registry, id } = await created();
+    const outcome = await updateFlow(
+      form({ repoId: id, currentName: 'notes', visibility: 'public' }),
+      coop,
+      registry,
+    );
+    expect(outcome).toEqual({ kind: 'show', state: { saved: 'Saved.', error: null } });
+    expect(await registry.get('coop', 'notes', null)).toMatchObject({ ok: true });
+  });
+
+  it('refuses a change by someone else', async () => {
+    const { registry, id } = await created();
+    const outcome = await updateFlow(
+      form({ repoId: id, currentName: 'notes', visibility: 'public' }),
+      dana,
+      registry,
+    );
+    expect(outcome).toMatchObject({
+      kind: 'show',
+      state: { error: 'Only the owner can change this.' },
+    });
+  });
+
+  it('deletes only after the full name is typed', async () => {
+    const { registry, id } = await created();
+    const fields = { repoId: id, fullName: 'coop/notes' };
+    expect(await deleteFlow(form({ ...fields, confirm: 'notes' }), coop, registry)).toMatchObject({
+      kind: 'show',
+      state: { error: 'Type coop/notes to confirm the deletion.' },
+    });
+    expect(await deleteFlow(form({ ...fields, confirm: 'coop/notes' }), coop, registry)).toEqual({
+      kind: 'redirect',
+      to: '/?deleted=coop%2Fnotes',
+    });
+    expect(await registry.get('coop', 'notes', coop.id)).toMatchObject({ ok: false });
+  });
+});
+
+describe('the repository route', () => {
+  it('finds a private repository for its owner only, and never under a reserved name', async () => {
+    const registry = registryClient(fakeGateway());
+    await createFlow(form(starter), coop, registry);
+    expect(await lookupRepository('coop', 'notes', coop, registry)).toMatchObject({
+      kind: 'found',
+      isOwner: true,
+    });
+    expect(await lookupRepository('coop', 'notes', dana, registry)).toEqual({ kind: 'not-found' });
+    expect(await lookupRepository('coop', 'notes', null, registry)).toEqual({ kind: 'not-found' });
+    expect(isReservedOwner('Runs')).toBe(true);
+    expect(await lookupRepository('runs', 'notes', coop, registry)).toEqual({ kind: 'not-found' });
+  });
+
+  it('shows the start page until a bean has started', () => {
+    expect(hasGrown([])).toBe(false);
+    expect(hasGrown([{ type: 'race.start' }])).toBe(false);
+    expect(hasGrown([{ type: 'race.start' }, { type: 'task.start' }])).toBe(true);
+  });
+});
+
+describe('the start page', () => {
+  it('prints the clone URL, a bean push with -o wait and the agent lines', () => {
+    const guide = startGuide(
+      { gitOrigin: 'https://git.example.test/', mcpUrl: 'https://mcp.example.test/mcp' },
+      'coop',
+      'notes',
+    );
+    expect(guide.cloneUrl).toBe('https://git.example.test/git/coop/notes.git');
+    expect(guide.gitSteps).toContain('git push -o wait origin bean/first-change');
+    expect(guide.gitSteps[0]).toBe('git clone https://git.example.test/git/coop/notes.git');
+    expect(guide.agents.map((agent) => agent.harness)).toEqual([
+      'Claude Code',
+      'Codex',
+      'Any MCP client',
+    ]);
+    expect(guide.prompt).toContain('coop/notes');
+  });
+});
+
+describe("a repository's growth line", () => {
+  it('counts landed and growing beans, and reads a missing engine as nothing grown', () => {
+    const view = {
+      ok: true,
+      value: { tasks: { landed: 3, green: 2, running: 1, testing: 1, pending: 4 } },
+    };
+    expect(growthText(growthFromView(view))).toBe('5 beans landed, 2 growing');
+    expect(growthFromView({ ok: false, error: { code: 'not_found' } })).toEqual({ kind: 'none' });
+    expect(growthText({ kind: 'none' })).toBe('Nothing grown yet');
+  });
+});
