@@ -115,7 +115,8 @@
       "max_concurrent_suites": 4,
       "suite_timeouts": 0,
       "ci_slots": 2,
-      "max_concurrent_ci": 3
+      "max_concurrent_ci": 3,
+      "model": "2 shared sandboxes (pre-fix gateways)"
     },
     "engine_event_types": [
       "check.reused",

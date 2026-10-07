@@ -159,7 +159,8 @@
       "max_concurrent_suites": 16,
       "suite_timeouts": 101,
       "ci_slots": 2,
-      "max_concurrent_ci": 2
+      "max_concurrent_ci": 2,
+      "model": "2 shared sandboxes (pre-fix gateways)"
     }
   },
   "final": {
