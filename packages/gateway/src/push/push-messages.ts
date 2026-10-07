@@ -1,0 +1,169 @@
+/**
+ * The `remote:` lines of the git-native flow: what a push prints when its bean is received,
+ * while its pre-land check runs, and at its verdict. Red verdicts name the failing tests, the
+ * landed beans the bean collided with and their intent, and the fix; conflicts quote the
+ * hunks and who landed the other side. The engine's rework prompt is the source for the parts
+ * only it carries (the suite's output, the conflict hunks), with "trunk" read as the sprout.
+ */
+
+const OUTPUT_LINES = 12;
+const HUNK_LINES = 40;
+const INTENT_CHARS = 300;
+const P = 'beanstalk:';
+
+/** A landed bean as a verdict names it. */
+export type BeanRef = { readonly bean: string; readonly title: string; readonly intent: string };
+
+export type VerdictContext = {
+  readonly bean: string;
+  /** Where people (and agents) see the bean on the web. */
+  readonly link: string | null;
+};
+
+/** The rework the engine started, as its `rework.start` event says. */
+export type ReworkFacts = {
+  readonly reason: string;
+  readonly failing: readonly string[];
+  readonly culprits: readonly BeanRef[];
+  readonly conflicts: readonly string[];
+};
+
+export function receivedLines(input: {
+  bean: string;
+  sha: string;
+  title: string;
+  isNew: boolean;
+  task: string | null;
+  unknownOptions: readonly string[];
+}): string[] {
+  const what = input.isNew ? 'new bean' : 'bean';
+  const lines = [`${P} ${what} ${input.bean} received at ${short(input.sha)}: "${input.title}"`];
+  if (input.task !== null) lines.push(`${P}   for task ${input.task}`);
+  for (const option of input.unknownOptions) lines.push(`${P}   ignored push option: ${option}`);
+  return lines;
+}
+
+export function checkStartedLines(wait: number | null): string[] {
+  const lines = [
+    `${P} pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree`,
+  ];
+  if (wait === null)
+    lines.push(`${P}   git push -o wait holds the push for the verdict; the status ref has it too`);
+  return lines;
+}
+
+export function statusHint(bean: string): string[] {
+  return [
+    `${P}   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/${bean}/status`,
+  ];
+}
+
+export function linkLines(context: VerdictContext): string[] {
+  return context.link === null ? [] : [`${P}   web: ${context.link}`];
+}
+
+export function landedLines(context: VerdictContext, landedSha: string): string[] {
+  return [
+    `${P} LANDED: ${context.bean} passed its pre-land check and is on the sprout as ${short(landedSha)}`,
+    `${P}   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk`,
+    ...linkLines(context),
+  ];
+}
+
+export function redLines(context: VerdictContext, facts: ReworkFacts, prompt: string): string[] {
+  const failing =
+    facts.failing.length === 0 ? ['(the suite failed; see the output)'] : facts.failing;
+  const lines = [
+    `${P} RED: ${context.bean} was not landed. Merged onto the sprout, these tests failed:`,
+    ...failing.slice(0, 12).map((test) => `${P}   - ${test}`),
+  ];
+  if (facts.failing.length > 12) lines.push(`${P}   (${facts.failing.length - 12} more)`);
+  if (facts.culprits.length > 0) {
+    lines.push(`${P} it collided with these landed beans (accepted behaviour; keep both):`);
+    for (const culprit of facts.culprits) lines.push(...beanLines(culprit));
+  }
+  const output = promptOutput(prompt);
+  if (output.length > 0) {
+    lines.push(`${P} output:`, ...output.map((line) => `${P}   ${line}`));
+  }
+  return [...lines, ...fixLines(context.bean), ...linkLines(context)];
+}
+
+export function conflictLines(
+  context: VerdictContext,
+  facts: ReworkFacts,
+  prompt: string,
+): string[] {
+  const lines = [
+    `${P} CONFLICT: ${context.bean} does not merge onto the sprout. Conflicts in: ${facts.conflicts.join(', ') || '(see below)'}`,
+  ];
+  const block = promptConflictBlock(prompt);
+  lines.push(...block.map((line) => `${P}   ${line}`));
+  if (facts.culprits.length > 0 && block.length === 0) {
+    lines.push(`${P} the sprout's side was written by:`);
+    for (const culprit of facts.culprits) lines.push(...beanLines(culprit));
+  }
+  return [...lines, ...fixLines(context.bean), ...linkLines(context)];
+}
+
+export function stoppedLines(
+  context: VerdictContext,
+  phase: 'parked' | 'dropped',
+  reason: string,
+): string[] {
+  const what = phase === 'parked' ? 'PARKED (it needs a person)' : 'DROPPED';
+  return [`${P} ${what}: ${context.bean}: ${reason}`, ...linkLines(context)];
+}
+
+export function decisionLines(card: string, against: readonly string[]): string[] {
+  return [
+    `${P} decision card ${card}: the bean's spec contradicts ${against.join(', ')}; a person decides which behaviour stays`,
+  ];
+}
+
+function fixLines(bean: string): string[] {
+  return [
+    `${P} fix: git fetch origin sprout && git rebase origin/sprout`,
+    `${P}      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/${bean}`,
+  ];
+}
+
+function beanLines(ref: BeanRef): string[] {
+  return [
+    `${P}   - ${ref.bean} "${ref.title}"`,
+    `${P}     intent: ${clip(ref.intent.replaceAll(/\s+/g, ' ').trim(), INTENT_CHARS)}`,
+  ];
+}
+
+/** The suite output the engine's red prompt quotes, cut to its last lines. */
+export function promptOutput(prompt: string): string[] {
+  const match = /Output:\n```\n([\s\S]*?)\n```/.exec(prompt);
+  const lines = (match?.[1] ?? '').split('\n').filter((line) => line.trim() !== '');
+  return lines.slice(-OUTPUT_LINES);
+}
+
+/** The conflict prompt's hunks and authors (the trunk read as the sprout), cut to a screenful. */
+export function promptConflictBlock(prompt: string): string[] {
+  const start = prompt.search(/The conflicting hunks|The trunk's side was written/);
+  const end = prompt.indexOf('Resolve every conflict');
+  if (start < 0 || end < start) return [];
+  const lines = prompt
+    .slice(start, end)
+    .replaceAll("the trunk's side", "the sprout's side")
+    .replaceAll("The trunk's side", "The sprout's side")
+    .replaceAll('<<<<<<< trunk', '<<<<<<< sprout')
+    .replaceAll('>>>>>>> yours', '>>>>>>> your bean')
+    .split('\n')
+    .filter((line) => line !== '```' && line.trim() !== '');
+  return lines.length > HUNK_LINES
+    ? [...lines.slice(0, HUNK_LINES), `(${lines.length - HUNK_LINES} more lines)`]
+    : lines;
+}
+
+function short(sha: string): string {
+  return sha.slice(0, 7);
+}
+
+function clip(text: string, limit: number): string {
+  return text.length <= limit ? text : `${text.slice(0, limit)}…`;
+}

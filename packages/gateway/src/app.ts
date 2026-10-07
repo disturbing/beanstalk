@@ -10,6 +10,7 @@ import { adminRoutes, readRoutes } from './routes/admin';
 import { driverRoutes } from './routes/driver';
 import { gitRoutes } from './routes/git';
 import { guardRoutes } from './routes/guards';
+import { repoRoutes } from './routes/repos';
 import { liveRoutes } from './routes/live';
 import { collaborationRoutes } from './routes/collaboration';
 
@@ -25,6 +26,7 @@ export function createApp(depsFor: (env: Env) => Deps) {
   app.route('/v1/runs', driverRoutes);
   app.route('/v1/runs', collaborationRoutes);
   app.route('/v1/admin', guardRoutes);
+  app.route('/v1/repos', repoRoutes);
   app.route('/runs', liveRoutes);
   app.notFound((c) => c.json({ error: { code: 'not_found', message: 'no such route' } }, 404));
   app.onError(onError);

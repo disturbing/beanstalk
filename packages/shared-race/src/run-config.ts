@@ -335,10 +335,23 @@ const CheckedFields = z
      * `arena.json` suite.
      */
     suite: RunSuite.default(DEFAULT_SUITE),
-    tasks: z.array(ArenaTask).min(1).max(200),
+    /**
+     * A continuous engine for a persistent repository (`docs/claude-opus/18-git-native-flow.md`):
+     * no task list, beans arrive by `git push`, the race never finishes (no wall clock, no
+     * watchdog on an invocation waiting for its author's next push). `false`: a race.
+     */
+    continuous: z.boolean().default(false),
+    tasks: z.array(ArenaTask).max(200),
   })
   .superRefine((config, issues) => {
     const ids = config.tasks.map((task) => task.id);
+    if (ids.length === 0 && !config.continuous) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['tasks'],
+        message: 'a race needs at least one task',
+      });
+    }
     if (new Set(ids).size !== ids.length) {
       issues.addIssue({ code: 'custom', path: ['tasks'], message: 'task ids must be unique' });
     }
@@ -504,6 +517,26 @@ export const DEMO_SETTINGS = {
   live_sync_midrun: false,
   ...STALL_FIX_ON,
   ...CHECK_REUSE_ON,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * A continuous engine's settings: the demo engine's rules, with what a person or an agent
+ * pushing by hand needs instead of a race's bounds. No tail guard and no invocation ceiling (a
+ * bean is reworked by its author's pushes, as often as it takes), no emulated CI latency, the
+ * repository kept, and enough slots for the beans in flight at once (each pushed bean holds a
+ * slot while it waits for its author).
+ */
+export const CONTINUOUS_SETTINGS = {
+  ...DEMO_SETTINGS,
+  continuous: true,
+  tail_guard_minutes: 0,
+  max_bean_invocations: 0,
+  max_rework: 20,
+  agent_timeout: 86_400,
+  ci_seconds: 0,
+  preland_seconds: 0,
+  keep_repo: true,
+  agents: 32,
 } as const satisfies Partial<RunConfigInput>;
 
 /** What each preset pins. */

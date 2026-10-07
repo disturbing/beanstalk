@@ -1,0 +1,63 @@
+/**
+ * A repository's continuous engine: which Artifacts repo it drives, whose it is, and its id.
+ * The id is derived from `<owner>/<repo>`, so the git proxy finds the engine of
+ * `/git/<owner>/<repo>.git` without a lookup, and opening the same repository twice returns
+ * the same engine.
+ */
+import { z } from 'zod';
+
+import { RunId } from '@beanstalk/shared-race/ids';
+import { RunSuite } from '@beanstalk/shared-race/suite';
+
+const Handle = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/);
+
+/** `openRepoEngine`'s input: the repository-creation side's contract. */
+export const OpenRepoEngineInput = z.strictObject({
+  repoName: Handle,
+  /** The Artifacts repo (in the gateway's namespace) the repository's git lives in. */
+  artifactsRepo: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/),
+  owner: z.strictObject({ id: z.string().min(1).max(100), handle: Handle }),
+  settings: z
+    .strictObject({
+      /** The checks every pre-land check and validation runs (default: `node --test`). */
+      suite: RunSuite.optional(),
+      /** The branch the sprout and the stalk start from when the repo has neither (default `main`). */
+      base_branch: z
+        .string()
+        .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/)
+        .optional(),
+      /** A bean's web page; `{bean}` is replaced by its name. */
+      bean_url: z.url().max(500).optional(),
+    })
+    .optional(),
+});
+export type OpenRepoEngineInput = z.infer<typeof OpenRepoEngineInput>;
+
+/** What a continuous engine's Durable Object keeps about its repository. */
+export const RepoEngineRecord = z.object({
+  engineId: RunId,
+  owner: z.object({ id: z.string(), handle: z.string() }),
+  repoName: z.string(),
+  artifactsRepo: z.string(),
+  beanUrl: z.string().nullable(),
+});
+export type RepoEngineRecord = z.infer<typeof RepoEngineRecord>;
+
+/** The engine id of `<owner>/<repo>` (case-insensitive): `r` and 19 hex digits of a SHA-256. */
+export async function repoEngineId(owner: string, repo: string): Promise<RunId> {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`${owner.toLowerCase()}/${repo.toLowerCase()}`),
+  );
+  const hex = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+  return RunId.parse(`r${hex.slice(0, 19)}`);
+}
+
+/** A bean's web link from the engine's template, if it has one. */
+export function beanLink(record: RepoEngineRecord, bean: string): string | null {
+  return record.beanUrl === null
+    ? null
+    : record.beanUrl.replaceAll('{bean}', encodeURIComponent(bean));
+}
