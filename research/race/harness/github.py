@@ -420,9 +420,13 @@ class GhClient:
         return res if isinstance(res, dict) else None
 
     async def create_repo(self, description: str) -> dict:
+        """A new public org repo. ``auto_init``: GitHub writes the first commit (the base is force-pushed over it).
+        Measured 2026-10-07 on kintohubtest: a repo created empty whose ``main`` (workflow included) came by the
+        first git push never ran Actions (no run, no check suite, for any PR); one commit GitHub wrote itself
+        (auto_init or the contents API) on the default branch enabled them, the force-pushed base after it too."""
         res = await self.request("POST", f"orgs/{self.owner}/repos", {
             "name": self.repo, "description": description, "visibility": "public", "has_issues": False,
-            "has_projects": False, "has_wiki": False, "auto_init": False, "allow_squash_merge": True,
+            "has_projects": False, "has_wiki": False, "auto_init": True, "allow_squash_merge": True,
             "allow_merge_commit": False, "allow_rebase_merge": False, "allow_auto_merge": True,
             "delete_branch_on_merge": False}, mutation=True)
         return res if isinstance(res, dict) else {}

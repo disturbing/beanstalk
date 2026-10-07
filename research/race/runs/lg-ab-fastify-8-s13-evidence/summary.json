@@ -1,0 +1,1209 @@
+{
+  "policy": "beanstalk-git",
+  "forge": "beanstalk",
+  "label": "ab evidence",
+  "config": {
+    "agents": 8,
+    "workers": 8,
+    "seed": 13,
+    "mode": "standalone",
+    "ci_slots": 2,
+    "batch": 4,
+    "arena": "fastify",
+    "schedule": {
+      "kind": "closed",
+      "seed": 13,
+      "think": {
+        "median": 88.25,
+        "sigma": 0.462,
+        "n": 76,
+        "source": "fitted: pair-fastify-codex-4-s7-github, pair-fastify-codex-4-s7-beanstalk"
+      },
+      "fix": {
+        "median": 65.07,
+        "sigma": 0.311,
+        "n": 10,
+        "source": "fitted: pair-fastify-codex-4-s7-github, pair-fastify-codex-4-s7-beanstalk"
+      },
+      "time_scale": 1.0,
+      "hold": "integrate"
+    },
+    "max_attempts": 8
+  },
+  "model": "loadgen",
+  "cost_usd": 0.0,
+  "aborted": null,
+  "tasks": 38,
+  "tasks_green": 38,
+  "dropped": [],
+  "wall_seconds": 2214.1,
+  "ready_to_integrated_s": {
+    "n": 38,
+    "median": 298.4,
+    "p90": 655.8,
+    "mean": 331.1
+  },
+  "ready_to_stable_s": {
+    "n": 38,
+    "median": 361.2,
+    "p90": 729.5,
+    "mean": 401.4
+  },
+  "enqueue_to_merged_s": {
+    "n": 0,
+    "median": null,
+    "p90": null,
+    "mean": null
+  },
+  "first_push_to_verdict_s": {
+    "n": 38,
+    "median": 297.0,
+    "p90": 318.4,
+    "mean": 256.1
+  },
+  "waiting_share_of_change_life": 0.75,
+  "waiting_share_of_worker_time": 0.671,
+  "max_concurrently_waiting": 8,
+  "throughput_per_10min": 10.3,
+  "peak_integrated_in_10min": 17,
+  "pushes": 48,
+  "reactions": {
+    "red": 10,
+    "rebase": 10,
+    "upstream_files_taken": 5,
+    "upstream_after_red": 1
+  },
+  "kickouts": 10,
+  "standalone_changes": 2,
+  "ci_minutes": 221.98,
+  "red_validations": 0,
+  "forge_detail": {
+    "engine": "r56964edf39ac84efd9f",
+    "ci": {
+      "preland": {
+        "runs": 59,
+        "minutes": 188.72,
+        "check_minutes": 191.93,
+        "red": 10
+      },
+      "validation": {
+        "runs": 27,
+        "minutes": 28.89,
+        "red": 0,
+        "cancelled": 1,
+        "targeted": 27,
+        "targeted_tests": 5448
+      },
+      "audit": {
+        "runs": 4,
+        "minutes": 4.37,
+        "red": 0
+      }
+    },
+    "ci_minutes": 221.98,
+    "ci_slot_minutes": 33.26,
+    "red_validations": 0,
+    "checks_reused": 5,
+    "window_waits": 0,
+    "window_wait_bean_min": 0.0,
+    "evidence_promotions": 26,
+    "evidence_refusals": {
+      "affected": 27
+    },
+    "evidence_affected_share": 0.939,
+    "demotions": 0,
+    "engine_event_types": [
+      "check.reused",
+      "ci.end",
+      "ci.start",
+      "decision.made",
+      "decision.reconcile",
+      "decision.request",
+      "evidence.refused",
+      "footprint.predicted",
+      "green.promote",
+      "invocation.end",
+      "invocation.start",
+      "land",
+      "placement.decision",
+      "preland.check",
+      "preland.optimistic",
+      "preland.recheck",
+      "promote.evidence",
+      "race.setup",
+      "race.start",
+      "rework.start",
+      "spec.amended",
+      "task.commit",
+      "task.start",
+      "window.resize"
+    ],
+    "pushes": 48,
+    "refused": 0,
+    "timeouts": 1,
+    "verdicts": {
+      "red": 9,
+      "landed": 38,
+      "timeout": 1
+    },
+    "git_calls": {
+      "admin": 621,
+      "pushes": 49,
+      "fetches": 45
+    },
+    "preland_capacity": {
+      "sandboxes": 2,
+      "max_concurrent_checks": 8,
+      "max_concurrent_suites": 8,
+      "suite_timeouts": 7,
+      "ci_slots": 2,
+      "max_concurrent_ci": 3
+    }
+  },
+  "final": {
+    "sha": "7d3e5c377c3ea15a053f2b1bddcb83a6838bfb7c",
+    "suite_green": true,
+    "suite_tests": 2250,
+    "suite_failures": 0,
+    "suite_failing_files": [],
+    "acceptance_run_green": true,
+    "green_tasks": 38,
+    "green_tasks_accepted": 38,
+    "tasks_accepted": 38,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "matches_chain_build": true,
+    "diff_vs_chain": [],
+    "attempts": [
+      {
+        "suite_green": true,
+        "acceptance_green": true,
+        "failing": []
+      }
+    ],
+    "where": "docker",
+    "failing_files": [],
+    "per_task": {
+      "t001": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t002": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t003": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t004": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t005": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t006": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t007": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t008": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t009": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t010": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t011": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t012": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t013": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t014": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t015": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t016": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t017": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t018": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t019": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t020": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t021": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t022": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t023": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t024": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t025": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t026": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t027": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t028": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t029": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t030": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t031": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t032": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t033": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t034": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t035": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t036": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t037": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      },
+      "t038": {
+        "acceptance_pass": true,
+        "status": "integrated",
+        "committed_tests": true
+      }
+    },
+    "rerun_of": {
+      "suite_green": true,
+      "suite_failing_files": [],
+      "correct": true
+    }
+  },
+  "per_change": [
+    {
+      "task": "t001",
+      "worker": 0,
+      "status": "integrated",
+      "ready_s": 111.25,
+      "integrated_s": 409.05,
+      "stable_s": 463.69,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 111.25,
+          "verdict": "integrated",
+          "verdict_s": 409.05,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t002",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 54.27,
+      "integrated_s": 300.13,
+      "stable_s": 300.13,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 54.27,
+          "verdict": "integrated",
+          "verdict_s": 300.13,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t003",
+      "worker": 2,
+      "status": "integrated",
+      "ready_s": 83.31,
+      "integrated_s": 737.05,
+      "stable_s": 819.87,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 83.31,
+          "verdict": "red",
+          "verdict_s": 388.89,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 432.19,
+          "verdict": "integrated",
+          "verdict_s": 737.05,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t004",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 75.82,
+      "integrated_s": 374.79,
+      "stable_s": 432.85,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 75.82,
+          "verdict": "integrated",
+          "verdict_s": 374.79,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t005",
+      "worker": 4,
+      "status": "integrated",
+      "ready_s": 93.48,
+      "integrated_s": 793.37,
+      "stable_s": 878.73,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 93.48,
+          "verdict": "red",
+          "verdict_s": 402.26,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 459.71,
+          "verdict": "integrated",
+          "verdict_s": 793.37,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1,
+        "upstream_files_taken": 1
+      }
+    },
+    {
+      "task": "t006",
+      "worker": 5,
+      "status": "integrated",
+      "ready_s": 108.2,
+      "integrated_s": 412.11,
+      "stable_s": 492.04,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 108.2,
+          "verdict": "integrated",
+          "verdict_s": 412.11,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t007",
+      "worker": 6,
+      "status": "integrated",
+      "ready_s": 93.44,
+      "integrated_s": 754.03,
+      "stable_s": 819.87,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 93.44,
+          "verdict": "red",
+          "verdict_s": 399.99,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 463.16,
+          "verdict": "integrated",
+          "verdict_s": 754.03,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t008",
+      "worker": 7,
+      "status": "integrated",
+      "ready_s": 54.22,
+      "integrated_s": 779.26,
+      "stable_s": 878.73,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 54.22,
+          "verdict": "red",
+          "verdict_s": 295.27,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 352.82,
+          "verdict": "red",
+          "verdict_s": 480.51,
+          "reason": "read from the engine"
+        },
+        {
+          "attempt": 3,
+          "pushed_s": 590.15,
+          "verdict": "integrated",
+          "verdict_s": 779.26,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 2,
+        "rebase": 2,
+        "upstream_after_red": 1,
+        "upstream_files_taken": 2
+      }
+    },
+    {
+      "task": "t009",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 420.39,
+      "integrated_s": 524.02,
+      "stable_s": 524.02,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 420.39,
+          "verdict": "integrated",
+          "verdict_s": 524.02,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t010",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 430.43,
+      "integrated_s": 626.92,
+      "stable_s": 626.65,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 430.43,
+          "verdict": "integrated",
+          "verdict_s": 626.92,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t011",
+      "worker": 0,
+      "status": "integrated",
+      "ready_s": 457.4,
+      "integrated_s": 791.0,
+      "stable_s": 878.73,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 457.4,
+          "verdict": "integrated",
+          "verdict_s": 791.0,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t012",
+      "worker": 5,
+      "status": "integrated",
+      "ready_s": 482.47,
+      "integrated_s": 809.36,
+      "stable_s": 878.73,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 482.47,
+          "verdict": "integrated",
+          "verdict_s": 809.36,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t013",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 634.78,
+      "integrated_s": 874.66,
+      "stable_s": 969.24,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 634.78,
+          "verdict": "red",
+          "verdict_s": 723.73,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 776.55,
+          "verdict": "integrated",
+          "verdict_s": 874.66,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "upstream_files_taken": 2,
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t014",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 731.93,
+      "integrated_s": 816.61,
+      "stable_s": 878.73,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 731.93,
+          "verdict": "integrated",
+          "verdict_s": 816.61,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t015",
+      "worker": 2,
+      "status": "integrated",
+      "ready_s": 820.38,
+      "integrated_s": 1061.49,
+      "stable_s": 1124.13,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 820.38,
+          "verdict": "integrated",
+          "verdict_s": 1061.49,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t016",
+      "worker": 6,
+      "status": "integrated",
+      "ready_s": 832.96,
+      "integrated_s": 1126.56,
+      "stable_s": 1185.22,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 832.96,
+          "verdict": "integrated",
+          "verdict_s": 1126.56,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t017",
+      "worker": 7,
+      "status": "integrated",
+      "ready_s": 881.44,
+      "integrated_s": 1481.27,
+      "stable_s": 1546.34,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 881.44,
+          "verdict": "red",
+          "verdict_s": 1189.09,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 1246.53,
+          "verdict": "integrated",
+          "verdict_s": 1481.27,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t018",
+      "worker": 0,
+      "status": "integrated",
+      "ready_s": 833.12,
+      "integrated_s": 1129.29,
+      "stable_s": 1243.9,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 833.12,
+          "verdict": "integrated",
+          "verdict_s": 1129.29,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t019",
+      "worker": 4,
+      "status": "integrated",
+      "ready_s": 884.2,
+      "integrated_s": 1193.81,
+      "stable_s": 1258.49,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 884.2,
+          "verdict": "integrated",
+          "verdict_s": 1193.81,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t020",
+      "worker": 5,
+      "status": "integrated",
+      "ready_s": 881.58,
+      "integrated_s": 1196.36,
+      "stable_s": 1306.89,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 881.58,
+          "verdict": "integrated",
+          "verdict_s": 1196.36,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t021",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 897.26,
+      "integrated_s": 1198.6,
+      "stable_s": 1306.89,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 897.26,
+          "verdict": "integrated",
+          "verdict_s": 1198.6,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t022",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 949.27,
+      "integrated_s": 1367.57,
+      "stable_s": 1433.57,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 949.27,
+          "verdict": "integrated",
+          "verdict_s": 1367.57,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t023",
+      "worker": 2,
+      "status": "integrated",
+      "ready_s": 1240.69,
+      "integrated_s": 1328.79,
+      "stable_s": 1421.21,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1240.69,
+          "verdict": "integrated",
+          "verdict_s": 1328.79,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t024",
+      "worker": 6,
+      "status": "integrated",
+      "ready_s": 1182.85,
+      "integrated_s": 1294.6,
+      "stable_s": 1357.1,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1182.85,
+          "verdict": "integrated",
+          "verdict_s": 1294.6,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t025",
+      "worker": 0,
+      "status": "integrated",
+      "ready_s": 1215.48,
+      "integrated_s": 1305.11,
+      "stable_s": 1368.91,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1215.48,
+          "verdict": "integrated",
+          "verdict_s": 1305.11,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t026",
+      "worker": 4,
+      "status": "integrated",
+      "ready_s": 1280.92,
+      "integrated_s": 1580.97,
+      "stable_s": 1646.39,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1280.92,
+          "verdict": "integrated",
+          "verdict_s": 1580.97,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t027",
+      "worker": 5,
+      "status": "integrated",
+      "ready_s": 1280.99,
+      "integrated_s": 1811.28,
+      "stable_s": 1891.05,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1280.99,
+          "verdict": "integrated",
+          "verdict_s": 1811.28,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t028",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 1299.45,
+      "integrated_s": 1606.24,
+      "stable_s": 1672.57,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1299.45,
+          "verdict": "integrated",
+          "verdict_s": 1606.24,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t029",
+      "worker": 6,
+      "status": "integrated",
+      "ready_s": 1384.18,
+      "integrated_s": 1840.34,
+      "stable_s": 1942.21,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1384.18,
+          "verdict": "red",
+          "verdict_s": 1693.04,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 1783.87,
+          "verdict": "integrated",
+          "verdict_s": 1840.34,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t030",
+      "worker": 0,
+      "status": "integrated",
+      "ready_s": 1418.59,
+      "integrated_s": 1976.57,
+      "stable_s": 2042.6,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1418.59,
+          "verdict": "red",
+          "verdict_s": 1729.3,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 1800.65,
+          "verdict": "integrated",
+          "verdict_s": 1976.57,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t031",
+      "worker": 2,
+      "status": "integrated",
+      "ready_s": 1363.83,
+      "integrated_s": 2104.71,
+      "stable_s": 2214.08,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1363.83,
+          "verdict": "red",
+          "verdict_s": 1670.72,
+          "reason": "red"
+        },
+        {
+          "attempt": 2,
+          "pushed_s": 1757.67,
+          "verdict": "integrated",
+          "verdict_s": 2104.71,
+          "reason": ""
+        }
+      ],
+      "reactions": {
+        "red": 1,
+        "rebase": 1
+      }
+    },
+    {
+      "task": "t032",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 1472.78,
+      "integrated_s": 1761.0,
+      "stable_s": 1826.0,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1472.78,
+          "verdict": "integrated",
+          "verdict_s": 1761.0,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t033",
+      "worker": 7,
+      "status": "integrated",
+      "ready_s": 1561.68,
+      "integrated_s": 1807.84,
+      "stable_s": 1875.64,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1561.68,
+          "verdict": "integrated",
+          "verdict_s": 1807.84,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t034",
+      "worker": 4,
+      "status": "integrated",
+      "ready_s": 1673.15,
+      "integrated_s": 1738.02,
+      "stable_s": 1738.02,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1673.15,
+          "verdict": "integrated",
+          "verdict_s": 1738.02,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t035",
+      "worker": 3,
+      "status": "integrated",
+      "ready_s": 1660.38,
+      "integrated_s": 1854.06,
+      "stable_s": 1942.21,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1660.38,
+          "verdict": "integrated",
+          "verdict_s": 1854.06,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t036",
+      "worker": 4,
+      "status": "integrated",
+      "ready_s": 1866.03,
+      "integrated_s": 2089.06,
+      "stable_s": 2155.02,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1866.03,
+          "verdict": "integrated",
+          "verdict_s": 2089.06,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t037",
+      "worker": 1,
+      "status": "integrated",
+      "ready_s": 1872.18,
+      "integrated_s": 2091.05,
+      "stable_s": 2214.08,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1872.18,
+          "verdict": "integrated",
+          "verdict_s": 2091.05,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    },
+    {
+      "task": "t038",
+      "worker": 7,
+      "status": "integrated",
+      "ready_s": 1865.98,
+      "integrated_s": 2085.04,
+      "stable_s": 2151.3,
+      "enqueued_s": null,
+      "pushes": [
+        {
+          "attempt": 1,
+          "pushed_s": 1865.98,
+          "verdict": "integrated",
+          "verdict_s": 2085.04,
+          "reason": ""
+        }
+      ],
+      "reactions": {}
+    }
+  ]
+}

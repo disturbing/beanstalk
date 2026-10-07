@@ -151,38 +151,8 @@ class GitHubRace(QueueRace):
         self.epoch0 = time.time() - self.now()
         self.net_git = Git(self.runner, self.integration)
         self.net_git.env = {**self.net_git.env, **self.client.git_env()}
-        # the GitHub base: the arena's base plus the suite workflow (and, for an arena with dependencies, its
-        # lockfile under .github/race/): the only files the Beanstalk arm's base lacks
-        wt = os.path.join(self.work, "gh-base")
-        await self.git.add_worktree(wt, self.base_sha, "gh-base")
-        # an upstream repo's own automation must not run in the race repo: its workflows would compete for the
-        # Actions job cap (fastify's CI matrix queued the race's suite for minutes) and dependabot opens PRs that
-        # the merge queue would see. Only these files go; agents' code and tests are untouched.
-        removed = []
-        gh_dir = os.path.join(wt, ".github")
-        for root, _dirs, names in os.walk(os.path.join(gh_dir, "workflows")):
-            removed += [os.path.relpath(os.path.join(root, n), wt) for n in names]
-        removed += [os.path.relpath(os.path.join(gh_dir, n), wt) for n in ("dependabot.yml", "dependabot.yaml")
-                    if os.path.exists(os.path.join(gh_dir, n))]
-        if removed:
-            await self.git.run("rm", "-q", "--", *removed, cwd=wt)
-        self.upstream_automation_removed = sorted(removed)
-        test_cmd, node, install, extra = arena_ci(self.cfg.arena)
-        for rel, content in extra.items():
-            full = os.path.join(wt, rel)
-            os.makedirs(os.path.dirname(full), exist_ok=True)
-            with open(full, "w", encoding="utf-8") as fh:
-                fh.write(content)
-        if extra:  # an upstream .gitignore may list package-lock.json (fastify's does)
-            await self.git.run("add", "-f", "--", *extra, cwd=wt)
-        path = os.path.join(wt, WORKFLOW_PATH)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        self.workflow = workflow_yaml(self.gh.test_cmd or test_cmd, self.gh.node_version or node,
-                                      self.gh.install if self.gh.install is not None else install)
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write(self.workflow)
-        self.gh_base, _ = await self.git.commit_all(wt, "ci: the arena suite on pull_request and merge_group\n")
-        await self.git.remove_worktree(wt)
+        self.gh_base, self.workflow, self.upstream_automation_removed = await github_base(
+            self.git, self.work, self.base_sha, self.cfg.arena, self.gh)
         self.main = self.gh_base
         await self.prepare_repo()
         cfg_path = os.path.join(self.out, "config.json")
@@ -205,32 +175,9 @@ class GitHubRace(QueueRace):
         return ruleset_body(self.cfg.ci_slots, self.cfg.batch, check_timeout_minutes=self.gh.check_timeout_minutes)
 
     async def prepare_repo(self) -> None:
-        c = self.client
-        info = await c.repo_info()
-        description = f"{REPO_MARKER}: GitHub arm of the Beanstalk race harness (arena {os.path.basename(self.cfg.arena)})"
-        if info is None:
-            await c.create_repo(description)
-            self.say(f"created {c.full}")
-        else:
-            if not str(info.get("description") or "").startswith(REPO_MARKER):
-                raise SystemExit(f"{c.full} exists and was not created by the race harness (description lacks "
-                                 f"'{REPO_MARKER}'); pick another --gh-repo")
-            if info.get("private"):
-                raise SystemExit(f"{c.full} is private; the merge queue on GitHub Free needs a public repo")
-            if not self.gh.reset:
-                raise SystemExit(f"{c.full} exists; pass --gh-reset to reset it to the arena base")
-            await c.disable_ruleset()
-            for pr in await c.open_prs():
-                await c.close_pr(int(pr["number"]))
-            if hasattr(c, "cancel_active_runs"):
-                await c.cancel_active_runs()
-            self.say(f"reset {c.full}: ruleset disabled, open PRs closed")
-        await c.configure_repo()
-        await self.push([f"+{self.gh_base}:refs/heads/main"], what="base")
-        await c.put_ruleset(self.ruleset())
-        snap = await c.snapshot()
-        self.ignore_prs = set(snap.prs)
-        c.since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 5))
+        self.ignore_prs = await prepare_github_repo(
+            self.client, arena_name=os.path.basename(self.cfg.arena), reset=self.gh.reset, ruleset=self.ruleset(),
+            push_base=lambda: self.push([f"+{self.gh_base}:refs/heads/main"], what="base"), say=self.say)
 
     async def push(self, refspecs: list[str], *, what: str, task: str | None = None) -> None:
         assert self.net_git
@@ -775,6 +722,75 @@ class GitHubRace(QueueRace):
             "api": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in lim.items()},
             "polls": self.gh_stats["polls"], "poll_errors": self.gh_stats["poll_errors"],
         }
+
+
+
+async def github_base(git: Git, work: str, base_sha: str, arena: str, gh: GitHubOptions) -> tuple[str, str, list[str]]:
+    """The GitHub base: the arena's base plus the suite workflow (and, for an arena with dependencies, its lockfile
+    under ``.github/race/``), the only files the Beanstalk arm's base lacks. Returns (commit, workflow, removed)."""
+    wt = os.path.join(work, "gh-base")
+    await git.add_worktree(wt, base_sha, "gh-base")
+    # an upstream repo's own automation must not run in the race repo: its workflows would compete for the
+    # Actions job cap (fastify's CI matrix queued the race's suite for minutes) and dependabot opens PRs that
+    # the merge queue would see. Only these files go; agents' code and tests are untouched.
+    removed = []
+    gh_dir = os.path.join(wt, ".github")
+    for root, _dirs, names in os.walk(os.path.join(gh_dir, "workflows")):
+        removed += [os.path.relpath(os.path.join(root, n), wt) for n in names]
+    removed += [os.path.relpath(os.path.join(gh_dir, n), wt) for n in ("dependabot.yml", "dependabot.yaml")
+                if os.path.exists(os.path.join(gh_dir, n))]
+    if removed:
+        await git.run("rm", "-q", "--", *removed, cwd=wt)
+    test_cmd, node, install, extra = arena_ci(arena)
+    for rel, content in extra.items():
+        full = os.path.join(wt, rel)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as fh:
+            fh.write(content)
+    if extra:  # an upstream .gitignore may list package-lock.json (fastify's does)
+        await git.run("add", "-f", "--", *extra, cwd=wt)
+    path = os.path.join(wt, WORKFLOW_PATH)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    workflow = workflow_yaml(gh.test_cmd or test_cmd, gh.node_version or node,
+                             gh.install if gh.install is not None else install)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(workflow)
+    sha, _ = await git.commit_all(wt, "ci: the arena suite on pull_request and merge_group\n")
+    await git.remove_worktree(wt)
+    return sha, workflow, sorted(removed)
+
+
+async def prepare_github_repo(client, *, arena_name: str, reset: bool, ruleset: dict, push_base, say,
+                              what: str = "GitHub arm of the Beanstalk race harness") -> set[int]:
+    """Create the org repo (public: the merge queue on GitHub Free needs it) or reset one this harness created
+    (ruleset disabled, open PRs closed, active runs cancelled), push the base to ``main`` (``push_base``), put the
+    merge-queue ruleset. Returns the PR numbers already there (to ignore)."""
+    c = client
+    info = await c.repo_info()
+    description = f"{REPO_MARKER}: {what} (arena {arena_name})"
+    if info is None:
+        await c.create_repo(description)
+        say(f"created {c.full}")
+    else:
+        if not str(info.get("description") or "").startswith(REPO_MARKER):
+            raise SystemExit(f"{c.full} exists and was not created by the race harness (description lacks "
+                             f"'{REPO_MARKER}'); pick another repo name")
+        if info.get("private"):
+            raise SystemExit(f"{c.full} is private; the merge queue on GitHub Free needs a public repo")
+        if not reset:
+            raise SystemExit(f"{c.full} exists; pass --gh-reset to reset it to the arena base")
+        await c.disable_ruleset()
+        for pr in await c.open_prs():
+            await c.close_pr(int(pr["number"]))
+        if hasattr(c, "cancel_active_runs"):
+            await c.cancel_active_runs()
+        say(f"reset {c.full}: ruleset disabled, open PRs closed")
+    await c.configure_repo()
+    await push_base()
+    await c.put_ruleset(ruleset)
+    snap = await c.snapshot()
+    c.since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 5))
+    return set(snap.prs)
 
 
 def arena_ci(arena: str) -> tuple[str, str, str | None, dict[str, str]]:
