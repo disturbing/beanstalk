@@ -110,12 +110,14 @@ def parse_push(lines: list[tuple[float, str]], pushed_at: float, returncode: int
 class BeanstalkClient:
     """The admin API of a gateway plus git against one repository engine."""
 
-    def __init__(self, gateway: str, token: str, owner: str, repo: str, *, artifacts_repo: str | None = None):
+    def __init__(self, gateway: str, token: str, owner: str, repo: str, *, artifacts_repo: str | None = None,
+                 engine_settings: dict | None = None):
         self.gateway = gateway.rstrip("/")
         self._admin = token
         self.owner, self.repo = owner, repo
         self.artifacts_repo = artifacts_repo or f"lg-{repo}"[:100]
         self.engine = engine_id(owner, repo)
+        self.engine_settings = dict(engine_settings or {})   # settings.engine: overrides of the continuous defaults
         self._git_token: str | None = None
         self.calls = {"admin": 0, "pushes": 0, "fetches": 0}
 
@@ -156,6 +158,8 @@ class BeanstalkClient:
         settings: dict = {}
         if suite:
             settings["suite"] = suite
+        if self.engine_settings:
+            settings["engine"] = self.engine_settings
         body = {"repoName": self.repo, "artifactsRepo": self.artifacts_repo,
                 "owner": {"id": f"u-{self.owner}", "handle": self.owner}, "create_artifacts_repo": True,
                 "settings": settings}

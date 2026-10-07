@@ -368,6 +368,7 @@ export class RunDO extends DurableObject<Env> {
       arena: 'repository',
       tasks: [],
       ...(input.settings?.suite === undefined ? {} : { suite: input.settings.suite }),
+      ...input.settings?.engine,
     });
     const record: RepoEngineRecord = {
       engineId: input.engineId,

@@ -11,6 +11,21 @@ import { RunSuite } from '@beanstalk/shared-race/suite';
 
 const Handle = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/);
 
+/**
+ * Engine settings an operator may set on a continuous engine over its defaults
+ * (`CONTINUOUS_SETTINGS`): the CI slot count and the evidence-promotion track, for load tests
+ * and A/B runs on one repository. Everything else stays the continuous engine's.
+ */
+export const RepoEngineOverrides = z.strictObject({
+  ci_slots: z.number().int().min(1).max(16).optional(),
+  read_maps: z.enum(['off', 'preland', 'all']).optional(),
+  evidence_promotion: z.boolean().optional(),
+  evidence_read_sets: z.enum(['complete', 'static']).optional(),
+  affected_validation: z.boolean().optional(),
+  audit_every: z.number().int().min(0).max(100).optional(),
+});
+export type RepoEngineOverrides = z.infer<typeof RepoEngineOverrides>;
+
 /** `openRepoEngine`'s input: the repository-creation side's contract. */
 export const OpenRepoEngineInput = z.strictObject({
   repoName: Handle,
@@ -28,6 +43,8 @@ export const OpenRepoEngineInput = z.strictObject({
         .optional(),
       /** A bean's web page; `{bean}` is replaced by its name. */
       bean_url: z.url().max(500).optional(),
+      /** Engine settings over the continuous defaults (`RepoEngineOverrides`). */
+      engine: RepoEngineOverrides.optional(),
     })
     .optional(),
 });

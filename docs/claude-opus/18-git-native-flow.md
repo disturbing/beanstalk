@@ -221,6 +221,10 @@ openRepoEngine(input: {
     suite?: RunSuite;                              // the checks (default: node --test)
     base_branch?: string;                          // where the lines start if the repo has neither
     bean_url?: string;                             // a bean's web page, "{bean}" replaced; shown in verdicts
+    engine?: {                                     // operator overrides of CONTINUOUS_SETTINGS (load tests, A/B)
+      ci_slots?: number; read_maps?: 'off' | 'preland' | 'all'; evidence_promotion?: boolean;
+      evidence_read_sets?: 'complete' | 'static'; affected_validation?: boolean; audit_every?: number;
+    };
   };
 }): Promise<RpcResult<{ engineId: string; created: boolean; base_sha: string; git_path: string }>>;
 

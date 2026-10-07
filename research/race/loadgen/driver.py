@@ -345,8 +345,11 @@ class Driver:
             committed = True
             if self.changes[tid].status == "integrated":
                 for p, content in ch.task.acceptance_tests.items():
+                    # intact: as the task wrote it, or as the chain build ends (a later task's reference may edit
+                    # an earlier task's test file, as upstream did)
                     r = await self.git.run("show", f"{sha}:{p}", check=False)
-                    committed = committed and r.returncode == 0 and r.stdout == content
+                    c = await self.git.run("show", f"{self.chain_end}:{p}", check=False)
+                    committed = committed and r.returncode == 0 and r.stdout in (content, c.stdout)
                 intact = intact and committed
             per_task[tid] = {"acceptance_pass": ok, "status": self.changes[tid].status, "committed_tests": committed}
         integ = [t for t, c in self.changes.items() if c.status == "integrated"]

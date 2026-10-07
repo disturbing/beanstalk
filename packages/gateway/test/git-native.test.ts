@@ -131,6 +131,44 @@ describe('git-native flow', () => {
     expect(refs).toContain(`${opened.base_sha} refs/heads/stalk`);
   });
 
+  it('opens an engine with operator overrides of its CI slots and evidence settings', async () => {
+    const response = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: 'tuned',
+        artifactsRepo: 'repo-tuned',
+        owner: { id: 'u1', handle: 'acme' },
+        create_artifacts_repo: true,
+        settings: {
+          engine: {
+            ci_slots: 4,
+            read_maps: 'preland',
+            evidence_promotion: true,
+            affected_validation: true,
+            audit_every: 4,
+            evidence_read_sets: 'complete',
+          },
+        },
+      },
+    });
+    expect(response.status).toBe(201);
+    const opened = await json<Opened>(response);
+    const view = await json<{ ci: { slots: number } }>(
+      await call('GET', `/v1/runs/${opened.engineId}`, { token: ADMIN }),
+    );
+    expect(view.ci.slots).toBe(4);
+    const refused = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: 'untuned',
+        artifactsRepo: 'repo-untuned',
+        owner: { id: 'u1', handle: 'acme' },
+        settings: { engine: { agents: 2 } },
+      },
+    });
+    expect(refused.status).toBe(400);
+  });
+
   it('advertises push options for receive-pack', async () => {
     const { opened, token } = await openRepo('adverts');
     const response = await call('GET', `${opened.git_path}/info/refs?service=git-receive-pack`, {

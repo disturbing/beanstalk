@@ -427,27 +427,41 @@ class BeanstalkForge(Forge):
                                files=v.conflicts, detail={"check_seconds": v.check_seconds})
             if v.kind in ("parked", "dropped"):
                 return Outcome("dropped", v.verdict_at or time.time(), reason=v.kind)
-            if v.kind == "timeout":  # the verdict comes later: read it from the engine
-                self.stats["timeouts"] += 1
-                out = await self._await_phase(tid)
-                if out:
-                    return out
-            if v.kind == "refused":
-                self.stats["refused"] += 1
-                await asyncio.sleep(5.0)
-                continue
-            await asyncio.sleep(min(30.0, 3.0 * (tries + 1)))  # an error without a verdict (network): push again
+            # no verdict on the push (the wait timed out, the connection dropped, or a re-push of the same head
+            # found nothing to send): when the engine has this head, its verdict comes from the beans list
+            self.stats["timeouts" if v.kind == "timeout" else "no_verdict"] = \
+                self.stats.get("timeouts" if v.kind == "timeout" else "no_verdict", 0) + 1
+            out = await self._await_head(tid, sha)
+            if out:
+                return out
+            await asyncio.sleep(min(30.0, 3.0 * (tries + 1)))  # the push never reached the engine: push again
         return Outcome("dropped", time.time(), reason="no verdict after 60 pushes")
 
-    async def _await_phase(self, tid: str) -> Outcome | None:
+    async def _await_head(self, tid: str, sha: str, grace: float = 20.0) -> Outcome | None:
+        """The engine's verdict on ``sha`` for the bean, read from ``GET /v1/repos/:engine/beans``; None when the
+        engine has not seen that head within ``grace`` seconds."""
+        bean = self.bean(tid)
+        seen_until = time.time() + grace
         while not self.stopped:
-            phase = self.phases.get(self.bean(tid))
-            if phase in ("landed", "green"):
-                return Outcome("integrated", time.time(), reason="read from the engine")
-            if phase in ("red", "conflict"):
-                return Outcome(phase, time.time(), reason="read from the engine")
-            if phase in ("parked", "dropped"):
-                return Outcome("dropped", time.time(), reason=phase)
+            try:
+                rows = await self.client.beans()
+            except Exception as e:  # noqa: BLE001
+                self.log("bs.error", where="beans", error=str(e)[:300])
+                rows = []
+            row = next((b for b in rows if b.get("bean") == bean), None)
+            if row and row.get("head") == sha:
+                seen_until = float("inf")
+                phase = row.get("phase")
+                if phase in ("landed", "green"):
+                    if phase == "green":
+                        self.green_at.setdefault(tid, time.time())
+                    return Outcome("integrated", time.time(), row.get("landed_sha"), reason="read from the engine")
+                if phase in ("red", "conflict"):
+                    return Outcome(phase, time.time(), reason="read from the engine")
+                if phase in ("parked", "dropped"):
+                    return Outcome("dropped", time.time(), reason=phase)
+            elif time.time() > seen_until:
+                return None
             await asyncio.sleep(self.bean_poll)
         return None
 
@@ -497,13 +511,39 @@ def engine_ci(events: list[dict]) -> dict:
     ci = [e for e in events if e.get("type") == "ci.end"]
     seed_shas = {e.get("sha") for e in events if e.get("type") == "preland.check" and e.get("task") == "seed"}
     ci = [e for e in ci if e.get("sha") not in seed_shas]
-    pre_min = sum(float(e.get("check_seconds") or e.get("suite_seconds") or 0) for e in pre) / 60
-    ci_min = sum(float(e.get("ci_seconds") or e.get("suite_seconds") or 0) for e in ci) / 60
-    return {"ci": {"preland": {"runs": len(pre), "minutes": round(pre_min, 2),
+    audits = [e for e in ci if e.get("audit")]
+    vals = [e for e in ci if not e.get("audit")]
+
+    def minutes(es: list[dict], key: str = "ci_seconds") -> float:
+        return round(sum(float(e.get(key) or e.get("suite_seconds") or 0) for e in es) / 60, 2)
+
+    pre_min = minutes(pre, "check_seconds")
+    ci_min = minutes(ci)
+    # window waits: a green bean found the sprout window full; its wait ends when it lands
+    waits, wait_s, open_wait = 0, 0.0, {}
+    for e in events:
+        if e.get("type") == "window.wait":
+            waits += 1
+            open_wait.setdefault(e.get("task"), float(e.get("t") or 0))
+        elif e.get("type") == "land" and e.get("task") in open_wait:
+            wait_s += float(e.get("t") or 0) - open_wait.pop(e.get("task"))
+    refused: dict[str, int] = {}
+    for e in events:
+        if e.get("type") == "evidence.refused":
+            refused[str(e.get("reason"))] = refused.get(str(e.get("reason")), 0) + 1
+    return {"ci": {"preland": {"runs": len(pre), "minutes": pre_min,
                                "red": sum(1 for e in pre if e.get("green") is False)},
-                   "validation": {"runs": len(ci), "minutes": round(ci_min, 2),
-                                  "red": sum(1 for e in ci if e.get("green") is False)}},
+                   "validation": {"runs": len(vals), "minutes": minutes(vals),
+                                  "red": sum(1 for e in vals if e.get("green") is False),
+                                  "cancelled": sum(1 for e in vals if e.get("cancelled"))},
+                   "audit": {"runs": len(audits), "minutes": minutes(audits),
+                             "red": sum(1 for e in audits if e.get("green") is False)}},
             "ci_minutes": round(pre_min + ci_min, 2),
-            "red_validations": sum(1 for e in ci if e.get("green") is False),
+            "ci_slot_minutes": ci_min,
+            "red_validations": sum(1 for e in vals if e.get("green") is False),
             "checks_reused": sum(1 for e in events if e.get("type") == "check.reused"),
+            "window_waits": waits, "window_wait_bean_min": round(wait_s / 60, 2),
+            "evidence_promotions": sum(1 for e in events if e.get("type") == "promote.evidence"),
+            "evidence_refusals": refused,
+            "demotions": sum(1 for e in events if e.get("type") == "green.demote"),
             "engine_event_types": sorted({e.get("type") for e in events if e.get("type")})}

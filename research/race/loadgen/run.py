@@ -75,6 +75,11 @@ def parser() -> argparse.ArgumentParser:
     b.add_argument("--bs-owner", default="loadgen")
     b.add_argument("--bs-repo", help="default lg-<arena>-<workers>-<seed>-<random>")
     b.add_argument("--keep-repo", action="store_true")
+    b.add_argument("--bs-engine", action="append", default=[], metavar="KEY=VALUE",
+                   help="an engine setting over the continuous defaults (settings.engine: ci_slots, read_maps, "
+                        "evidence_promotion, evidence_read_sets, affected_validation, audit_every); repeatable")
+    b.add_argument("--bs-evidence", action="store_true", help="shorthand: read_maps=preland evidence_promotion=true "
+                   "affected_validation=true audit_every=4 evidence_read_sets=complete")
     return ap
 
 
@@ -94,6 +99,18 @@ def schedule_of(a: argparse.Namespace) -> Schedule:
         s.recorded, s.recorded_reworks = recorded_pushes(rec)
         s.recorded_source = os.path.basename(rec.rstrip("/"))
     return s
+
+
+EVIDENCE = {"read_maps": "preland", "evidence_promotion": True, "affected_validation": True, "audit_every": 4,
+            "evidence_read_sets": "complete"}
+
+
+def engine_settings(a: argparse.Namespace) -> dict:
+    out: dict = dict(EVIDENCE) if a.bs_evidence else {}
+    for kv in a.bs_engine or []:
+        k, _, v = kv.partition("=")
+        out[k] = True if v == "true" else False if v == "false" else int(v) if v.isdigit() else v
+    return out
 
 
 def mask(path: str, gateway: str) -> None:
@@ -145,6 +162,7 @@ def run_one(a: argparse.Namespace) -> dict:
         bs_repo = a.bs_repo or f"lg-{name}-{a.workers}-{a.seed}-{secrets.token_hex(2)}"
         suite = gateway_suite(load_suite(arena))
         config["beanstalk_repo"] = f"{a.bs_owner}/{bs_repo}"
+        config["beanstalk_engine_settings"] = engine_settings(a)
 
         def factory(git, work, log):
             if BEANSTALK_CLIENT_FACTORY:
@@ -152,7 +170,8 @@ def run_one(a: argparse.Namespace) -> dict:
             else:
                 if not a.gateway:
                     raise SystemExit("--gateway (or $BEANSTALK_GATEWAY) is required")
-                client = BeanstalkClient(a.gateway, admin_token(a.dev_vars), a.bs_owner, bs_repo)
+                client = BeanstalkClient(a.gateway, admin_token(a.dev_vars), a.bs_owner, bs_repo,
+                                         engine_settings=engine_settings(a))
             config["beanstalk_engine"] = client.engine
             return BeanstalkForge(git, work, client, suite=suite, log=log, keep_repo=a.keep_repo)
 
