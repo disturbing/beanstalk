@@ -144,12 +144,13 @@ class GitHubForge(Forge):
     async def _push(self, refspec: str, what: str) -> None:
         wait = await self.limiter.push()
         t0 = time.monotonic()
-        for attempt in range(3):
+        for attempt in range(5):
             res = await self.net.run("push", "-q", "--no-verify", self.client.push_url, refspec, check=False,
                                      timeout=300)
-            if res.returncode == 0 or "rejected" in res.stderr:
+            # a rejection with a reason is final; GitHub's bare "(failed)" (seen 2026-10-07) and network errors pass
+            if res.returncode == 0 or ("rejected" in res.stderr and "(failed)" not in res.stderr):
                 break
-            await asyncio.sleep(3.0 * (attempt + 1))
+            await asyncio.sleep(5.0 * (attempt + 1))
         self.stats["pushes"] += 1
         self.log("gh.push", what=what, ref=refspec.split(":")[-1], wait_s=round(wait, 3),
                  push_s=round(time.monotonic() - t0, 3), ok=res.returncode == 0)
@@ -158,11 +159,19 @@ class GitHubForge(Forge):
 
     async def setup(self, base_sha: str) -> str:
         self.base, _workflow, _removed = await github_base(self.git, self.work, base_sha, self.arena, self.opts)
-        await prepare_github_repo(self.client, arena_name=os.path.basename(self.arena), reset=self.opts.reset,
-                                  ruleset=self.ruleset(), push_base=lambda: self._push(f"+{self.base}:refs/heads/main",
-                                                                                      "base"),
-                                  say=lambda m: print(f"[github] {m}", flush=True),
-                                  what="load generator, GitHub arm")
+        for tries in range(3):  # GitHub answered 500 to a ruleset update once (2026-10-07): retry the setup
+            try:
+                await prepare_github_repo(self.client, arena_name=os.path.basename(self.arena),
+                                          reset=self.opts.reset, ruleset=self.ruleset(),
+                                          push_base=lambda: self._push(f"+{self.base}:refs/heads/main", "base"),
+                                          say=lambda m: print(f"[github] {m}", flush=True),
+                                          what="load generator, GitHub arm")
+                break
+            except GitHubError as e:
+                if tries == 2 or (e.status is not None and e.status < 500):
+                    raise
+                self.log("gh.error", where="setup", error=str(e)[:300])
+                await asyncio.sleep(30.0)
         await self.lines.get(force=True)
         self.poller = asyncio.ensure_future(self._poll_loop())
         return self.base
@@ -186,11 +195,21 @@ class GitHubForge(Forge):
 
     async def submit(self, tid: str, sha: str, attempt: int, title: str) -> Outcome:
         branch = f"lg/{tid}"
-        await self._push(f"+{sha}:refs/heads/{branch}", "change")
-        pr = self.prs.get(tid)
+        for tries in range(4):  # a failed push or PR call is retried, then the change is dropped (never the run)
+            try:
+                await self._push(f"+{sha}:refs/heads/{branch}", "change")
+                pr = self.prs.get(tid)
+                if pr is None:
+                    number, node = await self.client.create_pr(branch, title, f"Task: {tid}\n\nPushed by the "
+                                                               "Beanstalk load generator (reference solution).\n")
+                break
+            except (GitError, GitHubError) as e:
+                self.stats["push_errors"] = self.stats.get("push_errors", 0) + 1
+                self.log("gh.error", where="submit", task=tid, error=str(e)[:300])
+                if tries == 3:
+                    return Outcome("dropped", time.time(), reason=f"push or PR failed: {str(e)[:200]}")
+                await asyncio.sleep(30.0 * (tries + 1))
         if pr is None:
-            number, node = await self.client.create_pr(branch, title, f"Task: {tid}\n\nPushed by the Beanstalk load "
-                                                                      "generator (reference solution, no agent).\n")
             pr = PR(task=tid, number=number, node_id=node)
             self.prs[tid], self.by_number[number] = pr, pr
             self.stats["prs"] += 1
