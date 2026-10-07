@@ -38,7 +38,27 @@ export type StartConfig = {
   readonly mcpUrl: string;
   /** The web app's origin (where `setup.sh` and Settings live). */
   readonly webOrigin: string;
+  /** Git over SSH, once the deployment has an SSH endpoint (`SSH_HOST`). */
+  readonly ssh?: SshEndpoint;
 };
+
+/** The SSH endpoint: its host and the host key's fingerprint people check on first connect. */
+export type SshEndpoint = { readonly host: string; readonly hostKeyFingerprint: string };
+
+/** The SSH endpoint the vars describe, or undefined when `SSH_HOST` is empty. */
+export function sshEndpoint(vars: {
+  readonly SSH_HOST: string;
+  readonly SSH_HOST_KEY_FINGERPRINT: string;
+}): SshEndpoint | undefined {
+  const host = vars.SSH_HOST.trim();
+  if (host === '') return undefined;
+  return { host, hostKeyFingerprint: vars.SSH_HOST_KEY_FINGERPRINT.trim() };
+}
+
+/** `ssh://git@<host>/<owner>/<repo>.git`. */
+export function sshCloneUrl(endpoint: SshEndpoint, owner: string, name: string): string {
+  return `ssh://git@${endpoint.host}/${owner}/${name}.git`;
+}
 
 export type StartGuide = {
   readonly cloneUrl: string;
@@ -58,6 +78,8 @@ export type StartGuide = {
   readonly https: { readonly tokensPath: string; readonly urlWithToken: string };
   /** The gateway origin the Env vars tab configures. */
   readonly gitOrigin: string;
+  /** The SSH clone URL and the host key fingerprint, when the deployment serves SSH. */
+  readonly ssh: { readonly cloneUrl: string; readonly hostKeyFingerprint: string } | null;
 };
 
 /**
@@ -103,6 +125,13 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
       urlWithToken: cloneUrl.replace(/^https:\/\//, 'https://x:<token>@'),
     },
     gitOrigin: origin,
+    ssh:
+      config.ssh === undefined
+        ? null
+        : {
+            cloneUrl: sshCloneUrl(config.ssh, owner, name),
+            hostKeyFingerprint: config.ssh.hostKeyFingerprint,
+          },
   };
 }
 

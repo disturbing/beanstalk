@@ -14,8 +14,7 @@ import { ADMIN, call, json, pkt, sha } from './helpers';
  */
 const gateway = exports.default;
 
-const ACME_KEY =
-  'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIHC3jkKzIOQKqqCzklwU5wRpVYmBoVhimrFpuuRc150';
+const ACME_KEY = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIHC3jkKzIOQKqqCzklwU5wRpVYmBoVhimrFpuuRc150';
 /** As `ssh-keygen -lf` prints it for ACME_KEY. */
 const ACME_FINGERPRINT = 'SHA256:O+CEc3U9EWkmw9BOf2FM3jRlkKVlSI65II9p6TrH2rI';
 const OTHER_KEY =
@@ -26,7 +25,12 @@ const ACME = { id: 'u-acme-ssh', handle: 'acme' };
 
 beforeAll(async () => {
   await insertUser(env, { ...ACME, email: null }, Date.now()).run();
-  const added = await addSshKey(env, { userId: ACME.id, publicKey: ACME_KEY, name: 'laptop', ip: null });
+  const added = await addSshKey(env, {
+    userId: ACME.id,
+    publicKey: ACME_KEY,
+    name: 'laptop',
+    ip: null,
+  });
   expect(added.ok).toBe(true);
 });
 
@@ -56,7 +60,8 @@ function advertise(key: string, path: string, service: string): Promise<Response
 function push(key: string, path: string, input: { ref: string; options?: string[] }) {
   const options = input.options ?? [];
   const caps = `report-status side-band-64k${options.length > 0 ? ' push-options' : ''}`;
-  const optionSection = options.length > 0 ? `${options.map((o) => pkt(`${o}\n`)).join('')}0000` : '';
+  const optionSection =
+    options.length > 0 ? `${options.map((o) => pkt(`${o}\n`)).join('')}0000` : '';
   return async (newSha: string): Promise<Response> => {
     const commits = { [newSha]: { message: 'Add a total helper', parents: [], files: {} } };
     const body = `${pkt(`${ZERO} ${newSha} ${input.ref}\0${caps}\n`)}0000${optionSection}PACK${JSON.stringify({ commits })}`;
@@ -76,7 +81,7 @@ function push(key: string, path: string, input: { ref: string; options?: string[
 async function remoteLines(response: Response): Promise<string> {
   const text = await response.text();
   let remote = '';
-  for (let offset = 0; offset + 4 <= text.length; ) {
+  for (let offset = 0; offset + 4 <= text.length;) {
     const length = Number.parseInt(text.slice(offset, offset + 4), 16);
     if (length === 0) {
       offset += 4;
@@ -100,7 +105,12 @@ describe('git over SSH: keys', () => {
   it('forgets a key its owner removed', async () => {
     const user = { id: 'u-gone', handle: 'gone' };
     await insertUser(env, { ...user, email: null }, Date.now()).run();
-    const added = await addSshKey(env, { userId: user.id, publicKey: OTHER_KEY, name: 'old', ip: null });
+    const added = await addSshKey(env, {
+      userId: user.id,
+      publicKey: OTHER_KEY,
+      name: 'old',
+      ip: null,
+    });
     expect(await gateway.sshKeyLookup(OTHER_KEY, false)).toMatchObject({ handle: 'gone' });
     if (added.ok) await removeSshKey(env, { userId: user.id, keyId: added.key.id, ip: null });
     expect(await gateway.sshKeyLookup(OTHER_KEY, false)).toBeNull();
@@ -160,7 +170,11 @@ describe('git over SSH: the same flow as HTTPS', () => {
   });
 
   it('serves no race repository over SSH', async () => {
-    const response = await advertise(ACME_KEY, '/git/beanstalk-race/race-r1.git', 'git-upload-pack');
+    const response = await advertise(
+      ACME_KEY,
+      '/git/beanstalk-race/race-r1.git',
+      'git-upload-pack',
+    );
     expect(response.status).toBe(404);
     expect(await response.text()).toContain('race repos are served over HTTPS');
   });

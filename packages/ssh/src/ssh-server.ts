@@ -94,7 +94,11 @@ export class SshServer extends Container<Env> {
   async #forward(socket: Socket): Promise<{ bytesIn: number; bytesOut: number }> {
     const container = this.ctx.container;
     if (container === undefined) throw new Error('this Durable Object has no container');
-    await this.startAndWaitForPorts(HEALTH_PORT);
+    await this.startAndWaitForPorts(HEALTH_PORT).catch((error: unknown) => {
+      // A cold start can fail once (an instance being replaced); the client is still waiting.
+      this.#log.warn('ssh container start failed; retrying once', { error });
+      return this.startAndWaitForPorts(HEALTH_PORT);
+    });
     const upstream = container.getTcpPort(SSH_PORT).connect(`10.0.0.1:${SSH_PORT}`);
     await upstream.opened;
     let renewedMs = 0;

@@ -55,7 +55,11 @@ const app = new Hono<AppEnv>()
   .notFound((c) => c.text('not found', 404));
 
 /** Forwards one connection (a TCP socket or the tunnel) to a pool instance's SSH server. */
-async function forward(client: Duplex, env: Env, config: SshConfig = readConfig(env)): Promise<void> {
+async function forward(
+  client: Duplex,
+  env: Env,
+  config: SshConfig = readConfig(env),
+): Promise<void> {
   const log = createLogger(config.logLevel, { component: 'ssh-ingress' });
   const instance = poolInstance(config.poolSize);
   const upstream = env.SSH_SERVERS.getByName(instance).connect(`ssh-server:${SSH_PORT}`);

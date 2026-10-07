@@ -133,6 +133,12 @@ def refusals(out, git_env: dict, url: str, stranger_key: str, client_key: str) -
 def main() -> None:
     transcript = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "ssh-local-transcript.txt")
     host_key, client_key = keygen("host_ed25519"), keygen("client_ed25519")
+    # A container left by an earlier run would hold the instance's name: start clean.
+    stale = subprocess.run(["docker", "ps", "-aq", "--filter", f"name=workerd-{SSH_WORKER}-"],
+                           capture_output=True, text=True).stdout.split()
+    if stale:
+        subprocess.run(["docker", "rm", "-f", *stale], capture_output=True)
+    shutil.rmtree(os.path.join(devstack.LOCAL, "ssh-state"), ignore_errors=True)
     configs = devstack.configure()
     gateway_config = os.path.join(devstack.LOCAL, "gateway", "wrangler.json")
     gateway = devstack.jsonc(gateway_config)

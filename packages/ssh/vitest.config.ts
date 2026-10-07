@@ -40,9 +40,7 @@ export default defineConfig({
           LOG_LEVEL: 'error',
         },
         serviceBindings: { GATEWAY: 'fake-gateway' },
-        workers: [
-          { name: 'fake-gateway', modules: true, script: FAKE_GATEWAY, compatibilityDate },
-        ],
+        workers: [{ name: 'fake-gateway', modules: true, script: FAKE_GATEWAY, compatibilityDate }],
       },
     }),
   ],

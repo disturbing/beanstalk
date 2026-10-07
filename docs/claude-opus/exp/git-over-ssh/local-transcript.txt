@@ -1,5 +1,5 @@
 # local stack: git + OpenSSH -> beanstalk-ssh Worker connect() -> SshServer DO -> SSH server container -> gateway (service binding) under wrangler dev; git http-backend; node --test checks
-# engine r870da1d13f66a7f5f4e, clone URL ssh://git@127.0.0.1:2232/acme/sshdemof6a8c2.git
+# engine r5bf8e6ba012a7a0f444, clone URL ssh://git@127.0.0.1:2232/acme/sshdemode2ff5.git
 # host key SHA256:HvxzIuIbXYcnI4jyrNPct5hFc50Kjru7qC/R6OXAl8o (throwaway); client key SHA256:8uZ69q5r9Zj1n+CJxQUEKqg7MWlsCyVYL1/+bg6nkrs registered to @acme
 
 $ ssh -p PORT git@127.0.0.1   (no shell: the greeting names the key's owner)
@@ -9,11 +9,11 @@ Hi @acme! Your key works (SHA256:8uZ69q5r9Zj1n+CJxQUEKqg7MWlsCyVYL1/+bg6nkrs). B
 
 # clone with git's credential helper (the token is never in the URL or the output)
 
-$ git -c credential.helper= -c credential.helper=<token helper> clone ssh://git@127.0.0.1:2232/acme/sshdemof6a8c2.git repo 
+$ git -c credential.helper= -c credential.helper=<token helper> clone ssh://git@127.0.0.1:2232/acme/sshdemode2ff5.git repo 
 Cloning into 'repo'...
 
 $ git fetch origin sprout stalk 
-From ssh://127.0.0.1:2232/acme/sshdemof6a8c2
+From ssh://127.0.0.1:2232/acme/sshdemode2ff5
  * branch            sprout     -> FETCH_HEAD
  * branch            stalk      -> FETCH_HEAD
 
@@ -24,44 +24,44 @@ branch 'base' set up to track 'origin/sprout'.
 # bean 1: the project's first code, pushed as a bean and held for its verdict
 
 $ git push -o wait origin HEAD:refs/heads/bean/add-total 
-remote: beanstalk: new bean add-total received at 96a60ef: "Add a total helper"        
+remote: beanstalk: new bean add-total received at 2dcb6e8: "Add a total helper"        
 remote: beanstalk:   for task DEMO-1        
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
 remote: beanstalk: pre-land check green on the merged tree (0.1 s)        
-remote: beanstalk: LANDED: add-total passed its pre-land check and is on the sprout as 2b4ac24        
+remote: beanstalk: LANDED: add-total passed its pre-land check and is on the sprout as 4e4c0bb        
 remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
 remote: beanstalk:   web: http://127.0.0.1:5461/beans/add-total        
-remote: beanstalk: validated: on the stalk at 2b4ac24        
+remote: beanstalk: validated: on the stalk at 4e4c0bb        
 remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-total/status        
-To ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git
+To ssh://127.0.0.1:2232/acme/sshdemode2ff5.git
  * [new branch]      HEAD -> bean/add-total
 
 # two agents start from the same sprout
 
 $ git fetch origin sprout 
-From ssh://127.0.0.1:2232/acme/sshdemof6a8c2
+From ssh://127.0.0.1:2232/acme/sshdemode2ff5
  * branch            sprout     -> FETCH_HEAD
-   ff0088c..2b4ac24  sprout     -> origin/sprout
+   0e34122..4e4c0bb  sprout     -> origin/sprout
 
 # agent A, bean 2: discounts, built on total()
 
 $ git push -o wait origin HEAD:refs/heads/bean/add-discount 
-remote: beanstalk: new bean add-discount received at e4480c1: "Add percentage discounts"        
+remote: beanstalk: new bean add-discount received at 27fafa4: "Add percentage discounts"        
 remote: beanstalk:   for task DEMO-2        
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
 remote: beanstalk: pre-land check green on the merged tree (0.2 s)        
-remote: beanstalk: LANDED: add-discount passed its pre-land check and is on the sprout as 8c49027        
+remote: beanstalk: LANDED: add-discount passed its pre-land check and is on the sprout as 53bafc3        
 remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
 remote: beanstalk:   web: http://127.0.0.1:5461/beans/add-discount        
-remote: beanstalk: validated: on the stalk at 8c49027        
+remote: beanstalk: validated: on the stalk at 53bafc3        
 remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-discount/status        
-To ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git
+To ssh://127.0.0.1:2232/acme/sshdemode2ff5.git
  * [new branch]      HEAD -> bean/add-discount
 
 # agent B, bean 3 (written in parallel, from the old sprout): tax inside total()
 
 $ git push -o wait origin HEAD:refs/heads/bean/tax-in-total 
-remote: beanstalk: new bean tax-in-total received at 0eda397: "Charge 10% tax in totals"        
+remote: beanstalk: new bean tax-in-total received at 6cb8f6c: "Charge 10% tax in totals"        
 remote: beanstalk:   for task DEMO-3        
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
 remote: beanstalk: pre-land check red (1 failing, 0.2 s)        
@@ -79,36 +79,36 @@ remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
 remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total        
 remote: beanstalk:   web: http://127.0.0.1:5461/beans/tax-in-total        
 remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
-To ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git
+To ssh://127.0.0.1:2232/acme/sshdemode2ff5.git
  * [new branch]      HEAD -> bean/tax-in-total
 
 # landing is never a push: the sprout refuses it
 
 $ git push --force origin HEAD:refs/heads/sprout 
 remote: beanstalk: push refused: refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green        
-To ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git
+To ssh://127.0.0.1:2232/acme/sshdemode2ff5.git
  ! [remote rejected] HEAD -> sprout (refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green)
-error: failed to push some refs to 'ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git'
+error: failed to push some refs to 'ssh://127.0.0.1:2232/acme/sshdemode2ff5.git'
 
 # the verdict is also a ref anyone can fetch
 
 $ git fetch origin +refs/beans/*:refs/beans/* 
-From ssh://127.0.0.1:2232/acme/sshdemof6a8c2
+From ssh://127.0.0.1:2232/acme/sshdemode2ff5
  * [new ref]         refs/beans/add-discount/status -> refs/beans/add-discount/status
  * [new ref]         refs/beans/add-total/status -> refs/beans/add-total/status
  * [new ref]         refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status
 
 $ git cat-file -p refs/beans/tax-in-total/status 
-object 0eda3976075bfe4816f913accd9fd369bc813d39
+object 6cb8f6ce227c219791692be445c571d4613dfa05
 type commit
 tag beans/tax-in-total/status
-tagger beanstalk <engine@beanstalk.invalid> 1791371462 +0000
+tagger beanstalk <engine@beanstalk.invalid> 1791371660 +0000
 
 red: 1 failing test(s) on the merged tree
 
 bean: tax-in-total
 title: Charge 10% tax in totals
-head: 0eda3976075bfe4816f913accd9fd369bc813d39
+head: 6cb8f6ce227c219791692be445c571d4613dfa05
 push: 1
 task: DEMO-3
 
@@ -129,59 +129,59 @@ fix: git fetch origin sprout && git rebase origin/sprout
 # agent B fixes as told: rebase onto the sprout, keep both intents (tax as its own function)
 
 $ git fetch origin sprout 
-From ssh://127.0.0.1:2232/acme/sshdemof6a8c2
+From ssh://127.0.0.1:2232/acme/sshdemode2ff5
  * branch            sprout     -> FETCH_HEAD
-   2b4ac24..8c49027  sprout     -> origin/sprout
+   4e4c0bb..53bafc3  sprout     -> origin/sprout
 
 $ git rebase origin/sprout 
 Rebasing (1/1)Successfully rebased and updated refs/heads/tax.
 
 $ git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total 
-remote: beanstalk: bean tax-in-total received at 8af0acc: "Charge 10% tax in totals"        
+remote: beanstalk: bean tax-in-total received at 09827aa: "Charge 10% tax in totals"        
 remote: beanstalk:   for task DEMO-3        
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
 remote: beanstalk: pre-land check green on the merged tree (0.2 s)        
-remote: beanstalk: LANDED: tax-in-total passed its pre-land check and is on the sprout as 52e2020        
+remote: beanstalk: LANDED: tax-in-total passed its pre-land check and is on the sprout as 08215be        
 remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
 remote: beanstalk:   web: http://127.0.0.1:5461/beans/tax-in-total        
-remote: beanstalk: validated: on the stalk at 52e2020        
+remote: beanstalk: validated: on the stalk at 08215be        
 remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
-To ssh://127.0.0.1:2232/acme/sshdemof6a8c2.git
- + 0eda397...8af0acc HEAD -> bean/tax-in-total (forced update)
+To ssh://127.0.0.1:2232/acme/sshdemode2ff5.git
+ + 6cb8f6c...09827aa HEAD -> bean/tax-in-total (forced update)
 
 # the stalk follows once CI validates the sprout
 
 $ git fetch origin sprout stalk +refs/beans/*:refs/beans/* 
-From ssh://127.0.0.1:2232/acme/sshdemof6a8c2
+From ssh://127.0.0.1:2232/acme/sshdemode2ff5
  * branch            sprout     -> FETCH_HEAD
  * branch            stalk      -> FETCH_HEAD
- + 0eda397...c8d1df5 refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status  (forced update)
-   8c49027..52e2020  sprout     -> origin/sprout
-   ff0088c..52e2020  stalk      -> origin/stalk
+ + 6cb8f6c...a1c5778 refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status  (forced update)
+   53bafc3..08215be  sprout     -> origin/sprout
+   0e34122..08215be  stalk      -> origin/stalk
 
 $ git log --oneline -5 origin/sprout 
-52e2020 Charge 10% tax in totals
-8c49027 Add percentage discounts
-2b4ac24 Add a total helper
-ff0088c Start the repository
+08215be Charge 10% tax in totals
+53bafc3 Add percentage discounts
+4e4c0bb Add a total helper
+0e34122 Start the repository
 
 $ git cat-file -p refs/beans/tax-in-total/status 
-object 8af0acc42a9470775f37dbc8517771249362a043
+object 09827aa993a65cf9e16db05746e7d707e9918da9
 type commit
 tag beans/tax-in-total/status
-tagger beanstalk <engine@beanstalk.invalid> 1791371465 +0000
+tagger beanstalk <engine@beanstalk.invalid> 1791371664 +0000
 
-green: validated; on the stalk at 52e2020
+green: validated; on the stalk at 08215be
 
 bean: tax-in-total
 title: Charge 10% tax in totals
-head: 8af0acc42a9470775f37dbc8517771249362a043
+head: 09827aa993a65cf9e16db05746e7d707e9918da9
 push: 2
 task: DEMO-3
-landed: 52e202066abba74312beb84729ffa500b218dffb
+landed: 08215beaf5aac80ed55615decb554355eaf2c60d
 
 # a key nobody registered
-$ git ls-remote ssh://git@127.0.0.1:2232/acme/sshdemof6a8c2.git sprout
+$ git ls-remote ssh://git@127.0.0.1:2232/acme/sshdemode2ff5.git sprout
 git@127.0.0.1: Permission denied (publickey).
 fatal: Could not read from remote repository.
 
@@ -190,7 +190,7 @@ and the repository exists.
 (exit 128)
 
 # protocol v0 fetches are refused with the fix
-$ git -c protocol.version=0 ls-remote ssh://git@127.0.0.1:2232/acme/sshdemof6a8c2.git
+$ git -c protocol.version=0 ls-remote ssh://git@127.0.0.1:2232/acme/sshdemode2ff5.git
 beanstalk: fetching over SSH needs git protocol v2 (git 2.26 or newer does it by default; otherwise run: git config --global protocol.version 2)
 fatal: Could not read from remote repository.
 
@@ -199,8 +199,8 @@ and the repository exists.
 (exit 128)
 
 # another owner's (or a missing) repository reads as missing
-$ git ls-remote ssh://git@127.0.0.1:2232/dana/sshdemof6a8c2.git
-beanstalk: no repository dana/sshdemof6a8c2
+$ git ls-remote ssh://git@127.0.0.1:2232/dana/sshdemode2ff5.git
+beanstalk: no repository dana/sshdemode2ff5
 fatal: Could not read from remote repository.
 
 Please make sure you have the correct access rights

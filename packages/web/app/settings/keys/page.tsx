@@ -8,6 +8,8 @@ import styles from '../../../components/account/account.module.css';
 import { formatDate } from '../../../components/account/scope-chips';
 import { SettingsTabs } from '../../../components/account/settings-tabs';
 import { currentSession } from '../../../src/auth/user';
+import type { SshEndpoint } from '../../../src/repositories/paths';
+import { sshEndpoint } from '../../../src/repositories/paths';
 
 export const metadata = { title: 'SSH keys' };
 /** Per person and per request: never prerendered or cached. */
@@ -63,6 +65,7 @@ export default async function SshKeysPage({ searchParams }: PageProps) {
             <KeyTable keys={keys} csrf={session.csrfToken} />
           )}
         </section>
+        <ServerKey endpoint={sshEndpoint(env)} />
         <section className={styles.section} aria-labelledby="paste-title">
           <h2 id="paste-title" className={styles.sectionTitle}>
             Add a key by hand
@@ -101,6 +104,28 @@ export default async function SshKeysPage({ searchParams }: PageProps) {
         </section>
       </section>
     </main>
+  );
+}
+
+/** The server's host key, so a person can check what `ssh` shows on first connect. */
+function ServerKey({ endpoint }: { readonly endpoint: SshEndpoint | undefined }) {
+  if (endpoint === undefined || endpoint.hostKeyFingerprint === '') return null;
+  return (
+    <section className={styles.section} aria-labelledby="host-key-title">
+      <h2 id="host-key-title" className={styles.sectionTitle}>
+        Beanstalk&apos;s host key
+      </h2>
+      <p className={styles.note}>
+        The first time you connect to <code>{endpoint.host}</code>, <code>ssh</code> shows the
+        server&apos;s key fingerprint. Continue only if it matches:
+      </p>
+      <dl className={styles.facts}>
+        <dt>Host</dt>
+        <dd className={styles.mono}>{endpoint.host}</dd>
+        <dt>Fingerprint</dt>
+        <dd className={styles.mono}>{endpoint.hostKeyFingerprint}</dd>
+      </dl>
+    </section>
   );
 }
 

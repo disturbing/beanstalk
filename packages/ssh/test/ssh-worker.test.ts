@@ -31,7 +31,10 @@ describe('the container’s way out (gateway.internal)', () => {
   });
 
   it('answers 404 for a key nobody registered and 400 for a malformed lookup', async () => {
-    const unknown = await routeOutbound(lookup({ public_key: 'ssh-rsa X', confirm: false }), binding());
+    const unknown = await routeOutbound(
+      lookup({ public_key: 'ssh-rsa X', confirm: false }),
+      binding(),
+    );
     expect(unknown.status).toBe(404);
     const malformed = await routeOutbound(lookup({ key: KNOWN }), binding());
     expect(malformed.status).toBe(400);
