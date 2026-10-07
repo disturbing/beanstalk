@@ -103,6 +103,22 @@ export const AffectedAnswer = z.object({
 });
 export type AffectedAnswer = z.infer<typeof AffectedAnswer>;
 
+/** One traced tree: its manifest (null when unknown) and each test file's map there. */
+export const ReadMapTree = z.object({
+  tree: z.string(),
+  blobs: z.record(z.string(), z.string()).nullable(),
+  maps: z.array(
+    z.object({
+      test: z.string(),
+      reads: z.array(z.string()),
+      probes: z.array(z.string()),
+      dirs: z.array(z.string()),
+      packages: z.array(z.string()),
+    }),
+  ),
+});
+export type ReadMapTree = z.infer<typeof ReadMapTree>;
+
 /** What the store holds, for the run's read views. */
 export const ReadMapSummary = z.object({
   /** Test files with at least one map. */

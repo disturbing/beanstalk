@@ -45,6 +45,11 @@ const StopBody = z.strictObject({ reason: z.string().min(1).max(200).default('st
 
 const ReapBody = z.strictObject({ dry_run: z.boolean().default(true) });
 
+const TreeParams = z.object({
+  run: RunParam.shape.run,
+  tree: z.string().regex(/^[0-9a-f]{40}([0-9a-f]{24})?(\+[0-9a-f]+)?$/),
+});
+
 const CardParams = z.object({ run: RunParam.shape.run, card: z.string().regex(/^D\d{3,6}$/) });
 
 export const adminRoutes = new Hono<AppEnv>()
@@ -189,6 +194,10 @@ export const readRoutes = new Hono<AppEnv>()
   )
   .get('/:run/read-maps', requireReader, validate('param', RunParam), async (c) => {
     return c.json(unwrap(await c.var.deps.run(c.req.valid('param').run).readMapSummary()));
+  })
+  .get('/:run/read-maps/trees/:tree', requireReader, validate('param', TreeParams), async (c) => {
+    const { run, tree } = c.req.valid('param');
+    return c.json(unwrap(await c.var.deps.run(run).readMapTree(tree)));
   })
   .post(
     '/:run/read-maps/affected',

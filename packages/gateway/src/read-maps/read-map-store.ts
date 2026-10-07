@@ -13,6 +13,7 @@ import type {
   CheckReadMaps,
   CheckedTree,
   ReadMapSummary,
+  ReadMapTree,
 } from '@beanstalk/shared-race/read-maps';
 
 import type { Manifest, StoredReadMap } from './affected-tests';
@@ -27,6 +28,8 @@ export type ReadMapIndex = {
   affectedTests(query: AffectedQuery): AffectedAnswer;
   /** Whether `tree` has maps (a traced check of it reported). */
   hasMaps(tree: string): boolean;
+  /** The maps traced on `tree` and its manifest (for inspection); null when nothing is known. */
+  tree(tree: string): ReadMapTree | null;
   summary(): ReadMapSummary;
 };
 
@@ -143,8 +146,22 @@ export function sqlReadMapIndex(sql: SqlStorage): ReadMapIndex {
     hasMaps: (tree) =>
       sql.exec<{ n: number }>('SELECT COUNT(*) AS n FROM read_maps WHERE tree = ?', tree).one().n >
       0,
+    tree: (tree) => treeView(sql, tree),
     summary: () => summarize(sql),
   };
+}
+
+function treeView(sql: SqlStorage, tree: string): ReadMapTree | null {
+  const manifest = loadManifest(sql, tree);
+  const maps = [...loadMaps(sql, tree).values()].map(({ test, reads, probes, dirs, packages }) => ({
+    test,
+    reads: [...reads],
+    probes: [...probes],
+    dirs: [...dirs],
+    packages: [...packages],
+  }));
+  if (manifest === null && maps.length === 0) return null;
+  return { tree, blobs: manifest === null ? null : Object.fromEntries(manifest), maps };
 }
 
 function answer(sql: SqlStorage, query: AffectedQuery): AffectedAnswer {

@@ -53,6 +53,7 @@ import type {
   AffectedAnswer,
   AffectedQuery,
   ReadMapSummary,
+  ReadMapTree,
 } from '@beanstalk/shared-race/read-maps';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
@@ -592,6 +593,16 @@ export class RunDO extends DurableObject<Env> {
     this.#countRequest();
     if (this.#loaded === null) return notFound();
     return { ok: true, value: sqlReadMapIndex(this.ctx.storage.sql).summary() };
+  }
+
+  /** The maps traced on one tree and its manifest. */
+  async readMapTree(tree: string): Promise<RunResult<ReadMapTree>> {
+    this.#countRequest();
+    if (this.#loaded === null) return notFound();
+    const view = sqlReadMapIndex(this.ctx.storage.sql).tree(tree);
+    return view === null
+      ? failure('not_found', 404, `no read maps of ${tree}`)
+      : { ok: true, value: view };
   }
 
   /** The test files that may observe `query.changes`, from the run's read maps. */

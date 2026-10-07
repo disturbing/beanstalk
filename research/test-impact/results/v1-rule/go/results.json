@@ -1,0 +1,3191 @@
+{
+ "lang": "go",
+ "units": [
+  "internal/cart/cart_test.go",
+  "internal/catalog/catalog_test.go",
+  "internal/currency/currency_test.go",
+  "internal/discounts/discounts_test.go",
+  "internal/ids/ids_test.go",
+  "internal/inventory/inventory_test.go",
+  "internal/invoice/invoice_test.go",
+  "internal/money/money_test.go",
+  "internal/orders/orders_test.go",
+  "internal/payments/payments_test.go",
+  "internal/plugins/plugins_test.go",
+  "internal/pricing/pricing_test.go",
+  "internal/reports/reports_test.go",
+  "internal/shipping/shipping_test.go",
+  "internal/storage/storage_test.go",
+  "internal/tax/tax_test.go",
+  "internal/util/strutil/strutil_test.go",
+  "internal/util/validation/validation_test.go"
+ ],
+ "baseline": {
+  "internal/cart/cart_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17146262497408316,
+   "traced_s": 0.8339581670006737,
+   "files": 25
+  },
+  "internal/catalog/catalog_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1707902910420671,
+   "traced_s": 0.836732083989773,
+   "files": 15
+  },
+  "internal/currency/currency_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17027354199672118,
+   "traced_s": 0.9895117089617997,
+   "files": 11
+  },
+  "internal/discounts/discounts_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22551225003553554,
+   "traced_s": 1.5231988340383396,
+   "files": 33
+  },
+  "internal/ids/ids_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2208340840297751,
+   "traced_s": 0.9913846669951454,
+   "files": 5
+  },
+  "internal/inventory/inventory_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22139116696780547,
+   "traced_s": 1.2607472499948926,
+   "files": 24
+  },
+  "internal/invoice/invoice_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22258229204453528,
+   "traced_s": 1.0914371669641696,
+   "files": 69
+  },
+  "internal/money/money_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17175983299966902,
+   "traced_s": 0.8854277919745073,
+   "files": 5
+  },
+  "internal/orders/orders_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2745985420187935,
+   "traced_s": 0.8837340419995598,
+   "files": 64
+  },
+  "internal/payments/payments_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22721895901486278,
+   "traced_s": 1.4705993339885026,
+   "files": 8
+  },
+  "internal/plugins/plugins_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22333079198142514,
+   "traced_s": 1.1486082920455374,
+   "files": 19
+  },
+  "internal/pricing/pricing_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.3391208740067668,
+   "traced_s": 1.4256381259765476,
+   "files": 54
+  },
+  "internal/reports/reports_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2819862919859588,
+   "traced_s": 0.997751499991864,
+   "files": 67
+  },
+  "internal/shipping/shipping_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2230814170325175,
+   "traced_s": 1.1900056670419872,
+   "files": 32
+  },
+  "internal/storage/storage_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.222872958984226,
+   "traced_s": 1.351542917022016,
+   "files": 7
+  },
+  "internal/tax/tax_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.22177450003800914,
+   "traced_s": 1.1421129999798723,
+   "files": 14
+  },
+  "internal/util/strutil/strutil_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.27766070899087936,
+   "traced_s": 0.8356067089480348,
+   "files": 6
+  },
+  "internal/util/validation/validation_test.go": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.2767477079760283,
+   "traced_s": 1.1745990840136074,
+   "files": 6
+  }
+ },
+ "full_s": 0.48185016703791916,
+ "full_traced_s": 3.31382700096583,
+ "mutations": [
+  {
+   "i": 0,
+   "kind": "code",
+   "desc": "internal/invoice/invoice.go:31 str \"Total\"+x",
+   "files": [
+    "internal/invoice/invoice.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.272636917012278,
+   "full_s": 0.6948848330066539,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 1,
+   "kind": "code",
+   "desc": "internal/catalog/products.go:29 rename rename Error",
+   "files": [
+    "internal/catalog/products.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12236649997066706,
+   "full_s": 0.5379344589891843,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/catalog/catalog_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 0
+   }
+  },
+  {
+   "i": 2,
+   "kind": "code",
+   "desc": "internal/money/money.go:56 num 100->101",
+   "files": [
+    "internal/money/money.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go",
+    "internal/orders/orders_test.go",
+    "internal/payments/payments_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8483627919922583,
+   "full_s": 0.9605382499867119,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/money/money_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 14,
+    "run": 0
+   }
+  },
+  {
+   "i": 3,
+   "kind": "code",
+   "desc": "internal/catalog/products.go:49 cmp !=->==",
+   "files": [
+    "internal/catalog/products.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5453661250066943,
+   "full_s": 1.1419696669909172,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/catalog/catalog_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 0
+   }
+  },
+  {
+   "i": 4,
+   "kind": "code",
+   "desc": "internal/cart/line.go:15 rename rename Total",
+   "files": [
+    "internal/cart/line.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12375141598749906,
+   "full_s": 0.7001650420133956,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 5,
+   "kind": "code",
+   "desc": "internal/coupons/coupons.go:17 rename rename Parse",
+   "files": [
+    "internal/coupons/coupons.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5066977089736611,
+   "full_s": 1.398247625969816,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 6,
+   "kind": "code",
+   "desc": "internal/plugins/registry.go:56 cmp !=->==",
+   "files": [
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.9763534169760533,
+   "full_s": 0.916835916985292,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 7,
+   "kind": "code",
+   "desc": "internal/config/config.go:28 cmp !=->==",
+   "files": [
+    "internal/config/config.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7304627500125207,
+   "full_s": 0.9007272080052644,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 8,
+   "kind": "code",
+   "desc": "internal/config/config.go:19 rename rename Load",
+   "files": [
+    "internal/config/config.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2272437919746153,
+   "full_s": 0.542249542020727,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 9,
+   "kind": "code",
+   "desc": "internal/plugins/registry.go:43 num 0->1",
+   "files": [
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3837703330209479,
+   "full_s": 0.9961232509813271,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 10,
+   "kind": "code",
+   "desc": "internal/payments/payments.go:32 rename rename Charge",
+   "files": [
+    "internal/payments/payments.go"
+   ],
+   "selected": [
+    "internal/payments/payments_test.go"
+   ],
+   "failing": [
+    "internal/payments/payments_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22896579199004918,
+   "full_s": 1.4979492919519544,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/payments/payments_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 11,
+   "kind": "code",
+   "desc": "internal/paths/paths.go:45 rename rename Config",
+   "files": [
+    "internal/paths/paths.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4850045840139501,
+   "full_s": 1.2374951260280795,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 0
+   }
+  },
+  {
+   "i": 12,
+   "kind": "code",
+   "desc": "internal/inventory/inventory.go:37 cmp <=-><",
+   "files": [
+    "internal/inventory/inventory.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/inventory/inventory_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.788978207972832,
+   "full_s": 0.8762771670008078,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/inventory/inventory_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 13,
+   "kind": "code",
+   "desc": "internal/reports/sales.go:21 cmp !=->==",
+   "files": [
+    "internal/reports/sales.go"
+   ],
+   "selected": [
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3312548330286518,
+   "full_s": 1.0184897920116782,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 14,
+   "kind": "code",
+   "desc": "internal/invoice/invoice.go:18 rename rename Render",
+   "files": [
+    "internal/invoice/invoice.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2883819169946946,
+   "full_s": 1.5652514590183273,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 15,
+   "kind": "code",
+   "desc": "internal/config/config.go:57 rename rename Number",
+   "files": [
+    "internal/config/config.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7105870830127969,
+   "full_s": 1.173587333993055,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 16,
+   "kind": "code",
+   "desc": "internal/storage/storage.go:24 rename rename All",
+   "files": [
+    "internal/storage/storage.go"
+   ],
+   "selected": [
+    "internal/storage/storage_test.go"
+   ],
+   "failing": [
+    "internal/storage/storage_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.24640270898817107,
+   "full_s": 1.9320948760141619,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/storage/storage_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 17,
+   "kind": "code",
+   "desc": "internal/invoice/invoice.go:19 arith +->-",
+   "files": [
+    "internal/invoice/invoice.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17422995797824115,
+   "full_s": 1.368790959008038,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 18,
+   "kind": "code",
+   "desc": "internal/plugins/registry.go:22 rename rename Register",
+   "files": [
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.23435441602487117,
+   "full_s": 0.9492308339686133,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 19,
+   "kind": "code",
+   "desc": "internal/util/strutil/strutil.go:9 num 9->10",
+   "files": [
+    "internal/util/strutil/strutil.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/util/strutil/strutil_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.7873933340306394,
+   "full_s": 0.8088352089980617,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 2,
+    "run": 0
+   }
+  },
+  {
+   "i": 20,
+   "kind": "code",
+   "desc": "internal/payments/payments.go:10 num 0->1",
+   "files": [
+    "internal/payments/payments.go"
+   ],
+   "selected": [
+    "internal/payments/payments_test.go"
+   ],
+   "failing": [
+    "internal/payments/payments_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5100608339998871,
+   "full_s": 1.2408677089842968,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/payments/payments_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 21,
+   "kind": "code",
+   "desc": "internal/shipping/shipping.go:53 cmp ==->!=",
+   "files": [
+    "internal/shipping/shipping.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4353730409638956,
+   "full_s": 0.793601417040918,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 22,
+   "kind": "code",
+   "desc": "internal/plugins/registry.go:40 rename rename Names",
+   "files": [
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4798087499802932,
+   "full_s": 1.001553251000587,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 23,
+   "kind": "code",
+   "desc": "internal/cart/cart.go:41 rename rename Remove",
+   "files": [
+    "internal/cart/cart.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7833615419804119,
+   "full_s": 1.424837916973047,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 24,
+   "kind": "code",
+   "desc": "internal/currency/currency.go:47 num 0->1",
+   "files": [
+    "internal/currency/currency.go"
+   ],
+   "selected": [
+    "internal/currency/currency_test.go"
+   ],
+   "failing": [
+    "internal/currency/currency_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.34595266700489447,
+   "full_s": 0.9742222089553252,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/currency/currency_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 25,
+   "kind": "code",
+   "desc": "internal/coupons/coupons.go:28 cmp !=->==",
+   "files": [
+    "internal/coupons/coupons.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.32623820897424594,
+   "full_s": 1.0868476260220632,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/discounts/discounts_test.go",
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 26,
+   "kind": "code",
+   "desc": "internal/orders/order.go:26 rename rename Move",
+   "files": [
+    "internal/orders/order.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12065604201052338,
+   "full_s": 0.5029236670234241,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 3,
+    "run": 0
+   }
+  },
+  {
+   "i": 27,
+   "kind": "code",
+   "desc": "internal/currency/currency.go:27 rename rename loadRates",
+   "files": [
+    "internal/currency/currency.go"
+   ],
+   "selected": [
+    "internal/currency/currency_test.go"
+   ],
+   "failing": [
+    "internal/currency/currency_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12034841597778723,
+   "full_s": 0.5288029170478694,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/currency/currency_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 28,
+   "kind": "code",
+   "desc": "internal/util/validation/validation.go:18 rename rename IsEmail",
+   "files": [
+    "internal/util/validation/validation.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "failing": [
+    "internal/util/validation/validation_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6828910419717431,
+   "full_s": 0.42907245800597593,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/util/validation/validation_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 0
+   }
+  },
+  {
+   "i": 29,
+   "kind": "code",
+   "desc": "internal/catalog/products.go:29 str \"no product \"+x",
+   "files": [
+    "internal/catalog/products.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.4911828340264037,
+   "full_s": 1.0041166250011884,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 0
+   }
+  },
+  {
+   "i": 30,
+   "kind": "code",
+   "desc": "internal/cart/cart.go:72 rename rename Count",
+   "files": [
+    "internal/cart/cart.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3261761670000851,
+   "full_s": 0.3238446249742992,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 31,
+   "kind": "code",
+   "desc": "internal/plugins/registry.go:54 str \"fee_plugins\"+x",
+   "files": [
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.32563670800300315,
+   "full_s": 0.4769520830013789,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 32,
+   "kind": "code",
+   "desc": "internal/inventory/inventory.go:37 num 0->1",
+   "files": [
+    "internal/inventory/inventory.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3802903749747202,
+   "full_s": 0.5279237509821542,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 33,
+   "kind": "code",
+   "desc": "internal/orders/service.go:28 rename rename Place",
+   "files": [
+    "internal/orders/service.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12039912497857586,
+   "full_s": 0.4258804169949144,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 3,
+    "run": 0
+   }
+  },
+  {
+   "i": 34,
+   "kind": "code",
+   "desc": "internal/paths/paths.go:48 rename rename File",
+   "files": [
+    "internal/paths/paths.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.32555108302040026,
+   "full_s": 0.27278329199180007,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 0
+   }
+  },
+  {
+   "i": 35,
+   "kind": "code",
+   "desc": "internal/payments/payments.go:15 bool false->true",
+   "files": [
+    "internal/payments/payments.go"
+   ],
+   "selected": [
+    "internal/payments/payments_test.go"
+   ],
+   "failing": [
+    "internal/payments/payments_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2197671250323765,
+   "full_s": 0.47525545803364366,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/payments/payments_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 0
+   }
+  },
+  {
+   "i": 36,
+   "kind": "helper",
+   "desc": "internal/testkit/factories.go:12 rename rename CartOf",
+   "files": [
+    "internal/testkit/factories.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2717716670013033,
+   "full_s": 0.32549816701794043,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 37,
+   "kind": "helper",
+   "desc": "internal/testkit/factories.go:16 cmp !=->==",
+   "files": [
+    "internal/testkit/factories.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.9253628749866039,
+   "full_s": 0.6383963749976829,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 38,
+   "kind": "helper",
+   "desc": "internal/testkit/fixtures.go:18 rename rename FixtureOrders",
+   "files": [
+    "internal/testkit/fixtures.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.379287582996767,
+   "full_s": 0.8121745419921353,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 39,
+   "kind": "helper",
+   "desc": "internal/testkit/factories.go:24 rename rename Stocked",
+   "files": [
+    "internal/testkit/factories.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/inventory/inventory_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3740600420278497,
+   "full_s": 0.4769277090090327,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/inventory/inventory_test.go",
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 40,
+   "kind": "helper",
+   "desc": "internal/testkit/fixtures.go:21 cmp !=->==",
+   "files": [
+    "internal/testkit/fixtures.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27429441700223833,
+   "full_s": 0.4761261260136962,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 41,
+   "kind": "data",
+   "desc": "internal/testkit/testdata/orders.json:4 str \"coupon\"+x",
+   "files": [
+    "internal/testkit/testdata/orders.json"
+   ],
+   "selected": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.22135670797433704,
+   "full_s": 0.4311339169507846,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 42,
+   "kind": "data",
+   "desc": "data/catalog.csv:4 num 200->201",
+   "files": [
+    "data/catalog.csv"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.37640641699545085,
+   "full_s": 0.5290872090263292,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 43,
+   "kind": "data",
+   "desc": "internal/tax/tax.json:1 str \"NY\"+x",
+   "files": [
+    "internal/tax/tax.json"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.2738894590293057,
+   "full_s": 0.6323784169508144,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 44,
+   "kind": "data",
+   "desc": "internal/testkit/testdata/orders.json:5 str \"SKU-004\"+x",
+   "files": [
+    "internal/testkit/testdata/orders.json"
+   ],
+   "selected": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22216458403272554,
+   "full_s": 0.6478228750056587,
+   "ablation_missed": {
+    "build": [
+     "internal/orders/orders_test.go",
+     "internal/reports/reports_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 45,
+   "kind": "data",
+   "desc": "data/shipping_zones.json:1 str \"domestic\"+x",
+   "files": [
+    "data/shipping_zones.json"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5151406250079162,
+   "full_s": 0.7622854170040227,
+   "ablation_missed": {
+    "build": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 46,
+   "kind": "data",
+   "desc": "data/rates.csv:3 num 0.9->0.0",
+   "files": [
+    "data/rates.csv"
+   ],
+   "selected": [
+    "internal/currency/currency_test.go"
+   ],
+   "failing": [
+    "internal/currency/currency_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2216347090434283,
+   "full_s": 0.9116168749751523,
+   "ablation_missed": {
+    "build": [
+     "internal/currency/currency_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 47,
+   "kind": "data",
+   "desc": "internal/tax/tax.json:1 num 0.0->0.1",
+   "files": [
+    "internal/tax/tax.json"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/pricing/pricing_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2748484999756329,
+   "full_s": 1.1469989590113983,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/pricing/pricing_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 48,
+   "kind": "data",
+   "desc": "internal/testkit/testdata/orders.json:4 num 3->4",
+   "files": [
+    "internal/testkit/testdata/orders.json"
+   ],
+   "selected": [
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27257537498371676,
+   "full_s": 0.815373916993849,
+   "ablation_missed": {
+    "build": [
+     "internal/reports/reports_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 49,
+   "kind": "config",
+   "desc": "go.mod:3 num 1.25->1.26",
+   "files": [
+    "go.mod"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/ids/ids_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go",
+    "internal/orders/orders_test.go",
+    "internal/payments/payments_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go",
+    "internal/tax/tax_test.go",
+    "internal/util/strutil/strutil_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/ids/ids_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go",
+    "internal/orders/orders_test.go",
+    "internal/payments/payments_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go",
+    "internal/tax/tax_test.go",
+    "internal/util/strutil/strutil_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.009278499986976385,
+   "full_s": 0.008317124971654266,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/ids/ids_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/money/money_test.go",
+     "internal/payments/payments_test.go",
+     "internal/storage/storage_test.go",
+     "internal/util/strutil/strutil_test.go",
+     "internal/util/validation/validation_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 18,
+    "run": 11
+   }
+  },
+  {
+   "i": 50,
+   "kind": "config",
+   "desc": "config/app.json:5 str \"free_shipping_over\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5576751669868827,
+   "full_s": 1.259147084027063,
+   "ablation_missed": {
+    "build": [
+     "internal/shipping/shipping_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 51,
+   "kind": "config",
+   "desc": "config/app.json:6 str \"service_fee\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3740325419930741,
+   "full_s": 0.6828140830039047,
+   "ablation_missed": {
+    "build": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 52,
+   "kind": "config",
+   "desc": "config/app.json:4 num 50->51",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3854547920054756,
+   "full_s": 0.6416940840426832,
+   "ablation_missed": {
+    "build": [
+     "internal/discounts/discounts_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 53,
+   "kind": "config",
+   "desc": "config/app.json:3 str \"tax_region\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3257201659725979,
+   "full_s": 0.638853459036909,
+   "ablation_missed": {
+    "build": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/tax/tax_test.go"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 54,
+   "kind": "test-edit",
+   "desc": "internal/tax/tax_test.go:16 str \"OR\"+x",
+   "files": [
+    "internal/tax/tax_test.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2743609169847332,
+   "full_s": 0.5856307090143673,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 1
+   }
+  },
+  {
+   "i": 55,
+   "kind": "test-edit",
+   "desc": "internal/util/validation/validation_test.go:6 num 123->124",
+   "files": [
+    "internal/util/validation/validation_test.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3239300419809297,
+   "full_s": 0.480700624990277,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 1
+   }
+  },
+  {
+   "i": 56,
+   "kind": "delete",
+   "desc": "delete internal/cart/cart.go",
+   "files": [
+    "internal/cart/cart.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 1.0253687920048833,
+   "full_s": 1.081829041999299,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 0
+   }
+  },
+  {
+   "i": 57,
+   "kind": "delete",
+   "desc": "delete internal/tax/tax.go",
+   "files": [
+    "internal/tax/tax.go"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.12174070900073275,
+   "full_s": 0.6862002089619637,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 0
+   }
+  },
+  {
+   "i": 58,
+   "kind": "add",
+   "desc": "add a file to the money package whose init() panics",
+   "files": [
+    "internal/money/zz_added.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go",
+    "internal/orders/orders_test.go",
+    "internal/payments/payments_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money/money_test.go",
+    "internal/orders/orders_test.go",
+    "internal/payments/payments_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.9803944589802995,
+   "full_s": 0.6297480000066571,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/catalog/catalog_test.go",
+     "internal/currency/currency_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/money/money_test.go",
+     "internal/orders/orders_test.go",
+     "internal/payments/payments_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 14,
+    "run": 0
+   }
+  },
+  {
+   "i": 59,
+   "kind": "multi",
+   "desc": "internal/testkit/testdata/orders.json:4 str \"coupon\"+x + internal/plugins/registry.go:56 cmp !=->== + internal/orders/service.go:28 rename rename Place",
+   "files": [
+    "internal/orders/service.go",
+    "internal/plugins/registry.go",
+    "internal/testkit/testdata/orders.json"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.43916025100043043,
+   "full_s": 1.1737611669814214,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 5,
+    "run": 2
+   }
+  },
+  {
+   "i": 60,
+   "kind": "multi",
+   "desc": "internal/config/config.go:19 rename rename Load + internal/currency/currency.go:27 rename rename loadRates + internal/inventory/inventory.go:37 cmp <=-><",
+   "files": [
+    "internal/config/config.go",
+    "internal/currency/currency.go",
+    "internal/inventory/inventory.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3018570419517346,
+   "full_s": 0.715169666975271,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/currency/currency_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 11,
+    "run": 0
+   }
+  },
+  {
+   "i": 61,
+   "kind": "multi",
+   "desc": "internal/catalog/products.go:29 rename rename Error + internal/storage/storage.go:24 rename rename All",
+   "files": [
+    "internal/catalog/products.go",
+    "internal/storage/storage.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17376270901877433,
+   "full_s": 0.5418407500255853,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/catalog/catalog_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/storage/storage_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 0
+   }
+  },
+  {
+   "i": 62,
+   "kind": "multi",
+   "desc": "internal/plugins/registry.go:22 rename rename Register + internal/inventory/inventory.go:37 num 0->1",
+   "files": [
+    "internal/inventory/inventory.go",
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.379861457971856,
+   "full_s": 0.9689277079887688,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/plugins/plugins_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 9,
+    "run": 0
+   }
+  },
+  {
+   "i": 63,
+   "kind": "multi",
+   "desc": "internal/testkit/testdata/orders.json:4 num 3->4 + internal/testkit/factories.go:16 cmp !=->==",
+   "files": [
+    "internal/testkit/factories.go",
+    "internal/testkit/testdata/orders.json"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.32872675103135407,
+   "full_s": 0.5306570420507342,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 2
+   }
+  },
+  {
+   "i": 64,
+   "kind": "multi",
+   "desc": "internal/storage/storage.go:24 rename rename All + internal/paths/paths.go:48 rename rename File",
+   "files": [
+    "internal/paths/paths.go",
+    "internal/storage/storage.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/storage/storage_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22168979101115838,
+   "full_s": 0.37682075100019574,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/storage/storage_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 13,
+    "run": 0
+   }
+  },
+  {
+   "i": 65,
+   "kind": "multi",
+   "desc": "config/app.json:3 str \"tax_region\"+x + internal/config/config.go:19 rename rename Load",
+   "files": [
+    "config/app.json",
+    "internal/config/config.go"
+   ],
+   "selected": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17539041698910296,
+   "full_s": 0.5342379999929108,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 66,
+   "kind": "multi",
+   "desc": "internal/tax/tax.json:1 num 0.0->0.1 + internal/plugins/registry.go:40 rename rename Names",
+   "files": [
+    "internal/plugins/registry.go",
+    "internal/tax/tax.json"
+   ],
+   "selected": [
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/pricing/pricing_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.42995625000912696,
+   "full_s": 0.7872862090007402,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/pricing/pricing_test.go",
+     "internal/tax/tax_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 6,
+    "run": 0
+   }
+  },
+  {
+   "i": 67,
+   "kind": "multi",
+   "desc": "data/catalog.csv:4 num 200->201 + internal/testkit/factories.go:16 cmp !=->==",
+   "files": [
+    "data/catalog.csv",
+    "internal/testkit/factories.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.43258404202060774,
+   "full_s": 0.8417510840226896,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 68,
+   "kind": "multi",
+   "desc": "internal/orders/order.go:26 rename rename Move + config/app.json:4 num 50->51 + internal/inventory/inventory.go:37 num 0->1",
+   "files": [
+    "config/app.json",
+    "internal/inventory/inventory.go",
+    "internal/orders/order.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/discounts/discounts_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/reports/reports_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.32344841700978577,
+   "full_s": 0.5132746250019409,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 8,
+    "run": 8
+   }
+  },
+  {
+   "i": 69,
+   "kind": "multi",
+   "desc": "internal/paths/paths.go:48 rename rename File + internal/plugins/registry.go:43 num 0->1",
+   "files": [
+    "internal/paths/paths.go",
+    "internal/plugins/registry.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/currency/currency_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/plugins/plugins_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax/tax_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22255324997240677,
+   "full_s": 0.2747712089912966,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 12,
+    "run": 0
+   }
+  },
+  {
+   "i": 70,
+   "kind": "multi",
+   "desc": "internal/inventory/inventory.go:37 num 0->1 + internal/catalog/products.go:29 rename rename Error + internal/util/validation/validation.go:18 rename rename IsEmail",
+   "files": [
+    "internal/catalog/products.go",
+    "internal/inventory/inventory.go",
+    "internal/util/validation/validation.go"
+   ],
+   "selected": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "failing": [
+    "internal/cart/cart_test.go",
+    "internal/catalog/catalog_test.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice/invoice_test.go",
+    "internal/orders/orders_test.go",
+    "internal/pricing/pricing_test.go",
+    "internal/reports/reports_test.go",
+    "internal/shipping/shipping_test.go",
+    "internal/util/validation/validation_test.go"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 18,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.11937716702232137,
+   "full_s": 0.2737599999527447,
+   "ablation_missed": {
+    "build": [],
+    "run": [
+     "internal/cart/cart_test.go",
+     "internal/catalog/catalog_test.go",
+     "internal/discounts/discounts_test.go",
+     "internal/inventory/inventory_test.go",
+     "internal/invoice/invoice_test.go",
+     "internal/orders/orders_test.go",
+     "internal/pricing/pricing_test.go",
+     "internal/reports/reports_test.go",
+     "internal/shipping/shipping_test.go",
+     "internal/util/validation/validation_test.go"
+    ]
+   },
+   "ablation_selected": {
+    "build": 10,
+    "run": 0
+   }
+  }
+ ],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "internal/payments/fresh_test.go"
+    ],
+    "selected": [
+     "internal/payments/fresh_test.go",
+     "internal/payments/payments_test.go"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 13,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "internal/util/strutil/strutil.go"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "internal/invoice/invoice_test.go",
+     "internal/payments/fresh_test.go",
+     "internal/util/strutil/strutil_test.go"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "internal/payments/payments_test.go",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": false,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

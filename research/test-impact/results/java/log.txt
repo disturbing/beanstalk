@@ -1,0 +1,92 @@
+16 test units
+full suite exit=0 t=2.52s
+  src/test/java/shop/billing/InvoiceTest.java: exit=0/0 plain=1.80s traced=3.83s reads=76
+  src/test/java/shop/billing/PaymentsTest.java: exit=0/0 plain=2.65s traced=3.76s reads=38
+  src/test/java/shop/catalog/CatalogTest.java: exit=0/0 plain=2.33s traced=4.30s reads=46
+  src/test/java/shop/catalog/InventoryTest.java: exit=0/0 plain=3.60s traced=4.86s reads=58
+  src/test/java/shop/core/CurrencyTest.java: exit=0/0 plain=2.39s traced=3.78s reads=37
+  src/test/java/shop/core/IdsEventsStorageTest.java: exit=0/0 plain=2.95s traced=6.25s reads=34
+  src/test/java/shop/core/MoneyTest.java: exit=0/0 plain=3.16s traced=4.51s reads=34
+  src/test/java/shop/fulfil/OrdersTest.java: exit=0/0 plain=4.05s traced=5.79s reads=73
+  src/test/java/shop/fulfil/ShippingTest.java: exit=0/0 plain=4.32s traced=5.32s reads=66
+  src/test/java/shop/plugins/PluginsTest.java: exit=0/0 plain=3.89s traced=4.09s reads=42
+  src/test/java/shop/reports/ReportsTest.java: exit=0/0 plain=3.54s traced=4.70s reads=75
+  src/test/java/shop/sales/CartTest.java: exit=0/0 plain=2.02s traced=3.79s reads=59
+  src/test/java/shop/sales/DiscountsTest.java: exit=0/0 plain=2.33s traced=3.45s reads=60
+  src/test/java/shop/sales/PricingTest.java: exit=0/0 plain=2.53s traced=4.09s reads=72
+  src/test/java/shop/sales/TaxTest.java: exit=0/0 plain=1.85s traced=3.36s reads=50
+  src/test/java/shop/util/StringsValidationTest.java: exit=0/0 plain=2.13s traced=5.21s reads=27
+68 mutations
+#0 code      sel= 5/16 fail= 3 missed=- t=4.4/4.9s  src/main/java/shop/plugins/Plugins.java:28 str "fee_plugins"+x
+#1 code      sel= 9/16 fail= 0 missed=- t=2.1/2.0s  src/main/java/shop/catalog/Inventory.java:37 num 0->1
+#2 code      sel= 9/16 fail= 8 missed=- t=1.3/1.0s  src/main/java/shop/catalog/Inventory.java:22 rename rename available
+#3 code      sel= 9/16 fail= 6 missed=- t=2.0/2.1s  src/main/java/shop/catalog/Catalog.java:26 num 2->3
+#4 code      sel= 9/16 fail= 0 missed=- t=2.7/3.3s  src/main/java/shop/sales/Discounts.java:11 num 100->101
+#5 code      sel=12/16 fail=11 missed=- t=2.8/2.4s  src/main/java/shop/config/Resources.java:18 cmp ==->!=
+#6 code      sel= 9/16 fail= 3 missed=- t=3.0/2.5s  src/main/java/shop/sales/Coupons.java:15 num 3->4
+#7 code      sel= 9/16 fail= 9 missed=- t=0.8/0.8s  src/main/java/shop/catalog/Catalog.java:34 rename rename find
+#8 code      sel=15/16 fail= 1 missed=- t=1.2/1.1s  src/main/java/shop/core/Currency.java:16 rename rename rates
+#9 code      sel=15/16 fail= 1 missed=- t=1.7/1.6s  src/main/java/shop/core/Limits.java:13 num 3->4
+#10 code      sel=15/16 fail= 7 missed=- t=2.1/2.0s  src/main/java/shop/core/Money.java:12 arith +->-
+#11 code      sel=15/16 fail= 1 missed=- t=2.4/1.8s  src/main/java/shop/core/Repo.java:22 rename rename all
+#12 code      sel= 9/16 fail= 3 missed=- t=0.9/1.0s  src/main/java/shop/sales/Quote.java:6 rename rename total
+#13 code      sel=10/16 fail= 2 missed=- t=1.3/2.0s  src/main/java/shop/util/Strings.java:21 arith -->+
+#14 code      sel= 5/16 fail= 0 missed=- t=1.4/1.2s  src/main/java/shop/plugins/EcoFee.java:8 num 25->26
+#15 code      sel=15/16 fail= 1 missed=- t=1.0/0.9s  src/main/java/shop/core/Ids.java:21 arith +->-
+#16 code      sel= 9/16 fail= 8 missed=- t=1.4/1.4s  src/main/java/shop/catalog/Catalog.java:27 num 4->5
+#17 code      sel= 5/16 fail= 5 missed=- t=0.9/0.9s  src/main/java/shop/plugins/Plugins.java:21 arith +->-
+#18 code      sel=10/16 fail= 1 missed=- t=0.9/0.9s  src/main/java/shop/util/Strings.java:9 rename rename slugify
+#19 code      sel= 9/16 fail= 2 missed=- t=1.4/1.3s  src/main/java/shop/catalog/Inventory.java:30 cmp <-><=
+#20 code      sel=15/16 fail= 0 missed=- t=1.5/1.9s  src/main/java/shop/core/Ids.java:21 num 0->1
+#21 code      sel=10/16 fail= 0 missed=- t=2.0/2.3s  src/main/java/shop/util/Strings.java:10 num 9->10
+#22 code      sel= 5/16 fail= 5 missed=- t=1.3/1.3s  src/main/java/shop/fulfil/Shipping.java:40 str "."+x
+#23 code      sel= 9/16 fail= 8 missed=- t=0.8/0.8s  src/main/java/shop/sales/Line.java:23 rename rename addQty
+#24 code      sel=15/16 fail= 1 missed=- t=1.6/1.3s  src/main/java/shop/core/Currency.java:20 num 1->2
+#25 code      sel=15/16 fail= 1 missed=- t=1.5/1.2s  src/main/java/shop/core/Currency.java:17 cmp ==->!=
+#26 code      sel= 2/16 fail= 1 missed=- t=0.6/0.8s  src/main/java/shop/billing/Invoice.java:20 rename rename render
+#27 code      sel= 5/16 fail= 3 missed=- t=1.1/1.2s  src/main/java/shop/fulfil/OrderService.java:22 cmp ==->!=
+#28 code      sel= 9/16 fail= 8 missed=- t=0.7/0.7s  src/main/java/shop/sales/Cart.java:22 arith +->-
+#29 code      sel=10/16 fail= 1 missed=- t=1.2/1.5s  src/main/java/shop/util/Validation.java:7 num 2->3
+#30 code      sel=12/16 fail= 6 missed=- t=1.0/1.0s  src/main/java/shop/config/AppConfig.java:28 rename rename getLong
+#31 code      sel= 9/16 fail= 1 missed=- t=1.3/1.2s  src/main/java/shop/catalog/Inventory.java:27 cmp <=-><
+#32 code      sel=15/16 fail= 1 missed=- t=1.1/1.0s  src/main/java/shop/core/Repo.java:11 rename rename put
+#33 code      sel=12/16 fail=12 missed=- t=0.8/0.7s  src/main/java/shop/config/Resources.java:19 arith +->-
+#34 code      sel= 9/16 fail= 0 missed=- t=1.1/1.0s  src/main/java/shop/sales/Cart.java:17 num 1->2
+#35 code      sel= 9/16 fail= 6 missed=- t=0.7/0.6s  src/main/java/shop/sales/Cart.java:12 rename rename lines
+#36 helper    sel= 8/16 fail= 2 missed=- t=0.7/0.7s  src/test/java/shop/testkit/Factories.java:49 rename rename fixtureOrders
+#37 helper    sel= 8/16 fail= 3 missed=- t=0.8/0.8s  src/test/java/shop/testkit/Factories.java:37 rename rename stocked
+#38 helper    sel= 8/16 fail= 2 missed=- t=1.2/0.9s  src/test/java/shop/testkit/Factories.java:40 str "SKU-002"+x
+#39 helper    sel= 8/16 fail= 2 missed=- t=1.1/1.0s  src/test/java/shop/testkit/Factories.java:52 cmp ==->!=
+#40 helper    sel= 8/16 fail= 6 missed=- t=0.7/0.8s  src/test/java/shop/testkit/Factories.java:23 rename rename cartOf
+#41 data      sel= 1/16 fail= 0 missed=- t=1.0/1.4s  src/main/resources/data/rates.csv:6 num 1.35->1.36
+#42 data      sel= 5/16 fail= 1 missed=- t=1.4/1.2s  src/main/resources/data/shipping_zones.properties:3 num 1500->1501
+#43 data      sel= 1/16 fail= 1 missed=- t=0.9/1.2s  src/main/resources/data/rates.csv:3 num 0.9->0.0
+#44 data      sel= 5/16 fail= 0 missed=- t=1.7/1.7s  src/main/resources/data/tax.properties:2 num 0.04->0.05
+#45 data      sel= 5/16 fail= 3 missed=- t=1.1/1.4s  src/main/resources/data/shipping_zones.properties:1 num 500->501
+#46 data      sel= 5/16 fail= 3 missed=- t=1.2/1.1s  src/main/resources/data/shipping_zones.properties:2 num 150->151
+#47 data      sel= 8/16 fail= 8 missed=- t=1.4/1.4s  src/main/resources/data/catalog.csv:7 num 006->7
+#48 data      sel= 2/16 fail= 1 missed=- t=1.7/1.6s  src/test/resources/fixtures/orders.txt:4 num 3->4
+#49 config    sel= 8/16 fail= 1 missed=- t=2.1/1.7s  src/main/resources/app.properties:3 num 50->51
+#50 config    sel= 8/16 fail= 0 missed=- t=1.5/1.6s  src/main/resources/app.properties:4 num 100->101
+#51 test-edit sel= 9/16 fail= 1 missed=- t=1.6/1.7s  src/test/java/shop/sales/PricingTest.java:13 num 650->651
+#52 test-edit sel= 9/16 fail= 1 missed=- t=1.5/1.5s  src/test/java/shop/catalog/CatalogTest.java:30 str "SKU-004"+x
+#53 delete    sel=15/16 fail=14 missed=- t=1.7/1.2s  delete src/main/java/shop/core/Money.java
+#54 delete    sel= 9/16 fail= 5 missed=- t=1.1/1.0s  delete src/main/java/shop/sales/Coupon.java
+#55 add       sel= 8/16 fail= 6 missed=- t=2.1/2.3s  add a test-resources app.properties that shadows the main config (classpath order)
+#56 multi     sel= 8/16 fail= 0 missed=- t=1.4/1.6s  src/main/java/shop/plugins/EcoFee.java:8 num 25->26 + src/main/resources/app.properties:4 
+#57 multi     sel=11/16 fail= 5 missed=- t=1.6/1.5s  src/main/java/shop/plugins/Plugins.java:28 str "fee_plugins"+x + src/main/java/shop/sales/
+#58 multi     sel=15/16 fail= 5 missed=- t=1.1/1.0s  src/main/java/shop/plugins/Plugins.java:21 arith +->- + src/main/java/shop/core/Ids.java:2
+#59 multi     sel=15/16 fail=13 missed=- t=0.9/0.8s  src/main/java/shop/core/Ids.java:21 arith +->- + src/main/java/shop/config/AppConfig.java:
+#60 multi     sel=15/16 fail= 7 missed=- t=1.1/0.9s  src/main/java/shop/sales/Cart.java:12 rename rename lines + src/main/java/shop/core/Ids.ja
+#61 multi     sel= 6/16 fail= 3 missed=- t=0.8/0.9s  src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/resources/data/
+#62 multi     sel=10/16 fail= 2 missed=- t=1.4/1.6s  src/main/java/shop/catalog/Inventory.java:27 cmp <=->< + src/main/resources/data/rates.csv
+#63 multi     sel=13/16 fail=11 missed=- t=0.9/1.1s  src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/java/shop/confi
+#64 multi     sel= 5/16 fail= 4 missed=- t=1.5/1.4s  src/main/resources/data/shipping_zones.properties:3 num 1500->1501 + src/main/java/shop/fu
+#65 multi     sel=10/16 fail= 1 missed=- t=2.8/2.3s  src/main/java/shop/plugins/EcoFee.java:8 num 25->26 + src/main/java/shop/catalog/Inventory
+#66 multi     sel=11/16 fail= 0 missed=- t=1.4/1.2s  src/main/resources/data/tax.properties:2 num 0.04->0.05 + src/main/java/shop/util/Strings.
+#67 multi     sel=11/16 fail= 9 missed=- t=0.8/0.8s  src/main/java/shop/billing/Invoice.java:20 rename rename render + src/main/java/shop/sales
+freshness: {"step": "add new test", "changed": ["src/test/java/shop/billing/FreshSlugTest.java"], "selected": ["src/test/java/shop/billing/FreshSlugTest.java"], "new_test_selected": true, "had_map": false}
+freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 32, "dep_in_map": true}
+freshness: {"step": "break its dependency", "changed": ["src/main/java/shop/util/Strings.java"], "new_test_selected": true, "new_test_fails": true, "selected": ["src/test/java/shop/billing/FreshSlugTest.java", "src/test/java/shop/billing/InvoiceTest.java", "src/test/java/shop/catalog/CatalogTest.java", "src/test/java/shop/catalog/InventoryTest.java", "src/test/java/shop/fulfil/OrdersTest.java", "src/test/java/shop/fulfil/ShippingTest.java", "src/test/java/shop/reports/ReportsTest.java", "src/test/java/shop/sales/CartTest.java", "src/test/java/shop/sales/DiscountsTest.java", "src/test/java/shop/sales/PricingTest.java", "src/test/java/shop/util/StringsValidationTest.java"]}
+freshness: {"step": "edit existing test to use a new module", "test": "src/test/java/shop/billing/PaymentsTest.java", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": true, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+done

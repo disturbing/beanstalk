@@ -1,0 +1,24 @@
+16 test units
+full suite exit=0 t=0.12s
+  test/cart.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=28
+  test/catalog.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=23
+  test/currency.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=12
+  test/discounts.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=32
+  test/ids_events_storage.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=9
+  test/inventory.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=27
+  test/invoice.test.ts: exit=0/0 plain=0.13s traced=0.12s reads=49
+  test/money.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=7
+  test/orders.test.ts: exit=0/0 plain=0.13s traced=0.12s reads=45
+  test/payments.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=9
+  test/plugins.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=13
+  test/pricing.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=41
+  test/reports.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=47
+  test/shipping.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=33
+  test/strings_validation.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=16
+  test/tax.test.ts: exit=0/0 plain=0.07s traced=0.12s reads=13
+0 mutations
+freshness: {"step": "add new test", "changed": ["test/fresh_slug.test.ts"], "selected": ["test/fresh_slug.test.ts"], "new_test_selected": true, "had_map": false}
+freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 13, "dep_in_map": true}
+freshness: {"step": "break its dependency", "changed": ["packages/utils/src/strings.ts"], "new_test_selected": true, "new_test_fails": true, "selected": ["test/fresh_slug.test.ts", "test/invoice.test.ts", "test/strings_validation.test.ts"]}
+freshness: {"step": "edit existing test to use a new module", "test": "test/payments.test.ts", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": false, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+done

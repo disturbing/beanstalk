@@ -1,0 +1,13 @@
+{
+  "name": "shop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "workspaces": ["packages/*"],
+  "dependencies": { "@shop/utils": "file:packages/utils" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  }
+}

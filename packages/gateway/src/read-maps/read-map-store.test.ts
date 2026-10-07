@@ -139,6 +139,21 @@ describe('the read-map store', () => {
     expect(answer.reasons['src/billing/coupon.test.ts']?.reason).toBe('own-change');
   });
 
+  it("shows one tree's maps and manifest, and nothing for an unknown tree", async () => {
+    const views = await inStore('read-maps-tree-view', (sql) => {
+      recordCheck(sql, { tree: tree(BEAN_TREE, BLOBS), readMaps: MAPS, atMs: 1 });
+      const index = sqlReadMapIndex(sql);
+      return [index.tree(BEAN_TREE), index.tree(SPROUT)];
+    });
+
+    expect(views[0]?.blobs).toEqual(BLOBS);
+    expect(views[0]?.maps.map((entry) => entry.test).toSorted()).toEqual([
+      'src/cart/cart.test.ts',
+      'src/lib/money.test.ts',
+    ]);
+    expect(views[1]).toBeNull();
+  });
+
   it('keys a tree with extra files apart from its commit', () => {
     const plain = tree(BEAN_TREE, BLOBS);
     const extra = { ...plain, extra_files: true, blobs: { ...BLOBS, 'x.test.ts': '5' } };
