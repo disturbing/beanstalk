@@ -1,5 +1,5 @@
 /**
- * The repository tools of a person's agent session (`docs/claude-opus/22-mcp-repository-tools.md`).
+ * The repository tools of a person's agent session (`docs/claude-opus/23-mcp-repository-tools.md`).
  * Git stays the interface: an agent clones, commits and pushes `bean/<name>` with git. These
  * tools add what git cannot say or do: which repositories the person may use, a reserved bean
  * name with its intent, the verdict with the beans it collided with, a wait that is the twin

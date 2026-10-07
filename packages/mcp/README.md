@@ -83,7 +83,7 @@ with source revisions, cursors and handles (`beans/<task>`, `file:<path>@<sha>`,
 | `bean_inbox_ack(event_ids)` | Delivery acknowledgement; never implicit acceptance |
 
 **Repository tools** (agent sessions only; `src/repos/`, gateway RPC `AgentReposRpc`;
-`docs/claude-opus/22-mcp-repository-tools.md`):
+`docs/claude-opus/23-mcp-repository-tools.md`):
 
 | Tool | Scope | Answer |
 |---|---|---|

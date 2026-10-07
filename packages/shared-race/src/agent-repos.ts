@@ -1,5 +1,5 @@
 /**
- * Agents working on a person's repository through MCP (`docs/claude-opus/22-mcp-repository-tools.md`):
+ * Agents working on a person's repository through MCP (`docs/claude-opus/23-mcp-repository-tools.md`):
  * the gateway RPC the MCP Worker calls for its repository tools. Git stays the interface;
  * these calls add what git cannot say: which repositories a person may use, a reserved bean
  * name with its intent, a bean's verdict with the beans it collided with, and a shared

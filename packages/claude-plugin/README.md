@@ -57,7 +57,7 @@ the default is named as `disturbing/beanstalk#<branch>`. `BEANSTALK_MCP_URL` and
 | Feature | State |
 |---|---|
 | MCP read tools, collaboration tools | Live |
-| MCP repository tools: `repo_list`, `repo_status`, `bean_open`, `bean_status`, `bean_wait`, `task_list`, `task_claim`, `task_release`, `git_credentials` | Built (`docs/claude-opus/22-mcp-repository-tools.md`); on staging, not yet deployed live |
+| MCP repository tools: `repo_list`, `repo_status`, `bean_open`, `bean_status`, `bean_wait`, `task_list`, `task_claim`, `task_release`, `git_credentials` | Built (`docs/claude-opus/23-mcp-repository-tools.md`); on staging, not yet deployed live |
 | Git-native intake (`bean/<name>`, push options, `remote:` verdicts, `refs/beans/<name>/status`) | Live on people's repositories (`https://<gateway>/git/<owner>/<repo>.git`) |
 | `/beanstalk:setup`, SSH keys in Settings, deploy tokens | Live; git over SSH itself is **coming** (HTTPS with a token until then) |
 | MCP OAuth (`claude mcp login`, `/mcp`) | Live: sign up or sign in with a passkey, approve the agent; `whoami` names you |
