@@ -1,0 +1,34 @@
+# staging: https://beanstalk-gateway-staging.devaccounts-1password.workers.dev (real Artifacts, real runner containers)
+# 2026-10-07 15:16:33 +08, engine rebe2ca3f5602d313a5c, clone URL https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git
+
+# clone with git's credential helper (the token is never in the URL or the output)
+
+$ git -c credential.helper= -c credential.helper=<token helper> clone https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git repo 
+Cloning into 'repo'...
+
+$ git fetch origin sprout stalk 
+From https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2
+ * branch            sprout     -> FETCH_HEAD
+ * branch            stalk      -> FETCH_HEAD
+
+$ git switch -c base origin/sprout 
+Switched to a new branch 'base'
+branch 'base' set up to track 'origin/sprout'.
+
+# bean 1: the project's first code, pushed as a bean and held for its verdict
+
+$ git push -o wait origin HEAD:refs/heads/bean/add-total 
+remote: Processing objects: 100% (6/6)        
+remote: beanstalk: new bean add-total received at 39875d3: "Add a total helper"        
+remote: beanstalk:   for task DEMO-1        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: DROPPED: add-total: infrastructure failure: squash failed: runner_version_mismatch: runner instance run-rebe2ca3f5602d313a5c-committer speaks runner API 4, this gateway speaks 3 (image commit b086fa1251da89586753a3ded4840acb54fbdc13); deploy the gateway and the runner image from the same commit        
+remote: beanstalk:   web: https://beanstalk-web-staging.devaccounts-1password.workers.dev/runs/rebe2ca3f5602d313a5c?bean=add-total        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-total/status        
+To https://beanstalk-gateway-staging.devaccounts-1password.workers.dev/git/acme/gitnative-d577a2.git
+ * [new branch]      HEAD -> bean/add-total
+
+# expected "LANDED: add-total"; stopping
+
+# demo exit 1 after 12 s
+# engine closed and repo deleted: {"closed": true}

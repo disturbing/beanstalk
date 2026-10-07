@@ -657,4 +657,9 @@ export type RepoEngineRpc = {
     ttlSeconds?: number,
   ): Promise<RpcResult<GitToken>>;
   pushedBeans(engineId: string): Promise<RpcResult<readonly PushedBeanStatus[]>>;
+  /** Stops the engine (no more pushes); `deleteRepo` also deletes its Artifacts repo. */
+  closeRepoEngine(
+    engineId: string,
+    options: { readonly deleteRepo: boolean },
+  ): Promise<RpcResult<{ readonly closed: true }>>;
 };

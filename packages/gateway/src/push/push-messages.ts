@@ -135,11 +135,17 @@ function beanLines(ref: BeanRef): string[] {
   ];
 }
 
-/** The suite output the engine's red prompt quotes, cut to its last lines. */
+/** The suite output the engine's red prompt quotes, without stack frames, cut to its last lines. */
 export function promptOutput(prompt: string): string[] {
   const match = /Output:\n```\n([\s\S]*?)\n```/.exec(prompt);
-  const lines = (match?.[1] ?? '').split('\n').filter((line) => line.trim() !== '');
+  const lines = (match?.[1] ?? '').split('\n').filter(isTelling);
   return lines.slice(-OUTPUT_LINES);
+}
+
+/** An output line worth a terminal line: not blank, not a stack frame, not a lone brace. */
+function isTelling(line: string): boolean {
+  const text = line.trim();
+  return text !== '' && !text.startsWith('at ') && !/^[{}[\]()]+[,;]?$/.test(text);
 }
 
 /** The conflict prompt's hunks and authors (the trunk read as the sprout), cut to a screenful. */

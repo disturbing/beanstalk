@@ -30,6 +30,7 @@ const TokenBody = z.strictObject({
     .default(3600),
 });
 const EngineParam = z.object({ engine: RunParam.shape.run });
+const CloseBody = z.strictObject({ delete_repo: z.boolean().default(false) });
 
 export const repoRoutes = new Hono<AppEnv>()
   .post('/', requireAdmin, validate('json', OpenBody), async (c) => {
@@ -51,7 +52,18 @@ export const repoRoutes = new Hono<AppEnv>()
   )
   .get('/:engine/beans', requireAdmin, validate('param', EngineParam), async (c) => {
     return c.json(value(await repoEngineRpc(c.var.deps).pushedBeans(c.req.valid('param').engine)));
-  });
+  })
+  .post(
+    '/:engine/close',
+    requireAdmin,
+    validate('param', EngineParam),
+    validate('json', CloseBody),
+    async (c) => {
+      const rpc = repoEngineRpc(c.var.deps);
+      const { delete_repo: deleteRepo } = c.req.valid('json');
+      return c.json(value(await rpc.closeRepoEngine(c.req.valid('param').engine, { deleteRepo })));
+    },
+  );
 
 async function ensureArtifactsRepo(env: Env, name: string): Promise<void> {
   const artifacts = artifactsPort(env.ARTIFACTS);

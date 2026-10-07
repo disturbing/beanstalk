@@ -217,6 +217,13 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     return repoEngineRpc(createDeps(this.env)).pushedBeans(engineId);
   }
 
+  closeRepoEngine(
+    engineId: string,
+    options: { readonly deleteRepo: boolean },
+  ): Promise<RpcResult<{ readonly closed: true }>> {
+    return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
+  }
+
   #rpc(): GatewayRpc {
     return gatewayRpc(this.env, createDeps(this.env));
   }

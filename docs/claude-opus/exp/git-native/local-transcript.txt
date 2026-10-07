@@ -1,0 +1,175 @@
+# local stack: gateway under wrangler dev, git http-backend, real node --test checks
+# engine r6ca3ef0fa70003edc9b, clone URL http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+
+# clone with git's credential helper (the token is never in the URL or the output)
+
+$ git -c credential.helper= -c credential.helper=<token helper> clone http://127.0.0.1:8897/git/acme/demo4d5dd5.git repo 
+Cloning into 'repo'...
+
+$ git fetch origin sprout stalk 
+From http://127.0.0.1:8897/git/acme/demo4d5dd5
+ * branch            sprout     -> FETCH_HEAD
+ * branch            stalk      -> FETCH_HEAD
+
+$ git switch -c base origin/sprout 
+Switched to a new branch 'base'
+branch 'base' set up to track 'origin/sprout'.
+
+# bean 1: the project's first code, pushed as a bean and held for its verdict
+
+$ git push -o wait origin HEAD:refs/heads/bean/add-total 
+remote: beanstalk: new bean add-total received at 1d1f56d: "Add a total helper"        
+remote: beanstalk:   for task DEMO-1        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (0.2 s)        
+remote: beanstalk: LANDED: add-total passed its pre-land check and is on the sprout as 325f693        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: http://127.0.0.1:5491/beans/add-total        
+remote: beanstalk: validated: on the stalk at 325f693        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-total/status        
+To http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+ * [new branch]      HEAD -> bean/add-total
+
+# two agents start from the same sprout
+
+$ git fetch origin sprout 
+From http://127.0.0.1:8897/git/acme/demo4d5dd5
+ * branch            sprout     -> FETCH_HEAD
+   fedf0f1..325f693  sprout     -> origin/sprout
+
+# agent A, bean 2: discounts, built on total()
+
+$ git push -o wait origin HEAD:refs/heads/bean/add-discount 
+remote: beanstalk: new bean add-discount received at f1bb7af: "Add percentage discounts"        
+remote: beanstalk:   for task DEMO-2        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (0.3 s)        
+remote: beanstalk: LANDED: add-discount passed its pre-land check and is on the sprout as dc773e1        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: http://127.0.0.1:5491/beans/add-discount        
+remote: beanstalk: validated: on the stalk at dc773e1        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-discount/status        
+To http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+ * [new branch]      HEAD -> bean/add-discount
+
+# agent B, bean 3 (written in parallel, from the old sprout): tax inside total()
+
+$ git push -o wait origin HEAD:refs/heads/bean/tax-in-total 
+remote: beanstalk: new bean tax-in-total received at c5c719c: "Charge 10% tax in totals"        
+remote: beanstalk:   for task DEMO-3        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check red (1 failing, 0.5 s)        
+remote: beanstalk: RED: tax-in-total was not landed. Merged onto the sprout, these tests failed:        
+remote: beanstalk:   - test/discount.test.js > test/discount.test.js        
+remote: beanstalk: it collided with these landed beans (accepted behaviour; keep both):        
+remote: beanstalk:   - add-discount "Add percentage discounts"        
+remote: beanstalk:     intent: Add percentage discounts discounted(items, rate) takes rate off the cart total.        
+remote: beanstalk: output:        
+remote: beanstalk:   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:        
+remote: beanstalk:     + actual - expected        
+remote: beanstalk:       actual: 99.00000000000001,        
+remote: beanstalk:       expected: 90,        
+remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout        
+remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total        
+remote: beanstalk:   web: http://127.0.0.1:5491/beans/tax-in-total        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
+To http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+ * [new branch]      HEAD -> bean/tax-in-total
+
+# landing is never a push: the sprout refuses it
+
+$ git push --force origin HEAD:refs/heads/sprout 
+remote: beanstalk: push refused: refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green        
+To http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+ ! [remote rejected] HEAD -> sprout (refs/heads/sprout is the engine's: landing is never a push. Push your work to refs/heads/bean/<name>; it lands when its pre-land check is green)
+error: failed to push some refs to 'http://127.0.0.1:8897/git/acme/demo4d5dd5.git'
+
+# the verdict is also a ref anyone can fetch
+
+$ git fetch origin +refs/beans/*:refs/beans/* 
+From http://127.0.0.1:8897/git/acme/demo4d5dd5
+ * [new ref]         refs/beans/add-discount/status -> refs/beans/add-discount/status
+ * [new ref]         refs/beans/add-total/status -> refs/beans/add-total/status
+ * [new ref]         refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status
+
+$ git cat-file -p refs/beans/tax-in-total/status 
+object c5c719c891df80f67d639dc8b2b50c1316e7051c
+type commit
+tag beans/tax-in-total/status
+tagger beanstalk <engine@beanstalk.invalid> 1791357427 +0000
+
+red: 1 failing test(s) on the merged tree
+
+bean: tax-in-total
+title: Charge 10% tax in totals
+head: c5c719c891df80f67d639dc8b2b50c1316e7051c
+push: 1
+task: DEMO-3
+
+RED: tax-in-total was not landed. Merged onto the sprout, these tests failed:
+  - test/discount.test.js > test/discount.test.js
+it collided with these landed beans (accepted behaviour; keep both):
+  - add-discount "Add percentage discounts"
+    intent: Add percentage discounts discounted(items, rate) takes rate off the cart total.
+output:
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    + actual - expected
+      actual: 99.00000000000001,
+      expected: 90,
+fix: git fetch origin sprout && git rebase origin/sprout
+     then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total
+  web: http://127.0.0.1:5491/beans/tax-in-total
+
+# agent B fixes as told: rebase onto the sprout, keep both intents (tax as its own function)
+
+$ git fetch origin sprout 
+From http://127.0.0.1:8897/git/acme/demo4d5dd5
+ * branch            sprout     -> FETCH_HEAD
+   325f693..dc773e1  sprout     -> origin/sprout
+
+$ git rebase origin/sprout 
+Rebasing (1/1)Successfully rebased and updated refs/heads/tax.
+
+$ git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total 
+remote: beanstalk: bean tax-in-total received at 593879e: "Charge 10% tax in totals"        
+remote: beanstalk:   for task DEMO-3        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk: pre-land check green on the merged tree (0.4 s)        
+remote: beanstalk: LANDED: tax-in-total passed its pre-land check and is on the sprout as da32a17        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk:   web: http://127.0.0.1:5491/beans/tax-in-total        
+remote: beanstalk: validated: on the stalk at da32a17        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/tax-in-total/status        
+To http://127.0.0.1:8897/git/acme/demo4d5dd5.git
+ + c5c719c...593879e HEAD -> bean/tax-in-total (forced update)
+
+# the stalk follows once CI validates the sprout
+
+$ git fetch origin sprout stalk +refs/beans/*:refs/beans/* 
+From http://127.0.0.1:8897/git/acme/demo4d5dd5
+ * branch            sprout     -> FETCH_HEAD
+ * branch            stalk      -> FETCH_HEAD
+ + c5c719c...29d8441 refs/beans/tax-in-total/status -> refs/beans/tax-in-total/status  (forced update)
+   dc773e1..da32a17  sprout     -> origin/sprout
+   fedf0f1..da32a17  stalk      -> origin/stalk
+
+$ git log --oneline -5 origin/sprout 
+da32a17 Charge 10% tax in totals
+dc773e1 Add percentage discounts
+325f693 Add a total helper
+fedf0f1 Start the repository
+
+$ git cat-file -p refs/beans/tax-in-total/status 
+object 593879e85d4ae0873d09fbdc4d922a4abdfc2d8d
+type commit
+tag beans/tax-in-total/status
+tagger beanstalk <engine@beanstalk.invalid> 1791357429 +0000
+
+green: validated; on the stalk at da32a17
+
+bean: tax-in-total
+title: Charge 10% tax in totals
+head: 593879e85d4ae0873d09fbdc4d922a4abdfc2d8d
+push: 2
+task: DEMO-3
+landed: da32a171c879d9c197369b7205bd17f849d1fab9

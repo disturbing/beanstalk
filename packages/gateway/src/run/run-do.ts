@@ -445,6 +445,28 @@ export class RunDO extends DurableObject<Env> {
     return this.#push.progress(bean, push, after);
   }
 
+  /**
+   * Closes a repository engine: it stops taking pushes (its race ends and records its final
+   * check), and with `deleteRepo` its Artifacts repo is deleted (the repository is gone).
+   */
+  async closeRepoEngine(options: { deleteRepo: boolean }): Promise<RunResult<{ phase: string }>> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null || this.#repoEngine() === null) return notFound();
+    if (loaded.stored.state.phase === 'running')
+      this.#apply({ kind: 'stop', at: Date.now(), reason: 'repository engine closed' });
+    if (options.deleteRepo) {
+      try {
+        await this.#artifacts.deleteRepo(loaded.stored.repos.repo.name);
+        clearObjectCache(this.ctx.storage.sql);
+        this.#refs.clear();
+      } catch (error: unknown) {
+        return upstreamFailure(error, 'deleting the repository');
+      }
+    }
+    return { ok: true, value: { phase: this.#requireLoaded().stored.state.phase } };
+  }
+
   /** Every pushed bean, as its status ref and the pushes see it. */
   pushedBeans(): readonly PushBean[] {
     this.#countRequest();

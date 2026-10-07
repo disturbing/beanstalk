@@ -16,7 +16,14 @@ export GIT_TERMINAL_PROMPT=0
 HELPER='!f() { echo username=x; echo "password=$BEANSTALK_TOKEN"; }; f'
 
 # Prints the command as typed (the credential helper shown by name only), then runs it.
-run() { printf '\n$ %s\n' "$(printf '%s ' "$@" | sed "s|credential.helper=!f.* f |credential.helper=<token helper> |")"; "$@" 2>&1; }
+run() {
+  printf '\n$ %s\n' "$(printf '%s ' "$@" | sed "s|credential.helper=!f.* f |credential.helper=<token helper> |")"
+  "$@" > "$WORK/last.out" 2>&1 && status=0 || status=$?
+  cat "$WORK/last.out"
+  return "$status"
+}
+# Stops the demo when the push just made did not end as expected (a dropped bean, a timeout).
+expect() { grep -q "$1" "$WORK/last.out" || { printf '\n# expected "%s"; stopping\n' "$1"; exit 1; }; }
 note() { printf '\n# %s\n' "$*"; }
 
 cd "$WORK"
@@ -42,6 +49,7 @@ test('total sums the prices', () => assert.strictEqual(total([50, 50]), 100));
 JS
 git add -A && git commit -q -m "Add a total helper" -m "total(items) sums the prices of a cart." -m "Task: DEMO-1"
 run git push -o wait origin HEAD:refs/heads/bean/add-total
+expect "LANDED: add-total"
 
 note "two agents start from the same sprout"
 run git fetch origin sprout
@@ -61,6 +69,7 @@ test('a 10% discount on 100 is 90', () => assert.strictEqual(discounted([100], 0
 JS
 git add -A && git commit -q -m "Add percentage discounts" -m "discounted(items, rate) takes rate off the cart total." -m "Task: DEMO-2"
 run git push -o wait origin HEAD:refs/heads/bean/add-discount
+expect "LANDED: add-discount"
 
 note "agent B, bean 3 (written in parallel, from the old sprout): tax inside total()"
 git switch -q tax
@@ -74,7 +83,8 @@ const { total } = require('../src/total');
 test('total includes 10% tax', () => assert.ok(Math.abs(total([50, 50]) - 110) < 1e-9));
 JS
 git add -A && git commit -q -m "Charge 10% tax in totals" -m "Every total includes a 10% sales tax." -m "Task: DEMO-3"
-run git push -o wait origin HEAD:refs/heads/bean/tax-in-total || true
+run git push -o wait origin HEAD:refs/heads/bean/tax-in-total
+expect "RED: tax-in-total"
 
 note "landing is never a push: the sprout refuses it"
 run git push --force origin HEAD:refs/heads/sprout || true
@@ -99,6 +109,7 @@ test('totalWithTax adds 10% tax', () => assert.ok(Math.abs(totalWithTax([50, 50]
 JS
 git add -A && git commit -q -m "Charge 10% tax as totalWithTax" -m "Keeps total() pre-tax for discounts."
 run git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total
+expect "LANDED: tax-in-total"
 
 note "the stalk follows once CI validates the sprout"
 run git fetch origin sprout stalk '+refs/beans/*:refs/beans/*'

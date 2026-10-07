@@ -48,6 +48,14 @@ export function repoEngineRpc(deps: Deps): RepoEngineRpc {
       const value: GitToken = { token: issued.token, expires_at: issued.expiresAt };
       return { ok: true, value };
     },
+    async closeRepoEngine(engine, options) {
+      const run = RunId.safeParse(engine);
+      if (!run.success) return invalid('an engine id');
+      const closed = await deps.run(run.data).closeRepoEngine({ deleteRepo: options.deleteRepo });
+      return closed.ok
+        ? { ok: true, value: { closed: true } }
+        : { ok: false, error: { ...closed.error } };
+    },
     async pushedBeans(engine) {
       const run = RunId.safeParse(engine);
       if (!run.success) return invalid('an engine id');

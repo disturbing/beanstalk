@@ -316,4 +316,21 @@ describe('git-native flow', () => {
     expect(anonymous.status).toBe(401);
     expect(anonymous.headers.get('www-authenticate')).toContain('Basic');
   });
+
+  it('closes an engine: pushes are refused and its repo is deleted', async () => {
+    const { opened, token } = await openRepo('closing');
+    const closed = await call('POST', `/v1/repos/${opened.engineId}/close`, {
+      token: ADMIN,
+      body: { delete_repo: true },
+    });
+    expect(closed.status).toBe(200);
+    const { report } = await gitResponse(
+      await push(
+        opened.git_path,
+        token,
+        pushBody({ ref: 'refs/heads/bean/late', newSha: await sha('late') }),
+      ),
+    );
+    expect(report).toMatch(/ng refs\/heads\/bean\/late the repository engine is (finishing|done)/);
+  });
 });
