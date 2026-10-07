@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import styles from '../../components/repository/repository.module.css';
-import { currentUser } from '../../src/accounts/current-user';
+import { currentUser } from '../../src/auth/user';
 import { isReservedOwner, repositoryPath } from '../../src/repositories/paths';
 import { registryClient } from '../../src/repositories/registry-client';
 

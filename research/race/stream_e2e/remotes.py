@@ -101,6 +101,8 @@ def runner(call: str, body: dict) -> tuple[int, dict]:
         ok = rgit(repo, "update-ref", body["ref"], body["new"], *([body["old"]] if body.get("old") else []))
         actual = resolve(repo, body["ref"])
         return 200, {"ok": ok.returncode == 0, "actual": actual}
+    if call == "check" and os.environ.get("REMOTES_REAL_CHECKS") == "1":
+        return 200, real_check(repo, body)
     if call == "check":
         extra = list((body.get("extra_files") or {}).keys())
         return 200, {"sha": body["sha"], "green": True, "tests": 1 + len(extra), "failures": 0, "failing_tests": [],
@@ -108,6 +110,54 @@ def runner(call: str, body: dict) -> tuple[int, dict]:
                      "stack_files": [], "output_excerpt": "", "suite_seconds": 0.05, "ci_seconds": 0.05,
                      "timed_out": False}
     return 404, {"code": "not_found", "message": call}
+
+
+IMPORT = re.compile(r"""(?:require\(|from\s+|import\s*\()\s*['"](\.{1,2}/[^'"]+)['"]""")
+
+
+def read_set(root: str, test: str) -> list[str]:
+    """The test's static import closure through relative imports (what the runner computes)."""
+    seen, todo = set(), [test]
+    while todo:
+        path = todo.pop()
+        if path in seen or not os.path.isfile(os.path.join(root, path)):
+            continue
+        seen.add(path)
+        text = open(os.path.join(root, path), encoding="utf-8", errors="replace").read()
+        for spec in IMPORT.findall(text):
+            target = os.path.normpath(os.path.join(os.path.dirname(path), spec))
+            todo.extend([target, f"{target}.js"])
+    return sorted(seen)
+
+
+def real_check(repo: str, body: dict) -> dict:
+    """Runs the suite for real (``REMOTES_REAL_CHECKS=1``): each ``*.test.js`` file alone with ``node --test``, on
+    the commit's tree plus the extra files, so the red path of the git-native e2e is real."""
+    import tempfile
+    import time
+
+    with tempfile.TemporaryDirectory() as root:
+        archive = git(repo, "archive", body["sha"])
+        subprocess.run(["tar", "-x", "-C", root], input=archive.stdout, check=True)
+        for path, content in (body.get("extra_files") or {}).items():
+            os.makedirs(os.path.dirname(os.path.join(root, path)) or root, exist_ok=True)
+            open(os.path.join(root, path), "w", encoding="utf-8").write(content)
+        tests = sorted(os.path.relpath(os.path.join(d, f), root) for d, _, fs in os.walk(root) for f in fs
+                       if f.endswith(".test.js") and "node_modules" not in d)
+        start, failing, passing, output = time.time(), [], [], []
+        for test in tests:
+            run = subprocess.run(["node", "--test", test], cwd=root, capture_output=True, text=True, timeout=120)
+            (passing if run.returncode == 0 else failing).append(test)
+            if run.returncode != 0:
+                output.extend(line for line in run.stdout.splitlines() if "not ok" in line or "Error" in line
+                              or "expected" in line or "actual" in line)
+        sets = {test: read_set(root, test) for test in failing}
+    return {"sha": body["sha"], "green": not failing, "tests": len(tests), "failures": len(failing),
+            "failing_tests": [{"file": t, "name": t} for t in failing], "failing_files": failing,
+            "passing_files": passing, "read_set": sorted({p for v in sets.values() for p in v}), "read_sets": sets,
+            "read_depths": {}, "stack_files": [], "output_excerpt": "\n".join(output[-20:]),
+            "suite_seconds": round(time.time() - start, 3), "ci_seconds": round(time.time() - start, 3),
+            "timed_out": False}
 
 
 class Handler(BaseHTTPRequestHandler):

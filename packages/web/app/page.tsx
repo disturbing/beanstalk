@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 import type { DashboardRepository } from '../components/repository/home-dashboard';
 import { HomeDashboard } from '../components/repository/home-dashboard';
 import { RunsLanding } from '../components/runs/runs-landing';
-import { currentUser } from '../src/accounts/current-user';
+import { currentUser } from '../src/auth/user';
 import { growthOf } from '../src/repositories/engine-summary';
 import { registryClient } from '../src/repositories/registry-client';
 import { racePair } from '../src/recorded/race-pair';

@@ -8,6 +8,7 @@
 export const RESERVED_OWNERS: ReadonlySet<string> = new Set([
   'api',
   'assets',
+  'auth',
   'login',
   'logout',
   'new',

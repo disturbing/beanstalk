@@ -287,9 +287,11 @@ export class FakeGitRemote extends WorkerEntrypoint {
     if (!repo.tokens.some((issued) => issued.plaintext === token))
       return new Response('bad token', { status: 401 });
     const bytes = new Uint8Array(await request.arrayBuffer());
+    if (speaksGit(request) && match[3] === 'info/refs') return advertise(repo, url);
     const commands = match[3] === 'git-receive-pack' ? pushCommands(bytes) : [];
     for (const command of commands) repo.refs.set(command.ref, command.newSha);
     if (commands.length > 0) storePayload(repo, bytes);
+    if (speaksGit(request) && match[3] === 'git-receive-pack') return reportStatus(bytes, commands);
     return Response.json(
       {
         method: request.method,
@@ -304,4 +306,45 @@ export class FakeGitRemote extends WorkerEntrypoint {
       { headers: { 'www-authenticate': 'Basic realm="artifacts"', 'x-upstream': 'fake' } },
     );
   }
+}
+
+// A real git client (or the gateway's own git client) gets real smart-HTTP answers: a ref
+// advertisement and a report-status. Other test requests get the JSON echo above.
+function speaksGit(request) {
+  return (
+    (request.headers.get('user-agent') ?? '').startsWith('git/') ||
+    ((request.headers.get('content-type') ?? '').startsWith(
+      'application/x-git-receive-pack-request',
+    ) &&
+      request.headers.get('accept') === 'application/x-git-receive-pack-result')
+  );
+}
+
+function gitPkt(text) {
+  const bytes = new TextEncoder().encode(text);
+  return `${(bytes.length + 4).toString(16).padStart(4, '0')}${text}`;
+}
+
+function advertise(repo, url) {
+  const service = url.searchParams.get('service');
+  const caps = 'report-status side-band-64k delete-refs ofs-delta agent=fake-artifacts';
+  const refs = [...repo.refs.entries()].toSorted(([a], [b]) => (a < b ? -1 : 1));
+  const lines =
+    refs.length === 0
+      ? [gitPkt(`${'0'.repeat(40)} capabilities^{}\0${caps}\n`)]
+      : refs.map(([ref, sha], index) => gitPkt(`${sha} ${ref}${index === 0 ? `\0${caps}` : ''}\n`));
+  const body = `${gitPkt(`# service=${service}\n`)}0000${lines.join('')}0000`;
+  return new Response(body, {
+    headers: { 'content-type': `application/x-${service}-advertisement` },
+  });
+}
+
+function reportStatus(bytes, commands) {
+  const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 4096)));
+  const sideband = /\0[^\n]*side-band-64k/.test(head);
+  const report = `${gitPkt('unpack ok\n')}${commands.map((c) => gitPkt(`ok ${c.ref}\n`)).join('')}0000`;
+  const body = sideband ? `${gitPkt(`\u0001${report}`)}0000` : report;
+  return new Response(body, {
+    headers: { 'content-type': 'application/x-git-receive-pack-result' },
+  });
 }

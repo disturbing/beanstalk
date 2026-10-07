@@ -1,10 +1,11 @@
 import { applyD1Migrations, env } from 'cloudflare:test';
-import { z } from 'zod';
 
-/** Applies the registry's migrations (read by vitest.config.ts) before every test file. */
-const Migrations = z.array(z.object({ name: z.string(), queries: z.array(z.string()) }));
-
-await applyD1Migrations(
-  env.FORGE,
-  Migrations.parse(JSON.parse(String(Reflect.get(env, 'TEST_MIGRATIONS')))),
-);
+/** The identity and registry migrations (read by vitest.config.ts), applied per test file. */
+const identity: unknown = Reflect.get(env, 'TEST_MIGRATIONS');
+const registry: unknown = Reflect.get(env, 'FORGE_MIGRATIONS');
+if (!Array.isArray(identity) || !Array.isArray(registry))
+  throw new Error('vitest.config.ts passes TEST_MIGRATIONS and FORGE_MIGRATIONS');
+await Promise.all([
+  applyD1Migrations(env.IDENTITY_DB, identity),
+  applyD1Migrations(env.FORGE, registry),
+]);

@@ -5,8 +5,8 @@
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
-import { currentUser } from '../accounts/current-user';
-import type { SessionUser } from '../accounts/session-user';
+import { currentUser } from '../auth/user';
+import type { User as SessionUser } from '../auth/user';
 import { lookupRepository } from '../repositories/flows';
 import type { StartConfig } from '../repositories/paths';
 import { repositoryPath } from '../repositories/paths';
@@ -43,8 +43,4 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
 
 export function startConfig(): StartConfig {
   return { gitOrigin: env.GIT_ORIGIN, mcpUrl: env.MCP_URL };
-}
-
-export function isGitIntakeReady(): boolean {
-  return env.GIT_INTAKE === 'ready';
 }

@@ -9,7 +9,6 @@ import type {
   UpdateRepositoryInput,
 } from '@beanstalk/shared-race/repos';
 
-import { devUser } from '../accounts/session-user';
 import { readCreateForm } from './create-form';
 import { growthFromView, growthText } from './engine-summary';
 import { createFlow, deleteFlow, hasGrown, lookupRepository, updateFlow } from './flows';
@@ -124,19 +123,6 @@ const starter = {
   visibility: 'private',
   start: 'template:typescript-starter',
 };
-
-describe('the dev user stub', () => {
-  it('signs nobody in unless the staging flag names a handle', () => {
-    expect(devUser('')).toBeNull();
-    expect(devUser(undefined)).toBeNull();
-    expect(devUser('not a handle')).toBeNull();
-    expect(devUser('Coop')).toEqual({
-      id: 'u_dev_coop',
-      handle: 'Coop',
-      email: 'coop@dev.beanstalk.invalid',
-    });
-  });
-});
 
 describe('the New repository form', () => {
   it('reads a template start', () => {

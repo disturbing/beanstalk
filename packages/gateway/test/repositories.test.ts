@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
+import { call } from './helpers';
+
 /** The web app's service binding: the gateway's default entrypoint, over RPC. */
 const gateway = exports.default;
 
@@ -47,9 +49,10 @@ describe('creating a repository', () => {
       visibility: 'private',
       origin: { kind: 'template', template: 'typescript-starter' },
       artifacts_repo: `repo-${created.id}`,
-      engine_id: created.id,
       default_branch: 'stalk',
     });
+    // The engine's id is derived from <owner>/<repo> (docs/claude-opus/18).
+    expect(created.engine_id).toMatch(/^r[0-9a-f]{19}$/);
     const refs = await artifactsRefs(created.artifacts_repo);
     expect(refs.stalk).toMatch(/^[0-9a-f]{40}$/);
     expect(refs.sprout).toBe(refs.stalk);
@@ -99,7 +102,7 @@ describe('creating a repository', () => {
       start: { kind: 'import', url: 'https://elsewhere.test/secret.git' },
     } as const;
     const failed = await gateway.createRepository(coop, input);
-    expect(failed).toMatchObject({ ok: false, error: { code: 'upstream_failed' } });
+    expect(failed).toMatchObject({ ok: false, error: { code: 'import_refused', status: 422 } });
     expect(value(await gateway.listRepositories(coop.id, coop.id))).toEqual([]);
     value(await gateway.createRepository(coop, { ...input, start: { kind: 'empty' } }));
   });
@@ -214,5 +217,25 @@ describe('changing and deleting a repository', () => {
     const listed = await env.ARTIFACTS.list();
     expect(listed.repos.map((entry) => entry.name)).not.toContain(repo.artifacts_repo);
     expect(value(await gateway.repositoryActivity(coop.id, 10))).toEqual([]);
+  });
+});
+
+describe('git through the registry', () => {
+  it('serves a repository at its current name, and its old name no longer', async () => {
+    const coop = owner();
+    const repo = value(
+      await gateway.createRepository(coop, {
+        name: 'before',
+        visibility: 'private',
+        start: { kind: 'template', template: 'typescript-starter' },
+      }),
+    );
+    const token = value(await gateway.gitToken(repo.engine_id, coop)).token;
+    const refs = (name: string) =>
+      call('GET', `/git/${coop.handle}/${name}.git/info/refs?service=git-upload-pack`, { token });
+    expect((await refs('before')).status).toBe(200);
+    value(await gateway.updateRepository(coop.id, repo.id, { name: 'after' }));
+    expect((await refs('after')).status).toBe(200);
+    expect((await refs('before')).status).toBe(404);
   });
 });

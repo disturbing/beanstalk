@@ -61,6 +61,11 @@ export type TaskState = {
   dropReason: string | null;
   /** v2 `park`: why the bean waits for a person (absent in runs created before parking). */
   parkedReason?: string | null;
+  /**
+   * A pushed bean's fork point: the sprout commit its pushed head grew from, which its start
+   * takes as its base instead of the sprout head (absent: an arena task, or not found).
+   */
+  pushedBase?: Sha | null;
   tamper: string[];
   /** Predicted footprint modules (reported; the queue never places by them). */
   selected: string[];
@@ -195,6 +200,11 @@ export type CheckResult = {
   readonly readSets: Readonly<Record<string, readonly string[]>>;
   /** v2.5: the passing test files' read sets, when the check asked for them (`allReadSets`). */
   readonly passingReadSets?: Readonly<Record<string, readonly string[]>>;
+  /**
+   * The runner vouches that every read set it reported is complete: every file the test resolved,
+   * probed or listed (`evidence_read_sets: complete` trusts no other). Absent: static closures.
+   */
+  readonly readSetsComplete?: boolean;
   /** Import hops from each failing test file to each file it reads (suspect ranking). */
   readonly readDepths: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly stackFiles: readonly string[];
@@ -219,6 +229,10 @@ export type CiRun = {
   jobId: JobId | null;
   timerId: TimerId | null;
   result: CheckResult | null;
+  /** Only these test files (`affected_validation`); absent: the whole suite. */
+  only?: readonly string[];
+  /** Every passing test's read set is reported too (`evidence_promotion`). */
+  allReadSets?: true;
   /**
    * Cancelled while its suite runs (a superseded validation): `ci.end` is logged, the slot stays
    * reserved until the runner's job returns, and that outcome is dropped (absent: not cancelled).
@@ -481,6 +495,17 @@ export type EngineInput =
       readonly outcome: JobOutcome;
     }
   | { readonly kind: 'tick'; readonly at: number }
+  | {
+      /**
+       * A continuous engine takes a bean that arrived by push (`intake.ts`). The shell adds
+       * the bean's definition to the run's tasks first; this makes it a pending task.
+       */
+      readonly kind: 'admit';
+      readonly at: number;
+      readonly task: TaskId;
+      /** The sprout commit the pushed head grew from, when the shell found it. */
+      readonly base: Sha | null;
+    }
   | {
       /** An answer to a decision card (the admin route); the oracle answers with a timer. */
       readonly kind: 'decision';

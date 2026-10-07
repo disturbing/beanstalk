@@ -5,7 +5,7 @@
  */
 import Link from 'next/link';
 
-import type { SessionUser } from '../../src/accounts/session-user';
+import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';
 import { growthText } from '../../src/repositories/engine-summary';
 import { repositoryPath } from '../../src/repositories/paths';

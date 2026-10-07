@@ -14,8 +14,12 @@ import type {
   InvocationProgress,
   ProgressResponse,
 } from '@beanstalk/shared-race/driver';
-import type { InvocationId, RunId, Sha, SlotId } from '@beanstalk/shared-race/ids';
+import type { InvocationId, RunId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
 import type { RunConfig } from '@beanstalk/shared-race/run-config';
+import {
+  CONTINUOUS_SETTINGS,
+  RunConfig as RunConfigSchema,
+} from '@beanstalk/shared-race/run-config';
 
 import type {
   BeanDetail,
@@ -82,6 +86,17 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
+import { continuousRef } from '../push/bean-refs';
+import type { PushBean, PushProgress } from '../push/push-bean';
+import { listPushBeans, migratePushBeans, readPushBean, savePushBean } from '../push/push-bean';
+import type { Submitted } from '../push/push-driver';
+import { PushDriver } from '../push/push-driver';
+import type { PushOptions } from '../push/push-intent';
+import { pushIntent } from '../push/push-intent';
+import type { OpenRepoEngineInput, RepoEngineRecord } from '../push/repo-engine';
+import { RepoEngineRecord as RepoEngineSchema, beanLink } from '../push/repo-engine';
+import { prepareRepoLines } from '../push/repo-lines';
+import { StatusPublisher } from '../push/status-publisher';
 import { toDriverReply } from './driver-reply';
 import type { InfraMeter, InfraReport, RunnerCall } from './infra-meter';
 import {
@@ -122,6 +137,7 @@ import {
   readEventsOfTypes,
   saveMeter,
   saveNewRun,
+  saveConfig,
   saveReapRecord,
   saveStep,
 } from './run-store';
@@ -144,6 +160,13 @@ const SPROUT_BRANCH = 'sprout';
 const STALK_BRANCH = 'stalk';
 /** §4: a long poll is answered within 25 s, with `wait` if nothing came up. */
 const POLL_TIMEOUT_MS = 25_000;
+/** Reads of a pushed commit's message before the bean goes untitled, and the pause between. */
+const COMMIT_READ_ATTEMPTS = 3;
+/** Commits of a pushed head's history searched for its fork point on the sprout. */
+const PUSH_HISTORY_LIMIT = 200;
+const COMMIT_READ_PAUSE_MS = 300;
+/** Where a continuous engine keeps the repository it drives (`push/repo-engine.ts`). */
+const REPO_ENGINE_KEY = 'repo-engine';
 /** Characters of a stack trace kept in an `error` event. */
 const TRACEBACK_CHARS = 4000;
 /**
@@ -156,6 +179,7 @@ const LINE_MOVES: ReadonlySet<string> = new Set([
   'revert',
   'sprout.reset',
   'green.promote',
+  'green.demote',
 ]);
 /** The infra meter is written with every stored step, and otherwise at most this often. */
 const METER_SAVE_INTERVAL_MS = 5000;
@@ -228,6 +252,9 @@ export class RunDO extends DurableObject<Env> {
   #warmAgain = false;
   /** `stream_diffs`: calls to the run's stream object, in step order (each after the last). */
   #streamCalls: Promise<void> = Promise.resolve();
+  /** A continuous engine's driver: pushes in, verdicts out (`push/push-driver.ts`). */
+  readonly #push: PushDriver;
+  readonly #statuses: StatusPublisher;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -245,11 +272,206 @@ export class RunDO extends DurableObject<Env> {
       now: () => Date.now(),
     });
     this.#objects = this.#migrate();
+    migratePushBeans(ctx.storage.sql);
+    this.#push = new PushDriver({
+      sql: ctx.storage.sql,
+      log: this.#log,
+      apply: (input) => this.#applyStep(input),
+      state: () => this.#requireLoaded().stored.state,
+      config: () => this.#requireLoaded().stored.config,
+      setConfig: (next) => this.#setConfig(next),
+      link: (bean) => this.#beanLink(bean),
+      publish: (bean) => this.#statuses.publish(bean),
+    });
+    this.#statuses = new StatusPublisher({
+      target: async () => {
+        const repo = this.#requireLoaded().stored.repos.repo;
+        return { remote: repo.remote, token: await this.#tokens.token(repo.name, 'write') };
+      },
+      log: this.#log,
+      waitUntil: (work) => this.ctx.waitUntil(work),
+      published: (bean, status) => {
+        const stored = readPushBean(ctx.storage.sql, bean);
+        if (stored !== null) savePushBean(ctx.storage.sql, { ...stored, status });
+      },
+      now: () => Date.now(),
+    });
     const stored = loadRun(ctx.storage);
     if (stored !== null) {
       seedCollaboration(ctx.storage.sql, stored.config.tasks);
       this.#resume(stored);
     }
+  }
+
+  /**
+   * Opens the continuous engine of a repository (idempotent): the sprout and the stalk start
+   * at the repo's default branch, and the engine runs the demo rules with no task list; beans
+   * arrive by push. The repo itself is made elsewhere; this never creates or deletes one.
+   */
+  async openRepoEngine(
+    input: OpenRepoEngineInput & { engineId: RunId; createdAtMs: number },
+  ): Promise<RunResult<{ engineId: RunId; created: boolean; baseSha: Sha }>> {
+    this.#countRequest();
+    const existing = this.#repoEngine();
+    const loaded = this.#loaded;
+    if (loaded !== null) {
+      if (existing?.artifactsRepo !== input.artifactsRepo)
+        return failure('conflict', 409, `engine ${input.engineId} drives another repo`);
+      const baseSha = loaded.stored.state.baseSha;
+      if (baseSha === null) return failure('invalid_state', 409, 'the engine has not started');
+      return { ok: true, value: { engineId: input.engineId, created: false, baseSha } };
+    }
+    if (this.#creating) return failure('conflict', 409, 'the engine is being opened');
+    this.#creating = true;
+    try {
+      return await this.#createRepoEngine(input);
+    } catch (error: unknown) {
+      if (error instanceof GatewayError && !(error instanceof UpstreamError))
+        return failure(error.code, runStatus(error.status), error.message);
+      return upstreamFailure(error, 'opening the repository engine');
+    } finally {
+      this.#creating = false;
+    }
+  }
+
+  async #createRepoEngine(
+    input: OpenRepoEngineInput & { engineId: RunId; createdAtMs: number },
+  ): Promise<RunResult<{ engineId: RunId; created: boolean; baseSha: Sha }>> {
+    if (this.#wiped) {
+      this.#objects = this.#migrate();
+      this.#wiped = false;
+    }
+    const repo = await this.#artifacts.describeRepo(input.artifactsRepo);
+    const token = await this.#tokens.token(repo.name, 'write');
+    const baseSha = await prepareRepoLines(
+      { remote: repo.remote, token },
+      { baseBranch: input.settings?.base_branch ?? null, nowMs: input.createdAtMs },
+    );
+    const config = RunConfigSchema.parse({
+      ...CONTINUOUS_SETTINGS,
+      policy: 'beanstalk-v2',
+      label: `${input.owner.handle}/${input.repoName}`,
+      arena: 'repository',
+      tasks: [],
+      ...(input.settings?.suite === undefined ? {} : { suite: input.settings.suite }),
+    });
+    const record: RepoEngineRecord = {
+      engineId: input.engineId,
+      owner: input.owner,
+      repoName: input.repoName,
+      artifactsRepo: repo.name,
+      beanUrl: input.settings?.bean_url ?? null,
+    };
+    const env = engineEnv(config);
+    const stored: StoredRun = {
+      meta: { run: input.engineId, createdAtMs: input.createdAtMs },
+      config,
+      repos: { repo },
+      state: initialEngineState(env, input.createdAtMs),
+    };
+    saveNewRun(this.ctx.storage, stored);
+    this.ctx.storage.kv.put(REPO_ENGINE_KEY, record);
+    this.#loaded = { stored, env };
+    this.#saveMeter();
+    const started = this.#apply({
+      kind: 'start',
+      at: Date.now(),
+      baseSha,
+      labels: { out: `repo:${record.owner.handle}/${record.repoName}`, repo: repo.name },
+    });
+    if (started.kind === 'refused') return failure('invalid_state', 409, started.refusal.message);
+    this.#log.info('repository engine opened', { engine: input.engineId, repo: repo.name });
+    return { ok: true, value: { engineId: input.engineId, created: true, baseSha } };
+  }
+
+  /** The repository this continuous engine drives, or null for a race. */
+  repoEngine(): RepoEngineRecord | null {
+    this.#countRequest();
+    return this.#repoEngine();
+  }
+
+  /** Lends a token for one git request of a repository engine (refs are the caller's to police). */
+  async repoGitGrant(access: GitAccess): Promise<GitGrant> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null || this.#repoEngine() === null)
+      return { ok: false, status: 404, message: 'no such repository' };
+    const repo = loaded.stored.repos.repo;
+    try {
+      const token = await this.#tokens.token(repo.name, access);
+      return { ok: true, upstream: repo.remote, token, refs: null };
+    } catch (error: unknown) {
+      this.#log.error('minting a git token failed', { repo: repo.name, error });
+      return { ok: false, status: 502, message: 'could not open the repo' };
+    }
+  }
+
+  /** Why a push to `bean` must be refused now (before it reaches the repo), or null. */
+  pushRefusal(bean: TaskId): string | null {
+    this.#countRequest();
+    if (this.#repoEngine() === null) return 'not a repository engine';
+    return this.#push.refusal(bean);
+  }
+
+  /** A push of `bean` reached the repo: it becomes a bean, or answers the bean's rework. */
+  async submitPush(input: {
+    bean: TaskId;
+    head: Sha;
+    actor: string;
+    options: PushOptions;
+  }): Promise<Submitted> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null) return { ok: false, reason: 'no such repository' };
+    const repo = loaded.stored.repos.repo.name;
+    const message = await this.#pushedMessage(repo, input.head);
+    const history = await this.#artifacts
+      .history(repo, input.head, PUSH_HISTORY_LIMIT)
+      .catch((error: unknown) => {
+        this.#log.warn('reading a pushed history failed', { head: input.head, error });
+        return [];
+      });
+    return this.#push.submit({
+      bean: input.bean,
+      head: input.head,
+      actor: input.actor,
+      intent: pushIntent(message ?? '', input.options),
+      history,
+    });
+  }
+
+  /** What a push waiting on `bean` sees after line `after`. */
+  pushProgress(bean: string, push: number, after: number): PushProgress | null {
+    this.#countRequest();
+    return this.#push.progress(bean, push, after);
+  }
+
+  /**
+   * Closes a repository engine: it stops taking pushes (its race ends and records its final
+   * check), and with `deleteRepo` its Artifacts repo is deleted (the repository is gone).
+   */
+  async closeRepoEngine(options: { deleteRepo: boolean }): Promise<RunResult<{ phase: string }>> {
+    this.#countRequest();
+    const loaded = this.#loaded;
+    if (loaded === null || this.#repoEngine() === null) return notFound();
+    if (loaded.stored.state.phase === 'running')
+      this.#apply({ kind: 'stop', at: Date.now(), reason: 'repository engine closed' });
+    if (options.deleteRepo) {
+      try {
+        await this.#artifacts.deleteRepo(loaded.stored.repos.repo.name);
+        clearObjectCache(this.ctx.storage.sql);
+        this.#refs.clear();
+      } catch (error: unknown) {
+        return upstreamFailure(error, 'deleting the repository');
+      }
+    }
+    return { ok: true, value: { phase: this.#requireLoaded().stored.state.phase } };
+  }
+
+  /** Every pushed bean, as its status ref and the pushes see it. */
+  pushedBeans(): readonly PushBean[] {
+    this.#countRequest();
+    return listPushBeans(this.ctx.storage.sql);
   }
 
   /** Creates the run: the run repo, then the engine state with every task pending. */
@@ -447,6 +669,8 @@ export class RunDO extends DurableObject<Env> {
   }
 
   async #reap(run: RunId, options: ReapOptions): Promise<RunResult<ReapReport>> {
+    if (this.#loaded?.stored.config.continuous === true)
+      return failure('invalid_state', 409, 'a repository engine never deletes its repository');
     const phase = this.#creating ? 'being created' : this.#loaded?.stored.state.phase;
     if (phase === 'running' || phase === 'finishing' || phase === 'being created') {
       return failure('invalid_state', 409, `run is ${phase}; reap its repos once it is over`);
@@ -576,11 +800,11 @@ export class RunDO extends DurableObject<Env> {
 
   /** The run repo's tree at a ref (one directory, or everything under it), via the read index. */
   async repoTree(ref: string, path: string, recursive: boolean): Promise<RunResult<RepoTree>> {
-    return this.#explore((explorer) => explorer.tree(ref, path, recursive));
+    return this.#explore((explorer) => explorer.tree(this.#repoRef(ref), path, recursive));
   }
 
   async repoFile(ref: string, path: string): Promise<RunResult<RepoFile>> {
-    return this.#explore((explorer) => explorer.file(ref, path));
+    return this.#explore((explorer) => explorer.file(this.#repoRef(ref), path));
   }
 
   async repoDiff(
@@ -588,7 +812,9 @@ export class RunDO extends DurableObject<Env> {
     to: string,
     paths: readonly string[] | null,
   ): Promise<RunResult<RepoDiff>> {
-    return this.#explore((explorer) => explorer.diff(from, to, paths));
+    return this.#explore((explorer) =>
+      explorer.diff(this.#repoRef(from), this.#repoRef(to), paths),
+    );
   }
 
   async repoLog(
@@ -596,7 +822,7 @@ export class RunDO extends DurableObject<Env> {
     paths: readonly string[] | null,
     limit: number,
   ): Promise<RunResult<RepoLog>> {
-    return this.#explore((explorer) => explorer.log(ref, paths, limit));
+    return this.#explore((explorer) => explorer.log(this.#repoRef(ref), paths, limit));
   }
 
   async repoGrep(
@@ -605,7 +831,9 @@ export class RunDO extends DurableObject<Env> {
     paths: readonly string[] | null,
     regex = false,
   ): Promise<RunResult<RepoGrep>> {
-    return this.#explore((explorer) => explorer.grep(ref, pattern, paths, { regex }));
+    return this.#explore((explorer) =>
+      explorer.grep(this.#repoRef(ref), pattern, paths, { regex }),
+    );
   }
 
   /** `summary.json` of the run as JSON text. */
@@ -763,6 +991,7 @@ export class RunDO extends DurableObject<Env> {
   #resume(stored: StoredRun): void {
     this.#loaded = { stored, env: engineEnv(stored.config) };
     const phase = stored.state.phase;
+    // A continuous engine's driver polls again after the restart (`#apply` drains it).
     if (phase === 'running' || phase === 'finishing')
       this.#apply({ kind: 'restart', at: Date.now() });
   }
@@ -779,6 +1008,13 @@ export class RunDO extends DurableObject<Env> {
    * stored throws `StepWriteError` and leaves the run as it was.
    */
   #apply(input: EngineInput): EngineResponse {
+    const response = this.#applyStep(input);
+    if (this.#loaded?.stored.config.continuous === true) this.#push.drain();
+    return response;
+  }
+
+  /** `#apply` without the push driver's turn (the driver's own inputs come through here). */
+  #applyStep(input: EngineInput): EngineResponse {
     const loaded = this.#requireLoaded();
     const output = this.#step(loaded, input);
     const before = loaded.stored.state;
@@ -796,6 +1032,8 @@ export class RunDO extends DurableObject<Env> {
       this.#broadcast(output);
     }
     this.#reportStreams(output);
+    if (output.effects.events.length > 0 && loaded.stored.config.continuous)
+      this.#push.onEvents(output.effects.events);
     this.#deliver(output.effects.replies);
     for (const job of output.effects.jobs) this.ctx.waitUntil(this.#runJob(job.id, job.spec));
     if (write === 'state') this.#updateIndex();
@@ -1097,12 +1335,17 @@ export class RunDO extends DurableObject<Env> {
       log: this.#log.with({ run: loaded.stored.meta.run, job: id }),
       repos: () => this.#requireLoaded().stored.repos,
       suite: loaded.env.config.suite,
+      engine: loaded.env.config.continuous ? 'continuous' : 'race',
     });
     this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome });
   }
 
   #deliver(replies: readonly { pollId: string; reply: EngineReply }[]): void {
     for (const { pollId, reply } of replies) {
+      if (PushDriver.isInternalPoll(pollId)) {
+        this.#push.take(pollId, reply);
+        continue;
+      }
       const waiter = this.#waiters.get(pollId);
       if (waiter === undefined) continue;
       clearTimeout(waiter.timer);
@@ -1187,6 +1430,50 @@ export class RunDO extends DurableObject<Env> {
     );
     this.#streamCalls = next;
     this.ctx.waitUntil(next);
+  }
+
+  /**
+   * The pushed commit's message. Artifacts may not show a commit pushed moments ago yet, so a
+   * miss is read again briefly; without it the bean is titled from the push options or untitled.
+   */
+  async #pushedMessage(repo: string, head: Sha): Promise<string | null> {
+    for (let attempt = 0; attempt < COMMIT_READ_ATTEMPTS; attempt += 1) {
+      try {
+        // oxlint-disable-next-line no-await-in-loop -- a miss is read again after a pause
+        const message = await this.#artifacts.commitMessage(repo, head);
+        if (message !== null) return message;
+      } catch (error: unknown) {
+        this.#log.warn('reading a pushed commit failed', { head, error });
+      }
+      // oxlint-disable-next-line no-await-in-loop -- Artifacts is eventually consistent
+      await scheduler.wait(COMMIT_READ_PAUSE_MS);
+    }
+    return null;
+  }
+
+  #repoEngine(): RepoEngineRecord | null {
+    const stored = this.ctx.storage.kv.get(REPO_ENGINE_KEY);
+    if (stored === undefined) return null;
+    const parsed = RepoEngineSchema.safeParse(stored);
+    return parsed.success ? parsed.data : null;
+  }
+
+  #beanLink(bean: string): string | null {
+    const record = this.#repoEngine();
+    return record === null ? null : beanLink(record, bean);
+  }
+
+  /** A pushed bean's definition joined the run's tasks: persist it and rebuild the engine env. */
+  #setConfig(config: RunConfig): void {
+    const loaded = this.#requireLoaded();
+    saveConfig(this.ctx.storage, config);
+    this.#loaded = { stored: { ...loaded.stored, config }, env: engineEnv(config) };
+  }
+
+  /** A web ref as the repo holds it: a continuous engine's beans are `bean/<name>`. */
+  #repoRef(ref: string): string {
+    if (this.#loaded?.stored.config.continuous !== true || !ref.startsWith('beans/')) return ref;
+    return continuousRef(`refs/heads/${ref}`).slice('refs/heads/'.length);
   }
 
   /** The base both lines were seeded with; refused until the seed push put it on both. */

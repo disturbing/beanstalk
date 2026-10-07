@@ -21,6 +21,7 @@ Started 2026-10-03, evening; updated as experiments finish. **All seven experime
 | CF v2.5 phase matrix | Every v2.5 phase against the queue and v2.4, three seeds each (7, 11, 13), 12 Sonnet agents on Cloudflare (2026-10-05 and 06) | done (`research/race/runs/cf-{queue,v24,v25a,v25b,v25c,v25d,v25dep,v25dep2}-sonnet-12-s*`; seed 7 queue is `cf-queue-sonnet-12-s7-landed`) | **Only the full v2.5 set plus dependency-aware starts (and the tail fix) wins: 39/39/38 green against the queue's 36/35/37, the 35th green 1.7–2.1x sooner, done about 1.3x sooner, stalk correct in every run.** Green per seed (7/11/13), 35th green (min), done (min), agent $ for the three, red validations, from `kth_green.py --k 35` and the summaries: queue 36/35/37, 35.0/29.2/36.8, 40.6/30.2/39.5, $13.16, 10/8/10 · v2.4 37/32/33, 15.2/–/–, 17.7/17.3/25.4, $15.98, 4/5/13 · v2.5a (B: lone suspects, base culprits, window 8) 34/33/37, –/–/14.0, 22.5/18.8/15.6, $15.66, 8/10/4 · v2.5b (+A: escalation, parties) 31/33/29, –/–/–, 14.9/14.9/29.6, $18.06, 5/4/15 · v2.5c (+C: structural merges) 30/35/34, –/20.5/–, 20.9/22.7/19.7, $18.67, 9/8/7 · v2.5d (+E: start cards, rescue, dynamic culprits = full v2.5, FIFO starts) 37/39/37, 21.8/15.2/28.0, 22.8/24.6/40.5, $18.79, 6/0/8 · v2.5 + dependency starts, before the tail fix (`cf-v25dep-*`) 39/39/39, 13.0/16.3/14.1, **60.0/60.0/54.7** (s7 and s11 aborted at the 60-minute wall cap on t032; see "v2.5 tail fix" below), $15.26, 0/4/0 · **v2.5 + dependency starts with the tail fix, the rerun (`cf-v25dep2-*`)** 39/39/38, 17.1/14.9/22.0, 31.6/24.0/29.8, $15.58 (6.08/4.18/5.32), 4/0/4; metered Cloudflare infrastructure $0.38/$0.35/$0.42. What it shows: **the partial phases were worse.** v2.5a to v2.5c shipped 31–34.7 green on average, no better than v2.4 (34.0) and below the queue (36.0), and v2.5b to v2.5d cost the most ($18.06–18.79 for three races); the rules only pay together. Full v2.5 with FIFO starts ships more (37.7) but is slow (29.3 min mean done, 40.5 on s13). Dependency starts are what turn it into a win; before the tail fix the gain was hidden behind one looping bean. **The simulator over-predicted v2.5:** it gave v2.5 38.5 green and 16.0 min done on the burst (v2.5 + dependency starts on the declared burst: 40.0 green, 12.1 min) and rated v2.5a–c at or above v2.4; the real races gave 37.7 green, 29.3 min for v2.5d and 38.7, 28.5 min for the rerun, and the partial phases below v2.4. v2.4 and the partial phases finish sooner (19.0–21.1 min mean done) because they drop more beans. Notes: **network outage:** a network outage hit the race machine during the batch (operator's report); the recorded runs show no infra stop, no failed invocation and no event gap other than the dynamic-culprit searches, so none is excluded for it. **Queue seed 7:** `cf-queue-sonnet-12-s7` ran with `--protect-tests own` and its final stalk was wrong (37 green, 5 failing files); `-landed` is the like-for-like run with every landed test protected, as in all others. Caveats: three seeds, one run each; synthetic arena; short tasks; agent cost measured, infrastructure metered only for the rerun |
 | Stall fixes | Build the post-mortem's fixes into v2 and measure them (16 seeds) | done, **simulated** (section "Stall fixes" below) | **The red-window reset wins at 12 and 30 agents and is on by default and in `demo`.** burst30 at 30 agents: 39 green (37), 30th green 13.1 min (17.0), 35th 17.4 (27.5), done 26.3 (31.0); the queue: 35 green, 20.0, 35.6, done at the 60-minute cap. One ticket per episode, repair landings, speculative validation and an adaptive window add nothing on top (episode tickets alone hurt) and stay off or unbuilt |
 | 30-agent post-mortem | Why v2.5 (`demo` preset) lost its lead at 30 agents (`cf-demo-sonnet-30-s7` against `cf-queue-sonnet-30-s7`, 2026-10-06), a simulator fixture of the stall, and a culprit-isolation study | diagnosis and study done, **simulated** (fixture `packages/gateway/src/engine/testing/burst30.ts`, study `testing/culprit-study.ts`; section "30-agent post-mortem" below) | **The stall was one whole-suite break that could not be reverted, not a lack of CI capacity.** Two migrations numbered 0007 (t010 on top of t011) landed without a re-check and failed 45–52 test files from minute 8.3. The culprit's revert conflicted three times (t007 had edited the migration index). Two nested tickets reverted innocent beans (t022, t009) whose new tests failed with the suite. The bean that fixed it forward (t026, green at 14.95) waited 11.8 minutes for the window. Recommendation: **revert-then-requeue the red window** (reset the sprout to the stalk and send the window's beans back through their pre-land checks), keeping the lone-suspect revert as the fast path |
+| Event-driven promotion | Promotion by evidence, affected validations, a background audit, Coop's validation debounce (2026-10-07) | done, **simulated** (16 seeds) + staging seed 7 (section "Event-driven promotion") | **Evidence + affected validation removes the window waits** (burst30-30: 13.6 → 0, 30th green 11.2 → 8.6 min, CI slot-min 23.8 → 10.0), correct 16/16; planted read-set misses are all caught by the audit. Staging: the runner's static import closures are too coarse on the arena to give evidence. Off by default until the runner returns complete read sets; debounce measured and left off |
 | v2.1 / v2.2 | Finer or adaptive re-check | done | **Calm repo (marked):** line-level 5.4–6.0 min, adaptive 5.2–5.3 min (file-level v2: 19–20; queue: 4.4), all correct. **Contended arena:** line-level is unsafe (4 red validations, 29 greens). **Adaptive with file-level fallback (v2.2): 35 greens, 10.1 min, $5.43, 3 red validations, correct**, matching file-level v2 (35, 11.3 min, $5.29, 1 red). **Rule:** skip re-checks while pre-land reds are rare; fall back to file-level once they appear |
 
 ## The design changes so far
@@ -432,3 +433,171 @@ Simulator, 16 seeds, `DEMO_SETTINGS` of each tree (the guards' tree has neither 
 **What the numbers say.** Correct 16/16 everywhere, no `error` events. Against the guards alone the merge is better on every kth green in every scenario (burst30-30 30th 13.1 → 11.2, done 21.8 → 20.0; burst done 20.6 → 15.1). Against ours it is equal on burst30 (paired differences within ±0.2 min, green identical per seed), calm (identical) and earlier (within noise), and slightly better on burst (35th 12.2 → 11.7, done 15.4 → 15.1). **Flaky is the one cost:** 30th +0.7 ± 0.3 min, done +1.8 ± 0.7 (paired over seeds), green 39.7 → 39.6, concentrated in seeds 5, 9 and 13. Ablations on the merged tree (flaky, 16 seeds): turning off every guard gives done 16.2 (the remaining 0.7 against ours comes from the guards commit's other engine and simulator changes: reconcile merging the sprout head, probe latency); turning off only the stale re-check of reds on a discarded tree gives 16.3; the rewrite guard, cancellation at the reset's start, the held CI slot and the parked release each change done by under 0.3. So the flaky cost is the stale re-check rule changing which beans a reset's aftermath sends back, not a slowdown in the guards themselves. It is a correctness fix worth keeping: without it a bean checked on a discarded tree is reworked against culprits that are no longer on the sprout (burst30, t031 blamed t001 and t002), and with it burst and burst30 come out as fast or faster.
 
 Burst30 seed 7, re-pinned in `v2-burst30.test.ts`: 39 green, t023 parked, 30th green 11.63 min, done 20.79 (the guards alone: 12.84, 22.04).
+
+## Event-driven promotion (2026-10-07)
+
+**Why.** In the 30-agent Cloudflare races (3 seeds) the stalk was the bottleneck: 21–24 validations per race at about 78 s each on 2 slots, and 10–13 green beans per race waiting 160–244 s each for room in the sprout window (27–53 bean-minutes). Check reuse replaced 7–8 of about 22 validations on staging. A promotion carried about 1.8 beans, with about 3.4 unvalidated when its validation started. Three changes, each behind its own setting, measured alone and together. Simulator: 16 seeds per row, the `demo` preset otherwise (scenario CI latencies: burst30 73.5 s, the others 60 s); "validations" excludes audits, "slot-min" counts every CI run but the final check (audits included); "promo lat." is the mean landing → stalk time of the green beans; "misses" are commits evidence promoted that are red on a fresh run (flaky test excluded).
+
+### 1. Reuse after re-checks (nothing to extend)
+
+Check reuse already covers every landing whose exact commit passed a full pre-land check, re-checks included: each green full check (first check, a re-check on the moved sprout, the locked in-turn check) is remembered for its candidate, and a bean that lands that candidate lands that commit. Measured over all six scenarios × 16 seeds of the `demo` preset: **0 validations ran on a commit whose exact sha a green full pre-land check had passed** (the `exact_missed` count of the study script). The only gap in the code is a checked commit that lands while a reset or revert rewrites the sprout: once the rewrite is done the head is the revert commit, and promoting the commit below it would undo the guard, so it is left as is. The validations reuse does not replace are of trees no full check saw (optimistic landings on a moved sprout): that is what evidence covers. No new setting.
+
+### 2. Promotion by evidence (`evidence_promotion`, `affected_validation`, `audit_every`)
+
+**The rule.** A test's verdict depends only on the files it reads. A sprout commit H above the stalk is green without CI when **every test of H is vouched for**: some tree T whose full suite passed (a bean's green full pre-land check, a sprout commit a full suite passed, or a sprout commit itself promoted on evidence) contains the test, and the test's read set at T (always including the test file) misses every file that may differ between T and H. That difference is computed conservatively from what the engine knows: the files of every sprout commit after T's base (reverts and resets included), minus the bean's own landing when it is T's commit or a textual re-squash of it, plus the bean's own change while that landing is not in range. Further:
+
+- a file every test depends on (`package.json`, lockfiles, `tsconfig*.json`, vitest/vite/jest config) touches every test;
+- a changed file that is another resolution of a module the test reads (`src/a.ts` beside `src/a/index.ts`) counts as read: an added file the test's import probes;
+- the tests of H are those an *anchor* (a sprout commit's voucher, or a check whose bean landed in range) holds unchanged, plus every test file a commit since changed; without an anchor the tests are not all known and there is no evidence;
+- no evidence while the sprout is known red (open ticket, a red validation at or below H, a red waiting for its re-run); when a landed bean has no green full check with read sets (`unchecked-bean`); for a structural merge whose own tree was never checked; when read sets are unknown (`no-read-sets`), and with `evidence_read_sets: complete` (default) only read sets the runner marks complete count;
+- a test an audit caught is never vouched for again.
+
+Per bean this is the requested rule ("the files changed between T_i and H are disjoint from the read sets of the tests"), made per test: requiring every bean's difference to miss *every* test would refuse any promotion of two beans, since each bean's added acceptance test is itself in the other bean's difference.
+
+The newest commit above the stalk with full evidence is promoted (`promote.evidence`: the beans, every checked tree that vouched with its changed files, the read sets a difference did meet, then `green.promote`); the window counts it validated and grows as on a green validation; older validations are cancelled as for reuse. Otherwise a validation runs and `evidence.refused` says why. With `affected_validation` it runs only the tests nothing vouches for (latency `ci_overhead_seconds` + `ci_seconds` × their share of the tests); green promotes on that evidence, red is a red validation like any other (flake re-run of the same tests, ticket, reset).
+
+**The audit.** The full suite runs on the stalk on an idle CI slot (nothing queued) once `audit_every` commits were promoted without a full suite since the last one (default 4), and always before the race ends. A red audit is re-run once; the same file red again moves the stalk back to the newest commit a full suite passed (`green.demote`; the stalk ref is force-updated with a lease, the beans promoted since are `landed` again), the failing tests are distrusted, and the red settles as a red validation of the audited commit: window halved, ticket, red-window reset. A red the stalk already moved past with a full suite is stale.
+
+**Planted scenarios** (`v2-evidence.test.ts`): two beans that meet only in a fixture the report test reads (`tests/fixtures/rates.json` and the code that uses it) are refused (`evidence.refused` names the test, its overlap lists the fixture), validated red and repaired, no red stalk commit; a read set that omits the second bean's module lets evidence promote the red pair, the audit catches it (red, then confirmed), the stalk goes back to the first bean, the reset requeues the pair and the race ends correct with the test distrusted; read sets without the runner's completeness flag give no evidence (`no-read-sets`), with `evidence_read_sets: static` they do; `package.json`, a probed `src/report.ts` and an unchecked structural merge each refuse.
+
+At scale, `burst-misread` is the burst with every clash test's read set missing the culprit's module (16 seeds): evidence promoted 5.4–5.8 red commits per race, **every one was caught by an audit** (0.7–0.9 demotions per race; each demotion takes back every red commit above the verified one), correct 16/16, at a cost: done 14.4 → 15.7–16.7 min.
+
+### 3. Validation debounce (`validation_debounce`)
+
+Coop's rule: a validation a landing asks for starts after min(`validation_debounce_seconds` 15, time to the next `validation_tick_seconds` 60 tick); one asked for in the step a validation settled starts at once; a repair landing's never waits. `ci_overhead_seconds` (new, default 0) adds a fixed per-run cost to every CI-slot run but the final check, as GitHub Actions' setup does.
+
+### Results (simulator, 16 seeds)
+
+Per change and combined; "evidence+affected audit/4" is the recommended setting (the schema default `audit_every` is 4):
+
+| Scenario | Variant | green | k20 | k30 | k35 | done | waits | wait bean-min | validations | targeted | audits | CI slot-min | promo lat. | reused | evidence | audit reds | misses | correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| burst30-30 | demo | 39.0 | 5.9 | 11.2 | 15.5 | 20.0 | 13.6 | 14.0 | 17.9 | 0.0 | 0.0 | 23.8 | 1.6 | 5.5 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst30-30 | evidence | 39.0 | 3.2 | 9.5 | 15.1 | 19.1 | 0.0 | 0.0 | 7.6 | 0.0 | 5.4 | 17.0 | 0.2 | 5.8 | 28.1 | 0.0 | 0.0 | 16/16 |
+| burst30-30 | evidence+affected | 39.0 | 3.2 | 8.6 | 14.3 | 19.3 | 0.0 | 0.0 | 7.3 | 7.3 | 9.1 | 16.1 | 0.0 | 5.8 | 33.2 | 0.0 | 0.0 | 16/16 |
+| burst30-30 | evidence+affected audit/4 | 39.0 | 3.2 | 8.6 | 14.6 | 19.3 | 0.0 | 0.0 | 7.1 | 7.1 | 3.8 | 10.0 | 0.1 | 5.8 | 32.9 | 0.0 | 0.0 | 16/16 |
+| burst30-30 | debounce | 39.0 | 4.6 | 11.9 | 16.3 | 20.1 | 8.6 | 10.1 | 13.4 | 0.0 | 0.0 | 17.4 | 1.2 | 5.1 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst30-30 | combined | 39.0 | 3.2 | 11.2 | 14.9 | 19.4 | 0.0 | 0.0 | 7.1 | 7.1 | 8.6 | 15.0 | 0.1 | 5.6 | 32.9 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | demo | 39.0 | 5.7 | 10.2 | 15.6 | 20.4 | 13.3 | 11.0 | 17.4 | 0.0 | 0.0 | 22.6 | 1.5 | 5.4 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | evidence | 39.0 | 3.2 | 8.6 | 15.5 | 19.5 | 0.0 | 0.0 | 7.9 | 0.0 | 5.5 | 16.9 | 0.2 | 4.9 | 28.3 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | evidence+affected | 39.0 | 3.2 | 7.4 | 14.6 | 19.4 | 0.0 | 0.0 | 7.4 | 7.4 | 9.2 | 15.5 | 0.1 | 5.1 | 33.7 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | evidence+affected audit/4 | 39.0 | 3.2 | 7.4 | 14.9 | 19.4 | 0.0 | 0.0 | 7.4 | 7.4 | 3.9 | 9.6 | 0.1 | 5.1 | 33.4 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | debounce | 39.0 | 4.6 | 8.8 | 15.7 | 19.9 | 8.5 | 7.4 | 14.0 | 0.0 | 0.0 | 18.5 | 1.3 | 5.1 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst30-12 | combined | 39.0 | 3.2 | 7.6 | 15.1 | 19.4 | 0.0 | 0.0 | 6.5 | 6.5 | 9.2 | 15.5 | 0.1 | 5.1 | 32.6 | 0.0 | 0.0 | 16/16 |
+| burst | demo | 39.6 | 7.6 | 10.8 | 11.7 | 15.1 | 17.3 | 17.2 | 16.4 | 0.0 | 0.0 | 17.5 | 1.3 | 5.3 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst | evidence | 39.4 | 5.7 | 8.3 | 9.8 | 13.8 | 6.6 | 7.4 | 2.2 | 0.0 | 8.1 | 11.3 | 0.1 | 5.7 | 30.2 | 0.0 | 0.0 | 16/16 |
+| burst | evidence+affected | 39.1 | 4.6 | 8.6 | 9.5 | 13.4 | 1.4 | 1.7 | 5.9 | 5.9 | 8.8 | 9.6 | 0.0 | 6.0 | 30.3 | 0.0 | 0.0 | 16/16 |
+| burst | evidence+affected audit/4 | 39.1 | 4.6 | 8.6 | 9.6 | 13.3 | 1.4 | 1.9 | 6.9 | 6.9 | 5.2 | 6.0 | 0.0 | 6.0 | 30.9 | 0.0 | 0.0 | 16/16 |
+| burst | debounce | 39.7 | 8.9 | 11.2 | 12.0 | 16.3 | 34.4 | 26.2 | 9.4 | 0.0 | 0.0 | 12.2 | 1.1 | 6.5 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst | combined | 39.3 | 5.2 | 8.7 | 9.9 | 14.0 | 4.9 | 6.2 | 3.3 | 3.3 | 9.4 | 10.0 | 0.0 | 6.1 | 29.8 | 0.0 | 0.0 | 16/16 |
+| calm | demo | 40.0 | 4.7 | 6.1 | 7.2 | 8.1 | 14.4 | 10.8 | 12.1 | 0.0 | 0.0 | 12.5 | 1.4 | 1.9 | 0.0 | 0.0 | 0.0 | 16/16 |
+| calm | evidence | 40.0 | 2.5 | 4.9 | 5.1 | 8.3 | 0.0 | 0.0 | 0.0 | 0.0 | 6.8 | 7.0 | 0.0 | 2.1 | 37.9 | 0.0 | 0.0 | 16/16 |
+| calm | evidence+affected | 40.0 | 2.5 | 4.9 | 5.1 | 8.3 | 0.0 | 0.0 | 0.0 | 0.0 | 6.8 | 7.0 | 0.0 | 2.1 | 37.9 | 0.0 | 0.0 | 16/16 |
+| calm | evidence+affected audit/4 | 40.0 | 2.5 | 4.9 | 5.1 | 7.9 | 0.0 | 0.0 | 0.0 | 0.0 | 5.8 | 6.0 | 0.0 | 2.1 | 37.9 | 0.0 | 0.0 | 16/16 |
+| calm | debounce | 40.0 | 3.9 | 5.9 | 6.8 | 7.9 | 13.4 | 8.5 | 8.4 | 0.0 | 0.0 | 9.3 | 1.2 | 1.9 | 0.0 | 0.0 | 0.0 | 16/16 |
+| calm | combined | 40.0 | 2.5 | 4.9 | 5.1 | 8.3 | 0.0 | 0.0 | 0.0 | 0.0 | 6.8 | 7.0 | 0.0 | 2.1 | 37.9 | 0.0 | 0.0 | 16/16 |
+| earlier | demo | 39.5 | 5.8 | 7.7 | 9.6 | 13.4 | 19.8 | 13.5 | 12.5 | 0.0 | 0.0 | 13.6 | 1.3 | 6.1 | 0.0 | 0.0 | 0.0 | 16/16 |
+| earlier | evidence | 39.3 | 4.4 | 6.7 | 8.3 | 13.5 | 5.0 | 3.8 | 2.7 | 0.0 | 6.0 | 9.6 | 0.3 | 6.0 | 27.8 | 0.0 | 0.0 | 16/16 |
+| earlier | evidence+affected | 39.1 | 4.0 | 5.8 | 7.7 | 12.8 | 3.3 | 2.8 | 4.6 | 4.6 | 6.8 | 7.7 | 0.1 | 6.2 | 29.3 | 0.0 | 0.0 | 16/16 |
+| earlier | evidence+affected audit/4 | 39.2 | 4.0 | 5.8 | 7.7 | 12.7 | 3.4 | 2.8 | 4.6 | 4.6 | 4.3 | 5.1 | 0.1 | 6.2 | 29.4 | 0.0 | 0.0 | 16/16 |
+| earlier | debounce | 39.8 | 5.8 | 7.5 | 9.9 | 14.7 | 23.6 | 15.0 | 8.8 | 0.0 | 0.0 | 10.8 | 1.1 | 6.4 | 0.0 | 0.0 | 0.0 | 16/16 |
+| earlier | combined | 39.5 | 4.1 | 5.9 | 8.1 | 13.3 | 3.2 | 1.9 | 2.6 | 2.6 | 7.3 | 7.9 | 0.1 | 6.3 | 29.1 | 0.0 | 0.0 | 16/16 |
+| flaky | demo | 39.6 | 7.9 | 10.4 | 12.8 | 17.4 | 12.8 | 9.3 | 16.2 | 0.0 | 0.0 | 17.8 | 1.2 | 7.3 | 0.0 | 0.0 | 0.0 | 16/16 |
+| flaky | evidence | 39.2 | 6.4 | 8.6 | 10.8 | 15.1 | 6.4 | 6.0 | 3.4 | 0.0 | 8.4 | 13.3 | 0.2 | 6.6 | 29.1 | 0.0 | 0.0 | 16/16 |
+| flaky | evidence+affected | 38.9 | 5.2 | 7.9 | 9.5 | 13.6 | 1.5 | 1.2 | 7.1 | 7.1 | 9.7 | 10.9 | 0.1 | 5.8 | 29.6 | 0.0 | 0.0 | 16/16 |
+| flaky | evidence+affected audit/4 | 38.9 | 5.2 | 7.9 | 9.5 | 13.4 | 1.6 | 1.2 | 7.5 | 7.5 | 5.6 | 6.7 | 0.1 | 5.8 | 29.8 | 0.0 | 0.0 | 16/16 |
+| flaky | debounce | 39.6 | 7.9 | 10.5 | 12.8 | 17.1 | 22.4 | 16.6 | 9.7 | 0.0 | 0.0 | 12.4 | 1.1 | 7.7 | 0.0 | 0.0 | 0.0 | 16/16 |
+| flaky | combined | 39.3 | 5.6 | 8.1 | 9.9 | 14.1 | 2.4 | 2.4 | 3.9 | 3.9 | 10.0 | 10.7 | 0.1 | 6.4 | 28.9 | 0.0 | 0.0 | 16/16 |
+| burst-misread | demo | 38.9 | 6.3 | 9.9 | 10.5 | 14.4 | 11.0 | 10.4 | 14.3 | 0.0 | 0.0 | 15.0 | 1.4 | 5.5 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst-misread | evidence | 39.3 | 6.5 | 10.1 | 11.3 | 16.7 | 5.6 | 2.3 | 4.6 | 0.0 | 6.0 | 11.2 | 0.7 | 6.8 | 26.1 | 0.7 | 5.4 | 16/16 |
+| burst-misread | evidence+affected | 39.3 | 6.2 | 8.7 | 10.4 | 16.0 | 2.9 | 1.7 | 8.1 | 7.5 | 8.5 | 10.0 | 0.4 | 6.1 | 33.6 | 0.9 | 5.8 | 16/16 |
+| burst-misread | evidence+affected audit/4 | 39.3 | 6.1 | 9.0 | 10.4 | 16.5 | 3.8 | 2.7 | 8.1 | 7.8 | 6.0 | 7.2 | 0.2 | 6.3 | 33.6 | 0.7 | 5.4 | 16/16 |
+| burst-misread | debounce | 38.8 | 7.1 | 9.5 | 11.1 | 15.2 | 19.1 | 18.4 | 9.1 | 0.0 | 0.0 | 11.3 | 1.3 | 5.8 | 0.0 | 0.0 | 0.0 | 16/16 |
+| burst-misread | combined | 39.2 | 6.2 | 8.8 | 10.5 | 15.7 | 4.5 | 2.6 | 3.5 | 3.3 | 8.1 | 9.3 | 0.5 | 6.1 | 29.4 | 0.9 | 5.8 | 16/16 |
+
+With the CI at exactly 60 s and with a 12 s per-run overhead (all scenarios at `ci_seconds: 60`, so burst30 is faster than above):
+
+| Scenario | Variant | green | k20 | k30 | k35 | done | waits | wait bean-min | validations | ci_runs | CI slot-min | promo lat. | correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| burst30-30 | ci60 immediate | 39.0 | 4.9 | 8.1 | 14.2 | 18.8 | 13.6 | 10.5 | 17.0 | 17.5 | 17.7 | 1.3 | 16/16 |
+| burst30-30 | ci60 debounce | 39.0 | 3.9 | 8.8 | 14.8 | 18.7 | 8.6 | 8.1 | 13.3 | 14.4 | 14.5 | 1.0 | 16/16 |
+| burst30-30 | ci60 combined | 39.0 | 2.8 | 8.6 | 14.1 | 18.1 | 0.0 | 0.0 | 6.3 | 14.7 | 12.0 | 0.1 | 16/16 |
+| burst30-30 | ci60+12 immediate | 39.0 | 5.3 | 9.4 | 14.6 | 19.1 | 13.6 | 14.7 | 15.4 | 17.8 | 20.7 | 1.4 | 16/16 |
+| burst30-30 | ci60+12 debounce | 39.0 | 4.2 | 8.9 | 15.2 | 18.7 | 10.5 | 10.3 | 11.1 | 12.8 | 15.0 | 1.1 | 16/16 |
+| burst30-30 | ci60+12 evidence+affected | 39.0 | 2.8 | 7.2 | 13.8 | 18.0 | 0.0 | 0.0 | 6.5 | 14.8 | 14.6 | 0.1 | 16/16 |
+| burst30-30 | ci60+12 combined | 38.9 | 2.8 | 8.8 | 14.1 | 18.0 | 0.0 | 0.0 | 6.4 | 14.7 | 14.2 | 0.1 | 16/16 |
+| burst30-12 | ci60 immediate | 39.0 | 4.7 | 8.1 | 14.4 | 19.0 | 13.1 | 7.6 | 16.8 | 17.4 | 17.6 | 1.2 | 16/16 |
+| burst30-12 | ci60 debounce | 39.0 | 4.1 | 7.7 | 14.4 | 18.5 | 8.8 | 5.7 | 12.8 | 13.4 | 13.7 | 1.1 | 16/16 |
+| burst30-12 | ci60 combined | 39.0 | 2.8 | 7.2 | 13.7 | 17.9 | 0.0 | 0.0 | 6.1 | 15.3 | 12.5 | 0.1 | 16/16 |
+| burst30-12 | ci60+12 immediate | 39.0 | 5.2 | 8.4 | 14.9 | 19.3 | 13.3 | 11.7 | 14.9 | 16.6 | 19.2 | 1.4 | 16/16 |
+| burst30-12 | ci60+12 debounce | 39.0 | 4.4 | 8.1 | 14.7 | 18.7 | 11.3 | 7.8 | 11.8 | 12.8 | 15.4 | 1.2 | 16/16 |
+| burst30-12 | ci60+12 evidence+affected | 39.0 | 2.8 | 7.2 | 13.9 | 18.0 | 0.0 | 0.0 | 6.3 | 14.9 | 14.6 | 0.1 | 16/16 |
+| burst30-12 | ci60+12 combined | 39.0 | 2.8 | 7.3 | 14.1 | 18.0 | 0.0 | 0.0 | 5.4 | 14.1 | 14.4 | 0.1 | 16/16 |
+| burst | ci60 immediate | 39.6 | 7.6 | 10.8 | 11.7 | 15.1 | 17.3 | 17.2 | 16.4 | 18.5 | 17.5 | 1.3 | 16/16 |
+| burst | ci60 debounce | 39.7 | 8.9 | 11.2 | 12.0 | 16.3 | 34.4 | 26.2 | 9.4 | 12.9 | 12.2 | 1.1 | 16/16 |
+| burst | ci60 combined | 39.3 | 5.2 | 8.7 | 9.9 | 14.0 | 4.9 | 6.2 | 3.3 | 12.8 | 10.0 | 0.0 | 16/16 |
+| burst | ci60+12 immediate | 39.6 | 7.4 | 10.2 | 11.7 | 15.5 | 28.8 | 26.5 | 8.8 | 14.3 | 15.6 | 1.4 | 16/16 |
+| burst | ci60+12 debounce | 39.8 | 8.7 | 11.8 | 13.0 | 17.5 | 39.4 | 43.3 | 7.6 | 11.9 | 13.0 | 1.2 | 16/16 |
+| burst | ci60+12 evidence+affected | 39.3 | 5.6 | 8.5 | 9.6 | 13.9 | 7.9 | 10.4 | 3.9 | 12.0 | 10.6 | 0.0 | 16/16 |
+| burst | ci60+12 combined | 39.3 | 5.5 | 8.0 | 9.5 | 13.7 | 5.3 | 4.8 | 3.3 | 11.1 | 10.3 | 0.1 | 16/16 |
+| calm | ci60 immediate | 40.0 | 4.7 | 6.1 | 7.2 | 8.1 | 14.4 | 10.8 | 12.1 | 12.7 | 12.5 | 1.4 | 16/16 |
+| calm | ci60 debounce | 40.0 | 3.9 | 5.9 | 6.8 | 7.9 | 13.4 | 8.5 | 8.4 | 9.3 | 9.3 | 1.2 | 16/16 |
+| calm | ci60 combined | 40.0 | 2.5 | 4.9 | 5.1 | 8.3 | 0.0 | 0.0 | 0.0 | 6.8 | 7.0 | 0.0 | 16/16 |
+| calm | ci60+12 immediate | 40.0 | 5.3 | 6.2 | 7.6 | 8.4 | 22.3 | 16.8 | 9.4 | 10.8 | 12.9 | 1.7 | 16/16 |
+| calm | ci60+12 debounce | 40.0 | 4.2 | 6.2 | 6.9 | 8.2 | 14.8 | 11.3 | 8.3 | 9.1 | 10.9 | 1.4 | 16/16 |
+| calm | ci60+12 evidence+affected | 40.0 | 2.5 | 4.9 | 5.1 | 8.5 | 0.0 | 0.0 | 0.0 | 5.8 | 7.1 | 0.0 | 16/16 |
+| calm | ci60+12 combined | 40.0 | 2.5 | 4.9 | 5.1 | 8.5 | 0.0 | 0.0 | 0.0 | 5.8 | 7.1 | 0.0 | 16/16 |
+| earlier | ci60 immediate | 39.5 | 5.8 | 7.7 | 9.6 | 13.4 | 19.8 | 13.5 | 12.5 | 14.3 | 13.6 | 1.3 | 16/16 |
+| earlier | ci60 debounce | 39.8 | 5.8 | 7.5 | 9.9 | 14.7 | 23.6 | 15.0 | 8.8 | 11.3 | 10.8 | 1.1 | 16/16 |
+| earlier | ci60 combined | 39.5 | 4.1 | 5.9 | 8.1 | 13.3 | 3.2 | 1.9 | 2.6 | 10.1 | 7.9 | 0.1 | 16/16 |
+| earlier | ci60+12 immediate | 39.4 | 6.8 | 8.9 | 11.3 | 15.6 | 30.3 | 26.8 | 9.5 | 14.1 | 16.1 | 1.5 | 16/16 |
+| earlier | ci60+12 debounce | 39.8 | 6.1 | 8.2 | 10.9 | 15.4 | 26.3 | 25.6 | 7.2 | 10.4 | 11.5 | 1.3 | 16/16 |
+| earlier | ci60+12 evidence+affected | 39.3 | 4.1 | 6.0 | 7.9 | 13.2 | 5.1 | 2.4 | 3.9 | 10.3 | 8.7 | 0.1 | 16/16 |
+| earlier | ci60+12 combined | 39.5 | 4.3 | 6.0 | 7.8 | 13.2 | 3.5 | 2.0 | 2.4 | 9.1 | 8.7 | 0.2 | 16/16 |
+| flaky | ci60 immediate | 39.6 | 7.9 | 10.4 | 12.8 | 17.4 | 12.8 | 9.3 | 16.2 | 19.5 | 17.8 | 1.2 | 16/16 |
+| flaky | ci60 debounce | 39.6 | 7.9 | 10.5 | 12.8 | 17.1 | 22.4 | 16.6 | 9.7 | 13.3 | 12.4 | 1.1 | 16/16 |
+| flaky | ci60 combined | 39.3 | 5.6 | 8.1 | 9.9 | 14.1 | 2.4 | 2.4 | 3.9 | 13.9 | 10.7 | 0.1 | 16/16 |
+| flaky | ci60+12 immediate | 39.8 | 7.4 | 10.2 | 12.0 | 15.6 | 22.7 | 19.6 | 10.0 | 14.8 | 16.5 | 1.4 | 16/16 |
+| flaky | ci60+12 debounce | 39.6 | 7.2 | 10.5 | 12.7 | 16.8 | 29.4 | 24.9 | 8.8 | 13.1 | 14.3 | 1.3 | 16/16 |
+| flaky | ci60+12 evidence+affected | 39.1 | 5.9 | 8.0 | 10.0 | 14.5 | 5.0 | 5.0 | 5.0 | 14.2 | 12.1 | 0.1 | 16/16 |
+| flaky | ci60+12 combined | 39.3 | 5.6 | 7.9 | 9.7 | 13.9 | 3.1 | 2.0 | 4.5 | 12.9 | 11.5 | 0.1 | 16/16 |
+
+**What the numbers say.**
+
+- **Evidence is the big change, and the gain is the one predicted: window waits vanish.** burst30 at 30 agents: 13.6 window waits (14.0 bean-minutes) → 0; the 20th green 5.9 → 3.2 min, the 30th 11.2 → 8.6, the 35th 15.5 → 14.3–14.6, done 20.0 → 19.3; promotion latency 1.6 → 0.0–0.1 min; validations 17.9 → 7.1–7.3, CI slot-minutes 23.8 → 10.0 (audit/4). At 12 agents the same shape (30th 10.2 → 7.4). burst 15.1 → 13.3 min done, earlier 13.4 → 12.7, flaky 17.4 → 13.4; calm: every bean promoted on evidence, 0 validations, done 8.1 → 7.9. Correct 16/16 everywhere, **0 misses** where the read sets are right.
+- **The affected validation is what makes evidence pay on red-prone races.** Evidence alone helps burst30 and calm; on burst, earlier and flaky the commits that hold a clash refuse evidence and the full validation behind them blocks the window again. Running only the affected tests makes those validations short: on earlier and flaky the 30th green comes 0.7–0.9 min earlier again and done 0.7–1.5 min; on burst it is a wash (20th green 1.1 min earlier, 30th 0.3 later, done 0.4 earlier).
+- **Audits at a lower rate cost nothing measurable.** `audit_every: 4` against 1: same kth greens and done (within 0.4 min), 4–6 audits per race instead of 7–10 (calm: 6 against 7), CI slot-minutes down by a third or more.
+- **Debounce alone is mixed and stays off.** It cuts validations by a quarter to almost a half (burst30 17.9 → 13.4, burst 16.4 → 9.4) and CI slot-minutes by 21–30%, and helps the first greens at 30 agents (20th 5.9 → 4.6), but it holds beans in the window for the debounce: window waits rise on burst (17 → 34), done is later on burst (+1.2 min) and earlier (+1.3), equal on flaky (−0.3) and calm (−0.2); at 60 s with a 12 s overhead it helps calm and burst30 a little and still costs burst 2.0 min. On top of evidence it changes little (evidence leaves few validations to batch). Off by default.
+- **Red paths stay correct with instant promotions:** flake confirm (audits and affected validations re-run red once), the reset after a demotion, reverts; correct 16/16 in every row, no `error` events, well-formed events.
+
+### What the runner must return for evidence to work live
+
+The runner already answers `all_read_sets: true` with `passing_read_sets` (one read set per passing test file) and `passing_files`, and the engine now asks for them on every pre-land check, validation and audit when `evidence_promotion` is on. Those read sets are **static relative-import closures**, which is not enough to be trusted (`evidence_read_sets: complete` ignores them) and, on the arena, far too coarse to help (staging, below). For evidence to promote live, each check (`/v1/check`, pre-land sandbox and CI alike) must return:
+
+1. `passing_files` (green runs) and `failing_files`: **every** test file the suite ran, with the runner's own test discovery. A test missing from the list is a test evidence never checks.
+2. `passing_read_sets` / `read_sets`: for each test file, every repository path the test's run **could observe**, as repo-relative paths:
+   - every file it loaded: relative imports, but also path aliases (`tsconfig` `paths`), workspace packages and their `exports`, `require`, dynamic `import()`;
+   - every file it read through the file system: fixtures, snapshots (`__snapshots__/*.snap`), JSON, templates, `.env`-style config;
+   - every path the module resolver **probed and did not find** (`src/a.ts` before `src/a/index.ts`), so an added file that changes a resolution is seen;
+   - every directory it listed (globs, `readdir`), as an entry ending in `/` (the engine treats any change under it as read);
+   - narrower is better: a trace of what the test actually executed (per-test V8 coverage at file level, or a loader hook plus an `fs` trace) beats the static closure, which on the arena puts almost all of `src/` in every test's set through `app.ts`/`router.ts`.
+3. `read_sets_complete: true` only when every read set above is complete in that sense (any test that escaped tracing, a timeout, or a closure cut at the size limit: `false`). The engine trusts read sets only with this flag (`evidence_read_sets: complete`); `static` is for measurement.
+4. Files outside the repository (`node_modules`, the toolchain) are covered by the lockfile and config rule (`GLOBAL_FILE`): a bean that changes `package.json`, a lockfile, `tsconfig*.json` or the test runner's config touches every test.
+
+Nothing else changes: tree ids are not needed (the engine computes differences from the sprout's commit file lists), and the read sets are per test file, as `read_sets` already is for red runs.
+
+### Staging (replay, 8 agents, `--ci-seconds 60`, `--preset demo`)
+
+This branch's gateway and runner on the staging stack (`beanstalk-gateway-staging`, namespace `beanstalk-race-staging`), A = `demo`, B = `demo` + `EVIDENCE_PROMOTION=1 EVIDENCE_READ_SETS=static AFFECTED_VALIDATION=1` (`audit_every` 4). The runner returns static closures without a completeness flag, so B had to trust them (`static`). The driver sent `preland_seconds: 0` (no emulated pre-land latency) to both.
+
+| Run | Green | 10th green | Last green | Done | Window waits | Validations (targeted) | Mean validation s | Audits | CI slot-min | Promo lat. min | Reused | Evidence promotions | Refusals | Correct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `staging-evp-demo-8-s7` | 18 | 3.2 | 5.1 | 6.6 | 7 | 2 (0) | 83 | 0 | 5.3 | 0.68 | 4 | 0 | 0 | yes |
+| `staging-evp-evidence-8-s7` | 18 | 3.4 | 5.4 | 7.4 | 5 | 5 (5) | 58 | 1 | 7.3 | 0.82 | 2 | 5 (all after an affected validation) | 7 `affected` | yes |
+
+Seeds 11 and 13 could not be measured: another agent redeployed the staging gateway three times while they ran (06:53, 07:04 and 07:54 UTC; the in-flight RunDOs then met state from a different build, `error` in `poll`), and every pair was aborted; the partial runs were discarded. To stop the two agents from breaking each other's races, the build was not redeployed a fourth time; staging is left on the other agent's latest version.
+
+What seed 7 shows is the read-set problem, not the engine: on the arena every test's static closure runs through `app.ts`/`router.ts` into most of `src/`, so a bean touching `src/orders/checkout.ts`, `src/billing/service.ts`, `src/types.ts` or `src/config.ts` (the most frequent overlaps in `evidence.refused`) touches 70–85% of the tests (16 of 22 up to 34 of 39 affected). No commit had full evidence; every evidence promotion came after an affected validation of most of the suite (58 s mean against 83 s for a full one, almost all of it the emulated latency's share), and B finished 0.8 min later with the same 18 greens and both stalks correct. On this repository, evidence needs per-test **executed** read sets (coverage-level), not import closures: that is the runner contract above.
+
+**Defaults.** All three stay off in the schema and in `demo` (`evidence_promotion: false`, `affected_validation: false`, `validation_debounce: false`); `audit_every` defaults to 4 and `evidence_read_sets` to `complete`. Recommended: turn on `evidence_promotion` + `affected_validation` (with `audit_every: 4`, `complete`) as soon as the runner returns complete read sets; it is the change that removes the window waits in the simulator, and with `complete` it is inert (but asks the runner for read sets on every check) until then. `evidence_read_sets: static` is for measurement only. Leave the debounce off. Driver knobs: `EVIDENCE_PROMOTION`, `EVIDENCE_READ_SETS`, `AFFECTED_VALIDATION`, `AUDIT_EVERY`, `VALIDATION_DEBOUNCE`, `VALIDATION_DEBOUNCE_SECONDS`, `VALIDATION_TICK_SECONDS`, `CI_OVERHEAD_SECONDS`.
+

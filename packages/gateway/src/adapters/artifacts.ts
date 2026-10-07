@@ -33,6 +33,12 @@ export type ArtifactsPort = {
   listRepos(matches: (name: string) => boolean): Promise<string[]>;
   /** Deletes a repo and its tokens; false when it was already gone. */
   deleteRepo(name: string): Promise<boolean>;
+  /** An existing repo's name and git remote (a repository engine's repo, made elsewhere). */
+  describeRepo(name: string): Promise<RepoRemote>;
+  /** A commit's message, or null when the repo has no such commit (yet). */
+  commitMessage(repo: string, sha: string): Promise<string | null>;
+  /** The ids of a ref's history, newest first, at most `limit`. */
+  history(repo: string, ref: string, limit: number): Promise<string[]>;
 };
 
 /** The run repo's default branch: a clone gets the stable line. */
@@ -96,6 +102,24 @@ export function artifactsPort(binding: Artifacts): ArtifactsPort {
     },
     deleteRepo(name) {
       return call(`delete ${name}`, () => binding.delete(name));
+    },
+    describeRepo(name) {
+      return withRepo(binding, name, async (handle) => {
+        const info = await handle.info();
+        return { name: info.name, remote: info.remote };
+      });
+    },
+    history(repo, ref, limit) {
+      return withRepo(binding, repo, async (handle) => {
+        const commits = await handle.log({ ref, limit });
+        return commits.map((commit) => commit.hash);
+      });
+    },
+    commitMessage(repo, sha) {
+      return withRepo(binding, repo, async (handle) => {
+        const commit = await handle.readCommit(sha);
+        return commit === null ? null : commit.message;
+      });
     },
   };
 }

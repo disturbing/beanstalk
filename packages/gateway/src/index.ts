@@ -23,11 +23,16 @@ import type {
   BeanSummary,
   DecisionRecord,
   GatewayRpc,
+  GitToken,
   McpTokenClaims,
+  OpenRepoEngineInput,
+  PushedBeanStatus,
   RepoDiff,
   RepoFile,
   RepoGrep,
   RepoLog,
+  RepoEngineOpened,
+  RepoEngineRpc,
   RepoTree,
   RpcResult,
   RunEventsPage,
@@ -59,6 +64,7 @@ import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
 import { createDeps } from './deps';
 import { gatewayRpc } from './rpc/gateway-rpc';
 import { collaborationRpc } from './rpc/collaboration-rpc';
+import { repoEngineRpc } from './rpc/repo-engine-rpc';
 
 export { RunDO } from './run/run-do';
 export { RunIndex } from './run/run-index';
@@ -74,7 +80,10 @@ const app = createApp(createDeps);
  * beanstalk-gateway: race runs, the driver API, the git proxy and the live page over HTTP,
  * and the web app's RPC surface (`GatewayRpc`) over its service binding.
  */
-export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc, RepositoriesRpc {
+export default class Gateway
+  extends WorkerEntrypoint<Env>
+  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc
+{
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
   }
@@ -264,11 +273,34 @@ export default class Gateway extends WorkerEntrypoint<Env> implements GatewayRpc
     return repositoriesRpc({
       registry: d1Registry(this.env.FORGE),
       storage: repositoryStorage(this.env.ARTIFACTS),
-      engine: repoEnginePort(),
+      engine: repoEnginePort(createDeps(this.env)),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
       now: () => Date.now(),
       newId: newRepositoryId,
     });
+  }
+
+  openRepoEngine(input: OpenRepoEngineInput): Promise<RpcResult<RepoEngineOpened>> {
+    return repoEngineRpc(createDeps(this.env)).openRepoEngine(input);
+  }
+
+  gitToken(
+    engineId: string,
+    user: { readonly id: string; readonly handle: string },
+    ttlSeconds?: number,
+  ): Promise<RpcResult<GitToken>> {
+    return repoEngineRpc(createDeps(this.env)).gitToken(engineId, user, ttlSeconds);
+  }
+
+  pushedBeans(engineId: string): Promise<RpcResult<readonly PushedBeanStatus[]>> {
+    return repoEngineRpc(createDeps(this.env)).pushedBeans(engineId);
+  }
+
+  closeRepoEngine(
+    engineId: string,
+    options: { readonly deleteRepo: boolean },
+  ): Promise<RpcResult<{ readonly closed: true }>> {
+    return repoEngineRpc(createDeps(this.env)).closeRepoEngine(engineId, options);
   }
 
   #rpc(): GatewayRpc {

@@ -41,6 +41,8 @@ export type Registry = {
   markReady(id: string, engineId: string, nowMs: number): Promise<RepositoryRecord | null>;
   byId(id: string): Promise<RepositoryRecord | null>;
   byName(ownerHandle: string, name: string): Promise<RepositoryRecord | null>;
+  /** The repository an engine drives, whatever its name is now. */
+  byEngine(engineId: string): Promise<RepositoryRecord | null>;
   byOwner(ownerId: string): Promise<readonly RepositoryRecord[]>;
   /** Applies the patch; 'taken' when a rename collides, null when the repository is missing. */
   update(
@@ -147,6 +149,7 @@ export function d1Registry(db: D1Database): Registry {
         ownerHandle,
         name.toLowerCase(),
       ),
+    byEngine: (engineId) => one(`${SELECT} WHERE engine_id = ? AND state = 'ready'`, engineId),
     async byOwner(ownerId) {
       const { results } = await db
         .prepare(`${SELECT} WHERE owner_id = ? AND state = 'ready' ORDER BY created_at DESC, id`)

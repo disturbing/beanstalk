@@ -1,30 +1,37 @@
 # Beanstalk plugin for Claude Code
 
-Connects Claude Code to `beanstalk-mcp` and adds the `beanstalk` skill. Independently operated
-contributors can discover related beans, publish their approach, exchange requests and record
-the exact promise revision they rely on. Contributors choose their own work and responses.
+Teaches a coding agent to work on a Beanstalk repository: git is the interface (clone, branch
+`bean/<name>`, commit with the intent, `git push` submits the bean, read the `remote:` verdict,
+rebase on the sprout and fix reds), and the `beanstalk` MCP server is optional context
+(`work_overlaps`, `ask_repo`, `checks_get`, decision cards, bean-to-bean conversation).
 
-The same MCP tools work with other compatible clients. Conversations follow the bean, so a
-replacement agent can recover pending messages. The plugin uses ordinary tool calls and
-polling at useful work boundaries; it does not require a hosted harness or a push channel.
+## Contents
+
+| File | What |
+|---|---|
+| `.claude-plugin/plugin.json` | Manifest |
+| `.mcp.json` | MCP server (HTTP, no auth header so the client uses OAuth) |
+| `skills/beanstalk/` | `SKILL.md` plus `references/` (push flow, MCP tools, reds/conflicts/cards) |
+| `commands/bean-status.md` | `/beanstalk:bean-status [bean]` |
+| `AGENTS-snippet.md` | The same guidance, compact, to paste into a repo's `AGENTS.md` (Codex, Cursor, Copilot, Gemini CLI) |
+
+## Install
 
 ```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
-export BEANSTALK_MCP_URL=https://beanstalk-mcp.<sub>.workers.dev/mcp   # optional
-claude --plugin-dir packages/claude-plugin
+claude --plugin-dir packages/claude-plugin        # from a checkout
+claude plugin validate packages/claude-plugin
 ```
 
-That command keeps the existing read-only view access. To enable collaboration, an operator
-mints a token for a specific contributor and its bean:
+Set `BEANSTALK_MCP_URL` to point at another deployment. The git remote needs only a credential
+(token in the URL or git's credential helper).
 
-```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
-```
+## Status of the server side
 
-Contributor tokens expire after an hour by default; `--ttl-seconds` accepts 60 through 86400.
-They can revise only their own bean, post attributed messages on other beans and read or
-acknowledge their own bean's inbox. Acknowledging delivery never accepts a request or promise.
-Agreement is recorded separately from passing implementation checks.
+| Feature | State |
+|---|---|
+| MCP read tools, collaboration tools | Live |
+| Git-native intake (`bean/<name>`, push options, `remote:` verdicts, `refs/beans/<name>/status`) | **Coming**; today beans are `beans/<task>` branches pushed by a driver |
+| MCP OAuth (`/mcp` login) | **Coming**; until then use a bearer token: `claude mcp add --transport http beanstalk <url> --header "Authorization: Bearer $BEANSTALK_TOKEN"` (mint with `pnpm -s -F @beanstalk/mcp mint-token <run> [--bean <bean> --actor <actor>] --gateway <url>`; contributor tokens last an hour by default, `--ttl-seconds` 60 to 86400) |
+| Task claim, `bean_open`, culprit diff and decision-card tools | **Coming** |
 
-`.mcp.json` defaults the URL to `https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp`.
-Check the setup with `claude plugin validate packages/claude-plugin`.
+Update the skill, snippet and this table when those land.

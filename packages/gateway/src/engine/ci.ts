@@ -16,8 +16,15 @@ export type CiRequest = {
   readonly meta: CiMeta;
   readonly owner: 'policy' | 'final';
   readonly extraFiles?: Readonly<Record<string, string>>;
-  /** Emulated latency after the suite; defaults to `ci_seconds` (the final check uses 0). */
+  /**
+   * Emulated latency after the suite; defaults to `ci_seconds` plus `ci_overhead_seconds` (the
+   * final check uses 0).
+   */
   readonly latency?: Seconds;
+  /** Run only these test files (`affected_validation`; default: the whole suite). */
+  readonly only?: readonly string[];
+  /** Also report every passing test file's read set (`evidence_promotion`). */
+  readonly allReadSets?: true;
   /** Queue ahead of the waiting runs of this purpose (`validation_first`: of bisect probes). */
   readonly ahead?: CiPurpose;
 };
@@ -62,7 +69,9 @@ export function requestCi(ctx: StepContext, request: CiRequest): CiId {
     meta: request.meta,
     owner: request.owner,
     extraFiles: request.extraFiles ?? null,
-    latency: request.latency ?? ctx.env.config.ci_seconds,
+    latency: request.latency ?? ctx.env.config.ci_seconds + ctx.env.config.ci_overhead_seconds,
+    ...(request.only === undefined ? {} : { only: [...request.only] }),
+    ...(request.allReadSets === true ? { allReadSets: true } : {}),
     status: 'queued',
     slot: null,
     startedAt: null,
@@ -89,7 +98,14 @@ export function pumpCi(ctx: StepContext): void {
     emit(ctx, 'ci.start', { ci: run.id, sha: run.sha, purpose: run.purpose, slot, ...run.meta });
     run.jobId = startJob(
       ctx,
-      { kind: 'check', sha: run.sha, extraFiles: run.extraFiles, instance: { kind: 'ci', slot } },
+      {
+        kind: 'check',
+        sha: run.sha,
+        extraFiles: run.extraFiles,
+        instance: { kind: 'ci', slot },
+        ...(run.only === undefined ? {} : { only: run.only }),
+        ...(run.allReadSets === true ? { allReadSets: true } : {}),
+      },
       { kind: 'ci', ciId: run.id },
     );
   }

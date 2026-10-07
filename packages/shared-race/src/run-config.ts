@@ -306,6 +306,50 @@ const CheckedFields = z
      */
     reuse_checks: z.boolean().default(true),
     /**
+     * Event-driven promotion (`docs/claude-opus/11`, "Event-driven promotion"): a sprout commit
+     * is green without CI when every test of its tree is vouched for by a green full check of
+     * some tree (a bean's pre-land check, or a validated or promoted sprout commit) whose
+     * difference to it misses the test's read set. Read sets come from the checks
+     * (`all_read_sets`); a test without one, a bean without a check, a structural merge no check
+     * saw, or a red the sprout already knows means no evidence, and a validation runs.
+     */
+    evidence_promotion: z.boolean().default(false),
+    /**
+     * Which read sets count as evidence: `complete` only those the runner marks complete
+     * (`read_sets_complete`: every resolved, probed and listed path); `static` also the static
+     * import closures the runner reports today (a fixture, snapshot or alias read is invisible
+     * to them: the audit is then the safety net).
+     */
+    evidence_read_sets: z.enum(['complete', 'static']).default('complete'),
+    /**
+     * With `evidence_promotion`: a commit without full evidence is validated on only the tests
+     * no evidence vouches for (the full suite when the tree's tests are not all known). Its CI
+     * latency is `ci_overhead_seconds` plus `ci_seconds` times the share of tests it runs.
+     */
+    affected_validation: z.boolean().default(false),
+    /**
+     * With `evidence_promotion`: the full suite runs as a background audit of the stalk on an
+     * idle CI slot once this many commits were promoted without a full suite since the last
+     * one, and always before the race ends. A red audit (confirmed by its re-run) moves the
+     * stalk back to the newest fully checked commit and opens a ticket like a red validation.
+     * 0: only the audit before the end.
+     */
+    audit_every: z.number().int().min(0).max(100).default(4),
+    /**
+     * Coop's validation timing rule: a validation a landing asks for starts after
+     * min(`validation_debounce_seconds`, time to the next `validation_tick_seconds` tick), so
+     * landings close together share it; one a finished validation asks for starts at once.
+     * `false`: a validation starts the moment a CI slot is free.
+     */
+    validation_debounce: z.boolean().default(false),
+    validation_debounce_seconds: z.number().min(0).max(600).default(15),
+    validation_tick_seconds: z.number().min(1).max(3600).default(60),
+    /**
+     * Fixed seconds every CI-slot run adds to `ci_seconds` (a runner's setup, as GitHub Actions'
+     * about 12 s); the final check has none. An affected validation pays it in full.
+     */
+    ci_overhead_seconds: z.number().min(0).max(600).default(0),
+    /**
      * With `red_reset`, the burst tail fix: each reset's read-set suspects requeue in a chain of
      * their own (not behind an earlier reset's), the next going as soon as the current one's
      * check is green-and-landed or red (it is then with its author), and two suspects of one
@@ -335,10 +379,23 @@ const CheckedFields = z
      * `arena.json` suite.
      */
     suite: RunSuite.default(DEFAULT_SUITE),
-    tasks: z.array(ArenaTask).min(1).max(200),
+    /**
+     * A continuous engine for a persistent repository (`docs/claude-opus/18-git-native-flow.md`):
+     * no task list, beans arrive by `git push`, the race never finishes (no wall clock, no
+     * watchdog on an invocation waiting for its author's next push). `false`: a race.
+     */
+    continuous: z.boolean().default(false),
+    tasks: z.array(ArenaTask).max(200),
   })
   .superRefine((config, issues) => {
     const ids = config.tasks.map((task) => task.id);
+    if (ids.length === 0 && !config.continuous) {
+      issues.addIssue({
+        code: 'custom',
+        path: ['tasks'],
+        message: 'a race needs at least one task',
+      });
+    }
     if (new Set(ids).size !== ids.length) {
       issues.addIssue({ code: 'custom', path: ['tasks'], message: 'task ids must be unique' });
     }
@@ -504,6 +561,26 @@ export const DEMO_SETTINGS = {
   live_sync_midrun: false,
   ...STALL_FIX_ON,
   ...CHECK_REUSE_ON,
+} as const satisfies Partial<RunConfigInput>;
+
+/**
+ * A continuous engine's settings: the demo engine's rules, with what a person or an agent
+ * pushing by hand needs instead of a race's bounds. No tail guard and no invocation ceiling (a
+ * bean is reworked by its author's pushes, as often as it takes), no emulated CI latency, the
+ * repository kept, and enough slots for the beans in flight at once (each pushed bean holds a
+ * slot while it waits for its author).
+ */
+export const CONTINUOUS_SETTINGS = {
+  ...DEMO_SETTINGS,
+  continuous: true,
+  tail_guard_minutes: 0,
+  max_bean_invocations: 0,
+  max_rework: 20,
+  agent_timeout: 86_400,
+  ci_seconds: 0,
+  preland_seconds: 0,
+  keep_repo: true,
+  agents: 32,
 } as const satisfies Partial<RunConfigInput>;
 
 /** What each preset pins. */

@@ -4,6 +4,8 @@ import type { GatewayConfig } from './config';
 import { readConfig, readSecrets } from './config';
 import type { Logger } from './log';
 import { createLogger } from './log';
+import type { Registry } from './repos/registry';
+import { d1Registry } from './repos/registry';
 import type { RunDO } from './run/run-do';
 import type { RunIndex } from './run/run-index';
 import { RUN_INDEX_NAME } from './run/run-index';
@@ -21,6 +23,8 @@ export type Deps = {
   /** The run's streaming diffs (`stream_diffs`): posts, viewers' sockets, the stream RPC. */
   readonly streams: (run: RunId) => DurableObjectStub<RunStreamDO>;
   readonly now: () => number;
+  /** The repository registry (`repos/registry.ts`): names, owners, visibility, engines. */
+  readonly registry: Registry;
 };
 
 export function createDeps(env: Env): Deps {
@@ -35,5 +39,6 @@ export function createDeps(env: Env): Deps {
     runIndex: () => env.RUN_INDEX.getByName(RUN_INDEX_NAME),
     streams: (run) => env.RUN_STREAMS.getByName(run),
     now: () => Date.now(),
+    registry: d1Registry(env.FORGE),
   };
 }

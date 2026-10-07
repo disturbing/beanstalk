@@ -5,6 +5,8 @@
  * as green. The stalk on the left is the real one: its root commit, and a socket where the
  * first bean will grow.
  */
+import Link from 'next/link';
+
 import type { StartGuide } from '../../src/repositories/paths';
 import type { RepositoryFiles, RepositoryRecord } from '../../src/repositories/registry-client';
 import { CopyButton } from './copy-button';
@@ -14,8 +16,6 @@ export function StartHere(props: {
   readonly record: RepositoryRecord;
   readonly files: RepositoryFiles | null;
   readonly guide: StartGuide;
-  /** Whether the gateway takes beans by `git push` on this deployment yet. */
-  readonly intakeReady: boolean;
 }) {
   const { record, files, guide } = props;
   return (
@@ -30,7 +30,7 @@ export function StartHere(props: {
         </div>
         <div className={styles.steps}>
           <AgentStep guide={guide} />
-          <GitStep guide={guide} intakeReady={props.intakeReady} />
+          <GitStep guide={guide} />
           <section className={styles.step} aria-labelledby="clone-title">
             <h2 id="clone-title">Clone it</h2>
             <div className={styles.cloneRow}>
@@ -71,7 +71,7 @@ function AgentStep({ guide }: { readonly guide: StartGuide }) {
   );
 }
 
-function GitStep(props: { readonly guide: StartGuide; readonly intakeReady: boolean }) {
+function GitStep(props: { readonly guide: StartGuide }) {
   const script = props.guide.gitSteps.filter((line) => !line.startsWith('#')).join('\n');
   return (
     <section className={styles.step} aria-labelledby="git-title">
@@ -81,12 +81,10 @@ function GitStep(props: { readonly guide: StartGuide; readonly intakeReady: bool
         the exact tree it would land on, then puts it on the sprout. With <code>-o wait</code> the
         push stays open until the bean lands, or tells you why it came back.
       </p>
-      {props.intakeReady ? null : (
-        <p className={styles.notice} role="note">
-          Pushing beans to this deployment opens when its git intake ships. These are the exact
-          steps; the clone works once git is served at the URL below.
-        </p>
-      )}
+      <div className={styles.terminalBar}>
+        <span>In a terminal</span>
+        <CopyButton text={script} label="the git steps" />
+      </div>
       <div className={styles.terminal}>
         {props.guide.gitSteps.map((line) =>
           line.startsWith('#') ? (
@@ -99,14 +97,16 @@ function GitStep(props: { readonly guide: StartGuide; readonly intakeReady: bool
             </code>
           ),
         )}
-        <CopyButton text={script} label="the git steps" className={styles.copy} />
       </div>
       <ul className={styles.rules}>
         <li>
           Push only to <code>bean/&lt;name&gt;</code>. The stalk and the sprout move when beans
           land, never by a push.
         </li>
-        <li>Git signs in with your Beanstalk account; personal tokens arrive with accounts.</li>
+        <li>
+          When git asks for a password, paste a personal token with write access from{' '}
+          <Link href="/settings/tokens">Settings, Tokens</Link>; any user name works.
+        </li>
       </ul>
     </section>
   );

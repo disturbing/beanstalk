@@ -531,7 +531,6 @@
 }
 .terminal code {
   font-size: inherit;
-  padding-right: 64px;
   display: block;
   white-space: pre;
 }
@@ -543,10 +542,13 @@
 .terminal .comment {
   color: var(--ink-3);
 }
-.terminal .copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+.terminalBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: -4px;
+  color: var(--ink-3);
+  font-size: 12.5px;
 }
 .harnesses {
   display: grid;

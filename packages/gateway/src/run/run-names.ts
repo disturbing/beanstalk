@@ -48,3 +48,11 @@ export function ciInstance(run: RunId, slot: number): string {
 export function sandboxInstance(run: RunId, slot: SlotId): string {
   return `run-${run}-sandbox-${slot}`;
 }
+
+/** Sandboxes a continuous engine's slots share (it has many slots, most waiting for a push). */
+const SHARED_SANDBOXES = 2;
+
+/** A continuous engine's sandbox for a slot's pre-land checks: one of a small shared pool. */
+export function sharedSandboxInstance(run: RunId, slot: SlotId): string {
+  return `run-${run}-sandbox-${Number(slot.slice(1)) % SHARED_SANDBOXES}`;
+}

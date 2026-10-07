@@ -1,6 +1,6 @@
 import { NewRepositoryForm } from '../../components/repository/new-repository-form';
 import styles from '../../components/repository/repository.module.css';
-import { signedInUser } from '../../src/accounts/current-user';
+import { signedInUser } from '../../src/server/signed-in';
 
 export const metadata = { title: 'New repository' };
 

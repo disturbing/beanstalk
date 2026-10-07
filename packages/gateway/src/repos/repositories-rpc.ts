@@ -17,6 +17,7 @@ import {
   UpdateRepositoryInput,
 } from '@beanstalk/shared-race/repos';
 
+import { artifactsCode } from '../adapters/artifacts';
 import type { RepositoryStorage } from '../adapters/repository-storage';
 import { GatewayError } from '../errors';
 import type { Logger } from '../log';
@@ -33,6 +34,12 @@ export type RepositoriesDeps = {
   readonly newId: () => string;
 };
 
+/** Artifacts' answers that mean the URL is not a public git repository. */
+const IMPORT_REFUSALS: ReadonlySet<string> = new Set([
+  'REMOTE_AUTH_REQUIRED',
+  'NOT_FOUND',
+  'INVALID_URL',
+]);
 const SEED_AUTHOR = { name: 'Beanstalk', email: 'seed@beanstalk.invalid' };
 const ID_LENGTH = 12;
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -68,10 +75,9 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         const owned = await ownedBy(deps, ownerId, repoId);
         if (!owned.ok) return owned;
         await deps.registry.remove(repoId);
-        await Promise.all([
-          deps.engine.close(owned.value.engine_id),
-          deps.storage.delete(owned.value.artifacts_repo),
-        ]);
+        // The engine stops before its repo goes, so nothing it does meets a missing repo.
+        await deps.engine.close(owned.value.engine_id);
+        await deps.storage.delete(owned.value.artifacts_repo);
         deps.log.info('repository deleted', { repo: repoId });
         return ok({ deleted: true as const });
       }),
@@ -132,7 +138,6 @@ async function create(
       origin,
     });
     const { engineId } = await deps.engine.open({
-      repoId: id,
       repoName: input.name,
       artifactsRepo,
       owner: owner.data,
@@ -142,7 +147,7 @@ async function create(
     deps.log.info('repository created', {
       repo: id,
       origin: origin.kind,
-      engine: deps.engine.kind,
+      engine: engineId,
     });
     return ok(record);
   } catch (error: unknown) {
@@ -163,7 +168,17 @@ async function provision(
   const { storage } = deps;
   const description = repo.description === '' ? repo.name : repo.description;
   if (repo.origin.kind === 'import') {
-    await storage.importFrom(repo.artifactsRepo, repo.origin.url, description);
+    const { url } = repo.origin;
+    await storage.importFrom(repo.artifactsRepo, url, description).catch((error: unknown) => {
+      if (IMPORT_REFUSALS.has(artifactsCode(error) ?? ''))
+        throw new GatewayError(
+          `${url} is not a public git repository (it asked for credentials or was not found)`,
+          'import_refused',
+          422,
+          { cause: error },
+        );
+      throw error;
+    });
     const head = await storage.lineFromDefault(repo.artifactsRepo);
     if (head === null)
       throw new GatewayError('the imported repository is empty', 'invalid_request', 422);

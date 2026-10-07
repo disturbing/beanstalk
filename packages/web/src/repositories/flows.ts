@@ -5,7 +5,7 @@
  */
 import { UpdateRepositoryInput } from '@beanstalk/shared-race/repos';
 
-import type { SessionUser } from '../accounts/session-user';
+import type { User as SessionUser } from '../auth/user';
 import type { CreateFormResult, CreateValues } from './create-form';
 import { DEFAULT_VALUES, readCreateForm } from './create-form';
 import { isReservedOwner, repositoryPath } from './paths';

@@ -4,6 +4,7 @@
 > - **Automations connect through direct MCP only:** apps' own MCP servers, no Composio. Every Composio item in this plan is dropped.
 > - **Licence:** ask the organisers in writing whether FSL qualifies (draft email sent to Coop); switch the submission snapshot only if they say no.
 > - **Demo engine:** decided after the real races. v2.5 with dependency starts and the tail fix is racing now.
+> - **Sign-up (Coop, 2026-10-07):** passkeys are the primary sign-up path; email magic links are built and tested but switched off and hidden until a sender domain is configured (`19-accounts-and-auth.md` §6).
 > - **Domain:** open. beanstalk.dev is taken; beanstalk.sh, beanstalk.build and beanstalkgit.com looked free on 10-06. The name "Beanstalk" collides with the existing Beanstalk git hosting service (beanstalkapp.com) and AWS Elastic Beanstalk, a naming and trademark risk to settle before launch.
 
 
@@ -452,6 +453,8 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 
 **Goal:** a new person pastes one command into Claude Code or Codex, signs up in the browser, and lands on Home with their session listed. A returning person signs in by magic link. Races keep working untouched.
 
+**Status (2026-10-07, branch `auth-accounts`, `19-accounts-and-auth.md`):** 1.1 done as a library rather than a Worker (`@beanstalk/shared-identity` on one D1 `beanstalk-identity`, bound in web, MCP and gateway; tested with real D1). 1.2 done with passkeys as the primary method (owner decision) and magic links built, tested and switched off until a sender domain exists; Turnstile and the six-digit code not yet. 1.3 done: `beanstalk-mcp` is an OAuth 2.1 server and protected resource (`workers-oauth-provider` 1.2.3, DCR, CIMD, PKCE S256, refresh, revocation), consent on web `/connect`, and `claude mcp login` completed against staging with Claude Code itself; session principals are the OAuth grants for now (no `session_principals` table yet); tools read one run until Phase 2. 1.5 partly: `/login`, `/signup`, `/connect`, `/settings` (passkeys, connected agents, sign out everywhere), `/settings/tokens`; the `DEMO_PASSWORD` gate stays beside sign-in. Personal access tokens (`bsu_`) and session git tokens (`bss_`, from the MCP `git_credential` tool) verify in the gateway through `verifyGitCredential`; repository authorization for them is Phase 2 (2.4). 1.4, 1.6, 1.7 not started.
+
 | # | Item | Acceptance | Size |
 |---|---|---|---|
 | 1.1 | `packages/identity` Worker skeleton, D1 `identity` schema and migrations, `shared-auth` types | `wrangler types` generated; RPC `whoami`, `authorize`, `createUser`, `createSessionPrincipal`; vitest with real D1 | M |
@@ -473,13 +476,15 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 | # | Item | Acceptance | Size |
 |---|---|---|---|
 | 2.1 | **RepoDO**: generalise RunDO into an open-ended engine (task set grows, no "done", hibernation, heartbeats, released beans after timeout, settings changes while running); RaceDO keeps race-only parts behind an adapter | All existing engine, parity and determinism tests pass for races; new tests for a 48-hour simulated repo with beans arriving at random | L (5) |
-| 2.2 | Repo lifecycle: `repos.create` (empty, import from a public git URL via Artifacts `.import()`, demo template), rename, archive, delete; D1 `forge` | Create in under 5 s; import of a 50 MB public repo completes and the stalk equals its default branch; delete reaps Artifacts and the DO | M |
+| 2.2 | Repo lifecycle: `repos.create` (empty, import from a public git URL via Artifacts `.import()`, demo template), rename, archive, delete; D1 `forge` **(built 10-07 except archive: `20`)** | Create in under 5 s; import of a 50 MB public repo completes and the stalk equals its default branch; delete reaps Artifacts and the DO | M |
 | 2.3 | Checks config: `.beanstalk/checks.toml` (command, image, timeout, protected paths) run by the Runner on the exact merged tree | A Node repo and a Rust repo each get correct pre-land checks; a missing file means "no checks, land on clean merge" with a warning | M |
 | 2.4 | Git auth for principals: bean-scoped git tokens from identity; proxy checks principal + bean ownership; people's personal tokens | Push to own bean works; push to another's bean, `sprout`, `stalk` or a deletion is refused (403); compressed pushes supported (today 415) | M |
 | 2.5 | MCP write verbs: `bean_open`, `task_next`/`task_claim`, `change_submit`, `decision_request`, heartbeat; `change_status.next` drives rework; plugin skill updated | A stock Claude Code session with the plugin and no driver takes a bean from open to stalk, including one red-and-rework cycle | L (4) |
 | 2.6 | Repo event Queue: RepoDO → `repo-events` → D1 indexes (`beans`, `decisions`, `repo_daily`) | Lists in web are under 200 ms from D1; indexes catch up within 5 s of an event | M |
-| 2.7 | Web: `/:org/:repo` shell and tabs Code, Beans, Stalk, Decisions, Checks, Settings (general, access, engine policy, checks); `/new`; repository list on Home and org page | Tabs work live on a real repo; Files folds into Code; Engine view under Stalk; decision answering by repo admins and spec owners | L (4) |
+| 2.7 | Web: `/:org/:repo` shell and tabs Code, Beans, Stalk, Decisions, Checks, Settings (general, access, engine policy, checks); `/new`; repository list on Home and org page **(10-07: `/:owner/:repo` with Code, Files, Beans, Decisions, Checks, Settings (general, visibility, delete); `/new`; Home; `20`)** | Tabs work live on a real repo; Files folds into Code; Engine view under Stalk; decision answering by repo admins and spec owners | L (4) |
 | 2.8 | Live Ask at product speed: term index (D1 FTS5) and test import closures computed on landing, answer cache keyed by sprout sha | Under 2 s for a live answer, under 300 ms repeated (`14` §11 target) | M |
+
+**Status (2026-10-07, `20-repositories.md`):** 2.2 and most of 2.7 are built. Repositories live in a D1 registry (`forge`), are owned by a person (personal namespace; orgs wait for Phase 3), start empty (a README), from the TypeScript starter or as an import, and are renamed, re-described, made public or private and deleted from Settings. `/<owner>/<repo>` shows a start page until the first bean starts, then the same home as a race (stalk, Growing now, What happened, Ask, Files, beans, decisions, checks). Signed-in `/` is Home (repositories, recent activity, New repository); the benchmark landing moved to `/races` for signed-in people. On a separate staging stack, a passkey sign-up, a template repository, a personal-token clone and `git push -o wait` of a bean landed and validated in 18 s. Not yet: archive, the Stalk/Insights tabs, engine events in Home's activity, collaborators (a placeholder), org pages.
 
 **Done when:** Coop's own small project, imported, takes ten beans from two people's sessions (one Claude Code, one Codex) to the stalk in one afternoon without any operator command.
 
@@ -639,7 +644,7 @@ Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `
 | "Getting started is installing the plugin… It installs the plugin and signs you in" | No: the marketplace repo isn't published and the MCP server takes a hand-minted bearer token | 1.3, 1.4 (Task 3); copy says "coming" until then (0.7) |
 | "Works with Claude Code, Codex, Cursor, Gemini CLI and any MCP client" | Partly: any client with a bearer header can read a race | 1.3 test matrix |
 | "Sign up as a human… early access" | No backend (the form only shows a thank-you) | 0.8 (Task 2) |
-| The repository home "live today" | Yes, for races and the demo replay | 2.7 for real repos |
+| The repository home "live today" | Yes, for races and the demo replay; for real repositories on staging (10-07, `20`) | 2.7 for real repos |
 | "Sprout… others get its updates instantly" | Simulated only (`live_sync` off by default) | Real-agent race with `live_sync`, then a repo setting (Phase 2/6) |
 | "1.6–2.3× sooner… three runs" | Close: needs the exact runs cited | 0.3 |
 | "Ask the repo anything… your agents can ask the same questions" | Yes (`ask_repo`); live answers are slow | 0.4, 2.8 |

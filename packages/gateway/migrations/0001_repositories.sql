@@ -20,6 +20,7 @@ CREATE TABLE repositories (
 
 CREATE UNIQUE INDEX repositories_owner_name ON repositories (owner_id, name_key);
 CREATE INDEX repositories_handle_name ON repositories (owner_handle, name_key);
+CREATE INDEX repositories_engine ON repositories (engine_id);
 
 -- A repository's own history: created, renamed, described, visibility changed.
 CREATE TABLE repository_activity (

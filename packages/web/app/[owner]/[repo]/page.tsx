@@ -13,7 +13,7 @@ import { registryClient } from '../../../src/repositories/registry-client';
 import type { HomePageData } from '../../../src/server/home-page-data';
 import { homePageData } from '../../../src/server/home-page-data';
 import type { RepositoryParams } from '../../../src/server/repository-page';
-import { isGitIntakeReady, repositoryPage, startConfig } from '../../../src/server/repository-page';
+import { repositoryPage, startConfig } from '../../../src/server/repository-page';
 
 type PageProps = {
   readonly params: RepositoryParams;
@@ -65,7 +65,6 @@ export default async function RepositoryPage({ params, searchParams }: PageProps
         record={record}
         files={files.ok ? files.value : null}
         guide={startGuide(startConfig(), record.owner.handle, record.name)}
-        intakeReady={isGitIntakeReady()}
       />
     </main>
   );

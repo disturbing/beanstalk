@@ -6,6 +6,8 @@
  * - `seed` tokens let the admin push the arena base to a run repo's sprout and stalk
  *   before the run starts.
  * - `view` tokens let a browser read a run's live page and event feed.
+ * - `git` tokens let a person or an agent clone a repository engine and push beans to it
+ *   (`sub` is who, `run` the engine); see `git-credential.ts`.
  */
 import { z } from 'zod';
 
@@ -15,13 +17,13 @@ import { base64UrlDecode, base64UrlEncode } from './base64url';
 
 const PREFIX = 'bst1';
 
-export const TokenScope = z.enum(['slot', 'seed', 'view', 'contributor']);
+export const TokenScope = z.enum(['slot', 'seed', 'view', 'contributor', 'git']);
 export type TokenScope = z.infer<typeof TokenScope>;
 
 const Claims = z
   .strictObject({
     run: RunId,
-    /** The slot id for `slot` tokens, `admin` otherwise. */
+    /** The slot id for `slot` tokens, the user's handle for `git` tokens, `admin` otherwise. */
     sub: z.string().min(1).max(32),
     scope: TokenScope,
     /** The stable bean this contributor may revise; independent of a driver slot. */

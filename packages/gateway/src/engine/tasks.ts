@@ -78,12 +78,14 @@ export function startTask(ctx: StepContext, slot: SlotState, id: TaskId, base: S
 /** Binds a task to a slot and its base and logs `task.start`; its first invocation is the caller's. */
 export function beginTask(ctx: StepContext, slot: SlotState, id: TaskId, base: Sha): TaskState {
   const task = requireTask(ctx, id);
+  // A pushed bean starts where its author forked the sprout, not where the sprout is now.
+  const start = task.pushedBase ?? base;
   task.status = 'running';
   task.agent = slot.id;
-  task.baseSha = base;
-  task.mergedMain = base;
+  task.baseSha = start;
+  task.mergedMain = start;
   task.startedAt ??= ctx.now;
-  emit(ctx, 'task.start', { task: id, agent: slot.id, base, predicted: task.selected });
+  emit(ctx, 'task.start', { task: id, agent: slot.id, base: start, predicted: task.selected });
   return task;
 }
 

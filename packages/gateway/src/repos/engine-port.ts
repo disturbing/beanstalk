@@ -1,11 +1,13 @@
 /**
- * The one place the registry meets the continuous engine (owned by the engine/git work):
- * `openRepoEngine({ repoName, artifactsRepo, owner, settings? }) => { engineId }`. Until that
- * lands, a local stub answers with an engine id derived from the repository id; the run read
- * RPCs then answer `not_found` for it, which the web shows as "nothing has grown yet".
- * Replace `repoEnginePort`'s body when the real function exists; nothing else changes.
+ * The one place the registry meets the continuous engine (`docs/claude-opus/18`):
+ * `openRepoEngine({ repoName, artifactsRepo, owner, settings? }) => { engineId, … }`, which is
+ * idempotent and derives the engine id from `<owner>/<repo>`, and `closeRepoEngine` on delete.
  */
 import type { RepoOwner } from '@beanstalk/shared-race/repos';
+
+import type { Deps } from '../deps';
+import { GatewayError } from '../errors';
+import { openRepoEngine, repoEngineRpc } from '../rpc/repo-engine-rpc';
 
 export type OpenRepoEngineInput = {
   readonly repoName: string;
@@ -15,22 +17,25 @@ export type OpenRepoEngineInput = {
 };
 
 export type RepoEnginePort = {
-  open(input: OpenRepoEngineInput & { readonly repoId: string }): Promise<{ engineId: string }>;
-  /** Stops the engine of a deleted repository (a no-op until the engine offers it). */
+  open(input: OpenRepoEngineInput): Promise<{ engineId: string }>;
+  /** Stops the engine of a deleted repository (the registry deletes the Artifacts repo). */
   close(engineId: string): Promise<void>;
-  /** Which implementation answers, for logs and the empty-repository page. */
-  readonly kind: 'stub' | 'engine';
 };
 
-export function repoEnginePort(): RepoEnginePort {
-  return stubEnginePort();
-}
-
-/** The stand-in: the engine id is the repository id (a valid run id: 12 of [a-z0-9]). */
-export function stubEnginePort(): RepoEnginePort {
+/** The real engine (git-native work): opens or finds the repository's continuous engine. */
+export function repoEnginePort(deps: Deps): RepoEnginePort {
   return {
-    kind: 'stub',
-    open: (input) => Promise.resolve({ engineId: input.repoId }),
-    close: () => Promise.resolve(),
+    async open(input) {
+      const opened = await openRepoEngine(deps, {
+        repoName: input.repoName,
+        artifactsRepo: input.artifactsRepo,
+        owner: input.owner,
+      });
+      if (!opened.ok) throw new GatewayError(opened.error.message, opened.error.code, 502);
+      return { engineId: opened.value.engineId };
+    },
+    async close(engineId) {
+      await repoEngineRpc(deps).closeRepoEngine(engineId, { deleteRepo: false });
+    },
   };
 }

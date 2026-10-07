@@ -1,0 +1,1355 @@
+{
+  "label": "measured: arena=fastify@810e3d54/76b98b25, 38 tasks, policy=github-queue, agent=codex (gpt-6.1-sol)",
+  "policy": "github-queue",
+  "agent": "codex",
+  "model": "gpt-6.1-sol",
+  "arena_base": "810e3d548eeceb32c948a0fbfdd90d6d1e6098ce",
+  "arena_digest": "76b98b252902008d",
+  "config": {
+    "agents": 4,
+    "ci_seconds": 0.0,
+    "ci_slots": 2,
+    "batch": null,
+    "seed": 7,
+    "budget_usd": 15.0,
+    "max_turns": 40,
+    "agent_timeout": 900.0,
+    "union_merge": false,
+    "snapshot": null,
+    "queue_hold": null,
+    "error_budget": null,
+    "footprint": "predictor",
+    "tasks": 38,
+    "protect_tests": "landed"
+  },
+  "aborted": null,
+  "wall_seconds": 2656.96,
+  "tasks": 38,
+  "tasks_green": 38,
+  "tasks_landed": 38,
+  "tasks_dropped": 0,
+  "acceptance_restored": {
+    "own": 0,
+    "other_tasks": 1
+  },
+  "drops_by_reason": {},
+  "changes_green_per_hour": 51.487,
+  "wall_to_all_green_seconds": 2656.96,
+  "task_start_to_green_seconds": {
+    "median": 238.95,
+    "p90": 403.69,
+    "mean": 271.63
+  },
+  "agent_minutes": {
+    "busy": 54.09,
+    "blocked": 117.94,
+    "idle": 5.1
+  },
+  "agent_minutes_per_agent": {
+    "a0": {
+      "busy": 15.81,
+      "blocked": 28.48,
+      "idle": 0.0
+    },
+    "a1": {
+      "busy": 13.76,
+      "blocked": 29.42,
+      "idle": 1.1
+    },
+    "a2": {
+      "busy": 12.25,
+      "blocked": 30.3,
+      "idle": 1.73
+    },
+    "a3": {
+      "busy": 12.28,
+      "blocked": 29.74,
+      "idle": 2.26
+    }
+  },
+  "invocations": {
+    "initial": 38,
+    "rework": 5
+  },
+  "invocation_stats": {
+    "initial": {
+      "count": 38,
+      "cost_usd": 2.9745,
+      "turns": 540,
+      "wall_s": 2963.668,
+      "input_tokens": 1039762,
+      "output_tokens": 67010,
+      "cache_read_input_tokens": 8037632,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 38
+    },
+    "rework": {
+      "count": 5,
+      "cost_usd": 0.336,
+      "turns": 63,
+      "wall_s": 281.939,
+      "input_tokens": 125668,
+      "output_tokens": 4938,
+      "cache_read_input_tokens": 1036160,
+      "cache_creation_input_tokens": 0,
+      "infra_errors": 0,
+      "timeouts": 0,
+      "estimated_cost": 5
+    }
+  },
+  "cost_usd": 3.3105,
+  "cost_by_kind": {
+    "initial": 2.9745,
+    "rework": 0.336
+  },
+  "tokens_by_kind": {
+    "initial": {
+      "input_tokens": 1039762,
+      "output_tokens": 67010,
+      "cache_read_input_tokens": 8037632,
+      "cache_creation_input_tokens": 0
+    },
+    "rework": {
+      "input_tokens": 125668,
+      "output_tokens": 4938,
+      "cache_read_input_tokens": 1036160,
+      "cache_creation_input_tokens": 0
+    }
+  },
+  "invocation_overhead": {
+    "startup_ms_median": 402.0,
+    "wall_minus_api_ms_median": null,
+    "cost_per_agent_invocation_mean": 0.077
+  },
+  "subscription": {
+    "invocations_on_overage": 0,
+    "last_rate_limit": null,
+    "note": "claude -p on a claude.ai plan: total_cost_usd is computed at list prices (costBasis=list); invocations on overage are billed as extra usage"
+  },
+  "ci_runs": {
+    "precheck": 41,
+    "batch": 41,
+    "precheck-cancelled": 1
+  },
+  "ci_runs_total": 83,
+  "ci_minutes": {
+    "precheck": 36.62,
+    "batch": 36.47,
+    "precheck-cancelled": 0.88
+  },
+  "ci_minutes_total": 73.97,
+  "textual_conflicts": 3,
+  "red_validations": 3,
+  "final": {
+    "sha": "ca84bcea00d1d4f497762f0fa87f8b69a284e680",
+    "suite_green": true,
+    "suite_tests": 2302,
+    "suite_failures": 0,
+    "acceptance_run_green": true,
+    "tasks_accepted": 38,
+    "tasks_total": 38,
+    "green_tasks_accepted": 38,
+    "green_tasks": 38,
+    "correct": true,
+    "all_tasks_accepted": true,
+    "failing_files": [],
+    "base_tests_changed": [
+      "test/404s.test.js",
+      "test/content-parser.test.js",
+      "test/custom-parser.0.test.js",
+      "test/custom-parser.1.test.js",
+      "test/custom-parser.3.test.js",
+      "test/diagnostics-channel/error-before-handler.test.js",
+      "test/find-route.test.js",
+      "test/http2/plain.test.js",
+      "test/internals/errors.test.js",
+      "test/internals/initial-config.test.js",
+      "test/internals/request.test.js",
+      "test/logger/logging.test.js",
+      "test/logger/options.test.js",
+      "test/reply-trailers.test.js",
+      "test/router-options.test.js",
+      "test/schema-validation.test.js",
+      "test/trust-proxy.test.js",
+      "test/types/fastify.test-d.ts",
+      "test/types/instance.test-d.ts",
+      "test/types/request.test-d.ts",
+      "test/validation-error-handling.test.js"
+    ]
+  },
+  "footprint_quality": {
+    "method": "predictor",
+    "threshold": 0.3,
+    "vs_actual": {
+      "precision": 0.5263,
+      "recall": 0.4912,
+      "f1": 0.4825,
+      "tasks": 38,
+      "micro_recall": 0.4545,
+      "micro_precision": 0.5
+    },
+    "vs_oracle": {
+      "precision": 0.5263,
+      "recall": 0.4649,
+      "f1": 0.4825,
+      "tasks": 38,
+      "micro_recall": 0.4348,
+      "micro_precision": 0.5
+    }
+  },
+  "per_task": {
+    "t001": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 0.0,
+      "landed_at": 214.842,
+      "green_at": 214.842,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t002": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 0.004,
+      "landed_at": 301.092,
+      "green_at": 301.092,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t003": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 0.004,
+      "landed_at": 214.829,
+      "green_at": 214.829,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types",
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t004": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 0.004,
+      "landed_at": 301.106,
+      "green_at": 301.106,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/diagnostics-channel"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t005": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 214.842,
+      "landed_at": 443.215,
+      "green_at": 443.215,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/types"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t006": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 214.844,
+      "landed_at": 636.925,
+      "green_at": 636.925,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Guides",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/logger",
+        "test/types",
+        "types"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t007": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 301.106,
+      "landed_at": 696.909,
+      "green_at": 696.909,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t008": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 301.108,
+      "landed_at": 604.027,
+      "green_at": 604.027,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t009": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 443.215,
+      "landed_at": 974.534,
+      "green_at": 974.534,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "(root)",
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "build",
+        "docs/Reference",
+        "lib",
+        "test",
+        "test/internals",
+        "test/types",
+        "types"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t010": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 604.028,
+      "landed_at": 844.395,
+      "green_at": 844.395,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t011": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 636.925,
+      "landed_at": 844.407,
+      "green_at": 844.407,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t012": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 696.91,
+      "landed_at": 915.013,
+      "green_at": 915.013,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t013": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 844.407,
+      "landed_at": 1284.364,
+      "green_at": 1284.364,
+      "reworks": 1,
+      "conflicts": 1,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "docs/Reference",
+        "lib",
+        "test",
+        "types"
+      ],
+      "invocations": 2,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t014": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 844.408,
+      "landed_at": 1041.937,
+      "green_at": 1041.937,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types",
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t015": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 915.013,
+      "landed_at": 1112.334,
+      "green_at": 1112.334,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t016": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 974.534,
+      "landed_at": 1194.671,
+      "green_at": 1194.671,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [
+        "test/internals/schema-controller-perf.test.js"
+      ],
+      "final_acceptance": true
+    },
+    "t017": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 1041.937,
+      "landed_at": 1386.161,
+      "green_at": 1386.161,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib",
+        "types"
+      ],
+      "oracle_modules": [
+        "docs/Reference",
+        "lib",
+        "test/internals",
+        "test/logger",
+        "types"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t018": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 1112.334,
+      "landed_at": 1657.947,
+      "green_at": 1657.947,
+      "reworks": 2,
+      "conflicts": 0,
+      "reds": 2,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 3,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t019": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 1194.672,
+      "landed_at": 1424.119,
+      "green_at": 1424.119,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test",
+        "test/http-methods",
+        "test/https",
+        "test/internals",
+        "test/types",
+        "types"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t020": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 1284.364,
+      "landed_at": 1521.888,
+      "green_at": 1521.888,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/diagnostics-channel"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t021": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 1386.161,
+      "landed_at": 1605.413,
+      "green_at": 1605.413,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t022": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 1424.121,
+      "landed_at": 1710.986,
+      "green_at": 1710.986,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "examples"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "docs/Reference",
+        "lib",
+        "test/http2"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t023": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 1521.888,
+      "landed_at": 1776.851,
+      "green_at": 1776.851,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t024": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 1605.413,
+      "landed_at": 1827.332,
+      "green_at": 1827.332,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t025": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 1657.948,
+      "landed_at": 1887.657,
+      "green_at": 1887.657,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t026": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 1710.986,
+      "landed_at": 1985.904,
+      "green_at": 1985.904,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t027": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 1776.852,
+      "landed_at": 2021.13,
+      "green_at": 2021.13,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t028": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 1827.332,
+      "landed_at": 2084.404,
+      "green_at": 2084.404,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t029": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 1887.66,
+      "landed_at": 2143.902,
+      "green_at": 2143.902,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t030": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 1985.904,
+      "landed_at": 2214.729,
+      "green_at": 2214.729,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        ".github/workflows"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t031": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 2021.13,
+      "landed_at": 2297.657,
+      "green_at": 2297.657,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t032": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 2084.404,
+      "landed_at": 2297.679,
+      "green_at": 2297.679,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t033": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 2143.902,
+      "landed_at": 2371.764,
+      "green_at": 2371.764,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "(root)"
+      ],
+      "oracle_modules": [
+        "(root)",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t034": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 2214.73,
+      "landed_at": 2404.198,
+      "green_at": 2404.198,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t035": {
+      "status": "green",
+      "agent": "a2",
+      "started_at": 2297.68,
+      "landed_at": 2552.914,
+      "green_at": 2552.914,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t036": {
+      "status": "green",
+      "agent": "a3",
+      "started_at": 2297.684,
+      "landed_at": 2521.211,
+      "green_at": 2521.211,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "lib"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t037": {
+      "status": "green",
+      "agent": "a1",
+      "started_at": 2371.765,
+      "landed_at": 2590.935,
+      "green_at": 2590.935,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "examples/benchmark"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    },
+    "t038": {
+      "status": "green",
+      "agent": "a0",
+      "started_at": 2404.198,
+      "landed_at": 2656.96,
+      "green_at": 2656.96,
+      "reworks": 0,
+      "conflicts": 0,
+      "reds": 0,
+      "predicted": [
+        "types"
+      ],
+      "actual_modules": [
+        "lib"
+      ],
+      "oracle_modules": [
+        "lib",
+        "test/internals"
+      ],
+      "invocations": 1,
+      "drop_reason": null,
+      "tamper": [],
+      "final_acceptance": true
+    }
+  },
+  "queue": {
+    "batches": 0,
+    "batches_green": 0,
+    "batches_red": 0,
+    "batches_cancelled": 0,
+    "bisections": 0,
+    "bisect_runs": 0,
+    "ejections_conflict": 3,
+    "ejections_red": 2,
+    "requeued_without_agent": 0,
+    "held_behind_inflight": 0,
+    "mean_batch_size": null
+  },
+  "policy_rows": [
+    [
+      "Ejections (conflict / red)",
+      "3 / 2"
+    ],
+    [
+      "GitHub repo",
+      "https://github.com/kintohubtest/beanstalk-race-fastify-7"
+    ],
+    [
+      "Queue wait to merge, median / p90 (min)",
+      "1.48 / 2.20"
+    ],
+    [
+      "Queue wait to removal, median / p90 (min)",
+      "1.42 / 2.45"
+    ],
+    [
+      "Push to enqueued (PR check + enqueue), median (min)",
+      "4.12"
+    ],
+    [
+      "Kick-outs (by cause)",
+      "5 (conflict 3, red 2)"
+    ],
+    [
+      "Kick-outs by GitHub reason",
+      "CONFLICTING 2, failed_checks 2, merge_conflict 1"
+    ],
+    [
+      "Rebases: with agent / without agent",
+      "5 / 0"
+    ],
+    [
+      "Actions runs: PR checks / merge groups",
+      "42 / 41"
+    ],
+    [
+      "Actions minutes (PR / group / total)",
+      "37.48 / 36.46 / 73.94"
+    ],
+    [
+      "Runner pickup, median (s)",
+      3.0
+    ],
+    [
+      "Actions job / suite step, median (s)",
+      "56.0 / 37.0"
+    ],
+    [
+      "Merges: PRs / merge operations / max PRs in 60 s",
+      "38 / 34 / 2"
+    ],
+    [
+      "GitHub API: mutations / pushes / rate-limited",
+      "120 / 44 / 0"
+    ],
+    [
+      "Push wait in rate limiter (s)",
+      8.52
+    ]
+  ],
+  "github": {
+    "repo": "https://github.com/kintohubtest/beanstalk-race-fastify-7",
+    "ruleset": {
+      "check_response_timeout_minutes": 30,
+      "grouping_strategy": "ALLGREEN",
+      "max_entries_to_build": 2,
+      "max_entries_to_merge": 4,
+      "merge_method": "SQUASH",
+      "min_entries_to_merge": 1,
+      "min_entries_to_merge_wait_minutes": 0
+    },
+    "queue_wait_to_merge_s": {
+      "n": 38,
+      "median": 88.5,
+      "p90": 131.8
+    },
+    "queue_wait_to_removal_s": {
+      "n": 8,
+      "median": 85.0,
+      "p90": 147.2
+    },
+    "submit_to_enqueue_s": {
+      "n": 41,
+      "median": 246.97,
+      "p90": 256.13
+    },
+    "kickouts": 5,
+    "kickouts_by_cause": {
+      "conflict": 3,
+      "red": 2
+    },
+    "kickouts_by_gh_reason": {
+      "merge_conflict": 1,
+      "CONFLICTING": 2,
+      "failed_checks": 2
+    },
+    "red_prechecks": 0,
+    "rebases_with_agent": 5,
+    "rebases_without_agent": 0,
+    "prs_opened": 38,
+    "actions": {
+      "runs": {
+        "pull_request": 42,
+        "merge_group": 41
+      },
+      "minutes": {
+        "pull_request": 37.48,
+        "merge_group": 36.46
+      },
+      "minutes_total": 73.94,
+      "suite_s": {
+        "n": 83,
+        "median": 37.0,
+        "p90": 40.8
+      },
+      "job_s": {
+        "n": 83,
+        "median": 56.0,
+        "p90": 60.8
+      },
+      "pickup_s_median": 3.0,
+      "billable_minutes": 0,
+      "note": "public repo: Actions minutes are free; measured anyway"
+    },
+    "merges": {
+      "prs": 38,
+      "operations": 34,
+      "max_prs_in_60s": 2,
+      "max_operations_in_60s": 2,
+      "group_sizes": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "poll_lag_s": {
+      "n": 38,
+      "median": 5.73,
+      "p90": 9.07
+    },
+    "api": {
+      "pushes": 44,
+      "push_wait_s": 8.52,
+      "mutations": 120,
+      "mutation_wait_s": 2.38,
+      "queries": 634,
+      "rest": 683,
+      "rate_limited": 0,
+      "retry_after_s": 0.0,
+      "hourly_cap_waits": 0
+    },
+    "polls": 547,
+    "poll_errors": 1
+  }
+}

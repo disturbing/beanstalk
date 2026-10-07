@@ -1,14 +1,14 @@
 import Link from 'next/link';
 
-import { currentUser } from '../../src/accounts/current-user';
-import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
+import { currentUser } from '../../src/auth/user';
 import { signOut } from '../../src/server/actions';
+import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
 import styles from './shell.module.css';
 import { ThemeToggle } from './theme-toggle';
 import { VineMark } from './vine-mark';
 
 export async function SiteHeader() {
-  const [theme, day, signedIn, user] = await Promise.all([
+  const [theme, day, demoGateOpen, user] = await Promise.all([
     viewerTheme(),
     viewerDay(),
     isSignedIn(),
@@ -26,25 +26,25 @@ export async function SiteHeader() {
         <Link href="/race">Watch the race</Link>
       </nav>
       <div className={styles.tools}>
-        {user === null ? null : (
-          <>
-            <Link href="/new" className={styles.newRepo}>
-              New repository
-            </Link>
-            <Link href={`/${user.handle}`} className={styles.handle}>
-              {user.handle}
-            </Link>
-          </>
-        )}
-        {signedIn ? (
+        {demoGateOpen ? (
           <form action={signOut}>
             <button type="submit" className={styles.textButton}>
-              Sign out
+              Close demo gate
             </button>
           </form>
-        ) : (
+        ) : null}
+        {user === null ? null : (
+          <Link href="/new" className={styles.newRepo}>
+            New repository
+          </Link>
+        )}
+        {user === null ? (
           <Link href="/login" className={styles.signIn}>
-            Sign in to decide
+            Sign in
+          </Link>
+        ) : (
+          <Link href="/settings" className={styles.signIn}>
+            @{user.handle}
           </Link>
         )}
         <ThemeToggle initial={theme} day={day} />

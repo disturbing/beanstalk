@@ -589,3 +589,77 @@ export type CollaborationRpc = {
   beanInboxRead(token: string, input: BeanInboxReadInput): Promise<RpcResult<BeanInboxPage>>;
   beanInboxAck(token: string, input: BeanInboxAckInput): Promise<RpcResult<BeanInboxAckResult>>;
 };
+
+/**
+ * `openRepoEngine`'s input: a repository the repository side created, whose continuous engine
+ * the gateway opens (`docs/claude-opus/18-git-native-flow.md`). Idempotent per `owner/repoName`.
+ */
+export type OpenRepoEngineInput = {
+  /** The repository's name in its owner's namespace: the clone URL is `/git/<owner.handle>/<repoName>.git`. */
+  readonly repoName: string;
+  /** The Artifacts repo (in the gateway's namespace) that holds the repository's git. */
+  readonly artifactsRepo: string;
+  readonly owner: { readonly id: string; readonly handle: string };
+  readonly settings?: {
+    /** The checks: `RunSuite` (`@beanstalk/shared-race/suite`); default `node --test`. */
+    readonly suite?: unknown;
+    /** Where the sprout and the stalk start when the repo has neither (default `main`, then `master`). */
+    readonly base_branch?: string;
+    /** A bean's web page, `{bean}` replaced by its name; shown in push verdicts. */
+    readonly bean_url?: string;
+  };
+};
+
+export type RepoEngineOpened = {
+  /** Keys every read RPC (`runView`, `runEvents`, `beansByPath`, `beanDetail`, `decisions`, `repo*`). */
+  readonly engineId: string;
+  /** False when the engine already existed (same repository, same Artifacts repo). */
+  readonly created: boolean;
+  /** Where the sprout and the stalk started. */
+  readonly base_sha: string;
+  /** The clone URL's path on the gateway: `/git/<owner>/<repo>.git`. */
+  readonly git_path: string;
+};
+
+/** A pushed bean as its status ref and the pushes see it (`pushedBeans`). */
+export type PushedBeanStatus = {
+  readonly bean: string;
+  readonly title: string;
+  readonly task: string | null;
+  readonly actor: string;
+  readonly head: string;
+  readonly pushes: number;
+  readonly phase:
+    | 'checking'
+    | 'landed'
+    | 'green'
+    | 'red'
+    | 'conflict'
+    | 'waiting'
+    | 'parked'
+    | 'dropped';
+  readonly reason: string;
+  readonly landed_sha: string | null;
+  /** The last verdict's `remote:` lines (without the `beanstalk:` prefix). */
+  readonly verdict: readonly string[];
+};
+
+/** A git credential for one repository engine (`git` scope: clone, fetch, push beans). */
+export type GitToken = { readonly token: string; readonly expires_at: string };
+
+/** The repository side's RPC for continuous engines, on the gateway's default entrypoint. */
+export type RepoEngineRpc = {
+  openRepoEngine(input: OpenRepoEngineInput): Promise<RpcResult<RepoEngineOpened>>;
+  /** Until user tokens exist: a `git` run token for `user` on the engine (default 1 hour, at most 30 days). */
+  gitToken(
+    engineId: string,
+    user: { readonly id: string; readonly handle: string },
+    ttlSeconds?: number,
+  ): Promise<RpcResult<GitToken>>;
+  pushedBeans(engineId: string): Promise<RpcResult<readonly PushedBeanStatus[]>>;
+  /** Stops the engine (no more pushes); `deleteRepo` also deletes its Artifacts repo. */
+  closeRepoEngine(
+    engineId: string,
+    options: { readonly deleteRepo: boolean },
+  ): Promise<RpcResult<{ readonly closed: true }>>;
+};

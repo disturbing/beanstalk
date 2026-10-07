@@ -21,7 +21,8 @@ import { UpstreamError } from '../errors';
 import { changedRanges, diffText } from '../git/diff-text';
 import type { Logger } from '../log';
 import type { RunnerPort, RunnerRemote } from '../runner/runner-client';
-import { ciInstance, committerInstance, sandboxInstance } from './run-names';
+import { continuousRef } from '../push/bean-refs';
+import { ciInstance, committerInstance, sandboxInstance, sharedSandboxInstance } from './run-names';
 
 /** Re-mint a cached token when it has less than this left. */
 const TOKEN_REFRESH_MARGIN_MS = 2 * 60 * 1000;
@@ -63,6 +64,11 @@ export type JobContext = {
   readonly repos: () => RunRepos;
   /** The run's test suite (`RunConfig.suite`), sent with every check. */
   readonly suite: RunSuite;
+  /**
+   * `continuous`: a repository's engine (`RunConfig.continuous`). Its beans are the pushed
+   * `refs/heads/bean/<name>` branches, and its slots share a small pool of sandboxes.
+   */
+  readonly engine: 'race' | 'continuous';
 };
 
 /** Runs one job; failures come back as outcomes, never as exceptions. */
@@ -112,7 +118,11 @@ async function squash(
   const outcome = await context.runner.squash(committerInstance(context.run), {
     trunk,
     onto: spec.onto,
-    change: { ...change, ref: spec.changeRef, base: spec.changeBase },
+    change: {
+      ...change,
+      ref: context.engine === 'continuous' ? continuousRef(spec.changeRef) : spec.changeRef,
+      base: spec.changeBase,
+    },
     message: spec.message,
     unionPaths: spec.unionPaths,
     structural: spec.structural,
@@ -159,7 +169,7 @@ async function check(
   context: JobContext,
 ): Promise<JobResult> {
   const { network, ciSeconds, ...result } = await context.runner.check(
-    checkInstance(context.run, spec.instance),
+    checkInstance(context, spec.instance),
     {
       trunk: await runRepo(context, 'read'),
       sha: spec.sha,
@@ -181,12 +191,14 @@ async function check(
   return { kind: 'check', check: result };
 }
 
-function checkInstance(run: RunId, instance: CheckInstance): string {
+function checkInstance(context: JobContext, instance: CheckInstance): string {
   switch (instance.kind) {
     case 'ci':
-      return ciInstance(run, instance.slot);
+      return ciInstance(context.run, instance.slot);
     case 'sandbox':
-      return sandboxInstance(run, instance.slot);
+      return context.engine === 'continuous'
+        ? sharedSandboxInstance(context.run, instance.slot)
+        : sandboxInstance(context.run, instance.slot);
     default:
       return assertNever(instance);
   }

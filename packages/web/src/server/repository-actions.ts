@@ -8,7 +8,7 @@
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 
-import { signedInUser } from '../accounts/current-user';
+import { signedInUser } from './signed-in';
 import { log } from '../log';
 import type { CreateState, FormOutcome, SettingsState } from '../repositories/flows';
 import { createFlow, deleteFlow, updateFlow } from '../repositories/flows';
