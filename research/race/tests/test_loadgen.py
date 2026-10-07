@@ -29,7 +29,7 @@ TMP = os.path.join(TESTS, "tmp")
 REPO = os.path.join(TMP, "fixture-arena-lg.git")
 TRANSCRIPT = os.path.join(RACE, "..", "..", "docs", "claude-opus", "exp", "git-native", "staging-transcript.txt")
 FAST = ["--arena", FIXTURE, "--repo", REPO, "--time-scale", "0.002", "--fit-runs", "--gh-poll", "0.1",
-        "--gh-push-interval", "0"]
+        "--gh-push-interval", "0", "--final-in", "local"]
 
 
 def setUpModule() -> None:

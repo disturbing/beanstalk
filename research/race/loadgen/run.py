@@ -63,6 +63,8 @@ def parser() -> argparse.ArgumentParser:
                     "fixed at 2 on a continuous engine)")
     ap.add_argument("--batch", type=int, default=4, help="GitHub max_entries_to_merge")
     ap.add_argument("--no-final-check", action="store_true")
+    ap.add_argument("--final-in", choices=["auto", "docker", "local"], default="auto",
+                    help="where the final check runs: a container (own loopback; auto = when Docker is there)")
     ap.add_argument("--label", default="")
     g = ap.add_argument_group("GitHub")
     g.add_argument("--gh-owner", default="kintohubtest")
@@ -141,7 +143,7 @@ def run_one(a: argparse.Namespace) -> dict:
     sched = schedule_of(a)
     opts = Options(arena=arena, repo=repo, out=out, workers=a.workers, schedule=sched, mode=a.mode,
                    tasks=a.tasks or None, max_attempts=a.max_attempts, max_wall_minutes=a.max_wall_minutes,
-                   final_check=not a.no_final_check, ci_slots=a.ci_slots, batch=a.batch, label=a.label)
+                   final_check=not a.no_final_check, final_in=a.final_in, ci_slots=a.ci_slots, batch=a.batch, label=a.label)
     config = {k: v for k, v in vars(a).items() if k not in ("dev_vars",)}
     config["schedule_resolved"] = sched.describe()
 

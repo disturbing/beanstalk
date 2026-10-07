@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import statistics
+import subprocess
 import time
 from dataclasses import dataclass, field
 
@@ -21,6 +22,30 @@ from .schedule import Schedule
 
 
 BARRIER_ENV = "LOADGEN_BARRIER"
+
+
+class machine_lock:
+    """An exclusive ``flock`` on ``$TMPDIR/<name>.lock`` held across processes, taken without blocking the loop."""
+
+    def __init__(self, name: str):
+        import tempfile
+        self.path = os.path.join(tempfile.gettempdir(), f"{name}.lock")
+        self.fh = None
+
+    async def __aenter__(self):
+        import fcntl
+        self.fh = open(self.path, "w")
+        while True:
+            try:
+                fcntl.flock(self.fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return self
+            except BlockingIOError:
+                await asyncio.sleep(2)
+
+    async def __aexit__(self, *exc):
+        import fcntl
+        fcntl.flock(self.fh, fcntl.LOCK_UN)
+        self.fh.close()
 
 
 async def barrier(name: str, timeout: float = 900.0) -> float:
@@ -38,6 +63,78 @@ async def barrier(name: str, timeout: float = 900.0) -> float:
     while time.time() - t0 < timeout and not all(os.path.exists(os.path.join(d, f"{a}.ready")) for a in arms):
         await asyncio.sleep(0.5)
     return round(time.time() - t0, 2)
+
+
+def linux_deps(deps: str, image: str) -> str:
+    """The arena's dependency snapshot for Linux: ``npm ci --ignore-scripts`` of its ``package-lock.json`` in the
+    container image, once per lockfile and image (cached under ``~/.cache/beanstalk-loadgen``), as the GitHub arm's
+    workflow installs it. The host snapshot may hold native bindings for this machine's platform only."""
+    import hashlib
+    src = os.path.dirname(os.path.realpath(deps)) if deps.rstrip("/").endswith("node_modules") else deps
+    with open(os.path.join(src, "package-lock.json"), "rb") as fh:
+        digest = hashlib.sha256(fh.read() + image.encode()).hexdigest()[:12]
+    cache = os.path.join(os.path.expanduser("~"), ".cache", "beanstalk-loadgen", f"deps-{digest}")
+    done = os.path.join(cache, ".installed")
+    if os.path.exists(done):
+        return os.path.join(cache, "node_modules")
+    os.makedirs(cache, exist_ok=True)
+    for name in ("package.json", "package-lock.json"):
+        shutil.copy(os.path.join(src, name), os.path.join(cache, name))
+    subprocess.run(["docker", "run", "--rm", "-v", f"{cache}:/d", "-w", "/d", image, "npm", "ci", "--ignore-scripts",
+                    "--no-audit", "--no-fund"], check=True, capture_output=True, timeout=1200)
+    open(done, "w").close()
+    return os.path.join(cache, "node_modules")
+
+
+async def docker_suite(git: Git, work: str, sha: str, suite: "suite_mod.SuiteConfig", files: dict | None):
+    """The arena's suite on ``sha`` in a container (``node:<arena node>-slim``, network ``none``: loopback only),
+    the tree exported with ``git archive`` and ``files`` written over it, the dependency snapshot mounted read-only
+    beside it. Returns a ``CIResult``."""
+    from harness.ci import CIResult, parse_junit
+    import tarfile
+    import io
+    import uuid
+    root = os.path.join(work, "final", uuid.uuid4().hex[:8])
+    tree = os.path.join(root, "tree")
+    os.makedirs(tree)
+    data = await asyncio.to_thread(lambda: subprocess.run(["git", "archive", "--format=tar", sha], cwd=git.repo,
+                                                          capture_output=True, env=git.env, check=True).stdout)
+    with tarfile.open(fileobj=io.BytesIO(data)) as tf:
+        tf.extractall(tree, filter="data")
+    for path, content in (files or {}).items():
+        full = os.path.join(tree, path)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as fh:
+            fh.write(content)
+    argv = suite.test_argv(test_timeout_ms=60000, reporters=[("dot", "stdout"), ("junit", "/w/out/junit.xml")])
+    os.makedirs(os.path.join(root, "out"))
+    mounts = ["-v", f"{tree}:/w/tree", "-v", f"{os.path.join(root, 'out')}:/w/out"]
+    image = f"node:{(suite.node or '25').lstrip('v')}-slim"
+    if suite.deps:
+        deps = await asyncio.to_thread(linux_deps, suite.deps, image)
+        mounts += ["-v", f"{deps}:/w/node_modules:ro"]
+    t0 = time.monotonic()
+    proc = await asyncio.to_thread(lambda: subprocess.run(
+        ["docker", "run", "--rm", "--network", "none", *mounts, "-w", "/w/tree", "-e", "CI=1",
+         *[x for k, v in suite.env.items() for x in ("-e", f"{k}={v}")], image, *argv],
+        capture_output=True, text=True, timeout=900))
+    out = CIResult(ci_id="final", sha=sha, purpose="final", green=False, failing_files=None)
+    out.suite_seconds = out.ci_seconds = time.monotonic() - t0
+    junit = os.path.join(root, "out", "junit.xml")
+    if os.path.exists(junit):
+        with open(junit, encoding="utf-8") as fh:
+            text = fh.read().replace("/w/tree/", tree + "/")
+        with open(junit, "w", encoding="utf-8") as fh:
+            fh.write(text)
+    parsed = parse_junit(junit, tree)
+    if parsed is not None:
+        failing, passing, count = parsed
+        out.failing_tests, out.passing_files, out.tests, out.failures = failing, passing, count, len(failing)
+        out.failing_files = sorted({f["file"] for f in failing if f["file"]})
+    out.green = proc.returncode == 0 and parsed is not None and not out.failing_tests
+    out.output = (proc.stdout + proc.stderr)[-4000:]
+    shutil.rmtree(root, ignore_errors=True)
+    return out
 
 
 class Events:
@@ -111,6 +208,7 @@ class Options:
     max_wall_minutes: float = 120.0
     stable_wait_minutes: float = 15.0
     final_check: bool = True
+    final_in: str = "auto"           # auto (Docker when available) | docker | local
     ci_slots: int = 2
     batch: int = 4
     label: str = ""
@@ -351,13 +449,33 @@ class Driver:
     # -- final correctness --
     async def final_check(self, sha: str) -> dict:
         """The whole suite, then every task's acceptance tests written in, on the final line (as the race's)."""
-        ci = CI(self.git, self.runner, self.work, 1, 0.0, 600.0, suite=self.suite)
-        await ci.setup(sha)
-        suite = await ci.run(sha, "final")
         extra = {}
         for ch in self.book.changes.values():
             extra.update(ch.task.acceptance_tests)
-        acc = await ci.run(sha, "final", extra_files=extra)
+        # fastify's suite listens on fixed ports (3000): another suite on this machine at the same moment (the
+        # other arm's final check, another agent's run) fails it with EADDRINUSE. With Docker the suite runs in a
+        # container (its own loopback, the arena's Node, the dependency snapshot mounted read-only); without it,
+        # locally under a machine-wide lock. A red final check is run again (up to 3 times); every attempt is kept.
+        docker = self.opts.final_in == "docker" or (self.opts.final_in == "auto" and shutil.which("docker"))
+        if docker:
+            async def run(files: dict | None):
+                return await docker_suite(self.git, self.work, sha, self.suite, files)
+        else:
+            ci = CI(self.git, self.runner, self.work, 1, 0.0, 600.0, suite=self.suite)
+            await ci.setup(sha)
+
+            async def run(files: dict | None):
+                return await ci.run(sha, "final", extra_files=files)
+        attempts: list[dict] = []
+        async with machine_lock("loadgen-final-check"):
+            for _ in range(3):
+                suite = await run(None)
+                acc = await run(extra)
+                attempts.append({"suite_green": suite.green, "acceptance_green": acc.green,
+                                 "failing": sorted(set(suite.failing_files or []) | set(acc.failing_files or []))})
+                if suite.green and acc.green:
+                    break
+                await asyncio.sleep(20)
         failing, passing = set(acc.failing_files or []), set(acc.passing_files)
         per_task, intact = {}, True
         for tid, ch in self.book.changes.items():
@@ -376,7 +494,8 @@ class Driver:
         integ = [t for t, c in self.changes.items() if c.status == "integrated"]
         chain_diff = (await self.git.out("diff", "--stat", sha, self.book.changes[self.book.order[-1]].chain_sha,
                                          "--", ".", ":!.github")).strip().splitlines()
-        self.ev.write("final.check", sha=sha, suite_green=suite.green, acceptance_green=acc.green)
+        if self.ev is not None:
+            self.ev.write("final.check", sha=sha, suite_green=suite.green, acceptance_green=acc.green)
         return {"sha": sha, "suite_green": suite.green, "suite_tests": suite.tests, "suite_failures": suite.failures,
                 "suite_failing_files": suite.failing_files, "acceptance_run_green": acc.green,
                 "green_tasks": len(integ), "green_tasks_accepted": sum(per_task[t]["acceptance_pass"] for t in integ),
@@ -384,6 +503,7 @@ class Driver:
                 "correct": bool(suite.green and intact and all(per_task[t]["acceptance_pass"] for t in integ)),
                 "all_tasks_accepted": bool(acc.green and all(v["acceptance_pass"] for v in per_task.values())),
                 "matches_chain_build": not chain_diff, "diff_vs_chain": chain_diff[-1:] if chain_diff else [],
+                "attempts": attempts, "where": "docker" if docker else "local",
                 "failing_files": sorted(failing)[:50], "per_task": per_task}
 
     # -- metrics --

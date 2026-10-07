@@ -45,12 +45,40 @@ def recheck_final(run: str, s: dict, arena: str) -> None:
     f["correct"] = bool(f["suite_green"] and intact and all(f["per_task"][t]["acceptance_pass"] for t in integ))
 
 
+def rerun_final(run: str, s: dict, arena: str) -> None:
+    """Run the final check again on the run's final commit (``Driver.final_check``, with its lock and retries)."""
+    from harness import suite as suite_mod
+    from harness.gitops import Git
+    from harness.procs import ProcRegistry, Runner, Sandbox
+    from loadgen.changes import ChangeBook
+    from loadgen.driver import ChangeRun, Driver, Options
+    from loadgen.schedule import Schedule
+    out = os.path.abspath(run)
+    d = Driver(Options(arena=arena, repo="", out=out, workers=1, schedule=Schedule("closed", 0)), None)
+    d.work = os.path.join(out, "work")
+    d.runner = Runner(Sandbox(out), ProcRegistry())
+    d.suite = suite_mod.load_suite(arena)
+    suite_mod.activate(d.suite)
+    d.git = Git(d.runner, os.path.join(d.work, "repo"))
+    d.book = ChangeBook(arena, d.git, d.work, mode=s["config"].get("mode", "standalone"))
+    with open(os.path.join(run, "events.jsonl"), encoding="utf-8") as fh:
+        d.chain_end = json.loads(fh.readline()).get("chain_end")
+    for c in s["per_change"]:
+        d.changes[c["task"]] = ChangeRun(task=c["task"], worker=c["worker"], status=c["status"])
+    # the chain build's per-task commits are not kept; the last one is the chain end
+    d.book.changes[d.book.order[-1]].chain_sha = d.chain_end
+    previous = s.get("final") or {}
+    s["final"] = asyncio.run(d.final_check(previous["sha"]))
+    s["final"]["rerun_of"] = {k: previous.get(k) for k in ("suite_green", "suite_failing_files", "correct")}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("runs", nargs="+")
     ap.add_argument("--fetch", action="store_true")
     ap.add_argument("--gateway")
     ap.add_argument("--dev-vars")
+    ap.add_argument("--rerun-final", action="store_true", help="run the final check again (machine lock, retries)")
     ap.add_argument("--arena", default=os.path.normpath(os.path.join(HERE, "..", "..", "real-arena", "fastify")))
     a = ap.parse_args()
     for run in a.runs:
@@ -73,7 +101,10 @@ def main() -> None:
                 s["forge_detail"].update(engine_ci(events))
                 s["ci_minutes"] = s["forge_detail"]["ci_minutes"]
                 s["red_validations"] = s["forge_detail"]["red_validations"]
-        recheck_final(run, s, a.arena)
+        if a.rerun_final:
+            rerun_final(run, s, a.arena)
+        else:
+            recheck_final(run, s, a.arena)
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(s, fh, indent=2, default=str)
         write_md(run, s)
