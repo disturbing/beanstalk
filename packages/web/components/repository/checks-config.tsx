@@ -9,7 +9,7 @@ import {
   readChecksConfig,
 } from '@beanstalk/shared-race/checks-config';
 import type { ChecksConfig } from '@beanstalk/shared-race/checks-config';
-import { suiteCommand } from '@beanstalk/shared-race/suite';
+import { DEFAULT_SUITE, suiteCommand } from '@beanstalk/shared-race/suite';
 
 import styles from './repository.module.css';
 
@@ -20,13 +20,32 @@ export function ChecksSummary(props: { readonly file: string | null }) {
       return (
         <div className={styles.checksBody}>
           <p>
-            <b>No checks.</b> There is no <code>{CHECKS_PATH}</code> on the stalk, so a bean lands
-            when it merges cleanly; no tests run. Pushes say so in their <code>remote:</code> lines.
+            <b>Default suite.</b> There is no <code>{CHECKS_PATH}</code> on the stalk, so every bean
+            runs the repository&apos;s default suite before it lands. Pushes say so in their{' '}
+            <code>remote:</code> lines.
           </p>
+          <DefaultSuite />
           <p className={styles.muted}>
-            To require tests, the owner or a maintainer pushes the file in a bean with a personal
-            token or an SSH key (agents may not change <code>.beanstalk/</code>).
+            To choose another command, environment or protected paths, the owner or a maintainer
+            pushes the file in a bean with a personal token or an SSH key (agents may not change{' '}
+            <code>{CHECKS_PATH}</code>).
           </p>
+        </div>
+      );
+    case 'legacy':
+      return (
+        <div className={styles.checksBody}>
+          <p>
+            <b>Default suite.</b> <code>{CHECKS_PATH}</code> on the stalk is the starter&apos;s
+            older <code>[[check]]</code> draft, which does not choose the suite, so every bean runs
+            the repository&apos;s default suite, as it always has.
+          </p>
+          <DefaultSuite />
+          <p className={styles.muted}>
+            To choose another, a maintainer rewrites it with <code>command</code> at the top level
+            (an argv such as <code>[&quot;node&quot;, &quot;--test&quot;]</code>).
+          </p>
+          <RawFile file={props.file} />
         </div>
       );
     case 'invalid':
@@ -74,6 +93,20 @@ function EffectiveChecks(props: { readonly config: ChecksConfig }) {
       </dd>
       <dt>Protected</dt>
       <dd className={styles.mono}>{protectedPaths.join(', ')}</dd>
+    </dl>
+  );
+}
+
+/** The engine's own suite, which a repository without a usable declaration runs. */
+function DefaultSuite() {
+  return (
+    <dl className={styles.checksFacts}>
+      <dt>Runs</dt>
+      <dd className={styles.mono}>{suiteCommand(DEFAULT_SUITE)}</dd>
+      <dt>Time limit</dt>
+      <dd>{DEFAULT_SUITE.timeout_seconds} s</dd>
+      <dt>Protected</dt>
+      <dd className={styles.mono}>{ALWAYS_PROTECTED.join(', ')}</dd>
     </dl>
   );
 }

@@ -8,7 +8,7 @@ import {
   TRUNCATE_LANDED,
 } from '../changes/testing/greeter';
 import type { LogCommit } from './history';
-import { historyOf, landingsOf, trailerTask } from './history';
+import { historyOf, landingsOf, trailerTask, verdictsOf } from './history';
 
 const runner = { name: 'beanstalk-runner', email: 'runner@beanstalk.invalid' };
 
@@ -72,5 +72,25 @@ describe('the History tab', () => {
     expect(landingsOf(GREETER_EVENTS).get(TRUNCATE_LANDED)).toBe('add-truncate');
     expect(trailerTask('Fix it\n\nTask: t042\nPolicy: beanstalk')).toBe('t042');
     expect(trailerTask('No trailer here')).toBeNull();
+  });
+});
+
+function at(minute: number): string {
+  return `2026-10-07T14:${String(minute).padStart(2, '0')}:00Z`;
+}
+
+describe('validation verdicts on the History tab', () => {
+  it("keeps each commit's newest verdict and ignores lines that are not verdicts", () => {
+    const verdicts = verdictsOf([
+      { kind: 'promoted', sha: 'b2', text: 'Validated; the stalk moved.', at: at(5) },
+      { kind: 'red', sha: 'c3', text: 'A validation went red.', at: at(4) },
+      { kind: 'landed', sha: 'c3', text: 'Landed.', at: at(3) },
+      { kind: 'red', sha: 'b2', text: 'An older red.', at: at(2) },
+      { kind: 'reverted', sha: null, text: 'No commit named.', at: at(1) },
+    ]);
+    expect([...verdicts.entries()]).toEqual([
+      ['b2', { kind: 'validated', text: 'Validated; the stalk moved.', at: at(5) }],
+      ['c3', { kind: 'red', text: 'A validation went red.', at: at(4) }],
+    ]);
   });
 });

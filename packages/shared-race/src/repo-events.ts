@@ -152,7 +152,7 @@ export type RepoLines = {
   readonly updated_at: string;
 };
 
-/** One day's counts (UTC), for the Stalk tab and later Insights. */
+/** One day's counts (UTC), for History and later Insights. */
 export type RepoDay = {
   readonly day: string;
   readonly landed: number;
@@ -172,7 +172,10 @@ export type StalkPromotion = {
   readonly text: string;
 };
 
-/** The Stalk tab: what is validated and on the stalk, what is landed and still validating. */
+/**
+ * The History tab's validation view (it folded the earlier Stalk tab): what is validated and on
+ * the stalk, what is landed and still validating, and each commit's verdicts.
+ */
 export type RepositoryStalk = {
   readonly lines: RepoLines | null;
   /** Landed on the sprout, waiting for (or in) a validation run. */
@@ -187,6 +190,8 @@ export type RepositoryStalk = {
   readonly days: readonly RepoDay[];
   /** The repository's own activity (registry and engine), newest first. */
   readonly activity: readonly RepositoryActivity[];
+  /** Validation verdicts naming a commit (promoted, demoted, red, reverted), newest first. */
+  readonly verdicts: readonly RepositoryActivity[];
 };
 
 /** What a repository has grown, for Home's list. */

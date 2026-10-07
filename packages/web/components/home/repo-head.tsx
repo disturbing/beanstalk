@@ -12,7 +12,6 @@ export type RepoTab =
   | 'engine'
   | 'changes'
   | 'history'
-  | 'stalk'
   | 'ask'
   | 'people'
   | 'settings';
@@ -35,15 +34,14 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
 
 /**
  * A person's repository (`docs/claude-opus/20`): GitHub's shape with Beanstalk's words. Code
- * is the stalk's files, Changes the beans, History the stalk's commits, Stalk what is validated
- * and promoted (from the repo-events index, `20` §6), Ask the generated explorer over the engine
- * (the race view's home).
+ * is the stalk's files, Changes the beans, History the stalk's commits with what is validated
+ * versus only landed (verdicts from the repo-events index, `20` §7), Ask the generated explorer
+ * over the engine (the race view's home).
  */
 const REPOSITORY_TABS: readonly { readonly tab: RepoTab; readonly name: string }[] = [
   { tab: 'code', name: 'Code' },
   { tab: 'changes', name: 'Changes' },
   { tab: 'history', name: 'History' },
-  { tab: 'stalk', name: 'Stalk' },
   { tab: 'ask', name: 'Ask' },
   { tab: 'people', name: 'People' },
   { tab: 'settings', name: 'Settings' },

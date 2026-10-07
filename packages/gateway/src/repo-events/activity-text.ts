@@ -1,6 +1,6 @@
 /**
  * The activity line a repository event becomes: its kind, a sentence for a person, and the
- * bean and commit it names. Home and the Stalk tab print these as they are.
+ * bean and commit it names. Home and History print these as they are.
  */
 import type { ActivityKind } from '@beanstalk/shared-race/repos';
 import type { RepoEvent } from '@beanstalk/shared-race/repo-events';

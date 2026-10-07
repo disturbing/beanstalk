@@ -94,6 +94,36 @@ describe('archiving a repository', () => {
       await gateway.updateRepository(owner.id, repo.id, { description: 'changed' }),
     ).toMatchObject({ ok: false, error: { code: 'archived' } });
 
+    // MCP: the repository tools and `repository_access` ask the same rule, with the same reason.
+    const agent = {
+      user: { id: maintainer.id, handle: maintainer.handle },
+      scopes: ['read', 'write'],
+      label: 'Claude Code',
+    };
+    const slug = `${owner.handle}/shelf`;
+    const archivedRefusal = {
+      ok: false,
+      error: {
+        code: 'archived',
+        status: 403,
+        message:
+          'ar-owner/shelf is archived, so it is read-only: pushes are refused. Its owner can unarchive it in Settings.',
+      },
+    };
+    expect(await gateway.agentRepositoryAccess(agent, owner.handle, 'shelf', 'write')).toEqual(
+      archivedRefusal,
+    );
+    expect(
+      await gateway.agentOpenBean(agent, slug, { bean: 'late', intent: 'A late change' }),
+    ).toEqual(archivedRefusal);
+    expect(value(await gateway.agentRepository(agent, slug))).toMatchObject({
+      access: 'read',
+      role: 'maintain',
+    });
+    expect(
+      value(await gateway.agentRepositoryAccess(agent, owner.handle, 'shelf', 'read')),
+    ).toMatchObject({ id: repo.id, viewer_role: 'maintain' });
+
     const activity = value(await gateway.repositoryActivity(owner.id, 5));
     expect(activity[0]).toMatchObject({ kind: 'archived', repo_name: 'shelf' });
   });

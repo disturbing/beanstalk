@@ -1,8 +1,10 @@
 /**
  * Turnstile on sign-in and sign-up: the browser solves a widget, the server redeems its token
  * once at Siteverify and requires success, the surface's action and an expected hostname.
- * Off while no site key is configured (every deployment until its widget exists); with a site
- * key but no secret it fails closed. Cloudflare's documented test keys answer without an
+ * On only when BOTH the site key and the secret are configured; with either missing it is off
+ * and sign-in and sign-up work exactly as they do without it (the half-configured state is
+ * logged, never enforced, so a deploy that sets one before the other locks nobody out).
+ * Cloudflare's documented test keys answer without an
  * action and with `hostname: example.com`; their results are accepted only where the
  * deployment says so (`TURNSTILE_TEST_KEYS=allow`, staging), and refused everywhere else.
  */
@@ -31,10 +33,9 @@ export type TurnstileEnv = {
 };
 
 export type TurnstileSetup =
-  | { readonly kind: 'off' }
-  | { readonly kind: 'on'; readonly siteKey: string; readonly verifier: TurnstileVerifier }
-  /** A site key without a secret: every check fails (closed), and the page says so. */
-  | { readonly kind: 'misconfigured'; readonly siteKey: string };
+  /** `missing`: what a half-configured deployment lacks (null when neither is set). */
+  | { readonly kind: 'off'; readonly missing: 'site key' | 'secret' | null }
+  | { readonly kind: 'on'; readonly siteKey: string; readonly verifier: TurnstileVerifier };
 
 /**
  * The deployment's Turnstile setup. `hostnames` defaults to the request's own host: the
@@ -46,8 +47,10 @@ export function turnstileSetup(
   requestHost: string,
 ): TurnstileSetup {
   const siteKey = (env.TURNSTILE_SITE_KEY ?? '').trim();
-  if (siteKey === '') return { kind: 'off' };
-  if (secret === undefined || secret.trim() === '') return { kind: 'misconfigured', siteKey };
+  const secretKey = (secret ?? '').trim();
+  if (siteKey === '' && secretKey === '') return { kind: 'off', missing: null };
+  if (siteKey === '') return { kind: 'off', missing: 'site key' };
+  if (secretKey === '') return { kind: 'off', missing: 'secret' };
   const listed = (env.TURNSTILE_HOSTNAMES ?? '')
     .split(',')
     .map((hostname) => hostname.trim())
@@ -56,11 +59,28 @@ export function turnstileSetup(
     kind: 'on',
     siteKey,
     verifier: {
-      secret: secret.trim(),
+      secret: secretKey,
       hostnames: listed.length > 0 ? listed : [requestHost],
       allowTestKeys: env.TURNSTILE_TEST_KEYS === 'allow',
     },
   };
+}
+
+/**
+ * Whether a sign-in or sign-up may go on: always while Turnstile is off (Siteverify is never
+ * asked), else only with a token Siteverify accepts for this action and host.
+ */
+export async function turnstileGate(
+  setup: TurnstileSetup,
+  input: {
+    readonly token: unknown;
+    readonly action: TurnstileAction;
+    readonly ip: string | null;
+    readonly fetcher?: Fetcher;
+  },
+): Promise<TurnstileVerdict> {
+  if (setup.kind === 'off') return { ok: true };
+  return verifyTurnstile(setup.verifier, input);
 }
 
 export type TurnstileFailure =

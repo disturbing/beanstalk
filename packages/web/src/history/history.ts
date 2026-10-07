@@ -83,6 +83,44 @@ export function landingsOf(events: readonly RaceEvent[]): ReadonlyMap<string, st
   );
 }
 
+/** A validation's word on one commit, from the repository index (repo-events). */
+export type Verdict = {
+  readonly kind: 'validated' | 'red' | 'demoted' | 'reverted';
+  readonly text: string;
+  /** ISO 8601. */
+  readonly at: string;
+};
+
+/** Activity kinds that are a validation's verdict on a commit of the lines. */
+const VERDICT_KINDS: Readonly<Record<string, Verdict['kind']>> = {
+  promoted: 'validated',
+  red: 'red',
+  demoted: 'demoted',
+  reverted: 'reverted',
+};
+
+/**
+ * Each commit's newest verdict (`activity` is newest first): a green validation that moved the
+ * stalk to it, a red validation of it, an audit that moved the stalk back to it, or the
+ * revert that took a bean off. Pure.
+ */
+export function verdictsOf(
+  activity: readonly {
+    readonly kind: string;
+    readonly sha: string | null;
+    readonly text: string;
+    readonly at: string;
+  }[],
+): ReadonlyMap<string, Verdict> {
+  const verdicts = new Map<string, Verdict>();
+  for (const line of activity) {
+    const kind = VERDICT_KINDS[line.kind];
+    if (kind === undefined || line.sha === null || verdicts.has(line.sha)) continue;
+    verdicts.set(line.sha, { kind, text: line.text, at: line.at });
+  }
+  return verdicts;
+}
+
 /** The `Task: <id>` trailer the engine writes on a landing commit. */
 export function trailerTask(message: string): string | null {
   const found = /^Task:\s*(\S+)\s*$/m.exec(message);

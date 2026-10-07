@@ -6,6 +6,9 @@
  */
 import { isReservedHandle } from '@beanstalk/shared-identity/reserved-handles';
 
+// One place names the plugin's marketplace (it stays `disturbing/beanstalk`).
+import { PLUGIN_MARKETPLACE } from '../setup/agent-installs';
+
 /** Top-level static files and scripts the app serves, beside the routes accounts reserve. */
 const STATIC_PATHS: ReadonlySet<string> = new Set([
   '_next',
@@ -89,12 +92,6 @@ export type StartGuide = {
   /** The SSH clone URL and the host key fingerprint, when the deployment serves SSH. */
   readonly ssh: { readonly cloneUrl: string; readonly hostKeyFingerprint: string } | null;
 };
-
-/**
- * The public repository whose `.claude-plugin/marketplace.json` lists the plugin (its default
- * branch, `prototype`, holds the code; `owner/repo#branch` names another branch).
- */
-const PLUGIN_MARKETPLACE = 'disturbing/beanstalk';
 
 export function startGuide(config: StartConfig, owner: string, name: string): StartGuide {
   const origin = config.gitOrigin.replace(/\/+$/, '');

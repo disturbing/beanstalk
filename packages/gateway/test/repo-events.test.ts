@@ -17,7 +17,7 @@ import { call, pkt, sha } from './helpers';
  * `repo-events` end to end (docs/claude-opus/20-repositories.md §6): a real push to a
  * registered repository lands and is validated by its engine; the engine's Durable Object
  * sends the events through the real (Miniflare) queue to this Worker's consumer, which writes
- * the D1 indexes the Stalk tab, Home's growth and Home's activity read. Then the consumer's
+ * the D1 indexes History's validation view, Home's growth and Home's activity read. Then the consumer's
  * guarantees, message by message: redelivery and reordering change nothing, strangers are
  * dropped.
  */
@@ -69,6 +69,10 @@ describe('repo-events: engine → queue → D1 indexes', () => {
     expect(stalk.activity.map((line) => line.kind)).toEqual(
       expect.arrayContaining(['opened', 'landed', 'promoted', 'created']),
     );
+    // History's verdicts: only lines that judge a commit, the promotion's naming its stalk head.
+    expect(stalk.verdicts.map((line) => [line.kind, line.sha])).toEqual([
+      ['promoted', promoted?.sha],
+    ]);
 
     const growth = value(await gateway.repositoryGrowth([repo.id], coop.id));
     expect(growth).toEqual([{ repo_id: repo.id, landed: 1, growing: 0, indexed: true }]);

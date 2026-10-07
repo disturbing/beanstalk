@@ -129,17 +129,48 @@ const CHECKS = [
 ].join('\n');
 
 describe("a repository's own checks", () => {
-  it('lands a bean on a clean merge when the tree has no checks file, and says so', async () => {
+  it("runs the repository's default suite when the tree has no checks file, as before the file was read", async () => {
     const { opened, agentToken } = await openRepo('checks-none');
     const { remote } = await pushBean(opened, agentToken, {
       name: 'plain',
       files: { 'src/a.ts': 'export {};\n' },
     });
     expect(remote).toContain(
-      'no .beanstalk/checks.toml on this tree: no checks run, and a bean lands when it merges cleanly',
+      "no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
     );
     expect(remote).toContain('LANDED: plain');
-    expect(await suitesRun(opened.engineId)).toEqual([]);
+    const suites = await suitesRun(opened.engineId);
+    expect(suites).toHaveLength(1);
+    expect(suites[0]).toMatchObject({ cmd: ['node', '--test'], suite_timeout_seconds: 300 });
+  });
+
+  it("keeps landing beans on a repository holding the starter's older [[check]] draft", async () => {
+    const { opened, agentToken } = await openRepo('checks-legacy');
+    const draft = [
+      '# What a bean must pass before it lands: run on the exact merged tree.',
+      '[[check]]',
+      'name = "tests"',
+      'command = "npm test"',
+      'timeout_seconds = 120',
+      '',
+    ].join('\n');
+    const seeded = await pushBean(opened, await ownerToken(), {
+      name: 'old-starter',
+      files: { '.beanstalk/checks.toml': draft },
+    });
+    expect(seeded.remote).toContain('LANDED: old-starter');
+    const later = await pushBean(opened, agentToken, {
+      name: 'after-draft',
+      files: { 'src/b.ts': 'export const b = 1;\n' },
+    });
+    expect(later.remote).toContain(
+      ".beanstalk/checks.toml is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test",
+    );
+    expect(later.remote).toContain('LANDED: after-draft');
+    expect(later.remote).not.toContain('RED');
+    const suites = await suitesRun(opened.engineId);
+    expect(suites).toHaveLength(2);
+    for (const suite of suites) expect(suite).toMatchObject({ cmd: ['node', '--test'] });
   });
 
   it("refuses an agent's change to the checks themselves and says who may make it", async () => {
@@ -194,7 +225,7 @@ describe("a repository's own checks", () => {
       'changes protected paths (migrations/0002.sql): refused for an engine token acting for @agent',
     );
     expect(migration.remote).toContain('RED: migrate was not landed');
-    expect(migration.remote).toContain('The sprout protects .beanstalk/**, migrations/**');
+    expect(migration.remote).toContain('The sprout protects .beanstalk/checks.toml, migrations/**');
     expect(await suitesRun(opened.engineId)).toHaveLength(2);
   });
 

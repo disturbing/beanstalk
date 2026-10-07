@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { readChecksConfig } from '@beanstalk/shared-race/checks-config';
 import type { SessionVia } from '@beanstalk/shared-race/collaborators';
 import { RunId, Sha } from '@beanstalk/shared-race/ids';
+import { DEFAULT_SUITE, RunSuite } from '@beanstalk/shared-race/suite';
 
 import type { GitCredential } from '../auth/git-credential';
 import { templateFiles } from '../repos/templates';
@@ -15,6 +16,9 @@ const SPROUT = Sha.parse('a'.repeat(40));
 const MERGED = Sha.parse('b'.repeat(40));
 const AGENT = { allowed: false, who: '@agent (write, with an agent session token)' };
 const OWNER = { allowed: true, who: '@coop (owner, with a personal token)' };
+/** An engine configured with another suite than the default, to tell the two apart. */
+const ENGINE_SUITE = RunSuite.parse({ argv: ['node', '--test', 'test/'], timeout_seconds: 90 });
+const NO_GUARD = { guard: null, engineSuite: DEFAULT_SUITE };
 
 function landing(files: readonly string[]): LandingTree {
   return { sha: MERGED, task: 'bean-1', onto: SPROUT, files };
@@ -37,16 +41,39 @@ function host(input: {
 }
 
 describe('deciding a check from the tree', () => {
-  it('answers green with no tests when the tree has no checks file', () => {
-    const { plan, lines } = decide(readChecksConfig(null), null);
-    expect(plan).toMatchObject({ kind: 'answer', result: { green: true, tests: 0 } });
+  it("runs the engine's configured suite when the tree has no checks file, never no checks", () => {
+    const { plan, lines } = decide(readChecksConfig(null), {
+      guard: null,
+      engineSuite: ENGINE_SUITE,
+    });
+    expect(plan).toEqual({ kind: 'run', suite: ENGINE_SUITE });
     expect(lines).toEqual([
-      'beanstalk: no .beanstalk/checks.toml on this tree: no checks run, and a bean lands when it merges cleanly',
+      "beanstalk: no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test test/ (timeout 90 s)",
     ]);
   });
 
+  it("runs the engine's suite for the starter's older [[check]] draft", () => {
+    const draft = '[[check]]\nname = "tests"\ncommand = "npm test"\ntimeout_seconds = 120\n';
+    const { plan, lines } = decide(readChecksConfig(draft), NO_GUARD);
+    expect(plan).toEqual({ kind: 'run', suite: DEFAULT_SUITE });
+    expect(lines[0]).toContain('older [[check]] draft');
+  });
+
+  it('still refuses a protected change by an agent on a tree without the file', () => {
+    const guard = protectedGuard(
+      landing(['.beanstalk/checks.toml']),
+      readChecksConfig(null),
+      AGENT,
+    );
+    const { plan } = decide(readChecksConfig('command = ["node", "--test"]'), {
+      guard,
+      engineSuite: DEFAULT_SUITE,
+    });
+    expect(plan).toMatchObject({ kind: 'answer', result: { green: false } });
+  });
+
   it('answers red with every problem when the file is invalid, and runs nothing', () => {
-    const { plan, lines } = decide(readChecksConfig('image = "rust"\ncomand = []\n'), null);
+    const { plan, lines } = decide(readChecksConfig('image = "rust"\ncomand = []\n'), NO_GUARD);
     if (plan.kind !== 'answer') throw new Error('expected an answer');
     expect(plan.result).toMatchObject({
       green: false,
@@ -58,14 +85,17 @@ describe('deciding a check from the tree', () => {
   });
 
   it('runs the suite a valid file declares', () => {
-    const { plan } = decide(readChecksConfig('command = ["node", "--test", "spec/"]'), null);
+    const { plan } = decide(readChecksConfig('command = ["node", "--test", "spec/"]'), NO_GUARD);
     expect(plan).toMatchObject({ kind: 'run', suite: { argv: ['node', '--test', 'spec/'] } });
   });
 
   it('refuses a protected change before reading anything else, naming the paths and the pusher', () => {
     const sprout = readChecksConfig('protected_paths = ["migrations/**"]');
     const guard = protectedGuard(landing(['migrations/1.sql', 'src/a.ts']), sprout, AGENT);
-    const { plan, lines } = decide(readChecksConfig('command = ["node", "--test"]'), guard);
+    const { plan, lines } = decide(readChecksConfig('command = ["node", "--test"]'), {
+      guard,
+      engineSuite: DEFAULT_SUITE,
+    });
     if (plan.kind !== 'answer') throw new Error('expected an answer');
     expect(plan.result.failingTests).toEqual([
       { file: 'migrations/1.sql', name: 'changes a protected path', message: 'migrations/1.sql' },
@@ -82,7 +112,10 @@ describe('deciding a check from the tree', () => {
       readChecksConfig(null),
       OWNER,
     );
-    const { plan, lines } = decide(readChecksConfig('timeout_seconds = 30'), guard);
+    const { plan, lines } = decide(readChecksConfig('timeout_seconds = 30'), {
+      guard,
+      engineSuite: DEFAULT_SUITE,
+    });
     expect(plan).toMatchObject({ kind: 'run', suite: { timeout_seconds: 30 } });
     expect(lines[0]).toBe(
       'beanstalk: changes protected paths (.beanstalk/checks.toml): allowed for @coop (owner, with a personal token)',
@@ -97,10 +130,14 @@ describe('deciding a check from the tree', () => {
       },
       landing: landing(['LICENSE', '.beanstalk/checks.toml']),
     });
-    const plan = await planCheck(checks, {
-      sha: MERGED,
-      instance: { kind: 'sandbox', slot: 'a0' },
-    });
+    const plan = await planCheck(
+      checks,
+      {
+        sha: MERGED,
+        instance: { kind: 'sandbox', slot: 'a0' },
+      },
+      DEFAULT_SUITE,
+    );
     expect(plan).toMatchObject({ kind: 'answer', result: { green: false } });
     expect(checks.recorded.get(MERGED)?.[0]).toContain(
       '(LICENSE, .beanstalk/checks.toml): refused',
@@ -112,7 +149,11 @@ describe('deciding a check from the tree', () => {
       files: { [MERGED]: 'command = ["node", "--test"]' },
       landing: landing(['.beanstalk/checks.toml']),
     });
-    const plan = await planCheck(checks, { sha: MERGED, instance: { kind: 'ci', slot: 0 } });
+    const plan = await planCheck(
+      checks,
+      { sha: MERGED, instance: { kind: 'ci', slot: 0 } },
+      DEFAULT_SUITE,
+    );
     expect(plan.kind).toBe('run');
   });
 });

@@ -1,13 +1,14 @@
 /**
  * Turnstile for the sign-in and sign-up endpoints (`@beanstalk/shared-identity/turnstile`),
  * from this deployment's vars and its `TURNSTILE_SECRET_KEY` secret. The secret is optional
- * per deployment, so it is not in the generated Env and is read (and checked) here only.
+ * per deployment, so it is not in the generated Env and is read (and checked) here only. On
+ * only when both are configured; otherwise sign-in and sign-up go on without a check.
  */
 import { env } from 'cloudflare:workers';
 
 import { clientIp } from '@beanstalk/shared-identity/request-context';
 import type { TurnstileAction, TurnstileSetup } from '@beanstalk/shared-identity/turnstile';
-import { turnstileSetup, verifyTurnstile } from '@beanstalk/shared-identity/turnstile';
+import { turnstileGate, turnstileSetup } from '@beanstalk/shared-identity/turnstile';
 
 import { log } from '../log';
 import { problem } from './http';
@@ -17,8 +18,8 @@ export const TURNSTILE_FIELD = 'cf-turnstile-response';
 
 /** The site key the pages render the widget with; null while Turnstile is off. */
 export function turnstileSiteKey(): string | null {
-  const siteKey = env.TURNSTILE_SITE_KEY.trim();
-  return siteKey === '' ? null : siteKey;
+  const setup = setupFor(null);
+  return setup.kind === 'on' ? setup.siteKey : null;
 }
 
 /**
@@ -30,13 +31,10 @@ export async function turnstileRefusal(
   token: unknown,
   action: TurnstileAction,
 ): Promise<string | null> {
-  const setup = setupFor(request);
-  if (setup.kind === 'off') return null;
-  if (setup.kind === 'misconfigured') {
-    log.error('turnstile site key set without TURNSTILE_SECRET_KEY: sign-in refused', { action });
-    return 'unavailable';
-  }
-  const verdict = await verifyTurnstile(setup.verifier, { token, action, ip: clientIp(request) });
+  const setup = setupFor(new URL(request.url).hostname);
+  if (setup.kind === 'off' && setup.missing !== null)
+    log.warn('turnstile half configured, so it is off', { action, missing: setup.missing });
+  const verdict = await turnstileGate(setup, { token, action, ip: clientIp(request) });
   if (verdict.ok) return null;
   log.warn('turnstile refused', { action, reason: verdict.reason });
   return verdict.reason;
@@ -49,11 +47,8 @@ export function turnstileProblem(reason: string): Response {
     : problem(403, 'turnstile', 'Complete the check above, then try again.');
 }
 
-function setupFor(request: Request): TurnstileSetup {
+/** `host`: the request's, for the verifier's default hostname (null when only rendering). */
+function setupFor(host: string | null): TurnstileSetup {
   const secret: unknown = Reflect.get(env, 'TURNSTILE_SECRET_KEY');
-  return turnstileSetup(
-    env,
-    typeof secret === 'string' ? secret : undefined,
-    new URL(request.url).hostname,
-  );
+  return turnstileSetup(env, typeof secret === 'string' ? secret : undefined, host ?? '');
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Fetcher, TurnstileVerifier } from '../src/turnstile';
-import { turnstileSetup, verifyTurnstile } from '../src/turnstile';
+import { turnstileGate, turnstileSetup, verifyTurnstile } from '../src/turnstile';
 
 const VERIFIER: TurnstileVerifier = {
   secret: 'real-secret',
@@ -26,11 +26,18 @@ const thrown: Fetcher = async () => {
 const PASS = { success: true, action: 'signin', hostname: 'beanstalk.test' };
 
 describe('Turnstile setup', () => {
-  it('is off without a site key, and fails closed with a site key but no secret', () => {
-    expect(turnstileSetup({}, 'secret', 'beanstalk.test').kind).toBe('off');
-    expect(turnstileSetup({ TURNSTILE_SITE_KEY: 'site' }, undefined, 'h').kind).toBe(
-      'misconfigured',
-    );
+  it('is on only when both the site key and the secret are configured', () => {
+    expect(turnstileSetup({}, undefined, 'h')).toEqual({ kind: 'off', missing: null });
+    expect(turnstileSetup({ TURNSTILE_SITE_KEY: ' ' }, ' ', 'h')).toEqual({
+      kind: 'off',
+      missing: null,
+    });
+    expect(turnstileSetup({}, 'secret', 'h')).toEqual({ kind: 'off', missing: 'site key' });
+    expect(turnstileSetup({ TURNSTILE_SITE_KEY: 'site' }, undefined, 'h')).toEqual({
+      kind: 'off',
+      missing: 'secret',
+    });
+    expect(turnstileSetup({ TURNSTILE_SITE_KEY: 'site' }, 'secret', 'h').kind).toBe('on');
   });
 
   it('expects the request host unless hostnames are listed', () => {
@@ -139,5 +146,57 @@ describe('verifying a Turnstile token', () => {
         fetcher: nonsense.fetcher,
       }),
     ).toEqual({ ok: false, reason: 'unavailable' });
+  });
+});
+
+describe('the sign-in and sign-up gate', () => {
+  it('lets every request through without asking Siteverify while Turnstile is unconfigured', async () => {
+    const { fetcher, requests } = siteverify({ success: false });
+    for (const [siteKey, secret] of [
+      [undefined, undefined],
+      ['site', undefined],
+      [undefined, 'secret'],
+    ] as const) {
+      const vars = siteKey === undefined ? {} : { TURNSTILE_SITE_KEY: siteKey };
+      const setup = turnstileSetup(vars, secret, 'beanstalk.test');
+      for (const action of ['signin', 'signup'] as const) {
+        // oxlint-disable-next-line no-await-in-loop -- each state in turn
+        expect(await turnstileGate(setup, { token: undefined, action, ip: null, fetcher })).toEqual(
+          { ok: true },
+        );
+      }
+    }
+    expect(requests).toHaveLength(0);
+  });
+
+  it('requires a token Siteverify accepts once both keys are configured', async () => {
+    const setup = turnstileSetup({ TURNSTILE_SITE_KEY: 'site' }, 'real-secret', 'beanstalk.test');
+    const pass = siteverify({ ...PASS, action: 'signup' });
+    expect(
+      await turnstileGate(setup, {
+        token: undefined,
+        action: 'signup',
+        ip: null,
+        fetcher: pass.fetcher,
+      }),
+    ).toEqual({ ok: false, reason: 'missing' });
+    expect(
+      await turnstileGate(setup, {
+        token: 'tok',
+        action: 'signup',
+        ip: null,
+        fetcher: pass.fetcher,
+      }),
+    ).toEqual({ ok: true });
+    expect(pass.requests).toHaveLength(1);
+    const fail = siteverify({ success: false });
+    expect(
+      await turnstileGate(setup, {
+        token: 'tok',
+        action: 'signup',
+        ip: null,
+        fetcher: fail.fetcher,
+      }),
+    ).toEqual({ ok: false, reason: 'refused' });
   });
 });

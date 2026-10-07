@@ -32,6 +32,8 @@ const COUNTED_KINDS = ['landed', 'promoted', 'reverted', 'red', 'rework', 'decis
 const BEANS_SHOWN = 200;
 const PROMOTIONS_SHOWN = 20;
 const ACTIVITY_SHOWN = 30;
+/** Validation verdicts kept for History's commits (green, red, audit, revert). */
+const VERDICTS_SHOWN = 100;
 const DAYS_SHOWN = 7;
 
 /** Writes one engine's events into the indexes, in one D1 batch (one transaction). */
@@ -54,9 +56,9 @@ export async function applyRepoEvents(
   await db.batch(statements);
 }
 
-/** The Stalk tab's data for one repository, in one round trip. */
+/** History's validation view of one repository (lines, verdicts, beans), in one round trip. */
 export async function readStalk(db: D1Database, repoId: string): Promise<RepositoryStalk> {
-  const [lines, beans, promotions, days, activity] = await db.batch([
+  const [lines, beans, promotions, days, activity, verdicts] = await db.batch([
     db.prepare('SELECT * FROM repo_lines WHERE repo_id = ?').bind(repoId),
     db
       .prepare('SELECT * FROM beans WHERE repo_id = ? ORDER BY updated_at DESC, bean LIMIT ?')
@@ -71,6 +73,10 @@ export async function readStalk(db: D1Database, repoId: string): Promise<Reposit
       .prepare('SELECT * FROM repo_daily WHERE repo_id = ? ORDER BY day DESC LIMIT ?')
       .bind(repoId, DAYS_SHOWN),
     activityQuery(db, 'a.repo_id = ?').bind(repoId, ACTIVITY_SHOWN),
+    activityQuery(
+      db,
+      "a.repo_id = ? AND a.kind IN ('promoted', 'demoted', 'red', 'reverted') AND a.sha IS NOT NULL",
+    ).bind(repoId, VERDICTS_SHOWN),
   ]);
   const indexed = (beans?.results ?? []).map(beanOf);
   return {
@@ -81,6 +87,7 @@ export async function readStalk(db: D1Database, repoId: string): Promise<Reposit
     growing: indexed.filter((bean) => bean.state === 'growing'),
     days: (days?.results ?? []).map((row) => DayRow.parse(row)),
     activity: (activity?.results ?? []).map(activityOf),
+    verdicts: (verdicts?.results ?? []).map(activityOf),
   };
 }
 

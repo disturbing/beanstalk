@@ -1,5 +1,5 @@
 /**
- * The index RPC (`RepoIndexRpc`): the Stalk tab and Home's growth lines, read from D1. Access
+ * The index RPC (`RepoIndexRpc`): History's validation view and Home's growth lines, read from D1. Access
  * is the registry's one rule (`accessResult`, read). A repository the index has not heard
  * from yet (one that grew before `repo-events` existed, or whose engine's last send failed)
  * asks its engine to catch up, in the background, so the next read has it.

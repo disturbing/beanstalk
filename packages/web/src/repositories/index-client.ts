@@ -1,6 +1,6 @@
 /**
- * The repository index through the GATEWAY binding (`RepoIndexRpc`, backlog 2.6): the Stalk
- * tab and Home's growth lines, read from D1 by the gateway. Every answer is validated; a
+ * The repository index through the GATEWAY binding (`RepoIndexRpc`, backlog 2.6): History's
+ * validation view and Home's growth lines, read from D1 by the gateway. Every answer is validated; a
  * gateway without the methods reads as "unavailable", so pages fall back to the engine.
  */
 import { z } from 'zod';
@@ -65,6 +65,8 @@ export const RepositoryStalk = z.object({
   growing: z.array(IndexedBean),
   days: z.array(Day),
   activity: z.array(RepositoryActivity),
+  /** Absent from a gateway before History folded the Stalk tab. */
+  verdicts: z.array(RepositoryActivity).default([]),
 });
 export type RepositoryStalk = z.infer<typeof RepositoryStalk>;
 

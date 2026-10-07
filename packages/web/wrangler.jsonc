@@ -50,10 +50,10 @@
     // Cloudflare Email Service. To turn them on: set this to the domain (mail comes from
     // signin@<domain>) and add `"send_email": [{ "name": "EMAIL" }]`. See doc 19.
     "EMAIL_SENDER_DOMAIN": "",
-    // Turnstile on sign-in and sign-up (docs/claude-opus/19 §5): off while the site key is
-    // empty. To turn it on: create a managed widget for this deployment's hostname, set its
-    // site key here and `wrangler secret put TURNSTILE_SECRET_KEY`. A site key without the
-    // secret fails closed. TURNSTILE_HOSTNAMES (comma-separated) defaults to the request's own
+    // Turnstile on sign-in and sign-up (docs/claude-opus/19 §5): on only when BOTH this site
+    // key and the TURNSTILE_SECRET_KEY secret are set; with either missing it is off (logged).
+    // To turn it on: create a managed widget for this deployment's hostname, set its site key
+    // here and `wrangler secret put TURNSTILE_SECRET_KEY`. TURNSTILE_HOSTNAMES (comma-separated) defaults to the request's own
     // host. TURNSTILE_TEST_KEYS=allow accepts Cloudflare's test keys (staging only, never live).
     "TURNSTILE_SITE_KEY": "",
     "TURNSTILE_HOSTNAMES": "",

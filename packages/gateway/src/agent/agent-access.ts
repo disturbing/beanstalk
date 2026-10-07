@@ -52,7 +52,7 @@ export async function openRepository(
   const action: RepositoryAction = need.kind === 'read' ? 'read' : 'write';
   const record = await deps.registry.byName(owner, name);
   const decided = await accessResult(deps.collaborators, record, {
-    principal: principalOf(principal),
+    principal: agentRepositoryPrincipal(principal),
     action,
     what: slug.data,
   });
@@ -89,7 +89,7 @@ export async function personRepositories(
   const described = await Promise.all(
     [...owned, ...shared].map(async (record) => {
       const read = await decideAccess(deps.collaborators, record, {
-        principal: principalOf(principal),
+        principal: agentRepositoryPrincipal(principal),
         action: 'read',
       });
       if (read.verdict !== 'allowed') return [];
@@ -108,8 +108,12 @@ export function failure(
   return { ok: false, error: { code, status, message } };
 }
 
-/** The session as `mayUseEngine` sees it: its person's credential, capped by its scopes. */
-function principalOf(principal: AgentPrincipal): RepositoryPrincipal {
+/**
+ * The session as `mayUseEngine` sees it: its person's credential, capped by its scopes. The
+ * one place an MCP session becomes a principal: the repository tools here and the
+ * `agentRepositoryAccess` RPC (`repository_access`) both use it, so they answer as git does.
+ */
+export function agentRepositoryPrincipal(principal: AgentPrincipal): RepositoryPrincipal {
   return {
     kind: 'credential',
     credential: {
@@ -129,7 +133,7 @@ async function accessOf(
   principal: AgentPrincipal,
 ): Promise<'write' | 'read'> {
   const write = await decideAccess(deps.collaborators, record, {
-    principal: principalOf(principal),
+    principal: agentRepositoryPrincipal(principal),
     action: 'write',
   });
   return write.verdict === 'allowed' ? 'write' : 'read';

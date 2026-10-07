@@ -19,7 +19,7 @@ const bean = {
 };
 
 describe('the repository index client', () => {
-  it('reads the Stalk tab and Home growth, checking every answer', async () => {
+  it("reads History's validation view and Home growth, checking every answer", async () => {
     const asked: string[] = [];
     const client = indexClient({
       repositoryStalk: async (repoId: string, viewer: string | null) => {
@@ -42,6 +42,7 @@ describe('the repository index client', () => {
             growing: [],
             days: [],
             activity: [],
+            verdicts: [],
           },
         };
       },

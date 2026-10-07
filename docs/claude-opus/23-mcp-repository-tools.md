@@ -1,4 +1,4 @@
-# 22 · MCP repository tools: agents work on a repository through MCP as well as git
+# 23 · MCP repository tools: agents work on a repository through MCP as well as git
 
 Built 2026-10-07 (lane B of persistent repositories, from `prototype` at `f9a2295`). Git stays the interface: an agent clones, commits and pushes `bean/<name>` with git (`18-git-native-flow.md`). The MCP tools added here coordinate agents and explain verdicts; none of them moves code. Plain, task-shaped tools only (no code mode, no `execute`).
 

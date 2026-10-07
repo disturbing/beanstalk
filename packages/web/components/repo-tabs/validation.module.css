@@ -1,11 +1,6 @@
-/* The Stalk tab (stalk-view.tsx): the two lines, the week, then what is validated, landed,
-   growing and taken off. Nightshift tokens from globals.css. */
+/* History's validation view (history-validation.tsx, which folded the earlier Stalk tab): the
+   two lines, the week, the verdicts and what was taken off. Nightshift tokens from globals.css. */
 
-.page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 22px 24px 64px;
-}
 .muted {
   color: var(--ink-3);
 }
@@ -60,16 +55,6 @@
 }
 
 /* ---------- Panels ---------- */
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 22px;
-  align-items: start;
-}
-.column {
-  display: grid;
-  gap: 22px;
-}
 .panel {
   background: var(--sheet);
   border: 1px solid var(--rule);
@@ -86,11 +71,6 @@
 .panelHead h2 {
   font-size: var(--step-0);
   font-weight: 600;
-}
-.explain {
-  color: var(--ink-2);
-  font-size: var(--step--1);
-  padding: 10px 16px 0;
 }
 .empty {
   padding: 14px 16px;
@@ -143,42 +123,6 @@
   color: var(--ink-2);
 }
 
-/* ---------- Stalk moves ---------- */
-.moves {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.move {
-  border-bottom: 1px solid var(--rule);
-  padding: 6px 0;
-}
-.move:last-child {
-  border-bottom: 0;
-}
-.moveHead {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: baseline;
-  padding: 6px 16px 2px;
-  font-size: var(--step--1);
-}
-.moveHead time {
-  color: var(--ink-3);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.move[data-kind='promoted'] .moveHead .sha {
-  color: var(--good);
-}
-.move[data-kind='demoted'] .moveHead .sha {
-  color: var(--bad);
-}
-.move .beans {
-  padding: 0 0 4px 18px;
-}
-
 /* ---------- Activity ---------- */
 .activity {
   list-style: none;
@@ -217,24 +161,13 @@
   color: var(--ink-3);
   font-size: 12px;
 }
-.smallPrint {
-  margin-top: 18px;
-  color: var(--ink-3);
-  font-size: 12px;
-}
 
 @media (max-width: 860px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .week {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 520px) {
-  .page {
-    padding: 16px 16px 48px;
-  }
   .bean {
     grid-template-columns: minmax(0, 1fr) auto;
   }

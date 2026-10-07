@@ -4,7 +4,6 @@
  * permission here is `mayUseEngine`'s, through `access.ts`: the owner administers, members
  * read, people who may not see a repository get the same 404 as for a missing one.
  */
-import { parseScopes } from '@beanstalk/shared-identity/scopes';
 import type {
   AgentPrincipal,
   CollaboratorsRpc,
@@ -18,8 +17,7 @@ import { InviteInput, RepoRole as RepoRoleSchema } from '@beanstalk/shared-race/
 import type { RepoOwner, RepositoryRecord, Viewer } from '@beanstalk/shared-race/repos';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 
-import type { RepositoryPrincipal } from '../auth/git-credential';
-import { gitScopes } from '../auth/git-credential';
+import { agentRepositoryPrincipal } from '../agent/agent-access';
 import type { Logger } from '../log';
 import { accessResult, viewerPrincipal } from './access';
 import type { CollaboratorStore, Person, StoredSession } from './collaborators';
@@ -278,16 +276,8 @@ async function agentAccess(
   },
 ): Promise<RpcResult<RepositoryForViewer>> {
   const { agent } = input;
-  const principal: RepositoryPrincipal = {
-    kind: 'credential',
-    credential: {
-      user: { id: agent.user.id, handle: agent.user.handle },
-      scopes: gitScopes(parseScopes(agent.scopes)),
-      engine: null,
-      runPrincipal: null,
-      session: { via: 'mcp', id: `${agent.user.id}/${agent.label}` },
-    },
-  };
+  // The same principal the MCP repository tools use, so `repository_access` answers as they do.
+  const principal = agentRepositoryPrincipal(agent);
   const record = await deps.registry.byName(input.ownerHandle, input.name);
   const decided = await accessResult(deps.collaborators, record, {
     principal,

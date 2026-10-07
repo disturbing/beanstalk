@@ -5,7 +5,8 @@
  * suite runs, a bean's pre-land check applies the sprout's protected paths to the files the
  * bean changes. The answer is a suite for the runner, or a check result that needs none:
  *
- * - no file: green with no tests (a bean lands on a clean merge), and the push is told so;
+ * - no file, or the starter's older `[[check]]` draft: the engine's own suite (`node --test`),
+ *   exactly what the repository ran before the file was read, and the push is told so;
  * - an invalid file: red, its one failing "test" naming every problem, and no suite run;
  * - a protected path changed by a push that may not: red, naming the paths and who may.
  */
@@ -46,10 +47,14 @@ export type RepositoryChecksHost = {
   record(sha: Sha, lines: readonly string[]): void;
 };
 
-/** Decides one check: reads the tree's config (and, for a pre-land check, the sprout's). */
+/**
+ * Decides one check: reads the tree's config (and, for a pre-land check, the sprout's).
+ * `engineSuite` is what the engine is configured to run, for a tree that declares no suite.
+ */
 export async function planCheck(
   host: RepositoryChecksHost,
   check: { readonly sha: Sha; readonly instance: CheckInstance },
+  engineSuite: RunSuite,
 ): Promise<CheckPlan> {
   const landing = check.instance.kind === 'sandbox' ? host.landingTree(check.sha) : null;
   const [resolution, sprout] = await Promise.all([
@@ -60,7 +65,7 @@ export async function planCheck(
     landing === null || sprout === null
       ? null
       : protectedGuard(landing, sprout, host.protectedAccess(landing.task));
-  const decided = decide(resolution, guard);
+  const decided = decide(resolution, { guard, engineSuite });
   host.record(check.sha, decided.lines);
   return decided.plan;
 }
@@ -83,18 +88,26 @@ export function protectedGuard(
   return changed.length === 0 ? null : { changed, patterns, access };
 }
 
-/** The plan and the push's lines for a tree's config and the bean's protected changes. */
+/**
+ * The plan and the push's lines for a tree's config and the bean's protected changes. A tree
+ * that declares no suite runs the engine's (`engineSuite`), never "no checks".
+ */
 export function decide(
   resolution: ChecksResolution,
-  guard: ProtectedGuard | null,
+  context: { readonly guard: ProtectedGuard | null; readonly engineSuite: RunSuite },
 ): { plan: CheckPlan; lines: readonly string[] } {
+  const { guard, engineSuite } = context;
   const guardLines = guard === null ? [] : protectedLines(guard);
   if (guard !== null && !guard.access.allowed)
     return { plan: answer(protectedRed(guard)), lines: guardLines };
-  const lines = [...guardLines, ...describeChecks(resolution).map((line) => `${P} ${line}`)];
+  const lines = [
+    ...guardLines,
+    ...describeChecks(resolution, engineSuite).map((line) => `${P} ${line}`),
+  ];
   switch (resolution.kind) {
     case 'missing':
-      return { plan: answer(GREEN_WITHOUT_CHECKS), lines };
+    case 'legacy':
+      return { plan: { kind: 'run', suite: engineSuite }, lines };
     case 'invalid':
       return { plan: answer(invalidRed(resolution.problems)), lines };
     case 'valid':
@@ -113,17 +126,6 @@ const NO_READS = {
   suiteSeconds: 0,
   timedOut: false,
 } as const;
-
-/** A tree without checks: green, no tests ran. */
-const GREEN_WITHOUT_CHECKS: CheckResult = {
-  ...NO_READS,
-  green: true,
-  tests: 0,
-  failures: 0,
-  failingTests: [],
-  failingFiles: [],
-  output: `no ${CHECKS_PATH}: no checks ran`,
-};
 
 function answer(result: CheckResult): CheckPlan {
   return { kind: 'answer', result };
@@ -158,7 +160,7 @@ function protectedRed(guard: ProtectedGuard): CheckResult {
     { file: first, name: 'changes a protected path', message: guard.changed.join(', ') },
     [
       `This bean changes protected paths: ${guard.changed.join(', ')}.`,
-      `The sprout protects ${guard.patterns.join(', ')} (protected_paths in ${CHECKS_PATH}; .beanstalk/** always).`,
+      `The sprout protects ${guard.patterns.join(', ')} (protected_paths in ${CHECKS_PATH}; ${CHECKS_PATH} always).`,
       'Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;',
       `this push was by ${guard.access.who}.`,
       'Drop those changes from the bean, or ask a maintainer to push them.',

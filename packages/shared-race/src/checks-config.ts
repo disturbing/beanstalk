@@ -14,20 +14,27 @@
  * TZ = "UTC"
  * ```
  *
- * A tree without the file runs no checks (a bean lands on a clean merge). A file that does
- * not parse or validate is a red check whose message says exactly what is wrong.
+ * A tree without the file runs the engine's own suite (`node --test` for every repository
+ * opened from the registry), as repositories did before this file was read. So does the
+ * TypeScript starter's older draft (`[[check]]` tables with a shell `command`), which nothing
+ * ever read: reading it changes no repository's behaviour. A file that does not parse or
+ * validate is a red check whose message says exactly what is wrong.
  */
 import { TomlError, parse } from 'smol-toml';
 import { z } from 'zod';
 
 import type { RunSuite } from './suite';
-import { suiteCommand } from './suite';
+import { DEFAULT_SUITE, suiteCommand } from './suite';
 
 /** Where a repository declares its checks. */
 export const CHECKS_PATH = '.beanstalk/checks.toml';
 
-/** Paths no bean changes without a person, whatever the file says: the checks themselves. */
-export const ALWAYS_PROTECTED: readonly string[] = ['.beanstalk/**'];
+/**
+ * Paths no bean changes without a person, whatever the file says: the checks file itself. Not
+ * all of `.beanstalk/`: agents tick tasks in `.beanstalk/backlog.md` with ordinary beans
+ * (`23-mcp-repository-tools.md`); a repository that wants more lists it in `protected_paths`.
+ */
+export const ALWAYS_PROTECTED: readonly string[] = [CHECKS_PATH];
 
 /** Images the runner has; the image ships Node 25.8.1 only (`packages/runner/README.md`). */
 export const CHECK_IMAGES = ['node'] as const;
@@ -61,6 +68,8 @@ export type ChecksConfig = {
 /** What a tree says about its checks. */
 export type ChecksResolution =
   | { readonly kind: 'missing' }
+  /** The starter's older `[[check]]` draft: the engine's own suite runs, as before. */
+  | { readonly kind: 'legacy' }
   | { readonly kind: 'invalid'; readonly problems: readonly string[] }
   | { readonly kind: 'valid'; readonly config: ChecksConfig };
 
@@ -150,6 +159,7 @@ export function readChecksConfig(text: string | null): ChecksResolution {
     return invalid([`${CHECKS_PATH} is longer than ${MAX_FILE_CHARS} characters`]);
   const table = parseToml(text);
   if (!table.ok) return invalid([table.problem]);
+  if (isLegacyDraft(table.value)) return { kind: 'legacy' };
   const parsed = ChecksFile.safeParse(table.value);
   if (!parsed.success) return invalid(parsed.error.issues.map(problemOf));
   return { kind: 'valid', config: parsed.data };
@@ -192,12 +202,27 @@ export function matchesPattern(path: string, pattern: string): boolean {
   return matchSegments(path.split('/'), normalised.split('/'));
 }
 
-/** The config in a sentence or two, for `remote:` lines and the web. */
-export function describeChecks(resolution: ChecksResolution): readonly string[] {
+/** The suite a tree runs when it declares none (no file, or the older draft): the engine's. */
+export type FallbackSuite = Pick<RunSuite, 'argv' | 'timeout_seconds'>;
+
+/**
+ * The config in a sentence or two, for `remote:` lines and the web. `fallback` is the engine's
+ * own suite, which a tree without a usable declaration runs.
+ */
+export function describeChecks(
+  resolution: ChecksResolution,
+  fallback: FallbackSuite = DEFAULT_SUITE,
+): readonly string[] {
+  const engineSuite = `${suiteCommand(fallback)} (timeout ${fallback.timeout_seconds} s)`;
   switch (resolution.kind) {
     case 'missing':
       return [
-        `no ${CHECKS_PATH} on this tree: no checks run, and a bean lands when it merges cleanly`,
+        `no ${CHECKS_PATH} on this tree: the repository's default suite runs: ${engineSuite}`,
+      ];
+    case 'legacy':
+      return [
+        `${CHECKS_PATH} is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: ${engineSuite}`,
+        `to choose another, write command = ["node", "--test", ...] at the top level (docs/claude-opus/24-checks-config.md)`,
       ];
     case 'invalid':
       return [
@@ -215,6 +240,34 @@ export function describeChecks(resolution: ChecksResolution): readonly string[] 
     default:
       return assertNever(resolution);
   }
+}
+
+/**
+ * The TypeScript starter's draft before the format was read (`[[check]]` with `name`, a shell
+ * `command` such as "npm test" and `timeout_seconds`), and nothing else: never read by the
+ * engine, so a repository holding it keeps the suite it has always run.
+ */
+function isLegacyDraft(table: unknown): boolean {
+  if (!isRecord(table)) return false;
+  const keys = Object.keys(table);
+  if (keys.length !== 1 || keys[0] !== 'check') return false;
+  const checks = table['check'];
+  return (
+    Array.isArray(checks) &&
+    checks.length > 0 &&
+    checks.every(
+      (check) =>
+        isRecord(check) &&
+        typeof check['command'] === 'string' &&
+        Object.keys(check).every((key) => LEGACY_CHECK_KEYS.has(key)),
+    )
+  );
+}
+
+const LEGACY_CHECK_KEYS: ReadonlySet<string> = new Set(['name', 'command', 'timeout_seconds']);
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function invalid(problems: readonly string[]): ChecksResolution {

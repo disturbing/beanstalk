@@ -204,7 +204,7 @@ async function check(
   const plan =
     context.checks === undefined
       ? { kind: 'run' as const, suite: context.suite }
-      : await planCheck(context.checks, spec);
+      : await planCheck(context.checks, spec, context.suite);
   if (plan.kind === 'answer') return { kind: 'check', check: plan.result };
   const suited: JobContext = { ...context, suite: plan.suite };
   const instance = checkInstance(suited, spec.instance);

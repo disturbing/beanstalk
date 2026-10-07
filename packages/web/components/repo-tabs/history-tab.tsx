@@ -1,17 +1,27 @@
 /**
  * The History tab: the stalk's commits, newest first, each with its bean, the person who
  * pushed it and when; above them, the sprout's commits that are not validated yet, marked as
- * such, since they are landed but not yet on the stalk.
+ * such, since they are landed but not yet on the stalk. Beside them (from the repo-events
+ * index, when it answers) the lines' heads, each validation's verdict, and the beans taken
+ * off: one tab for landed versus validated (it folded the earlier Stalk tab).
  */
 import Link from 'next/link';
 
 import { groupCounts } from '../../src/changes/changes';
 import type { Change } from '../../src/changes/changes';
-import type { History, HistoryRow } from '../../src/history/history';
+import type { History, HistoryRow, Verdict } from '../../src/history/history';
+import { verdictsOf } from '../../src/history/history';
+import type { RepositoryStalk } from '../../src/repositories/index-client';
 import type { RepositoryTab } from '../../src/server/repository-tab';
 import { timeAgo } from '../../src/repositories/when';
 import type { GlyphKind } from './glyph';
 import { Glyph } from './glyph';
+import {
+  TakenOffPanel,
+  ValidationLines,
+  ValidationWeek,
+  VerdictsPanel,
+} from './history-validation';
 import styles from './repo-tabs.module.css';
 import { RepositoryShell } from './repository-shell';
 
@@ -19,11 +29,50 @@ export function HistoryTab(props: {
   readonly tab: RepositoryTab;
   readonly history: History;
   readonly changes: readonly Change[];
+  /** The index's validation view; null when it did not answer (commits only). */
+  readonly validation: RepositoryStalk | null;
   readonly nowMs: number;
 }) {
-  const { tab, history } = props;
+  const { tab, validation } = props;
   return (
     <RepositoryShell page={tab} tab="history" openChanges={groupCounts(props.changes).open}>
+      {validation === null ? null : (
+        <>
+          <ValidationLines lines={validation.lines} />
+          <ValidationWeek days={validation.days} />
+        </>
+      )}
+      <div className={validation === null ? styles.single : styles.split}>
+        <div>
+          <CommitLines
+            history={props.history}
+            verdicts={verdictsOf(validation?.verdicts ?? [])}
+            base={tab.base}
+            nowMs={props.nowMs}
+          />
+        </div>
+        {validation === null ? null : (
+          <aside className={styles.validationColumn}>
+            <VerdictsPanel verdicts={validation.verdicts} nowMs={props.nowMs} />
+            <TakenOffPanel beans={validation.off} base={tab.base} nowMs={props.nowMs} />
+          </aside>
+        )}
+      </div>
+    </RepositoryShell>
+  );
+}
+
+/** The sprout's commits not validated yet (marked so), then the stalk's. */
+function CommitLines(props: {
+  readonly history: History;
+  readonly verdicts: ReadonlyMap<string, Verdict>;
+  readonly base: string;
+  readonly nowMs: number;
+}) {
+  const { history } = props;
+  const rows = { verdicts: props.verdicts, base: props.base, nowMs: props.nowMs };
+  return (
+    <>
       {history.pending.length === 0 ? null : (
         <section className={`${styles.box} ${styles.pendingBox}`} aria-labelledby="pending-title">
           <div className={styles.boxHead}>
@@ -35,7 +84,7 @@ export function HistoryTab(props: {
               {history.pending.length} {history.pending.length === 1 ? 'commit' : 'commits'}
             </span>
           </div>
-          <Commits rows={history.pending} glyph="sprout" base={tab.base} nowMs={props.nowMs} />
+          <Commits rows={history.pending} glyph="sprout" line="sprout" {...rows} />
         </section>
       )}
       <section className={styles.box} aria-labelledby="stalk-title">
@@ -51,16 +100,44 @@ export function HistoryTab(props: {
         {history.stalk.length === 0 ? (
           <p className={styles.empty}>Nothing is on the stalk yet.</p>
         ) : (
-          <Commits rows={history.stalk} glyph="stalk" base={tab.base} nowMs={props.nowMs} />
+          <Commits rows={history.stalk} glyph="stalk" line="stalk" {...rows} />
         )}
       </section>
-    </RepositoryShell>
+    </>
+  );
+}
+
+/** What a commit's row says about its validation: the index's verdict, else its line's state. */
+function VerdictPill(props: {
+  readonly line: 'sprout' | 'stalk';
+  readonly verdict: Verdict | undefined;
+  readonly nowMs: number;
+}) {
+  const { verdict } = props;
+  if (verdict === undefined)
+    return props.line === 'sprout' ? (
+      <span className={styles.state} data-state="landed">
+        landed, not validated yet
+      </span>
+    ) : null;
+  const word = {
+    validated: ['validated', 'validated'],
+    red: ['red', 'validation red'],
+    demoted: ['validated', 'stalk went back here'],
+    reverted: ['red', 'reverted'],
+  }[verdict.kind];
+  return (
+    <span className={styles.state} data-state={word[0]} title={verdict.text}>
+      {word[1]} {timeAgo(verdict.at, props.nowMs)}
+    </span>
   );
 }
 
 function Commits(props: {
   readonly rows: readonly HistoryRow[];
   readonly glyph: GlyphKind;
+  readonly line: 'sprout' | 'stalk';
+  readonly verdicts: ReadonlyMap<string, Verdict>;
   readonly base: string;
   readonly nowMs: number;
 }) {
@@ -97,6 +174,11 @@ function Commits(props: {
               </span>
             )}
             {row.bean === null ? null : <span className={styles.beanName}>bean/{row.bean}</span>}
+            <VerdictPill
+              line={props.line}
+              verdict={props.verdicts.get(row.sha)}
+              nowMs={props.nowMs}
+            />
             {row.at === null ? null : (
               <time dateTime={new Date(row.at).toISOString()}>
                 {timeAgo(new Date(row.at).toISOString(), props.nowMs)}

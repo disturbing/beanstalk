@@ -28,9 +28,11 @@ function config(text: string): ChecksConfig {
 }
 
 describe('reading .beanstalk/checks.toml', () => {
-  it('says a tree without the file runs no checks', () => {
+  it("says a tree without the file runs the repository's default suite, never no checks", () => {
     expect(readChecksConfig(null)).toEqual({ kind: 'missing' });
-    expect(describeChecks({ kind: 'missing' })[0]).toContain('no checks run');
+    expect(describeChecks({ kind: 'missing' })).toEqual([
+      "no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
+    ]);
   });
 
   it('fills in the defaults for an empty file', () => {
@@ -91,8 +93,25 @@ describe('reading .beanstalk/checks.toml', () => {
     ]);
   });
 
-  it("explains the starter's old [[check]] draft", () => {
-    expect(problems('[[check]]\nname = "tests"\ncommand = "npm test"\n')[0]).toMatch(
+  it("reads the starter's older [[check]] draft as the default suite, so it never turns red", () => {
+    const starterDraft = [
+      '# What a bean must pass before it lands: run on the exact merged tree.',
+      '[[check]]',
+      'name = "tests"',
+      'command = "npm test"',
+      'timeout_seconds = 120',
+      '',
+    ].join('\n');
+    expect(readChecksConfig(starterDraft)).toEqual({ kind: 'legacy' });
+    expect(readChecksConfig('[[check]]\ncommand = "npm test"\n')).toEqual({ kind: 'legacy' });
+    expect(describeChecks({ kind: 'legacy' })[0]).toContain(
+      "older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test",
+    );
+    expect(protectedPatterns({ kind: 'legacy' })).toEqual(ALWAYS_PROTECTED);
+  });
+
+  it('explains a [[check]] table mixed into the new format', () => {
+    expect(problems('timeout_seconds = 30\n[[check]]\ncommand = "npm test"\n')[0]).toMatch(
       /^unknown table \[\[check\]\]: write the keys at the top level/,
     );
   });
@@ -128,6 +147,12 @@ describe('reading .beanstalk/checks.toml', () => {
     expect(
       protectedChanges([CHECKS_PATH, 'src/a.ts'], protectedPatterns({ kind: 'missing' })),
     ).toEqual([CHECKS_PATH]);
+  });
+
+  it("leaves the rest of .beanstalk/ to ordinary beans: agents tick the backlog's tasks", () => {
+    expect(
+      protectedChanges(['.beanstalk/backlog.md'], protectedPatterns({ kind: 'missing' })),
+    ).toEqual([]);
   });
 });
 

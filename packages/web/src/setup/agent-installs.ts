@@ -6,7 +6,11 @@
  * because the plugin would connect to the hosted one.
  */
 
-/** The public repository whose `.claude-plugin/marketplace.json` lists the plugin. */
+/**
+ * The public repository whose `.claude-plugin/marketplace.json` lists the plugin (its default
+ * branch, `prototype`, holds the code; `owner/repo#branch` names another branch). The start
+ * page's lines (`repositories/paths.ts`) use it too.
+ */
 export const PLUGIN_MARKETPLACE = 'disturbing/beanstalk';
 
 /** The MCP address in `packages/claude-plugin/.mcp.json` (a test keeps the two equal). */
