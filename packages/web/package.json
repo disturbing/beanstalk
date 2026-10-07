@@ -14,9 +14,11 @@
   },
   "dependencies": {
     "@beanstalk/shared-ask": "workspace:*",
+    "@beanstalk/shared-identity": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/space-grotesk": "catalog:",
+    "@simplewebauthn/browser": "catalog:",
     "diff": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

@@ -1,0 +1,69 @@
+/**
+ * Serves one MCP request over Streamable HTTP (the Agents SDK's stateless handler) for a
+ * caller already authenticated: a run token's viewer or contributor, or an OAuth session.
+ */
+import { createMcpHandler } from 'agents/mcp/server';
+
+import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
+import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
+import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
+import type { RunId } from '@beanstalk/shared-race/ids';
+import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+
+import type { ContributorSession } from '../auth/bearer';
+import type { Logger } from '../log';
+import type { AgentSessionContext } from '../tools/tool-context';
+import { toolContext } from '../tools/tool-context';
+import { createServer } from './server';
+
+export const MCP_ROUTE = '/mcp';
+
+export type McpCaller = {
+  readonly run: RunId;
+  /** Who, for logs: a slot, an actor, or a user id. */
+  readonly sub: string;
+  readonly contributor?: ContributorSession;
+  readonly session?: AgentSessionContext;
+};
+
+export function serveMcp(
+  request: Request,
+  input: {
+    readonly env: Env;
+    readonly ctx: ExecutionContext;
+    readonly gateway: GatewayRpc;
+    readonly log: Logger;
+    readonly caller: McpCaller;
+  },
+): Promise<Response> {
+  const { env, gateway, log, caller } = input;
+  const { run, sub } = caller;
+  const tools = toolContext({
+    run,
+    gateway,
+    log,
+    ...(caller.contributor === undefined ? {} : { contributor: caller.contributor }),
+    ...(caller.session === undefined ? {} : { session: caller.session }),
+    // Per request: repeated reads within one MCP call are shared, never across calls.
+    source: memoSource(gatewaySource(gateway)),
+    classifier: classifierFrom({
+      name: env.ASK_CLASSIFIER,
+      model: env.ASK_AI_MODEL,
+      ai: Reflect.get(env, 'AI'),
+    }),
+    picker: pickerFrom({
+      name: env.PICKER,
+      ai: Reflect.get(env, 'AI'),
+      gateway: env.JEV_GATEWAY,
+      onError: (decision, error) =>
+        log.warn('jev pick fell back to the rule', { run, decision, error }),
+    }),
+    webUrl: env.WEB_URL,
+  });
+  const handler = createMcpHandler(() => createServer(tools), {
+    route: MCP_ROUTE,
+    onerror: (error) => log.error('mcp handler error', { run, sub, error }),
+  });
+  return handler(request, env, input.ctx);
+}

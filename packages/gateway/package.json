@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@beanstalk/shared-identity": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@cloudflare/containers": "catalog:",
     "@hono/zod-validator": "catalog:",

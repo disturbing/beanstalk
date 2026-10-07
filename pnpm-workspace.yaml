@@ -13,11 +13,14 @@ catalog:
   '@cloudflare/containers': 0.3.7
   '@cloudflare/vite-plugin': 1.62.5
   '@cloudflare/vitest-pool-workers': 0.22.0
+  '@cloudflare/workers-oauth-provider': 1.2.3
   '@fontsource-variable/jetbrains-mono': 5.3.0
   '@fontsource-variable/space-grotesk': 5.3.0
   '@hono/zod-validator': 0.9.1
   '@modelcontextprotocol/client': 2.0.0
   '@modelcontextprotocol/server': 2.0.0
+  '@simplewebauthn/browser': 14.0.0
+  '@simplewebauthn/server': 14.0.3
   '@types/react': 19.3.0
   '@types/react-dom': 19.3.0
   '@vitejs/plugin-react': 6.1.1
@@ -37,3 +40,4 @@ catalog:
 
 minimumReleaseAgeExclude:
   - wrangler@4.147.0
+  - '@cloudflare/workers-oauth-provider@1.2.3'

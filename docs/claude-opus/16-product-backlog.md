@@ -4,6 +4,7 @@
 > - **Automations connect through direct MCP only:** apps' own MCP servers, no Composio. Every Composio item in this plan is dropped.
 > - **Licence:** ask the organisers in writing whether FSL qualifies (draft email sent to Coop); switch the submission snapshot only if they say no.
 > - **Demo engine:** decided after the real races. v2.5 with dependency starts and the tail fix is racing now.
+> - **Sign-up (Coop, 2026-10-07):** passkeys are the primary sign-up path; email magic links are built and tested but switched off and hidden until a sender domain is configured (`19-accounts-and-auth.md` §6).
 > - **Domain:** open. beanstalk.dev is taken; beanstalk.sh, beanstalk.build and beanstalkgit.com looked free on 10-06. The name "Beanstalk" collides with the existing Beanstalk git hosting service (beanstalkapp.com) and AWS Elastic Beanstalk, a naming and trademark risk to settle before launch.
 
 
@@ -451,6 +452,8 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 ### Phase 1: accounts and the front door (~11 agent-days)
 
 **Goal:** a new person pastes one command into Claude Code or Codex, signs up in the browser, and lands on Home with their session listed. A returning person signs in by magic link. Races keep working untouched.
+
+**Status (2026-10-07, branch `auth-accounts`, `19-accounts-and-auth.md`):** 1.1 done as a library rather than a Worker (`@beanstalk/shared-identity` on one D1 `beanstalk-identity`, bound in web, MCP and gateway; tested with real D1). 1.2 done with passkeys as the primary method (owner decision) and magic links built, tested and switched off until a sender domain exists; Turnstile and the six-digit code not yet. 1.3 done: `beanstalk-mcp` is an OAuth 2.1 server and protected resource (`workers-oauth-provider` 1.2.3, DCR, CIMD, PKCE S256, refresh, revocation), consent on web `/connect`, and `claude mcp login` completed against staging with Claude Code itself; session principals are the OAuth grants for now (no `session_principals` table yet); tools read one run until Phase 2. 1.5 partly: `/login`, `/signup`, `/connect`, `/settings` (passkeys, connected agents, sign out everywhere), `/settings/tokens`; the `DEMO_PASSWORD` gate stays beside sign-in. Personal access tokens (`bsu_`) and session git tokens (`bss_`, from the MCP `git_credential` tool) verify in the gateway through `verifyGitCredential`; repository authorization for them is Phase 2 (2.4). 1.4, 1.6, 1.7 not started.
 
 | # | Item | Acceptance | Size |
 |---|---|---|---|

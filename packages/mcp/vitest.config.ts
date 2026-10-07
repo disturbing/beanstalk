@@ -3,11 +3,12 @@ import { builtinModules, createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
 import { defineConfig } from 'vitest/config';
 import { z } from 'zod';
 
 /**
+ * Accounts: a real D1 with packages/shared-identity's migrations and a real KV for OAuth.
  * Tests run the MCP Worker and gateway over a real service binding, with the gateway's
  * SQLite RunDO and RunIndex. Existing recorded-fixture tests still inject their own source.
  * Artifacts has no local simulator and the runner needs Docker: reuse the gateway suite's
@@ -20,6 +21,7 @@ import { z } from 'zod';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const compatibilityDate = poolWorkerdCompatibilityDate();
 const gatewayScript = bundleGateway();
+const identityMigrations = await readD1Migrations(path.join(here, '../shared-identity/migrations'));
 
 export default defineConfig({
   plugins: [
@@ -28,7 +30,13 @@ export default defineConfig({
       remoteBindings: false,
       miniflare: {
         compatibilityDate,
-        bindings: { LOG_LEVEL: 'error' },
+        bindings: {
+          LOG_LEVEL: 'error',
+          PUBLIC_URL: 'https://beanstalk-mcp.example.workers.dev',
+          WEB_URL: 'https://beanstalk-web.devaccounts-1password.workers.dev',
+          DEMO_RUN: 'j6boaclinn',
+          TEST_MIGRATIONS: identityMigrations,
+        },
         serviceBindings: {
           GATEWAY: 'beanstalk-gateway',
         },
@@ -38,6 +46,7 @@ export default defineConfig({
   ],
   test: {
     include: ['test/**/*.test.ts'],
+    setupFiles: ['./test/apply-migrations.ts'],
   },
 });
 
@@ -60,6 +69,7 @@ function auxiliaryWorkers() {
         ARTIFACTS_TOKEN_TTL_SECONDS: '600',
       },
       serviceBindings: { ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' } },
+      d1Databases: { IDENTITY_DB: 'beanstalk-identity-gateway-test' },
       durableObjects: {
         RUNS: { className: 'RunDO', useSQLite: true },
         RUN_INDEX: { className: 'RunIndex', useSQLite: true },

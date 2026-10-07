@@ -16,8 +16,26 @@ import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
 import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
 import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
 
+import type { Scope } from '@beanstalk/shared-identity/scopes';
+
 import type { ContributorSession } from '../auth/bearer';
 import type { Logger } from '../log';
+
+/** A person's agent session (OAuth grant or personal token), for the session tools. */
+export type AgentSessionContext = {
+  readonly handle: string;
+  readonly clientName: string;
+  readonly via: 'oauth' | 'token';
+  readonly scopes: readonly Scope[];
+  /** Mints a short-lived git credential no wider than the session; null when it may not. */
+  mintGitToken(): Promise<MintedGitToken | null>;
+};
+
+export type MintedGitToken = {
+  readonly token: string;
+  readonly scopes: readonly Scope[];
+  readonly expiresAt: string;
+};
 
 export type RunSnapshot = {
   readonly events: readonly RaceEvent[];
@@ -35,6 +53,8 @@ export type ToolContext = {
   /** The web app's origin, for `preview_url`. */
   readonly webUrl: string;
   readonly contributor?: ContributorSession;
+  /** Set for OAuth sessions and personal tokens: who the person is. */
+  readonly session?: AgentSessionContext;
   readonly log?: Logger;
   snapshot(): Promise<RunSnapshot>;
 };

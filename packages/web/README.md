@@ -13,7 +13,9 @@ Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprou
 | `/runs/:run/files` | The Files explorer: file tree, main pane (diff, file with blame by bean, bean), context rail and its own Ask bar |
 | `/runs/:run/race` | The engine (developer view): counters, the sprout and the stalk as a vine, agent lanes, the code map, decision cards, the event feed. Recorded runs replay (1x, 10x, 60x, scrubbing); live runs follow the gateway |
 | `/race` | Watch the race: the recorded merge queue and v2.5 runs replayed in sync, with counters (the 35th green, done in) and greens over time |
-| `/login` | The demo gate for decisions (`DEMO_PASSWORD`) |
+| `/signup`, `/login` | Accounts: a handle and a passkey (email links once a sender domain is set), and below sign-in the demo gate for decisions (`DEMO_PASSWORD`). `docs/claude-opus/19-accounts-and-auth.md` |
+| `/connect` | OAuth consent for an agent (from `beanstalk-mcp`'s `/authorize`) |
+| `/settings`, `/settings/tokens` | Profile, passkeys, connected agents (disconnect), sign out everywhere; personal access tokens (create once-shown, list, revoke) |
 | `/api/runs/:run/live` | A live run's events as Server-Sent Events (bridged from the gateway's WebSocket) |
 | `/api/runs/:run/beans/:bean/diff` | A bean's own diff, for decision cards |
 
