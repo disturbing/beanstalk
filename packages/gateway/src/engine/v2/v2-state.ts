@@ -35,6 +35,13 @@ export type SproutCommit = {
   reset?: true;
   /** `repair_landing`: a bean that landed green on a sprout known red. */
   repair?: true;
+  /**
+   * `evidence_promotion`: the green full pre-land check this landing came from (its candidate),
+   * when the landed tree differs from it only by what landed meanwhile (a textual re-squash).
+   */
+  voucher?: Sha;
+  /** The runner's structural tier merged this landing. */
+  structural?: true;
 };
 
 export type TicketStatus = 'bisecting' | 'open' | 'reverting' | 'reverted' | 'escalated' | 'closed';
@@ -282,6 +289,8 @@ export type LandingFlow = {
   syncDue?: boolean;
   /** `live_sync`: a note for the bean's next prompt (sprouts that landed and conflict). */
   syncNote?: string;
+  /** `evidence_promotion`: this attempt's newest green full check (its candidate). */
+  voucher?: Sha;
   step: LandingStep;
 };
 
@@ -363,7 +372,10 @@ export type V2Wait =
   | { readonly kind: 'ticket-revert'; readonly ticket: string }
   | { readonly kind: 'card'; readonly card: string }
   | { readonly kind: 'tests-first'; readonly task: TaskId }
-  | { readonly kind: 'stalk' };
+  | { readonly kind: 'stalk' }
+  /** `evidence_promotion`: the full suite on the stalk at `idx`, and its confirming re-run. */
+  | { readonly kind: 'audit'; readonly idx: number }
+  | { readonly kind: 'audit-confirm'; readonly idx: number };
 
 /** v2.5 (`tests_first`): a task's test author, then the read of its files and their fail-first proof. */
 export type TestsFirstStep =
@@ -486,6 +498,17 @@ export type V2Stats = {
    */
   checks_reused?: number;
   ci_superseded?: number;
+  /**
+   * `evidence_promotion` (absent: 0): commits promoted on evidence alone or after an affected
+   * validation, evidence refused at a validation's start, audits run, red audits confirmed (each
+   * moved the stalk back), and validations a debounce delayed.
+   */
+  evidence_promotions?: number;
+  affected_validations?: number;
+  evidence_refusals?: number;
+  audits?: number;
+  audit_reds?: number;
+  debounced?: number;
 };
 
 /** The v2.2 rules as the run uses them (the summary and the view report them). */
@@ -543,6 +566,67 @@ export type V2Settings = {
   readonly requeueRepair?: boolean;
   /** `reuse_checks`: a landed commit a full pre-land check passed is green without CI; absent: off. */
   readonly reuseChecks?: boolean;
+  /** `evidence_promotion` and its options; absent: off. */
+  readonly evidence?: {
+    readonly readSets: 'complete' | 'static';
+    readonly affectedValidation: boolean;
+    readonly auditEvery: number;
+  };
+  /** `validation_debounce`: its delay and tick, in seconds; absent: off. */
+  readonly debounce?: { readonly seconds: number; readonly tick: number };
+};
+
+/**
+ * `evidence_promotion`: a tree whose full suite passed, with every test's read set there. A
+ * bean's pre-land check is built on the sprout at `base` plus the bean's change (`own`, the files
+ * it differs from that commit in); a sprout commit's tree is the sprout at `base` (`own` empty).
+ */
+export type Voucher = {
+  /** The checked candidate commit, or `sprout:<idx>` for a sprout commit. */
+  readonly sha: string;
+  readonly kind: 'check' | 'sprout';
+  readonly task: TaskId | null;
+  readonly base: number;
+  readonly own: readonly string[];
+  /** Each test file of the tree, with its read set (an index into `EvidenceState.sets`). */
+  readonly reads: Readonly<Record<string, number>>;
+};
+
+/** A validation of only the affected tests, with the read sets of the tests evidence vouched for. */
+export type AffectedRun = {
+  readonly targets: readonly string[];
+  readonly vouched: Readonly<Record<string, number>>;
+  /** The share of the tree's tests it runs (its CI latency scales with it). */
+  readonly share: number;
+  readonly ci: string;
+};
+
+/**
+ * A background audit of the stalk at `idx`: `first` holds a red first run while its re-run
+ * goes; `confirmed` a red the re-run repeated, waiting for the sprout to stop being rewritten.
+ */
+export type AuditRun = {
+  readonly idx: number;
+  first: CheckResult | null;
+  confirmed?: CheckResult;
+};
+
+export type EvidenceState = {
+  /** Read sets, interned (vouchers name them by index, so a shared closure is stored once). */
+  sets: string[][];
+  /** Bean checks by candidate sha, and sprout commits by `sprout:<idx>`. */
+  vouchers: Record<string, Voucher>;
+  /** The newest stalk commit whose own tree passed the full suite (-1: the base). */
+  verifiedIdx: number;
+  /** Commits promoted without a full suite since `verifiedIdx`. */
+  unverified: number[];
+  /** Affected validations by sprout index. */
+  affected: Record<string, AffectedRun>;
+  audit: AuditRun | null;
+  /** The sprout state the last search found no evidence in (`head:green`). */
+  tried: string | null;
+  /** Tests a red audit caught: their read sets missed a file, so they are never vouched for. */
+  distrusted?: string[];
 };
 
 /** `red_reset`: held suspects requeued one at a time (`current` is released first). */
@@ -647,6 +731,12 @@ export type V2State = {
    * it lands when the sprout did not move), by commit sha. One per bean, so it stays small.
    */
   greenChecks?: Record<string, TaskId>;
+  /** `evidence_promotion`: vouchers, interned read sets, the audit (absent: off). */
+  evidence?: EvidenceState;
+  /** `validation_debounce`: when the delayed validation may start (absent: none waiting). */
+  validationDue?: Seconds;
+  /** When the last validation settled: a validation it asks for starts at once. */
+  lastSettledAt?: Seconds;
   turn: Turn;
   stalk: StalkSync;
   waits: Record<string, V2Wait>;

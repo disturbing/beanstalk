@@ -121,6 +121,8 @@ const CheckResponse = z.object({
   read_set: z.array(z.string()).optional(),
   read_sets: z.record(z.string(), z.array(z.string())).optional(),
   passing_read_sets: z.record(z.string(), z.array(z.string())).optional(),
+  /** The runner's word that its read sets hold every resolved, probed and listed path. */
+  read_sets_complete: z.boolean().optional(),
   read_depths: z.record(z.string(), z.record(z.string(), z.number().int().min(0))).optional(),
   stack_files: z.array(z.string()).optional(),
   output_excerpt: z.string().optional(),
@@ -260,6 +262,9 @@ function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {
     ...(response.passing_read_sets === undefined
       ? {}
       : { passingReadSets: response.passing_read_sets }),
+    ...(response.read_sets_complete === undefined
+      ? {}
+      : { readSetsComplete: response.read_sets_complete }),
     readDepths: response.read_depths ?? {},
     stackFiles: response.stack_files ?? [],
     output: response.output_excerpt ?? '',

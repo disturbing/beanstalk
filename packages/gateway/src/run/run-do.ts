@@ -156,6 +156,7 @@ const LINE_MOVES: ReadonlySet<string> = new Set([
   'revert',
   'sprout.reset',
   'green.promote',
+  'green.demote',
 ]);
 /** The infra meter is written with every stored step, and otherwise at most this often. */
 const METER_SAVE_INTERVAL_MS = 5000;

@@ -69,7 +69,9 @@ V2_DEFAULTS = {"preland_mode": "locked", "preland_seconds": 0.0, "decision_secon
 # rescue, dynamic culprits, the runner's structural merge tier, dependency-aware starts, the tail fix's per-bean
 # invocation ceiling and tail guard (0 turns either off), parking (PARK=0: drop as v2.5 did), the 30-agent stall fix
 # (RED_RESET=0: bisect and revert as v2.5; EPISODE_TICKETS, REPAIR_LANDING: measured, off; REQUEUE_REPAIR=0: one
-# requeue chain as before), check reuse (REUSE_CHECKS=0: validate every sprout head on CI); live sprout sync; the
+# requeue chain as before), check reuse (REUSE_CHECKS=0: validate every sprout head on CI), event-driven promotion
+# (EVIDENCE_PROMOTION, EVIDENCE_READ_SETS, AFFECTED_VALIDATION, AUDIT_EVERY, VALIDATION_DEBOUNCE[_SECONDS],
+# VALIDATION_TICK_SECONDS, CI_OVERHEAD_SECONDS); live sprout sync; the
 # queue never gets these, and the gateway
 # refuses structural_merge for it)
 V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_ADAPT_FALLBACK", str),
@@ -91,7 +93,13 @@ V22_ENV = {"recheck": ("PRELAND_RECHECK", str), "recheck_fallback": ("PRELAND_AD
            "tail_guard_minutes": ("TAIL_GUARD_MINUTES", float), "park": ("PARK", bool),
            "red_reset": ("RED_RESET", bool), "episode_tickets": ("EPISODE_TICKETS", bool),
            "repair_landing": ("REPAIR_LANDING", bool), "reuse_checks": ("REUSE_CHECKS", bool),
-           "requeue_repair": ("REQUEUE_REPAIR", bool)}
+           "requeue_repair": ("REQUEUE_REPAIR", bool),
+           "evidence_promotion": ("EVIDENCE_PROMOTION", bool), "evidence_read_sets": ("EVIDENCE_READ_SETS", str),
+           "affected_validation": ("AFFECTED_VALIDATION", bool), "audit_every": ("AUDIT_EVERY", int),
+           "validation_debounce": ("VALIDATION_DEBOUNCE", bool),
+           "validation_debounce_seconds": ("VALIDATION_DEBOUNCE_SECONDS", float),
+           "validation_tick_seconds": ("VALIDATION_TICK_SECONDS", float),
+           "ci_overhead_seconds": ("CI_OVERHEAD_SECONDS", float)}
 MIDRUN_KINDS = ("initial", "rework")  # the invocations whose agent writes the bean (live_sync_midrun)
 STREAM_KINDS = ("initial", "rework", "sync", "fixer")  # stream_diffs: the gateway's STREAMING_KINDS
 STREAM_POLL = 0.1           # how often the driver looks at the agent's edit marker
