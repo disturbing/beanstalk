@@ -1,4 +1,9 @@
+import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
+
+import { DeployTokens } from '../../../../components/repository/deploy-tokens';
+import { currentSession } from '../../../../src/auth/user';
+import { deployTokensClient } from '../../../../src/repositories/deploy-tokens-client';
 
 import { RepoHead } from '../../../../components/home/repo-head';
 import styles from '../../../../components/repository/repository.module.css';
@@ -33,6 +38,9 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
     visibility: record.visibility,
   };
   const saved = (await searchParams)['saved'] === 'renamed' ? `Renamed to ${record.name}.` : null;
+  const session = await currentSession();
+  const actor = { id: record.owner.id, handle: record.owner.handle };
+  const tokens = await deployTokensClient(env.GATEWAY).list(actor, record.id);
   return (
     <main>
       <RepoHead
@@ -68,6 +76,12 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               </button>
             </div>
           </section>
+          {session === null ? null : (
+            <DeployTokens
+              tokens={tokens.ok ? tokens.value : []}
+              access={{ repoId: record.id, csrf: session.csrfToken, path: `${base}/settings` }}
+            />
+          )}
           <DangerZone repo={repo} />
         </div>
       </div>

@@ -6,6 +6,7 @@ import type { SearchParams } from '../../../components/home/repository-home';
 import { RepositoryHome } from '../../../components/home/repository-home';
 import { RepoHead } from '../../../components/home/repo-head';
 import { StartHere } from '../../../components/repository/start-here';
+import { currentSession } from '../../../src/auth/user';
 import { forgeForRun } from '../../../src/forge/sources';
 import { hasGrown } from '../../../src/repositories/flows';
 import { startGuide } from '../../../src/repositories/paths';
@@ -62,14 +63,21 @@ export default async function RepositoryPage({ params, searchParams }: PageProps
       />
     );
   }
-  const files = await registryClient(env.GATEWAY).files(record.id, page.user?.id ?? null);
+  const [files, config, session] = await Promise.all([
+    registryClient(env.GATEWAY).files(record.id, page.user?.id ?? null),
+    startConfig(),
+    page.isOwner ? currentSession() : Promise.resolve(null),
+  ]);
   return (
     <main>
       <RepoHead {...frame} current="code" />
       <StartHere
         record={record}
         files={files.ok ? files.value : null}
-        guide={startGuide(startConfig(), record.owner.handle, record.name)}
+        guide={startGuide(config, record.owner.handle, record.name)}
+        deploy={
+          session === null ? null : { repoId: record.id, csrf: session.csrfToken, path: base }
+        }
       />
     </main>
   );

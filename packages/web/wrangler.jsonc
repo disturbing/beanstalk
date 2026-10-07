@@ -50,6 +50,9 @@
     // Repositories (docs/claude-opus/20-repositories.md): the public addresses a new repository's start page prints: git (the gateway) and MCP.
     "GIT_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
     "MCP_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp",
+    // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
+    // live; /beanstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
+    "SSH_HOST": "",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
   // Billed to the account; no API key is involved. `remote` makes local dev call it too.

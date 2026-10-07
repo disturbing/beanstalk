@@ -1,7 +1,7 @@
 /**
  * The one place a git credential is checked (`verifyGitCredential`). Git presents it as HTTP
  * Basic (the token as the password, the user name ignored: `https://x:<token>@host/...` or a
- * credential helper) or as a Bearer header. Two kinds of token, one shape of answer:
+ * credential helper) or as a Bearer header. Three kinds of token, one shape of answer:
  *
  * - the gateway's run tokens (`bst1.…`, HMAC-signed by RUN_TOKEN_SECRET):
  *   - `git`: a person or an agent (`sub`) on one repository engine; read and push beans;
@@ -10,7 +10,10 @@
  *   - `contributor`: the collaboration tools only, no git;
  * - people's tokens (`bsu_…` personal, `bss_…` minted for an MCP session), verified against the
  *   identity database by `verifyUserToken` (@beanstalk/shared-identity). They are bound to no
- *   engine (`engine: null`); `mayUseEngine` asks the repository's access rules instead.
+ *   engine (`engine: null`); `mayUseEngine` asks the repository's access rules instead;
+ * - deploy tokens (`bsd_…`), made by a repository's owner for CI and other machines: bound to
+ *   that repository's engine, read or read and write, pushing as the person who made them
+ *   (../repos/deploy-tokens.ts).
  *
  * Callers decide what each credential may open; this only says who is asking and with which
  * scopes. Never throws for bad input; never logs the token.
@@ -18,8 +21,9 @@
 import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
 import type { Scope } from '@beanstalk/shared-identity/scopes';
 import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
-import type { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@beanstalk/shared-race/ids';
 
+import { DEPLOY_TOKEN_PREFIX, verifyDeployToken } from '../repos/deploy-tokens';
 import { verifyToken } from './tokens';
 
 /** What a credential may do with a repository. Landing is never one of them. */
@@ -44,6 +48,10 @@ export type GitCredentialEnv = {
   readonly tokenSecret: string;
   readonly now: () => number;
   readonly identity?: IdentityEnv;
+  /** The registry database, for deploy tokens. */
+  readonly forge?: D1Database;
+  /** Where the request comes from ("US · git/2.53.0"), kept as a deploy token's last use. */
+  readonly usedFrom?: string | null;
 };
 
 const USER_TOKEN = /^bs[us]_/;
@@ -54,6 +62,7 @@ export async function verifyGitCredential(
   token: string,
 ): Promise<GitCredential | null> {
   if (USER_TOKEN.test(token)) return verifyPersonToken(env, token);
+  if (token.startsWith(DEPLOY_TOKEN_PREFIX)) return verifyDeploy(env, token);
   const check = await verifyToken(env.tokenSecret, token, env.now());
   if (!check.ok) return null;
   const { scope, sub, run } = check.claims;
@@ -135,6 +144,22 @@ async function verifyPersonToken(
     user: { id: verified.user.id, handle: verified.user.handle },
     scopes: gitScopes(verified.scopes),
     engine: null,
+    runPrincipal: null,
+  };
+}
+
+async function verifyDeploy(env: GitCredentialEnv, token: string): Promise<GitCredential | null> {
+  if (env.forge === undefined) return null;
+  const verified = await verifyDeployToken(env.forge, token, {
+    now: env.now(),
+    from: env.usedFrom ?? null,
+  });
+  const engine = RunId.safeParse(verified?.engineId);
+  if (verified === null || !engine.success) return null;
+  return {
+    user: verified.createdBy,
+    scopes: verified.access === 'write' ? ['repo:read', 'bean:write'] : ['repo:read'],
+    engine: engine.data,
     runPrincipal: null,
   };
 }

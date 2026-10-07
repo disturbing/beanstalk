@@ -53,11 +53,19 @@ import type {
   UpdateRepositoryInput,
   Viewer,
 } from '@beanstalk/shared-race/repos';
+import type {
+  CreateDeployTokenInput,
+  DeployTokenActor,
+  DeployTokenSummary,
+  DeployTokensRpc,
+  IssuedDeployToken,
+} from '@beanstalk/shared-race/deploy-tokens';
 
 import { repositoryStorage } from './adapters/repository-storage';
 import { createApp } from './app';
 import { createLogger } from './log';
 import { readConfig } from './config';
+import { deployTokensRpc } from './repos/deploy-tokens';
 import { repoEnginePort } from './repos/engine-port';
 import { d1Registry } from './repos/registry';
 import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
@@ -82,7 +90,7 @@ const app = createApp(createDeps);
  */
 export default class Gateway
   extends WorkerEntrypoint<Env>
-  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc
+  implements GatewayRpc, RepositoriesRpc, RepoEngineRpc, DeployTokensRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -267,6 +275,33 @@ export default class Gateway
 
   repositoryFiles(repoId: string, viewer: Viewer): Promise<RpcResult<RepositoryFiles>> {
     return this.#repositories().repositoryFiles(repoId, viewer);
+  }
+
+  createDeployToken(
+    actor: DeployTokenActor,
+    repoId: string,
+    input: CreateDeployTokenInput,
+  ): Promise<RpcResult<IssuedDeployToken>> {
+    return this.#deployTokens().createDeployToken(actor, repoId, input);
+  }
+
+  listDeployTokens(
+    actor: DeployTokenActor,
+    repoId: string,
+  ): Promise<RpcResult<readonly DeployTokenSummary[]>> {
+    return this.#deployTokens().listDeployTokens(actor, repoId);
+  }
+
+  revokeDeployToken(
+    actor: DeployTokenActor,
+    repoId: string,
+    tokenId: string,
+  ): Promise<RpcResult<{ readonly revoked: boolean }>> {
+    return this.#deployTokens().revokeDeployToken(actor, repoId, tokenId);
+  }
+
+  #deployTokens(): DeployTokensRpc {
+    return deployTokensRpc({ db: this.env.FORGE, now: () => Date.now() });
   }
 
   #repositories(): RepositoriesRpc {
