@@ -13,6 +13,7 @@
     "./collaboration": "./src/collaboration.ts",
     "./repos": "./src/repos.ts",
     "./deploy-tokens": "./src/deploy-tokens.ts",
+    "./collaborators": "./src/collaborators.ts",
     "./read-maps": "./src/read-maps.ts"
   },
   "scripts": {

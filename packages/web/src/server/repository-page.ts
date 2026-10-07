@@ -11,7 +11,7 @@ import type { User as SessionUser } from '../auth/user';
 import { lookupRepository } from '../repositories/flows';
 import type { StartConfig } from '../repositories/paths';
 import { repositoryPath, sshEndpoint } from '../repositories/paths';
-import type { RepositoryRecord } from '../repositories/registry-client';
+import type { RepositoryRecord, ViewerRole } from '../repositories/registry-client';
 import { registryClient } from '../repositories/registry-client';
 
 export type RepositoryParams = Promise<{ readonly owner: string; readonly repo: string }>;
@@ -20,6 +20,8 @@ export type RepositoryPage = {
   readonly user: SessionUser | null;
   readonly record: RepositoryRecord;
   readonly isOwner: boolean;
+  /** The viewer's role: owner, maintain, write, read, or null (reading a public one). */
+  readonly role: ViewerRole | null;
   /** `/<owner>/<repo>` as the record names it now. */
   readonly base: string;
 };
@@ -38,6 +40,7 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
     user,
     record: found.record,
     isOwner: found.isOwner,
+    role: found.role,
     base: repositoryPath(found.record.owner.handle, found.record.name),
   };
 }

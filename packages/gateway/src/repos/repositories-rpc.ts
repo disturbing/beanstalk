@@ -21,12 +21,15 @@ import { artifactsCode } from '../adapters/artifacts';
 import type { RepositoryStorage } from '../adapters/repository-storage';
 import { GatewayError } from '../errors';
 import type { Logger } from '../log';
+import { accessResult, decideAccess, viewerPrincipal } from './access';
+import type { CollaboratorStore } from './collaborators';
 import type { RepoEnginePort } from './engine-port';
 import type { Registry } from './registry';
 import { emptyStart, templateFiles } from './templates';
 
 export type RepositoriesDeps = {
   readonly registry: Registry;
+  readonly collaborators: CollaboratorStore;
   readonly storage: RepositoryStorage;
   readonly engine: RepoEnginePort;
   readonly log: Logger;
@@ -50,29 +53,49 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
     listRepositories: (ownerId, viewer) =>
       guarded(async () => {
         const records = await deps.registry.byOwner(ownerId);
-        return ok(records.filter((record) => canRead(record, viewer)));
+        const principal = viewerPrincipal(viewer);
+        const readable = await Promise.all(
+          records.map(async (record) => {
+            const decision = await decideAccess(deps.collaborators, record, {
+              principal,
+              action: 'read',
+            });
+            return decision.verdict === 'allowed' ? record : null;
+          }),
+        );
+        return ok(readable.filter((record) => record !== null));
       }),
     getRepository: (ownerHandle, name, viewer) =>
-      guarded(async () => {
-        const record = await deps.registry.byName(ownerHandle, name);
-        return record !== null && canRead(record, viewer)
-          ? ok(record)
-          : missing(`${ownerHandle}/${name}`);
-      }),
-    updateRepository: (ownerId, repoId, patch) =>
+      guarded(async () =>
+        accessResult(deps.collaborators, await deps.registry.byName(ownerHandle, name), {
+          principal: viewerPrincipal(viewer),
+          action: 'read',
+          what: `${ownerHandle}/${name}`,
+        }),
+      ),
+    updateRepository: (actorId, repoId, patch) =>
       guarded(async () => {
         const parsed = UpdateRepositoryInput.safeParse(patch);
         if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? 'invalid change');
-        const owned = await ownedBy(deps, ownerId, repoId);
+        const owned = await administered(deps, actorId, repoId);
         if (!owned.ok) return owned;
         const updated = await deps.registry.update(repoId, parsed.data, deps.now());
         if (updated === null) return missing(repoId);
         if (updated === 'taken') return taken(owned.value.owner.handle, parsed.data.name ?? '');
+        if (updated.visibility !== owned.value.visibility)
+          await deps.collaborators
+            .auditStatement({
+              repoId,
+              actor: owned.value.owner,
+              action: 'repository.visibility',
+              detail: `${owned.value.visibility} → ${updated.visibility}`,
+            })
+            .run();
         return ok(updated);
       }),
-    deleteRepository: (ownerId, repoId) =>
+    deleteRepository: (actorId, repoId) =>
       guarded(async () => {
-        const owned = await ownedBy(deps, ownerId, repoId);
+        const owned = await administered(deps, actorId, repoId);
         if (!owned.ok) return owned;
         await deps.registry.remove(repoId);
         // The engine stops before its repo goes, so nothing it does meets a missing repo.
@@ -85,9 +108,14 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
       guarded(async () => ok(await deps.registry.activity(ownerId, limit))),
     repositoryFiles: (repoId, viewer) =>
       guarded(async () => {
-        const record = await deps.registry.byId(repoId);
-        if (record === null || !canRead(record, viewer)) return missing(repoId);
-        return ok(await deps.storage.files(record.artifacts_repo, record.default_branch));
+        const record = await accessResult(deps.collaborators, await deps.registry.byId(repoId), {
+          principal: viewerPrincipal(viewer),
+          action: 'read',
+          what: repoId,
+        });
+        if (!record.ok) return record;
+        const { artifacts_repo: artifactsRepo, default_branch: branch } = record.value;
+        return ok(await deps.storage.files(artifactsRepo, branch));
       }),
   };
 }
@@ -209,20 +237,17 @@ async function undo(deps: RepositoriesDeps, id: string, artifactsRepo: string): 
   if (failed > 0) deps.log.warn('repository cleanup incomplete', { repo: id, failed });
 }
 
-async function ownedBy(
+/** The repository, when the actor may administer it (its owner); 404 or 403 otherwise. */
+async function administered(
   deps: RepositoriesDeps,
-  ownerId: string,
+  actorId: string,
   repoId: string,
 ): Promise<RpcResult<RepositoryRecord>> {
-  const record = await deps.registry.byId(repoId);
-  if (record === null) return missing(repoId);
-  if (record.owner.id !== ownerId)
-    return failure({ code: 'forbidden', status: 403, message: 'only the owner can change this' });
-  return ok(record);
-}
-
-function canRead(record: RepositoryRecord, viewer: string | null): boolean {
-  return record.visibility === 'public' || record.owner.id === viewer;
+  return accessResult(deps.collaborators, await deps.registry.byId(repoId), {
+    principal: viewerPrincipal(actorId),
+    action: 'administer',
+    what: repoId,
+  });
 }
 
 /** Runs a call; gateway errors (Artifacts failures included) become error values. */

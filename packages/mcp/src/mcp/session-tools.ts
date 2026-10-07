@@ -9,9 +9,10 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 import type { ToolContext } from '../tools/tool-context';
+import { repositoryAccess } from '../tools/repository-access';
 import { answer, failure } from './tool-result';
 
-export const SESSION_TOOL_NAMES = ['whoami', 'git_credential'] as const;
+export const SESSION_TOOL_NAMES = ['whoami', 'git_credential', 'repository_access'] as const;
 
 export function registerSessionTools(server: McpServer, ctx: ToolContext): void {
   const { session } = ctx;
@@ -58,6 +59,37 @@ export function registerSessionTools(server: McpServer, ctx: ToolContext): void 
       const minted = await session.mintGitToken();
       if (minted === null) return failure('this session has neither read nor write scope for git');
       return answer(async () => ({ ...minted, username: session.handle }));
+    },
+  );
+  server.registerTool(
+    'repository_access',
+    {
+      title: 'Your access to a repository',
+      description:
+        "What this session's person may do with a repository (owner/name): their role (owner, maintain, write, read, or none on a public repository), and whether this session may read and push beans. A repository they may not see answers as not found, like one that does not exist.",
+      inputSchema: z.object({
+        repository: z.string().trim().min(3).max(110).describe('owner/name, e.g. coop/greeter'),
+      }),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ repository }) => {
+      const scope = { gateway: ctx.gateway, session };
+      const read = await repositoryAccess(scope, repository, 'read');
+      if (!read.ok) return failure(read.message);
+      const write = await repositoryAccess(scope, repository, 'write');
+      const { owner, name, visibility, viewer_role: role } = read.repository;
+      return answer(async () => ({
+        repository: `${owner.handle}/${name}`,
+        visibility,
+        role,
+        may: { read: true, push_beans: write.ok, decide: false, settings: false },
+        why: write.ok ? null : write.message,
+      }));
     },
   );
 }

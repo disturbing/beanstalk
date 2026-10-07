@@ -8,6 +8,8 @@ import type { Logger } from './log';
 import { createLogger } from './log';
 import type { Registry } from './repos/registry';
 import { d1Registry } from './repos/registry';
+import type { CollaboratorStore } from './repos/collaborators';
+import { d1Collaborators } from './repos/collaborators';
 import type { RunDO } from './run/run-do';
 import type { RunIndex } from './run/run-index';
 import { RUN_INDEX_NAME } from './run/run-index';
@@ -29,6 +31,8 @@ export type Deps = {
   readonly now: () => number;
   /** The repository registry (`repos/registry.ts`): names, owners, visibility, engines. */
   readonly registry: Registry;
+  /** Collaborators, invitations and sessions (`repos/collaborators.ts`), beside the registry. */
+  readonly collaborators: CollaboratorStore;
 };
 
 export function createDeps(env: Env): Deps {
@@ -45,5 +49,6 @@ export function createDeps(env: Env): Deps {
     runnerPool: () => env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME),
     now: () => Date.now(),
     registry: d1Registry(env.FORGE),
+    collaborators: d1Collaborators(env.FORGE, () => Date.now()),
   };
 }
