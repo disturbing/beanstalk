@@ -388,3 +388,103 @@ python3 harness/report.py > results/tables.md     # the tables above
 | `results/<lang>/` | final run: `map.json`, `results.json`, `log.txt` |
 | `results/<lang>-overhead/`, `results/python-pyc/` | quiet overhead pass; bytecode-cache-on mapping |
 | `results/v1-rule/` | first run with the v1 added-file rule (the one miss) |
+
+---
+
+## 5. Read maps in the runner
+
+The prototype's method now runs in Beanstalk's runner container and its maps live in each run's
+RunDO (2026-10-07). Code: `packages/runner/src/check/trace/` (strace wrapper, log parser, path
+attribution), `per_file.rs`, `discover.rs`, `tree.rs`; `packages/gateway/src/read-maps/` (store and
+selection rule); contract in `packages/runner/README.md` ("Read maps") and
+`packages/gateway/README.md` ("Read maps in the runner").
+
+**What the runner does.** A check with `trace: true` lists the suite's test files with node's own
+`fs.globSync` (the command's patterns, or node's defaults; extglobs such as fastify's
+`test/!(listen.5).test.js` behave exactly as in the suite), runs each file in its own process tree
+under `strace -f -ff --seccomp-bpf -y -e trace=%file,%process,chdir,fchdir` (strace wraps
+bubblewrap, so a traced file gets the same loopback-only network), parses the per-process logs
+(a Rust port of `harness/trace.py`), and reports per file: pass/fail, checkout-relative `reads`,
+`probes` (ENOENT/ENOTDIR lookups), `dirs` (listings), `packages` (anything under
+`node_modules/<pkg>`, in the checkout or in the dependency snapshot linked above it, collapses to the
+package), and the blob id of every read file. The check also returns the tree's manifest
+(`git ls-tree`, extra files hashed). The per-file results fold into the normal report, so the engine
+sees the same green/red, failing files and read sets. `only_files` runs a chosen set of files
+(affected-tests validation), traced or not. Untraced full-suite checks are unchanged. strace needs
+no extra privileges: it works in a default Docker container and in Cloudflare's standard-2
+containers (staging, below).
+
+**What the gateway does.** Pre-land checks are traced under the run config `read_maps: preland`;
+every other check reports its tree's manifest. Maps are stored per (traced tree, test file); the
+engine asks `EngineEnv.readMaps.affectedTests({changes, base, mapsFrom?, tests?})`, which applies
+`select()` from §1 plus three safety rules: a test file with no map is affected (`unmapped`); a map
+from another toolchain, or traced on a tree that differs from `base` in a path the map observed
+(compared through both trees' manifests), or with either manifest unknown, is `stale` and affected;
+a lockfile or `package.json` change affects every test that loaded a package or looked for one
+(the gap in §2 item 6, closed conservatively).
+
+### Overhead
+
+Local, Docker on Apple silicon, one CPU (`--cpus=1`, like Cloudflare's standard-2), release runner
+over HTTP, same commit; `runner/measure.py`, raw in `results/runner-overhead-*.json`:
+
+| Suite | Test files | Untraced suite (one node process) | Traced, one process per file | Ratio | Mean repo reads / probes / packages per file | Map size |
+|---|---|---|---|---|---|---|
+| Shop arena (`research/arena`, 80 tests) | 20 | 2.4–3.0 s | 5.6–5.9 s | **2.0x** | 44 / 10 / 0 | 78 KB |
+| fastify (`research/real-arena/fastify`, 2,069 tests, loopback only) | 184 | 108.6 s, 96.6 s | 123.4 s, 109.2 s | **1.13x** | 32 / 26 / 32 | 792 KB |
+
+- **Where the shop's 2x goes:** per-file processes alone cost 1.4x (4.1 s for the 20 files run one by
+  one, untraced) and strace another 1.4x. A suite this small is mostly node startup.
+- **fastify:** a suite that spends its time testing pays little, as §2 predicted. Both runs had the same
+  verdict (one file, `test/build/error-serializer.test.js`, fails in this container with or without
+  tracing).
+- **Staging** (`beanstalk-gateway-staging`, standard-2, replay race `research/race/runs/staging-readmaps-replay-8-s7-r2`,
+  8 agents, 40 tasks): traced pre-land checks took a median 16.7 s suite time (p90 51 s, 61 checks)
+  against 11.7 s for the same run's untraced validations (18) and 9.2–9.6 s for untraced pre-land checks
+  in earlier standard-2 staging replays: **1.4–1.8x** with eight sandboxes busy at once.
+
+**When to trace (proposal).** Trace every pre-land check: they run in the agents' sandboxes, off the CI
+slots, so the overhead delays only the bean being checked and the maps stay fresh for free (each bean's
+check maps its own merged tree). Keep validations, bisect probes and the final check untraced; they only
+report their tree's manifest, so maps from bean trees can be compared with the validated sprout. That is
+`read_maps: preland`. Use `all` for a periodic full traced run (the audit of §3). On suites dominated by
+startup (the shop), a traced check costs about twice an untraced one; on real suites, about 1.1x.
+
+### Staging race and mutation spot-check
+
+The replay race (`staging-readmaps-replay-8-s7-r2`, run `umtpy30wkb`) landed 26 of 40 tasks with a correct
+final green; every drop was a replay limitation. The store collected **3,665 maps of 63 test files on 50
+traced trees, plus 127 manifests**. (The first attempt, `staging-readmaps-replay-8-s7`, lost 30 beans to
+`runner_version_mismatch`: another agent's deploy, and then the gradual container rollout, left instances on
+other images mid-run.)
+
+**Spot-check** (`runner/spotcheck.py`, `results/runner-spotcheck.json`): a traced tree of that run was
+rebuilt locally from its manifest (objects of the arena repo and the agents' clones), 20 seeded mutations
+were applied (numbers, comparisons, strings, renamed exports, a deleted module, an added `package.json` that
+shadows a directory's module type, an unrelated doc), the store chose the tests (`mapsFrom` and `base` = that
+tree), and every one of the 47 test files ran on its own against each mutant:
+
+| Mutations | Breaking | **Caught** | Selected, mean (breaking) | Actually failing (breaking) |
+|---|---|---|---|---|
+| 20 | 15 | **15/15** | 74% (83%) | 45% |
+
+Selection is coarse on this arena because most tests build the whole app through `createTestApp()`, so
+they load nearly every module (as §2 item 2 says, the map records what a test loads, not what it executes).
+Two mutations selected nothing and broke nothing: an unrelated doc, and an edit to `src/types.ts`, which no
+test loads (type-only imports are erased by type stripping).
+
+**Store answers** (`results/runner-store-answers.json`, same tree T): one landed source file
+(`src/shipping/rates.ts`) affects 38 of 47 files (reason `read`); a docs edit plus a new test file affects
+only the new file (`own-change`); a type-only module affects none; each file's newest map compared against T
+marks 56 of 63 `stale` (most maps were traced on trees that differ from T in a file every app test loads),
+so affected validation on this arena gains little until maps are traced on the validated line itself.
+
+### What remains
+
+- The engine side (`evidence_promotion`, `affected_validation`) is not wired here; it calls
+  `EngineEnv.readMaps` (gateway README).
+- Paths outside the repo and outside dependency packages are dropped, so a test that reads a file the
+  bean cannot change is unaffected by it, which is correct; environment variables are keyed only through
+  the `environment` string (node version and runner image).
+- fastify on staging was not raced traced: the real-arena runs moved to standard-4 live instances while
+  this was built; its numbers above are local.

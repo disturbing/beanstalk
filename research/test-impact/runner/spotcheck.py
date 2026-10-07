@@ -94,7 +94,8 @@ def _rename(path, text, rng):
 def api(gateway: str, token: str, path: str, body: dict | None = None) -> dict:
     data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(f"{gateway}{path}", data=data, method="GET" if body is None else "POST",
-                                 headers={"authorization": f"Bearer {token}", "content-type": "application/json"})
+                                 headers={"authorization": f"Bearer {token}", "content-type": "application/json",
+                                          "user-agent": "beanstalk-spotcheck/1"})  # the edge refuses urllib's
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read())
 
@@ -140,7 +141,7 @@ def main() -> int:
         view = api(gateway, token, f"{base}/trees/{entry['tree']}")
         shutil.rmtree(work, ignore_errors=True)
         os.makedirs(work)
-        if view["blobs"] and rebuild(args.repo, view["blobs"], work):
+        if view.get("blobs") and rebuild(args.repo, view["blobs"], work):
             chosen = view
             break
     if chosen is None:
