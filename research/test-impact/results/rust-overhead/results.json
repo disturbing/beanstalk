@@ -1,0 +1,210 @@
+{
+ "lang": "rust",
+ "units": [
+  "crates/shop-billing/tests/invoice_test.rs",
+  "crates/shop-billing/tests/payments_test.rs",
+  "crates/shop-catalog/tests/catalog_test.rs",
+  "crates/shop-catalog/tests/inventory_test.rs",
+  "crates/shop-core/tests/currency_test.rs",
+  "crates/shop-core/tests/money_test.rs",
+  "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+  "crates/shop-fulfil/tests/orders_test.rs",
+  "crates/shop-reports/tests/reports_test.rs",
+  "crates/shop-sales/tests/cart_test.rs",
+  "crates/shop-sales/tests/discounts_test.rs",
+  "crates/shop-sales/tests/plugins_test.rs",
+  "crates/shop-sales/tests/pricing_test.rs",
+  "crates/shop-sales/tests/shipping_test.rs",
+  "crates/shop-sales/tests/tax_test.rs",
+  "crates/shop-util/tests/strings_validation_test.rs"
+ ],
+ "baseline": {
+  "crates/shop-billing/tests/invoice_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0722269169637002,
+   "traced_s": 0.17174866696586832,
+   "files": 61
+  },
+  "crates/shop-billing/tests/payments_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.06935616600094363,
+   "traced_s": 0.12031749996822327,
+   "files": 58
+  },
+  "crates/shop-catalog/tests/catalog_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.069010375009384,
+   "traced_s": 0.11957479198463261,
+   "files": 54
+  },
+  "crates/shop-catalog/tests/inventory_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03944358404260129,
+   "traced_s": 0.11987845797557384,
+   "files": 53
+  },
+  "crates/shop-core/tests/currency_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0706432510050945,
+   "traced_s": 0.12027374998433515,
+   "files": 37
+  },
+  "crates/shop-core/tests/money_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.07021387497661635,
+   "traced_s": 0.12193399999523535,
+   "files": 36
+  },
+  "crates/shop-fulfil/tests/ids_events_storage_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03667862503789365,
+   "traced_s": 0.1206755840103142,
+   "files": 56
+  },
+  "crates/shop-fulfil/tests/orders_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03676166699733585,
+   "traced_s": 0.12084091699216515,
+   "files": 60
+  },
+  "crates/shop-reports/tests/reports_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03783562500029802,
+   "traced_s": 0.12081870896508917,
+   "files": 61
+  },
+  "crates/shop-sales/tests/cart_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03641866601537913,
+   "traced_s": 0.12397004099329934,
+   "files": 54
+  },
+  "crates/shop-sales/tests/discounts_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03679158299928531,
+   "traced_s": 0.12400270899524912,
+   "files": 55
+  },
+  "crates/shop-sales/tests/plugins_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03792929201154038,
+   "traced_s": 0.12157304101856425,
+   "files": 54
+  },
+  "crates/shop-sales/tests/pricing_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03589616698445752,
+   "traced_s": 0.1188043340225704,
+   "files": 56
+  },
+  "crates/shop-sales/tests/shipping_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.0346898750285618,
+   "traced_s": 0.12216883403016254,
+   "files": 56
+  },
+  "crates/shop-sales/tests/tax_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03720762499142438,
+   "traced_s": 0.12450858304509893,
+   "files": 54
+  },
+  "crates/shop-util/tests/strings_validation_test.rs": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.03793604101520032,
+   "traced_s": 0.12425704102497548,
+   "files": 38
+  }
+ },
+ "full_s": 0.22337287495611235,
+ "full_traced_s": 0.8352177499909885,
+ "mutations": [],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "crates/shop-billing/tests/fresh_test.rs"
+    ],
+    "selected": [
+     "crates/shop-billing/tests/fresh_test.rs",
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-core/tests/currency_test.rs",
+     "crates/shop-core/tests/money_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 58,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "crates/shop-util/src/strings.rs"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "crates/shop-billing/tests/fresh_test.rs",
+     "crates/shop-billing/tests/invoice_test.rs",
+     "crates/shop-billing/tests/payments_test.rs",
+     "crates/shop-catalog/tests/catalog_test.rs",
+     "crates/shop-catalog/tests/inventory_test.rs",
+     "crates/shop-fulfil/tests/ids_events_storage_test.rs",
+     "crates/shop-fulfil/tests/orders_test.rs",
+     "crates/shop-reports/tests/reports_test.rs",
+     "crates/shop-sales/tests/cart_test.rs",
+     "crates/shop-sales/tests/discounts_test.rs",
+     "crates/shop-sales/tests/plugins_test.rs",
+     "crates/shop-sales/tests/pricing_test.rs",
+     "crates/shop-sales/tests/shipping_test.rs",
+     "crates/shop-sales/tests/tax_test.rs",
+     "crates/shop-util/tests/strings_validation_test.rs"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "crates/shop-billing/tests/payments_test.rs",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": true,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

@@ -1,0 +1,24 @@
+16 test units
+full suite exit=0 t=0.22s
+  crates/shop-billing/tests/invoice_test.rs: exit=0/0 plain=0.07s traced=0.17s reads=61
+  crates/shop-billing/tests/payments_test.rs: exit=0/0 plain=0.07s traced=0.12s reads=58
+  crates/shop-catalog/tests/catalog_test.rs: exit=0/0 plain=0.07s traced=0.12s reads=54
+  crates/shop-catalog/tests/inventory_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=53
+  crates/shop-core/tests/currency_test.rs: exit=0/0 plain=0.07s traced=0.12s reads=37
+  crates/shop-core/tests/money_test.rs: exit=0/0 plain=0.07s traced=0.12s reads=36
+  crates/shop-fulfil/tests/ids_events_storage_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=56
+  crates/shop-fulfil/tests/orders_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=60
+  crates/shop-reports/tests/reports_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=61
+  crates/shop-sales/tests/cart_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=54
+  crates/shop-sales/tests/discounts_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=55
+  crates/shop-sales/tests/plugins_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=54
+  crates/shop-sales/tests/pricing_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=56
+  crates/shop-sales/tests/shipping_test.rs: exit=0/0 plain=0.03s traced=0.12s reads=56
+  crates/shop-sales/tests/tax_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=54
+  crates/shop-util/tests/strings_validation_test.rs: exit=0/0 plain=0.04s traced=0.12s reads=38
+0 mutations
+freshness: {"step": "add new test", "changed": ["crates/shop-billing/tests/fresh_test.rs"], "selected": ["crates/shop-billing/tests/fresh_test.rs", "crates/shop-billing/tests/invoice_test.rs", "crates/shop-billing/tests/payments_test.rs", "crates/shop-catalog/tests/catalog_test.rs", "crates/shop-catalog/tests/inventory_test.rs", "crates/shop-core/tests/currency_test.rs", "crates/shop-core/tests/money_test.rs", "crates/shop-fulfil/tests/ids_events_storage_test.rs", "crates/shop-fulfil/tests/orders_test.rs", "crates/shop-reports/tests/reports_test.rs", "crates/shop-sales/tests/cart_test.rs", "crates/shop-sales/tests/discounts_test.rs", "crates/shop-sales/tests/plugins_test.rs", "crates/shop-sales/tests/pricing_test.rs", "crates/shop-sales/tests/shipping_test.rs", "crates/shop-sales/tests/tax_test.rs", "crates/shop-util/tests/strings_validation_test.rs"], "new_test_selected": true, "had_map": false}
+freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 58, "dep_in_map": true}
+freshness: {"step": "break its dependency", "changed": ["crates/shop-util/src/strings.rs"], "new_test_selected": true, "new_test_fails": true, "selected": ["crates/shop-billing/tests/fresh_test.rs", "crates/shop-billing/tests/invoice_test.rs", "crates/shop-billing/tests/payments_test.rs", "crates/shop-catalog/tests/catalog_test.rs", "crates/shop-catalog/tests/inventory_test.rs", "crates/shop-fulfil/tests/ids_events_storage_test.rs", "crates/shop-fulfil/tests/orders_test.rs", "crates/shop-reports/tests/reports_test.rs", "crates/shop-sales/tests/cart_test.rs", "crates/shop-sales/tests/discounts_test.rs", "crates/shop-sales/tests/plugins_test.rs", "crates/shop-sales/tests/pricing_test.rs", "crates/shop-sales/tests/shipping_test.rs", "crates/shop-sales/tests/tax_test.rs", "crates/shop-util/tests/strings_validation_test.rs"]}
+freshness: {"step": "edit existing test to use a new module", "test": "crates/shop-billing/tests/payments_test.rs", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": true, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+done

@@ -1,0 +1,47 @@
+{
+ "promotion: one source file landed since T": {
+  "affected": 38,
+  "unaffected": 9,
+  "unknown": 0,
+  "reasons": {
+   "read": 38
+  }
+ },
+ "docs edit + a new test file": {
+  "affected": 1,
+  "unaffected": 47,
+  "unknown": 0,
+  "reasons": {
+   "own-change": 1
+  }
+ },
+ "type-only module edit": {
+  "affected": 0,
+  "unaffected": 47,
+  "unknown": 0,
+  "reasons": {}
+ },
+ "newest maps, base = newest tree, money.ts": {
+  "affected": 58,
+  "unaffected": 5,
+  "unknown": 0,
+  "reasons": {
+   "read": 44,
+   "stale": 14
+  }
+ },
+ "newest maps against tree T (staleness)": {
+  "affected": 56,
+  "unaffected": 7,
+  "unknown": 0,
+  "reasons": {
+   "stale": 56
+  }
+ },
+ "lockfile added": {
+  "affected": 0,
+  "unaffected": 47,
+  "unknown": 0,
+  "reasons": {}
+ }
+}

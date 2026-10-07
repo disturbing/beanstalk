@@ -1,0 +1,8 @@
+[package]
+name = "shop-util"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+shop-core = { path = "../shop-core" }

@@ -5,7 +5,10 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
-use crate::check::{CheckReport, FailingTest, ImportDepths, SuiteNetwork};
+use crate::check::{
+    CheckReport, FailingTest, ImportDepths, ReadMapsReport, SuiteNetwork, TestFileMap, TraceStatus,
+    TreeManifest,
+};
 use crate::git::{CommitSha, RefUpdateOutcome};
 use crate::integrate::{Composition, Landing, Squashed};
 use crate::resolve::{ConflictHunk, Resolution};
@@ -188,6 +191,8 @@ pub(crate) struct CheckResponse {
     read_set: Vec<String>,
     read_sets: BTreeMap<String, Vec<String>>,
     passing_read_sets: BTreeMap<String, Vec<String>>,
+    /// True only when every passing test's read set was traced (`trace` with `all_read_sets`).
+    read_sets_complete: bool,
     read_depths: BTreeMap<String, ImportDepths>,
     stack_files: Vec<String>,
     output_excerpt: String,
@@ -196,6 +201,97 @@ pub(crate) struct CheckResponse {
     timed_out: bool,
     /// The suite's network: `loopback` (a namespace with `lo` only) or `host`.
     network: SuiteNetwork,
+    /// Present when the check was asked to trace.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    read_maps: Option<ReadMapsBody>,
+    /// Present when traced or asked for (`tree_manifest`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tree: Option<TreeBody>,
+}
+
+/// `read_maps`: `status` is `traced` or `unavailable` (then `reason` says why and `files` is
+/// empty: the check ran untraced).
+#[derive(Debug, Serialize)]
+pub(crate) struct ReadMapsBody {
+    status: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    environment: Option<String>,
+    files: Vec<TestFileMapBody>,
+}
+
+/// One test file's map; `traced: false` when its trace could not be read (the sets are then
+/// empty and the file counts as unmapped).
+#[derive(Debug, Serialize)]
+pub(crate) struct TestFileMapBody {
+    file: String,
+    passed: bool,
+    tests: usize,
+    failures: usize,
+    seconds: f64,
+    timed_out: bool,
+    traced: bool,
+    reads: Vec<String>,
+    probes: Vec<String>,
+    dirs: Vec<String>,
+    packages: Vec<String>,
+    hashes: BTreeMap<String, String>,
+}
+
+/// The checked tree: `commit`, whether extra files were written over it, and every file's blob
+/// id.
+#[derive(Debug, Serialize)]
+pub(crate) struct TreeBody {
+    commit: CommitSha,
+    extra_files: bool,
+    blobs: BTreeMap<String, String>,
+}
+
+impl From<ReadMapsReport> for ReadMapsBody {
+    fn from(report: ReadMapsReport) -> Self {
+        let (status, reason) = match report.status {
+            TraceStatus::Traced => ("traced", None),
+            TraceStatus::Unavailable(reason) => ("unavailable", Some(reason)),
+        };
+        Self {
+            status,
+            reason,
+            environment: report.environment,
+            files: report.files.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<TestFileMap> for TestFileMapBody {
+    fn from(map: TestFileMap) -> Self {
+        let traced = map.accesses.is_some();
+        let accesses = map.accesses.unwrap_or_default();
+        Self {
+            file: map.file,
+            passed: map.passed,
+            tests: map.tests,
+            failures: map.failures,
+            seconds: map.seconds,
+            timed_out: map.timed_out,
+            traced,
+            reads: accesses.reads.into_iter().collect(),
+            probes: accesses.probes.into_iter().collect(),
+            dirs: accesses.dirs.into_iter().collect(),
+            packages: accesses.packages.into_iter().collect(),
+            hashes: map.hashes,
+        }
+    }
+}
+
+impl From<TreeManifest> for TreeBody {
+    fn from(tree: TreeManifest) -> Self {
+        Self {
+            commit: tree.commit,
+            extra_files: tree.has_extra_files,
+            blobs: tree.blobs,
+        }
+    }
 }
 
 impl From<CheckReport> for CheckResponse {
@@ -211,6 +307,7 @@ impl From<CheckReport> for CheckResponse {
             read_set: report.read_set,
             read_sets: report.read_sets,
             passing_read_sets: report.passing_read_sets,
+            read_sets_complete: report.read_sets_complete,
             read_depths: report.read_depths,
             stack_files: report.stack_files,
             output_excerpt: report.output_excerpt,
@@ -218,6 +315,8 @@ impl From<CheckReport> for CheckResponse {
             ci_seconds: report.ci_seconds,
             timed_out: report.timed_out,
             network: report.network,
+            read_maps: report.read_maps.map(Into::into),
+            tree: report.tree.map(Into::into),
         }
     }
 }
@@ -229,6 +328,8 @@ pub(crate) struct HealthResponse {
     pub(crate) node: Option<String>,
     /// The network suites get on this instance.
     pub(crate) network: SuiteNetwork,
+    /// Whether traced checks can trace here (they run untraced otherwise).
+    pub(crate) tracing: bool,
 }
 
 #[derive(Debug, Serialize)]

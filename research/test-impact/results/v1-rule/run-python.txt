@@ -1,0 +1,96 @@
+[python] 16 test units
+[python] full suite exit=0 t=0.38s
+[python]   tests/test_cart.py: exit=0/0 plain=0.27s traced=0.48s reads=43
+[python]   tests/test_catalog.py: exit=0/0 plain=0.33s traced=0.63s reads=39
+[python]   tests/test_currency.py: exit=0/0 plain=0.34s traced=0.48s reads=36
+[python]   tests/test_discounts.py: exit=0/0 plain=0.27s traced=0.58s reads=47
+[python]   tests/test_ids_events_storage.py: exit=0/0 plain=0.27s traced=0.58s reads=35
+[python]   tests/test_inventory.py: exit=0/0 plain=0.27s traced=0.58s reads=30
+[python]   tests/test_invoice.py: exit=0/0 plain=0.28s traced=0.43s reads=64
+[python]   tests/test_money.py: exit=0/0 plain=0.34s traced=0.58s reads=33
+[python]   tests/test_orders.py: exit=0/0 plain=0.38s traced=0.59s reads=61
+[python]   tests/test_payments.py: exit=0/0 plain=0.28s traced=0.48s reads=36
+[python]   tests/test_plugins.py: exit=0/0 plain=0.33s traced=0.42s reads=39
+[python]   tests/test_pricing.py: exit=0/0 plain=0.32s traced=0.57s reads=57
+[python]   tests/test_reports.py: exit=0/0 plain=0.38s traced=0.53s reads=64
+[python]   tests/test_shipping.py: exit=0/0 plain=0.32s traced=0.49s reads=49
+[python]   tests/test_strings_validation.py: exit=0/0 plain=0.33s traced=0.38s reads=34
+[python]   tests/test_tax.py: exit=0/0 plain=0.32s traced=0.48s reads=40
+[python] 72 mutations
+[python] #0 code      sel= 5/16 fail= 0 missed=- t=0.4/0.4s  src/shop/sales/discounts.py:7 num 100->101
+[python] #1 code      sel= 1/16 fail= 1 missed=- t=0.6/0.5s  src/shop/billing/payments.py:4 rename rename luhn_ok
+[python] #2 code      sel= 1/16 fail= 1 missed=- t=0.4/0.4s  src/shop/billing/invoice.py:15 num 20->21
+[python] #3 code      sel= 5/16 fail= 0 missed=- t=0.4/0.5s  src/shop/fulfil/shipping.py:22 num 1000->1001
+[python] #4 code      sel= 1/16 fail= 1 missed=- t=0.5/0.4s  src/shop/billing/payments.py:23 retnull return->null
+[python] #5 code      sel= 1/16 fail= 1 missed=- t=0.5/0.5s  src/shop/billing/invoice.py:8 rename rename render
+[python] #6 code      sel= 1/16 fail= 1 missed=- t=0.4/0.3s  src/shop/core/currency.py:9 rename rename rates
+[python] #7 code      sel= 5/16 fail= 5 missed=- t=0.5/0.4s  src/shop/plugins/service_fee.py:6 rename rename fee
+[python] #8 code      sel= 8/16 fail= 1 missed=- t=0.4/0.6s  src/shop/catalog/products.py:38 retnull return->null
+[python] #9 code      sel= 8/16 fail= 1 missed=- t=0.4/0.4s  src/shop/catalog/products.py:37 rename rename by_category
+[python] #10 code      sel= 1/16 fail= 1 missed=- t=0.4/0.5s  src/shop/billing/payments.py:15 retnull return->null
+[python] #11 code      sel= 9/16 fail= 1 missed=- t=0.4/0.4s  src/shop/util/validation.py:11 rename rename is_email
+[python] #12 code      sel=13/16 fail= 1 missed=- t=0.5/0.4s  src/shop/core/money.py:24 cmp <-><=
+[python] #13 code      sel= 1/16 fail= 1 missed=- t=0.4/0.5s  src/shop/reports/sales.py:15 rename rename top_skus
+[python] #14 code      sel= 4/16 fail= 0 missed=- t=0.4/0.5s  src/shop/sales/pricing.py:32 str "amount"+x
+[python] #15 code      sel= 1/16 fail= 1 missed=- t=0.5/0.5s  src/shop/core/currency.py:14 rename rename convert
+[python] #16 code      sel= 1/16 fail= 1 missed=- t=0.5/0.6s  src/shop/billing/invoice.py:15 num 12->13
+[python] #17 code      sel= 9/16 fail= 1 missed=- t=0.4/0.6s  src/shop/util/validation.py:12 retnull return->null
+[python] #18 code      sel= 5/16 fail= 5 missed=- t=0.7/0.5s  src/shop/plugins/__init__.py:8 rename rename load
+[python] #19 code      sel= 1/16 fail= 1 missed=- t=0.7/0.8s  src/shop/billing/payments.py:19 cmp <=-><
+[python] #20 code      sel= 5/16 fail= 1 missed=- t=0.5/0.6s  src/shop/sales/coupons.py:15 arith *->+
+[python] #21 code      sel= 4/16 fail= 1 missed=- t=0.5/0.8s  src/shop/core/ids.py:6 retnull return->null
+[python] #22 code      sel= 9/16 fail= 9 missed=- t=0.6/0.6s  src/shop/util/validation.py:3 num 3->4
+[python] #23 code      sel= 5/16 fail= 4 missed=- t=0.5/0.6s  src/shop/sales/discounts.py:6 rename rename percent_off
+[python] #24 code      sel= 4/16 fail= 4 missed=- t=0.5/0.6s  src/shop/core/ids.py:14 rename rename take
+[python] #25 code      sel= 5/16 fail= 3 missed=- t=0.6/0.5s  src/shop/plugins/__init__.py:14 str "fee_plugins"+x
+[python] #26 code      sel= 3/16 fail= 0 missed=- t=0.4/0.5s  src/shop/fulfil/orders.py:10 str "paid"+x
+[python] #27 code      sel=13/16 fail= 0 missed=- t=0.6/0.6s  src/shop/core/money.py:13 str "Money"+x
+[python] #28 code      sel= 9/16 fail= 9 missed=- t=0.5/0.6s  src/shop/util/validation.py:8 retnull return->null
+[python] #29 code      sel= 4/16 fail= 4 missed=- t=0.6/0.7s  src/shop/sales/pricing.py:24 rename rename quote
+[python] #30 code      sel= 1/16 fail= 1 missed=- t=0.5/0.7s  src/shop/billing/payments.py:18 rename rename charge
+[python] #31 code      sel= 5/16 fail= 2 missed=- t=0.5/0.6s  src/shop/sales/discounts.py:8 num 100->101
+[python] #32 code      sel= 1/16 fail= 0 missed=- t=0.7/0.8s  src/shop/storage.py:3 str "T"+x
+[python] #33 code      sel= 1/16 fail= 1 missed=- t=0.6/0.8s  src/shop/reports/sales.py:12 retnull return->null
+[python] #34 code      sel= 7/16 fail= 7 missed=- t=0.5/0.6s  src/shop/sales/cart.py:14 retnull return->null
+[python] #35 code      sel= 5/16 fail= 2 missed=- t=0.5/0.7s  src/shop/sales/coupons.py:17 str "shipping"+x
+[python] #36 helper    sel=16/16 fail= 3 missed=- t=0.6/0.6s  tests/conftest.py:7 rename rename stocked
+[python] #37 helper    sel=16/16 fail= 2 missed=- t=0.6/0.6s  tests/conftest.py:8 num 3->4
+[python] #38 helper    sel=16/16 fail= 3 missed=- t=0.8/0.5s  tests/conftest.py:8 retnull return->null
+[python] #39 helper    sel=16/16 fail= 0 missed=- t=0.5/0.6s  tests/conftest.py:8 num 5->6
+[python] #40 helper    sel= 7/16 fail= 7 missed=- t=0.4/0.5s  tests/helpers/factories.py:12 str "_"+x
+[python] #41 data      sel= 1/16 fail= 1 missed=- t=0.4/0.5s  data/rates.csv:3 num 0.9->0.0
+[python] #42 data      sel= 2/16 fail= 2 missed=- t=0.4/0.5s  tests/fixtures/orders.json:3 str "lines"+x
+[python] #43 data      sel= 2/16 fail= 2 missed=- t=0.4/0.5s  tests/fixtures/orders.json:4 str "coupon"+x
+[python] #44 data      sel= 1/16 fail= 1 missed=- t=0.5/0.7s  data/rates.csv:2 num 1.0->1.1
+[python] #45 data      sel= 8/16 fail= 0 missed=- t=0.4/0.4s  data/catalog.csv:7 num 4800->4801
+[python] #46 data      sel= 5/16 fail= 1 missed=- t=0.4/0.6s  data/shipping_zones.json:1 num 1500->1501
+[python] #47 data      sel= 2/16 fail= 0 missed=- t=0.4/0.5s  tests/fixtures/orders.json:4 num 1->2
+[python] #48 data      sel= 5/16 fail= 1 missed=- t=0.4/0.4s  data/shipping_zones.json:1 str "base_cents"+x
+[python] #49 config    sel=16/16 fail= 0 missed=- t=0.4/0.4s  pyproject.toml:4 num 3.11->3.12
+[python] #50 config    sel=16/16 fail= 0 missed=- t=0.4/0.5s  pyproject.toml:8 str "tests"+x
+[python] #51 config    sel= 8/16 fail= 5 missed=- t=0.4/0.5s  config/app.json:3 str "tax_region"+x
+[python] #52 config    sel= 8/16 fail= 1 missed=- t=0.4/0.5s  config/app.json:4 num 50->51
+[python] #53 config    sel= 8/16 fail= 1 missed=- t=0.4/0.5s  config/app.json:7 str "Thank you for shopping"+x
+[python] #54 test-edit sel=16/16 fail= 0 missed=- t=0.5/0.5s  tests/test_discounts.py:15 num 500->501
+[python] #55 test-edit sel=16/16 fail= 0 missed=- t=0.5/0.5s  tests/test_tax.py:11 num 10000->10001
+[python] #56 delete    sel= 5/16 fail= 5 missed=- t=0.4/0.4s  delete src/shop/fulfil/shipping.py
+[python] #57 delete    sel=16/16 fail= 4 missed=- t=0.4/0.4s  delete src/shop/events.py
+[python] #58 add       sel= 0/16 fail=13 missed=['tests/test_cart.py', 'tests/test_catalog.py', 'tests/test_currency.py', 'tests/test_discounts.py', 'tests/test_invoice.py', 'tests/test_money.py', 'tests/test_orders.py', 'tests/test_payments.py', 'tests/test_plugins.py', 'tests/test_pricing.py', 'tests/test_reports.py', 'tests/test_shipping.py', 'tests/test_tax.py'] t=0.0/0.4s  add a package dir that shadows shop/core/money.py
+[python] #59 add       sel=16/16 fail=16 missed=- t=0.2/0.3s  add a root conftest.py that fails collection
+[python] #60 multi     sel=16/16 fail= 1 missed=- t=0.5/0.7s  src/shop/billing/invoice.py:15 num 20->21 + pyproject.toml:4 num 3.11->3.12
+[python] #61 multi     sel=10/16 fail= 9 missed=- t=0.5/0.5s  src/shop/storage.py:3 str "T"+x + src/shop/util/validation.py:8 retnull return->null
+[python] #62 multi     sel=16/16 fail= 1 missed=- t=0.6/0.5s  src/shop/sales/coupons.py:15 arith *->+ + tests/conftest.py:8 num 5->6
+[python] #63 multi     sel=16/16 fail= 4 missed=- t=0.5/0.5s  tests/conftest.py:8 retnull return->null + src/shop/storage.py:3 str "T"+x + src/shop/core
+[python] #64 multi     sel=10/16 fail= 6 missed=- t=0.5/0.4s  config/app.json:3 str "tax_region"+x + src/shop/billing/payments.py:18 rename rename charg
+[python] #65 multi     sel= 2/16 fail= 2 missed=- t=0.5/0.5s  data/rates.csv:2 num 1.0->1.1 + src/shop/reports/sales.py:12 retnull return->null
+[python] #66 multi     sel=13/16 fail= 3 missed=- t=0.5/0.5s  src/shop/sales/coupons.py:17 str "shipping"+x + src/shop/core/money.py:24 cmp <-><=
+[python] #67 multi     sel= 8/16 fail= 1 missed=- t=0.5/0.9s  src/shop/catalog/products.py:38 retnull return->null + src/shop/fulfil/orders.py:10 str "p
+[python] #68 multi     sel=10/16 fail=10 missed=- t=0.4/0.8s  src/shop/plugins/__init__.py:14 str "fee_plugins"+x + src/shop/util/validation.py:8 retnul
+[python] #69 multi     sel= 3/16 fail= 3 missed=- t=0.4/0.6s  src/shop/billing/payments.py:23 retnull return->null + tests/fixtures/orders.json:3 str "l
+[python] #70 multi     sel=13/16 fail= 1 missed=- t=0.7/0.7s  src/shop/core/money.py:13 str "Money"+x + src/shop/billing/payments.py:23 retnull return->
+[python] #71 multi     sel= 3/16 fail= 3 missed=- t=0.5/0.8s  tests/fixtures/orders.json:3 str "lines"+x + src/shop/billing/payments.py:19 cmp <=-><
+[python] freshness: {"step": "add new test", "changed": ["tests/test_fresh_slug.py"], "selected": ["tests/test_cart.py", "tests/test_catalog.py", "tests/test_currency.py", "tests/test_discounts.py", "tests/test_fresh_slug.py", "tests/test_ids_events_storage.py", "tests/test_inventory.py", "tests/test_invoice.py", "tests/test_money.py", "tests/test_orders.py", "tests/test_payments.py", "tests/test_plugins.py", "tests/test_pricing.py", "tests/test_reports.py", "tests/test_shipping.py", "tests/test_strings_validation.py", "tests/test_tax.py"], "new_test_selected": true, "had_map": false}
+[python] freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 34, "dep_in_map": true}
+[python] freshness: {"step": "break its dependency", "changed": ["src/shop/util/strings.py"], "new_test_selected": true, "new_test_fails": true, "selected": ["tests/test_fresh_slug.py", "tests/test_invoice.py", "tests/test_strings_validation.py"]}
+[python] freshness: {"step": "edit existing test to use a new module", "test": "tests/test_payments.py", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": false, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+[python] done

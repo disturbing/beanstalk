@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/shop-core",
+    "crates/shop-util",
+    "crates/shop-config",
+    "crates/shop-catalog",
+    "crates/shop-sales",
+    "crates/shop-fulfil",
+    "crates/shop-billing",
+    "crates/shop-reports",
+    "crates/shop-testkit",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+publish = false

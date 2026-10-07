@@ -76,6 +76,10 @@ class DriverKnobTest(unittest.TestCase):
         self.assertEqual(remote.V22_ENV["reuse_checks"], ("REUSE_CHECKS", bool))
         self.assertEqual(remote.V22_ENV["requeue_repair"], ("REQUEUE_REPAIR", bool))
 
+    def test_read_maps_mode_is_passed_from_the_environment(self) -> None:
+        self.assertEqual(remote.v2_settings(env={"READ_MAPS": "preland"})["read_maps"], "preland")
+        self.assertNotIn("read_maps", remote.v2_settings(env={}))
+
 
 if __name__ == "__main__":
     unittest.main()

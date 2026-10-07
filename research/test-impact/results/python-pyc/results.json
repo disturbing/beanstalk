@@ -1,0 +1,198 @@
+{
+ "lang": "python",
+ "units": [
+  "tests/test_cart.py",
+  "tests/test_catalog.py",
+  "tests/test_currency.py",
+  "tests/test_discounts.py",
+  "tests/test_ids_events_storage.py",
+  "tests/test_inventory.py",
+  "tests/test_invoice.py",
+  "tests/test_money.py",
+  "tests/test_orders.py",
+  "tests/test_payments.py",
+  "tests/test_plugins.py",
+  "tests/test_pricing.py",
+  "tests/test_reports.py",
+  "tests/test_shipping.py",
+  "tests/test_strings_validation.py",
+  "tests/test_tax.py"
+ ],
+ "baseline": {
+  "tests/test_cart.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17335566697875038,
+   "traced_s": 0.477963124983944,
+   "files": 44
+  },
+  "tests/test_catalog.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17581562499981374,
+   "traced_s": 0.42694620799738914,
+   "files": 40
+  },
+  "tests/test_currency.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17864854203071445,
+   "traced_s": 0.3258528750156984,
+   "files": 37
+  },
+  "tests/test_discounts.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1228459170088172,
+   "traced_s": 0.22424562502419576,
+   "files": 48
+  },
+  "tests/test_ids_events_storage.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12354262499138713,
+   "traced_s": 0.22268374997656792,
+   "files": 36
+  },
+  "tests/test_inventory.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1244578329497017,
+   "traced_s": 0.22303275001468137,
+   "files": 31
+  },
+  "tests/test_invoice.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12302204198203981,
+   "traced_s": 0.3242344169993885,
+   "files": 65
+  },
+  "tests/test_money.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12251749995630234,
+   "traced_s": 0.3274414589977823,
+   "files": 34
+  },
+  "tests/test_orders.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12202866695588455,
+   "traced_s": 0.27453287498792633,
+   "files": 62
+  },
+  "tests/test_payments.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12118066701805219,
+   "traced_s": 0.2225176669890061,
+   "files": 37
+  },
+  "tests/test_plugins.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12615404097596183,
+   "traced_s": 0.22307295899372548,
+   "files": 40
+  },
+  "tests/test_pricing.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1242281660088338,
+   "traced_s": 0.22311674995580688,
+   "files": 58
+  },
+  "tests/test_reports.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12476954195881262,
+   "traced_s": 0.22296708403155208,
+   "files": 65
+  },
+  "tests/test_shipping.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12331933301175013,
+   "traced_s": 0.32448370795464143,
+   "files": 50
+  },
+  "tests/test_strings_validation.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.23371162498369813,
+   "traced_s": 0.9404027079581283,
+   "files": 35
+  },
+  "tests/test_tax.py": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17544237500987947,
+   "traced_s": 0.32456916698720306,
+   "files": 41
+  }
+ },
+ "full_s": 0.2822923330240883,
+ "full_traced_s": 0.4262686659931205,
+ "mutations": [],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "tests/test_fresh_slug.py"
+    ],
+    "selected": [
+     "tests/test_cart.py",
+     "tests/test_catalog.py",
+     "tests/test_currency.py",
+     "tests/test_discounts.py",
+     "tests/test_fresh_slug.py",
+     "tests/test_ids_events_storage.py",
+     "tests/test_inventory.py",
+     "tests/test_invoice.py",
+     "tests/test_money.py",
+     "tests/test_orders.py",
+     "tests/test_payments.py",
+     "tests/test_plugins.py",
+     "tests/test_pricing.py",
+     "tests/test_reports.py",
+     "tests/test_shipping.py",
+     "tests/test_strings_validation.py",
+     "tests/test_tax.py"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 35,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "src/shop/util/strings.py"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "tests/test_fresh_slug.py",
+     "tests/test_invoice.py",
+     "tests/test_strings_validation.py"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "tests/test_payments.py",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": false,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

@@ -11,7 +11,8 @@
     "./ids": "./src/ids.ts",
     "./rpc": "./src/rpc.ts",
     "./collaboration": "./src/collaboration.ts",
-    "./repos": "./src/repos.ts"
+    "./repos": "./src/repos.ts",
+    "./read-maps": "./src/read-maps.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

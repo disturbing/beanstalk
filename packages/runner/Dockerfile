@@ -78,7 +78,7 @@ RUN npm ci --no-audit --no-fund --ignore-scripts --os=linux --cpu=x64 --libc=gli
 FROM --platform=linux/amd64 debian:${DEBIAN_RELEASE}-slim
 # bubblewrap gives each suite a network namespace with loopback only (src/check/sandbox.rs).
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git ca-certificates libatomic1 tini bubblewrap \
+ && apt-get install -y --no-install-recommends git ca-certificates libatomic1 tini bubblewrap strace \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --system --uid 10001 --create-home --home-dir /home/runner --shell /usr/sbin/nologin runner \
  && install -d -o runner -g runner /work

@@ -350,6 +350,14 @@ const CheckedFields = z
      */
     ci_overhead_seconds: z.number().min(0).max(600).default(0),
     /**
+     * Read maps (`research/test-impact`, "Read maps in the runner"): which checks run each test
+     * file in its own traced process and store what it read in the RunDO (`read-maps/`).
+     * `preland`: the pre-land checks in agents' sandboxes, off the CI slots, so maps stay fresh
+     * for free while validations stay untraced (they report their tree's manifest, for
+     * staleness). `all`: every check. `off`: none.
+     */
+    read_maps: z.enum(['off', 'preland', 'all']).default('off'),
+    /**
      * With `red_reset`, the burst tail fix: each reset's read-set suspects requeue in a chain of
      * their own (not behind an earlier reset's), the next going as soon as the current one's
      * check is green-and-landed or red (it is then with its author), and two suspects of one

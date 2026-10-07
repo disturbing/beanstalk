@@ -1,0 +1,97 @@
+[go] 18 test units
+[go] full suite exit=0 t=0.48s
+[go]   internal/cart/cart_test.go: exit=0/0 plain=0.22s traced=0.88s reads=25
+[go]   internal/catalog/catalog_test.go: exit=0/0 plain=0.17s traced=0.88s reads=15
+[go]   internal/currency/currency_test.go: exit=0/0 plain=0.17s traced=0.99s reads=11
+[go]   internal/discounts/discounts_test.go: exit=0/0 plain=0.22s traced=1.83s reads=33
+[go]   internal/ids/ids_test.go: exit=0/0 plain=0.45s traced=1.25s reads=5
+[go]   internal/inventory/inventory_test.go: exit=0/0 plain=0.27s traced=1.09s reads=24
+[go]   internal/invoice/invoice_test.go: exit=0/0 plain=0.22s traced=1.09s reads=69
+[go]   internal/money/money_test.go: exit=0/0 plain=0.33s traced=1.43s reads=5
+[go]   internal/orders/orders_test.go: exit=0/0 plain=0.27s traced=1.71s reads=64
+[go]   internal/payments/payments_test.go: exit=0/0 plain=0.29s traced=1.67s reads=8
+[go]   internal/plugins/plugins_test.go: exit=0/0 plain=0.17s traced=2.49s reads=19
+[go]   internal/pricing/pricing_test.go: exit=0/0 plain=0.39s traced=2.39s reads=54
+[go]   internal/reports/reports_test.go: exit=0/0 plain=0.33s traced=1.75s reads=67
+[go]   internal/shipping/shipping_test.go: exit=0/0 plain=0.27s traced=1.72s reads=32
+[go]   internal/storage/storage_test.go: exit=0/0 plain=0.28s traced=1.60s reads=7
+[go]   internal/tax/tax_test.go: exit=0/0 plain=0.28s traced=1.55s reads=14
+[go]   internal/util/strutil/strutil_test.go: exit=0/0 plain=0.32s traced=1.00s reads=6
+[go]   internal/util/validation/validation_test.go: exit=0/0 plain=0.23s traced=1.70s reads=6
+[go] 71 mutations
+[go] #0 code      sel= 1/18 fail= 1 missed=- t=0.6/1.3s  internal/invoice/invoice.go:31 str "Total"+x
+[go] #1 code      sel= 9/18 fail= 9 missed=- t=0.4/1.0s  internal/catalog/products.go:29 rename rename Error
+[go] #2 code      sel=14/18 fail= 2 missed=- t=0.9/1.2s  internal/money/money.go:56 num 100->101
+[go] #3 code      sel= 9/18 fail= 8 missed=- t=0.9/0.7s  internal/catalog/products.go:49 cmp !=->==
+[go] #4 code      sel= 8/18 fail= 8 missed=- t=0.2/0.5s  internal/cart/line.go:15 rename rename Total
+[go] #5 code      sel= 5/18 fail= 5 missed=- t=0.2/1.0s  internal/coupons/coupons.go:17 rename rename Parse
+[go] #6 code      sel= 5/18 fail= 4 missed=- t=0.5/1.5s  internal/plugins/registry.go:56 cmp !=->==
+[go] #7 code      sel= 8/18 fail= 8 missed=- t=0.5/0.9s  internal/config/config.go:28 cmp !=->==
+[go] #8 code      sel= 8/18 fail= 8 missed=- t=0.2/0.9s  internal/config/config.go:19 rename rename Load
+[go] #9 code      sel= 5/18 fail= 0 missed=- t=0.5/0.8s  internal/plugins/registry.go:43 num 0->1
+[go] #10 code      sel= 1/18 fail= 1 missed=- t=0.1/0.9s  internal/payments/payments.go:32 rename rename Charge
+[go] #11 code      sel=12/18 fail= 8 missed=- t=0.6/0.6s  internal/paths/paths.go:45 rename rename Config
+[go] #12 code      sel= 8/18 fail= 1 missed=- t=0.5/1.1s  internal/inventory/inventory.go:37 cmp <=-><
+[go] #13 code      sel= 1/18 fail= 0 missed=- t=0.3/1.0s  internal/reports/sales.go:21 cmp !=->==
+[go] #14 code      sel= 1/18 fail= 1 missed=- t=0.3/1.1s  internal/invoice/invoice.go:18 rename rename Render
+[go] #15 code      sel= 8/18 fail= 6 missed=- t=0.4/0.8s  internal/config/config.go:57 rename rename Number
+[go] #16 code      sel= 1/18 fail= 1 missed=- t=0.3/0.9s  internal/storage/storage.go:24 rename rename All
+[go] #17 code      sel= 1/18 fail= 1 missed=- t=0.1/0.9s  internal/invoice/invoice.go:19 arith +->-
+[go] #18 code      sel= 5/18 fail= 5 missed=- t=0.3/0.9s  internal/plugins/registry.go:22 rename rename Register
+[go] #19 code      sel= 2/18 fail= 0 missed=- t=0.3/1.3s  internal/util/strutil/strutil.go:9 num 9->10
+[go] #20 code      sel= 1/18 fail= 1 missed=- t=0.3/1.0s  internal/payments/payments.go:10 num 0->1
+[go] #21 code      sel= 5/18 fail= 1 missed=- t=0.9/1.1s  internal/shipping/shipping.go:53 cmp ==->!=
+[go] #22 code      sel= 5/18 fail= 0 missed=- t=0.8/1.0s  internal/plugins/registry.go:40 rename rename Names
+[go] #23 code      sel= 8/18 fail= 1 missed=- t=0.5/0.6s  internal/cart/cart.go:41 rename rename Remove
+[go] #24 code      sel= 1/18 fail= 1 missed=- t=0.3/0.7s  internal/currency/currency.go:47 num 0->1
+[go] #25 code      sel= 5/18 fail= 3 missed=- t=0.3/0.7s  internal/coupons/coupons.go:28 cmp !=->==
+[go] #26 code      sel= 3/18 fail= 3 missed=- t=0.1/0.6s  internal/orders/order.go:26 rename rename Move
+[go] #27 code      sel= 1/18 fail= 1 missed=- t=0.1/1.1s  internal/currency/currency.go:27 rename rename loadRates
+[go] #28 code      sel=10/18 fail= 1 missed=- t=0.4/0.5s  internal/util/validation/validation.go:18 rename rename IsEmail
+[go] #29 code      sel= 9/18 fail= 0 missed=- t=0.4/0.5s  internal/catalog/products.go:29 str "no product "+x
+[go] #30 code      sel= 8/18 fail= 6 missed=- t=0.4/0.4s  internal/cart/cart.go:72 rename rename Count
+[go] #31 code      sel= 5/18 fail= 3 missed=- t=0.3/0.6s  internal/plugins/registry.go:54 str "fee_plugins"+x
+[go] #32 code      sel= 8/18 fail= 2 missed=- t=0.4/0.7s  internal/inventory/inventory.go:37 num 0->1
+[go] #33 code      sel= 3/18 fail= 3 missed=- t=0.1/0.5s  internal/orders/service.go:28 rename rename Place
+[go] #34 code      sel=12/18 fail= 8 missed=- t=0.3/0.3s  internal/paths/paths.go:48 rename rename File
+[go] #35 code      sel= 1/18 fail= 1 missed=- t=0.3/1.2s  internal/payments/payments.go:15 bool false->true
+[go] #36 helper    sel= 8/18 fail= 7 missed=- t=0.3/0.4s  internal/testkit/factories.go:12 rename rename CartOf
+[go] #37 helper    sel= 8/18 fail= 7 missed=- t=0.4/0.6s  internal/testkit/factories.go:16 cmp !=->==
+[go] #38 helper    sel= 8/18 fail= 2 missed=- t=0.3/0.6s  internal/testkit/fixtures.go:18 rename rename FixtureOrders
+[go] #39 helper    sel= 8/18 fail= 3 missed=- t=0.3/0.5s  internal/testkit/factories.go:24 rename rename Stocked
+[go] #40 helper    sel= 8/18 fail= 2 missed=- t=0.3/0.5s  internal/testkit/fixtures.go:21 cmp !=->==
+[go] #41 data      sel= 2/18 fail= 0 missed=- t=0.2/0.5s  internal/testkit/testdata/orders.json:4 str "coupon"+x
+[go] #42 data      sel= 8/18 fail= 0 missed=- t=0.3/0.6s  data/catalog.csv:4 num 200->201
+[go] #43 data      sel= 5/18 fail= 0 missed=- t=0.3/0.6s  internal/tax/tax.json:1 str "NY"+x
+[go] #44 data      sel= 2/18 fail= 2 missed=- t=0.3/0.6s  internal/testkit/testdata/orders.json:5 str "SKU-004"+x
+[go] #45 data      sel= 5/18 fail= 5 missed=- t=0.3/0.6s  data/shipping_zones.json:1 str "domestic"+x
+[go] #46 data      sel= 1/18 fail= 1 missed=- t=0.4/0.7s  data/rates.csv:3 num 0.9->0.0
+[go] #47 data      sel= 5/18 fail= 2 missed=- t=0.3/0.5s  internal/tax/tax.json:1 num 0.0->0.1
+[go] #48 data      sel= 2/18 fail= 1 missed=- t=0.4/0.7s  internal/testkit/testdata/orders.json:4 num 3->4
+[go] #49 config    sel=18/18 fail=18 missed=- t=0.0/0.0s  go.mod:3 num 1.25->1.26
+[go] #50 config    sel= 8/18 fail= 1 missed=- t=0.3/0.4s  config/app.json:5 str "free_shipping_over"+x
+[go] #51 config    sel= 8/18 fail= 5 missed=- t=0.3/0.4s  config/app.json:6 str "service_fee"+x
+[go] #52 config    sel= 8/18 fail= 1 missed=- t=0.4/0.6s  config/app.json:4 num 50->51
+[go] #53 config    sel= 8/18 fail= 5 missed=- t=0.4/0.7s  config/app.json:3 str "tax_region"+x
+[go] #54 test-edit sel= 5/18 fail= 1 missed=- t=0.4/0.6s  internal/tax/tax_test.go:16 str "OR"+x
+[go] #55 test-edit sel=10/18 fail= 0 missed=- t=1.4/1.2s  internal/util/validation/validation_test.go:6 num 123->124
+[go] #56 delete    sel= 8/18 fail= 8 missed=- t=0.2/0.5s  delete internal/cart/cart.go
+[go] #57 delete    sel= 5/18 fail= 5 missed=- t=0.2/0.9s  delete internal/tax/tax.go
+[go] #58 add       sel=14/18 fail=14 missed=- t=1.1/0.9s  add a file to the money package whose init() panics
+[go] #59 multi     sel= 5/18 fail= 5 missed=- t=0.3/0.6s  internal/testkit/testdata/orders.json:4 str "coupon"+x + internal/plugins/registry.go:56 c
+[go] #60 multi     sel=11/18 fail=10 missed=- t=0.4/0.4s  internal/config/config.go:19 rename rename Load + internal/currency/currency.go:27 rename 
+[go] #61 multi     sel=10/18 fail=10 missed=- t=0.1/0.6s  internal/catalog/products.go:29 rename rename Error + internal/storage/storage.go:24 renam
+[go] #62 multi     sel= 9/18 fail= 5 missed=- t=0.5/0.9s  internal/plugins/registry.go:22 rename rename Register + internal/inventory/inventory.go:3
+[go] #63 multi     sel= 8/18 fail= 7 missed=- t=0.5/1.0s  internal/testkit/testdata/orders.json:4 num 3->4 + internal/testkit/factories.go:16 cmp !=
+[go] #64 multi     sel=13/18 fail= 9 missed=- t=0.4/0.4s  internal/storage/storage.go:24 rename rename All + internal/paths/paths.go:48 rename renam
+[go] #65 multi     sel= 8/18 fail= 8 missed=- t=0.3/0.5s  config/app.json:3 str "tax_region"+x + internal/config/config.go:19 rename rename Load
+[go] #66 multi     sel= 6/18 fail= 2 missed=- t=0.5/1.1s  internal/tax/tax.json:1 num 0.0->0.1 + internal/plugins/registry.go:40 rename rename Names
+[go] #67 multi     sel= 9/18 fail= 7 missed=- t=0.6/1.0s  data/catalog.csv:4 num 200->201 + internal/testkit/factories.go:16 cmp !=->==
+[go] #68 multi     sel=10/18 fail= 4 missed=- t=0.6/1.1s  internal/orders/order.go:26 rename rename Move + config/app.json:4 num 50->51 + internal/i
+[go] #69 multi     sel=12/18 fail= 8 missed=- t=0.5/0.5s  internal/paths/paths.go:48 rename rename File + internal/plugins/registry.go:43 num 0->1
+[go] #70 multi     sel=10/18 fail=10 missed=- t=0.2/0.5s  internal/inventory/inventory.go:37 num 0->1 + internal/catalog/products.go:29 rename renam
+[go] freshness: {"step": "add new test", "changed": ["internal/payments/fresh_test.go"], "selected": ["internal/payments/fresh_test.go", "internal/payments/payments_test.go"], "new_test_selected": true, "had_map": false}
+[go] freshness: {"step": "ran traced", "exit": 0, "mapped_reads": 13, "dep_in_map": true}
+[go] freshness: {"step": "break its dependency", "changed": ["internal/util/strutil/strutil.go"], "new_test_selected": true, "new_test_fails": true, "selected": ["internal/invoice/invoice_test.go", "internal/payments/fresh_test.go", "internal/util/strutil/strutil_test.go"]}
+[go] freshness: {"step": "edit existing test to use a new module", "test": "internal/payments/payments_test.go", "test_selected_for_own_edit": true, "exit": 0, "dep_in_map_before": false, "dep_in_map_after": true, "then_break_dep_selected": true, "then_test_fails": true}
+[go] done

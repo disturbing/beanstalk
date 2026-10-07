@@ -1,0 +1,2924 @@
+{
+ "lang": "ts",
+ "units": [
+  "test/cart.test.ts",
+  "test/catalog.test.ts",
+  "test/currency.test.ts",
+  "test/discounts.test.ts",
+  "test/ids_events_storage.test.ts",
+  "test/inventory.test.ts",
+  "test/invoice.test.ts",
+  "test/money.test.ts",
+  "test/orders.test.ts",
+  "test/payments.test.ts",
+  "test/plugins.test.ts",
+  "test/pricing.test.ts",
+  "test/reports.test.ts",
+  "test/shipping.test.ts",
+  "test/strings_validation.test.ts",
+  "test/tax.test.ts"
+ ],
+ "baseline": {
+  "test/cart.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1719708750024438,
+   "traced_s": 0.22276887501357123,
+   "files": 28
+  },
+  "test/catalog.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17151291598565876,
+   "traced_s": 0.22177412500604987,
+   "files": 23
+  },
+  "test/currency.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17131462501129135,
+   "traced_s": 0.3246270829695277,
+   "files": 12
+  },
+  "test/discounts.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.23656500002834946,
+   "traced_s": 0.28071933396859095,
+   "files": 32
+  },
+  "test/ids_events_storage.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.18274616601411253,
+   "traced_s": 0.22792504203971475,
+   "files": 9
+  },
+  "test/inventory.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1755017499672249,
+   "traced_s": 0.22784429200692102,
+   "files": 27
+  },
+  "test/invoice.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1708865009713918,
+   "traced_s": 0.27275933302007616,
+   "files": 49
+  },
+  "test/money.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1698988339630887,
+   "traced_s": 0.1697987920488231,
+   "files": 7
+  },
+  "test/orders.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1711625829921104,
+   "traced_s": 0.22090608399594203,
+   "files": 45
+  },
+  "test/payments.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.12059883400797844,
+   "traced_s": 0.17161187500460073,
+   "files": 9
+  },
+  "test/plugins.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17019945802167058,
+   "traced_s": 0.17116450000321493,
+   "files": 13
+  },
+  "test/pricing.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17100870900321752,
+   "traced_s": 0.22175208397675306,
+   "files": 41
+  },
+  "test/reports.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17144520801957697,
+   "traced_s": 0.2735789160360582,
+   "files": 47
+  },
+  "test/shipping.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17144458298571408,
+   "traced_s": 0.2219520840444602,
+   "files": 33
+  },
+  "test/strings_validation.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.1712146250065416,
+   "traced_s": 0.22291895799571648,
+   "files": 16
+  },
+  "test/tax.test.ts": {
+   "exit": 0,
+   "traced_exit": 0,
+   "plain_s": 0.17097700003068894,
+   "traced_s": 0.28852704202290624,
+   "files": 13
+  }
+ },
+ "full_s": 0.33181691699428484,
+ "full_traced_s": 0.6371232089586556,
+ "mutations": [
+  {
+   "i": 0,
+   "kind": "code",
+   "desc": "src/shop/config.ts:10 str \"utf8\"+x",
+   "files": [
+    "src/shop/config.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27318229200318456,
+   "full_s": 0.35279258398804814,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts",
+     "test/tax.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 1,
+   "kind": "code",
+   "desc": "src/shop/sales/coupons.ts:14 num 3->4",
+   "files": [
+    "src/shop/sales/coupons.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/pricing.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.33985300100175664,
+   "full_s": 0.73377554200124,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/pricing.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 2,
+   "kind": "code",
+   "desc": "src/shop/core/currency.ts:13 retnull return->null",
+   "files": [
+    "src/shop/core/currency.ts"
+   ],
+   "selected": [
+    "test/currency.test.ts"
+   ],
+   "failing": [
+    "test/currency.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17430050001712516,
+   "full_s": 0.32682837499305606,
+   "ablation_missed": {
+    "build": [
+     "test/currency.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 3,
+   "kind": "code",
+   "desc": "src/shop/fulfil/shipping.ts:21 cmp ===->!==",
+   "files": [
+    "src/shop/fulfil/shipping.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/pricing.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.38890354201430455,
+   "full_s": 0.37777191697387025,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/pricing.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 4,
+   "kind": "code",
+   "desc": "src/shop/core/money.ts:36 num 100->101",
+   "files": [
+    "src/shop/core/money.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/money.test.ts",
+    "test/orders.test.ts",
+    "test/payments.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/money.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3376747090369463,
+   "full_s": 0.34772083401912823,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/money.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 14
+   }
+  },
+  {
+   "i": 5,
+   "kind": "code",
+   "desc": "packages/utils/src/validation.ts:8 rename rename isEmail",
+   "files": [
+    "packages/utils/src/validation.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.44572633400093764,
+   "full_s": 0.5709262079908513,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 10
+   }
+  },
+  {
+   "i": 6,
+   "kind": "code",
+   "desc": "packages/utils/src/strings.ts:2 retnull return->null",
+   "files": [
+    "packages/utils/src/strings.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.1734577079769224,
+   "full_s": 0.3257646249840036,
+   "ablation_missed": {
+    "build": [
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 7,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.ts:5 retnull return->null",
+   "files": [
+    "src/shop/billing/payments.ts"
+   ],
+   "selected": [
+    "test/payments.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.22301450098166242,
+   "full_s": 0.5687623749836348,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 8,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.ts:7 retnull return->null",
+   "files": [
+    "src/shop/reports/sales.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17075824999483302,
+   "full_s": 0.32795762503519654,
+   "ablation_missed": {
+    "build": [
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 9,
+   "kind": "code",
+   "desc": "packages/utils/src/strings.ts:1 rename rename slugify",
+   "files": [
+    "packages/utils/src/strings.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.28239841700997204,
+   "full_s": 0.37640045903390273,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 10,
+   "kind": "code",
+   "desc": "src/plugins/index.ts:9 rename rename load",
+   "files": [
+    "src/plugins/index.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2735183750046417,
+   "full_s": 0.32672712596831843,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 11,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.ts:14 cmp >->>=",
+   "files": [
+    "src/shop/reports/sales.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.17141049995552748,
+   "full_s": 0.37583699997048825,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 12,
+   "kind": "code",
+   "desc": "src/shop/sales/discounts.ts:6 str \"max_discount_pct\"+x",
+   "files": [
+    "src/shop/sales/discounts.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27640274999430403,
+   "full_s": 0.6569599579670466,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 13,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.ts:14 num 1->2",
+   "files": [
+    "src/shop/reports/sales.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3397187499795109,
+   "full_s": 0.5885217500035651,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 14,
+   "kind": "code",
+   "desc": "src/shop/billing/invoice.ts:8 rename rename render",
+   "files": [
+    "src/shop/billing/invoice.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.1841961249592714,
+   "full_s": 0.5020179169951007,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 15,
+   "kind": "code",
+   "desc": "src/shop/catalog/products.ts:43 cmp ===->!==",
+   "files": [
+    "src/shop/catalog/products.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/catalog.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2736566659878008,
+   "full_s": 0.38559408398577943,
+   "ablation_missed": {
+    "build": [
+     "test/catalog.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 16,
+   "kind": "code",
+   "desc": "src/shop/sales/pricing.ts:41 cmp ===->!==",
+   "files": [
+    "src/shop/sales/pricing.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/pricing.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22215566597878933,
+   "full_s": 0.5567089579999447,
+   "ablation_missed": {
+    "build": [
+     "test/pricing.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 17,
+   "kind": "code",
+   "desc": "src/shop/sales/tax.ts:14 rename rename rate",
+   "files": [
+    "src/shop/sales/tax.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/tax.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.33819200104335323,
+   "full_s": 0.8606577499886043,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/tax.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 18,
+   "kind": "code",
+   "desc": "src/shop/sales/cart.ts:21 num 1->2",
+   "files": [
+    "src/shop/sales/cart.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.3264719159924425,
+   "full_s": 0.371401916956529,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 19,
+   "kind": "code",
+   "desc": "src/plugins/index.ts:14 rename rename totalFees",
+   "files": [
+    "src/plugins/index.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5521890830132179,
+   "full_s": 0.623475625005085,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 20,
+   "kind": "code",
+   "desc": "packages/utils/src/strings.ts:10 num 0->1",
+   "files": [
+    "packages/utils/src/strings.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.17079483304405585,
+   "full_s": 0.42996787501033396,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 21,
+   "kind": "code",
+   "desc": "src/shop/reports/sales.ts:14 arith -->+",
+   "files": [
+    "src/shop/reports/sales.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3167094999807887,
+   "full_s": 0.3837715000263415,
+   "ablation_missed": {
+    "build": [
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 22,
+   "kind": "code",
+   "desc": "src/shop/sales/cart.ts:44 rename rename count",
+   "files": [
+    "src/shop/sales/cart.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27424987498670816,
+   "full_s": 0.3936710830312222,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 23,
+   "kind": "code",
+   "desc": "src/shop/util/csv.ts:4 rename rename readCsv",
+   "files": [
+    "src/shop/util/csv.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27631674997974187,
+   "full_s": 0.3774165419745259,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/catalog.test.ts",
+     "test/currency.test.ts",
+     "test/discounts.test.ts",
+     "test/inventory.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 10
+   }
+  },
+  {
+   "i": 24,
+   "kind": "code",
+   "desc": "src/shop/sales/coupons.ts:16 retnull return->null",
+   "files": [
+    "src/shop/sales/coupons.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2745002079755068,
+   "full_s": 0.6368278340087272,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 25,
+   "kind": "code",
+   "desc": "src/shop/core/currency.ts:11 str \"rates.csv\"+x",
+   "files": [
+    "src/shop/core/currency.ts"
+   ],
+   "selected": [
+    "test/currency.test.ts"
+   ],
+   "failing": [
+    "test/currency.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.28562795801553875,
+   "full_s": 0.6799984580138698,
+   "ablation_missed": {
+    "build": [
+     "test/currency.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 26,
+   "kind": "code",
+   "desc": "src/plugins/service_fee.ts:5 rename rename fee",
+   "files": [
+    "src/plugins/service_fee.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22315229201922193,
+   "full_s": 0.3299583329935558,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 27,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.ts:4 str \"0\"+x",
+   "files": [
+    "src/shop/billing/payments.ts"
+   ],
+   "selected": [
+    "test/payments.test.ts"
+   ],
+   "failing": [
+    "test/payments.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.1715533749666065,
+   "full_s": 0.5458101669792086,
+   "ablation_missed": {
+    "build": [
+     "test/payments.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 28,
+   "kind": "code",
+   "desc": "src/shop/billing/payments.ts:4 cmp <=-><",
+   "files": [
+    "src/shop/billing/payments.ts"
+   ],
+   "selected": [
+    "test/payments.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.16998991696164012,
+   "full_s": 0.37866558297537267,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 29,
+   "kind": "code",
+   "desc": "src/shop/fulfil/orders.ts:47 retnull return->null",
+   "files": [
+    "src/shop/fulfil/orders.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27719766699010506,
+   "full_s": 0.5426315420190804,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 3
+   }
+  },
+  {
+   "i": 30,
+   "kind": "code",
+   "desc": "src/shop/catalog/inventory.ts:21 cmp <=-><",
+   "files": [
+    "src/shop/catalog/inventory.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/inventory.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6483286250149831,
+   "full_s": 0.7435684580123052,
+   "ablation_missed": {
+    "build": [
+     "test/inventory.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 31,
+   "kind": "code",
+   "desc": "src/shop/sales/cart.ts:41 retnull return->null",
+   "files": [
+    "src/shop/sales/cart.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/invoice.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.28204575000563636,
+   "full_s": 0.37799599999561906,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/invoice.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 32,
+   "kind": "code",
+   "desc": "src/shop/events.ts:13 rename rename emit",
+   "files": [
+    "src/shop/events.ts"
+   ],
+   "selected": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5469036669819616,
+   "full_s": 0.44688449997920543,
+   "ablation_missed": {
+    "build": [
+     "test/ids_events_storage.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 33,
+   "kind": "code",
+   "desc": "src/shop/core/ids.ts:18 num 5->6",
+   "files": [
+    "src/shop/core/ids.ts"
+   ],
+   "selected": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2268742080195807,
+   "full_s": 0.5345857909996994,
+   "ablation_missed": {
+    "build": [
+     "test/ids_events_storage.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 4
+   }
+  },
+  {
+   "i": 34,
+   "kind": "code",
+   "desc": "src/shop/core/currency.ts:20 retnull return->null",
+   "files": [
+    "src/shop/core/currency.ts"
+   ],
+   "selected": [
+    "test/currency.test.ts"
+   ],
+   "failing": [
+    "test/currency.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.1704411250539124,
+   "full_s": 0.5214276249753311,
+   "ablation_missed": {
+    "build": [
+     "test/currency.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 35,
+   "kind": "code",
+   "desc": "src/plugins/eco_fee.ts:3 rename rename fee",
+   "files": [
+    "src/plugins/eco_fee.ts"
+   ],
+   "selected": [],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.0,
+   "full_s": 0.5537310839863494,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 0
+   }
+  },
+  {
+   "i": 36,
+   "kind": "helper",
+   "desc": "test/helpers/factories.ts:20 rename rename fixtureOrders",
+   "files": [
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6978272920241579,
+   "full_s": 0.9766346259857528,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 37,
+   "kind": "helper",
+   "desc": "test/helpers/factories.ts:16 str \"_\"+x",
+   "files": [
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2762344589573331,
+   "full_s": 0.5398794169886969,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/discounts.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 38,
+   "kind": "helper",
+   "desc": "test/helpers/factories.ts:26 str \"SKU-005\"+x",
+   "files": [
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8401589579880238,
+   "full_s": 0.6458783749840222,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 39,
+   "kind": "helper",
+   "desc": "test/helpers/factories.ts:26 str \"SKU-002\"+x",
+   "files": [
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.326186417019926,
+   "full_s": 0.9784992919885553,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 40,
+   "kind": "helper",
+   "desc": "test/helpers/factories.ts:25 rename rename stocked",
+   "files": [
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/inventory.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.6687045840080827,
+   "full_s": 0.7785845000180416,
+   "ablation_missed": {
+    "build": [
+     "test/inventory.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 41,
+   "kind": "data",
+   "desc": "test/fixtures/orders.json:3 str \"PCT10\"+x",
+   "files": [
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2742829159833491,
+   "full_s": 0.7485476250294596,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 42,
+   "kind": "data",
+   "desc": "test/fixtures/orders.json:2 num 4->5",
+   "files": [
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5295542090316303,
+   "full_s": 0.48352041601901874,
+   "ablation_missed": {
+    "build": [
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 43,
+   "kind": "data",
+   "desc": "data/tax.json:1 num 0.04->0.05",
+   "files": [
+    "data/tax.json"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.5003405010211281,
+   "full_s": 0.5327576659619808,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 44,
+   "kind": "data",
+   "desc": "test/fixtures/orders.json:4 str \"coupon\"+x",
+   "files": [
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.22253099997760728,
+   "full_s": 0.4854101670207456,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 45,
+   "kind": "data",
+   "desc": "data/catalog.csv:4 num 200->201",
+   "files": [
+    "data/catalog.csv"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.488667625002563,
+   "full_s": 0.4322847090079449,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 46,
+   "kind": "data",
+   "desc": "data/tax.json:1 str \"NY\"+x",
+   "files": [
+    "data/tax.json"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.338983083027415,
+   "full_s": 0.7267843750305474,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 47,
+   "kind": "data",
+   "desc": "test/fixtures/orders.json:5 str \"SKU-004\"+x",
+   "files": [
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.44965533301001415,
+   "full_s": 0.5320416670292616,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 2
+   }
+  },
+  {
+   "i": 48,
+   "kind": "data",
+   "desc": "data/shipping_zones.json:1 str \"domestic\"+x",
+   "files": [
+    "data/shipping_zones.json"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2739818749832921,
+   "full_s": 0.5858848750358447,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 49,
+   "kind": "config",
+   "desc": "config/app.json:4 num 50->51",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.49165220803115517,
+   "full_s": 1.21294149995083,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 50,
+   "kind": "config",
+   "desc": "package.json:6 num 24->25",
+   "files": [
+    "package.json"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/ids_events_storage.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/money.test.ts",
+    "test/orders.test.ts",
+    "test/payments.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.48038891702890396,
+   "full_s": 0.6955284170107916,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 51,
+   "kind": "config",
+   "desc": "config/app.json:7 str \"Thank you for shopping\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.39122433302691206,
+   "full_s": 0.5494269169867039,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 52,
+   "kind": "config",
+   "desc": "package.json:3 str \"version\"+x",
+   "files": [
+    "package.json"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/ids_events_storage.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/money.test.ts",
+    "test/orders.test.ts",
+    "test/payments.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 0,
+   "full_exit": 0,
+   "sel_s": 0.8463247090112418,
+   "full_s": 0.6548375000129454,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 53,
+   "kind": "config",
+   "desc": "config/app.json:5 str \"free_shipping_over\"+x",
+   "files": [
+    "config/app.json"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.43236216699006036,
+   "full_s": 0.48774479201529175,
+   "ablation_missed": {
+    "build": [
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 54,
+   "kind": "test-edit",
+   "desc": "test/currency.test.ts:18 str \"USD\"+x",
+   "files": [
+    "test/currency.test.ts"
+   ],
+   "selected": [
+    "test/currency.test.ts"
+   ],
+   "failing": [
+    "test/currency.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.28148483397671953,
+   "full_s": 0.9451482080039568,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 1
+   }
+  },
+  {
+   "i": 55,
+   "kind": "test-edit",
+   "desc": "test/reports.test.ts:16 num 4->5",
+   "files": [
+    "test/reports.test.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3923124999855645,
+   "full_s": 0.7940300829941407,
+   "ablation_missed": {
+    "build": [],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 1,
+    "run": 1
+   }
+  },
+  {
+   "i": 56,
+   "kind": "delete",
+   "desc": "delete src/plugins/service_fee.ts",
+   "files": [
+    "src/plugins/service_fee.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.38678791699931026,
+   "full_s": 1.6493074590107426,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 57,
+   "kind": "delete",
+   "desc": "delete src/plugins/index.ts",
+   "files": [
+    "src/plugins/index.ts"
+   ],
+   "selected": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3262822080287151,
+   "full_s": 0.7401618339936249,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 58,
+   "kind": "add",
+   "desc": "add a nearer node_modules/@shop/utils that shadows the workspace package",
+   "files": [
+    "src/node_modules/@shop/utils/package.json"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.8207797919749282,
+   "full_s": 0.9668664180207998,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/catalog.test.ts",
+     "test/discounts.test.ts",
+     "test/inventory.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 59,
+   "kind": "multi",
+   "desc": "packages/utils/src/strings.ts:1 rename rename slugify + test/helpers/factories.ts:16 str \"_\"+x",
+   "files": [
+    "packages/utils/src/strings.ts",
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.4830969169852324,
+   "full_s": 0.847585000039544,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/discounts.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/shipping.test.ts",
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 60,
+   "kind": "multi",
+   "desc": "config/app.json:7 str \"Thank you for shopping\"+x + test/fixtures/orders.json:3 str \"PCT10\"+x",
+   "files": [
+    "config/app.json",
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.669811750005465,
+   "full_s": 1.1752585839712992,
+   "ablation_missed": {
+    "build": [
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 61,
+   "kind": "multi",
+   "desc": "test/helpers/factories.ts:26 str \"SKU-002\"+x + package.json:3 str \"version\"+x",
+   "files": [
+    "package.json",
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/catalog.test.ts",
+    "test/currency.test.ts",
+    "test/discounts.test.ts",
+    "test/ids_events_storage.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/money.test.ts",
+    "test/orders.test.ts",
+    "test/payments.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/strings_validation.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5387917500338517,
+   "full_s": 0.637176584044937,
+   "ablation_missed": {
+    "build": [
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 16
+   }
+  },
+  {
+   "i": 62,
+   "kind": "multi",
+   "desc": "src/shop/catalog/inventory.ts:21 cmp <=->< + test/fixtures/orders.json:2 num 4->5 + src/shop/sales/cart.ts:44 rename rename count",
+   "files": [
+    "src/shop/catalog/inventory.ts",
+    "src/shop/sales/cart.ts",
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.5473045000107959,
+   "full_s": 0.6939400419942103,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/inventory.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 63,
+   "kind": "multi",
+   "desc": "src/plugins/eco_fee.ts:3 rename rename fee + src/shop/reports/sales.ts:7 retnull return->null",
+   "files": [
+    "src/plugins/eco_fee.ts",
+    "src/shop/reports/sales.ts"
+   ],
+   "selected": [
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.22215062496252358,
+   "full_s": 0.48477429198101163,
+   "ablation_missed": {
+    "build": [
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 1
+   }
+  },
+  {
+   "i": 64,
+   "kind": "multi",
+   "desc": "src/shop/config.ts:10 str \"utf8\"+x + config/app.json:7 str \"Thank you for shopping\"+x",
+   "files": [
+    "config/app.json",
+    "src/shop/config.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/plugins.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts",
+    "test/tax.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.491048583004158,
+   "full_s": 0.8188741250196472,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/plugins.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts",
+     "test/tax.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 65,
+   "kind": "multi",
+   "desc": "test/fixtures/orders.json:3 str \"PCT10\"+x + packages/utils/src/strings.ts:2 retnull return->null + src/shop/core/ids.ts:18 num 5->6",
+   "files": [
+    "packages/utils/src/strings.ts",
+    "src/shop/core/ids.ts",
+    "test/fixtures/orders.json"
+   ],
+   "selected": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "failing": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts",
+    "test/strings_validation.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2237152499728836,
+   "full_s": 0.5962650000001304,
+   "ablation_missed": {
+    "build": [
+     "test/ids_events_storage.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts",
+     "test/strings_validation.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 66,
+   "kind": "multi",
+   "desc": "src/shop/reports/sales.ts:7 retnull return->null + src/shop/billing/payments.ts:4 str \"0\"+x + src/shop/sales/discounts.ts:6 str \"max_discount_pct\"+x",
+   "files": [
+    "src/shop/billing/payments.ts",
+    "src/shop/reports/sales.ts",
+    "src/shop/sales/discounts.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/payments.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/payments.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.33231662499019876,
+   "full_s": 0.7075420839828439,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/payments.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 6
+   }
+  },
+  {
+   "i": 67,
+   "kind": "multi",
+   "desc": "src/shop/sales/coupons.ts:14 num 3->4 + src/shop/sales/pricing.ts:41 cmp ===->!==",
+   "files": [
+    "src/shop/sales/coupons.ts",
+    "src/shop/sales/pricing.ts"
+   ],
+   "selected": [
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/discounts.test.ts",
+    "test/pricing.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.7644790000049397,
+   "full_s": 0.7029962090309709,
+   "ablation_missed": {
+    "build": [
+     "test/discounts.test.ts",
+     "test/pricing.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  },
+  {
+   "i": 68,
+   "kind": "multi",
+   "desc": "src/shop/sales/cart.ts:21 num 1->2 + src/shop/events.ts:13 rename rename emit",
+   "files": [
+    "src/shop/events.ts",
+    "src/shop/sales/cart.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/ids_events_storage.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/ids_events_storage.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/reports.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.27363874996080995,
+   "full_s": 0.42795012501301244,
+   "ablation_missed": {
+    "build": [
+     "test/ids_events_storage.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/reports.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 9
+   }
+  },
+  {
+   "i": 69,
+   "kind": "multi",
+   "desc": "data/shipping_zones.json:1 str \"domestic\"+x + test/helpers/factories.ts:16 str \"_\"+x",
+   "files": [
+    "data/shipping_zones.json",
+    "test/helpers/factories.ts"
+   ],
+   "selected": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/inventory.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "failing": [
+    "test/cart.test.ts",
+    "test/discounts.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts",
+    "test/shipping.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.3875365409767255,
+   "full_s": 0.5508419580291957,
+   "ablation_missed": {
+    "build": [
+     "test/cart.test.ts",
+     "test/discounts.test.ts",
+     "test/invoice.test.ts",
+     "test/orders.test.ts",
+     "test/pricing.test.ts",
+     "test/reports.test.ts",
+     "test/shipping.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 8
+   }
+  },
+  {
+   "i": 70,
+   "kind": "multi",
+   "desc": "src/shop/sales/pricing.ts:41 cmp ===->!== + src/shop/core/currency.ts:20 retnull return->null",
+   "files": [
+    "src/shop/core/currency.ts",
+    "src/shop/sales/pricing.ts"
+   ],
+   "selected": [
+    "test/currency.test.ts",
+    "test/invoice.test.ts",
+    "test/orders.test.ts",
+    "test/pricing.test.ts",
+    "test/reports.test.ts"
+   ],
+   "failing": [
+    "test/currency.test.ts",
+    "test/pricing.test.ts"
+   ],
+   "missed": [],
+   "safe": true,
+   "units": 16,
+   "sel_exit": 1,
+   "full_exit": 1,
+   "sel_s": 0.2754915420082398,
+   "full_s": 0.8010390419512987,
+   "ablation_missed": {
+    "build": [
+     "test/currency.test.ts",
+     "test/pricing.test.ts"
+    ],
+    "run": []
+   },
+   "ablation_selected": {
+    "build": 0,
+    "run": 5
+   }
+  }
+ ],
+ "freshness": {
+  "steps": [
+   {
+    "step": "add new test",
+    "changed": [
+     "test/fresh_slug.test.ts"
+    ],
+    "selected": [
+     "test/fresh_slug.test.ts"
+    ],
+    "new_test_selected": true,
+    "had_map": false
+   },
+   {
+    "step": "ran traced",
+    "exit": 0,
+    "mapped_reads": 13,
+    "dep_in_map": true
+   },
+   {
+    "step": "break its dependency",
+    "changed": [
+     "packages/utils/src/strings.ts"
+    ],
+    "new_test_selected": true,
+    "new_test_fails": true,
+    "selected": [
+     "test/fresh_slug.test.ts",
+     "test/invoice.test.ts",
+     "test/strings_validation.test.ts"
+    ]
+   },
+   {
+    "step": "edit existing test to use a new module",
+    "test": "test/payments.test.ts",
+    "test_selected_for_own_edit": true,
+    "exit": 0,
+    "dep_in_map_before": false,
+    "dep_in_map_after": true,
+    "then_break_dep_selected": true,
+    "then_test_fails": true
+   }
+  ]
+ }
+}

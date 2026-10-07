@@ -1,0 +1,1132 @@
+{
+ "internal/cart/cart_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/inventory",
+    "internal/money",
+    "internal/paths",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/cart/go.mod",
+    "internal/go.mod"
+   ],
+   "reads": [
+    "data/catalog.csv",
+    "go.mod",
+    "internal/cart"
+   ]
+  }
+ },
+ "internal/catalog/catalog_test.go": {
+  "build": {
+   "dirs": [
+    "internal/catalog",
+    "internal/money",
+    "internal/paths",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/catalog/go.mod",
+    "internal/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/catalog/go.mod",
+    "internal/go.mod"
+   ],
+   "reads": [
+    "data/catalog.csv",
+    "go.mod",
+    "internal/catalog"
+   ]
+  }
+ },
+ "internal/currency/currency_test.go": {
+  "build": {
+   "dirs": [
+    "internal/currency",
+    "internal/money",
+    "internal/paths"
+   ],
+   "probes": [
+    "go.work",
+    "internal/currency/go.mod",
+    "internal/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/currency",
+    "internal/currency/currency.go",
+    "internal/currency/currency_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/currency/go.mod",
+    "internal/go.mod"
+   ],
+   "reads": [
+    "data/rates.csv",
+    "go.mod",
+    "internal/currency"
+   ]
+  }
+ },
+ "internal/discounts/discounts_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/coupons",
+    "internal/discounts",
+    "internal/inventory",
+    "internal/money",
+    "internal/paths",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/coupons/go.mod",
+    "internal/discounts/go.mod",
+    "internal/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/coupons",
+    "internal/coupons/coupons.go",
+    "internal/discounts",
+    "internal/discounts/discounts.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/discounts/go.mod",
+    "internal/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "go.mod",
+    "internal/discounts"
+   ]
+  }
+ },
+ "internal/ids/ids_test.go": {
+  "build": {
+   "dirs": [
+    "internal/ids"
+   ],
+   "probes": [
+    "go.work",
+    "internal/go.mod",
+    "internal/ids/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/ids",
+    "internal/ids/ids.go",
+    "internal/ids/ids_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/inventory/inventory_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/inventory",
+    "internal/money",
+    "internal/paths",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/invoice/invoice_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/coupons",
+    "internal/discounts",
+    "internal/events",
+    "internal/ids",
+    "internal/inventory",
+    "internal/invoice",
+    "internal/money",
+    "internal/orders",
+    "internal/paths",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/ecofee",
+    "internal/plugins/servicefee",
+    "internal/pricing",
+    "internal/shipping",
+    "internal/tax",
+    "internal/testkit",
+    "internal/util/strutil",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/coupons/go.mod",
+    "internal/discounts/go.mod",
+    "internal/events/go.mod",
+    "internal/go.mod",
+    "internal/ids/go.mod",
+    "internal/inventory/go.mod",
+    "internal/invoice/go.mod",
+    "internal/money/go.mod",
+    "internal/orders/go.mod",
+    "internal/paths/go.mod",
+    "internal/plugins/all/go.mod",
+    "internal/plugins/ecofee/go.mod",
+    "internal/plugins/go.mod",
+    "internal/plugins/servicefee/go.mod",
+    "internal/pricing/go.mod",
+    "internal/shipping/go.mod",
+    "internal/tax/go.mod",
+    "internal/tax/tax.json/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/strutil/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/coupons",
+    "internal/coupons/coupons.go",
+    "internal/discounts",
+    "internal/discounts/discounts.go",
+    "internal/discounts/discounts_test.go",
+    "internal/events",
+    "internal/events/events.go",
+    "internal/ids",
+    "internal/ids/ids.go",
+    "internal/ids/ids_test.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/invoice",
+    "internal/invoice/invoice.go",
+    "internal/invoice/invoice_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/orders",
+    "internal/orders/order.go",
+    "internal/orders/orders_test.go",
+    "internal/orders/service.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/all/all.go",
+    "internal/plugins/ecofee",
+    "internal/plugins/ecofee/ecofee.go",
+    "internal/plugins/plugins_test.go",
+    "internal/plugins/registry.go",
+    "internal/plugins/servicefee",
+    "internal/plugins/servicefee/servicefee.go",
+    "internal/pricing",
+    "internal/pricing/pricing.go",
+    "internal/pricing/pricing_test.go",
+    "internal/pricing/quote.go",
+    "internal/shipping",
+    "internal/shipping/shipping.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax",
+    "internal/tax/tax.go",
+    "internal/tax/tax.json",
+    "internal/tax/tax_test.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/strutil",
+    "internal/util/strutil/strutil.go",
+    "internal/util/strutil/strutil_test.go",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/invoice/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "data/shipping_zones.json",
+    "go.mod",
+    "internal/invoice"
+   ]
+  }
+ },
+ "internal/money/money_test.go": {
+  "build": {
+   "dirs": [
+    "internal/money"
+   ],
+   "probes": [
+    "go.work",
+    "internal/go.mod",
+    "internal/money/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/orders/orders_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/coupons",
+    "internal/discounts",
+    "internal/events",
+    "internal/ids",
+    "internal/inventory",
+    "internal/money",
+    "internal/orders",
+    "internal/paths",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/ecofee",
+    "internal/plugins/servicefee",
+    "internal/pricing",
+    "internal/shipping",
+    "internal/tax",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/coupons/go.mod",
+    "internal/discounts/go.mod",
+    "internal/events/go.mod",
+    "internal/go.mod",
+    "internal/ids/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/orders/go.mod",
+    "internal/paths/go.mod",
+    "internal/plugins/all/go.mod",
+    "internal/plugins/ecofee/go.mod",
+    "internal/plugins/go.mod",
+    "internal/plugins/servicefee/go.mod",
+    "internal/pricing/go.mod",
+    "internal/shipping/go.mod",
+    "internal/tax/go.mod",
+    "internal/tax/tax.json/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/coupons",
+    "internal/coupons/coupons.go",
+    "internal/discounts",
+    "internal/discounts/discounts.go",
+    "internal/discounts/discounts_test.go",
+    "internal/events",
+    "internal/events/events.go",
+    "internal/ids",
+    "internal/ids/ids.go",
+    "internal/ids/ids_test.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/orders",
+    "internal/orders/order.go",
+    "internal/orders/orders_test.go",
+    "internal/orders/service.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/all/all.go",
+    "internal/plugins/ecofee",
+    "internal/plugins/ecofee/ecofee.go",
+    "internal/plugins/plugins_test.go",
+    "internal/plugins/registry.go",
+    "internal/plugins/servicefee",
+    "internal/plugins/servicefee/servicefee.go",
+    "internal/pricing",
+    "internal/pricing/pricing.go",
+    "internal/pricing/pricing_test.go",
+    "internal/pricing/quote.go",
+    "internal/shipping",
+    "internal/shipping/shipping.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax",
+    "internal/tax/tax.go",
+    "internal/tax/tax.json",
+    "internal/tax/tax_test.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/orders/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "data/shipping_zones.json",
+    "go.mod",
+    "internal/orders",
+    "internal/testkit/testdata/orders.json"
+   ]
+  }
+ },
+ "internal/payments/payments_test.go": {
+  "build": {
+   "dirs": [
+    "internal/money",
+    "internal/payments"
+   ],
+   "probes": [
+    "go.work",
+    "internal/go.mod",
+    "internal/money/go.mod",
+    "internal/payments/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/payments",
+    "internal/payments/payments.go",
+    "internal/payments/payments_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/plugins/plugins_test.go": {
+  "build": {
+   "dirs": [
+    "internal/config",
+    "internal/money",
+    "internal/paths",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/ecofee",
+    "internal/plugins/servicefee"
+   ],
+   "probes": [
+    "go.work",
+    "internal/config/go.mod",
+    "internal/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/plugins/all/go.mod",
+    "internal/plugins/ecofee/go.mod",
+    "internal/plugins/go.mod",
+    "internal/plugins/servicefee/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/all/all.go",
+    "internal/plugins/ecofee",
+    "internal/plugins/ecofee/ecofee.go",
+    "internal/plugins/plugins_test.go",
+    "internal/plugins/registry.go",
+    "internal/plugins/servicefee",
+    "internal/plugins/servicefee/servicefee.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/plugins/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "go.mod",
+    "internal/plugins"
+   ]
+  }
+ },
+ "internal/pricing/pricing_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/coupons",
+    "internal/discounts",
+    "internal/inventory",
+    "internal/money",
+    "internal/paths",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/ecofee",
+    "internal/plugins/servicefee",
+    "internal/pricing",
+    "internal/shipping",
+    "internal/tax",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/coupons/go.mod",
+    "internal/discounts/go.mod",
+    "internal/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/plugins/all/go.mod",
+    "internal/plugins/ecofee/go.mod",
+    "internal/plugins/go.mod",
+    "internal/plugins/servicefee/go.mod",
+    "internal/pricing/go.mod",
+    "internal/shipping/go.mod",
+    "internal/tax/go.mod",
+    "internal/tax/tax.json/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/coupons",
+    "internal/coupons/coupons.go",
+    "internal/discounts",
+    "internal/discounts/discounts.go",
+    "internal/discounts/discounts_test.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/all/all.go",
+    "internal/plugins/ecofee",
+    "internal/plugins/ecofee/ecofee.go",
+    "internal/plugins/plugins_test.go",
+    "internal/plugins/registry.go",
+    "internal/plugins/servicefee",
+    "internal/plugins/servicefee/servicefee.go",
+    "internal/pricing",
+    "internal/pricing/pricing.go",
+    "internal/pricing/pricing_test.go",
+    "internal/pricing/quote.go",
+    "internal/shipping",
+    "internal/shipping/shipping.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax",
+    "internal/tax/tax.go",
+    "internal/tax/tax.json",
+    "internal/tax/tax_test.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/pricing/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "data/shipping_zones.json",
+    "go.mod",
+    "internal/pricing"
+   ]
+  }
+ },
+ "internal/reports/reports_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/coupons",
+    "internal/discounts",
+    "internal/events",
+    "internal/ids",
+    "internal/inventory",
+    "internal/money",
+    "internal/orders",
+    "internal/paths",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/ecofee",
+    "internal/plugins/servicefee",
+    "internal/pricing",
+    "internal/reports",
+    "internal/shipping",
+    "internal/tax",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/coupons/go.mod",
+    "internal/discounts/go.mod",
+    "internal/events/go.mod",
+    "internal/go.mod",
+    "internal/ids/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/orders/go.mod",
+    "internal/paths/go.mod",
+    "internal/plugins/all/go.mod",
+    "internal/plugins/ecofee/go.mod",
+    "internal/plugins/go.mod",
+    "internal/plugins/servicefee/go.mod",
+    "internal/pricing/go.mod",
+    "internal/reports/go.mod",
+    "internal/shipping/go.mod",
+    "internal/tax/go.mod",
+    "internal/tax/tax.json/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/coupons",
+    "internal/coupons/coupons.go",
+    "internal/discounts",
+    "internal/discounts/discounts.go",
+    "internal/discounts/discounts_test.go",
+    "internal/events",
+    "internal/events/events.go",
+    "internal/ids",
+    "internal/ids/ids.go",
+    "internal/ids/ids_test.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/orders",
+    "internal/orders/order.go",
+    "internal/orders/orders_test.go",
+    "internal/orders/service.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/plugins",
+    "internal/plugins/all",
+    "internal/plugins/all/all.go",
+    "internal/plugins/ecofee",
+    "internal/plugins/ecofee/ecofee.go",
+    "internal/plugins/plugins_test.go",
+    "internal/plugins/registry.go",
+    "internal/plugins/servicefee",
+    "internal/plugins/servicefee/servicefee.go",
+    "internal/pricing",
+    "internal/pricing/pricing.go",
+    "internal/pricing/pricing_test.go",
+    "internal/pricing/quote.go",
+    "internal/reports",
+    "internal/reports/reports_test.go",
+    "internal/reports/sales.go",
+    "internal/shipping",
+    "internal/shipping/shipping.go",
+    "internal/shipping/shipping_test.go",
+    "internal/tax",
+    "internal/tax/tax.go",
+    "internal/tax/tax.json",
+    "internal/tax/tax_test.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/reports/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "data/shipping_zones.json",
+    "go.mod",
+    "internal/reports",
+    "internal/testkit/testdata/orders.json"
+   ]
+  }
+ },
+ "internal/shipping/shipping_test.go": {
+  "build": {
+   "dirs": [
+    "internal/cart",
+    "internal/catalog",
+    "internal/config",
+    "internal/inventory",
+    "internal/money",
+    "internal/paths",
+    "internal/shipping",
+    "internal/testkit",
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/cart/go.mod",
+    "internal/catalog/go.mod",
+    "internal/config/go.mod",
+    "internal/go.mod",
+    "internal/inventory/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/shipping/go.mod",
+    "internal/testkit/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/cart",
+    "internal/cart/cart.go",
+    "internal/cart/cart_test.go",
+    "internal/cart/line.go",
+    "internal/catalog",
+    "internal/catalog/catalog_test.go",
+    "internal/catalog/products.go",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/inventory",
+    "internal/inventory/inventory.go",
+    "internal/inventory/inventory_test.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/shipping",
+    "internal/shipping/shipping.go",
+    "internal/shipping/shipping_test.go",
+    "internal/testkit",
+    "internal/testkit/factories.go",
+    "internal/testkit/fixtures.go",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/shipping/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "data/catalog.csv",
+    "data/shipping_zones.json",
+    "go.mod",
+    "internal/shipping"
+   ]
+  }
+ },
+ "internal/storage/storage_test.go": {
+  "build": {
+   "dirs": [
+    "internal/events",
+    "internal/storage"
+   ],
+   "probes": [
+    "go.work",
+    "internal/events/go.mod",
+    "internal/go.mod",
+    "internal/storage/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/events",
+    "internal/events/events.go",
+    "internal/storage",
+    "internal/storage/storage.go",
+    "internal/storage/storage_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/tax/tax_test.go": {
+  "build": {
+   "dirs": [
+    "internal/config",
+    "internal/money",
+    "internal/paths",
+    "internal/tax"
+   ],
+   "probes": [
+    "go.work",
+    "internal/config/go.mod",
+    "internal/go.mod",
+    "internal/money/go.mod",
+    "internal/paths/go.mod",
+    "internal/tax/go.mod",
+    "internal/tax/tax.json/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/config",
+    "internal/config/config.go",
+    "internal/money",
+    "internal/money/money.go",
+    "internal/money/money_test.go",
+    "internal/paths",
+    "internal/paths/paths.go",
+    "internal/tax",
+    "internal/tax/tax.go",
+    "internal/tax/tax.json",
+    "internal/tax/tax_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [
+    "internal/go.mod",
+    "internal/tax/go.mod"
+   ],
+   "reads": [
+    "config/app.json",
+    "go.mod",
+    "internal/tax"
+   ]
+  }
+ },
+ "internal/util/strutil/strutil_test.go": {
+  "build": {
+   "dirs": [
+    "internal/util/strutil"
+   ],
+   "probes": [
+    "go.work",
+    "internal/go.mod",
+    "internal/util/go.mod",
+    "internal/util/strutil/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/util",
+    "internal/util/strutil",
+    "internal/util/strutil/strutil.go",
+    "internal/util/strutil/strutil_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ },
+ "internal/util/validation/validation_test.go": {
+  "build": {
+   "dirs": [
+    "internal/util/validation"
+   ],
+   "probes": [
+    "go.work",
+    "internal/go.mod",
+    "internal/util/go.mod",
+    "internal/util/validation/go.mod"
+   ],
+   "reads": [
+    "go.mod",
+    "internal",
+    "internal/util",
+    "internal/util/validation",
+    "internal/util/validation/validation.go",
+    "internal/util/validation/validation_test.go"
+   ]
+  },
+  "run": {
+   "dirs": [],
+   "probes": [],
+   "reads": []
+  }
+ }
+}
