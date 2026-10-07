@@ -22,7 +22,7 @@ RACE = os.path.dirname(HERE)
 sys.path.insert(0, RACE)
 
 from loadgen.driver import Driver, Options  # noqa: E402
-from loadgen.schedule import Schedule, fit, recorded_pushes  # noqa: E402
+from loadgen.schedule import Schedule, fit, orchestrated_pushes, recorded_pushes  # noqa: E402
 
 DEFAULT_ARENA = os.path.normpath(os.path.join(RACE, "..", "real-arena", "fastify"))
 DEFAULT_FIT = ["runs/pair-fastify-codex-4-s7-github", "runs/pair-fastify-codex-4-s7-beanstalk"]
@@ -45,7 +45,7 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--mode", choices=["standalone", "chain"], default="standalone",
                     help="dependent tasks: standalone patch whenever started, or wait for prerequisites")
-    ap.add_argument("--schedule", choices=["closed", "open", "recorded"], default="closed")
+    ap.add_argument("--schedule", choices=["closed", "open", "recorded", "orchestrated"], default="closed")
     ap.add_argument("--hold", choices=["integrate", "push"], default="integrate",
                     help="closed loop: a worker waits for its change's verdict (integrate) or moves on (push)")
     ap.add_argument("--fit-runs", nargs="*", default=DEFAULT_FIT, help="runs whose agent invocations fit the "
@@ -94,11 +94,11 @@ def schedule_of(a: argparse.Namespace) -> Schedule:
         fix.median, fix.source = a.fix_median, fix.source + " (median overridden)"
     s = Schedule(kind=a.schedule, seed=a.seed, think=think, fix=fix, time_scale=a.time_scale, rate_per_min=a.rate,
                  poisson=not a.fixed, hold=a.hold, speed=a.speed)
-    if a.schedule == "recorded":
+    if a.schedule in ("recorded", "orchestrated"):
         if not a.record:
-            raise SystemExit("--schedule recorded needs --record <run>")
+            raise SystemExit(f"--schedule {a.schedule} needs --record <run>")
         rec = a.record if os.path.isabs(a.record) else os.path.join(RACE, a.record)
-        s.recorded, s.recorded_reworks = recorded_pushes(rec)
+        s.recorded, s.recorded_reworks = (recorded_pushes if a.schedule == "recorded" else orchestrated_pushes)(rec)
         s.recorded_source = os.path.basename(rec.rstrip("/"))
     return s
 

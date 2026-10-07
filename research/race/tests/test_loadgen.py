@@ -139,6 +139,24 @@ class LoadgenRuns(unittest.TestCase):
 
 
 class LoadgenUnits(unittest.TestCase):
+    def test_orchestrated_source(self) -> None:
+        run = os.path.join(TMP, "orch-run")
+        os.makedirs(run, exist_ok=True)
+        with open(os.path.join(run, "events.jsonl"), "w") as fh:
+            fh.write(json.dumps({"seq": 1, "t": 0, "type": "race.start", "ts": "2026-10-07T10:48:38.805+00:00"}) + "\n")
+        t0 = 1791370118.805
+        changes = [{"id": "#2", "task": "t002", "created_at": t0 + 62, "ready_at": t0 + 120, "extra": {"branch": "b"}},
+                   {"id": "#1", "task": "t001", "created_at": t0 + 51, "ready_at": t0 + 100, "extra": {"branch": "a"}},
+                   {"id": "#3", "task": "t001", "created_at": t0 + 400, "ready_at": t0 + 420, "extra": {"branch": "a"}}]
+        with open(os.path.join(run, "summary.json"), "w") as fh:
+            json.dump({"changes": changes}, fh)
+        from loadgen.schedule import orchestrated_pushes
+        pushes, _ = orchestrated_pushes(run)
+        self.assertEqual([(p.task, round(p.at), p.agent) for p in pushes], [("t001", 51, "a"), ("t002", 62, "b")])
+        s = Schedule("orchestrated", 7, recorded=pushes, speed=2.0)
+        self.assertEqual([(round(at, 1), t, w) for at, t, w in s.arrivals(["t001", "t002"])],
+                         [(25.5, "t001", 0), (31.0, "t002", 1)])
+
     def test_parse_staging_transcript(self) -> None:
         with open(TRANSCRIPT, encoding="utf-8") as fh:
             text = fh.read()

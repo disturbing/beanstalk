@@ -6,6 +6,8 @@
   by (seed, task, kind, attempt), so both forges see the same delays for the same change.
 * ``open``: changes become ready at a fixed interval or as a Poisson process (``rate`` per minute), whatever the
   forge does; workers only react to kick-outs (with the fitted fix time).
+* ``orchestrated``: the same from an orchestrated race (``harness/orchestrated.py``): each change's first push
+  (PR opened / bean pushed), its task, its branch as the worker, compressed by ``speed``.
 * ``recorded``: the push times of a real run (``events.jsonl``: each task's first commit, relative to
   ``race.start``), on the worker its agent was, compressed by ``speed``; reactions use the run's own rework
   durations for that task when it had any, else the fitted fix time. The source a real orchestrator's run plugs into.
@@ -112,6 +114,30 @@ def recorded_pushes(run: str) -> tuple[list[RecordedPush], dict[str, list[float]
     return pushes, reworks
 
 
+def orchestrated_pushes(run: str) -> tuple[list[RecordedPush], dict[str, list[float]]]:
+    """What an orchestrated race's orchestrator did (``harness/orchestrated.py``, measured by ``orch_measure``): each
+    change's first push (GitHub: PR opened; Beanstalk: bean pushed) relative to ``race.start``, its task, and its
+    branch as the worker key (a subagent's branch). Its re-pushes carry no times there, so reactions use the fitted
+    fix time."""
+    import datetime as dt
+    with open(os.path.join(run, "summary.json"), encoding="utf-8") as fh:
+        s = json.load(fh)
+    start = None
+    with open(os.path.join(run, "events.jsonl"), encoding="utf-8") as fh:
+        for line in fh:
+            e = json.loads(line)
+            if e.get("type") == "race.start":
+                start = dt.datetime.fromisoformat(e["ts"].replace("Z", "+00:00")).timestamp()
+                break
+    changes = [c for c in s.get("changes") or [] if c.get("task") and (c.get("created_at") or c.get("ready_at"))]
+    start = start if start is not None else min(c.get("created_at") or c["ready_at"] for c in changes)
+    first: dict[str, RecordedPush] = {}
+    for c in sorted(changes, key=lambda c: c.get("created_at") or c["ready_at"]):
+        at = (c.get("created_at") or c["ready_at"]) - start
+        first.setdefault(c["task"], RecordedPush(c["task"], max(0.0, at), (c.get("extra") or {}).get("branch")))
+    return sorted(first.values(), key=lambda p: (p.at, p.task)), {}
+
+
 @dataclass
 class Schedule:
     kind: str                                  # closed | open | recorded
@@ -135,7 +161,7 @@ class Schedule:
 
     def fix_seconds(self, task: str, attempt: int) -> float:
         rec = self.recorded_reworks.get(task) or []
-        if self.kind == "recorded" and attempt - 1 < len(rec):
+        if self.kind in ("recorded", "orchestrated") and attempt - 1 < len(rec):
             return rec[attempt - 1] / self.speed * self.time_scale
         return self.fix.draw(self.rng(task, "rework", attempt)) * self.time_scale
 
@@ -151,7 +177,7 @@ class Schedule:
                 out.append((t * self.time_scale, tid, None))
                 t += rng.expovariate(1.0 / gap) if self.poisson else gap
             return out
-        if self.kind == "recorded":
+        if self.kind in ("recorded", "orchestrated"):
             agents = sorted({p.agent for p in self.recorded if p.agent})
             idx = {a: i for i, a in enumerate(agents)}
             wanted = set(tasks)
@@ -164,6 +190,6 @@ class Schedule:
              "time_scale": self.time_scale, "hold": self.hold}
         if self.kind == "open":
             d.update(rate_per_min=self.rate_per_min, poisson=self.poisson)
-        if self.kind == "recorded":
+        if self.kind in ("recorded", "orchestrated"):
             d.update(source=self.recorded_source, speed=self.speed, pushes=len(self.recorded))
         return d
