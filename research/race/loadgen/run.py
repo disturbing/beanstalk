@@ -191,6 +191,21 @@ def run_one(a: argparse.Namespace) -> dict:
     return summary
 
 
+def strip_options(args: list[str], valued: tuple, flags: tuple) -> list[str]:
+    out, skip = [], False
+    for x in args:
+        if skip:
+            skip = False
+            continue
+        if x in valued:
+            skip = True
+            continue
+        if x in flags or any(x.startswith(v + "=") for v in valued):
+            continue
+        out.append(x)
+    return out
+
+
 def run_both(a: argparse.Namespace, argv: list[str]) -> int:
     """Both forges at once (no model quota is involved): two processes, same arguments."""
     base = [x for x in argv]
@@ -203,6 +218,9 @@ def run_both(a: argparse.Namespace, argv: list[str]) -> int:
         fh.write("github beanstalk\n")
     for forge in ("github", "beanstalk"):
         args = base[:i] + ["--forge", forge] + base[i + 2:]
+        if forge == "github":  # the GitHub arm gets no Beanstalk arguments (a live-gateway URL in its argv would
+            args = strip_options(args, ("--gateway", "--dev-vars", "--bs-owner", "--bs-repo", "--bs-engine"),
+                                 ("--keep-repo", "--bs-evidence"))  # make it look like a live run to watchers
         j = args.index("--out")
         args[j + 1] = f"{a.out}-{forge}"
         log = open(os.path.join(RACE, f"{a.out}-{forge}.log") if not os.path.isabs(a.out) else f"{a.out}-{forge}.log",

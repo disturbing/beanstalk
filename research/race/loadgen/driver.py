@@ -61,8 +61,19 @@ async def barrier(name: str, timeout: float = 900.0) -> float:
     with open(os.path.join(d, "arms"), encoding="utf-8") as fh:
         arms = fh.read().split()
     while time.time() - t0 < timeout and not all(os.path.exists(os.path.join(d, f"{a}.ready")) for a in arms):
+        failed = [a for a in arms if os.path.exists(os.path.join(d, f"{a}.failed"))]
+        if failed:  # a pair is measured together or not at all
+            raise SystemExit(f"the paired arm {', '.join(failed)} failed its setup; not running alone")
         await asyncio.sleep(0.5)
+    if not all(os.path.exists(os.path.join(d, f"{a}.ready")) for a in arms):
+        raise SystemExit(f"the paired arm was not ready after {timeout:.0f} s; not running alone")
     return round(time.time() - t0, 2)
+
+
+def barrier_failed(name: str) -> None:
+    d = os.environ.get(BARRIER_ENV)
+    if d:
+        open(os.path.join(d, f"{name}.failed"), "w").close()
 
 
 def linux_deps(deps: str, image: str) -> str:
@@ -261,7 +272,11 @@ class Driver:
         self.ev = Events(os.path.join(self.out, "events.jsonl"))
         self.forge = self.forge_factory(self.git, self.work, self.log)
         self.ev.write("race.setup", forge=self.forge.name, base=self.base_sha, chain_end=self.chain_end)
-        self.line_base = await self.forge.setup(self.base_sha)
+        try:
+            self.line_base = await self.forge.setup(self.base_sha)
+        except BaseException:
+            barrier_failed(os.environ.get("LOADGEN_ARM") or self.forge.name)
+            raise
         waited = await barrier(os.environ.get("LOADGEN_ARM") or self.forge.name)
         self.ev.epoch0 = time.time()   # the clock starts once the forge is ready (both forges', in a pair)
         self.ev.write("race.start", forge=self.forge.name, line=self.forge.line, line_base=self.line_base,

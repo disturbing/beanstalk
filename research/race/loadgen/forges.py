@@ -80,6 +80,9 @@ class PR:
     red_head: str | None = None
     conflict_polls: int = 0
     merging: bool = False
+    merging_since: float | None = None   # driver clock: removed from the queue as merged
+    merged_removed_at: float | None = None  # GitHub's time of that removal
+    merge_checking: bool = False
     merged_at: float | None = None
     pushed_at: float = 0.0
 
@@ -278,6 +281,12 @@ class GitHubForge(Forge):
                 continue
             if st.head_oid != pr.head:
                 continue
+            if removed is not None and (removed.reason or "").lower() == "merged":
+                pr.merging_since, pr.merged_removed_at = time.time(), removed.at
+            if (pr.merging and pr.merging_since and time.time() - pr.merging_since > 120
+                    and not pr.merge_checking):
+                pr.merge_checking = True
+                asyncio.ensure_future(self._check_merged(pr))
             cause, why = self._kickout(pr, st, removed)
             if cause:
                 key = why or cause
@@ -288,6 +297,25 @@ class GitHubForge(Forge):
                 pr.enqueued_head = pr.head
                 pr.enqueue_tries += 1
                 asyncio.ensure_future(self._enqueue(pr))
+
+    async def _check_merged(self, pr: PR) -> None:
+        """Measured 2026-10-07 (lg-fastify-16-s11): GitHub removed a PR from the queue as ``merged`` and put its
+        squash commit ``… (#N)`` on ``main``, but the PR stayed OPEN (not merged) for over an hour. Two minutes
+        after such a removal, ``main`` is read with git: the commit there is the merge, at GitHub's removal time."""
+        try:
+            head = await self.lines.get(force=True)
+            out = await self.git.out("log", "--format=%H%x09%s", "-n", "400", head)
+            sha = next((ln.split("\t", 1)[0] for ln in out.splitlines()
+                        if ln.rstrip().endswith(f"(#{pr.number})")), None)
+            if sha and pr.future is not None and not pr.future.done():
+                pr.merged_at = pr.merged_removed_at or time.time()
+                self.stats["merged_but_pr_open"] = self.stats.get("merged_but_pr_open", 0) + 1
+                self.log("gh.merged_pr_open", task=pr.task, pr=pr.number, sha=sha)
+                pr.future.set_result(Outcome("integrated", pr.merged_at, sha,
+                                             detail={"pr": pr.number, "pr_state_lagged": True}))
+        finally:
+            pr.merge_checking = False
+            pr.merging_since = time.time()   # check again later if not found
 
     def _wants_enqueue(self, pr: PR, st) -> bool:
         if st.queue_state is not None or st.mergeable == "CONFLICTING":
