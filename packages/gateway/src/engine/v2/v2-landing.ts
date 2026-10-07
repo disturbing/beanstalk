@@ -47,6 +47,7 @@ import {
 } from './v2-backpressure';
 import { boundedEnd, searchEnded, startProgress } from './v2-bounds';
 import { rememberGreenCheck } from './v2-check-reuse';
+import { GLOBAL_FILE, isEvidenceOn, rememberCheck } from './v2-evidence';
 import { onProbeJob, repairWithCulprits } from './v2-culprits';
 import { endLanding, latencyTimerKey, parkLanding, requireFlow } from './v2-flows';
 import { onReconcileRead } from './v2-reconcile';
@@ -86,9 +87,6 @@ const MAX_TARGETED_OUTSIDE = 1;
 const TARGETED_SECONDS = 10;
 /** Inherited reds a bean waits out before its red checks cost rounds again (E6). */
 const MAX_INHERITED_WAITS = 3;
-/** Files every test depends on: a bean that changed one may break any test it does not import. */
-const GLOBAL_FILE =
-  /(^|\/)(package\.json|pnpm-lock\.yaml|package-lock\.json|yarn\.lock|\.npmrc|tsconfig[^/]*\.json|(vitest|vite|jest)\.(config|workspace)\.[cm]?[jt]s)$/;
 
 type CheckStep = Extract<LandingStep, { kind: 'check' }>;
 type Candidate = Pick<CheckStep, 'head0' | 'candidate' | 'files' | 'mine'>;
@@ -140,6 +138,7 @@ export function attempt(step: V2Step, task: TaskId): void {
   const flow = requireFlow(step.state, task);
   flow.rechecks = 0;
   flow.targeted = 0;
+  delete flow.voucher;
   if (!holdForSync(step, flow)) releaseAgent(step, flow);
   if (step.ctx.env.config.preland_mode === 'locked') {
     flow.step = { kind: 'queued-locked' };
@@ -413,7 +412,9 @@ function startCheck(
       extraFiles: null,
       instance: { kind: 'sandbox', slot: flow.slot },
       ...(check.targets === null ? {} : { only: check.targets }),
-      ...(step.ctx.env.config.targeted_landing_check ? { allReadSets: true } : {}),
+      ...(step.ctx.env.config.targeted_landing_check || isEvidenceOn(step.state)
+        ? { allReadSets: true }
+        : {}),
     },
     { kind: 'policy' },
   );
@@ -448,7 +449,7 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
   if (result === null) throw new EngineInvariantError('a check finished without a result');
   if (check.isRecheck) recordRecheck(step.state, result.green);
   if (check.targets !== null) countTargeted(step.state, result.green);
-  else if (result.green) rememberGreenCheck(step.state, flow.task, check.candidate);
+  else if (result.green) rememberGreenFull(step, flow, check);
   learnReadSets(step, result);
   const red = { head: check.head0, result, mine: check.mine };
   const isDiscarded = !result.green && isOnDiscardedTree(step.state, check.head0);
@@ -516,6 +517,24 @@ function finishCheck(step: V2Step, flow: LandingFlow, check: CheckStep): void {
     ...(isRepair ? { repair: true } : {}),
   };
   requestTurn(step, { kind: 'landing', task: flow.task });
+}
+
+/**
+ * A full check was green: its candidate is the commit `reuse_checks` may count as validated, and
+ * (`evidence_promotion`) the tree whose read sets vouch for the bean's landing.
+ */
+function rememberGreenFull(step: V2Step, flow: LandingFlow, check: CheckStep): void {
+  const { state } = step;
+  rememberGreenCheck(state, flow.task, check.candidate);
+  if (!isEvidenceOn(state) || check.result === null) return;
+  flow.voucher = check.candidate;
+  rememberCheck(state, {
+    task: flow.task,
+    candidate: check.candidate,
+    head0: check.head0,
+    files: check.files,
+    result: check.result,
+  });
 }
 
 /**
@@ -1132,6 +1151,11 @@ function onPublished(
     );
     return;
   }
+  // The landing carries its check (`evidence_promotion`) when it is the checked tree, or a
+  // textual re-squash of it; a structural merge's tree only counts as checked when it was.
+  const voucher = flow.voucher;
+  const isFromCheck =
+    voucher !== undefined && (voucher === landing.sha || flow.resolved === 'textual');
   const commit = appendCommit(step, {
     sha: landing.sha,
     parent: landing.head,
@@ -1140,6 +1164,8 @@ function onPublished(
     ticket: null,
     files: landing.files,
     ...(landing.repair === true ? { repair: true } : {}),
+    ...(isFromCheck ? { voucher } : {}),
+    ...(flow.resolved === 'structural' ? { structural: true } : {}),
   });
   state.stats.landings += 1;
   if (landing.repair === true) state.stats.repair_landings = (state.stats.repair_landings ?? 0) + 1;

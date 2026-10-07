@@ -314,12 +314,18 @@ async fn run_traced(
     let (run, summary) = per_file::combine(&runs, started.elapsed());
     let sha = request.sha.clone();
     let read_sets = request.read_sets;
-    let checkout = context.checkout.to_path_buf();
     let maps = manifest.map(|tree| ReadMapsReport::traced(&runs, tree, environment));
+    let observed = read_maps::ObservedReadSets::of(&runs);
     blocking(move || {
         let mut report = report::assess_summary(sha, &run, &checkout_real, Some(summary));
+        // Every file that ran, by its own run's outcome (a file without test cases passes too).
+        report.passing_files = observed.passing_files;
+        if report.failing_files.is_some() {
+            report.failing_files = Some(observed.failing_files);
+        }
         if read_sets == ReadSets::All {
-            report::record_passing_read_sets(&mut report, &checkout);
+            report.passing_read_sets = observed.passing_read_sets;
+            report.read_sets_complete = observed.complete;
         }
         report.read_maps = maps;
         report

@@ -30,6 +30,30 @@ export type CiMeta = {
   readonly unvalidated?: number;
   readonly ticket?: string;
   readonly without?: string;
+  /** `evidence_promotion`: the full suite on the stalk, run as a background audit. */
+  readonly audit?: true;
+  /** `affected_validation`: only the tests no evidence vouches for (`tests` of them). */
+  readonly targeted?: true;
+  readonly tests?: number;
+};
+
+/** A checked tree that vouched for tests in `promote.evidence`. */
+export type EvidenceTree = {
+  readonly task: string | null;
+  readonly sha: string;
+  readonly base_idx: number;
+  /** Files that differ between the checked tree and the promoted commit (at most 20 listed). */
+  readonly changed: readonly string[];
+  readonly changed_count: number;
+  /** Tests it vouched for. */
+  readonly vouched: number;
+};
+
+/** A test whose read set a checked tree's difference met (at most 20 files listed). */
+export type EvidenceOverlap = {
+  readonly test: string;
+  readonly checked: string;
+  readonly files: readonly string[];
 };
 
 /** `invocation.end` for an invocation that reported (InvocationResult.to_event()). */
@@ -422,6 +446,52 @@ export type RaceEventFields = {
     readonly task: string | null;
     readonly source: 'preland';
     readonly cancelled: readonly string[];
+  };
+  /**
+   * `evidence_promotion`: the sprout commit `sha` at `trunk_idx` is green without a full CI run.
+   * Every test of its tree (`tests`) is vouched for by a green full check of a tree (`checked`:
+   * the bean or sprout commit checked, the sprout index it was built on, the files that differ
+   * between it and `sha`) whose difference misses the test's read set, or (`targeted`) passed
+   * the affected validation. `overlaps` lists read sets a checked tree's difference did meet
+   * (each such test was vouched for by another tree or run). `beans` are the commits promoted.
+   */
+  'promote.evidence': {
+    readonly sha: string;
+    readonly trunk_idx: number;
+    readonly green_idx: number;
+    readonly beans: readonly string[];
+    readonly tests: number;
+    readonly checked: readonly EvidenceTree[];
+    readonly overlaps: readonly EvidenceOverlap[];
+    readonly targeted: { readonly ci: string; readonly tests: readonly string[] } | null;
+    readonly cancelled: readonly string[];
+  };
+  /**
+   * `evidence_promotion`: the head at `trunk_idx` has no full evidence, so a validation runs
+   * (`affected`: the tests nothing vouches for; empty with a `reason` that rules evidence out).
+   */
+  'evidence.refused': {
+    readonly sha: string;
+    readonly trunk_idx: number;
+    readonly reason: 'no-read-sets' | 'unchecked-bean' | 'structural' | 'known-red' | 'affected';
+    readonly tests: number;
+    readonly affected: readonly string[];
+    readonly affected_count: number;
+    readonly overlaps: readonly EvidenceOverlap[];
+  };
+  /**
+   * `evidence_promotion`: a confirmed red audit of the stalk at `audit_idx` (`failing`): the
+   * stalk goes back from `from_idx` to `trunk_idx` (`sha`), the newest commit a full suite
+   * passed, and the beans promoted since (`tasks`) are landed again; a ticket follows.
+   */
+  'green.demote': {
+    readonly sha: string;
+    readonly trunk_idx: number;
+    readonly from_idx: number;
+    readonly audit_sha: string;
+    readonly audit_idx: number;
+    readonly failing: readonly string[];
+    readonly tasks: readonly string[];
   };
   /** Stall fix (`red_reset`): a bean the reset took off the sprout (it was `trunk_idx`) lands again. */
   'bean.requeued': TaskRef & { readonly ticket: string; readonly trunk_idx: number };

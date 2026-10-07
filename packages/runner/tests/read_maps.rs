@@ -231,3 +231,37 @@ async fn trace_and_only_files_need_a_node_test_command() {
         assert_eq!(status, StatusCode::BAD_REQUEST, "{extra}: {response}");
     }
 }
+
+#[tokio::test]
+async fn traced_read_sets_are_what_each_test_observed_and_say_so() {
+    if !has_node() {
+        return;
+    }
+    let world = World::new().await;
+    let (trunk, sha, _) = project(&world, RATES_JSON);
+    let traced = json!({"trace": true, "all_read_sets": true});
+
+    let (status, response) = world.post("/v1/check", &body(&trunk, &sha, &traced)).await;
+    let (_, untraced) = world
+        .post(
+            "/v1/check",
+            &body(&trunk, &sha, &json!({"all_read_sets": true})),
+        )
+        .await;
+
+    assert_eq!(status, StatusCode::OK, "{response}");
+    assert_eq!(untraced["read_sets_complete"], false);
+    if !can_trace(&world).await {
+        assert_eq!(response["read_sets_complete"], false);
+        return;
+    }
+    assert_eq!(response["read_sets_complete"], true);
+    assert_eq!(
+        response["passing_files"],
+        json!(["src/add.test.ts", "src/rates.test.ts"])
+    );
+    let rates = strings(&response["passing_read_sets"]["src/rates.test.ts"]);
+    assert!(rates.contains("data/rates.json"), "{rates:?}");
+    assert!(rates.contains("src/rates.test.ts") && rates.contains("src/numbers.ts"));
+    assert!(!rates.contains("src/add.ts"), "{rates:?}");
+}

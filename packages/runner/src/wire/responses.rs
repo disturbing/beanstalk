@@ -191,6 +191,8 @@ pub(crate) struct CheckResponse {
     read_set: Vec<String>,
     read_sets: BTreeMap<String, Vec<String>>,
     passing_read_sets: BTreeMap<String, Vec<String>>,
+    /// True only when every passing test's read set was traced (`trace` with `all_read_sets`).
+    read_sets_complete: bool,
     read_depths: BTreeMap<String, ImportDepths>,
     stack_files: Vec<String>,
     output_excerpt: String,
@@ -305,6 +307,7 @@ impl From<CheckReport> for CheckResponse {
             read_set: report.read_set,
             read_sets: report.read_sets,
             passing_read_sets: report.passing_read_sets,
+            read_sets_complete: report.read_sets_complete,
             read_depths: report.read_depths,
             stack_files: report.stack_files,
             output_excerpt: report.output_excerpt,

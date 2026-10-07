@@ -456,7 +456,11 @@ function check(
     passingFiles,
     readSet: [...new Set(Object.values(readSets).flat())].toSorted(),
     readSets,
-    ...(run.allReadSets === true ? { passingReadSets: passingReadSets(rules, passingFiles) } : {}),
+    // The fake suite's read sets are its rules' `reads`: complete by construction, unless a
+    // scenario plants a rule whose markers live in a file its `reads` omit.
+    ...(run.allReadSets === true
+      ? { passingReadSets: passingReadSets(rules, passingFiles), readSetsComplete: true }
+      : {}),
     readDepths,
     stackFiles: [],
     output:

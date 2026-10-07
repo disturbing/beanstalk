@@ -41,6 +41,9 @@ pub(crate) struct CheckReport {
     pub(crate) read_sets: BTreeMap<String, Vec<String>>,
     /// The passing test files' read sets, when the request asked for them (`ReadSets::All`).
     pub(crate) passing_read_sets: BTreeMap<String, Vec<String>>,
+    /// Whether `passing_read_sets` hold everything each test observed (traced: every file read,
+    /// probed and listed), not static import closures.
+    pub(crate) read_sets_complete: bool,
     pub(crate) read_depths: BTreeMap<String, ImportDepths>,
     pub(crate) stack_files: Vec<String>,
     /// `CIResult.output`: the failure-relevant tail of stdout and stderr.
@@ -95,6 +98,7 @@ pub(crate) fn assess_summary(
         read_set: Vec::new(),
         read_sets: BTreeMap::new(),
         passing_read_sets: BTreeMap::new(),
+        read_sets_complete: false,
         read_depths: BTreeMap::new(),
         stack_files: Vec::new(),
         output_excerpt: excerpt(&combined_output(run)),

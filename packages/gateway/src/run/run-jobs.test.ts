@@ -21,6 +21,11 @@ describe('readMapOptions', () => {
     expect(readMapOptions(VALIDATION, 'preland')).toEqual({ trace: false, treeManifest: true });
   });
 
+  it('traces a validation that asks for every read set (evidence), unless off', () => {
+    expect(readMapOptions({ ...VALIDATION, allReadSets: true }, 'preland').trace).toBe(true);
+    expect(readMapOptions({ ...VALIDATION, allReadSets: true }, 'off').trace).toBe(false);
+  });
+
   it('traces every check under all and none under off', () => {
     expect(readMapOptions(VALIDATION, 'all')).toEqual({ trace: true, treeManifest: true });
     expect(readMapOptions(PRELAND, 'off')).toEqual({ trace: false, treeManifest: false });
