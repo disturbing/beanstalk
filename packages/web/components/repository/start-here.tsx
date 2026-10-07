@@ -9,6 +9,7 @@ import Link from 'next/link';
 
 import type { StartGuide } from '../../src/repositories/paths';
 import type { RepositoryFiles, RepositoryRecord } from '../../src/repositories/registry-client';
+import { ChecksSummary } from './checks-config';
 import type { DeployTokenAccess } from './connect-tabs';
 import { ConnectTabs } from './connect-tabs';
 import { CopyButton } from './copy-button';
@@ -156,13 +157,10 @@ function Facts({ files }: { readonly files: RepositoryFiles | null }) {
           <h2 id="checks-title">What counts as green</h2>
           <span className={`${styles.muted} ${styles.mono}`}>.beanstalk/checks.toml</span>
         </div>
-        {files === null || files.checks === null ? (
-          <p className={styles.empty}>
-            No checks yet. Add <code>.beanstalk/checks.toml</code> in a bean; until then a bean
-            lands when it merges cleanly.
-          </p>
+        {files === null ? (
+          <p className={styles.empty}>The stalk is being read. Refresh in a moment.</p>
         ) : (
-          <pre className={styles.checksFile}>{files.checks}</pre>
+          <ChecksSummary file={files.checks} />
         )}
       </section>
     </div>

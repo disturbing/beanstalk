@@ -10,7 +10,7 @@ import { defineConfig } from 'vitest/config';
  * Tests run the real Worker and RunDO on Miniflare. Two bindings have no local simulator:
  * Artifacts (remote only) and the runner container (needs Docker). The tests use
  * wrangler.jsonc without those two blocks, bind ARTIFACTS and REPOS (two namespaces, as
- * deployed) to a fake Artifacts worker that
+ * deployed) to a fake Artifacts worker (which also hosts the fake runner) that
  * also serves the git remotes the proxy forwards to (all outbound fetches go there), and
  * point RUNNER at a fake runner Durable Object. No test touches the network.
  *
@@ -42,19 +42,18 @@ export default defineConfig({
           ARTIFACTS: { name: 'fake-artifacts', entrypoint: 'FakeArtifacts' },
           REPOS: { name: 'fake-artifacts', entrypoint: 'FakeRepositories' },
         },
-        durableObjects: { RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' } },
+        durableObjects: { RUNNER: { className: 'FakeRunner', scriptName: 'fake-artifacts' } },
         outboundService: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },
         workers: [
           {
+            // The fake runner lives in the fake Artifacts' worker (one isolate), so its squashes
+            // land in the trunk repo the way the real runner pushes its candidates.
             name: 'fake-artifacts',
-            modules: true,
-            scriptPath: path.join(here, 'test/fakes/fake-artifacts.js'),
-            compatibilityDate,
-          },
-          {
-            name: 'fake-runner',
-            modules: true,
-            scriptPath: path.join(here, 'test/fakes/fake-runner.js'),
+            modulesRoot: path.join(here, 'test/fakes'),
+            modules: ['fake-artifacts.js', 'fake-runner.js', 'fake-store.js'].map((file) => ({
+              type: 'ESModule' as const,
+              path: path.join(here, 'test/fakes', file),
+            })),
             compatibilityDate,
             durableObjects: { FAKE_RUNNER: { className: 'FakeRunner', useSQLite: true } },
           },

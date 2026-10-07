@@ -62,6 +62,8 @@ export function beanPush(input: {
   oldSha?: string;
   message?: string;
   options?: readonly string[];
+  /** The pushed commit's files (the fake remote stores them; the runner's squash merges them). */
+  files?: Readonly<Record<string, string>>;
 }): string {
   const options = input.options ?? [];
   const caps = `report-status side-band-64k${options.length > 0 ? ' push-options' : ''} agent=git/2.47.0`;
@@ -70,7 +72,7 @@ export function beanPush(input: {
   const optionSection =
     options.length > 0 ? `${options.map((option) => pkt(`${option}\n`)).join('')}0000` : '';
   const commits = {
-    [input.newSha]: { message: input.message ?? 'Change', parents: [], files: {} },
+    [input.newSha]: { message: input.message ?? 'Change', parents: [], files: input.files ?? {} },
   };
   return `${command}0000${optionSection}PACK${JSON.stringify({ commits })}`;
 }
@@ -112,4 +114,26 @@ export async function gitPush(
 export async function digest(text: string): Promise<string> {
   const bytes = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** The checks `requireChecks` lands: the fake runner's suite. */
+export const NODE_CHECKS = 'command = ["node", "--test"]\n';
+
+/**
+ * Lands `.beanstalk/checks.toml` as the repository's owner (a personal token may change the
+ * checks), so later beans run the fake runner's suite instead of no checks at all.
+ */
+export async function requireChecks(record: RepositoryRecord, ownerToken: string): Promise<void> {
+  const repoPath = `${record.owner.handle}/${record.name}`;
+  const landed = await gitPush(
+    repoPath,
+    ownerToken,
+    beanPush({
+      bean: 'require-checks',
+      newSha: await digest(`checks:${repoPath}`),
+      options: ['wait'],
+      files: { '.beanstalk/checks.toml': NODE_CHECKS },
+    }),
+  );
+  if (!landed.remote.includes('LANDED')) throw new Error(`checks bean: ${landed.remote}`);
 }

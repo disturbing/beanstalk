@@ -12,10 +12,15 @@ import type { VerdictContext } from './push-messages';
 import { decisionLines, landedLines, stoppedLines } from './push-messages';
 
 /** What folding needs from the engine's shell. */
-export type FoldContext = { readonly link: (bean: string) => string | null };
+export type FoldContext = {
+  readonly link: (bean: string) => string | null;
+  /** The lines the check of a tree gave: its repository's checks, or why none ran. */
+  readonly checkLines: (sha: string) => readonly string[];
+};
 
 const PrelandCheck = z.object({
   task: z.string(),
+  sha: z.string().default(''),
   green: z.boolean(),
   failing_tests: z.array(z.string()).default([]),
   check_seconds: z.number().default(0),
@@ -58,17 +63,18 @@ type Updates = [string, PushBean][];
 type Fold = {
   readonly beans: ReadonlyMap<string, PushBean>;
   readonly verdict: (bean: string) => VerdictContext;
+  readonly checkLines: (sha: string) => readonly string[];
   /** The update of the bean `task` names, if it is a pushed bean. */
   readonly on: (task: string | null | undefined, update: (bean: PushBean) => PushBean) => Updates;
 };
 
 /** What each event type the flow follows does to the beans it names. */
 const HANDLERS: Readonly<Partial<Record<string, (event: unknown, fold: Fold) => Updates>>> = {
-  'preland.check': (event, { on }) => {
+  'preland.check': (event, { on, checkLines }) => {
     const check = PrelandCheck.safeParse(event);
-    return check.success
-      ? on(check.data.task, (bean) => withNote(bean, checkNote(check.data)))
-      : [];
+    if (!check.success) return [];
+    const lines = [...checkLines(check.data.sha), checkNote(check.data)];
+    return on(check.data.task, (bean) => lines.reduce(withNote, bean));
   },
   'merge.conflict': (event, { on }) => {
     const conflict = MergeConflict.safeParse(event);
@@ -135,6 +141,7 @@ function eventUpdates(
   return handler(event, {
     beans,
     verdict: (bean) => ({ bean, link: context.link(bean) }),
+    checkLines: context.checkLines,
     on: (task, update) => {
       const bean = task === null || task === undefined ? undefined : beans.get(task);
       return bean === undefined ? [] : [[bean.bean, update(bean)]];

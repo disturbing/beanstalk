@@ -16,6 +16,8 @@ async function openRepo(repo: string): Promise<{ engineId: string; path: string;
         repoName: repo,
         artifactsRepo: `repo-${repo}`,
         owner: { id: 'u1', handle: 'acme' },
+        // The fake runner decides this test's reds (no .beanstalk/checks.toml is involved).
+        settings: { engine: { checks_source: 'suite' } },
         create_artifacts_repo: true,
       },
     }),

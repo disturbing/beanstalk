@@ -19,7 +19,9 @@ import type { RunConfig } from '@beanstalk/shared-race/run-config';
 import {
   CONTINUOUS_SETTINGS,
   RunConfig as RunConfigSchema,
+  checksSourceOf,
 } from '@beanstalk/shared-race/run-config';
+import { CHECKS_PATH } from '@beanstalk/shared-race/checks-config';
 
 import type {
   BeanDetail,
@@ -103,6 +105,16 @@ import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { RunnerPort } from '../runner/runner-client';
 import { runnerPort } from '../runner/runner-client';
+import {
+  migrateCheckStore,
+  readCheckLines,
+  readLandingTree,
+  saveCheckLines,
+  saveLandingTree,
+} from '../checks/check-store';
+import { NO_PROTECTED_ACCESS } from '../checks/protected-access';
+import type { ProtectedAccess } from '../checks/protected-access';
+import type { RepositoryChecksHost } from '../checks/repository-checks';
 import type { Refusable, Reservation, TaskStanding } from '../agent/agent-store';
 import {
   claimTask,
@@ -330,6 +342,7 @@ export class RunDO extends DurableObject<Env> {
       config: () => this.#requireLoaded().stored.config,
       setConfig: (next) => this.#setConfig(next),
       link: (bean) => this.#beanLink(bean),
+      checkLines: (sha) => readCheckLines(ctx.storage.sql, sha),
       publish: (bean) => this.#statuses.publish(bean),
     });
     this.#statuses = new StatusPublisher({
@@ -406,7 +419,9 @@ export class RunDO extends DurableObject<Env> {
       label: `${input.owner.handle}/${input.repoName}`,
       arena: 'repository',
       tasks: [],
-      ...(input.settings?.suite === undefined ? {} : { suite: input.settings.suite }),
+      ...(input.settings?.suite === undefined
+        ? { checks_source: 'repository' }
+        : { suite: input.settings.suite, checks_source: 'suite' }),
       ...input.settings?.engine,
     });
     const record: RepoEngineRecord = {
@@ -488,6 +503,8 @@ export class RunDO extends DurableObject<Env> {
     bean: TaskId;
     head: Sha;
     actor: string;
+    /** What this push may do to protected paths (`checks/protected-access.ts`). */
+    protectedAccess: ProtectedAccess;
     options: PushOptions;
   }): Promise<Submitted> {
     this.#countRequest();
@@ -506,6 +523,7 @@ export class RunDO extends DurableObject<Env> {
       bean: input.bean,
       head: input.head,
       actor: input.actor,
+      protectedAccess: input.protectedAccess,
       intent: reservedIntent(pushIntent(message ?? '', input.options), {
         reservation,
         options: input.options,
@@ -1344,6 +1362,7 @@ export class RunDO extends DurableObject<Env> {
     migrate(sql);
     migrateCollaboration(sql);
     migrateReadMaps(sql);
+    migrateCheckStore(sql);
     // The first design's snapshots lived here; the run's RunStreamDO holds them now.
     sql.exec('DROP TABLE IF EXISTS bean_streams');
     return sqlObjectStore(sql);
@@ -1544,12 +1563,35 @@ export class RunDO extends DurableObject<Env> {
         readMaps: loaded.stored.config.read_maps,
         ...(held === null ? {} : { sandboxIndex: held.index }),
         onSuiteTimeout: () => this.ctx.waitUntil(this.#noteTimeout(run)),
+        ...(checksSourceOf(loaded.stored.config) === 'repository'
+          ? { checks: this.#repositoryChecks(loaded.stored.repos.repo.name) }
+          : {}),
       });
     } finally {
       // Before the step: the check it starts next may take this very sandbox.
       if (lease !== null) await releaseSandbox(this.#pool(), lease, log);
     }
     this.#apply({ kind: 'job-done', at: Date.now(), jobId: id, outcome: this.#keepMaps(outcome) });
+  }
+
+  /**
+   * A repository's own checks: its config read from each checked tree through the binding
+   * (a commit not visible yet is a retryable failure, never a tree without checks), the bean
+   * merges and the push lines kept in this DO's SQLite.
+   */
+  #repositoryChecks(repo: string): RepositoryChecksHost {
+    const sql = this.ctx.storage.sql;
+    return {
+      readChecks: async (sha) => {
+        if ((await this.#artifacts.commitMessage(repo, sha)) === null)
+          throw new UpstreamError(`commit ${sha} is not readable yet`, true);
+        return this.#artifacts.readFile(repo, sha, CHECKS_PATH);
+      },
+      saveLandingTree: (tree) => saveLandingTree(sql, tree, Date.now()),
+      landingTree: (sha) => readLandingTree(sql, sha),
+      protectedAccess: (task) => readPushBean(sql, task)?.protectedAccess ?? NO_PROTECTED_ACCESS,
+      record: (sha, lines) => saveCheckLines(sql, sha, lines, Date.now()),
+    };
   }
 
   /** The runner pool races and repositories share (`capacity/runner-capacity.ts`). */

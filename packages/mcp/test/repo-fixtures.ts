@@ -126,6 +126,8 @@ export async function gitPush(
     readonly newSha: string;
     readonly message?: string;
     readonly options?: readonly string[];
+    /** The pushed commit's files (the fake runner's squash lays them over the sprout's). */
+    readonly files?: Readonly<Record<string, string>>;
   },
 ): Promise<{ readonly status: number; readonly remote: string }> {
   const options = push.options ?? [];
@@ -133,7 +135,9 @@ export async function gitPush(
   const command = pkt(`${ZERO} ${push.newSha} refs/heads/bean/${push.bean}\0${caps}\n`);
   const optionSection =
     options.length > 0 ? `${options.map((option) => pkt(`${option}\n`)).join('')}0000` : '';
-  const commits = { [push.newSha]: { message: push.message ?? 'Change', parents: [], files: {} } };
+  const commits = {
+    [push.newSha]: { message: push.message ?? 'Change', parents: [], files: push.files ?? {} },
+  };
   const response = await env.GATEWAY.fetch(`${GATEWAY_ORIGIN}/git/${repo}.git/git-receive-pack`, {
     method: 'POST',
     headers: {
@@ -145,6 +149,20 @@ export async function gitPush(
     body: `${command}0000${optionSection}PACK${JSON.stringify({ commits })}`,
   });
   return { status: response.status, remote: remoteText(await response.text()) };
+}
+
+/**
+ * Lands `.beanstalk/checks.toml` as the repository's owner (`token` is the owner's personal
+ * token, which may change the checks), so later beans run the fake runner's suite.
+ */
+export async function requireChecks(repo: Repository, token: string): Promise<void> {
+  const landed = await gitPush(slug(repo), token, {
+    bean: 'require-checks',
+    newSha: await digest(`checks:${repo.id}`),
+    options: ['wait'],
+    files: { '.beanstalk/checks.toml': 'command = ["node", "--test"]\n' },
+  });
+  if (!landed.remote.includes('LANDED')) throw new Error(`checks bean: ${landed.remote}`);
 }
 
 export function slug(repo: Repository): string {

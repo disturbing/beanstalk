@@ -15,6 +15,7 @@ import {
   personalToken,
   plantOnSprout,
   repository,
+  requireChecks,
   slug,
 } from './repo-fixtures';
 
@@ -250,6 +251,7 @@ describe('repository tools', () => {
   it('bean_status explains a red: failing tests, the bean it collided with, the next step', async () => {
     const { user, token, client } = await session();
     const repo = await repository(user);
+    await requireChecks(repo, token);
     await gitPush(slug(repo), token, {
       bean: 'tax-rate',
       newSha: await digest('tax'),
@@ -262,7 +264,12 @@ describe('repository tools', () => {
       phase: 'red',
       rework: {
         failing_tests: expect.arrayContaining([expect.any(String)]),
-        collided_with: [{ bean: 'tax-rate', intent: expect.stringContaining('10% tax line') }],
+        collided_with: expect.arrayContaining([
+          expect.objectContaining({
+            bean: 'tax-rate',
+            intent: expect.stringContaining('10% tax line'),
+          }),
+        ]),
       },
       next: expect.stringContaining('git rebase origin/sprout'),
     });

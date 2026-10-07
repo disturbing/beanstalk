@@ -17,16 +17,19 @@
     "./agent-repos": "./src/agent-repos.ts",
     "./collaborators": "./src/collaborators.ts",
     "./engine-feed": "./src/engine-feed.ts",
-    "./repo-events": "./src/repo-events.ts"
+    "./repo-events": "./src/repo-events.ts",
+    "./checks-config": "./src/checks-config.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {
+    "smol-toml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "fast-check": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

@@ -394,6 +394,12 @@ const CheckedFields = z
      */
     continuous: z.boolean().default(false),
     /**
+     * Where a continuous engine's checks come from (`checks-config.ts`, backlog 2.3):
+     * `repository` reads `.beanstalk/checks.toml` from every tree it checks; `suite` always runs
+     * `suite` (races, and engines an operator opened with a suite). Absent: `checksSourceOf`.
+     */
+    checks_source: z.enum(['suite', 'repository']).optional(),
+    /**
      * A continuous engine's pre-land concurrency: at most this many sandboxes run its beans'
      * checks at once, one bean per sandbox, leased on demand from the gateway's runner pool and
      * released when the check ends (`docs/claude-opus/18-git-native-flow.md` §7). null: the
@@ -597,6 +603,19 @@ export const CONTINUOUS_SETTINGS = {
   keep_repo: true,
   agents: 32,
 } as const satisfies Partial<RunConfigInput>;
+
+/**
+ * Where a run's checks come from: its `checks_source`, else the repository's file for a
+ * continuous engine that still has the default suite (every repository opened from the
+ * registry), and `suite` for races and engines opened with an operator's suite.
+ */
+export function checksSourceOf(
+  config: Pick<RunConfig, 'checks_source' | 'continuous' | 'suite'>,
+): 'suite' | 'repository' {
+  if (config.checks_source !== undefined) return config.checks_source;
+  const isDefaultSuite = JSON.stringify(config.suite) === JSON.stringify(DEFAULT_SUITE);
+  return config.continuous && isDefaultSuite ? 'repository' : 'suite';
+}
 
 /** What each preset pins. */
 export const RUN_PRESETS = {

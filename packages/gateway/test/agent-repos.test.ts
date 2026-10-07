@@ -13,7 +13,15 @@ import { TaskId } from '@beanstalk/shared-race/ids';
 import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
 
 import { verifyGitCredential } from '../src/auth/git-credential';
-import { beanPush, digest, gitPush, plantOnSprout, value } from './agent-helpers';
+import {
+  NODE_CHECKS,
+  beanPush,
+  digest,
+  gitPush,
+  plantOnSprout,
+  requireChecks,
+  value,
+} from './agent-helpers';
 
 /**
  * The repository RPC behind the MCP tools (`AgentReposRpc`), through the gateway's default
@@ -237,6 +245,7 @@ describe('agent repositories: beans', () => {
     const record = await repository(coop);
     const repo = slug(record);
     const token = await writeToken(coop);
+    await requireChecks(record, token);
     await gitPush(
       repo,
       token,
@@ -245,6 +254,10 @@ describe('agent repositories: beans', () => {
         newSha: await digest('tax'),
         message: 'Charge 10% tax\n\nEvery total includes a 10% tax line.',
         options: ['wait'],
+        files: {
+          '.beanstalk/checks.toml': NODE_CHECKS,
+          'src/tax-rate.ts': 'export const rate = 0.1;\n',
+        },
       }),
     );
     await gitPush(repo, token, beanPush({ bean: 'red-discount', newSha: await digest('disc') }));
@@ -257,7 +270,7 @@ describe('agent repositories: beans', () => {
       intent: expect.stringContaining('Every total includes a 10% tax line.'),
     });
     expect(red.rework?.collided_with[0]?.files).toEqual([
-      { path: 'src/tax-rate.ts', additions: null, deletions: null },
+      { path: 'src/tax-rate.ts', additions: 1, deletions: 0 },
     ]);
     const beans = value(await gateway.agentPushedBeans(as(coop), repo));
     expect(beans[0]).toMatchObject({ bean: 'red-discount', phase: 'red' });
@@ -382,6 +395,7 @@ describe('agent repositories: backlog', () => {
     const coop = await person();
     const record = await repository(coop);
     await plantOnSprout(record, { '.beanstalk/backlog.md': BACKLOG }, await writeToken(coop));
+    await requireChecks(record, await writeToken(coop));
     const repo = slug(record);
     await gitPush(
       repo,

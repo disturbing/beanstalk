@@ -26,6 +26,8 @@ export const RepoEngineOverrides = z.strictObject({
   evidence_read_sets: z.enum(['complete', 'static']).optional(),
   affected_validation: z.boolean().optional(),
   audit_every: z.number().int().min(0).max(100).optional(),
+  /** `suite`: run the engine's suite and ignore `.beanstalk/checks.toml` (the default reads it). */
+  checks_source: z.enum(['suite', 'repository']).optional(),
 });
 export type RepoEngineOverrides = z.infer<typeof RepoEngineOverrides>;
 
@@ -37,7 +39,10 @@ export const OpenRepoEngineInput = z.strictObject({
   owner: z.strictObject({ id: z.string().min(1).max(100), handle: Handle }),
   settings: z
     .strictObject({
-      /** The checks every pre-land check and validation runs (default: `node --test`). */
+      /**
+       * An operator's suite for every check, instead of the repository's `.beanstalk/checks.toml`
+       * (`checks_source: suite`; load tests and paired comparisons).
+       */
       suite: RunSuite.optional(),
       /** The branch the sprout and the stalk start from when the repo has neither (default `main`). */
       base_branch: z
