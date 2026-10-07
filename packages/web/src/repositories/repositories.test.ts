@@ -12,7 +12,7 @@ import type {
 import { readCreateForm } from './create-form';
 import { growthFromView, growthText } from './engine-summary';
 import { createFlow, deleteFlow, hasGrown, lookupRepository, updateFlow } from './flows';
-import { isReservedOwner, startGuide } from './paths';
+import { envVarsBlock, isReservedOwner, startGuide } from './paths';
 import { registryClient } from './registry-client';
 
 const coop = { id: 'u_dev_coop', handle: 'coop', email: 'coop@dev.beanstalk.invalid' };
@@ -273,10 +273,21 @@ describe('the repository route', () => {
 describe('the start page', () => {
   it('prints the clone URL, a bean push with -o wait and the agent lines', () => {
     const guide = startGuide(
-      { gitOrigin: 'https://git.example.test/', mcpUrl: 'https://mcp.example.test/mcp' },
+      {
+        gitOrigin: 'https://git.example.test/',
+        mcpUrl: 'https://mcp.example.test/mcp',
+        webOrigin: 'https://web.example.test',
+      },
       'coop',
       'notes',
     );
+    expect(guide.plugin.claude).toBe(
+      'claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup coop/notes"',
+    );
+    expect(guide.plugin.codexPrompt).toContain(
+      'curl -fsSL https://web.example.test/setup.sh | sh -s -- detect',
+    );
+    expect(guide.https.urlWithToken).toBe('https://x:<token>@git.example.test/git/coop/notes.git');
     expect(guide.cloneUrl).toBe('https://git.example.test/git/coop/notes.git');
     expect(guide.gitSteps).toContain('git push -o wait origin bean/first-change');
     expect(guide.gitSteps[0]).toBe('git clone https://git.example.test/git/coop/notes.git');
@@ -286,6 +297,31 @@ describe('the start page', () => {
       'Any MCP client',
     ]);
     expect(guide.prompt).toContain('coop/notes');
+  });
+});
+
+describe('the Env vars tab', () => {
+  it('scopes git to the gateway host and reads the token from BEANSTALK_TOKEN', () => {
+    const block = envVarsBlock('https://git.example.test/', null);
+    expect(block.helper.split('\n')).toEqual([
+      'export BEANSTALK_TOKEN=<deploy token>',
+      'export GIT_TERMINAL_PROMPT=0',
+      'export GIT_CONFIG_COUNT=1',
+      "export GIT_CONFIG_KEY_0='credential.https://git.example.test.helper'",
+      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'`,
+    ]);
+    expect(block.header).toContain(
+      "export GIT_CONFIG_KEY_0='http.https://git.example.test/.extraheader'",
+    );
+    expect(block.header).toContain(
+      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"',
+    );
+  });
+
+  it('fills in a token that was just made', () => {
+    expect(envVarsBlock('https://git.example.test', 'bsd_abc').helper).toContain(
+      'export BEANSTALK_TOKEN=bsd_abc',
+    );
   });
 });
 

@@ -195,6 +195,7 @@ export function d1Registry(db: D1Database): Registry {
     async remove(id) {
       await db.batch([
         db.prepare('DELETE FROM repository_activity WHERE repo_id = ?').bind(id),
+        db.prepare('DELETE FROM deploy_tokens WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },

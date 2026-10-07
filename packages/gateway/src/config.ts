@@ -11,6 +11,8 @@ export type GatewayConfig = {
   readonly runTokenTtlSeconds: number;
   /** TTL of the Artifacts tokens the gateway mints for the proxy and the runner (≤ 10 min). */
   readonly artifactsTokenTtlSeconds: number;
+  /** The web app people sign in to, named in the hint a credential-less request gets (may be empty). */
+  readonly webUrl: string;
 };
 
 const Seconds = z.coerce.number().int().min(60);
@@ -20,6 +22,7 @@ const Vars = z.object({
   ARTIFACTS_NAMESPACE: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{1,62}$/),
   RUN_TOKEN_TTL_SECONDS: Seconds.max(24 * 3600),
   ARTIFACTS_TOKEN_TTL_SECONDS: Seconds.max(600),
+  WEB_URL: z.union([z.url(), z.literal('')]).default(''),
 });
 
 /** The secrets the gateway signs and authenticates with. */
@@ -65,5 +68,6 @@ export function readConfig(env: Pick<Env, keyof z.infer<typeof Vars>>): GatewayC
     namespace: vars.ARTIFACTS_NAMESPACE,
     runTokenTtlSeconds: vars.RUN_TOKEN_TTL_SECONDS,
     artifactsTokenTtlSeconds: vars.ARTIFACTS_TOKEN_TTL_SECONDS,
+    webUrl: vars.WEB_URL,
   };
 }

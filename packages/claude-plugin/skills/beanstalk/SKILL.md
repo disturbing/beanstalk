@@ -5,17 +5,27 @@ description: How to work on a Beanstalk repository (an agent-first git forge whe
 
 # Working on a Beanstalk repository
 
-Git is the interface. The MCP server is optional context. Nothing is installed on the client
-beyond a credential (a token in the remote URL, or git's credential helper).
+Git is the interface. The MCP server is optional context. The client needs one thing: git
+connected to the person's account (below).
+
+## Connecting git
+
+If a Beanstalk git command fails with `Authentication failed`, `terminal prompts disabled` or
+`remote: Beanstalk: this git is not connected`, run `/beanstalk:setup [owner/repo]` (in Claude
+Code; other agents run the same script, `<web>/setup.sh`). It finds the person's SSH keys
+(1Password's SSH agent, ssh-agent, `~/.ssh`) or makes one, asks which to use, opens Beanstalk
+once to approve it, and points git at Beanstalk. Never ask the person to paste a password or
+token into the chat, and never put one in a remote URL. CI and scripts use a deploy token
+instead: `BEANSTALK_TOKEN` plus `GIT_CONFIG_*` (the repository page, tab "Env vars").
 
 Words: a **bean** is one small change on a branch `bean/<short-name>`. The **sprout** is the
 latest integrated state (every landed bean); build on it. The **stalk** is the validated line
 behind it. `main` is never yours.
 
-Server status: git-native intake is **coming**. Until it lands, beans are branches
-`beans/<task>` pushed by a driver with a slot token, and the verdict reaches you through MCP
-`change_status` and `checks_get`. The flow below is the target. If a push is not accepted or
-prints no `remote:` lines, use MCP (`references/mcp-tools.md`).
+Server status: git-native intake is live on people's repositories
+(`https://<gateway>/git/<owner>/<repo>.git`); git over SSH (`ssh://git@<ssh host>/…`) is
+coming, and setup switches the remote when it lands. If a push prints no `remote:` lines,
+use MCP (`references/mcp-tools.md`).
 
 ## The flow
 

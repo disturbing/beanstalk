@@ -105,6 +105,8 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  packages/claude-plugin: {}
+
   packages/gateway:
     dependencies:
       '@beanstalk/shared-identity':

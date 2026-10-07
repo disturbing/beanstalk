@@ -13,6 +13,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 
 import type { AppEnv } from '../app-env';
+import { notConnected } from '../auth/connect-hint';
 import { presentedToken } from '../auth/credentials';
 import type { GitCredential } from '../auth/git-credential';
 import { verifyGitCredential } from '../auth/git-credential';
@@ -21,6 +22,7 @@ import type { GitPath } from '../git/git-path';
 import { accessFor, parseGitPath } from '../git/git-path';
 import { inspectPush, pushRefusal } from '../git/receive-pack';
 import { repoGit } from '../push/push-proxy';
+import { usedFrom } from '../repos/deploy-tokens';
 import { runOfRepo } from '../run/run-names';
 
 const CHALLENGE = { 'www-authenticate': 'Basic realm="beanstalk"' };
@@ -29,12 +31,22 @@ export const gitRoutes = new Hono<AppEnv>().all('/*', async (c) => {
   const deps = c.var.deps;
   const parsed = parseGitPath(new URL(c.req.url), c.req.method);
   if (!parsed.ok) return c.text(parsed.message, parsed.status);
+  const isRace = parsed.path.namespace === deps.config.namespace;
   const token = presentedToken(c.req.raw);
-  if (token === null) return c.text('a beanstalk token is required', 401, CHALLENGE);
-  const credential = await verifyGitCredential({ ...deps, identity: c.env }, token);
-  if (credential === null) return c.text('invalid or expired token', 401, CHALLENGE);
+  if (token === null)
+    return isRace
+      ? c.text('a beanstalk token is required', 401, CHALLENGE)
+      : notConnected('missing', deps.config.webUrl);
+  const credential = await verifyGitCredential(
+    { ...deps, identity: c.env, forge: c.env.FORGE, usedFrom: usedFrom(c.req.raw) },
+    token,
+  );
+  if (credential === null)
+    return isRace
+      ? c.text('invalid or expired token', 401, CHALLENGE)
+      : notConnected('refused', deps.config.webUrl);
   if (credential.scopes.length === 0) return c.text('this token has no git access', 403);
-  if (parsed.path.namespace !== deps.config.namespace) {
+  if (!isRace) {
     return repoGit({
       request: c.req.raw,
       path: parsed.path,

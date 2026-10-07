@@ -500,16 +500,19 @@
 .guide {
   padding: 26px 28px 48px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 26px;
   align-content: start;
   max-width: 860px;
 }
 .steps {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 .step {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 .step h2 {
@@ -649,6 +652,87 @@
   white-space: pre-wrap;
   color: var(--ink-2);
 }
+/* ---------- Connect git: Plugin, HTTPS, Env vars ---------- */
+.connectTabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--rule);
+}
+.connectTab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--step--1);
+  padding: 8px 12px;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.connectTab:hover {
+  color: var(--ink);
+}
+.connectTab[aria-selected='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--good-fill);
+}
+.connectTab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.connectPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding-top: 4px;
+}
+.connectWarning {
+  border-left: 3px solid var(--warn-fill);
+  background: var(--warn-wash);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 12px;
+  font-size: var(--step--1);
+  color: var(--ink);
+}
+.connectWarning code {
+  overflow-wrap: anywhere;
+}
+.connectNote {
+  border-left: 3px solid var(--good-fill);
+  background: var(--good-wash);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 12px;
+  font-size: var(--step--1);
+}
+.deployForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.deployForm .input {
+  width: auto;
+  min-width: 0;
+}
+.deployList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.deployList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: var(--step--1);
+}
+
 .rules {
   margin: 0;
   padding-left: 18px;

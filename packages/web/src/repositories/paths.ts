@@ -1,12 +1,19 @@
 /**
  * Where repositories live in the app (`/<owner>/<repo>`), the names the app's own routes
  * take (an owner or repository can never be one of them), and how a person or an agent
- * starts: the clone URL, a first bean pushed with plain git, and the agent install lines.
+ * starts: the clone URL, a first bean pushed with plain git, and the three ways to connect
+ * git (the Plugin, HTTPS and Env vars tabs of the start page).
  */
 import { isReservedHandle } from '@beanstalk/shared-identity/reserved-handles';
 
-/** Top-level static files the build serves, beside the routes accounts reserve as handles. */
-const STATIC_PATHS: ReadonlySet<string> = new Set(['_next', 'assets', 'favicon.ico']);
+/** Top-level static files and scripts the app serves, beside the routes accounts reserve. */
+const STATIC_PATHS: ReadonlySet<string> = new Set([
+  '_next',
+  'assets',
+  'favicon.ico',
+  'setup.sh',
+  'setup.ps1',
+]);
 
 /** Sub-paths of a repository the app serves. */
 export const REPOSITORY_VIEWS = ['files', 'settings'] as const;
@@ -23,12 +30,14 @@ export function isReservedOwner(owner: string): boolean {
   return isReservedHandle(owner) || STATIC_PATHS.has(owner.toLowerCase());
 }
 
-/** The deployment's public addresses for git and MCP (vars, so each environment sets its own). */
+/** The deployment's public addresses for git, MCP and the web app (vars, per environment). */
 export type StartConfig = {
   /** The gateway's public origin, e.g. `https://git.beanstalk.example`. */
   readonly gitOrigin: string;
   /** The MCP endpoint agents connect to. */
   readonly mcpUrl: string;
+  /** The web app's origin (where `setup.sh` and Settings live). */
+  readonly webOrigin: string;
 };
 
 export type StartGuide = {
@@ -39,6 +48,16 @@ export type StartGuide = {
   readonly agents: readonly { readonly harness: string; readonly line: string }[];
   /** What to say to a connected agent. */
   readonly prompt: string;
+  /** The Plugin tab: one line that installs the plugin and runs setup; Codex's equivalent. */
+  readonly plugin: {
+    readonly claude: string;
+    readonly codex: string;
+    readonly codexPrompt: string;
+  };
+  /** The HTTPS tab: where a token comes from, and the token-in-URL last resort. */
+  readonly https: { readonly tokensPath: string; readonly urlWithToken: string };
+  /** The gateway origin the Env vars tab configures. */
+  readonly gitOrigin: string;
 };
 
 /**
@@ -48,7 +67,9 @@ export type StartGuide = {
 const PLUGIN_MARKETPLACE = 'disturbing/beanstalk';
 
 export function startGuide(config: StartConfig, owner: string, name: string): StartGuide {
-  const cloneUrl = `${config.gitOrigin.replace(/\/+$/, '')}/git/${owner}/${name}.git`;
+  const origin = config.gitOrigin.replace(/\/+$/, '');
+  const web = config.webOrigin.replace(/\/+$/, '');
+  const cloneUrl = `${origin}/git/${owner}/${name}.git`;
   const directory = name.replace(/\.+$/, '') || 'repo';
   return {
     cloneUrl,
@@ -72,5 +93,44 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
       { harness: 'Any MCP client', line: config.mcpUrl },
     ],
     prompt: `Work on ${owner}/${name} on Beanstalk: clone it, make the change as a bean, and push it.`,
+    plugin: {
+      claude: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup ${owner}/${name}"`,
+      codex: `codex mcp add beanstalk --url ${config.mcpUrl} && codex mcp login beanstalk`,
+      codexPrompt: `Set up git for Beanstalk: run "curl -fsSL ${web}/setup.sh | sh -s -- detect", ask me which SSH key to use, register it with the same script, then run its "remote ${owner}/${name}".`,
+    },
+    https: {
+      tokensPath: '/settings/tokens',
+      urlWithToken: cloneUrl.replace(/^https:\/\//, 'https://x:<token>@'),
+    },
+    gitOrigin: origin,
+  };
+}
+
+/**
+ * The Env vars tab's block for CI and scripts: git reads the token from BEANSTALK_TOKEN for
+ * the Beanstalk host only, through `GIT_CONFIG_*` (git 2.31+), and never prompts. The second
+ * form sends it as a Bearer header instead of through a credential helper.
+ */
+export function envVarsBlock(
+  gitOrigin: string,
+  token: string | null,
+): { readonly helper: string; readonly header: string } {
+  const origin = gitOrigin.replace(/\/+$/, '');
+  const common = [
+    `export BEANSTALK_TOKEN=${token ?? '<deploy token>'}`,
+    'export GIT_TERMINAL_PROMPT=0',
+    'export GIT_CONFIG_COUNT=1',
+  ];
+  return {
+    helper: [
+      ...common,
+      `export GIT_CONFIG_KEY_0='credential.${origin}.helper'`,
+      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'`,
+    ].join('\n'),
+    header: [
+      ...common,
+      `export GIT_CONFIG_KEY_0='http.${origin}/.extraheader'`,
+      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"',
+    ].join('\n'),
   };
 }

@@ -3,6 +3,7 @@
  * they may read it (a 404 otherwise, the same for private and missing). Server-only.
  */
 import { env } from 'cloudflare:workers';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import { currentUser } from '../auth/user';
@@ -41,6 +42,9 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
   };
 }
 
-export function startConfig(): StartConfig {
-  return { gitOrigin: env.GIT_ORIGIN, mcpUrl: env.MCP_URL };
+/** The start page's addresses: the vars, and this site's own origin (from the request). */
+export async function startConfig(): Promise<StartConfig> {
+  const host = (await headers()).get('host') ?? 'localhost';
+  const scheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? 'http' : 'https';
+  return { gitOrigin: env.GIT_ORIGIN, mcpUrl: env.MCP_URL, webOrigin: `${scheme}://${host}` };
 }

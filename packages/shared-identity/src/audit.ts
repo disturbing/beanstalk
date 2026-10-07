@@ -18,7 +18,10 @@ export type AuditAction =
   | 'session_token.mint'
   | 'oauth.grant'
   | 'oauth.deny'
-  | 'oauth.revoke';
+  | 'oauth.revoke'
+  | 'ssh_key.add'
+  | 'ssh_key.remove'
+  | 'ssh_key.deny';
 
 export type AuditEvent = {
   readonly action: AuditAction;

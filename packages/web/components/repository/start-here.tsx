@@ -1,14 +1,16 @@
 /**
  * A new repository's page before anything has grown: the first screen a new user sees. It
- * says what is on the stalk and exactly how a person or an agent starts: an agent install
- * line and what to ask, a first bean pushed with plain git, the clone URL, and what counts
- * as green. The stalk on the left is the real one: its root commit, and a socket where the
+ * says what is on the stalk and exactly how a person or an agent starts: connecting git (the
+ * Plugin, HTTPS and Env vars tabs), what to ask an agent, a first bean pushed with plain git,
+ * the clone URL, and what counts as green. The stalk on the left is the real one: its root commit, and a socket where the
  * first bean will grow.
  */
 import Link from 'next/link';
 
 import type { StartGuide } from '../../src/repositories/paths';
 import type { RepositoryFiles, RepositoryRecord } from '../../src/repositories/registry-client';
+import type { DeployTokenAccess } from './connect-tabs';
+import { ConnectTabs } from './connect-tabs';
 import { CopyButton } from './copy-button';
 import styles from './repository.module.css';
 
@@ -16,6 +18,7 @@ export function StartHere(props: {
   readonly record: RepositoryRecord;
   readonly files: RepositoryFiles | null;
   readonly guide: StartGuide;
+  readonly deploy: DeployTokenAccess;
 }) {
   const { record, files, guide } = props;
   return (
@@ -29,6 +32,7 @@ export function StartHere(props: {
           {record.description === '' ? null : <p className={styles.sub}>{record.description}</p>}
         </div>
         <div className={styles.steps}>
+          <ConnectTabs guide={guide} deploy={props.deploy} />
           <AgentStep guide={guide} />
           <GitStep guide={guide} />
           <section className={styles.step} aria-labelledby="clone-title">
@@ -50,19 +54,10 @@ function AgentStep({ guide }: { readonly guide: StartGuide }) {
     <section className={styles.step} aria-labelledby="agent-title">
       <h2 id="agent-title">Hand it to an agent</h2>
       <p>
-        Install Beanstalk in your agent once. Then ask for the change you want: the agent opens a
-        bean, pushes it, and reworks it if a check fails. You answer the decisions only people
-        should make.
+        Once git is connected, ask for the change you want: the agent opens a bean, pushes it, and
+        reworks it if a check fails. You answer the decisions only people should make. Any other MCP
+        client connects to <code>{guide.agents.at(-1)?.line}</code>.
       </p>
-      <div className={styles.harnesses}>
-        {guide.agents.map((agent) => (
-          <div key={agent.harness} className={styles.harness}>
-            <b>{agent.harness}</b>
-            <code>{agent.line}</code>
-            <CopyButton text={agent.line} label={`the ${agent.harness} line`} />
-          </div>
-        ))}
-      </div>
       <div className={styles.say}>
         <q>{guide.prompt}</q>
         <CopyButton text={guide.prompt} label="what to ask your agent" />
@@ -104,7 +99,8 @@ function GitStep(props: { readonly guide: StartGuide }) {
           land, never by a push.
         </li>
         <li>
-          When git asks for a password, paste a personal token with write access from{' '}
+          git signs in with what Connect git set up. Without it git asks for a password: paste a
+          personal token with write access from{' '}
           <Link href="/settings/tokens">Settings, Tokens</Link>; any user name works.
         </li>
       </ul>
