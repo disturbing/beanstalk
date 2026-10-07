@@ -94,6 +94,7 @@ with source revisions, cursors and handles (`beans/<task>`, `file:<path>@<sha>`,
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | Holds until the check ends (or the stalk), at most 1,800 s; as `bean_status` plus `waited_s`, `timed_out` |
 | `task_list(repo)` | read | The backlog file on the sprout with each task's state |
 | `task_claim(repo, task)` | collaborate or write | Claims for two hours; refused with who holds it |
+| `task_release(repo, task)` | collaborate or write | Drops your claim and the names you reserved for the task; refused for someone else's claim |
 | `git_credentials(repo, ttl_minutes?)` | read (+write to push) | A `bss_` token bound to that repository, at most an hour, as `git credential approve` input |
 
 `bean_context`, `bean_update` and `bean_thread_post` accept `t032` or `beans/t032`; `change_status`,

@@ -339,6 +339,23 @@ describe('agent repositories: backlog', () => {
       ok: false,
       error: { status: 409, message: expect.stringContaining('claimed by @other-agent') },
     });
+    // Giving a task back frees it; someone else's claim is not ours to give back.
+    expect(await gateway.agentReleaseTask(as(coop), repo, 'add-total')).toMatchObject({
+      ok: false,
+      error: { status: 409, message: expect.stringContaining('claimed by @other-agent, not you') },
+    });
+    value(
+      await gateway.agentOpenBean(as(coop), repo, { bean: 'tax-try', intent: 'Tax', task: 'T-2' }),
+    );
+    const released = value(await gateway.agentReleaseTask(as(coop), repo, 'T-2'));
+    expect(released.task).toMatchObject({ id: 'T-2', state: 'open', by: null });
+    expect(await gateway.agentBean(as(coop), repo, 'tax-try')).toMatchObject({
+      ok: false,
+      error: { status: 404 },
+    });
+    expect(await engine.claimTask({ task: 'T-2', actor: 'other-agent' })).toMatchObject({
+      ok: true,
+    });
     // A reader of the public repository may not take its tasks.
     const dana = await person();
     expect(

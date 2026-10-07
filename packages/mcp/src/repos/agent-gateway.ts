@@ -21,6 +21,7 @@ const AGENT_METHODS = [
   'agentOpenBean',
   'agentBacklog',
   'agentClaimTask',
+  'agentReleaseTask',
 ] as const satisfies readonly (keyof AgentReposRpc)[];
 
 /** The binding as `AgentReposRpc`, or undefined when it does not answer to it. */

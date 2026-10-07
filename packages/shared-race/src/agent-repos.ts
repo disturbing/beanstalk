@@ -189,4 +189,10 @@ export type AgentReposRpc = {
     repo: string,
     task: string,
   ): Promise<RpcResult<TaskClaimed>>;
+  /** Gives a task back (the person's claim and names reserved for it); same scopes as a claim. */
+  agentReleaseTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>>;
 };

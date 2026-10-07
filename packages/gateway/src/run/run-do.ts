@@ -106,6 +106,7 @@ import {
   dropReservation,
   migrateAgentStore,
   readReservation,
+  releaseTask,
   reservationRefusal,
   reserveBean,
   taskStandings,
@@ -547,6 +548,14 @@ export class RunDO extends DurableObject<Env> {
     const closed = this.#agentWorkRefusal();
     if (closed !== null) return { ok: false, reason: closed };
     return claimTask(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
+  }
+
+  /** Gives a backlog task back: `actor`'s claim and reserved names for it go. */
+  releaseTask(input: { task: string; actor: string }): Refusable<TaskStanding> {
+    this.#countRequest();
+    const closed = this.#agentWorkRefusal();
+    if (closed !== null) return { ok: false, reason: closed };
+    return releaseTask(this.ctx.storage.sql, { ...input, nowMs: Date.now() });
   }
 
   /** Where each backlog task stands in this engine. */

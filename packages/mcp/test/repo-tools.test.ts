@@ -79,6 +79,7 @@ describe('repository tools', () => {
         'bean_wait',
         'task_list',
         'task_claim',
+        'task_release',
         'git_credentials',
         'whoami',
       ]),
@@ -175,6 +176,10 @@ describe('repository tools', () => {
     });
     expect(await tool(client, 'task_claim', { repo: slug(repo), task: 'T-2' })).toMatchObject({
       task: { id: 'T-2', state: 'claimed', by: user.handle },
+    });
+    expect(await tool(client, 'task_release', { repo: slug(repo), task: 'T-2' })).toMatchObject({
+      task: { id: 'T-2', state: 'open' },
+      summary: expect.stringContaining('Gave task T-2 back'),
     });
     expect(await tool(client, 'task_claim', { repo: slug(repo), task: 'T-3' })).toEqual({
       error: expect.stringContaining('ticked done'),

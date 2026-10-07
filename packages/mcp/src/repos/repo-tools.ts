@@ -22,6 +22,7 @@ import {
   repoStatus,
   taskClaim,
   taskList,
+  taskRelease,
 } from './repo-answers';
 
 export const REPO_TOOL_NAMES = [
@@ -32,6 +33,7 @@ export const REPO_TOOL_NAMES = [
   'bean_wait',
   'task_list',
   'task_claim',
+  'task_release',
   'git_credentials',
 ] as const;
 
@@ -154,6 +156,17 @@ function registerBacklogTools(server: McpServer, scope: ToolScope): void {
       annotations: RESERVES,
     },
     async ({ repo, task }) => answer(() => taskClaim(scope, { repo, task })),
+  );
+  server.registerTool(
+    'task_release',
+    {
+      title: 'Give a task back',
+      description:
+        'When you will not do a task you claimed (it turned out done, or you are stopping): drops your claim and the bean names you reserved for it, so another agent can take it. A bean you pushed for it still holds it. Needs the collaborate or write scope.',
+      inputSchema: z.object({ repo: Repo, task: TaskId }),
+      annotations: RESERVES,
+    },
+    async ({ repo, task }) => answer(() => taskRelease(scope, { repo, task })),
   );
 }
 

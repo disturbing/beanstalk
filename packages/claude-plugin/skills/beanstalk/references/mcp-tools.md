@@ -18,6 +18,7 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 ## The work cycle with MCP
 
 1. `task_list(repo)`; `task_claim(repo, task)`. Refused: someone holds it; pick another.
+   Not doing it after all: `task_release(repo, task)`.
 2. `bean_open(repo, bean, intent, task?)`: the branch, `start` and `push` commands.
 3. Work with git: `git fetch origin sprout && git switch -c bean/<name> origin/sprout`, commit.
 4. `git push -o wait origin HEAD:refs/heads/bean/<name>`: the verdict prints as `remote:`.
@@ -35,6 +36,7 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o wait`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s |
 | `task_list(repo)` | read | The backlog (`.beanstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
 | `task_claim(repo, task)` | collaborate or write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
+| `task_release(repo, task)` | collaborate or write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |
 | `git_credentials(repo, ttl_minutes?)` | read (push needs write) | Only when git is not connected: a credential for that one repository, at most an hour, as `git credential approve` input |
 
 Backlog format: `- [ ] <id>: <title>` items (ticked = done), detail indented below. Change

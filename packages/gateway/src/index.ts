@@ -403,6 +403,14 @@ export default class Gateway
     return this.#agents().agentClaimTask(principal, repo, task);
   }
 
+  agentReleaseTask(
+    principal: AgentPrincipal,
+    repo: string,
+    task: string,
+  ): Promise<RpcResult<TaskClaimed>> {
+    return this.#agents().agentReleaseTask(principal, repo, task);
+  }
+
   #agents(): AgentReposRpc {
     return agentReposRpc(createDeps(this.env));
   }

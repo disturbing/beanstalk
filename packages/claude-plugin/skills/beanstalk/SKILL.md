@@ -75,7 +75,8 @@ Git does the work; MCP (`/mcp`, OAuth login) coordinates it and adds context git
 give. Tools take the repository as `repo: "owner/name"`.
 
 - **Before starting:** if the repository has a backlog, `task_list` then `task_claim` so no
-  other agent takes the same task (a refused claim names who holds it: pick another). Then
+  other agent takes the same task (a refused claim names who holds it: pick another;
+  `task_release` gives back one you will not do). Then
   `bean_open(repo, bean, intent, task?)` reserves the name and intent and returns the
   branch and push commands; `work_overlaps(paths, repo)` shows who is editing those files.
 - **After pushing:** `git push -o wait` prints the verdict. Pushed without `-o wait`, or

@@ -145,6 +145,28 @@ export function claimTask(
   return { ok: true, value: taskStanding(sql, input.task, input.nowMs) };
 }
 
+/**
+ * Gives a task back: drops `actor`'s claim and the names they reserved for it (not their
+ * pushed beans: a bean out for the task still holds it). Refused while someone else holds it.
+ */
+export function releaseTask(
+  sql: SqlStorage,
+  input: { readonly task: string; readonly actor: string; readonly nowMs: number },
+): Refusable<TaskStanding> {
+  const claim = Claim.safeParse(readRow(sql, 'task_claims', 'task', input.task));
+  const isOthers =
+    claim.success &&
+    claim.data.expiresMs > input.nowMs &&
+    !isSamePerson(claim.data.actor, input.actor);
+  if (isOthers) return refuse(`task ${input.task} is claimed by @${claim.data.actor}, not you`);
+  sql.exec('DELETE FROM task_claims WHERE task = ?', input.task);
+  for (const reservation of liveReservations(sql, input.nowMs)) {
+    if (reservation.task === input.task && isSamePerson(reservation.actor, input.actor))
+      dropReservation(sql, reservation.bean);
+  }
+  return { ok: true, value: taskStanding(sql, input.task, input.nowMs) };
+}
+
 /** Where each task stands: done by a landed bean, in progress, claimed, or open. */
 export function taskStandings(
   sql: SqlStorage,

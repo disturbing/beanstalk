@@ -71,11 +71,20 @@ export function agentReposRpc(deps: Deps): AgentReposRpc {
       within(deps, { principal, repo, need: CLAIM_TASK }, (opened) =>
         claim(opened, principal, task),
       ),
+    agentReleaseTask: (principal, repo, task) =>
+      within(deps, { principal, repo, need: RELEASE_TASK }, (opened) =>
+        release(opened, principal, task),
+      ),
   };
 }
 
 const READ = { kind: 'read' } as const;
 const OPEN_BEAN = { kind: 'act', scopes: ['write'], what: 'Opening a bean' } as const;
+const RELEASE_TASK = {
+  kind: 'act',
+  scopes: ['collaborate', 'write'],
+  what: 'Releasing a task',
+} as const;
 const CLAIM_TASK = {
   kind: 'act',
   scopes: ['collaborate', 'write'],
@@ -260,6 +269,25 @@ async function claim(
   const claimed = await opened.engine.claimTask({ task: id.data, actor: principal.user.handle });
   if (!claimed.ok) return failure('conflict', 409, claimed.reason);
   return ok({ repo, task: taskView(entry, claimed.value) });
+}
+
+async function release(
+  opened: Opened,
+  principal: AgentPrincipal,
+  raw: string,
+): Promise<RpcResult<TaskClaimed>> {
+  const id = BacklogTaskId.safeParse(raw);
+  if (!id.success) return failure('invalid_request', 400, `"${raw}" is not a task id`);
+  const { file, entries } = await backlogEntries(opened);
+  const entry = entries.find((candidate) => candidate.id === id.data);
+  if (file === null || entry === undefined)
+    return failure('not_found', 404, `${opened.repository.repo} has no task ${id.data}`);
+  const released = await opened.engine.releaseTask({
+    task: id.data,
+    actor: principal.user.handle,
+  });
+  if (!released.ok) return failure('conflict', 409, released.reason);
+  return ok({ repo: opened.repository.repo, task: taskView(entry, released.value) });
 }
 
 /** The backlog file on the sprout and its tasks; none when the repository has no backlog. */

@@ -156,6 +156,18 @@ export async function taskClaim(
   };
 }
 
+export async function taskRelease(
+  scope: ToolScope,
+  input: { readonly repo: string; readonly task: string },
+): Promise<object> {
+  const { agents, principal } = sessionOf(scope);
+  const released = valueOf(await agents.agentReleaseTask(principal, input.repo, input.task));
+  return {
+    ...released,
+    summary: `Gave task ${released.task.id} back; it is ${released.task.state} now.`,
+  };
+}
+
 /** The clone URL of a repository on the gateway. */
 export function cloneUrl(scope: ToolScope, gitPath: string): string {
   return new URL(gitPath, scope.gitOrigin).toString();
