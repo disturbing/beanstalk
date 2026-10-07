@@ -347,7 +347,16 @@ class GitHubForge(Forge):
             d["minutes"] = round(d["minutes"] + r.seconds / 60, 2)
             d["suite_minutes"] = round(d["suite_minutes"] + (r.suite_seconds or 0) / 60, 2)
             d["red"] += r.green is False
-        return {"repo": getattr(self.client, "html_url", self.client.full), "ruleset": self.ruleset()["rules"][0]
+        spans = [(r.started_at, r.completed_at) for r in runs if r.started_at and r.completed_at]
+        concurrency = {"max_concurrent_jobs": max_overlap(spans),
+                       "max_concurrent_pr_checks": max_overlap([(r.started_at, r.completed_at) for r in runs
+                                                                if r.event == "pull_request" and r.started_at
+                                                                and r.completed_at]),
+                       "max_concurrent_merge_groups": max_overlap([(r.started_at, r.completed_at) for r in runs
+                                                                   if r.event == "merge_group" and r.started_at
+                                                                   and r.completed_at]),
+                       "org_job_cap": 20, "runner": "ubuntu-latest (4 vCPU, public repo)"}
+        return {"concurrency": concurrency, "repo": getattr(self.client, "html_url", self.client.full), "ruleset": self.ruleset()["rules"][0]
                 ["parameters"], "ci": by_event, "ci_minutes": round(sum(d["minutes"] for d in by_event.values()), 2),
                 "suite_minutes": round(sum(d["suite_minutes"] for d in by_event.values()), 2),
                 "red_validations": by_event.get("merge_group", {}).get("red", 0),
@@ -510,6 +519,22 @@ class BeanstalkForge(Forge):
                 "git_calls": dict(getattr(self.client, "calls", {}))}
 
 
+def max_overlap(intervals: list[tuple[float, float]]) -> int:
+    """The most intervals open at one moment."""
+    edges = sorted([(a, 1) for a, _ in intervals] + [(b, -1) for _, b in intervals], key=lambda x: (x[0], x[1]))
+    cur = best = 0
+    for _, d in edges:
+        cur += d
+        best = max(best, cur)
+    return best
+
+
+# A continuous engine's pre-land checks run on a pool of this many shared sandboxes (one standard-4 container
+# each; slot i uses sandbox i % 2), whatever the number of beans checking at once: packages/gateway
+# src/run/run-names.ts SHARED_SANDBOXES at the gateway versions measured (live before and at 48ed740e, staging-lg).
+PRELAND_SANDBOXES = 2
+
+
 def engine_ci(events: list[dict]) -> dict:
     """CI work from a Beanstalk engine's event log: pre-land checks (in the slots' sandboxes) and validations
     (CI slots), minutes and counts, reused checks, red validations; the seed bean's check is left out."""
@@ -559,4 +584,13 @@ def engine_ci(events: list[dict]) -> dict:
             "evidence_refusals": refused,
             "evidence_affected_share": round(sum(affected) / len(affected), 3) if affected else None,
             "demotions": sum(1 for e in events if e.get("type") == "green.demote"),
+            "preland_capacity": {
+                "sandboxes": PRELAND_SANDBOXES,
+                "max_concurrent_checks": max_overlap([(float(e["t"]) - float(e.get("check_seconds") or 0),
+                                                       float(e["t"])) for e in pre]),
+                "max_concurrent_suites": max_overlap([(float(e["t"]) - float(e.get("suite_seconds") or 0),
+                                                       float(e["t"])) for e in pre]),
+                "suite_timeouts": sum(1 for e in pre if float(e.get("suite_seconds") or 0) >= 299),
+                "ci_slots": 2, "max_concurrent_ci": max_overlap(
+                    [(float(e["t"]) - float(e.get("ci_seconds") or 0), float(e["t"])) for e in ci])},
             "engine_event_types": sorted({e.get("type") for e in events if e.get("type")})}
