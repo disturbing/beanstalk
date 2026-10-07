@@ -113,6 +113,20 @@ class GitHubArmRace(unittest.TestCase):
                                                                        "integration"), capture_output=True, text=True)
         self.assertEqual(remotes.stdout.strip(), "")
 
+    def test_release_on_enqueue_and_dependency_starts(self) -> None:
+        code, s, ev, _ = run_gh("release", "--agents", "2", "--ci-slots", "1", "--batch", "2", "--no-queue-hold",
+                                "--start-order", "dependency", "--tasks", "t001", "t002", "t003", "t005", *FAST)
+        self.assert_done(code, s, ev)
+        released = of(ev, "agent.released")
+        self.assertTrue(released, "agents are freed once the PR is enqueued")
+        first = released[0]
+        self.assertTrue([e for e in ev if e["seq"] > first["seq"] and e["type"] == "task.start"],
+                        "a released agent takes the next task before its PR merges")
+        self.assertEqual(len(of(ev, "placement.decision")), 4)
+        with open(os.path.join(RACE, "runs", "_test-gh-release", "config.json")) as fh:
+            gh = json.load(fh)["github"]
+        self.assertEqual((gh["start_order"], gh["agent_release"]), ("dependency", "pr-enqueued"))
+
     def test_conflict_with_main_goes_back_to_the_agent(self) -> None:
         code, s, ev, _ = run_gh("conflict", "--agents", "2", "--ci-slots", "1", "--batch", "2",
                                 "--tasks", "t001", "t002", *FAST)
