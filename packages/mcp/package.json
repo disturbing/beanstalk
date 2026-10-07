@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@beanstalk/shared-ask": "workspace:*",
+    "@beanstalk/shared-identity": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
+    "@cloudflare/workers-oauth-provider": "catalog:",
     "@modelcontextprotocol/server": "catalog:",
     "agents": "catalog:",
     "hono": "catalog:",

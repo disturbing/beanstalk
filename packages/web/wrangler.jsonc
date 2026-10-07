@@ -8,7 +8,29 @@
   "observability": { "enabled": true, "traces": { "enabled": true } },
   "assets": { "directory": "dist/client", "not_found_handling": "none", "binding": "ASSETS" },
   // Live runs, decisions and the repository views come from the gateway over RPC (never HTTP).
-  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  // MCP: the OAuth consent screen and connected agents (its AgentSessionsRpc).
+  "services": [
+    { "binding": "GATEWAY", "service": "beanstalk-gateway" },
+    { "binding": "MCP", "service": "beanstalk-mcp" },
+  ],
+  // Accounts (docs/claude-opus/19-accounts-and-auth.md): people, passkeys, sessions, tokens,
+  // audit. The schema is packages/shared-identity/migrations; apply it from this package:
+  // `wrangler d1 migrations apply beanstalk-identity --remote`.
+  "d1_databases": [
+    {
+      "binding": "IDENTITY_DB",
+      "database_name": "beanstalk-identity",
+      "migrations_dir": "../shared-identity/migrations",
+    },
+  ],
+  // Sign-in endpoints: 10 attempts a minute per IP, and per email or handle.
+  "ratelimits": [
+    {
+      "name": "SIGNIN_RATE_LIMIT",
+      "namespace_id": "4101",
+      "simple": { "limit": 10, "period": 60 },
+    },
+  ],
   "vars": {
     "LOG_LEVEL": "info",
     // How Ask turns a question into a view spec: "keywords" (deterministic, the default) or
@@ -20,6 +42,10 @@
     // Any Jev failure falls back to the rules, and every pick leaves a receipt.
     "PICKER": "jev",
     "JEV_GATEWAY": "default",
+    // Email magic links stay off (and hidden) until a sender domain is onboarded to
+    // Cloudflare Email Service. To turn them on: set this to the domain (mail comes from
+    // signin@<domain>) and add `"send_email": [{ "name": "EMAIL" }]`. See doc 19.
+    "EMAIL_SENDER_DOMAIN": "",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
   // Billed to the account; no API key is involved. `remote` makes local dev call it too.

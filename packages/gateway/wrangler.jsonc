@@ -47,4 +47,13 @@
     },
   ],
   "artifacts": [{ "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true }],
+  // Accounts: git credentials may be people's tokens (bsu_, bss_), verified against the
+  // identity database (packages/shared-identity, docs/claude-opus/19-accounts-and-auth.md).
+  "d1_databases": [
+    {
+      "binding": "IDENTITY_DB",
+      "database_name": "beanstalk-identity",
+      "migrations_dir": "../shared-identity/migrations",
+    },
+  ],
 }

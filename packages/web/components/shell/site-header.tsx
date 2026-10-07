@@ -1,13 +1,19 @@
 import Link from 'next/link';
 
-import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
+import { currentUser } from '../../src/auth/user';
 import { signOut } from '../../src/server/actions';
+import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
 import styles from './shell.module.css';
 import { ThemeToggle } from './theme-toggle';
 import { VineMark } from './vine-mark';
 
 export async function SiteHeader() {
-  const [theme, day, signedIn] = await Promise.all([viewerTheme(), viewerDay(), isSignedIn()]);
+  const [theme, day, demoGateOpen, user] = await Promise.all([
+    viewerTheme(),
+    viewerDay(),
+    isSignedIn(),
+    currentUser(),
+  ]);
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>
@@ -19,15 +25,20 @@ export async function SiteHeader() {
         <Link href="/race">Watch the race</Link>
       </nav>
       <div className={styles.tools}>
-        {signedIn ? (
+        {demoGateOpen ? (
           <form action={signOut}>
             <button type="submit" className={styles.textButton}>
-              Sign out
+              Close demo gate
             </button>
           </form>
-        ) : (
+        ) : null}
+        {user === null ? (
           <Link href="/login" className={styles.signIn}>
-            Sign in to decide
+            Sign in
+          </Link>
+        ) : (
+          <Link href="/settings" className={styles.signIn}>
+            @{user.handle}
           </Link>
         )}
         <ThemeToggle initial={theme} day={day} />
