@@ -289,6 +289,7 @@
     "agent_calls": 10,
     "max_agent_calls_in_one_message": 1,
     "background_agent_calls": 10,
+    "max_concurrent_subagents": 4,
     "commands": {
       "node": 25,
       "grep": 21,
@@ -320,49 +321,49 @@
   "greens": {
     "t002": {
       "sha": "d4ec7fae40f34de2e0678b9356620d785a63a926",
-      "seconds": 127.19
+      "seconds": 237.19
     },
     "t003": {
       "sha": "492b9887a3c4193d6c20f0961f310a8d890eec1c",
-      "seconds": 140.19
+      "seconds": 237.19
     },
     "t004": {
       "sha": "fecc08b8f31aef8db23942e27eb21f58bc1ae6ac",
-      "seconds": 144.19
+      "seconds": 328.19
     },
     "t001": {
       "sha": "5bd062d22192f2116ec0d298ce8b7f82b495d48b",
-      "seconds": 175.19
+      "seconds": 328.19
     },
     "t005": {
       "sha": "6a09b16f0ae18652a2040fd6345cf97bea15ff8c",
-      "seconds": 562.19
+      "seconds": 671.19
     },
     "t007": {
       "sha": "d189ced25ffa599e07c01c7c59797b2ab1a2665c",
-      "seconds": 678.19
+      "seconds": 756.19
     },
     "t008": {
       "sha": "8f832f7097f52c08eeebf6f747654fe52a11256c",
-      "seconds": 716.19
+      "seconds": 806.19
     },
     "t010": {
       "sha": "ea600c4a93ddcb45fa7d39901cb254c90fb6e744",
-      "seconds": 968.19
+      "seconds": 1080.19
     },
     "t006": {
       "sha": "c08f412be801651be5921a55b0a9efa48e81a5a8",
-      "seconds": 1419.19
+      "seconds": 1525.19
     },
     "t009": {
       "sha": "ed36a50a3d6d99089e80bbfe630c35771e9584bb",
-      "seconds": 2202.19
+      "seconds": 2319.19
     }
   },
   "replay": [
     {
       "sha": "d4ec7fae40f34de2e0678b9356620d785a63a926",
-      "at": 1791370246.0,
+      "at": 1791370356.0,
       "green": [
         "t002"
       ],
@@ -386,7 +387,7 @@
     },
     {
       "sha": "492b9887a3c4193d6c20f0961f310a8d890eec1c",
-      "at": 1791370259.0,
+      "at": 1791370356.0,
       "green": [
         "t003"
       ],
@@ -409,7 +410,7 @@
     },
     {
       "sha": "fecc08b8f31aef8db23942e27eb21f58bc1ae6ac",
-      "at": 1791370263.0,
+      "at": 1791370447.0,
       "green": [
         "t004"
       ],
@@ -431,7 +432,7 @@
     },
     {
       "sha": "5bd062d22192f2116ec0d298ce8b7f82b495d48b",
-      "at": 1791370294.0,
+      "at": 1791370447.0,
       "green": [
         "t001"
       ],
@@ -451,7 +452,7 @@
     },
     {
       "sha": "6a09b16f0ae18652a2040fd6345cf97bea15ff8c",
-      "at": 1791370681.0,
+      "at": 1791370790.0,
       "green": [
         "t005"
       ],
@@ -470,7 +471,7 @@
     },
     {
       "sha": "d189ced25ffa599e07c01c7c59797b2ab1a2665c",
-      "at": 1791370797.0,
+      "at": 1791370875.0,
       "green": [
         "t007"
       ],
@@ -486,7 +487,7 @@
     },
     {
       "sha": "8f832f7097f52c08eeebf6f747654fe52a11256c",
-      "at": 1791370835.0,
+      "at": 1791370925.0,
       "green": [
         "t008"
       ],
@@ -501,7 +502,7 @@
     },
     {
       "sha": "ea600c4a93ddcb45fa7d39901cb254c90fb6e744",
-      "at": 1791371087.0,
+      "at": 1791371199.0,
       "green": [
         "t010"
       ],
@@ -514,7 +515,7 @@
     },
     {
       "sha": "c08f412be801651be5921a55b0a9efa48e81a5a8",
-      "at": 1791371538.0,
+      "at": 1791371644.0,
       "green": [
         "t006"
       ],
@@ -525,7 +526,7 @@
     },
     {
       "sha": "ed36a50a3d6d99089e80bbfe630c35771e9584bb",
-      "at": 1791372321.0,
+      "at": 1791372438.0,
       "green": [
         "t009"
       ],
@@ -553,5 +554,6 @@
       "t009": true,
       "t010": true
     }
-  }
+  },
+  "greens_timing": "merge time of the PR whose squash commit first passes (re-timed 2026-10-07)"
 }

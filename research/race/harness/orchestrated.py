@@ -243,9 +243,16 @@ class GitHubForge:
         return asyncio.run(check())
 
     def fetch_line(self, repo: str) -> tuple[str, dict[str, float]]:
+        """``main`` and, per merge commit, when its PR merged: the merge queue's squash commits carry an earlier
+        committer date (seen 2026-10-07: up to 2 min before ``mergedAt``), so the commit date is not the merge."""
         run_git(repo, "fetch", "-q", "--no-tags", self.clone_url, "+refs/heads/main:refs/remotes/forge/main",
                 env=self.client.git_env())
-        return "refs/remotes/forge/main", {}
+        data = asyncio.run(self.client.graphql(PRS_QUERY, {"owner": self.client.owner, "name": self.client.repo},
+                                               what="prs"))
+        nodes = (((data.get("data") or {}).get("repository") or {}).get("pullRequests") or {}).get("nodes") or []
+        merged = {(n.get("mergeCommit") or {}).get("oid"): iso_epoch(n.get("mergedAt")) for n in nodes
+                  if n.get("merged") and n.get("mergeCommit")}
+        return "refs/remotes/forge/main", {sha: at for sha, at in merged.items() if sha and at}
 
     def collect(self, start: float) -> tuple[list[M.Change], list[dict]]:
         async def gather() -> tuple[dict, list]:
@@ -459,7 +466,8 @@ class BeanstalkForge:
         def change(task_id: str) -> M.Change:
             b = beans.get(task_id) or next((x for x in beans.values() if x.get("bean") == task_id), {})
             if task_id not in per:
-                per[task_id] = M.Change(id=task_id, task=b.get("task"), ready_at=None, integrated_at=None,
+                per[task_id] = M.Change(id=task_id, task=b.get("task") or task_of(f"{task_id} {b.get('title', '')}"),
+                                        ready_at=None, integrated_at=None,
                                         pushes=int(b.get("pushes") or 1), state=b.get("phase", ""))
             return per[task_id]
 
@@ -704,12 +712,16 @@ def parse_transcript(path: str, secrets: list[str]) -> dict:
     model_usage: dict = {}
     agent_calls, max_parallel, background = 0, 0, 0
     commands: dict[str, int] = {}
+    spans: dict[str, list[int]] = {}   # subagent (its parent tool-use id) -> first and last transcript line
     with open(path, encoding="utf-8", errors="replace") as fh:
-        for line in fh:
+        for index, line in enumerate(fh):
             try:
                 e = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            parent = e.get("parent_tool_use_id")
+            if parent:
+                spans.setdefault(parent, [index, index])[1] = index
             if e.get("type") == "assistant" and not e.get("parent_tool_use_id"):
                 uses = [c for c in (e.get("message") or {}).get("content") or [] if c.get("type") == "tool_use"]
                 calls = [u for u in uses if u.get("name") in ("Agent", "Task")]
@@ -729,10 +741,17 @@ def parse_transcript(path: str, secrets: list[str]) -> dict:
                 turns += int(e.get("num_turns") or 0)
                 model_usage = e.get("modelUsage") or model_usage
     top = dict(sorted(commands.items(), key=lambda kv: -kv[1])[:25])
+    # subagents running at once: the most whose transcript lines interleave (their output streams overlap)
+    marks = sorted([(a, 1) for a, _ in spans.values()] + [(b + 0.5, -1) for _, b in spans.values()])
+    depth = concurrent = 0
+    for _, step in marks:
+        depth += step
+        concurrent = max(concurrent, depth)
     # total_cost_usd covers the lead and every subagent: modelUsage's cache reads and writes equal the sum over the
     # lead's and the workers' assistant messages (checked on orch-fastify-sonnet-4-t10-github, 2026-10-07)
     return {"model_usage": model_usage, "cost_usd": round(cost, 4), "ok": ok, "subtype": subtype, "turns": turns, "agent_calls": agent_calls,
-            "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background, "commands": top}
+            "max_agent_calls_in_one_message": max_parallel, "background_agent_calls": background,
+            "max_concurrent_subagents": concurrent, "commands": top}
 
 
 def scrub(path: str, secrets: list[str]) -> None:
@@ -768,9 +787,8 @@ def to_markdown(s: dict) -> str:
         ("Wall (orchestrator) / settled (min)", f"{_m(s['wall_seconds'])} / {_m(s['settled_seconds'])}"),
         ("Model spend (USD)", s["cost_usd"]),
         ("CI minutes", f"{s['ci_minutes_total']} ({', '.join(f'{k} {v}' for k, v in s['ci_minutes'].items())})"),
-        ("Subagent calls / max in one message / background",
-         f"{s['orchestrator']['agent_calls']} / {s['orchestrator']['max_agent_calls_in_one_message']} / "
-         f"{s['orchestrator']['background_agent_calls']}"),
+        ("Subagent calls / most running at once", f"{s['orchestrator']['agent_calls']} / "
+                                                   f"{s['orchestrator'].get('max_concurrent_subagents')}"),
         ("Final: suite green / tasks accepted / correct",
          f"{s['final']['suite_green']} / {s['final']['tasks_accepted']} of {s['final']['tasks_total']} / "
          f"{s['final']['correct']}"),
