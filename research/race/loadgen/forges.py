@@ -83,6 +83,7 @@ class PR:
     merging_since: float | None = None   # driver clock: removed from the queue as merged
     merged_removed_at: float | None = None  # GitHub's time of that removal
     merge_checking: bool = False
+    closed_since: float | None = None
     merged_at: float | None = None
     pushed_at: float = 0.0
 
@@ -296,7 +297,12 @@ class GitHubForge(Forge):
                                              detail={"pr": number, "poll_lag_s": round(snap.at - pr.merged_at, 2)}))
                 continue
             if st.state == "CLOSED":
-                pr.future.set_result(Outcome("dropped", time.time(), reason="PR closed"))
+                # GitHub read a merged PR as CLOSED and not merged for one poll (2026-10-07, lg-fastify-4-s13): a
+                # closed PR is dropped only when main has no "(#N)" commit for it a minute later
+                pr.closed_since = pr.closed_since or time.time()
+                if time.time() - pr.closed_since > 60 and not pr.merge_checking:
+                    pr.merge_checking = True
+                    asyncio.ensure_future(self._check_merged(pr, drop_if_missing=True))
                 continue
             if st.head_oid != pr.head:
                 continue
@@ -317,7 +323,7 @@ class GitHubForge(Forge):
                 pr.enqueue_tries += 1
                 asyncio.ensure_future(self._enqueue(pr))
 
-    async def _check_merged(self, pr: PR) -> None:
+    async def _check_merged(self, pr: PR, drop_if_missing: bool = False) -> None:
         """Measured 2026-10-07 (lg-fastify-16-s11): GitHub removed a PR from the queue as ``merged`` and put its
         squash commit ``… (#N)`` on ``main``, but the PR stayed OPEN (not merged) for over an hour. Two minutes
         after such a removal, ``main`` is read with git: the commit there is the merge, at GitHub's removal time."""
@@ -332,6 +338,8 @@ class GitHubForge(Forge):
                 self.log("gh.merged_pr_open", task=pr.task, pr=pr.number, sha=sha)
                 pr.future.set_result(Outcome("integrated", pr.merged_at, sha,
                                              detail={"pr": pr.number, "pr_state_lagged": True}))
+            elif drop_if_missing and pr.future is not None and not pr.future.done():
+                pr.future.set_result(Outcome("dropped", time.time(), reason="PR closed"))
         finally:
             pr.merge_checking = False
             pr.merging_since = time.time()   # check again later if not found
