@@ -102,7 +102,8 @@ export function startRace(ctx: StepContext, baseSha: Sha, labels: RunLabels): vo
   state.policy = createPolicyState(ctx);
   ctx.hooks = bindPolicy(ctx);
   emitRaceStart(ctx, baseSha, roundTo(ctx.now - setupAt, 3));
-  setTimer(ctx, config.max_wall_minutes * 60, { kind: 'wall-clock' });
+  // A continuous engine has no end; only a race is bounded by the wall clock.
+  if (!config.continuous) setTimer(ctx, config.max_wall_minutes * 60, { kind: 'wall-clock' });
 }
 
 function emitFootprints(ctx: StepContext): void {

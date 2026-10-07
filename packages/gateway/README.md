@@ -7,7 +7,7 @@ The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 o
 - proxies git for the agents, which never hold Artifacts tokens;
 - drives the runner container for squashes, reverts, suites and ref updates.
 
-It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)).
+It also serves the web app over RPC (see [RPC for the web app](#rpc-for-the-web-app)), and runs **repository engines**: a continuous engine per persistent repository, where `git push` submits a bean (see [Repository engines: the git-native flow](#repository-engines-the-git-native-flow)).
 
 The engine ports two harness policies, `queue` (the baseline) and `beanstalk-v2` (the product). v2 runs the v2.5 rules by default (see [The v2.2 to v2.5 rules](#the-v22-to-v25-rules)). Every run logs `events.jsonl` in the harness schema and writes a `summary.json`, so `research/race` tools (`summary.py`, `report.py`, `kth_green.py`) read cloud runs unchanged.
 
@@ -58,9 +58,14 @@ A runner job that keeps failing for one bean drops only that bean, with reason `
 | `POST /v1/runs/:run/invocations/:inv/result` | slot token | The invocation's result, posted after the driver commits and pushes |
 | `POST /v1/runs/:run/invocations/:inv/progress` | slot token | `{cost_usd, files?}`, the running estimate. The answer can tell the driver to abort, or carry a mid-run sync offer (`live_sync_midrun`) |
 | `POST /v1/runs/:run/invocations/:inv/stream` | slot token | `stream_diffs` only: the bean's working change while its agent writes (see [Streaming diffs](#streaming-diffs)). `409 stream_off` when the run does not stream, `409 closed_invocation` once the invocation ended, `404 unknown_invocation` before the invocation is open for streaming |
+| `/git/<owner>/<repo>.git/*` | `git` or `view` token of that repository's engine, as Basic password or Bearer | The git-native flow (`docs/claude-opus/18-git-native-flow.md`): clone and fetch; a push to `refs/heads/bean/<name>` submits a bean and answers with `remote:` lines (`-o wait` holds it for the verdict); pushes to `sprout`, `stalk`, `main`, other branches and deletions are refused in the protocol |
+| `POST /v1/repos` | admin | Opens a repository engine (`openRepoEngine`'s input; `create_artifacts_repo: true` also creates a missing Artifacts repo). `201` new, `200` existing |
+| `POST /v1/repos/:engine/git-token` | admin | `{user: {id, handle}, ttl_seconds?}`: a `git` token for the engine |
+| `GET /v1/repos/:engine/beans` | admin | The pushed beans: phase, reason, task, actor, verdict lines |
+| `POST /v1/repos/:engine/close` | admin | `{delete_repo}`: stops the engine; with `delete_repo` deletes its Artifacts repo |
 | `/git/<namespace>/<repo>.git/*` | slot or seed token, as Bearer or Basic password | Git smart-HTTP proxy. A slot reads the run repo and pushes only its own bean branch `refs/heads/beans/<task>`; the proxy refuses other refs and deletions. The seed token pushes the sprout and the stalk before the start. Bodies stream through; a redirect from the Artifacts remote is never passed on (`502 upstream_failed`); the gateway mints a short-lived Artifacts token server-side |
 
-Errors are `{"error": {"code", "message", "issues?"}}`. Run tokens are `bst1.<claims>.<HMAC>` with scope `slot`, `seed` or `view`.
+Errors are `{"error": {"code", "message", "issues?"}}`. Run tokens are `bst1.<claims>.<HMAC>` with scope `slot`, `seed`, `view`, `contributor` or `git`. Every git request's credential is checked by `verifyGitCredential` (`src/auth/git-credential.ts`), the one function user tokens will extend.
 
 ## A run, end to end
 
@@ -661,6 +666,17 @@ The feed sends the run view first, then each step's events; an `update` carries 
 **Trust boundary.** The binding is the boundary: RPC calls are not authenticated by the gateway. Only the web Worker holds the binding, and it must authenticate its users before it calls `decide`. Repository reads go through the gateway's own Artifacts binding, so no token leaves the gateway.
 
 **Where repo reads come from.** The brief asked for grep and diff on the runner, with a read-only token on a CI instance. The runner has no grep or diff endpoint, and the runner crate was outside this change. So `src/adapters/repo-explorer.ts` computes both in the Worker, from Artifacts tree and blob reads, within the bounds above. A grep runs inside the RunDO, on the thread that runs the engine, so its pattern is a literal unless the caller asks for the safe regex subset (see `repoGrep`), and lines are cut at 2,000 characters before the test; a pathological pattern cannot pin a race. Moving grep and diff to the runner later changes only that adapter.
+
+## Repository engines: the git-native flow
+
+The full design, messages and contracts are in `docs/claude-opus/18-git-native-flow.md`; this is the map.
+
+- **What.** A continuous engine (`RunConfig.continuous`, `CONTINUOUS_SETTINGS`: the `demo` rules without a race's bounds) in a `RunDO` keyed by an engine id derived from `<owner>/<repo>`. No task list: beans arrive by push. It never finishes, sets no wall clock and no invocation watchdog, and never deletes its repository.
+- **Push = submit** (`src/push/push-proxy.ts`). The proxy reads the push's commands and options (`src/git/push-request.ts`), refuses what is not one `refs/heads/bean/<name>` (in the protocol: `ng` plus a `remote:` line), forwards the rest to Artifacts with the options stripped, then hands the new head to the engine. `push-options` is added to the receive-pack advertisement (`src/git/advertisement.ts`). With `-o wait` the response streams progress, keepalives and the verdict before its final flush.
+- **The push driver** (`src/push/push-driver.ts`) stands where the Python driver stands in a race: internal long polls on free slots; an `initial` invocation answered at once with the pushed head; a rework held until the bean's next push. It folds engine events into the `push_beans` table (`src/push/push-events.ts`) and publishes each bean's phase as the annotated tag `refs/beans/<name>/status` (`src/push/status-publisher.ts`, objects and packs built in the Worker by `src/git/pack-writer.ts`).
+- **Engine changes** for intake only: the `admit` input (`src/engine/intake.ts`), a pushed bean's fork point as its base (`beginTask`), and the continuous switches in `settle`, `startRace` and `deliverPending`. The squash reads a continuous engine's beans at `refs/heads/bean/<name>`; its slots share two sandboxes.
+- **RPC** (`RepoEngineRpc` in `@beanstalk/shared-race/rpc`, on the default entrypoint): `openRepoEngine(input) → {engineId, created, base_sha, git_path}`, `gitToken(engineId, user, ttl?)`, `pushedBeans(engineId)`, `closeRepoEngine(engineId, {deleteRepo})`. Every read RPC above takes the engine id as `run`.
+- **Tests**: `test/git-native.test.ts` (the flow through the Worker with git's wire format), `src/git/git-native-wire.test.ts`, `src/push/*.test.ts`. A real git client: `research/race/git_native/local_e2e.py` (local stack, real checks) and `staging_e2e.py` (a deployed gateway); both run `demo.sh`.
 
 ## Running locally
 

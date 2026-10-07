@@ -115,10 +115,13 @@ export function deliverPending(ctx: StepContext, slot: SlotState): void {
   slot.running = inv.id;
   ctx.state.inflightCost[inv.id] = 0;
   emitStart(ctx, inv);
-  inv.watchdog = setTimer(ctx, ctx.env.config.agent_timeout + WATCHDOG_GRACE_SECONDS, {
-    kind: 'watchdog',
-    inv: inv.id,
-  });
+  // A continuous engine's invocation is its author's next push, which may come any time.
+  if (!ctx.env.config.continuous) {
+    inv.watchdog = setTimer(ctx, ctx.env.config.agent_timeout + WATCHDOG_GRACE_SECONDS, {
+      kind: 'watchdog',
+      inv: inv.id,
+    });
+  }
   reply(ctx, slot.pollId, { invocation: toInstruction(ctx, inv) });
   slot.pollId = null;
 }

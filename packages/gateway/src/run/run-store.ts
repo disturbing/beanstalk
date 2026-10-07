@@ -34,7 +34,11 @@ const SPEND_GUARD_DEFAULTS = {
   max_usd: null,
   keep_repo: false,
   stream_diffs: false,
-} as const satisfies Pick<RunConfig, 'preset' | 'max_usd' | 'keep_repo' | 'stream_diffs'>;
+  continuous: false,
+} as const satisfies Pick<
+  RunConfig,
+  'preset' | 'max_usd' | 'keep_repo' | 'stream_diffs' | 'continuous'
+>;
 type StoredConfig = Omit<RunConfig, keyof typeof SPEND_GUARD_DEFAULTS> &
   Partial<Pick<RunConfig, keyof typeof SPEND_GUARD_DEFAULTS>>;
 
@@ -86,6 +90,11 @@ export function saveNewRun(storage: DurableObjectStorage, run: StoredRun): void 
   storage.kv.put(KEYS.config, run.config);
   storage.kv.put(KEYS.repos, run.repos);
   storage.kv.put(KEYS.state, run.state);
+}
+
+/** A continuous engine's configuration after a pushed bean joined its tasks. */
+export function saveConfig(storage: DurableObjectStorage, config: RunConfig): void {
+  storage.kv.put(KEYS.config, config);
 }
 
 /**

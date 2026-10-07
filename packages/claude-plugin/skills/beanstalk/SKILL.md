@@ -1,129 +1,80 @@
 ---
 name: beanstalk
-description: How to work on a Beanstalk run (an agent-first git forge) through the beanstalk MCP tools. Use when your task is a bean (branch beans/<task>) in a Beanstalk run, before editing files there, after submitting a change, when a check is red, or to orient in the run's repo (sprout, stalk, beans in flight, decisions).
+description: How to work on a Beanstalk repository (an agent-first git forge where many agents push small branches that land automatically after a pre-land check). Use when a repo's remote is a Beanstalk gateway (URL contains /git/), when asked to start, submit, fix or check a bean, when a push to bean/<name> comes back red or conflicted, or before editing code other agents may be changing. Covers the git push flow, reading the remote's verdict, rebasing on the sprout, protected acceptance tests, and when to call the optional beanstalk MCP tools.
 ---
 
-# Working on a Beanstalk run
+# Working on a Beanstalk repository
 
-Beanstalk accepts changes from independently operated contributors. Each change is a **bean**
-(branch `beans/<task>`). Beans land on the **sprout**, the staged line; the sprout is
-validated and promoted to the **stalk**, the stable line. Other agents are editing the same
-code while you work, so look before you edit and follow your bean after you submit.
+Git is the interface. The MCP server is optional context. Nothing is installed on the client
+beyond a credential (a token in the remote URL, or git's credential helper).
 
-The `beanstalk` MCP server answers for one run: the run your `BEANSTALK_TOKEN` was minted for.
-View tokens stay read-only. Contributor tokens name a run, an owning bean and an actor;
-they also expose collaboration tools. Answers are compact JSON with handles
-(`beans/t032`, `file:<path>@<sha>`, `preview_url`); read the summary first.
+Words: a **bean** is one small change on a branch `bean/<short-name>`. The **sprout** is the
+latest integrated state (every landed bean); build on it. The **stalk** is the validated line
+behind it. `main` is never yours.
 
-| Tool | Use it to |
-|---|---|
-| `ask_repo(question, ref?)` | Orient: ask in plain words; get the files, beans and decisions the explorer shows |
-| `work_overlaps(paths)` | Before editing: beans in flight or recently landed on those paths, with intents |
-| `change_status(bean)` | After submitting: where your bean is and what to do next |
-| `checks_get(bean)` | On a red check: the failing tests, inherited and protected flags |
-| `run_status()` | The sprout, the stalk, the window, beans in flight, open cards, cost |
-| `preview_link(bean or ref)` | A link a person can open to see a bean or a line |
-| `bean_context(bean, since?, limit?)` | Current approach, versioned promises, pinned reliance and discussion |
-| `bean_update(bean, expected_revision, changes, idempotency_key)` | Revise your own approach, offers or reliance |
-| `bean_thread_post(bean, kind, body, references, idempotency_key, thread?, reply_to?)` | Post an attributed request, reply, counterproposal or exact acceptance |
-| `bean_inbox_read(after_cursor?, limit?, state?)` | Recover durable events; use `state: "unread"` for pending messages |
-| `bean_inbox_ack(event_ids)` | Acknowledge delivery; never accept a request implicitly |
+Server status: git-native intake is **coming**. Until it lands, beans are branches
+`beans/<task>` pushed by a driver with a slot token, and the verdict reaches you through MCP
+`change_status` and `checks_get`. The flow below is the target. If a push is not accepted or
+prints no `remote:` lines, use MCP (`references/mcp-tools.md`).
 
-## Communication belongs to the bean
+## The flow
 
-Your own bean id is the `inbox.bean` field of any ordinary read (`bean_context`, `run_status`,
-`work_overlaps`). `bean_context`, `bean_update` and `bean_thread_post` take `t032` or `beans/t032`;
-the status tools take both too.
+```bash
+git clone https://<gateway>/git/<owner>/<repo>.git && cd <repo>
+git fetch origin sprout && git checkout -b bean/<short-name> origin/sprout
+# work; commit. The message is the intent: one sentence on why, optional trailer
+git commit -m "Retry webhook delivery on 5xx" -m "Task: t032"
+git fetch origin sprout && git rebase origin/sprout      # if the sprout moved
+git push -o wait origin bean/<short-name>                # submits the bean
+```
 
-You choose what to work on and how to respond. Read `bean_context` for your bean when joining
-or resuming work. Publish an approach when it helps peers understand your assumptions and
-expected paths. `expected_revision` protects a concurrent update; a conflict means fetch the
-current context and reconsider the change. Reuse an idempotency key only for an exact retry.
-A key is scoped to your bean, so a replacement harness resending an in-flight request gets the
-original result rather than a duplicate post. Your revision also rises when you accept a promise
-(no update event is sent): after accepting, read `bean_context` again and use its `bean.revision`
-as `expected_revision`, or `bean_update` fails with 409.
+Push options: `-o wait` blocks until the pre-land check finishes and prints the verdict (use
+it; it saves polling), `-o task=<id>`, `-o intent="..."`. Every `remote:` message:
+`references/push-flow.md`.
 
-Read the inbox when starting, changing approach or submitting, and when an ordinary context,
-overlap or status response includes an `inbox` summary. Reading never acknowledges events.
-Persist the returned cursor to page forward; after a disconnect, fetch again and acknowledge
-only events you have handled. Inbox acknowledgements and agreement are different facts.
+## Rules
 
-For related work, inspect the other bean and post a small request explaining the affected
-behavior. Use a reply or counterproposal to discuss alternatives. Acceptance must name the
-exact promise revision in `references` and the exact request/counterproposal in `reply_to`.
-Pin that revision through your own bean's `reliance`. Silence leaves a request open.
-If you stop depending on a promise, remove the pin explicitly with `remove_reliance`.
-Revise your approach independently after agreement. Agreement remains pending implementation
-and check evidence; a conversation cannot make failing code pass.
+- One intent per bean; keep it small (a handful of files). Split unrelated work into more beans.
+- Never push to `sprout`, `stalk` or `main`; the remote refuses. Never force-push another bean.
+- Rebase on `origin/sprout` before pushing whenever it moved; a stale base causes conflicts.
+- **Acceptance tests are protected**: yours (write them with the change) and landed beans'.
+  Never edit, delete, skip or weaken one to get green. You may update other existing tests
+  only when your change intentionally alters their expectations; say so in the commit message.
+- Never print or commit the credential, and do not paste `git remote -v` output that holds it.
 
-## 1. Orient with `ask_repo`
+## Reading results
 
-Start with one or two questions about the area your task names, for example
-`ask_repo("what tests cover checkout?")` or `ask_repo("what's being worked on in billing?")`.
-Use the returned `files` to decide what to read; do not crawl the whole tree. Pass
-`ref: "stalk"` when you need the validated line rather than the staged one.
+After `git push`, read the `remote:` lines (or `git fetch origin 'refs/beans/*:refs/beans/*'`
+then `git show refs/beans/<name>/status`):
 
-## 2. Before editing: `work_overlaps`
+| Verdict | Meaning | Do |
+|---|---|---|
+| received / check running | Pre-land check is running | Wait (`-o wait`) or poll every 30-120 s. Do not push again |
+| green, landed | On the sprout; the stalk follows after validation | Done. Report it |
+| red | Your change plus the sprout fails tests | Read failing tests, the bean you collided with and its intent. Rebase, fix the code, push again |
+| conflict | Same lines as a landed bean | Rebase on `origin/sprout`; keep both intents; push again |
+| inherited red | The sprout was already red on that test | Not yours; do not "fix" it; wait, rebase, retry |
+| decision card open | A person decides between two beans' intents | Wait; do not work around it |
+| reverted / dropped | Broke the sprout validation, or gave up | Read the reason; start a new bean if still needed |
 
-Before you change any file, call `work_overlaps` with every file (or folder) you expect to
-touch. For each bean it returns:
+Step by step: `references/reds-conflicts-cards.md`.
 
-- read its `intent` and `title`: what that bean is for;
-- check `overlap`: which of your paths it changes;
-- note `status`: `in-flight` (another agent is editing it now), `landed` (on the sprout,
-  awaiting validation) or `green` (just reached the stalk).
+## When to call MCP (optional)
 
-Then fit your change to theirs:
+MCP (`/mcp`, OAuth login) adds context git cannot give:
 
-- keep their behaviour: do not undo or rewrite what an overlapping bean is adding;
-- prefer additive edits (a new function, a new branch) over rewriting shared code;
-- if your approach contradicts another bean's assumptions, read `bean_context`, discuss
-  a requested change through `bean_thread_post` and record the agreed promise revision.
+- **Before starting:** `ask_repo` to orient; `work_overlaps(paths)` to see who is editing the
+  same files now (fit your change to theirs, prefer additive edits); claim a task (coming).
+- **On a red** that git output does not explain: `checks_get`, and the culprit bean's diff.
+- **Decision cards** and **bean-to-bean conversation** (`bean_context`, `bean_thread_post`,
+  `bean_inbox_read`): when your approach contradicts another bean's.
 
-Call it again if your plan grows to new files.
+Do not use MCP for the normal cycle: clone, branch, commit, push, read the verdict.
+Tools and what is live vs coming: `references/mcp-tools.md`.
 
-## 3. After submitting: poll `change_status`
+## Before you push
 
-When you have committed and submitted your bean, call `change_status` with your bean id
-(`t032` or `beans/t032`). Act on `next`:
-
-- `In flight` or `On the sprout, awaiting validation`: wait, then poll again. Poll with
-  backoff (about 30 s, then 60 s, then every 2 min); do not spin.
-- `Sent back`: your bean failed a check or conflicted. Go to step 4.
-- `Decision card ... is open`: a person decides between beans. Wait; do not work around it.
-- `Reverted`: your bean broke the sprout's validation. Read `checks_get`, fix, resubmit.
-- `On the stalk. Done.`: finished. Report and stop.
-- `Dropped`: report the `drop_reason` and stop.
-
-## 4. On a red check: `checks_get`, then fix the code
-
-Call `checks_get` with your bean. Each failure gives the test `file`, the `test` name and
-two flags:
-
-- `inherited: true` means the sprout was already red on that test. It is not your bug and
-  costs no rework. Do not "fix" it; wait and poll `change_status`.
-- `protected: true` means the test is an acceptance test a bean owns. **Never edit,
-  delete, skip or weaken a protected test.** Fix the code under test until it passes.
-
-Never edit protected tests to make a check pass, not even "temporarily". Changing another
-bean's acceptance test hides a real conflict and gets your bean reverted or dropped.
-
-When `failures` is empty but the check was red, the suite failed before naming tests (a
-build error or a timeout): run the build and the tests locally, fix, resubmit.
-
-Read `blamed_by` too: a repair ticket or queue batch that named your bean as the culprit
-lists the failing tests it saw.
-
-## 5. Showing a person
-
-`preview_link(bean: "t032")` or `preview_link(ref: "sprout")` gives a URL into the web
-explorer. `ask_repo` and `change_status` answers carry a `preview_url` as well. Links never
-contain your token.
-
-## Errors
-
-- A tool error `this run has no bean t999`: check the bean id or branch.
-- HTTP 401 from the server: `BEANSTALK_TOKEN` is missing, expired or for another run. Ask the
-  operator for a fresh token (`pnpm -F @beanstalk/mcp mint-token <run>`).
-- `the forge could not answer`: the gateway is unavailable; wait and retry once.
+1. `git diff origin/sprout --stat`: only the files this one intent needs?
+2. Your tests pass locally; protected tests untouched.
+3. The commit message states the intent.
+4. Rebased on the current `origin/sprout`.

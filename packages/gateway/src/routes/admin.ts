@@ -67,6 +67,13 @@ export const adminRoutes = new Hono<AppEnv>()
           422,
         );
       }
+      if (config.continuous) {
+        throw new GatewayError(
+          'a continuous engine drives a repository: open it with POST /v1/repos',
+          'invalid_request',
+          400,
+        );
+      }
       const deps = c.var.deps;
       await refuseWhenHalted(deps);
       const run = newRunId();

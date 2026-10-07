@@ -10,6 +10,26 @@ deferred code mode as highly experimental.
 
 ## Auth
 
+Two paths (`docs/claude-opus/19-accounts-and-auth.md`):
+
+- **People's agent sessions: OAuth 2.1** per the MCP authorization spec, with Cloudflare's
+  `@cloudflare/workers-oauth-provider` (`src/oauth/`). Discovery at
+  `/.well-known/oauth-protected-resource/mcp` and `/.well-known/oauth-authorization-server`;
+  `/oauth/register` (DCR), Client ID Metadata Documents, `/authorize` (sends the browser to the web
+  app's `/connect` consent screen), `/oauth/token` (PKCE S256, refresh, revocation). Scopes
+  `read` (required), `collaborate`, `write`. Grants and tokens live hashed in `OAUTH_KV`. A session
+  gets the read tools plus `whoami` and `git_credential` (a one-hour `bss_` git token), over one
+  run (`DEMO_RUN`, or the newest) until persistent repositories exist. A `bsu_` personal access
+  token also works as the bearer. `claude mcp add --transport http beanstalk <url>/mcp`, then
+  `claude mcp login beanstalk`.
+- **Run tokens** (`bst1.…`, below) are routed before the OAuth provider and behave exactly as before.
+
+RPC for the web app (`AgentSessionsRpc`): `consentRequest`, `approveConsent`, `denyConsent`,
+`agentSessions`, `revokeAgentSession`. Bindings: `OAUTH_KV`, `IDENTITY_DB` (D1, schema in
+`packages/shared-identity/migrations`), `PUBLIC_URL` (the issuer and resource origin).
+
+### Run tokens
+
 `Authorization: Bearer <view or contributor token>`. Both are minted by the gateway; this
 Worker holds no token secret. It calls the gateway's `verifyMcpToken`. Update the gateway
 before updating MCP: method detection on a Cloudflare RPC proxy does not establish

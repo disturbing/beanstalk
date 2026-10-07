@@ -20,6 +20,7 @@ import { parseBean } from '../tools/tool-context';
 import { workOverlaps } from '../tools/work-overlaps';
 import { withInbox } from '../tools/collaboration';
 import { registerCollaboration } from './collaboration-tools';
+import { registerSessionTools } from './session-tools';
 import { answer, failure } from './tool-result';
 
 export const TOOL_NAMES = [
@@ -49,6 +50,7 @@ export function createServer(ctx: ToolContext): McpServer {
   registerBeanTools(server, ctx);
   registerRunTools(server, ctx);
   registerCollaboration(server, ctx);
+  registerSessionTools(server, ctx);
   return server;
 }
 
