@@ -47,7 +47,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--gateway", default=os.environ.get("BEANSTALK_GATEWAY"))
     ap.add_argument("--bs-owner", default="race")
     ap.add_argument("--bs-repo")
+    ap.add_argument("--bs-seed", choices=["import", "race-run"], default="import",
+                    help="how the Beanstalk repo gets the base: imported from a public GitHub copy (default) or a race "
+                         "run's seed token (the local stack only)")
     ap.add_argument("--claude-bin", default="claude")
+    ap.add_argument("--wait-gateway", action="store_true",
+                    help="--forge beanstalk: first wait while another race on this machine uses a gateway")
     a = ap.parse_args(argv)
     if a.forge == "github" and not a.gh_owner:
         ap.error("--forge github needs --gh-owner")
@@ -60,7 +65,10 @@ def main(argv: list[str] | None = None) -> int:
                      max_usd=a.max_usd, max_wall_minutes=a.max_wall_minutes, drain_minutes=a.drain_minutes,
                      gh_owner=a.gh_owner, gh_repo=a.gh_repo, ci_slots=a.ci_slots, batch=a.batch, gateway=a.gateway,
                      beanstalk_owner=a.bs_owner, force=a.force, claude_bin=a.claude_bin,
-                     extra={"bs_repo": a.bs_repo} if a.bs_repo else {})
+                     extra={"bs_seed": a.bs_seed, **({"bs_repo": a.bs_repo} if a.bs_repo else {})})
+    if a.wait_gateway and a.forge == "beanstalk":
+        from pair import wait_for_gateway
+        wait_for_gateway()
     code = OrchestratedRace(cfg).run()
     summary = os.path.join(OrchestratedRace(cfg).out, "summary.md")
     if os.path.exists(summary):

@@ -44,13 +44,28 @@ SHARED_VALUE = ("agent", "model", "effort", "agents", "ci_slots", "batch", "seed
                 "claude_bin", "max_wall_minutes", "suite_timeout")
 
 
+GATEWAY_RACES = r"race\.py.*--forge cloudflare|orchestrated\.py.*--forge beanstalk"
+
+
+def ancestors() -> set[int]:
+    """This process and its parents (the shell that started us matches the pattern too)."""
+    pids, pid = set(), os.getpid()
+    while pid > 1 and pid not in pids:
+        pids.add(pid)
+        out = subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+        pid = int(out) if out.isdigit() else 1
+    return pids
+
+
 def wait_for_gateway(poll: float = 30.0) -> None:
-    """Block while another ``race.py --forge cloudflare`` runs on this machine."""
+    """Block while another race on the gateway (``race.py --forge cloudflare`` or an orchestrated Beanstalk arm)
+    runs on this machine."""
     import time
     said = False
+    mine = ancestors()
     while True:
-        out = subprocess.run(["pgrep", "-f", "race.py.*--forge cloudflare"], capture_output=True, text=True).stdout
-        others = [p for p in out.split() if p.strip() and int(p) != os.getpid()]
+        out = subprocess.run(["pgrep", "-f", GATEWAY_RACES], capture_output=True, text=True).stdout
+        others = [p for p in out.split() if p.strip() and int(p) not in mine]
         if not others:
             return
         if not said:

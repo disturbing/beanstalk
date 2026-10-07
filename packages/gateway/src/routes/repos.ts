@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import { artifactsPort } from '../adapters/artifacts';
+import { repositoryStorage } from '../adapters/repository-storage';
 import type { AppEnv } from '../app-env';
 import { GatewayError } from '../errors';
 import { requireAdmin } from '../middleware/auth';
@@ -19,6 +20,15 @@ import { RunParam, validate } from './validation';
 const OpenBody = OpenRepoEngineInput.extend({
   /** Creates the Artifacts repo first when it does not exist (the repository side normally does). */
   create_artifacts_repo: z.boolean().default(false),
+  /**
+   * Imports a public git repository into the Artifacts repo first (its default branch's history)
+   * and starts the sprout and the stalk at that branch's head: how an operator opens an engine on
+   * existing history, as the repository side's "import a public git URL" does.
+   */
+  import_url: z
+    .url({ protocol: /^https$/ })
+    .nullable()
+    .default(null),
 });
 const TokenBody = z.strictObject({
   user: z.strictObject({ id: z.string().min(1).max(100), handle: z.string().min(1).max(32) }),
@@ -34,8 +44,9 @@ const CloseBody = z.strictObject({ delete_repo: z.boolean().default(false) });
 
 export const repoRoutes = new Hono<AppEnv>()
   .post('/', requireAdmin, validate('json', OpenBody), async (c) => {
-    const { create_artifacts_repo: create, ...input } = c.req.valid('json');
-    if (create) await ensureArtifactsRepo(c.env, input.artifactsRepo);
+    const { create_artifacts_repo: create, import_url: importUrl, ...input } = c.req.valid('json');
+    if (importUrl !== null) await importArtifactsRepo(c.env, input.artifactsRepo, importUrl);
+    else if (create) await ensureArtifactsRepo(c.env, input.artifactsRepo);
     const opened = value(await openRepoEngine(c.var.deps, input));
     return c.json(opened, opened.created ? 201 : 200);
   })
@@ -69,6 +80,14 @@ async function ensureArtifactsRepo(env: Env, name: string): Promise<void> {
   const artifacts = artifactsPort(env.REPOS);
   const existing = await artifacts.listRepos((candidate) => candidate === name);
   if (existing.length === 0) await artifacts.createRepo(name, `beanstalk repository ${name}`);
+}
+
+async function importArtifactsRepo(env: Env, name: string, url: string): Promise<void> {
+  const storage = repositoryStorage(env.REPOS);
+  await storage.importFrom(name, url, `beanstalk repository ${name}, imported from ${url}`);
+  if ((await storage.lineFromDefault(name)) === null) {
+    throw new GatewayError(`${url} has no commits to import`, 'invalid_request', 400);
+  }
 }
 
 function value<T>(result: RpcResult<T>): T {

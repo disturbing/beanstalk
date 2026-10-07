@@ -32,8 +32,12 @@ How to work:
 {subagents} `worker` subagents at the same time (several Agent calls in one message, or in the background); never \
 more than {subagents} at once.
 - A change for a task adds that task's acceptance tests exactly as given in `BACKLOG.md` and makes them pass without \
-breaking other tests. {test_hint} The dependencies are installed in a `node_modules` above this directory, so they \
-resolve from every worktree: don't install packages. Don't change the given acceptance tests; you may update existing tests whose \
+breaking other tests. {test_hint} The dependencies are already installed in a `node_modules` directory above \
+this repository, so `require` resolves them from every worktree even though no worktree has its own `node_modules`: \
+never install packages.
+- Give each worker the absolute path of its worktree. A worker's shell starts in this directory for every command, so \
+it uses `git -C <worktree> ...` for git and runs the tests as `cd <worktree> && node ...` in the same command. Don't \
+change the given acceptance tests; you may update existing tests whose \
 expectations your change intentionally alters.
 - Put a `Task: <id>` line (for example `Task: t004`) at the end of the commit message of each task's change. One task \
 per change unless you deliberately combine them.
@@ -80,6 +84,10 @@ def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: 
     return shared(n_tasks, subagents, line, test_hint, wall_minutes) + "\n" + section
 
 
-WORKER_PROMPT = ("You are a software engineer working on one change in your own git worktree. Do exactly what the "
-                 "lead asks, run the tests, commit on your branch, and report briefly what you did, the branch and "
-                 "commit, and the test result. Stay inside your worktree.")
+WORKER_PROMPT = ("You are a software engineer working on one change in your own git worktree, whose absolute path "
+                 "the lead gives you. Each shell command starts in the lead's directory, so use `git -C <worktree>` "
+                 "for git and `cd <worktree> && <command>` for anything else, in one command. The dependencies are "
+                 "installed above the repository and resolve from your worktree: never install packages. Use the "
+                 "Read, Edit and Write tools with absolute paths inside your worktree. Do exactly what the lead asks, "
+                 "run the tests, commit on your branch, and report briefly what you did, the branch and commit, and "
+                 "the test result. Stay inside your worktree.")

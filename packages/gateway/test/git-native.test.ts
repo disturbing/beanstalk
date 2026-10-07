@@ -131,6 +131,42 @@ describe('git-native flow', () => {
     expect(refs).toContain(`${opened.base_sha} refs/heads/stalk`);
   });
 
+  it('opens an engine on an imported public repository, the lines at its default branch', async () => {
+    const response = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: 'imported',
+        artifactsRepo: 'repo-imported',
+        owner: { id: 'u1', handle: 'acme' },
+        import_url: 'https://git.example.test/acme/base.git',
+      },
+    });
+    expect(response.status).toBe(201);
+    const opened = await json<Opened>(response);
+    const minted = await call('POST', `/v1/repos/${opened.engineId}/git-token`, {
+      token: ADMIN,
+      body: { user: { id: 'u1', handle: 'coop' } },
+    });
+    const { token } = await json<{ token: string }>(minted);
+    const refs = await advertisedRefs(opened.git_path, token);
+    expect(refs).toContain(`${opened.base_sha} refs/heads/sprout`);
+    expect(refs).toContain(`${opened.base_sha} refs/heads/stalk`);
+    expect(refs).toContain(`${opened.base_sha} refs/heads/main`);
+  });
+
+  it('refuses an import URL that is not https', async () => {
+    const response = await call('POST', '/v1/repos', {
+      token: ADMIN,
+      body: {
+        repoName: 'plain',
+        artifactsRepo: 'repo-plain',
+        owner: { id: 'u1', handle: 'acme' },
+        import_url: 'http://git.example.test/acme/base.git',
+      },
+    });
+    expect(response.status).toBe(400);
+  });
+
   it('advertises push options for receive-pack', async () => {
     const { opened, token } = await openRepo('adverts');
     const response = await call('GET', `${opened.git_path}/info/refs?service=git-receive-pack`, {
