@@ -5,17 +5,14 @@
 // repositories (FakeRepositories, the REPOS binding); each lists and deletes only its own.
 import { RpcTarget, WorkerEntrypoint } from 'cloudflare:workers';
 
+import { EMPTY_TREE, objectId, storeOf, storeTree } from './fake-store.js';
+
+export { FakeRunner } from './fake-runner.js';
+
 const HOST = 'https://acct.artifacts.test';
-const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 const PERSON = { name: 'fake', email: 'fake@beanstalk.invalid' };
 const RACE_NAMESPACE = 'beanstalk-race';
 const REPOS_NAMESPACE = 'beanstalk-repos';
-const namespaces = new Map();
-
-function storeOf(namespace) {
-  if (!namespaces.has(namespace)) namespaces.set(namespace, new Map());
-  return namespaces.get(namespace);
-}
 const counter = { tokens: 0 };
 
 function artifactsError(code, message) {
@@ -222,47 +219,6 @@ function metadata(hash, commit) {
   };
 }
 
-/** A 40-hex id for an object's content (FNV-1a, five seeds): stable, like git's. */
-function objectId(text) {
-  let out = '';
-  for (let seed = 0; seed < 5; seed += 1) {
-    let hash = (0x811c9dc5 ^ seed) >>> 0;
-    for (let index = 0; index < text.length; index += 1) {
-      hash ^= text.charCodeAt(index);
-      hash = Math.imul(hash, 0x01000193) >>> 0;
-    }
-    out += hash.toString(16).padStart(8, '0');
-  }
-  return out;
-}
-
-/** Stores the tree of a file map (and its blobs and subtrees); returns the root tree id. */
-function storeTree(repo, files) {
-  const children = new Map();
-  for (const [path, content] of Object.entries(files)) {
-    const [head, ...rest] = path.split('/');
-    if (rest.length === 0) {
-      const blob = objectId(`blob:${content}`);
-      repo.blobs.set(blob, content);
-      children.set(head, { name: head, mode: '100644', hash: blob, type: 'blob' });
-      continue;
-    }
-    const sub = children.get(head)?.files ?? {};
-    sub[rest.join('/')] = content;
-    children.set(head, { name: head, files: sub });
-  }
-  const entries = [...children.values()]
-    .map((child) =>
-      child.files === undefined
-        ? child
-        : { name: child.name, mode: '40000', hash: storeTree(repo, child.files), type: 'tree' },
-    )
-    .toSorted((a, b) => (a.name < b.name ? -1 : 1));
-  const id = entries.length === 0 ? EMPTY_TREE : objectId(`tree:${JSON.stringify(entries)}`);
-  repo.trees.set(id, entries);
-  return id;
-}
-
 /** A test-only pack: JSON after `PACK` describing commits (`{commits: {sha: {parents, files}}}`). */
 function storePayload(repo, bytes) {
   const text = new TextDecoder().decode(bytes);
@@ -317,6 +273,16 @@ export class FakeGitRemote extends WorkerEntrypoint {
     const commands = match[3] === 'git-receive-pack' ? pushCommands(bytes) : [];
     for (const command of commands) repo.refs.set(command.ref, command.newSha);
     if (commands.length > 0) storePayload(repo, bytes);
+    // A real pack (the gateway's own first commit) is not parsed: its commit is known, empty.
+    for (const command of commands)
+      if (!repo.commits.has(command.newSha) && command.newSha !== '0'.repeat(40))
+        repo.commits.set(command.newSha, {
+          parents: [],
+          message: '',
+          time: 0,
+          files: {},
+          tree: EMPTY_TREE,
+        });
     if (speaksGit(request) && match[3] === 'git-receive-pack') return reportStatus(bytes, commands);
     return Response.json(
       {

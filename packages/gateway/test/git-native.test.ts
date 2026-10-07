@@ -37,7 +37,8 @@ async function openRepo(
       owner: { id: 'u1', handle: 'acme' },
       settings: {
         bean_url: 'https://web.test/acme/beans/{bean}',
-        ...(engine === undefined ? {} : { engine }),
+        // The fake runner decides these tests' reds; the repository's own checks are below.
+        engine: { checks_source: 'suite', ...engine },
       },
       create_artifacts_repo: true,
     },

@@ -8,6 +8,8 @@ import { z } from 'zod';
 
 import { Sha, TaskId } from '@beanstalk/shared-race/ids';
 
+import { NO_PROTECTED_ACCESS, ProtectedAccess } from '../checks/protected-access';
+
 /** Where a bean stands, as a push and its status ref say it. */
 export const BeanPhase = z.enum([
   'checking',
@@ -49,6 +51,8 @@ export const PushBean = z.object({
   intent: z.string(),
   task: z.string().nullable(),
   actor: z.string(),
+  /** What the latest push may do to protected paths (beans stored before: nothing). */
+  protectedAccess: ProtectedAccess.default(NO_PROTECTED_ACCESS),
   head: Sha,
   /** Pushes accepted so far; a verdict belongs to the push it answers. */
   pushes: z.number().int().min(1),
@@ -95,6 +99,7 @@ export function receivedBean(input: {
   intent: string;
   task: string | null;
   actor: string;
+  protectedAccess: ProtectedAccess;
   head: Sha;
   previous: PushBean | null;
 }): PushBean {
@@ -105,6 +110,7 @@ export function receivedBean(input: {
     intent: previous?.intent ?? input.intent,
     task: input.task ?? previous?.task ?? null,
     actor: input.actor,
+    protectedAccess: input.protectedAccess,
     head: input.head,
     pushes: (previous?.pushes ?? 0) + 1,
     awaiting: null,

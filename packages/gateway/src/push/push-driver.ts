@@ -36,6 +36,7 @@ import {
 } from './push-bean';
 import { foldEvents } from './push-events';
 import type { PushIntent } from './push-intent';
+import type { ProtectedAccess } from '../checks/protected-access';
 import type { BeanRef, ReworkFacts } from './push-messages';
 import { conflictLines, redLines } from './push-messages';
 
@@ -55,6 +56,8 @@ export type PushHost = {
   /** Persists a changed configuration (a pushed bean's definition) and rebuilds the engine env. */
   setConfig(config: RunConfig): void;
   link(bean: string): string | null;
+  /** The lines the check of a tree gave (which checks ran, or why none did). */
+  checkLines(sha: string): readonly string[];
   /** Publishes the bean's status ref in the background (when its phase or head changed). */
   publish(bean: PushBean): void;
 };
@@ -122,7 +125,11 @@ export class PushDriver {
       }
     }
     if (beans.size === 0) return;
-    for (const id of foldEvents(events, beans, { link: (bean) => this.#host.link(bean) })) {
+    const context = {
+      link: (bean: string) => this.#host.link(bean),
+      checkLines: (sha: string) => this.#host.checkLines(sha),
+    };
+    for (const id of foldEvents(events, beans, context)) {
       const bean = beans.get(id);
       if (bean !== undefined) this.#save(bean);
     }
@@ -141,6 +148,7 @@ export class PushDriver {
     head: Sha;
     intent: PushIntent;
     actor: string;
+    protectedAccess: ProtectedAccess;
     /** The head's ancestors, newest first (to find where it forked the sprout). */
     history: readonly string[];
   }): Submitted {

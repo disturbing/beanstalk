@@ -652,6 +652,35 @@
   white-space: pre-wrap;
   color: var(--ink-2);
 }
+.checksBody {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  font-size: var(--step--1);
+}
+.checksBody p {
+  margin: 0;
+}
+.checksFacts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+}
+.checksFacts dt {
+  color: var(--ink-3);
+}
+.checksFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.checksProblems {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--bad);
+  font: 12.5px/1.6 var(--font-mono);
+  overflow-wrap: anywhere;
+}
 /* ---------- Connect git: Plugin, HTTPS, Env vars ---------- */
 .connectTabs {
   display: flex;

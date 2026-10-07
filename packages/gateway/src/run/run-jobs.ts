@@ -23,6 +23,8 @@ import { changedRanges, diffText } from '../git/diff-text';
 import type { Logger } from '../log';
 import type { RunnerPort, RunnerRemote } from '../runner/runner-client';
 import { continuousRef } from '../push/bean-refs';
+import type { RepositoryChecksHost } from '../checks/repository-checks';
+import { planCheck } from '../checks/repository-checks';
 import { ciInstance, committerInstance, poolSandboxInstance, sandboxInstance } from './run-names';
 
 /** Re-mint a cached token when it has less than this left. */
@@ -82,6 +84,11 @@ export type JobContext = {
   readonly sandboxIndex?: number;
   /** A suite ran past its timeout (it is re-run, or the job fails): for the pool's counts. */
   readonly onSuiteTimeout?: () => void;
+  /**
+   * A repository's own checks (`checks_source: repository`): each check reads
+   * `.beanstalk/checks.toml` from its tree, and `suite` is not used. Absent: `suite` always.
+   */
+  readonly checks?: RepositoryChecksHost;
 };
 
 /** Runs one job; failures come back as outcomes, never as exceptions. */
@@ -140,6 +147,13 @@ async function squash(
     unionPaths: spec.unionPaths,
     structural: spec.structural,
   });
+  if (outcome.result === 'clean')
+    context.checks?.saveLandingTree({
+      sha: outcome.sha,
+      task: spec.changeKey,
+      onto: spec.onto,
+      files: outcome.files,
+    });
   if (outcome.mergeBase !== spec.changeBase) {
     context.log.warn('runner merge base differs from the engine', {
       task: spec.changeKey,
@@ -187,16 +201,22 @@ async function check(
   spec: Extract<JobSpec, { kind: 'check' }>,
   context: JobContext,
 ): Promise<JobResult> {
-  const instance = checkInstance(context, spec.instance);
+  const plan =
+    context.checks === undefined
+      ? { kind: 'run' as const, suite: context.suite }
+      : await planCheck(context.checks, spec);
+  if (plan.kind === 'answer') return { kind: 'check', check: plan.result };
+  const suited: JobContext = { ...context, suite: plan.suite };
+  const instance = checkInstance(suited, spec.instance);
   for (let attempt = 1; ; attempt += 1) {
     // oxlint-disable-next-line no-await-in-loop -- a re-run follows its timed-out run
-    const result = await runCheck(spec, context, instance);
+    const result = await runCheck(spec, suited, instance);
     if (!result.timedOut) return { kind: 'check', check: result };
-    context.onSuiteTimeout?.();
-    context.log.warn('suite timed out', { sha: spec.sha, instance, attempt });
+    suited.onSuiteTimeout?.();
+    suited.log.warn('suite timed out', { sha: spec.sha, instance, attempt });
     if (attempt < SUITE_TIMEOUT_ATTEMPTS) continue;
     if (spec.instance.kind === 'ci') return { kind: 'check', check: result };
-    throw suiteTimeout(context, { instance, attempt });
+    throw suiteTimeout(suited, { instance, attempt });
   }
 }
 

@@ -1,0 +1,216 @@
+import { env } from 'cloudflare:test';
+import { describe, expect, it } from 'vitest';
+
+import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
+import { insertUser } from '@beanstalk/shared-identity/users';
+
+import { ADMIN, call, json, pkt, sha } from './helpers';
+
+/**
+ * A repository's own checks (`.beanstalk/checks.toml`, backlog 2.3) end to end: real Worker
+ * and engine Durable Object, the fake Artifacts remote, and the fake runner, whose squashes are
+ * recorded in the trunk repo with the pushed files on top of the sprout's, so the engine reads
+ * the config from the exact merged tree as it does on Cloudflare.
+ */
+
+const GIT_UA = { 'user-agent': 'git/2.47.0' };
+const ZERO = '0'.repeat(40);
+const OWNER = 'checks-owner';
+
+type Opened = { engineId: string; git_path: string };
+
+async function openRepo(repo: string): Promise<{ opened: Opened; agentToken: string }> {
+  const response = await call('POST', '/v1/repos', {
+    token: ADMIN,
+    body: {
+      repoName: repo,
+      artifactsRepo: `repo-${repo}`,
+      owner: { id: `u_${OWNER}`, handle: OWNER },
+      create_artifacts_repo: true,
+    },
+  });
+  expect(response.status).toBe(201);
+  const opened = await json<Opened>(response);
+  const minted = await call('POST', `/v1/repos/${opened.engineId}/git-token`, {
+    token: ADMIN,
+    body: { user: { id: 'u_agent', handle: 'agent' } },
+  });
+  return { opened, agentToken: (await json<{ token: string }>(minted)).token };
+}
+
+/** The owner's personal token: a person's own credential, which may change protected paths. */
+async function ownerToken(): Promise<string> {
+  const user = { id: `u_${OWNER}`, handle: OWNER };
+  await insertUser(env, { ...user, email: null }, Date.now())
+    .run()
+    .catch(() => undefined);
+  const pat = await createPersonalToken(env, {
+    userId: user.id,
+    request: PersonalTokenInput.parse({ name: 'laptop', scopes: ['read', 'write'], days: 7 }),
+  });
+  return pat.token;
+}
+
+/** `git push -o wait` of one commit carrying `files` to `bean/<name>`; the remote lines. */
+async function pushBean(
+  opened: Opened,
+  token: string,
+  bean: { name: string; files: Record<string, string>; oldSha?: string },
+): Promise<{ remote: string; head: string }> {
+  const head = await sha(`${opened.engineId}:${bean.name}:${JSON.stringify(bean.files)}`);
+  const ref = `refs/heads/bean/${bean.name}`;
+  const caps = 'report-status side-band-64k push-options agent=git/2.47.0';
+  const command = pkt(`${bean.oldSha ?? ZERO} ${head} ${ref}\0${caps}\n`);
+  const commits = { [head]: { message: `Change ${bean.name}`, parents: [], files: bean.files } };
+  const response = await call('POST', `${opened.git_path}/git-receive-pack`, {
+    body: `${command}0000${pkt('wait\n')}0000PACK${JSON.stringify({ commits })}`,
+    headers: {
+      ...GIT_UA,
+      authorization: `Basic ${btoa(`x:${token}`)}`,
+      'content-type': 'application/x-git-receive-pack-request',
+      accept: 'application/x-git-receive-pack-result',
+    },
+  });
+  expect(response.status).toBe(200);
+  return { remote: sidebandRemote(await response.text()), head };
+}
+
+/** Band 2 of a side-band response: the `remote:` lines git prints. */
+function sidebandRemote(text: string): string {
+  let remote = '';
+  let offset = 0;
+  while (offset + 4 <= text.length) {
+    const length = Number.parseInt(text.slice(offset, offset + 4), 16);
+    if (length === 0) {
+      offset += 4;
+      continue;
+    }
+    if (text.charCodeAt(offset + 4) === 2) remote += text.slice(offset + 5, offset + length);
+    offset += length;
+  }
+  return remote;
+}
+
+type CheckRequest = {
+  path: string;
+  body: {
+    sha: string;
+    cmd?: string[];
+    env?: Record<string, string>;
+    suite_timeout_seconds?: number;
+  };
+};
+
+/** Every suite the engine's sandboxes asked the fake runner for. */
+async function suitesRun(engine: string): Promise<CheckRequest['body'][]> {
+  const perInstance = await Promise.all(
+    [0, 1, 2, 3].map(async (index) =>
+      json<CheckRequest[]>(
+        await env.RUNNER.getByName(`run-${engine}-sandbox-${index}`).fetch(
+          'http://runner/__requests',
+        ),
+      ),
+    ),
+  );
+  return perInstance
+    .flat()
+    .filter((request) => request.path === '/v1/check')
+    .map((r) => r.body);
+}
+
+const CHECKS = [
+  'command = ["node", "--test", "spec/"]',
+  'timeout_seconds = 60',
+  'protected_paths = ["migrations/**"]',
+  '',
+  '[env]',
+  'TZ = "UTC"',
+  '',
+].join('\n');
+
+describe("a repository's own checks", () => {
+  it('lands a bean on a clean merge when the tree has no checks file, and says so', async () => {
+    const { opened, agentToken } = await openRepo('checks-none');
+    const { remote } = await pushBean(opened, agentToken, {
+      name: 'plain',
+      files: { 'src/a.ts': 'export {};\n' },
+    });
+    expect(remote).toContain(
+      'no .beanstalk/checks.toml on this tree: no checks run, and a bean lands when it merges cleanly',
+    );
+    expect(remote).toContain('LANDED: plain');
+    expect(await suitesRun(opened.engineId)).toEqual([]);
+  });
+
+  it("refuses an agent's change to the checks themselves and says who may make it", async () => {
+    const { opened, agentToken } = await openRepo('checks-agent');
+    const { remote } = await pushBean(opened, agentToken, {
+      name: 'weaken',
+      files: { '.beanstalk/checks.toml': 'command = ["node", "--test", "nothing/"]\n' },
+    });
+    expect(remote).toContain(
+      'changes protected paths (.beanstalk/checks.toml): refused for @agent (no role, with an engine token)',
+    );
+    expect(remote).toContain('RED: weaken was not landed');
+    expect(remote).toContain('.beanstalk/checks.toml > changes a protected path');
+    expect(remote).toContain('Only the owner or a maintainer, pushing with a personal token');
+    expect(await suitesRun(opened.engineId)).toEqual([]);
+  });
+
+  it("runs the suite the merged tree declares, once the owner pushed it, and protects the owner's paths", async () => {
+    const { opened, agentToken } = await openRepo('checks-owned');
+    const setup = await pushBean(opened, await ownerToken(), {
+      name: 'setup-checks',
+      files: { '.beanstalk/checks.toml': CHECKS },
+    });
+    expect(setup.remote).toContain(
+      `changes protected paths (.beanstalk/checks.toml): allowed for @${OWNER} (owner, with a personal token)`,
+    );
+    expect(setup.remote).toContain(
+      'checks from .beanstalk/checks.toml: node --test spec/ (image node, timeout 60 s, env TZ)',
+    );
+    expect(setup.remote).toContain('LANDED: setup-checks');
+
+    const feature = await pushBean(opened, agentToken, {
+      name: 'feature',
+      files: { 'src/feature.ts': 'export const on = true;\n' },
+    });
+    expect(feature.remote).toContain('LANDED: feature');
+    const suites = await suitesRun(opened.engineId);
+    expect(suites).toHaveLength(2);
+    for (const suite of suites) {
+      expect(suite).toMatchObject({
+        cmd: ['node', '--test', 'spec/'],
+        env: { TZ: 'UTC' },
+        suite_timeout_seconds: 60,
+      });
+    }
+
+    const migration = await pushBean(opened, agentToken, {
+      name: 'migrate',
+      files: { 'migrations/0002.sql': 'select 1;\n' },
+    });
+    expect(migration.remote).toContain(
+      'changes protected paths (migrations/0002.sql): refused for @agent',
+    );
+    expect(migration.remote).toContain('RED: migrate was not landed');
+    expect(migration.remote).toContain('The sprout protects .beanstalk/**, migrations/**');
+    expect(await suitesRun(opened.engineId)).toHaveLength(2);
+  });
+
+  it('answers an invalid file with a red that names every problem, and runs no suite', async () => {
+    const { opened } = await openRepo('checks-invalid');
+    const { remote } = await pushBean(opened, await ownerToken(), {
+      name: 'bad-checks',
+      files: { '.beanstalk/checks.toml': 'command = "npm test"\nimage = "rust"\n' },
+    });
+    expect(remote).toContain('.beanstalk/checks.toml is invalid:');
+    expect(remote).toContain(
+      'command: must be an argv array such as ["node", "--test"]; it never runs through a shell',
+    );
+    expect(remote).toContain('image: "rust" is not available');
+    expect(remote).toContain('RED: bad-checks was not landed');
+    expect(remote).toContain('.beanstalk/checks.toml > the checks config is valid');
+    expect(await suitesRun(opened.engineId)).toEqual([]);
+  });
+});

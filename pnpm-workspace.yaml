@@ -27,10 +27,12 @@ catalog:
   '@vitejs/plugin-rsc': 0.5.35
   agents: 0.26.0
   diff: 9.0.0
+  fast-check: 4.10.2
   hono: 4.13.12
   react: 19.3.0
   react-dom: 19.3.0
   react-server-dom-webpack: 19.3.0
+  smol-toml: 1.9.0
   typescript: 7.0.2
   vinext: 1.0.1
   vite: 8.3.2

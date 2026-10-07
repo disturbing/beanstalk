@@ -1,8 +1,11 @@
 // A stand-in for the runner container's §3 API (packages/runner), as a Durable Object the
 // RUNNER binding points at in tests. Every squash and revert is clean, every suite green,
 // every ref update accepted; each request body is kept so tests can inspect what the
-// gateway sent.
+// gateway sent. A squash is recorded in the fake trunk repo like the real runner's candidate
+// (`recordSquash`), so a repository engine reads `.beanstalk/checks.toml` from its tree.
 import { DurableObject } from 'cloudflare:workers';
+
+import { recordSquash } from './fake-store.js';
 
 async function sha1(text) {
   const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
@@ -48,7 +51,14 @@ async function answer(this_, path, body) {
           ],
         };
       const sha = await sha1(`${body.onto}:${body.change.ref}:${body.message}`);
-      const files = [`src/${body.change.ref.split('/').at(-1)}.ts`];
+      const changed = recordSquash({
+        remote: body.repo,
+        sha,
+        onto: body.onto,
+        changeRef: body.change.ref,
+        message: body.message,
+      });
+      const files = [...new Set([`src/${body.change.ref.split('/').at(-1)}.ts`, ...changed])];
       SQUASHED.set(sha, body.change.ref);
       return {
         result: 'clean',

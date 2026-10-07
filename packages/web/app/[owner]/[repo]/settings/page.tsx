@@ -2,11 +2,13 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { ChecksSummary } from '../../../../components/repository/checks-config';
 import { CollaboratorsSettings } from '../../../../components/repository/collaborators';
 import { DeployTokens } from '../../../../components/repository/deploy-tokens';
 import { currentSession } from '../../../../src/auth/user';
 import { collaboratorsClient } from '../../../../src/repositories/collaborators-client';
 import { deployTokensClient } from '../../../../src/repositories/deploy-tokens-client';
+import { registryClient } from '../../../../src/repositories/registry-client';
 
 import { RepoHead } from '../../../../components/home/repo-head';
 import styles from '../../../../components/repository/repository.module.css';
@@ -29,7 +31,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 /**
- * Settings. The owner has all of it; a maintainer has deploy tokens; other collaborators are
+ * Settings. Everyone with a role sees the repository's effective checks (read from the stalk's
+ * `.beanstalk/checks.toml`; changed by a maintainer's bean, never here). The owner has all of it; a maintainer has deploy tokens; other collaborators are
  * told whose settings these are; people with no role get the same 404 as a missing repository.
  * The gateway checks every change again.
  */
@@ -43,9 +46,10 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
   const access = { repoId: record.id, csrf: session.csrfToken, path: `${base}/settings` };
   const isOwner = role === 'owner';
   const canDeploy = isOwner || role === 'maintain';
-  const [tokens, people] = await Promise.all([
+  const [tokens, people, files] = await Promise.all([
     canDeploy ? deployTokensClient(env.GATEWAY).list(actor, record.id) : Promise.resolve(null),
     isOwner ? collaboratorsClient(env.GATEWAY).people(record.id, actor.id) : Promise.resolve(null),
+    registryClient(env.GATEWAY).files(record.id, actor.id),
   ]);
   const repo = {
     id: record.id,
@@ -80,6 +84,19 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
           )}
           {isOwner ? <GeneralSettings repo={repo} saved={saved} /> : null}
           {isOwner ? <VisibilitySettings repo={repo} /> : null}
+          <section className={styles.panel} aria-labelledby="checks-title">
+            <div className={styles.panelHead}>
+              <h2 id="checks-title">Checks</h2>
+              <span className={`${styles.muted} ${styles.mono}`}>
+                .beanstalk/checks.toml on {files.ok ? files.value.ref : 'the stalk'}
+              </span>
+            </div>
+            {files.ok ? (
+              <ChecksSummary file={files.value.checks} />
+            ) : (
+              <p className={styles.empty}>The stalk could not be read: {files.error.message}</p>
+            )}
+          </section>
           {isOwner && people !== null && people.ok ? (
             <CollaboratorsSettings
               name={record.name}

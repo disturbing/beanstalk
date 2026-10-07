@@ -14,16 +14,19 @@
     "./repos": "./src/repos.ts",
     "./deploy-tokens": "./src/deploy-tokens.ts",
     "./collaborators": "./src/collaborators.ts",
-    "./read-maps": "./src/read-maps.ts"
+    "./read-maps": "./src/read-maps.ts",
+    "./checks-config": "./src/checks-config.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {
+    "smol-toml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "fast-check": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

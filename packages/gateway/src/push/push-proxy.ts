@@ -28,6 +28,8 @@ import {
   withRemoteLines,
   withoutFinalFlush,
 } from '../git/receive-pack-report';
+import type { ProtectedAccess } from '../checks/protected-access';
+import { protectedAccessOf } from '../checks/protected-access';
 import { accessFacts } from '../repos/access';
 import type { SessionUse } from '../repos/collaborators';
 import type { RunDO } from '../run/run-do';
@@ -80,7 +82,18 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const use = credential === null ? null : sessionUse(credential, repository.repoId);
   if (path.rest === 'git-receive-pack')
     // Pushing is never allowed without a credential, so `credential` is set here.
-    return credential === null ? missing : push(input, { engine, engineId, use, credential });
+    return credential === null
+      ? missing
+      : push(input, {
+          engine,
+          engineId,
+          use,
+          credential,
+          protectedAccess: protectedAccessOf(
+            credential,
+            roleOf({ kind: 'credential', credential }, repository.access),
+          ),
+        });
   if (use !== null) input.ctx.waitUntil(recordUse(deps, use, 'read'));
   const grant = await engine.repoGitGrant(access);
   if (!grant.ok) return text(grant.status, grant.message);
@@ -162,7 +175,13 @@ async function recordUse(deps: Deps, use: Use, action: 'read' | 'push'): Promise
 
 async function push(
   input: RepoGitRequest,
-  target: { engine: Engine; engineId: RunId; use: Use | null; credential: GitCredential },
+  target: {
+    engine: Engine;
+    engineId: RunId;
+    use: Use | null;
+    credential: GitCredential;
+    protectedAccess: ProtectedAccess;
+  },
 ): Promise<Response> {
   if (input.request.headers.get('content-encoding') !== null)
     return text(415, 'compressed pushes are not supported');
@@ -193,6 +212,7 @@ async function push(
     bean: checked.bean,
     head: checked.head,
     actor: target.credential.user.handle,
+    protectedAccess: target.protectedAccess,
     options,
   });
   if (submitted.ok && target.use !== null)

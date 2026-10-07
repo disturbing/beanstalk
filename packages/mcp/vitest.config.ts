@@ -73,20 +73,18 @@ function auxiliaryWorkers() {
       durableObjects: {
         RUNS: { className: 'RunDO', useSQLite: true },
         RUN_INDEX: { className: 'RunIndex', useSQLite: true },
-        RUNNER: { className: 'FakeRunner', scriptName: 'fake-runner' },
+        RUNNER: { className: 'FakeRunner', scriptName: 'fake-artifacts' },
       },
       outboundService: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },
     },
     {
+      // The gateway's fakes: Artifacts, its git remotes and the runner share one worker.
       name: 'fake-artifacts',
-      modules: true,
-      script: readFileSync(path.join(gateway, 'test/fakes/fake-artifacts.js'), 'utf8'),
-      compatibilityDate,
-    },
-    {
-      name: 'fake-runner',
-      modules: true,
-      script: readFileSync(path.join(gateway, 'test/fakes/fake-runner.js'), 'utf8'),
+      modules: ['fake-artifacts.js', 'fake-runner.js', 'fake-store.js'].map((file) => ({
+        type: 'ESModule' as const,
+        path: file,
+        contents: readFileSync(path.join(gateway, 'test/fakes', file), 'utf8'),
+      })),
       compatibilityDate,
       durableObjects: { FAKE_RUNNER: { className: 'FakeRunner', useSQLite: true } },
     },
