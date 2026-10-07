@@ -1,9 +1,9 @@
 {
   "name": "beanstalk",
   "displayName": "Beanstalk",
-  "version": "0.1.0",
-  "description": "Collaborate through Beanstalk beans: discover related work, publish approaches, discuss requests and pin promise revisions through harness-independent MCP tools.",
+  "version": "0.2.0",
+  "description": "Teaches coding agents to work on a Beanstalk repository: git push a bean branch, read the pre-land verdict, fix reds and conflicts, and use MCP only for context (overlaps, decision cards, bean conversation).",
   "author": { "name": "Beanstalk" },
   "license": "FSL-1.1-ALv2",
-  "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare"]
+  "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare", "agents"]
 }
