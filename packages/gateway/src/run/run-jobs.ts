@@ -158,13 +158,25 @@ async function check(
   spec: Extract<JobSpec, { kind: 'check' }>,
   context: JobContext,
 ): Promise<JobResult> {
-  const result = await context.runner.check(checkInstance(context.run, spec.instance), {
-    trunk: await runRepo(context, 'read'),
+  const { network, ciSeconds, ...result } = await context.runner.check(
+    checkInstance(context.run, spec.instance),
+    {
+      trunk: await runRepo(context, 'read'),
+      sha: spec.sha,
+      extraFiles: spec.extraFiles,
+      suite: context.suite,
+      only: spec.only ?? null,
+      allReadSets: spec.allReadSets === true,
+    },
+  );
+  context.log.info('suite checked', {
     sha: spec.sha,
-    extraFiles: spec.extraFiles,
-    suite: context.suite,
-    only: spec.only ?? null,
-    allReadSets: spec.allReadSets === true,
+    green: result.green,
+    tests: result.tests,
+    suite_seconds: result.suiteSeconds,
+    ci_seconds: ciSeconds,
+    network,
+    deps: context.suite.deps,
   });
   return { kind: 'check', check: result };
 }

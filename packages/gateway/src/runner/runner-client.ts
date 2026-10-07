@@ -83,10 +83,18 @@ export type UpdateRefCall = {
   readonly oldSha: Sha;
 };
 
+/** A check's result plus what the runner says about the run itself (logged, never in the engine). */
+export type RunnerCheck = CheckResult & {
+  /** The suite's network: `loopback` (a namespace with `lo` only) or `host`; null: not reported. */
+  readonly network: string | null;
+  /** Fetch, checkout, suite and emulated latency on the runner; null: not reported. */
+  readonly ciSeconds: number | null;
+};
+
 export type RunnerPort = {
   squash(instance: string, call: SquashCall): Promise<SquashOutcome>;
   revert(instance: string, call: RevertCall): Promise<RevertOutcome>;
-  check(instance: string, call: CheckCall): Promise<CheckResult>;
+  check(instance: string, call: CheckCall): Promise<RunnerCheck>;
   updateRef(instance: string, call: UpdateRefCall): Promise<{ ok: boolean; actual: Sha | null }>;
 };
 
@@ -128,7 +136,9 @@ const CheckResponse = z.object({
   stack_files: z.array(z.string()).optional(),
   output_excerpt: z.string().optional(),
   suite_seconds: z.number().min(0),
+  ci_seconds: z.number().min(0).optional(),
   timed_out: z.boolean().optional(),
+  network: z.string().max(20).optional(),
 });
 
 const UpdateRefResponse = z.object({ ok: z.boolean(), actual: Sha.nullable().optional() });
@@ -259,8 +269,10 @@ export function checkBody(call: CheckCall): Readonly<Record<string, unknown>> {
   };
 }
 
-function toCheckResult(response: z.infer<typeof CheckResponse>): CheckResult {
+function toCheckResult(response: z.infer<typeof CheckResponse>): RunnerCheck {
   return {
+    network: response.network ?? null,
+    ciSeconds: response.ci_seconds ?? null,
     green: response.green,
     tests: response.tests,
     failures: response.failures,
