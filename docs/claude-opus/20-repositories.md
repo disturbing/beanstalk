@@ -144,3 +144,30 @@ Repo events (§7, §8), checks config (`24`) and accounts polish (`19` §10) mer
 - **MCP asks the rule git asks.** `agentRepositoryPrincipal` (`gateway/src/agent/agent-access.ts`) is the one place an MCP session becomes a `mayUseEngine` principal; the repository tools and `repository_access` both use it. Archive goes through it: `repo-archive.test.ts` checks that `bean_open` and `repository_access(write)` answer the archive sentence while reads still work.
 - **Protected paths:** `.beanstalk/checks.toml` is always protected, not all of `.beanstalk/`, so agents keep ticking tasks in `.beanstalk/backlog.md` (`23`) with ordinary beans.
 - **Doc numbering:** `23-mcp-repository-tools.md`'s title said 22 and now says 23; checks config is `24`; no number is used twice.
+
+**Verified.** `pnpm check` exits 0 (gateway 751 tests, web 220, MCP 63, shared-race 87, shared-identity 63); the race harness's Python tests pass (`research/race`, 162). Staging stack `beanstalk-{gateway,web,mcp}-staging-int` (runner app at 4 × standard-2), D1 `beanstalk-forge-staging-int` (migrations 0001 to 0004) and `beanstalk-identity-staging-int` (0001 to 0003), KV `beanstalk-oauth-staging-int`, queue `beanstalk-repo-events-staging-int`, Artifacts `beanstalk-repos-staging-int`, dataset `product_events_staging_int`, Turnstile unconfigured as live is; headless Chrome with a CDP virtual authenticator and real git (`exp/integration/staging-transcript.txt`, screenshots beside it):
+
+| Check | Result |
+|---|---|
+| Sign-up with Turnstile unconfigured | no widget; passkey `options` for sign-up and sign-in answer 200 without a token; sign-up lands on Home |
+| First-visit checklist, install commands | Home shows "Get started, 0 of 3 done"; `/signup/agent` renders the Claude Code and Codex lines for this deployment (`claude mcp add …` here, since its MCP URL is not the hosted one) |
+| No checks file (`plain`, empty start) | push line `no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)`, green 7.4 s, LANDED, validated; a bean with a failing test is RED naming it, so the suite really runs |
+| Starter's older `[[check]]` draft (`legacy`) | the owner's bean adding it LANDED (protected path allowed for the owner); the next bean prints the "older [[check]] draft … default suite runs" line and LANDED in 9 s |
+| New `checks.toml` (`greeter`, starter) | `checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)`, LANDED and validated; a deploy token's change to the checks file RED in 0.1 s ("refused for a deploy token"); the same token's `.beanstalk/backlog.md` change LANDED |
+| History | heads, week counts, a "validated" pill on every landed commit, Validation verdicts listing each stalk move; `/stalk` → `/history`; no Stalk tab; 0 px sideways scroll at 390 px. On these idle repositories validation followed landing within a second, so the "landed, not validated yet" pill was never caught by a once-a-second poll |
+| Archive `greeter` | HTTPS push 403 `int-zkrm/greeter is archived, so it is read-only: pushes are refused…`; MCP `repository_access` says `push_beans: false` with that sentence, `bean_open` and `task_claim` refused with it, `repo_status` still reads, `git_credentials` mints a read-only credential; the web shows the archived note, Settings keeps only archive, collaborators and delete, History still renders, Home says "1 archived"; unarchived, the next push LANDED |
+
+Also checked: migration `0004_repo_events.sql` applied to a copy of the live `beanstalk-forge` (exported read-only into a throwaway D1 that already had 0001 to 0003): both repositories and both activity lines kept, the new tables present. The copy and the export were deleted. Everything on the stack was torn down (Workers, runner container application, queue, both D1, KV, the three Artifacts repositories); the dataset cannot be deleted and expires with retention.
+
+### Live rollout (not done; for Coop)
+
+Live today: gateway `9709edee`, web `ca742175`, MCP `05c930e5`; `beanstalk-identity` is at 0003; `beanstalk-forge` lacks only 0004; no `beanstalk-repo-events` queue exists. From `packages/gateway` with `CLOUDFLARE_ACCOUNT_ID` set:
+
+1. `npx wrangler queues create beanstalk-repo-events` (the gateway is its producer and consumer; the deploy fails without it).
+2. `npx wrangler d1 migrations apply beanstalk-forge --remote`: applies only `0004_repo_events.sql` (new tables, three nullable columns on `repository_activity`), before the gateway, which writes them.
+3. Deploy the **gateway** (`node scripts/deploy-all.mjs --only gateway`; Docker builds the runner image; runner API unchanged). Then `npx wrangler queues info beanstalk-repo-events` should list it as producer and consumer.
+4. Deploy the **web** app and the **MCP** Worker (`deploy-all.mjs --only web,mcp`), then the **site** (its install lines changed). The web reads the new gateway RPCs; an older gateway is tolerated but hides History's verdicts, so the gateway goes first.
+5. Vars and secrets: none new are required. The `product_events` dataset is created by its first write. Turnstile stays off with `TURNSTILE_SITE_KEY` empty; to turn it on later, `wrangler secret put TURNSTILE_SECRET_KEY` on `beanstalk-web`, then set the site key and redeploy web (either one alone leaves it off).
+6. After: existing repositories fill the index the first time their engine wakes or their page is read (Home falls back to the engines until then); push one bean to a live smoke repository (expect the default-suite or older-draft line on starter repositories, then LANDED) and open its History.
+
+Behaviour changes on live: archive exists; History replaces the Stalk tab; the checks file is read (repositories without it, or with the older draft, keep running `node --test`); `.beanstalk/checks.toml` can be changed only by the owner or a maintainer with a personal token or SSH key, so an agent session or a deploy token that touches it gets a red. Rollback: `wrangler rollback` per Worker; the migration is additive and the queue can stay.

@@ -97,7 +97,7 @@ Screenshots (staging, night and day, phone): `exp/checks-config/`.
 | | `shout` (a failing test) | owner | red, `test/shout.test.ts > shouts with an exclamation mark` |
 | | `weaken-checks` | deploy token | refused: `.beanstalk/checks.toml` is protected |
 | | `bad-checks` (`command = "npm test"`) | owner | allowed to change it, then red: `command: must be an argv array …` |
-| `kv-layout` (empty start, `spec/*.spec.mjs`, ESM) | `notes` | deploy token | (lane run, before the integration decision) `no .beanstalk/checks.toml …: no checks run`, landed and validated, 19 s; since the integration this runs the default suite (§7) |
+| `kv-layout` (empty start, `spec/*.spec.mjs`, ESM) | `notes` | deploy token | (lane run, before the integration decision) `no .beanstalk/checks.toml …: no checks run`, landed and validated, 19 s; since the integration this runs the default suite (`20` §9) |
 | | `setup` (adds the checks above) | owner | `node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)`, green 6.4 s; the spec asserts `KV_LIMIT` is `"3"` and sits where `node --test`'s defaults would not look, so the green proves both |
 | | `off-by-one` | deploy token | red, `spec/kv.spec.mjs > keeps KV_LIMIT keys from the checks environment`, naming `setup` as the bean it collided with |
 | | `schema` | deploy token | refused: `data/schema.json` is protected by the file |
