@@ -9,7 +9,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm -r --workspace-concurrency=2 --if-present test",
     "rust:check": "node scripts/rust-check.mjs",
     "product-events": "node scripts/product-events.mjs",
     "skills:update": "npx -y skills@latest update -p -y"
