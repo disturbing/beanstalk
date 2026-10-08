@@ -87,6 +87,7 @@ export function runAt(plan: RunPlan, nowMs: number): RunDetail {
     startedAt: started.length === 0 ? null : iso(Math.min(...started)),
     completedAt: status === 'completed' && ended.length > 0 ? iso(Math.max(...ended)) : null,
     billedMinutes: billedMinutesOf(times, seenMs),
+    reason: null,
     jobs,
     annotations: annotationsAt(plan, times, seenMs),
     summary: conclusion === 'success' ? plan.script.summary : null,

@@ -361,7 +361,8 @@
   color: var(--good-fill);
 }
 .mark[data-state='failure'],
-.mark[data-state='timed_out'] {
+.mark[data-state='timed_out'],
+.mark[data-state='startup_failure'] {
   color: var(--bad-fill);
 }
 .mark[data-state='running'] {
@@ -1107,4 +1108,12 @@
     grid-template-columns: 36px minmax(0, 1fr);
     gap: 8px;
   }
+}
+
+.reason {
+  border-left: 3px solid var(--bad-fill);
+  background: var(--bad-wash);
+  padding: 8px 12px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: var(--step--1);
 }

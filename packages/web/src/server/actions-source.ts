@@ -1,18 +1,20 @@
 /**
- * Which Actions control plane a request talks to: the actions Worker's binding (`ACTIONS`,
- * or the gateway when it carries the methods), else the fixture fake when this deployment
- * says so (`ACTIONS_SOURCE=fixtures`, staging only), else none. The fake's overlay rides in a
- * cookie, so a staging walk can dispatch, cancel and name secrets with no store. Server-only.
+ * Which Actions control plane a request talks to, as `ACTIONS_SOURCE` says: `gateway` (the
+ * `ACTIONS` service binding to the gateway's `Actions` entrypoint, `@beanstalk/shared-race/
+ * actions`), `fixtures` (the web's own fake, staging only), or none (empty: the tab says
+ * Actions are not running here). The fake's overlay rides in a cookie, so a staging walk can
+ * dispatch, cancel and name secrets with no store. Server-only.
  */
 import { env } from 'cloudflare:workers';
 import { cookies } from 'next/headers';
 
 import type { ActionsClient } from '../actions/actions-client';
-import { actionsClient, asActionsRpc } from '../actions/actions-client';
+import { actionsClient } from '../actions/actions-client';
 import type { ActionsActor } from '../actions/actions-contract';
 import { fakeControlPlane } from '../actions/fake/fake-control-plane';
 import type { FakeOverlay } from '../actions/fake/fake-overlay';
 import { decodeOverlay, encodeOverlay } from '../actions/fake/fake-overlay';
+import { asGatewayActions, gatewayActionsClient } from '../actions/gateway-actions';
 
 const FAKE_COOKIE = 'bs_actions_fixtures';
 const FAKE_COOKIE_DAYS = 7;
@@ -55,9 +57,13 @@ function sessionFrom(
   cookieValue: string | undefined,
   writeCookie: (value: string) => Promise<void>,
 ): ActionsSession | null {
-  const rpc = asActionsRpc(Reflect.get(env, 'ACTIONS')) ?? asActionsRpc(env.GATEWAY);
-  if (rpc !== null)
-    return { client: actionsClient(rpc, { ...scope, mode: 'live' }), persist: async () => {} };
+  if (env.ACTIONS_SOURCE === 'gateway') {
+    // Bound only where the gateway serves the entrypoint, so it is read by name, not typed.
+    const rpc = asGatewayActions(Reflect.get(env, 'ACTIONS'));
+    return rpc === null
+      ? null
+      : { client: gatewayActionsClient(rpc, scope), persist: async () => {} };
+  }
   if (env.ACTIONS_SOURCE !== 'fixtures') return null;
   let overlay: FakeOverlay = decodeOverlay(cookieValue);
   let changed = false;

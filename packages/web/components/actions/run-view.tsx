@@ -6,6 +6,7 @@
 import Link from 'next/link';
 
 import type { Annotation, LogLine, RunDetail } from '../../src/actions/actions-contract';
+import { annotationsFromLog } from '../../src/actions/log-view';
 import {
   actorLabel,
   elapsedMs,
@@ -39,6 +40,10 @@ export function RunView(props: {
   const state = stateOf(run);
   const runPath = `${base}/actions/runs/${encodeURIComponent(run.id)}`;
   const job = run.jobs.find((candidate) => candidate.id === props.jobId) ?? null;
+  const annotations =
+    run.annotations.length > 0 || job === null
+      ? run.annotations
+      : annotationsFromLog(job.id, props.lines ?? []);
   return (
     <>
       <RunRefresher live={isLive(state)} />
@@ -76,6 +81,11 @@ export function RunView(props: {
           />
         )}
       </header>
+      {run.reason === null ? null : (
+        <p className={styles.reason} role="note">
+          {run.reason}
+        </p>
+      )}
       <section className={styles.box} aria-label="Run">
         <dl className={styles.facts}>
           <div>
@@ -114,8 +124,8 @@ export function RunView(props: {
         <div className={styles.boxHead}>
           <h2>Jobs</h2>
           <span className={styles.muted}>
-            {run.jobs.length} {run.jobs.length === 1 ? 'job' : 'jobs'} · runs-on{' '}
-            {run.jobs[0]?.runsOn ?? 'ubuntu-latest'}
+            {run.jobs.length} {run.jobs.length === 1 ? 'job' : 'jobs'}
+            {(run.jobs[0]?.runsOn ?? '') === '' ? '' : ` · runs-on ${run.jobs[0]?.runsOn}`}
           </span>
         </div>
         {run.jobs.length === 0 ? (
@@ -129,8 +139,8 @@ export function RunView(props: {
           />
         )}
       </section>
-      {run.annotations.length === 0 ? null : (
-        <Annotations annotations={run.annotations} base={base} run={run} />
+      {annotations.length === 0 ? null : (
+        <Annotations annotations={annotations} base={base} run={run} />
       )}
       {run.summary === null ? null : (
         <section className={styles.box} aria-labelledby="summary-title">

@@ -35,6 +35,7 @@ function shapeOf(state: RunState) {
       );
     case 'failure':
     case 'timed_out':
+    case 'startup_failure':
       return (
         <>
           <circle cx="8" cy="8" r="7" fill="currentColor" />

@@ -3,20 +3,45 @@
  * (`::error file=…,line=…::message`) read as annotations, search over the text without its
  * colours, and the plain-text download.
  */
-import type { LogLine, Step } from './actions-contract';
+import type { Annotation, LogLine, Step } from './actions-contract';
 import { stripAnsi } from './ansi';
 
 export type StepLog = { readonly step: Step; readonly lines: readonly LogLine[] };
 
 /** Every step with its lines, in step order (a step with no lines yet has none). */
 export function groupByStep(steps: readonly Step[], lines: readonly LogLine[]): readonly StepLog[] {
+  const known = new Set(steps.map((step) => step.number));
   const byStep = new Map<number, LogLine[]>();
   for (const line of lines) {
-    const list = byStep.get(line.step) ?? [];
+    const key = known.has(line.step) ? line.step : JOB_STEP.number;
+    const list = byStep.get(key) ?? [];
     list.push(line);
-    byStep.set(line.step, list);
+    byStep.set(key, list);
   }
-  return steps.map((step) => ({ step, lines: byStep.get(step.number) ?? [] }));
+  const groups = steps.map((step) => ({ step, lines: byStep.get(step.number) ?? [] }));
+  const jobLines = byStep.get(JOB_STEP.number) ?? [];
+  return jobLines.length === 0 ? groups : [{ step: JOB_STEP, lines: jobLines }, ...groups];
+}
+
+/** Where the job's own lines go (setting up, tearing down): lines of no step the job lists. */
+const JOB_STEP: Step = {
+  number: -1,
+  name: 'Job',
+  status: 'completed',
+  conclusion: 'success',
+  startedAt: null,
+  completedAt: null,
+};
+
+/** A job's `::error` and `::warning` lines as annotations, when the control plane sends none. */
+export function annotationsFromLog(
+  jobId: string,
+  lines: readonly LogLine[],
+): readonly Annotation[] {
+  return lines.flatMap((line) => {
+    const command = workflowCommand(line.text);
+    return command === null ? [] : [{ ...command, jobId }];
+  });
 }
 
 /** New lines appended to what a viewer has, by line number (a resent line is ignored). */

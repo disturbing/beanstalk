@@ -22,7 +22,8 @@ export type RunState =
   | 'cancelled'
   | 'timed_out'
   | 'skipped'
-  | 'infra_lost';
+  | 'infra_lost'
+  | 'startup_failure';
 
 export function stateOf(item: {
   readonly status: RunStatus;
@@ -42,6 +43,7 @@ export const STATE_WORDS: Readonly<Record<RunState, string>> = {
   timed_out: 'timed out',
   skipped: 'skipped',
   infra_lost: 'runner lost',
+  startup_failure: 'could not start',
 };
 
 /** Whether a run or job can still change. */
@@ -170,9 +172,11 @@ export function focusJob(jobs: readonly Job[]): Job | null {
   );
 }
 
-/** A run's one-line title: the commit's for a push, else the workflow's and how it began. */
+/** A run's one-line title: the commit's for a push (when known), else the workflow's and how it began. */
 export function runTitle(run: RunSummary): string {
-  return run.event === 'push' ? run.title : `${run.workflowName} · ${eventWord(run.event)}`;
+  return run.event === 'push' && run.title !== ''
+    ? run.title
+    : `${run.workflowName} · ${eventWord(run.event)}`;
 }
 
 export function assertNever(value: never): never {

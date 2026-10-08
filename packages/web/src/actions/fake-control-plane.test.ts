@@ -7,7 +7,9 @@ import { COOP, testActions } from './testing/fake-actions';
 
 const NOON = Date.UTC(2026, 9, 8, 12, 0, 0);
 
-async function value<T>(pending: Promise<{ ok: true; value: T } | { ok: false; error: { message: string } }>): Promise<T> {
+async function value<T>(
+  pending: Promise<{ ok: true; value: T } | { ok: false; error: { message: string } }>,
+): Promise<T> {
   const result = await pending;
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
@@ -72,7 +74,9 @@ describe('the fixture control plane through the client', () => {
       expect.objectContaining({ level: 'error', path: 'test/tax.test.ts', line: 27 }),
     );
     const log = await value(actions.client().log(run.id, 'test', 0));
-    expect(log.lines.some((line) => line.text.startsWith('::error file=test/tax.test.ts'))).toBe(true);
+    expect(log.lines.some((line) => line.text.startsWith('::error file=test/tax.test.ts'))).toBe(
+      true,
+    );
   });
 
   it('runs a workflow by hand with its inputs, newest first', async () => {
@@ -111,7 +115,11 @@ describe('the fixture control plane through the client', () => {
 
   it('refuses every write from someone signed out', async () => {
     const client = testActions(NOON).client(null);
-    const dispatch = await client.dispatch({ workflow: '.github/workflows/ci.yml', ref: 'stalk', inputs: {} });
+    const dispatch = await client.dispatch({
+      workflow: '.github/workflows/ci.yml',
+      ref: 'stalk',
+      inputs: {},
+    });
     const secret = await client.putSecret({ name: 'X', value: 'v', availableToPreland: false });
     expect(dispatch.ok).toBe(false);
     expect(secret.ok).toBe(false);
@@ -120,7 +128,13 @@ describe('the fixture control plane through the client', () => {
   it('keeps secret names, never values, and toggles pre-land access without a value', async () => {
     const actions = testActions(NOON);
     const client = actions.client(COOP);
-    await value(client.putSecret({ name: 'SENTRY_DSN', value: 'very-secret-value', availableToPreland: false }));
+    await value(
+      client.putSecret({
+        name: 'SENTRY_DSN',
+        value: 'very-secret-value',
+        availableToPreland: false,
+      }),
+    );
     expect(JSON.stringify(actions.overlay())).not.toContain('very-secret-value');
     await value(client.putSecret({ name: 'SENTRY_DSN', value: null, availableToPreland: true }));
     const listed = await value(client.secrets());
@@ -153,11 +167,18 @@ describe('the fixture control plane through the client', () => {
 
 describe('secret names', () => {
   it('upper-cases a name and refuses reserved or malformed ones', () => {
-    expect(PutSecretInput.parse({ name: 'npm_token', value: 'x', availableToPreland: false }).name).toBe(
-      'NPM_TOKEN',
-    );
-    expect(PutSecretInput.safeParse({ name: 'GITHUB_TOKEN', value: 'x', availableToPreland: false }).success).toBe(false);
-    expect(PutSecretInput.safeParse({ name: '9LIVES', value: 'x', availableToPreland: false }).success).toBe(false);
-    expect(PutSecretInput.safeParse({ name: 'A-B', value: 'x', availableToPreland: false }).success).toBe(false);
+    expect(
+      PutSecretInput.parse({ name: 'npm_token', value: 'x', availableToPreland: false }).name,
+    ).toBe('NPM_TOKEN');
+    expect(
+      PutSecretInput.safeParse({ name: 'GITHUB_TOKEN', value: 'x', availableToPreland: false })
+        .success,
+    ).toBe(false);
+    expect(
+      PutSecretInput.safeParse({ name: '9LIVES', value: 'x', availableToPreland: false }).success,
+    ).toBe(false);
+    expect(
+      PutSecretInput.safeParse({ name: 'A-B', value: 'x', availableToPreland: false }).success,
+    ).toBe(false);
   });
 });

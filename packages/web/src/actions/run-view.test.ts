@@ -41,7 +41,12 @@ describe('run states and words', () => {
 
 describe('the job graph', () => {
   it('puts each job one column after the deepest job it needs', () => {
-    const jobs = [job('lint', []), job('build', []), job('test', ['lint', 'build']), job('deploy', ['test'])];
+    const jobs = [
+      job('lint', []),
+      job('build', []),
+      job('test', ['lint', 'build']),
+      job('deploy', ['test']),
+    ];
     expect(jobColumns(jobs).map((column) => column.map((item) => item.id))).toEqual([
       ['lint', 'build'],
       ['test'],
@@ -63,7 +68,9 @@ describe('the job graph', () => {
 
 describe('the runs list URL', () => {
   it('reads filters from the query and ignores unknown statuses', () => {
-    expect(runFilterOf({ workflow: '.github/workflows/ci.yml', status: 'nope', before: '12' })).toEqual({
+    expect(
+      runFilterOf({ workflow: '.github/workflows/ci.yml', status: 'nope', before: '12' }),
+    ).toEqual({
       limit: 25,
       workflow: '.github/workflows/ci.yml',
       before: '12',
@@ -73,18 +80,41 @@ describe('the runs list URL', () => {
   it('resets paging when a filter changes', () => {
     const filter = runFilterOf({ status: 'failure', before: '99' });
     expect(filterHref('/a/b/actions', filter, { workflow: 'ci.yml' })).toBe(
-      '/a/b/actions?status=failure&workflow=ci.yml',
+      '/a/b/actions?workflow=ci.yml&status=failure',
     );
     expect(filterHref('/a/b/actions', filter, { status: null })).toBe('/a/b/actions');
-    expect(filterHref('/a/b/actions', filter, { before: '42' })).toBe('/a/b/actions?status=failure&before=42');
+    expect(filterHref('/a/b/actions', filter, { before: '42' })).toBe(
+      '/a/b/actions?status=failure&before=42',
+    );
   });
 });
 
 describe('dispatch inputs', () => {
   const declared: readonly DispatchInput[] = [
-    { name: 'environment', description: null, type: 'choice', required: true, default: 'staging', options: ['staging', 'production'] },
-    { name: 'dry-run', description: null, type: 'boolean', required: false, default: 'false', options: [] },
-    { name: 'count', description: null, type: 'number', required: false, default: null, options: [] },
+    {
+      name: 'environment',
+      description: null,
+      type: 'choice',
+      required: true,
+      default: 'staging',
+      options: ['staging', 'production'],
+    },
+    {
+      name: 'dry-run',
+      description: null,
+      type: 'boolean',
+      required: false,
+      default: 'false',
+      options: [],
+    },
+    {
+      name: 'count',
+      description: null,
+      type: 'number',
+      required: false,
+      default: null,
+      options: [],
+    },
   ];
 
   function form(entries: Readonly<Record<string, string>>): FormData {
@@ -103,6 +133,8 @@ describe('dispatch inputs', () => {
   it('refuses a missing required input, an undeclared choice and a non-number', () => {
     expect(dispatchInputsOf(declared, form({})).ok).toBe(false);
     expect(dispatchInputsOf(declared, form({ 'input:environment': 'moon' })).ok).toBe(false);
-    expect(dispatchInputsOf(declared, form({ 'input:environment': 'staging', 'input:count': 'ten' })).ok).toBe(false);
+    expect(
+      dispatchInputsOf(declared, form({ 'input:environment': 'staging', 'input:count': 'ten' })).ok,
+    ).toBe(false);
   });
 });

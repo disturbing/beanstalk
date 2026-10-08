@@ -43,4 +43,3 @@ export async function GET(request: Request, context: Context): Promise<Response>
 function problem(status: number, message: string): Response {
   return Response.json({ error: { message } }, { status });
 }
-

@@ -67,10 +67,11 @@
     // The SSH host key's fingerprint (`SHA256:…`, as `ssh` prints it), shown in Settings → SSH
     // keys and on a new repository's page so people can check it (docs/claude-opus/21).
     "SSH_HOST_KEY_FINGERPRINT": "",
-    // Actions (docs/claude-opus/25): the Automations tab talks to the actions Worker through an
-    // `ACTIONS` service binding (or the gateway, when it carries ActionsRpc). With neither, the
-    // tab says Actions are not running here. "fixtures" answers from the web's own fake
-    // (src/actions/fake): staging only, never live, and every page says so.
+    // Actions (docs/claude-opus/25): where the Automations tab reads workflows and runs.
+    // "gateway": the gateway's Actions control plane; add the service binding
+    // { "binding": "ACTIONS", "service": "beanstalk-gateway", "entrypoint": "Actions" } with it.
+    // "fixtures": the web's own fake (src/actions/fake), staging only, never live, and every
+    // page says so. Empty: the tab says Actions are not running on this deployment.
     "ACTIONS_SOURCE": "",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.

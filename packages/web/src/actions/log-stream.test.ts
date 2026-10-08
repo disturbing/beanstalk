@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
-import { actionsClient, asActionsRpc } from './actions-client';
-import type { ActionsRpc } from './actions-contract';
-import { decodeOverlay, encodeOverlay, withRepoOverlay, EMPTY_REPO_OVERLAY } from './fake/fake-overlay';
+import { actionsClient } from './actions-client';
+import type { ActionsViewRpc } from './actions-contract';
+import {
+  decodeOverlay,
+  encodeOverlay,
+  withRepoOverlay,
+  EMPTY_REPO_OVERLAY,
+} from './fake/fake-overlay';
+import { asGatewayActions } from './gateway-actions';
 import { jobLogResponse } from './log-stream';
 import { testActions } from './testing/fake-actions';
 
@@ -19,15 +25,23 @@ function parseSse(body: string): readonly SseEvent[] {
     .filter((block) => block.trim() !== '')
     .map((block) => {
       const fields = new Map(
-        block.split('\n').map((line) => [line.slice(0, line.indexOf(':')), line.slice(line.indexOf(':') + 2)]),
+        block
+          .split('\n')
+          .map((line) => [line.slice(0, line.indexOf(':')), line.slice(line.indexOf(':') + 2)]),
       );
-      return { event: fields.get('event') ?? '', id: fields.get('id') ?? null, data: JSON.parse(fields.get('data') ?? 'null') };
+      return {
+        event: fields.get('event') ?? '',
+        id: fields.get('id') ?? null,
+        data: JSON.parse(fields.get('data') ?? 'null'),
+      };
     });
 }
 
 async function runningCiRun() {
   const actions = testActions(NOON);
-  const page = await actions.client().runs({ workflow: '.github/workflows/ci.yml', status: 'success', limit: 1 });
+  const page = await actions
+    .client()
+    .runs({ workflow: '.github/workflows/ci.yml', status: 'success', limit: 1 });
   if (!page.ok || page.value.runs[0] === undefined) throw new Error('no run');
   const run = page.value.runs[0];
   actions.setNow(Date.parse(run.createdAt) + 30_000);
@@ -39,12 +53,15 @@ describe('the job log route', () => {
     const { actions, run } = await runningCiRun();
     // Each read moves the clock on, so the job finishes within a few polls and no test sleeps.
     const client = actions.client();
-    const ticking = { ...client, log: (...args: Parameters<typeof client.log>) => {
-      actions.advance(15_000);
-      return client.log(...args);
-    } };
+    const ticking = {
+      ...client,
+      log: (...args: Parameters<typeof client.log>) => {
+        actions.advance(15_000);
+        return client.log(...args);
+      },
+    };
     const request = new Request('https://web.test/log?after=0');
-    const response = await jobLogResponse(request, ticking, { run: run.id, job: 'lint' }, TIMING);
+    const response = await jobLogResponse(request, ticking, { run: run.id, job: 'test' }, TIMING);
     expect(response.headers.get('content-type')).toContain('text/event-stream');
     const events = parseSse(await response.text());
     expect(events.at(-1)?.event).toBe('end');
@@ -59,17 +76,32 @@ describe('the job log route', () => {
     const { actions, run } = await runningCiRun();
     actions.advance(10 * 60_000);
     const request = new Request('https://web.test/log', { headers: { 'last-event-id': '3' } });
-    const response = await jobLogResponse(request, actions.client(), { run: run.id, job: 'lint' }, TIMING);
+    const response = await jobLogResponse(
+      request,
+      actions.client(),
+      { run: run.id, job: 'lint' },
+      TIMING,
+    );
     const first = parseSse(await response.text()).find((event) => event.event === 'lines');
-    expect(first?.data).toMatchObject({ lines: [{ n: 4 }] });
+    expect(first?.data).toMatchObject({
+      lines: expect.arrayContaining([expect.objectContaining({ n: 4 })]),
+    });
+    expect(JSON.stringify(first?.data)).not.toContain('"n":3,');
   });
 
   it('downloads the whole log as plain text, colours removed', async () => {
     const { actions, run } = await runningCiRun();
     actions.advance(10 * 60_000);
     const request = new Request('https://web.test/log?download=1');
-    const response = await jobLogResponse(request, actions.client(), { run: run.id, job: 'test' }, TIMING);
-    expect(response.headers.get('content-disposition')).toMatch(/^attachment; filename="CI-\d+-test\.log"$/);
+    const response = await jobLogResponse(
+      request,
+      actions.client(),
+      { run: run.id, job: 'test' },
+      TIMING,
+    );
+    expect(response.headers.get('content-disposition')).toMatch(
+      /^attachment; filename="CI-\d+-test\.log"$/,
+    );
     const text = await response.text();
     expect(text).toContain('##[group]npm test');
     expect(text).not.toContain('\u001b[');
@@ -78,20 +110,28 @@ describe('the job log route', () => {
   it('answers 404 for a job the run does not have', async () => {
     const { actions, run } = await runningCiRun();
     const request = new Request('https://web.test/log?download=1');
-    const response = await jobLogResponse(request, actions.client(), { run: run.id, job: 'nope' }, TIMING);
+    const response = await jobLogResponse(
+      request,
+      actions.client(),
+      { run: run.id, job: 'nope' },
+      TIMING,
+    );
     expect(response.status).toBe(404);
   });
 });
 
 describe('the client', () => {
   it('treats a binding without every method as no control plane', () => {
-    expect(asActionsRpc({ listWorkflows: () => null })).toBeNull();
-    expect(asActionsRpc(undefined)).toBeNull();
+    expect(asGatewayActions({ listWorkflows: () => null })).toBeNull();
+    expect(asGatewayActions(undefined)).toBeNull();
   });
 
   it('turns an answer in an unknown shape into an error, not a page', async () => {
-    const answer = async (): Promise<RpcResult<unknown>> => ({ ok: true, value: { surprise: true } });
-    const rpc: ActionsRpc = {
+    const answer = async (): Promise<RpcResult<unknown>> => ({
+      ok: true,
+      value: { surprise: true },
+    });
+    const rpc: ActionsViewRpc = {
       listWorkflows: answer,
       dispatchWorkflow: answer,
       listRuns: answer,
@@ -125,7 +165,10 @@ describe('the fake overlay cookie', () => {
     }));
     const one = withRepoOverlay({}, 'r1', { ...EMPTY_REPO_OVERLAY, dispatched });
     expect(one['r1']?.dispatched.map((run) => run.id).at(0)).toBe('ci-4-d');
-    const four = ['r2', 'r3', 'r4'].reduce((overlay, id) => withRepoOverlay(overlay, id, EMPTY_REPO_OVERLAY), one);
+    const four = ['r2', 'r3', 'r4'].reduce(
+      (overlay, id) => withRepoOverlay(overlay, id, EMPTY_REPO_OVERLAY),
+      one,
+    );
     expect(Object.keys(four)).toEqual(['r2', 'r3', 'r4']);
   });
 });

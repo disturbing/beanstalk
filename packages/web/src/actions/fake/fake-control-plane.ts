@@ -1,5 +1,5 @@
 /**
- * `ActionsRpc` answered from fixtures, for staging and tests until the actions Worker exists.
+ * `ActionsViewRpc` answered from fixtures, for staging and tests until the actions Worker exists.
  * Runs are generated from the clock (CI every seven minutes as the stalk moves, Deploy after
  * every other move, the nightly e2e at 03:00 UTC), so one is often running and its log grows
  * between requests. Dispatches, cancels and secret names go to the caller's overlay store.
@@ -9,7 +9,7 @@ import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import { RunSummary } from '../actions-contract';
 import type {
   ActionsActor,
-  ActionsRpc,
+  ActionsViewRpc,
   ActionsUsage,
   DispatchRequest,
   LogPage,
@@ -62,7 +62,7 @@ const FIXTURE_SECRETS: readonly SecretSummary[] = [
 export function fakeControlPlane(deps: {
   readonly store: OverlayStore;
   readonly nowMs: () => number;
-}): ActionsRpc {
+}): ActionsViewRpc {
   const overlayOf = (repoId: string) => repoOverlayOf(deps.store.read(), repoId);
   const save = (repoId: string, next: RepoOverlay) =>
     deps.store.write(withRepoOverlay(deps.store.read(), repoId, next));

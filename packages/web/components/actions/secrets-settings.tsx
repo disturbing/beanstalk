@@ -21,6 +21,8 @@ export function SecretsSettings(props: {
   readonly error: string | null;
   readonly usage: ActionsUsage | null;
   readonly access: ActionsAccess;
+  /** Whether pre-land access can change without the value (else: save the secret again). */
+  readonly canToggle: boolean;
   readonly nowMs: number;
 }) {
   return (
@@ -36,7 +38,12 @@ export function SecretsSettings(props: {
       {props.secrets === null ? (
         <p className={styles.alert}>Secrets could not be read: {props.error}</p>
       ) : (
-        <SecretList secrets={props.secrets} access={props.access} nowMs={props.nowMs} />
+        <SecretList
+          secrets={props.secrets}
+          access={props.access}
+          canToggle={props.canToggle}
+          nowMs={props.nowMs}
+        />
       )}
     </>
   );
@@ -136,13 +143,20 @@ function PrelandRisk() {
 function SecretList(props: {
   readonly secrets: readonly SecretSummary[];
   readonly access: ActionsAccess;
+  readonly canToggle: boolean;
   readonly nowMs: number;
 }) {
   if (props.secrets.length === 0) return <p className={styles.muted}>No secrets yet.</p>;
   return (
     <ul className={styles.secrets} aria-label="Secrets">
       {props.secrets.map((secret) => (
-        <SecretRow key={secret.name} secret={secret} access={props.access} nowMs={props.nowMs} />
+        <SecretRow
+          key={secret.name}
+          secret={secret}
+          access={props.access}
+          canToggle={props.canToggle}
+          nowMs={props.nowMs}
+        />
       ))}
     </ul>
   );
@@ -151,6 +165,7 @@ function SecretList(props: {
 function SecretRow(props: {
   readonly secret: SecretSummary;
   readonly access: ActionsAccess;
+  readonly canToggle: boolean;
   readonly nowMs: number;
 }) {
   const { secret, access } = props;
@@ -177,29 +192,31 @@ function SecretRow(props: {
       </div>
       {deleted ? null : (
         <div className={styles.secretTools}>
-          <form action={toggle}>
-            <AccessFields access={access} />
-            <input type="hidden" name="mode" value="toggle" />
-            <input type="hidden" name="secret" value={secret.name} />
-            <input
-              type="hidden"
-              name="preland"
-              value={secret.availableToPreland ? 'false' : 'true'}
-            />
-            <button
-              type="submit"
-              className={styles.iconButton}
-              disabled={toggling}
-              aria-pressed={secret.availableToPreland}
-              title={
-                secret.availableToPreland
-                  ? 'Stop giving this secret to pre-land checks'
-                  : 'Give this secret to pre-land checks (unreviewed code can read it)'
-              }
-            >
-              Pre-land: {secret.availableToPreland ? 'on' : 'off'}
-            </button>
-          </form>
+          {props.canToggle ? (
+            <form action={toggle}>
+              <AccessFields access={access} />
+              <input type="hidden" name="mode" value="toggle" />
+              <input type="hidden" name="secret" value={secret.name} />
+              <input
+                type="hidden"
+                name="preland"
+                value={secret.availableToPreland ? 'false' : 'true'}
+              />
+              <button
+                type="submit"
+                className={styles.iconButton}
+                disabled={toggling}
+                aria-pressed={secret.availableToPreland}
+                title={
+                  secret.availableToPreland
+                    ? 'Stop giving this secret to pre-land checks'
+                    : 'Give this secret to pre-land checks (unreviewed code can read it)'
+                }
+              >
+                Pre-land: {secret.availableToPreland ? 'on' : 'off'}
+              </button>
+            </form>
+          ) : null}
           <form action={remove}>
             <AccessFields access={access} />
             <input type="hidden" name="secret" value={secret.name} />

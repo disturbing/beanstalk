@@ -1,9 +1,9 @@
 /**
- * The shape the web app expects of the Actions control plane (`ActionsRpc`, owned by
- * `packages/shared-race/src/actions.ts` in the actions lane; `docs/claude-opus/25` §3, §5).
- * Until that module lands, these schemas are the web's reading of it: every answer from the
- * binding (or the fixture fake) is validated against them in `actions-client.ts`, so a
- * difference shows up as one failed parse there, never as a wrong page.
+ * The Actions pages' own model (`docs/claude-opus/25` §5): what a workflow, run, job, log line
+ * and secret look like to the web. The gateway's contract (`ActionsRpc` in
+ * `@beanstalk/shared-race/actions`) is translated into it by `gateway-actions.ts`; the fixture
+ * fake (`fake/`) speaks it directly through `ActionsViewRpc`. Every answer is validated against
+ * these schemas, so a difference shows up as one failed parse, never as a wrong page.
  */
 import { z } from 'zod';
 
@@ -13,7 +13,7 @@ import type { RpcResult } from '@beanstalk/shared-race/rpc';
 export const RunStatus = z.enum(['queued', 'in_progress', 'completed']);
 export type RunStatus = z.infer<typeof RunStatus>;
 
-/** `infra_lost`: the container went away; never shown as red (`25` §6.3). */
+/** `infra_lost`: the container went away, never shown as red (`25` §6.3); `startup_failure`: the run could not start. */
 export const Conclusion = z.enum([
   'success',
   'failure',
@@ -21,6 +21,7 @@ export const Conclusion = z.enum([
   'timed_out',
   'skipped',
   'infra_lost',
+  'startup_failure',
 ]);
 export type Conclusion = z.infer<typeof Conclusion>;
 
@@ -85,6 +86,8 @@ export const RunSummary = z.object({
   completedAt: z.string().nullable(),
   /** Each job's minutes rounded up, summed (GitHub's billing rule). */
   billedMinutes: z.number(),
+  /** Why it ended the way it did, when the conclusion alone does not say. */
+  reason: z.string().nullable(),
 });
 export type RunSummary = z.infer<typeof RunSummary>;
 
@@ -226,8 +229,8 @@ export type DispatchRequest = z.infer<typeof DispatchRequest>;
 /** The person asking; null for someone reading a public repository signed out. */
 export type ActionsActor = { readonly id: string; readonly handle: string } | null;
 
-/** What the web calls. Every method checks access again (read to view, maintain to act). */
-export type ActionsRpc = {
+/** The fixture fake's surface: the view model, scoped by repository on every call. */
+export type ActionsViewRpc = {
   listWorkflows(actor: ActionsActor, repoId: string): Promise<RpcResult<unknown>>;
   dispatchWorkflow(
     actor: ActionsActor,

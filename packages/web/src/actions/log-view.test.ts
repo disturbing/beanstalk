@@ -7,7 +7,14 @@ import { appendLines, groupByStep, plainLog, searchLines, workflowCommand } from
 const ESC = '\u001b[';
 
 function step(number: number, name: string): Step {
-  return { number, name, status: 'completed', conclusion: 'success', startedAt: null, completedAt: null };
+  return {
+    number,
+    name,
+    status: 'completed',
+    conclusion: 'success',
+    startedAt: null,
+    completedAt: null,
+  };
 }
 
 describe('ANSI colour', () => {
@@ -28,7 +35,11 @@ describe('ANSI colour', () => {
   it('drops cursor moves, line clears and OSC titles, keeping the text', () => {
     const line = `${ESC}2K${ESC}1Gnpm ${ESC}1A\u001b]0;title\u0007install`;
     expect(stripAnsi(line)).toBe('npm install');
-    expect(parseAnsi(line).map((run) => run.text).join('')).toBe('npm install');
+    expect(
+      parseAnsi(line)
+        .map((run) => run.text)
+        .join(''),
+    ).toBe('npm install');
   });
 });
 
@@ -58,7 +69,9 @@ describe('a job log', () => {
   });
 
   it('reads a workflow command as an annotation', () => {
-    expect(workflowCommand('::error file=test/tax.test.ts,line=27::expected 4.35 to be 4.5')).toEqual({
+    expect(
+      workflowCommand('::error file=test/tax.test.ts,line=27::expected 4.35 to be 4.5'),
+    ).toEqual({
       level: 'error',
       message: 'expected 4.35 to be 4.5',
       path: 'test/tax.test.ts',

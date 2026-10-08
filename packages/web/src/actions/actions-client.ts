@@ -1,5 +1,5 @@
 /**
- * The web's one adapter onto Actions: `ActionsRpc` (the actions Worker's binding, or the
+ * The web's one adapter onto Actions: `ActionsViewRpc` (the actions Worker's binding, or the
  * fixture fake on staging) scoped to one person and one repository, every answer validated.
  * A binding without the methods reads as "not running on this deployment".
  */
@@ -10,7 +10,7 @@ import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import type { Outcome } from '../repositories/registry-client';
 import type {
   ActionsActor,
-  ActionsRpc,
+  ActionsViewRpc,
   DispatchRequest,
   PutSecretInput,
   RunFilter,
@@ -29,6 +29,8 @@ export type ActionsMode = 'live' | 'fixtures';
 
 export type ActionsClient = {
   readonly mode: ActionsMode;
+  /** Whether pre-land access can change without sending the value again. */
+  readonly canToggleSecretWithoutValue: boolean;
   workflows(): Promise<Outcome<readonly Workflow[]>>;
   runs(filter: RunFilter): Promise<Outcome<RunPage>>;
   run(runId: string): Promise<Outcome<RunDetail>>;
@@ -40,31 +42,14 @@ export type ActionsClient = {
   deleteSecret(name: string): Promise<Outcome<{ readonly deleted: boolean }>>;
 };
 
-const METHODS = [
-  'listWorkflows',
-  'dispatchWorkflow',
-  'listRuns',
-  'getRun',
-  'cancelRun',
-  'logChunks',
-  'listSecrets',
-  'putSecret',
-  'deleteSecret',
-] as const satisfies readonly (keyof ActionsRpc)[];
-
-/** The binding as `ActionsRpc` when it has every method, else null. */
-export function asActionsRpc(binding: unknown): ActionsRpc | null {
-  if (typeof binding !== 'object' || binding === null) return null;
-  return isActionsRpc(binding) ? binding : null;
-}
-
 export function actionsClient(
-  rpc: ActionsRpc,
+  rpc: ActionsViewRpc,
   scope: { readonly actor: ActionsActor; readonly repoId: string; readonly mode: ActionsMode },
 ): ActionsClient {
   const { actor, repoId } = scope;
   return {
     mode: scope.mode,
+    canToggleSecretWithoutValue: true,
     workflows: () => call(z.array(Workflow), rpc.listWorkflows(actor, repoId)),
     runs: (filter) => call(RunPage, rpc.listRuns(actor, repoId, filter)),
     run: (runId) => call(RunDetail, rpc.getRun(actor, repoId, runId)),
@@ -98,8 +83,4 @@ async function call<S extends z.ZodType>(
       },
     };
   return { ok: true, value: parsed.data };
-}
-
-function isActionsRpc(binding: object): binding is ActionsRpc {
-  return METHODS.every((method) => typeof Reflect.get(binding, method) === 'function');
 }

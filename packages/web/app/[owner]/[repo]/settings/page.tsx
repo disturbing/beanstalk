@@ -136,6 +136,7 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
                 secrets={secrets.ok ? secrets.value.secrets : null}
                 error={secrets.ok ? null : secrets.error.message}
                 usage={secrets.ok ? secrets.value.usage : null}
+                canToggle={actions?.client.canToggleSecretWithoutValue ?? false}
                 access={{ csrf: session.csrfToken, owner: record.owner.handle, name: record.name }}
                 nowMs={Date.now()}
               />
