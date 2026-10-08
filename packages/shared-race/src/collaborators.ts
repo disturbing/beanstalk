@@ -94,7 +94,9 @@ export type RepositoryAuditAction =
   | 'collaborator.role'
   | 'collaborator.remove'
   | 'collaborator.leave'
-  | 'repository.visibility';
+  | 'repository.visibility'
+  | 'actions-secret-set'
+  | 'actions-secret-deleted';
 
 /** Who is on a repository, as a member sees it; the owner also sees invitations and the log. */
 export type RepositoryPeople = {

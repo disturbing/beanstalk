@@ -127,6 +127,9 @@ const AuditRow = z.object({
     'collaborator.remove',
     'collaborator.leave',
     'repository.visibility',
+    // Actions secrets (src/actions/actions-rpc.ts writes these to the same log).
+    'actions-secret-set',
+    'actions-secret-deleted',
   ]),
   target_handle: z.string().nullable(),
   detail: z.string(),

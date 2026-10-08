@@ -106,6 +106,13 @@ describe('Actions: a push to the stalk runs the workflow on the stub executor', 
     );
   });
 
+  it('keeps the owner’s people view readable after a secret is saved (its audit line)', async () => {
+    const people = value(await gateway.repositoryPeople(repo.id, coop.id));
+    expect(people.audit).toContainEqual(
+      expect.objectContaining({ action: 'actions-secret-set', detail: 'DEPLOY_TOKEN' }),
+    );
+  });
+
   it('indexes the workflow from the stalk', async () => {
     const [workflow] = value(await actions.listWorkflows(coop.id, repo.id));
     expect(workflow).toMatchObject({
