@@ -1,6 +1,6 @@
 /**
  * People: an id, a unique handle, an email once one is verified, and when they joined.
- * Handles share one namespace (later with orgs), are case-insensitive and URL-safe.
+ * Handles share one namespace with orgs (`orgs.ts`), are case-insensitive and URL-safe.
  */
 import { z } from 'zod';
 
@@ -59,8 +59,11 @@ export async function findUserByEmail(env: IdentityEnv, email: string): Promise<
   return row === null ? null : toUser(row);
 }
 
+/** Whether a person or an org holds `handle` (one namespace, `orgs.ts`). */
 export async function isHandleTaken(env: IdentityEnv, handle: string): Promise<boolean> {
-  const row = await env.IDENTITY_DB.prepare('SELECT 1 AS taken FROM users WHERE handle = ?')
+  const row = await env.IDENTITY_DB.prepare(
+    'SELECT 1 AS taken FROM users WHERE handle = ?1 UNION ALL SELECT 1 FROM orgs WHERE handle = ?1',
+  )
     .bind(handle)
     .first<{ taken: number }>();
   return row !== null;
