@@ -496,6 +496,26 @@ YAML mode is a code editor with the same validation inline. Switching modes is l
 
 **MCP tools** (P1: every screen has a verb): `workflow_list(repo)`, `workflow_dispatch(repo, workflow, inputs)`, `run_list(repo, workflow?)`, `run_status(repo, run)`, `run_logs(repo, run, job, tail?)`, `automation_dispatch(repo, automation, payload)`. There is no create or edit tool: agents change files with git, like any other file.
 
+### 5.6 Built (M5, lane 3, 2026-10-08)
+
+The web side of §5.1–5.3 plus Settings → Secrets, in `packages/web`:
+
+| Route | What it is |
+|---|---|
+| `/<owner>/<repo>/actions` | Automations → **Actions**: workflows rail (last run's state), the selected workflow's triggers, compatibility notes, **View file** (Code tab), **Edit** shown as "coming", **Run workflow** (maintainers; `workflow_dispatch` inputs as select, checkbox or text, run on the stalk). Runs newest first with workflow, event, commit, bean, actor, wall time and minutes billed; filters by workflow, status and line in the URL; "Older runs" by cursor |
+| `/<owner>/<repo>/actions/runs/<run>?job=` | One run: facts (status, wall time, minutes billed, line, inputs, workflow file), the job graph (columns by `needs` depth; the stem into a running job flows), annotations (from the control plane, else the job's `::error`/`::warning` lines), the jobs' summary, then the chosen job: collapsible steps, ANSI colours mapped to theme tokens, live follow with "paused: you scrolled up" and Follow, search with match stepping, download as plain text. **Cancel run** / **Re-run** (re-run dispatches the workflow again with the run's inputs) for maintainers |
+| `/<owner>/<repo>/automations` | Automations → **Automations**: the "coming" page with an example file |
+| `/<owner>/<repo>/settings` → Actions | Minutes used this month of 100, the 60-minute job limit, secrets by name (add or replace write-only, delete), "available to pre-land checks" off by default with the risk spelled out when it is ticked |
+| `/api/repos/<owner>/<repo>/actions/runs/<run>/jobs/<job>/log` | The job's log as Server-Sent Events (`lines` with the last line number as event id, `job`, `end`), resumed from `Last-Event-ID`; `?download=1` for plain text. Behind the repository's read rule (the same 404) |
+
+- **Adapter** `web/src/actions/gateway-actions.ts`: `ActionsRpc` from `@beanstalk/shared-race/actions` on the `ACTIONS` binding (gateway entrypoint `Actions`) into the pages' model (`web/src/actions/actions-contract.ts`). It checks a run belongs to the repository in the URL, numbers log lines across R2 chunks, and follows a running job by opening the socket from `logStream` through the `GATEWAY` binding first, then reading the stored chunks, then relaying frames whose `seq` is newer, so nothing is lost or repeated between history and live. Without the value, the gateway cannot change a secret's pre-land flag, so the page offers that switch only where it can (re-saving the secret sets it).
+- **Fixture fake** `web/src/actions/fake/` (`ACTIONS_SOURCE=fixtures`, staging only): clock-driven runs so a log grows between requests; dispatches, cancels and secret names in a cookie, values dropped. Every page says "Staging: runs here are fixtures".
+- Access: anyone who may read the repository sees Actions (private ones are a 404 for others, pages and log route alike); Run workflow, Cancel, Re-run and Secrets need maintain or owner, checked in the server action and again by the gateway's `actions` repository action.
+- Fixed on the way: the gateway's audit-log reader refused the `actions-secret-set` / `actions-secret-deleted` lines the control plane writes, so the owner's Settings page answered 500 after any secret was saved (`gateway/src/repos/collaborators.ts`, test in `gateway/test/actions.test.ts`).
+- Open: commit titles and beans are not on `RunSummary` (push runs show "CI · stalk moved"); the stub executor reports a job in one batch, so a real line-by-line stream waits for the container executor; no red dot on the tab yet.
+
+Verified on `beanstalk-{gateway,web}-staging-act3` (lane 1's control plane, stub executor): screenshots and transcript in `exp/actions-ui/` (`fixtures/` holds the same walk on the fake).
+
 ---
 
 ## 6. Plan, risks, decisions

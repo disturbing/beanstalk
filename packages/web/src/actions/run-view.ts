@@ -1,0 +1,184 @@
+/**
+ * Words and shapes the Actions pages share: one state per run, job or step (GitHub's status
+ * plus conclusion folded together), durations, who and what started a run, the job graph's
+ * columns, and which job a run page opens on.
+ */
+import type {
+  Conclusion,
+  Job,
+  RunActor,
+  RunEvent,
+  RunStatus,
+  RunSummary,
+  Workflow,
+  WorkflowTrigger,
+} from './actions-contract';
+
+export type RunState =
+  | 'queued'
+  | 'running'
+  | 'success'
+  | 'failure'
+  | 'cancelled'
+  | 'timed_out'
+  | 'skipped'
+  | 'infra_lost'
+  | 'startup_failure';
+
+export function stateOf(item: {
+  readonly status: RunStatus;
+  readonly conclusion: Conclusion | null;
+}): RunState {
+  if (item.status === 'queued') return 'queued';
+  if (item.status === 'in_progress') return 'running';
+  return item.conclusion ?? 'success';
+}
+
+export const STATE_WORDS: Readonly<Record<RunState, string>> = {
+  queued: 'queued',
+  running: 'running',
+  success: 'succeeded',
+  failure: 'failed',
+  cancelled: 'cancelled',
+  timed_out: 'timed out',
+  skipped: 'skipped',
+  infra_lost: 'runner lost',
+  startup_failure: 'could not start',
+};
+
+/** Whether a run or job can still change. */
+export function isLive(state: RunState): boolean {
+  return state === 'queued' || state === 'running';
+}
+
+/** Milliseconds from start to end (or to now while it runs); null before it starts. */
+export function elapsedMs(
+  item: { readonly startedAt: string | null; readonly completedAt: string | null },
+  nowMs: number,
+): number | null {
+  if (item.startedAt === null) return null;
+  const end = item.completedAt === null ? nowMs : Date.parse(item.completedAt);
+  return Math.max(0, end - Date.parse(item.startedAt));
+}
+
+/** `41s`, `1m 52s`, `1h 3m`. */
+export function formatDuration(ms: number | null): string {
+  if (ms === null) return '';
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+const EVENT_WORDS: Readonly<Record<RunEvent, string>> = {
+  push: 'stalk moved',
+  workflow_dispatch: 'run by hand',
+  schedule: 'schedule',
+};
+
+export function eventWord(event: RunEvent): string {
+  return EVENT_WORDS[event];
+}
+
+export function actorLabel(actor: RunActor): string {
+  switch (actor.kind) {
+    case 'person':
+      return `@${actor.handle}`;
+    case 'session':
+      return actor.name;
+    case 'schedule':
+      return 'on schedule';
+    default:
+      return assertNever(actor);
+  }
+}
+
+/** One trigger in a person's words: `push to main (the stalk)`, `daily at 03:00 UTC`. */
+export function triggerLabel(trigger: WorkflowTrigger): string {
+  switch (trigger.event) {
+    case 'push':
+      return trigger.branches.length === 0
+        ? 'stalk moves'
+        : `push to ${trigger.branches.join(', ')} (the stalk)`;
+    case 'workflow_dispatch':
+      return 'run by hand';
+    case 'schedule':
+      return trigger.crons.map(cronWords).join(', ');
+    case 'other':
+      return trigger.name;
+    default:
+      return assertNever(trigger);
+  }
+}
+
+/** The common cron shapes in words; anything else stays cron. */
+export function cronWords(cron: string): string {
+  const parts = cron.trim().split(/\s+/);
+  const [minute, hour, day, month, weekday] = parts;
+  if (parts.length !== 5 || !isFixed(minute)) return `cron ${cron}`;
+  const at = (h: string) => `${h.padStart(2, '0')}:${String(minute).padStart(2, '0')} UTC`;
+  if (hour === '*' && day === '*' && month === '*' && weekday === '*')
+    return `hourly at :${String(minute).padStart(2, '0')}`;
+  if (isFixed(hour) && day === '*' && month === '*' && weekday === '*')
+    return `daily at ${at(String(hour))}`;
+  return `cron ${cron}`;
+}
+
+function isFixed(value: string | undefined): boolean {
+  return value !== undefined && /^\d+$/.test(value);
+}
+
+/** The dispatch trigger, when the workflow can be run by hand. */
+export function dispatchOf(workflow: Workflow) {
+  const found = workflow.triggers.find((trigger) => trigger.event === 'workflow_dispatch');
+  return found?.event === 'workflow_dispatch' ? found : null;
+}
+
+/** Each job's column in the graph: one more than the deepest job it needs. */
+export function jobColumns(jobs: readonly Job[]): readonly (readonly Job[])[] {
+  const depth = new Map<string, number>();
+  const depthOf = (job: Job, seen: ReadonlySet<string>): number => {
+    const known = depth.get(job.id);
+    if (known !== undefined) return known;
+    const needs = job.needs.flatMap((id) => {
+      const need = jobs.find((candidate) => candidate.id === id);
+      return need === undefined || seen.has(id) ? [] : [need];
+    });
+    const value =
+      needs.length === 0
+        ? 0
+        : 1 + Math.max(...needs.map((need) => depthOf(need, new Set([...seen, job.id]))));
+    depth.set(job.id, value);
+    return value;
+  };
+  const columns: Job[][] = [];
+  for (const job of jobs) {
+    const column = depthOf(job, new Set([job.id]));
+    while (columns.length <= column) columns.push([]);
+    columns[column]?.push(job);
+  }
+  return columns;
+}
+
+/** The job a run page opens: the first failed, else the one running, else the last. */
+export function focusJob(jobs: readonly Job[]): Job | null {
+  return (
+    jobs.find((job) => stateOf(job) === 'failure') ??
+    jobs.find((job) => stateOf(job) === 'running') ??
+    jobs.findLast((job) => stateOf(job) !== 'skipped' && stateOf(job) !== 'queued') ??
+    jobs[0] ??
+    null
+  );
+}
+
+/** A run's one-line title: the commit's for a push (when known), else the workflow's and how it began. */
+export function runTitle(run: RunSummary): string {
+  return run.event === 'push' && run.title !== ''
+    ? run.title
+    : `${run.workflowName} · ${eventWord(run.event)}`;
+}
+
+export function assertNever(value: never): never {
+  throw new Error(`unexpected value ${JSON.stringify(value)}`);
+}

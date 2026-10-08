@@ -12,6 +12,8 @@
   "services": [
     { "binding": "GATEWAY", "service": "beanstalk-gateway" },
     { "binding": "MCP", "service": "beanstalk-mcp" },
+    // Actions (docs/claude-opus/25): the gateway's ActionsRpc on its named entrypoint.
+    { "binding": "ACTIONS", "service": "beanstalk-gateway", "entrypoint": "Actions" },
   ],
   // Accounts (docs/claude-opus/19-accounts-and-auth.md): people, passkeys, sessions, tokens,
   // audit. The schema is packages/shared-identity/migrations; apply it from this package:
@@ -69,6 +71,11 @@
     // The SSH host key's fingerprint (`SHA256:…`, as `ssh` prints it), shown in Settings → SSH
     // keys and on a new repository's page so people can check it (docs/claude-opus/21).
     "SSH_HOST_KEY_FINGERPRINT": "",
+    // Actions (docs/claude-opus/25): where the Automations tab reads workflows and runs.
+    // "gateway": the gateway's Actions control plane (the ACTIONS binding). "fixtures": the
+    // web's own fake (src/actions/fake), for a staging stack without one; every page says so.
+    // Empty: the tab says Actions are not running on this deployment.
+    "ACTIONS_SOURCE": "gateway",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
   // Billed to the account; no API key is involved. `remote` makes local dev call it too.

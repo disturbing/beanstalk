@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { SecretsSettings } from '../../../../components/actions/secrets-settings';
 import { ChecksSummary } from '../../../../components/repository/checks-config';
 import { CollaboratorsSettings } from '../../../../components/repository/collaborators';
 import { DeployTokens } from '../../../../components/repository/deploy-tokens';
@@ -18,6 +19,7 @@ import {
   GeneralSettings,
   VisibilitySettings,
 } from '../../../../components/repository/settings-forms';
+import { actionsSession } from '../../../../src/server/actions-source';
 import type { RepositoryParams } from '../../../../src/server/repository-page';
 import { repositoryPage } from '../../../../src/server/repository-page';
 
@@ -39,7 +41,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 /**
  * Settings. Everyone with a role sees the repository's effective checks (read from the stalk's
- * `.beanstalk/checks.toml`; changed by a maintainer's bean, never here). The owner has all of it; a maintainer has deploy tokens; other collaborators are
+ * `.beanstalk/checks.toml`; changed by a maintainer's bean, never here). The owner has all of it; a maintainer has deploy tokens and Actions secrets (when Actions run here); other collaborators are
  * told whose settings these are; people with no role get the same 404 as a missing repository.
  * The gateway checks every change again.
  */
@@ -53,10 +55,12 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
   const access = { repoId: record.id, csrf: session.csrfToken, path: `${base}/settings` };
   const isOwner = role === 'owner';
   const canDeploy = isOwner || role === 'maintain';
-  const [tokens, people, files] = await Promise.all([
+  const actions = canDeploy ? await actionsSession({ actor, repoId: record.id }) : null;
+  const [tokens, people, files, secrets] = await Promise.all([
     canDeploy ? deployTokensClient(env.GATEWAY).list(actor, record.id) : Promise.resolve(null),
     isOwner ? collaboratorsClient(env.GATEWAY).people(record.id, actor.id) : Promise.resolve(null),
     registryClient(env.GATEWAY).files(record.id, actor.id),
+    actions === null ? Promise.resolve(null) : actions.client.secrets(),
   ]);
   const repo = {
     id: record.id,
@@ -122,6 +126,22 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               access={access}
             />
           ) : null}
+          {secrets === null || isArchived ? null : (
+            <section
+              className={`${styles.panel} ${styles.settingsSection}`}
+              aria-labelledby="actions-title"
+            >
+              <h2 id="actions-title">Actions</h2>
+              <SecretsSettings
+                secrets={secrets.ok ? secrets.value.secrets : null}
+                error={secrets.ok ? null : secrets.error.message}
+                usage={secrets.ok ? secrets.value.usage : null}
+                canToggle={actions?.client.canToggleSecretWithoutValue ?? false}
+                access={{ csrf: session.csrfToken, owner: record.owner.handle, name: record.name }}
+                nowMs={Date.now()}
+              />
+            </section>
+          )}
           {tokens === null || isArchived ? null : (
             <DeployTokens tokens={tokens.ok ? tokens.value : []} access={access} />
           )}

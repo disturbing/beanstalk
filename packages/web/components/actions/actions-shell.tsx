@@ -1,0 +1,80 @@
+/**
+ * The Automations tab around its two kinds (`docs/claude-opus/25` §5): Actions (the
+ * repository's `.github/workflows`) and Automations (`.beanstalk/automations`, coming). On a
+ * deployment answering from fixtures, every page says so.
+ */
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+
+import type { ActionsMode } from '../../src/actions/actions-client';
+import { RepoHead } from '../home/repo-head';
+import type { RepositoryPage } from '../../src/server/repository-page';
+import styles from './actions.module.css';
+
+export type AutomationsView = 'actions' | 'automations';
+
+export function ActionsShell(props: {
+  readonly page: RepositoryPage;
+  readonly view: AutomationsView;
+  readonly mode: ActionsMode | null;
+  /** Workflows in the repository, counted on the Actions segment. */
+  readonly workflowCount?: number | undefined;
+  readonly children: ReactNode;
+}) {
+  const { record, base, role } = props.page;
+  return (
+    <main>
+      <RepoHead
+        base={base}
+        repository={{ owner: record.owner.handle, name: record.name }}
+        current="automations"
+        kind="repository"
+        visibility={record.visibility}
+        ownerHref={`/${record.owner.handle}`}
+        canAdminister={role !== null}
+        archived={record.archived_at !== null}
+      />
+      <div className={styles.page}>
+        <nav className={styles.subnav} aria-label="Automations">
+          <div className={styles.segments}>
+            <Link
+              href={`${base}/actions`}
+              aria-current={props.view === 'actions' ? 'page' : undefined}
+            >
+              Actions
+              {props.workflowCount === undefined ? null : (
+                <span className={styles.count}>{props.workflowCount}</span>
+              )}
+            </Link>
+            <Link
+              href={`${base}/automations`}
+              aria-current={props.view === 'automations' ? 'page' : undefined}
+            >
+              Automations
+            </Link>
+          </div>
+          {props.mode === 'fixtures' ? (
+            <span className={styles.fixtures} role="note">
+              Staging: runs here are fixtures, not real jobs
+            </span>
+          ) : null}
+        </nav>
+        {props.children}
+      </div>
+    </main>
+  );
+}
+
+/** What the tab shows when no control plane answers on this deployment. */
+export function ActionsOff() {
+  return (
+    <section className={styles.box}>
+      <div className={styles.empty}>
+        <p>Actions are not running on this deployment yet.</p>
+        <p className={styles.muted}>
+          Workflows in <code>.github/workflows/</code> are kept and will run when they are.
+        </p>
+      </div>
+    </section>
+  );
+}

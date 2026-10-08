@@ -230,6 +230,8 @@ const AUDIT_VERBS: Readonly<Record<string, string>> = {
   'collaborator.remove': 'removed',
   'collaborator.leave': 'left',
   'repository.visibility': 'changed visibility',
+  'actions-secret-set': 'saved the Actions secret',
+  'actions-secret-deleted': 'deleted the Actions secret',
 };
 
 function auditText(event: AuditEvent): string {
