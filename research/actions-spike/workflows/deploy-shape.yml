@@ -1,0 +1,15 @@
+name: deploy
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: echo "event=$GITHUB_EVENT_NAME ref=$GITHUB_REF sha=$GITHUB_SHA repo=$GITHUB_REPOSITORY server=$GITHUB_SERVER_URL api=$GITHUB_API_URL actor=$GITHUB_ACTOR"
+      - run: echo "token-present=${{ secrets.GITHUB_TOKEN != '' }} head=${{ github.event.head_commit.message }}"
+      - run: npx --yes wrangler@4.147.0 --version

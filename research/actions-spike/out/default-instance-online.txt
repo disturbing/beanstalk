@@ -1,0 +1,14 @@
+[   1.09] ##[spike] start 2026-10-08T04:10:36.787Z bash -lc set -e && cd /work/job-1791432636786-4 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432636786-4.meta/event.json' '--secret-file' '/work/job-1791432636786-4.meta/secrets.env' '--github-instance' 'beanstalk-actions-spike.devaccounts-1password.workers.dev'
+[   1.12] time="2026-10-08T04:10:36Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   1.12] [node-ci-default/test] ⭐ Run Set up job
+[   1.17] [node-ci-default/test]   ✅  Success - Set up job
+[   1.17] [node-ci-default/test]   ☁  git clone 'https://beanstalk-actions-spike.devaccounts-1password.workers.dev/actions/checkout' # ref=v4
+[   1.37] [node-ci-default/test] Unable to clone https://beanstalk-actions-spike.devaccounts-1password.workers.dev/actions/checkout refs/heads/v4: repository not found: no repository actions/checkout
+[   1.37] [node-ci-default/test] repository not found: no repository actions/checkout
+[   1.37] [node-ci-default/test] ⭐ Run Complete job
+[   1.37] [node-ci-default/test]   ✅  Success - Complete job
+[   1.37] [node-ci-default/test] 🏁  Job failed
+[   1.37] Error: repository not found: no repository actions/checkout
+[   1.37] 
+[   1.37] 
+[   1.37] ##[spike] exit=1 wall_ms=292
