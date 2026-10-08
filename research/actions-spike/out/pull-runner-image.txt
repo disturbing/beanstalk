@@ -1,0 +1,14 @@
+[   1.28] ##[spike] start 2026-10-08T04:16:18.254Z bash -lc # How long does pulling act's medium Ubuntu runner image take inside the container (DinD)?
+[   1.28] docker info >/dev/null 2>&1 || { (dockerd > /tmp/dockerd.log 2>&1 &); for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 1; done; }
+[   1.28] start=$(date +%s)
+[   1.28] docker pull -q catthehacker/ubuntu:act-24.04
+[   1.28] echo "pull catthehacker/ubuntu:act-24.04: $(( $(date +%s) - start ))s"
+[   1.28] docker image ls catthehacker/ubuntu:act-24.04 --format '{{.Size}}'
+[   1.28] df -h / | tail -1
+[   1.28] 
+[  31.37] docker.io/catthehacker/ubuntu:act-24.04
+[  31.37] pull catthehacker/ubuntu:act-24.04: 30s
+[  31.42] 2.3GB
+[  31.82] /dev/vdc         18G  3.3G   15G  19% /
+[  31.83] 
+[  31.83] ##[spike] exit=0 wall_ms=30549

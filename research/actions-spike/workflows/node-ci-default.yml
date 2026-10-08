@@ -1,0 +1,18 @@
+# The typical shape: checkout with defaults only (token = github.token, server = GITHUB_SERVER_URL).
+# Run with act --github-instance <beanstalk git host> and GITHUB_TOKEN = a Beanstalk read token.
+name: node-ci-default
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: beanstalk-actions-spike/beanstalk-actions-spike-fastify
+          ref: 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+          path: src
+      - run: echo "server=$GITHUB_SERVER_URL api=$GITHUB_API_URL graphql=$GITHUB_GRAPHQL_URL" && cd src && git log -1 --format='checked out %H' && git remote get-url origin
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node --version

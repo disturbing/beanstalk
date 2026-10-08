@@ -1,0 +1,28 @@
+[   1.16] ##[spike] start 2026-10-08T04:12:08.439Z bash -lc set -e && cd /work/job-1791432728438-7 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432728438-7.meta/event.json' '--secret-file' '/work/job-1791432728438-7.meta/secrets.env' '--action-offline-mode'
+[   1.18] time="2026-10-08T04:12:08Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   1.19] [cache-artifacts/produce] ⭐ Run Set up job
+[   1.25] [cache-artifacts/produce]   ✅  Success - Set up job
+[   1.25] [cache-artifacts/produce]   ☁  git clone 'https://github.com/actions/cache' # ref=v4
+[   1.46] [cache-artifacts/produce]   ☁  git clone 'https://github.com/actions/upload-artifact' # ref=v4
+[   1.69] [cache-artifacts/produce] ⭐ Run Main mkdir -p dep-cache out && date > dep-cache/stamp && echo hello > out/hello.txt
+[   1.71] [cache-artifacts/produce]   ✅  Success - Main mkdir -p dep-cache out && date > dep-cache/stamp && echo hello > out/hello.txt [14.295462ms]
+[   1.72] [cache-artifacts/produce] ⭐ Run Main cache
+[   2.11] [cache-artifacts/produce]   | (node:7265) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   2.11] [cache-artifacts/produce]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   2.15] [cache-artifacts/produce]   | Cache not found for input keys: spike-Linux-v1
+[   2.16] [cache-artifacts/produce]   ✅  Success - Main cache [443.198427ms]
+[   2.16] [cache-artifacts/produce] ⭐ Run Main upload
+[   2.60] [cache-artifacts/produce]   | (node:7278) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   2.60] [cache-artifacts/produce]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   2.61] [cache-artifacts/produce]   | With the provided path, there will be 1 file uploaded
+[   2.61] [cache-artifacts/produce]   | Artifact name is valid!
+[   2.61] [cache-artifacts/produce]   | Root directory input is valid!
+[   2.61] [cache-artifacts/produce]   ❗  ::error::Unable to get the ACTIONS_RUNTIME_TOKEN env variable
+[   2.62] [cache-artifacts/produce]   ❌  Failure - Main upload [462.438904ms]
+[   2.62] [cache-artifacts/produce] exit status 1
+[   2.62] [cache-artifacts/produce] ⭐ Run Complete job
+[   2.62] [cache-artifacts/produce]   ✅  Success - Complete job
+[   2.62] [cache-artifacts/produce] 🏁  Job failed
+[   2.62] Error: Job 'produce' failed
+[   2.64] 
+[   2.64] ##[spike] exit=1 wall_ms=1475

@@ -1,0 +1,82 @@
+[   1.51] ##[spike] start 2026-10-08T04:01:40.487Z bash -lc set -e && cd /work/job-1791432100484-0 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'pull_request' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432100484-0.meta/event.json' '--secret-file' '/work/job-1791432100484-0.meta/secrets.env' '--action-offline-mode'
+[   1.73] time="2026-10-08T04:01:40Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   1.74] [suite/suite] ⭐ Run Set up job
+[   1.79] [suite/suite]   ✅  Success - Set up job
+[   1.79] [suite/suite]   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+[   1.86] [suite/suite]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[   2.06] [suite/suite] ⭐ Run Main actions/checkout@v4
+[   2.07] [suite/suite]   ✅  Success - Main actions/checkout@v4 [5.537915ms]
+[   2.07] [suite/suite] ⭐ Run Main actions/checkout@v4
+[   2.23] [suite/suite]   ❓ add-matcher /root/.cache/act/4136afc50c7476c4/act/actions/actions-checkout@v4/dist/problem-matcher.json
+[   2.23] [suite/suite]   | Syncing repository: beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[   2.23] [suite/suite]   ❓  ::group::Getting Git version info
+[   2.23] [suite/suite]   | Working directory is '/root/.cache/act/4136afc50c7476c4/hostexecutor/fastify'
+[   2.23] [suite/suite]   | [command]/usr/bin/git version
+[   2.23] [suite/suite]   | git version 2.43.0
+[   2.23] [suite/suite]   ❓  ::endgroup::
+[   2.23] [suite/suite]   ⚙  ***
+[   2.23] [suite/suite]   | Temporarily overriding HOME='/root/.cache/act/4136afc50c7476c4/tmp/ede7a651-291d-4643-9cdc-1e74fe998a29' before making global git config changes
+[   2.23] [suite/suite]   | Adding repository directory to the temporary git global config as a safe directory
+[   2.23] [suite/suite]   | [command]/usr/bin/git config --global --add safe.directory /root/.cache/act/4136afc50c7476c4/hostexecutor/fastify
+[   2.24] [suite/suite]   ❓  ::group::Initializing the repository
+[   2.24] [suite/suite]   | [command]/usr/bin/git init /root/.cache/act/4136afc50c7476c4/hostexecutor/fastify
+[   2.25] [suite/suite]   | hint: Using 'master' as the name for the initial branch. This default branch name
+[   2.25] [suite/suite]   | hint: is subject to change. To configure the initial branch name to use in all
+[   2.25] [suite/suite]   | hint: of your new repositories, which will suppress this warning, call:
+[   2.25] [suite/suite]   | hint: 
+[   2.25] [suite/suite]   | hint: 	git config --global init.defaultBranch <name>
+[   2.25] [suite/suite]   | hint: 
+[   2.25] [suite/suite]   | hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+[   2.25] [suite/suite]   | hint: 'development'. The just-created branch can be renamed via this command:
+[   2.25] [suite/suite]   | hint: 
+[   2.25] [suite/suite]   | hint: 	git branch -m <name>
+[   2.25] [suite/suite]   | Initialized empty Git repository in /root/.cache/act/4136afc50c7476c4/hostexecutor/fastify/.git/
+[   2.25] [suite/suite]   | [command]/usr/bin/git remote add origin https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[   2.27] [suite/suite]   ❓  ::endgroup::
+[   2.27] [suite/suite]   ❓  ::group::Disabling automatic garbage collection
+[   2.27] [suite/suite]   | [command]/usr/bin/git config --local gc.auto 0
+[   2.27] [suite/suite]   ❓  ::endgroup::
+[   2.27] [suite/suite]   ❓  ::group::Setting up auth
+[   2.27] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[   2.27] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[   2.32] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader
+[   2.33] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader' && git config --local --unset-all 'http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader' || :"
+[   2.36] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[   2.37] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[   2.41] [suite/suite]   | [command]/usr/bin/git config --local http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader AUTHORIZATION: basic ***
+[   2.41] [suite/suite]   ❓  ::endgroup::
+[   2.41] [suite/suite]   ❓  ::group::Fetching the repository
+[   2.41] [suite/suite]   | [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[   3.38] [suite/suite]   | fatal: repository 'https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify/' not found
+[   3.38] [suite/suite]   | The process '/usr/bin/git' failed with exit code 128
+[   3.38] [suite/suite]   | Waiting 10 seconds before trying again
+[  13.38] [suite/suite]   | [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  13.47] [suite/suite]   | fatal: repository 'https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify/' not found
+[  13.47] [suite/suite]   | The process '/usr/bin/git' failed with exit code 128
+[  13.47] [suite/suite]   | Waiting 16 seconds before trying again
+[  29.48] [suite/suite]   | [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  29.55] [suite/suite]   | fatal: repository 'https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify/' not found
+[  29.55] [suite/suite]   ❓  ::remove-matcher owner=checkout-git::
+[  29.55] [suite/suite]   ❗  ::error::The process '/usr/bin/git' failed with exit code 128
+[  29.57] [suite/suite]   ❌  Failure - Main actions/checkout@v4 [27.513035381s]
+[  29.57] [suite/suite] exit status 1
+[  29.58] [suite/suite] ⭐ Run Post actions/checkout@v4
+[  29.70] [suite/suite]   | [command]/usr/bin/git version
+[  29.70] [suite/suite]   | git version 2.43.0
+[  29.74] [suite/suite]   ⚙  ***
+[  29.74] [suite/suite]   | Temporarily overriding HOME='/root/.cache/act/4136afc50c7476c4/tmp/ed1ef74e-4ade-47f1-aee3-6cdf405cb568' before making global git config changes
+[  29.74] [suite/suite]   | Adding repository directory to the temporary git global config as a safe directory
+[  29.74] [suite/suite]   | [command]/usr/bin/git config --global --add safe.directory /root/.cache/act/4136afc50c7476c4/hostexecutor/fastify
+[  29.74] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[  29.74] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[  29.75] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+[  29.75] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[  29.81] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[  29.81] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[  29.86] [suite/suite]   ✅  Success - Post actions/checkout@v4 [271.167032ms]
+[  29.86] [suite/suite] ⭐ Run Complete job
+[  29.86] [suite/suite]   ✅  Success - Complete job
+[  29.86] [suite/suite] 🏁  Job failed
+[  29.86] Error: Job 'suite' failed
+[  29.86] 
+[  29.86] ##[spike] exit=1 wall_ms=28356
