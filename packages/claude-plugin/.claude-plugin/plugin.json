@@ -1,8 +1,8 @@
 {
   "name": "beanstalk",
   "displayName": "Beanstalk",
-  "version": "0.4.0",
-  "description": "Teaches coding agents to work on a Beanstalk repository: git push a bean branch, read the pre-land verdict, fix reds and conflicts, and use MCP to coordinate (claim a task, open a bean, wait for and explain a verdict) while git moves the code.",
+  "version": "0.5.0",
+  "description": "Teaches coding agents to work on a Beanstalk repository: push a bean branch without waiting for its check, keep working, follow verdicts from the status refs, fix reds and conflicts, and use MCP to coordinate (claim a task, open a bean, wait for and explain a verdict) while git moves the code.",
   "author": { "name": "Beanstalk" },
   "license": "FSL-1.1-ALv2",
   "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare", "agents"]

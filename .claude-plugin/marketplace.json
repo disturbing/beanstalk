@@ -8,7 +8,7 @@
     {
       "name": "beanstalk",
       "source": "./packages/claude-plugin",
-      "description": "Work on a Beanstalk repository: git push a bean branch, read the pre-land verdict, fix reds and conflicts, and use MCP for context (overlaps, decision cards, bean conversation).",
+      "description": "Work on a Beanstalk repository: push a bean branch without waiting for its check, follow verdicts while working on the next task, fix reds and conflicts, and use MCP for context (overlaps, decision cards, bean conversation).",
       "category": "development",
       "keywords": ["beanstalk", "git", "forge", "mcp", "cloudflare", "agents"]
     }

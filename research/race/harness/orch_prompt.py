@@ -1,6 +1,8 @@
 """The orchestrated race's prompt and backlog: one text for both arms except the forge section."""
 from __future__ import annotations
 
+import os
+
 from .arena import Task
 
 WORKTREES = ".worktrees"
@@ -81,9 +83,52 @@ current state. Pushing to `sprout`, `stalk` or `main` is refused.
 """
 
 
-def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: str, wall_minutes: float) -> str:
+# --guidance plugin (Beanstalk arm only): the forge section is replaced by the Beanstalk plugin's skill, as an agent with
+# the plugin installed would read it. The shared part of the prompt is unchanged; the baseline pairs use ``prompt``
+# with ``guidance="prompt"`` and never see this text.
+PLUGIN_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "packages",
+                                           "claude-plugin"))
+SKILL_PATH = os.path.join(PLUGIN_DIR, "skills", "beanstalk", "SKILL.md")
+
+
+def plugin_skill() -> str:
+    """The Beanstalk plugin's skill body (frontmatter removed), with its references named by absolute path."""
+    with open(SKILL_PATH, encoding="utf-8") as fh:
+        text = fh.read()
+    if text.startswith("---"):
+        text = text.split("---", 2)[2]
+    refs = os.path.join(os.path.dirname(SKILL_PATH), "references")
+    return text.replace("`references/", f"`{refs}/").strip() + "\n"
+
+
+def beanstalk_plugin_section(repo_url: str) -> str:
+    return f"""The forge: Beanstalk, repository {repo_url} (this directory is a clone; `origin` points to it; git is \
+already connected). The Beanstalk plugin is installed: its skill follows and is how you and your workers submit and \
+follow changes. The beanstalk MCP server is not connected in this session, so use git only. A task is done when its \
+bean has landed on `sprout`.
+
+<beanstalk-skill>
+{plugin_skill()}</beanstalk-skill>
+"""
+
+
+def worker_prompt(guidance: str = "prompt") -> str:
+    if guidance != "plugin":
+        return WORKER_PROMPT
+    return (WORKER_PROMPT + " The repository's forge is Beanstalk and the Beanstalk plugin is installed; its skill "
+            "follows (the MCP server is not connected: use git only).\n\n<beanstalk-skill>\n" + plugin_skill()
+            + "</beanstalk-skill>\n")
+
+
+def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: str, wall_minutes: float,
+           guidance: str = "prompt") -> str:
     line = "main" if arm == "github" else "sprout"
-    section = github_section(repo_url) if arm == "github" else beanstalk_section(repo_url)
+    if arm == "github":
+        section = github_section(repo_url)
+    elif guidance == "plugin":
+        section = beanstalk_plugin_section(repo_url)
+    else:
+        section = beanstalk_section(repo_url)
     return shared(n_tasks, subagents, line, test_hint, wall_minutes) + "\n" + section
 
 

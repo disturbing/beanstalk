@@ -411,8 +411,13 @@ class BeanstalkForge:
             elif not str(info.get("description") or "").startswith(REPO_MARKER):
                 raise SystemExit(f"{c.full} exists and was not created by the race harness")
         asyncio.run(ensure())
-        subprocess.run(["git", "push", "-q", "-f", c.push_url, f"{base}:refs/heads/main"], cwd=base_dir, check=True,
-                       capture_output=True, env={**os.environ, **c.git_env()})
+        env = {**os.environ, **c.git_env()}
+        # the base repo may be archived (read-only, seen 2026-10-08) and already hold the base: push only when not
+        head = subprocess.run(["git", "ls-remote", c.push_url, "refs/heads/main"], capture_output=True, text=True,
+                              env=env).stdout.split()
+        if head[:1] != [base]:
+            subprocess.run(["git", "push", "-q", "-f", c.push_url, f"{base}:refs/heads/main"], cwd=base_dir,
+                           check=True, capture_output=True, env=env)
         return f"https://github.com/{c.full}.git"
 
     def seed_through_race_run(self, base_dir: str, base: str, owner: dict, settings: dict) -> str:
@@ -536,6 +541,9 @@ class OrchestratedRace:
         self.work = os.path.join(self.out, "work")
         self.events: list[dict] = []
         self.t0 = 0.0
+        # "prompt": the shared orchestrated prompt (baseline pairs); "plugin": the Beanstalk arm's lead and workers
+        # get the Beanstalk plugin's skill in place of the prompt's forge section (orch_prompt.beanstalk_plugin_section)
+        self.guidance = cfg.extra.get("guidance", "prompt")
 
     def log(self, typ: str, at: float | None = None, **fields) -> None:
         at = time.time() if at is None else at
@@ -597,7 +605,7 @@ class OrchestratedRace:
         cfg = self.cfg
         agents = {"worker": {"description": "An engineer who implements one change in its own git worktree, runs "
                                             "the tests and commits.",
-                             "prompt": orch_prompt.WORKER_PROMPT, "model": cfg.worker_model,
+                             "prompt": orch_prompt.worker_prompt(self.guidance), "model": cfg.worker_model,
                              "tools": ["Read", "Edit", "Write", "Glob", "Grep", "Bash"]}}
         return [cfg.claude_bin, "-p", prompt, "--model", cfg.model, "--output-format", "stream-json", "--verbose",
                 "--tools", CLAUDE_TOOLS, "--agents", json.dumps(agents), "--permission-mode", "acceptEdits",
@@ -614,9 +622,11 @@ class OrchestratedRace:
         self.base_sha = base
         wt = self.checkout(forge, tasks, hint)
         prompt = orch_prompt.prompt(cfg.forge, repo_url=forge.url, n_tasks=len(tasks), subagents=cfg.subagents,
-                                    test_hint=hint, wall_minutes=cfg.max_wall_minutes)
+                                    test_hint=hint, wall_minutes=cfg.max_wall_minutes, guidance=self.guidance)
         with open(os.path.join(self.out, "prompt.txt"), "w", encoding="utf-8") as fh:
             fh.write(prompt)
+        with open(os.path.join(self.out, "worker_prompt.txt"), "w", encoding="utf-8") as fh:
+            fh.write(orch_prompt.worker_prompt(self.guidance))
         transcript = os.path.join(self.work, "transcript.jsonl")
         env = {**agent_env(), **forge.agent_env(), "ORCH_ARENA": os.path.abspath(cfg.arena)}
         self.t0 = time.time()
@@ -722,12 +732,14 @@ class OrchestratedRace:
         summary = {
             "label": f"orchestrated race: arena={os.path.basename(os.path.normpath(cfg.arena))}, {len(tasks)} tasks, "
                      f"forge={cfg.forge}, {cfg.orchestrator} ({cfg.model}) with {cfg.subagents} {cfg.worker_model} "
-                     "subagents",
+                     "subagents" + (", guidance=plugin (the Beanstalk plugin's skill in the lead's and workers' "
+                                    "prompts instead of the forge section)" if self.guidance == "plugin" else ""),
+            "guidance": self.guidance,
             "policy": f"orchestrated-{cfg.forge}", "agent": cfg.orchestrator, "model": cfg.model,
             "forge": cfg.forge, "repo": forge.url, "arena_base": self.arena_base, "arena_digest": self.arena_digest,
             "config": {"agents": cfg.subagents, "tasks": len(tasks), "seed": cfg.seed, "max_usd": cfg.max_usd,
                        "max_wall_minutes": cfg.max_wall_minutes, "ci_slots": cfg.ci_slots, "batch": cfg.batch,
-                       "worker_model": cfg.worker_model},
+                       "worker_model": cfg.worker_model, "guidance": self.guidance},
             "aborted": aborted,
             "wall_seconds": round(ended - self.t0, 2),
             "settled_seconds": round(settled - self.t0, 2),
@@ -780,7 +792,14 @@ def merge_sessions(parts: list[dict]) -> dict:
             commands[k] = commands.get(k, 0) + v
     # a resumed process reports the session's cumulative cost and usage (checked on the 38-task runs: each
     # segment's total_cost_usd and modelUsage continue from the previous one), so the session's figure is the last
-    return {"model_usage": parts[-1]["model_usage"], "cost_usd": round(max(p["cost_usd"] for p in parts), 4),
+    # segment's total, never the sum. A segment killed at the wall cap writes no result line; then the last figure a
+    # segment reported is used and ``cost_partial`` says the killed segment's own spend is missing.
+    # (--max-budget-usd, by contrast, is per process: a resumed process ran past a cap below the cumulative total,
+    # checked 2026-10-08, so each resume gets max_usd minus the cumulative spend so far.)
+    reported = [p for p in parts if p["subtype"] != "none"]
+    last = reported[-1] if reported else parts[-1]
+    return {"model_usage": last["model_usage"], "cost_usd": round(last["cost_usd"], 4),
+            "cost_partial": parts[-1]["subtype"] == "none",
             "ok": parts[-1]["ok"], "subtype": parts[-1]["subtype"], "turns": max(p["turns"] for p in parts),
             "agent_calls": sum(p["agent_calls"] for p in parts),
             "max_agent_calls_in_one_message": max(p["max_agent_calls_in_one_message"] for p in parts),

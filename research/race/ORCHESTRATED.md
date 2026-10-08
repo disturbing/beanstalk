@@ -38,7 +38,15 @@ python3 kth_green.py runs/orch-fastify-sonnet-4-t10-github runs/orch-fastify-son
    - **Final check:** the whole suite (retried once on red) and every task's acceptance tests on the line's head.
    - **Session:** model spend, turns, subagent calls (in one message, in the background) and the commands it ran most.
 
-Outputs: `events.jsonl`, in the harness schema (`race.start` at the session start, `task.green` from the replay, `change.ready` / `change.integrated` / `change.stable`, `ci.end`, one `invocation.end` with the session's cost, `final.check`). Also `summary.json` and `summary.md`, `prompt.txt`, and `transcript.jsonl` (the session, scrubbed of the Beanstalk token).
+Outputs: `events.jsonl`, in the harness schema (`race.start` at the session start, `task.green` from the replay, `change.ready` / `change.integrated` / `change.stable`, `ci.end`, one `invocation.end` with the session's cost, `final.check`). Also `summary.json` and `summary.md`, `prompt.txt`, `worker_prompt.txt`, and `transcript.jsonl` (the session, scrubbed of the Beanstalk token).
+
+Session cost: a resumed `claude -p` process reports the session's cumulative `total_cost_usd`, so the session's figure is the last segment's total (never the sum); `cost_partial` is true when the last segment was killed at the wall cap before it reported. `--max-budget-usd` is per process (a resumed process ran past a cap set below the cumulative total, 2026-10-08), so each resume gets `--max-usd` minus the spend so far.
+
+## Guidance: the shared prompt or the plugin (`--guidance`)
+
+`--guidance prompt` (default) is the shared prompt above; every GitHub/Beanstalk baseline pair uses it. `--guidance plugin` (Beanstalk arm only) is a labelled variant: the shared part of the prompt is unchanged, and the Beanstalk forge section is replaced by the Beanstalk plugin's skill (`packages/claude-plugin/skills/beanstalk/SKILL.md`, frontmatter removed, references named by absolute path), in the lead's prompt and appended to the `worker` subagent's prompt, as an agent with the plugin installed would read it. The MCP server stays disconnected (git only). The summary's label, `guidance` and `config.guidance` say which was used. Text is included rather than the plugin installed because the race session runs with no settings sources, no slash commands and workers without the Skill tool; that the skill loads on its own in a normal session is checked separately (`packages/claude-plugin/README.md`).
+
+`orch_pushes.py <run>...` reads a run's transcript: bean pushes by the lead and the workers (blocking `-o wait`, plain, background), PRs created and enqueued, and the time spent waiting on checks from the transcript's timestamps: foreground blocking pushes, foreground `sleep` polls of the forge, and each side's summed active span (`check_wait_share`).
 
 ## Credentials and what Coop must do
 

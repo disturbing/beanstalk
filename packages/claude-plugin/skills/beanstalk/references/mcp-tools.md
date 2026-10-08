@@ -22,9 +22,10 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
    Not doing it after all: `task_release(repo, task)`.
 2. `bean_open(repo, bean, intent, task?)`: the branch, `start` and `push` commands.
 3. Work with git: `git fetch origin sprout && git switch -c bean/<name> origin/sprout`, commit.
-4. `git push -o wait origin HEAD:refs/heads/bean/<name>`: the verdict prints as `remote:`.
-5. Without `-o wait`: `bean_wait(repo, bean)`. Red or conflict: `bean_status(repo, bean)`,
-   rebase on `origin/sprout`, fix, push again (the claim holds while the bean is out).
+4. `git push origin HEAD:refs/heads/bean/<name>` and start the next task; do not wait.
+5. Between steps: `bean_status(repo, bean)` (or the status ref). Red or conflict: rebase on
+   `origin/sprout`, fix, push again (the claim holds while the bean is out). `bean_wait` only
+   when nothing else is left to do.
 
 ## Repository tools (signed-in sessions)
 
@@ -34,7 +35,7 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 | `repo_status(repo)` | read | Stalk and sprout heads, unvalidated window, beans in flight (who), beans sent back, recent reds, open cards |
 | `bean_open(repo, bean, intent, task?)` | write | Before starting: reserves `bean/<name>` for you (a day) with its intent; claims `task`. The intent you reserve is the bean's intent at the push (`-o intent` overrides) |
 | `bean_status(repo, bean)` | read | After a push: phase, failing tests, the landed beans it collided with (intent, files changed), the lines pushes printed, `next` |
-| `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o wait`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s |
+| `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o wait`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s. Only when nothing else is left |
 | `task_list(repo)` | read | The backlog (`.beanstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
 | `task_claim(repo, task)` | write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
 | `task_release(repo, task)` | write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |

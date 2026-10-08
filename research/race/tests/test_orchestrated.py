@@ -16,7 +16,8 @@ sys.path.insert(0, RACE)
 from harness import orch_measure as M  # noqa: E402
 from harness import orch_prompt  # noqa: E402
 from harness.arena import load_tasks  # noqa: E402
-from harness.orchestrated import parse_transcript, task_of  # noqa: E402
+from harness.orchestrated import merge_sessions, parse_transcript, task_of  # noqa: E402
+import orch_pushes  # noqa: E402
 
 FIXTURE = os.path.join(TESTS, "fixtures", "arena")
 TMP = os.path.join(TESTS, "tmp", "orch")
@@ -38,6 +39,19 @@ class Prompt(unittest.TestCase):
         self.assertIn("git worktree", gh)
         self.assertIn("gh pr merge", gh)
         self.assertIn("git push -o wait", bs)
+
+    def test_plugin_guidance_replaces_only_the_beanstalk_forge_section(self) -> None:
+        kw = dict(repo_url="https://x/y", n_tasks=10, subagents=4, test_hint="Run `node --test`.", wall_minutes=90)
+        base = orch_prompt.prompt("beanstalk", **kw)
+        plugin = orch_prompt.prompt("beanstalk", guidance="plugin", **kw)
+        self.assertEqual(base, orch_prompt.prompt("beanstalk", guidance="prompt", **kw))
+        self.assertEqual(base.split("The forge:")[0], plugin.split("The forge:")[0])
+        self.assertIn("<beanstalk-skill>", plugin)
+        self.assertIn("Do not wait on your own", plugin)
+        self.assertNotIn("name: beanstalk", plugin)              # frontmatter stripped
+        self.assertIn(orch_prompt.PLUGIN_DIR, plugin)            # references by absolute path
+        self.assertEqual(orch_prompt.worker_prompt(), orch_prompt.WORKER_PROMPT)
+        self.assertIn("<beanstalk-skill>", orch_prompt.worker_prompt("plugin"))
 
     def test_backlog_has_every_task_and_its_tests(self) -> None:
         tasks = load_tasks(FIXTURE, task_note="")
@@ -144,6 +158,40 @@ class Transcript(unittest.TestCase):
                          (2, 2, 1))
         self.assertEqual(s["cost_usd"], 1.25)
         self.assertEqual(s["commands"], {"git worktree": 1, "gh pr": 1})
+
+
+    def test_resumed_session_cost_is_the_last_reported_total(self) -> None:
+        def part(cost: float, subtype: str) -> dict:
+            return {"model_usage": {}, "cost_usd": cost, "ok": True, "subtype": subtype, "turns": 1, "agent_calls": 0,
+                    "max_agent_calls_in_one_message": 0, "background_agent_calls": 0, "max_concurrent_subagents": 0,
+                    "commands": {}}
+        s = merge_sessions([part(2.0, "success"), part(3.5, "success")])
+        self.assertEqual((s["cost_usd"], s["cost_partial"]), (3.5, False))
+        s = merge_sessions([part(2.0, "success"), part(0.0, "none")])   # killed at the wall cap: no result line
+        self.assertEqual((s["cost_usd"], s["cost_partial"]), (2.0, True))
+
+    def test_push_timing(self) -> None:
+        run = os.path.join(TESTS, "tmp", "orch-pushes")
+        os.makedirs(run, exist_ok=True)
+
+        def use(i: str, cmd: str, at: str, parent: str | None = "w1", bg: bool = False) -> dict:
+            return {"type": "assistant", "parent_tool_use_id": parent, "timestamp": f"2026-10-08T00:{at}Z",
+                    "message": {"content": [{"type": "tool_use", "id": i, "name": "Bash",
+                                             "input": {"command": cmd, "run_in_background": bg}}]}}
+
+        def res(i: str, at: str, parent: str | None = "w1") -> dict:
+            return {"type": "user", "parent_tool_use_id": parent, "timestamp": f"2026-10-08T00:{at}Z",
+                    "message": {"content": [{"type": "tool_result", "tool_use_id": i}]}}
+        lines = [use("a", "git -C wt push -o wait origin HEAD:refs/heads/bean/t1", "00:00"), res("a", "01:30"),
+                 use("b", "git -C wt push origin HEAD:refs/heads/bean/t2", "02:00"), res("b", "02:03"),
+                 use("c", "sleep 30; git fetch origin '+refs/beans/*:refs/beans/*'", "03:00"), res("c", "03:30"),
+                 use("d", "sleep 60", "04:00", parent=None), res("d", "05:00", parent=None)]
+        with open(os.path.join(run, "transcript.jsonl"), "w") as fh:
+            fh.write("\n".join(json.dumps(x) for x in lines) + "\n")
+        w = orch_pushes.analyse(run)["workers"]
+        self.assertEqual((w["bean_pushes"], w["blocking_wait"], w["plain"]), (2, 1, 1))
+        self.assertEqual((w["blocking_push_s"], w["plain_push_s"], w["poll_wait_s"]), (90.0, 3.0, 30.0))
+        self.assertEqual((w["active_s"], w["check_wait_s"]), (210.0, 120.0))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 # Handling reds, conflicts and decision cards
 
-Contents: how landing works; red; inherited red; conflict; reverted or dropped; decision
-cards; hygiene.
+Contents: how landing works; when a verdict reaches you; red; inherited red; conflict;
+reverted or dropped; decision cards; hygiene.
 
 ## How landing works
 
@@ -11,6 +11,14 @@ the stalk. A green bean may be re-checked if beans landed on the same files mean
 that breaks a later validation is **reverted** from the sprout. Other agents' landed work is
 real: build on it, never undo it.
 
+## When a verdict reaches you
+
+You pushed without waiting and moved on; the verdict arrives on the status ref
+(`references/push-flow.md`). A red or conflict is yours: the bean waits for its author's next
+push. Commit (or stash) the work in progress, `git switch bean/<name>`, handle it as below,
+push it, then switch back to what you were doing. A child you stacked on it moves with it
+(`git rebase --onto bean/<name> <old head>`).
+
 ## Red
 
 1. Read the failing test file and name, the landed bean you collided with, and its intent.
@@ -19,7 +27,7 @@ real: build on it, never undo it.
    value, update that test and say so in the commit message. Never touch a protected
    acceptance test; if one contradicts your intent, that is a clash of intents: read the other
    bean's intent, keep both, or ask via the collaboration tools. Never skip or weaken tests.
-4. Push again (`-o wait`). An empty failure list means the suite failed before naming tests
+4. Push again (`git push -f origin HEAD:refs/heads/bean/<name>`). An empty failure list means the suite failed before naming tests
    (build error or timeout): run build and tests locally.
 5. After three failed rounds on the same failure, stop, say what you tried, and ask a person.
 
@@ -52,4 +60,5 @@ loses, you redo your intent on the new sprout.
 ## Hygiene
 
 Smaller diffs collide and re-check less. One intent per bean. Rebase before every push. Do
-not push while a check for the same bean is still running.
+not push while a check for the same bean is still running (refused). Do not block on your own
+check: work on the next task and read the verdict when it is there.
