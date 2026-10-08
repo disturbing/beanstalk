@@ -98,7 +98,7 @@ describe('repository tools', () => {
         {
           repo: slug(repo),
           access: 'read',
-          clone_url: `https://gateway.example.test/git/${slug(repo)}.git`,
+          clone_url: `https://gateway.example.test/${slug(repo)}.git`,
         },
       ],
     });
@@ -146,7 +146,7 @@ describe('repository tools', () => {
       start: 'git fetch origin sprout && git switch -c bean/add-total origin/sprout',
       push: 'git push origin HEAD:refs/heads/bean/add-total',
       wait: 'git push -o bean=add-total origin HEAD:refs/wait/any',
-      clone_url: `https://gateway.example.test/git/${slug(repo)}.git`,
+      clone_url: `https://gateway.example.test/${slug(repo)}.git`,
     });
     expect(
       await tool(client, 'bean_status', { repo: slug(repo), bean: 'add-total' }),
@@ -205,7 +205,7 @@ describe('repository tools', () => {
     expect(answer.scopes).toEqual(['read', 'write']);
     expect(Date.parse(answer.expires_at) - Date.now()).toBeLessThanOrEqual(10 * 60 * 1000);
     expect(answer.credential).toContain('host=gateway.example.test');
-    expect(answer.credential).toContain(`path=git/${slug(repo)}.git`);
+    expect(answer.credential).toContain(`path=${slug(repo)}.git`);
     const password = /^password=(\S+)$/m.exec(answer.credential)?.[1] ?? '';
     expect(password).toMatch(/^bss_/);
     expect((await verifyUserToken(env, password))?.token.repository).toBe(repo.engine_id);

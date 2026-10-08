@@ -1,7 +1,7 @@
 <!-- Paste into your repo's AGENTS.md (Codex, Cursor, Copilot, Gemini CLI). Items marked COMING are not live on the server yet. -->
 ## Working on this Beanstalk repository
 
-Git is the interface; the Beanstalk MCP server is optional context. The remote is a Beanstalk gateway (`https://<gateway>/git/<owner>/<repo>.git`).
+Git is the interface; the Beanstalk MCP server is optional context. The remote is a Beanstalk host (`https://<beanstalk host>/<owner>/<repo>.git`, the same host as the repository page, as on GitHub).
 
 Connecting git (once per machine; do it when git says `Authentication failed`, `terminal prompts disabled` or `remote: Beanstalk: this git is not connected`): run `curl -fsSL <web>/setup.sh | sh -s -- detect` (Windows: download `<web>/setup.ps1` and run it with `detect`). Ask the person ONE question listing the `option` lines (1Password key first, then ssh-agent keys, key files, "generate a new key"). Then run the same script with `generate` if they chose that, `register --key <file.pub>` or `register --agent-key <fingerprint> --agent "<socket>"` (allow it 10 minutes: the person approves in the browser, or enters the printed code on another device), then `remote <owner>/<repo>` and `verify <owner>/<repo>`. Only public keys are sent. Never ask for a password or token in the chat, never put one in a URL, never print `~/.git-credentials`. CI uses a deploy token in `BEANSTALK_TOKEN` (the repository page, tab "Env vars").
 

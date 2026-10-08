@@ -310,10 +310,10 @@ describe('the start page', () => {
     expect(guide.plugin.codexPrompt).toContain(
       'curl -fsSL https://web.example.test/setup.sh | sh -s -- detect',
     );
-    expect(guide.https.urlWithToken).toBe('https://x:<token>@git.example.test/git/coop/notes.git');
-    expect(guide.cloneUrl).toBe('https://git.example.test/git/coop/notes.git');
+    expect(guide.https.urlWithToken).toBe('https://x:<token>@git.example.test/coop/notes.git');
+    expect(guide.cloneUrl).toBe('https://git.example.test/coop/notes.git');
     expect(guide.gitSteps).toContain('git push -o wait origin bean/first-change');
-    expect(guide.gitSteps[0]).toBe('git clone https://git.example.test/git/coop/notes.git');
+    expect(guide.gitSteps[0]).toBe('git clone https://git.example.test/coop/notes.git');
     expect(guide.agents.map((agent) => agent.harness)).toEqual([
       'Claude Code',
       'Codex',

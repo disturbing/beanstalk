@@ -126,6 +126,7 @@ const ARCHIVED_REFUSES: Readonly<Record<RepositoryAction, string>> = {
   write: 'pushes are refused',
   decide: 'decisions cannot be answered',
   'deploy-tokens': 'deploy tokens cannot be made or changed',
+  actions: 'workflows cannot be run and secrets cannot be changed',
   administer: 'settings are read-only',
 };
 
@@ -134,5 +135,6 @@ const NEEDS: Readonly<Record<RepositoryAction, string>> = {
   write: 'pushing beans needs the write role',
   decide: 'answering decisions needs the maintain role',
   'deploy-tokens': 'deploy tokens need the maintain role',
+  actions: 'running workflows and managing Actions secrets need the maintain role',
   administer: 'only the owner can change this',
 };

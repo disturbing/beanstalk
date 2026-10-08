@@ -169,9 +169,12 @@ export async function taskRelease(
   };
 }
 
-/** The clone URL of a repository on the gateway. */
+/**
+ * The clone URL of a repository: on the web host, as GitHub serves it (`<web>/<owner>/<repo>.git`;
+ * the gateway's `/git/<owner>/<repo>.git` path still works).
+ */
 export function cloneUrl(scope: ToolScope, gitPath: string): string {
-  return new URL(gitPath, scope.gitOrigin).toString();
+  return new URL(gitPath.replace(/^\/git\//, '/'), scope.gitOrigin).toString();
 }
 
 function beanLine(bean: PushedBeanStatus) {
