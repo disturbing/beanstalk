@@ -1,0 +1,65 @@
+e2e dispatched: /coop-act3b/shop/actions/runs/cd88f88d-6f0e-4448-be98-776607ceff1d
+CI dispatched: /coop-act3b/shop/actions/runs/6c434bba-c503-4799-b55d-9c2c9890fb21
+Deploy dispatched: /coop-act3b/shop/actions/runs/1669b591-b896-408f-8463-52f1f8f47442
+deploy log (download):
+  | ##[group]Job
+  | stub executor: deploy on ubuntu-24.04
+  | ##[endgroup]
+  | ##[group]Run actions/checkout@v4
+  | ▶ Run actions/checkout@v4
+  | stub: would run actions/checkout@v4
+  | ##[endgroup]
+  | ##[group]Deploy
+  | ▶ Deploy
+  | $ echo "deploying to ${{ inputs.environment }} (dry run: ${{ inputs.dry-run }})"
+  | deploying to production (dry run: false)
+  | $ echo "token ${{ secrets.CLOUDFLARE_API_TOKEN }}"
+  | token ***
+  | $ echo "\e[32mDeployed\e[39m shop"
+  | \e[32mDeployed\e[39m shop
+  | ##[endgroup]
+deploy log masks the secret: true, value shown: false
+deploy facts: Status succeeded Wall time 2s Minutes billed 1 Line stalk environment production dry-run false Workflow deploy.yml
+01-actions-all-night: sideways scroll false
+01-actions-all-day: sideways scroll false
+01-actions-all-phone: sideways scroll false
+02-workflow-deploy-run-menu-night: sideways scroll false
+02-workflow-deploy-run-menu-day: sideways scroll false
+02-workflow-deploy-run-menu-phone: sideways scroll false
+03-runs-failed-filter-night: sideways scroll false
+03-runs-failed-filter-day: sideways scroll false
+03-runs-failed-filter-phone: sideways scroll false
+soak live: last line 0, tail "following", status running
+04-run-live-night: sideways scroll false
+04-run-live-day: sideways scroll false
+04-run-live-phone: sideways scroll false
+soak after cancel: cancelled
+08-run-cancelled-night: sideways scroll false
+08-run-cancelled-day: sideways scroll false
+08-run-cancelled-phone: sideways scroll false
+05-run-ci-night: sideways scroll false
+05-run-ci-day: sideways scroll false
+05-run-ci-phone: sideways scroll false
+CI search "passed": 1 of 2
+06-run-failed-e2e-night: sideways scroll false
+06-run-failed-e2e-day: sideways scroll false
+06-run-failed-e2e-phone: sideways scroll false
+e2e: failed; annotations: Annotations 1 error, 0 warnings timed out waiting for Pay now e2e (chromium) · e2e/checkout.spec.ts:41
+07-run-deploy-night: sideways scroll false
+07-run-deploy-day: sideways scroll false
+07-run-deploy-phone: sideways scroll false
+09-automations-coming-night: sideways scroll false
+09-automations-coming-day: sideways scroll false
+09-automations-coming-phone: sideways scroll false
+11-settings-actions-night: sideways scroll false
+11-settings-actions-day: sideways scroll false
+11-settings-actions-phone: sideways scroll false
+secrets listed: CLOUDFLARE_API_TOKEN Updated 19 minutes ago by @coop-act3b Delete; value in page: false
+outsider /actions: 404
+outsider run page: 404
+outsider log API: 404
+signed out /actions (private): 404
+signed out /actions (public): 200
+12-public-signed-out-night: sideways scroll false
+12-public-signed-out-day: sideways scroll false
+12-public-signed-out-phone: sideways scroll false
