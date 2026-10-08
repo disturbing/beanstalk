@@ -1,10 +1,10 @@
-// The hero's app preview: an HTML recreation of a repository, with the product's tabs (Code,
-// Changes, History, Ask, People, Settings). A tour plays each tab's view and moves on when it
-// finishes; clicking a tab pins it until the preview is left alone for a while. History rewinds
-// the stalk seven days and grows it back through an irregular week generated from a fixed seed;
-// Ask types three questions in turn and the stalk reacts to each answer. Every frame is a pure
-// function of the tab and the time into it: reduced motion shows each tab's finished frame, and
-// `?tab=<id>&demo=<ms>` (or `?demo=<ms>` into the tour) freezes the preview (for screenshots).
+// The hero's app preview: an HTML recreation of a repository with the app's own tabs (Code,
+// Changes, History, Ask, People, Settings). Code plays the full home sequence first: the stalk
+// grown to today, three questions typed and answered (the stalk reacts to each), then last week
+// replayed from a fixed seed. Each other tab is an animated miniature of the real page; the tour
+// moves on when a view's animation ends, and a click pins a tab until the preview is left alone.
+// Every frame is a pure function of the tab and the time into it: reduced motion shows each tab's
+// finished frame, and `?tab=<id>&demo=<ms>` (or `?demo=<ms>` into the tour) freezes the preview.
 
 /* ---------- A week of history from a fixed seed ---------- */
 
@@ -238,51 +238,88 @@ function repoAt(h) {
 /** The bean the culprit broke: it added the test that failed when the culprit landed. */
 const COLLIDED = LANDINGS.find((l) => l.id === 't013');
 
-/* ---------- The tabs and their scripts ---------- */
+/* ---------- Code: the repository home, the full original sequence ---------- */
 
-const TYPE_MS = 46;
-const ERASE_MS = 14;
-const ASKS = [
+const TYPE_MS = 50;
+const ERASE_MS = 16;
+const TOUR = [
   { id: 'coupons', q: 'What changed on coupons this week?' },
   { id: 'red', q: `Why is #${CULPRIT.n} red?` },
   { id: 'billing', q: "Who's working on billing right now?" },
 ];
-const REPLAY_MS = 9500;
+const REPLAY_Q = "Replay last week's work";
+const REPLAY_MS = 14000;
 
-/** The Ask tab: each question is typed, answered, then erased for the next. */
-const ASK_SEGMENTS = [{ kind: 'idle', ms: 1400, show: 'askstart' }];
-{
-  let showing = 'askstart';
-  for (const stop of ASKS) {
-    const prev = ASK_SEGMENTS.at(-1);
+/** Builds a typed-question script: each question is typed, answered, then erased. */
+function script(stops, first) {
+  const segments = [first];
+  let showing = first.show;
+  for (const stop of stops) {
+    const prev = segments.at(-1);
     if (prev.q)
-      ASK_SEGMENTS.push({
+      segments.push({
         kind: 'erase',
         q: prev.q,
         ms: prev.q.length * ERASE_MS + 150,
         show: showing,
       });
-    ASK_SEGMENTS.push({ kind: 'type', q: stop.q, ms: stop.q.length * TYPE_MS, show: showing });
-    ASK_SEGMENTS.push({ kind: 'think', q: stop.q, ms: 360, show: showing });
+    segments.push({ kind: 'type', q: stop.q, ms: stop.q.length * TYPE_MS, show: showing });
+    segments.push({ kind: 'think', q: stop.q, ms: 360, show: showing });
     showing = stop.id;
-    ASK_SEGMENTS.push({ kind: 'answer', q: stop.q, ms: 4400, show: stop.id });
+    segments.push(
+      stop.id === 'replay'
+        ? { kind: 'replay', q: stop.q, ms: REPLAY_MS, show: 'replay' }
+        : { kind: 'answer', q: stop.q, ms: stop.ms ?? 4200, show: stop.id },
+    );
   }
+  return segments;
+}
+
+function timed(segments) {
   let cursor = 0;
-  for (const seg of ASK_SEGMENTS) {
+  for (const seg of segments) {
     seg.from = cursor;
     cursor += seg.ms;
   }
+  return cursor;
 }
-const ASK_MS = ASK_SEGMENTS.at(-1).from + ASK_SEGMENTS.at(-1).ms;
 
-/** The preview's tabs, in the product's order; the tour plays each one, then moves on. */
+const CODE_SEGMENTS = script([...TOUR, { id: 'replay', q: REPLAY_Q }], {
+  kind: 'idle',
+  ms: 2000,
+  show: 'default',
+});
+CODE_SEGMENTS.push(
+  { kind: 'end', q: REPLAY_Q, ms: 4200, show: 'replay' },
+  { kind: 'erase', q: REPLAY_Q, ms: REPLAY_Q.length * ERASE_MS + 150, show: 'replay' },
+  { kind: 'settle', ms: 1200, show: 'default' },
+);
+const CODE_MS = timed(CODE_SEGMENTS);
+const REPLAY_END = CODE_SEGMENTS.find((s) => s.kind === 'end').from + 1;
+
+/* ---------- Ask: the explorer, one of its own suggested questions ---------- */
+
+const TRY = [
+  'who changed billing/coupons.ts and why?',
+  "what's being worked on right now?",
+  'what did we decide?',
+];
+const ASK_SEGMENTS = script([{ id: 'journey', q: TRY[0], ms: 6200 }], {
+  kind: 'idle',
+  ms: 1800,
+  show: 'askstart',
+});
+const ASK_MS = timed(ASK_SEGMENTS);
+
+/* ---------- The tabs, exactly as the repository header shows them ---------- */
+
 const TABS = [
-  { id: 'code', label: 'Code', ms: 5200 },
-  { id: 'changes', label: 'Changes', ms: 6200 },
-  { id: 'history', label: 'History', ms: REPLAY_MS + 2600 },
-  { id: 'ask', label: 'Ask', ms: ASK_MS },
-  { id: 'people', label: 'People', ms: 5600 },
-  { id: 'settings', label: 'Settings', ms: 5200 },
+  { id: 'code', label: 'Code', ms: CODE_MS, view: 'explorer' },
+  { id: 'changes', label: 'Changes', ms: 8200, view: 'page' },
+  { id: 'history', label: 'History', ms: 7200, view: 'page' },
+  { id: 'ask', label: 'Ask', ms: ASK_MS, view: 'explorer' },
+  { id: 'people', label: 'People', ms: 6400, view: 'page' },
+  { id: 'settings', label: 'Settings', ms: 8000, view: 'page' },
 ];
 const TOUR_MS = TABS.reduce((sum, tab) => sum + tab.ms, 0);
 /** A click pins its tab; the tour resumes after this long without another interaction. */
@@ -300,38 +337,38 @@ function tourAt(t) {
 
 /** One frame of the preview: a pure function of the tab and the time into it. */
 function frameAt(tab, local) {
-  let typed = '';
-  let focus = false;
-  let show = tab;
-  let shownFor = local;
-  let h = WEEK_HOURS;
-  let replaying = false;
-  if (tab === 'ask') {
-    const seg = ASK_SEGMENTS.findLast((s) => s.from <= local) ?? ASK_SEGMENTS[0];
-    const into = local - seg.from;
-    typed = seg.q ?? '';
-    if (seg.kind === 'type') typed = seg.q.slice(0, Math.floor(into / TYPE_MS));
-    if (seg.kind === 'erase')
-      typed = seg.q.slice(0, Math.max(0, seg.q.length - Math.floor(into / ERASE_MS)));
-    if (seg.kind === 'idle') typed = '';
-    focus = seg.kind === 'type' || seg.kind === 'think' || seg.kind === 'erase';
-    show = seg.show;
-    shownFor = seg.kind === 'answer' ? into : 1e9;
-  }
-  if (tab === 'history') {
-    replaying = local < REPLAY_MS;
-    h = replaying ? hourAt(local / REPLAY_MS) : WEEK_HOURS;
-    show = 'replay';
-  }
+  const segments = { code: CODE_SEGMENTS, ask: ASK_SEGMENTS }[tab];
+  if (!segments)
+    return {
+      tab,
+      local,
+      typed: '',
+      focus: false,
+      show: tab,
+      shownFor: local,
+      replaying: false,
+      replayed: false,
+      ...repoAt(WEEK_HOURS),
+    };
+  const seg = segments.findLast((s) => s.from <= local) ?? segments[0];
+  const into = local - seg.from;
+  let typed = seg.q ?? '';
+  if (seg.kind === 'type') typed = seg.q.slice(0, Math.floor(into / TYPE_MS));
+  if (seg.kind === 'erase')
+    typed = seg.q.slice(0, Math.max(0, seg.q.length - Math.floor(into / ERASE_MS)));
+  if (seg.kind === 'idle' || seg.kind === 'settle') typed = '';
+  const replaying = seg.kind === 'replay';
+  const h = replaying ? hourAt(into / REPLAY_MS) : WEEK_HOURS;
   return {
     tab,
     local,
     typed,
-    focus,
-    show,
-    shownFor,
+    focus: seg.kind === 'type' || seg.kind === 'think' || seg.kind === 'erase',
+    show: seg.show,
+    /** How long the current answer has been on screen (for the stalk's own motion). */
+    shownFor: seg.kind === 'answer' ? into : 1e9,
     replaying,
-    replayed: tab === 'history' && !replaying,
+    replayed: seg.kind === 'end',
     ...repoAt(h),
   };
 }
@@ -347,7 +384,30 @@ const clockOf = (h) => {
 };
 const COUPON_BEANS = LANDINGS.filter((l) => /coupon/i.test(l.title));
 /** Answers that point at a few rows of the stalk and dim the rest. */
-const FOCUSED = new Set(['coupons', 'red', 'billing']);
+const FOCUSED = new Set(['coupons', 'red', 'billing', 'journey']);
+const JOURNEY = COUPON_BEANS.at(-1);
+
+/** Who an agent works for: every session belongs to a person. */
+const PEOPLE = ['coop', 'dana', 'ike', 'mira'];
+const ownerOf = (agent) => PEOPLE[Number(agent.slice(1)) % PEOPLE.length];
+/** A bean's branch name, from its title. */
+const slug = (title) =>
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .split(' ')
+    .filter((w) => w.length > 2)
+    .slice(0, 3)
+    .join('-');
+const sha = (n) => ((n * 2654435761) >>> 0).toString(16).padStart(8, '0').slice(0, 7);
+/** How long ago a week hour was, as the app says it. */
+function ago(h) {
+  const hours = WEEK_HOURS - h;
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))} minutes ago`;
+  if (hours < 24) return `${Math.round(hours)} hours ago`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? 'yesterday' : `${days} days ago`;
+}
 
 /* ---------- The stalk ---------- */
 
@@ -382,6 +442,7 @@ function stalkRows(f) {
   const cls = (n, base) => {
     if (answer === 'coupons') return `${base} ${foundIds.has(n) ? 'hit found' : 'dim slow'}`;
     if (answer === 'red') return `${base} ${n === CULPRIT.n || n === COLLIDED.n ? 'hit' : 'dim'}`;
+    if (answer === 'journey') return `${base} ${n === JOURNEY.n ? 'hit found' : 'dim slow'}`;
     if (answer === 'billing') return `${base} dim`;
     return base;
   };
@@ -472,29 +533,28 @@ function reconcile(host, rows) {
 
 /** Overlap links between in-flight beans that change the same file. */
 function drawLinks(host, overlay, links) {
-  if (!links) {
-    overlay.innerHTML = '';
-    return;
-  }
-  const entries = [...links];
-  const paths = [];
-  for (let i = 0; i < entries.length; i++) {
-    for (let j = i + 1; j < entries.length; j++) {
-      const shared = entries[i][1].filter((file) => entries[j][1].includes(file));
-      if (!shared.length) continue;
-      const a = host.querySelector(`[data-key="b-${entries[i][0]}"]`);
-      const b = host.querySelector(`[data-key="b-${entries[j][0]}"]`);
-      if (!a || !b) continue;
-      const y1 = a.offsetTop + a.offsetHeight / 2;
-      const y2 = b.offsetTop + b.offsetHeight / 2;
-      paths.push(`<path d="M10 ${y1} C 1 ${y1}, 1 ${y2}, 10 ${y2}" />`);
+  let html = '';
+  if (links) {
+    const entries = [...links];
+    const paths = [];
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const shared = entries[i][1].filter((file) => entries[j][1].includes(file));
+        if (!shared.length) continue;
+        const a = host.querySelector(`[data-key="b-${entries[i][0]}"]`);
+        const b = host.querySelector(`[data-key="b-${entries[j][0]}"]`);
+        if (!a || !b) continue;
+        const y1 = a.offsetTop + a.offsetHeight / 2;
+        const y2 = b.offsetTop + b.offsetHeight / 2;
+        paths.push(`<path d="M10 ${y1} C 1 ${y1}, 1 ${y2}, 10 ${y2}" />`);
+      }
     }
+    if (paths.length) html = `<svg width="100%" height="100%">${paths.join('')}</svg>`;
   }
-  const html = paths.length ? `<svg width="100%" height="100%">${paths.join('')}</svg>` : '';
   if (overlay.innerHTML !== html) overlay.innerHTML = html;
 }
 
-/* ---------- The panels ---------- */
+/* ---------- The explorer's panels (Code and Ask) ---------- */
 
 function box(title, note, body) {
   return `<section class="d-box"><header><b>${title}</b>${note}</header>${body}</section>`;
@@ -506,19 +566,6 @@ function chips(searched, picked) {
 
 function head(title, sub) {
   return `<h3 class="d-answer">${esc(title)}</h3><p class="d-sub">${esc(sub)}</p>`;
-}
-
-/** Rows that appear one by one: `shown` of them, the newest one growing in. */
-function reveal(rows, f, every) {
-  const shown = Math.min(rows.length, 1 + Math.floor(f.shownFor / every));
-  return rows
-    .slice(0, shown)
-    .map((row, i) =>
-      i === shown - 1 && f.shownFor < rows.length * every + every
-        ? row.replace('class="', 'class="arrive ')
-        : row,
-    )
-    .join('');
 }
 
 const minutes = (mins) => (mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`);
@@ -566,68 +613,22 @@ function files() {
     ['cart/', 'Carts accept more units than are in stock', 1],
     ['catalog/', 'Make product filtering a pure function', 0],
     ['notifications/', 'Customers should get a receipt when paid', 0],
-    ['shipping/', 'Require a signature for high-value deliveries', 0],
   ]
     .map(
       ([dir, title, fly]) =>
         `<div class="f-row"><span class="fn">${dir}</span><span class="fb"><i class="lfm"></i>${esc(title)}</span>${fly ? `<span class="chip fly">${fly} in flight</span>` : '<span></span>'}</div>`,
     )
     .join('');
-  return box('Files', 'src, on the stalk', rows);
+  return box('Files', 'src', rows);
 }
 
-const PEOPLE = [
-  { who: 'coop', role: 'owner', sessions: ['a2 Claude Code, local', 'a5 Claude Code, cloud'] },
-  { who: 'dana', role: 'maintain', sessions: ['a7 Codex, local'] },
-  { who: 'ike', role: 'write', sessions: ['a10 Codex, cloud'] },
-  { who: 'mira', role: 'write', sessions: ['a3 Cursor, local'] },
-];
-
 const PANELS = {
-  code: (f) => growing(f) + happened(f) + files(),
-  changes: (f) => {
-    const flying = f.flying.map(
-      (b) =>
-        `<div class="g-row ${b.status}"><span class="a">${b.agent}</span><span class="t">${esc(b.title)}</span><span class="s"><i class="spin"></i>${b.status}</span></div>`,
-    );
-    const landed = LANDINGS.toReversed()
-      .slice(0, 4)
-      .map(
-        (l) =>
-          `<div class="f-row ch-row"><span class="fb"><i class="lfm"></i>${esc(l.title)}</span><span class="chip leafchip">${l.id} #${l.n}</span><span class="fstat">${stamp(l.land).day}</span></div>`,
-      );
-    const fell = FELL.map(
-      (x) =>
-        `<div class="f-row ch-row fell"><span class="fb">${esc(x.title)}</span><span class="chip">${x.id}</span><span class="fstat">${esc(x.reason)}</span></div>`,
-    );
-    const rows = [...flying, ...landed, ...fell];
-    const shown = reveal(rows, f, 260);
-    return (
-      `<div class="d-tabhead"><b>Changes</b><span class="chip fly">${f.flying.length} growing</span><span class="chip leafchip">${LANDINGS.length} landed</span><span class="chip">${FELL.length} fell</span></div>` +
-      box('Beans', 'newest first', shown)
-    );
-  },
-  replay: (f) => {
-    const sub = f.replayed
-      ? `Back at today: ${LANDINGS.length} beans landed in the last 7 days, ${FELL.length} fell off.`
-      : `${clockOf(f.h)}: ${f.landed - OLDER} of ${LANDINGS.length} landed since seven days ago.`;
-    return (
-      `<div class="d-tabhead"><b>History</b><span class="chip">last 7 days</span><span class="chip leafchip">${f.stalk - 1 - (OLDER - 1)} validated</span></div>` +
-      head('Last week on beanstalk-shop, replayed.', sub) +
-      growing(f) +
-      happened(f)
-    );
-  },
-  askstart: () =>
-    `<div class="d-tabhead"><b>Ask</b><span class="chip jev">Jev picks the view</span></div>` +
-    box(
-      'Try asking',
-      '',
-      ASKS.map(
-        (a) =>
-          `<div class="f-row ask-sugg"><span class="q">?</span><span class="fb">${esc(a.q)}</span><span></span></div>`,
-      ).join(''),
-    ),
+  default: (f) => growing(f) + happened(f) + files(),
+  askstart: (f) =>
+    `<div class="d-try"><span>Try</span>${TRY.map((q) => `<span class="chip">› ${esc(q)}</span>`).join('')}</div>` +
+    growing(f) +
+    happened(f) +
+    files(),
   coupons: (f) => {
     const found = Math.min(COUPON_BEANS.length, Math.floor(f.shownFor / 380));
     const paths = [
@@ -637,6 +638,7 @@ const PANELS = {
       'db/coupon_max.ts',
       'billing/discounts.ts',
     ];
+    // Only the newest row grows in; the panel is rewritten only when a file is found.
     const list = COUPON_BEANS.toReversed()
       .slice(0, f.shownFor > 1e8 ? COUPON_BEANS.length : found)
       .map(
@@ -654,8 +656,8 @@ const PANELS = {
       ) +
       box(
         'Files',
-        `${Math.min(found, COUPON_BEANS.length)} of ${COUPON_BEANS.length} found`,
-        list + (found ? diff : ''),
+        `${found} of ${COUPON_BEANS.length} found`,
+        list + (found || f.shownFor > 1e8 ? diff : ''),
       )
     );
   },
@@ -701,54 +703,51 @@ const PANELS = {
       box('Collision hot spots', '', hot)
     );
   },
-  people: (f) => {
-    const rows = PEOPLE.map((p) => {
-      const sessions = p.sessions
-        .map((s) => {
-          const [agent, ...rest] = s.split(' ');
-          const bean = f.flying.find((b) => b.agent === agent);
-          return `<span class="ps"><b>${agent}</b>${esc(rest.join(' '))}<i class="dot ${bean ? 'bean' : 'idle'}"></i>${bean ? bean.status : 'idle'}</span>`;
-        })
-        .join('');
-      return `<div class="p-row"><span class="pw"><i class="av">${p.who[0]}</i>${p.who}<small>${p.role}</small></span><span class="pss">${sessions}</span></div>`;
-    });
+  journey: (f) => {
+    const steps = [
+      [
+        stamp(JOURNEY.start).time,
+        `Picked up by ${JOURNEY.agent}, a session of @${ownerOf(JOURNEY.agent)}`,
+      ],
+      [stamp(JOURNEY.start + 0.6).time, 'Committed its change, 2 files'],
+      [stamp(JOURNEY.land - 0.05).time, 'Pre-land check passed on the merged tree'],
+      [stamp(JOURNEY.land).time, `Landed on the sprout as #${JOURNEY.n}`],
+      [stamp(JOURNEY.land + 0.5).time, 'Validated with its batch: on the stalk'],
+    ];
+    const shown = Math.min(steps.length, 1 + Math.floor(f.shownFor / 450));
+    const list = steps
+      .slice(0, f.shownFor > 1e8 ? steps.length : shown)
+      .map(
+        ([time, text], i) =>
+          `<li class="${i === shown - 1 && f.shownFor < 1e8 ? 'arrive' : ''}${i >= 3 ? ' ok' : ''}"><span>${time}</span>${esc(text)}</li>`,
+      )
+      .join('');
     return (
-      `<div class="d-tabhead"><b>People</b><span class="chip">${PEOPLE.length} people</span><span class="chip fly">${PEOPLE.reduce((n, p) => n + p.sessions.length, 0)} sessions</span></div>` +
-      box('People and their agent sessions', 'every agent is someone’s', reveal(rows, f, 420))
+      chips(['billing/coupons.ts', 'beans that changed it'], ['Bean journey', 'Diff']) +
+      head(
+        `${JOURNEY.id} changed billing/coupons.ts: ${JOURNEY.title.toLowerCase()}.`,
+        `Pushed by ${JOURNEY.agent} for @${ownerOf(JOURNEY.agent)}; validated on the stalk ${ago(JOURNEY.land)}.`,
+      ) +
+      box(
+        `<span class="chip leafchip"><i class="lfm"></i>bean/${slug(JOURNEY.title)} #${JOURNEY.n}</span>`,
+        '',
+        `<ol class="j-steps">${list}</ol>${shown >= 4 || f.shownFor > 1e8 ? '<div class="hunk"><div class="h">billing/coupons.ts</div><div class="d">-  if (coupon.kind !== \'percent\') return coupon.value;</div><div class="a">+  if (coupon.kind !== \'percent\') return Math.min(coupon.value, subtotal);</div></div>' : ''}`,
+      )
     );
   },
-  settings: (f) => {
-    const checks = [
-      ['test', 'pnpm test', 'every bean, on the merged tree'],
-      ['typecheck', 'pnpm typecheck', 'every bean'],
-      ['stalk', 'pnpm test:e2e', 'each stalk check, in batches'],
-    ]
-      .map(
-        ([name, cmd, when]) =>
-          `<div class="f-row"><span class="fn">${name}</span><code class="cmd-c">${cmd}</code><span class="fstat">${when}</span></div>`,
-      )
-      .join('');
-    const general = [
-      ['Name', 'beanstalk-shop'],
-      ['Visibility', 'private'],
-      ['Collaborators', 'coop, dana, ike, mira'],
-      ['Deploy tokens', '1 active'],
-    ]
-      .map(
-        ([k, v]) =>
-          `<div class="f-row"><span class="fn">${k}</span><span class="fb">${esc(v)}</span><span></span></div>`,
-      )
-      .join('');
-    const soon = `<div class="f-row"><span class="fn">Automations</span><span class="fb">Becoming Actions</span><span class="chip soon">soon</span></div>`;
-    const parts = [
-      box('General', '', general),
-      box('Checks', '.beanstalk/checks.toml, changed by a bean', checks),
-      box('Actions', '', soon),
-    ];
-    const shown = Math.min(parts.length, 1 + Math.floor(f.shownFor / 700));
+  replay: (f) => {
+    const sub =
+      f.replayed || !f.replaying
+        ? `Back at today: ${LANDINGS.length} beans landed in the last 7 days, ${FELL.length} fell off.`
+        : `${clockOf(f.h)}: ${f.landed - OLDER} of ${LANDINGS.length} landed since seven days ago.`;
     return (
-      `<div class="d-tabhead"><b>Settings</b><span class="chip">owner</span></div>` +
-      parts.slice(0, shown).join('')
+      chips(
+        ['last 7 days', 'beans, landings, decisions'],
+        ['Stalk replay', 'Growing now', 'What happened'],
+      ) +
+      head('Replaying last week on beanstalk-shop.', sub) +
+      growing(f) +
+      happened(f)
     );
   },
 };
@@ -769,6 +768,212 @@ function statusLine(f) {
   ].join('');
 }
 
+/* ---------- The repository's pages (Changes, History, People, Settings) ---------- */
+
+/** The page glyphs, as the app draws them. */
+const GLYPH = {
+  stalk: '<i class="pg pg-stalk"></i>',
+  sprout: '<i class="pg pg-sprout"></i>',
+  bean: '<i class="pg pg-bean"></i>',
+  checking: '<i class="pg pg-bean pg-live"></i>',
+  red: '<i class="pg pg-red"></i>',
+  seed: '<i class="pg pg-seed"></i>',
+};
+
+/** A red bean of this morning, sent back with what it collided with. */
+const RED_TODAY = {
+  id: 't041',
+  agent: 'a8',
+  title: 'Email customers about overdue invoices',
+  failing: 'billing/overdue.test.ts › lists invoices 30 days past due',
+  collided: LANDINGS.at(-1),
+};
+
+/** Steps of a page's animation: how many of `count` items show at `local`, one every `every` ms. */
+const upTo = (local, count, every, from = 0) =>
+  Math.max(0, Math.min(count, Math.floor((local - from) / every) + 1));
+
+function changeRow(c, i, shown) {
+  const cls = `pc-row${i === shown - 1 ? ' arrive' : ''}${c.leaving ? ' leaving' : ''}`;
+  const why = c.failing
+    ? `<ul class="pc-why"><li>✗ ${esc(c.failing)}</li><li>collided with ${esc(c.collided)}</li></ul>`
+    : '';
+  return `<div class="${cls}">${GLYPH[c.glyph]}<b class="pc-title">${esc(c.title)}</b><span class="pc-state" data-state="${c.state}">${c.stateText}</span><div class="pc-meta"><span class="pc-bean">bean/${slug(c.title)}</span><span>by <b>@${c.person}</b></span><span>${c.when}</span></div>${why}</div>`;
+}
+
+/** Open beans this morning, and the one that lands while the page is open. */
+function openChanges(landedNow) {
+  const flying = TODAY_BEANS.map((b) => ({
+    title: b.title,
+    person: ownerOf(b.agent),
+    glyph: b.id === 't040' && landedNow ? 'sprout' : 'checking',
+    state: b.id === 't040' && landedNow ? 'landed' : 'checking',
+    stateText: b.id === 't040' && landedNow ? 'on the sprout' : 'in check',
+    when: `${Math.round((WEEK_HOURS - b.start) * 60)} minutes ago`,
+    leaving: b.id === 't040' && landedNow,
+  }));
+  return [
+    ...flying,
+    {
+      title: RED_TODAY.title,
+      person: ownerOf(RED_TODAY.agent),
+      glyph: 'red',
+      state: 'red',
+      stateText: 'red',
+      when: '12 minutes ago',
+      failing: RED_TODAY.failing,
+      collided: `bean/${slug(RED_TODAY.collided.title)} (#${RED_TODAY.collided.n})`,
+    },
+  ];
+}
+
+function landedChanges(withNew) {
+  const rows = LANDINGS.toReversed()
+    .slice(0, withNew ? 4 : 5)
+    .map((l) => ({
+      title: l.title,
+      person: ownerOf(l.agent),
+      glyph: 'stalk',
+      state: 'validated',
+      stateText: 'on the stalk',
+      when: ago(l.land),
+    }));
+  if (withNew)
+    rows.unshift({
+      title: TODAY_BEANS[2].title,
+      person: ownerOf(TODAY_BEANS[2].agent),
+      glyph: 'sprout',
+      state: 'landed',
+      stateText: 'on the sprout',
+      when: 'just now',
+    });
+  return rows;
+}
+
+/** The open count on the Changes tab: beans in check, red or waiting. */
+function openCount(tab, local) {
+  return tab === 'changes' && local >= CHANGES_LAND ? 3 : 4;
+}
+const CHANGES_LAND = 3400;
+const CHANGES_SWITCH = 5000;
+
+const PAGES = {
+  changes: (f) => {
+    const landedNow = f.local >= CHANGES_LAND;
+    const onLanded = f.local >= CHANGES_SWITCH;
+    const counts = {
+      open: landedNow ? 3 : 4,
+      landed: LANDINGS.length + Number(landedNow),
+      parked: FELL.length,
+    };
+    let rows = onLanded ? landedChanges(true) : openChanges(landedNow);
+    const shown = onLanded
+      ? upTo(f.local, rows.length, 220, CHANGES_SWITCH)
+      : upTo(f.local, rows.length, 320);
+    rows = rows.slice(0, shown);
+    const pill = (id, name) =>
+      `<span class="pc-pill${(id === 'landed') === onLanded && id !== 'parked' ? ' on' : ''}">${name}<span>${counts[id]}</span></span>`;
+    return `<div class="pg-page"><div class="pc-bar">${pill('open', 'Open')}${pill('landed', 'Landed')}${pill('parked', 'Parked')}<span class="pc-live"><i></i>Live</span></div><section class="pg-box pc-list">${rows.map((c, i) => changeRow(c, i, shown)).join('')}</section></div>`;
+  },
+  history: (f) => {
+    const validated = f.local >= 3600;
+    const pending = LANDINGS.slice(-2).toReversed();
+    const stalk = LANDINGS.toReversed().slice(validated ? 0 : 2, validated ? 5 : 5);
+    const commit = (l, glyph, cls, chip) =>
+      `<li class="ph-row${cls}">${GLYPH[glyph]}<div><b class="ph-title">${esc(l.title)}</b><div class="pc-meta"><b>@${ownerOf(l.agent)}</b><span class="pc-bean">bean/${slug(l.title)}</span><span>${ago(l.land)}</span></div></div><span class="ph-side"><span class="pc-state" data-state="${chip[0]}">${chip[1]}</span><code>${sha(l.n)}</code></span></li>`;
+    const shownPending = validated ? 0 : upTo(f.local, pending.length, 300);
+    const shownStalk = validated ? stalk.length : upTo(f.local, stalk.length, 260, 700);
+    const pendingBox = validated
+      ? ''
+      : `<section class="pg-box ph-pending"><header>${GLYPH.sprout}<h4>On the sprout, not validated yet</h4><span>2 commits</span></header><ol>${pending
+          .slice(0, shownPending)
+          .map((l, i) =>
+            commit(l, 'sprout', i === shownPending - 1 ? ' arrive' : '', [
+              'landed',
+              'landed, not validated yet',
+            ]),
+          )
+          .join('')}</ol></section>`;
+    const fresh = validated && f.local < 5400;
+    const stalkRowsHtml = stalk
+      .slice(0, shownStalk)
+      .map((l, i) => {
+        let cls = !validated && i === shownStalk - 1 ? ' arrive' : '';
+        if (fresh && i < 2) cls = ' arrive fresh';
+        return commit(l, 'stalk', cls, ['validated', 'validated']);
+      })
+      .join('');
+    const commits = OLDER + LANDINGS.length - (validated ? 0 : 2) + 1;
+    return `<div class="pg-page">${pendingBox}<section class="pg-box"><header>${GLYPH.stalk}<h4>The stalk</h4><span>${commits} commits</span></header><ol>${stalkRowsHtml}<li class="ph-row ph-more"><span></span><div>${commits - stalk.length - 1} more commits</div></li><li class="ph-row">${GLYPH.seed}<div><b class="ph-plain">Start from the TypeScript starter</b><div class="pc-meta"><span>Fertilized by coop</span><span>34 days ago</span></div></div><span class="ph-side"><code>${sha(0)}</code></span></li></ol></section></div>`;
+  },
+  people: (f) => {
+    const roles = [
+      ['coop', 'owner', 'Everything, including settings and deletion.', 'since 34 days ago'],
+      [
+        'dana',
+        'maintain',
+        'Also answer decision cards and manage deploy tokens.',
+        'since 30 days ago',
+      ],
+      ['ike', 'write', 'Also push beans.', 'since 21 days ago'],
+      ['mira', 'write', 'Also push beans.', 'since 9 days ago'],
+    ];
+    const pushed = f.local >= 4200;
+    const sessions = [
+      ['coop', 'a2 Claude Code', 'session', 'just now', '1 hour ago', 41],
+      [
+        'coop',
+        'a5 Claude Code',
+        'cloud session',
+        'just now',
+        pushed ? 'just now' : '2 days ago',
+        pushed ? 18 : 17,
+      ],
+      ['dana', 'a7 Codex', 'session', 'just now', 'yesterday', 23],
+      ['ike', 'a10 Codex', 'cloud session', '2 hours ago', '2 days ago', 15],
+      ['mira', 'ci', 'deploy token', 'yesterday', 'never', 0],
+    ];
+    const r = upTo(f.local, roles.length, 260);
+    const s = upTo(f.local, sessions.length, 260, 1300);
+    return `<div class="pg-page pg-narrow"><section class="pg-box pp-box"><h4>Who has access</h4><p>You are <b>owner</b>: everything, including settings and deletion. <u>Manage people in Settings</u>.</p><div class="pp-list">${roles
+      .slice(0, r)
+      .map(
+        ([who, role, what, since], i) =>
+          `<div class="pp-person${i === r - 1 ? ' arrive' : ''}"><div><b>@${who}</b><span class="pp-role">${role}</span><small>${what}</small></div><span>${since}</span></div>`,
+      )
+      .join(
+        '',
+      )}</div></section><section class="pg-box pp-box"><h4>Sessions and tokens</h4><p>Every agent session, token and key acts for a person. These reached coop/beanstalk-shop lately.</p><table><thead><tr><th>For</th><th>Through</th><th>Last read</th><th>Last push</th><th>Pushes</th></tr></thead><tbody>${sessions
+      .slice(0, s)
+      .map(
+        ([who, through, kind, read, push, n], i) =>
+          `<tr class="${i === s - 1 ? 'arrive' : ''}${i === 1 && pushed && f.local < 5600 ? ' flash' : ''}"><td>@${who}</td><td>${through} <span>${kind}</span></td><td>${read}</td><td>${push}</td><td>${n}</td></tr>`,
+      )
+      .join('')}</tbody></table></section></div>`;
+  },
+  settings: (f) => {
+    const sections = `<section class="pg-box ps-box"><h4>General</h4><label>Name</label><div class="ps-name"><span>coop /</span><span class="ps-input">beanstalk-shop</span></div><small>Renaming changes the URL and the clone URL; the history stays.</small><label>Description</label><span class="ps-input ps-wide">A small shop: catalog, cart, checkout and billing.</span><span class="ps-btn primary">Save changes</span></section>
+      <section class="pg-box ps-box"><h4>Visibility</h4><div class="ps-radio on"><i></i><div><b>Private</b><small>Only you and the people you invite can see it.</small></div></div><div class="ps-radio"><i></i><div><b>Public</b><small>Anyone, signed in or not, can read and clone it. Pushing still needs a role.</small></div></div><span class="ps-btn">Change visibility</span></section>
+      <section class="pg-box ps-box"><div class="ps-head"><h4>Checks</h4><code>.beanstalk/checks.toml on stalk</code></div><dl class="ps-facts"><dt>Runs</dt><dd><code>node --test</code></dd><dt>Image</dt><dd>node (Node 25.8.1; nothing is installed at check time)</dd><dt>Time limit</dt><dd>120 s</dd><dt>Environment</dt><dd><code>none</code></dd><dt>Protected</dt><dd><code>.beanstalk/**</code></dd></dl><small>▸ The file</small></section>
+      <section class="pg-box ps-box"><h4>Collaborators</h4><p>Invite people by their Beanstalk handle. <b>read</b>: clone, fetch and view. <b>write</b>: also push beans. <b>maintain</b>: also answer decision cards and manage deploy tokens.</p>${[
+        ['dana', 'maintain'],
+        ['ike', 'write'],
+        ['mira', 'write'],
+      ]
+        .map(
+          ([who, role]) =>
+            `<div class="ps-collab"><b>@${who}</b><span class="ps-input ps-sel">${role}</span><span class="ps-btn">Change role</span><span class="ps-btn danger">Remove</span></div>`,
+        )
+        .join('')}</section>
+      <section class="pg-box ps-box"><h4>Deploy tokens</h4><p>For CI and other machines: one token opens this repository only, read or read and write, until it expires.</p><div class="ps-collab"><b>ci</b><span>read, expires in 61 days</span><span class="ps-btn danger">Revoke</span></div></section>
+      <section class="pg-box ps-box ps-danger"><h4>Delete this repository</h4><p>Deleting removes its history, beans and decisions for good. Agents connected to it lose access at once.</p><span class="ps-btn danger">Delete coop/beanstalk-shop</span></section>`;
+    // The page scrolls down through its sections, as a person reading it would.
+    const t = Math.min(1, Math.max(0, (f.local - 1200) / 5600));
+    const eased = t * t * (3 - 2 * t);
+    return `<div class="pg-page pg-narrow ps-scroll" style="--scroll:${eased.toFixed(3)}">${sections}</div>`;
+  },
+};
+
 /* ---------- Drawing ---------- */
 
 function setupAppDemo() {
@@ -777,6 +982,7 @@ function setupAppDemo() {
   const $ = (name) => app.querySelector(`[data-d-${name}]`);
   const el = {
     tabs: $('tabs'),
+    page: $('page'),
     rows: $('rows'),
     count: $('count'),
     progress: $('progress'),
@@ -801,12 +1007,11 @@ function setupAppDemo() {
       (name, i) => `<span class="tick" style="left:${pct(WEEK_FROM_DAY + i + 1)}">${name}</span>`,
     )
     .join('')}<span style="right:0">today</span>`;
-  el.tabs.innerHTML =
-    TABS.map(
-      (tab) =>
-        `<button type="button" data-tab="${tab.id}" aria-pressed="false">${tab.label}</button>`,
-    ).join('') +
-    '<span class="soon-tab" title="Automations are becoming Actions">Actions<span class="chip soon">soon</span></span>';
+  el.tabs.innerHTML = TABS.map(
+    (tab) =>
+      `<button type="button" data-tab="${tab.id}" aria-pressed="false">${tab.label}${tab.id === 'changes' ? '<span class="tabcount" data-d-open>4</span>' : ''}</button>`,
+  ).join('');
+  const openEl = el.tabs.querySelector('[data-d-open]');
   const overlay = document.createElement('div');
   overlay.className = 'links';
   el.rows.append(overlay);
@@ -820,21 +1025,45 @@ function setupAppDemo() {
       return [id, panel];
     }),
   );
+  const setHtml = (node, html) => {
+    if (node.dataset.html !== html) {
+      node.innerHTML = html;
+      node.dataset.html = html;
+    }
+  };
   let instant = false;
   let prevKey = '';
   let prevTab = '';
 
   const draw = (tab, local) => {
     const f = frameAt(tab, local);
-    const key = `${tab}|${f.show}|${f.typed.length}|${Math.floor(f.h * 4)}|${Math.floor(Math.min(f.shownFor, 1e7) / 100)}`;
+    const key = `${tab}|${f.show}|${f.typed.length}|${Math.floor(f.h * 4)}|${Math.floor(Math.min(f.shownFor, 1e7) / 100)}|${Math.floor(local / 50)}`;
     if (key === prevKey) return;
     prevKey = key;
+    const view = TABS.find((t) => t.id === tab)?.view ?? 'explorer';
     if (tab !== prevTab) {
       prevTab = tab;
+      app.dataset.tab = tab;
+      app.dataset.view = view;
       for (const button of el.tabs.querySelectorAll('[data-tab]')) {
-        if (button instanceof HTMLElement)
-          button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
+        if (!(button instanceof HTMLElement)) continue;
+        const on = button.dataset.tab === tab;
+        button.setAttribute('aria-pressed', String(on));
+        // On a narrow screen the tabs scroll sideways: keep the current one in view.
+        const { offsetLeft, offsetWidth } = button;
+        if (
+          on &&
+          (offsetLeft < el.tabs.scrollLeft ||
+            offsetLeft + offsetWidth > el.tabs.scrollLeft + el.tabs.clientWidth)
+        )
+          el.tabs.scrollLeft = offsetLeft - 12;
       }
+      el.rows.scrollTop = 0;
+    }
+    if (openEl) openEl.textContent = String(openCount(tab, local));
+    if (view === 'page') {
+      setHtml(el.page, PAGES[tab](f));
+      return;
     }
     el.typed.textContent = f.typed;
     el.ph.hidden = f.typed.length > 0;
@@ -848,41 +1077,34 @@ function setupAppDemo() {
     reconcile(list, rows);
     drawLinks(list, overlay, links);
     el.rows.classList.toggle('validating', Boolean(f.fresh) && f.h - f.fresh.at < 0.3);
-    // Asked why the bean is red: bring it into view.
-    const culprit = list.querySelector(`[data-key="l-${CULPRIT.n}"]`);
-    const target = f.show === 'red' && culprit ? Math.max(0, culprit.offsetTop - 120) : 0;
-    if (Math.abs(el.rows.scrollTop - target) > 2)
-      el.rows.scrollTo({ top: target, behavior: instant ? 'instant' : 'smooth' });
+    // Asked about a bean further down the stalk: bring it into view.
+    const focusN = { red: CULPRIT.n, journey: JOURNEY.n }[f.show] ?? null;
+    const target = focusN === null ? null : list.querySelector(`[data-key="l-${focusN}"]`);
+    const top = target ? Math.max(0, target.offsetTop - 120) : 0;
+    if (Math.abs(el.rows.scrollTop - top) > 2)
+      el.rows.scrollTo({ top, behavior: instant ? 'instant' : 'smooth' });
     for (const [id, panel] of Object.entries(panels)) {
       const on = id === f.show;
       panel.classList.toggle('on', on);
       // Only rewrite a panel when its content changed, so rows that grew in stay put.
-      if (on) {
-        const html = PANELS[id](f);
-        if (panel.dataset.html !== html) {
-          panel.innerHTML = html;
-          panel.dataset.html = html;
-        }
-      }
+      if (on) setHtml(panel, PANELS[id](f));
     }
-    const status = statusLine(f);
-    if (el.status.dataset.html !== status) {
-      el.status.innerHTML = status;
-      el.status.dataset.html = status;
-    }
+    setHtml(el.status, statusLine(f));
   };
 
   const query = new URLSearchParams(location.search);
   const frozen = Number(query.get('demo'));
   const frozenTab = TABS.find((tab) => tab.id === query.get('tab'));
+  const isFrozen = Boolean(frozenTab) || (Number.isFinite(frozen) && frozen > 0);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const endOf = (id) => (TABS.find((tab) => tab.id === id)?.ms ?? 1) - 1;
+  /** A tab's finished frame: the Code view's is today after the replay. */
+  const endOf = (id) =>
+    id === 'code' ? REPLAY_END : (TABS.find((tab) => tab.id === id)?.ms ?? 1) - 1;
 
   /** The tour: the current tab, the time into it, and until when a click pins it. */
   const state = { index: 0, local: 0, pinnedUntil: 0 };
-  const current = () => TABS[state.index].id;
 
-  if (frozenTab || (Number.isFinite(frozen) && frozen > 0)) {
+  if (isFrozen) {
     instant = true;
     if (frozenTab)
       draw(frozenTab.id, Number.isFinite(frozen) && frozen > 0 ? frozen : endOf(frozenTab.id));
@@ -893,9 +1115,7 @@ function setupAppDemo() {
   } else if (reduced.matches) {
     instant = true;
     draw('code', endOf('code'));
-  } else {
-    draw('code', 0);
-  }
+  } else draw('code', 0);
 
   const select = (id) => {
     const index = TABS.findIndex((tab) => tab.id === id);
@@ -903,7 +1123,8 @@ function setupAppDemo() {
     state.index = index;
     state.local = 0;
     state.pinnedUntil = performance.now() + IDLE_MS;
-    if (reduced.matches || frozenTab) {
+    prevKey = '';
+    if (reduced.matches || isFrozen) {
       instant = true;
       draw(id, endOf(id));
     } else draw(id, 0);
@@ -922,7 +1143,7 @@ function setupAppDemo() {
       { passive: true },
     );
   }
-  if (frozenTab || (Number.isFinite(frozen) && frozen > 0)) return;
+  if (isFrozen) return;
 
   let last = 0;
   let raf = 0;
@@ -940,7 +1161,7 @@ function setupAppDemo() {
         state.local = 0;
       }
     }
-    draw(current(), state.local);
+    draw(TABS[state.index].id, state.local);
     raf = requestAnimationFrame(loop);
   };
   const sync = () => {
@@ -955,7 +1176,7 @@ function setupAppDemo() {
     }
     if (reduced.matches) {
       instant = true;
-      draw(current(), endOf(current()));
+      draw(TABS[state.index].id, endOf(TABS[state.index].id));
     }
   };
   new IntersectionObserver((entries) => {

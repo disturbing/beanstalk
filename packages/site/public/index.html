@@ -95,25 +95,24 @@
           <div class="cta">
             <a class="btn big primary" href="agent.html" data-signup>Sign up</a>
             <a class="btn big" href="#start">Install the plugin</a>
-            <p class="aside">
-              Early access: read-only MCP tools today. One-command sign-up for Claude Code, Codex,
-              Cursor, Gemini CLI and any MCP client is coming soon.
-            </p>
           </div>
         </div>
         <div class="wrap wide showcase">
           <figure class="app" data-appdemo style="margin: 0">
             <figcaption class="sr-only">
-              A preview of a Beanstalk repository with the product's tabs: Code, Changes, History,
-              Ask, People and Settings. It tours each tab in turn: History replays last week's work,
-              and Ask answers three questions (what changed on coupons, why one bean is red, who is
-              working on billing). Choose a tab to stay on it.
+              A preview of a Beanstalk repository with the app's tabs: Code, Changes, History, Ask,
+              People and Settings. Code plays first: the stalk grown to today, three questions
+              answered (what changed on coupons, why bean #65 is red, who is working on billing),
+              then last week replayed. Then it tours the other tabs in turn. Choose a tab to stay on
+              it.
             </figcaption>
             <div class="app-top">
               <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="crumb">coop / <b>beanstalk-shop</b></span>
-              <span class="app-tabs" role="group" aria-label="Preview tabs" data-d-tabs></span>
+              <span class="crumb"
+                ><b>coop</b><span>/</span><b>beanstalk-shop</b><small>private</small></span
+              >
             </div>
+            <nav class="app-tabs" aria-label="Preview tabs" data-d-tabs></nav>
             <div aria-hidden="true">
               <div class="app-body">
                 <div class="app-stalk">
@@ -129,6 +128,7 @@
                   </div>
                   <div class="d-view" data-d-view></div>
                 </div>
+                <div class="app-page" data-d-page></div>
               </div>
               <div class="player">
                 <span class="play"
@@ -241,6 +241,68 @@
             role="img"
             aria-label="The same eight agents in two worlds, side by side. Left, a merge queue: green pull requests wait in line behind a gate, and an agent that needs one waits too; one red pull request fails its batch and the whole batch goes back in line to be tested again; when main moves, pull requests that now conflict with it leave the line and go back to their agents to rebase. Right, Beanstalk: each passing bean blooms into a sprout at the tip and its update pulses out to every other bean at once; a failed stalk check sends back only the culprit while the rest join the stalk; clashes reconcile on their own, and only a real disagreement reaches a person. A shipped counter on each side keeps count."
           ></canvas>
+        </div>
+      </section>
+
+      <section class="band" id="git" aria-labelledby="git-title">
+        <div class="wrap">
+          <div class="sechead">
+            <h2 id="git-title">Just Git.</h2>
+            <p class="intro">
+              Your editor, your terminal and your agents keep the git they already speak.
+            </p>
+          </div>
+          <div class="gitgrid">
+            <article class="gitcard">
+              <span class="gi" aria-hidden="true">$</span>
+              <h3>Clone, fetch and push with any git client</h3>
+              <code class="gl"
+                >git clone https://&lt;host&gt;/git/&lt;owner&gt;/&lt;repo&gt;.git</code
+              >
+              <p>An ordinary HTTPS remote. Nothing new to install.</p>
+            </article>
+            <article class="gitcard">
+              <span class="gi bean" aria-hidden="true"></span>
+              <h3>Push a bean, and it lands</h3>
+              <code class="gl">git push -o wait origin bean/&lt;name&gt;</code>
+              <p>
+                Any branch named <code>bean/&lt;name&gt;</code> is checked and lands;
+                <code>-o wait</code> waits for the verdict.
+              </p>
+            </article>
+            <article class="gitcard">
+              <span class="gi" aria-hidden="true">↓</span>
+              <h3>Import a repository you already have</h3>
+              <p class="hosts">
+                <span>GitHub</span><span>GitLab</span><span>Bitbucket</span><span>Codeberg</span
+                ><span>any git URL</span>
+              </p>
+              <p>Any public repository, today.</p>
+              <ul class="later">
+                <li>Private repositories <span class="chip soon">coming soon</span></li>
+                <li>
+                  Two-way sync with GitHub and GitLab <span class="chip soon">coming soon</span>
+                </li>
+              </ul>
+            </article>
+            <article class="gitcard wide">
+              <span class="gi" aria-hidden="true">▶</span>
+              <h3>
+                Runs your existing GitHub Actions workflows
+                <span class="chip soon">coming soon</span>
+              </h3>
+              <code class="gl">.github/workflows/*.yml</code>
+              <p>
+                The same YAML, and <code>actions/checkout</code> works against Beanstalk. Each
+                workflow gets a compatibility report.
+              </p>
+              <p class="gaps">
+                Not yet: caches and artifacts shared across jobs, <code>services:</code> and
+                <code>container:</code> (they need Docker mode), and the GitHub REST API through
+                <code>GITHUB_TOKEN</code>.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 
