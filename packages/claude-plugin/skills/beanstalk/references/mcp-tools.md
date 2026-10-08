@@ -35,7 +35,7 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 | `repo_status(repo)` | read | Stalk and sprout heads, unvalidated window, beans in flight (who), beans sent back, recent reds, open cards |
 | `bean_open(repo, bean, intent, task?)` | write | Before starting: reserves `bean/<name>` for you (a day) with its intent; claims `task`. The intent you reserve is the bean's intent at the push (`-o intent` overrides) |
 | `bean_status(repo, bean)` | read | After a push: phase, failing tests, the landed beans it collided with (intent, files changed), the lines pushes printed, `next` |
-| `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o wait`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s. Only when nothing else is left |
+| `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o bean=<bean> origin HEAD:refs/wait/any`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s; the verdict wakes it (no polling). Only when nothing else is left |
 | `task_list(repo)` | read | The backlog (`.beanstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
 | `task_claim(repo, task)` | write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
 | `task_release(repo, task)` | write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |

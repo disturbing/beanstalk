@@ -23,6 +23,7 @@ import type { PushRequest } from '../git/push-request';
 import { readPushRequest } from '../git/push-request';
 import type { ReportMode } from '../git/receive-pack-report';
 import {
+  acceptedResponse,
   parseReportStatus,
   refusalResponse,
   reportMode,
@@ -35,16 +36,14 @@ import { accessFacts, archivedMessage } from '../repos/access';
 import type { SessionUse } from '../repos/collaborators';
 import type { RunDO } from '../run/run-do';
 import { PROTECTED_BRANCHES, beanOfPushedRef } from './bean-refs';
-import type { PushProgress } from './push-bean';
-import { parsePushOptions } from './push-intent';
+import { WAIT_REF_PREFIX, waitModeOfRef } from './bean-wait';
+import { DEFAULT_WAIT_REF_SECONDS, parsePushOptions } from './push-intent';
 import { checkStartedLines, receivedLines, statusHint } from './push-messages';
 import { repoEngineId } from './repo-engine';
+import { writeBeanWait, writePushVerdict } from './wait-stream';
 
 const RESULT_TYPE = 'application/x-git-receive-pack-result';
 const ADVERTISED = ['push-options'];
-/** How often a waiting push asks the engine, and how often it shows it is still waiting. */
-const WAIT_POLL_MS = 1000;
-const KEEPALIVE_MS = 15_000;
 const ZERO_SHA = '0'.repeat(40);
 
 export type RepoGitRequest = {
@@ -206,10 +205,13 @@ async function push(
   if (!read.ok) return text(400, read.reason);
   const { request } = read;
   const mode = reportMode(request.capabilities);
+  const actor = target.credential.user.handle;
+  if (request.commands.some((command) => command.ref.startsWith(WAIT_REF_PREFIX)))
+    return waitPush(input, { request, engine: target.engine, actor, mode });
   const options = parsePushOptions(request.options);
   const checked = await checkCommands(request, {
     engine: target.engine,
-    actor: target.credential.user.handle,
+    actor,
   });
   if (!checked.ok) {
     await request.upstreamBody.cancel();
@@ -231,7 +233,7 @@ async function push(
   const submitted = await target.engine.submitPush({
     bean: checked.bean,
     head: checked.head,
-    actor: target.credential.user.handle,
+    actor,
     protectedAccess: target.protectedAccess,
     options,
   });
@@ -245,22 +247,61 @@ async function push(
     return bytesResponse(withRemoteLines(bytes, mode, lines), upstream.headers);
   }
   const lines = [
-    ...receivedLines({ ...submitted.received, unknownOptions: options.unknown }),
-    ...checkStartedLines(options.waitSeconds),
+    ...receivedLines({
+      ...submitted.received,
+      unknownOptions: [...options.unknown, ...options.beans.map((bean) => `bean=${bean}`)],
+    }),
+    ...checkStartedLines(checked.bean, options.waitSeconds),
     ...(options.waitSeconds === null ? statusHint(checked.bean) : []),
   ];
-  if (options.waitSeconds === null || !mode.sideband)
+  const waitSeconds = options.waitSeconds;
+  if (waitSeconds === null || !mode.sideband)
     return bytesResponse(withRemoteLines(bytes, mode, lines), upstream.headers);
-  return waitingResponse({
-    upstream: bytes,
+  const wait = { engine: target.engine, bean: checked.bean, push: submitted.push };
+  return streamedResponse({
+    report: bytes,
     headers: upstream.headers,
     lines,
-    wait: {
-      engine: target.engine,
-      bean: checked.bean,
-      push: submitted.push,
-      seconds: options.waitSeconds,
-    },
+    body: (write) => writePushVerdict(write, { ...wait, seconds: waitSeconds }),
+    ctx: input.ctx,
+  });
+}
+
+/**
+ * A push to `refs/wait/any|all`: nothing reaches the repository; the push is answered `ok` and
+ * holds until the first (any) or every (all) verdict of the pusher's beans in flight, or of
+ * the beans `-o bean=` names.
+ */
+async function waitPush(
+  input: RepoGitRequest,
+  target: { request: PushRequest; engine: Engine; actor: string; mode: ReportMode },
+): Promise<Response> {
+  const { request, mode } = target;
+  await request.upstreamBody.cancel();
+  const [command] = request.commands;
+  const waitMode = command === undefined ? null : waitModeOfRef(command.ref);
+  if (command === undefined || request.commands.length > 1 || waitMode === null)
+    return refused(
+      request,
+      mode,
+      'a wait is one push to refs/wait/any (the first verdict) or refs/wait/all (every verdict), with -o bean=<name> to name beans',
+    );
+  const options = parsePushOptions(request.options);
+  const report = acceptedResponse(command.ref, mode);
+  const unknown = options.unknown.map((option) => `beanstalk:   ignored push option: ${option}`);
+  if (!mode.sideband) return bytesResponse(report, new Headers());
+  return streamedResponse({
+    report,
+    headers: new Headers(),
+    lines: unknown,
+    body: (write) =>
+      writeBeanWait(write, {
+        engine: target.engine,
+        actor: target.actor,
+        mode: waitMode,
+        beans: options.beans.length === 0 ? null : options.beans,
+        seconds: options.waitSeconds ?? DEFAULT_WAIT_REF_SECONDS,
+      }),
     ctx: input.ctx,
   });
 }
@@ -309,28 +350,32 @@ function refused(request: PushRequest, mode: ReportMode, reason: string): Respon
   return bytesResponse(refusalResponse(refs, reason, { mode, lines }), new Headers());
 }
 
-type Wait = { engine: Engine; bean: string; push: number; seconds: number };
-
 /**
- * `-o wait`: the upstream's report, the received lines, then progress as the engine reports
- * it and the verdict (or a timeout), then the closing flush. Streamed, with a keepalive line,
- * so the client and every proxy between see the push is alive.
+ * A streamed answer: the report (the upstream's, or the gateway's own for a wait ref), the
+ * lines so far, then what `body` writes as it happens, then the closing flush.
  */
-function waitingResponse(input: {
-  upstream: Uint8Array;
+function streamedResponse(input: {
+  report: Uint8Array;
   headers: Headers;
   lines: readonly string[];
-  wait: Wait;
+  body: (write: (lines: readonly string[]) => Promise<void>) => Promise<void>;
   ctx: Pick<ExecutionContext, 'waitUntil'>;
 }): Response {
-  const head = withoutFinalFlush(input.upstream);
-  if (head === null) return bytesResponse(input.upstream, input.headers);
+  const head = withoutFinalFlush(input.report);
+  if (head === null) return bytesResponse(input.report, input.headers);
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const writer = writable.getWriter();
+  const write = async (lines: readonly string[]): Promise<void> => {
+    if (lines.length > 0) await writer.write(remoteLines(lines));
+  };
   const work = (async () => {
     try {
       await writer.write(concatBytes([head, remoteLines(input.lines)]));
-      await writeVerdict(writer, input.wait);
+      await input.body(write).catch(async () => {
+        await write([
+          `beanstalk: lost the engine while waiting; the verdicts will be on refs/beans/<name>/status`,
+        ]);
+      });
       await writer.write(FLUSH_PKT);
       await writer.close();
     } catch {
@@ -340,57 +385,6 @@ function waitingResponse(input: {
   })();
   input.ctx.waitUntil(work);
   return new Response(readable, { status: 200, headers: resultHeaders(input.headers) });
-}
-
-async function writeVerdict(
-  writer: WritableStreamDefaultWriter<Uint8Array>,
-  wait: Wait,
-): Promise<void> {
-  const startMs = Date.now();
-  let after = 0;
-  let shownMs = startMs;
-  for (;;) {
-    // oxlint-disable-next-line no-await-in-loop -- the wait asks the engine in turn
-    const progress = await wait.engine.pushProgress(wait.bean, wait.push, after);
-    if (progress === null) return;
-    const shown = orderedLines(progress);
-    after = progress.lines.at(-1)?.n ?? after;
-    if (shown.length > 0) {
-      // oxlint-disable-next-line no-await-in-loop -- lines go out as they come
-      await writer.write(remoteLines(shown));
-      shownMs = Date.now();
-    }
-    if (progress.verdict !== null) {
-      // oxlint-disable-next-line no-await-in-loop -- the last lines
-      await writer.write(remoteLines(statusHint(wait.bean)));
-      return;
-    }
-    const waitedMs = Date.now() - startMs;
-    if (waitedMs > wait.seconds * 1000) {
-      const line = `beanstalk: still ${progress.phase} after ${Math.round(waitedMs / 1000)} s; the verdict will be on refs/beans/${wait.bean}/status`;
-      // oxlint-disable-next-line no-await-in-loop -- the timeout line
-      await writer.write(remoteLines([line]));
-      return;
-    }
-    if (Date.now() - shownMs >= KEEPALIVE_MS) {
-      // oxlint-disable-next-line no-await-in-loop -- keepalive
-      await writer.write(
-        remoteLines([`beanstalk: still checking (${Math.round(waitedMs / 1000)} s)`]),
-      );
-      shownMs = Date.now();
-    }
-    // oxlint-disable-next-line no-await-in-loop -- the engine is asked again shortly
-    await scheduler.wait(WAIT_POLL_MS);
-  }
-}
-
-/** New lines in order: those before the verdict, the verdict, then those after it. */
-function orderedLines(progress: PushProgress): string[] {
-  const verdict = progress.verdict;
-  if (verdict === null) return progress.lines.map((line) => line.text);
-  const before = progress.lines.filter((line) => line.n <= verdict.after).map((line) => line.text);
-  const later = progress.lines.filter((line) => line.n > verdict.after).map((line) => line.text);
-  return [...before, ...verdict.lines, ...later];
 }
 
 function resultHeaders(upstream: Headers): Headers {

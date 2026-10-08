@@ -7,6 +7,9 @@ never printed; the git token reaches git only through its credential helper.
 
     python3 research/race/git_native/staging_e2e.py --gateway https://<staging gateway> \\
         --dev-vars <path>/packages/gateway/.dev.vars --web https://<staging web> --out transcript.txt
+
+``--demo wait_demo.sh`` runs the waiting demo instead (two plain pushes, ``refs/wait/any`` woken by the first
+verdict, a refused new commit to a bean in check, ``refs/wait/all`` re-attached to it).
 """
 from __future__ import annotations
 
@@ -50,6 +53,7 @@ def main() -> None:
     ap.add_argument("--web", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--keep", action="store_true", help="keep the engine and its repo")
+    ap.add_argument("--demo", default="demo.sh", help="the script to run in this directory (demo.sh, wait_demo.sh)")
     ns = ap.parse_args()
     token = admin_token(ns.dev_vars)
     owner, repo = "acme", f"gitnative-{secrets.token_hex(3)}"
@@ -68,7 +72,7 @@ def main() -> None:
             out.write(f"# staging: {ns.gateway} (real Artifacts, real runner containers)\n"
                       f"# {time.strftime('%Y-%m-%d %H:%M:%S %Z')}, engine {engine}, clone URL {url}\n")
             out.flush()
-            result = subprocess.run([os.path.join(HERE, "demo.sh")], stdout=out, stderr=subprocess.STDOUT,
+            result = subprocess.run([os.path.join(HERE, ns.demo)], stdout=out, stderr=subprocess.STDOUT,
                                     env={**os.environ, "BEANSTALK_GIT": url, "BEANSTALK_TOKEN": git_token},
                                     timeout=1800)
             out.write(f"\n# demo exit {result.returncode} after {time.time() - started:.0f} s\n")

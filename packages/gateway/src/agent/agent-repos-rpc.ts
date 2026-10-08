@@ -38,8 +38,6 @@ import { BACKLOG_FILES, parseBacklog } from './backlog';
 const MAX_COLLIDED = 4;
 const JOURNEY_LINES = 30;
 const IN_FLIGHT_FIRST = ['checking', 'waiting', 'red', 'conflict'];
-/** How often a waiting call asks the engine (as `git push -o wait` does). */
-const WAIT_POLL_MS = 1000;
 /** Phases a check is still running in; `landed` is still moving when waiting for the stalk. */
 const CHECKING: ReadonlySet<string> = new Set(['checking', 'waiting']);
 
@@ -128,7 +126,10 @@ function journeyOf(bean: PushBean): AgentBean['journey'] {
     .map((line) => ({ push: line.push, text: line.text.replace(/^beanstalk:\s?/, '') }));
 }
 
-/** `bean_wait`: asks the engine each second until the bean settles or the time is up. */
+/**
+ * `bean_wait`: holds on the engine until the bean changes (its save wakes the watch, as it wakes
+ * `git push -o wait`), then reads it again, until it settles or the time is up.
+ */
 async function waitForBean(
   opened: Opened,
   bean: string,
@@ -144,8 +145,12 @@ async function waitForBean(
       `wait until verdict or stalk, 1 to ${MAX_BEAN_WAIT_SECONDS} s`,
     );
   const startMs = Date.now();
+  const watch = { actor: '', beans: [bean] };
   for (;;) {
-    // oxlint-disable-next-line no-await-in-loop -- the wait asks the engine in turn
+    // The key before the read: a change after it wakes the watch below.
+    // oxlint-disable-next-line no-await-in-loop -- each round follows the last change
+    const seen = await opened.engine.watchBeans({ ...watch, known: null, maxMs: 0 });
+    // oxlint-disable-next-line no-await-in-loop -- read after the key
     const described = await describeBean(opened, bean);
     if (!described.ok) return described;
     const waitedMs = Date.now() - startMs;
@@ -154,8 +159,8 @@ async function waitForBean(
       const waited_s = Math.round(waitedMs / 1000);
       return ok({ ...described.value, waited_s, timed_out: !isSettled });
     }
-    // oxlint-disable-next-line no-await-in-loop -- the engine is asked again shortly
-    await scheduler.wait(WAIT_POLL_MS);
+    // oxlint-disable-next-line no-await-in-loop -- until the bean changes or the time is up
+    await opened.engine.watchBeans({ ...watch, known: seen.key, maxMs: seconds * 1000 - waitedMs });
   }
 }
 

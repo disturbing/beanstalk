@@ -144,14 +144,15 @@ describe('repository tools', () => {
     expect(opened).toMatchObject({
       branch: 'bean/add-total',
       start: 'git fetch origin sprout && git switch -c bean/add-total origin/sprout',
-      push: 'git push -o wait origin HEAD:refs/heads/bean/add-total',
+      push: 'git push origin HEAD:refs/heads/bean/add-total',
+      wait: 'git push -o bean=add-total origin HEAD:refs/wait/any',
       clone_url: `https://gateway.example.test/git/${slug(repo)}.git`,
     });
     expect(
       await tool(client, 'bean_status', { repo: slug(repo), bean: 'add-total' }),
     ).toMatchObject({
       phase: 'open',
-      next: expect.stringContaining('git push -o wait'),
+      next: expect.stringContaining('git push origin HEAD:refs/heads/bean/add-total'),
     });
     expect(
       await tool(client, 'bean_open', { repo: slug(repo), bean: 'bad name', intent: 'x' }),
