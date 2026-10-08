@@ -1,0 +1,20 @@
+{
+  // The OIDC issuer as its own Worker: discovery, JWKS and the job token endpoint under
+  // /_actions/oidc. The same routes (`createOidcApp` from @beanstalk/shared-oidc) can be mounted
+  // inside the gateway; this Worker is the standalone form used for staging and for self-hosters
+  // who want the issuer on its own hostname. Staging deploys use `--name beanstalk-oidc-staging-oidc`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-oidc",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": {
+    // Set to the public issuer URL when the Worker is reached through a custom domain or route;
+    // unset, the issuer is <request origin>/_actions/oidc.
+    // "OIDC_ISSUER_URL": "https://git.example.com/_actions/oidc",
+  },
+  // OIDC_SIGNING_KEYS: JSON key set (packages/shared-oidc/scripts/oidc-keys.mjs).
+  // OIDC_REQUEST_SECRET: 32+ random characters; OIDC_REQUEST_SECRET_PREVIOUS while rotating it.
+  "secrets": { "required": ["OIDC_SIGNING_KEYS", "OIDC_REQUEST_SECRET"] },
+}
