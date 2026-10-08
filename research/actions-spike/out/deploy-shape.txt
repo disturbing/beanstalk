@@ -1,0 +1,47 @@
+##[spike] start 2026-10-08T03:54:02.549Z bash -lc set -e && cd /work/job-1791431642547-0 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791431642547-0.meta/event.json' '--secret-file' '/work/job-1791431642547-0.meta/secrets.env'
+time="2026-10-08T03:54:03Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[deploy/deploy] ⭐ Run Set up job
+[deploy/deploy]   ✅  Success - Set up job
+[deploy/deploy]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[deploy/deploy] ⭐ Run Main actions/checkout@v4
+[deploy/deploy]   ✅  Success - Main actions/checkout@v4 [6.268505ms]
+[deploy/deploy] ⭐ Run Main actions/setup-node@v4
+[deploy/deploy]   | Attempting to download 24...
+[deploy/deploy]   | (node:35) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[deploy/deploy]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[deploy/deploy]   | Acquiring 24.21.0 - x64 from https://github.com/actions/node-versions/releases/download/24.21.0-34304089047/node-24.21.0-linux-x64.tar.gz
+[deploy/deploy]   | Extracting ...
+[deploy/deploy]   | [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /root/.cache/act/ab829994a6f88643/tmp/ddddc1a9-1f03-4b36-a6ef-fe15058f5149 -f /root/.cache/act/ab829994a6f88643/tmp/fe7b672f-35fa-47da-9da9-2c6fd062592e
+[deploy/deploy]   | Adding to the cache ...
+[deploy/deploy]   ❓  ::group::Environment details
+[deploy/deploy]   | node: v24.21.0
+[deploy/deploy]   | npm: 11.19.0
+[deploy/deploy]   | yarn: 
+[deploy/deploy]   ❓  ::endgroup::
+[deploy/deploy]   ❓ add-matcher /root/.cache/act/ab829994a6f88643/act/actions/actions-setup-node@v4/.github/tsc.json
+[deploy/deploy]   ❓ add-matcher /root/.cache/act/ab829994a6f88643/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[deploy/deploy]   ❓ add-matcher /root/.cache/act/ab829994a6f88643/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[deploy/deploy]   ✅  Success - Main actions/setup-node@v4 [11.235543956s]
+[deploy/deploy]   ⚙  ::set-output:: node-version=v24.21.0
+[deploy/deploy]   ⚙  ::add-path:: /root/.cache/act/tool_cache/node/24.21.0/x64/bin
+[deploy/deploy] ⭐ Run Main echo "event=$GITHUB_EVENT_NAME ref=$GITHUB_REF sha=$GITHUB_SHA repo=$GITHUB_REPOSITORY server=$GITHUB_SERVER_URL api=$GITHUB_API_URL actor=$GITHUB_ACTOR"
+[deploy/deploy]   | event=push ref=refs/heads/main sha=195a3813310b17a207fe31160ab3196fb3bb3b3f repo=spike/actions server=https://github.com api=https://api.github.com actor=nektos/act
+[deploy/deploy]   ✅  Success - Main echo "event=$GITHUB_EVENT_NAME ref=$GITHUB_REF sha=$GITHUB_SHA repo=$GITHUB_REPOSITORY server=$GITHUB_SERVER_URL api=$GITHUB_API_URL actor=$GITHUB_ACTOR" [8.610378ms]
+[deploy/deploy] ⭐ Run Main echo "token-present=false head=spike run"
+[deploy/deploy]   | token-present=false head=spike run
+[deploy/deploy]   ✅  Success - Main echo "token-present=false head=spike run" [6.453016ms]
+[deploy/deploy] ⭐ Run Main npx --yes wrangler@4.147.0 --version
+[deploy/deploy]   | 
+[deploy/deploy]   |  ⛅️ wrangler 4.147.0
+[deploy/deploy]   | [38;2;255;136;0m────────────────────[39m
+[deploy/deploy]   ✅  Success - Main npx --yes wrangler@4.147.0 --version [13.977645894s]
+[deploy/deploy] ⭐ Run Post actions/setup-node@v4
+[deploy/deploy]   | (node:121) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[deploy/deploy]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[deploy/deploy]   ✅  Success - Post actions/setup-node@v4 [223.770591ms]
+[deploy/deploy] ⭐ Run Complete job
+[deploy/deploy] Cleaning up container for job deploy
+[deploy/deploy]   ✅  Success - Complete job
+[deploy/deploy] 🏁  Job succeeded
+
+##[spike] exit=0 wall_ms=62961

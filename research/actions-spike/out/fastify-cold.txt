@@ -1,0 +1,20 @@
+[  13.16] ##[spike] start 2026-10-08T03:55:49.002Z bash -lc set -e && cd /work/job-1791431748998-0 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/fastify-ci.git' && exec act 'pull_request' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791431748998-0.meta/event.json' '--secret-file' '/work/job-1791431748998-0.meta/secrets.env'
+[  13.41] time="2026-10-08T03:55:49Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[  13.42] [suite/suite] ⭐ Run Set up job
+[  13.47] [suite/suite]   ✅  Success - Set up job
+[  13.47] [suite/suite]   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+[  22.66] [suite/suite]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[  65.98] [suite/suite] ⭐ Run Main actions/checkout@v4
+[  65.99] [suite/suite]   ✅  Success - Main actions/checkout@v4 [5.825815ms]
+[  65.99] [suite/suite] ⭐ Run Main actions/checkout@v4
+[  66.30] [suite/suite]   ❗  ::error::Input required and not supplied: token
+[  66.31] [suite/suite]   ❌  Failure - Main actions/checkout@v4 [321.417774ms]
+[  66.31] [suite/suite] exit status 1
+[  66.32] [suite/suite] ⭐ Run Post actions/checkout@v4
+[  66.42] [suite/suite]   ✅  Success - Post actions/checkout@v4 [101.630276ms]
+[  66.42] [suite/suite] ⭐ Run Complete job
+[  66.42] [suite/suite]   ✅  Success - Complete job
+[  66.42] [suite/suite] 🏁  Job failed
+[  66.42] Error: Job 'suite' failed
+[  66.46] 
+[  66.46] ##[spike] exit=1 wall_ms=53313

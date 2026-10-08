@@ -1,0 +1,32 @@
+name: cache-artifacts
+on: push
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    steps:
+      - run: mkdir -p dep-cache out && date > dep-cache/stamp && echo hello > out/hello.txt
+      - name: cache
+        uses: actions/cache@v4
+        with:
+          path: dep-cache
+          key: spike-${{ runner.os }}-v1
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello
+          path: out/hello.txt
+  consume:
+    needs: produce
+    runs-on: ubuntu-latest
+    steps:
+      - name: restore
+        id: restore
+        uses: actions/cache@v4
+        with:
+          path: dep-cache
+          key: spike-${{ runner.os }}-v1
+      - run: echo "cache-hit=${{ steps.restore.outputs.cache-hit }}"; cat dep-cache/stamp || true
+      - uses: actions/download-artifact@v4
+        with:
+          name: hello
+      - run: cat hello.txt

@@ -127,6 +127,8 @@ import {
   taskStandings,
 } from '../agent/agent-store';
 import { continuousRef } from '../push/bean-refs';
+import type { BeanWatch, WatchInput } from '../push/bean-wait';
+import { BeanWatchers, beanWatch } from '../push/bean-wait';
 import type { PushBean, PushProgress } from '../push/push-bean';
 import { listPushBeans, migratePushBeans, readPushBean, savePushBean } from '../push/push-bean';
 import type { Submitted } from '../push/push-driver';
@@ -231,6 +233,8 @@ const PUBLISHED: ReadonlySet<string> = new Set(PUBLISHED_TYPES);
 const METER_SAVE_INTERVAL_MS = 5000;
 /** How long `summary()` waits for a reap in flight, so a capture at `done` sees its outcome. */
 const SUMMARY_REAP_WAIT_MS = 5000;
+/** Longest one `watchBeans` call holds; a longer wait asks again. */
+const MAX_WATCH_MS = 300_000;
 /** A race's runner reservation outlives its wall clock by this much if it never reports done. */
 const RESERVATION_MARGIN_MINUTES = 30;
 
@@ -308,6 +312,8 @@ export class RunDO extends DurableObject<Env> {
   /** A continuous engine's driver: pushes in, verdicts out (`push/push-driver.ts`). */
   readonly #push: PushDriver;
   readonly #statuses: StatusPublisher;
+  /** Pushes waiting for their beans' verdicts (`push/bean-wait.ts`), woken by every bean save. */
+  readonly #watchers = new BeanWatchers();
   /** `repo-events`: the publish in flight, and whether more events arrived meanwhile. */
   #publishing: Promise<PublishOutcome | null> | null = null;
   #publishAgain = false;
@@ -343,7 +349,10 @@ export class RunDO extends DurableObject<Env> {
       setConfig: (next) => this.#setConfig(next),
       link: (bean) => this.#beanLink(bean),
       checkLines: (sha) => readCheckLines(ctx.storage.sql, sha),
-      publish: (bean) => this.#statuses.publish(bean),
+      publish: (bean) => {
+        this.#statuses.publish(bean);
+        this.#watchers.notify(bean.bean);
+      },
     });
     this.#statuses = new StatusPublisher({
       target: async () => {
@@ -538,6 +547,24 @@ export class RunDO extends DurableObject<Env> {
   pushProgress(bean: string, push: number, after: number): PushProgress | null {
     this.#countRequest();
     return this.#push.progress(bean, push, after);
+  }
+
+  /**
+   * A wait's beans as they stand; when `known` is their current key, first holds until one of
+   * them changes or `maxMs` passes. Event-driven: a bean's save wakes it, nothing polls.
+   */
+  async watchBeans(input: WatchInput): Promise<BeanWatch> {
+    this.#countRequest();
+    const sql = this.ctx.storage.sql;
+    const read = {
+      one: (bean: string) => readPushBean(sql, bean),
+      all: () => listPushBeans(sql),
+    };
+    const now = beanWatch(input, read);
+    if (input.known === null || now.key !== input.known) return now;
+    const beans = now.beans.map((bean) => bean.bean);
+    await this.#watchers.changeOf(beans, Math.min(input.maxMs, MAX_WATCH_MS));
+    return beanWatch(input, read);
   }
 
   /**

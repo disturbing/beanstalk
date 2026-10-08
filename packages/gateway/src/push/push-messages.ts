@@ -43,13 +43,22 @@ export function receivedLines(input: {
   return lines;
 }
 
-export function checkStartedLines(wait: number | null): string[] {
+export function checkStartedLines(bean: string, wait: number | null): string[] {
   const lines = [
     `${P} pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree`,
   ];
   if (wait === null)
-    lines.push(`${P}   git push -o wait holds the push for the verdict; the status ref has it too`);
+    lines.push(
+      `${P}   do not wait on it: take your next task; the verdict goes to refs/beans/${bean}/status`,
+      `${P}   out of work? one blocking call wakes on your first verdict: ${waitCommand([bean])}`,
+    );
   return lines;
+}
+
+/** The git command that waits for the first verdict of `beans` (all of mine when empty). */
+export function waitCommand(beans: readonly string[], mode: 'any' | 'all' = 'any'): string {
+  const named = beans.map((bean) => `-o bean=${bean} `).join('');
+  return `git push ${named}origin HEAD:refs/wait/${mode}`;
 }
 
 export function statusHint(bean: string): string[] {
@@ -124,7 +133,8 @@ export function decisionLines(card: string, against: readonly string[]): string[
 function fixLines(bean: string): string[] {
   return [
     `${P} fix: git fetch origin sprout && git rebase origin/sprout`,
-    `${P}      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/${bean}`,
+    `${P}      then fix, commit and git push -f origin HEAD:refs/heads/bean/${bean}`,
+    `${P}      and keep working; ${waitCommand([bean])} waits for its next verdict`,
   ];
 }
 

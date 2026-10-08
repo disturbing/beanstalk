@@ -1,6 +1,6 @@
 ---
 name: beanstalk
-description: How to commit, push and land work on a Beanstalk repository, an agent-first git forge where many agents push small bean/<name> branches that land on the sprout after a pre-land check. Use whenever the git remote (origin) is a Beanstalk host (a URL like https://<gateway>/git/<owner>/<repo>.git, a beanstalk host name, or a repo with sprout and stalk branches), before you branch, commit, push or submit work there, when you hand tasks to subagents in such a repo, when a push to bean/<name> comes back red or conflicted, or when asked to start, submit, fix or check a bean. Check `git remote get-url origin` first; skip this skill when origin is GitHub, GitLab, Bitbucket or another forge. Covers pushing without waiting for the check, following verdicts while you work on the next task, stacking a task on a pushed bean, rebasing on the sprout, protected acceptance tests, and the optional beanstalk MCP tools.
+description: How to commit, push and land work on a Beanstalk repository, an agent-first git forge where many agents push small bean/<name> branches that land on the sprout after a pre-land check. Use whenever the git remote (origin) is a Beanstalk host (a URL like https://<beanstalk host>/<owner>/<repo>.git, a beanstalk host name, or a repo with sprout and stalk branches), before you branch, commit, push or submit work there, when you hand tasks to subagents in such a repo, when a push to bean/<name> comes back red or conflicted, or when asked to start, submit, fix or check a bean. Check `git remote get-url origin` first; skip this skill when origin is GitHub, GitLab, Bitbucket or another forge. Covers pushing without waiting for the check, working on the next task meanwhile, one blocking git wait that the verdict wakes when you are out of work (never sleep-polling), leading subagents, stacking a task on a pushed bean, rebasing on the sprout, protected acceptance tests, and the optional beanstalk MCP tools.
 ---
 
 # Working on a Beanstalk repository
@@ -10,7 +10,7 @@ connected to the person's account (below).
 
 Words: a **bean** is one small change on a branch `bean/<short-name>`. The **sprout** is the
 latest integrated state (every landed bean); build on it. The **stalk** is the validated line
-behind it. `main` is never yours. The forge's remote is `https://<gateway>/git/<owner>/<repo>.git`.
+behind it. `main` is never yours. The forge's remote is `https://<beanstalk host>/<owner>/<repo>.git`.
 
 ## Connecting git
 
@@ -33,24 +33,42 @@ git fetch origin sprout && git switch -c bean/<next> origin/sprout   # next task
 ```
 
 A plain push returns as soon as the bean is received. The forge then merges it onto the sprout
-and runs the whole suite (about a minute); you do not need to watch. **Do not wait on your own
-check**: start the next task at once, and look at your beans' verdicts between steps (after a
-commit, before a new task, before you finish):
+and runs the whole suite (about a minute). **Never wait on your own check while you have work,
+and never `sleep` to poll the forge.** Start the next task at once. Between steps (after a
+commit, before a new task) a quick look costs nothing:
 
 ```bash
 git fetch -q origin '+refs/beans/*:refs/beans/*'
-git for-each-ref 'refs/beans/<short-name>/' --format='%(refname:lstrip=2) %(contents:subject)'
+git for-each-ref 'refs/beans/<a>/' 'refs/beans/<b>/' --format='%(refname:lstrip=2) %(contents:subject)'
 ```
 
-Name several beans at once (`'refs/beans/a/' 'refs/beans/b/'`). The subject is `<phase>: <reason>`: `checking`, `landed`, `green` (on the stalk), `red`,
-`conflict`, `parked`, `dropped`. Use `git push -o wait …` only when your next step genuinely
-needs the verdict (nothing else to do, or you must not go on until it lands). Before you
-finish, every bean you pushed must be `landed` or handed back: poll every 30-60 s, or MCP
-`bean_wait`.
+The subject is `<phase>: <reason>`: `checking`, `landed`, `green` (on the stalk), `red`,
+`conflict`, `parked`, `dropped`.
+
+**Out of work: one blocking call that the verdict wakes.** Name your beans:
+
+```bash
+git push -o bean=<a> -o bean=<b> origin HEAD:refs/wait/any   # returns at the first verdict
+git push -o bean=<a> -o bean=<b> origin HEAD:refs/wait/all   # returns when none is checking
+```
+
+A push to `refs/wait/any|all` stores nothing. The forge holds it and prints each verdict as it
+arrives (`verdict for <bean>: landed|red|conflict`, with the failing tests or hunks), then
+`your beans: ...` and the next step. It returns at once when one of them is already red or in
+conflict, or none is checking. Without `-o bean=` it covers every bean in flight pushed with your
+credential, which subagents share, so workers name their own. It holds up to 9 minutes
+(`-o wait=<s>`, at most 1800); in Claude Code give that Bash call `timeout: 600000`. Loop:
+wait-any, react (fix a red and push it again), wait-any again; before you finish, `refs/wait/all`
+until every bean is `landed` or handed back. MCP `bean_wait` does the same for one bean.
+
+`git push -o wait origin HEAD:refs/heads/bean/<name>` submits and blocks in one step: only when
+your very next step needs that verdict. Pushing the same commit again does nothing (git says
+"Everything up-to-date"); to re-attach to a bean in check, wait on it as above.
 
 A red or conflict comes back to **you**, its author: commit your work in progress, `git switch
 bean/<name>`, rebase on `origin/sprout`, fix, `git push -f origin HEAD:refs/heads/bean/<name>`,
-and switch back. A push while that bean is still being checked is refused; wait for its verdict.
+and switch back. A new commit to a bean still being checked is refused (the message says how to
+wait for its verdict); its verdict comes first.
 
 **Stacking.** A task that needs your pushed bean that has not landed yet can start on top of
 it: `git switch -c bean/<child> bean/<parent>`. Push the child once the parent has landed:
@@ -60,8 +78,14 @@ re-push it, then move the child onto the fixed parent (`git rebase --onto bean/<
 <old parent head>`).
 
 **Teams.** When you split work among subagents, each one pushes its own beans from its own
-worktree and owns their reds; the lead does not push for them. Tell each one to push without
-waiting and take its next task. Push options and every `remote:` line: `references/push-flow.md`.
+worktree, owns their reds, and when out of tasks waits with `refs/wait/any` naming its beans;
+the lead does not push for them. **A lead never sleeps or polls.** In Claude Code, start
+workers with the Agent tool in the background (`run_in_background: true`), then end your turn:
+Claude Code starts your next turn with a notification each time a worker finishes (`claude -p`
+stays alive while background workers run). On each notification read the report, start the
+next worker if work remains, and end your turn again. After the last worker has reported, one
+`git push origin HEAD:refs/wait/all` (every bean of the shared credential), then report. Push
+options and every `remote:` line: `references/push-flow.md`.
 
 ## Rules
 
@@ -76,7 +100,7 @@ waiting and take its next task. Push options and every `remote:` line: `referenc
 ## Reading results
 
 The status ref above (or `git cat-file -p refs/beans/<name>/status` for the full verdict, or the
-`remote:` lines of a `-o wait` push):
+`remote:` lines of a wait):
 
 | Verdict | Meaning | Do |
 |---|---|---|

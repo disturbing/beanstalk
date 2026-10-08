@@ -26,9 +26,16 @@ export type ViewerRole = RepoRole | 'owner';
 
 /**
  * Everything access is asked about, each needing a least role:
- * read → `read`, write → `write`, decide and deploy-tokens → `maintain`, administer → owner.
+ * read → `read`, write → `write`, decide, deploy-tokens and actions → `maintain`, administer →
+ * owner. `actions` is dispatching and cancelling workflow runs and managing Actions secrets.
  */
-export type RepositoryAction = 'read' | 'write' | 'decide' | 'deploy-tokens' | 'administer';
+export type RepositoryAction =
+  | 'read'
+  | 'write'
+  | 'decide'
+  | 'deploy-tokens'
+  | 'actions'
+  | 'administer';
 
 /** A repository as one viewer sees it: the record and the viewer's role (null: none). */
 export type RepositoryForViewer = RepositoryRecord & { readonly viewer_role: ViewerRole | null };

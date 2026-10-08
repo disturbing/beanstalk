@@ -1,0 +1,22 @@
+name: docker-features
+on: push
+jobs:
+  services:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    steps:
+      - run: (exec 3<>/dev/tcp/127.0.0.1/6379 && printf 'PING\r\n' >&3 && timeout 3 head -c 7 <&3) || echo "no redis"
+  container:
+    runs-on: ubuntu-latest
+    container: node:20-alpine
+    steps:
+      - run: node --version && head -2 /etc/os-release
+  docker-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://alpine:3.20
+        with:
+          args: echo hello-from-docker-action

@@ -98,8 +98,9 @@ export async function openBean(
     ...opened,
     clone_url: cloneUrl(scope, repository.git_path),
     start: `git fetch origin sprout && git switch -c ${branch} origin/sprout`,
-    push: `git push -o wait origin HEAD:refs/heads/${branch}`,
-    summary: `Reserved ${branch} until ${opened.expires_at}${opened.task === null ? '' : ` for task ${opened.task}`}. Start from the sprout, commit, then push; the reserved intent is the bean's.`,
+    push: `git push origin HEAD:refs/heads/${branch}`,
+    wait: `git push -o bean=${opened.bean} origin HEAD:refs/wait/any`,
+    summary: `Reserved ${branch} until ${opened.expires_at}${opened.task === null ? '' : ` for task ${opened.task}`}. Start from the sprout, commit, then push; the reserved intent is the bean's. The push returns once the bean is received: take your next task while its check runs; when you are out of work, the wait command (or bean_wait) blocks until the verdict. Never sleep-poll.`,
   };
 }
 
@@ -168,9 +169,12 @@ export async function taskRelease(
   };
 }
 
-/** The clone URL of a repository on the gateway. */
+/**
+ * The clone URL of a repository: on the web host, as GitHub serves it (`<web>/<owner>/<repo>.git`;
+ * the gateway's `/git/<owner>/<repo>.git` path still works).
+ */
 export function cloneUrl(scope: ToolScope, gitPath: string): string {
-  return new URL(gitPath, scope.gitOrigin).toString();
+  return new URL(gitPath.replace(/^\/git\//, '/'), scope.gitOrigin).toString();
 }
 
 function beanLine(bean: PushedBeanStatus) {
@@ -196,18 +200,18 @@ function nextStep(phase: string, bean: string): string {
   const branch = `bean/${bean.replace(/^beans?\//, '')}`;
   switch (phase) {
     case 'open':
-      return `commit on ${branch}, then git push -o wait origin HEAD:refs/heads/${branch}`;
+      return `commit on ${branch}, then git push origin HEAD:refs/heads/${branch} and take your next task`;
     case 'checking':
     case 'waiting':
-      return 'the pre-land check is running: bean_wait, or git push -o wait next time';
+      return `the pre-land check is running: keep working; when out of work, bean_wait or git push -o bean=${branch.slice('bean/'.length)} origin HEAD:refs/wait/any (wakes at the verdict)`;
     case 'landed':
       return 'landed on the sprout; it reaches the stalk when the sprout validates (bean_wait until: stalk)';
     case 'green':
       return 'done: on the stalk';
     case 'red':
-      return `git fetch origin sprout && git rebase origin/sprout; fix the code so the failing tests pass, keeping the collided beans' intent; git push -f -o wait origin HEAD:refs/heads/${branch}`;
+      return `git fetch origin sprout && git rebase origin/sprout; fix the code so the failing tests pass, keeping the collided beans' intent; git push -f origin HEAD:refs/heads/${branch}`;
     case 'conflict':
-      return `git fetch origin sprout && git rebase origin/sprout; resolve keeping both intents; git push -f -o wait origin HEAD:refs/heads/${branch}`;
+      return `git fetch origin sprout && git rebase origin/sprout; resolve keeping both intents; git push -f origin HEAD:refs/heads/${branch}`;
     case 'parked':
       return 'a person decides (decision card); wait, do not work around it';
     case 'dropped':

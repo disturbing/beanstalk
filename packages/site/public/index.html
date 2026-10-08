@@ -104,20 +104,17 @@
         <div class="wrap wide showcase">
           <figure class="app" data-appdemo style="margin: 0">
             <figcaption class="sr-only">
-              The Beanstalk repository home, live today. Three questions are asked in turn (what
-              changed on coupons yesterday, why the sprout went red, who is working on billing right
-              now) and the view reshapes to answer each; then "Replay last week's work" rewinds the
-              stalk seven days and grows it back to today.
+              A preview of a Beanstalk repository with the product's tabs: Code, Changes, History,
+              Ask, People and Settings. It tours each tab in turn: History replays last week's work,
+              and Ask answers three questions (what changed on coupons, why one bean is red, who is
+              working on billing). Choose a tab to stay on it.
             </figcaption>
+            <div class="app-top">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="crumb">coop / <b>beanstalk-shop</b></span>
+              <span class="app-tabs" role="group" aria-label="Preview tabs" data-d-tabs></span>
+            </div>
             <div aria-hidden="true">
-              <div class="app-top">
-                <span class="dots"><i></i><i></i><i></i></span>
-                <span class="crumb">coop / <b>beanstalk-shop</b></span>
-                <span class="app-tabs"
-                  ><span class="on">Code</span><span>Files</span><span>Beans</span
-                  ><span>Decisions</span><span>Checks</span></span
-                >
-              </div>
               <div class="app-body">
                 <div class="app-stalk">
                   <div class="ah">
@@ -152,8 +149,7 @@
             </div>
           </figure>
           <p class="note">
-            The repository home, recreated in the browser: live today, three questions, then last
-            week replayed on a demo repo.
+            A demo repository, recreated in the browser. It tours each tab; pick one to stay on it.
           </p>
         </div>
       </section>
@@ -162,22 +158,33 @@
         <div class="wrap split">
           <div>
             <h2 id="grow-title">The future of Git is three words.</h2>
-            <p class="three three-start">
-              <span class="w-bean"><i aria-hidden="true"></i>Bean.</span>
-              <span class="w-sprout"><i aria-hidden="true"></i>Sprout.</span>
-              <span class="w-stalk"><i aria-hidden="true"></i>Stalk.</span>
-            </p>
             <p class="lead">
               A bean grows into a sprout, and sprouts mature into the stalk together.
             </p>
             <dl class="terms">
               <div>
-                <i class="mark mk-bean" aria-hidden="true"></i>
+                <svg class="mark" viewBox="5.5 6.5 13 11" aria-hidden="true">
+                  <path
+                    fill="var(--bean)"
+                    d="M8.94 8.97c2.2-1.6 6.4-.6 7.3 2.2.9 2.8-1.6 4.9-4.4 4.6-2.8-.3-4.6-2.4-4.2-4.6.2-.9.6-1.7 1.3-2.2Z"
+                  />
+                </svg>
                 <dt>Bean</dt>
                 <dd>An agent's or a human's idea, queued or being written.</dd>
               </div>
               <div>
-                <i class="mark mk-sprout" aria-hidden="true"></i>
+                <svg class="mark" viewBox="4 7 16 15" aria-hidden="true">
+                  <path
+                    d="M12 21v-7"
+                    stroke="var(--sprout)"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    fill="var(--sprout)"
+                    d="M12 14c-1-3.2-3.6-4.6-6-4.3.1 2.6 2.6 4.6 6 4.3ZM12 14c1-3.2 3.6-4.6 6-4.3-.1 2.6-2.6 4.6-6 4.3Z"
+                  />
+                </svg>
                 <dt>Sprout</dt>
                 <dd>
                   Once a bean passes its tests on a soft fork, it blooms into a sprout, and others
@@ -185,7 +192,26 @@
                 </dd>
               </div>
               <div>
-                <i class="mark mk-stalk" aria-hidden="true"></i>
+                <svg class="mark" viewBox="1 2 23 21" aria-hidden="true">
+                  <path
+                    d="M12 22.5V3"
+                    stroke="var(--leaf)"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    fill="var(--leaf)"
+                    fill-rule="evenodd"
+                    d="M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z"
+                    transform="translate(0 -3)"
+                  />
+                  <path
+                    fill="var(--leaf)"
+                    fill-rule="evenodd"
+                    d="M12 15c1.2-5.6 5.2-8.6 10.4-8.2-.6 5.4-4.6 8.8-10.4 8.2ZM12.6 14.7 21.2 7.7l.3.4-8.6 7Z"
+                    transform="translate(24 4) scale(-1 1)"
+                  />
+                </svg>
                 <dt>Stalk</dt>
                 <dd>
                   Beanstalk promotes the sprouts queued since the last check, together, in one
@@ -193,22 +219,14 @@
                 </dd>
               </div>
             </dl>
-            <div class="callout">
-              <p>Sprouts are tested alone. The stalk is tested together.</p>
-              <small>
-                Twelve agents land at once. Each sprout passed on its own, but two can still clash,
-                so the stalk tests them together, and pulls out only the culprit if they don't. When
-                one stalk check finishes, the next starts at once on whatever landed meanwhile.
-              </small>
-            </div>
           </div>
           <figure class="panel stalkdemo" data-stalkdemo style="margin: 0">
             <div class="head"><b>beanstalk-shop</b><span data-stalkhead></span></div>
             <div class="rows" role="img" aria-label="An animated stalk"></div>
             <figcaption class="caption">
-              Beans are checked alone and land on the sprout. The shaded sprouts are under a stalk
-              check together; when it passes, they mature at once, and the next check starts on the
-              sprouts that landed meanwhile.
+              Each bean passes its own check and lands on the sprout. The shaded sprouts are under a
+              stalk check together; when it passes, they mature at once, and the next check starts
+              on the sprouts that landed meanwhile.
             </figcaption>
           </figure>
         </div>
@@ -389,32 +407,36 @@
           <div class="sechead">
             <h2 id="race-title">We raced it against GitHub's merge queue.</h2>
             <p class="intro">
-              The same 38 real changes from fastify's history, pushed in parallel to GitHub's own
-              merge queue and to Beanstalk, with matched CI capacity. GitHub's queue slows down as
-              more work arrives; Beanstalk keeps landing each change in about a minute.
+              The same 38 real changes from fastify's history, pushed in parallel to GitHub's merge
+              queue and to Beanstalk, with matched CI capacity.
             </p>
           </div>
           <div class="stats">
             <div class="stat us">
-              <div class="n">6.5–9×</div>
+              <div class="n">6–9×</div>
               <div class="l">
                 faster to integrate each change with 16 parallel workers: about 1 minute, against 7
               </div>
             </div>
             <div class="stat us">
-              <div class="n">2.2–3.3×</div>
+              <div class="n">2–3×</div>
               <div class="l">sooner to land all 38 changes with 16 workers</div>
             </div>
             <div class="stat us">
-              <div class="n">1.8×</div>
+              <div class="n">~2×</div>
               <div class="l">sooner with 8 Claude agents splitting the work themselves</div>
             </div>
-            <div class="stat">
-              <div class="n">38 / 38</div>
-              <div class="l">changes landed correctly on both, in every run</div>
+            <div class="stat us">
+              <div class="n">~3×</div>
+              <div class="l">more changes landed every 10 minutes with 16 workers</div>
             </div>
           </div>
-          <div class="compare" aria-hidden="true">
+          <div
+            class="compare"
+            role="img"
+            aria-label="Median time from ready to merged with 16 workers: Beanstalk about 1 minute, GitHub merge queue about 7 minutes"
+          >
+            <p class="cmp-label">Median time from ready to merged, 16 workers</p>
             <div class="cbar us">
               <span>Beanstalk</span>
               <span class="track"><span class="fill" style="width: 14%">~1 min</span></span>
@@ -424,14 +446,6 @@
               <span class="track"><span class="fill">~7 min</span></span>
             </div>
           </div>
-          <p class="fine">
-            Median minutes from a change being ready to being merged, with 16 parallel workers,
-            across three seeds. The gap grows with parallelism: 4.1× faster at 4 workers, 4.6× at 8,
-            6.5–8.9× at 16. The 1.8× is the last green of an 8-worker Claude Code race. Every race
-            repo is <a href="https://github.com/kintohubtest?q=beanstalk">public on GitHub</a>, PRs
-            and merge-queue history included. On our synthetic 40-task arena with 30 agents,
-            Beanstalk shipped 39–40 tasks against 34–35 and reached the 30th green 1.7–2.3× sooner.
-          </p>
         </div>
       </section>
 
@@ -494,22 +508,63 @@
                   </tbody>
                 </table>
               </div>
-              <div class="codex">
-                <span class="logo" aria-hidden="true">&gt;_</span>
-                <div>
-                  <h3>Connect Codex <span class="chip soon">coming soon</span></h3>
-                  <p>
-                    First-class support for Codex subscriptions: use your ChatGPT or Codex plan. No
-                    API key needed.
-                  </p>
+              <div class="connect">
+                <p>
+                  Connect the agent you already use. One command, then approve it in your browser.
+                </p>
+                <div class="connect-row">
+                  <a
+                    class="connect-btn"
+                    href="https://beanstalk-web.devaccounts-1password.workers.dev/signup/agent"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0Zm6 9v4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      /></svg
+                    >Connect Codex
+                  </a>
+                  <a
+                    class="connect-btn"
+                    href="https://beanstalk-web.devaccounts-1password.workers.dev/signup/agent"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0Zm6 9v4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      /></svg
+                    >Connect Claude
+                  </a>
+                  <a
+                    class="connect-btn"
+                    href="https://beanstalk-web.devaccounts-1password.workers.dev/signup/agent"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0Zm6 9v4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      /></svg
+                    >Connect Cursor
+                  </a>
                 </div>
-                <a class="btn" href="agent.html#codex">See how it will work</a>
               </div>
             </div>
             <ul class="facts" style="margin-top: 8px">
               <li>
-                <b>Local sessions.</b> The Claude Code and Codex sessions you already run. Today
-                they connect to read-only tools with a token; one-install joining is coming soon.
+                <b>Local sessions.</b> The Claude Code, Codex and Cursor sessions you already run.
+                Install once, approve in your browser, and they push beans with plain git.
               </li>
               <li>
                 <b>Cloud agents</b> <span class="chip soon">coming soon</span> Connect agents that
@@ -518,6 +573,10 @@
               <li>
                 <b>Bring your own keys</b> <span class="chip soon">coming soon</span> Anthropic,
                 Google or Grok keys for cloud agents.
+              </li>
+              <li>
+                <b>Your own subscriptions.</b> Agents run on the Claude or ChatGPT plans you already
+                pay for. No API key needed.
               </li>
               <li>
                 <b>Owned by people.</b> Every agent is a session owned by someone on your team.
@@ -565,9 +624,7 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install bean
               </svg>
               beanstalk
             </a>
-            <p>
-              The Git forge for swarms of coding agents. Built on Cloudflare Workers + Artifacts.
-            </p>
+            <p>The Git forge for swarms of coding agents.</p>
           </div>
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>

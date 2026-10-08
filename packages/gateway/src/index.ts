@@ -120,6 +120,9 @@ export { RunIndex } from './run/run-index';
 export { RunStreamDO } from './stream/run-stream-do';
 export { Runner } from './runner/runner-container';
 export { RunnerCapacity } from './capacity/runner-capacity';
+export { ActionsRepoDO } from './actions/repo-do';
+export { ActionsRunDO } from './actions/run-do';
+export { Actions, ActionsJobs, StubActionsExecutor } from './actions/entrypoints';
 // Required by @cloudflare/containers for outbound interception (allowed and denied hosts).
 export { ContainerProxy } from '@cloudflare/containers';
 
@@ -150,6 +153,8 @@ export default class Gateway
   override async queue(batch: MessageBatch): Promise<void> {
     await consumeRepoEvents(batch, {
       db: this.env.FORGE,
+      // Actions (doc 25 §2): the stalk moving is `push` to main; the repository's DO indexes.
+      stalkMoved: (move) => this.env.ACTIONS_REPOS.getByName(move.repoId).stalkMoved(move),
       registry: d1Registry(this.env.FORGE),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repo-events' }),
     });

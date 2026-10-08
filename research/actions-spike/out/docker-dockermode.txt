@@ -1,0 +1,61 @@
+[   1.27] ##[spike] start 2026-10-08T04:14:14.917Z bash -lc set -e && cd /work/job-1791432854916-1 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432854916-1.meta/event.json' '--secret-file' '/work/job-1791432854916-1.meta/secrets.env' '--action-offline-mode' '-P' 'ubuntu-latest=node:20-bookworm'
+[   1.30] time="2026-10-08T04:14:14Z" level=info msg="Using docker host 'unix:///var/run/docker.sock', and daemon socket 'unix:///var/run/docker.sock'"
+[   1.30] [docker-features/container    ] ⭐ Run Set up job
+[   1.30] [docker-features/services     ] ⭐ Run Set up job
+[   1.30] [docker-features/services     ] 🚀  Start image=node:20-bookworm
+[   1.30] [docker-features/docker-action] ⭐ Run Set up job
+[   1.30] [docker-features/container    ] 🚀  Start image=node:20-alpine
+[   1.30] [docker-features/docker-action] 🚀  Start image=node:20-bookworm
+[   1.38] [docker-features/container    ]   🐳  docker pull image=node:20-alpine platform= username= forcePull=false
+[   1.38] [docker-features/services     ]   🐳  docker pull image=redis:7-alpine platform= username= forcePull=false
+[   1.38] [docker-features/docker-action]   🐳  docker pull image=node:20-bookworm platform= username= forcePull=false
+[   1.38] [docker-features/container    ]   🐳  docker create image=node:20-alpine platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[   1.38] [docker-features/services     ]   🐳  docker pull image=node:20-bookworm platform= username= forcePull=false
+[   1.43] [docker-features/container    ]   🐳  docker run image=node:20-alpine platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[   1.65] [docker-features/container    ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[   1.74] [docker-features/container    ]   ✅  Success - Set up job
+[   1.78] [docker-features/container    ] ⭐ Run Main node --version && head -2 /etc/os-release
+[   1.81] [docker-features/container    ]   🐳  docker exec cmd=[sh -e /var/run/act/workflow/0.sh] user= workdir=
+[   1.85] [docker-features/container    ]   | v20.20.2
+[   1.86] [docker-features/container    ]   | NAME="Alpine Linux"
+[   1.86] [docker-features/container    ]   | ID=alpine
+[   1.86] [docker-features/container    ]   ✅  Success - Main node --version && head -2 /etc/os-release [77.463355ms]
+[   1.88] [docker-features/container    ] ⭐ Run Complete job
+[   1.88] [docker-features/container    ] Cleaning up container for job container
+[   1.94] [docker-features/container    ]   ✅  Success - Complete job
+[   1.94] [docker-features/container    ] 🏁  Job succeeded
+[  35.96] [docker-features/services     ] Cleaning up services for job services
+[  35.96] [docker-features/docker-action]   🐳  docker create image=node:20-bookworm platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[  35.96] [docker-features/services     ] Cleaning up network for job services, and network name is: act-docker-features-services-1595a9e22fad2ed8f75bf8ac19066b6a5730f9f278b48f485a1e06dab558040c-services-network
+[  35.96] [docker-features/services     ]   🐳  docker pull image=redis:7-alpine platform= username= forcePull=false
+[  36.03] [docker-features/services     ]   🐳  docker create image=redis:7-alpine platform= entrypoint=[] cmd=[] network="act-docker-features-services-1595a9e22fad2ed8f75bf8ac19066b6a5730f9f278b48f485a1e06dab558040c-services-network"
+[  36.76] [docker-features/docker-action]   🐳  docker run image=node:20-bookworm platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[  36.77] [docker-features/services     ]   🐳  docker run image=redis:7-alpine platform= entrypoint=[] cmd=[] network="act-docker-features-services-1595a9e22fad2ed8f75bf8ac19066b6a5730f9f278b48f485a1e06dab558040c-services-network"
+[  37.04] [docker-features/services     ]   🐳  docker create image=node:20-bookworm platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[  37.06] [docker-features/docker-action]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[  37.15] [docker-features/docker-action]   ✅  Success - Set up job
+[  37.17] [docker-features/services     ]   🐳  docker run image=node:20-bookworm platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[  37.18] [docker-features/docker-action] ⭐ Run Main docker://alpine:3.20
+[  37.21] [docker-features/docker-action]   🐳  docker pull image=alpine:3.20 platform= username= forcePull=false
+[  37.30] [docker-features/docker-action]   🐳  docker create image=alpine:3.20 platform= entrypoint=[] cmd=["echo" "hello-from-docker-action"] network="container:act-docker-features-docker-action-bbf8a24df749c80c6df6da326583bf9dc925e1c6b1645e51ea363131550793ed"
+[  37.43] [docker-features/services     ]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[  37.45] [docker-features/docker-action]   🐳  docker run image=alpine:3.20 platform= entrypoint=[] cmd=["echo" "hello-from-docker-action"] network="container:act-docker-features-docker-action-bbf8a24df749c80c6df6da326583bf9dc925e1c6b1645e51ea363131550793ed"
+[  37.52] [docker-features/services     ]   ✅  Success - Set up job
+[  37.56] [docker-features/services     ] ⭐ Run Main (exec 3<>/dev/tcp/127.0.0.1/6379 && printf 'PING\r\n' >&3 && timeout 3 head -c 7 <&3) || echo "no redis"
+[  37.57] [docker-features/docker-action]   | hello-from-docker-action
+[  37.60] [docker-features/services     ]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/0] user= workdir=
+[  37.62] [docker-features/docker-action]   ✅  Success - Main docker://alpine:3.20 [425.400936ms]
+[  37.65] [docker-features/docker-action] ⭐ Run Complete job
+[  37.65] [docker-features/docker-action] Cleaning up container for job docker-action
+[  37.65] [docker-features/services     ]   | +PONG
+[  37.65] [docker-features/services     ]   ✅  Success - Main (exec 3<>/dev/tcp/127.0.0.1/6379 && printf 'PING\r\n' >&3 && timeout 3 head -c 7 <&3) || echo "no redis" [83.654145ms]
+[  37.67] [docker-features/services     ] ⭐ Run Complete job
+[  37.67] [docker-features/services     ] Cleaning up container for job services
+[  37.72] [docker-features/docker-action]   ✅  Success - Complete job
+[  37.72] [docker-features/docker-action] 🏁  Job succeeded
+[  37.75] [docker-features/services     ] Cleaning up services for job services
+[  37.87] [docker-features/services     ] Cleaning up network for job services, and network name is: act-docker-features-services-1595a9e22fad2ed8f75bf8ac19066b6a5730f9f278b48f485a1e06dab558040c-services-network
+[  37.92] [docker-features/services     ]   ✅  Success - Complete job
+[  37.92] [docker-features/services     ] 🏁  Job succeeded
+[  37.92] 
+[  37.92] ##[spike] exit=0 wall_ms=36654
