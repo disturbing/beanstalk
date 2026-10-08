@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["packages/runner", "packages/ssh-server"]
+members = ["packages/runner", "packages/ssh-server", "packages/actions-runner"]
 
 [workspace.package]
 edition = "2024"
@@ -11,8 +11,11 @@ publish = false
 [workspace.dependencies]
 anyhow = "1"
 axum = "0.8"
+# The Actions job runner (packages/actions-runner): masking encodes secrets as a log could show them.
+base64 = "0.23"
 bytes = "1"
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
+percent-encoding = "2"
 nix = { version = "0.31", default-features = false, features = ["signal"] }
 regex = "1"
 # Plain HTTP only (the SSH server reaches the gateway through its container's outbound handler).
@@ -39,6 +42,8 @@ tokio = { version = "1", features = [
 tokio-util = { version = "0.7", features = ["io"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# The Actions job runner reads and rewrites one job of a workflow file (pure Rust, YAML 1.2).
+yaml-rust2 = "0.13"
 # test only
 http-body-util = "0.1"
 insta = { version = "1", features = ["json"] }
