@@ -45,7 +45,15 @@ export async function mintJobToken(db: D1Database, grant: JobTokenGrant): Promis
       `INSERT INTO actions_job_tokens (token_hash, repo_id, engine_id, run_id, job_id, can_push, expires_ms)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(await tokenHash(token), grant.repoId, grant.engineId, grant.runId, grant.jobId, grant.canPush ? 1 : 0, grant.expiresMs)
+    .bind(
+      await tokenHash(token),
+      grant.repoId,
+      grant.engineId,
+      grant.runId,
+      grant.jobId,
+      grant.canPush ? 1 : 0,
+      grant.expiresMs,
+    )
     .run();
   return token;
 }

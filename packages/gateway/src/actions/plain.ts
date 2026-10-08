@@ -19,7 +19,11 @@ const BASIC_EXPRESSION = 3;
 /** A serialized token as plain JSON; null for what has no plain form (an insert expression). */
 export function plainOf(serialized: unknown): PlainValue {
   if (serialized === null) return null;
-  if (typeof serialized === 'string' || typeof serialized === 'number' || typeof serialized === 'boolean')
+  if (
+    typeof serialized === 'string' ||
+    typeof serialized === 'number' ||
+    typeof serialized === 'boolean'
+  )
     return serialized;
   if (typeof serialized !== 'object') return null;
   const type: unknown = Reflect.get(serialized, 'type');

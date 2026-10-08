@@ -49,7 +49,7 @@ export function jobSpecOf(input: {
       runAttempt: 1,
     },
     checkout: {
-      url: `${input.publicUrl}/git/${fullName}.git`,
+      url: `${input.publicUrl}/${fullName}`,
       token: input.tokens.job,
       sha: request.sha,
     },

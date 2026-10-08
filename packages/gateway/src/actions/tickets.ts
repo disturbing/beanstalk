@@ -16,7 +16,11 @@ import { base64UrlDecode, base64UrlEncode } from '../auth/base64url';
 const PREFIX = 'bsa1';
 export const LOG_TICKET_TTL_MS = 10 * 60 * 1000;
 
-const TicketClaims = z.strictObject({ run: ActionsRunId, job: ActionsJobId, exp: z.number().int() });
+const TicketClaims = z.strictObject({
+  run: ActionsRunId,
+  job: ActionsJobId,
+  exp: z.number().int(),
+});
 export type TicketClaims = z.infer<typeof TicketClaims>;
 
 /** A log ticket for one job, signed with `secret`. */
@@ -59,7 +63,10 @@ export async function verifyLogTicket(
 }
 
 /** A fresh report token for a job, and the secret part the run DO keeps the hash of. */
-export function newReportToken(run: ActionsRunId, job: ActionsJobId): { token: string; secret: string } {
+export function newReportToken(
+  run: ActionsRunId,
+  job: ActionsJobId,
+): { token: string; secret: string } {
   const secret = base64UrlEncode(crypto.getRandomValues(new Uint8Array(32)));
   return { token: `${run}.${job}.${secret}`, secret };
 }
@@ -71,7 +78,13 @@ export function parseReportToken(
   const [run, job, secret, extra] = token.split('.');
   const parsedRun = ActionsRunId.safeParse(run);
   const parsedJob = ActionsJobId.safeParse(job);
-  if (!parsedRun.success || !parsedJob.success || secret === undefined || secret === '' || extra !== undefined)
+  if (
+    !parsedRun.success ||
+    !parsedJob.success ||
+    secret === undefined ||
+    secret === '' ||
+    extra !== undefined
+  )
     return null;
   return { run: parsedRun.data, job: parsedJob.data, secret };
 }

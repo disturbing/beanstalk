@@ -72,14 +72,14 @@ function evaluate(
 }
 
 function statusFunctions(status: StatusFacts): Map<string, FunctionDefinition> {
-  const constant = (name: string, value: boolean): [string, FunctionDefinition] => [
-    name,
-    { name, minArgs: 0, maxArgs: 0, call: () => new data.BooleanData(value) },
-  ];
   return new Map([
-    constant('success', status.needsSucceeded && !status.runCancelled),
-    constant('failure', status.needsFailed),
-    constant('cancelled', status.runCancelled),
-    constant('always', true),
+    constantFunction('success', status.needsSucceeded && !status.runCancelled),
+    constantFunction('failure', status.needsFailed),
+    constantFunction('cancelled', status.runCancelled),
+    constantFunction('always', true),
   ]);
+}
+
+function constantFunction(name: string, value: boolean): [string, FunctionDefinition] {
+  return [name, { name, minArgs: 0, maxArgs: 0, call: () => new data.BooleanData(value) }];
 }

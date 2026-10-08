@@ -368,7 +368,9 @@ export type JobSpec = {
     readonly runAttempt: number;
   };
   /**
-   * Git over HTTPS for `actions/checkout`: `url` is the repository's gateway URL; `token` is
+   * Git over HTTPS for `actions/checkout`: `url` is GitHub-shaped, `<context.serverUrl>/<owner>/
+   * <repo>` (the gateway serves git there, so `act --github-instance <host>` and unmodified
+   * checkout work; Basic `x-access-token:<token>` is accepted); `token` is
    * the job token (`bsj_…`, also `GITHUB_TOKEN`): this repository only, read, and push to
    * `bean/*` only when `permissions` allow `contents: write`; revoked when the job ends.
    */

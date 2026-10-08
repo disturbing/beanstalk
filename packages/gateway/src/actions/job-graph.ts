@@ -57,7 +57,11 @@ export function planJobs(
 function plannedJob(
   job: JobPlan,
   leg: MatrixLeg | null,
-  input: { readonly contexts: ExpressionContexts; readonly maxTimeoutMinutes: number; readonly newId: () => string },
+  input: {
+    readonly contexts: ExpressionContexts;
+    readonly maxTimeoutMinutes: number;
+    readonly newId: () => string;
+  },
 ): PlannedJob {
   return {
     id: input.newId(),
@@ -67,7 +71,10 @@ function plannedJob(
     needs: job.needs,
     condition: job.condition,
     image: job.image,
-    timeoutMinutes: Math.min(job.timeoutMinutes ?? input.maxTimeoutMinutes, input.maxTimeoutMinutes),
+    timeoutMinutes: Math.min(
+      job.timeoutMinutes ?? input.maxTimeoutMinutes,
+      input.maxTimeoutMinutes,
+    ),
     steps: job.steps,
     outputs: job.outputs,
     secretNames: job.secretNames,
@@ -77,7 +84,8 @@ function plannedJob(
 
 /** GitHub's display name: `name:` with `matrix` filled in, or `key (v1, v2)` for a leg. */
 function displayName(job: JobPlan, leg: MatrixLeg | null, contexts: ExpressionContexts): string {
-  if (job.nameTemplate !== null) return interpolate(job.nameTemplate, { ...contexts, matrix: leg ?? {} });
+  if (job.nameTemplate !== null)
+    return interpolate(job.nameTemplate, { ...contexts, matrix: leg ?? {} });
   if (leg === null) return job.key;
   return `${job.key} (${Object.values(leg).map(String).join(', ')})`;
 }
@@ -91,7 +99,8 @@ export function needResult(jobs: readonly JobState[], key: string): NeedResult |
   const legs = jobs.filter((job) => job.key === key);
   if (legs.length === 0 || legs.some((job) => job.status !== 'completed')) return null;
   const conclusions = legs.map((job) => job.conclusion ?? 'failure');
-  const outputs = Object.assign({}, ...legs.map((job) => job.outputs)) as Record<string, string>;
+  const outputs: Record<string, string> = {};
+  for (const job of legs) Object.assign(outputs, job.outputs);
   return { result: foldConclusions(conclusions), outputs };
 }
 

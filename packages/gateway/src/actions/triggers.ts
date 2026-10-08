@@ -26,12 +26,19 @@ export function pushFires(
   const names = stalkNames(move.defaultBranch);
   if (trigger.branches.length > 0 && !names.some((name) => selectedBy(trigger.branches, name)))
     return false;
-  if (trigger.branchesIgnore.length > 0 && names.some((name) => selectedBy(trigger.branchesIgnore, name)))
+  if (
+    trigger.branchesIgnore.length > 0 &&
+    names.some((name) => selectedBy(trigger.branchesIgnore, name))
+  )
     return false;
   if (move.changedPaths === null) return true;
   const paths = move.changedPaths;
-  if (trigger.paths.length > 0 && !paths.some((path) => selectedBy(trigger.paths, path))) return false;
-  if (trigger.pathsIgnore.length > 0 && paths.every((path) => selectedBy(trigger.pathsIgnore, path)))
+  if (trigger.paths.length > 0 && !paths.some((path) => selectedBy(trigger.paths, path)))
+    return false;
+  if (
+    trigger.pathsIgnore.length > 0 &&
+    paths.every((path) => selectedBy(trigger.pathsIgnore, path))
+  )
     return false;
   return true;
 }
@@ -73,7 +80,9 @@ export function checkDispatchInputs(
 function inputProblem(input: DispatchInputSpec, value: string): string | null {
   switch (input.type) {
     case 'boolean':
-      return value === 'true' || value === 'false' ? null : `input ${input.name} must be true or false`;
+      return value === 'true' || value === 'false'
+        ? null
+        : `input ${input.name} must be true or false`;
     case 'number':
       return Number.isFinite(Number(value)) ? null : `input ${input.name} must be a number`;
     case 'choice':

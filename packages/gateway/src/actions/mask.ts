@@ -16,7 +16,8 @@ export function maskTermsOf(values: readonly string[]): string[] {
     terms.add(value);
     terms.add(btoa(String.fromCharCode(...new TextEncoder().encode(value))));
     terms.add(encodeURIComponent(value));
-    for (const line of value.split('\n')) if (line.trim().length >= MIN_MASKED) terms.add(line.trim());
+    for (const line of value.split('\n'))
+      if (line.trim().length >= MIN_MASKED) terms.add(line.trim());
   }
   return [...terms].toSorted((a, b) => b.length - a.length);
 }

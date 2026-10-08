@@ -55,6 +55,9 @@ export type WorkflowFile = {
 
 export type { MatrixLeg };
 
+/** What the repository allows: matrix legs per job, and minutes per job (longer is capped). */
+export type WorkflowLimits = { readonly maxMatrixLegs: number; readonly maxTimeoutMinutes: number };
+
 /** `runs-on` labels Beanstalk runs, and the image each maps to. */
 const IMAGES: Readonly<Record<string, string>> = {
   'ubuntu-latest': 'ubuntu-24.04',
@@ -69,20 +72,22 @@ const LATER_EVENTS = new Set([
   'workflow_run',
   'workflow_call',
 ]);
-const SECRET_REFERENCE = /secrets\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)|secrets\s*\[\s*'([A-Za-z_][A-Za-z0-9_]*)'\s*\]/g;
+const SECRET_REFERENCE =
+  /secrets\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)|secrets\s*\[\s*'([A-Za-z_][A-Za-z0-9_]*)'\s*\]/g;
 
 /** Reads one workflow file. Never throws: problems are in the answer. */
 export async function readWorkflowFile(
   path: string,
   source: string,
-  limits: { readonly maxMatrixLegs: number },
+  limits: WorkflowLimits,
 ): Promise<WorkflowFile> {
   const fallbackName = path.split('/').at(-1) ?? path;
   const parsed = parseWorkflow({ name: path, content: source }, new NoOperationTraceWriter());
   const template =
     parsed.value === undefined ? null : await convertWorkflowTemplate(parsed.context, parsed.value);
   const problems = problemsOf(parsed.context.errors.getErrors());
-  const root = parsed.value === undefined ? null : plainOf(JSON.parse(JSON.stringify(parsed.value)));
+  const root =
+    parsed.value === undefined ? null : plainOf(JSON.parse(JSON.stringify(parsed.value)));
   if (template === null || root === null || !isPlainObject(root) || problems.length > 0) {
     return emptyWorkflow(path, fallbackName, problems);
   }
@@ -90,7 +95,9 @@ export async function readWorkflowFile(
   const events = eventsOf(template);
   const jobs = jobsOf(template, root, limits);
   const jobProblems = jobs.flatMap((job) =>
-    job.matrix.kind === 'invalid' ? [{ message: `job ${job.key}: ${job.matrix.reason}`, line: null, column: null }] : [],
+    job.matrix.kind === 'invalid'
+      ? [{ message: `job ${job.key}: ${job.matrix.reason}`, line: null, column: null }]
+      : [],
   );
   return {
     path,
@@ -99,7 +106,20 @@ export async function readWorkflowFile(
     unsupportedEvents: events.unsupported,
     jobs,
     problems: jobProblems,
-    compatibility: compatibilityOf({ root, jobs, events, template }),
+    compatibility: [
+      ...compatibilityOf({ root, jobs, events, template }),
+      ...jobs.flatMap((job): CompatibilityNote[] =>
+        job.timeoutMinutes !== null && job.timeoutMinutes > limits.maxTimeoutMinutes
+          ? [
+              {
+                feature: `jobs.${job.key}.timeout-minutes`,
+                verdict: 'runs-differently',
+                detail: `capped at ${limits.maxTimeoutMinutes} minutes`,
+              },
+            ]
+          : [],
+      ),
+    ],
   };
 }
 
@@ -115,13 +135,20 @@ function emptyWorkflow(
     unsupportedEvents: [],
     jobs: [],
     problems:
-      problems.length > 0 ? problems : [{ message: 'not a workflow file', line: null, column: null }],
+      problems.length > 0
+        ? problems
+        : [{ message: 'not a workflow file', line: null, column: null }],
     compatibility: [],
   };
 }
 
 function problemsOf(
-  errors: readonly { readonly message: string; readonly range?: { readonly start: { readonly line: number; readonly column: number } } | undefined }[],
+  errors: readonly {
+    readonly message: string;
+    readonly range?:
+      | { readonly start: { readonly line: number; readonly column: number } }
+      | undefined;
+  }[],
 ): WorkflowProblem[] {
   return errors.slice(0, 50).map((error) => ({
     message: error.message,
@@ -136,7 +163,8 @@ function eventsOf(template: WorkflowTemplate): Events {
   const triggers: WorkflowTrigger[] = [];
   const unsupported: string[] = [];
   const { events } = template;
-  for (const event of Object.keys(events)) if (!SUPPORTED_EVENTS.has(event)) unsupported.push(event);
+  for (const event of Object.keys(events))
+    if (!SUPPORTED_EVENTS.has(event)) unsupported.push(event);
   const push = events.push;
   if (push !== undefined) {
     const isTagsOnly =
@@ -154,14 +182,30 @@ function eventsOf(template: WorkflowTemplate): Events {
       });
   }
   if (events.workflow_dispatch !== undefined)
-    triggers.push({ kind: 'workflow_dispatch', inputs: dispatchInputs(events.workflow_dispatch.inputs) });
+    triggers.push({
+      kind: 'workflow_dispatch',
+      inputs: dispatchInputs(events.workflow_dispatch.inputs),
+    });
   if (events.schedule !== undefined && events.schedule.length > 0)
     triggers.push({ kind: 'schedule', crons: events.schedule.map((entry) => entry.cron) });
   return { triggers, unsupported };
 }
 
 function dispatchInputs(
-  inputs: Readonly<Record<string, { type: string; description?: string; required?: boolean; default?: string | boolean | number; options?: string[] }>> | undefined,
+  inputs:
+    | Readonly<
+        Record<
+          string,
+          {
+            type: string;
+            description?: string;
+            required?: boolean;
+            default?: string | boolean | number;
+            options?: string[];
+          }
+        >
+      >
+    | undefined,
 ): DispatchInputSpec[] {
   return Object.entries(inputs ?? {}).map(([name, input]) => ({
     name,
@@ -188,7 +232,7 @@ function inputType(type: string): DispatchInputSpec['type'] {
 function jobsOf(
   template: WorkflowTemplate,
   root: Readonly<Record<string, PlainValue>>,
-  limits: { readonly maxMatrixLegs: number },
+  limits: WorkflowLimits,
 ): JobPlan[] {
   const rawJobs = isPlainObject(root['jobs']) ? root['jobs'] : {};
   const workflowWrite = contentsWrite(root['permissions']) ?? false;
@@ -202,8 +246,12 @@ function jobsOf(
       needs: (job.needs ?? []).map((need) => need.value),
       condition: job.if.expression,
       image: imageOf(plain['runs-on']),
-      timeoutMinutes: typeof plain['timeout-minutes'] === 'number' ? plain['timeout-minutes'] : null,
-      matrix: planMatrix(isPlainObject(plain['strategy']) ? plain['strategy']['matrix'] : undefined, limits.maxMatrixLegs),
+      timeoutMinutes:
+        typeof plain['timeout-minutes'] === 'number' ? plain['timeout-minutes'] : null,
+      matrix: planMatrix(
+        isPlainObject(plain['strategy']) ? plain['strategy']['matrix'] : undefined,
+        limits.maxMatrixLegs,
+      ),
       outputs: stringRecord(plain['outputs']),
       steps: stepsOf(plain['steps']),
       secretNames: secretNamesIn(JSON.stringify([plain, root['env'] ?? null])),
@@ -277,15 +325,27 @@ function compatibilityOf(input: {
   for (const event of input.events.unsupported) {
     notes.push(
       LATER_EVENTS.has(event) || event === 'push (tags)'
-        ? { feature: `on: ${event}`, verdict: 'after-mvp', detail: 'parsed, but Beanstalk does not start runs for it yet' }
-        : { feature: `on: ${event}`, verdict: 'never-runs', detail: 'Beanstalk has no such object' },
+        ? {
+            feature: `on: ${event}`,
+            verdict: 'after-mvp',
+            detail: 'parsed, but Beanstalk does not start runs for it yet',
+          }
+        : {
+            feature: `on: ${event}`,
+            verdict: 'never-runs',
+            detail: 'Beanstalk has no such object',
+          },
     );
   }
   for (const trigger of input.events.triggers) {
     if (trigger.kind === 'schedule')
       for (const cron of trigger.crons)
         if (parseCron(cron) === null)
-          notes.push({ feature: `schedule ${cron}`, verdict: 'never-runs', detail: 'not valid cron' });
+          notes.push({
+            feature: `schedule ${cron}`,
+            verdict: 'never-runs',
+            detail: 'not valid cron',
+          });
     if (trigger.kind === 'push')
       notes.push({
         feature: 'on: push',
@@ -294,7 +354,11 @@ function compatibilityOf(input: {
       });
   }
   if (input.root['concurrency'] !== undefined)
-    notes.push({ feature: 'concurrency', verdict: 'runs-differently', detail: 'groups are not enforced yet; the repository runs at most 4 jobs at once' });
+    notes.push({
+      feature: 'concurrency',
+      verdict: 'runs-differently',
+      detail: 'groups are not enforced yet; the repository runs at most 4 jobs at once',
+    });
   const rawJobs = isPlainObject(input.root['jobs']) ? input.root['jobs'] : {};
   for (const job of input.jobs) notes.push(...jobNotes(job, rawJobs[job.key]));
   return notes;
@@ -305,19 +369,47 @@ function jobNotes(job: JobPlan, raw: PlainValue | undefined): CompatibilityNote[
   const notes: CompatibilityNote[] = [];
   const at = (feature: string) => `jobs.${job.key}.${feature}`;
   if (typeof plain['uses'] === 'string')
-    notes.push({ feature: at('uses'), verdict: 'after-mvp', detail: 'reusable workflows are not run yet' });
+    notes.push({
+      feature: at('uses'),
+      verdict: 'after-mvp',
+      detail: 'reusable workflows are not run yet',
+    });
   else if (job.image === null)
-    notes.push({ feature: at('runs-on'), verdict: 'never-runs', detail: 'only ubuntu-latest, ubuntu-24.04 and ubuntu-22.04 run here' });
+    notes.push({
+      feature: at('runs-on'),
+      verdict: 'never-runs',
+      detail: 'only ubuntu-latest, ubuntu-24.04 and ubuntu-22.04 run here',
+    });
   if (plain['container'] !== undefined || plain['services'] !== undefined)
-    notes.push({ feature: at(plain['container'] === undefined ? 'services' : 'container'), verdict: 'never-runs', detail: 'needs Docker in Docker' });
+    notes.push({
+      feature: at(plain['container'] === undefined ? 'services' : 'container'),
+      verdict: 'never-runs',
+      detail: 'needs Docker in Docker',
+    });
   if (plain['environment'] !== undefined)
-    notes.push({ feature: at('environment'), verdict: 'runs-differently', detail: 'environments and their approvals are ignored' });
+    notes.push({
+      feature: at('environment'),
+      verdict: 'runs-differently',
+      detail: 'environments and their approvals are ignored',
+    });
   if (isPlainObject(plain['permissions']) && plain['permissions']['id-token'] === 'write')
-    notes.push({ feature: at('permissions.id-token'), verdict: 'never-runs', detail: 'OIDC comes later' });
+    notes.push({
+      feature: at('permissions.id-token'),
+      verdict: 'never-runs',
+      detail: 'OIDC comes later',
+    });
   for (const step of job.steps)
     if (step.uses?.startsWith('docker://') === true)
-      notes.push({ feature: at(`steps[${step.number}]`), verdict: 'never-runs', detail: 'Docker actions need Docker in Docker' });
+      notes.push({
+        feature: at(`steps[${step.number}]`),
+        verdict: 'never-runs',
+        detail: 'Docker actions need Docker in Docker',
+      });
   if (job.matrix.kind === 'invalid')
-    notes.push({ feature: at('strategy.matrix'), verdict: 'never-runs', detail: job.matrix.reason });
+    notes.push({
+      feature: at('strategy.matrix'),
+      verdict: 'never-runs',
+      detail: job.matrix.reason,
+    });
   return notes;
 }

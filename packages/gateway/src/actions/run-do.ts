@@ -73,9 +73,11 @@ export class ActionsRunDO extends DurableObject<Env> {
     if (existing !== null) return summaryOf(existing, this.#store.jobs());
     const workflow = await readWorkflowFile(request.workflow.path, request.workflow.source, {
       maxMatrixLegs: this.#config.maxMatrixLegs,
+      maxTimeoutMinutes: this.#config.jobTimeoutMinutes,
     });
     const [problem] = workflow.problems;
-    const refusal = request.refused ?? (problem === undefined ? null : `invalid workflow: ${problem.message}`);
+    const refusal =
+      request.refused ?? (problem === undefined ? null : `invalid workflow: ${problem.message}`);
     const base: RunRecord = {
       request,
       workflowName: workflow.name,
@@ -97,7 +99,13 @@ export class ActionsRunDO extends DurableObject<Env> {
       this.#store.saveRun(base);
     } else {
       const now = Date.now();
-      this.#store.saveRun({ ...base, status: 'completed', conclusion: 'startup_failure', reason: refusal, completedMs: now });
+      this.#store.saveRun({
+        ...base,
+        status: 'completed',
+        conclusion: 'startup_failure',
+        reason: refusal,
+        completedMs: now,
+      });
     }
     await this.#writeIndex();
     if (refusal === null) await this.#kick();
@@ -143,7 +151,8 @@ export class ActionsRunDO extends DurableObject<Env> {
   async jobSecrets(jobId: string, secret: string): Promise<RpcResult<Record<string, string>>> {
     const job = await this.#reporting(jobId, secret);
     if (!job.ok) return job;
-    if (job.value.status !== 'in_progress') return refused('invalid_state', 409, 'the job is not running');
+    if (job.value.status !== 'in_progress')
+      return refused('invalid_state', 409, 'the job is not running');
     const record = this.#requireRun();
     const names = secretsForRun(
       record.request.origin,
@@ -164,12 +173,16 @@ export class ActionsRunDO extends DurableObject<Env> {
     if (job.status === 'completed') return { ok: true, value: { cancelRequested: true } };
     if (batch.seq <= job.lastSeq) return { ok: true, value: { cancelRequested: false } };
     const terms = await this.#maskTerms(job);
-    const lines = batch.lines.map((line): LogLine => ({ ...line, text: maskText(line.text, terms) }));
+    const lines = batch.lines.map((line): LogLine => ({
+      ...line,
+      text: maskText(line.text, terms),
+    }));
     await writeLogChunk(this.env.ACTIONS_LOGS, this.#location(job.id), { seq: batch.seq, lines });
     const steps = mergeSteps(job.stepStates, batch.steps);
     this.#store.updateJob(job.id, { lastSeq: batch.seq, stepStates: steps });
     const id = ActionsJobId.parse(job.id);
-    if (lines.length > 0) this.#broadcast(job.id, { kind: 'lines', jobId: id, seq: batch.seq, lines });
+    if (lines.length > 0)
+      this.#broadcast(job.id, { kind: 'lines', jobId: id, seq: batch.seq, lines });
     if (batch.steps.length > 0) this.#broadcast(job.id, { kind: 'steps', jobId: id, steps });
     return { ok: true, value: { cancelRequested: this.#requireRun().cancelRequested } };
   }
@@ -205,15 +218,31 @@ export class ActionsRunDO extends DurableObject<Env> {
   override async fetch(request: Request): Promise<Response> {
     const jobId = new URL(request.url).pathname.split('/').at(-2) ?? '';
     const job = this.#store.job(jobId);
-    if (job === null) return Response.json({ error: { code: 'not_found', message: 'no such job' } }, { status: 404 });
+    if (job === null)
+      return Response.json(
+        { error: { code: 'not_found', message: 'no such job' } },
+        { status: 404 },
+      );
     if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket')
-      return Response.json({ error: { code: 'invalid_request', message: 'expected a WebSocket upgrade' } }, { status: 426 });
+      return Response.json(
+        { error: { code: 'invalid_request', message: 'expected a WebSocket upgrade' } },
+        { status: 426 },
+      );
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
     this.ctx.acceptWebSocket(server, [job.id]);
     const id = ActionsJobId.parse(job.id);
-    server.send(JSON.stringify({ kind: 'steps', jobId: id, steps: jobViewOf(job).steps } satisfies LogFrame));
-    server.send(JSON.stringify({ kind: 'job', jobId: id, status: job.status, conclusion: job.conclusion } satisfies LogFrame));
+    server.send(
+      JSON.stringify({ kind: 'steps', jobId: id, steps: jobViewOf(job).steps } satisfies LogFrame),
+    );
+    server.send(
+      JSON.stringify({
+        kind: 'job',
+        jobId: id,
+        status: job.status,
+        conclusion: job.conclusion,
+      } satisfies LogFrame),
+    );
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -253,12 +282,16 @@ export class ActionsRunDO extends DurableObject<Env> {
     const record = this.#store.run();
     if (record === null || record.status === 'completed') return;
     const nowMs = Date.now();
-    for (const job of this.#store.jobs().filter((candidate) => candidate.status === 'in_progress')) {
+    for (const job of this.#store
+      .jobs()
+      .filter((candidate) => candidate.status === 'in_progress')) {
       const deadline = (job.startedMs ?? nowMs) + job.timeoutMinutes * 60_000;
+      const work =
+        nowMs >= deadline
+          ? this.#stop(job, 'timed_out', `the job ran past its ${job.timeoutMinutes}-minute limit`)
+          : this.#lease(job, nowMs);
       // oxlint-disable-next-line no-await-in-loop -- leases and stops go one job at a time
-      if (nowMs >= deadline) await this.#stop(job, 'timed_out', `the job ran past its ${job.timeoutMinutes}-minute limit`);
-      // oxlint-disable-next-line no-await-in-loop -- see above
-      else await this.#lease(job, nowMs);
+      await work;
     }
     await this.#decideQueued(record);
     await this.#rollUp();
@@ -280,7 +313,11 @@ export class ActionsRunDO extends DurableObject<Env> {
   }
 
   /** Decides one queued job; true when its state changed to done or running. */
-  async #decide(job: JobRow, record: RunRecord, budget: { minutesLeft: number | null }): Promise<boolean> {
+  async #decide(
+    job: JobRow,
+    record: RunRecord,
+    budget: { minutesLeft: number | null },
+  ): Promise<boolean> {
     const states = this.#store.jobs();
     const ready = readiness(job, states, {
       contexts: contextsOf(record.request, this.#config.publicUrl),
@@ -314,7 +351,9 @@ export class ActionsRunDO extends DurableObject<Env> {
       return true;
     }
     const record = this.#requireRun();
-    input.budget.minutesLeft ??= await this.env.ACTIONS_REPOS.getByName(record.request.repo.id).minutesLeft();
+    input.budget.minutesLeft ??= await this.env.ACTIONS_REPOS.getByName(
+      record.request.repo.id,
+    ).minutesLeft();
     if (input.budget.minutesLeft <= 0) {
       await this.#finish(job, {
         conclusion: 'startup_failure',
@@ -332,7 +371,11 @@ export class ActionsRunDO extends DurableObject<Env> {
       waitingSinceMs: waitingSince,
     });
     const current = this.#store.job(job.id);
-    if (lease.kind === 'wait' || current === null || (current.status !== 'queued' && current.status !== 'waiting')) {
+    if (
+      lease.kind === 'wait' ||
+      current === null ||
+      (current.status !== 'queued' && current.status !== 'waiting')
+    ) {
       if (lease.kind === 'granted') await this.#release(job.id);
       else this.#store.updateJob(job.id, { status: 'waiting', waitingSinceMs: waitingSince });
       return false;
@@ -349,7 +392,11 @@ export class ActionsRunDO extends DurableObject<Env> {
     const runId = ActionsRunId.parse(request.runId);
     const jobId = ActionsJobId.parse(job.id);
     const report = newReportToken(runId, jobId);
-    const secretNames = secretsForRun(request.origin, job.secretNames, await this.#secrets.list(request.repo.id));
+    const secretNames = secretsForRun(
+      request.origin,
+      job.secretNames,
+      await this.#secrets.list(request.repo.id),
+    );
     const jobToken = await mintJobToken(this.env.FORGE, {
       repoId: request.repo.id,
       engineId: request.repo.engineId,
@@ -365,7 +412,8 @@ export class ActionsRunDO extends DurableObject<Env> {
       reportHash: await tokenHash(report.secret),
       waitingSinceMs: null,
     });
-    if (record.startedMs === null) this.#store.saveRun({ ...record, status: 'in_progress', startedMs: nowMs });
+    if (record.startedMs === null)
+      this.#store.saveRun({ ...record, status: 'in_progress', startedMs: nowMs });
     await this.#writeIndex();
     this.#broadcast(job.id, { kind: 'job', jobId, status: 'in_progress', conclusion: null });
     const spec = jobSpecOf({
@@ -384,7 +432,10 @@ export class ActionsRunDO extends DurableObject<Env> {
     this.#log.warn('executor refused a job', { runId, jobId, error: started.error.message });
     const after = this.#store.job(job.id);
     if (after?.status === 'in_progress')
-      await this.#finish(after, { conclusion: 'infrastructure_failure', reason: `the executor did not start the job: ${started.error.message}` });
+      await this.#finish(after, {
+        conclusion: 'infrastructure_failure',
+        reason: `the executor did not start the job: ${started.error.message}`,
+      });
   }
 
   /** Stops a running job (cancel or timeout): the executor is told, the job ends now. */
@@ -392,7 +443,11 @@ export class ActionsRunDO extends DurableObject<Env> {
     const stopped = await this.#executor()
       .cancelJob(ActionsJobId.parse(job.id), conclusion)
       .catch((error: unknown) => failure(error));
-    if (!stopped.ok) this.#log.warn('executor did not stop a job', { jobId: job.id, error: stopped.error.message });
+    if (!stopped.ok)
+      this.#log.warn('executor did not stop a job', {
+        jobId: job.id,
+        error: stopped.error.message,
+      });
     await this.#finish(job, { conclusion, reason });
   }
 
@@ -464,9 +519,13 @@ export class ActionsRunDO extends DurableObject<Env> {
     const times: number[] = [];
     if (jobs.some((job) => job.status === 'waiting')) times.push(nowMs + CAPACITY_RETRY_MS);
     for (const job of jobs.filter((candidate) => candidate.status === 'in_progress'))
-      times.push(Math.min((job.startedMs ?? nowMs) + job.timeoutMinutes * 60_000, nowMs + RUNNING_TICK_MS));
+      times.push(
+        Math.min((job.startedMs ?? nowMs) + job.timeoutMinutes * 60_000, nowMs + RUNNING_TICK_MS),
+      );
     // A run with nothing running or waiting still checks in, in case a call was lost.
-    await this.ctx.storage.setAlarm(times.length === 0 ? nowMs + RUNNING_TICK_MS : Math.min(...times));
+    await this.ctx.storage.setAlarm(
+      times.length === 0 ? nowMs + RUNNING_TICK_MS : Math.min(...times),
+    );
   }
 
   // Helpers ---------------------------------------------------------------------------------
@@ -482,8 +541,14 @@ export class ActionsRunDO extends DurableObject<Env> {
     const known = this.#masks.get(job.id);
     if (known !== undefined) return known;
     const record = this.#requireRun();
-    const names = secretsForRun(record.request.origin, job.secretNames, await this.#secrets.list(record.request.repo.id));
-    const terms = maskTermsOf(Object.values(await this.#secrets.reveal(record.request.repo.id, names)));
+    const names = secretsForRun(
+      record.request.origin,
+      job.secretNames,
+      await this.#secrets.list(record.request.repo.id),
+    );
+    const terms = maskTermsOf(
+      Object.values(await this.#secrets.reveal(record.request.repo.id, names)),
+    );
     this.#masks.set(job.id, terms);
     return terms;
   }
@@ -509,7 +574,10 @@ export class ActionsRunDO extends DurableObject<Env> {
   #executor(): ActionsExecutor {
     if (this.#config.executorMode === 'service') {
       const binding: unknown = Reflect.get(this.env, 'ACTIONS_EXECUTOR');
-      if (!isExecutor(binding)) throw new Error('ACTIONS_EXECUTOR_MODE is service but there is no ACTIONS_EXECUTOR binding');
+      if (!isExecutor(binding))
+        throw new Error(
+          'ACTIONS_EXECUTOR_MODE is service but there is no ACTIONS_EXECUTOR binding',
+        );
       return binding;
     }
     const stub = this.ctx.exports.StubActionsExecutor;

@@ -155,7 +155,7 @@ const RunRecordSchema = z.object({
       z.object({ kind: z.enum(['stalk', 'dispatch', 'schedule']) }),
       z.object({
         kind: z.literal('preland'),
-        pushedBy: z.enum(['person', 'agent-session', 'deploy-token']),
+        pushedBy: z.enum(['maintainer', 'collaborator', 'agent-session', 'deploy-token']),
       }),
     ]),
     refused: z.string().nullable(),
@@ -175,7 +175,9 @@ export class RunStore {
 
   constructor(sql: SqlStorage) {
     this.#sql = sql;
-    sql.exec('CREATE TABLE IF NOT EXISTS run (id INTEGER PRIMARY KEY CHECK (id = 1), json TEXT NOT NULL)');
+    sql.exec(
+      'CREATE TABLE IF NOT EXISTS run (id INTEGER PRIMARY KEY CHECK (id = 1), json TEXT NOT NULL)',
+    );
     sql.exec(`CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY, ord INTEGER NOT NULL, key TEXT NOT NULL, name TEXT NOT NULL,
       matrix_json TEXT NOT NULL, needs_json TEXT NOT NULL, condition TEXT NOT NULL, image TEXT,

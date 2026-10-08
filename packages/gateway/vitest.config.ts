@@ -34,6 +34,8 @@ export default defineConfig({
         bindings: {
           ADMIN_TOKEN: 'test-admin-token-0123456789abcdef0123456789',
           RUN_TOKEN_SECRET: 'test-run-token-secret-0123456789abcdef0123',
+          // 32 bytes, base64: the Actions secrets key for tests only.
+          ACTIONS_SECRETS_KEY: 'dGVzdC1hY3Rpb25zLXNlY3JldHMta2V5LTMyYnl0ZXM=',
           LOG_LEVEL: 'error',
           TEST_MIGRATIONS: identityMigrations,
           FORGE_MIGRATIONS: registryMigrations,

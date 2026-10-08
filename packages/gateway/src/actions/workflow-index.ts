@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { GatewayError } from '../errors';
-import type { WorkflowFile } from './workflow-file';
+import type { WorkflowFile, WorkflowLimits } from './workflow-file';
 import { readWorkflowFile } from './workflow-file';
 
 export const WORKFLOWS_DIR = '.github/workflows';
@@ -26,7 +26,7 @@ export type IndexedWorkflow = {
 export async function readWorkflows(
   explorer: RepoExplorer,
   sha: string,
-  limits: { readonly maxMatrixLegs: number },
+  limits: WorkflowLimits,
 ): Promise<IndexedWorkflow[]> {
   const listing = await explorer.tree(sha, WORKFLOWS_DIR).catch((error: unknown) => {
     if (error instanceof GatewayError && error.status === 404) return null;
@@ -120,7 +120,11 @@ function summaryOf(
     state: file.problems.length === 0 ? 'active' : 'invalid',
     triggers: file.triggers,
     unsupportedEvents: file.unsupportedEvents,
-    jobs: file.jobs.map((job) => ({ key: job.key, name: job.nameTemplate ?? job.key, needs: job.needs })),
+    jobs: file.jobs.map((job) => ({
+      key: job.key,
+      name: job.nameTemplate ?? job.key,
+      needs: job.needs,
+    })),
     problems: file.problems,
     compatibility: file.compatibility,
     sha: at.sha,

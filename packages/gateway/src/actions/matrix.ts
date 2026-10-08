@@ -17,7 +17,8 @@ export type MatrixPlan =
 /** The legs of `matrix` (the plain value under `strategy`), at most `maxLegs`. */
 export function planMatrix(matrix: PlainValue | undefined, maxLegs: number): MatrixPlan {
   if (matrix === undefined || matrix === null) return { kind: 'none' };
-  if (!isPlainObject(matrix)) return { kind: 'invalid', reason: 'a matrix from an expression is not supported yet' };
+  if (!isPlainObject(matrix))
+    return { kind: 'invalid', reason: 'a matrix from an expression is not supported yet' };
   const axes: [string, MatrixScalar[]][] = [];
   for (const [key, values] of Object.entries(matrix)) {
     if (key === 'include' || key === 'exclude') continue;
@@ -35,13 +36,17 @@ export function planMatrix(matrix: PlainValue | undefined, maxLegs: number): Mat
   const legs = applyInclude(kept, include, new Set(axes.map(([key]) => key)));
   if (legs.length === 0) return { kind: 'invalid', reason: 'the matrix has no legs' };
   if (legs.length > maxLegs)
-    return { kind: 'invalid', reason: `the matrix has ${legs.length} legs; at most ${maxLegs} run` };
+    return {
+      kind: 'invalid',
+      reason: `the matrix has ${legs.length} legs; at most ${maxLegs} run`,
+    };
   return { kind: 'legs', legs };
 }
 
 function cross(axes: readonly [string, readonly MatrixScalar[]][]): MatrixLeg[] {
   return axes.reduce<MatrixLeg[]>(
-    (legs, [key, values]) => legs.flatMap((leg) => values.map((value) => ({ ...leg, [key]: value }))),
+    (legs, [key, values]) =>
+      legs.flatMap((leg) => values.map((value) => ({ ...leg, [key]: value }))),
     [{}],
   );
 }
@@ -79,7 +84,9 @@ function entriesOf(value: PlainValue | undefined): MatrixLeg[] | null {
   const entries: MatrixLeg[] = [];
   for (const item of value) {
     if (!isPlainObject(item)) return null;
-    const scalars = Object.entries(item).filter((pair): pair is [string, MatrixScalar] => isScalar(pair[1]));
+    const scalars = Object.entries(item).filter((pair): pair is [string, MatrixScalar] =>
+      isScalar(pair[1]),
+    );
     if (scalars.length !== Object.keys(item).length) return null;
     entries.push(Object.fromEntries(scalars));
   }

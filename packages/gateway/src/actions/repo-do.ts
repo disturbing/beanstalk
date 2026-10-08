@@ -10,11 +10,7 @@
  */
 import { DurableObject } from 'cloudflare:workers';
 
-import type {
-  ActionsEvent,
-  RunSummary,
-  WorkflowTrigger,
-} from '@beanstalk/shared-race/actions';
+import type { ActionsEvent, RunSummary, WorkflowTrigger } from '@beanstalk/shared-race/actions';
 import { ActionsRunId } from '@beanstalk/shared-race/actions';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import { z } from 'zod';
@@ -55,7 +51,12 @@ export type DispatchRequest = {
 };
 
 const PendingRow = z.object({ seq: z.number(), sha: z.string(), beans_json: z.string() });
-const ScheduleRow = z.object({ path: z.string(), cron: z.string(), next_ms: z.number(), last_ms: z.number().nullable() });
+const ScheduleRow = z.object({
+  path: z.string(),
+  cron: z.string(),
+  next_ms: z.number(),
+  last_ms: z.number().nullable(),
+});
 
 export class ActionsRepoDO extends DurableObject<Env> {
   readonly #sql: SqlStorage;
@@ -93,17 +94,34 @@ export class ActionsRepoDO extends DurableObject<Env> {
     const indexed = await indexedSource(this.env.FORGE, request.repoId, request.workflowPath);
     if (summary === undefined || indexed === null)
       return invalid('not_found', 404, `no workflow ${request.workflowPath} on the stalk`);
-    if (summary.state !== 'active') return invalid('invalid_state', 409, `${request.workflowPath} is not valid`);
+    if (summary.state !== 'active')
+      return invalid('invalid_state', 409, `${request.workflowPath} is not valid`);
     const trigger = summary.triggers.find((candidate) => candidate.kind === 'workflow_dispatch');
     if (trigger?.kind !== 'workflow_dispatch')
-      return invalid('invalid_request', 400, `${request.workflowPath} has no workflow_dispatch trigger`);
+      return invalid(
+        'invalid_request',
+        400,
+        `${request.workflowPath} has no workflow_dispatch trigger`,
+      );
     const inputs = checkDispatchInputs(trigger.inputs, request.inputs);
     if (!inputs.ok) return invalid('invalid_request', 400, inputs.error);
+    if ((await this.minutesLeft()) <= 0)
+      return invalid(
+        'over_limit',
+        429,
+        `this repository's ${this.#config.monthlyMinutes} Actions minutes for the month are used`,
+      );
     const run = await this.#createRun({
       facts,
       workflow: { path: request.workflowPath, source: indexed.source },
       event: 'workflow_dispatch',
-      payload: dispatchPayload({ repo: facts, publicUrl: this.#config.publicUrl, workflowPath: request.workflowPath, inputs: inputs.inputs, actor: request.actor }),
+      payload: dispatchPayload({
+        repo: facts,
+        publicUrl: this.#config.publicUrl,
+        workflowPath: request.workflowPath,
+        inputs: inputs.inputs,
+        actor: request.actor,
+      }),
       sha: indexed.sha,
       actor: request.actor,
       inputs: inputs.inputs,
@@ -127,14 +145,24 @@ export class ActionsRepoDO extends DurableObject<Env> {
   }
 
   /** The month's usage, for Settings and operators. */
-  async usage(): Promise<{ readonly month: string; readonly minutes: number; readonly limit: number }> {
-    return { month: monthOf(Date.now()), minutes: this.#usedMinutes(), limit: this.#config.monthlyMinutes };
+  async usage(): Promise<{
+    readonly month: string;
+    readonly minutes: number;
+    readonly limit: number;
+  }> {
+    return {
+      month: monthOf(Date.now()),
+      minutes: this.#usedMinutes(),
+      limit: this.#config.monthlyMinutes,
+    };
   }
 
   override async alarm(): Promise<void> {
     const failed = await this.#drainPending();
     await this.#fireSchedules(Date.now());
-    const next = this.#sql.exec<{ next: number | null }>('SELECT MIN(next_ms) AS next FROM schedules').one().next;
+    const next = this.#sql
+      .exec<{ next: number | null }>('SELECT MIN(next_ms) AS next FROM schedules')
+      .one().next;
     const times = [...(next === null ? [] : [next]), ...(failed ? [Date.now() + RETRY_MS] : [])];
     if (times.length > 0) await this.ctx.storage.setAlarm(Math.min(...times));
   }
@@ -160,12 +188,19 @@ export class ActionsRepoDO extends DurableObject<Env> {
 
   async #onStalk(sha: string, beans: readonly string[]): Promise<void> {
     const repoId = this.#recall('repo_id');
-    if (repoId === null || this.#sql.exec('SELECT 1 FROM handled WHERE sha = ?', sha).toArray().length > 0) return;
+    if (
+      repoId === null ||
+      this.#sql.exec('SELECT 1 FROM handled WHERE sha = ?', sha).toArray().length > 0
+    )
+      return;
     const record = await d1Registry(this.env.FORGE).byId(repoId);
     if (record === null) return;
     const facts = factsOf(record);
     const explorer = repoExplorer(this.env.REPOS, record.artifacts_repo);
-    const workflows = await readWorkflows(explorer, sha, { maxMatrixLegs: this.#config.maxMatrixLegs });
+    const workflows = await readWorkflows(explorer, sha, {
+      maxMatrixLegs: this.#config.maxMatrixLegs,
+      maxTimeoutMinutes: this.#config.jobTimeoutMinutes,
+    });
     await writeIndex(this.env.FORGE, repoId, workflows);
     this.#syncSchedules(workflows, Date.now());
     const before = this.#recall('stalk_sha');
@@ -174,7 +209,9 @@ export class ActionsRepoDO extends DurableObject<Env> {
     const firing = workflows.filter(
       (workflow) =>
         workflow.summary.state === 'active' &&
-        workflow.file.triggers.some((trigger) => isPushFiring(trigger, { defaultBranch: facts.defaultBranch, changedPaths })),
+        workflow.file.triggers.some((trigger) =>
+          isPushFiring(trigger, { defaultBranch: facts.defaultBranch, changedPaths }),
+        ),
     );
     for (const workflow of firing) {
       // oxlint-disable-next-line no-await-in-loop -- run numbers are given in order
@@ -182,7 +219,14 @@ export class ActionsRepoDO extends DurableObject<Env> {
         facts,
         workflow: { path: workflow.summary.path, source: workflow.source },
         event: 'push',
-        payload: pushPayload({ repo: facts, publicUrl: this.#config.publicUrl, before, after: sha, actor, beans }),
+        payload: pushPayload({
+          repo: facts,
+          publicUrl: this.#config.publicUrl,
+          before,
+          after: sha,
+          actor,
+          beans,
+        }),
         sha,
         actor,
         inputs: {},
@@ -191,14 +235,21 @@ export class ActionsRepoDO extends DurableObject<Env> {
     }
     this.#remember('stalk_sha', sha);
     this.#sql.exec('INSERT OR IGNORE INTO handled (sha) VALUES (?)', sha);
-    this.#log.info('stalk indexed', { repoId, sha, workflows: workflows.length, runs: firing.length });
+    this.#log.info('stalk indexed', {
+      repoId,
+      sha,
+      workflows: workflows.length,
+      runs: firing.length,
+    });
   }
 
   /** Who moved the stalk: the author of the newest bean it carries, as the index knows it. */
   async #pusher(repoId: string, beans: readonly string[]): Promise<string> {
     const bean = beans.at(-1);
     if (bean === undefined) return 'beanstalk';
-    const row = await this.env.FORGE.prepare('SELECT actor FROM beans WHERE repo_id = ? AND bean = ?')
+    const row = await this.env.FORGE.prepare(
+      'SELECT actor FROM beans WHERE repo_id = ? AND bean = ?',
+    )
       .bind(repoId, bean)
       .first<{ actor: string | null }>();
     return row?.actor ?? 'beanstalk';
@@ -212,7 +263,9 @@ export class ActionsRepoDO extends DurableObject<Env> {
         ? []
         : workflow.file.triggers.flatMap((trigger) =>
             trigger.kind === 'schedule'
-              ? trigger.crons.filter((cron) => parseCron(cron) !== null).map((cron) => ({ path: workflow.summary.path, cron }))
+              ? trigger.crons
+                  .filter((cron) => parseCron(cron) !== null)
+                  .map((cron) => ({ path: workflow.summary.path, cron }))
               : [],
           ),
     );
@@ -221,10 +274,16 @@ export class ActionsRepoDO extends DurableObject<Env> {
       if (!wanted.some((schedule) => schedule.path === old.path && schedule.cron === old.cron))
         this.#sql.exec('DELETE FROM schedules WHERE path = ? AND cron = ?', old.path, old.cron);
     for (const schedule of wanted) {
-      if (existing.some((old) => old.path === schedule.path && old.cron === schedule.cron)) continue;
+      if (existing.some((old) => old.path === schedule.path && old.cron === schedule.cron))
+        continue;
       const next = nextAllowed(schedule.cron, nowMs, null);
       if (next !== null)
-        this.#sql.exec('INSERT INTO schedules (path, cron, next_ms, last_ms) VALUES (?, ?, ?, NULL)', schedule.path, schedule.cron, next);
+        this.#sql.exec(
+          'INSERT INTO schedules (path, cron, next_ms, last_ms) VALUES (?, ?, ?, NULL)',
+          schedule.path,
+          schedule.cron,
+          next,
+        );
     }
   }
 
@@ -250,7 +309,11 @@ export class ActionsRepoDO extends DurableObject<Env> {
         facts,
         workflow: { path: schedule.path, source: indexed.source },
         event: 'schedule',
-        payload: schedulePayload({ repo: facts, publicUrl: this.#config.publicUrl, cron: schedule.cron }),
+        payload: schedulePayload({
+          repo: facts,
+          publicUrl: this.#config.publicUrl,
+          cron: schedule.cron,
+        }),
         sha: indexed.sha,
         actor: 'schedule',
         inputs: {},
@@ -291,7 +354,10 @@ export class ActionsRepoDO extends DurableObject<Env> {
       actor: input.actor,
       inputs: input.inputs,
       origin: input.origin,
-      refused: left > 0 ? null : `this repository's ${this.#config.monthlyMinutes} Actions minutes for the month are spent`,
+      refused:
+        left > 0
+          ? null
+          : `this repository's ${this.#config.monthlyMinutes} Actions minutes for the month are spent`,
       createdMs: Date.now(),
     };
     return this.env.ACTIONS_RUNS.getByName(request.runId).start(request);
@@ -328,14 +394,18 @@ export class ActionsRepoDO extends DurableObject<Env> {
   }
 
   #recall(key: string): string | null {
-    const row = this.#sql.exec<{ value: string }>('SELECT value FROM kv WHERE key = ?', key).toArray()[0];
+    const row = this.#sql
+      .exec<{ value: string }>('SELECT value FROM kv WHERE key = ?', key)
+      .toArray()[0];
     return row?.value ?? null;
   }
 }
 
 function migrate(sql: SqlStorage): void {
   sql.exec('CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-  sql.exec('CREATE TABLE IF NOT EXISTS pending (seq INTEGER PRIMARY KEY, sha TEXT NOT NULL, beans_json TEXT NOT NULL)');
+  sql.exec(
+    'CREATE TABLE IF NOT EXISTS pending (seq INTEGER PRIMARY KEY, sha TEXT NOT NULL, beans_json TEXT NOT NULL)',
+  );
   sql.exec('CREATE TABLE IF NOT EXISTS handled (sha TEXT PRIMARY KEY)');
   sql.exec(`CREATE TABLE IF NOT EXISTS schedules (path TEXT NOT NULL, cron TEXT NOT NULL,
     next_ms INTEGER NOT NULL, last_ms INTEGER, PRIMARY KEY (path, cron))`);
@@ -371,7 +441,11 @@ function isPushFiring(
 }
 
 /** Paths changed between two stalk heads; null when unknown (too many, or unreadable). */
-async function changedBetween(explorer: RepoExplorer, before: string, after: string): Promise<string[] | null> {
+async function changedBetween(
+  explorer: RepoExplorer,
+  before: string,
+  after: string,
+): Promise<string[] | null> {
   try {
     const diff = await explorer.diff(before, after, null);
     return diff.truncated ? null : diff.files.map((file) => file.path);
@@ -384,7 +458,8 @@ async function changedBetween(explorer: RepoExplorer, before: string, after: str
 function nextAllowed(cron: string, nowMs: number, lastMs: number | null): number | null {
   const schedule = parseCron(cron);
   if (schedule === null) return null;
-  const earliest = lastMs === null ? nowMs : Math.max(nowMs, lastMs + MIN_SCHEDULE_INTERVAL_MS - 60_000);
+  const earliest =
+    lastMs === null ? nowMs : Math.max(nowMs, lastMs + MIN_SCHEDULE_INTERVAL_MS - 60_000);
   return nextFireMs(schedule, earliest);
 }
 

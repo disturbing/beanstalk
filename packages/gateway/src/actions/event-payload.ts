@@ -51,7 +51,10 @@ export function pushPayload(input: {
     forced: false,
     base_ref: null,
     compare: `${input.publicUrl}/${input.repo.ownerHandle}/${input.repo.name}/compare/${input.before ?? ''}...${input.after}`,
-    head_commit: { id: input.after, message: input.beans.length > 0 ? `Beans: ${input.beans.join(', ')}` : '' },
+    head_commit: {
+      id: input.after,
+      message: input.beans.length > 0 ? `Beans: ${input.beans.join(', ')}` : '',
+    },
     commits: [],
     pusher: { name: input.actor },
     repository: repositoryPayload(input.repo, input.publicUrl),

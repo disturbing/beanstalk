@@ -1,6 +1,6 @@
 /**
  * Job logs in R2 (doc 25 §3.3, D9): each executor batch is one gzip chunk of NDJSON lines at
- * `<owner id>/<repo id>/<run>/<job>/<seq, 10 digits>.ndjson.gz`. The bucket's lifecycle rule
+ * `<owner id>/<repo id>/<run>/<job>/<seq, 10 digits>.log.gz`. The bucket's lifecycle rule
  * deletes them after 30 days. Nothing of a log is kept in a Durable Object.
  */
 import type { LogChunkPage, LogLine } from '@beanstalk/shared-race/actions';
@@ -32,9 +32,13 @@ export async function writeLogChunk(
   const gzipped = await new Response(
     new Blob([text]).stream().pipeThrough(new CompressionStream('gzip')),
   ).arrayBuffer();
-  await bucket.put(`${jobLogPrefix(where)}${String(chunk.seq).padStart(SEQ_DIGITS, '0')}.ndjson.gz`, gzipped, {
-    httpMetadata: { contentType: 'application/x-ndjson', contentEncoding: 'gzip' },
-  });
+  await bucket.put(
+    `${jobLogPrefix(where)}${String(chunk.seq).padStart(SEQ_DIGITS, '0')}.log.gz`,
+    gzipped,
+    {
+      httpMetadata: { contentType: 'application/x-ndjson', contentEncoding: 'gzip' },
+    },
+  );
 }
 
 /** Chunks after `after`, in order, as one page. */
@@ -46,7 +50,7 @@ export async function readLogChunks(
   const prefix = jobLogPrefix(where);
   const listed = await bucket.list({
     prefix,
-    startAfter: `${prefix}${String(input.after).padStart(SEQ_DIGITS, '0')}.ndjson.gz`,
+    startAfter: `${prefix}${String(input.after).padStart(SEQ_DIGITS, '0')}.log.gz`,
     limit: CHUNKS_PER_PAGE,
   });
   const chunks = await Promise.all(

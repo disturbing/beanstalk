@@ -5,8 +5,9 @@
  * are write-only: listing returns names; only a running job that names a secret reads it.
  *
  * D4 (`secretsForRun`): runs on the stalk, by dispatch and by schedule get the secrets their
- * jobs name; a pre-land run of a bean pushed by an agent session or a deploy token gets none,
- * except the secrets whose owner set `prelandAllowed`.
+ * jobs name; a pre-land run of a bean pushed by an agent session, a deploy token or a
+ * collaborator who is not a maintainer gets none, except the secrets whose "available to
+ * pre-land checks" toggle (`prelandAllowed`, default off) is on.
  */
 import type { SecretSummary } from '@beanstalk/shared-race/actions';
 import { SecretName } from '@beanstalk/shared-race/actions';
@@ -21,7 +22,11 @@ const IV_BYTES = 12;
 /** Where a run comes from, as far as secrets are concerned. */
 export type RunOrigin =
   | { readonly kind: 'stalk' | 'dispatch' | 'schedule' }
-  | { readonly kind: 'preland'; readonly pushedBy: 'person' | 'agent-session' | 'deploy-token' };
+  | {
+      readonly kind: 'preland';
+      /** A maintainer's own bean gets every secret; anyone else's only the toggled ones. */
+      readonly pushedBy: 'maintainer' | 'collaborator' | 'agent-session' | 'deploy-token';
+    };
 
 /** The secrets a job may read: those it names that exist, filtered by D4. */
 export function secretsForRun(
@@ -33,7 +38,8 @@ export function secretsForRun(
   return stored
     .filter((secret) => wanted.has(secret.name))
     .filter(
-      (secret) => origin.kind !== 'preland' || origin.pushedBy === 'person' || secret.prelandAllowed,
+      (secret) =>
+        origin.kind !== 'preland' || origin.pushedBy === 'maintainer' || secret.prelandAllowed,
     )
     .map((secret) => secret.name)
     .toSorted();
@@ -87,7 +93,16 @@ export function d1Secrets(db: D1Database, keyBase64: string | null): SecretsStor
              key_version = excluded.key_version, preland_allowed = excluded.preland_allowed,
              updated_at = excluded.updated_at, updated_by = excluded.updated_by`,
         )
-        .bind(repoId, name, sealed.ciphertext, sealed.iv, KEY_VERSION, secret.prelandAllowed ? 1 : 0, by.at, by.actor)
+        .bind(
+          repoId,
+          name,
+          sealed.ciphertext,
+          sealed.iv,
+          KEY_VERSION,
+          secret.prelandAllowed ? 1 : 0,
+          by.at,
+          by.actor,
+        )
         .run();
       return { name, prelandAllowed: secret.prelandAllowed, updatedAt: by.at, updatedBy: by.actor };
     },
@@ -136,7 +151,7 @@ function summaryOf(row: z.infer<typeof Row>): SecretSummary {
 }
 
 function aad(repoId: string, name: string): Uint8Array<ArrayBuffer> {
-  return new TextEncoder().encode(`beanstalk-actions-secret\0${repoId}\0${name}`);
+  return encodeText(`beanstalk-actions-secret\0${repoId}\0${name}`);
 }
 
 async function importKey(keyBase64: string): Promise<CryptoKey> {
@@ -155,7 +170,7 @@ async function seal(
   const ciphertext = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, additionalData },
     key,
-    new TextEncoder().encode(value),
+    encodeText(value),
   );
   return { ciphertext: base64UrlEncode(new Uint8Array(ciphertext)), iv: base64UrlEncode(iv) };
 }
@@ -168,14 +183,22 @@ async function open(
   const iv = base64UrlDecode(sealed.iv);
   const ciphertext = base64UrlDecode(sealed.ciphertext);
   if (iv === null || ciphertext === null) throw new Error('a stored secret is malformed');
-  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv, additionalData }, key, ciphertext);
+  const plain = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv, additionalData },
+    key,
+    ciphertext,
+  );
   return new TextDecoder().decode(plain);
 }
 
 function decodeBase64(text: string): Uint8Array<ArrayBuffer> | null {
   try {
-    return Uint8Array.from(atob(text.trim()), (char) => char.charCodeAt(0));
+    return new Uint8Array(Array.from(atob(text.trim()), (char) => char.charCodeAt(0)));
   } catch {
     return null;
   }
+}
+
+function encodeText(text: string): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(new TextEncoder().encode(text));
 }
