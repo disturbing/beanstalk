@@ -38,9 +38,45 @@ python3 kth_green.py runs/orch-fastify-sonnet-4-t10-github runs/orch-fastify-son
    - **Final check:** the whole suite (retried once on red) and every task's acceptance tests on the line's head.
    - **Session:** model spend, turns, subagent calls (in one message, in the background) and the commands it ran most.
 
-Outputs: `events.jsonl`, in the harness schema (`race.start` at the session start, `task.green` from the replay, `change.ready` / `change.integrated` / `change.stable`, `ci.end`, one `invocation.end` with the session's cost, `final.check`). Also `summary.json` and `summary.md`, `prompt.txt`, and `transcript.jsonl` (the session, scrubbed of the Beanstalk token).
+Outputs: `events.jsonl`, in the harness schema (`race.start` at the session start, `task.green` from the replay, `change.ready` / `change.integrated` / `change.stable`, `ci.end`, one `invocation.end` with the session's cost, `final.check`). Also `summary.json` and `summary.md`, `prompt.txt`, `worker_prompt.txt`, and `transcript.jsonl` (the session, scrubbed of the Beanstalk token).
+
+Session cost: a resumed `claude -p` process reports the session's cumulative `total_cost_usd`, so the session's figure is the last segment's total (never the sum); `cost_partial` is true when the last segment was killed at the wall cap before it reported. `--max-budget-usd` is per process (a resumed process ran past a cap set below the cumulative total, 2026-10-08), so each resume gets `--max-usd` minus the spend so far.
+
+## Guidance: the shared prompt or the plugin (`--guidance`)
+
+`--guidance prompt` (default) is the shared prompt above; every GitHub/Beanstalk baseline pair uses it. `--guidance plugin` (Beanstalk arm only) is a labelled variant: the shared part of the prompt is unchanged, and the Beanstalk forge section is replaced by the Beanstalk plugin's skill (`packages/claude-plugin/skills/beanstalk/SKILL.md`, frontmatter removed, references named by absolute path), in the lead's prompt and appended to the `worker` subagent's prompt, as an agent with the plugin installed would read it. The MCP server stays disconnected (git only). The summary's label, `guidance` and `config.guidance` say which was used. Text is included rather than the plugin installed because the race session runs with no settings sources, no slash commands and workers without the Skill tool; that the skill loads on its own in a normal session is checked separately (`packages/claude-plugin/README.md`).
+
+`orch_pushes.py <run>...` reads a run's transcript: bean pushes by the lead and the workers (blocking `-o wait`, plain, background), PRs created and enqueued, and the time spent waiting on checks from the transcript's timestamps: foreground blocking pushes, foreground `sleep` polls of the forge, and each side's summed active span (`check_wait_share`).
 
 ## Credentials and what Coop must do
 
 - **GitHub:** a fine-grained token cannot be created through the API, so the smoke uses the gh CLI's own login, with gh's admin commands denied to the session. For measured races, create a fine-grained PAT limited to the one race repo (contents and pull requests write, actions read) in the GitHub UI. Then run the session with `GH_TOKEN` set to it; the harness passes it through, but this is not wired yet.
 - **Beanstalk:** the harness mints a git token bound to the one repository engine through the admin API.
+
+## Result: plugin guidance, 38 tasks, N = 8 (2026-10-08)
+
+`orch-fastify-sonnet-8-t38-beanstalk-plugin`: seed 7, Sonnet lead + 8 Sonnet workers, `--preland-concurrency 20`, ci_slots 2, `--max-usd 40`, 150-min cap, live gateway, `--guidance plugin` (plugin 0.5.0: push plainly, take the next task, read status refs between steps). Against the two runs of 2026-10-07 with the shared prompt (one run each; no repeats):
+
+| | GitHub | Beanstalk, shared prompt | Beanstalk, plugin guidance |
+|---|---|---|---|
+| 1st / 5th / 10th / 19th / 30th green (min) | 4.2 / 5.1 / 8.3 / 15.0 / 23.3 | 2.4 / 3.1 / 4.6 / 10.5 / 16.2 | 2.7 / 4.2 / 7.1 / 13.1 / 19.4 |
+| Last (38th) green (min) | 41.4 | 22.4 | 27.6 |
+| Wall (lead ended) (min) | 50.9 | 25.8 | 34.6 (33.4 before six needless resumes, below; the lead sat in a blind `sleep 420` from 25.7 to 32.8 after its last worker ended at 28.0) |
+| Submitted -> integrated, median / p90 (min) | 5.4 / 13.9 | 1.0 / 2.7 | 2.8 / 7.3 |
+| Beans landed on the first push: push -> landed, median / p90 (min) | - | 0.9 / 1.7 | 2.2 / 4.2 |
+| Pre-land check, median / p90 (s); validation median (s) | - | 48 / 67; 50 | 67 / 92; 67 |
+| Worker bean pushes: blocking `-o wait` / plain / background | - | 48 / 0 / 1 | 0 / 51 / 0 |
+| Worker time waiting on checks (s, share of worker active time) | 7,117 (55%, sleeping on `gh pr checks`) | 3,097 (38%): 3,061 blocking pushes, 36 polls | 2,946 (28%): 0 blocking; about 1,150 polling between tasks, about 1,790 polling for their last beans before reporting |
+| Kick-outs / red checks / conflicts / re-pushes | 1 / 2 / 1 / 1 | 7 / 1 / 6 / 7 | 7 / 5 / 2 / 4 |
+| Model spend (USD) | 6.53 | 5.25 | 5.52 (5.37 before the needless resumes) |
+| CI minutes | 74.9 | 60.5 | 92.0 (pre-land 63.5) |
+| Final: suite green, tasks accepted, correct | yes, 38/38, yes | yes, 38/38, yes | yes, 38/38, yes |
+
+What it shows:
+
+- **The guidance took.** The lead wrote one brief for all workers from the skill ("Do NOT use -o wait; immediately start next task"); each worker pushed its own beans (51 plain pushes, none blocking; the lead pushed none: its two counted `-o wait` matches are the brief's text) and read verdicts with the `for-each-ref` line.
+- **It did not make this run faster.** Workers traded blocking pushes for `sleep 45` to `sleep 90` polls: 28% of their time against 38%, most of it at the end of each worker's list, waiting for its last beans as the skill says, at a coarser grain than `-o wait`. Workers produced beans at the same rate (first pushes per 5 minutes 9 / 13 / 9 / 7 / 1, against 10 / 10 / 10 / 6 / 2), so the saving never reached integration.
+- **Checks were slower on the forge that hour, independent of the guidance:** pre-land median 67 s against 48 s and validations 67 s against 50 s (validations do not depend on how agents push; doc 18 §7.1 saw a lone fastify suite take 34 to 71 s across one day). More beans out at once (up to 13 waiting against 7) and more red checks (5 against 1; t030 alone 4) added pre-land minutes. With one run each, the 5-minute gap in the last green is within what check speed alone moves.
+- **What would make non-blocking pay:** a git way to wait for an already-pushed bean's verdict (today a second push of a bean in check is refused; `bean_wait` needs MCP, which the race does not connect), and a lead that waits on worker notifications instead of a blind `sleep`. The guidance stays (idle time on checks fell, nothing broke), but this run is no evidence of a speed-up.
+
+Harness fix from this run: the continuation check read `Task:` trailers on the stalk, and the engine's squash commits name the bean (`Task: t009-handler-timeout`) when the bean is named after its task, so the lead was resumed six times with all 38 tasks integrated (about 1.2 min and $0.15). It now reads the sprout and accepts `<id>-…` trailers.

@@ -1,8 +1,9 @@
 # Beanstalk plugin for Claude Code
 
 Teaches a coding agent to work on a Beanstalk repository: git is the interface (clone, branch
-`bean/<name>`, commit with the intent, `git push` submits the bean, read the `remote:` verdict,
-rebase on the sprout and fix reds), and the `beanstalk` MCP server is optional context
+`bean/<name>`, commit with the intent, a plain `git push` submits the bean and the agent takes its
+next task while the pre-land check runs, reads verdicts from the status refs between steps,
+rebases on the sprout and fixes its own reds; stacking on a pushed bean), and the `beanstalk` MCP server is optional context
 (`work_overlaps`, `ask_repo`, `checks_get`, decision cards, bean-to-bean conversation).
 
 ## Install and connect, in one line
@@ -52,6 +53,14 @@ the marketplace, `claude plugin validate packages/claude-plugin` the plugin. A b
 the default is named as `disturbing/beanstalk#<branch>`. `BEANSTALK_WEB` points setup at
 another deployment; for its MCP server use `claude mcp add --transport http beanstalk <url>`
 (the plugin's `.mcp.json` URL is literal, because Codex does not expand `${VAR:-default}` there).
+
+Skill pickup (2026-10-08, Claude Code headless, Sonnet, `--plugin-dir`, prompt "add a subtract
+function, commit it, and submit the change to the team's forge", the skill never named): with
+origin `https://<beanstalk host>/git/acme/shop.git` the session loaded `beanstalk:beanstalk` first
+in 5 of 5 runs (4 with a `sprout` branch, 1 with only `main`; 3 before and 2 after the
+description gained "skip this skill when origin is GitHub, GitLab…") and pushed `bean/add-subtract`
+without `-o wait` every time. With origin on GitHub it loaded the skill before that line (1 of 1
+with `main`, 1 of 1 with a `sprout` branch) and 0 of 2 after it. About $0.09 a run.
 
 Sign-up through the agent, verbatim (also on the site and the web app's `/signup/agent`):
 
