@@ -1,0 +1,92 @@
+[   0.61] ##[spike] start 2026-10-08T04:12:16.411Z bash -lc set -e && cd /work/job-1791432736411-8 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432736411-8.meta/event.json' '--secret-file' '/work/job-1791432736411-8.meta/secrets.env' '--action-offline-mode' '--artifact-server-path=/work/artifacts'
+[   0.63] time="2026-10-08T04:12:16Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   0.64] time="2026-10-08T04:12:16Z" level=info msg="Start server on http://10.0.0.1:34567"
+[   0.64] [cache-artifacts/produce] ⭐ Run Set up job
+[   0.68] [cache-artifacts/produce]   ✅  Success - Set up job
+[   0.68] [cache-artifacts/produce]   ☁  git clone 'https://github.com/actions/cache' # ref=v4
+[   0.82] [cache-artifacts/produce]   ☁  git clone 'https://github.com/actions/upload-artifact' # ref=v4
+[   0.96] [cache-artifacts/produce] �� Run Main mkdir -p dep-cache out && date > dep-cache/stamp && echo hello > out/hello.txt
+[   0.98] [cache-artifacts/produce]   ✅  Success - Main mkdir -p dep-cache out && date > dep-cache/stamp && echo hello > out/hello.txt [12.621031ms]
+[   0.98] [cache-artifacts/produce] ⭐ Run Main cache
+[   1.32] [cache-artifacts/produce]   | (node:7319) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   1.32] [cache-artifacts/produce]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   1.35] [cache-artifacts/produce]   | Cache not found for input keys: spike-Linux-v1
+[   1.36] [cache-artifacts/produce]   ✅  Success - Main cache [383.486707ms]
+[   1.36] [cache-artifacts/produce] ⭐ Run Main upload
+[   1.86] [cache-artifacts/produce]   | (node:7332) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   1.86] [cache-artifacts/produce]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   1.86] [cache-artifacts/produce]   | With the provided path, there will be 1 file uploaded
+[   1.86] [cache-artifacts/produce]   | Artifact name is valid!
+[   1.86] [cache-artifacts/produce]   | Root directory input is valid!
+[   1.89] [cache-artifacts/produce]   | Beginning upload of artifact content to blob storage
+[   1.90] [cache-artifacts/produce]   | (node:7332) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+[   1.91] [cache-artifacts/produce]   | Uploaded bytes 140
+[   1.92] [cache-artifacts/produce]   | Finished uploading artifact content to blob storage!
+[   1.92] [cache-artifacts/produce]   | SHA256 digest of uploaded artifact zip is c7b01b7164f2ff2084bf203b9860cdc8c76ea376d0c09261a9a8eb3aee76d54e
+[   1.92] [cache-artifacts/produce]   | Finalizing artifact upload
+[   1.92] [cache-artifacts/produce]   | Artifact hello.zip successfully finalized. Artifact ID 1335831723
+[   1.92] [cache-artifacts/produce]   | Artifact hello has been successfully uploaded! Final size is 140 bytes. Artifact ID is 1335831723
+[   1.93] [cache-artifacts/produce]   | Artifact download URL: https://github.com/spike/actions-spike/actions/runs/1/artifacts/1335831723
+[   1.94] [cache-artifacts/produce]   ✅  Success - Main upload [581.609166ms]
+[   1.94] [cache-artifacts/produce]   ⚙  ::set-output:: artifact-digest=c7b01b7164f2ff2084bf203b9860cdc8c76ea376d0c09261a9a8eb3aee76d54e
+[   1.94] [cache-artifacts/produce]   ⚙  ::set-output:: artifact-url=https://github.com/spike/actions-spike/actions/runs/1/artifacts/1335831723
+[   1.94] [cache-artifacts/produce]   ⚙  ::set-output:: artifact-id=1335831723
+[   1.94] [cache-artifacts/produce] ⭐ Run Post cache
+[   2.09] [cache-artifacts/produce]   | (node:7344) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   2.09] [cache-artifacts/produce]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   2.11] [cache-artifacts/produce]   | [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /root/.cache/act/dc3f9b8527f48161/hostexecutor --files-from manifest.txt --use-compress-program zstdmt
+[   2.16] [cache-artifacts/produce]   | Cache Size: ~0 MB (256 B)
+[   2.16] [cache-artifacts/produce]   | Cache saved successfully
+[   2.16] [cache-artifacts/produce]   | Cache saved with key: spike-Linux-v1
+[   2.17] [cache-artifacts/produce]   ✅  Success - Post cache [226.116602ms]
+[   2.17] [cache-artifacts/produce] ⭐ Run Complete job
+[   2.17] [cache-artifacts/produce] Cleaning up container for job produce
+[   2.19] [cache-artifacts/produce]   ✅  Success - Complete job
+[   2.19] [cache-artifacts/produce] 🏁  Job succeeded
+[   2.19] [cache-artifacts/consume] ⭐ Run Set up job
+[   2.24] [cache-artifacts/consume]   ✅  Success - Set up job
+[   2.24] [cache-artifacts/consume]   ☁  git clone 'https://github.com/actions/cache' # ref=v4
+[   2.41] [cache-artifacts/consume]   ☁  git clone 'https://github.com/actions/download-artifact' # ref=v4
+[   2.58] [cache-artifacts/consume] ⭐ Run Main restore
+[   2.92] [cache-artifacts/consume]   | (node:7373) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   2.92] [cache-artifacts/consume]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   2.94] [cache-artifacts/consume]   ⚙  ***
+[   2.96] [cache-artifacts/consume]   | Cache Size: ~0 MB (256 B)
+[   2.97] [cache-artifacts/consume]   | [command]/usr/bin/tar -xf /root/.cache/act/730ef36d358b57d2/tmp/54a8e532-1f29-4132-8ab3-20cf5c7a1f7f/cache.tzst -P -C /root/.cache/act/730ef36d358b57d2/hostexecutor --use-compress-program unzstd
+[   2.97] [cache-artifacts/consume]   | Cache restored successfully
+[   3.04] [cache-artifacts/consume]   | Cache restored from key: spike-linux-v1
+[   3.05] [cache-artifacts/consume]   ✅  Success - Main restore [465.196637ms]
+[   3.05] [cache-artifacts/consume]   ⚙  ::set-output:: cache-hit=true
+[   3.05] [cache-artifacts/consume] �� Run Main echo "cache-hit=true"; cat dep-cache/stamp || true
+[   3.06] [cache-artifacts/consume]   | cache-hit=true
+[   3.09] [cache-artifacts/consume]   | Thu Oct  8 04:12:16 UTC 2026
+[   3.09] [cache-artifacts/consume]   ✅  Success - Main echo "cache-hit=true"; cat dep-cache/stamp || true [44.543178ms]
+[   3.10] [cache-artifacts/consume] ⭐ Run Main actions/download-artifact@v4
+[   3.56] [cache-artifacts/consume]   | Downloading single artifact
+[   3.57] [cache-artifacts/consume]   | (node:7393) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   3.57] [cache-artifacts/consume]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   3.59] [cache-artifacts/consume]   | Preparing to download the following artifacts:
+[   3.59] [cache-artifacts/consume]   | - hello (ID: 1335831723, Size: 4096, Expected Digest: undefined)
+[   3.60] [cache-artifacts/consume]   | Redirecting to blob download url: http://10.0.0.1:34567/twirp/github.actions.results.api.v1.ArtifactService/DownloadArtifact
+[   3.60] [cache-artifacts/consume]   | Starting download of artifact to: /root/.cache/act/730ef36d358b57d2/hostexecutor
+[   3.60] [cache-artifacts/consume]   | (node:7393) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+[   3.61] [cache-artifacts/consume]   | SHA256 digest of downloaded artifact is c7b01b7164f2ff2084bf203b9860cdc8c76ea376d0c09261a9a8eb3aee76d54e
+[   3.61] [cache-artifacts/consume]   | Artifact download completed successfully.
+[   3.61] [cache-artifacts/consume]   | Total of 1 artifact(s) downloaded
+[   3.61] [cache-artifacts/consume]   | Download artifact has finished successfully
+[   3.63] [cache-artifacts/consume]   ✅  Success - Main actions/download-artifact@v4 [530.567543ms]
+[   3.63] [cache-artifacts/consume]   ⚙  ::set-output:: download-path=/root/.cache/act/730ef36d358b57d2/hostexecutor
+[   3.63] [cache-artifacts/consume] ⭐ Run Main cat hello.txt
+[   3.64] [cache-artifacts/consume]   | hello
+[   3.64] [cache-artifacts/consume]   ✅  Success - Main cat hello.txt [8.503628ms]
+[   3.65] [cache-artifacts/consume] �� Run Post restore
+[   3.82] [cache-artifacts/consume]   | Cache hit occurred on the primary key spike-Linux-v1, not saving cache.
+[   3.82] [cache-artifacts/consume]   | (node:7407) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   3.82] [cache-artifacts/consume]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   3.83] [cache-artifacts/consume]   ✅  Success - Post restore [181.294285ms]
+[   3.83] [cache-artifacts/consume] ⭐ Run Complete job
+[   3.83] [cache-artifacts/consume] Cleaning up container for job consume
+[   3.84] [cache-artifacts/consume]   ✅  Success - Complete job
+[   3.84] [cache-artifacts/consume] 🏁  Job succeeded
+[   3.84] 
+[   3.84] ##[spike] exit=0 wall_ms=3243

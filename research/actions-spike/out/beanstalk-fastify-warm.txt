@@ -1,0 +1,118 @@
+[   0.98] ##[spike] start 2026-10-08T04:04:35.556Z bash -lc set -e && cd /work/job-1791432275555-2 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'pull_request' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432275555-2.meta/event.json' '--secret-file' '/work/job-1791432275555-2.meta/secrets.env' '--action-offline-mode'
+[   1.01] time="2026-10-08T04:04:35Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   1.01] [suite/suite] ⭐ Run Set up job
+[   1.06] [suite/suite]   ✅  Success - Set up job
+[   1.06] [suite/suite]   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+[   1.10] [suite/suite]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[   1.21] [suite/suite] ⭐ Run Main actions/checkout@v4
+[   1.31] [suite/suite]   ✅  Success - Main actions/checkout@v4 [98.311044ms]
+[   1.31] [suite/suite] ⭐ Run Main actions/checkout@v4
+[   1.65] [suite/suite]   ❓ add-matcher /root/.cache/act/273290c5af7795e0/act/actions/actions-checkout@v4/dist/problem-matcher.json
+[   1.65] [suite/suite]   | Syncing repository: beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[   1.66] [suite/suite]   ❓  ::group::Getting Git version info
+[   1.66] [suite/suite]   | Working directory is '/root/.cache/act/273290c5af7795e0/hostexecutor/fastify'
+[   1.66] [suite/suite]   | [command]/usr/bin/git version
+[   1.67] [suite/suite]   | git version 2.43.0
+[   1.67] [suite/suite]   ❓  ::endgroup::
+[   1.67] [suite/suite]   ⚙  ***
+[   1.68] [suite/suite]   | Temporarily overriding HOME='/root/.cache/act/273290c5af7795e0/tmp/dafcf90e-45fd-44b8-92dd-2a3e381351c7' before making global git config changes
+[   1.68] [suite/suite]   | Adding repository directory to the temporary git global config as a safe directory
+[   1.68] [suite/suite]   | [command]/usr/bin/git config --global --add safe.directory /root/.cache/act/273290c5af7795e0/hostexecutor/fastify
+[   1.69] [suite/suite]   ❓  ::group::Initializing the repository
+[   1.69] [suite/suite]   | [command]/usr/bin/git init /root/.cache/act/273290c5af7795e0/hostexecutor/fastify
+[   1.73] [suite/suite]   | hint: Using 'master' as the name for the initial branch. This default branch name
+[   1.73] [suite/suite]   | hint: is subject to change. To configure the initial branch name to use in all
+[   1.73] [suite/suite]   | hint: of your new repositories, which will suppress this warning, call:
+[   1.73] [suite/suite]   | hint: 
+[   1.73] [suite/suite]   | hint: 	git config --global init.defaultBranch <name>
+[   1.73] [suite/suite]   | hint: 
+[   1.73] [suite/suite]   | hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+[   1.73] [suite/suite]   | hint: 'development'. The just-created branch can be renamed via this command:
+[   1.73] [suite/suite]   | hint: 
+[   1.73] [suite/suite]   | hint: 	git branch -m <name>
+[   1.75] [suite/suite]   | Initialized empty Git repository in /root/.cache/act/273290c5af7795e0/hostexecutor/fastify/.git/
+[   1.75] [suite/suite]   | [command]/usr/bin/git remote add origin https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[   1.76] [suite/suite]   ❓  ::endgroup::
+[   1.76] [suite/suite]   ❓  ::group::Disabling automatic garbage collection
+[   1.76] [suite/suite]   | [command]/usr/bin/git config --local gc.auto 0
+[   1.77] [suite/suite]   ❓  ::endgroup::
+[   1.77] [suite/suite]   ❓  ::group::Setting up auth
+[   1.77] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[   1.77] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[   1.80] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader
+[   1.81] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader' && git config --local --unset-all 'http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader' || :"
+[   1.83] [suite/suite]   | [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[   1.84] [suite/suite]   | [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[   1.87] [suite/suite]   | [command]/usr/bin/git config --local http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader AUTHORIZATION: basic ***
+[   1.89] [suite/suite]   ❓  ::endgroup::
+[   1.89] [suite/suite]   ❓  ::group::Fetching the repository
+[   1.89] [suite/suite]   | [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[   4.54] [suite/suite]   | From https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[   4.54] [suite/suite]   |  * branch            810e3d548eeceb32c948a0fbfdd90d6d1e6098ce -> FETCH_HEAD
+[   4.54] [suite/suite]   ❓  ::endgroup::
+[   4.54] [suite/suite]   ❓  ::group::Determining the checkout info
+[   4.54] [suite/suite]   ❓  ::endgroup::
+[   4.54] [suite/suite]   | [command]/usr/bin/git sparse-checkout disable
+[   4.56] [suite/suite]   | [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+[   4.57] [suite/suite]   ❓  ::group::Checking out the ref
+[   4.57] [suite/suite]   | [command]/usr/bin/git checkout --progress --force 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[   5.31] [suite/suite]   | Note: switching to '810e3d548eeceb32c948a0fbfdd90d6d1e6098ce'.
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   | You are in 'detached HEAD' state. You can look around, make experimental
+[   5.31] [suite/suite]   | changes and commit them, and you can discard any commits you make in this
+[   5.31] [suite/suite]   | state without impacting any branches by switching back to a branch.
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   | If you want to create a new branch to retain commits you create, you may
+[   5.31] [suite/suite]   | do so (now or later) by using -c with the switch command. Example:
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   |   git switch -c <new-branch-name>
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   | Or undo this operation with:
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   |   git switch -
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   | Turn off this advice by setting config variable advice.detachedHead to false
+[   5.31] [suite/suite]   | 
+[   5.31] [suite/suite]   | HEAD is now at 810e3d5 chore: Bump lycheeverse/lychee-action from 2.6.1 to 2.7.0 (#6377)
+[   5.31] [suite/suite]   ❓  ::endgroup::
+[   5.31] [suite/suite]   | [command]/usr/bin/git log -1 --format=%H
+[   5.31] [suite/suite]   | 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[   5.31] [suite/suite]   ❓  ::remove-matcher owner=checkout-git::
+[   5.32] [suite/suite]   ✅  Success - Main actions/checkout@v4 [4.009267747s]
+[   5.32] [suite/suite]   ⚙  ::set-output:: ref=
+[   5.32] [suite/suite]   ⚙  ::set-output:: commit=810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[   5.33] [suite/suite] ⭐ Run Main cd fastify && git log -1 --format='checked out %H %s'
+[   5.34] [suite/suite]   | checked out 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce chore: Bump lycheeverse/lychee-action from 2.6.1 to 2.7.0 (#6377)
+[   5.34] [suite/suite]   ✅  Success - Main cd fastify && git log -1 --format='checked out %H %s' [9.887618ms]
+[   5.34] [suite/suite] ⭐ Run Main actions/setup-node@v4
+[   5.91] [suite/suite]   | Found in cache @ /root/.cache/act/tool_cache/node/25.8.1/x64
+[   5.91] [suite/suite]   | (node:2620) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[   5.91] [suite/suite]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[   5.91] [suite/suite]   ❓  ::group::Environment details
+[   6.03] [suite/suite]   | node: v25.8.1
+[   6.03] [suite/suite]   | npm: 11.11.0
+[   6.03] [suite/suite]   | yarn: 
+[   6.03] [suite/suite]   ❓  ::endgroup::
+[   6.03] [suite/suite]   ❓ add-matcher /root/.cache/act/273290c5af7795e0/act/actions/actions-setup-node@v4/.github/tsc.json
+[   6.03] [suite/suite]   ❓ add-matcher /root/.cache/act/273290c5af7795e0/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[   6.03] [suite/suite]   ❓ add-matcher /root/.cache/act/273290c5af7795e0/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[   6.05] [suite/suite]   ✅  Success - Main actions/setup-node@v4 [703.140429ms]
+[   6.05] [suite/suite]   ⚙  ::set-output:: node-version=v25.8.1
+[   6.05] [suite/suite]   ⚙  ::add-path:: /root/.cache/act/tool_cache/node/25.8.1/x64/bin
+[   6.06] [suite/suite] ⭐ Run Main install
+[  14.08] [suite/suite]   | [1mnpm[22m [33mwarn[39m [94mdeprecated[39m uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+[  14.72] [suite/suite]   | [1mnpm[22m [33mwarn[39m [94mdeprecated[39m glob@10.4.5: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[  18.55] [suite/suite]   | [1mnpm[22m [33mwarn[39m [94mdeprecated[39m eslint@9.39.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[  21.86] [suite/suite]   | 
+[  21.86] [suite/suite]   | added 706 packages in 16s
+[  21.91] [suite/suite]   ✅  Success - Main install [15.865933123s]
+[  21.91] [suite/suite] ⭐ Run Main suite
+[  21.92] [suite/suite]   | v25.8.1
+[  22.36] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  22.49] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  22.58] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  22.65] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  22.68] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  23.62] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  25.03] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m
+[  25.45] [suite/suite]   | [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m

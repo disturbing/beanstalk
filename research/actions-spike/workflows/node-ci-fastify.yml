@@ -1,0 +1,28 @@
+# The race's GitHub arm workflow for fastify (research/race/harness/forge_github.py), with the
+# repository checked out from github.com at the arena base instead of being the workflow's repo.
+name: suite
+on: [push, pull_request]
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: meta
+      - uses: actions/checkout@v4
+        with:
+          repository: fastify/fastify
+          ref: 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+          path: fastify
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "25.8.1"
+      - name: install
+        working-directory: fastify
+        run: mkdir -p "$RUNNER_TEMP/deps" && cp ../meta/.github/race/package.json ../meta/.github/race/package-lock.json "$RUNNER_TEMP/deps/" && (cd "$RUNNER_TEMP/deps" && npm ci --no-audit --no-fund --ignore-scripts) && ln -sfn "$RUNNER_TEMP/deps/node_modules" node_modules
+      - name: suite
+        working-directory: fastify
+        env:
+          CI: "1"
+        run: node --version && node --no-use-env-proxy --test --test-timeout=60000 --test-reporter=dot 'test/!(listen.5).test.js' 'test/*/**/*.test.js' 'test/**/*.test.mjs'
