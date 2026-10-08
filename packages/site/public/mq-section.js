@@ -1075,7 +1075,9 @@ function pillAt(q, pr, t) {
       const from = [TX, queueY(idxAt(pr, t0 - 0.01))];
       return { x: lerp(from[0], sx, k), y: lerp(from[1], GATE, k), look: 'green' };
     }
-    return { x: sx, y: GATE, look: t < b.t1 ? 'test' : 'red', flash: b.ok ? 0 : 1 };
+    // after the test ends, a passing batch is green until its merge track takes over
+    if (t < b.t1) return { x: sx, y: GATE, look: 'test' };
+    return { x: sx, y: GATE, look: b.ok ? 'green' : 'red', flash: b.ok ? 0 : 1 };
   }
   if (kind === 'merge') {
     const k = ease.in(seg(t, t0, t0 + 0.6));
