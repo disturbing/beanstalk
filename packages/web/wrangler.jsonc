@@ -58,8 +58,10 @@
     "TURNSTILE_SITE_KEY": "",
     "TURNSTILE_HOSTNAMES": "",
     "TURNSTILE_TEST_KEYS": "",
-    // Repositories (docs/claude-opus/20-repositories.md): the public addresses a new repository's start page prints: git (the gateway) and MCP.
-    "GIT_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
+    // Repositories (docs/claude-opus/20-repositories.md): the public addresses a new repository's
+    // start page prints. Git is served by this host, as on GitHub: `<GIT_ORIGIN>/<owner>/<repo>.git`
+    // (app/[owner]/[repo]/{info/refs,git-upload-pack,git-receive-pack} forward to the gateway).
+    "GIT_ORIGIN": "https://beanstalk-web.devaccounts-1password.workers.dev",
     "MCP_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp",
     // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
     // live; /beanstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).

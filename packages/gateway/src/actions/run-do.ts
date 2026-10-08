@@ -91,7 +91,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     if (refusal === null) {
       this.#store.insertJobs(
         planJobs(workflow, {
-          contexts: contextsOf(request, this.#config.publicUrl),
+          contexts: contextsOf(request, this.#config.serverUrl),
           maxTimeoutMinutes: this.#config.jobTimeoutMinutes,
           newId: () => crypto.randomUUID(),
         }),
@@ -320,7 +320,7 @@ export class ActionsRunDO extends DurableObject<Env> {
   ): Promise<boolean> {
     const states = this.#store.jobs();
     const ready = readiness(job, states, {
-      contexts: contextsOf(record.request, this.#config.publicUrl),
+      contexts: contextsOf(record.request, this.#config.serverUrl),
       cancelled: record.cancelRequested,
     });
     switch (ready.kind) {
@@ -423,7 +423,8 @@ export class ActionsRunDO extends DurableObject<Env> {
       needs: needsOf(job, states),
       secretNames,
       tokens: { job: jobToken, report: report.token },
-      publicUrl: this.#config.publicUrl,
+      serverUrl: this.#config.serverUrl,
+      oidcRequestUrl: this.#config.oidcRequestUrl,
     });
     const started = await this.#executor()
       .startJob(spec)

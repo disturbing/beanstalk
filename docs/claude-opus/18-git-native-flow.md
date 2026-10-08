@@ -26,7 +26,7 @@ Written 2026-10-07 from the `git-native` branch (based on `prototype` at `fed4f5
 ## 1. The flow in one screen
 
 ```
-git clone https://<gateway>/git/<owner>/<repo>.git          (credential: token as the Basic password)
+git clone https://<web>/<owner>/<repo>.git                  (credential: token as the Basic password)
 git switch -c work origin/sprout ; …commit…
 git push -o wait origin HEAD:refs/heads/bean/add-total
         │
@@ -51,7 +51,7 @@ git push -o wait origin HEAD:refs/heads/bean/add-total
 
 ## 2. URLs and credentials
 
-- **Repository URL:** `https://<gateway>/git/<owner>/<repo>.git`. The gateway derives the engine id from `<owner>/<repo>` (`r` + 19 hex digits of SHA-256 of the lower-cased `owner/repo`, `push/repo-engine.ts`), so it needs no lookup. A repository the credential may not use answers 404, as a missing one does.
+- **Repository URL:** `https://<web>/<owner>/<repo>.git` (or without `.git`), on the same host as the repository page, as on GitHub (Coop's decision, 2026-10-08): the web Worker's route handlers `app/[owner]/[repo]/{info/refs,git-upload-pack,git-receive-pack}` forward the request untouched (streaming body, auth, push options, side-band) to the gateway over the service binding. The gateway also answers `/<owner>/<repo>[.git]/…` at its own root (Actions' `actions/checkout`) and keeps `https://<gateway>/git/<owner>/<repo>.git`, which is what the forwarding calls. The gateway derives the engine id from `<owner>/<repo>` (`r` + 19 hex digits of SHA-256 of the lower-cased `owner/repo`, `push/repo-engine.ts`), so it needs no lookup. A repository the credential may not use answers 404, as a missing one does.
 - **Race URLs keep working:** `/git/<namespace>/race-<run>.git` (the Artifacts namespace as the first segment) is the per-run proxy exactly as before, with slot, seed and view tokens. An owner handle equal to the namespace name (`beanstalk-race`, `beanstalk-race-staging`) is therefore reserved.
 - **Credential:** a token as the HTTP Basic password (`https://x:<token>@…`, or git's standard credential helper: `credential.helper '!f() { echo username=x; echo password=$TOKEN; }; f'`) or a Bearer header. The demo uses the helper, so the token is never in a URL, a remote config or the output.
 - **Agents never hold Artifacts tokens.** The gateway mints a short-lived Artifacts token per request (read for fetches, write for pushes) inside the engine's Durable Object and forwards the request; the client's `Authorization` never goes upstream.

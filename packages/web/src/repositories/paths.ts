@@ -43,7 +43,7 @@ export function isReservedOwner(owner: string): boolean {
 
 /** The deployment's public addresses for git, MCP and the web app (vars, per environment). */
 export type StartConfig = {
-  /** The gateway's public origin, e.g. `https://git.beanstalk.example`. */
+  /** Where git is served: the web host itself (`https://<web>/<owner>/<repo>.git`, as on GitHub). */
   readonly gitOrigin: string;
   /** The MCP endpoint agents connect to. */
   readonly mcpUrl: string;
@@ -96,7 +96,7 @@ export type StartGuide = {
 export function startGuide(config: StartConfig, owner: string, name: string): StartGuide {
   const origin = config.gitOrigin.replace(/\/+$/, '');
   const web = config.webOrigin.replace(/\/+$/, '');
-  const cloneUrl = `${origin}/git/${owner}/${name}.git`;
+  const cloneUrl = `${origin}/${owner}/${name}.git`;
   const directory = name.replace(/\.+$/, '') || 'repo';
   return {
     cloneUrl,

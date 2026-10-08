@@ -91,6 +91,7 @@ const JobSql = z.object({
   outputs_spec_json: z.string(),
   secret_names_json: z.string(),
   contents_write: z.number(),
+  id_token_write: z.number(),
   status: z.enum(ACTIONS_STATUSES),
   conclusion: z.enum(ACTIONS_CONCLUSIONS).nullable(),
   reason: z.string().nullable(),
@@ -182,7 +183,8 @@ export class RunStore {
       id TEXT PRIMARY KEY, ord INTEGER NOT NULL, key TEXT NOT NULL, name TEXT NOT NULL,
       matrix_json TEXT NOT NULL, needs_json TEXT NOT NULL, condition TEXT NOT NULL, image TEXT,
       timeout_min INTEGER NOT NULL, steps_spec_json TEXT NOT NULL, outputs_spec_json TEXT NOT NULL,
-      secret_names_json TEXT NOT NULL, contents_write INTEGER NOT NULL, status TEXT NOT NULL,
+      secret_names_json TEXT NOT NULL, contents_write INTEGER NOT NULL,
+      id_token_write INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL,
       conclusion TEXT, reason TEXT, steps_json TEXT NOT NULL DEFAULT '[]',
       outputs_json TEXT NOT NULL DEFAULT '{}', started_ms INTEGER, completed_ms INTEGER,
       minutes INTEGER NOT NULL DEFAULT 0, report_hash TEXT, waiting_since_ms INTEGER,
@@ -205,8 +207,8 @@ export class RunStore {
     for (const [ord, job] of jobs.entries()) {
       this.#sql.exec(
         `INSERT INTO jobs (id, ord, key, name, matrix_json, needs_json, condition, image, timeout_min,
-           steps_spec_json, outputs_spec_json, secret_names_json, contents_write, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued')`,
+           steps_spec_json, outputs_spec_json, secret_names_json, contents_write, id_token_write, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued')`,
         job.id,
         ord,
         job.key,
@@ -220,6 +222,7 @@ export class RunStore {
         JSON.stringify(job.outputs),
         JSON.stringify(job.secretNames),
         job.contentsWrite ? 1 : 0,
+        job.idTokenWrite ? 1 : 0,
       );
     }
   }
@@ -315,6 +318,7 @@ function jobOf(row: z.infer<typeof JobSql>): JobRow {
     outputs: z.record(z.string(), z.string()).parse(JSON.parse(row.outputs_spec_json)),
     secretNames: z.array(z.string()).parse(JSON.parse(row.secret_names_json)),
     contentsWrite: row.contents_write === 1,
+    idTokenWrite: row.id_token_write === 1,
     status: row.status,
     conclusion: row.conclusion,
     reason: row.reason,

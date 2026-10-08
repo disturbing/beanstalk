@@ -117,7 +117,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
       event: 'workflow_dispatch',
       payload: dispatchPayload({
         repo: facts,
-        publicUrl: this.#config.publicUrl,
+        publicUrl: this.#config.serverUrl,
         workflowPath: request.workflowPath,
         inputs: inputs.inputs,
         actor: request.actor,
@@ -221,7 +221,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
         event: 'push',
         payload: pushPayload({
           repo: facts,
-          publicUrl: this.#config.publicUrl,
+          publicUrl: this.#config.serverUrl,
           before,
           after: sha,
           actor,
@@ -311,7 +311,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
         event: 'schedule',
         payload: schedulePayload({
           repo: facts,
-          publicUrl: this.#config.publicUrl,
+          publicUrl: this.#config.serverUrl,
           cron: schedule.cron,
         }),
         sha: indexed.sha,

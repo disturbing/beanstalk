@@ -22,7 +22,9 @@ export function jobSpecOf(input: {
   readonly needs: Readonly<Record<string, NeedResult>>;
   readonly secretNames: readonly string[];
   readonly tokens: { readonly job: string; readonly report: string };
-  readonly publicUrl: string;
+  readonly serverUrl: string;
+  /** `ACTIONS_OIDC_REQUEST_URL`, null until the OIDC issuer is deployed. */
+  readonly oidcRequestUrl: string | null;
 }): JobSpec {
   const { request } = input.run;
   const { repo } = request;
@@ -44,18 +46,23 @@ export function jobSpecOf(input: {
       ref: `refs/heads/${STALK_REF_NAME}`,
       refName: STALK_REF_NAME,
       actor: request.actor,
-      serverUrl: input.publicUrl,
-      apiUrl: `${input.publicUrl}/api/v3`,
+      serverUrl: input.serverUrl,
+      apiUrl: `${input.serverUrl}/api/v3`,
       runAttempt: 1,
     },
     checkout: {
-      url: `${input.publicUrl}/${fullName}`,
+      url: `${input.serverUrl}/${fullName}`,
       token: input.tokens.job,
       sha: request.sha,
     },
     needs: input.needs,
     inputs: request.inputs,
-    env: { BEANSTALK_LINE: 'stalk', BEANSTALK_REPOSITORY_ID: repo.id, CI: 'true' },
+    env: {
+      BEANSTALK_LINE: 'stalk',
+      BEANSTALK_REPOSITORY_ID: repo.id,
+      CI: 'true',
+      ...oidcEnv(input),
+    },
     secretNames: input.secretNames.map((name): SecretName => SecretNameSchema.parse(name)),
     steps: input.job.steps,
     outputs: input.job.outputs,
@@ -63,4 +70,21 @@ export function jobSpecOf(input: {
     image: input.job.image ?? 'ubuntu-24.04',
     report: { token: input.tokens.report },
   };
+}
+
+/**
+ * The OIDC hook (doc 25 §3.5; the issuer is another lane's): an `id-token: write` job gets
+ * GitHub's two variables once `ACTIONS_OIDC_REQUEST_URL` is set. The request token is the job
+ * token, which the issuer verifies (`bsj_`, bound to this repository and job).
+ */
+function oidcEnv(input: {
+  readonly job: JobRow;
+  readonly ids: { readonly jobId: ActionsJobId };
+  readonly tokens: { readonly job: string };
+  readonly oidcRequestUrl: string | null;
+}): Record<string, string> {
+  if (input.oidcRequestUrl === null || !input.job.idTokenWrite) return {};
+  const url = new URL(input.oidcRequestUrl);
+  url.searchParams.set('job', input.ids.jobId);
+  return { ACTIONS_ID_TOKEN_REQUEST_URL: url.toString(), ACTIONS_ID_TOKEN_REQUEST_TOKEN: input.tokens.job };
 }

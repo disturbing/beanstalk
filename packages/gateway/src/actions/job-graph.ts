@@ -24,6 +24,7 @@ export type PlannedJob = {
   readonly outputs: Readonly<Record<string, string>>;
   readonly secretNames: readonly string[];
   readonly contentsWrite: boolean;
+  readonly idTokenWrite: boolean;
 };
 
 /** A job's state, as the DAG needs it. */
@@ -79,6 +80,7 @@ function plannedJob(
     outputs: job.outputs,
     secretNames: job.secretNames,
     contentsWrite: job.contentsWrite,
+    idTokenWrite: job.idTokenWrite,
   };
 }
 

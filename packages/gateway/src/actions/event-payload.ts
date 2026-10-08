@@ -29,7 +29,7 @@ export function repositoryPayload(repo: RepoFacts, publicUrl: string): Record<st
     owner: { login: repo.ownerHandle, id: repo.ownerId },
     default_branch: STALK_REF_NAME,
     html_url: `${publicUrl}/${fullName}`,
-    clone_url: `${publicUrl}/git/${fullName}.git`,
+    clone_url: `${publicUrl}/${fullName}.git`,
   };
 }
 

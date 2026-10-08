@@ -41,6 +41,8 @@ export type JobPlan = {
   readonly secretNames: readonly string[];
   /** `permissions` give `contents: write`: the job token may push `bean/*`. */
   readonly contentsWrite: boolean;
+  /** `permissions` give `id-token: write`: the job may ask for an OIDC token. */
+  readonly idTokenWrite: boolean;
 };
 
 export type WorkflowFile = {
@@ -256,6 +258,7 @@ function jobsOf(
       steps: stepsOf(plain['steps']),
       secretNames: secretNamesIn(JSON.stringify([plain, root['env'] ?? null])),
       contentsWrite: contentsWrite(plain['permissions']) ?? workflowWrite,
+      idTokenWrite: idTokenWrite(plain['permissions'] ?? root['permissions']),
     };
   });
 }
@@ -272,6 +275,10 @@ function contentsWrite(permissions: PlainValue | undefined): boolean | null {
   if (permissions === 'read-all') return false;
   if (!isPlainObject(permissions)) return null;
   return permissions['contents'] === 'write';
+}
+
+function idTokenWrite(permissions: PlainValue | undefined): boolean {
+  return permissions === 'write-all' || (isPlainObject(permissions) && permissions['id-token'] === 'write');
 }
 
 function stringRecord(value: PlainValue | undefined): Readonly<Record<string, string>> {
@@ -383,8 +390,8 @@ function jobNotes(job: JobPlan, raw: PlainValue | undefined): CompatibilityNote[
   if (plain['container'] !== undefined || plain['services'] !== undefined)
     notes.push({
       feature: at(plain['container'] === undefined ? 'services' : 'container'),
-      verdict: 'never-runs',
-      detail: 'needs Docker in Docker',
+      verdict: 'runs-differently',
+      detail: 'runs in Docker mode (dockerd inside the job container); never in host mode, where act would skip it',
     });
   if (plain['environment'] !== undefined)
     notes.push({
@@ -402,8 +409,8 @@ function jobNotes(job: JobPlan, raw: PlainValue | undefined): CompatibilityNote[
     if (step.uses?.startsWith('docker://') === true)
       notes.push({
         feature: at(`steps[${step.number}]`),
-        verdict: 'never-runs',
-        detail: 'Docker actions need Docker in Docker',
+        verdict: 'runs-differently',
+        detail: 'Docker actions run in Docker mode (dockerd inside the job container)',
       });
   if (job.matrix.kind === 'invalid')
     notes.push({
