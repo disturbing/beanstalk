@@ -96,7 +96,8 @@ struct RawLine {
     execution_time: Option<u64>,
 }
 
-const NOISE: [&str; 3] = [
+const NOISE: [&str; 4] = [
+    "Couldn't get a valid docker connection",
     "not located inside a git repository",
     "unable to get git ref",
     "unable to get git revision",

@@ -202,6 +202,9 @@ pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Inv
         args.push(flag.into());
         args.push(path.clone().into());
     }
+    // act's in-container artifact server; steps run on the same host in host mode.
+    args.push("--artifact-server-addr".into());
+    args.push("127.0.0.1".into());
     args.push("--actor".into());
     args.push(request.github.actor.clone().into());
     for (name, value) in &request.matrix {
