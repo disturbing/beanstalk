@@ -85,6 +85,7 @@ const EXPECTED: Readonly<Record<Visibility, Readonly<Record<RepositoryAction, Ro
     write: [200, 200, 200, 403, 404, 404],
     decide: [200, 200, 403, 403, 404, 404],
     'deploy-tokens': [200, 200, 403, 403, 404, 404],
+    actions: [200, 200, 403, 403, 404, 404],
     administer: [200, 403, 403, 403, 404, 404],
   },
   public: {
@@ -92,6 +93,7 @@ const EXPECTED: Readonly<Record<Visibility, Readonly<Record<RepositoryAction, Ro
     write: [200, 200, 200, 403, 403, 403],
     decide: [200, 200, 403, 403, 403, 403],
     'deploy-tokens': [200, 200, 403, 403, 403, 403],
+    actions: [200, 200, 403, 403, 403, 403],
     administer: [200, 403, 403, 403, 403, 403],
   },
 };
@@ -203,6 +205,7 @@ async function web(
       return statusOf(await gateway.getRepository(record.owner.handle, record.name, viewer));
     case 'write':
     case 'decide':
+    case 'actions':
       return statusOf(await gateway.engineAccess(record.engine_id, viewer, action));
     case 'deploy-tokens':
       if (who === null) throw new Error('signed in only');
