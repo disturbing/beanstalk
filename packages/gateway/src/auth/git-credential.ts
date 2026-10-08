@@ -98,6 +98,7 @@ const LEAST_ROLE: Readonly<Record<RepositoryAction, ViewerRole>> = {
   write: 'write',
   decide: 'maintain',
   'deploy-tokens': 'maintain',
+  actions: 'maintain',
   administer: 'owner',
 };
 const RANK: Readonly<Record<ViewerRole, number>> = { read: 1, write: 2, maintain: 3, owner: 4 };
@@ -106,6 +107,7 @@ const ARCHIVE_REFUSES: ReadonlySet<RepositoryAction> = new Set([
   'write',
   'decide',
   'deploy-tokens',
+  'actions',
 ]);
 
 const USER_TOKEN = /^bs[us]_/;
@@ -241,6 +243,7 @@ function withinScopes(credential: GitCredential, action: RepositoryAction): Acce
       return credential.scopes.includes('bean:write') ? 'allowed' : 'forbidden';
     case 'decide':
     case 'deploy-tokens':
+    case 'actions':
     case 'administer':
       return 'forbidden';
     default:
