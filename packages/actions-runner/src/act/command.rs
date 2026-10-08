@@ -167,8 +167,64 @@ pub fn inputs_file(request: &JobRequest) -> String {
     )
 }
 
+/// Where the job's steps run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RunMode {
+    /// On the container itself (`-P <label>=-self-hosted`): the common case.
+    Host,
+    /// In a job container of `image` on the Docker daemon started inside this container, for
+    /// jobs with `services:`, `container:` or Docker actions.
+    Docker { image: String, socket: String },
+}
+
+/// How act runs this job.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ActPlan {
+    pub mode: RunMode,
+    /// `owner/repo` of the actions act fetches from github.com rather than from
+    /// `GITHUB_SERVER_URL` (Beanstalk): one `--replace-ghe-action-with-github-com` each, since
+    /// act does not split a comma list. Empty when the server is github.com itself.
+    pub github_actions: Vec<String>,
+}
+
+/// Actions baked into the image (Dockerfile); always taken from github.com.
+pub const BAKED_ACTIONS: [&str; 7] = [
+    "actions/checkout",
+    "actions/setup-node",
+    "actions/cache",
+    "actions/upload-artifact",
+    "actions/download-artifact",
+    "actions/setup-python",
+    "actions/github-script",
+];
+
+/// The actions to take from github.com: the job's remote actions and the baked ones, except
+/// the job's own repository (served by Beanstalk). None when the server is github.com.
+pub fn github_actions(request: &JobRequest, remote_actions: &[String]) -> Vec<String> {
+    let server = request.github.server_url.trim_end_matches('/');
+    if server == "https://github.com" {
+        return Vec::new();
+    }
+    let own = request.github.repository.to_ascii_lowercase();
+    let mut actions: Vec<String> = BAKED_ACTIONS
+        .iter()
+        .map(|action| (*action).to_owned())
+        .chain(remote_actions.iter().cloned())
+        .chain(std::iter::once("cloudflare/wrangler-action".to_owned()))
+        .filter(|action| action.to_ascii_lowercase() != own)
+        .collect();
+    actions.sort();
+    actions.dedup();
+    actions
+}
+
 /// act's command line for the job.
-pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Invocation {
+pub fn invocation(
+    request: &JobRequest,
+    files: &JobFiles,
+    act_bin: &Path,
+    plan: &ActPlan,
+) -> Invocation {
     let mut args: Vec<OsString> = vec![
         request.event_name.clone().into(),
         "-W".into(),
@@ -176,9 +232,13 @@ pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Inv
         "-j".into(),
         request.job_name.clone().into(),
     ];
+    let (platform, socket) = match &plan.mode {
+        RunMode::Host => ("-self-hosted".to_owned(), "-".to_owned()),
+        RunMode::Docker { image, socket } => (image.clone(), format!("unix://{socket}")),
+    };
     for label in &request.runner_labels {
         args.push("-P".into());
-        args.push(format!("{label}=-self-hosted").into());
+        args.push(format!("{label}={platform}").into());
     }
     for flag in [
         "--json",
@@ -186,10 +246,14 @@ pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Inv
         // Actions baked into the image are used as they are; others are fetched once.
         "--action-offline-mode",
         "--no-cache-server",
-        "--container-daemon-socket",
-        "-",
     ] {
         args.push(flag.into());
+    }
+    args.push("--container-daemon-socket".into());
+    args.push(socket.into());
+    for action in &plan.github_actions {
+        args.push("--replace-ghe-action-with-github-com".into());
+        args.push(action.clone().into());
     }
     for (flag, path) in [
         ("-e", &files.event),
@@ -202,7 +266,7 @@ pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Inv
         args.push(flag.into());
         args.push(path.clone().into());
     }
-    // act's in-container artifact server; steps run on the same host in host mode.
+    // act's in-container artifact server; steps run on this host's network in both modes.
     args.push("--artifact-server-addr".into());
     args.push("127.0.0.1".into());
     args.push("--actor".into());
@@ -211,11 +275,15 @@ pub fn invocation(request: &JobRequest, files: &JobFiles, act_bin: &Path) -> Inv
         args.push("--matrix".into());
         args.push(format!("{name}:{}", matrix_value(value)).into());
     }
+    let mut env = act_environment();
+    if let RunMode::Docker { socket, .. } = &plan.mode {
+        env.push(("DOCKER_HOST".to_owned(), format!("unix://{socket}")));
+    }
     Invocation {
         program: act_bin.to_path_buf(),
         args,
         cwd: files.workdir.clone(),
-        env: act_environment(),
+        env,
     }
 }
 
@@ -304,6 +372,59 @@ mod tests {
         }
     }
 
+    fn host_plan() -> ActPlan {
+        ActPlan {
+            mode: RunMode::Host,
+            github_actions: vec!["actions/checkout".into(), "actions/setup-node".into()],
+        }
+    }
+
+    #[test]
+    fn takes_actions_from_github_one_flag_each_but_never_the_jobs_own_repository() {
+        let mut job = request();
+        job.github.repository = "actions/checkout".into();
+        let actions = github_actions(&job, &["acme/lint".into(), "actions/checkout".into()]);
+        assert!(actions.contains(&"acme/lint".to_owned()));
+        assert!(actions.contains(&"actions/setup-node".to_owned()));
+        assert!(!actions.contains(&"actions/checkout".to_owned()));
+        job.github.server_url = "https://github.com".into();
+        assert!(github_actions(&job, &["acme/lint".into()]).is_empty());
+        let files = JobFiles::under(Path::new("/w"));
+        let args = args_of(&invocation(
+            &request(),
+            &files,
+            Path::new("act"),
+            &host_plan(),
+        ));
+        let flags = args
+            .iter()
+            .filter(|arg| *arg == "--replace-ghe-action-with-github-com");
+        assert_eq!(flags.count(), 2);
+    }
+
+    #[test]
+    fn runs_a_docker_job_in_its_image_against_the_inner_daemon() {
+        let files = JobFiles::under(Path::new("/w"));
+        let plan = ActPlan {
+            mode: RunMode::Docker {
+                image: "catthehacker/ubuntu:act-24.04".into(),
+                socket: "/var/run/docker.sock".into(),
+            },
+            github_actions: Vec::new(),
+        };
+        let invocation = invocation(&request(), &files, Path::new("act"), &plan);
+        let args = args_of(&invocation);
+        assert!(
+            args.windows(2)
+                .any(|pair| pair == ["-P", "ubuntu-latest=catthehacker/ubuntu:act-24.04"])
+        );
+        assert!(
+            args.windows(2)
+                .any(|pair| pair == ["--container-daemon-socket", "unix:///var/run/docker.sock"])
+        );
+        assert!(invocation.env.iter().any(|(name, _)| name == "DOCKER_HOST"));
+    }
+
     fn args_of(invocation: &Invocation) -> Vec<String> {
         invocation
             .args
@@ -315,7 +436,12 @@ mod tests {
     #[test]
     fn runs_the_one_job_in_host_mode_for_each_label() {
         let files = JobFiles::under(Path::new("/w"));
-        let invocation = invocation(&request(), &files, Path::new("/usr/local/bin/act"));
+        let invocation = invocation(
+            &request(),
+            &files,
+            Path::new("/usr/local/bin/act"),
+            &host_plan(),
+        );
         let args = args_of(&invocation);
         assert_eq!(
             &args[..5],
@@ -337,7 +463,7 @@ mod tests {
     #[test]
     fn never_puts_a_secret_on_the_command_line_or_in_acts_environment() {
         let files = JobFiles::under(Path::new("/w"));
-        let invocation = invocation(&request(), &files, Path::new("act"));
+        let invocation = invocation(&request(), &files, Path::new("act"), &host_plan());
         let everything = format!("{:?} {:?}", invocation.args, invocation.env);
         assert!(!everything.contains("npm-secret"));
         assert!(!everything.contains("bsj_token_value"));

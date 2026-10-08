@@ -1,0 +1,46 @@
+packages/shared-race test:  Test Files  7 passed (7)
+packages/shared-race test:       Tests  87 passed (87)
+packages/shared-oidc test:  Test Files  1 passed (1)
+packages/shared-oidc test:       Tests  31 passed (31)
+packages/ssh test:  Test Files  1 passed (1)
+packages/ssh test:       Tests  12 passed (12)
+packages/swarm test:  Test Files  3 passed (3)
+packages/swarm test:       Tests  20 passed (20)
+packages/shared-identity test:  Test Files  8 passed (8)
+packages/shared-identity test:       Tests  63 passed (63)
+packages/shared-ask test:  Test Files  8 passed (8)
+packages/shared-ask test:       Tests  71 passed (71)
+packages/actions-executor test:  Test Files  3 passed (3)
+packages/actions-executor test:       Tests  31 passed (31)
+packages/oidc test:  Test Files  1 passed (1)
+packages/oidc test:       Tests  3 passed (3)
+packages/gateway test:  Test Files  83 passed (83)
+packages/gateway test:       Tests  809 passed (809)
+packages/web test:  Test Files  29 passed (29)
+packages/web test:       Tests  225 passed (225)
+packages/mcp test:  Test Files  7 passed (7)
+packages/mcp test:       Tests  63 passed (63)
+test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.32s
+test check::per_file::tests::a_nonzero_exit_with_a_clean_report_still_fails ... ok
+test check::report::tests::a_clean_report_with_exit_zero_is_green ... ok
+test process::tests::captures_output_and_exit_code ... ok
+test process::tests::a_helper_holding_the_output_does_not_turn_an_exit_into_a_timeout ... ok
+test result: ok. 131 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.27s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.79s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.64s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.28s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.39s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test a_shell_greets_and_exits ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+pnpm check exit 0

@@ -15,9 +15,10 @@ use tokio::process::Command;
 use tokio::sync::{mpsc, watch};
 use tokio::time::{Duration, Instant as TokioInstant, MissedTickBehavior, sleep_until};
 
-use crate::act::command::{self, Invocation, JobFiles};
+use crate::act::command::{self, ActPlan, Invocation, JobFiles, RunMode};
 use crate::act::event::parse_line;
 use crate::config::Config;
+use crate::docker;
 use crate::error::{Error, Result};
 use crate::git;
 use crate::mask::Masker;
@@ -91,7 +92,12 @@ impl<'a, U: Uplink> Session<'a, U> {
             Ok(prepared) => prepared,
             Err((reason, error)) => return Outcome::Failed { reason, error },
         };
-        let invocation = command::invocation(request, &prepared.files, self.config.act_bin());
+        let invocation = command::invocation(
+            request,
+            &prepared.files,
+            self.config.act_bin(),
+            &prepared.plan,
+        );
         let deadline = TokioInstant::now() + Duration::from_secs(request.timeout_seconds);
         match self.supervise(&invocation, stop, deadline).await {
             Ok((status, stopped)) => Outcome::Exited {
@@ -126,13 +132,8 @@ impl<'a, U: Uplink> Session<'a, U> {
                 Error::Workflow(_) => (FailureReason::Workflow, error),
                 other => (FailureReason::Runner, other),
             })?;
-        let mut job =
-            workflow::isolate_job(&source, &request.job_name, &request.needs).map_err(|error| {
-                match error {
-                    Error::Unsupported(_) => (FailureReason::Unsupported, error),
-                    other => (FailureReason::Workflow, other),
-                }
-            })?;
+        let mut job = workflow::isolate_job(&source, &request.job_name, &request.needs)
+            .map_err(|error| (FailureReason::Workflow, error))?;
         if !request.outputs.is_empty() {
             job.output_templates.clone_from(&request.outputs);
         }
@@ -140,6 +141,11 @@ impl<'a, U: Uplink> Session<'a, U> {
         write_files(request, &files, &job)
             .await
             .map_err(|error| (FailureReason::Runner, error))?;
+        let (mode, daemon) = self.run_mode(&job).await?;
+        let plan = ActPlan {
+            mode,
+            github_actions: command::github_actions(request, &job.remote_actions),
+        };
         self.say(
             Level::Info,
             &format!(
@@ -153,7 +159,37 @@ impl<'a, U: Uplink> Session<'a, U> {
         Ok(Prepared {
             files,
             workflow: job,
+            plan,
+            _daemon: daemon,
         })
+    }
+
+    /// Host mode, or Docker mode with the inner daemon started, for a job that needs Docker.
+    async fn run_mode(
+        &mut self,
+        job: &JobWorkflow,
+    ) -> std::result::Result<(RunMode, Option<docker::Daemon>), (FailureReason, Error)> {
+        if job.docker_features.is_empty() {
+            return Ok((RunMode::Host, None));
+        }
+        let docker = self.config.docker();
+        self.say(
+            Level::Info,
+            &format!(
+                "The job uses {}: starting Docker; its steps run in {}",
+                job.docker_features.join(", "),
+                docker.job_image
+            ),
+        )
+        .await;
+        let daemon = docker::start(docker)
+            .await
+            .map_err(|error| (FailureReason::Runner, error))?;
+        let mode = RunMode::Docker {
+            image: docker.job_image.clone(),
+            socket: docker.socket.clone(),
+        };
+        Ok((mode, Some(daemon)))
     }
 
     /// Runs act until it exits, recording and streaming its lines; stops it on cancel or at
@@ -300,6 +336,9 @@ impl<'a, U: Uplink> Session<'a, U> {
 struct Prepared {
     files: JobFiles,
     workflow: JobWorkflow,
+    plan: ActPlan,
+    /// Kept alive while act runs.
+    _daemon: Option<docker::Daemon>,
 }
 
 fn spawn(invocation: &Invocation) -> Result<tokio::process::Child> {

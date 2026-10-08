@@ -43,14 +43,18 @@ ARG NODE24=24.21.0
 ARG NODE24_SHA256=fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6
 ARG NODE20=20.20.2
 ARG NODE20_SHA256=df770b2a6f130ed8627c9782c988fda9669fa23898329a61a871e32f965e007d
+# Static Docker for jobs with services:, container: or Docker actions (act's Docker mode).
+ARG DOCKER_VERSION=29.8.2
+ARG DOCKER_SHA256=995d1ef289677f74fd58d8d2c35727b6a4ee389c69db8638a3e42d0487aa5b0f
 # Bump with every change to this file or the job runner; reported by /version and each result.
-ARG IMAGE_VERSION=actions-runner-2026-10-08.2
+ARG IMAGE_VERSION=actions-runner-2026-10-08.3
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates curl wget git git-lfs openssh-client gnupg jq unzip zip xz-utils zstd \
       python3 python3-pip python3-venv build-essential pkg-config sudo tini locales tzdata \
+      iptables \
  && rm -rf /var/lib/apt/lists/* \
  && locale-gen C.UTF-8 >/dev/null 2>&1 || true
 
@@ -87,11 +91,19 @@ RUN curl -fsSLo /tmp/act.tgz "https://github.com/nektos/act/releases/download/v$
  && tar -xzf /tmp/act.tgz -C /usr/local/bin act \
  && rm /tmp/act.tgz
 
+# dockerd runs as root (sudo, from the job runner) only for a job that needs it; the spike
+# measured it up in about 2 s with default flags on Cloudflare Containers.
+RUN curl -fsSLo /tmp/docker.tgz "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" \
+ && echo "${DOCKER_SHA256}  /tmp/docker.tgz" | sha256sum -c - \
+ && tar -xzf /tmp/docker.tgz -C /usr/local/bin --strip-components=1 \
+ && rm /tmp/docker.tgz
+
 # Popular actions in act's action cache (~/.cache/act/<owner>-<repo>@<ref>); act runs with
 # --action-offline-mode, so these are used as baked and others are fetched once per job. act
-# deletes and re-clones a cached action whose origin is not `<GITHUB_SERVER_URL>/<owner>/<repo>`,
-# so each origin is set to the executor's virtual host (FORGE_HOST in
-# packages/actions-executor/src/job/runner-wire.ts); without it every job cloned them again.
+# deletes and re-clones a cached action whose origin differs from the URL it would fetch it
+# from; the job runner passes each of these (and every action a job uses) as
+# --replace-ghe-action-with-github-com, so that URL is https://github.com/<owner>/<repo>, the
+# origin they are cloned with here.
 RUN set -eux; \
     for spec in actions/checkout@v4 actions/checkout@v5 actions/setup-node@v4 actions/setup-node@v5 \
       actions/cache@v4 actions/upload-artifact@v4 actions/download-artifact@v4 \
@@ -100,7 +112,6 @@ RUN set -eux; \
       git clone -q --depth 1 --branch "$ref" "https://github.com/${repo}" \
         "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}"; \
       rm -rf "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}/.git/hooks"; \
-      git -C "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}" remote set-url origin "http://bs.internal/${repo}"; \
     done; \
     chown -R runner:runner /home/runner /opt/hostedtoolcache
 

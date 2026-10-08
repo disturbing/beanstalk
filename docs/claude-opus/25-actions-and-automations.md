@@ -201,6 +201,8 @@ logs ─▶ JobDO relays the live stream to watchers (stores nothing)
 
 ### 3.2 act first, then native (decision D6)
 
+**Built (lane 2, 2026-10-08):** the MVP column runs in `beanstalk-actions-executor`, one Container per job, with Docker mode for `services:`/`container:`/Docker actions; design, compatibility table and staging results in `26-actions-job-executor.md`.
+
 **Isolation rule, both columns:** one container per job, each with its own id and nothing carried over (no workspace, cache, environment or credentials). It is destroyed at job end, failure or timeout, once its logs are flushed, and is never reused across repositories or tenants. GitHub-hosted runners also use a fresh VM per job, so this matches what workflows already assume. A warm pool may hold fresh blank containers only.
 
 | | MVP: act in host mode | v2: native |

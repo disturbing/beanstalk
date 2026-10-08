@@ -2,6 +2,13 @@
  * Fakes for `JobLifecycle`'s ports: a container that records what it was sent, a sink that
  * records batches and results, a clock the test moves, and a task list instead of alarms.
  */
+import {
+  ActionsJobId,
+  ActionsRunId,
+  SecretName,
+  WorkflowPath,
+} from '@beanstalk/shared-race/actions';
+
 import type { JobLogBatch, JobResult, JobSpec } from '../src/contract';
 import type {
   ContainerPort,
@@ -20,11 +27,11 @@ export const SECRET_VALUE = 'cf-api-token-value-1234';
 
 export function spec(overrides: Partial<JobSpec> = {}): JobSpec {
   return {
-    jobId: JOB_ID,
+    jobId: ActionsJobId.parse(JOB_ID),
     repo: { id: 'repo-1', owner: 'coop', name: 'app', fullName: 'coop/app' },
-    runId: RUN_ID,
+    runId: ActionsRunId.parse(RUN_ID),
     runNumber: 3,
-    workflowPath: '.github/workflows/ci.yml',
+    workflowPath: WorkflowPath.parse('.github/workflows/ci.yml'),
     workflowName: 'CI',
     jobName: 'test',
     displayName: 'test',
@@ -41,14 +48,14 @@ export function spec(overrides: Partial<JobSpec> = {}): JobSpec {
       runAttempt: 1,
     },
     checkout: {
-      url: 'https://gateway.example/git/coop/app.git',
+      url: 'https://gateway.example/coop/app',
       token: 'bsj_job_token',
       sha: 'b0460d47d3015813b06734980f9cdf78b56c090f',
     },
     needs: {},
     inputs: {},
     env: { BEANSTALK_LINE: 'stalk' },
-    secretNames: ['CLOUDFLARE_API_TOKEN'],
+    secretNames: [SecretName.parse('CLOUDFLARE_API_TOKEN')],
     steps: [
       { number: 1, id: null, name: 'actions/checkout@v4', uses: 'actions/checkout@v4', run: null },
       { number: 2, id: null, name: 'npm ci', uses: null, run: 'npm ci' },

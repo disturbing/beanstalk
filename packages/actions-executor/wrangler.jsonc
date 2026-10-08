@@ -42,10 +42,8 @@
       "max_instances": 16,
     },
   ],
-  // The gateway: `GATEWAY` serves the job repository's git (smart HTTP) to bs.internal;
-  // `ACTIONS_JOBS` is its executor sink entrypoint.
+  // The gateway's executor sink entrypoint: secrets, log batches and results, by report token.
   "services": [
-    { "binding": "GATEWAY", "service": "beanstalk-gateway" },
     { "binding": "ACTIONS_JOBS", "service": "beanstalk-gateway", "entrypoint": "ActionsJobs" },
   ],
   // Standalone mode only: where log batches go without the control plane.

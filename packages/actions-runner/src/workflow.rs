@@ -23,6 +23,11 @@ use crate::wire::NeededJob;
 pub struct JobWorkflow {
     pub yaml: String,
     pub output_templates: BTreeMap<String, String>,
+    /// What needs Docker inside the job container (`services:`, `container:`, `docker://`
+    /// steps), named for the log; empty: the job runs on the host.
+    pub docker_features: Vec<String>,
+    /// The `owner/repo` of every remote action the job's steps use (`actions/checkout`, ...).
+    pub remote_actions: Vec<String>,
 }
 
 /// Job outputs resolved from the step outputs, and the names that could not be.
@@ -71,20 +76,16 @@ pub fn isolate_job(
             "the workflow has no job {job_name}"
         )));
     };
-    let unsupported = unsupported_features(job);
-    if !unsupported.is_empty() {
-        return Err(Error::Unsupported(format!(
-            "job {job_name} uses {}, which need Docker inside the job container; this executor runs \
-             jobs on the host and refuses them rather than skip them",
-            unsupported.join(", ")
-        )));
-    }
+    let docker_features = docker_features(job);
+    let remote_actions = remote_actions(job);
     let job = substitute_needs_in(&Yaml::Hash(without_needs(job)), needs, None);
     let output_templates = output_templates(&job);
     let yaml = emit(&with_only_job(&root, job_name, job))?;
     Ok(JobWorkflow {
         yaml,
         output_templates,
+        docker_features,
+        remote_actions,
     })
 }
 
@@ -132,8 +133,8 @@ fn resolve_template(
 }
 
 /// What act's host mode would skip or fail on: `services:` (skipped silently, a false green),
-/// `container:`, and `docker://` steps.
-fn unsupported_features(job: &Hash) -> Vec<String> {
+/// `container:`, and `docker://` steps. Such a job runs in act's Docker mode.
+fn docker_features(job: &Hash) -> Vec<String> {
     let mut found = Vec::new();
     for feature in ["services", "container"] {
         if job.contains_key(&key(feature)) {
@@ -151,6 +152,26 @@ fn unsupported_features(job: &Hash) -> Vec<String> {
     if docker_steps > 0 {
         found.push("`docker://` actions".to_owned());
     }
+    found
+}
+
+/// `owner/repo` of each `uses: owner/repo[/path]@ref` step (not `./local`, not `docker://`).
+fn remote_actions(job: &Hash) -> Vec<String> {
+    let mut found: Vec<String> = job
+        .get(&key("steps"))
+        .and_then(Yaml::as_vec)
+        .into_iter()
+        .flatten()
+        .filter_map(|step| step["uses"].as_str())
+        .filter(|uses| !uses.starts_with("./") && !uses.starts_with("docker://"))
+        .filter_map(|uses| {
+            let name = uses.split('@').next()?;
+            let mut parts = name.split('/');
+            Some(format!("{}/{}", parts.next()?, parts.next()?))
+        })
+        .collect();
+    found.sort();
+    found.dedup();
     found
 }
 
@@ -379,7 +400,7 @@ jobs:
     }
 
     #[test]
-    fn refuses_services_containers_and_docker_steps_instead_of_skipping_them() {
+    fn marks_services_containers_and_docker_steps_for_docker_mode() -> Result<()> {
         let source = r"
 on: push
 jobs:
@@ -390,12 +411,22 @@ jobs:
         image: redis
     steps:
       - uses: docker://alpine:3
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+      - uses: ./local-action
 ";
-        let Err(Error::Unsupported(message)) = isolate_job(source, "db", &BTreeMap::new()) else {
-            unreachable!("accepted a job with services")
-        };
-        assert!(message.contains("`services:`"));
-        assert!(message.contains("`docker://` actions"));
+        let job = isolate_job(source, "db", &BTreeMap::new())?;
+        assert_eq!(
+            job.docker_features,
+            vec!["`services:`", "`docker://` actions"]
+        );
+        assert_eq!(
+            job.remote_actions,
+            vec!["actions/cache", "actions/checkout"]
+        );
+        let host = isolate_job(WORKFLOW, "deploy", &BTreeMap::new())?;
+        assert!(host.docker_features.is_empty());
+        Ok(())
     }
 
     #[test]

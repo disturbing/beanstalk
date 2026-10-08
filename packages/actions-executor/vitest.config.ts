@@ -9,8 +9,8 @@ import { defineConfig } from 'vitest/config';
 /**
  * Tests run the real Worker on Miniflare. Containers need Docker and Cloudflare, so the test
  * config drops the `containers` block (the container side is covered by the Rust tests and the
- * staging runs) and binds GATEWAY and ACTIONS_JOBS to a small fake gateway: git answers that
- * echo what they were sent, and the executor sink. No test touches the network.
+ * staging runs) and binds ACTIONS_JOBS to a small fake of the gateway's executor sink. No test
+ * touches the network.
  *
  * As in the gateway, the test pool's workerd may not know today's compatibility date, so the
  * tests use the newest date it supports.
@@ -21,8 +21,8 @@ const compatibilityDate = poolWorkerdCompatibilityDate();
 const FAKE_GATEWAY = `
 import { WorkerEntrypoint } from 'cloudflare:workers';
 export default class extends WorkerEntrypoint {
-  async fetch(request) {
-    return Response.json({ url: request.url, method: request.method, authorization: request.headers.get('authorization') });
+  async fetch() {
+    return new Response('fake gateway');
   }
 }
 export class ActionsJobs extends WorkerEntrypoint {
@@ -43,7 +43,6 @@ export default defineConfig({
           STANDALONE_SECRETS: JSON.stringify({ NPM_TOKEN: 'npm-secret', OTHER: 'not-named' }),
         },
         serviceBindings: {
-          GATEWAY: 'fake-gateway',
           ACTIONS_JOBS: { name: 'fake-gateway', entrypoint: 'ActionsJobs' },
         },
         workers: [{ name: 'fake-gateway', modules: true, script: FAKE_GATEWAY, compatibilityDate }],

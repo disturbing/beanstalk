@@ -6,16 +6,16 @@
 import { z } from 'zod';
 
 import type { JobHandle, RpcResult } from './contract';
-import { JobSpecSchema } from './contract';
+import { parseJobSpec } from './contract';
 
 type JobObjects = Env['ACTIONS_JOBS_DO'];
 
 export async function startJob(jobs: JobObjects, spec: unknown): Promise<RpcResult<JobHandle>> {
-  const parsed = JobSpecSchema.safeParse(spec);
-  if (!parsed.success) {
+  const parsed = parseJobSpec(spec);
+  if (!parsed.ok) {
     return failure('invalid_request', 400, z.prettifyError(parsed.error).slice(0, 1000));
   }
-  const handle = await jobs.getByName(parsed.data.jobId).accept(parsed.data);
+  const handle = await jobs.getByName(parsed.spec.jobId).accept(parsed.spec);
   return { ok: true, value: handle };
 }
 

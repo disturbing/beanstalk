@@ -25,7 +25,7 @@ describe('a job, start to finish', () => {
     expect(job?.body).toMatchObject({
       jobId: JOB_ID,
       secrets: { CLOUDFLARE_API_TOKEN: SECRET_VALUE },
-      github: { repository: 'coop/app', serverUrl: 'http://bs.internal' },
+      github: { repository: 'coop/app', serverUrl: 'https://gateway.example' },
       runnerLabels: expect.arrayContaining(['ubuntu-latest', 'ubuntu-24.04']),
       timeoutSeconds: 3600,
     });

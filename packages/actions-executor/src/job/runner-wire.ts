@@ -8,8 +8,6 @@ import { z } from 'zod';
 import type { JobSpec } from '../contract';
 
 export const ACTIONS_RUNNER_API_VERSION = 1;
-/** The virtual host the job reaches Beanstalk's git and github.com's actions through. */
-export const FORGE_HOST = 'bs.internal';
 /** The virtual host the runner posts its batches and result to. */
 export const EXECUTOR_HOST = 'executor.internal';
 /** `runs-on` labels the image answers (`ubuntu-22.04` runs on 24.04: "runs differently"). */
@@ -97,8 +95,8 @@ export function jobRequestOf(spec: JobSpec, secrets: Readonly<Record<string, str
       repository: spec.repo.fullName,
       ref: spec.context.ref,
       sha: spec.checkout.sha || spec.context.sha,
-      serverUrl: `http://${FORGE_HOST}`,
-      apiUrl: `http://${FORGE_HOST}/api/v3`,
+      serverUrl: spec.context.serverUrl,
+      apiUrl: spec.context.apiUrl,
       runId: spec.runId,
       runNumber: String(spec.runNumber),
       runAttempt: String(spec.context.runAttempt),

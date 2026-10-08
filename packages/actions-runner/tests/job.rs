@@ -84,6 +84,14 @@ impl Harness {
         std::fs::write(&act, act_script)?;
         std::fs::set_permissions(&act, std::fs::Permissions::from_mode(0o755))?;
         let (count, _) = watch::channel(0);
+        // A Docker daemon that stays up and a client that finds it ready.
+        let dockerd = root.join("fake-dockerd");
+        let docker = root.join("fake-docker");
+        std::fs::write(&dockerd, "#!/bin/sh\nexec tail -f /dev/null\n")?;
+        std::fs::write(&docker, "#!/bin/sh\nexit 0\n")?;
+        for script in [&dockerd, &docker] {
+            std::fs::set_permissions(script, std::fs::Permissions::from_mode(0o755))?;
+        }
         let received = Arc::new(Mutex::new(Received {
             batches: Vec::new(),
             count,
@@ -96,6 +104,8 @@ impl Harness {
             "ACT_BIN" => Some(act.display().to_string()),
             "EXECUTOR_URL" => Some(executor.clone()),
             "CANCEL_GRACE_SECONDS" => Some("1".into()),
+            "DOCKERD" => Some(dockerd.display().to_string()),
+            "DOCKER_BIN" => Some(docker.display().to_string()),
             _ => None,
         })?;
         let runner = serve(router(AppState::new(config)?)).await?;
@@ -286,13 +296,19 @@ async fn never_runs_a_second_job_in_the_same_container() -> TestResult {
 }
 
 #[tokio::test]
-async fn refuses_a_job_with_services_instead_of_a_false_green() -> TestResult {
+async fn runs_a_job_with_services_in_docker_mode_instead_of_skipping_them() -> TestResult {
     let mut harness = Harness::start(GREEN_ACT).await?;
     harness.post("/v1/job", &harness.job("db")).await?;
     let result = harness.next_result().await?;
-    assert_eq!(result["conclusion"], "failure");
-    assert_eq!(result["reason"], "unsupported");
-    assert!(!harness.root.join("work/act-args.txt").exists(), "act ran");
+    assert_eq!(result["conclusion"], "success");
+    let args = std::fs::read_to_string(harness.root.join("work/act-args.txt"))?;
+    assert!(args.contains("ubuntu-latest=catthehacker/ubuntu:act-24.04"));
+    assert!(args.contains("unix:///var/run/docker.sock"));
+    assert!(harness.lines().iter().any(|line| {
+        line["text"]
+            .as_str()
+            .is_some_and(|text| text.starts_with("The job uses `services:`: starting Docker"))
+    }));
     Ok(())
 }
 

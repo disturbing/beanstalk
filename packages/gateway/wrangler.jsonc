@@ -20,12 +20,18 @@
     // Actions jobs (docs/claude-opus/25-actions-and-automations.md).
     "PUBLIC_URL": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
     // Actions (doc 25 §3.8, D9): "stub" runs jobs on the built-in echo executor; "service" calls
-    // the ACTIONS_EXECUTOR service binding (the executor Worker). Limits are per repository.
-    "ACTIONS_EXECUTOR_MODE": "stub",
+    // the ACTIONS_EXECUTOR service binding (beanstalk-actions-executor, one container per job,
+    // docs/claude-opus/26-actions-job-executor.md). Limits are per repository.
+    "ACTIONS_EXECUTOR_MODE": "service",
+    // The executor's container class max_instances: RunnerCapacity holds Actions leases to it.
+    "ACTIONS_MAX_INSTANCES": "16",
     "ACTIONS_MONTHLY_MINUTES": "100",
     "ACTIONS_JOB_TIMEOUT_MINUTES": "60",
     "ACTIONS_CONCURRENT_JOBS": "4",
   },
+  // The Actions job executor (packages/actions-executor); it calls back through this Worker's
+  // `ActionsJobs` entrypoint. Deploy it with (or before) a gateway in "service" mode.
+  "services": [{ "binding": "ACTIONS_EXECUTOR", "service": "beanstalk-actions-executor" }],
   // ADMIN_TOKEN guards the admin API; RUN_TOKEN_SECRET signs slot, seed and view tokens.
   // Locally they come from .dev.vars (see .dev.vars.example); remotely from `wrangler secret put`.
   // ACTIONS_SECRETS_KEY: 32 random bytes, base64; encrypts Actions secrets at rest (AES-GCM).

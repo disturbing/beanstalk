@@ -98,7 +98,7 @@ describe('conclusions and billing', () => {
 });
 
 describe('the job request', () => {
-  it('points the job at bs.internal and passes the finished jobs it needs', () => {
+  it('points the job at the forge and passes the finished jobs it needs', () => {
     const request = jobRequestOf(
       spec({
         needs: { build: { result: 'timed_out', outputs: { v: '1' } } },
@@ -108,8 +108,8 @@ describe('the job request', () => {
     );
     expect(request).toMatchObject({
       github: {
-        serverUrl: 'http://bs.internal',
-        apiUrl: 'http://bs.internal/api/v3',
+        serverUrl: 'https://gateway.example',
+        apiUrl: 'https://gateway.example/api/v3',
         runNumber: '3',
       },
       token: 'bsj_job_token',

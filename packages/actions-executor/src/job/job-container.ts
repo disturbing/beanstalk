@@ -2,13 +2,11 @@
  * ActionsJobContainer: one Durable Object and one fresh container per job, named by the job id
  * (a UUID the control plane mints per job and matrix leg, never reused). The object wires the
  * platform into `JobLifecycle`: its storage, its container, the sink, `schedule()` for the
- * timers (the Container class owns the alarm), and two outbound virtual hosts:
+ * timers (the Container class owns the alarm), and the outbound virtual host
+ * `executor.internal`, which hands the runner's batches and result to this object.
  *
- * - `executor.internal`: the runner's batches and result, handed to this object;
- * - `bs.internal`: Beanstalk's git for the job's repository, github.com for actions
- *   (`../outbound/forge-host.ts`).
- *
- * Internet egress stays on: steps install packages (`npm ci`) and fetch toolchains.
+ * Internet egress stays on: `actions/checkout` fetches from the job's `GITHUB_SERVER_URL` (the
+ * forge's GitHub-shaped git), act fetches actions from github.com, and steps install packages.
  */
 import { Container } from '@cloudflare/containers';
 import type { OutboundHandlerContext, StopParams } from '@cloudflare/containers';
@@ -17,12 +15,10 @@ import { readConfig } from '../config';
 import type { JobHandle, JobSpec } from '../contract';
 import { createLogger } from '../log';
 import type { Logger } from '../log';
-import { answerForge } from '../outbound/forge-host';
-import type { ForgeJob } from '../outbound/forge-host';
 import { sinkFor } from '../sink/job-sink';
 import type { ContainerPort, JobRecord, StartOutcome, StopReason, Task } from './lifecycle';
 import { JobLifecycle } from './lifecycle';
-import { EXECUTOR_HOST, FORGE_HOST } from './runner-wire';
+import { EXECUTOR_HOST } from './runner-wire';
 
 const RUNNER_PORT = 8080;
 const RECORD_KEY = 'job';
@@ -46,15 +42,6 @@ async function answerExecutor(
     status: answer.status,
     headers: { 'content-type': 'application/json' },
   });
-}
-
-/** `bs.internal`, with the job's repository passed as the handler's params. */
-async function answerForgeHost(
-  request: Request,
-  env: Env,
-  ctx: OutboundHandlerContext<ForgeJob>,
-): Promise<Response> {
-  return answerForge(request, ctx.params, env.GATEWAY);
 }
 
 /** What the admin route shows of a job. */
@@ -81,7 +68,6 @@ export class ActionsJobContainer extends Container<Env> {
 
   static {
     this.outboundByHost = { [EXECUTOR_HOST]: answerExecutor };
-    this.outboundHandlers = { forge: answerForgeHost };
   }
 
   constructor(ctx: Container<Env>['ctx'], env: Env) {
@@ -218,15 +204,8 @@ export class ActionsJobContainer extends Container<Env> {
     };
   }
 
-  /** Starts the container with the job's `bs.internal` route; a capacity refusal is a value. */
+  /** Starts a fresh container; a capacity refusal is a value, not an error. */
   async #startFresh(): Promise<StartOutcome> {
-    const record = await this.ctx.storage.get<JobRecord>(RECORD_KEY);
-    if (record === undefined) throw new Error('no job to start a container for');
-    const forge: ForgeJob = {
-      repository: record.spec.repo.fullName,
-      checkoutUrl: record.spec.checkout.url,
-    };
-    await this.setOutboundByHost(FORGE_HOST, 'forge', forge);
     try {
       await this.startAndWaitForPorts(RUNNER_PORT);
       return { kind: 'started' };

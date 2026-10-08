@@ -10,6 +10,11 @@ const DEFAULT_WORK_ROOT: &str = "/home/runner/work";
 const DEFAULT_ACT_BIN: &str = "/usr/local/bin/act";
 const DEFAULT_EXECUTOR_URL: &str = "http://executor.internal";
 const DEFAULT_CANCEL_GRACE_SECONDS: u64 = 10;
+const DEFAULT_DOCKERD: &str = "sudo -n /usr/local/bin/dockerd --group runner";
+const DEFAULT_DOCKER_BIN: &str = "/usr/local/bin/docker";
+const DEFAULT_DOCKER_SOCKET: &str = "/var/run/docker.sock";
+/// act's "medium" runner image: Ubuntu 24.04 with the common tools, about 1.2 GB to pull.
+const DEFAULT_DOCKER_JOB_IMAGE: &str = "catthehacker/ubuntu:act-24.04";
 
 /// Runtime configuration of the job runner.
 ///
@@ -21,6 +26,9 @@ const DEFAULT_CANCEL_GRACE_SECONDS: u64 = 10;
 /// | `EXECUTOR_URL` | `http://executor.internal` | where log batches, chunks and the result go (the container's outbound handler) |
 /// | `CANCEL_GRACE_SECONDS` | 10 | SIGTERM to SIGKILL on cancel and timeout |
 /// | `ACT_VERSION`, `IMAGE_VERSION` | `unknown` | reported by `/version` and in the result |
+/// | `DOCKERD` | `sudo -n /usr/local/bin/dockerd --group runner` | starts the inner Docker daemon for a job with `services:`, `container:` or Docker actions |
+/// | `DOCKER_BIN`, `DOCKER_SOCKET` | `/usr/local/bin/docker`, `/var/run/docker.sock` | the client that checks the daemon, and its socket |
+/// | `DOCKER_JOB_IMAGE` | `catthehacker/ubuntu:act-24.04` | the job container's image in Docker mode |
 #[derive(Debug, Clone)]
 pub struct Config {
     port: u16,
@@ -30,6 +38,17 @@ pub struct Config {
     cancel_grace: Duration,
     act_version: String,
     image_version: String,
+    docker: DockerConfig,
+}
+
+/// The inner Docker daemon, started only for a job that needs it.
+#[derive(Debug, Clone)]
+pub struct DockerConfig {
+    /// The daemon's command line, split on spaces.
+    pub daemon: Vec<String>,
+    pub client: PathBuf,
+    pub socket: String,
+    pub job_image: String,
 }
 
 impl Config {
@@ -74,6 +93,18 @@ impl Config {
             cancel_grace: Duration::from_secs(grace),
             act_version: lookup("ACT_VERSION").unwrap_or_else(|| "unknown".into()),
             image_version: lookup("IMAGE_VERSION").unwrap_or_else(|| "unknown".into()),
+            docker: DockerConfig {
+                daemon: lookup("DOCKERD")
+                    .unwrap_or_else(|| DEFAULT_DOCKERD.into())
+                    .split_whitespace()
+                    .map(str::to_owned)
+                    .collect(),
+                client: lookup("DOCKER_BIN")
+                    .map_or_else(|| DEFAULT_DOCKER_BIN.into(), PathBuf::from),
+                socket: lookup("DOCKER_SOCKET").unwrap_or_else(|| DEFAULT_DOCKER_SOCKET.into()),
+                job_image: lookup("DOCKER_JOB_IMAGE")
+                    .unwrap_or_else(|| DEFAULT_DOCKER_JOB_IMAGE.into()),
+            },
         })
     }
 
@@ -103,6 +134,10 @@ impl Config {
 
     pub fn image_version(&self) -> &str {
         &self.image_version
+    }
+
+    pub fn docker(&self) -> &DockerConfig {
+        &self.docker
     }
 }
 

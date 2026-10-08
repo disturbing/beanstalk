@@ -1,59 +1,46 @@
 /**
- * The executor's side of the Actions contract. Lane 1 owns the contract in
- * `packages/shared-race/src/actions.ts` (on its branch at the time of writing, commit 6e8505d);
- * this file mirrors the parts the executor speaks, field for field, so the two merge by
- * replacing these declarations with imports from `@beanstalk/shared-race/actions`. Keep it in
- * step with that file; the boundary schemas here validate what the executor receives.
+ * The executor's side of the Actions contract (`@beanstalk/shared-race/actions`, owned by the
+ * control plane): the types come from there; this module adds the boundary schema `startJob`
+ * validates a `JobSpec` with, since the contract exports schemas only for what the sink receives.
  */
 import { z } from 'zod';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { JobResult, JobSpec } from '@beanstalk/shared-race/actions';
+import {
+  ACTIONS_CONCLUSIONS,
+  ActionsJobId,
+  ActionsRunId,
+  SecretName,
+  WorkflowPath,
+} from '@beanstalk/shared-race/actions';
 
-export type { RpcResult };
+export type {
+  ActionsConclusion,
+  ActionsExecutor,
+  ActionsJobSink,
+  JobHandle,
+  JobLogBatch,
+  JobResult,
+  JobSpec,
+  JobStepSpec,
+  LogLine,
+  StepView,
+} from '@beanstalk/shared-race/actions';
+export type { RpcResult } from '@beanstalk/shared-race/rpc';
 
-export const ACTIONS_STATUSES = ['queued', 'waiting', 'in_progress', 'completed'] as const;
-export type ActionsStatus = (typeof ACTIONS_STATUSES)[number];
-
-export const ACTIONS_CONCLUSIONS = [
-  'success',
-  'failure',
-  'cancelled',
-  'skipped',
-  'timed_out',
-  'infrastructure_failure',
-  'startup_failure',
-] as const;
-export type ActionsConclusion = (typeof ACTIONS_CONCLUSIONS)[number];
-
-/** One log line as the control plane stores and shows it. */
-export type LogLine = { readonly step: number | null; readonly at: string; readonly text: string };
-
-export type StepView = {
-  readonly number: number;
-  readonly name: string;
-  readonly status: ActionsStatus;
-  readonly conclusion: ActionsConclusion | null;
-  readonly startedAt: string | null;
-  readonly completedAt: string | null;
-};
-
-export type JobStepSpec = {
-  readonly number: number;
-  readonly id: string | null;
-  readonly name: string;
-  readonly uses: string | null;
-  readonly run: string | null;
-};
+/** A finished job's conclusion as `JobResult` allows it. */
+export type JobConclusion = JobResult['conclusion'];
 
 const Scalar = z.union([z.string(), z.number(), z.boolean()]);
 
 /** `JobSpec`, validated at the RPC boundary (the shape of lane 1's type). */
+/** `JobSpec`, validated at the RPC boundary. */
 export const JobSpecSchema = z.object({
-  jobId: z.uuid(),
+  jobId: ActionsJobId,
   repo: z.object({ id: z.string(), owner: z.string(), name: z.string(), fullName: z.string() }),
-  runId: z.uuid(),
+  runId: ActionsRunId,
   runNumber: z.number().int(),
-  workflowPath: z.string().regex(/^\.github\/workflows\/[A-Za-z0-9._-]{1,100}\.ya?ml$/),
+  workflowPath: WorkflowPath,
   workflowName: z.string(),
   jobName: z.string().min(1).max(100),
   displayName: z.string(),
@@ -76,7 +63,7 @@ export const JobSpecSchema = z.object({
   ),
   inputs: z.record(z.string(), z.string()),
   env: z.record(z.string(), z.string()),
-  secretNames: z.array(z.string()),
+  secretNames: z.array(SecretName),
   steps: z.array(
     z.object({
       number: z.number().int(),
@@ -91,54 +78,12 @@ export const JobSpecSchema = z.object({
   image: z.string(),
   report: z.object({ token: z.string().min(1) }),
 });
-export type JobSpec = z.infer<typeof JobSpecSchema>;
-
-export type JobHandle = {
-  readonly jobId: string;
-  /** The executor's own reference (the container Durable Object's id), for its logs. */
-  readonly executorRef: string;
-  readonly acceptedAt: string;
-};
-
-export type JobConclusion = Extract<
-  ActionsConclusion,
-  'success' | 'failure' | 'cancelled' | 'timed_out' | 'infrastructure_failure'
->;
-
-export type JobResult = {
-  readonly conclusion: JobConclusion;
-  readonly outputs: Readonly<Record<string, string>>;
-  readonly durationMs: number;
-  /** Whole minutes, rounded up per job as GitHub bills them. */
-  readonly minutesBilled: number;
-  readonly steps: readonly StepView[];
-  readonly error: string | null;
-};
-
-/** One batch for the sink: `seq` from 1, in order, one gzip chunk in R2 each. */
-export type JobLogBatch = {
-  readonly seq: number;
-  readonly lines: readonly LogLine[];
-  readonly steps: readonly StepView[];
-};
-
-export type ActionsExecutor = {
-  startJob(spec: JobSpec): Promise<RpcResult<JobHandle>>;
-  cancelJob(
-    jobId: string,
-    reason: 'cancelled' | 'timed_out',
-  ): Promise<RpcResult<{ readonly stopping: boolean }>>;
-};
-
-/** The gateway's `ActionsJobs` entrypoint, called with the job's `report.token`. */
-export type ActionsJobSink = {
-  actionsJobSecrets(reportToken: string): Promise<RpcResult<Readonly<Record<string, string>>>>;
-  actionsJobLogs(
-    reportToken: string,
-    batch: JobLogBatch,
-  ): Promise<RpcResult<{ readonly cancelRequested: boolean }>>;
-  actionsJobFinished(
-    reportToken: string,
-    result: JobResult,
-  ): Promise<RpcResult<{ readonly accepted: true }>>;
-};
+/** A `JobSpec` from an RPC argument, or why it is not one. */
+export function parseJobSpec(
+  value: unknown,
+):
+  | { readonly ok: true; readonly spec: JobSpec }
+  | { readonly ok: false; readonly error: z.ZodError } {
+  const parsed = JobSpecSchema.safeParse(value);
+  return parsed.success ? { ok: true, spec: parsed.data } : { ok: false, error: parsed.error };
+}

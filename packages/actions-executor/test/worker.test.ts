@@ -1,6 +1,8 @@
 import { SELF, env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
+import { SecretName } from '@beanstalk/shared-race/actions';
+
 import { cancelJob, startJob } from '../src/executor';
 import { gunzip, standaloneSink } from '../src/sink/job-sink';
 import { JOB_ID, spec } from './fake-ports';
@@ -74,7 +76,7 @@ describe('the standalone sink', () => {
   });
 
   it('gives a job only the secrets it names', async () => {
-    const sink = standaloneSink(spec({ secretNames: ['NPM_TOKEN'] }), env);
+    const sink = standaloneSink(spec({ secretNames: [SecretName.parse('NPM_TOKEN')] }), env);
     expect(await sink.secrets()).toEqual({ NPM_TOKEN: 'npm-secret' });
   });
 });
