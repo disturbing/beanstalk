@@ -595,6 +595,10 @@ class OrchestratedRace:
         with open(os.path.join(wt, "BACKLOG.md"), "w", encoding="utf-8") as fh:
             fh.write(orch_prompt.backlog(tasks, hint))
         deps = suite_mod.ACTIVE.deps
+        if deps and not os.path.isdir(deps):
+            # a dangling link leaves the agents and the final check without dependencies: every suite file fails
+            # (seen 2026-10-08: a whole race measured 0 of 38 green on a correct line)
+            raise SystemExit(f"the arena's dependencies are not installed: {deps} (npm ci in its deps directory)")
         if deps:  # resolution walks up: one snapshot above the clone serves the clone and its worktrees
             link = os.path.join(self.work, "node_modules")
             if not os.path.lexists(link):
@@ -613,6 +617,13 @@ class OrchestratedRace:
         except Exception:  # noqa: BLE001 - the decision to resume must not end the race
             return set()
         return unintegrated_tasks([t.id for t in tasks], log)
+
+    def session_env(self) -> dict[str, str]:
+        """plugin guidance: ``claude -p`` keeps waiting for background workers however long the lead's turn has been
+        over. By default it stops them 10 minutes after the last turn ("Background tasks still running 10m after the
+        last turn ...; stopping them"), which killed all 8 workers of the first plugin-v2 run at 11 minutes; a lead that
+        sleeps (the baselines) never meets the ceiling, a lead that waits for notifications does."""
+        return {"CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS": "0"} if self.guidance == "plugin" else {}
 
     def claude_argv(self, prompt: str, budget: float | None = None, resume: str | None = None) -> list[str]:
         cfg = self.cfg
@@ -641,7 +652,7 @@ class OrchestratedRace:
         with open(os.path.join(self.out, "worker_prompt.txt"), "w", encoding="utf-8") as fh:
             fh.write(orch_prompt.worker_prompt(self.guidance))
         transcript = os.path.join(self.work, "transcript.jsonl")
-        env = {**agent_env(), **forge.agent_env(), "ORCH_ARENA": os.path.abspath(cfg.arena)}
+        env = {**agent_env(), **forge.agent_env(), "ORCH_ARENA": os.path.abspath(cfg.arena), **self.session_env()}
         self.t0 = time.time()
         self.log("race.setup", at=self.t0, forge=cfg.forge, repo=forge.url, base=base, tasks=[t.id for t in tasks])
         self.log("race.start", at=self.t0, policy=f"orchestrated-{cfg.forge}", agent=cfg.orchestrator,
@@ -757,7 +768,8 @@ class OrchestratedRace:
             "config": {"agents": cfg.subagents, "tasks": len(tasks), "seed": cfg.seed, "max_usd": cfg.max_usd,
                        "max_wall_minutes": cfg.max_wall_minutes, "ci_slots": cfg.ci_slots, "batch": cfg.batch,
                        "worker_model": cfg.worker_model, "guidance": self.guidance,
-                       "guidance_version": self.guidance_version},
+                       "guidance_version": self.guidance_version,
+                       "bg_wait_ceiling": "none" if self.session_env() else "claude-code default (10 min)"},
             "aborted": aborted,
             "wall_seconds": round(ended - self.t0, 2),
             "settled_seconds": round(settled - self.t0, 2),
