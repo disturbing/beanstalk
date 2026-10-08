@@ -70,7 +70,7 @@ export async function readLogChunks(
 async function readChunk(bucket: R2Bucket, key: string): Promise<LogLine[]> {
   const object = await bucket.get(key);
   if (object === null) return [];
-  const text = await new Response(object.body.pipeThrough(new DecompressionStream('gzip'))).text();
+  const text = await chunkText(new Uint8Array(await object.arrayBuffer()));
   return text
     .split('\n')
     .filter((line) => line !== '')
@@ -78,4 +78,16 @@ async function readChunk(bucket: R2Bucket, key: string): Promise<LogLine[]> {
       const parsed = LogLineSchema.safeParse(JSON.parse(line));
       return parsed.success ? [parsed.data] : [];
     });
+}
+
+/**
+ * A chunk's text. Stored gzipped; a layer that honours `Content-Encoding: gzip` may already
+ * have inflated it, so the gzip magic bytes decide.
+ */
+async function chunkText(bytes: Uint8Array): Promise<string> {
+  const isGzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+  if (!isGzip) return new TextDecoder().decode(bytes);
+  return new Response(
+    new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')),
+  ).text();
 }

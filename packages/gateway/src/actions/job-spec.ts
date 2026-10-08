@@ -71,4 +71,3 @@ export function jobSpecOf(input: {
     report: { token: input.tokens.report },
   };
 }
-

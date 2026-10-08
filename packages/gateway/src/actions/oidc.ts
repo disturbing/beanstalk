@@ -131,4 +131,3 @@ async function isJobActive(db: D1Database, jobId: string): Promise<boolean> {
   const parsed = ActiveRow.safeParse(row);
   return parsed.success && parsed.data.n > 0;
 }
-

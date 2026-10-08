@@ -15,7 +15,9 @@
  *   session token minted by the MCP tool `git_credentials` is bound to its one repository;
  * - deploy tokens (`bsd_…`), made by a repository's owner or maintainers for CI and other
  *   machines: bound to that repository's engine, read or read and write, pushing as the person
- *   who made them (../repos/deploy-tokens.ts), independent of collaborators.
+ *   who made them (../repos/deploy-tokens.ts), independent of collaborators;
+ * - Actions job tokens (`bsj_…`, a job's GITHUB_TOKEN): bound to the job's repository engine,
+ *   read, and push beans only when the job's permissions allow (../actions/job-tokens.ts).
  *
  * `verifyGitCredential` only says who is asking and with which scopes; `mayUseEngine` says
  * what they may do. Never throws for bad input; never logs the token.

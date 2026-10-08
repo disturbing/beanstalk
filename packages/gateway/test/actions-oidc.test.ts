@@ -15,12 +15,16 @@ import { ORIGIN, call } from './helpers';
  */
 describe('Actions OIDC', () => {
   it('serves discovery and JWKS under /_actions/oidc', async () => {
-    const discovery = await (await call('GET', '/_actions/oidc/.well-known/openid-configuration')).json<{
+    const discovery = await (
+      await call('GET', '/_actions/oidc/.well-known/openid-configuration')
+    ).json<{
       issuer: string;
       jwks_uri: string;
     }>();
     expect(discovery.issuer).toBe(`${ORIGIN}/_actions/oidc`);
-    const jwks = await (await call('GET', '/_actions/oidc/.well-known/jwks')).json<{ keys: { kid: string }[] }>();
+    const jwks = await (
+      await call('GET', '/_actions/oidc/.well-known/jwks')
+    ).json<{ keys: { kid: string }[] }>();
     expect(jwks.keys.map((key) => key.kid)).toEqual(['test-key']);
     expect(JSON.stringify(jwks)).not.toContain('"d"');
   });
@@ -28,7 +32,15 @@ describe('Actions OIDC', () => {
   it('mints request variables only for id-token: write, and issues tokens while the job runs', async () => {
     const run = runRecord();
     const job = jobRow({ idTokenWrite: true });
-    expect(await oidcJobEnv({ env, publicUrl: ORIGIN, run, job: jobRow({ idTokenWrite: false }), nowMs: Date.now() })).toEqual({});
+    expect(
+      await oidcJobEnv({
+        env,
+        publicUrl: ORIGIN,
+        run,
+        job: jobRow({ idTokenWrite: false }),
+        nowMs: Date.now(),
+      }),
+    ).toEqual({});
     const vars = await oidcJobEnv({ env, publicUrl: ORIGIN, run, job, nowMs: Date.now() });
     const url = vars['ACTIONS_ID_TOKEN_REQUEST_URL'] ?? '';
     const token = vars['ACTIONS_ID_TOKEN_REQUEST_TOKEN'] ?? '';
@@ -48,7 +60,9 @@ describe('Actions OIDC', () => {
     const issued = await call('GET', path, { token });
     expect(issued.status).toBe(200);
     const { value } = await issued.json<{ value: string }>();
-    const claims = JSON.parse(atob((value.split('.')[1] ?? '').replaceAll('-', '+').replaceAll('_', '/'))) as Record<string, unknown>;
+    const claims = JSON.parse(
+      atob((value.split('.')[1] ?? '').replaceAll('-', '+').replaceAll('_', '/')),
+    ) as Record<string, unknown>;
     expect(claims).toMatchObject({
       iss: `${ORIGIN}/_actions/oidc`,
       aud: 'sts.amazonaws.com',
