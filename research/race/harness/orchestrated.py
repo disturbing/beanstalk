@@ -523,6 +523,15 @@ def locked_hint() -> str:
             "two at once fail each other); never run `node --test` directly.")
 
 
+def unintegrated_tasks(ids: list[str], log: str) -> set[str]:
+    """Task ids no ``Task:`` trailer in ``log`` names. A Beanstalk squash's trailer may be the bean's name
+    (``Task: t009-handler-timeout`` for a bean named after its task, seen 2026-10-08), so a trailer ``<id>-...``
+    counts for ``<id>``."""
+    import re
+    named = re.findall(r"\bTask:\s*([A-Za-z0-9_.-]+)", log)
+    return {i for i in ids if not any(n == i or n.startswith(f"{i}-") for n in named)}
+
+
 def task_of(text: str) -> str | None:
     import re
     m = re.search(r"\bTask:\s*([A-Za-z0-9_.-]+)", text or "")
@@ -591,15 +600,15 @@ class OrchestratedRace:
     def unintegrated(self, forge, tasks: list[Task]) -> set[str]:
         """Tasks no commit on the forge's line names (``Task: <id>`` trailers, forge-agnostic: a change may carry
         several tasks). A forge error counts as all integrated: no resume."""
-        import re
         repo = os.path.join(self.work, "base")
         try:
             ref, _ = forge.fetch_line(repo)
+            if forge.name == "beanstalk":   # done = landed on the sprout (the prompt's definition), not yet the stalk
+                ref = "refs/remotes/forge/sprout"
             log = run_git(repo, "log", "--format=%B", f"{self.base_sha}..{ref}")
         except Exception:  # noqa: BLE001 - the decision to resume must not end the race
             return set()
-        done = set(re.findall(r"\bTask:\s*([A-Za-z0-9_.-]+)", log))
-        return {t.id for t in tasks} - done
+        return unintegrated_tasks([t.id for t in tasks], log)
 
     def claude_argv(self, prompt: str, budget: float | None = None, resume: str | None = None) -> list[str]:
         cfg = self.cfg

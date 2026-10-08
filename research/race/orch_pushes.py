@@ -9,8 +9,8 @@ It also measures the time spent waiting on checks, from the transcript's timesta
 
 - ``blocking_push_s``: foreground bean pushes with ``-o wait`` (the agent sits through its own pre-land check);
 - ``poll_wait_s``: foreground commands that sleep while following the forge (``sleep`` with a status ref, a bean,
-  the sprout or ``gh pr``), the other way an agent can sit idle on a verdict;
-- ``plain_push_s``: plain bean pushes (the transfer itself; not waiting);
+  the sprout or ``gh pr``; a plain push followed by a sleep counts here), the other way an agent can sit idle on a
+  verdict. A command that also runs the tests counts only its stated sleeps (at most its duration);
 - ``active_s``: the summed span of each agent (lead: the session; worker: first to last message), so
   ``check_wait_share`` = (blocking_push_s + poll_wait_s) / active_s for the workers.
 
@@ -27,7 +27,8 @@ import sys
 BEAN_PUSH = re.compile(r"git\b.*\bpush\b.*bean/")
 PR_CREATE = re.compile(r"\bgh pr create\b")
 PR_ENQUEUE = re.compile(r"\bgh pr merge\b")
-POLL = re.compile(r"\bsleep\s+\d")
+POLL = re.compile(r"\bsleep\s+(\d+)")
+TESTS = re.compile(r"locked_suite|node --test|npm test")
 FORGE = re.compile(r"refs/beans|bean/|sprout|gh pr|for-each-ref")
 
 
@@ -43,14 +44,14 @@ def ts(e: dict) -> float | None:
 
 def blank() -> dict:
     return {"bean_pushes": 0, "blocking_wait": 0, "plain": 0, "background": 0, "pr_create": 0, "pr_enqueue": 0,
-            "blocking_push_s": 0.0, "poll_wait_s": 0.0, "plain_push_s": 0.0, "active_s": 0.0}
+            "blocking_push_s": 0.0, "poll_wait_s": 0.0, "active_s": 0.0}
 
 
 def analyse(run: str) -> dict:
     path = os.path.join(run, "transcript.jsonl")
     out = {"lead": blank(), "workers": blank()}
     pending: dict[str, int] = {}
-    timed: dict[str, tuple[str, str, float]] = {}   # tool-use id -> (who, kind, started)
+    timed: dict[str, tuple[str, str, float, float | None]] = {}   # tool-use id -> (who, kind, started, cap)
     spans: dict[str, list[float]] = {}               # agent (lead or parent tool-use id) -> first, last timestamp
     most = 0
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -74,7 +75,7 @@ def analyse(run: str) -> dict:
                 n = len(BEAN_PUSH.findall(cmd)) or (1 if BEAN_PUSH.search(cmd) else 0)
                 if "for " in cmd and BEAN_PUSH.search(cmd):
                     n = max(n, cmd.count("bean/"))
-                kind = None
+                kind, cap = None, None
                 if n:
                     out[who]["bean_pushes"] += n
                     if bg:
@@ -84,13 +85,14 @@ def analyse(run: str) -> dict:
                         kind = "blocking_push_s"
                     else:
                         out[who]["plain"] += n
-                        kind = "plain_push_s"
                     pending[c["id"]] = n
                     most = max(most, sum(pending.values()))
-                elif not bg and POLL.search(cmd) and FORGE.search(cmd):
+                if kind is None and not bg and POLL.search(cmd) and FORGE.search(cmd):
                     kind = "poll_wait_s"
+                    if TESTS.search(cmd):
+                        cap = float(sum(int(s) for s in POLL.findall(cmd)))
                 if kind and at is not None:
-                    timed[c["id"]] = (who, kind, at)
+                    timed[c["id"]] = (who, kind, at, cap)
                 out[who]["pr_create"] += len(PR_CREATE.findall(cmd))
                 out[who]["pr_enqueue"] += len(PR_ENQUEUE.findall(cmd))
         if e.get("type") == "user":
@@ -99,12 +101,13 @@ def analyse(run: str) -> dict:
                     pending.pop(c.get("tool_use_id"), None)
                     started = timed.pop(c.get("tool_use_id"), None)
                     if started and at is not None:
-                        w, kind, t0 = started
-                        out[w][kind] += max(0.0, at - t0)
+                        w, kind, t0, cap = started
+                        spent = max(0.0, at - t0)
+                        out[w][kind] += spent if cap is None else min(spent, cap)
     for agent, (first, last) in spans.items():
         out["lead" if agent == "lead" else "workers"]["active_s"] += last - first
     for side in out.values():
-        for k in ("blocking_push_s", "poll_wait_s", "plain_push_s", "active_s"):
+        for k in ("blocking_push_s", "poll_wait_s", "active_s"):
             side[k] = round(side[k], 1)
         side["check_wait_s"] = round(side["blocking_push_s"] + side["poll_wait_s"], 1)
         side["check_wait_share"] = round(side["check_wait_s"] / side["active_s"], 3) if side["active_s"] else None

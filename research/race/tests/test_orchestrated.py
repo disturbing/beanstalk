@@ -16,7 +16,7 @@ sys.path.insert(0, RACE)
 from harness import orch_measure as M  # noqa: E402
 from harness import orch_prompt  # noqa: E402
 from harness.arena import load_tasks  # noqa: E402
-from harness.orchestrated import merge_sessions, parse_transcript, task_of  # noqa: E402
+from harness.orchestrated import merge_sessions, parse_transcript, task_of, unintegrated_tasks  # noqa: E402
 import orch_pushes  # noqa: E402
 
 FIXTURE = os.path.join(TESTS, "fixtures", "arena")
@@ -61,6 +61,10 @@ class Prompt(unittest.TestCase):
             for path, content in t.acceptance_tests.items():
                 self.assertIn(path, text)
                 self.assertIn(content.strip().splitlines()[0], text)
+
+    def test_unintegrated_reads_trailers_named_after_the_bean(self) -> None:
+        log = "Fix x\n\nTask: t009-handler-timeout\nPolicy: beanstalk\n\nY\n\nTask: t002\n"
+        self.assertEqual(unintegrated_tasks(["t002", "t009", "t010", "t0091"], log), {"t010", "t0091"})
 
     def test_task_of(self) -> None:
         self.assertEqual(task_of("Add x\n\nTask: t004"), "t004")
@@ -185,13 +189,15 @@ class Transcript(unittest.TestCase):
         lines = [use("a", "git -C wt push -o wait origin HEAD:refs/heads/bean/t1", "00:00"), res("a", "01:30"),
                  use("b", "git -C wt push origin HEAD:refs/heads/bean/t2", "02:00"), res("b", "02:03"),
                  use("c", "sleep 30; git fetch origin '+refs/beans/*:refs/beans/*'", "03:00"), res("c", "03:30"),
+                 use("e", "python3 locked_suite.py; git push origin HEAD:refs/heads/bean/t3; sleep 20", "03:30"),
+                 res("e", "04:10"),
                  use("d", "sleep 60", "04:00", parent=None), res("d", "05:00", parent=None)]
         with open(os.path.join(run, "transcript.jsonl"), "w") as fh:
             fh.write("\n".join(json.dumps(x) for x in lines) + "\n")
         w = orch_pushes.analyse(run)["workers"]
-        self.assertEqual((w["bean_pushes"], w["blocking_wait"], w["plain"]), (2, 1, 1))
-        self.assertEqual((w["blocking_push_s"], w["plain_push_s"], w["poll_wait_s"]), (90.0, 3.0, 30.0))
-        self.assertEqual((w["active_s"], w["check_wait_s"]), (210.0, 120.0))
+        self.assertEqual((w["bean_pushes"], w["blocking_wait"], w["plain"]), (3, 1, 2))
+        self.assertEqual((w["blocking_push_s"], w["poll_wait_s"]), (90.0, 30.0 + 20.0))
+        self.assertEqual((w["active_s"], w["check_wait_s"]), (250.0, 140.0))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,127 @@
+You are the lead engineer on this repository. `BACKLOG.md` in this directory lists 38 tasks, each with acceptance tests. Ship as many of them as you can: a task is done when its change, with its acceptance tests, is integrated by the forge (described below). You decide how to split, order and stack the work.
+
+How to work:
+- Work in parallel: give each subagent its own branch in its own `git worktree` (create them under `.worktrees/`, for example `git worktree add .worktrees/<branch> -b <branch> origin/sprout`). You may run up to 8 `worker` subagents at the same time (several Agent calls in one message, or in the background); never more than 8 at once.
+- A change for a task adds that task's acceptance tests exactly as given in `BACKLOG.md` and makes them pass without breaking other tests. Run the tests only with `python3 /Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/research/race/harness/locked_suite.py` from the worktree: `cd <worktree> && python3 /Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/research/race/harness/locked_suite.py` runs the whole suite (about 15 s), `cd <worktree> && python3 /Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/research/race/harness/locked_suite.py test/<file>.test.js` runs chosen files. It waits while another test run on this machine finishes (the suite listens on fixed ports, so two at once fail each other); never run `node --test` directly. The dependencies are already installed in a `node_modules` directory above this repository, so `require` resolves them from every worktree even though no worktree has its own `node_modules`: never install packages.
+- Give each worker the absolute path of its worktree. A worker's shell starts in this directory for every command, so it uses `git -C <worktree> ...` for git and runs the tests as `cd <worktree> && node ...` in the same command. Don't change the given acceptance tests; you may update existing tests whose expectations your change intentionally alters.
+- Put a `Task: <id>` line (for example `Task: t004`) at the end of the commit message of each task's change. One task per change unless you deliberately combine them.
+- Integration happens only through the forge as described below; never push to `sprout` yourself.
+- `BACKLOG.md` and `.worktrees/` are local notes and scratch space: never commit them.
+- Your session ends as soon as you end your turn, and that stops any worker still running. After starting workers in the background, keep waiting for their notifications and following your changes on the forge; don't end your turn while a worker is running or a change is not yet integrated.
+- You have about 150 minutes. When every task is integrated (or you judge a task impossible), stop and reply with one line per task: its id, integrated or not, and why not.
+
+The forge: Beanstalk, repository https://beanstalk-gateway.<account>.workers.dev/git/race/orch-fastify-7-28106.git (this directory is a clone; `origin` points to it; git is already connected). The Beanstalk plugin is installed: its skill follows and is how you and your workers submit and follow changes. The beanstalk MCP server is not connected in this session, so use git only. A task is done when its bean has landed on `sprout`.
+
+<beanstalk-skill>
+# Working on a Beanstalk repository
+
+Git is the interface. The MCP server is optional context. The client needs one thing: git
+connected to the person's account (below).
+
+Words: a **bean** is one small change on a branch `bean/<short-name>`. The **sprout** is the
+latest integrated state (every landed bean); build on it. The **stalk** is the validated line
+behind it. `main` is never yours. The forge's remote is `https://<gateway>/git/<owner>/<repo>.git`.
+
+## Connecting git
+
+If a Beanstalk git command fails with `Authentication failed`, `terminal prompts disabled` or
+`remote: Beanstalk: this git is not connected`, run `/beanstalk:setup [owner/repo]` (in Claude
+Code; other agents run the same script, `<web>/setup.sh`). It finds the person's SSH keys or
+makes one, opens Beanstalk once to approve it, and points git at Beanstalk. Never ask the person
+to paste a password or token into the chat, and never put one in a remote URL. CI and scripts
+use a deploy token: `BEANSTALK_TOKEN` plus `GIT_CONFIG_*` (the repository page, tab "Env vars").
+
+## The flow: push, then keep working
+
+```bash
+git fetch origin sprout && git switch -c bean/<short-name> origin/sprout
+# work; commit. The message is the intent: one sentence on why, optional trailer
+git commit -m "Retry webhook delivery on 5xx" -m "Task: t032"
+git fetch origin sprout && git rebase origin/sprout      # if the sprout moved
+git push origin HEAD:refs/heads/bean/<short-name>        # submits the bean; returns in seconds
+git fetch origin sprout && git switch -c bean/<next> origin/sprout   # next task, now
+```
+
+A plain push returns as soon as the bean is received. The forge then merges it onto the sprout
+and runs the whole suite (about a minute); you do not need to watch. **Do not wait on your own
+check**: start the next task at once, and look at your beans' verdicts between steps (after a
+commit, before a new task, before you finish):
+
+```bash
+git fetch -q origin '+refs/beans/*:refs/beans/*'
+git for-each-ref 'refs/beans/<short-name>/' --format='%(refname:lstrip=2) %(contents:subject)'
+```
+
+Name several beans at once (`'refs/beans/a/' 'refs/beans/b/'`). The subject is `<phase>: <reason>`: `checking`, `landed`, `green` (on the stalk), `red`,
+`conflict`, `parked`, `dropped`. Use `git push -o wait …` only when your next step genuinely
+needs the verdict (nothing else to do, or you must not go on until it lands). Before you
+finish, every bean you pushed must be `landed` or handed back: poll every 30-60 s, or MCP
+`bean_wait`.
+
+A red or conflict comes back to **you**, its author: commit your work in progress, `git switch
+bean/<name>`, rebase on `origin/sprout`, fix, `git push -f origin HEAD:refs/heads/bean/<name>`,
+and switch back. A push while that bean is still being checked is refused; wait for its verdict.
+
+**Stacking.** A task that needs your pushed bean that has not landed yet can start on top of
+it: `git switch -c bean/<child> bean/<parent>`. Push the child once the parent has landed:
+`git fetch origin sprout && git rebase --onto origin/sprout bean/<parent>` (drops the parent's
+commits; the sprout has them as a squash), then push. If the parent comes back red, fix and
+re-push it, then move the child onto the fixed parent (`git rebase --onto bean/<parent>
+<old parent head>`).
+
+**Teams.** When you split work among subagents, each one pushes its own beans from its own
+worktree and owns their reds; the lead does not push for them. Tell each one to push without
+waiting and take its next task. Push options and every `remote:` line: `/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/packages/claude-plugin/skills/beanstalk/references/push-flow.md`.
+
+## Rules
+
+- One intent per bean; keep it small (a handful of files). Split unrelated work into more beans.
+- Never push to `sprout`, `stalk` or `main`; the remote refuses. Never force-push another bean.
+- Rebase on `origin/sprout` before pushing whenever it moved; a stale base causes conflicts.
+- **Acceptance tests are protected**: yours (write them with the change) and landed beans'.
+  Never edit, delete, skip or weaken one to get green. You may update other existing tests
+  only when your change intentionally alters their expectations; say so in the commit message.
+- Never print or commit the credential, and do not paste `git remote -v` output that holds it.
+
+## Reading results
+
+The status ref above (or `git cat-file -p refs/beans/<name>/status` for the full verdict, or the
+`remote:` lines of a `-o wait` push):
+
+| Verdict | Meaning | Do |
+|---|---|---|
+| checking | Pre-land check is running | Work on something else. Do not push this bean again |
+| landed / green | On the sprout / validated on the stalk | Done. Report it |
+| red | Your change plus the sprout fails tests | Read failing tests, the bean you collided with and its intent. Rebase, fix the code, push again |
+| conflict | Same lines as a landed bean | Rebase on `origin/sprout`; keep both intents; push again |
+| inherited red | The sprout was already red on that test | Not yours; do not "fix" it; wait, rebase, retry |
+| decision card open | A person decides between two beans' intents | Wait; do not work around it |
+| reverted / dropped | Broke the sprout validation, or gave up | Read the reason; start a new bean if still needed |
+
+Step by step: `/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/packages/claude-plugin/skills/beanstalk/references/reds-conflicts-cards.md`.
+
+## When to call MCP (optional)
+
+Git does the work; MCP (`/mcp`, OAuth login) coordinates it and adds context git cannot
+give. Tools take the repository as `repo: "owner/name"`.
+
+- **Before starting:** with a backlog, `task_list` then `task_claim` so no other agent takes
+  the same task (`task_release` gives one back). `bean_open(repo, bean, intent, task?)`
+  reserves the name; `work_overlaps(paths, repo)` shows who is editing those files.
+- **After pushing:** `bean_status` (failing tests, the landed bean you collided with, its
+  intent and what it changed, next step); `bean_wait` blocks until the check ends, so call it
+  only when you have nothing else to do.
+- **Credentials:** only if git is not connected and `/beanstalk:setup` is not an option:
+  `git_credentials(repo)` gives a one-hour credential for `git credential approve`.
+- **Decision cards** and **bean-to-bean conversation** (`bean_context`, `bean_thread_post`,
+  `bean_inbox_read`): when your approach contradicts another bean's.
+
+Never use MCP to move code. Tools and their scopes: `/Users/coop/Workspace/beanstalk/.claude/worktrees/agent-ae472a561a8cac998/packages/claude-plugin/skills/beanstalk/references/mcp-tools.md`.
+
+## Before you push
+
+1. `git diff origin/sprout --stat`: only the files this one intent needs?
+2. Your tests pass locally; protected tests untouched.
+3. The commit message states the intent.
+4. Rebased on the current `origin/sprout`.
+</beanstalk-skill>
