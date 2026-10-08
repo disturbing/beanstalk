@@ -15,6 +15,7 @@ import { liveRoutes } from './routes/live';
 import { collaborationRoutes } from './routes/collaboration';
 import { whoamiRoutes } from './routes/whoami';
 import { actionsRoutes, githubShapedGitUrl } from './routes/actions';
+import { OIDC_PATH, oidcRoutes } from './actions/oidc';
 
 /** The gateway's HTTP surface (§4): admin and driver API, git proxy, live page. */
 export function createApp(depsFor: (env: Env) => Deps) {
@@ -32,6 +33,8 @@ export function createApp(depsFor: (env: Env) => Deps) {
   app.route('/v1/repos', repoRoutes);
   app.route('/runs', liveRoutes);
   app.route('/v1/actions', actionsRoutes);
+  // The Actions OIDC issuer (src/actions/oidc.ts): discovery, JWKS and the job token endpoint.
+  app.mount(OIDC_PATH, (request, env: Env) => oidcRoutes(env)(request));
   // Actions' checkout: `<server>/<owner>/<repo>[.git]/…` served as `/git/<owner>/<repo>.git/…`.
   app.all('/:owner/:repo/*', async (c, next) => {
     const rewritten = githubShapedGitUrl(new URL(c.req.url));

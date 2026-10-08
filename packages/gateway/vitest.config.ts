@@ -24,6 +24,8 @@ const compatibilityDate = poolWorkerdCompatibilityDate();
 const identityMigrations = await readD1Migrations(path.join(here, '../shared-identity/migrations'));
 /** The repository registry's D1 migrations, applied to the test database by test/apply-migrations.ts. */
 const registryMigrations = await readD1Migrations(path.join(here, 'migrations'));
+/** A throwaway OIDC signing key for the Actions issuer's tests (never a real secret). */
+const oidcKey = await testSigningKey();
 
 export default defineConfig({
   plugins: [
@@ -36,6 +38,8 @@ export default defineConfig({
           RUN_TOKEN_SECRET: 'test-run-token-secret-0123456789abcdef0123',
           // 32 bytes, base64: the Actions secrets key for tests only.
           ACTIONS_SECRETS_KEY: 'dGVzdC1hY3Rpb25zLXNlY3JldHMta2V5LTMyYnl0ZXM=',
+          OIDC_SIGNING_KEYS: JSON.stringify({ active: oidcKey.kid, keys: [oidcKey] }),
+          OIDC_REQUEST_SECRET: 'test-oidc-request-secret-0123456789abcdef',
           LOG_LEVEL: 'error',
           TEST_MIGRATIONS: identityMigrations,
           FORGE_MIGRATIONS: registryMigrations,
@@ -139,4 +143,14 @@ function stringEnd(text: string, start: number): number {
   let index = start + 1;
   while (index < text.length && text[index] !== '"') index += text[index] === '\\' ? 2 : 1;
   return index + 1;
+}
+
+/** An ES256 private JWK in the shape `OIDC_SIGNING_KEYS` holds (packages/shared-oidc). */
+async function testSigningKey(): Promise<Record<string, unknown> & { kid: string }> {
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+    'sign',
+    'verify',
+  ]);
+  const jwk = await crypto.subtle.exportKey('jwk', pair.privateKey);
+  return { ...jwk, kid: 'test-key', alg: 'ES256' };
 }

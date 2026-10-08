@@ -13,11 +13,6 @@ export type ActionsConfig = {
    * `GITHUB_SERVER_URL`, so unmodified `actions/checkout` fetches `<server>/<owner>/<repo>`.
    */
   readonly serverUrl: string;
-  /**
-   * The OIDC token endpoint for `id-token: write` jobs (`ACTIONS_ID_TOKEN_REQUEST_URL`), once
-   * the OIDC issuer is deployed (`ACTIONS_OIDC_REQUEST_URL`); null until then.
-   */
-  readonly oidcRequestUrl: string | null;
   /** `stub`: the built-in echo executor; `service`: the ACTIONS_EXECUTOR binding. */
   readonly executorMode: 'stub' | 'service';
   readonly monthlyMinutes: number;
@@ -44,7 +39,6 @@ export function readActionsConfig(env: Pick<Env, keyof z.infer<typeof Vars>>): A
   return {
     publicUrl: vars.PUBLIC_URL.replace(/\/+$/, ''),
     serverUrl: (vars.WEB_URL === '' ? vars.PUBLIC_URL : vars.WEB_URL).replace(/\/+$/, ''),
-    oidcRequestUrl: optionalUrl(Reflect.get(env, 'ACTIONS_OIDC_REQUEST_URL')),
     executorMode: vars.ACTIONS_EXECUTOR_MODE,
     monthlyMinutes: vars.ACTIONS_MONTHLY_MINUTES,
     jobTimeoutMinutes: vars.ACTIONS_JOB_TIMEOUT_MINUTES,
@@ -57,9 +51,4 @@ export function readActionsConfig(env: Pick<Env, keyof z.infer<typeof Vars>>): A
 export function secretsKeyOf(env: Partial<Pick<Env, 'ACTIONS_SECRETS_KEY'>>): string | null {
   const key = env.ACTIONS_SECRETS_KEY;
   return typeof key === 'string' && key !== '' ? key : null;
-}
-
-function optionalUrl(value: unknown): string | null {
-  const parsed = z.url().safeParse(value);
-  return parsed.success ? parsed.data : null;
 }

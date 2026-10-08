@@ -384,7 +384,10 @@ export type JobSpec = {
   >;
   /** `workflow_dispatch` inputs, as strings. */
   readonly inputs: Readonly<Record<string, string>>;
-  /** Extra environment the control plane sets (`BEANSTALK_LINE=stalk`, …); workflow `env:` is in the file. */
+  /**
+   * Extra environment the control plane sets (`BEANSTALK_LINE=stalk`, `CI=true`, and for an
+   * `id-token: write` job `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN`); workflow `env:` is in the file.
+   */
   readonly env: Readonly<Record<string, string>>;
   /** Secrets this job may read (named by the workflow and allowed by D4). Values via `actionsJobSecrets`. */
   readonly secretNames: readonly SecretName[];

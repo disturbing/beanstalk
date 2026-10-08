@@ -133,6 +133,9 @@ importers:
       '@beanstalk/shared-identity':
         specifier: workspace:*
         version: link:../shared-identity
+      '@beanstalk/shared-oidc':
+        specifier: workspace:*
+        version: link:../shared-oidc
       '@beanstalk/shared-race':
         specifier: workspace:*
         version: link:../shared-race

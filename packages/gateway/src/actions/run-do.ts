@@ -41,6 +41,7 @@ import type { JobPatch, JobRow, RunRecord } from './run-store';
 import { RunStore, jobViewOf, summaryOf } from './run-store';
 import type { SecretsStore } from './secrets';
 import { d1Secrets, secretsForRun } from './secrets';
+import { oidcJobEnv } from './oidc';
 import { newReportToken } from './tickets';
 import { readWorkflowFile } from './workflow-file';
 
@@ -427,7 +428,13 @@ export class ActionsRunDO extends DurableObject<Env> {
       secretNames,
       tokens: { job: jobToken, report: report.token },
       serverUrl: this.#config.serverUrl,
-      oidcRequestUrl: this.#config.oidcRequestUrl,
+      oidcEnv: await oidcJobEnv({
+        env: this.env,
+        publicUrl: this.#config.publicUrl,
+        run: this.#requireRun(),
+        job,
+        nowMs,
+      }),
     });
     const started = await this.#executor()
       .startJob(spec)

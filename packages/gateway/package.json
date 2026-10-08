@@ -13,6 +13,7 @@
     "@actions/expressions": "catalog:",
     "@actions/workflow-parser": "catalog:",
     "@beanstalk/shared-identity": "workspace:*",
+    "@beanstalk/shared-oidc": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@cloudflare/containers": "catalog:",
     "@hono/zod-validator": "catalog:",
