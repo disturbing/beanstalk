@@ -1,0 +1,198 @@
+{
+ "fill": [
+  {
+   "path": "/@swc/core-linux-x64-gnu/-/core-linux-x64-gnu-1.13.5.tgz",
+   "bytes": 14257413,
+   "note": "cache-hit-after-put",
+   "colo": "NRT"
+  },
+  {
+   "path": "/@biomejs/cli-linux-x64/-/cli-linux-x64-2.2.4.tgz",
+   "bytes": 15397653,
+   "note": "cache-hit-after-put",
+   "colo": "NRT"
+  },
+  {
+   "path": "/prisma/-/prisma-6.16.2.tgz",
+   "bytes": 17563487,
+   "note": "cache-hit-after-put",
+   "colo": "NRT"
+  },
+  {
+   "path": "/next/-/next-15.5.4.tgz",
+   "bytes": 30292387,
+   "note": "kv-rejected:Error: KV PUT failed: 413 Value length of 30292387 exceeds limit of 26214400.,cache-hit-after-put",
+   "colo": "NRT"
+  },
+  {
+   "path": "/@next/swc-linux-x64-gnu/-/swc-linux-x64-gnu-15.5.4.tgz",
+   "bytes": 47359744,
+   "note": "kv-rejected:Error: KV PUT failed: 413 Value length of 47359744 exceeds limit of 26214400.,cache-hit-after-put",
+   "colo": "NRT"
+  }
+ ],
+ "reads": {
+  "cache": [
+   {
+    "path": "core-linux-x64-gnu-1.13.5.tgz",
+    "medianMs": 64,
+    "minMs": 57,
+    "maxMs": 116
+   },
+   {
+    "path": "cli-linux-x64-2.2.4.tgz",
+    "medianMs": 54,
+    "minMs": 50,
+    "maxMs": 58
+   },
+   {
+    "path": "prisma-6.16.2.tgz",
+    "medianMs": 58,
+    "minMs": 48,
+    "maxMs": 76
+   },
+   {
+    "path": "next-15.5.4.tgz",
+    "medianMs": 124,
+    "minMs": 100,
+    "maxMs": 139
+   },
+   {
+    "path": "swc-linux-x64-gnu-15.5.4.tgz",
+    "medianMs": 167,
+    "minMs": 158,
+    "maxMs": 178
+   }
+  ],
+  "r2": [
+   {
+    "path": "core-linux-x64-gnu-1.13.5.tgz",
+    "medianMs": 256,
+    "minMs": 238,
+    "maxMs": 687
+   },
+   {
+    "path": "cli-linux-x64-2.2.4.tgz",
+    "medianMs": 282,
+    "minMs": 225,
+    "maxMs": 1023
+   },
+   {
+    "path": "prisma-6.16.2.tgz",
+    "medianMs": 282,
+    "minMs": 237,
+    "maxMs": 797
+   },
+   {
+    "path": "next-15.5.4.tgz",
+    "medianMs": 468,
+    "minMs": 398,
+    "maxMs": 1055
+   },
+   {
+    "path": "swc-linux-x64-gnu-15.5.4.tgz",
+    "medianMs": 1337,
+    "minMs": 490,
+    "maxMs": 2706
+   }
+  ],
+  "r2eu": [
+   {
+    "path": "core-linux-x64-gnu-1.13.5.tgz",
+    "medianMs": 392,
+    "minMs": 379,
+    "maxMs": 1009
+   },
+   {
+    "path": "cli-linux-x64-2.2.4.tgz",
+    "medianMs": 367,
+    "minMs": 349,
+    "maxMs": 1025
+   },
+   {
+    "path": "prisma-6.16.2.tgz",
+    "medianMs": 358,
+    "minMs": 331,
+    "maxMs": 1180
+   },
+   {
+    "path": "next-15.5.4.tgz",
+    "medianMs": 548,
+    "minMs": 482,
+    "maxMs": 2589
+   },
+   {
+    "path": "swc-linux-x64-gnu-15.5.4.tgz",
+    "medianMs": 738,
+    "minMs": 594,
+    "maxMs": 1754
+   }
+  ],
+  "kv": [
+   {
+    "path": "core-linux-x64-gnu-1.13.5.tgz",
+    "medianMs": 35,
+    "minMs": 34,
+    "maxMs": 1463
+   },
+   {
+    "path": "cli-linux-x64-2.2.4.tgz",
+    "medianMs": 60,
+    "minMs": 43,
+    "maxMs": 1877
+   },
+   {
+    "path": "prisma-6.16.2.tgz",
+    "medianMs": 50,
+    "minMs": 43,
+    "maxMs": 1094
+   },
+   {
+    "path": "next-15.5.4.tgz",
+    "medianMs": null,
+    "minMs": null,
+    "maxMs": null,
+    "note": "miss"
+   },
+   {
+    "path": "swc-linux-x64-gnu-15.5.4.tgz",
+    "medianMs": null,
+    "minMs": null,
+    "maxMs": null,
+    "note": "miss"
+   }
+  ],
+  "origin": [
+   {
+    "path": "core-linux-x64-gnu-1.13.5.tgz",
+    "medianMs": 70,
+    "minMs": 62,
+    "maxMs": 261
+   },
+   {
+    "path": "cli-linux-x64-2.2.4.tgz",
+    "medianMs": 75,
+    "minMs": 65,
+    "maxMs": 87
+   },
+   {
+    "path": "prisma-6.16.2.tgz",
+    "medianMs": 65,
+    "minMs": 58,
+    "maxMs": 70
+   },
+   {
+    "path": "next-15.5.4.tgz",
+    "medianMs": 109,
+    "minMs": 99,
+    "maxMs": 117
+   },
+   {
+    "path": "swc-linux-x64-gnu-15.5.4.tgz",
+    "medianMs": 364,
+    "minMs": 308,
+    "maxMs": 443
+   }
+  ]
+ }
+}

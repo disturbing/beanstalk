@@ -1,0 +1,48 @@
+{
+  // Throwaway spike Worker (docs/claude-opus/exp/npm-cache-spike/README.md). Own container
+  // classes, DO namespaces, R2 buckets and KV namespace; never shares a binding with a live Worker.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-npm-spike",
+  "account_id": "<account-id>",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "secrets": { "required": ["SPIKE_TOKEN"] },
+  // Workers Cache (the new product) is on for the Worker, off for the default entrypoint, on for
+  // WcTarballs only: cache hits are served at that inner entrypoint.
+  "cache": { "enabled": false },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "WcTarballs": { "type": "worker", "cache": { "enabled": true } },
+  },
+  "r2_buckets": [
+    { "binding": "R2", "bucket_name": "beanstalk-npm-spike" },
+    { "binding": "R2_WEUR", "bucket_name": "beanstalk-npm-spike-weur" },
+  ],
+  "kv_namespaces": [{ "binding": "KV", "id": "5942f323063f4aada3dd61090cdd108f" }],
+  "durable_objects": {
+    "bindings": [
+      { "name": "PROXY_BOX", "class_name": "ProxyBox" },
+      { "name": "DIRECT_BOX", "class_name": "DirectBox" },
+      { "name": "STATS", "class_name": "Stats" },
+    ],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProxyBox", "DirectBox", "Stats"] }],
+  "containers": [
+    {
+      "class_name": "ProxyBox",
+      "image": "../image/Dockerfile",
+      "image_build_context": "../image",
+      "instance_type": "standard-4",
+      "max_instances": 4,
+    },
+    {
+      "class_name": "DirectBox",
+      "image": "../image/Dockerfile",
+      "image_build_context": "../image",
+      "instance_type": "standard-4",
+      "max_instances": 4,
+    },
+  ],
+}
