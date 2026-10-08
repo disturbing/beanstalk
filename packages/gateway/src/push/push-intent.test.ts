@@ -37,6 +37,12 @@ describe('push intent', () => {
     expect(parsePushOptions(['ci.skip']).unknown).toEqual(['ci.skip']);
   });
 
+  it('reads the beans a wait names, repeated or comma-separated, without branch prefixes', () => {
+    expect(parsePushOptions(['bean=a', 'bean=b,bean/c', 'bean=a']).beans).toEqual(['a', 'b', 'c']);
+    expect(parsePushOptions(['bean=refs/heads/bean/d']).beans).toEqual(['d']);
+    expect(parsePushOptions(['bean=']).unknown).toEqual(['bean=']);
+  });
+
   it('names an untitled bean when the commit cannot be read', () => {
     expect(pushIntent('', parsePushOptions([]))).toEqual({
       title: 'untitled bean',

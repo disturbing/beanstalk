@@ -9,8 +9,12 @@ const MAX_INTENT_CHARS = 20_000;
 const MAX_TITLE_CHARS = 200;
 /** `-o wait` with no value holds the push this long for the verdict. */
 export const DEFAULT_WAIT_SECONDS = 600;
+/** A push to `refs/wait/any|all` holds this long by default: under a 10-minute tool call. */
+export const DEFAULT_WAIT_REF_SECONDS = 540;
 /** Longest wait a push may ask for. */
 export const MAX_WAIT_SECONDS = 1800;
+/** Beans one wait may name (`-o bean=<name>`). */
+const MAX_WAIT_BEANS = 64;
 const TASK_ID = /^[A-Za-z0-9][A-Za-z0-9._:#/-]{0,63}$/;
 
 export type PushIntent = {
@@ -25,15 +29,21 @@ export type PushOptions = {
   readonly waitSeconds: number | null;
   readonly task: string | null;
   readonly intent: string | null;
+  /** Beans a push to `refs/wait/` names (`-o bean=<name>`, repeated). */
+  readonly beans: readonly string[];
   /** Options the gateway does not know, reported back to the pusher. */
   readonly unknown: readonly string[];
 };
 
-/** Reads `git push -o` values: `wait`, `wait=<seconds>`, `task=<id>`, `intent=<text>`. */
+/**
+ * Reads `git push -o` values: `wait`, `wait=<seconds>`, `task=<id>`, `intent=<text>`, and for
+ * a wait ref `bean=<name>` (repeated; a comma-separated list works too).
+ */
 export function parsePushOptions(options: readonly string[]): PushOptions {
   let waitSeconds: number | null = null;
   let task: string | null = null;
   let intent: string | null = null;
+  const beans: string[] = [];
   const unknown: string[] = [];
   for (const option of options) {
     const [key = '', ...rest] = option.split('=');
@@ -41,9 +51,24 @@ export function parsePushOptions(options: readonly string[]): PushOptions {
     if (key === 'wait') waitSeconds = waitFor(value);
     else if (key === 'task' && TASK_ID.test(value)) task = value;
     else if (key === 'intent' && value !== '') intent = value.slice(0, MAX_INTENT_CHARS);
+    else if (key === 'bean' && value !== '') beans.push(...beanNames(value));
     else unknown.push(option);
   }
-  return { waitSeconds, task, intent, unknown };
+  return {
+    waitSeconds,
+    task,
+    intent,
+    beans: [...new Set(beans)].slice(0, MAX_WAIT_BEANS),
+    unknown,
+  };
+}
+
+/** `bean=a`, `bean=a,b` or `bean=bean/a`: the names, without a branch prefix. */
+function beanNames(value: string): string[] {
+  return value
+    .split(',')
+    .map((name) => name.trim().replace(/^(refs\/heads\/)?beans?\//, ''))
+    .filter((name) => name !== '');
 }
 
 function waitFor(value: string): number {

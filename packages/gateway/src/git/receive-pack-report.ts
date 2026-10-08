@@ -100,6 +100,17 @@ export function refusalResponse(
   return concatBytes(parts);
 }
 
+/**
+ * A whole response accepting `ref` without the repository (a wait ref, which stores nothing):
+ * the report on band 1 and its closing flush, so `remote:` lines can be added before the end.
+ */
+export function acceptedResponse(ref: string, mode: ReportMode): Uint8Array {
+  const report = concatBytes([pktLine('unpack ok\n'), pktLine(`ok ${ref}\n`), FLUSH_PKT]);
+  if (!mode.sideband) return mode.reportStatus ? report : new Uint8Array(0);
+  const parts = mode.reportStatus ? [sidebandPackets(1, report)] : [];
+  return concatBytes([...parts, FLUSH_PKT]);
+}
+
 function oneLine(text: string): string {
   return text.replaceAll(/\s+/g, ' ').trim().slice(0, 300);
 }

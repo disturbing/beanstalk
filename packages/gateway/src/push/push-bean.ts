@@ -186,7 +186,7 @@ export function pushRefusal(bean: PushBean | null): string | null {
     case 'waiting':
     case 'red':
     case 'conflict':
-      return `bean ${bean.bean} is being checked; wait for its verdict (git push -o wait shows it), then push again`;
+      return `bean ${bean.bean} is being checked (push ${bean.pushes}, ${bean.head.slice(0, 7)}); its verdict comes first. Wait for it with git push -o bean=${bean.bean} origin HEAD:refs/wait/any (returns at the verdict), then push again if it is red or in conflict; a landed bean takes new work as a new bean`;
     default:
       return null;
   }

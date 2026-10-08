@@ -1,0 +1,104 @@
+# staging: https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev (real Artifacts, real runner containers)
+# 2026-10-08 12:14:13 +08, engine r83147c6f11523e012bf, clone URL https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+
+# clone with git's credential helper (the token is never in the URL or the output)
+
+$ git -c credential.helper= -c credential.helper=<token helper> clone https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git repo 
+Cloning into 'repo'...
+# (exit 0 after 3 s)
+
+$ git fetch origin sprout 
+From https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb
+ * branch            sprout     -> FETCH_HEAD
+# (exit 0 after 3 s)
+
+# bean 1 (fast): pushed plainly; the push returns once the bean is received
+
+$ git push origin HEAD:refs/heads/bean/ev-fast 
+remote: Processing objects: 100% (4/4)        
+remote: beanstalk: new bean ev-fast received at 6d85186: "Add a fast check"        
+remote: beanstalk:   for task EV-1        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk:   do not wait on it: take your next task; the verdict goes to refs/beans/ev-fast/status        
+remote: beanstalk:   out of work? one blocking call wakes on your first verdict: git push -o bean=ev-fast origin HEAD:refs/wait/any        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/ev-fast/status        
+To https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+ * [new branch]      HEAD -> bean/ev-fast
+# (exit 0 after 2 s)
+
+# bean 2 (slow, a 40 s test), from the same sprout, also pushed without waiting
+
+$ git push origin HEAD:refs/heads/bean/ev-slow 
+remote: Processing objects: 100% (4/4)        
+remote: beanstalk: new bean ev-slow received at 3b42ffd: "Add a slow check"        
+remote: beanstalk:   for task EV-2        
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree        
+remote: beanstalk:   do not wait on it: take your next task; the verdict goes to refs/beans/ev-slow/status        
+remote: beanstalk:   out of work? one blocking call wakes on your first verdict: git push -o bean=ev-slow origin HEAD:refs/wait/any        
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/ev-slow/status        
+To https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+ * [new branch]      HEAD -> bean/ev-slow
+# (exit 0 after 4 s)
+
+# out of work: one blocking call, woken by the first verdict (no sleep, no polling)
+
+$ git push -o bean=ev-fast -o bean=ev-slow origin HEAD:refs/wait/any 
+remote: beanstalk: waiting for the first verdict of ev-fast (checking), ev-slow (checking)        
+remote: beanstalk: verdict for ev-fast: landed        
+remote: beanstalk: LANDED: ev-fast passed its pre-land check and is on the sprout as eb89211        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: your beans: ev-fast (green), ev-slow (checking)        
+remote: beanstalk:   then take your next task, or wait again: git push -o bean=ev-slow origin HEAD:refs/wait/any        
+To https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+ * [new reference]   HEAD -> refs/wait/any
+# (exit 0 after 9 s)
+
+# a new commit to the bean still in check is refused, with the command to wait for it
+
+$ git push -f origin HEAD:refs/heads/bean/ev-slow 
+remote: beanstalk: push refused: bean ev-slow is being checked (push 1, 3b42ffd); its verdict comes first. Wait for it with git push -o bean=ev-slow origin HEAD:refs/wait/any (returns at the verdict), then push again if it is red or in conflict; a landed bean takes new work as a new bean        
+To https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+ ! [remote rejected] HEAD -> bean/ev-slow (bean ev-slow is being checked (push 1, 3b42ffd); its verdict comes first. Wait for it with git push -o bean=ev-slow origin HEAD:refs/wait/any (returns at the verdict), then push again if it is red or in conflict; a landed bean takes new work as a new bean)
+error: failed to push some refs to 'https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git'
+# (exit 1 after 3 s)
+
+# re-attach to it: wait for every verdict of the beans still in check
+
+$ git push -o bean=ev-slow origin HEAD:refs/wait/all 
+remote: beanstalk: waiting for every verdict of ev-slow (checking)        
+remote: beanstalk: still waiting (15 s): ev-slow checking        
+remote: beanstalk: still waiting (30 s): ev-slow checking        
+remote: beanstalk: verdict for ev-slow: landed        
+remote: beanstalk: LANDED: ev-slow passed its pre-land check and is on the sprout as 1e07b80        
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk        
+remote: beanstalk: your beans: ev-slow (landed)        
+To https://beanstalk-gateway-staging-ev.devaccounts-1password.workers.dev/git/acme/gitnative-ec1afb.git
+ * [new reference]   HEAD -> refs/wait/all
+# (exit 0 after 39 s)
+
+# the wait stored nothing: no refs/wait on the remote; the verdicts are on the status refs
+
+$ git ls-remote origin 
+eb89211b7db3655526e66013bba1f79aa5027360	HEAD
+c6e1f2c8c8617ef3b15691a01303df5a9b3ba5e6	refs/beans/ev-fast/status
+243b3ceb45ef965be28f4aef4a19f6a1e01c8ec2	refs/beans/ev-slow/status
+024f3884a1d2eaf5f10c5c78961a9f9e0a3c4563	refs/beanstalk/candidates/024f3884a1d2eaf5f10c5c78961a9f9e0a3c4563
+1e07b8088cde5a3347f6a87267ed49e989c12217	refs/beanstalk/candidates/1e07b8088cde5a3347f6a87267ed49e989c12217
+eb89211b7db3655526e66013bba1f79aa5027360	refs/beanstalk/candidates/eb89211b7db3655526e66013bba1f79aa5027360
+6d8518696868f12b8cec2a898a1d0db9f258ad03	refs/heads/bean/ev-fast
+3b42ffdcd5dddc42ca8e7346988bb50b022daa6e	refs/heads/bean/ev-slow
+adf988ba6eb9a96f8d260179b6517f4ac54de636	refs/heads/main
+1e07b8088cde5a3347f6a87267ed49e989c12217	refs/heads/sprout
+eb89211b7db3655526e66013bba1f79aa5027360	refs/heads/stalk
+# (exit 0 after 1 s)
+
+$ git fetch -q origin +refs/beans/*:refs/beans/* 
+# (exit 0 after 1 s)
+
+$ git for-each-ref refs/beans/ --format=%(refname:lstrip=2) %(contents:subject) 
+ev-fast/status green: validated; on the stalk at eb89211
+ev-slow/status landed: on the sprout as 1e07b80
+# (exit 0 after 0 s)
+
+# demo exit 0 after 65 s
+# engine closed and repo deleted: {"closed": true}
