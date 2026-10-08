@@ -1,0 +1,35 @@
+[   3.53] ##[spike] start 2026-10-08T04:12:38.098Z bash -lc (dockerd --iptables=false --ip6tables=false --ip-forward=false > /tmp/dockerd.log 2>&1 &); for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 1; done; echo "--- docker info after ${i}s"; docker info 2>&1 | grep -E "Server Version|Storage Driver|Cgroup|Kernel|ERROR|error" ; echo "--- dockerd log"; tail -15 /tmp/dockerd.log; echo "--- run"; time docker run --rm --network=host alpine:3.20 echo hello-from-inner-container 2>&1 | tail -5
+[   5.25] --- docker info after 2s
+[   5.29]  Server Version: 29.8.2
+[   5.29]  Storage Driver: overlayfs
+[   5.29]  Cgroup Driver: cgroupfs
+[   5.29]  Cgroup Version: 2
+[   5.29]  Kernel Version: 6.18.54-cloudflare-microvm-2026.9.16
+[   5.29] --- dockerd log
+[   5.29] time="2026-10-08T04:12:39.115148296Z" level=info msg="loaded extension" extension=org.mobyproject.namesgenerator.legacy.v1 origin=builtin providers="[org.mobyproject.extension.containernamegenerator.v0 org.mobyproject.extension.servicenamegenerator.v0]"
+[   5.29] time="2026-10-08T04:12:39.116438618Z" level=info msg="Creating a containerd client" address=/var/run/docker/containerd/containerd.sock timeout=1m0s
+[   5.29] time="2026-10-08T04:12:39.117562019Z" level=warning msg="failed check for fsverity support" error="enable fsverity failed: operation not supported" path=/var/lib/docker/plugins/storage
+[   5.29] time="2026-10-08T04:12:39.120390784Z" level=info msg="Loading containers: start."
+[   5.29] time="2026-10-08T04:12:39.120473624Z" level=info msg="NRI is disabled"
+[   5.29] time="2026-10-08T04:12:39.120479354Z" level=info msg="Starting daemon with containerd snapshotter integration enabled"
+[   5.29] time="2026-10-08T04:12:39.124130060Z" level=info msg="Restoring containers: start."
+[   5.29] time="2026-10-08T04:12:39.132033973Z" level=info msg="Loading containers: done."
+[   5.29] time="2026-10-08T04:12:39.150040942Z" level=warning msg="WARNING: No swap limit support"
+[   5.29] time="2026-10-08T04:12:39.150066962Z" level=warning msg="WARNING: IPv4 forwarding is disabled"
+[   5.29] time="2026-10-08T04:12:39.150088182Z" level=info msg="Docker daemon" commit=8af9fe3 containerd-snapshotter=true storage-driver=overlayfs version=29.8.2
+[   5.29] time="2026-10-08T04:12:39.150222772Z" level=info msg="Initializing buildkit"
+[   5.29] time="2026-10-08T04:12:39.342512222Z" level=info msg="Completed buildkit initialization"
+[   5.29] time="2026-10-08T04:12:39.350450365Z" level=info msg="Daemon has completed initialization"
+[   5.29] time="2026-10-08T04:12:39.350546765Z" level=info msg="API listen on /var/run/docker.sock"
+[   5.29] --- run
+[   8.49] 3a030ca3f633: Download complete
+[   8.49] 25f1d6b1951a: Pull complete
+[   8.49] Digest: sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+[   8.49] Status: Downloaded newer image for alpine:3.20
+[   8.49] hello-from-inner-container
+[   8.49] 
+[   8.49] real	0m3.205s
+[   8.49] user	0m0.015s
+[   8.49] sys	0m0.028s
+[   8.50] 
+[   8.50] ##[spike] exit=0 wall_ms=4987

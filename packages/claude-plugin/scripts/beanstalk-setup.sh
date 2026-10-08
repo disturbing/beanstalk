@@ -292,7 +292,7 @@ repo_url() {
   if [ -n "$SSH_HOST" ]; then
     printf 'ssh://git@%s/%s.git' "$SSH_HOST" "$1"
   else
-    printf '%s/git/%s.git' "$GIT_ORIGIN" "$1"
+    printf '%s/%s.git' "$GIT_ORIGIN" "$1"
   fi
 }
 

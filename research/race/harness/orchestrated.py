@@ -553,6 +553,10 @@ class OrchestratedRace:
         # "prompt": the shared orchestrated prompt (baseline pairs); "plugin": the Beanstalk arm's lead and workers
         # get the Beanstalk plugin's skill in place of the prompt's forge section (orch_prompt.beanstalk_plugin_section)
         self.guidance = cfg.extra.get("guidance", "prompt")
+        # The plugin guidance's version label (plugin-v1: plugin 0.5.0, plugin-v2: 0.6.0, orch_prompt), with the
+        # plugin's own version, so runs of different skill texts are never compared unlabelled
+        self.guidance_version = orch_prompt.PLUGIN_GUIDANCE_VERSION if self.guidance == "plugin" else None
+        self.plugin_version = orch_prompt.plugin_version() if self.guidance == "plugin" else None
 
     def log(self, typ: str, at: float | None = None, **fields) -> None:
         at = time.time() if at is None else at
@@ -651,7 +655,7 @@ class OrchestratedRace:
             segment = os.path.join(self.work, f"transcript.{len(segments)}.jsonl")
             segments.append(segment)
             spent = max([parse_transcript(s, [])["cost_usd"] for s in segments[:-1]] or [0.0])
-            argv = self.claude_argv(prompt if session_id is None else orch_prompt.CONTINUE,
+            argv = self.claude_argv(prompt if session_id is None else orch_prompt.continuation(self.guidance),
                                     budget=max(0.5, cfg.max_usd - spent), resume=session_id)
             with open(segment, "w", encoding="utf-8") as out:
                 proc = subprocess.Popen(argv, cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
@@ -668,8 +672,9 @@ class OrchestratedRace:
             session_id = session_id or session_of(segment)
             if aborted or not session_id:
                 break
-            # ``claude -p`` exits when the lead ends its turn, and stops background workers then; a lead that ended
-            # its turn with work left gets one fixed continuation (the same on both arms), as a person would type
+            # ``claude -p`` exits when the lead ends its turn with no background worker running (it stays alive while
+            # workers run and resumes the lead on their notifications, Claude Code 2.1.293); a lead that ended its turn
+            # with work left gets one fixed continuation (the same on both arms; plugin-v2's names the notifications)
             spent = max(parse_transcript(s, [])["cost_usd"] for s in segments)
             left = self.unintegrated(forge, tasks)
             if (not left or len(resumes) >= MAX_RESUMES or spent >= cfg.max_usd - 0.5
@@ -741,14 +746,18 @@ class OrchestratedRace:
         summary = {
             "label": f"orchestrated race: arena={os.path.basename(os.path.normpath(cfg.arena))}, {len(tasks)} tasks, "
                      f"forge={cfg.forge}, {cfg.orchestrator} ({cfg.model}) with {cfg.subagents} {cfg.worker_model} "
-                     "subagents" + (", guidance=plugin (the Beanstalk plugin's skill in the lead's and workers' "
-                                    "prompts instead of the forge section)" if self.guidance == "plugin" else ""),
+                     "subagents" + (f", guidance={self.guidance_version} (the Beanstalk plugin {self.plugin_version}'s "
+                                    "skill in the lead's and workers' prompts instead of the forge section)"
+                                    if self.guidance == "plugin" else ""),
             "guidance": self.guidance,
+            "guidance_version": self.guidance_version,
+            "plugin_version": self.plugin_version,
             "policy": f"orchestrated-{cfg.forge}", "agent": cfg.orchestrator, "model": cfg.model,
             "forge": cfg.forge, "repo": forge.url, "arena_base": self.arena_base, "arena_digest": self.arena_digest,
             "config": {"agents": cfg.subagents, "tasks": len(tasks), "seed": cfg.seed, "max_usd": cfg.max_usd,
                        "max_wall_minutes": cfg.max_wall_minutes, "ci_slots": cfg.ci_slots, "batch": cfg.batch,
-                       "worker_model": cfg.worker_model, "guidance": self.guidance},
+                       "worker_model": cfg.worker_model, "guidance": self.guidance,
+                       "guidance_version": self.guidance_version},
             "aborted": aborted,
             "wall_seconds": round(ended - self.t0, 2),
             "settled_seconds": round(settled - self.t0, 2),

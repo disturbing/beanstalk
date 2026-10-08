@@ -368,7 +368,9 @@ export type JobSpec = {
     readonly runAttempt: number;
   };
   /**
-   * Git over HTTPS for `actions/checkout`: `url` is the repository's gateway URL; `token` is
+   * Git over HTTPS for `actions/checkout`: `url` is GitHub-shaped, `<context.serverUrl>/<owner>/
+   * <repo>` (the gateway serves git there, so `act --github-instance <host>` and unmodified
+   * checkout work; Basic `x-access-token:<token>` is accepted); `token` is
    * the job token (`bsj_…`, also `GITHUB_TOKEN`): this repository only, read, and push to
    * `bean/*` only when `permissions` allow `contents: write`; revoked when the job ends.
    */
@@ -382,7 +384,10 @@ export type JobSpec = {
   >;
   /** `workflow_dispatch` inputs, as strings. */
   readonly inputs: Readonly<Record<string, string>>;
-  /** Extra environment the control plane sets (`BEANSTALK_LINE=stalk`, …); workflow `env:` is in the file. */
+  /**
+   * Extra environment the control plane sets (`BEANSTALK_LINE=stalk`, `CI=true`, and for an
+   * `id-token: write` job `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN`); workflow `env:` is in the file.
+   */
   readonly env: Readonly<Record<string, string>>;
   /** Secrets this job may read (named by the workflow and allowed by D4). Values via `actionsJobSecrets`. */
   readonly secretNames: readonly SecretName[];

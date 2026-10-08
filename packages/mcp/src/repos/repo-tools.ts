@@ -3,7 +3,7 @@
  * Git stays the interface: an agent clones, commits and pushes `bean/<name>` with git. These
  * tools add what git cannot say or do: which repositories the person may use, a reserved bean
  * name with its intent, the verdict with the beans it collided with, a wait that is the twin
- * of `git push -o wait`, a backlog two agents cannot both claim from, and a short-lived git
+ * of `git push origin HEAD:refs/wait/any`, a backlog two agents cannot both claim from, and a short-lived git
  * credential for a machine whose git is not set up. Plain, task-shaped tools; no code mode.
  */
 import type { McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
@@ -121,7 +121,7 @@ function registerBeanTools(server: McpServer, scope: ToolScope): void {
     'bean_wait',
     {
       title: 'Wait for a bean',
-      description: `After a git push without -o wait: blocks until the bean's current check finishes (until: verdict, default) or it reaches the stalk (until: stalk), or timeout_s passes (default 300, at most ${MAX_BEAN_WAIT_SECONDS}). Answers as bean_status, with waited_s and timed_out.`,
+      description: `When you are out of other work after a git push: blocks until the bean's current check finishes (until: verdict, default) or it reaches the stalk (until: stalk), or timeout_s passes (default 300, at most ${MAX_BEAN_WAIT_SECONDS}); it wakes on the verdict, so never sleep-poll instead. Answers as bean_status, with waited_s and timed_out. Plain git does the same for one or many beans: git push -o bean=<name> origin HEAD:refs/wait/any (or refs/wait/all).`,
       inputSchema: z.object({
         repo: Repo,
         bean: BeanName,

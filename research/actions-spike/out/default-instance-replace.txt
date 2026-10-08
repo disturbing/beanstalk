@@ -1,0 +1,130 @@
+[   1.10] ##[spike] start 2026-10-08T04:10:55.575Z bash -lc set -e && cd /work/job-1791432655574-6 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791432655574-6.meta/event.json' '--secret-file' '/work/job-1791432655574-6.meta/secrets.env' '--github-instance' 'beanstalk-actions-spike.devaccounts-1password.workers.dev' '--replace-ghe-action-with-github-com=actions/checkout' '--replace-ghe-action-with-github-com=actions/setup-node'
+[   1.13] time="2026-10-08T04:10:55Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   1.13] [node-ci-default/test] ⭐ Run Set up job
+[   1.17] [node-ci-default/test]   ✅  Success - Set up job
+[   1.17] [node-ci-default/test]   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+[  15.41] [node-ci-default/test]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[  49.66] [node-ci-default/test] ⭐ Run Main actions/checkout@v4
+[  51.78] [node-ci-default/test]   ❓ add-matcher /root/.cache/act/914530b0769d1339/act/actions/actions-checkout@v4/dist/problem-matcher.json
+[  51.78] [node-ci-default/test]   | Syncing repository: beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[  51.78] [node-ci-default/test]   ❓  ::group::Getting Git version info
+[  51.78] [node-ci-default/test]   | Working directory is '/root/.cache/act/914530b0769d1339/hostexecutor/src'
+[  51.78] [node-ci-default/test]   | [command]/usr/bin/git version
+[  51.78] [node-ci-default/test]   | git version 2.43.0
+[  51.79] [node-ci-default/test]   ❓  ::endgroup::
+[  51.79] [node-ci-default/test]   ���  ***
+[  51.79] [node-ci-default/test]   | Temporarily overriding HOME='/root/.cache/act/914530b0769d1339/tmp/313c1b1d-66ab-469e-ac50-25b2c71c9af9' before making global git config changes
+[  51.79] [node-ci-default/test]   | Adding repository directory to the temporary git global config as a safe directory
+[  51.79] [node-ci-default/test]   | [command]/usr/bin/git config --global --add safe.directory /root/.cache/act/914530b0769d1339/hostexecutor/src
+[  51.79] [node-ci-default/test]   ❓  ::group::Initializing the repository
+[  51.80] [node-ci-default/test]   | [command]/usr/bin/git init /root/.cache/act/914530b0769d1339/hostexecutor/src
+[  51.83] [node-ci-default/test]   | hint: Using 'master' as the name for the initial branch. This default branch name
+[  51.83] [node-ci-default/test]   | hint: is subject to change. To configure the initial branch name to use in all
+[  51.83] [node-ci-default/test]   | hint: of your new repositories, which will suppress this warning, call:
+[  51.83] [node-ci-default/test]   | hint: 
+[  51.83] [node-ci-default/test]   | hint: 	git config --global init.defaultBranch <name>
+[  51.83] [node-ci-default/test]   | hint: 
+[  51.83] [node-ci-default/test]   | hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+[  51.83] [node-ci-default/test]   | hint: 'development'. The just-created branch can be renamed via this command:
+[  51.83] [node-ci-default/test]   | hint: 
+[  51.83] [node-ci-default/test]   | hint: 	git branch -m <name>
+[  51.83] [node-ci-default/test]   | Initialized empty Git repository in /root/.cache/act/914530b0769d1339/hostexecutor/src/.git/
+[  51.83] [node-ci-default/test]   | [command]/usr/bin/git remote add origin https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[  51.83] [node-ci-default/test]   ❓  ::endgroup::
+[  51.83] [node-ci-default/test]   ❓  ::group::Disabling automatic garbage collection
+[  51.86] [node-ci-default/test]   | [command]/usr/bin/git config --local gc.auto 0
+[  51.86] [node-ci-default/test]   ���  ::endgroup::
+[  51.86] [node-ci-default/test]   ❓  ::group::Setting up auth
+[  51.86] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[  51.86] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[  51.89] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader
+[  51.90] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader' && git config --local --unset-all 'http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader' || :"
+[  51.95] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[  51.95] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[  51.99] [node-ci-default/test]   | [command]/usr/bin/git config --local http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader AUTHORIZATION: basic ***
+[  52.01] [node-ci-default/test]   ❓  ::endgroup::
+[  52.01] [node-ci-default/test]   ❓  ::group::Fetching the repository
+[  52.01] [node-ci-default/test]   | [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  56.11] [node-ci-default/test]   | From https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[  56.11] [node-ci-default/test]   |  * branch            810e3d548eeceb32c948a0fbfdd90d6d1e6098ce -> FETCH_HEAD
+[  56.11] [node-ci-default/test]   ❓  ::endgroup::
+[  56.11] [node-ci-default/test]   ❓  ::group::Determining the checkout info
+[  56.11] [node-ci-default/test]   ���  ::endgroup::
+[  56.11] [node-ci-default/test]   | [command]/usr/bin/git sparse-checkout disable
+[  56.12] [node-ci-default/test]   | [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+[  56.13] [node-ci-default/test]   ❓  ::group::Checking out the ref
+[  56.13] [node-ci-default/test]   | [command]/usr/bin/git checkout --progress --force 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  56.43] [node-ci-default/test]   | Note: switching to '810e3d548eeceb32c948a0fbfdd90d6d1e6098ce'.
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   | You are in 'detached HEAD' state. You can look around, make experimental
+[  56.44] [node-ci-default/test]   | changes and commit them, and you can discard any commits you make in this
+[  56.44] [node-ci-default/test]   | state without impacting any branches by switching back to a branch.
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   | If you want to create a new branch to retain commits you create, you may
+[  56.44] [node-ci-default/test]   | do so (now or later) by using -c with the switch command. Example:
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   |   git switch -c <new-branch-name>
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   | Or undo this operation with:
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   |   git switch -
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   | Turn off this advice by setting config variable advice.detachedHead to false
+[  56.44] [node-ci-default/test]   | 
+[  56.44] [node-ci-default/test]   | HEAD is now at 810e3d5 chore: Bump lycheeverse/lychee-action from 2.6.1 to 2.7.0 (#6377)
+[  56.44] [node-ci-default/test]   ❓  ::endgroup::
+[  56.44] [node-ci-default/test]   | [command]/usr/bin/git log -1 --format=%H
+[  56.45] [node-ci-default/test]   | 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  56.45] [node-ci-default/test]   ❓  ::remove-matcher owner=checkout-git::
+[  56.46] [node-ci-default/test]   ✅  Success - Main actions/checkout@v4 [6.806049471s]
+[  56.46] [node-ci-default/test]   ⚙  ::set-output:: commit=810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  56.46] [node-ci-default/test]   ⚙  ::set-output:: ref=
+[  56.46] [node-ci-default/test] ⭐ Run Main echo "server=$GITHUB_SERVER_URL api=$GITHUB_API_URL graphql=$GITHUB_GRAPHQL_URL" && cd src && git log -1 --format='checked out %H' && git remote get-url origin
+[  56.47] [node-ci-default/test]   | server=https://beanstalk-actions-spike.devaccounts-1password.workers.dev api=https://beanstalk-actions-spike.devaccounts-1password.workers.dev/api/v3 graphql=https://beanstalk-actions-spike.devaccounts-1password.workers.dev/api/graphql
+[  56.47] [node-ci-default/test]   | checked out 810e3d548eeceb32c948a0fbfdd90d6d1e6098ce
+[  56.47] [node-ci-default/test]   | https://beanstalk-actions-spike.devaccounts-1password.workers.dev/beanstalk-actions-spike/beanstalk-actions-spike-fastify
+[  56.47] [node-ci-default/test]   ✅  Success - Main echo "server=$GITHUB_SERVER_URL api=$GITHUB_API_URL graphql=$GITHUB_GRAPHQL_URL" && cd src && git log -1 --format='checked out %H' && git remote get-url origin [10.875919ms]
+[  56.48] [node-ci-default/test] ⭐ Run Main actions/setup-node@v4
+[  57.75] [node-ci-default/test]   | Found in cache @ /root/.cache/act/tool_cache/node/20.20.2/x64
+[  57.75] [node-ci-default/test]   | (node:7104) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[  57.75] [node-ci-default/test]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[  57.75] [node-ci-default/test]   ❓  ::group::Environment details
+[  58.34] [node-ci-default/test]   | node: v20.20.2
+[  58.34] [node-ci-default/test]   | npm: 10.8.2
+[  58.34] [node-ci-default/test]   | yarn: 
+[  58.34] [node-ci-default/test]   ❓  ::endgroup::
+[  58.34] [node-ci-default/test]   ❓ add-matcher /root/.cache/act/914530b0769d1339/act/actions/actions-setup-node@v4/.github/tsc.json
+[  58.34] [node-ci-default/test]   ❓ add-matcher /root/.cache/act/914530b0769d1339/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[  58.34] [node-ci-default/test]   ❓ add-matcher /root/.cache/act/914530b0769d1339/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[  58.35] [node-ci-default/test]   ✅  Success - Main actions/setup-node@v4 [1.876023339s]
+[  58.35] [node-ci-default/test]   ���  ::set-output:: node-version=v20.20.2
+[  58.35] [node-ci-default/test]   ⚙  ::add-path:: /root/.cache/act/tool_cache/node/20.20.2/x64/bin
+[  58.35] [node-ci-default/test] ⭐ Run Main node --version
+[  58.36] [node-ci-default/test]   | v20.20.2
+[  58.36] [node-ci-default/test]   ���  Success - Main node --version [8.234387ms]
+[  58.36] [node-ci-default/test] ⭐ Run Post actions/setup-node@v4
+[  58.56] [node-ci-default/test]   | (node:7130) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[  58.56] [node-ci-default/test]   | (Use `node --trace-deprecation ...` to show where the warning was created)
+[  58.57] [node-ci-default/test]   ✅  Success - Post actions/setup-node@v4 [199.69007ms]
+[  58.57] [node-ci-default/test] ⭐ Run Post actions/checkout@v4
+[  58.69] [node-ci-default/test]   | [command]/usr/bin/git version
+[  58.69] [node-ci-default/test]   | git version 2.43.0
+[  58.69] [node-ci-default/test]   ⚙  ***
+[  58.70] [node-ci-default/test]   | Temporarily overriding HOME='/root/.cache/act/914530b0769d1339/tmp/9e853827-7dec-4722-882b-60f8ff0351af' before making global git config changes
+[  58.70] [node-ci-default/test]   | Adding repository directory to the temporary git global config as a safe directory
+[  58.70] [node-ci-default/test]   | [command]/usr/bin/git config --global --add safe.directory /root/.cache/act/914530b0769d1339/hostexecutor/src
+[  58.70] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[  58.71] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[  58.75] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader
+[  58.75] [node-ci-default/test]   | http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader
+[  58.75] [node-ci-default/test]   | [command]/usr/bin/git config --local --unset-all http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader
+[  58.76] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-actions\-spike\.devaccounts\-1password\.workers\.dev\/\.extraheader' && git config --local --unset-all 'http.https://beanstalk-actions-spike.devaccounts-1password.workers.dev/.extraheader' || :"
+[  58.81] [node-ci-default/test]   | [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[  58.81] [node-ci-default/test]   | [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[  58.85] [node-ci-default/test]   ✅  Success - Post actions/checkout@v4 [286.066124ms]
+[  58.85] [node-ci-default/test] ⭐ Run Complete job
+[  58.85] [node-ci-default/test] Cleaning up container for job test
+[  58.97] [node-ci-default/test]   ✅  Success - Complete job
+[  58.97] [node-ci-default/test] 🏁  Job succeeded
+[  59.00] 
+[  59.00] ##[spike] exit=0 wall_ms=57910

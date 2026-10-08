@@ -45,9 +45,18 @@ class Prompt(unittest.TestCase):
         base = orch_prompt.prompt("beanstalk", **kw)
         plugin = orch_prompt.prompt("beanstalk", guidance="plugin", **kw)
         self.assertEqual(base, orch_prompt.prompt("beanstalk", guidance="prompt", **kw))
-        self.assertEqual(base.split("The forge:")[0], plugin.split("The forge:")[0])
+        # plugin-v2: the shared part differs only in how the lead waits for its workers (notifications, no sleeping)
+        self.assertEqual(base.split("The forge:")[0].replace(orch_prompt.SESSION_PROMPT, "<session>"),
+                         plugin.split("The forge:")[0].replace(orch_prompt.SESSION_NOTIFIED, "<session>"))
+        self.assertIn("never `sleep` or poll", plugin)
+        self.assertNotIn(orch_prompt.SESSION_PROMPT, plugin)
         self.assertIn("<beanstalk-skill>", plugin)
-        self.assertIn("Do not wait on your own", plugin)
+        self.assertIn("Never wait on your own check", plugin)
+        self.assertIn("refs/wait/any", plugin)
+        self.assertEqual(orch_prompt.PLUGIN_GUIDANCE_VERSION, "plugin-v2")
+        self.assertEqual(orch_prompt.plugin_version(), "0.6.0")
+        self.assertEqual(orch_prompt.continuation(), orch_prompt.CONTINUE)
+        self.assertIn("notification", orch_prompt.continuation("plugin"))
         self.assertNotIn("name: beanstalk", plugin)              # frontmatter stripped
         self.assertIn(orch_prompt.PLUGIN_DIR, plugin)            # references by absolute path
         self.assertEqual(orch_prompt.worker_prompt(), orch_prompt.WORKER_PROMPT)
@@ -194,10 +203,47 @@ class Transcript(unittest.TestCase):
                  use("d", "sleep 60", "04:00", parent=None), res("d", "05:00", parent=None)]
         with open(os.path.join(run, "transcript.jsonl"), "w") as fh:
             fh.write("\n".join(json.dumps(x) for x in lines) + "\n")
-        w = orch_pushes.analyse(run)["workers"]
+        analysed = orch_pushes.analyse(run)
+        w = analysed["workers"]
         self.assertEqual((w["bean_pushes"], w["blocking_wait"], w["plain"]), (3, 1, 2))
         self.assertEqual((w["blocking_push_s"], w["poll_wait_s"]), (90.0, 30.0 + 20.0))
         self.assertEqual((w["active_s"], w["check_wait_s"]), (250.0, 140.0))
+        self.assertEqual((w["sleep_calls"], w["sleep_s"]), (2, 50.0))
+        lead = analysed["lead"]
+        self.assertEqual((lead["sleep_calls"], lead["sleep_s"], lead["poll_wait_s"]), (1, 60.0, 0.0))
+
+    def test_event_waits_are_counted_apart_from_sleeps(self) -> None:
+        run = os.path.join(TESTS, "tmp", "orch-waits")
+        os.makedirs(run, exist_ok=True)
+
+        def use(i: str, cmd: str, at: str, bg: bool = False, name: str = "Bash") -> dict:
+            return {"type": "assistant", "parent_tool_use_id": "w1", "timestamp": f"2026-10-08T00:{at}Z",
+                    "message": {"content": [{"type": "tool_use", "id": i, "name": name,
+                                             "input": {"command": cmd, "run_in_background": bg}}]}}
+
+        def res(i: str, at: str) -> dict:
+            return {"type": "user", "parent_tool_use_id": "w1", "timestamp": f"2026-10-08T00:{at}Z",
+                    "message": {"content": [{"type": "tool_result", "tool_use_id": i}]}}
+        lines = [
+            use("a", "git -C wt push origin HEAD:refs/heads/bean/t1 && "
+                     "git -C wt push -o bean=t1 -o bean=t2 -o wait=300 origin HEAD:refs/wait/any", "00:00"),
+            res("a", "01:00"),
+            use("b", "git -C wt push -o bean=t2 origin HEAD:refs/wait/any", "01:00"), res("b", "01:40"),
+            use("c", "git -C wt push origin HEAD:refs/wait/all", "02:00"), res("c", "03:00"),
+            use("d", "", "03:00", name="mcp__beanstalk__bean_wait"), res("d", "03:10"),
+            use("e", "sleep 45; git -C wt for-each-ref refs/beans/", "03:10"), res("e", "03:55"),
+            use("f", "git -C wt push -o bean=t3 origin HEAD:refs/wait/any", "04:00", bg=True), res("f", "05:00"),
+        ]
+        with open(os.path.join(run, "transcript.jsonl"), "w") as fh:
+            fh.write("\n".join(json.dumps(x) for x in lines) + "\n")
+        w = orch_pushes.analyse(run)["workers"]
+        self.assertEqual((w["bean_pushes"], w["plain"], w["blocking_wait"]), (1, 1, 0))   # -o wait=300 is the wait's
+        self.assertEqual((w["wait_any"], w["reattach"], w["wait_all"], w["bean_wait"]), (1, 2, 1, 1))
+        self.assertEqual((w["wait_any_s"], w["reattach_s"], w["wait_all_s"], w["bean_wait_s"]),
+                         (60.0, 40.0, 60.0, 10.0))
+        self.assertEqual(w["background_waits"], 1)
+        self.assertEqual((w["sleep_calls"], w["sleep_s"], w["poll_wait_s"]), (1, 45.0, 45.0))
+        self.assertEqual((w["event_wait_s"], w["check_wait_s"]), (170.0, 215.0))
 
 
 if __name__ == "__main__":

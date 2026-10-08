@@ -48,7 +48,8 @@ async function handle(req, res) {
         ? json(res, 200, { kind: 'user', handle: 'smoke', scopes: ['repo:read', 'bean:write'] })
         : unauthorized(res);
     }
-    if (url.pathname.startsWith('/git/')) {
+    // Git as the web host serves it (`/<owner>/<repo>.git/…`) and at the gateway's `/git/…`.
+    if (/^(\/git)?\/[^/]+\/[^/]+\.git\//.test(url.pathname)) {
       if (!state.tokens.has(tokenOf(req))) return unauthorized(res);
       return gitBackend(req, res, url, body);
     }
@@ -124,7 +125,7 @@ function gitBackend(req, res, url, body) {
       GIT_PROJECT_ROOT: reposDir,
       GIT_HTTP_EXPORT_ALL: '1',
       REQUEST_METHOD: req.method ?? 'GET',
-      PATH_INFO: url.pathname.slice('/git'.length),
+      PATH_INFO: url.pathname.replace(/^\/git\//, '/'),
       QUERY_STRING: url.search.slice(1),
       CONTENT_TYPE: req.headers['content-type'] ?? '',
       CONTENT_LENGTH: String(body.length),

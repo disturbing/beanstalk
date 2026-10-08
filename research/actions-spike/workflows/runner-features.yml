@@ -1,0 +1,31 @@
+# Small runner features the MVP has to provide or paper over: OIDC env, step summary, annotations,
+# outputs between steps, matrix, timeout-minutes, continue-on-error, GITHUB_TOKEN-driven API calls.
+name: runner-features
+on: push
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  features:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        n: [1, 2]
+    steps:
+      - run: |
+          echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:-unset} oidc_token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set} runtime_url=${ACTIONS_RUNTIME_URL:-unset} results_url=${ACTIONS_RESULTS_URL:-unset} cache_url=${ACTIONS_CACHE_URL:-unset}"
+      - run: |
+          echo "### summary from matrix ${{ matrix.n }}" >> "$GITHUB_STEP_SUMMARY"; echo "summary_file=$GITHUB_STEP_SUMMARY"
+      - run: |
+          echo "::error file=a.js,line=3::an annotation" ; echo "::warning::a warning"; echo "::add-mask::supersecretvalue"; echo "masked? supersecretvalue"
+      - id: out
+        run: |
+          echo "answer=42" >> "$GITHUB_OUTPUT"
+      - run: |
+          echo "answer=${{ steps.out.outputs.answer }}"
+      - run: |
+          curl -s -o /dev/null -w "api status %{http_code}\n" -H "authorization: Bearer ${{ github.token }}" "$GITHUB_API_URL/repos/${{ github.repository }}"
+      - name: timeout
+        timeout-minutes: 1
+        continue-on-error: true
+        run: sleep 75; echo "should have timed out"

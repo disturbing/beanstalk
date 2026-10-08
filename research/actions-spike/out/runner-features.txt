@@ -1,0 +1,78 @@
+[   0.67] ##[spike] start 2026-10-08T04:18:44.048Z bash -lc set -e && cd /work/job-1791433124047-1 && git init -q -b main && git -c user.email=spike@beanstalk -c user.name=spike add -A && git -c user.email=spike@beanstalk -c user.name=spike commit -qm spike && git remote add origin 'https://github.com/spike/actions-spike.git' && exec act 'push' '-P' 'ubuntu-latest=-self-hosted' '-e' '/work/job-1791433124047-1.meta/event.json' '--secret-file' '/work/job-1791433124047-1.meta/secrets.env' '--action-offline-mode'
+[   0.72] time="2026-10-08T04:18:44Z" level=warning msg="Couldn't get a valid docker connection: no DOCKER_HOST and an invalid container socket ''"
+[   0.74] [runner-features/features-1] ⭐ Run Set up job
+[   0.74] [runner-features/features-2] ⭐ Run Set up job
+[   0.80] [runner-features/features-1]   ✅  Success - Set up job
+[   0.80] [runner-features/features-1] 🧪  Matrix: map[n:1]
+[   0.80] [runner-features/features-2]   ✅  Success - Set up job
+[   0.80] [runner-features/features-1] ⭐ Run Main echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:-unset} oidc_token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set} runtime_url=${ACTIONS_RUNTIME_URL:-unset} results_url=${ACTIONS_RESULTS_URL:-unset} cache_url=${ACTIONS_CACHE_URL:-unset}"
+[   0.80] [runner-features/features-2] 🧪  Matrix: map[n:2]
+[   0.80] [runner-features/features-2] ⭐ Run Main echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:-unset} oidc_token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set} runtime_url=${ACTIONS_RUNTIME_URL:-unset} results_url=${ACTIONS_RESULTS_URL:-unset} cache_url=${ACTIONS_CACHE_URL:-unset}"
+[   0.81] [runner-features/features-1]   | oidc_url=unset oidc_token= runtime_url=unset results_url=unset cache_url=http://10.0.0.1:42179/397d7660ac9179d08e54a8842ad2125b/
+[   0.81] [runner-features/features-2]   | oidc_url=unset oidc_token= runtime_url=unset results_url=unset cache_url=http://10.0.0.1:42179/397d7660ac9179d08e54a8842ad2125b/
+[   0.81] [runner-features/features-2]   ✅  Success - Main echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:-unset} oidc_token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set} runtime_url=${ACTIONS_RUNTIME_URL:-unset} results_url=${ACTIONS_RESULTS_URL:-unset} cache_url=${ACTIONS_CACHE_URL:-unset}"
+[   0.81]  [3.808384ms]
+[   0.81] [runner-features/features-1]   ✅  Success - Main echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:-unset} oidc_token=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set} runtime_url=${ACTIONS_RUNTIME_URL:-unset} results_url=${ACTIONS_RESULTS_URL:-unset} cache_url=${ACTIONS_CACHE_URL:-unset}"
+[   0.81]  [6.054595ms]
+[   0.81] [runner-features/features-1] ⭐ Run Main echo "### summary from matrix 1" >> "$GITHUB_STEP_SUMMARY"; echo "summary_file=$GITHUB_STEP_SUMMARY"
+[   0.81] [runner-features/features-2] ⭐ Run Main echo "### summary from matrix 2" >> "$GITHUB_STEP_SUMMARY"; echo "summary_file=$GITHUB_STEP_SUMMARY"
+[   0.81] [runner-features/features-1]   | summary_file=/root/.cache/act/bfff53982dda4d41/act/workflow/SUMMARY.md
+[   0.81] [runner-features/features-1]   ✅  Success - Main echo "### summary from matrix 1" >> "$GITHUB_STEP_SUMMARY"; echo "summary_file=$GITHUB_STEP_SUMMARY"
+[   0.81]  [4.343404ms]
+[   0.81] [runner-features/features-1]   ⚙  Summary - ### summary from matrix 1
+[   0.82] [runner-features/features-1] ⭐ Run Main add-mask command
+[   0.82] [runner-features/features-2]   | summary_file=/root/.cache/act/7f9bf9a354f1f5bf/act/workflow/SUMMARY.md
+[   0.82] [runner-features/features-1]   ❗  ::error file=a.js,line=3::an annotation
+[   0.82] [runner-features/features-1]   🚧  ::warning::a warning
+[   0.82] [runner-features/features-1]   ⚙  ***
+[   0.82] [runner-features/features-1]   | masked? ***
+[   0.82] [runner-features/features-2]   ✅  Success - Main echo "### summary from matrix 2" >> "$GITHUB_STEP_SUMMARY"; echo "summary_file=$GITHUB_STEP_SUMMARY"
+[   0.82]  [7.910837ms]
+[   0.82] [runner-features/features-2]   ⚙  Summary - ### summary from matrix 2
+[   0.82] [runner-features/features-1]   ✅  Success - Main add-mask command [4.774324ms]
+[   0.82] [runner-features/features-2] ⭐ Run Main add-mask command
+[   0.82] [runner-features/features-1] ⭐ Run Main echo "answer=42" >> "$GITHUB_OUTPUT"
+[   0.83] [runner-features/features-2]   ❗  ::error file=a.js,line=3::an annotation
+[   0.83] [runner-features/features-2]   🚧  ::warning::a warning
+[   0.83] [runner-features/features-2]   ⚙  ***
+[   0.83] [runner-features/features-2]   | masked? ***
+[   0.83] [runner-features/features-2]   ✅  Success - Main add-mask command [5.497605ms]
+[   0.83] [runner-features/features-1]   ✅  Success - Main echo "answer=42" >> "$GITHUB_OUTPUT"
+[   0.83]  [7.030426ms]
+[   0.83] [runner-features/features-1]   ⚙  ::set-output:: answer=42
+[   0.83] [runner-features/features-2] ⭐ Run Main echo "answer=42" >> "$GITHUB_OUTPUT"
+[   0.83] [runner-features/features-1] ⭐ Run Main echo "answer=42"
+[   0.84] [runner-features/features-2]   ✅  Success - Main echo "answer=42" >> "$GITHUB_OUTPUT"
+[   0.84]  [4.020364ms]
+[   0.84] [runner-features/features-2]   ⚙  ::set-output:: answer=42
+[   0.84] [runner-features/features-1]   | answer=42
+[   0.84] [runner-features/features-1]   ✅  Success - Main echo "answer=42"
+[   0.84]  [3.646643ms]
+[   0.84] [runner-features/features-1] ⭐ Run Main curl -s -o /dev/null -w "api status %{http_code}\n" -H "authorization: Bearer " "$GITHUB_API_URL/repos/spike/actions-spike"
+[   0.84] [runner-features/features-2] ⭐ Run Main echo "answer=42"
+[   0.84] [runner-features/features-2]   | answer=42
+[   0.84] [runner-features/features-2]   ✅  Success - Main echo "answer=42"
+[   0.84]  [3.997263ms]
+[   0.85] [runner-features/features-2] ⭐ Run Main curl -s -o /dev/null -w "api status %{http_code}\n" -H "authorization: Bearer " "$GITHUB_API_URL/repos/spike/actions-spike"
+[   1.38] [runner-features/features-2]   | api status 401
+[   1.38] [runner-features/features-1]   | api status 401
+[   1.38] [runner-features/features-1]   ✅  Success - Main curl -s -o /dev/null -w "api status %{http_code}\n" -H "authorization: Bearer " "$GITHUB_API_URL/repos/spike/actions-spike"
+[   1.38]  [547.259277ms]
+[   1.39] [runner-features/features-2]   ✅  Success - Main curl -s -o /dev/null -w "api status %{http_code}\n" -H "authorization: Bearer " "$GITHUB_API_URL/repos/spike/actions-spike"
+[   1.39]  [539.9243ms]
+[   1.39] [runner-features/features-1] ⭐ Run Main timeout
+[   1.39] [runner-features/features-2] ⭐ Run Main timeout
+[  61.39] [runner-features/features-1] Failed but continue next step
+[  61.39] [runner-features/features-2] Failed but continue next step
+[  61.39] [runner-features/features-1]   ❌  Failure - Main timeout [1m0.001596422s]
+[  61.39] [runner-features/features-1] ⭐ Run Complete job
+[  61.39] [runner-features/features-1] Cleaning up container for job features
+[  61.39] [runner-features/features-1]   ✅  Success - Complete job
+[  61.39] [runner-features/features-1] 🏁  Job succeeded
+[  61.39] [runner-features/features-2]   ❌  Failure - Main timeout [1m0.001294682s]
+[  61.39] [runner-features/features-2] ⭐ Run Complete job
+[  61.39] [runner-features/features-2] Cleaning up container for job features
+[  61.39] [runner-features/features-2]   ✅  Success - Complete job
+[  61.39] [runner-features/features-2] 🏁  Job succeeded
+[  61.40] 
+[  61.40] ##[spike] exit=0 wall_ms=60737

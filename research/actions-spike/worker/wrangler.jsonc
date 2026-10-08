@@ -1,0 +1,26 @@
+{
+  // Throwaway spike Worker (docs/claude-opus/exp/actions-spike/README.md). Never shares a
+  // binding, container class or DO namespace with the live Workers.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-actions-spike",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  // global_fetch_strictly_public: without it, fetch() to the gateway's workers.dev URL (same
+  // account) answers Cloudflare's 404 "Page not found" (error 1042). The MVP uses a service binding.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": { "GATEWAY_ORIGIN": "https://beanstalk-gateway.devaccounts-1password.workers.dev" },
+  "secrets": { "required": ["SPIKE_TOKEN"] },
+  "durable_objects": { "bindings": [{ "name": "ACT_RUNNER", "class_name": "ActRunner" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ActRunner"] }],
+  "containers": [
+    {
+      "class_name": "ActRunner",
+      "image": "../image/Dockerfile",
+      "image_build_context": "../image",
+      // 4 vCPU / 12 GiB / 20 GB: GitHub's ubuntu-latest for public repos is 4 vCPU / 16 GB.
+      "instance_type": "standard-4",
+      "max_instances": 3,
+    },
+  ],
+}

@@ -1,6 +1,7 @@
 """The orchestrated race's prompt and backlog: one text for both arms except the forge section."""
 from __future__ import annotations
 
+import json
 import os
 
 from .arena import Task
@@ -23,7 +24,23 @@ def backlog(tasks: list[Task], test_hint: str) -> str:
     return "\n".join(out) + "\n"
 
 
-def shared(n_tasks: int, subagents: int, line: str, test_hint: str, wall_minutes: float) -> str:
+# How the lead waits for its workers. The baselines' sentence (``prompt``) predates the check of how ``claude -p``
+# treats background agents; plugin-v2 replaces it with what Claude Code 2.1.293 does (verified 2026-10-08 with a
+# background worker and ``-p``: the process stays alive after the lead ends its turn, and each worker's completion
+# starts the lead's next turn with a task notification). The v1 sentence ("don't end your turn while a worker is
+# running") is what made the plugin-v1 lead run ``sleep 420``.
+SESSION_PROMPT = ("- Your session ends as soon as you end your turn, and that stops any worker still running. After "
+                  "starting workers in the background, keep waiting for their notifications and following your changes "
+                  "on the forge; don't end your turn while a worker is running or a change is not yet integrated.")
+SESSION_NOTIFIED = ("- Workers you start in the background keep running when you end your turn: Claude Code starts your "
+                    "next turn with a notification each time one finishes. So after starting workers, end your turn "
+                    "(never `sleep` or poll to wait for them) and act on each notification: read the report, start the "
+                    "next worker if work remains, end your turn again. Your session ends when you end your turn with no "
+                    "worker running: do that only when every change is integrated or you judge the rest impossible.")
+
+
+def shared(n_tasks: int, subagents: int, line: str, test_hint: str, wall_minutes: float,
+           session: str = SESSION_PROMPT) -> str:
     return f"""You are the lead engineer on this repository. `BACKLOG.md` in this directory lists {n_tasks} tasks, each \
 with acceptance tests. Ship as many of them as you can: a task is done when its change, with its acceptance tests, \
 is integrated by the forge (described below). You decide how to split, order and stack the work.
@@ -45,9 +62,7 @@ expectations your change intentionally alters.
 per change unless you deliberately combine them.
 - Integration happens only through the forge as described below; never push to `{line}` yourself.
 - `BACKLOG.md` and `{WORKTREES}/` are local notes and scratch space: never commit them.
-- Your session ends as soon as you end your turn, and that stops any worker still running. After starting workers in \
-the background, keep waiting for their notifications and following your changes on the forge; don't end your turn \
-while a worker is running or a change is not yet integrated.
+{session}
 - You have about {wall_minutes:.0f} minutes. When every task is integrated (or you judge a task impossible), stop and \
 reply with one line per task: its id, integrated or not, and why not.
 """
@@ -84,8 +99,13 @@ current state. Pushing to `sprout`, `stalk` or `main` is refused.
 
 
 # --guidance plugin (Beanstalk arm only): the forge section is replaced by the Beanstalk plugin's skill, as an agent with
-# the plugin installed would read it. The shared part of the prompt is unchanged; the baseline pairs use ``prompt``
-# with ``guidance="prompt"`` and never see this text.
+# the plugin installed would read it, and the lead's session sentence by SESSION_NOTIFIED (plugin-v2). The baseline
+# pairs use ``prompt`` with ``guidance="prompt"`` and never see this text.
+#
+# Versions: plugin-v1 = plugin 0.5.0 (push plainly, read status refs between steps, poll every 30-60 s at the end;
+# the shared session sentence). plugin-v2 = plugin 0.6.0 (never sleep-poll: one blocking ``refs/wait/any`` push woken
+# by the verdict when out of work; the lead ends its turn and acts on worker notifications).
+PLUGIN_GUIDANCE_VERSION = "plugin-v2"
 PLUGIN_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "packages",
                                            "claude-plugin"))
 SKILL_PATH = os.path.join(PLUGIN_DIR, "skills", "beanstalk", "SKILL.md")
@@ -123,19 +143,35 @@ def worker_prompt(guidance: str = "prompt") -> str:
 def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: str, wall_minutes: float,
            guidance: str = "prompt") -> str:
     line = "main" if arm == "github" else "sprout"
+    session = SESSION_PROMPT
     if arm == "github":
         section = github_section(repo_url)
     elif guidance == "plugin":
-        section = beanstalk_plugin_section(repo_url)
+        section, session = beanstalk_plugin_section(repo_url), SESSION_NOTIFIED
     else:
         section = beanstalk_section(repo_url)
-    return shared(n_tasks, subagents, line, test_hint, wall_minutes) + "\n" + section
+    return shared(n_tasks, subagents, line, test_hint, wall_minutes, session) + "\n" + section
+
+
+def plugin_version() -> str:
+    """The Beanstalk plugin's version (``.claude-plugin/plugin.json``)."""
+    with open(os.path.join(PLUGIN_DIR, ".claude-plugin", "plugin.json"), encoding="utf-8") as fh:
+        return json.load(fh)["version"]
+
+
+def continuation(guidance: str = "prompt") -> str:
+    return CONTINUE_NOTIFIED if guidance == "plugin" else CONTINUE
 
 
 CONTINUE = ("Continue. Your session ended while work remained. Check the state of every task in BACKLOG.md (your "
             "worktrees, branches and the forge), restart what was stopped, and carry on until every task is integrated "
             "or you judge it impossible. Keep waiting for your workers' notifications; don't end your turn while a "
             "worker is running or a change is not yet integrated.")
+
+CONTINUE_NOTIFIED = ("Continue. Your session ended while work remained. Check the state of every task in BACKLOG.md "
+                     "(your worktrees, branches and the forge), restart what was stopped in background workers, then end "
+                     "your turn and act on each worker's notification as before; carry on until every task is "
+                     "integrated or you judge it impossible.")
 
 WORKER_PROMPT = ("You are a software engineer working on one change in your own git worktree, whose absolute path "
                  "the lead gives you. Each shell command starts in the lead's directory, so use `git -C <worktree>` "

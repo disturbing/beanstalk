@@ -2,8 +2,10 @@
 
 Teaches a coding agent to work on a Beanstalk repository: git is the interface (clone, branch
 `bean/<name>`, commit with the intent, a plain `git push` submits the bean and the agent takes its
-next task while the pre-land check runs, reads verdicts from the status refs between steps,
-rebases on the sprout and fixes its own reds; stacking on a pushed bean), and the `beanstalk` MCP server is optional context
+next task while the pre-land check runs; when out of work one blocking `git push -o bean=<name>
+origin HEAD:refs/wait/any` returns at the first verdict, so nothing sleeps or polls; it rebases on
+the sprout and fixes its own reds; stacking on a pushed bean; a lead waits on its workers'
+completion notifications), and the `beanstalk` MCP server is optional context
 (`work_overlaps`, `ask_repo`, `checks_get`, decision cards, bean-to-bean conversation).
 
 ## Install and connect, in one line
@@ -31,7 +33,7 @@ For MCP (optional): `claude mcp login plugin:beanstalk:beanstalk` (or `/mcp` in 
 - **By hand, HTTPS:** clone, and paste a personal token (Settings, Tokens) at git's password
   prompt.
 - **CI and scripts:** a deploy token for one repository in `BEANSTALK_TOKEN`, with
-  `GIT_TERMINAL_PROMPT=0` and `GIT_CONFIG_COUNT=1` / `GIT_CONFIG_KEY_0='credential.https://<gateway>.helper'`
+  `GIT_TERMINAL_PROMPT=0` and `GIT_CONFIG_COUNT=1` / `GIT_CONFIG_KEY_0='credential.https://<beanstalk host>.helper'`
   / `GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'`
   (the repository page, tab "Env vars", fills it in).
 
@@ -75,7 +77,8 @@ codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@
 |---|---|
 | MCP read tools, collaboration tools | Live |
 | MCP repository tools: `repo_list`, `repo_status`, `bean_open`, `bean_status`, `bean_wait`, `task_list`, `task_claim`, `task_release`, `git_credentials` | Built (`docs/claude-opus/23-mcp-repository-tools.md`); on staging, not yet deployed live |
-| Git-native intake (`bean/<name>`, push options, `remote:` verdicts, `refs/beans/<name>/status`) | Live on people's repositories (`https://<gateway>/git/<owner>/<repo>.git`) |
+| Git-native intake (`bean/<name>`, push options, `remote:` verdicts, `refs/beans/<name>/status`) | Live on people's repositories (`https://<beanstalk host>/<owner>/<repo>.git`) |
+| Waiting in git (`refs/wait/any`, `refs/wait/all`, `-o bean=`), event-driven `-o wait` and `bean_wait` (plugin 0.6.0) | Built and on staging (`docs/claude-opus/18-git-native-flow.md` §4.1); **not yet deployed live**: until then a push to `refs/wait/*` is refused ("only beans are pushed") |
 | `/beanstalk:setup`, SSH keys in Settings, deploy tokens | Live; git over SSH itself is **coming** (HTTPS with a token until then) |
 | MCP OAuth (`claude mcp login`, `/mcp`) | Live: sign up or sign in with a passkey, approve the agent; `whoami` names you |
 | Decision-card tools | **Coming** |

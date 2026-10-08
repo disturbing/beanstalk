@@ -17,6 +17,10 @@ export class FakeRunner extends DurableObject {
     const url = new URL(request.url);
     if (url.pathname === '/__requests')
       return Response.json((await this.ctx.storage.get('requests')) ?? []);
+    if (url.pathname === '/__release') {
+      gate(url.searchParams.get('bean') ?? '').release();
+      return Response.json({ released: true });
+    }
     // The wire contract it implements (RUNNER_API_VERSION in src/runner/runner-transport.ts).
     if (url.pathname === '/version')
       return Response.json({ version: 'fake', api_version: 4, git_sha: 'fake' });
@@ -77,6 +81,8 @@ async function answer(this_, path, body) {
       const extra = Object.keys(body.extra_files ?? {});
       // The first check of a squash of a bean whose ref names `red` fails (its next push passes).
       const squashed = SQUASHED.get(body.sha) ?? '';
+      // A bean whose ref names `held` stays in its check until a test releases it.
+      if (squashed.includes('held')) await gate(squashed.split('/').at(-1)).held;
       if (squashed.includes('red') && (await firstTime(this_, `red:${squashed}`)))
         return redCheck(body.sha, [squashed, ...SQUASHED.values()].map(beanFile));
       return {
@@ -113,6 +119,22 @@ async function firstTime(_runner, key) {
   if (SEEN.has(key)) return false;
   SEEN.add(key);
   return true;
+}
+
+const GATES = new Map();
+
+/** The gate of a held bean's checks: `held` resolves once a test released the bean. */
+function gate(bean) {
+  let found = GATES.get(bean);
+  if (found === undefined) {
+    let release = () => undefined;
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    found = { held, release: () => release() };
+    GATES.set(bean, found);
+  }
+  return found;
 }
 
 function beanFile(ref) {
