@@ -31,6 +31,7 @@ pnpm skills:update                 # refresh vendored Cloudflare skills (skills-
 | Any `.ts` / `.tsx` | `clean-code-typescript` |
 | Any Rust, `Cargo.toml`, Dockerfile | `clean-code-rust` |
 | Creating or structuring a package, Hono routes, wrangler config, containers, the web app | `beanstalk-packages` |
+| Public docs (`packages/site/public/docs/`) | `public-docs` |
 | Cloudflare platform questions (product choice, Workers, DOs, Wrangler, Sandbox, Agents SDK, vinext, web perf) | `cloudflare`, `workers-best-practices`, `durable-objects`, `wrangler`, `sandbox-next`, `agents-sdk`, `nextjs-on-cloudflare`, `web-perf` (vendored from `cloudflare/skills`; never edit by hand) |
 
 Skills live in `.agents/skills/` (read natively by Codex); `.claude/skills/` holds symlinks for Claude Code. A new skill goes in `.agents/skills/<name>/` plus `ln -s ../../.agents/skills/<name> .claude/skills/<name>`. Follow the Agent Skills size rules: `SKILL.md` under 150 lines, description under 1,024 characters, references one level deep with a contents list when over 100 lines.
@@ -44,6 +45,7 @@ Skills live in `.agents/skills/` (read natively by Codex); `.claude/skills/` hol
 - New Worker: `compatibility_date` is the creation date, `observability.enabled` and `observability.traces.enabled` are true.
 - Structured JSON logs through the package's `log` module; no `console.log` elsewhere.
 - Git: work on a branch, never push to `main`, commit only when the owner asks. Licence: FSL-1.1-ALv2 (`LICENSE.md`, owner's decision 2026-10-04): source-available, no competing hosted use, each version converts to Apache-2.0 two years after release. The competition rules list MIT, Apache-2.0 or BSD, so this knowingly risks eligibility (owner's informed choice). Add no GPL code to Workers or the web app (Mergiraf runs only as a separate binary in a container).
+- Public docs: when you change user-visible behaviour (or deploy it, or an experiment concludes), update `packages/site/public/docs/` in the same change, following the `public-docs` skill; `node scripts/check-docs.mjs` must pass. In Claude Code, delegate to the `docs-maintainer` subagent (`docs-auditor` audits read-only). Never label anything live that is not deployed.
 - Docs: `docs/claude-*` is the Claude-authored set, unprefixed `docs/0*-*.md` is the Codex set. Do not overwrite the other set; add to your own and note disagreements in `docs/claude-README.md`.
 - Residency: competition entrants must reside in the US or Canada; the owner is eligible. Do not add contributors' names to the entry without checking.
 
@@ -55,6 +57,7 @@ Skills live in `.agents/skills/` (read natively by Codex); `.claude/skills/` hol
 | `.agents/skills/`, `.claude/skills/`, `skills-lock.json` | Skills (canonical, symlinks, vendored-skill lock) |
 | `docs/` | Research, thesis, demo plan, design docs |
 | `packages/` | All code; one directory per package or crate |
-| `scripts/` | Repo tooling (`rust-check.mjs`) |
+| `scripts/` | Repo tooling (`rust-check.mjs`, `check-docs.mjs`) |
+| `packages/site/public/docs/` | Public docs on the marketing site; `.claude/agents/docs-*.md` maintain and audit them |
 | `research/` | Corpus clones used by research scripts; not part of the build |
 | `tsconfig.base.json`, `.oxlintrc.json`, `.oxfmtrc.json`, `rustfmt.toml`, `rust-toolchain.toml` | Shared tool configuration; change in its own commit with a reason |

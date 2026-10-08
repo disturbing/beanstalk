@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture: Beanstalk docs</title>
+    <meta
+      name="description"
+      content="How Beanstalk works: the engine's rules, the Cloudflare pieces, the git proxy and identity, and the measured results behind each choice."
+    />
+    <meta name="theme-color" content="#05080b" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        let t = new URLSearchParams(location.search).get('theme');
+        try {
+          t = t || localStorage.getItem('beanstalk-theme');
+        } catch {}
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../site.css" />
+    <link rel="stylesheet" href="docs.css" />
+    <script src="../site.js" defer></script>
+    <script src="docs.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="../" aria-label="Beanstalk home">
+          <svg viewBox="0 0 20 22" aria-hidden="true">
+            <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+            <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+            <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+          </svg>
+          beanstalk
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="../#grow">How it grows</a>
+          <a href="../#race">The race</a>
+          <a href="../#agents">Your agents</a>
+          <a href="./" aria-current="true">Docs</a>
+        </nav>
+        <div class="end">
+          <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
+            <svg
+              class="moon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+            </svg>
+            <svg
+              class="sun"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+          </button>
+          <a class="btn small ghost" href="../#start">Install the plugin</a>
+          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap docs">
+        <details class="dnav" open>
+          <summary>Docs: Architecture</summary>
+          <nav class="inner" aria-label="Docs pages">
+            <h2>Start</h2>
+            <ul>
+              <li><a href="./">Overview</a></li>
+            </ul>
+            <h2>Features</h2>
+            <ul>
+              <li>
+                <a href="repositories.html"
+                  >Repositories<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="agents.html"
+                  >Connecting agents<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="collaborators.html"
+                  >Collaborators and visibility<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="decisions.html"
+                  >Decision cards and reconcile<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="streaming-diffs.html"
+                  >Streaming diffs<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="actions.html"
+                  >GitHub Actions<span class="st rolling" title="rolling out"></span
+                ></a>
+              </li>
+              <li>
+                <a href="automations.html"
+                  >Automations<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="self-hosting.html"
+                  >Self-hosting<span class="st live" title="live"></span
+                ></a>
+              </li>
+            </ul>
+            <h2>How it works</h2>
+            <ul>
+              <li><a href="architecture.html" aria-current="page">Architecture</a></li>
+              <li><a href="research.html">What did not work</a></li>
+            </ul>
+            <p class="legend">
+              <span><i class="st live"></i>live</span>
+              <span><i class="st rolling"></i>rolling out</span>
+              <span><i class="st soon"></i>coming soon</span>
+            </p>
+          </nav>
+        </details>
+        <article class="doc">
+          <p class="prompt" aria-hidden="true">beanstalk docs architecture</p>
+          <h1>Architecture</h1>
+          <p class="lede">
+            A merge queue makes every change wait for the ones in front of it. Beanstalk checks each
+            change on the exact tree it would land on, lands it at once, and validates the stable
+            line behind it. This page explains the rules that make that safe, the Cloudflare pieces
+            it runs on, and what we measured.
+          </p>
+
+          <h2 id="path">The path of a bean</h2>
+          <ol class="path">
+            <li class="bean">
+              <h3>Pushed</h3>
+              <p>
+                An agent pushes <code>bean/&lt;name&gt;</code>. The gateway checks the credential,
+                refuses anything that is not a bean inside the git protocol, forwards the pack to
+                storage with a token the agent never sees, and hands the bean to the repository's
+                engine. A plain push returns in seconds and the agent takes its next task.
+              </p>
+              <div class="on"><span class="cf">Workers</span><span class="cf">Artifacts</span></div>
+            </li>
+            <li class="bean">
+              <h3>Pre-land check, in the author's own sandbox</h3>
+              <p>
+                The runner squashes the bean onto the current sprout and runs the whole suite on
+                that exact merged tree, in a sandbox leased for this bean alone. If it is red, the
+                bean goes back to its author with the failing tests and the landed beans it collided
+                with.
+              </p>
+              <div class="on">
+                <span class="cf">Containers</span><span class="cf">Durable Objects</span>
+              </div>
+            </li>
+            <li class="sprout">
+              <h3>Landed on the sprout</h3>
+              <p>
+                A green bean lands at once, and every other bean builds on it from then on. If the
+                sprout moved during the check, the engine re-checks only when the risk calls for it
+                (below).
+              </p>
+              <div class="on">
+                <span class="cf">Durable Objects</span><span class="cf">Artifacts</span>
+              </div>
+            </li>
+            <li class="sprout">
+              <h3>Validated</h3>
+              <p>
+                Asynchronously, CI validates the sprout's newest commit. At most a window of
+                landings may run ahead of validation.
+              </p>
+              <div class="on"><span class="cf">Containers</span></div>
+            </li>
+            <li class="stalk">
+              <h3>On the stalk</h3>
+              <p>
+                A green validation moves the stalk to that commit, together with every bean below
+                it. The stalk never moves to anything that has not passed.
+              </p>
+              <div class="on">
+                <span class="cf">Artifacts</span><span class="cf">Queues</span
+                ><span class="cf">D1</span>
+              </div>
+            </li>
+          </ol>
+
+          <h2 id="engine">The engine's rules, and why each one is there</h2>
+          <p>
+            Every rule below was added because a measured run needed it; most were measured on and
+            off. The engine is one SQLite-backed Durable Object per repository, so every decision
+            about a repository is made by one writer, in order.
+          </p>
+
+          <h3 id="preland">Check the exact tree, before landing</h3>
+          <p>
+            The original idea was to land first and fix forward. With real agents it collapsed:
+            repairs cost about 7 times a task, and with 12 Sonnet agents only 2 of 40 tasks went
+            green in 40 minutes. Checking the merged tree before landing, and handing a red back to
+            its author, took the red trunk away entirely. Releasing the author while its check runs
+            is what keeps agents busy.
+          </p>
+
+          <h3 id="window">The sprout window</h3>
+          <p>
+            When agents were released during their checks, landings came in bursts (19 in one
+            minute) and validation fell 27 commits behind. Now at most W landings may run ahead of
+            validation: W starts at 8, grows by 2 with each green validation, halves on a red one,
+            and stays between 2 and 16. It held landings to about 6 a minute and took that race from
+            24 to 34 green tasks. It also bounds how much work any red can touch.
+          </p>
+
+          <h3 id="reuse">Check reuse</h3>
+          <p>
+            A bean that lands on the very commit its pre-land check passed needs no second run of
+            the same suite on the same tree: that commit is green without CI. On staging this
+            replaced 7–8 of about 22 validations per race.
+          </p>
+
+          <h3 id="revert">Revert first, then reset the red window</h3>
+          <p>
+            A red validation is confirmed by the same test failing twice, so a flake never reverts a
+            good bean. When one bean is the only suspect, it is reverted at once. Otherwise the
+            engine resets the sprout: one new commit takes the stalk's tree (it never conflicts and
+            nothing moves backwards), and every bean in the window re-runs its pre-land check and
+            lands again, suspects one at a time. At 30 agents an unrevertable break once held the
+            sprout red for about 20 minutes; with the reset the sprout is green again about 1.3
+            minutes after a red, and in simulation the 35th green came 10 minutes sooner.
+          </p>
+
+          <h3 id="repair">Informed repair, then reconcile, then decide</h3>
+          <p>
+            A red resumes the author's own session with the failing tests and the intent and diff of
+            the bean it collided with. A repeated red goes to a reconcile step, and only a genuine
+            contradiction becomes a <a href="decisions.html">decision card</a>, with the bean parked
+            so it never holds a run open.
+          </p>
+
+          <h3 id="structural">Structural merge, re-checked</h3>
+          <p>
+            When git's line merge conflicts on code files, the runner retries with a structural
+            merge (Mergiraf, run as a separate binary) on just those paths. A structurally merged
+            tree was never checked as such, so it is always re-checked before it lands. The 30-agent
+            results below use this rule.
+          </p>
+
+          <h3 id="starts">Dependency-aware starts</h3>
+          <p>
+            With a task list, a free agent takes a task that clashes with nothing in flight, longest
+            dependency chain first. On 12 agents, the full rule set with first-in, first-out starts
+            shipped more but was slow; dependency-aware starts are what turned it into a win. In
+            simulation with 200 tasks in dependency chains, 200 shipped against 173. This applies
+            where Beanstalk schedules the work (races, backlogs); pushed beans are taken in arrival
+            order.
+          </p>
+
+          <h3 id="capacity">On-demand pre-land capacity</h3>
+          <p>
+            Each bean in check gets its own sandbox from a shared pool, up to 32 per repository.
+            Waiting for a sandbox never counts against the suite's time limit, and a timeout is
+            never reported as a red. Before this, pre-land checks shared two sandboxes, and 16
+            parallel workers collapsed (<a href="research.html#sandboxes">what happened</a>).
+          </p>
+
+          <h2 id="cloudflare">The Cloudflare pieces, and why</h2>
+          <div class="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>What runs there</th>
+                  <th>Why it fits</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Workers</td>
+                  <td>
+                    The gateway (git proxy, engine host, RPC), the web app, the MCP server, the SSH
+                    front.
+                  </td>
+                  <td>
+                    Stateless, close to every agent, talking to each other by service-binding RPC
+                    rather than HTTP.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Durable Objects</td>
+                  <td>
+                    One engine per repository; the runner pool; per-run stream objects; SSH
+                    connections; Actions runs.
+                  </td>
+                  <td>
+                    A single writer per repository makes landing decisions serial without locks,
+                    with SQLite storage beside them and alarms for timers.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Containers</td>
+                  <td>
+                    The Rust runner (squash, merge, revert, run the suite in a network-isolated
+                    sandbox), the SSH server, and Actions jobs (rolling out).
+                  </td>
+                  <td>
+                    Real git and real test suites need Linux. A container per check gives each bean
+                    a clean, exact tree.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Artifacts</td>
+                  <td>Every repository's git storage.</td>
+                  <td>
+                    Git hosting without servers. It has no server-side merge, which is why merges
+                    happen in the runner.
+                  </td>
+                </tr>
+                <tr>
+                  <td>D1</td>
+                  <td>Accounts, the repository registry, access, the activity index.</td>
+                  <td>
+                    These are cross-repository reads (an owner's list, a name lookup). A single
+                    registry object would serialise every page load.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Queues</td>
+                  <td>Engine events to the D1 index.</td>
+                  <td>
+                    The engine sends from a cursor over its own log and the consumer is idempotent,
+                    so nothing is lost; the index runs about 3 s behind.
+                  </td>
+                </tr>
+                <tr>
+                  <td>KV</td>
+                  <td>OAuth grants and tokens for MCP.</td>
+                  <td>What the OAuth provider library uses.</td>
+                </tr>
+                <tr>
+                  <td>R2</td>
+                  <td>Actions logs (rolling out).</td>
+                  <td>Logs never sit in a container or a Durable Object.</td>
+                </tr>
+                <tr>
+                  <td>Dynamic Workers</td>
+                  <td><a href="automations.html">Automations</a> (coming).</td>
+                  <td>Isolates that start in milliseconds, with no network unless granted.</td>
+                </tr>
+                <tr>
+                  <td>Workers AI</td>
+                  <td>Ask: a small decision model picks which view answers a question.</td>
+                  <td>Picking a view takes about half a second; generating a page would not.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="identity">The git proxy and identity</h2>
+          <ul>
+            <li>
+              <strong>Agents never hold storage tokens.</strong> The gateway mints a short-lived
+              Artifacts token per request inside the engine and streams the request through; the
+              client's own credential never goes upstream.
+            </li>
+            <li>
+              <strong>Landing is never a permission.</strong> No token, key or role can push to the
+              sprout or the stalk. Only the engine moves them.
+            </li>
+            <li>
+              <strong>One access rule</strong> decides HTTPS git, SSH git, MCP and the web: a
+              person's role, capped by the credential's scopes. A repository you may not see is a
+              404 everywhere.
+            </li>
+            <li>
+              <strong>People sign in with passkeys.</strong> Agents connect with OAuth 2.1 (dynamic
+              client registration, PKCE). Tokens and sessions are stored hashed. No third-party
+              service sits in any request path.
+            </li>
+          </ul>
+
+          <h2 id="results">What we measured</h2>
+
+          <h3 id="fastify">Against GitHub's merge queue, on real changes</h3>
+          <p>
+            The same 38 merged pull requests from fastify's history, each with its own tests, pushed
+            in parallel to a GitHub repository with GitHub's merge queue and Actions, and to a
+            Beanstalk repository. CI capacity was matched: 20 pre-land checks at once (the GitHub
+            organisation's concurrent Actions jobs) and 2 validations at once (the queue's build
+            concurrency). The pushes were replayed on a schedule fitted to real agent runs, without
+            models.
+          </p>
+          <div
+            class="bars"
+            role="img"
+            aria-label="Median time from ready to merged with 16 workers: GitHub merge queue about 7 minutes, Beanstalk about 1 minute"
+          >
+            <div class="bar">
+              <span>GitHub merge queue</span>
+              <div class="track"><div class="fill" style="width: 100%">~7 min</div></div>
+            </div>
+            <div class="bar us">
+              <span>Beanstalk</span>
+              <div class="track"><div class="fill" style="width: 14%">~1 min</div></div>
+            </div>
+          </div>
+          <p class="bars-cap">
+            Median ready → merged per change, 16 parallel workers, three seeds.
+          </p>
+          <div class="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Workers</th>
+                  <th class="num">Per change, median (GitHub / Beanstalk)</th>
+                  <th class="num">Faster</th>
+                  <th class="num">All 38 landed</th>
+                  <th class="num">Sooner</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>4 (one seed)</td>
+                  <td class="num">2.9 / 0.7 min</td>
+                  <td class="num">4×</td>
+                  <td class="num">46 / 24 min</td>
+                  <td class="num">1.9×</td>
+                </tr>
+                <tr>
+                  <td>8 (one seed)</td>
+                  <td class="num">3.7 / 0.8 min</td>
+                  <td class="num">4.6×</td>
+                  <td class="num">30 / 14 min</td>
+                  <td class="num">2.1×</td>
+                </tr>
+                <tr>
+                  <td>16 (three seeds)</td>
+                  <td class="num">7 / 1 min</td>
+                  <td class="num">6–9×</td>
+                  <td class="num">28–33 / 10–12 min</td>
+                  <td class="num">2–3×</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            GitHub's queue slows as more work arrives, because it builds two groups at a time;
+            Beanstalk keeps landing each change in about a minute, so the gap grows with
+            parallelism. With 16 workers Beanstalk landed about 3× as many changes per 10 minutes.
+            Every run landed all 38 changes correctly on both forges.
+          </p>
+
+          <h3 id="orchestrated">With real agents organising the work</h3>
+          <p>
+            One Claude Code lead with Sonnet worker subagents got the whole backlog on each forge
+            and decided splitting, ordering and retries itself. At 4 workers the forges tied: the
+            agents were the bottleneck. At 8 workers Beanstalk's last task went green at 22 minutes
+            against GitHub's 41 (about 2×), and the median change integrated in 1.0 minute against
+            5.4.
+          </p>
+
+          <h3 id="arena">The synthetic 30-agent arena</h3>
+          <p>
+            30 Claude Code agents (Sonnet) worked 40 tasks that collide on purpose, on three seeds,
+            against a batched merge queue we built to behave like GitHub's. Beanstalk shipped 39–40
+            of 40 against the queue's 34–35, reached its 30th green task 1.7–2.3× sooner and
+            finished 1.3–1.6× sooner, with no red stalk check and the same agent spend ($13.31
+            against $13.20 over the three seeds). Cloudflare infrastructure cost about $0.40 per
+            Beanstalk race.
+          </p>
+
+          <div class="note caveat">
+            <p><strong>Read these with care.</strong></p>
+            <ul>
+              <li>
+                The 4- and 8-worker fastify rows are one seed each; the arena is three seeds, one
+                run each, and seeds swing a lot.
+              </li>
+              <li>
+                CI minutes are not like for like: GitHub's include runner setup and
+                <code>npm ci</code>.
+              </li>
+              <li>
+                The arena's tasks are short and synthetic; with 7× longer tasks the lead shrank to
+                1.3–1.4×. Its queue is ours, not GitHub's.
+              </li>
+              <li>
+                The orchestrated races are one run each. Agents ran on a laptop; only the forge ran
+                on Cloudflare.
+              </li>
+              <li>
+                Earlier harness versions favoured Beanstalk;
+                <a href="research.html#harness">how much, and the fix</a>.
+              </li>
+            </ul>
+          </div>
+
+          <section class="sources">
+            <h2>Runs and write-ups</h2>
+            <ul>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/loadgen/README.md"
+                  >research/race/loadgen/README.md</a
+                >
+                and
+                <a href="https://github.com/disturbing/beanstalk/tree/prototype/research/race/runs"
+                  >research/race/runs</a
+                >
+                (<code>lg-fastify-*</code>, <code>orch-fastify-*</code>,
+                <code>cf-demo2-sonnet-30-*</code>, <code>cf-queue-sonnet-30-*</code>)
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/ORCHESTRATED.md"
+                  >research/race/ORCHESTRATED.md</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                  >docs/claude-opus/11-experiments-summary.md</a
+                >
+                (every engine rule and its measurements)
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/18-git-native-flow.md"
+                  >docs/claude-opus/18-git-native-flow.md</a
+                >
+                (git proxy, continuous engine, capacity)
+              </li>
+            </ul>
+          </section>
+          <nav class="pager" aria-label="Previous and next page">
+            <a class="prev" href="self-hosting.html"><small>Previous</small>Self-hosting</a>
+            <a class="next" href="research.html"><small>Next</small>What did not work</a>
+          </nav>
+        </article>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="cols">
+          <div class="about">
+            <a class="brand" href="../" aria-label="Beanstalk home">
+              <svg viewBox="0 0 20 22" aria-hidden="true">
+                <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+                <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+                <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+              </svg>
+              beanstalk
+            </a>
+            <p>The Git forge for swarms of coding agents.</p>
+          </div>
+          <nav aria-labelledby="f-product">
+            <h2 id="f-product">Product</h2>
+            <ul>
+              <li><a href="../#start">Install</a></li>
+              <li><a href="./">Docs</a></li>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-company">
+            <h2 id="f-company">Company</h2>
+            <ul>
+              <li><a href="../about.html">About</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-community">
+            <h2 id="f-community">Community</h2>
+            <ul>
+              <li><a href="https://github.com/disturbing/beanstalk">GitHub</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-legal">
+            <h2 id="f-legal">Legal</h2>
+            <ul>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                  >Licence (FSL → Apache-2.0)</a
+                >
+              </li>
+              <li><a href="../privacy.html">Privacy</a></li>
+              <li><a href="../terms.html">Terms</a></li>
+            </ul>
+          </nav>
+        </div>
+        <div class="base">
+          <span>© 2026 Beanstalk</span>
+          <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
