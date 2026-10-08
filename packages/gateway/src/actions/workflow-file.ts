@@ -88,8 +88,7 @@ export async function readWorkflowFile(
   const template =
     parsed.value === undefined ? null : await convertWorkflowTemplate(parsed.context, parsed.value);
   const problems = problemsOf(parsed.context.errors.getErrors());
-  const root =
-    parsed.value === undefined ? null : plainOf(JSON.parse(JSON.stringify(parsed.value)));
+  const root = parsed.value === undefined ? null : plainOf(parsed.value);
   if (template === null || root === null || !isPlainObject(root) || problems.length > 0) {
     return emptyWorkflow(path, fallbackName, problems);
   }
@@ -278,7 +277,10 @@ function contentsWrite(permissions: PlainValue | undefined): boolean | null {
 }
 
 function idTokenWrite(permissions: PlainValue | undefined): boolean {
-  return permissions === 'write-all' || (isPlainObject(permissions) && permissions['id-token'] === 'write');
+  return (
+    permissions === 'write-all' ||
+    (isPlainObject(permissions) && permissions['id-token'] === 'write')
+  );
 }
 
 function stringRecord(value: PlainValue | undefined): Readonly<Record<string, string>> {
@@ -391,7 +393,8 @@ function jobNotes(job: JobPlan, raw: PlainValue | undefined): CompatibilityNote[
     notes.push({
       feature: at(plain['container'] === undefined ? 'services' : 'container'),
       verdict: 'runs-differently',
-      detail: 'runs in Docker mode (dockerd inside the job container); never in host mode, where act would skip it',
+      detail:
+        'runs in Docker mode (dockerd inside the job container); never in host mode, where act would skip it',
     });
   if (plain['environment'] !== undefined)
     notes.push({

@@ -4,9 +4,16 @@ import type { JobState } from './job-graph';
 import { needResult, planJobs, readiness, runConclusion } from './job-graph';
 import { readWorkflowFile } from './workflow-file';
 
-const RUN = { contexts: { github: { event_name: 'push' }, inputs: {}, vars: {} }, cancelled: false };
+const RUN = {
+  contexts: { github: { event_name: 'push' }, inputs: {}, vars: {} },
+  cancelled: false,
+};
 
-function state(key: string, conclusion: JobState['conclusion'], outputs: Record<string, string> = {}): JobState {
+function state(
+  key: string,
+  conclusion: JobState['conclusion'],
+  outputs: Record<string, string> = {},
+): JobState {
   return { key, status: conclusion === null ? 'in_progress' : 'completed', conclusion, outputs };
 }
 
@@ -20,18 +27,35 @@ describe('the job DAG', () => {
   });
 
   it('runs always() and failure() jobs as GitHub does', () => {
-    expect(readiness({ needs: ['a'], condition: 'always()' }, [state('a', 'failure')], RUN)).toEqual({ kind: 'start' });
-    expect(readiness({ needs: ['a'], condition: 'failure()' }, [state('a', 'failure')], RUN)).toEqual({ kind: 'start' });
-    expect(readiness({ needs: ['a'], condition: 'failure()' }, [state('a', 'success')], RUN)).toEqual({ kind: 'skip' });
     expect(
-      readiness({ needs: ['a'], condition: 'success()' }, [state('a', 'success')], { ...RUN, cancelled: true }),
+      readiness({ needs: ['a'], condition: 'always()' }, [state('a', 'failure')], RUN),
+    ).toEqual({ kind: 'start' });
+    expect(
+      readiness({ needs: ['a'], condition: 'failure()' }, [state('a', 'failure')], RUN),
+    ).toEqual({ kind: 'start' });
+    expect(
+      readiness({ needs: ['a'], condition: 'failure()' }, [state('a', 'success')], RUN),
+    ).toEqual({ kind: 'skip' });
+    expect(
+      readiness({ needs: ['a'], condition: 'success()' }, [state('a', 'success')], {
+        ...RUN,
+        cancelled: true,
+      }),
     ).toEqual({ kind: 'skip' });
   });
 
   it('evaluates conditions on needs outputs and github', () => {
     const states = [state('build', 'success', { v: '1' })];
-    expect(readiness({ needs: ['build'], condition: "success() && needs.build.outputs.v == '1'" }, states, RUN)).toEqual({ kind: 'start' });
-    expect(readiness({ needs: [], condition: "github.event_name == 'schedule'" }, [], RUN)).toEqual({ kind: 'skip' });
+    expect(
+      readiness(
+        { needs: ['build'], condition: "success() && needs.build.outputs.v == '1'" },
+        states,
+        RUN,
+      ),
+    ).toEqual({ kind: 'start' });
+    expect(readiness({ needs: [], condition: "github.event_name == 'schedule'" }, [], RUN)).toEqual(
+      { kind: 'skip' },
+    );
     expect(readiness({ needs: [], condition: 'nope(' }, [], RUN)).toMatchObject({ kind: 'error' });
   });
 
@@ -40,7 +64,9 @@ describe('the job DAG', () => {
     expect(needResult(legs, 'test')).toEqual({ result: 'failure', outputs: { a: '1', b: '2' } });
     expect(runConclusion([state('a', 'success'), state('b', 'skipped')], false)).toBe('success');
     expect(runConclusion([state('a', 'timed_out'), state('b', 'skipped')], false)).toBe('failure');
-    expect(runConclusion([state('a', 'infrastructure_failure')], false)).toBe('infrastructure_failure');
+    expect(runConclusion([state('a', 'infrastructure_failure')], false)).toBe(
+      'infrastructure_failure',
+    );
     expect(runConclusion([state('a', 'success'), state('b', null)], false)).toBeNull();
     expect(runConclusion([state('a', 'cancelled')], true)).toBe('cancelled');
   });
@@ -64,7 +90,11 @@ jobs:
       { maxMatrixLegs: 16, maxTimeoutMinutes: 60 },
     );
     let id = 0;
-    const jobs = planJobs(file, { contexts: RUN.contexts, maxTimeoutMinutes: 60, newId: () => `job-${(id += 1)}` });
+    const jobs = planJobs(file, {
+      contexts: RUN.contexts,
+      maxTimeoutMinutes: 60,
+      newId: () => `job-${(id += 1)}`,
+    });
     expect(jobs.map((job) => [job.id, job.name, job.timeoutMinutes])).toEqual([
       ['job-1', 'test (20)', 60],
       ['job-2', 'test (22)', 60],

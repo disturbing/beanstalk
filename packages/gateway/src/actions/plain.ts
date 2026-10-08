@@ -1,8 +1,17 @@
 /**
- * The parser's template tokens as plain JSON: its serialized form (`{type: 2, map}` for a
- * mapping, `{type: 1, seq}` for a sequence, `{type: 3, expr}` for an expression, literals as
- * themselves) turned into objects, arrays and strings, an expression into `${{ expr }}`.
+ * The parser's template tokens as plain JSON: mappings as objects, sequences as arrays,
+ * literals as themselves, and an expression as the text it was written as (a `run:` block with
+ * `${{ }}` parts stays that block, not the parser's `format(…)` rewrite).
  */
+import type { TemplateToken } from '@actions/workflow-parser/templates/tokens/template-token';
+import {
+  isBasicExpression,
+  isBoolean,
+  isMapping,
+  isNumber,
+  isSequence,
+  isString,
+} from '@actions/workflow-parser';
 
 export type PlainValue =
   | string
@@ -12,29 +21,16 @@ export type PlainValue =
   | readonly PlainValue[]
   | { readonly [key: string]: PlainValue };
 
-const SEQUENCE = 1;
-const MAPPING = 2;
-const BASIC_EXPRESSION = 3;
-
-/** A serialized token as plain JSON; null for what has no plain form (an insert expression). */
-export function plainOf(serialized: unknown): PlainValue {
-  if (serialized === null) return null;
-  if (
-    typeof serialized === 'string' ||
-    typeof serialized === 'number' ||
-    typeof serialized === 'boolean'
-  )
-    return serialized;
-  if (typeof serialized !== 'object') return null;
-  const type: unknown = Reflect.get(serialized, 'type');
-  if (type === SEQUENCE) {
-    const items: unknown = Reflect.get(serialized, 'seq');
-    return Array.isArray(items) ? items.map((item: unknown) => plainOf(item)) : [];
-  }
-  if (type === MAPPING) return mappingOf(Reflect.get(serialized, 'map'));
-  if (type === BASIC_EXPRESSION) {
-    const expression: unknown = Reflect.get(serialized, 'expr');
-    return typeof expression === 'string' ? `\${{ ${expression} }}` : null;
+/** A token as plain JSON; null for what has no plain form (null, an insert expression). */
+export function plainOf(token: TemplateToken): PlainValue {
+  if (isString(token)) return token.value;
+  if (isNumber(token) || isBoolean(token)) return token.value;
+  if (isBasicExpression(token)) return token.source ?? `\${{ ${token.expression} }}`;
+  if (isSequence(token)) return [...token].map((item) => plainOf(item));
+  if (isMapping(token)) {
+    const result: Record<string, PlainValue> = {};
+    for (const pair of token) if (isString(pair.key)) result[pair.key.value] = plainOf(pair.value);
+    return result;
   }
   return null;
 }
@@ -50,15 +46,4 @@ export function stringsOf(value: PlainValue | undefined): string[] {
   if (typeof value === 'string') return [value];
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: PlainValue) => (typeof item === 'string' ? [item] : []));
-}
-
-function mappingOf(pairs: unknown): { readonly [key: string]: PlainValue } {
-  const result: Record<string, PlainValue> = {};
-  if (!Array.isArray(pairs)) return result;
-  for (const pair of pairs) {
-    if (typeof pair !== 'object' || pair === null) continue;
-    const key = plainOf(Reflect.get(pair, 'Key'));
-    if (typeof key === 'string') result[key] = plainOf(Reflect.get(pair, 'Value'));
-  }
-  return result;
 }

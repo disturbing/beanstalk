@@ -12,13 +12,20 @@ const STORED = [
 describe('D4: which runs get which secrets', () => {
   it('gives stalk, dispatch and schedule runs every secret their job names that exists', () => {
     for (const kind of ['stalk', 'dispatch', 'schedule'] as const)
-      expect(secretsForRun({ kind }, ['DEPLOY', 'TEST_KEY', 'MISSING'], STORED)).toEqual(['DEPLOY', 'TEST_KEY']);
+      expect(secretsForRun({ kind }, ['DEPLOY', 'TEST_KEY', 'MISSING'], STORED)).toEqual([
+        'DEPLOY',
+        'TEST_KEY',
+      ]);
   });
 
   it('gives a maintainer’s pre-land run its secrets, and anyone else’s only the toggled ones', () => {
-    expect(secretsForRun({ kind: 'preland', pushedBy: 'maintainer' }, ['DEPLOY', 'TEST_KEY'], STORED)).toEqual(['DEPLOY', 'TEST_KEY']);
+    expect(
+      secretsForRun({ kind: 'preland', pushedBy: 'maintainer' }, ['DEPLOY', 'TEST_KEY'], STORED),
+    ).toEqual(['DEPLOY', 'TEST_KEY']);
     for (const pushedBy of ['agent-session', 'deploy-token', 'collaborator'] as const)
-      expect(secretsForRun({ kind: 'preland', pushedBy }, ['DEPLOY', 'TEST_KEY'], STORED)).toEqual(['TEST_KEY']);
+      expect(secretsForRun({ kind: 'preland', pushedBy }, ['DEPLOY', 'TEST_KEY'], STORED)).toEqual([
+        'TEST_KEY',
+      ]);
   });
 
   it('gives nothing a job does not name', () => {
@@ -32,9 +39,20 @@ describe('secrets at rest', () => {
 
   it('stores AES-GCM ciphertext, lists names only, and reveals only for its repository', async () => {
     const value = 'cf-token-1234567890';
-    const saved = await store.put('repo-sec-1', { name: 'deploy_token', value, prelandAllowed: false }, { actor: 'coop', at: '2026-10-08T00:00:00Z' });
-    expect(saved).toEqual({ name: 'DEPLOY_TOKEN', prelandAllowed: false, updatedAt: '2026-10-08T00:00:00Z', updatedBy: 'coop' });
-    const row = await env.FORGE.prepare('SELECT ciphertext FROM actions_secrets WHERE repo_id = ?').bind('repo-sec-1').first<{ ciphertext: string }>();
+    const saved = await store.put(
+      'repo-sec-1',
+      { name: 'deploy_token', value, prelandAllowed: false },
+      { actor: 'coop', at: '2026-10-08T00:00:00Z' },
+    );
+    expect(saved).toEqual({
+      name: 'DEPLOY_TOKEN',
+      prelandAllowed: false,
+      updatedAt: '2026-10-08T00:00:00Z',
+      updatedBy: 'coop',
+    });
+    const row = await env.FORGE.prepare('SELECT ciphertext FROM actions_secrets WHERE repo_id = ?')
+      .bind('repo-sec-1')
+      .first<{ ciphertext: string }>();
     expect(row?.ciphertext).not.toContain(value);
     expect(JSON.stringify(await store.list('repo-sec-1'))).not.toContain(value);
     expect(await store.reveal('repo-sec-1', ['DEPLOY_TOKEN'])).toEqual({ DEPLOY_TOKEN: value });
@@ -50,7 +68,11 @@ describe('secrets at rest', () => {
 
   it('refuses to store without a key', async () => {
     await expect(
-      d1Secrets(env.FORGE, null).put('r', { name: 'X', value: 'y', prelandAllowed: false }, { actor: 'a', at: 'now' }),
+      d1Secrets(env.FORGE, null).put(
+        'r',
+        { name: 'X', value: 'y', prelandAllowed: false },
+        { actor: 'a', at: 'now' },
+      ),
     ).rejects.toBeInstanceOf(SecretsNotConfiguredError);
   });
 });
@@ -58,6 +80,11 @@ describe('secrets at rest', () => {
 describe('masking', () => {
   it('masks values, their base64 and URL forms, and leaves short values alone', () => {
     const terms = maskTermsOf(['s3cr3t value', 'ab']);
-    expect(maskText(`a s3cr3t value b ${btoa('s3cr3t value')} ${encodeURIComponent('s3cr3t value')} ab`, terms)).toBe('a *** b *** *** ab');
+    expect(
+      maskText(
+        `a s3cr3t value b ${btoa('s3cr3t value')} ${encodeURIComponent('s3cr3t value')} ab`,
+        terms,
+      ),
+    ).toBe('a *** b *** *** ab');
   });
 });

@@ -32,7 +32,7 @@ export type RunOrigin =
 export function secretsForRun(
   origin: RunOrigin,
   named: readonly string[],
-  stored: readonly Pick<SecretSummary, 'name' | 'prelandAllowed'>[],
+  stored: readonly { readonly name: string; readonly prelandAllowed: boolean }[],
 ): string[] {
   const wanted = new Set(named);
   return stored

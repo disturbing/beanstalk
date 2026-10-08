@@ -130,7 +130,7 @@ out=$(cd "$ROOT" && sh "$SETUP" remote smoke/demo "$ROOT/clone" 2>&1)
 check 'remote clones over HTTPS without a prompt' '[ -f "$ROOT/clone/README" ]' "$out"
 out=$(cd "$ROOT/clone" && git remote set-url origin https://example.invalid/x.git && sh "$SETUP" remote smoke/demo 2>&1)
 check 'remote points an existing clone back at Beanstalk' \
-  '[ "$(git -C "$ROOT/clone" remote get-url origin)" = "$ORIGIN/git/smoke/demo.git" ]' "$out"
+  '[ "$(git -C "$ROOT/clone" remote get-url origin)" = "$ORIGIN/smoke/demo.git" ]' "$out"
 out=$(cd "$ROOT/clone" && git switch -q -c "bean/x$$" && echo more >>README && git commit -qam more && git push -q origin "bean/x$$" 2>&1)
 status=$?
 check 'git push uses the stored credential silently' '[ $status -eq 0 ]' "$out"
@@ -167,7 +167,7 @@ curl -fsS -X POST "$BEANSTALK_WEB/__mode" >/dev/null
 env_ls_remote() {
   env -i PATH="$PATH" HOME="$ROOT/ci" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL="$ROOT/ci/.gitconfig" \
     BEANSTALK_TOKEN="$1" GIT_TERMINAL_PROMPT=0 GIT_CONFIG_COUNT=1 \
-    GIT_CONFIG_KEY_0="$2" GIT_CONFIG_VALUE_0="$3" git ls-remote "$ORIGIN/git/smoke/demo.git" 2>&1
+    GIT_CONFIG_KEY_0="$2" GIT_CONFIG_VALUE_0="$3" git ls-remote "$ORIGIN/smoke/demo.git" 2>&1
 }
 mkdir -p "$ROOT/ci" && : >"$ROOT/ci/.gitconfig"
 HELPER='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'

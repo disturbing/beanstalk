@@ -86,5 +86,8 @@ function oidcEnv(input: {
   if (input.oidcRequestUrl === null || !input.job.idTokenWrite) return {};
   const url = new URL(input.oidcRequestUrl);
   url.searchParams.set('job', input.ids.jobId);
-  return { ACTIONS_ID_TOKEN_REQUEST_URL: url.toString(), ACTIONS_ID_TOKEN_REQUEST_TOKEN: input.tokens.job };
+  return {
+    ACTIONS_ID_TOKEN_REQUEST_URL: url.toString(),
+    ACTIONS_ID_TOKEN_REQUEST_TOKEN: input.tokens.job,
+  };
 }

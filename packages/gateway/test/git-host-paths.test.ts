@@ -63,7 +63,11 @@ describe('git at /<owner>/<repo>[.git]', () => {
     const target = await repo('host-push');
     const [, path] = target.paths;
     const plain = await gitResponse(
-      await push(path ?? '', target.token, pushBody({ ref: 'refs/heads/bean/plain', newSha: await sha('host-plain') })),
+      await push(
+        path ?? '',
+        target.token,
+        pushBody({ ref: 'refs/heads/bean/plain', newSha: await sha('host-plain') }),
+      ),
     );
     expect(plain.report).toContain('ok refs/heads/bean/plain');
 
@@ -71,7 +75,11 @@ describe('git at /<owner>/<repo>[.git]', () => {
       await push(
         path ?? '',
         target.token,
-        pushBody({ ref: 'refs/heads/bean/held-host', newSha: await sha('held-host'), options: ['wait'] }),
+        pushBody({
+          ref: 'refs/heads/bean/held-host',
+          newSha: await sha('held-host'),
+          options: ['wait'],
+        }),
       ),
     );
     await held.until('pre-land check started');
@@ -79,12 +87,20 @@ describe('git at /<owner>/<repo>[.git]', () => {
     expect((await held.rest()).remote).toContain('LANDED: held-host passed its pre-land check');
 
     const wait = new GitStream(
-      await push(path ?? '', target.token, pushBody({ ref: 'refs/wait/any', newSha: await sha('host-wait'), options: ['bean=plain'] })),
+      await push(
+        path ?? '',
+        target.token,
+        pushBody({ ref: 'refs/wait/any', newSha: await sha('host-wait'), options: ['bean=plain'] }),
+      ),
     );
     expect((await wait.rest()).report).toContain('refs/wait/any');
 
     const main = await gitResponse(
-      await push(path ?? '', target.token, pushBody({ ref: 'refs/heads/main', newSha: await sha('host-main') })),
+      await push(
+        path ?? '',
+        target.token,
+        pushBody({ ref: 'refs/heads/main', newSha: await sha('host-main') }),
+      ),
     );
     expect(main.report).toContain('ng refs/heads/main');
     expect(await advertisedRefs(path ?? '', target.token)).toContain('refs/heads/bean/plain');
@@ -93,11 +109,18 @@ describe('git at /<owner>/<repo>[.git]', () => {
 
 describe('githubShapedGitUrl', () => {
   it('maps git endpoints and leaves pages alone', () => {
-    const at = (path: string) => githubShapedGitUrl(new URL(`https://web.test${path}`))?.pathname ?? null;
+    const at = (path: string) =>
+      githubShapedGitUrl(new URL(`https://web.test${path}`))?.pathname ?? null;
     expect(at('/coop/shop/info/refs')).toBe('/git/coop/shop.git/info/refs');
     expect(at('/coop/shop.git/git-upload-pack')).toBe('/git/coop/shop.git/git-upload-pack');
     expect(at('/coop/my.app.git/git-receive-pack')).toBe('/git/coop/my.app.git/git-receive-pack');
-    for (const page of ['/coop/shop', '/coop/shop/tree/main', '/coop/shop/settings', '/coop/shop/info', '/coop/shop/blob/a/info/refs'])
+    for (const page of [
+      '/coop/shop',
+      '/coop/shop/tree/main',
+      '/coop/shop/settings',
+      '/coop/shop/info',
+      '/coop/shop/blob/a/info/refs',
+    ])
       expect(at(page)).toBeNull();
   });
 });

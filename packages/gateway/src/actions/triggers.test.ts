@@ -48,12 +48,29 @@ describe('push triggers on the stalk', () => {
 
 describe('dispatch inputs', () => {
   const declared = [
-    { name: 'level', description: null, type: 'choice' as const, required: true, default: 'a', options: ['a', 'b'] },
-    { name: 'dry', description: null, type: 'boolean' as const, required: false, default: null, options: [] },
+    {
+      name: 'level',
+      description: null,
+      type: 'choice' as const,
+      required: true,
+      default: 'a',
+      options: ['a', 'b'],
+    },
+    {
+      name: 'dry',
+      description: null,
+      type: 'boolean' as const,
+      required: false,
+      default: null,
+      options: [],
+    },
   ];
 
   it('fills defaults and stringifies values', () => {
-    expect(checkDispatchInputs(declared, { dry: true })).toEqual({ ok: true, inputs: { level: 'a', dry: 'true' } });
+    expect(checkDispatchInputs(declared, { dry: true })).toEqual({
+      ok: true,
+      inputs: { level: 'a', dry: 'true' },
+    });
   });
 
   it('refuses unknown inputs, bad choices and bad booleans', () => {
@@ -70,23 +87,32 @@ describe('cron schedules', () => {
     const daily = parseCron('30 3 * * *');
     expect(daily).not.toBeNull();
     if (daily === null) return;
-    expect(new Date(nextFireMs(daily, at('2026-10-08T12:00:00Z')) ?? 0).toISOString()).toBe('2026-10-09T03:30:00.000Z');
+    expect(new Date(nextFireMs(daily, at('2026-10-08T12:00:00Z')) ?? 0).toISOString()).toBe(
+      '2026-10-09T03:30:00.000Z',
+    );
     const quarter = parseCron('*/15 * * * *');
     if (quarter === null) throw new Error('valid cron');
-    expect(new Date(nextFireMs(quarter, at('2026-10-08T12:07:10Z')) ?? 0).toISOString()).toBe('2026-10-08T12:15:00.000Z');
+    expect(new Date(nextFireMs(quarter, at('2026-10-08T12:07:10Z')) ?? 0).toISOString()).toBe(
+      '2026-10-08T12:15:00.000Z',
+    );
   });
 
   it('reads names, ranges and cron’s either-day rule', () => {
     const weekdays = parseCron('0 9 * JAN-MAR MON-FRI');
     if (weekdays === null) throw new Error('valid cron');
     // 2026-10-08 is a Thursday: the next January weekday 09:00 is Friday 1 January 2027.
-    expect(new Date(nextFireMs(weekdays, at('2026-10-08T00:00:00Z')) ?? 0).toISOString()).toBe('2027-01-01T09:00:00.000Z');
+    expect(new Date(nextFireMs(weekdays, at('2026-10-08T00:00:00Z')) ?? 0).toISOString()).toBe(
+      '2027-01-01T09:00:00.000Z',
+    );
     const either = parseCron('0 0 13 * 5');
     if (either === null) throw new Error('valid cron');
-    expect(new Date(nextFireMs(either, at('2026-10-08T00:00:00Z')) ?? 0).toISOString()).toBe('2026-10-09T00:00:00.000Z');
+    expect(new Date(nextFireMs(either, at('2026-10-08T00:00:00Z')) ?? 0).toISOString()).toBe(
+      '2026-10-09T00:00:00.000Z',
+    );
   });
 
   it('refuses what is not cron', () => {
-    for (const line of ['* * * *', '60 * * * *', '* * * 13 *', 'a b c d e', '5-1 * * * *']) expect(parseCron(line)).toBeNull();
+    for (const line of ['* * * *', '60 * * * *', '* * * 13 *', 'a b c d e', '5-1 * * * *'])
+      expect(parseCron(line)).toBeNull();
   });
 });

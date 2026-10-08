@@ -318,7 +318,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     record: RunRecord,
     budget: { minutesLeft: number | null },
   ): Promise<boolean> {
-    const states = this.#store.jobs();
+    const states = this.#store.jobs().map(stateOf);
     const ready = readiness(job, states, {
       contexts: contextsOf(record.request, this.#config.serverUrl),
       cancelled: record.cancelRequested,
@@ -341,7 +341,10 @@ export class ActionsRunDO extends DurableObject<Env> {
 
   async #tryStart(
     job: JobRow,
-    input: { readonly states: readonly JobRow[]; readonly budget: { minutesLeft: number | null } },
+    input: {
+      readonly states: readonly JobState[];
+      readonly budget: { minutesLeft: number | null };
+    },
   ): Promise<boolean> {
     if (job.image === null) {
       await this.#finish(job, {
@@ -385,7 +388,7 @@ export class ActionsRunDO extends DurableObject<Env> {
   }
 
   /** Mints the job's tokens, marks it running, and hands it to the executor. */
-  async #launch(job: JobRow, states: readonly JobRow[]): Promise<void> {
+  async #launch(job: JobRow, states: readonly JobState[]): Promise<void> {
     const record = this.#requireRun();
     const { request } = record;
     const nowMs = Date.now();
@@ -495,7 +498,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     const record = this.#requireRun();
     if (record.status === 'completed') return;
     const jobs = this.#store.jobs();
-    const conclusion = runConclusion(jobs, record.cancelRequested);
+    const conclusion = runConclusion(jobs.map(stateOf), record.cancelRequested);
     if (conclusion === null) return;
     const failed = jobs.find((job) => job.conclusion === conclusion && job.reason !== null);
     this.#store.saveRun({
@@ -674,6 +677,16 @@ export function contextsOf(request: RunRequest, publicUrl: string): ExpressionCo
 /** The repository's owner key in the RunnerCapacity pool: its Actions jobs, apart from its checks. */
 function capacityOwner(record: RunRecord): string {
   return `actions:${record.request.repo.id}`;
+}
+
+/** A job as the DAG sees it: its reported outputs, not the expressions that make them. */
+function stateOf(job: JobRow): JobState {
+  return {
+    key: job.key,
+    status: job.status,
+    conclusion: job.conclusion,
+    outputs: job.outputValues,
+  };
 }
 
 function needsOf(job: JobRow, states: readonly JobState[]): Record<string, NeedResult> {
