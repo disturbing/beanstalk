@@ -118,3 +118,46 @@ describe('decideLease', () => {
     expect(decideLease(state, ask('r1', 'next'), LIMITS).kind).toBe('granted');
   });
 });
+
+describe('Actions job leases (one container per job, their own class)', () => {
+  const WITH_ACTIONS: PoolLimits = { ...LIMITS, actionsInstances: 4 };
+
+  it('count against the Actions class, not the runner pool', () => {
+    const racesFill = { ...EMPTY, races: [{ run: 'race', instances: 46, untilMs: NOW + 1 }] };
+    expect(decideLease(racesFill, ask('actions:r1', 'j1', 4), WITH_ACTIONS).kind).toBe('granted');
+    const actionsFull = {
+      ...EMPTY,
+      leases: [...leases('actions:r1', 2), ...leases('actions:r2', 2)],
+    };
+    expect(decideLease(actionsFull, ask('actions:r3', 'j1', 4), WITH_ACTIONS)).toEqual({
+      kind: 'wait',
+      reason: 'pool',
+    });
+    const busyActions = { ...EMPTY, leases: leases('actions:r1', 4) };
+    expect(decideLease(busyActions, ask('r9', 'check', 32), WITH_ACTIONS).kind).toBe('granted');
+  });
+
+  it('hold a repository to its concurrent-jobs cap', () => {
+    const state = { ...EMPTY, leases: leases('actions:r1', 2) };
+    expect(decideLease(state, ask('actions:r1', 'j3', 2), WITH_ACTIONS)).toEqual({
+      kind: 'wait',
+      reason: 'cap',
+    });
+  });
+
+  it('get no instance when the Actions class has none configured', () => {
+    expect(decideLease(EMPTY, ask('actions:r1', 'j1', 4), LIMITS)).toEqual({
+      kind: 'wait',
+      reason: 'pool',
+    });
+  });
+
+  it('keep one repository from taking every Actions instance while another waits', () => {
+    const waiting = { engine: 'actions:r2', base: 0, seenMs: NOW, waitingMs: NOW };
+    const state = { ...EMPTY, engines: [waiting], leases: leases('actions:r1', 2) };
+    expect(decideLease(state, ask('actions:r1', 'j3', 4), WITH_ACTIONS)).toEqual({
+      kind: 'wait',
+      reason: 'fair-share',
+    });
+  });
+});
