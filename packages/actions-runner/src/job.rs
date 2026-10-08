@@ -142,7 +142,12 @@ impl<'a, U: Uplink> Session<'a, U> {
             .map_err(|error| (FailureReason::Runner, error))?;
         self.say(
             Level::Info,
-            &format!("Running job {} with act", request.job_name),
+            &format!(
+                "Running job {} with act {} (image {})",
+                request.job_name,
+                self.config.act_version(),
+                self.config.image_version()
+            ),
         )
         .await;
         Ok(Prepared {

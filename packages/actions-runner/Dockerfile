@@ -44,7 +44,7 @@ ARG NODE24_SHA256=fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2
 ARG NODE20=20.20.2
 ARG NODE20_SHA256=df770b2a6f130ed8627c9782c988fda9669fa23898329a61a871e32f965e007d
 # Bump with every change to this file or the job runner; reported by /version and each result.
-ARG IMAGE_VERSION=actions-runner-2026-10-08.1
+ARG IMAGE_VERSION=actions-runner-2026-10-08.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
@@ -88,7 +88,10 @@ RUN curl -fsSLo /tmp/act.tgz "https://github.com/nektos/act/releases/download/v$
  && rm /tmp/act.tgz
 
 # Popular actions in act's action cache (~/.cache/act/<owner>-<repo>@<ref>); act runs with
-# --action-offline-mode, so these are used as baked and others are fetched once per job.
+# --action-offline-mode, so these are used as baked and others are fetched once per job. act
+# deletes and re-clones a cached action whose origin is not `<GITHUB_SERVER_URL>/<owner>/<repo>`,
+# so each origin is set to the executor's virtual host (FORGE_HOST in
+# packages/actions-executor/src/job/runner-wire.ts); without it every job cloned them again.
 RUN set -eux; \
     for spec in actions/checkout@v4 actions/checkout@v5 actions/setup-node@v4 actions/setup-node@v5 \
       actions/cache@v4 actions/upload-artifact@v4 actions/download-artifact@v4 \
@@ -97,6 +100,7 @@ RUN set -eux; \
       git clone -q --depth 1 --branch "$ref" "https://github.com/${repo}" \
         "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}"; \
       rm -rf "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}/.git/hooks"; \
+      git -C "/home/runner/.cache/act/$(echo "$repo" | tr / -)@${ref}" remote set-url origin "http://bs.internal/${repo}"; \
     done; \
     chown -R runner:runner /home/runner /opt/hostedtoolcache
 
