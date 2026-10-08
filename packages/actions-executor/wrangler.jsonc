@@ -1,0 +1,51 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The Actions job executor (docs/claude-opus/26-actions-job-executor.md): one Cloudflare
+  // Container per GitHub Actions job (D6). The control plane (the gateway's ActionsRunDO) calls
+  // `startJob` / `cancelJob` over a service binding; each job gets its own ActionsJobContainer
+  // (a Container Durable Object named by the job id), which runs act in packages/actions-runner,
+  // relays its log batches and result to the gateway's `ActionsJobs` sink, and destroys the
+  // container when the job ends. A separate Worker from the gateway: untrusted job I/O and the
+  // 400 MB image never ride the engine's deploys, and the job container's outbound handlers
+  // see only this Worker's bindings.
+  "name": "beanstalk-actions-executor",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": {
+    "LOG_LEVEL": "info",
+    // "service": secrets, log batches and results go to the gateway's ActionsJobs entrypoint
+    // (ACTIONS_JOBS). "standalone": a test stack without the control plane; batches go to the
+    // ACTIONS_LOGS bucket and secrets come from STANDALONE_SECRETS.
+    "SINK_MODE": "service",
+    // Must equal containers[].max_instances; the gateway's RunnerCapacity caps Actions leases
+    // at its own ACTIONS_MAX_INSTANCES, which must not exceed it.
+    "ACTIONS_MAX_INSTANCES": "16",
+  },
+  // ADMIN_TOKEN guards the admin routes (a test stack starts jobs with them).
+  "secrets": { "required": ["ADMIN_TOKEN"] },
+  "exports": {
+    "ActionsJobContainer": { "type": "durable-object", "storage": "sqlite" },
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ACTIONS_JOBS_DO", "class_name": "ActionsJobContainer" }],
+  },
+  "containers": [
+    {
+      "class_name": "ActionsJobContainer",
+      "image": "../actions-runner/Dockerfile",
+      "image_build_context": "../..",
+      // GitHub's ubuntu-latest is 4 vCPU / 16 GB; standard-4 (4 vCPU, 12 GiB, 20 GB) ran the
+      // fastify suite at GitHub's speed in the spike.
+      "instance_type": "standard-4",
+      "max_instances": 16,
+    },
+  ],
+  // The gateway's executor sink entrypoint: secrets, log batches and results, by report token.
+  "services": [
+    { "binding": "ACTIONS_JOBS", "service": "beanstalk-gateway", "entrypoint": "ActionsJobs" },
+  ],
+  // Standalone mode only: where log batches go without the control plane.
+  "r2_buckets": [{ "binding": "ACTIONS_LOGS", "bucket_name": "beanstalk-actions-logs" }],
+}

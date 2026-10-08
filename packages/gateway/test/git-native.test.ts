@@ -322,7 +322,7 @@ describe('pre-land sandboxes of a repository engine', () => {
     const pool = await json<PoolSnapshot>(
       await call('GET', '/v1/admin/capacity', { token: ADMIN }),
     );
-    expect(pool.limits).toEqual({ instances: 48, headroom: 2, floor: 2 });
+    expect(pool.limits).toEqual({ instances: 48, headroom: 2, floor: 2, actionsInstances: 16 });
     expect(pool.leases.filter((lease) => lease.engine === engine)).toEqual([]);
     const stats = pool.stats.find((owner) => owner.owner === engine);
     expect(stats?.granted).toBeGreaterThanOrEqual(names.length);

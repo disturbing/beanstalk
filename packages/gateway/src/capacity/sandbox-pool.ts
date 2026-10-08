@@ -25,7 +25,16 @@ export type PoolLimits = {
   readonly instances: number;
   readonly headroom: number;
   readonly floor: number;
+  /**
+   * The Actions job container class's `max_instances` (the executor Worker's
+   * ActionsJobContainer). Leases of `actions:<repo>` owners count against it, not against the
+   * runner pool above; absent, Actions jobs get no instances.
+   */
+  readonly actionsInstances?: number;
 };
+
+/** Owners whose leases are Actions job containers (`actions:<repo id>`, lane 1's run DO). */
+export const ACTIONS_OWNER_PREFIX = 'actions:';
 
 /** A race's instances, held from its start until it is done (or `untilMs`, if it never says so). */
 export type RaceReservation = {
@@ -89,6 +98,55 @@ export function decideLease(
     (lease) => lease.engine === request.engine && lease.job === request.job,
   );
   if (held !== undefined) return { kind: 'granted', index: held.index, isRenewal: true };
+  if (isActionsOwner(request.engine)) return decideActionsLease(state, request, limits);
+  return decideRunnerLease(withoutActions(state), request, limits);
+}
+
+/**
+ * An Actions job's container (one per job, D6): within the repository's cap (its concurrent
+ * jobs), within the Actions class's `max_instances`, and, while another repository waits with
+ * fewer, no more than an equal share of it. Runner pool races and checks are not involved: the
+ * two container classes have their own limits.
+ */
+export function decideActionsLease(
+  state: PoolState,
+  request: LeaseRequest,
+  limits: PoolLimits,
+): LeaseDecision {
+  const actions = state.leases.filter((lease) => isActionsOwner(lease.engine));
+  const mine = actions.filter((lease) => lease.engine === request.engine);
+  if (mine.length >= request.cap) return { kind: 'wait', reason: 'cap' };
+  const budget = limits.actionsInstances ?? 0;
+  if (actions.length >= budget) return { kind: 'wait', reason: 'pool' };
+  const actionsState: PoolState = {
+    races: [],
+    leases: actions,
+    engines: state.engines.filter((engine) => isActionsOwner(engine.engine)),
+  };
+  const share = fairShare(actionsState, request, { budget, floor: 1 });
+  if (mine.length >= share && othersWaiting(actionsState, request)) {
+    return { kind: 'wait', reason: 'fair-share' };
+  }
+  return { kind: 'granted', index: freeIndex(mine), isRenewal: false };
+}
+
+export function isActionsOwner(engine: string): boolean {
+  return engine.startsWith(ACTIONS_OWNER_PREFIX);
+}
+
+function withoutActions(state: PoolState): PoolState {
+  return {
+    races: state.races,
+    leases: state.leases.filter((lease) => !isActionsOwner(lease.engine)),
+    engines: state.engines.filter((engine) => !isActionsOwner(engine.engine)),
+  };
+}
+
+function decideRunnerLease(
+  state: PoolState,
+  request: LeaseRequest,
+  limits: PoolLimits,
+): LeaseDecision {
   const mine = state.leases.filter((lease) => lease.engine === request.engine);
   if (mine.length >= request.cap) return { kind: 'wait', reason: 'cap' };
   const granted = { kind: 'granted', index: freeIndex(mine), isRenewal: false } as const;

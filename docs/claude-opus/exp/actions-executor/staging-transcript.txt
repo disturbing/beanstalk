@@ -1,0 +1,258 @@
+### Staging -staging-act2, 2026-10-08: Actions runs (D1 actions_runs)
+{'id': '5fffca69-ca6b-44b9-8c53-ec44abbdeebc', 'repo_id': 'r_act2_nodeci', 'number': 1, 'workflow_path': '.github/workflows/ci.yml', 'workflow_name': 'CI', 'event': 'push', 'ref': 'refs/heads/main', 'sha': '55be8aef7a87ed6b91470c9b03edae8e0612eb4f', 'status': 'completed', 'conclusion': 'failure', 'reason': None, 'actor': 'coop-act2', 'created_at': '2026-10-08T05:27:07.526Z', 'created_ms': 1791437227526, 'started_at': '2026-10-08T05:27:11.938Z', 'completed_at': '2026-10-08T05:27:34.183Z', 'minutes_billed': 1}
+{'id': '21cfc8f8-fe27-4d51-b879-c0018eb663b1', 'repo_id': 'r_act2_nodeci', 'number': 2, 'workflow_path': '.github/workflows/ci.yml', 'workflow_name': 'CI', 'event': 'push', 'ref': 'refs/heads/main', 'sha': 'f9d862ae0cf658bf5936f211d971d687b3d8e5a5', 'status': 'completed', 'conclusion': 'failure', 'reason': None, 'actor': 'coop-act2', 'created_at': '2026-10-08T05:27:58.310Z', 'created_ms': 1791437278310, 'started_at': '2026-10-08T05:27:59.256Z', 'completed_at': '2026-10-08T05:28:27.800Z', 'minutes_billed': 2}
+{'id': '53d314cf-3523-4b30-94df-6edae3e53612', 'repo_id': 'r_act2_nodeci', 'number': 3, 'workflow_path': '.github/workflows/ci.yml', 'workflow_name': 'CI', 'event': 'push', 'ref': 'refs/heads/main', 'sha': '3b11615dd5f98a5c3b3a25f0bcf45ff8fa0aeabd', 'status': 'completed', 'conclusion': 'success', 'reason': None, 'actor': 'coop-act2', 'created_at': '2026-10-08T05:30:10.302Z', 'created_ms': 1791437410302, 'started_at': '2026-10-08T05:30:11.464Z', 'completed_at': '2026-10-08T05:31:00.035Z', 'minutes_billed': 2}
+{'id': 'df37f065-468f-4fa8-b1c8-38dac7eab86a', 'repo_id': 'r_act2_nodeci', 'number': 4, 'workflow_path': '.github/workflows/ci.yml', 'workflow_name': 'CI', 'event': 'push', 'ref': 'refs/heads/main', 'sha': '90d9ced17c30b9a33fec682ab9d9f61453d01d21', 'status': 'completed', 'conclusion': 'success', 'reason': None, 'actor': 'coop-act2', 'created_at': '2026-10-08T05:48:30.227Z', 'created_ms': 1791438510227, 'started_at': '2026-10-08T05:48:31.140Z', 'completed_at': '2026-10-08T05:49:12.428Z', 'minutes_billed': 2}
+{'id': 'a19a966b-d296-406c-81e2-6480ec050a59', 'repo_id': 'r_act2_nodeci', 'number': 1, 'workflow_path': '.github/workflows/services.yml', 'workflow_name': 'Services', 'event': 'push', 'ref': 'refs/heads/main', 'sha': '90d9ced17c30b9a33fec682ab9d9f61453d01d21', 'status': 'completed', 'conclusion': 'success', 'reason': None, 'actor': 'coop-act2', 'created_at': '2026-10-08T05:48:32.839Z', 'created_ms': 1791438512839, 'started_at': '2026-10-08T05:48:33.732Z', 'completed_at': '2026-10-08T05:49:22.935Z', 'minutes_billed': 1}
+
+### Executor job records (admin view: no spec, no tokens)
+{"jobId":"bf181164-b04a-4821-87ec-4fbbb79e8f2e","repo":"coop-act2/node-ci","jobName":"test","phase":"done","acceptedAtMs":1791438512703,"containerStartedAtMs":1791438514432,"steps":[{"number":1,"name":"Run actions/checkout@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:40.233Z","completedAt":"2026-10-08T05:48:43.573Z"},{"number":2,"name":"Run actions/setup-node@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:43.574Z","completedAt":"2026-10-08T05:48:44.225Z"},{"number":3,"name":"Run npm ci","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:44.225Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":4,"name":"Run npm test","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":5,"name":"Run echo \"node=$(node --version)\" >> \"$GITHUB_OUTPUT\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":6,"name":"Run echo \"### Tests passed on $(node --version)\" >> \"$GITHUB_STEP_SUMMARY\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"}],"result":{"conclusion":"success","outputs":{"node":"v20.20.2"},"durationMs":11805,"minutesBilled":1,"steps":[{"number":1,"name":"Run actions/checkout@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:40.233Z","completedAt":"2026-10-08T05:48:43.573Z"},{"number":2,"name":"Run actions/setup-node@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:43.574Z","completedAt":"2026-10-08T05:48:44.225Z"},{"number":3,"name":"Run npm ci","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:44.225Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":4,"name":"Run npm test","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":5,"name":"Run echo \"node=$(node --version)\" >> \"$GITHUB_OUTPUT\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"},{"number":6,"name":"Run echo \"### Tests passed on $(node --version)\" >> \"$GITHUB_STEP_SUMMARY\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:45.408Z","completedAt":"2026-10-08T05:48:45.408Z"}],"error":null},"reported":true,"containerGone":true,"containerRunning":false}
+{"jobId":"c79d697f-da04-4117-9ea9-f2469d8f54a9","repo":"coop-act2/node-ci","jobName":"deploy","phase":"done","acceptedAtMs":1791438529670,"containerStartedAtMs":1791438531954,"steps":[{"number":1,"name":"Run actions/checkout@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:55.959Z","completedAt":"2026-10-08T05:48:56.957Z"},{"number":2,"name":"Run npx --yes wrangler@4 --version","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:56.957Z","completedAt":"2026-10-08T05:49:10.684Z"},{"number":3,"name":"Run echo \"would deploy with ${{ needs.test.outputs.node }} using ${{ secrets.CLOUDFLARE_API_TOKEN }}\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:49:10.684Z","completedAt":"2026-10-08T05:49:10.684Z"}],"result":{"conclusion":"success","outputs":{},"durationMs":19410,"minutesBilled":1,"steps":[{"number":1,"name":"Run actions/checkout@v4","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:55.959Z","completedAt":"2026-10-08T05:48:56.957Z"},{"number":2,"name":"Run npx --yes wrangler@4 --version","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:48:56.957Z","completedAt":"2026-10-08T05:49:10.684Z"},{"number":3,"name":"Run echo \"would deploy with ${{ needs.test.outputs.node }} using ${{ secrets.CLOUDFLARE_API_TOKEN }}\"","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:49:10.684Z","completedAt":"2026-10-08T05:49:10.684Z"}],"error":null},"reported":true,"containerGone":true,"containerRunning":false}
+{"jobId":"e90bb9c7-2af7-46b5-8192-69aeb3d5a352","repo":"coop-act2/node-ci","jobName":"redis","phase":"done","acceptedAtMs":1791438515047,"containerStartedAtMs":1791438516915,"steps":[{"number":1,"name":"Ping the redis service","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:49:20.907Z","completedAt":"2026-10-08T05:49:20.907Z"}],"result":{"conclusion":"success","outputs":{},"durationMs":44599,"minutesBilled":1,"steps":[{"number":1,"name":"Ping the redis service","status":"completed","conclusion":"success","startedAt":"2026-10-08T05:49:20.907Z","completedAt":"2026-10-08T05:49:20.907Z"}],"error":null},"reported":true,"containerGone":true,"containerRunning":false}
+
+### CI #4 test: stored log (R2 gzip chunks, as the control plane wrote them)
+chunks 6, lines 122
+  0.0 null Fetching .github/workflows/ci.yml at 90d9ced17c30
+  3.9 null Running job test with act 0.2.89 (image actions-runner-2026-10-08.3)
+  4.8 null Run Set up job
+  4.8 null Start server on http://127.0.0.1:34567
+  5.2 null Success - Set up job
+  5.2 1   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+  5.8 2   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+  5.8 1 Run actions/checkout@v4
+  5.8 1 Syncing repository: coop-act2/node-ci
+  5.8 1 ##[group]Getting Git version info
+  5.8 1 Working directory is '/home/runner/.cache/act/70ca505bab985e68/hostexecutor'
+  5.8 1 [command]/usr/bin/git version
+  5.8 1 git version 2.43.0
+  5.8 1 ##[endgroup]
+  5.8 1 Temporarily overriding HOME='/home/runner/.cache/act/70ca505bab985e68/tmp/2a6a8914-0822-49fd-9ea3-9ec3fc8c76b8' before making global git config changes
+  5.8 1 Adding repository directory to the temporary git global config as a safe directory
+  5.8 1 [command]/usr/bin/git config --global --add safe.directory /home/runner/.cache/act/70ca505bab985e68/hostexecutor
+  5.8 1 Deleting the contents of '/home/runner/.cache/act/70ca505bab985e68/hostexecutor'
+  5.8 1 ##[group]Initializing the repository
+  5.8 1 [command]/usr/bin/git init /home/runner/.cache/act/70ca505bab985e68/hostexecutor
+  5.8 1 hint: Using 'master' as the name for the initial branch. This default branch name
+  5.8 1 hint: is subject to change. To configure the initial branch name to use in all
+  5.8 1 hint: of your new repositories, which will suppress this warning, call:
+  5.8 1 hint: 
+  5.8 1 hint: 	git config --global init.defaultBranch <name>
+  5.8 1 hint: 
+  5.8 1 hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+  5.8 1 hint: 'development'. The just-created branch can be renamed via this command:
+  5.8 1 hint: 
+  5.8 1 hint: 	git branch -m <name>
+  5.8 1 Initialized empty Git repository in /home/runner/.cache/act/70ca505bab985e68/hostexecutor/.git/
+  5.8 1 [command]/usr/bin/git remote add origin https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/coop-act2/node-ci
+  5.8 1 ##[endgroup]
+  5.8 1 ##[group]Disabling automatic garbage collection
+  5.8 1 [command]/usr/bin/git config --local gc.auto 0
+  5.8 1 ##[endgroup]
+  5.8 1 ##[group]Setting up auth
+  5.8 1 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+  5.8 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'cor
+  5.8 1 [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.devaccounts\-1password\.workers\.dev\/\.extrah
+  5.8 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.deva
+  5.8 1 [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+  5.8 1 [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+  5.8 1 [command]/usr/bin/git config --local http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader AUTHORIZATION: basic ***
+  5.8 1 ##[endgroup]
+  5.8 1 ##[group]Fetching the repository
+  5.8 1 [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +90d9ced17c30b9a33fec682ab9d9f61453d01d21:refs/remo
+  9.1 1 From https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/coop-act2/node-ci
+  9.1 1  * [new ref]         90d9ced17c30b9a33fec682ab9d9f61453d01d21 -> origin/main
+  9.1 1 ##[endgroup]
+  9.1 1 ##[group]Determining the checkout info
+  9.1 1 ##[endgroup]
+  9.1 1 [command]/usr/bin/git sparse-checkout disable
+  9.1 1 [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+  9.1 1 ##[group]Checking out the ref
+  9.1 1 [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+  9.1 1 Switched to a new branch 'main'
+  9.1 1 branch 'main' set up to track 'origin/main'.
+  9.1 1 ##[endgroup]
+  9.1 1 [command]/usr/bin/git log -1 --format=%H
+  9.1 1 90d9ced17c30b9a33fec682ab9d9f61453d01d21
+  9.1 1 Success - actions/checkout@v4 [3.732545428s]
+  9.1 2 Run actions/setup-node@v4
+  9.7 2 Found in cache @ /home/runner/.cache/act/tool_cache/node/20.20.2/x64
+  9.7 2 (node:151) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+  9.7 2 (Use `node --trace-deprecation ...` to show where the warning was created)
+  9.7 2 ##[group]Environment details
+  9.7 2 node: v20.20.2
+  9.7 2 npm: 10.8.2
+  9.7 2 yarn: 
+  9.7 2 ##[endgroup]
+  9.7 2 Success - actions/setup-node@v4 [650.416622ms]
+  9.7 3 Run npm ci
+ 10.9 3 
+ 10.9 3 added 1 package, and audited 2 packages in 612ms
+ 10.9 3 
+ 10.9 3 found [32m[1m0[22m[39m vulnerabilities
+ 10.9 3 Success - npm ci [698.383488ms]
+ 10.9 4 Run npm test
+ 10.9 4 
+ 10.9 4 > node-ci@1.0.0 test
+ 10.9 4 > node --test test/ && node check-deps.mjs
+ 10.9 4 
+ 10.9 4 ✔ adds numbers (1.21062ms)
+ 10.9 4 ℹ tests 1
+ 10.9 4 ℹ suites 0
+ 10.9 4 ℹ pass 1
+ 10.9 4 ℹ fail 0
+ 10.9 4 ℹ cancelled 0
+ 10.9 4 ℹ skipped 0
+ 10.9 4 ℹ todo 0
+ 10.9 4 ℹ duration_ms 68.294156
+ 10.9 4 dependencies installed and working
+ 10.9 4 Success - npm test [264.970174ms]
+ 10.9 5 Run echo "node=$(node --version)" >> "$GITHUB_OUTPUT"
+ 10.9 5 Success - echo "node=$(node --version)" >> "$GITHUB_OUTPUT" [9.19061ms]
+ 10.9 6 Run echo "### Tests passed on $(node --version)" >> "$GITHUB_STEP_SUMMARY"
+ 10.9 6 Success - echo "### Tests passed on $(node --version)" >> "$GITHUB_STEP_SUMMARY" [7.640069ms]
+ 10.9 6 ##[summary]### Tests passed on v20.20.2
+ 10.9 2 Run Post actions/setup-node@v4
+ 10.9 2 (node:232) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+ 10.9 2 (Use `node --trace-deprecation ...` to show where the warning was created)
+ 10.9 2 Success - Post actions/setup-node@v4 [177.58249ms]
+ 10.9 1 Run Post actions/checkout@v4
+ 11.0 1 [command]/usr/bin/git version
+ 11.0 1 git version 2.43.0
+ 11.0 1 Temporarily overriding HOME='/home/runner/.cache/act/70ca505bab985e68/tmp/558da803-cbac-432f-946d-e4d6952bab0e' before making global git config changes
+ 11.0 1 Adding repository directory to the temporary git global config as a safe directory
+ 11.0 1 [command]/usr/bin/git config --global --add safe.directory /home/runner/.cache/act/70ca505bab985e68/hostexecutor
+ 11.0 1 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+ 11.0 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'cor
+ 11.0 1 [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.devaccounts\-1password\.workers\.dev\/\.extrah
+ 11.0 1 http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader
+ 11.1 1 [command]/usr/bin/git config --local --unset-all http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader
+ 11.1 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.deva
+ 11.1 1 [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+ 11.1 1 [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+ 11.1 1 Success - Post actions/checkout@v4 [215.214896ms]
+ 11.1 null Run Complete job
+ 11.1 null Cleaning up container for job test
+ 11.1 null Success - Complete job
+ 11.1 null Job success
+
+### CI #4 deploy (needs test)
+chunks 6, lines 88
+  0.0 null Fetching .github/workflows/ci.yml at 90d9ced17c30
+  1.6 null Running job deploy with act 0.2.89 (image actions-runner-2026-10-08.3)
+  2.8 null Start server on http://127.0.0.1:34567
+  2.8 null Run Set up job
+  3.9 null Success - Set up job
+  3.9 1   ☁  git clone 'https://github.com/actions/checkout' # ref=v4
+  3.9 1 Run actions/checkout@v4
+  3.9 1 Syncing repository: coop-act2/node-ci
+  3.9 1 ##[group]Getting Git version info
+  3.9 1 Working directory is '/home/runner/.cache/act/2884cfb42ae2922c/hostexecutor'
+  3.9 1 [command]/usr/bin/git version
+  3.9 1 git version 2.43.0
+  3.9 1 ##[endgroup]
+  3.9 1 Temporarily overriding HOME='/home/runner/.cache/act/2884cfb42ae2922c/tmp/6b9c3c48-21e7-4f61-b851-28b1fe186cce' before making global git config changes
+  3.9 1 Adding repository directory to the temporary git global config as a safe directory
+  3.9 1 [command]/usr/bin/git config --global --add safe.directory /home/runner/.cache/act/2884cfb42ae2922c/hostexecutor
+  3.9 1 Deleting the contents of '/home/runner/.cache/act/2884cfb42ae2922c/hostexecutor'
+  3.9 1 ##[group]Initializing the repository
+  3.9 1 [command]/usr/bin/git init /home/runner/.cache/act/2884cfb42ae2922c/hostexecutor
+  3.9 1 hint: Using 'master' as the name for the initial branch. This default branch name
+  3.9 1 hint: is subject to change. To configure the initial branch name to use in all
+  3.9 1 hint: of your new repositories, which will suppress this warning, call:
+  3.9 1 hint: 
+  3.9 1 hint: 	git config --global init.defaultBranch <name>
+  3.9 1 hint: 
+  3.9 1 hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+  3.9 1 hint: 'development'. The just-created branch can be renamed via this command:
+  3.9 1 hint: 
+  3.9 1 hint: 	git branch -m <name>
+  3.9 1 Initialized empty Git repository in /home/runner/.cache/act/2884cfb42ae2922c/hostexecutor/.git/
+  3.9 1 [command]/usr/bin/git remote add origin https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/coop-act2/node-ci
+  3.9 1 ##[endgroup]
+  3.9 1 ##[group]Disabling automatic garbage collection
+  3.9 1 [command]/usr/bin/git config --local gc.auto 0
+  3.9 1 ##[endgroup]
+  3.9 1 ##[group]Setting up auth
+  3.9 1 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+  3.9 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'cor
+  4.0 1 [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.devaccounts\-1password\.workers\.dev\/\.extrah
+  4.0 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.deva
+  4.0 1 [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+  4.0 1 [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+  4.1 1 [command]/usr/bin/git config --local http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader AUTHORIZATION: basic ***
+  4.1 1 ##[endgroup]
+  4.1 1 ##[group]Fetching the repository
+  4.1 1 [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +90d9ced17c30b9a33fec682ab9d9f61453d01d21:refs/remo
+  4.9 1 From https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/coop-act2/node-ci
+  4.9 1  * [new ref]         90d9ced17c30b9a33fec682ab9d9f61453d01d21 -> origin/main
+  4.9 1 ##[endgroup]
+  4.9 1 ##[group]Determining the checkout info
+  4.9 1 ##[endgroup]
+  4.9 1 [command]/usr/bin/git sparse-checkout disable
+  4.9 1 [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+  4.9 1 ##[group]Checking out the ref
+  4.9 1 [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+  4.9 1 Switched to a new branch 'main'
+  4.9 1 branch 'main' set up to track 'origin/main'.
+  4.9 1 ##[endgroup]
+  4.9 1 [command]/usr/bin/git log -1 --format=%H
+  4.9 1 90d9ced17c30b9a33fec682ab9d9f61453d01d21
+  4.9 1 Success - actions/checkout@v4 [1.194087029s]
+  4.9 2 Run npx --yes wrangler@4 --version
+ 17.6 2 
+ 17.6 2  ⛅️ wrangler 4.148.0
+ 17.6 2 ────────────────────
+ 18.7 2 Success - npx --yes wrangler@4 --version [13.109784039s]
+ 18.7 3 Run echo "would deploy with v20.20.2 using "
+ 18.7 3 would deploy with v20.20.2 using 
+ 18.7 3 Success - echo "would deploy with v20.20.2 using " [3.679979ms]
+ 18.7 1 Run Post actions/checkout@v4
+ 18.7 1 [command]/usr/bin/git version
+ 18.7 1 git version 2.43.0
+ 18.7 1 Temporarily overriding HOME='/home/runner/.cache/act/2884cfb42ae2922c/tmp/a12a6071-c80a-4cfc-b63f-3bb66ab4b7f9' before making global git config changes
+ 18.7 1 Adding repository directory to the temporary git global config as a safe directory
+ 18.7 1 [command]/usr/bin/git config --global --add safe.directory /home/runner/.cache/act/2884cfb42ae2922c/hostexecutor
+ 18.7 1 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+ 18.7 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'cor
+ 18.7 1 [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.devaccounts\-1password\.workers\.dev\/\.extrah
+ 18.7 1 http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader
+ 18.7 1 [command]/usr/bin/git config --local --unset-all http.https://beanstalk-gateway-staging-act2.devaccounts-1password.workers.dev/.extraheader
+ 18.7 1 [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/beanstalk\-gateway\-staging\-act2\.deva
+ 18.7 1 [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+ 18.7 1 [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+ 18.7 1 Success - Post actions/checkout@v4 [265.964329ms]
+ 18.7 null Run Complete job
+ 18.7 null Cleaning up container for job deploy
+ 18.7 null Success - Complete job
+ 18.7 null Job success
+
+### Services #1 redis (Docker mode)
+chunks 8, lines 28
+  0.0 null Fetching .github/workflows/services.yml at 90d9ced17c30
+  2.4 null The job uses `services:`: starting Docker; its steps run in catthehacker/ubuntu:act-24.04
+  5.0 null Running job redis with act 0.2.89 (image actions-runner-2026-10-08.3)
+  6.0 null Using docker host 'unix:///var/run/docker.sock', and daemon socket 'unix:///var/run/docker.sock'
+  6.0 null Start server on http://127.0.0.1:34567
+  6.0 null Run Set up job
+  6.0 null 🚀  Start image=catthehacker/ubuntu:act-24.04
+  6.0 null   🐳  docker pull image=redis:7-alpine platform= username= forcePull=false
+  9.5 null   🐳  docker pull image=catthehacker/ubuntu:act-24.04 platform= username= forcePull=false
+ 37.9 null Cleaning up services for job redis
+ 37.9 null Cleaning up network for job redis, and network name is: act-Services-redis-ec4ea7d25d1e0d63b211a311d594dbebf3ceea76345a4ba31e7a0fcda79a4a8b-redis-network
+ 38.7 null   🐳  docker pull image=redis:7-alpine platform= username= forcePull=false
+ 38.7 null   🐳  docker create image=redis:7-alpine platform= entrypoint=[] cmd=[] network="act-Services-redis-ec4ea7d25d1e0d63b211a311d594dbebf3ceea76345a4ba31e7a0fcda79a
+ 38.9 null   🐳  docker run image=redis:7-alpine platform= entrypoint=[] cmd=[] network="act-Services-redis-ec4ea7d25d1e0d63b211a311d594dbebf3ceea76345a4ba31e7a0fcda79a4a8
+ 43.1 null   🐳  docker create image=catthehacker/ubuntu:act-24.04 platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+ 43.1 null   🐳  docker run image=catthehacker/ubuntu:act-24.04 platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+ 44.0 null   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+ 44.0 null Success - Set up job
+ 44.0 1 Run Ping the redis service
+ 44.0 1   🐳  docker exec cmd=[bash -e /var/run/act/workflow/0] user= workdir=
+ 44.0 1 redis answered: +PONG
+ 44.0 1 Success - Ping the redis service [80.608305ms]
+ 44.0 null Run Complete job
+ 44.0 null Cleaning up container for job redis
+ 44.0 null Cleaning up services for job redis
+ 44.0 null Cleaning up network for job redis, and network name is: act-Services-redis-ec4ea7d25d1e0d63b211a311d594dbebf3ceea76345a4ba31e7a0fcda79a4a8b-redis-network
+ 44.0 null Success - Complete job
+ 44.0 null Job success

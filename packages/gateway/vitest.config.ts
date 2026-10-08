@@ -41,6 +41,8 @@ export default defineConfig({
           OIDC_SIGNING_KEYS: JSON.stringify({ active: oidcKey.kid, keys: [oidcKey] }),
           OIDC_REQUEST_SECRET: 'test-oidc-request-secret-0123456789abcdef',
           LOG_LEVEL: 'error',
+          // The tests run jobs on the echo executor (the container executor has its own tests).
+          ACTIONS_EXECUTOR_MODE: 'stub',
           TEST_MIGRATIONS: identityMigrations,
           FORGE_MIGRATIONS: registryMigrations,
         },
@@ -87,6 +89,7 @@ function writeTestWranglerConfig(): string {
   delete config['containers'];
   delete config['artifacts'];
   delete config['secrets'];
+  delete config['services'];
   delete config['$schema'];
   config['main'] = path.join(here, 'src/index.ts');
   if (

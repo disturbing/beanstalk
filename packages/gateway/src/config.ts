@@ -62,6 +62,23 @@ export function readSecrets(env: Pick<Env, keyof z.infer<typeof Secrets>>): Gate
 }
 
 /**
+ * The Actions job container class's `max_instances` (the executor Worker's
+ * `ACTIONS_MAX_INSTANCES`), from this Worker's optional var of the same name; 16 when unset.
+ * RunnerCapacity holds Actions job leases (`actions:<repo>`) to it.
+ */
+export const DEFAULT_ACTIONS_MAX_INSTANCES = 16;
+
+export function actionsMaxInstances(env: object): number {
+  const parsed = z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(1000)
+    .safeParse(Reflect.get(env, 'ACTIONS_MAX_INSTANCES') ?? DEFAULT_ACTIONS_MAX_INSTANCES);
+  return parsed.success ? parsed.data : DEFAULT_ACTIONS_MAX_INSTANCES;
+}
+
+/**
  * Parses the vars from `wrangler.jsonc`. Throws on a misconfigured deployment (a bug in
  * the config, not a request error).
  */

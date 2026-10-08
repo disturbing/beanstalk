@@ -8,7 +8,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { z } from 'zod';
 
-import { readConfig } from '../config';
+import { actionsMaxInstances, readConfig } from '../config';
 import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type {
@@ -88,6 +88,7 @@ export class RunnerCapacity extends DurableObject<Env> {
       instances: config.runnerMaxInstances,
       headroom: POOL_HEADROOM,
       floor: POOL_FLOOR,
+      actionsInstances: actionsMaxInstances(env),
     };
     migrate(ctx.storage.sql);
   }
