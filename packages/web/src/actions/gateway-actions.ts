@@ -7,9 +7,17 @@
  * belongs to the repository in the URL, and computes this month's minutes from the runs.
  * Every answer is validated against the pages' schemas after translation.
  */
+import { z } from 'zod';
+
+import {
+  ACTIONS_CONCLUSIONS,
+  ACTIONS_STATUSES,
+  StepViewSchema,
+} from '@beanstalk/shared-race/actions';
 import type {
   ActionsRpc,
   JobView,
+  StepView,
   RunDetail as GatewayRunDetail,
   RunSummary as GatewayRunSummary,
   WorkflowSummary,
@@ -17,7 +25,7 @@ import type {
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import type { Outcome } from '../repositories/registry-client';
-import type { ActionsClient } from './actions-client';
+import type { ActionsClient, LogEvent } from './actions-client';
 import type {
   ActionsActor,
   ActionsUsage,
@@ -27,9 +35,11 @@ import type {
   RunFilter,
   RunStatus,
   RunSummary,
+  Step,
   Workflow,
   WorkflowTrigger,
 } from './actions-contract';
+import type { SocketFrames } from './socket-frames';
 import {
   Conclusion as ConclusionSchema,
   LogPage,
@@ -72,10 +82,15 @@ function isGatewayActions(binding: object): binding is ActionsRpc {
 
 export function gatewayActionsClient(
   rpc: ActionsRpc,
-  scope: { readonly actor: ActionsActor; readonly repoId: string },
+  scope: {
+    readonly actor: ActionsActor;
+    readonly repoId: string;
+    /** Opens the run's live log WebSocket (a ticket URL); null: the log route polls instead. */
+    readonly openSocket: ((url: string) => Promise<SocketFrames>) | null;
+  },
 ): ActionsClient {
   const viewer = scope.actor?.id ?? null;
-  const { repoId } = scope;
+  const { repoId, openSocket } = scope;
   const runOf = async (runId: string): Promise<Outcome<GatewayRunDetail>> => {
     const found = await settle(rpc.getRun(viewer, runId));
     if (found.ok && found.value.repoId !== repoId) return notFound('No such run.');
@@ -84,6 +99,10 @@ export function gatewayActionsClient(
   return {
     mode: 'live',
     canToggleSecretWithoutValue: false,
+    follow:
+      openSocket === null
+        ? null
+        : (where) => followRun({ rpc, viewer, openSocket, runOf, ...where }),
     workflows: async () => {
       const listed = await settle(rpc.listWorkflows(viewer, repoId));
       if (!listed.ok) return listed;
@@ -267,12 +286,12 @@ function jobOf(job: JobView, all: readonly JobView[]): Job {
     conclusion: conclusionOf(job.conclusion),
     startedAt: job.startedAt,
     completedAt: job.completedAt,
-    steps: job.steps.map((step) => ({
-      ...step,
-      status: statusOf(step.status),
-      conclusion: conclusionOf(step.conclusion),
-    })),
+    steps: job.steps.map(stepOf),
   };
+}
+
+function stepOf(step: StepView): Step {
+  return { ...step, status: statusOf(step.status), conclusion: conclusionOf(step.conclusion) };
 }
 
 function statusOf(status: 'queued' | 'waiting' | 'in_progress' | 'completed'): RunStatus {
@@ -311,21 +330,139 @@ async function storedLines(
   rpc: ActionsRpc,
   viewer: string | null,
   where: { readonly runId: string; readonly jobId: string },
-): Promise<Outcome<{ readonly lines: readonly LogLine[]; readonly complete: boolean }>> {
+): Promise<Outcome<StoredLog>> {
   const lines: LogLine[] = [];
   let after = 0;
+  let lastSeq = 0;
   for (let page = 0; page < LOG_PAGES; page += 1) {
     // oxlint-disable-next-line no-await-in-loop -- each page starts where the last one ended
     const chunks = await settle(rpc.logChunks(viewer, where.runId, where.jobId, after));
     if (!chunks.ok) return chunks;
-    for (const chunk of chunks.value.chunks)
+    for (const chunk of chunks.value.chunks) {
+      lastSeq = Math.max(lastSeq, chunk.seq);
       for (const line of chunk.lines)
         lines.push({ n: lines.length + 1, step: line.step ?? 0, text: line.text });
+    }
     if (chunks.value.next === null)
-      return { ok: true, value: { lines, complete: chunks.value.complete } };
+      return { ok: true, value: { lines, lastSeq, complete: chunks.value.complete } };
     after = chunks.value.next;
   }
-  return { ok: true, value: { lines, complete: false } };
+  return { ok: true, value: { lines, lastSeq, complete: false } };
+}
+
+type StoredLog = {
+  readonly lines: readonly LogLine[];
+  /** The last stored chunk's `seq`: live frames up to it are already in `lines`. */
+  readonly lastSeq: number;
+  readonly complete: boolean;
+};
+
+async function* followRun(input: {
+  readonly rpc: ActionsRpc;
+  readonly viewer: string | null;
+  readonly openSocket: (url: string) => Promise<SocketFrames>;
+  readonly runOf: (runId: string) => Promise<Outcome<GatewayRunDetail>>;
+  readonly runId: string;
+  readonly jobId: string;
+  readonly after: number;
+  readonly signal: AbortSignal;
+}): AsyncIterable<LogEvent> {
+  const run = await input.runOf(input.runId);
+  if (!run.ok) return yield { kind: 'failed', message: run.error.message };
+  yield* followJob({ ...input, run: run.value });
+}
+
+/**
+ * A job's log as events: the socket is opened first (its frames buffer), then the stored
+ * chunks are read and numbered, then live frames newer than the last stored chunk follow,
+ * numbered on from there, so no line is lost or repeated between history and relay.
+ */
+async function* followJob(input: {
+  readonly rpc: ActionsRpc;
+  readonly viewer: string | null;
+  readonly openSocket: (url: string) => Promise<SocketFrames>;
+  readonly run: GatewayRunDetail;
+  readonly jobId: string;
+  readonly after: number;
+  readonly signal: AbortSignal;
+}): AsyncIterable<LogEvent> {
+  const { rpc, viewer, run, jobId, after } = input;
+  const found = run.jobs.find((candidate) => candidate.id === jobId);
+  if (found === undefined) return yield { kind: 'failed', message: 'No such job.' };
+  let job = jobOf(found, run.jobs);
+  const live = job.status !== 'completed';
+  const ticket = live ? await settle(rpc.logStream(viewer, run.id, jobId)) : null;
+  if (ticket !== null && !ticket.ok) return yield { kind: 'failed', message: ticket.error.message };
+  const socket =
+    ticket === null
+      ? null
+      : await input.openSocket(
+          `${ticket.value.url}?token=${encodeURIComponent(ticket.value.token)}`,
+        );
+  try {
+    const stored = await storedLines(rpc, viewer, { runId: run.id, jobId });
+    if (!stored.ok) return yield { kind: 'failed', message: stored.error.message };
+    const fresh = stored.value.lines.filter((line) => line.n > after);
+    if (fresh.length > 0) yield { kind: 'lines', lines: fresh };
+    yield { kind: 'job', job };
+    if (socket === null || stored.value.complete) return yield { kind: 'end' };
+    let count = stored.value.lines.length;
+    let lastSeq = stored.value.lastSeq;
+    for await (const text of socket) {
+      if (input.signal.aborted) return undefined;
+      const frame = frameOf(text);
+      if (frame === null) continue;
+      if (frame.kind === 'lines') {
+        if (frame.seq <= lastSeq) continue;
+        lastSeq = frame.seq;
+        const lines = frame.lines.map((line, index) => ({
+          n: count + index + 1,
+          step: line.step ?? 0,
+          text: line.text,
+        }));
+        count += lines.length;
+        const shown = lines.filter((line) => line.n > after);
+        if (shown.length > 0) yield { kind: 'lines', lines: shown };
+      } else if (frame.kind === 'steps') {
+        job = { ...job, steps: frame.steps.map(stepOf) };
+        yield { kind: 'job', job };
+      } else {
+        job = {
+          ...job,
+          status: statusOf(frame.status),
+          conclusion: conclusionOf(frame.conclusion),
+        };
+        yield { kind: 'job', job };
+        if (job.status === 'completed') return yield { kind: 'end' };
+      }
+    }
+    return yield { kind: 'end' };
+  } finally {
+    socket?.close();
+  }
+}
+
+const LogFrameSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('lines'),
+    seq: z.number(),
+    lines: z.array(z.object({ step: z.number().nullable(), text: z.string() })),
+  }),
+  z.object({ kind: z.literal('steps'), steps: z.array(StepViewSchema) }),
+  z.object({
+    kind: z.literal('job'),
+    status: z.enum(ACTIONS_STATUSES),
+    conclusion: z.enum(ACTIONS_CONCLUSIONS).nullable(),
+  }),
+]);
+
+function frameOf(text: string) {
+  try {
+    const parsed = LogFrameSchema.safeParse(JSON.parse(text));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
 }
 
 /** This month's billed minutes, from the runs created this month (newest first). */

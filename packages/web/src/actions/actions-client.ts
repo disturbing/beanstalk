@@ -12,6 +12,8 @@ import type {
   ActionsActor,
   ActionsViewRpc,
   DispatchRequest,
+  Job,
+  LogLine,
   PutSecretInput,
   RunFilter,
 } from './actions-contract';
@@ -40,7 +42,26 @@ export type ActionsClient = {
   secrets(): Promise<Outcome<SecretList>>;
   putSecret(input: PutSecretInput): Promise<Outcome<SecretSummary>>;
   deleteSecret(name: string): Promise<Outcome<{ readonly deleted: boolean }>>;
+  /**
+   * A job's log as it happens (history, then the control plane's live relay), from line
+   * `after`; null where the log route polls `log` instead (the fixture fake).
+   */
+  readonly follow:
+    | ((where: {
+        readonly runId: string;
+        readonly jobId: string;
+        readonly after: number;
+        readonly signal: AbortSignal;
+      }) => AsyncIterable<LogEvent>)
+    | null;
 };
+
+/** What a followed log says: new lines, the job's new state, its end, or a refusal. */
+export type LogEvent =
+  | { readonly kind: 'lines'; readonly lines: readonly LogLine[] }
+  | { readonly kind: 'job'; readonly job: Job }
+  | { readonly kind: 'end' }
+  | { readonly kind: 'failed'; readonly message: string };
 
 export function actionsClient(
   rpc: ActionsViewRpc,
@@ -50,6 +71,7 @@ export function actionsClient(
   return {
     mode: scope.mode,
     canToggleSecretWithoutValue: true,
+    follow: null,
     workflows: () => call(z.array(Workflow), rpc.listWorkflows(actor, repoId)),
     runs: (filter) => call(RunPage, rpc.listRuns(actor, repoId, filter)),
     run: (runId) => call(RunDetail, rpc.getRun(actor, repoId, runId)),

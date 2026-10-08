@@ -15,6 +15,8 @@ import { fakeControlPlane } from '../actions/fake/fake-control-plane';
 import type { FakeOverlay } from '../actions/fake/fake-overlay';
 import { decodeOverlay, encodeOverlay } from '../actions/fake/fake-overlay';
 import { asGatewayActions, gatewayActionsClient } from '../actions/gateway-actions';
+import type { SocketFrames } from '../actions/socket-frames';
+import { socketFrames } from '../actions/socket-frames';
 
 const FAKE_COOKIE = 'bs_actions_fixtures';
 const FAKE_COOKIE_DAYS = 7;
@@ -59,11 +61,10 @@ function sessionFrom(
   writeCookie: (value: string) => Promise<void>,
 ): ActionsSession | null {
   if (env.ACTIONS_SOURCE === 'gateway') {
-    // Bound only where the gateway serves the entrypoint, so it is read by name, not typed.
-    const rpc = asGatewayActions(Reflect.get(env, 'ACTIONS'));
-    return rpc === null
-      ? null
-      : { client: gatewayActionsClient(rpc, scope), persist: async () => {} };
+    const rpc = asGatewayActions(env.ACTIONS);
+    if (rpc === null) return null;
+    const client = gatewayActionsClient(rpc, { ...scope, openSocket: openLogSocket });
+    return { client, persist: async () => {} };
   }
   if (env.ACTIONS_SOURCE !== 'fixtures') return null;
   let overlay: FakeOverlay = decodeOverlay(cookieValue);
@@ -92,4 +93,18 @@ function safeDecode(value: string): string {
   } catch {
     return '';
   }
+}
+
+/**
+ * Opens a job's live log WebSocket from its ticket URL through the GATEWAY binding (its
+ * default entrypoint serves `/v1/actions/runs/:run/jobs/:job/logs`), never over the internet.
+ */
+async function openLogSocket(ticketUrl: string): Promise<SocketFrames> {
+  const ticket = new URL(ticketUrl);
+  const url = `https://gateway.internal${ticket.pathname}${ticket.search}`;
+  const response = await env.GATEWAY.fetch(new Request(url, { headers: { Upgrade: 'websocket' } }));
+  const socket = response.webSocket;
+  if (socket === null) throw new Error(`the log relay did not upgrade (HTTP ${response.status})`);
+  socket.accept();
+  return socketFrames(socket);
 }

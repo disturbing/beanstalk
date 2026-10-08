@@ -10,8 +10,11 @@ import type {
 } from '@beanstalk/shared-race/actions';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
+import type { LogEvent } from './actions-client';
 import { gatewayActionsClient } from './gateway-actions';
 import { groupByStep } from './log-view';
+import type { FrameSource } from './socket-frames';
+import { socketFrames } from './socket-frames';
 
 const REPO = 'repo-1';
 const RUN = '0b6c1a50-8d2f-4a8e-9b1e-1f2a3b4c5d6e';
@@ -122,7 +125,7 @@ function gateway(overrides: Partial<ActionsRpc> = {}): ActionsRpc {
   } as ActionsRpc;
 }
 
-const scope = { actor: { id: 'u1', handle: 'coop' }, repoId: REPO };
+const scope = { actor: { id: 'u1', handle: 'coop' }, repoId: REPO, openSocket: null };
 
 describe('the gateway adapter', () => {
   it('reads workflows with their unsupported events, notes that matter and last run', async () => {
@@ -200,5 +203,102 @@ describe('the gateway adapter', () => {
     });
     const result = await gatewayActionsClient(broken, scope).workflows();
     expect(result).toMatchObject({ ok: false, error: { code: 'unavailable' } });
+  });
+});
+
+type Listener = (event: { readonly data: unknown }) => void;
+
+/** A socket that receives `frames` as soon as it is wrapped, then closes. */
+function socketWith(frames: readonly unknown[]): FrameSource {
+  const listeners = new Map<string, Listener[]>();
+  const socket: FrameSource = {
+    addEventListener: (type: string, listener: Listener) => {
+      listeners.set(type, [...(listeners.get(type) ?? []), listener]);
+    },
+    close: () => undefined,
+  };
+  queueMicrotask(() => {
+    for (const frame of frames)
+      for (const listener of listeners.get('message') ?? [])
+        listener({ data: JSON.stringify(frame) });
+    for (const listener of listeners.get('close') ?? []) listener({ data: null });
+  });
+  return socket;
+}
+
+async function collect(events: AsyncIterable<LogEvent> | undefined): Promise<LogEvent[]> {
+  const seen: LogEvent[] = [];
+  for await (const event of events ?? []) seen.push(event);
+  return seen;
+}
+
+describe('the live log relay', () => {
+  const where = { runId: RUN, jobId: 'j1', signal: new AbortController().signal };
+
+  it('numbers history then live frames on from it, skipping frames already stored', async () => {
+    const opened: string[] = [];
+    const rpc = gateway({
+      logChunks: () =>
+        ok({
+          chunks: [
+            {
+              seq: 1,
+              lines: [
+                { step: null, at: 'x', text: 'Set up' },
+                { step: 1, at: 'x', text: 'one' },
+              ],
+            },
+          ],
+          next: null,
+          complete: false,
+        }),
+    });
+    const step = {
+      number: 1,
+      name: 'test',
+      status: 'in_progress',
+      conclusion: null,
+      startedAt: null,
+      completedAt: null,
+    };
+    const frames = [
+      { kind: 'lines', jobId: 'j1', seq: 1, lines: [{ step: 1, at: 'x', text: 'one' }] },
+      { kind: 'lines', jobId: 'j1', seq: 2, lines: [{ step: 1, at: 'x', text: 'two' }] },
+      { kind: 'steps', jobId: 'j1', steps: [step] },
+      { kind: 'job', jobId: 'j1', status: 'completed', conclusion: 'success' },
+    ];
+    const client = gatewayActionsClient(rpc, {
+      ...scope,
+      openSocket: async (url) => {
+        opened.push(url);
+        return socketFrames(socketWith(frames));
+      },
+    });
+    const events = await collect(client.follow?.({ ...where, after: 0 }));
+    expect(opened).toEqual(['wss://x?token=t']);
+    const lines = events.flatMap((event) => (event.kind === 'lines' ? event.lines : []));
+    expect(lines.map((line) => [line.n, line.text])).toEqual([
+      [1, 'Set up'],
+      [2, 'one'],
+      [3, 'two'],
+    ]);
+    expect(events.at(-2)).toMatchObject({
+      kind: 'job',
+      job: { status: 'completed', conclusion: 'success' },
+    });
+    expect(events.at(-1)).toEqual({ kind: 'end' });
+  });
+
+  it('reads a finished job from history alone, without a socket', async () => {
+    const done = { ...job('j1', 'test', []), status: 'completed', conclusion: 'success' };
+    const rpc = gateway({
+      getRun: () => ok({ ...summary(), jobs: [done], inputs: {} } as unknown as RunDetail),
+    });
+    const client = gatewayActionsClient(rpc, {
+      ...scope,
+      openSocket: () => Promise.reject(new Error('no socket for a finished job')),
+    });
+    const events = await collect(client.follow?.({ ...where, after: 1 }));
+    expect(events.map((event) => event.kind)).toEqual(['lines', 'job', 'end']);
   });
 });

@@ -24,7 +24,8 @@ export function jobLogResponse(
   const url = new URL(request.url);
   if (url.searchParams.get('download') === '1') return download(client, where);
   const after = resumeAfter(request, url);
-  const stream = followLog({ client, ...where, after, signal: request.signal, timing });
+  const options = { client, ...where, after, signal: request.signal, timing };
+  const stream = client.follow === null ? pollLog(options) : relayLog(options, client.follow);
   return new Response(stream, {
     headers: {
       'content-type': 'text/event-stream; charset=utf-8',
@@ -59,58 +60,90 @@ async function download(
   });
 }
 
-/** The job's new lines and states until it finishes, the viewer leaves, or `followMs` passes. */
-function followLog(options: {
+type FollowOptions = {
   readonly client: ActionsClient;
   readonly run: string;
   readonly job: string;
   readonly after: number;
   readonly signal: AbortSignal;
   readonly timing: LogTiming;
-}): ReadableStream<Uint8Array> {
+};
+
+type Send = (event: string, data: unknown, id?: number) => void;
+
+function sseStream(write: (send: Send) => Promise<void>): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const { client, run, job, signal } = options;
   return new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (event: string, data: unknown, id?: number) =>
+      const send: Send = (event, data, id) =>
         controller.enqueue(
           encoder.encode(
             `${id === undefined ? '' : `id: ${id}\n`}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
           ),
         );
-      let after = options.after;
-      const until = Date.now() + options.timing.followMs;
-      try {
-        while (!signal.aborted && Date.now() < until) {
-          // oxlint-disable-next-line no-await-in-loop -- each read follows the previous one by design (a poll)
-          const [page, detail] = await Promise.all([client.log(run, job, after), client.run(run)]);
-          if (!page.ok) {
-            send('failed', { message: page.error.message });
-            break;
-          }
-          if (!detail.ok) {
-            send('failed', { message: detail.error.message });
-            break;
-          }
-          const last = page.value.lines.at(-1);
-          if (last !== undefined) {
-            after = last.n;
-            send('lines', { lines: page.value.lines }, after);
-          }
-          const state = detail.value.jobs.find((candidate) => candidate.id === job);
-          if (state !== undefined) send('job', state);
-          if (page.value.complete) {
-            send('end', {});
-            break;
-          }
-          // oxlint-disable-next-line no-await-in-loop -- the poll's pause
-          await wait(options.timing.pollMs, signal);
-        }
-      } catch (error: unknown) {
-        log.error('job log stream failed', { run, job, error });
-      }
+      await write(send);
       controller.close();
     },
+  });
+}
+
+/** The control plane's relay (history, then live frames) as events, until the job ends. */
+function relayLog(
+  options: FollowOptions,
+  follow: NonNullable<ActionsClient['follow']>,
+): ReadableStream<Uint8Array> {
+  const { run, job, signal } = options;
+  return sseStream(async (send) => {
+    try {
+      const events = follow({ runId: run, jobId: job, after: options.after, signal });
+      for await (const event of events) {
+        if (event.kind === 'lines') send('lines', { lines: event.lines }, event.lines.at(-1)?.n);
+        else if (event.kind === 'job') send('job', event.job);
+        else if (event.kind === 'failed') send('failed', { message: event.message });
+        else send('end', {});
+        if (signal.aborted || event.kind === 'end' || event.kind === 'failed') break;
+      }
+    } catch (error: unknown) {
+      log.error('job log relay failed', { run, job, error });
+    }
+  });
+}
+
+/** The job's new lines and states, read every `pollMs`, until it finishes or `followMs` passes. */
+function pollLog(options: FollowOptions): ReadableStream<Uint8Array> {
+  const { client, run, job, signal } = options;
+  return sseStream(async (send) => {
+    let after = options.after;
+    const until = Date.now() + options.timing.followMs;
+    try {
+      while (!signal.aborted && Date.now() < until) {
+        // oxlint-disable-next-line no-await-in-loop -- each read follows the previous one by design (a poll)
+        const [page, detail] = await Promise.all([client.log(run, job, after), client.run(run)]);
+        if (!page.ok) {
+          send('failed', { message: page.error.message });
+          break;
+        }
+        if (!detail.ok) {
+          send('failed', { message: detail.error.message });
+          break;
+        }
+        const last = page.value.lines.at(-1);
+        if (last !== undefined) {
+          after = last.n;
+          send('lines', { lines: page.value.lines }, after);
+        }
+        const state = detail.value.jobs.find((candidate) => candidate.id === job);
+        if (state !== undefined) send('job', state);
+        if (page.value.complete) {
+          send('end', {});
+          break;
+        }
+        // oxlint-disable-next-line no-await-in-loop -- the poll's pause
+        await wait(options.timing.pollMs, signal);
+      }
+    } catch (error: unknown) {
+      log.error('job log stream failed', { run, job, error });
+    }
   });
 }
 
