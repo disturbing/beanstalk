@@ -532,6 +532,30 @@ def unintegrated_tasks(ids: list[str], log: str) -> set[str]:
     return {i for i in ids if not any(n == i or n.startswith(f"{i}-") for n in named)}
 
 
+def tests_not_on_line(repo: str, ref: str, tasks: list, base: str) -> set[str]:
+    """Tasks whose acceptance tests are not on the line: a test file missing there, or (a file the base already had)
+    unchanged since the base. A trailer alone is not delivery: on 2026-10-08 (plugin-v2, seed 7) a worker pushed t003's
+    change to ``bean/t009-handler-timeout``; the squash carried ``Task: t009-handler-timeout``, so the lead and the
+    trailer check counted t009 integrated while its tests and its feature were never added. Presence, not identical
+    text: agents legitimately append tests to the file (t025) or drop an unused import (GitHub run, t027, t029), and
+    no two tasks share a test path. Whether the tests pass is the replay's job."""
+    out = set()
+    for t in tasks:
+        for path in t.acceptance_tests:
+            on_line = _blob(repo, ref, path)
+            if on_line is None or on_line == _blob(repo, base, path):
+                out.add(t.id)
+                break
+    return out
+
+
+def _blob(repo: str, ref: str, path: str) -> str | None:
+    try:
+        return run_git(repo, "rev-parse", f"{ref}:{path}").strip()
+    except Exception:  # noqa: BLE001 - absent at that commit
+        return None
+
+
 def task_of(text: str) -> str | None:
     import re
     m = re.search(r"\bTask:\s*([A-Za-z0-9_.-]+)", text or "")
@@ -614,9 +638,10 @@ class OrchestratedRace:
             if forge.name == "beanstalk":   # done = landed on the sprout (the prompt's definition), not yet the stalk
                 ref = "refs/remotes/forge/sprout"
             log = run_git(repo, "log", "--format=%B", f"{self.base_sha}..{ref}")
+            missing = unintegrated_tasks([t.id for t in tasks], log)
+            return missing | tests_not_on_line(repo, ref, [t for t in tasks if t.id not in missing], self.base_sha)
         except Exception:  # noqa: BLE001 - the decision to resume must not end the race
             return set()
-        return unintegrated_tasks([t.id for t in tasks], log)
 
     def session_env(self) -> dict[str, str]:
         """plugin guidance: ``claude -p`` keeps waiting for background workers however long the lead's turn has been
@@ -662,11 +687,12 @@ class OrchestratedRace:
         segments: list[str] = []
         resumes: list[dict] = []
         session_id = None
+        left: set[str] = set()
         while True:
             segment = os.path.join(self.work, f"transcript.{len(segments)}.jsonl")
             segments.append(segment)
             spent = max([parse_transcript(s, [])["cost_usd"] for s in segments[:-1]] or [0.0])
-            argv = self.claude_argv(prompt if session_id is None else orch_prompt.continuation(self.guidance),
+            argv = self.claude_argv(prompt if session_id is None else orch_prompt.continuation(self.guidance, left),
                                     budget=max(0.5, cfg.max_usd - spent), resume=session_id)
             with open(segment, "w", encoding="utf-8") as out:
                 proc = subprocess.Popen(argv, cwd=wt, stdout=out, stderr=subprocess.STDOUT, env=env,
