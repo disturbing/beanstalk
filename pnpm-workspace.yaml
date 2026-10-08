@@ -10,6 +10,8 @@ allowBuilds:
 # One version per dependency across the repo. Packages reference these with
 # "hono": "catalog:" instead of a literal version.
 catalog:
+  '@actions/expressions': 0.3.61
+  '@actions/workflow-parser': 0.3.61
   '@cloudflare/containers': 0.3.7
   '@cloudflare/vite-plugin': 1.62.5
   '@cloudflare/vitest-pool-workers': 0.22.0

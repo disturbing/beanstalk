@@ -10,6 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@actions/expressions": "catalog:",
+    "@actions/workflow-parser": "catalog:",
     "@beanstalk/shared-identity": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@cloudflare/containers": "catalog:",

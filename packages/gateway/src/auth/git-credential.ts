@@ -31,6 +31,7 @@ import type {
 } from '@beanstalk/shared-race/collaborators';
 import { RunId } from '@beanstalk/shared-race/ids';
 
+import { JOB_TOKEN_PREFIX, verifyJobToken } from '../actions/job-tokens';
 import { assertNever } from '../engine/errors';
 import { DEPLOY_TOKEN_PREFIX, verifyDeployToken } from '../repos/deploy-tokens';
 import { verifyToken } from './tokens';
@@ -119,6 +120,7 @@ export async function verifyGitCredential(
 ): Promise<GitCredential | null> {
   if (USER_TOKEN.test(token)) return verifyPersonToken(env, token);
   if (token.startsWith(DEPLOY_TOKEN_PREFIX)) return verifyDeploy(env, token);
+  if (token.startsWith(JOB_TOKEN_PREFIX)) return verifyJob(env, token);
   const check = await verifyToken(env.tokenSecret, token, env.now());
   if (!check.ok) return null;
   const { scope, sub, run } = check.claims;
@@ -288,6 +290,24 @@ async function verifyDeploy(env: GitCredentialEnv, token: string): Promise<GitCr
     engine: engine.data,
     runPrincipal: null,
     session: { via: 'deploy-token', id: verified.id },
+  };
+}
+
+/**
+ * An Actions job token (`bsj_`, the job's GITHUB_TOKEN): bound to its repository's engine,
+ * read, and push (beans only) when the job's permissions allow `contents: write`.
+ */
+async function verifyJob(env: GitCredentialEnv, token: string): Promise<GitCredential | null> {
+  if (env.forge === undefined) return null;
+  const verified = await verifyJobToken(env.forge, token, env.now());
+  const engine = RunId.safeParse(verified?.engineId);
+  if (verified === null || !engine.success) return null;
+  return {
+    user: { id: `actions-job:${verified.jobId}`, handle: 'github-actions' },
+    scopes: verified.canPush ? ['repo:read', 'bean:write'] : ['repo:read'],
+    engine: engine.data,
+    runPrincipal: null,
+    session: null,
   };
 }
 

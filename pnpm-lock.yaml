@@ -6,6 +6,12 @@ settings:
 
 catalogs:
   default:
+    '@actions/expressions':
+      specifier: 0.3.61
+      version: 0.3.61
+    '@actions/workflow-parser':
+      specifier: 0.3.61
+      version: 0.3.61
     '@cloudflare/containers':
       specifier: 0.3.7
       version: 0.3.7
@@ -115,6 +121,12 @@ importers:
 
   packages/gateway:
     dependencies:
+      '@actions/expressions':
+        specifier: 'catalog:'
+        version: 0.3.61
+      '@actions/workflow-parser':
+        specifier: 'catalog:'
+        version: 0.3.61
       '@beanstalk/shared-identity':
         specifier: workspace:*
         version: link:../shared-identity
@@ -380,6 +392,14 @@ importers:
         version: 4.147.0(@types/node@26.6.4)
 
 packages:
+
+  '@actions/expressions@0.3.61':
+    resolution: {integrity: sha512-Ig+tXELvTjlqxQAWBQnLNn2dPpNraLMdSnT+vDzDPmJtbNUhIAH/Z9kVT8pZ8UtJi9vUGs8hwHE8JFJmbOnLEA==}
+    engines: {node: '>= 20'}
+
+  '@actions/workflow-parser@0.3.61':
+    resolution: {integrity: sha512-NBjJrbwwrEN3LSN0NAISLpCWQLcPSBjmAIkLXHgjGX8Yql4PiD33ifSAvr9sIMU9uIs8wZiGUnvo9yPIMIfKdg==}
+    engines: {node: '>= 20'}
 
   '@babel/code-frame@8.0.6':
     resolution: {integrity: sha512-uMHhvmDmwFiLuiozaoRYTZHqMFuu3fem/X9JY78lohAuLoh8LSGGC8JqUzo2cVuBsBxkjMZNk56CE7ock8Xxkw==}
@@ -2113,6 +2133,10 @@ packages:
     resolution: {integrity: sha512-BoZaseYGXOo5j5HUwTaegIog3JJbuH4BbrY9A1ArLjXpy+RWb3mV28F/9Gv1dDA7E2L8kngWva4NWisnLTyfgQ==}
     engines: {node: '>=20'}
 
+  cronstrue@2.59.0:
+    resolution: {integrity: sha512-YKGmAy84hKH+hHIIER07VCAHf9u0Ldelx1uU6EBxsRPDXIA1m5fsKmJfyC3xBhw6cVC/1i83VdbL4PvepTrt8A==}
+    hasBin: true
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -3256,6 +3280,14 @@ packages:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
+
+  '@actions/expressions@0.3.61': {}
+
+  '@actions/workflow-parser@0.3.61':
+    dependencies:
+      '@actions/expressions': 0.3.61
+      cronstrue: 2.59.0
+      yaml: 2.9.1
 
   '@babel/code-frame@8.0.6':
     dependencies:
@@ -4617,6 +4649,8 @@ snapshots:
       vary: 1.1.2
 
   cron-schedule@6.0.0: {}
+
+  cronstrue@2.59.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
