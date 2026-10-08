@@ -2,7 +2,18 @@ import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
 import type { PoolSnapshot } from '../src/capacity/runner-capacity';
-import { ADMIN, call, json, pkt, sha } from './helpers';
+import {
+  GIT_UA,
+  ZERO,
+  advertisedRefs,
+  gitResponse,
+  openRepo,
+  push,
+  pushBody,
+  until,
+} from './git-push-helpers';
+import type { Opened } from './git-push-helpers';
+import { ADMIN, call, json, sha } from './helpers';
 
 /**
  * The git-native flow end to end through the real Worker and engine Durable Object, with the
@@ -11,119 +22,6 @@ import { ADMIN, call, json, pkt, sha } from './helpers';
  * The bodies are what `git push` sends: commands, push options, then the pack (here a JSON
  * payload the fake remote reads as commits).
  */
-
-const GIT_UA = { 'user-agent': 'git/2.47.0' };
-const ZERO = '0'.repeat(40);
-
-type Opened = { engineId: string; created: boolean; base_sha: string; git_path: string };
-type Bean = {
-  bean: string;
-  phase: string;
-  reason: string;
-  task: string | null;
-  pushes: number;
-  verdict: string[];
-};
-
-async function openRepo(
-  repo: string,
-  engine?: Record<string, unknown>,
-): Promise<{ opened: Opened; token: string }> {
-  const response = await call('POST', '/v1/repos', {
-    token: ADMIN,
-    body: {
-      repoName: repo,
-      artifactsRepo: `repo-${repo}`,
-      owner: { id: 'u1', handle: 'acme' },
-      settings: {
-        bean_url: 'https://web.test/acme/beans/{bean}',
-        // The fake runner decides these tests' reds; the repository's own checks are below.
-        engine: { checks_source: 'suite', ...engine },
-      },
-      create_artifacts_repo: true,
-    },
-  });
-  expect(response.status).toBe(201);
-  const opened = await json<Opened>(response);
-  const minted = await call('POST', `/v1/repos/${opened.engineId}/git-token`, {
-    token: ADMIN,
-    body: { user: { id: 'u1', handle: 'coop' } },
-  });
-  return { opened, token: (await json<{ token: string }>(minted)).token };
-}
-
-/** What `git push` sends: one command with capabilities, push options, then the pack. */
-function pushBody(input: {
-  ref: string;
-  oldSha?: string;
-  newSha: string;
-  options?: string[];
-  message?: string;
-}): string {
-  const options = input.options ?? [];
-  const caps = `report-status side-band-64k${options.length > 0 ? ' push-options' : ''} agent=git/2.47.0`;
-  const command = pkt(`${input.oldSha ?? ZERO} ${input.newSha} ${input.ref}\0${caps}\n`);
-  const optionSection =
-    options.length > 0 ? `${options.map((option) => pkt(`${option}\n`)).join('')}0000` : '';
-  const commits =
-    input.newSha === ZERO
-      ? {}
-      : { [input.newSha]: { message: input.message ?? 'Change', parents: [], files: {} } };
-  return `${command}0000${optionSection}PACK${JSON.stringify({ commits })}`;
-}
-
-function push(path: string, token: string, body: string): Promise<Response> {
-  return call('POST', `${path}/git-receive-pack`, {
-    body,
-    headers: {
-      ...GIT_UA,
-      authorization: `Basic ${btoa(`x:${token}`)}`,
-      'content-type': 'application/x-git-receive-pack-request',
-      accept: 'application/x-git-receive-pack-result',
-    },
-  });
-}
-
-/** The side-band response as git reads it: `remote:` lines (band 2) and the report (band 1). */
-async function gitResponse(response: Response): Promise<{ remote: string; report: string }> {
-  const text = await response.text();
-  let remote = '';
-  let report = '';
-  let offset = 0;
-  while (offset + 4 <= text.length) {
-    const length = Number.parseInt(text.slice(offset, offset + 4), 16);
-    if (length === 0) {
-      offset += 4;
-      continue;
-    }
-    const payload = text.slice(offset + 5, offset + length);
-    if (text.charCodeAt(offset + 4) === 2) remote += payload;
-    else if (text.charCodeAt(offset + 4) === 1) report += payload;
-    offset += length;
-  }
-  return { remote, report };
-}
-
-async function beans(engine: string): Promise<Bean[]> {
-  return json<Bean[]>(await call('GET', `/v1/repos/${engine}/beans`, { token: ADMIN }));
-}
-
-/** Asks for the beans until `bean` reaches one of `phases` (the engine works between asks). */
-async function until(engine: string, bean: string, phases: readonly string[]): Promise<Bean> {
-  for (let ask = 0; ask < 400; ask += 1) {
-    // oxlint-disable-next-line no-await-in-loop -- the engine moves between asks
-    const found = (await beans(engine)).find((candidate) => candidate.bean === bean);
-    if (found !== undefined && phases.includes(found.phase)) return found;
-  }
-  throw new Error(`${bean} never reached ${phases.join(' or ')}`);
-}
-
-async function advertisedRefs(path: string, token: string): Promise<string> {
-  const response = await call('GET', `${path}/info/refs?service=git-upload-pack`, {
-    headers: { ...GIT_UA, authorization: `Basic ${btoa(`x:${token}`)}` },
-  });
-  return response.text();
-}
 
 describe('git-native flow', () => {
   it('opens a repository engine once, with the sprout and the stalk at the default branch', async () => {
@@ -331,11 +229,15 @@ describe('git-native flow', () => {
     expect(deletion.report).toContain('deleting refs is not allowed');
     expect(await advertisedRefs(opened.git_path, token)).not.toContain('refs/heads/feature');
     const first = await sha('done-1');
-    await push(
-      opened.git_path,
-      token,
-      pushBody({ ref: 'refs/heads/bean/done-one', newSha: first, options: ['wait'] }),
+    // Read to the end: the push holds until the bean's verdict.
+    const landed = await gitResponse(
+      await push(
+        opened.git_path,
+        token,
+        pushBody({ ref: 'refs/heads/bean/done-one', newSha: first, options: ['wait'] }),
+      ),
     );
+    expect(landed.remote).toContain('LANDED: done-one');
     const again = await gitResponse(
       await push(
         opened.git_path,

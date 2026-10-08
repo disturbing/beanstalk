@@ -13,7 +13,7 @@ Written 2026-10-07 from the `git-native` branch (based on `prototype` at `fed4f5
 1. The flow in one screen
 2. URLs and credentials
 3. Push = submit
-4. Push options
+4. Push options (4.1 Waiting for verdicts: `refs/wait/any|all`)
 5. What the push prints
 6. Refs: lines, beans, status
 7. The continuous engine
@@ -67,7 +67,9 @@ Today's tokens: a `git`-scope run token (new) for a person or an agent on one en
 |---|---|
 | `refs/heads/bean/<name>`, new name | A new bean `<name>` (letters, digits, `.`, `_`, `-`; up to 32). Title = commit subject; intent = subject and body without trailers; `Task: <id>` trailer links a task |
 | `refs/heads/bean/<name>`, bean red or in conflict | The push answers the bean's waiting rework: the new head is checked again (force-push after a rebase is expected) |
-| `refs/heads/bean/<name>`, bean being checked | Refused: "wait for its verdict (git push -o wait shows it), then push again" |
+| `refs/heads/bean/<name>`, bean being checked, a new commit | Refused (decided 2026-10-08, rather than queueing it as the next attempt: a queued commit behind a check that lands would have no clear meaning): "bean x is being checked (push 1, 3b42ffd); its verdict comes first. Wait for it with git push -o bean=x origin HEAD:refs/wait/any (returns at the verdict), then push again if it is red or in conflict; a landed bean takes new work as a new bean" |
+| `refs/heads/bean/<name>`, the same commit again | Never reaches the gateway: git compares it with the advertised ref and prints "Everything up-to-date" without sending anything (push options included). Re-attaching to a bean's check is a push to `refs/wait/any` naming it (§4.1) |
+| `refs/wait/any`, `refs/wait/all` | A wait: nothing is stored; the push holds until a verdict (§4.1) |
 | `refs/heads/bean/<name>`, bean landed (or parked, dropped) | Refused: push new work as a new bean |
 | `refs/heads/sprout`, `stalk`, `main` | Refused: "landing is never a push" |
 | any other ref, a deletion, two beans in one push | Refused, with the rule |
@@ -90,9 +92,29 @@ The gateway adds `push-options` to the receive-pack advertisement (Artifacts doe
 | `-o wait=<seconds>` | Same with a timeout (at most 1800) |
 | `-o task=<id>` | Links a task (overrides the trailer) |
 | `-o intent=<text>` | The bean's intent (and title, its first line), instead of the commit message |
+| `-o bean=<name>` | On a push to `refs/wait/any|all`: a bean to wait for (repeated, or `a,b`; `bean/<name>` accepted) |
 | anything else | Ignored, and said so in a `remote:` line |
 
 A plain `git push` works without options: it prints the received lines and returns; the verdict lands on the status ref. Without a side band (a client that did not ask for `side-band-64k`) there is nowhere to print, so the push returns the upstream report unchanged.
+
+### 4.1 Waiting for verdicts: `refs/wait/any|all` (2026-10-08)
+
+Non-blocking pushes are only worth it if waiting for a verdict later costs nothing. Measured before this (`research/race/ORCHESTRATED.md`, plugin-v1): workers that pushed plainly replaced the blocking push with `sleep 45` to `sleep 90` polls of the status refs, and the lead slept `sleep 420` after its last worker ended. So git now has a blocking wait that a verdict wakes:
+
+```
+git push -o bean=a -o bean=b origin HEAD:refs/wait/any    # returns at the first verdict of a or b
+git push -o bean=a -o bean=b origin HEAD:refs/wait/all    # returns when neither is checking
+git push -o bean=a origin HEAD:refs/wait/any              # re-attach to one bean's check
+git push origin HEAD:refs/wait/any                        # every bean in flight pushed with my credential
+```
+
+- **A wait ref stores nothing.** The gateway reads the command, cancels the pack (git sends an empty one when `HEAD` is on an advertised ref), never forwards to Artifacts, and answers `ok refs/wait/any` on band 1, so git prints `* [new reference] HEAD -> refs/wait/any` and exits 0 every time; the `remote:` lines say what happened. The ref is never advertised, so the next wait is again a "new reference". Any other `refs/wait/<x>`, or a wait together with another ref, is refused in the protocol.
+- **Which beans.** With `-o bean=` the named ones (unknown names are listed and ignored). Without: every bean whose latest push was by the credential's user and that is in flight (`checking`, `red`, `conflict`). Subagents of one person share a credential, so workers name their own beans; a lead may wait on all of them.
+- **When it returns.** `any`: at once when a named bean is already red or in conflict (it waits for its author's push; the verdict is printed), or when none is checking; else when the first bean that was checking at the start leaves the check. `all`: when none of those is checking (red ones are printed with their verdict at the start). Each verdict that arrives is printed as `verdict for <bean>: <phase>` and the same lines `-o wait` prints; at the end `your beans: a (landed), b (checking)` and the next step (`fix b (rebase…)`, or the exact command to wait again for the beans still checking).
+- **How long.** 540 s by default (under the 10-minute ceiling of an agent's shell tool, so Claude Code's Bash with `timeout: 600000` sees the answer), `-o wait=<seconds>` up to 1800; a keepalive line every 15 s. On a timeout: `no verdict after 540 s; b still checking` and the command to wait again.
+- **Event-driven, both sides.** The engine's Durable Object keeps the waiting pushes in memory (`BeanWatchers`, `push/bean-wait.ts`); every save of a pushed bean (each step's events folded in, a received push, a held rework) calls `notify(bean)`, which resolves the watches of that bean. The Worker holds one RPC (`watchBeans(actor, beans, known, maxMs)`: returns at once if the beans' key differs from `known`, else when one of them changes, at most 300 s per call) and writes the keepalive from its own timer meanwhile (`push/wait-stream.ts`). The key is taken before the progress is read, so a change between the two wakes the next watch at once. A watch that fails (the object restarted on a deploy) is asked again up to three times; then the push says the verdicts will be on the status refs. One Durable Object request per change instead of one per second.
+- **`-o wait` and MCP `bean_wait` use the same watch** (they polled the engine once a second before). The `remote:` hints follow the non-blocking flow: a plain push ends with `do not wait on it: take your next task; the verdict goes to refs/beans/<bean>/status` and `out of work? one blocking call wakes on your first verdict: git push -o bean=<bean> origin HEAD:refs/wait/any`; a red or conflict's fix line says `git push -f origin HEAD:refs/heads/bean/<bean>` and the wait command; MCP `bean_open` returns `push` without `-o wait` and a `wait` command.
+- **Read-only credentials** cannot push, so they cannot use a wait ref (their receive-pack is refused before the commands are read); they read the status refs, or MCP `bean_wait`.
 
 ---
 
@@ -105,6 +127,22 @@ All lines start `remote: beanstalk:`. From the staging and local runs:
 remote: beanstalk: new bean add-total received at 81c6380: "Add a total helper"
 remote: beanstalk:   for task DEMO-1
 remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+```
+and on a push without `-o wait` (staging, 2026-10-08):
+```
+remote: beanstalk:   do not wait on it: take your next task; the verdict goes to refs/beans/ev-fast/status
+remote: beanstalk:   out of work? one blocking call wakes on your first verdict: git push -o bean=ev-fast origin HEAD:refs/wait/any
+```
+
+**A wait** (`git push -o bean=ev-fast -o bean=ev-slow origin HEAD:refs/wait/any`, staging):
+```
+remote: beanstalk: waiting for the first verdict of ev-fast (checking), ev-slow (checking)
+remote: beanstalk: verdict for ev-fast: landed
+remote: beanstalk: LANDED: ev-fast passed its pre-land check and is on the sprout as eb89211
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: your beans: ev-fast (green), ev-slow (checking)
+remote: beanstalk:   then take your next task, or wait again: git push -o bean=ev-slow origin HEAD:refs/wait/any
+ * [new reference]   HEAD -> refs/wait/any
 ```
 
 **Landed (`-o wait`):**
@@ -127,7 +165,8 @@ remote: beanstalk: output:
 remote: beanstalk:       actual: 99.00000000000001,
 remote: beanstalk:       expected: 90,
 remote: beanstalk: fix: git fetch origin sprout && git rebase origin/sprout
-remote: beanstalk:      then fix, commit and git push -f -o wait origin HEAD:refs/heads/bean/tax-in-total
+remote: beanstalk:      then fix, commit and git push -f origin HEAD:refs/heads/bean/tax-in-total
+remote: beanstalk:      and keep working; git push -o bean=tax-in-total origin HEAD:refs/wait/any waits for its next verdict
 ```
 
 **Conflict:** the files, both sides of up to four hunks and who landed the sprout's side (the engine's informed conflict context, with "trunk" read as the sprout), then the same fix line.
@@ -294,14 +333,16 @@ Every git request goes through it (race URLs too). To add user tokens: verify th
 
   Live's run (`lg-fastify-16-s7-beanstalk`, the load generator's branch) had 101 timeouts reported as red. After the change no suite timed out at all (the pool's `timeouts` count stayed 0), every lease was back at the end, and CI minutes fell from 410 to 54 (N = 16): the timed-out suites were the cost. The 3 `error` verdicts per run are pushes refused within 3 s at the start (before and after; the load generator re-pushes), and the after-32 run's 3 `timeout` verdicts are verdicts its parser did not classify (checks of 16 to 48 s), not suite timeouts. Runs: `research/race/runs/cap-{before,after}-{16,32}/`, the pool's state every 5 s in `research/race/runs/cap-after-pool-watch.jsonl`.
 
+- **Waiting for verdicts** (§4.1, 2026-10-08): Miniflare `test/bean-wait.test.ts` (7, the fake runner holds a `held-*` bean's check until the test releases it, so every wait is seen holding before the verdict wakes it): re-attach to a bean in check by naming it; a new commit to a bean in check refused with the wait command; wait-any woken by the second of two beans' verdicts while the first is still checking, then wait-all woken by the last; a timeout naming the beans still checking and the command to wait again; an immediate answer for a red bean and for nothing in flight (unknown name listed); `-o wait` woken by the verdict; a malformed wait ref refused. `test/git-native.test.ts`'s refusal test now reads its `-o wait` push to the end before pushing again (it raced the verdict and failed on `prototype` at `24c8608`); the shared push helpers moved to `test/git-push-helpers.ts`. Staging, own stack (`beanstalk-gateway-staging-ev`, D1 `beanstalk-forge-staging-ev` with migrations 0001 to 0004 and `beanstalk-identity-staging-ev` with 0001 to 0003, queue `beanstalk-repo-events-staging-ev`, Artifacts `beanstalk-race-staging-ev` / `beanstalk-repos-staging-ev`, its own runner app), real git 2.x, `research/race/git_native/wait_demo.sh` through `staging_e2e.py --demo wait_demo.sh`: two beans pushed plainly (2 and 4 s), one `refs/wait/any` that returned 9 s later at the fast bean's verdict with the slow one still checking, a new commit to the slow bean refused with the command, `refs/wait/all` re-attached and woken at its verdict after 39 s (its suite has a 40 s test), `git ls-remote` with no `refs/wait`; 65 s in all. Transcript: `exp/git-native/wait-staging-transcript.txt`.
+
 ## 10. Gaps and next steps
 
 - **Slots bound beans waiting for their authors.** Each red bean holds one of 32 slots until its next push; a 33rd simultaneous red would delay new beans' checks (not lose them). Next: release a slot while its rework waits for a push (a pushed bean needs no agent seat), or grow slots on demand.
 - **State size.** A continuous engine's state (tasks, invocation records) grows with every bean; races stay under the 2 MB value limit, a busy repository would not forever. Next: compact finished beans out of the engine state into the event log and the `push_beans` table.
 - **Pushed beans have no acceptance tests.** The whole suite is the check; reconcile and test-author steps are answered with no commit, so a contradiction between two beans' tests goes to a decision card or parks. Next: take the tests a bean adds as its acceptance tests.
-- **One bean per push**, and a bean being checked refuses a new push (no "replace while checking"). Next: cancel the running check and take the new head.
+- **One bean per push**, and a bean being checked refuses a new commit (decided 2026-10-08: refused with the wait command, not queued). Next, if agents ask for it: cancel the running check and take the new head.
 - **Two pushes of one new bean at once** both pass the check before the repository moves; the second reaches the repository but the engine refuses it (the push says so: "the bean's branch moved, but the engine did not take it"). Next: a per-bean lease taken before forwarding.
-- **`-o wait` polls the engine** once a second from the Worker (up to 600 Durable Object requests for a 10-minute wait, metered as such). Next: a hibernatable wait in the engine object that resolves on the verdict.
+- **Waits live in the engine object's memory** (§4.1): a deploy that restarts the object drops them and each push asks again (three tries). Waiting pushes keep the engine object awake (it is awake while a bean is in check anyway). A wait without names covers the credential's user, so agents sharing a person's credential must name their beans.
 - **Rework base.** After a red, the engine records the sprout head of the rework as the merge base; a fix pushed without rebasing still lands correctly (the runner computes the real merge base) but blames from that point.
 - **Engine id from the name.** Renaming an owner or a repository changes its URL's engine; the repository side must keep the name stable or ask for a rename operation.
 - **No user tokens yet**: `git` run tokens (from `gitToken`) stand in; the seam is §8.3.
