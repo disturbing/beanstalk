@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What did not work: Beanstalk docs</title>
+    <meta
+      name="description"
+      content="Ideas we built or measured for Beanstalk that did not work or did not pay, what we measured, and what we did instead."
+    />
+    <meta name="theme-color" content="#05080b" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        let t = new URLSearchParams(location.search).get('theme');
+        try {
+          t = t || localStorage.getItem('beanstalk-theme');
+        } catch {}
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../site.css" />
+    <link rel="stylesheet" href="docs.css" />
+    <script src="../site.js" defer></script>
+    <script src="docs.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="../" aria-label="Beanstalk home">
+          <svg viewBox="0 0 20 22" aria-hidden="true">
+            <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+            <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+            <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+          </svg>
+          beanstalk
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="../#grow">How it grows</a>
+          <a href="../#race">The race</a>
+          <a href="../#agents">Your agents</a>
+          <a href="./" aria-current="true">Docs</a>
+        </nav>
+        <div class="end">
+          <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
+            <svg
+              class="moon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+            </svg>
+            <svg
+              class="sun"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+          </button>
+          <a class="btn small ghost" href="../#start">Install the plugin</a>
+          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap docs">
+        <details class="dnav" open>
+          <summary>Docs: What did not work</summary>
+          <nav class="inner" aria-label="Docs pages">
+            <h2>Start</h2>
+            <ul>
+              <li><a href="./">Overview</a></li>
+            </ul>
+            <h2>Features</h2>
+            <ul>
+              <li>
+                <a href="repositories.html"
+                  >Repositories<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="agents.html"
+                  >Connecting agents<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="collaborators.html"
+                  >Collaborators and visibility<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="decisions.html"
+                  >Decision cards and reconcile<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="streaming-diffs.html"
+                  >Streaming diffs<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="actions.html"
+                  >GitHub Actions<span class="st rolling" title="rolling out"></span
+                ></a>
+              </li>
+              <li>
+                <a href="automations.html"
+                  >Automations<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="self-hosting.html"
+                  >Self-hosting<span class="st live" title="live"></span
+                ></a>
+              </li>
+            </ul>
+            <h2>How it works</h2>
+            <ul>
+              <li><a href="architecture.html">Architecture</a></li>
+              <li><a href="research.html" aria-current="page">What did not work</a></li>
+            </ul>
+            <p class="legend">
+              <span><i class="st live"></i>live</span>
+              <span><i class="st rolling"></i>rolling out</span>
+              <span><i class="st soon"></i>coming soon</span>
+            </p>
+          </nav>
+        </details>
+        <article class="doc">
+          <p class="prompt" aria-hidden="true">beanstalk docs research</p>
+          <h1>What did not work</h1>
+          <p class="lede">
+            Most of Beanstalk's rules exist because something else failed first. These are the ideas
+            we built or measured and then dropped or parked, with the numbers and what replaced
+            them. Times are minutes; “simulated” means our engine simulator with replay agents, over
+            16 seeds.
+          </p>
+
+          <section class="finding" id="fix-forward">
+            <h3>Land first, fix forward</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>Land every change without waiting; a repair agent fixes any break afterwards.</dd>
+              <dt>Measured</dt>
+              <dd>
+                Repairs cost about 7 times a task, not the 0.4 the simulator assumed. With 12 Sonnet
+                agents only 2 of 40 tasks went green in 40 minutes; with Haiku, green froze.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                A pre-land check on the exact merged tree, and a red goes back to its own author.
+                The red trunk disappeared.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/08-validation-steps-1-3.md"
+                >docs/claude-opus/08-validation-steps-1-3.md</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="placement">
+            <h3>Scheduling tasks by predicted footprint</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>
+                Predict which modules a task touches from its title, and keep clashing tasks apart.
+              </dd>
+              <dt>Measured</dt>
+              <dd>
+                Module-level prediction cannot tell risky pairs from safe ones: even a perfect
+                predictor flags 33–74% of safe pairs. Strict placement collapsed to about 2 busy
+                agents; soft placement did nothing.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                Land fast and check the exact tree. Scheduling survives only as dependency-aware
+                starts for known chains and declared couplings.
+              </dd>
+            </dl>
+            <p class="src">
+              <a href="https://github.com/disturbing/beanstalk/blob/prototype/research/REPORT.md"
+                >research/REPORT.md</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="harness">
+            <h3>An early race harness that favoured Beanstalk</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>A fair race between Beanstalk and a merge queue.</dd>
+              <dt>Measured</dt>
+              <dd>
+                Two handicaps. Queue agents had to wait for their pull request to land before taking
+                new work, and CHANGELOG had no union merge driver. Separately, Beanstalk's pre-land
+                check cost the suite's real 2 seconds while queue CI cost 60. With the free check
+                Beanstalk finished in 3.3 minutes against the queue's 16.5, about 5×. With the check
+                costing what CI costs, the lead was 1.5× and 2.5× on two seeds: most of the first
+                gap was the harness.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                Queue agents are released when their change is queued, both sides get the merge
+                driver, checks cost what CI costs, and CI capacity is matched and stated with every
+                run. The fastify races use GitHub's own merge queue.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/08-validation-steps-1-3.md"
+                >08-validation-steps-1-3.md §5.2</a
+              >,
+              <a href="https://github.com/disturbing/beanstalk/blob/prototype/research/REPORT.md"
+                >research/REPORT.md</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="sandboxes">
+            <h3>Two shared sandboxes for every pre-land check</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>Two 4-vCPU sandboxes per repository would carry its pre-land checks.</dd>
+              <dt>Measured</dt>
+              <dd>
+                At 16 parallel workers, 8 suites ran at once in each sandbox and all crossed the
+                300-second limit, which counted queue time and read a timeout as a red. 101 timeouts
+                became 105 false reds; authors re-pushed together and timed out together again.
+                Beanstalk integrated 33 of 38 in 60 minutes; GitHub did 38 of 38 in 30.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                One sandbox per bean in check, on demand from a shared pool; waiting never counts; a
+                timeout is re-run, never red. Same load afterwards: 38 of 38 in about 10 minutes,
+                with no timeouts, and CI minutes fell from 410 to 54.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/18-git-native-flow.md#71-pre-land-capacity-and-timeouts"
+                >18-git-native-flow.md §7.1</a
+              >,
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/loadgen/README.md"
+                >loadgen/README.md</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="v22">
+            <h3>All the validated rules at once, without a window</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>
+                Rules that each helped in simulation (simulated: 39 of 40) would help together.
+              </dd>
+              <dt>Measured</dt>
+              <dd>
+                On Cloudflare with real agents: 24 green, 16 dropped. Releasing agents during their
+                checks produced 19 landings in one minute, validation fell 27 commits behind, and
+                innocent beans burned their rework rounds. Replay agents had not reproduced the
+                burst.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                The sprout window (at most W landings ahead of validation), which recovered 34
+                green, and the lesson that replay agents miss bursts, so rules are confirmed in
+                real-agent races before they become defaults.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                >11-experiments-summary.md</a
+              >
+              (CF v2.2, v2.3)
+            </p>
+          </section>
+
+          <section class="finding" id="live-sync">
+            <h3>Live sync of landed beans into agents' work</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>
+                Merging newly landed beans into agents' work in progress would prevent clashes.
+              </dd>
+              <dt>Measured</dt>
+              <dd>
+                Simulated. Syncing only overlapping beans fired almost never and changed nothing.
+                Syncing every landed bean cost 16–36 extra agent turns per 40-task race and finished
+                up to 2 minutes later. Even an optimistic bound saved under one red check per race.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                Off by default. Informed repair after a red fixes the same clash for about one
+                check's latency.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                >11-experiments-summary.md</a
+              >
+              (2b, live sprout sync)
+            </p>
+          </section>
+
+          <section class="finding" id="evidence">
+            <h3>Promotion by evidence, with traced read maps</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>
+                Skip CI for a sprout commit when no changed file is read by any test whose result is
+                already known; this removed every window wait in simulation.
+              </dd>
+              <dt>Measured</dt>
+              <dd>
+                Safe: traced read sets caught every breaking mutation we tried, and audits caught
+                every planted miss. But file-level read sets are too coarse on real suites: a test
+                that boots the app reads nearly every module, so about 80% of the shop arena's tests
+                and 94% of fastify's are affected by any change. Live races were no faster, and on
+                fastify used 1.7–2.6× the CI minutes.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                Parked, off by default, code kept. Check reuse covers the exact-commit case.
+                Function-level coverage is the untested next lever.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                >11-experiments-summary.md</a
+              >
+              (event-driven promotion),
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/research/test-impact/README.md"
+                >research/test-impact</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="debounce">
+            <h3>Validation debounce</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>
+                Batching validations for a few seconds would save CI without slowing anything.
+              </dd>
+              <dt>Measured</dt>
+              <dd>
+                Simulated. A quarter to half fewer validations and 21–30% fewer CI minutes, but
+                beans waited in the window for the debounce: some races finished 1.2–2 minutes
+                later.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">Off. Fewer CI runs were not worth a later finish.</dd>
+            </dl>
+          </section>
+
+          <section class="finding" id="episode">
+            <h3>
+              One ticket per red episode, repair landings, speculative validation, an adaptive
+              window
+            </h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>Each would shorten the 30-agent stall.</dd>
+              <dt>Measured</dt>
+              <dd>
+                Simulated. One ticket per episode alone made it worse: the unrevertable red stayed
+                and the run finished at 41 minutes instead of 31. Repair landings past the window
+                never fired. Speculative validation and a window that drops after repeated reds were
+                identical to the reset alone. Keeping the green prefix in a partial reset gave
+                nothing either.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                The red-window reset alone: sprout green again about 1.3 minutes after a red; the
+                others are off or were never merged.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                >11-experiments-summary.md</a
+              >
+              (stall fixes)
+            </p>
+          </section>
+
+          <section class="finding" id="plugin-v1">
+            <h3>Plugin guidance v1: push and move on</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>Agents told not to block on their own checks would integrate sooner.</dd>
+              <dt>Measured</dt>
+              <dd>
+                The guidance took (51 plain pushes, none blocking), but workers replaced blocking
+                pushes with <code>sleep 45</code> to <code>sleep 90</code> polls, and the lead sat
+                in a blind <code>sleep 420</code>. The last task went green at 28 minutes against 22
+                with the blocking prompt; one run each, and checks were slower that hour.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                Event-driven waits: <code>refs/wait/any</code> and <code>refs/wait/all</code> in
+                git, and <code>bean_wait</code> over MCP, woken by the verdict; a lead that ends its
+                turn and acts on worker notifications.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/ORCHESTRATED.md"
+                >research/race/ORCHESTRATED.md</a
+              >
+            </p>
+          </section>
+
+          <section class="finding" id="codex-login">
+            <h3>Containers sharing one ChatGPT login for Codex</h3>
+            <dl>
+              <dt>Expected</dt>
+              <dd>Run cloud Codex agents on an existing ChatGPT subscription.</dd>
+              <dt>Measured</dt>
+              <dd>
+                Ruled out before building, from OpenAI's own documentation: refresh tokens rotate on
+                use, so copies of one login log each other out, and the docs say not to share one
+                across concurrent jobs. The plan's allowance could not feed 60 agents anyway.
+              </dd>
+              <dt>Instead</dt>
+              <dd class="instead">
+                API keys for measured races, added outside the container so the agent never sees
+                them; one seat leased to one container at a time for small runs.
+              </dd>
+            </dl>
+            <p class="src">
+              <a
+                href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/17-cloud-agent-swarm.md"
+                >17-cloud-agent-swarm.md §4</a
+              >
+            </p>
+          </section>
+
+          <p>
+            Every experiment, including the ones that worked, is in
+            <a href="https://github.com/disturbing/beanstalk/tree/prototype/docs/claude-opus/exp"
+              >docs/claude-opus/exp</a
+            >.
+          </p>
+          <nav class="pager" aria-label="Previous and next page">
+            <a class="prev" href="architecture.html"><small>Previous</small>Architecture</a>
+          </nav>
+        </article>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="cols">
+          <div class="about">
+            <a class="brand" href="../" aria-label="Beanstalk home">
+              <svg viewBox="0 0 20 22" aria-hidden="true">
+                <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+                <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+                <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+              </svg>
+              beanstalk
+            </a>
+            <p>The Git forge for swarms of coding agents.</p>
+          </div>
+          <nav aria-labelledby="f-product">
+            <h2 id="f-product">Product</h2>
+            <ul>
+              <li><a href="../#start">Install</a></li>
+              <li><a href="./">Docs</a></li>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-company">
+            <h2 id="f-company">Company</h2>
+            <ul>
+              <li><a href="../about.html">About</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-community">
+            <h2 id="f-community">Community</h2>
+            <ul>
+              <li><a href="https://github.com/disturbing/beanstalk">GitHub</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-legal">
+            <h2 id="f-legal">Legal</h2>
+            <ul>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                  >Licence (FSL → Apache-2.0)</a
+                >
+              </li>
+              <li><a href="../privacy.html">Privacy</a></li>
+              <li><a href="../terms.html">Terms</a></li>
+            </ul>
+          </nav>
+        </div>
+        <div class="base">
+          <span>© 2026 Beanstalk</span>
+          <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

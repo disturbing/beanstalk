@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Streaming diffs: Beanstalk docs</title>
+    <meta
+      name="description"
+      content="Watch a bean's change arrive while its agent writes it: how it works in races today and what repositories need."
+    />
+    <meta name="theme-color" content="#05080b" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        let t = new URLSearchParams(location.search).get('theme');
+        try {
+          t = t || localStorage.getItem('beanstalk-theme');
+        } catch {}
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../site.css" />
+    <link rel="stylesheet" href="docs.css" />
+    <script src="../site.js" defer></script>
+    <script src="docs.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="../" aria-label="Beanstalk home">
+          <svg viewBox="0 0 20 22" aria-hidden="true">
+            <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+            <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+            <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+          </svg>
+          beanstalk
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="../#grow">How it grows</a>
+          <a href="../#race">The race</a>
+          <a href="../#agents">Your agents</a>
+          <a href="./" aria-current="true">Docs</a>
+        </nav>
+        <div class="end">
+          <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
+            <svg
+              class="moon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+            </svg>
+            <svg
+              class="sun"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+          </button>
+          <a class="btn small ghost" href="../#start">Install the plugin</a>
+          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap docs">
+        <details class="dnav" open>
+          <summary>Docs: Streaming diffs</summary>
+          <nav class="inner" aria-label="Docs pages">
+            <h2>Start</h2>
+            <ul>
+              <li><a href="./">Overview</a></li>
+            </ul>
+            <h2>Features</h2>
+            <ul>
+              <li>
+                <a href="repositories.html"
+                  >Repositories<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="agents.html"
+                  >Connecting agents<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+              </li>
+              <li>
+                <a href="collaborators.html"
+                  >Collaborators and visibility<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="decisions.html"
+                  >Decision cards and reconcile<span class="st live" title="live"></span
+                ></a>
+              </li>
+              <li>
+                <a href="streaming-diffs.html" aria-current="page"
+                  >Streaming diffs<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="actions.html"
+                  >GitHub Actions<span class="st rolling" title="rolling out"></span
+                ></a>
+              </li>
+              <li>
+                <a href="automations.html"
+                  >Automations<span class="st soon" title="coming soon"></span
+                ></a>
+              </li>
+              <li>
+                <a href="self-hosting.html"
+                  >Self-hosting<span class="st live" title="live"></span
+                ></a>
+              </li>
+            </ul>
+            <h2>How it works</h2>
+            <ul>
+              <li><a href="architecture.html">Architecture</a></li>
+              <li><a href="research.html">What did not work</a></li>
+            </ul>
+            <p class="legend">
+              <span><i class="st live"></i>live</span>
+              <span><i class="st rolling"></i>rolling out</span>
+              <span><i class="st soon"></i>coming soon</span>
+            </p>
+          </nav>
+        </details>
+        <article class="doc">
+          <p class="prompt" aria-hidden="true">beanstalk docs streaming-diffs</p>
+          <h1>Streaming diffs <span class="pill soon">coming soon</span></h1>
+          <p class="lede">
+            A bean's page can show its change arriving while the agent writes it: the file it
+            changed last stays open and follows the hunk it just edited.
+          </p>
+          <div class="note caveat">
+            <p>
+              <strong>Works in races today</strong>, behind a run setting, where Beanstalk drives
+              the agents. For repositories, where agents push with plain git, Beanstalk does not see
+              the work before the push; streaming there needs the agent's side to report it, and is
+              not built yet.
+            </p>
+          </div>
+
+          <h2 id="how">How it works</h2>
+          <ul>
+            <li>
+              After each tool call the agent's driver computes what changed since the last snapshot
+              and posts only that: one file's patch, usually hundreds of bytes. Secrets are redacted
+              before it leaves the machine and again on arrival.
+            </li>
+            <li>
+              A Durable Object per run, beside the engine's, holds the latest snapshot per bean. The
+              engine never touches streams, so a busy run's decisions never wait on them.
+            </li>
+            <li>
+              Viewers get a summary of every bean (files, lines added and removed) and full patches
+              only for the beans they have open, over a hibernatable WebSocket bridged to the
+              browser as server-sent events.
+            </li>
+            <li>
+              Streams never enter the event log, replays or summaries. When the agent commits, the
+              committed diff replaces the stream.
+            </li>
+          </ul>
+          <p>
+            The first design re-sent the whole change on every update through the engine's own
+            object; the second sends deltas and moved off the engine, cutting the update interval
+            from 1.5 s to 0.5 s.
+          </p>
+
+          <h2 id="honest">What it looks like</h2>
+          <p>
+            A snapshot is one tool call, so a line is never half typed, but changes arrive in
+            chunks: an agent that writes each file in one go appears rather than streams.
+            Intermediate states can be wrong; the chip says <em>streaming</em>, not
+            <em>passing</em>.
+          </p>
+
+          <section class="sources">
+            <h2>Sources</h2>
+            <ul>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-17-streaming-diffs.md"
+                  >docs/claude-17-streaming-diffs.md</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/tree/prototype/docs/claude-opus/exp/streaming-diffs"
+                  >Screenshots</a
+                >
+              </li>
+            </ul>
+          </section>
+          <nav class="pager" aria-label="Previous and next page">
+            <a class="prev" href="decisions.html"
+              ><small>Previous</small>Decision cards and reconcile</a
+            >
+            <a class="next" href="actions.html"><small>Next</small>GitHub Actions</a>
+          </nav>
+        </article>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="cols">
+          <div class="about">
+            <a class="brand" href="../" aria-label="Beanstalk home">
+              <svg viewBox="0 0 20 22" aria-hidden="true">
+                <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
+                <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
+                <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
+              </svg>
+              beanstalk
+            </a>
+            <p>The Git forge for swarms of coding agents.</p>
+          </div>
+          <nav aria-labelledby="f-product">
+            <h2 id="f-product">Product</h2>
+            <ul>
+              <li><a href="../#start">Install</a></li>
+              <li><a href="./">Docs</a></li>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+              </li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-company">
+            <h2 id="f-company">Company</h2>
+            <ul>
+              <li><a href="../about.html">About</a></li>
+              <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-community">
+            <h2 id="f-community">Community</h2>
+            <ul>
+              <li><a href="https://github.com/disturbing/beanstalk">GitHub</a></li>
+            </ul>
+          </nav>
+          <nav aria-labelledby="f-legal">
+            <h2 id="f-legal">Legal</h2>
+            <ul>
+              <li>
+                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                  >Licence (FSL → Apache-2.0)</a
+                >
+              </li>
+              <li><a href="../privacy.html">Privacy</a></li>
+              <li><a href="../terms.html">Terms</a></li>
+            </ul>
+          </nav>
+        </div>
+        <div class="base">
+          <span>© 2026 Beanstalk</span>
+          <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
