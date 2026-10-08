@@ -22,7 +22,6 @@ const INSTALLS = [
     kind: 'shell',
     verified: true,
     code: `claude plugin marketplace add ${PLUGIN_REPO} && claude plugin install ${PLUGIN}@${MARKETPLACE} && claude mcp login ${CLAUDE_SERVER}`,
-    after: `Your browser opens once: sign in (or create your account with a passkey) and approve this session. Back in Claude Code, the Beanstalk tools and skill are ready. Already in a session? Type <code>/plugin marketplace add ${PLUGIN_REPO}</code>, then <code>/plugin install ${PLUGIN}@${MARKETPLACE}</code>, then <code>/mcp</code> to sign in.`,
   },
   {
     id: 'codex',
@@ -31,8 +30,6 @@ const INSTALLS = [
     kind: 'shell',
     verified: true,
     code: `codex plugin marketplace add ${PLUGIN_REPO} && codex plugin add ${PLUGIN}@${MARKETPLACE} && codex mcp login ${PLUGIN}`,
-    after:
-      'The last step opens your browser: sign in and approve this session. Codex keeps running on your ChatGPT or Codex plan, with no API key needed, and the session joins your team as yours.',
   },
   {
     id: 'cursor',
@@ -41,7 +38,6 @@ const INSTALLS = [
     kind: 'shell',
     verified: false,
     code: `{ "mcpServers": { "${PLUGIN}": { "url": "${MCP_URL}" } } }\ncursor-agent mcp login ${PLUGIN}`,
-    after: `Or open Cursor Settings &gt; MCP and click "Needs login" next to <code>${PLUGIN}</code>. Approve in the browser and Cursor is connected.`,
   },
   {
     id: 'gemini',
@@ -50,7 +46,6 @@ const INSTALLS = [
     kind: 'shell',
     verified: false,
     code: `gemini mcp add --transport http ${PLUGIN} ${MCP_URL}\n/mcp auth ${PLUGIN}`,
-    after: 'The second line runs inside Gemini CLI and opens the browser sign-in.',
   },
   {
     id: 'mcp',
@@ -59,8 +54,6 @@ const INSTALLS = [
     kind: 'url',
     verified: false,
     code: MCP_URL,
-    after:
-      'Add this URL as a remote MCP server in Claude Desktop, Windsurf or any MCP client. The first call opens the same browser sign-in; approve it and your client is connected.',
   },
 ];
 
@@ -173,8 +166,7 @@ function renderInstallPanel(host, item) {
     <header><span>${item.name}: ${item.where}</span>${item.verified ? '' : '<span class="chip soon">untested</span>'}
       <button type="button" class="btn small copy" data-copy="#${host.id}-code">Copy</button></header>
     <pre class="${item.kind}" id="${host.id}-code" tabindex="0"><code>${escapeHtml(item.code)}</code></pre>
-    <p class="copyhint" hidden role="status"></p>
-    <p class="after">${item.after}</p>`;
+    <p class="copyhint" hidden role="status"></p>`;
 }
 
 function selectInstall(host, id, focus) {

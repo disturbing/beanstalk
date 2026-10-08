@@ -233,7 +233,36 @@ The Worker-side parts (triggers, plan, token, secrets, logs, UI) are the same in
 ### 3.5 Job token (`GITHUB_TOKEN`) and OIDC
 
 - **Job token** `bsj_…`: minted per job by the actions Worker and stored hashed in FORGE. It is bound to the repository engine and to the job's lifetime plus 5 minutes, and revoked when the job ends. `verifyGitCredential` gets one more branch. Its scopes come from `permissions:`: `contents: read` fetches, and `contents: write` may push **`bean/<name>` only**, so a job that writes code makes a bean that goes through the pre-land check. Sprout and stalk are never reachable, as for every credential (`AGENTS.md`). `GITHUB_SERVER_URL` and `GITHUB_API_URL` point at `bs.internal`, and the outbound handler adds the token for git. The environment variable still holds it, because actions read `GITHUB_TOKEN`; it is short-lived and scoped. A GitHub-shaped REST subset (repos, contents, commit statuses) is v2.
-- **OIDC (v2):** a Beanstalk issuer at `https://<domain>/_actions/oidc` with discovery and JWKS (keys in Secrets Store). Claims mirror GitHub's: `sub` is `repo:<owner>/<repo>:ref:refs/heads/stalk`, plus `repository`, `ref`, `sha`, `workflow_ref`, `run_id`, `actor`. It works only where the user registers our issuer (AWS, GCP, Azure, Vault). Cloudflare deploys use an API token secret.
+- **OIDC:** a Beanstalk issuer at `https://<domain>/_actions/oidc` with discovery and JWKS, claims mirroring GitHub's. It works only where the user registers our issuer (AWS, GCP, Azure, Vault); details below.
+
+#### OIDC identity tokens (built: `packages/shared-oidc`, `packages/oidc`)
+
+A job with `permissions: id-token: write` gets `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN`, so `actions/core.getIDToken(aud)` and `aws-actions/configure-aws-credentials` work unchanged. The contract is GitHub's ([claims and request endpoint](https://docs.github.com/en/actions/reference/security/oidc); [`oidc-utils.ts`](https://github.com/actions/toolkit/blob/main/packages/core/src/oidc-utils.ts)): `GET <url>&audience=<aud>` with `Authorization: bearer <token>` returns `{ "count": n, "value": "<jwt>" }`.
+
+- **Issuer** `https://<host>/_actions/oidc` (override with the `OIDC_ISSUER_URL` var). Discovery at `<issuer>/.well-known/openid-configuration`, keys at `<issuer>/.well-known/jwks`, token endpoint `<issuer>/token?api-version=2.0` (the request URL already carries a query string, as `core.getIDToken` appends `&audience=`).
+- **Request token** `bsoidc.<payload>.<mac>`: HMAC-SHA-256 over the job's frozen identity (repository, run, job, ref, sha, event, actor, environment, pusher kind). It is bound to one job, lives for the job timeout plus 5 minutes (at most 65), and is never an identity token. The control plane may also refuse it earlier through `isJobActive` (the job ended). Control-plane hook: `mintIdTokenRequest(job, options)` from `@beanstalk/shared-oidc/issuer` returns `{ url, token } | null`; put them in the job env. `null` means the job gets neither variable (no `id-token: write`, or an untrusted pre-land check).
+- **Identity token:** RS256 or ES256, `typ: JWT`, `kid` header, 5 minutes by default and never more than 10. Default `aud` is `https://<host>/<owner>`, as GitHub's is the owner URL. Claims: `iss aud sub exp iat nbf jti repository repository_id repository_owner repository_owner_id repository_visibility ref ref_type sha head_ref base_ref workflow workflow_ref workflow_sha job_workflow_ref job_workflow_sha run_id run_number run_attempt actor actor_id event_name environment runner_environment` (`beanstalk-hosted`), plus ours: `trust` (`stalk`, `preland`, `preland_untrusted`), `pusher` and `bean` on pre-land runs.
+
+| Run | `sub` | `event_name` |
+|---|---|---|
+| stalk (`push`, `workflow_dispatch`, `schedule`) | `repo:<owner>/<repo>:ref:refs/heads/<branch>` | the event |
+| any run with `environment:` | `repo:<owner>/<repo>:environment:<env>` | the event |
+| pre-land check of a maintainer's bean | `repo:<owner>/<repo>:pull_request` | `pull_request` (`ref` is `refs/heads/bean/<name>`) |
+| pre-land check of a bean pushed by an agent (`bss_`), deploy token (`bsd_`) or non-maintainer collaborator | `repo:<owner>/<repo>:preland-untrusted:<agent\|deploy_token\|collaborator>` | `pull_request`, `trust: preland_untrusted`, no `environment` |
+
+The untrusted `sub` matches no policy written for `...:ref:*`, `...:environment:*` or `...:pull_request`, so an agent cannot reach a cloud role by pushing a bean. By default (D4) such a run is not given the two variables at all; the control plane opts in with `allowUntrustedPreland` only for a repository that chose it, and the token then carries the distinguishable `sub`. Pin trust policies to `sub` (or `repository_id`, which survives renames), never to `repository_owner` alone.
+
+**Trust policies.** Register the issuer with the provider once.
+
+- AWS: IAM → Identity providers → OpenID Connect, provider URL `https://<host>/_actions/oidc`, audience `sts.amazonaws.com`. Role trust: `"Condition": { "StringEquals": { "<host>/_actions/oidc:aud": "sts.amazonaws.com", "<host>/_actions/oidc:sub": "repo:acme/site:ref:refs/heads/stalk" } }`. Use `aws-actions/configure-aws-credentials` with `role-to-assume`.
+- GCP: Workload Identity Pool → OIDC provider, issuer URI `https://<host>/_actions/oidc`, attribute mapping `google.subject=assertion.sub`, `attribute.repository=assertion.repository`, condition `assertion.sub == "repo:acme/site:ref:refs/heads/stalk"`, then `google-github-actions/auth` with `workload_identity_provider`.
+- Azure: federated credential with issuer `https://<host>/_actions/oidc`, subject `repo:acme/site:environment:production`, audience `api://AzureADTokenExchange`.
+- Cloudflare: to our knowledge the Cloudflare API does not accept OIDC tokens in exchange for API tokens (not verified against current docs), so a Cloudflare deploy keeps `CLOUDFLARE_API_TOKEN` as a repository secret (D4 rules apply). Use OIDC to fetch that token from Vault, AWS Secrets Manager or GCP Secret Manager when you want it short-lived.
+
+**Keys and secrets (never printed).** `OIDC_SIGNING_KEYS` is a Worker secret holding `{ "active": "<kid>", "keys": [private JWKs] }`; every key's public half is in the JWKS, only `active` signs. `OIDC_REQUEST_SECRET` (32+ random characters) signs request tokens; `OIDC_REQUEST_SECRET_PREVIOUS` stays accepted while it rotates. Rotate with `node packages/shared-oidc/scripts/oidc-keys.mjs`, which only writes to stdout, so pipe it straight into `wrangler secret put`: `add` a new key (published, not yet signing), wait longer than the JWKS cache (5 minutes, plus the providers' own), `activate` it, and `retire` the old key after 10 minutes, when its last token has expired.
+
+**Self-hosters.** Deploy `packages/oidc` (or mount `createOidcApp` in your own Worker), set the two secrets, and set `OIDC_ISSUER_URL` if the Worker is reached through another hostname or path than `<origin>/_actions/oidc`. The issuer URL is part of every cloud trust policy and every token, so changing it later means re-registering with each provider.
+
 
 ### 3.6 Actions from github.com
 
