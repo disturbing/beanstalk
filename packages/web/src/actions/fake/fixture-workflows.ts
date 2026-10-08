@@ -150,7 +150,7 @@ function testLines(): readonly ScriptLine[] {
   ];
 }
 
-const FAILED_TEST_AT = 2600 + 12 * 2600;
+const FAILED_TEST_AT = 2600 + 11 * 2600;
 
 const CI: WorkflowScript = {
   key: 'ci',
@@ -259,7 +259,7 @@ const CI: WorkflowScript = {
       [FAILED_TEST_AT + 800, `::error file=test/tax.test.ts,line=27::expected 4.35 to be 4.5`],
       [
         FAILED_TEST_AT + 1600,
-        ` ${dim('Test Files')}  ${red(bold('1 failed'))} | ${green('12 passed')} (13)`,
+        ` ${dim('Test Files')}  ${red(bold('1 failed'))} | ${green('11 passed')} (12)`,
       ],
       [FAILED_TEST_AT + 1800, `${red('Error')}: Process completed with exit code 1.`],
     ],

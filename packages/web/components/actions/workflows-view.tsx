@@ -77,6 +77,7 @@ function WorkflowRail(props: {
       <ul className={styles.workflows}>
         <li>
           <Link
+            prefetch={false}
             href={filterHref(props.path, props.filter, { workflow: null })}
             aria-current={props.filter.workflow === undefined ? 'page' : undefined}
           >
@@ -87,6 +88,7 @@ function WorkflowRail(props: {
         {props.workflows.map((workflow) => (
           <li key={workflow.id}>
             <Link
+              prefetch={false}
               href={filterHref(props.path, props.filter, { workflow: workflow.id })}
               aria-current={props.filter.workflow === workflow.id ? 'page' : undefined}
               title={workflow.path}
@@ -138,6 +140,7 @@ function WorkflowHead(props: {
         <h2 id="workflow-title">{workflow.name}</h2>
         <p className={styles.workflowPath}>
           <Link
+            prefetch={false}
             href={`${props.base}/blob/${workflow.path.split('/').map(encodeURIComponent).join('/')}`}
           >
             {workflow.path}
@@ -146,6 +149,7 @@ function WorkflowHead(props: {
       </div>
       <div className={styles.workflowTools}>
         <Link
+          prefetch={false}
           className={styles.button}
           href={`${props.base}/blob/${workflow.path.split('/').map(encodeURIComponent).join('/')}`}
         >
@@ -244,6 +248,7 @@ function Filters(props: { readonly path: string; readonly filter: RunFilter }) {
       </noscript>
       {filtered ? (
         <Link
+          prefetch={false}
           className={styles.clear}
           href={filterHref(props.path, filter, { status: null, branch: null })}
         >
@@ -283,7 +288,11 @@ function RunList(props: {
         ))}
       </ol>
       {next === null ? null : (
-        <Link className={styles.more} href={filterHref(props.path, props.filter, { before: next })}>
+        <Link
+          prefetch={false}
+          className={styles.more}
+          href={filterHref(props.path, props.filter, { before: next })}
+        >
           Older runs
         </Link>
       )}
@@ -302,7 +311,7 @@ function RunRow(props: {
     <div className={styles.run}>
       <StateMark state={state} />
       <span className={styles.runTitle}>
-        <Link href={`${props.base}/actions/runs/${encodeURIComponent(run.id)}`}>
+        <Link prefetch={false} href={`${props.base}/actions/runs/${encodeURIComponent(run.id)}`}>
           {runTitle(run)}
         </Link>
       </span>
@@ -312,6 +321,7 @@ function RunRow(props: {
         </b>
         <span>{eventWord(run.event)}</span>
         <Link
+          prefetch={false}
           className={styles.sha}
           href={`${props.base}/tree?ref=${encodeURIComponent(run.sha)}`}
           title="Browse the files at this commit"
@@ -320,6 +330,7 @@ function RunRow(props: {
         </Link>
         {run.bean === null ? null : (
           <Link
+            prefetch={false}
             className={styles.bean}
             href={`${props.base}/changes/${encodeURIComponent(run.bean)}`}
           >

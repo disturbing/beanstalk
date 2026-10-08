@@ -48,6 +48,7 @@ export function RunView(props: {
     <>
       <RunRefresher live={isLive(state)} />
       <Link
+        prefetch={false}
         className={styles.crumb}
         href={`${base}/actions?workflow=${encodeURIComponent(run.workflowId)}`}
       >
@@ -61,11 +62,19 @@ export function RunView(props: {
             {run.workflowName} #{run.number}
           </b>
           <span>{eventWord(run.event)}</span>
-          <Link className={styles.sha} href={`${base}/tree?ref=${encodeURIComponent(run.sha)}`}>
+          <Link
+            prefetch={false}
+            className={styles.sha}
+            href={`${base}/tree?ref=${encodeURIComponent(run.sha)}`}
+          >
             {run.sha.slice(0, 7)}
           </Link>
           {run.bean === null ? null : (
-            <Link className={styles.bean} href={`${base}/changes/${encodeURIComponent(run.bean)}`}>
+            <Link
+              prefetch={false}
+              className={styles.bean}
+              href={`${base}/changes/${encodeURIComponent(run.bean)}`}
+            >
               bean/{run.bean}
             </Link>
           )}
@@ -114,6 +123,7 @@ export function RunView(props: {
             <dt>Workflow</dt>
             <dd>
               <Link
+                prefetch={false}
                 href={`${base}/blob/${run.workflowPath.split('/').map(encodeURIComponent).join('/')}`}
               >
                 {run.workflowPath.split('/').at(-1)}
@@ -195,6 +205,7 @@ function Annotations(props: {
                 <>
                   {' · '}
                   <Link
+                    prefetch={false}
                     href={`${props.base}/blob/${annotation.path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(props.run.sha)}${annotation.line === null ? '' : `#L${annotation.line}`}`}
                   >
                     {annotation.path}

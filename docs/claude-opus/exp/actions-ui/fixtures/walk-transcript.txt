@@ -1,0 +1,13 @@
+actions list mentions fixtures note: true
+dispatched: /coop-act3b/shop/actions/runs/ci-1791436229-d
+live log's last line went from 14 to 15 without reload; tail: following
+search "vitest": 1 of 1
+failed run annotations: Annotations 1 error, 1 warning applies the reduced rate to books: expected 4.35 to be 4.5 test · test/tax.test.ts:27 'total' is assigned a value but never used lint · src/cart.ts:12
+deploy run facts: Status succeeded Wall time 32s Minutes billed 1 Line stalk environment production dry-run false note walk Workflow deploy.yml
+after cancel: cancelled
+secrets listed: CLOUDFLARE_API_TOKEN Updated 2 days ago by @coop Pre-land: off Delete NPM_TOKEN Updated 9 days ago by @dana Pre-land: off Delete SENTRY_DSN Updated just now by @coop-act3b · available to pre-land checks Pre-land: on Delete TEST_DATABASE_URL Updated 15 days ago by @coop · available to pre-land checks Pre-land: on Delete
+value appears in the page: false
+outsider /actions: 404
+outsider log API: 404
+signed out /actions (private): 404
+signed out /actions (public): 200, Run workflow shown: false

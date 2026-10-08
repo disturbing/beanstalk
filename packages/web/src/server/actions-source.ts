@@ -49,7 +49,8 @@ export function actionsSessionFor(request: Request, scope: Scope): ActionsSessio
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${FAKE_COOKIE}=`))
     ?.slice(FAKE_COOKIE.length + 1);
-  return sessionFrom(scope, value, async () => {});
+  // The header carries the value as set (URI-encoded once more than `cookies()` hands it back).
+  return sessionFrom(scope, value === undefined ? undefined : safeDecode(value), async () => {});
 }
 
 function sessionFrom(
@@ -83,4 +84,12 @@ function sessionFrom(
       if (changed) await writeCookie(encodeOverlay(overlay));
     },
   };
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return '';
+  }
 }

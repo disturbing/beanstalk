@@ -153,8 +153,7 @@ describe('the gateway adapter', () => {
 
   it('hides a run of another repository', async () => {
     const other = gateway({
-      getRun: () =>
-        ok({ ...summary({ repoId: 'other' }), jobs: [], inputs: {} }),
+      getRun: () => ok({ ...summary({ repoId: 'other' }), jobs: [], inputs: {} }),
     });
     const result = await gatewayActionsClient(other, scope).run(RUN);
     expect(result).toMatchObject({ ok: false, error: { code: 'not_found' } });

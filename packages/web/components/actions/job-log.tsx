@@ -140,15 +140,21 @@ function tailWords(connection: Connection, lines: number): string {
   return `${lines} ${lines === 1 ? 'line' : 'lines'}`;
 }
 
-/** The job and its lines, following the log route while the job can still change. */
+/**
+ * The job and its lines: the server's (refreshed with the page) merged with what the log
+ * route streamed since the page loaded, whichever is further along.
+ */
 function useLiveLog(job: Job, lines: readonly LogLine[], logPath: string) {
-  const [state, setState] = useState({ job, lines });
+  const [streamed, setStreamed] = useState<{
+    readonly job: Job | null;
+    readonly lines: readonly LogLine[];
+  }>({ job: null, lines: [] });
   const [connection, setConnection] = useState<Connection>(
     isLive(stateOf(job)) ? 'connecting' : 'idle',
   );
-  // The first line to ask for is fixed at mount: refreshes of the page must not reconnect.
+  // Fixed at mount: refreshes of the page must not reconnect.
   const [after] = useState(lines.at(-1)?.n ?? 0);
-  const live = isLive(stateOf(job));
+  const [live] = useState(isLive(stateOf(job)));
   useEffect(() => {
     if (!live) return undefined;
     const source = new EventSource(`${logPath}?after=${after}`);
@@ -157,11 +163,11 @@ function useLiveLog(job: Job, lines: readonly LogLine[], logPath: string) {
     source.addEventListener('lines', (event) => {
       const parsed = LogLineSchema.array().safeParse(parseData(event.data)?.['lines']);
       if (parsed.success)
-        setState((now) => ({ ...now, lines: appendLines(now.lines, parsed.data) }));
+        setStreamed((now) => ({ ...now, lines: appendLines(now.lines, parsed.data) }));
     });
     source.addEventListener('job', (event) => {
       const parsed = JobSchema.safeParse(parseData(event.data));
-      if (parsed.success) setState((now) => ({ ...now, job: parsed.data }));
+      if (parsed.success) setStreamed((now) => ({ ...now, job: parsed.data }));
     });
     source.addEventListener('end', () => {
       setConnection('done');
@@ -169,7 +175,22 @@ function useLiveLog(job: Job, lines: readonly LogLine[], logPath: string) {
     });
     return () => source.close();
   }, [live, logPath, after]);
-  return { job: state.job, lines: state.lines, connection };
+  return {
+    job: furtherJob(job, streamed.job),
+    lines: appendLines(lines, streamed.lines),
+    connection,
+  };
+}
+
+const PROGRESS: Readonly<Record<Job['status'], number>> = {
+  queued: 0,
+  in_progress: 1,
+  completed: 2,
+};
+
+function furtherJob(fromServer: Job, fromStream: Job | null): Job {
+  if (fromStream === null) return fromServer;
+  return PROGRESS[fromServer.status] > PROGRESS[fromStream.status] ? fromServer : fromStream;
 }
 
 function parseData(data: unknown): Record<string, unknown> | null {

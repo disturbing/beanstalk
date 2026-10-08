@@ -73,13 +73,17 @@ export function encodeOverlay(overlay: FakeOverlay): string {
   return encodeURIComponent(JSON.stringify(overlay));
 }
 
-/** A cookie value back to the overlay; anything unreadable is an empty overlay. */
+/** A cookie value back to the overlay (encoded once or not at all); anything unreadable is empty. */
 export function decodeOverlay(value: string | undefined): FakeOverlay {
   if (value === undefined || value === '') return {};
-  try {
-    const parsed = FakeOverlay.safeParse(JSON.parse(decodeURIComponent(value)));
-    return parsed.success ? parsed.data : {};
-  } catch {
-    return {};
+  for (const candidate of [value, () => decodeURIComponent(value)]) {
+    try {
+      const text = typeof candidate === 'string' ? candidate : candidate();
+      const parsed = FakeOverlay.safeParse(JSON.parse(text));
+      if (parsed.success) return parsed.data;
+    } catch {
+      // Not this encoding: try the next.
+    }
   }
+  return {};
 }
