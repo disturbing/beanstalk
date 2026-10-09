@@ -35,6 +35,7 @@ import type {
 import { RunId } from '@beanstalk/shared-race/ids';
 import type { RepoVisibility } from '@beanstalk/shared-race/repos';
 
+import { automationActor, memoryRefOf } from '../actions/automation-file';
 import { JOB_TOKEN_PREFIX, verifyJobToken } from '../actions/job-tokens';
 import { assertNever } from '../engine/errors';
 import { DEPLOY_TOKEN_PREFIX, verifyDeployToken } from '../repos/deploy-tokens';
@@ -60,6 +61,16 @@ export type GitCredential = {
   readonly runPrincipal: RunPrincipal | null;
   /** Which credential this is, for the repository's sessions list; null for run tokens. */
   readonly session: CredentialSession | null;
+  /**
+   * An automation job's memory ref (`refs/automations/<id>/memory`): the one ref besides beans
+   * this credential may push (doc 25 §7.3). Absent for every other credential.
+   */
+  readonly memoryRef?: string | undefined;
+  /**
+   * False when the credential has write scope only for its memory ref (an automation with
+   * `permissions: beans: read`): bean pushes are refused. Absent means the scopes decide.
+   */
+  readonly beanPushAllowed?: boolean | undefined;
 };
 
 /** What verification needs: the run-token secret, the clock and, for people's tokens, the identity DB. */
@@ -362,12 +373,19 @@ async function verifyJob(env: GitCredentialEnv, token: string): Promise<GitCrede
   const verified = await verifyJobToken(env.forge, token, env.now());
   const engine = RunId.safeParse(verified?.engineId);
   if (verified === null || !engine.success) return null;
+  const automation = verified.automationId;
   return {
-    user: { id: `actions-job:${verified.jobId}`, handle: 'github-actions' },
-    scopes: verified.canPush ? ['repo:read', 'bean:write'] : ['repo:read'],
+    user: {
+      id: `actions-job:${verified.jobId}`,
+      handle: automation === null ? 'github-actions' : automationActor(automation),
+    },
+    scopes: verified.canPush || automation !== null ? ['repo:read', 'bean:write'] : ['repo:read'],
     engine: engine.data,
     runPrincipal: null,
     session: null,
+    ...(automation === null
+      ? {}
+      : { memoryRef: memoryRefOf(automation), beanPushAllowed: verified.canPush }),
   };
 }
 

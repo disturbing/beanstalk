@@ -2,6 +2,7 @@ import { ActionsOff, ActionsShell } from '../../../../components/actions/actions
 import styles from '../../../../components/actions/actions.module.css';
 import { WorkflowsView } from '../../../../components/actions/workflows-view';
 import { runFilterOf } from '../../../../src/actions/run-filters';
+import { sectionOf } from '../../../../src/actions/run-view';
 import { actionsPage } from '../../../../src/server/actions-page';
 import type { RepositoryParams } from '../../../../src/server/repository-page';
 
@@ -29,10 +30,17 @@ export default async function ActionsPage({ params, searchParams }: PageProps) {
         <ActionsOff />
       </ActionsShell>
     );
-  const [workflows, runs] = await Promise.all([
+  const [listed, runs] = await Promise.all([
     page.actions.workflows(),
-    page.actions.runs(filter),
+    page.actions.runs({ ...filter, kind: 'workflow' }),
   ]);
+  // Automations have their own segment (doc 25 §7.8).
+  const workflows = listed.ok
+    ? {
+        ...listed,
+        value: listed.value.filter((workflow) => sectionOf(workflow.path) === 'actions'),
+      }
+    : listed;
   return (
     <ActionsShell
       page={page}

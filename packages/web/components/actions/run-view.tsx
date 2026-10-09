@@ -14,6 +14,7 @@ import {
   formatDuration,
   isLive,
   runTitle,
+  sectionOf,
   stateOf,
   STATE_WORDS,
 } from '../../src/actions/run-view';
@@ -38,7 +39,8 @@ export function RunView(props: {
 }) {
   const { run, base } = props;
   const state = stateOf(run);
-  const runPath = `${base}/actions/runs/${encodeURIComponent(run.id)}`;
+  const section = sectionOf(run.workflowPath);
+  const runPath = `${base}/${section}/runs/${encodeURIComponent(run.id)}`;
   const job = run.jobs.find((candidate) => candidate.id === props.jobId) ?? null;
   const annotations =
     run.annotations.length > 0 || job === null
@@ -50,7 +52,7 @@ export function RunView(props: {
       <Link
         prefetch={false}
         className={styles.crumb}
-        href={`${base}/actions?workflow=${encodeURIComponent(run.workflowId)}`}
+        href={`${base}/${section}?workflow=${encodeURIComponent(run.workflowId)}`}
       >
         ← {run.workflowName} runs
       </Link>
@@ -149,6 +151,7 @@ export function RunView(props: {
           />
         )}
       </section>
+      {section === 'automations' ? <AutomationOutcome run={run} base={base} /> : null}
       {annotations.length === 0 ? null : (
         <Annotations annotations={annotations} base={base} run={run} />
       )}
@@ -170,6 +173,88 @@ export function RunView(props: {
         />
       )}
     </>
+  );
+}
+
+/**
+ * What an automation's run did (`25` §7.8): the beans it pushed, its memory before and after
+ * (each a commit on its memory ref, browsable), and its model calls and spend.
+ */
+function AutomationOutcome(props: { readonly run: RunDetail; readonly base: string }) {
+  const outputs = props.run.jobs[0]?.outputs ?? {};
+  const beans = (outputs['beans'] ?? '').split(',').filter((bean) => bean !== '');
+  const before = outputs['memory_before'] ?? '';
+  const after = outputs['memory_after'] ?? '';
+  const usage = props.run.modelUsage;
+  const memoryLink = (sha: string) => (
+    <Link
+      prefetch={false}
+      className={styles.sha}
+      href={`${props.base}/tree?ref=${encodeURIComponent(sha)}`}
+      title="Browse the memory at this commit"
+    >
+      {sha.slice(0, 7)}
+    </Link>
+  );
+  return (
+    <section className={styles.box} aria-labelledby="outcome-title">
+      <div className={styles.boxHead}>
+        <h2 id="outcome-title">What it did</h2>
+      </div>
+      <dl className={styles.facts}>
+        <div>
+          <dt>Beans pushed</dt>
+          <dd>
+            {beans.length === 0
+              ? 'none'
+              : beans.map((bean) => (
+                  <Link
+                    key={bean}
+                    prefetch={false}
+                    className={styles.bean}
+                    href={`${props.base}/changes/${encodeURIComponent(bean)}`}
+                  >
+                    bean/{bean}
+                  </Link>
+                ))}
+          </dd>
+        </div>
+        <div>
+          <dt>Memory</dt>
+          <dd>
+            {before === '' && after === '' ? 'empty' : null}
+            {before === '' && after !== '' ? <>new at {memoryLink(after)}</> : null}
+            {before !== '' && before === after ? <>unchanged at {memoryLink(after)}</> : null}
+            {before !== '' && after !== '' && before !== after ? (
+              <>
+                {memoryLink(before)} → {memoryLink(after)}
+              </>
+            ) : null}
+          </dd>
+        </div>
+        {usage === null ? null : (
+          <>
+            <div>
+              <dt>Model</dt>
+              <dd className={styles.mono}>{usage.model ?? 'none'}</dd>
+            </div>
+            <div>
+              <dt>Model calls</dt>
+              <dd>
+                {usage.calls} · {usage.inputTokens.toLocaleString('en-US')} in ·{' '}
+                {usage.outputTokens.toLocaleString('en-US')} out
+              </dd>
+            </div>
+            <div>
+              <dt>Spend</dt>
+              <dd>
+                ${usage.costUsd.toFixed(4)} of ${usage.limitUsd.toFixed(2)}
+              </dd>
+            </div>
+          </>
+        )}
+      </dl>
+    </section>
   );
 }
 

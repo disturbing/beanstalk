@@ -81,6 +81,11 @@ export const JobSpecSchema = z.object({
   image: z.string(),
   report: z.object({ token: z.string().min(1) }),
   depsCache: z.object({ scope: z.string().min(1).max(255), canSave: z.boolean() }).optional(),
+  // An automation's compiled job (doc 25 §7.4); absent for GitHub workflows.
+  workflowSource: z
+    .string()
+    .max(256 * 1024)
+    .optional(),
 });
 /** A `JobSpec` from an RPC argument, or why it is not one. */
 export function parseJobSpec(

@@ -170,6 +170,7 @@ const CI: WorkflowScript = {
     ],
     notes: [{ level: 'differs', text: 'pull_request is parsed and will run on beans soon.' }],
     error: null,
+    automation: null,
   },
   jobs: [
     {
@@ -322,6 +323,7 @@ const DEPLOY: WorkflowScript = {
     ],
     notes: [{ level: 'differs', text: 'concurrency is enforced by Beanstalk, outside act.' }],
     error: null,
+    automation: null,
   },
   jobs: [
     {
@@ -369,6 +371,7 @@ const E2E: WorkflowScript = {
     ],
     notes: [],
     error: null,
+    automation: null,
   },
   jobs: ['chromium', 'webkit'].map((browser): JobScript => ({
     id: `e2e-${browser}`,
@@ -443,6 +446,7 @@ const IMAGE: WorkflowScript = {
       },
     ],
     error: null,
+    automation: null,
   },
   jobs: [],
   failure: null,

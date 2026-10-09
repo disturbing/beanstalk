@@ -365,6 +365,7 @@ mod tests {
         JobRequest {
             job_id: "job-1".into(),
             workflow_path: ".github/workflows/ci.yml".into(),
+            workflow_source: None,
             job_name: "test".into(),
             event_name: "push".into(),
             event_payload: serde_json::json!({}),

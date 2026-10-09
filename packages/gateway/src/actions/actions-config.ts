@@ -20,6 +20,10 @@ export type ActionsConfig = {
   readonly concurrentJobs: number;
   /** Legs a job's matrix may expand to. */
   readonly maxMatrixLegs: number;
+  /** The AI Gateway automations' model calls go through (doc 25 §7.5). */
+  readonly aiGatewayId: string;
+  /** Automation model spend per repository and month (USD). */
+  readonly automationsMonthlyUsd: number;
 };
 
 const Vars = z.object({
@@ -29,6 +33,8 @@ const Vars = z.object({
   ACTIONS_MONTHLY_MINUTES: z.coerce.number().int().min(0),
   ACTIONS_JOB_TIMEOUT_MINUTES: z.coerce.number().int().min(1).max(360),
   ACTIONS_CONCURRENT_JOBS: z.coerce.number().int().min(1).max(64),
+  AUTOMATIONS_AI_GATEWAY: z.string().min(1).max(64).default('default'),
+  AUTOMATIONS_MONTHLY_USD: z.coerce.number().min(0).default(10),
 });
 
 /** Matrix legs per job at most (doc 25 §6.1: `include` of up to N). */
@@ -44,6 +50,8 @@ export function readActionsConfig(env: Pick<Env, keyof z.infer<typeof Vars>>): A
     jobTimeoutMinutes: vars.ACTIONS_JOB_TIMEOUT_MINUTES,
     concurrentJobs: vars.ACTIONS_CONCURRENT_JOBS,
     maxMatrixLegs: MAX_MATRIX_LEGS,
+    aiGatewayId: vars.AUTOMATIONS_AI_GATEWAY,
+    automationsMonthlyUsd: vars.AUTOMATIONS_MONTHLY_USD,
   };
 }
 

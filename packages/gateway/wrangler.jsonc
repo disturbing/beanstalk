@@ -31,7 +31,13 @@
     "ACTIONS_MONTHLY_MINUTES": "100",
     "ACTIONS_JOB_TIMEOUT_MINUTES": "60",
     "ACTIONS_CONCURRENT_JOBS": "4",
+    // Automations (doc 25 §7.5): the agent's model calls go through this AI Gateway, by the
+    // AI binding (no key anywhere), and each repository may spend this much a month on them.
+    "AUTOMATIONS_AI_GATEWAY": "default",
+    "AUTOMATIONS_MONTHLY_USD": "10",
   },
+  // Workers AI, only for automations' model proxy (owner's exception of 2026-10-09, doc 25 §7.5).
+  "ai": { "binding": "AI" },
   // The Actions job executor (packages/actions-executor); it calls back through this Worker's
   // `ActionsJobs` entrypoint. Deploy it with (or before) a gateway in "service" mode.
   "services": [{ "binding": "ACTIONS_EXECUTOR", "service": "beanstalk-actions-executor" }],

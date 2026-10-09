@@ -26,6 +26,19 @@ export function sessionOf(scope: ToolScope): {
   return { agents: scope.agents, principal: scope.session.principal };
 }
 
+/** The repository's automations and their newest runs (doc 25 §7). */
+export async function automationList(scope: ToolScope, repo: string): Promise<object> {
+  const { agents, principal } = sessionOf(scope);
+  if (agents.agentAutomations === undefined)
+    throw new ToolError('this Beanstalk deployment does not list automations yet');
+  const listed = valueOf(await agents.agentAutomations(principal, repo));
+  const invalid = listed.automations.filter((automation) => automation.state === 'invalid');
+  return {
+    ...listed,
+    summary: `${listed.automations.length} automations (${invalid.length} with problems), ${listed.runs.length} recent runs`,
+  };
+}
+
 export async function repoList(scope: ToolScope): Promise<object> {
   const { agents, principal } = sessionOf(scope);
   const repositories = z

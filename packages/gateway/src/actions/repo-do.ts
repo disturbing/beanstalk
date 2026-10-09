@@ -10,8 +10,14 @@
  */
 import { DurableObject } from 'cloudflare:workers';
 
-import type { ActionsEvent, RunSummary, WorkflowTrigger } from '@beanstalk/shared-race/actions';
-import { ActionsRunId } from '@beanstalk/shared-race/actions';
+import type {
+  ActionsEvent,
+  RunSummary,
+  WorkflowSummary,
+  WorkflowTrigger,
+} from '@beanstalk/shared-race/actions';
+import { ACTIONS_EVENTS, ActionsRunId, isAutomationPath } from '@beanstalk/shared-race/actions';
+import { RepoEvent } from '@beanstalk/shared-race/repo-events';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import { z } from 'zod';
 
@@ -23,6 +29,8 @@ import { createLogger } from '../log';
 import { d1Registry } from '../repos/registry';
 import type { ActionsConfig } from './actions-config';
 import { readActionsConfig } from './actions-config';
+import type { Occurrence } from './automation-triggers';
+import { automationFires, occurrenceOf, occurrencePayload } from './automation-triggers';
 import { MIN_SCHEDULE_INTERVAL_MS, nextFireMs, parseCron } from './cron';
 import type { RepoFacts } from './event-payload';
 import { dispatchPayload, pushPayload, schedulePayload } from './event-payload';
@@ -50,7 +58,30 @@ export type DispatchRequest = {
   readonly actor: string;
 };
 
+/** Repository events for automations (doc 25 §7.2), from the repo-events consumer. */
+export type RepoEventsForAutomations = {
+  readonly repoId: string;
+  readonly events: readonly RepoEvent[];
+};
+
+/** A trigger an automation will run for, once its current run ends (§7.7: one at a time). */
+const AutomationStart = z.object({
+  event: z.string(),
+  payload: z.record(z.string(), z.unknown()),
+  actor: z.string(),
+  origin: z.enum(['dispatch', 'schedule', 'event']),
+});
+type AutomationStart = Omit<z.infer<typeof AutomationStart>, 'event'> & {
+  readonly event: ActionsEvent;
+};
+
 const PendingRow = z.object({ seq: z.number(), sha: z.string(), beans_json: z.string() });
+const EventRow = z.object({ seq: z.number(), event_json: z.string() });
+const AutomationRunRow = z.object({
+  path: z.string(),
+  run_id: z.string().nullable(),
+  waiting_json: z.string().nullable(),
+});
 const ScheduleRow = z.object({
   path: z.string(),
   cron: z.string(),
@@ -83,6 +114,29 @@ export class ActionsRepoDO extends DurableObject<Env> {
     await this.ctx.storage.setAlarm(Date.now());
   }
 
+  /** Queues repository events; the alarm starts the automations they trigger. Idempotent per seq. */
+  async repoEvents(input: RepoEventsForAutomations): Promise<void> {
+    this.#remember('repo_id', input.repoId);
+    for (const event of input.events)
+      this.#sql.exec(
+        'INSERT OR IGNORE INTO pending_events (seq, event_json) VALUES (?, ?)',
+        event.seq,
+        JSON.stringify(event),
+      );
+    await this.ctx.storage.setAlarm(Date.now());
+  }
+
+  /** An automation's run ended: the trigger that waited for it (the latest one) starts now. */
+  async automationEnded(input: { readonly path: string; readonly runId: string }): Promise<void> {
+    const row = this.#automationRow(input.path);
+    if (row?.run_id !== input.runId) return;
+    this.#sql.exec('UPDATE automation_runs SET run_id = NULL WHERE path = ?', input.path);
+    if (row.waiting_json === null) return;
+    this.#sql.exec('UPDATE automation_runs SET waiting_json = NULL WHERE path = ?', input.path);
+    const parsed = AutomationStart.parse(JSON.parse(row.waiting_json));
+    await this.#startAutomation(input.path, { ...parsed, event: actionsEventOf(parsed.event) });
+  }
+
   /** Starts a `workflow_dispatch` run on the stalk's copy of the workflow. */
   async dispatch(request: DispatchRequest): Promise<RpcResult<RunSummary>> {
     this.#remember('repo_id', request.repoId);
@@ -111,6 +165,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
         429,
         `this repository's ${this.#config.monthlyMinutes} Actions minutes for the month are used`,
       );
+    if (isAutomationPath(request.workflowPath)) return this.#dispatchAutomation(request, facts);
     const run = await this.#createRun({
       facts,
       workflow: { path: request.workflowPath, source: indexed.source },
@@ -145,6 +200,23 @@ export class ActionsRepoDO extends DurableObject<Env> {
     return this.#config.monthlyMinutes - this.#usedMinutes();
   }
 
+  /** The month's automation model spend against the repository's cap (doc 25 §7.5). */
+  async automationSpend(): Promise<{ readonly spentUsd: number; readonly limitUsd: number }> {
+    const row = this.#sql
+      .exec<{ usd: number }>('SELECT usd FROM model_spend WHERE month = ?', monthOf(Date.now()))
+      .toArray()[0];
+    return { spentUsd: row?.usd ?? 0, limitUsd: this.#config.automationsMonthlyUsd };
+  }
+
+  async addAutomationSpend(usd: number): Promise<void> {
+    this.#sql.exec(
+      `INSERT INTO model_spend (month, usd) VALUES (?, ?)
+       ON CONFLICT(month) DO UPDATE SET usd = usd + excluded.usd`,
+      monthOf(Date.now()),
+      usd,
+    );
+  }
+
   async addMinutes(minutes: number): Promise<void> {
     this.#sql.exec(
       `INSERT INTO usage (month, minutes) VALUES (?, ?)
@@ -168,7 +240,8 @@ export class ActionsRepoDO extends DurableObject<Env> {
   }
 
   override async alarm(): Promise<void> {
-    const failed = await this.#drainPending();
+    const stalkFailed = await this.#drainPending();
+    const failed = stalkFailed || (await this.#drainEvents());
     await this.#fireSchedules(Date.now());
     const next = this.#sql
       .exec<{ next: number | null }>('SELECT MIN(next_ms) AS next FROM schedules')
@@ -311,9 +384,24 @@ export class ActionsRepoDO extends DurableObject<Env> {
         schedule.path,
         schedule.cron,
       );
+      if (facts === null) continue;
+      if (isAutomationPath(schedule.path)) {
+        // oxlint-disable-next-line no-await-in-loop -- one schedule at a time
+        await this.#startAutomation(schedule.path, {
+          event: 'schedule',
+          payload: schedulePayload({
+            repo: facts,
+            publicUrl: this.#config.serverUrl,
+            cron: schedule.cron,
+          }),
+          actor: 'schedule',
+          origin: 'schedule',
+        });
+        continue;
+      }
       // oxlint-disable-next-line no-await-in-loop -- one schedule at a time
       const indexed = await indexedSource(this.env.FORGE, repoId, schedule.path);
-      if (facts === null || indexed === null) continue;
+      if (indexed === null) continue;
       // oxlint-disable-next-line no-await-in-loop -- run numbers are given in order
       await this.#createRun({
         facts,
@@ -339,6 +427,162 @@ export class ActionsRepoDO extends DurableObject<Env> {
       .map((row) => ScheduleRow.parse(row));
   }
 
+  // Automations (doc 25 §7) ----------------------------------------------------------------
+
+  /** A manual run of an automation: refused while one runs (an automation runs one at a time). */
+  async #dispatchAutomation(
+    request: DispatchRequest,
+    facts: RepoFacts,
+  ): Promise<RpcResult<RunSummary>> {
+    if (await this.#isAutomationBusy(request.workflowPath))
+      return invalid(
+        'invalid_state',
+        409,
+        `${request.workflowPath} is running; an automation runs one at a time`,
+      );
+    const started = await this.#startAutomation(request.workflowPath, {
+      event: 'workflow_dispatch',
+      payload: dispatchPayload({
+        repo: facts,
+        publicUrl: this.#config.serverUrl,
+        workflowPath: request.workflowPath,
+        inputs: {},
+        actor: request.actor,
+      }),
+      actor: request.actor,
+      origin: 'dispatch',
+    });
+    return started === null
+      ? invalid('invalid_state', 409, `${request.workflowPath} could not start`)
+      : { ok: true, value: started };
+  }
+
+  /** Starts the automations queued repository events trigger, in order; true when it failed. */
+  async #drainEvents(): Promise<boolean> {
+    const rows = this.#sql
+      .exec('SELECT seq, event_json FROM pending_events ORDER BY seq')
+      .toArray()
+      .map((raw) => EventRow.parse(raw));
+    const repoId = this.#recall('repo_id');
+    if (rows.length === 0 || repoId === null) return false;
+    try {
+      const [automations, facts] = await Promise.all([
+        listIndexed(this.env.FORGE, repoId).then((all) =>
+          all.filter(
+            (workflow) => workflow.automation !== undefined && workflow.state === 'active',
+          ),
+        ),
+        this.#facts(repoId),
+      ]);
+      for (const row of rows) {
+        const event = RepoEvent.safeParse(JSON.parse(row.event_json));
+        if (event.success && facts !== null && automations.length > 0)
+          // oxlint-disable-next-line no-await-in-loop -- events start automations in order
+          await this.#onEvent(repoId, facts, { automations, event: event.data });
+        this.#sql.exec('DELETE FROM pending_events WHERE seq = ?', row.seq);
+      }
+      return false;
+    } catch (error: unknown) {
+      this.#log.error('repository events not applied to automations; retrying', { error });
+      return true;
+    }
+  }
+
+  async #onEvent(
+    repoId: string,
+    facts: RepoFacts,
+    input: { readonly automations: readonly WorkflowSummary[]; readonly event: RepoEvent },
+  ): Promise<void> {
+    const occurrence = await this.#withActor(repoId, occurrenceOf(input.event));
+    for (const automation of input.automations) {
+      const info = automation.automation;
+      if (info === undefined || !automationFires(automation.triggers, occurrence, info.actor))
+        continue;
+      // oxlint-disable-next-line no-await-in-loop -- run numbers are given in order
+      await this.#startAutomation(automation.path, {
+        event: occurrence.event,
+        payload: occurrencePayload({ repo: facts, publicUrl: this.#config.serverUrl, occurrence }),
+        actor: occurrence.actor ?? 'beanstalk',
+        origin: 'event',
+      });
+    }
+  }
+
+  /** The event's actor, from the bean index when the event itself does not name one. */
+  async #withActor(repoId: string, occurrence: Occurrence): Promise<Occurrence> {
+    if (occurrence.actor !== null || occurrence.bean === null) return occurrence;
+    const row = await this.env.FORGE.prepare(
+      'SELECT actor FROM beans WHERE repo_id = ? AND bean = ?',
+    )
+      .bind(repoId, occurrence.bean)
+      .first<{ actor: string | null }>();
+    return { ...occurrence, actor: row?.actor ?? null };
+  }
+
+  /**
+   * Starts an automation's run on the stalk's copy, or, while one is running, keeps this
+   * trigger as the one to run next (a later trigger replaces it: events coalesce). Returns the
+   * run, or null when it waits.
+   */
+  async #startAutomation(path: string, start: AutomationStart): Promise<RunSummary | null> {
+    const repoId = this.#recall('repo_id');
+    if (repoId === null) return null;
+    if (await this.#isAutomationBusy(path)) {
+      this.#sql.exec(
+        `INSERT INTO automation_runs (path, run_id, waiting_json) VALUES (?, NULL, ?)
+         ON CONFLICT(path) DO UPDATE SET waiting_json = excluded.waiting_json`,
+        path,
+        JSON.stringify(start),
+      );
+      this.#log.info('automation trigger waits for the running one', { path, event: start.event });
+      return null;
+    }
+    const [facts, indexed, summaries] = await Promise.all([
+      this.#facts(repoId),
+      indexedSource(this.env.FORGE, repoId, path),
+      listIndexed(this.env.FORGE, repoId),
+    ]);
+    const info = summaries.find((summary) => summary.path === path)?.automation;
+    if (facts === null || indexed === null || info === undefined) return null;
+    const run = await this.#createRun({
+      automation: { model: info.model, maxCostUsd: info.maxCostUsd },
+      facts,
+      workflow: { path, source: indexed.source },
+      event: start.event,
+      payload: start.payload,
+      sha: indexed.sha,
+      actor: start.actor,
+      inputs: {},
+      origin: { kind: start.origin },
+    });
+    this.#sql.exec(
+      `INSERT INTO automation_runs (path, run_id, waiting_json) VALUES (?, ?, NULL)
+       ON CONFLICT(path) DO UPDATE SET run_id = excluded.run_id`,
+      path,
+      run.status === 'completed' ? null : run.id,
+    );
+    return run;
+  }
+
+  /** Whether the automation has a run that has not completed (checked against the run index). */
+  async #isAutomationBusy(path: string): Promise<boolean> {
+    const runId = this.#automationRow(path)?.run_id ?? null;
+    if (runId === null) return false;
+    const row = await this.env.FORGE.prepare('SELECT status FROM actions_runs WHERE id = ?')
+      .bind(runId)
+      .first<{ status: string }>();
+    if (row !== null && row.status !== 'completed') return true;
+    this.#sql.exec('UPDATE automation_runs SET run_id = NULL WHERE path = ?', path);
+    return false;
+  }
+
+  #automationRow(path: string): z.infer<typeof AutomationRunRow> | null {
+    const raw = this.#sql
+      .exec('SELECT path, run_id, waiting_json FROM automation_runs WHERE path = ?', path)
+      .toArray()[0];
+    return raw === undefined ? null : AutomationRunRow.parse(raw);
+  }
+
   // Runs ------------------------------------------------------------------------------------
 
   async #createRun(input: {
@@ -350,6 +594,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
     readonly actor: string;
     readonly inputs: Readonly<Record<string, string>>;
     readonly origin: RunOrigin;
+    readonly automation?: RunRequest['automation'];
   }): Promise<RunSummary> {
     const number = this.#nextNumber(input.workflow.path);
     const left = await this.minutesLeft();
@@ -364,6 +609,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
       actor: input.actor,
       inputs: input.inputs,
       origin: input.origin,
+      ...(input.automation === undefined ? {} : { automation: input.automation }),
       refused:
         left > 0
           ? null
@@ -421,6 +667,19 @@ function migrate(sql: SqlStorage): void {
     next_ms INTEGER NOT NULL, last_ms INTEGER, PRIMARY KEY (path, cron))`);
   sql.exec('CREATE TABLE IF NOT EXISTS numbers (path TEXT PRIMARY KEY, n INTEGER NOT NULL)');
   sql.exec('CREATE TABLE IF NOT EXISTS usage (month TEXT PRIMARY KEY, minutes INTEGER NOT NULL)');
+  sql.exec(
+    'CREATE TABLE IF NOT EXISTS pending_events (seq INTEGER PRIMARY KEY, event_json TEXT NOT NULL)',
+  );
+  sql.exec(`CREATE TABLE IF NOT EXISTS automation_runs (path TEXT PRIMARY KEY, run_id TEXT,
+    waiting_json TEXT)`);
+  sql.exec('CREATE TABLE IF NOT EXISTS model_spend (month TEXT PRIMARY KEY, usd REAL NOT NULL)');
+}
+
+/** A stored trigger's event name, checked. */
+function actionsEventOf(name: string): ActionsEvent {
+  const event = ACTIONS_EVENTS.find((known) => known === name);
+  if (event === undefined) throw new Error(`not an Actions event: ${name}`);
+  return event;
 }
 
 /** The repository as runs see it. */

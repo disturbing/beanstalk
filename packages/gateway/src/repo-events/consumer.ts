@@ -7,7 +7,7 @@
 import type { RepoEvent } from '@beanstalk/shared-race/repo-events';
 import { RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
 
-import type { StalkMoved } from '../actions/repo-do';
+import type { RepoEventsForAutomations, StalkMoved } from '../actions/repo-do';
 import type { Logger } from '../log';
 import type { Registry } from '../repos/registry';
 import { applyRepoEvents } from './index-store';
@@ -16,6 +16,8 @@ export type ConsumerDeps = {
   readonly db: D1Database;
   /** Told of each `stalk.promoted` once indexed (Actions' `push`); a failure retries the message. */
   readonly stalkMoved?: (move: StalkMoved) => Promise<void>;
+  /** Told of every event once indexed, for the automations they trigger (doc 25 §7.2). */
+  readonly repoEvents?: (input: RepoEventsForAutomations) => Promise<void>;
   readonly registry: Pick<Registry, 'byEngine'>;
   readonly log: Logger;
 };
@@ -76,6 +78,8 @@ async function applyInOrder(
       await applyRepoEvents(deps.db, { ...repo, engineId: engine }, parsed.events);
       // oxlint-disable-next-line no-await-in-loop -- one engine's messages apply in order
       await notifyStalkMoves(deps, repo.id, parsed.events);
+      // oxlint-disable-next-line no-await-in-loop -- one engine's messages apply in order
+      await deps.repoEvents?.({ repoId: repo.id, events: parsed.events });
       message.ack();
       // How far behind the engine the index is: the 2.6 target is under 5 s.
       const last = parsed.events.at(-1);

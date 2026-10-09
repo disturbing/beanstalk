@@ -157,6 +157,31 @@ export type Backlog = {
 
 export type TaskClaimed = { readonly repo: string; readonly task: BacklogTask };
 
+/** A repository's automations and their recent runs, for `automation_list` (doc 25 §7). */
+export type AgentAutomations = {
+  readonly repo: string;
+  readonly automations: readonly {
+    readonly path: string;
+    readonly name: string;
+    readonly state: 'active' | 'invalid';
+    readonly problems: readonly string[];
+    readonly triggers: readonly string[];
+    readonly harness: 'agent' | 'shell' | null;
+    readonly model: string | null;
+    readonly acts_as: string | null;
+    readonly memory_ref: string | null;
+  }[];
+  readonly runs: readonly {
+    readonly id: string;
+    readonly automation: string;
+    readonly number: number;
+    readonly event: string;
+    readonly status: string;
+    readonly conclusion: string | null;
+    readonly created_at: string;
+  }[];
+};
+
 /** The gateway RPC behind the MCP repository tools. */
 export type AgentReposRpc = {
   /** The repositories the person owns or collaborates on (public ones are named directly). */
@@ -195,4 +220,6 @@ export type AgentReposRpc = {
     repo: string,
     task: string,
   ): Promise<RpcResult<TaskClaimed>>;
+  /** The automations the stalk's files define, and their 20 newest runs (read). */
+  agentAutomations?(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentAutomations>>;
 };
