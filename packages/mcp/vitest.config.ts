@@ -108,12 +108,16 @@ function auxiliaryWorkers() {
     {
       // The gateway's fakes: Artifacts, its git remotes and the runner share one worker.
       name: 'fake-artifacts',
-      modules: ['fake-artifacts.js', 'fake-runner.js', 'fake-store.js'].map((file) => ({
-        type: 'ESModule' as const,
-        path: file,
-        contents: readFileSync(path.join(gateway, 'test/fakes', file), 'utf8'),
-      })),
+      modules: ['fake-artifacts.js', 'fake-pack.js', 'fake-runner.js', 'fake-store.js'].map(
+        (file) => ({
+          type: 'ESModule' as const,
+          path: file,
+          contents: readFileSync(path.join(gateway, 'test/fakes', file), 'utf8'),
+        }),
+      ),
       compatibilityDate,
+      // node:zlib reads the real packs the gateway writes (gateway/test/fakes/fake-pack.js).
+      compatibilityFlags: ['nodejs_compat'],
       durableObjects: { FAKE_RUNNER: { className: 'FakeRunner', useSQLite: true } },
     },
   ];

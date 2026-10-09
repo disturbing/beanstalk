@@ -35,7 +35,7 @@ import type {
 import { RunId } from '@beanstalk/shared-race/ids';
 import type { RepoVisibility } from '@beanstalk/shared-race/repos';
 
-import { automationActor, memoryRefOf } from '../actions/automation-file';
+import { automationActor, memoryRefOf } from '@beanstalk/shared-race/automation-file';
 import { JOB_TOKEN_PREFIX, verifyJobToken } from '../actions/job-tokens';
 import { assertNever } from '../engine/errors';
 import { DEPLOY_TOKEN_PREFIX, verifyDeployToken } from '../repos/deploy-tokens';

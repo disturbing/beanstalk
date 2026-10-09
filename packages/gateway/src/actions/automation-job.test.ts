@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { readAutomationFile } from './automation-file';
+import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
 import { compileAutomation } from './automation-job';
 import { readWorkflowFile } from './workflow-file';
 

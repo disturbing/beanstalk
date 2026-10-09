@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="site.css" />
     <script src="site.js" defer></script>
     <script src="app-demo.js" defer></script>
+    <script src="automations-demo.js" defer></script>
     <script src="mq-section.js" type="module"></script>
   </head>
   <body>
@@ -304,6 +305,149 @@
               </p>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section class="band" id="automations" aria-labelledby="automations-title">
+        <div class="wrap">
+          <div class="sechead">
+            <h2 id="automations-title">Automations are agents that live in your repo.</h2>
+            <p class="intro">
+              Each one is a file, with its own memory. It wakes on a red bean, a landing or a
+              schedule, and pushes beans like any teammate.
+            </p>
+          </div>
+          <figure class="app audemo" data-audemo>
+            <figcaption class="sr-only">
+              A recreation of the automation builder. The template Fix red beans is picked, the
+              bean_red trigger is switched on and a prompt is typed, while the YAML beside the form
+              follows each change. Save turns the file into a bean, which is checked and lands.
+              Later a red bean starts the automation: it pushes a fix bean, which lands, and writes
+              a note to its memory.
+            </figcaption>
+            <div class="app-top">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="crumb"
+                ><b>acme</b><span>/</span><b>beanstalk-shop</b><span>›</span
+                ><em>New automation</em></span
+              >
+            </div>
+            <div aria-hidden="true">
+              <div class="au-templates">
+                <span class="au-label">Start from</span>
+                <span class="au-tpl" data-au-tpl>Fix red beans</span>
+                <span class="au-tpl">Weekly dependency bump</span>
+                <span class="au-tpl">Summarise landed work</span>
+                <span class="au-tpl">Triage decision cards</span>
+                <span class="au-tpl">Shell heartbeat</span>
+                <span class="au-tpl">Blank</span>
+              </div>
+              <div class="au-body">
+                <div class="au-form">
+                  <div class="au-field">
+                    <span class="au-label">Name</span>
+                    <span class="au-input" data-au-name>Fix red beans</span>
+                  </div>
+                  <div class="au-field">
+                    <span class="au-label">When</span>
+                    <span class="au-chips">
+                      <span class="au-chip" data-au-chip="bean_red"
+                        >bean_red<small>not fix-*</small></span
+                      >
+                      <span class="au-chip">bean_landed</span>
+                      <span class="au-chip">validation_red</span>
+                      <span class="au-chip">decision_opened</span>
+                      <span class="au-chip">stalk_moved</span>
+                      <span class="au-chip">schedule</span>
+                    </span>
+                    <span class="au-hint">Manual runs are always available.</span>
+                  </div>
+                  <div class="au-field">
+                    <span class="au-label">Prompt</span>
+                    <span class="au-input au-prompt"
+                      ><span data-au-prompt
+                        >Read why the bean went red. Check your memory for this failure. Fix it in a
+                        new bean and note what you learned.</span
+                      ><i class="au-caret" data-au-caret hidden></i
+                    ></span>
+                  </div>
+                  <div class="au-row">
+                    <div class="au-field">
+                      <span class="au-label">Agent</span>
+                      <span class="au-input">Kimi K2.7 code</span>
+                    </div>
+                    <div class="au-field">
+                      <span class="au-label">May</span>
+                      <span class="au-input"><b class="au-on">✓</b> push beans</span>
+                    </div>
+                  </div>
+                  <div class="au-row">
+                    <div class="au-field">
+                      <span class="au-label">Limits</span>
+                      <span class="au-input">30 min · 40 turns · $0.50</span>
+                    </div>
+                    <div class="au-field">
+                      <span class="au-label">Memory</span>
+                      <span class="au-input"><b class="au-on">✓</b> kept in git</span>
+                    </div>
+                  </div>
+                  <div class="au-save">
+                    <span class="au-valid" data-au-valid>✓ valid</span>
+                    <span class="au-btn" data-au-save>Save as bean</span>
+                  </div>
+                  <p class="au-status" data-au-status>
+                    <span class="au-bean"></span><b>automation-fix-red-3f9a2</b>
+                    <span class="au-phase landed" data-au-phase>landed</span>
+                    <span data-au-saved>Saved. Live when the stalk takes it.</span>
+                  </p>
+                </div>
+                <div class="au-yaml">
+                  <div class="au-yhead">
+                    <b>YAML</b><span>.beanstalk/automations/fix-red.yml</span>
+                  </div>
+                  <pre data-au-yaml>
+<span>name: Fix red beans</span>
+<span>on:</span>
+<span>  bean_red:</span>
+<span>    beans: ['*', '!fix-*']</span>
+<span>harness: agent</span>
+<span>permissions:</span>
+<span>  beans: write</span>
+<span>max-cost-usd: 0.50</span>
+<span>memory: true</span>
+<span>prompt: |</span>
+<span>  Read why the bean went red. Check your</span>
+<span>  memory for this failure. Fix it in a new</span>
+<span>  bean and note what you learned.</span></pre>
+                </div>
+              </div>
+              <ol class="au-run" data-au-run>
+                <li class="idle" data-au-idle hidden>
+                  <span class="au-dot"></span>No runs yet: it waits for a red bean, or a hand on
+                  Run.
+                </li>
+                <li class="red" data-au-step="1">
+                  <span class="au-dot"></span><b>bean word-count</b> went red: 2 failing tests
+                </li>
+                <li data-au-step="2">
+                  <span class="au-dot"></span><b>Fix red beans #1</b> started by
+                  <code>bean_red</code>, in a fresh container
+                </li>
+                <li class="ok" data-au-step="3">
+                  <span class="au-dot"></span>pushed <b>bean fix-word-count</b>: checked, landed
+                </li>
+                <li class="mem" data-au-step="4">
+                  <span class="au-dot"></span>wrote <code>notes.md</code> to
+                  <code>refs/automations/fix-red/memory</code>
+                </li>
+              </ol>
+            </div>
+          </figure>
+          <p class="aunote">
+            Automations <span class="chip live">live</span> The builder
+            <span class="chip rolling">rolling out</span> Saving is a bean, never a push to main.
+            <a href="docs/automations.html">How automations work</a>
+          </p>
         </div>
       </section>
 

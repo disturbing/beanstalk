@@ -61,11 +61,15 @@ export default defineConfig({
             // land in the trunk repo the way the real runner pushes its candidates.
             name: 'fake-artifacts',
             modulesRoot: path.join(here, 'test/fakes'),
-            modules: ['fake-artifacts.js', 'fake-runner.js', 'fake-store.js'].map((file) => ({
-              type: 'ESModule' as const,
-              path: path.join(here, 'test/fakes', file),
-            })),
+            modules: ['fake-artifacts.js', 'fake-pack.js', 'fake-runner.js', 'fake-store.js'].map(
+              (file) => ({
+                type: 'ESModule' as const,
+                path: path.join(here, 'test/fakes', file),
+              }),
+            ),
             compatibilityDate,
+            // node:zlib reads the real packs the gateway writes (test/fakes/fake-pack.js).
+            compatibilityFlags: ['nodejs_compat'],
             durableObjects: { FAKE_RUNNER: { className: 'FakeRunner', useSQLite: true } },
           },
         ],

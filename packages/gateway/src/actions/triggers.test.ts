@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { nextFireMs, parseCron } from './cron';
+import { nextFireMs, parseCron } from '@beanstalk/shared-race/cron';
 import { selectedBy } from './filter-pattern';
 import { checkDispatchInputs, namesStalk, pushFires } from './triggers';
 

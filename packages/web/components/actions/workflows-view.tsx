@@ -42,6 +42,8 @@ export function WorkflowsView(props: {
   readonly nowMs: number;
   /** Which segment: GitHub workflows (default) or automations. */
   readonly kind?: Kind;
+  /** Whether the viewer may open the automation builder (write or more; the save decides). */
+  readonly canEdit?: boolean;
 }) {
   const kind = props.kind ?? 'actions';
   const path = `${props.base}/${kind}`;
@@ -52,9 +54,18 @@ export function WorkflowsView(props: {
       <WorkflowRail path={path} workflows={props.workflows} filter={props.filter} kind={kind} />
       <section className={styles.box} aria-labelledby="workflow-title">
         {selected === null ? (
-          <AllWorkflowsHead count={props.workflows.length} kind={kind} />
+          <AllWorkflowsHead
+            count={props.workflows.length}
+            kind={kind}
+            newHref={props.canEdit === true ? `${props.base}/automations/new` : null}
+          />
         ) : (
-          <WorkflowHead base={props.base} workflow={selected} access={props.access} />
+          <WorkflowHead
+            base={props.base}
+            workflow={selected}
+            access={props.access}
+            canEdit={props.canEdit === true}
+          />
         )}
         <Filters path={path} filter={props.filter} />
         <RunList
@@ -134,7 +145,12 @@ function WorkflowRail(props: {
   );
 }
 
-function AllWorkflowsHead({ count, kind }: { readonly count: number; readonly kind: Kind }) {
+function AllWorkflowsHead(props: {
+  readonly count: number;
+  readonly kind: Kind;
+  readonly newHref: string | null;
+}) {
+  const { count, kind } = props;
   if (kind === 'automations')
     return (
       <div className={styles.workflowHead}>
@@ -145,6 +161,13 @@ function AllWorkflowsHead({ count, kind }: { readonly count: number; readonly ki
             that run on Beanstalk events, on schedule or by hand, each with its own memory
           </p>
         </div>
+        {props.newHref === null ? null : (
+          <div className={styles.workflowTools}>
+            <Link prefetch={false} className={styles.primary} href={props.newHref}>
+              New automation
+            </Link>
+          </div>
+        )}
       </div>
     );
   return (
@@ -164,8 +187,11 @@ function WorkflowHead(props: {
   readonly base: string;
   readonly workflow: Workflow;
   readonly access: ActionsAccess | null;
+  readonly canEdit: boolean;
 }) {
   const { workflow } = props;
+  const isAutomation = workflow.path.startsWith('.beanstalk/automations/');
+  const file = workflow.path.split('/').at(-1) ?? workflow.path;
   const dispatch = dispatchOf(workflow);
   return (
     <div className={styles.workflowHead}>
@@ -188,13 +214,24 @@ function WorkflowHead(props: {
         >
           View file
         </Link>
-        <span
-          className={styles.button}
-          aria-disabled="true"
-          title="Editing in the browser lands as a bean; coming"
-        >
-          Edit <span className={styles.soon}>coming</span>
-        </span>
+        {isAutomation && props.canEdit ? (
+          <Link
+            prefetch={false}
+            className={styles.button}
+            href={`${props.base}/automations/edit/${encodeURIComponent(file)}`}
+          >
+            Edit
+          </Link>
+        ) : null}
+        {isAutomation ? null : (
+          <span
+            className={styles.button}
+            aria-disabled="true"
+            title="Editing in the browser lands as a bean; coming"
+          >
+            Edit <span className={styles.soon}>coming</span>
+          </span>
+        )}
         {dispatch !== null && props.access !== null && workflow.error === null ? (
           <RunWorkflow
             workflowId={workflow.id}

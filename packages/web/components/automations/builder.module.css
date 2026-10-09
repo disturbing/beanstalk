@@ -1,0 +1,685 @@
+/* The automation builder (docs/claude-opus/25 §7.13): form and YAML side by side, tabs on a
+   phone. Nightshift tokens from globals; the quiet list language of the Automations tab, with
+   the one live thing (a bean being checked) glowing. */
+
+.builder {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.head h2 {
+  font-size: var(--step-2);
+  font-weight: 650;
+}
+.path {
+  font: 12.5px var(--font-mono);
+  color: var(--ink-3);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* Form | YAML tabs: only on narrow screens, where one pane shows at a time. */
+.tabs {
+  display: none;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet-2);
+}
+.tabs button,
+.segments button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 13px var(--font-sans);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tabs button[aria-selected='true'],
+.segments button[aria-checked='true'] {
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+}
+
+.banner {
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+.banner[data-tone='bad'] {
+  border-color: var(--bad-fill);
+  background: var(--bad-wash);
+  color: var(--ink);
+}
+.linkButton {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--good);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+.formCol {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.yamlCol {
+  position: sticky;
+  top: 12px;
+  min-width: 0;
+}
+
+/* ---------- Form ---------- */
+.form {
+  display: grid;
+  gap: 12px;
+}
+.section {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  min-width: 0;
+}
+.section[data-invalid='true'] {
+  border-color: var(--bad-fill);
+}
+.section legend {
+  float: left;
+  width: 100%;
+  font: 650 var(--step-0) var(--font-sans);
+  color: var(--ink);
+}
+.sub {
+  font: 600 12px var(--font-sans);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.hint {
+  color: var(--ink-3);
+  font-size: var(--step--1);
+}
+.note {
+  padding: 8px 10px;
+  border-left: 2px solid var(--warn-fill);
+  background: var(--warn-wash);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  border-radius: 0 6px 6px 0;
+}
+.warn {
+  color: var(--warn);
+  font-size: var(--step--1);
+}
+.problem {
+  color: var(--bad);
+  font: 12.5px var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 7px 10px;
+  font: 13px var(--font-sans);
+}
+.input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+.prompt {
+  font: 13px/1.55 var(--font-mono);
+  min-height: 180px;
+  resize: vertical;
+}
+.inline {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  font-size: var(--step--1);
+}
+.inline > span:first-child {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.inline small,
+.inline > button {
+  grid-column: 2;
+  justify-self: start;
+}
+.fileName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.fileName .input {
+  flex: 1 1 120px;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--step--1);
+}
+.check input {
+  accent-color: var(--good-fill);
+  width: 16px;
+  height: 16px;
+}
+.segments {
+  display: inline-flex;
+  justify-self: start;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet-2);
+}
+
+/* Trigger and secret chips: pressed is green like a live stalk, never glowing. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--sheet-2);
+  color: var(--ink-2);
+  font: 12.5px var(--font-mono);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.chip:hover {
+  background: var(--wash);
+}
+.chip[aria-pressed='true'] {
+  border-color: var(--good-fill);
+  background: var(--good-wash);
+  color: var(--good);
+  font-weight: 600;
+}
+.chip[aria-pressed='true']::before {
+  content: '✓ ';
+}
+.filter {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 8px;
+  font-size: var(--step--1);
+}
+.filter p {
+  color: var(--ink-2);
+}
+.manual {
+  color: var(--ink-3);
+  font-size: var(--step--1);
+}
+
+.schedule {
+  display: grid;
+  gap: 8px;
+}
+.crons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.crons li {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+}
+.cronLine {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--step--1);
+}
+.cronLine code {
+  font: 600 12.5px var(--font-mono);
+}
+.cronLine small {
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font: 11.5px var(--font-mono);
+}
+.cronAdd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 6px;
+}
+.remove {
+  border: 0;
+  background: none;
+  color: var(--bad);
+  font: 600 12px var(--font-sans);
+  cursor: pointer;
+}
+.limits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.numberField {
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.numberField small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+/* ---------- YAML pane ---------- */
+.yamlPane {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+.yamlPath {
+  font: 12px var(--font-mono);
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+  height: min(68vh, 640px);
+  overflow: hidden;
+}
+.gutter {
+  overflow: hidden;
+  padding: 10px 6px 10px 10px;
+  border-right: 1px solid var(--rule);
+  color: var(--ink-3);
+  font: 12.5px/1.6 var(--font-mono);
+  text-align: right;
+  user-select: none;
+}
+.gutter span {
+  display: block;
+}
+.gutter span[data-bad='true'] {
+  color: var(--bad);
+  font-weight: 700;
+}
+.code {
+  border: 0;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  padding: 10px 12px;
+  font: 12.5px/1.6 var(--font-mono);
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+}
+.code:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.valid {
+  color: var(--good);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+.problems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font: 12.5px var(--font-mono);
+  color: var(--bad);
+}
+.problems li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  overflow-wrap: anywhere;
+}
+.lineTag {
+  flex: none;
+  border: 1px solid var(--bad-fill);
+  border-radius: 4px;
+  background: var(--bad-wash);
+  color: var(--bad);
+  font: 600 11px var(--font-mono);
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+/* ---------- Merge ---------- */
+.merge {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--warn-fill);
+  border-radius: 8px;
+  background: var(--warn-wash);
+}
+.merge h2 {
+  font-size: var(--step-1);
+  font-weight: 650;
+}
+.merge p {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+.mergeTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.conflicts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.conflicts h3 {
+  font-size: var(--step--1);
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.sides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.side {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 0;
+}
+.side span {
+  font: 600 12px var(--font-sans);
+  color: var(--ink-3);
+}
+.side pre {
+  margin: 0;
+  font: 12px/1.5 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.side[aria-pressed='true'] {
+  border-color: var(--good-fill);
+  box-shadow: inset 0 0 0 1px var(--good-fill);
+  background: var(--good-wash);
+}
+.editPick {
+  margin-top: 6px;
+  font-size: var(--step--1);
+}
+.editPick summary {
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.editPick textarea {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+}
+
+/* ---------- Save bar ---------- */
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: var(--sheet-2);
+  box-shadow: var(--shadow);
+}
+.saveRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.saveRow > .input {
+  flex: 1 1 220px;
+}
+.button,
+.primary,
+.danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  font: 600 13px var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.button {
+  border: 1px solid var(--rule-strong);
+  background: var(--sheet);
+  color: var(--ink);
+}
+.button:hover {
+  background: var(--wash);
+}
+.primary {
+  border: 1px solid var(--good-fill);
+  background: var(--good-fill);
+  color: var(--accent-ink);
+}
+.danger {
+  border: 1px solid var(--bad-fill);
+  background: transparent;
+  color: var(--bad);
+}
+.button:disabled,
+.primary:disabled,
+.danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+.notice {
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+.notice[data-tone='bad'] {
+  color: var(--bad);
+}
+.notice[data-tone='good'] a {
+  color: var(--good);
+  font-weight: 600;
+}
+.beanLine {
+  display: grid;
+  gap: 4px;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+.beanLine a {
+  color: var(--good);
+}
+.beanLine[data-phase='landed'] {
+  color: var(--good);
+  font-weight: 600;
+}
+.beanLine[data-phase='red'] {
+  color: var(--bad);
+}
+.beanLine ul {
+  margin: 0;
+  padding-left: 18px;
+  font: 12px var(--font-mono);
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warn-fill);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn-fill) 25%, transparent);
+  animation: checking 1.2s ease-in-out infinite;
+}
+@keyframes checking {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--warn-fill) 5%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}
+
+/* ---------- Template picker ---------- */
+.picker {
+  display: grid;
+  gap: 10px;
+}
+.picker h2 {
+  font-size: var(--step-2);
+  font-weight: 650;
+}
+.templates {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+.templates a {
+  display: grid;
+  gap: 6px;
+  height: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  text-decoration: none;
+}
+.templates a:hover {
+  border-color: var(--good-fill);
+  background: var(--good-wash);
+}
+.templates span {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+.templates code {
+  font: 12px var(--font-mono);
+  color: var(--ink-3);
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 860px) {
+  .tabs {
+    display: inline-flex;
+  }
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .columns[data-tab='form'] .yamlCol,
+  .columns[data-tab='yaml'] .formCol {
+    display: none;
+  }
+  .yamlCol {
+    position: static;
+  }
+  .editor {
+    height: 60vh;
+  }
+  .limits,
+  .sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cronAdd {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .cronAdd select {
+    grid-column: 1 / -1;
+  }
+  .inline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inline small,
+  .inline > button {
+    grid-column: 1;
+  }
+}

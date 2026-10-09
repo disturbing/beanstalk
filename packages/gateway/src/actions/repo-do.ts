@@ -31,7 +31,7 @@ import type { ActionsConfig } from './actions-config';
 import { readActionsConfig } from './actions-config';
 import type { Occurrence } from './automation-triggers';
 import { automationFires, occurrenceOf, occurrencePayload } from './automation-triggers';
-import { MIN_SCHEDULE_INTERVAL_MS, nextFireMs, parseCron } from './cron';
+import { MIN_SCHEDULE_INTERVAL_MS, nextFireMs, parseCron } from '@beanstalk/shared-race/cron';
 import type { RepoFacts } from './event-payload';
 import { dispatchPayload, pushPayload, schedulePayload } from './event-payload';
 import type { RunRequest } from './run-request';
@@ -464,6 +464,62 @@ export class ActionsRepoDO extends DurableObject<Env> {
     return started === null
       ? invalid('invalid_state', 409, `${request.workflowPath} could not start`)
       : { ok: true, value: started };
+  }
+
+  /**
+   * A test run of a draft automation (the builder's "Test run", doc 25 §7.13): the draft's
+   * compiled job runs once by hand on the stalk head, as a manual run of its path, without the
+   * file being saved. The caller checked the maintain role and compiled the draft (without a
+   * memory save step, so a test never writes the automation's memory). One at a time per path,
+   * like any run of the automation.
+   */
+  async testAutomation(request: {
+    readonly repoId: string;
+    readonly path: string;
+    readonly source: string;
+    readonly sha: string;
+    readonly actor: string;
+    readonly automation: NonNullable<RunRequest['automation']>;
+  }): Promise<RpcResult<RunSummary>> {
+    this.#remember('repo_id', request.repoId);
+    const facts = await this.#facts(request.repoId);
+    if (facts === null) return invalid('not_found', 404, 'repository not found');
+    if ((await this.minutesLeft()) <= 0)
+      return invalid(
+        'over_limit',
+        429,
+        `this repository's ${this.#config.monthlyMinutes} Actions minutes for the month are used`,
+      );
+    if (await this.#isAutomationBusy(request.path))
+      return invalid(
+        'invalid_state',
+        409,
+        `${request.path} is running; an automation runs one at a time`,
+      );
+    const run = await this.#createRun({
+      automation: request.automation,
+      facts,
+      workflow: { path: request.path, source: request.source },
+      event: 'workflow_dispatch',
+      payload: dispatchPayload({
+        repo: facts,
+        publicUrl: this.#config.serverUrl,
+        workflowPath: request.path,
+        inputs: {},
+        actor: request.actor,
+      }),
+      sha: request.sha,
+      actor: request.actor,
+      inputs: {},
+      origin: { kind: 'dispatch' },
+    });
+    this.#sql.exec(
+      `INSERT INTO automation_runs (path, run_id, waiting_json) VALUES (?, ?, NULL)
+       ON CONFLICT(path) DO UPDATE SET run_id = excluded.run_id`,
+      request.path,
+      run.status === 'completed' ? null : run.id,
+    );
+    return { ok: true, value: run };
   }
 
   /** Starts the automations queued repository events trigger, in order; true when it failed. */

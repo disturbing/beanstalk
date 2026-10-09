@@ -4651,3 +4651,327 @@ dialog.choose::backdrop {
   color: var(--fg-subtle);
 }
 /* git-section:end */
+
+/* automations-section:start (the builder recreated: template, trigger, prompt, YAML, save, a run) */
+.audemo {
+  margin: 44px 0 0;
+}
+.audemo .crumb em {
+  font-style: normal;
+  color: var(--fg);
+}
+.au-templates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-muted);
+  background: var(--subtle);
+}
+.au-label {
+  font: 500 11px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+.au-templates .au-label {
+  flex: none;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.au-tpl {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font: 500 12.5px var(--sans);
+  color: var(--fg-muted);
+}
+.au-tpl.on {
+  border-color: color-mix(in srgb, var(--leaf) 60%, var(--border));
+  background: var(--leaf-bg);
+  color: var(--leaf-ink);
+}
+.au-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.au-form {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 18px;
+  min-width: 0;
+}
+.au-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.au-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+.au-input {
+  display: block;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--subtle);
+  color: var(--fg);
+  font: 13px/1.5 var(--sans);
+  overflow-wrap: anywhere;
+}
+.au-input.au-prompt {
+  min-height: 74px;
+  font: 12.5px/1.55 var(--mono);
+}
+.au-on {
+  color: var(--leaf-ink);
+  margin-right: 4px;
+}
+.au-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.au-chip {
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--subtle);
+  font: 12px/18px var(--mono);
+  color: var(--fg-subtle);
+}
+.au-chip small {
+  display: none;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+.au-chip.on {
+  border-color: color-mix(in srgb, var(--red) 55%, var(--border));
+  background: var(--red-bg);
+  color: var(--red);
+}
+.au-chip.on small {
+  display: inline;
+}
+.au-hint {
+  font-size: 12.5px;
+  color: var(--fg-subtle);
+}
+.au-caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  margin-left: 1px;
+  vertical-align: -2px;
+  background: var(--leaf);
+}
+.au-save {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-muted);
+}
+.au-valid {
+  margin-right: auto;
+  font: 12px var(--mono);
+  color: var(--leaf-ink);
+}
+.au-valid.off {
+  color: var(--fg-subtle);
+}
+.au-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--leaf);
+  border-radius: 7px;
+  background: var(--leaf);
+  color: var(--on-leaf);
+  font: 600 13px var(--sans);
+}
+.au-btn.press {
+  background: var(--leaf-bg);
+  color: var(--leaf-ink);
+}
+.au-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: 20px;
+  margin: 0;
+  font: 12.5px/1.5 var(--mono);
+  color: var(--fg-muted);
+}
+.au-status b {
+  color: var(--fg);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.au-bean {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bean);
+}
+.au-phase {
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--border));
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--amber);
+}
+.au-phase.landed {
+  border-color: color-mix(in srgb, var(--leaf) 55%, var(--border));
+  background: var(--leaf-bg);
+  color: var(--leaf-ink);
+}
+.au-yaml {
+  min-width: 0;
+  border-left: 1px solid var(--border-muted);
+  background: var(--subtle);
+}
+.au-yhead {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-muted);
+  font: 12px var(--mono);
+  color: var(--fg-subtle);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.au-yhead b {
+  color: var(--fg);
+  font: 600 13px var(--sans);
+}
+.au-yaml pre {
+  margin: 0;
+  padding: 12px 0;
+  font: 12.5px/1.6 var(--mono);
+  color: var(--fg);
+  overflow-x: auto;
+  white-space: normal;
+}
+.au-yaml pre span {
+  display: block;
+  white-space: pre;
+  padding: 0 16px;
+  min-height: 1.6em;
+}
+.au-yaml pre span.new {
+  background: var(--add-bg);
+  box-shadow: inset 2px 0 var(--leaf);
+}
+.au-run {
+  list-style: none;
+  margin: 0;
+  padding: 14px 18px;
+  display: grid;
+  gap: 8px;
+  min-height: 136px;
+  align-content: start;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font: 12.5px/1.5 var(--mono);
+  color: var(--fg-muted);
+}
+.au-run li {
+  min-width: 0;
+  padding-left: 16px;
+  text-indent: -16px;
+}
+.au-run b {
+  color: var(--fg);
+  font-weight: 500;
+}
+.au-run code {
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+.au-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--bean);
+  vertical-align: 0;
+}
+.au-run .red .au-dot {
+  background: var(--red);
+}
+.au-run .ok .au-dot {
+  background: var(--leaf);
+}
+.au-run .mem .au-dot {
+  background: var(--sprout);
+}
+.au-run .idle {
+  color: var(--fg-subtle);
+}
+.au-run .idle .au-dot {
+  background: var(--border);
+}
+.aunote {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--fg-muted);
+}
+.aunote .chip {
+  margin-right: 10px;
+}
+.chip.rolling {
+  border-color: color-mix(in srgb, var(--bean) 45%, var(--border));
+  background: var(--bean-bg);
+  color: var(--bean);
+  font-size: 11.5px;
+  font-weight: 500;
+  vertical-align: 0.15em;
+}
+@media (max-width: 760px) {
+  .audemo {
+    margin-top: 32px;
+  }
+  .au-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .au-yaml {
+    border-left: 0;
+    border-top: 1px solid var(--border-muted);
+  }
+  .au-row {
+    gap: 10px;
+  }
+  .au-templates {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .au-tpl {
+    flex: none;
+  }
+  .au-form,
+  .au-templates,
+  .au-run {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .au-run {
+    min-height: 196px;
+  }
+  .audemo .app-top .crumb {
+    font-size: 14px;
+  }
+}
+/* automations-section:end */

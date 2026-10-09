@@ -5,6 +5,7 @@
 // repositories (FakeRepositories, the REPOS binding); each lists and deletes only its own.
 import { RpcTarget, WorkerEntrypoint } from 'cloudflare:workers';
 
+import { storeRealPack } from './fake-pack.js';
 import { EMPTY_TREE, objectId, storeOf, storeTree } from './fake-store.js';
 
 export { FakeRunner } from './fake-runner.js';
@@ -237,6 +238,13 @@ function storePayload(repo, bytes) {
   }
 }
 
+/** The pack after the commands' flush (empty when there is none). */
+function packOf(bytes) {
+  const text = new TextDecoder('latin1').decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
+  const at = text.indexOf('0000PACK');
+  return at < 0 ? new Uint8Array(0) : bytes.subarray(at + 4);
+}
+
 /** Commands at the head of a receive-pack body: `<old> <new> <ref>` pkt-lines up to a flush. */
 function pushCommands(bytes) {
   const text = new TextDecoder().decode(bytes);
@@ -273,7 +281,11 @@ export class FakeGitRemote extends WorkerEntrypoint {
     const commands = match[3] === 'git-receive-pack' ? pushCommands(bytes) : [];
     for (const command of commands) repo.refs.set(command.ref, command.newSha);
     if (commands.length > 0) storePayload(repo, bytes);
-    // A real pack (the gateway's own first commit) is not parsed: its commit is known, empty.
+    // A real pack of a bean (the automation builder's saves) is read whole; the gateway's seed
+    // packs stay unread, so a new repository's first commit is the known, empty one below.
+    if (commands.some((command) => command.ref.startsWith('refs/heads/bean/')))
+      storeRealPack(repo, packOf(bytes));
+    // A pack without objects (the first commit's ref updates) leaves a known, empty commit.
     for (const command of commands)
       if (!repo.commits.has(command.newSha) && command.newSha !== '0'.repeat(40))
         repo.commits.set(command.newSha, {

@@ -29,6 +29,16 @@ export function recordSquash({ remote, sha, onto, changeRef, message }) {
   return Object.keys(changed).filter((path) => base[path] !== changed[path]);
 }
 
+/** A line's move in the trunk repo `remote` names (the runner's update-ref), from `from` only. */
+export function recordRefUpdate({ remote, ref, from, sha }) {
+  const repo = Array.from(namespaces.values())
+    .flatMap((store) => Array.from(store.values()))
+    .find((candidate) => candidate.remote === remote);
+  if (repo === undefined || typeof ref !== 'string' || typeof sha !== 'string') return;
+  const name = ref.startsWith('refs/') ? ref : `refs/heads/${ref}`;
+  if (repo.refs.get(name) === from) repo.refs.set(name, sha);
+}
+
 /** A 40-hex id for an object's content (FNV-1a, five seeds): stable, like git's. */
 export function objectId(text) {
   let out = '';

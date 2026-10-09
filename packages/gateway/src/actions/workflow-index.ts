@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { GatewayError } from '../errors';
-import { readAutomationFile } from './automation-file';
+import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
 import { compileAutomation } from './automation-job';
 import type { WorkflowFile, WorkflowLimits } from './workflow-file';
 import { readWorkflowFile } from './workflow-file';

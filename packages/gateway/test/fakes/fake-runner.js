@@ -5,7 +5,7 @@
 // (`recordSquash`), so a repository engine reads `.beanstalk/checks.toml` from its tree.
 import { DurableObject } from 'cloudflare:workers';
 
-import { recordSquash } from './fake-store.js';
+import { recordRefUpdate, recordSquash } from './fake-store.js';
 
 async function sha1(text) {
   const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
@@ -104,6 +104,9 @@ async function answer(this_, path, body) {
       };
     }
     case '/v1/update-ref':
+      // The line moves in the trunk repo, as the real runner's push moves it, so reads of
+      // `sprout` and `stalk` by name see what landed; a line a test planted elsewhere stays.
+      recordRefUpdate({ remote: body.repo, ref: body.ref, from: body.old, sha: body.new });
       return { ok: true, actual: body.new };
     default:
       return { code: 'not_found', message: path };

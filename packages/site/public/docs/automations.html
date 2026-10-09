@@ -168,8 +168,10 @@
             files at the new head, checks them and rebuilds its index of triggers and schedules. A
             file with a problem is listed on the repository's Automations tab with the line and the
             reason, and does not run. So changing an automation is a bean like any other: it goes
-            live when the stalk takes it. Automation files are protected paths: an agent cannot
-            change them.
+            live when the stalk takes it. To keep agents and writers away from them, list them in
+            <code>protected_paths</code> of <code>.beanstalk/checks.toml</code> (for example
+            <code>.beanstalk/**</code>): then only maintainers and the owner may change them, with
+            their own credentials or the builder below.
           </p>
 
           <h2 id="example">An example</h2>
@@ -188,6 +190,41 @@ prompt: |
             A <code>.md</code> file works too: YAML front matter between <code>---</code> lines, and
             the body is the prompt. Every automation can also be run by hand from its page.
           </p>
+
+          <h2 id="builder">
+            Building one in the browser <span class="pill rolling">rolling out</span>
+          </h2>
+          <p>
+            <strong>New automation</strong> on the Automations tab starts from a template (Fix red
+            beans, Weekly dependency bump, Summarise landed work, Triage decision cards, a shell
+            heartbeat, or blank), and <strong>Edit</strong> opens an existing one. The builder is a
+            form beside the file's YAML, kept in sync both ways: change a field and the YAML changes
+            by that line only, with your comments and layout kept; edit the YAML and the form
+            follows. Every change is checked by the same rules Beanstalk uses when it reads the
+            file, with problems shown at their field and line. Schedules show in words with their
+            next run times.
+          </p>
+          <ul>
+            <li>
+              <strong>Saving is a bean, never a push to <code>main</code>.</strong> Beanstalk
+              commits the file in your name on the latest landed version and pushes it as
+              <code>bean/automation-&lt;name&gt;-&lt;id&gt;</code>. The builder follows it:
+              checking, then saved with a link to the commit, or red with the reason. You need the
+              write role, or maintain if <code>checks.toml</code> protects the file.
+            </li>
+            <li>
+              <strong>Edited by someone else meanwhile?</strong> The builder merges field by field.
+              Changes to different fields merge, and it shows you the result before saving ("merged
+              with @dana's change to the schedule"). Where you both changed the same field, it shows
+              theirs and yours side by side to pick or edit. Your draft is also kept in your browser
+              until it is saved.
+            </li>
+            <li><strong>Delete</strong> is a bean that removes the file, after you confirm.</li>
+            <li>
+              <strong>Test run</strong> (maintainers and the owner) runs the draft once by hand
+              without saving it, and never writes its memory.
+            </li>
+          </ul>
 
           <h2 id="triggers">Triggers</h2>
           <table>
@@ -309,8 +346,8 @@ prompt: |
           </p>
           <p>
             Not yet: Beanstalk tools for the agent (comments, decision cards), your own model keys
-            or other agents such as Claude Code, webhooks into an automation, and editing in the
-            browser.
+            or other agents such as Claude Code, webhooks into an automation, and a browser editor
+            for <code>.github/workflows</code> files.
           </p>
 
           <section class="sources">
@@ -321,7 +358,7 @@ prompt: |
                   href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/25-actions-and-automations.md"
                   >docs/claude-opus/25-actions-and-automations.md</a
                 >
-                (§7)
+                (§7, the builder in §7.13)
               </li>
             </ul>
           </section>

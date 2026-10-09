@@ -17,7 +17,7 @@ import {
 } from '@actions/workflow-parser';
 import type { WorkflowTemplate } from '@actions/workflow-parser';
 
-import { parseCron } from './cron';
+import { parseCron } from '@beanstalk/shared-race/cron';
 import type { MatrixLeg, MatrixPlan } from './matrix';
 import { planMatrix } from './matrix';
 import type { PlainValue } from './plain';

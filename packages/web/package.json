@@ -25,6 +25,7 @@
     "react-dom": "catalog:",
     "react-server-dom-webpack": "catalog:",
     "vinext": "catalog:",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -21,7 +21,11 @@
     "./repo-events": "./src/repo-events.ts",
     "./checks-config": "./src/checks-config.ts",
     "./actions": "./src/actions.ts",
-    "./actions-secrets": "./src/actions-secrets.ts"
+    "./actions-secrets": "./src/actions-secrets.ts",
+    "./cron": "./src/cron.ts",
+    "./automation-models": "./src/automation-models.ts",
+    "./automation-file": "./src/automation-file.ts",
+    "./automation-editor": "./src/automation-editor.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -29,6 +33,7 @@
   },
   "dependencies": {
     "smol-toml": "catalog:",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

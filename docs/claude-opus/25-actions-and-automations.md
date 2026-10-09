@@ -392,6 +392,8 @@ A file that is the truth needs exactly one way to change it, or the UI and the f
 
 ### 4.2 The flow
 
+**Built for automations (2026-10-10, §7.13).** The design below is what the automation builder does, with three differences: saving needs write (maintain only when `checks.toml` protects the file), the bean is named `automation-<slug>-<short>`, and the merge is field by field on the parsed file rather than replayed operations. `.github/workflows/` files have no editor yet.
+
 ```
 editor (form ⇄ YAML) ── Save ──▶ web server action (person signed in, role ≥ maintain)
    validate (shared parser, same as the engine) ── errors? stay in the editor
@@ -785,11 +787,49 @@ Deployed by the coordinator from `prototype` `21e0696` (which carries `b55d1d2`)
 
 **Model spend of the smoke test: $0.0669** (two agent runs, 24 calls, 60,153 tokens in and 2,430 out, Kimi K2.7 code through AI Gateway). Container minutes: 2 + 4 for the agents, and 1 each for the three heartbeat runs.
 
+### 7.13 The builder (2026-10-10)
+
+The owner's request: create or edit an automation in a visual builder "like cursor automations", saving with the same GitOps structure, and when the file is edited meanwhile, "smart merge it if we can otherwise say that a new version was posted". The agreed design differs from a literal "push a commit to main" in one way: **a save is a bean**, because only the engine moves the stalk.
+
+**What it is.** The Automations tab has **New automation** (a template picker: Fix red beans, Weekly dependency bump, Summarise landed work, Triage decision cards, Shell heartbeat, Blank) and **Edit** on each automation (people with write or more). Both open `/<owner>/<repo>/automations/new?template=<id>` or `/automations/edit/<file>`: a form beside the file's YAML (tabs on a phone).
+
+| Section | What it writes |
+|---|---|
+| Name, file | `name:`; a new file's name (`.beanstalk/automations/<slug>.yml`) |
+| Triggers | event chips for the eleven Beanstalk events, each with `beans:` and `authors:` globs; schedules from presets or typed cron, each in words with its next three runs (the gateway's own cron parser); "manual is always available". Removing the last trigger writes `workflow_dispatch:` so the file stays valid |
+| Harness | agent (model list from `automation-models.ts`, default Kimi K2.7 code) or shell (`run:`) |
+| Prompt / Script | a large editor |
+| Permissions | `permissions: beans: write` |
+| Secrets | chips of the repository's and org's secret names (never values), with the D4 note: event-triggered runs get only secrets marked "available to pre-land checks" |
+| Limits, Memory | `timeout-minutes` (capped at the job limit), `max-turns`, `max-cost-usd`; `memory: false` |
+
+**One validator.** `automation-file.ts` (with `cron.ts` and `automation-models.ts`) moved from the gateway to `@beanstalk/shared-race`, so the editor validates every keystroke with the code the index runs. Problems show under their field and, with their line, under the YAML; a syntax error pauses the form until the YAML parses.
+
+**Two-way YAML.** The draft *is* its YAML text: the form reads its fields from the parsed text and writes each change back with the `yaml` package's Document API. The result is spliced into the original by a minimal-diff writer (`web/src/automations/minimal-edit.ts`): only the changed key's lines are copied, at the deepest block mapping both versions share, re-indented to the file's own indentation; every other byte is kept (comments, flow lists, spacing, quoting). If the splice cannot be shown to give the same value, the full rendering is used. Editing the YAML updates the form at once.
+
+**Save is a bean.** `saveAutomation` (gateway default entrypoint; contract `AutomationEditorRpc` in `shared-race/automation-editor.ts`; code `gateway/src/automations/editor-rpc.ts`):
+
+1. Access by `mayUseEngine` with the web viewer: `write` to save. If the latest landed `.beanstalk/checks.toml` protects the path (`protected_paths`, for example `.beanstalk/**`), only maintain or owner may, and the editor says so before anyone types. *Automation files are not protected by default:* `ALWAYS_PROTECTED` is `checks.toml` only (`24` §2), so §4.4's list is still a design.
+2. The content is validated with the shared parser; an invalid file is refused with its line.
+3. The file on the **latest landed commit** (the sprout head, where the bean will land) is compared with the blob the editor opened. Different: the save answers `stale` with that version and the author of the newest commit that changed it. Same: the gateway builds the blob, the trees along the path and a commit on that head (`automations/file-commit.ts`, byte-identical to git's own objects, checked against ids from a real repository), authored by the person (`<handle> <handle@users.<web host>>`).
+4. It pushes the objects as `refs/heads/bean/automation-<slug>-<6 hex>` with a write token the gateway mints (`pushRefs`), then hands the head to the engine with `submitPush`, exactly as the git proxy does after a push, with protected access "the person, with the web editor" (allowed for maintain and owner).
+5. The editor follows the bean (`automationBean`): checking, then **Saved** with the landed commit linked, or red or conflict with the reason and the failing tests or conflicting files.
+
+*Why the sprout, not the stalk:* the bean lands on the sprout, so a change landed but not yet validated must count as "theirs", or the engine would send the bean back as a conflict that the editor could not see.
+
+**Concurrent edits.** On `stale`, the editor merges three ways on the parsed structure (`web/src/automations/automation-merge.ts`): base (what it opened), theirs (what landed), ours (the draft). Each top-level key is a field, and each trigger and permission is its own field. A field one side changed takes that side; both changing it the same way agree; both changing it differently is a conflict. The merged text is theirs with our changed fields written into it, so their comments and order survive. Disjoint changes are shown before pushing ("merged with @x's change to the schedule"); conflicts show theirs and yours side by side per field, to pick or edit a value. A file deleted on their side offers "recreate with my version" or "keep it deleted"; a version that does not parse offers "load theirs" or "save mine over it". The draft is never lost: it is kept in `localStorage` per repository and file while unsaved, and offered back on return. A bean that comes back as a conflict (someone landed between the merge and the landing) is saved again, which runs the same flow.
+
+**Delete** is a bean that removes the file (and the directories it empties), after a confirmation.
+
+**Test run.** Maintainers and the owner (the role that may already dispatch runs and manage secrets) can run the draft once without saving: `testAutomation` validates and compiles it (`compileAutomation`) **without the memory save step**, and the repository's ActionsRepoDO starts it as a manual run of that path on the stalk head (one at a time per path; the monthly minutes apply). It gets the secrets a manual run gets. *Why maintain, not write:* a draft can name any secret, so a writer could read secrets through a test run; saving needs only write, because a saved file is visible in git and runs as the repository's bot under D4.
+
+**Tests.** Web (vitest): the YAML round trip byte for byte (one field changed, comments and flow lists kept, a 4-space file, `on: <name>` normalised, syntax errors with lines, every template valid by the shared validator); the merge (disjoint fields, same field agreed, same-field conflict resolved by pick and by edit, each trigger its own field, file deleted on theirs, an unparseable side, no base). Gateway: the commit builder against real git's ids (edit, add, delete with directory removal, a first file); end to end on Miniflare (`test/automation-editor.test.ts`): open, save a new automation as a bean that lands and is indexed, invalid content refused with its line, stale with theirs and then a merged save that lands, delete, a reader refused, a writer allowed but not to test-run, maintain needed when `checks.toml` protects `.beanstalk/**`, and a test run that saves nothing and writes no memory. The fake Artifacts now reads real packs on bean pushes (`test/fakes/fake-pack.js`) and moves a line on the runner's update-ref when the line is still where the engine thinks.
+
 ### 7.11 Left
 
 - **Beanstalk MCP tools for the agent** (decision cards, comments, bean status) through `bs.internal` with a scoped session token; today the agent has git and the filesystem only. People's agents have one read tool, `automation_list` (automations, problems, memory refs and the 20 newest runs, through `AgentReposRpc.agentAutomations`); run logs over MCP are not built.
 - BYO model keys and real harnesses (Claude Code, Codex) in the container: a translating proxy (Anthropic Messages or Responses to Workers AI) or BYO keys through the same proxy.
-- `repository_dispatch` webhooks; `thread_message`; the editor (§5.5) for automations.
+- `repository_dispatch` webhooks; `thread_message`. The editor for automations is built (§7.13); the editor for `.github/workflows/` files is not.
 - A page for the memory ref (tree and history) beyond links to its commits; a memory diff view.
 - Checking out the event's own commit (a sprout or a bean head) instead of the stalk head, when the agent should start there.
 - ~~A deleted repository's ActionsRepoDO keeps its schedule alarm ticking every few minutes~~ Fixed 2026-10-09 (doc 27 §10.8): deleting a repository calls `ActionsRepoDO.forget` (schedules of workflows and automations, queued events, running-automation rows, the alarm), and the registry's delete removes its `actions_workflows` index rows.

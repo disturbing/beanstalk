@@ -94,9 +94,18 @@ import type {
 } from '@beanstalk/shared-race/repo-events';
 
 import type { AccountsRpc } from '@beanstalk/shared-race/accounts';
+import type {
+  AutomationBeanStatus,
+  AutomationEditorRpc,
+  AutomationSource,
+  SaveAutomationInput,
+  SaveAutomationResult,
+  TestAutomationInput,
+} from '@beanstalk/shared-race/automation-editor';
 
 import { repositoryStorage } from './adapters/repository-storage';
 import { accountsRpc } from './repos/accounts-rpc';
+import { automationEditorRpc } from './automations/editor-rpc';
 import { agentReposRpc } from './agent/agent-repos-rpc';
 import { consumeRepoEvents } from './repo-events/consumer';
 import { repoIndexRpc } from './repo-events/index-rpc';
@@ -149,7 +158,8 @@ export default class Gateway
     AgentReposRpc,
     EngineFeedRpc,
     RepoIndexRpc,
-    AccountsRpc
+    AccountsRpc,
+    AutomationEditorRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -630,6 +640,45 @@ export default class Gateway
 
   agentAutomations(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentAutomations>> {
     return this.#agents().agentAutomations(principal, repo);
+  }
+
+  // The automation builder (doc 25 §7.13): open a file, save it as a bean, follow the bean,
+  // and run a draft once by hand.
+
+  automationSource(
+    viewer: Viewer,
+    repoId: string,
+    path: string,
+  ): Promise<RpcResult<AutomationSource>> {
+    return this.#automations().automationSource(viewer, repoId, path);
+  }
+
+  saveAutomation(
+    viewer: Viewer,
+    repoId: string,
+    input: SaveAutomationInput,
+  ): Promise<RpcResult<SaveAutomationResult>> {
+    return this.#automations().saveAutomation(viewer, repoId, input);
+  }
+
+  automationBean(
+    viewer: Viewer,
+    repoId: string,
+    bean: string,
+  ): Promise<RpcResult<AutomationBeanStatus>> {
+    return this.#automations().automationBean(viewer, repoId, bean);
+  }
+
+  testAutomation(
+    viewer: Viewer,
+    repoId: string,
+    input: TestAutomationInput,
+  ): Promise<RpcResult<{ readonly runId: string }>> {
+    return this.#automations().testAutomation(viewer, repoId, input);
+  }
+
+  #automations(): AutomationEditorRpc {
+    return automationEditorRpc(this.env, createDeps(this.env));
   }
 
   #agents(): Required<AgentReposRpc> {

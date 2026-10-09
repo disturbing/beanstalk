@@ -1,8 +1,11 @@
+import Link from 'next/link';
+
 import { ActionsOff, ActionsShell } from '../../../../components/actions/actions-shell';
 import styles from '../../../../components/actions/actions.module.css';
 import { WorkflowsView } from '../../../../components/actions/workflows-view';
 import { runFilterOf } from '../../../../src/actions/run-filters';
 import { actionsPage } from '../../../../src/server/actions-page';
+import type { ViewerRole } from '../../../../src/repositories/registry-client';
 import type { RepositoryParams } from '../../../../src/server/repository-page';
 
 type PageProps = {
@@ -64,7 +67,7 @@ export default async function AutomationsPage({ params, searchParams }: PageProp
       automationCount={automations.length}
     >
       {automations.length === 0 ? (
-        <NoAutomations />
+        <NoAutomations newHref={canEdit(page.role) ? `${page.base}/automations/new` : null} />
       ) : (
         <WorkflowsView
           kind="automations"
@@ -74,6 +77,7 @@ export default async function AutomationsPage({ params, searchParams }: PageProp
           runsError={runs.ok ? null : runs.error.message}
           filter={filter}
           access={page.access}
+          canEdit={canEdit(page.role)}
           nowMs={Date.now()}
         />
       )}
@@ -81,12 +85,17 @@ export default async function AutomationsPage({ params, searchParams }: PageProp
   );
 }
 
+/** People who may push beans open the builder; the gateway decides what a save may change. */
+function canEdit(role: ViewerRole | null): boolean {
+  return role === 'write' || role === 'maintain' || role === 'owner';
+}
+
 /** An invalid automation file has no facts, but it is still listed with its errors. */
 function isAutomationFile(path: string): boolean {
   return path.startsWith('.beanstalk/automations/');
 }
 
-function NoAutomations() {
+function NoAutomations({ newHref }: { readonly newHref: string | null }) {
   return (
     <section className={styles.box} aria-labelledby="automations-title">
       <div className={styles.coming}>
@@ -106,6 +115,13 @@ function NoAutomations() {
             Beanstalk&rsquo;s proxy with a spend cap. Add the file in a bean; it is live when the
             stalk takes it.
           </p>
+          {newHref === null ? null : (
+            <p>
+              <Link prefetch={false} className={styles.primary} href={newHref}>
+                New automation
+              </Link>
+            </p>
+          )}
         </div>
         <pre className={styles.yaml} aria-label="An example automation">
           {EXAMPLE}

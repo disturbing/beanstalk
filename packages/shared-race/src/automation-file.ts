@@ -4,13 +4,8 @@
  * `workflow_dispatch`), the harness that runs the agent, its prompt, its permissions and the
  * secrets it may use. Pure: problems are in the answer, with a line when one is known.
  */
-import type {
-  AutomationInfo,
-  BeanstalkEvent,
-  WorkflowProblem,
-  WorkflowTrigger,
-} from '@beanstalk/shared-race/actions';
-import { BEANSTALK_EVENTS, SecretName, automationIdOf } from '@beanstalk/shared-race/actions';
+import type { AutomationInfo, BeanstalkEvent, WorkflowProblem, WorkflowTrigger } from './actions';
+import { BEANSTALK_EVENTS, SecretName, automationIdOf } from './actions';
 import { LineCounter, isMap, isNode, parseDocument } from 'yaml';
 import type { Document } from 'yaml';
 import { z } from 'zod';

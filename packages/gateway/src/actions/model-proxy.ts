@@ -9,7 +9,7 @@
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 import { z } from 'zod';
 
-import { callCostUsd } from './automation-models';
+import { callCostUsd } from '@beanstalk/shared-race/automation-models';
 import { automationJobOf } from './job-tokens';
 import type { ModelCalls } from './run-store';
 
