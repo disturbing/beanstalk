@@ -3,12 +3,14 @@
  * the stalk's `.github/workflows/*.yml` read at a commit, parsed, and written to D1
  * (`actions_workflows`) in place of what the previous stalk had.
  */
-import type { WorkflowSummary } from '@beanstalk/shared-race/actions';
-import { WorkflowPath } from '@beanstalk/shared-race/actions';
+import type { AutomationInfo, WorkflowSummary } from '@beanstalk/shared-race/actions';
+import { AUTOMATIONS_DIR, WorkflowPath } from '@beanstalk/shared-race/actions';
 import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { GatewayError } from '../errors';
+import { readAutomationFile } from './automation-file';
+import { compileAutomation } from './automation-job';
 import type { WorkflowFile, WorkflowLimits } from './workflow-file';
 import { readWorkflowFile } from './workflow-file';
 
@@ -19,33 +21,86 @@ const MAX_WORKFLOWS = 50;
 export type IndexedWorkflow = {
   readonly summary: WorkflowSummary;
   readonly file: WorkflowFile;
+  /** The workflow text a run executes: the file, or an automation's compiled job (§7.4). */
   readonly source: string;
 };
 
-/** The workflow files at `sha`, parsed. A commit with no workflows directory has none. */
+/**
+ * The workflow and automation files at `sha`, parsed. A commit with neither directory has
+ * none. Automations are compiled to their one-job workflow here, so a run starts from the
+ * index alone, like a workflow's.
+ */
 export async function readWorkflows(
   explorer: RepoExplorer,
   sha: string,
   limits: WorkflowLimits,
 ): Promise<IndexedWorkflow[]> {
-  const listing = await explorer.tree(sha, WORKFLOWS_DIR).catch((error: unknown) => {
-    if (error instanceof GatewayError && error.status === 404) return null;
-    throw error;
-  });
-  if (listing === null) return [];
-  const paths = listing.entries
-    .filter((entry) => entry.type === 'blob' && WorkflowPath.safeParse(entry.path).success)
-    .map((entry) => entry.path)
-    .slice(0, MAX_WORKFLOWS);
+  const [workflowPaths, automationPaths] = await Promise.all([
+    listFiles(explorer, sha, WORKFLOWS_DIR),
+    listFiles(explorer, sha, AUTOMATIONS_DIR),
+  ]);
+  const paths = [...workflowPaths, ...automationPaths];
   const texts = await explorer.readTexts(sha, paths);
   const indexedAt = new Date().toISOString();
   const read = paths.map(async (path, index) => {
     const source = texts[index];
     if (source === null || source === undefined) return null;
+    if (path.startsWith(`${AUTOMATIONS_DIR}/`))
+      return readAutomation(path, source, { limits, sha, indexedAt });
     const file = await readWorkflowFile(path, source, limits);
     return { summary: summaryOf(file, { sha, indexedAt }), file, source };
   });
   return (await Promise.all(read)).filter((workflow) => workflow !== null);
+}
+
+async function listFiles(explorer: RepoExplorer, sha: string, dir: string): Promise<string[]> {
+  const listing = await explorer.tree(sha, dir).catch((error: unknown) => {
+    if (error instanceof GatewayError && error.status === 404) return null;
+    throw error;
+  });
+  if (listing === null) return [];
+  return listing.entries
+    .filter((entry) => entry.type === 'blob' && WorkflowPath.safeParse(entry.path).success)
+    .map((entry) => entry.path)
+    .slice(0, MAX_WORKFLOWS);
+}
+
+/**
+ * An automation file as the index keeps it: the file's own triggers and problems, and the
+ * compiled job (read back with the workflow parser, so the run plans it like any workflow).
+ */
+async function readAutomation(
+  path: string,
+  text: string,
+  at: { readonly limits: WorkflowLimits; readonly sha: string; readonly indexedAt: string },
+): Promise<IndexedWorkflow> {
+  const automation = readAutomationFile(path, text, {
+    maxTimeoutMinutes: at.limits.maxTimeoutMinutes,
+  });
+  const source =
+    automation.info === null
+      ? text
+      : compileAutomation({ name: automation.name, info: automation.info });
+  const compiled =
+    automation.info === null ? null : await readWorkflowFile(path, source, at.limits);
+  const file: WorkflowFile = {
+    path,
+    name: automation.name,
+    triggers: automation.triggers,
+    unsupportedEvents: [],
+    jobs: compiled?.jobs ?? [],
+    problems: [...automation.problems, ...(compiled?.problems ?? [])],
+    compatibility: automation.notes.map((detail) => ({
+      feature: 'timeout-minutes',
+      verdict: 'runs-differently' as const,
+      detail,
+    })),
+  };
+  return {
+    summary: summaryOf(file, { sha: at.sha, indexedAt: at.indexedAt }, automation.info),
+    file,
+    source,
+  };
 }
 
 /** Replaces the repository's index with `workflows` (read at the new stalk head). */
@@ -113,8 +168,10 @@ export async function indexedSource(
 function summaryOf(
   file: WorkflowFile,
   at: { readonly sha: string; readonly indexedAt: string },
+  automation: AutomationInfo | null = null,
 ): WorkflowSummary {
   return {
+    ...(automation === null ? {} : { automation }),
     path: WorkflowPath.parse(file.path),
     name: file.name,
     state: file.problems.length === 0 ? 'active' : 'invalid',

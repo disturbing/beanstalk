@@ -10,7 +10,7 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 - **Workers**: TypeScript, Hono router inside a `WorkerEntrypoint` default export, RPC between Workers through service bindings (never HTTP). One `wrangler.jsonc` per package; Wrangler is the deploy tool for every package (not the beta `cf` CLI) until after the deadline.
 - **Containers**: Rust (axum, tokio), one crate per image under `packages/<name>` with its Dockerfile, owned by a Container Durable Object in a Worker package. Root `Cargo.toml` is a workspace created with the first crate.
 - **Web app**: vinext (Next.js App Router on Workers) in `packages/web`; bindings through `import { env } from 'cloudflare:workers'`; data via service-binding RPC to the gateway.
-- **Platform**: Durable Objects (SQLite), Artifacts, Queues, Workflows, R2, D1, Containers, Sandbox, AI Gateway, as the design docs specify. Coding work is done by real harnesses (Claude Code, Codex) over MCP; Workers AI is never a coding worker; Jev only classifies.
+- **Platform**: Durable Objects (SQLite), Artifacts, Queues, Workflows, R2, D1, Containers, Sandbox, AI Gateway, as the design docs specify. Coding work is done by real harnesses (Claude Code, Codex) over MCP; Workers AI is never a coding worker, with one owner exception (2026-10-09): Automations run their agent loop on Workers AI models through AI Gateway, by the gateway's model proxy, until agent setups exist (`docs/claude-opus/25-actions-and-automations.md` §7.5); Jev only classifies.
 
 ## Commands
 

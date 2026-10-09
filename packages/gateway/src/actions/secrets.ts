@@ -18,6 +18,12 @@ import { KEY_VERSION, encodeText, importSecretsKey, openValue, sealValue } from 
 /** Where a run comes from, as far as secrets are concerned. */
 export type RunOrigin =
   | { readonly kind: 'stalk' | 'dispatch' | 'schedule' }
+  /**
+   * An automation started by a Beanstalk event (doc 25 §7.6): the trigger carries data from
+   * beans anyone with push access wrote, so it gets what an untrusted pre-land run gets: only
+   * the secrets whose "available to pre-land checks" toggle is on.
+   */
+  | { readonly kind: 'event' }
   | {
       readonly kind: 'preland';
       /** A maintainer's own bean gets every secret; anyone else's only the toggled ones. */
@@ -33,12 +39,15 @@ export function secretsForRun(
   const wanted = new Set(named);
   return stored
     .filter((secret) => wanted.has(secret.name))
-    .filter(
-      (secret) =>
-        origin.kind !== 'preland' || origin.pushedBy === 'maintainer' || secret.prelandAllowed,
-    )
+    .filter((secret) => isTrusted(origin) || secret.prelandAllowed)
     .map((secret) => secret.name)
     .toSorted();
+}
+
+/** Whether a run's origin gets every secret it names (D4), not only the toggled ones. */
+function isTrusted(origin: RunOrigin): boolean {
+  if (origin.kind === 'event') return false;
+  return origin.kind !== 'preland' || origin.pushedBy === 'maintainer';
 }
 
 export type SecretsStore = {

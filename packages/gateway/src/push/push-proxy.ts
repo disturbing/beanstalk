@@ -241,7 +241,18 @@ async function push(
   const actor = target.credential.user.handle;
   if (request.commands.some((command) => command.ref.startsWith(WAIT_REF_PREFIX)))
     return waitPush(input, { request, engine: target.engine, actor, mode });
+  const memoryRef = target.credential.memoryRef;
+  if (memoryRef !== undefined && request.commands.some((command) => command.ref === memoryRef))
+    return memoryPush(input, { request, mode, engine: target.engine, memoryRef });
   const options = parsePushOptions(request.options);
+  if (target.credential.beanPushAllowed === false) {
+    await request.upstreamBody.cancel();
+    return refused(
+      request,
+      mode,
+      'this automation may not push beans (its file says permissions: beans: read)',
+    );
+  }
   const checked = await checkCommands(request, {
     engine: target.engine,
     actor,
@@ -299,6 +310,40 @@ async function push(
     body: (write) => writePushVerdict(write, { ...wait, seconds: waitSeconds }),
     ctx: input.ctx,
   });
+}
+
+/**
+ * An automation's memory push (doc 25 §7.3): one update of its own `refs/automations/<id>/
+ * memory`, forwarded to the repository as it is. The engine never sees it: memory is not code
+ * and never lands. Deleting it and pushing anything else with it are refused.
+ */
+async function memoryPush(
+  input: RepoGitRequest,
+  target: { request: PushRequest; mode: ReportMode; engine: Engine; memoryRef: string },
+): Promise<Response> {
+  const { request, mode } = target;
+  const [command] = request.commands;
+  if (request.commands.length !== 1 || command?.ref !== target.memoryRef) {
+    await request.upstreamBody.cancel();
+    return refused(request, mode, `push ${target.memoryRef} on its own`);
+  }
+  if (command.newSha === ZERO_SHA) {
+    await request.upstreamBody.cancel();
+    return refused(request, mode, 'an automation cannot delete its memory');
+  }
+  const grant = await target.engine.repoGitGrant('write');
+  if (!grant.ok) return text(grant.status, grant.message);
+  const upstream = await forwardGit(input.request, {
+    upstream: grant.upstream,
+    path: input.path,
+    token: grant.token,
+    body: request.upstreamBody,
+  });
+  return bytesResponse(
+    new Uint8Array(await upstream.arrayBuffer()),
+    upstream.headers,
+    upstream.status,
+  );
 }
 
 /**

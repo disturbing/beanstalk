@@ -99,6 +99,9 @@ catalogs:
     wrangler:
       specifier: 4.147.0
       version: 4.147.0
+    yaml:
+      specifier: 2.9.1
+      version: 2.9.1
     zod:
       specifier: 4.6.5
       version: 4.6.5
@@ -176,6 +179,9 @@ importers:
       hono:
         specifier: 'catalog:'
         version: 4.13.12
+      yaml:
+        specifier: 'catalog:'
+        version: 2.9.1
       zod:
         specifier: 'catalog:'
         version: 4.6.5

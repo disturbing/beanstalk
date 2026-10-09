@@ -124,22 +124,31 @@ impl<'a, U: Uplink> Session<'a, U> {
         &mut self,
         request: &JobRequest,
     ) -> std::result::Result<Prepared, (FailureReason, Error)> {
-        self.say(
-            Level::Info,
-            &format!(
-                "Fetching {} at {}",
-                request.workflow_path,
-                short(&request.github.sha)
-            ),
-        )
-        .await;
-        let scratch = self.config.work_root().join("_fetch");
-        let source = git::fetch_workflow(request, &scratch, self.recorder.masker())
-            .await
-            .map_err(|error| match error {
-                Error::Workflow(_) => (FailureReason::Workflow, error),
-                other => (FailureReason::Runner, other),
-            })?;
+        let source = if let Some(source) = &request.workflow_source {
+            self.say(
+                Level::Info,
+                &format!("Running {} as compiled by Beanstalk", request.workflow_path),
+            )
+            .await;
+            source.clone()
+        } else {
+            self.say(
+                Level::Info,
+                &format!(
+                    "Fetching {} at {}",
+                    request.workflow_path,
+                    short(&request.github.sha)
+                ),
+            )
+            .await;
+            let scratch = self.config.work_root().join("_fetch");
+            git::fetch_workflow(request, &scratch, self.recorder.masker())
+                .await
+                .map_err(|error| match error {
+                    Error::Workflow(_) => (FailureReason::Workflow, error),
+                    other => (FailureReason::Runner, other),
+                })?
+        };
         let mut job = workflow::isolate_job_with_cache(
             &source,
             &request.job_name,

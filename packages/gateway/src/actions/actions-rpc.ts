@@ -9,6 +9,7 @@
 import type { ActionsRpc, RunSummary } from '@beanstalk/shared-race/actions';
 import {
   ACTIONS_CONCLUSIONS,
+  AUTOMATIONS_DIR,
   ACTIONS_EVENTS,
   ACTIONS_STATUSES,
   ActionsJobId,
@@ -236,6 +237,10 @@ async function listRuns(
   if (filter.workflowPath !== undefined) {
     clauses.push('workflow_path = ?');
     bindings.push(filter.workflowPath);
+  }
+  if (filter.kind !== undefined) {
+    clauses.push(`workflow_path ${filter.kind === 'automation' ? '' : 'NOT '}LIKE ?`);
+    bindings.push(`${AUTOMATIONS_DIR}/%`);
   }
   if (filter.status !== undefined) {
     clauses.push('status = ?');

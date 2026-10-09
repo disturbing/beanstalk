@@ -7,6 +7,7 @@
  */
 import { z } from 'zod';
 
+import { BEANSTALK_EVENTS } from '@beanstalk/shared-race/actions';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 /** GitHub's run and job vocabulary, kept so workflows and people read the same words. */
@@ -25,7 +26,8 @@ export const Conclusion = z.enum([
 ]);
 export type Conclusion = z.infer<typeof Conclusion>;
 
-export const RunEvent = z.enum(['push', 'workflow_dispatch', 'schedule']);
+/** GitHub's three, and the Beanstalk events automations run on (`25` §7.2). */
+export const RunEvent = z.enum(['push', 'workflow_dispatch', 'schedule', ...BEANSTALK_EVENTS]);
 export type RunEvent = z.infer<typeof RunEvent>;
 
 export const DispatchInput = z.object({
@@ -43,6 +45,12 @@ export const WorkflowTrigger = z.discriminatedUnion('event', [
   z.object({ event: z.literal('push'), branches: z.array(z.string()) }),
   z.object({ event: z.literal('workflow_dispatch'), inputs: z.array(DispatchInput) }),
   z.object({ event: z.literal('schedule'), crons: z.array(z.string()) }),
+  z.object({
+    event: z.literal('beanstalk'),
+    name: z.enum(BEANSTALK_EVENTS),
+    beans: z.array(z.string()),
+    authors: z.array(z.string()),
+  }),
   z.object({
     event: z.literal('other'),
     name: z.string(),
@@ -91,6 +99,22 @@ export const RunSummary = z.object({
 });
 export type RunSummary = z.infer<typeof RunSummary>;
 
+/** What an automation file says (`25` §7.1): its agent, permissions, memory and limits. */
+export const AutomationFacts = z.object({
+  id: z.string(),
+  harness: z.enum(['agent', 'shell']),
+  model: z.string().nullable(),
+  prompt: z.string(),
+  beansWrite: z.boolean(),
+  secrets: z.array(z.string()),
+  timeoutMinutes: z.number(),
+  maxTurns: z.number(),
+  maxCostUsd: z.number(),
+  memoryRef: z.string().nullable(),
+  actor: z.string(),
+});
+export type AutomationFacts = z.infer<typeof AutomationFacts>;
+
 export const Workflow = z.object({
   /** The file's path, which is its identity. */
   id: z.string(),
@@ -101,6 +125,8 @@ export const Workflow = z.object({
   /** A file the parser refused: why, with line and column. */
   error: z.string().nullable(),
   lastRun: RunSummary.nullable(),
+  /** Set for an automation (`.beanstalk/automations/`). */
+  automation: AutomationFacts.nullable().default(null),
 });
 export type Workflow = z.infer<typeof Workflow>;
 
@@ -125,6 +151,8 @@ export const Job = z.object({
   startedAt: z.string().nullable(),
   completedAt: z.string().nullable(),
   steps: z.array(Step),
+  /** The job's outputs (an automation's: beans pushed, memory commits, spend). */
+  outputs: z.record(z.string(), z.string()).default({}),
 });
 export type Job = z.infer<typeof Job>;
 
@@ -146,6 +174,18 @@ export const RunDetail = RunSummary.extend({
   workflowPath: z.string(),
   /** Whether `workflow_dispatch` is on this workflow (re-run dispatches it again). */
   canRerun: z.boolean(),
+  /** An agent automation's model calls through the gateway's proxy. */
+  modelUsage: z
+    .object({
+      model: z.string().nullable(),
+      calls: z.number(),
+      inputTokens: z.number(),
+      outputTokens: z.number(),
+      costUsd: z.number(),
+      limitUsd: z.number(),
+    })
+    .nullable()
+    .default(null),
 });
 export type RunDetail = z.infer<typeof RunDetail>;
 
@@ -154,6 +194,8 @@ export type RunPage = z.infer<typeof RunPage>;
 
 export const RunFilter = z.object({
   workflow: z.string().optional(),
+  /** Only GitHub workflows' runs, or only automations'. */
+  kind: z.enum(['workflow', 'automation']).optional(),
   status: z.enum(['success', 'failure', 'cancelled', 'in_progress', 'queued']).optional(),
   branch: z.string().optional(),
   /** The `next` of the previous page. */

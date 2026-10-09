@@ -9,7 +9,11 @@ import type {
   JobSpec,
   SecretName,
 } from '@beanstalk/shared-race/actions';
-import { SecretName as SecretNameSchema, WorkflowPath } from '@beanstalk/shared-race/actions';
+import {
+  SecretName as SecretNameSchema,
+  WorkflowPath,
+  isAutomationPath,
+} from '@beanstalk/shared-race/actions';
 
 import type { NeedResult } from './job-graph';
 import type { JobRow, RunRecord } from './run-store';
@@ -25,12 +29,15 @@ export function jobSpecOf(input: {
   readonly vars: Readonly<Record<string, string>>;
   readonly tokens: { readonly job: string; readonly report: string };
   readonly serverUrl: string;
+  /** The model proxy's base URL (doc 25 §7.5), told to automation jobs. */
+  readonly modelUrl: string;
   /** `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN` for an `id-token: write` job (`oidc.ts`), else empty. */
   readonly oidcEnv: Readonly<Record<string, string>>;
 }): JobSpec {
   const { request } = input.run;
   const { repo } = request;
   const fullName = `${repo.ownerHandle}/${repo.name}`;
+  const isAutomation = isAutomationPath(request.workflow.path);
   return {
     jobId: input.ids.jobId,
     repo: { id: repo.id, owner: repo.ownerHandle, name: repo.name, fullName },
@@ -41,7 +48,8 @@ export function jobSpecOf(input: {
     jobName: input.job.key,
     displayName: input.job.name,
     matrix: input.job.matrix,
-    event: request.event,
+    // An automation's job runs as a dispatch in act; its own event is BEANSTALK_EVENT (§7.4).
+    event: isAutomation ? 'workflow_dispatch' : request.event,
     eventPayload: request.eventPayload,
     context: {
       sha: request.sha,
@@ -63,6 +71,9 @@ export function jobSpecOf(input: {
       BEANSTALK_LINE: 'stalk',
       BEANSTALK_REPOSITORY_ID: repo.id,
       CI: 'true',
+      ...(isAutomation
+        ? { BEANSTALK_EVENT: request.event, BEANSTALK_MODEL_URL: input.modelUrl }
+        : {}),
       ...input.oidcEnv,
     },
     secretNames: input.secretNames.map((name): SecretName => SecretNameSchema.parse(name)),
@@ -73,5 +84,6 @@ export function jobSpecOf(input: {
     image: input.job.image ?? 'ubuntu-24.04',
     report: { token: input.tokens.report },
     depsCache: { scope: STALK_REF_NAME, canSave: request.origin.kind === 'stalk' },
+    ...(isAutomation ? { workflowSource: request.workflow.source } : {}),
   };
 }

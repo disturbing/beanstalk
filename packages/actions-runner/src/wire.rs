@@ -40,6 +40,10 @@ pub struct JobRequest {
     pub job_id: String,
     /// `.github/workflows/ci.yml`, relative to the repository root.
     pub workflow_path: String,
+    /// The workflow text itself, when the control plane compiled it (an automation's job,
+    /// docs/claude-opus/25 §7.4): used instead of reading `workflow_path` at the commit.
+    #[serde(default)]
+    pub workflow_source: Option<String>,
     /// The job's key under `jobs:`.
     pub job_name: String,
     pub event_name: String,

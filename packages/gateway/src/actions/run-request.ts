@@ -18,6 +18,8 @@ export type RunRequest = {
   readonly actor: string;
   readonly inputs: Readonly<Record<string, string>>;
   readonly origin: RunOrigin;
+  /** An automation's model and spend cap (doc 25 §7.5); absent for a GitHub workflow. */
+  readonly automation?: { readonly model: string | null; readonly maxCostUsd: number } | undefined;
   /** Set when the run must not start (the month's minutes are spent): its reason. */
   readonly refused: string | null;
   readonly createdMs: number;

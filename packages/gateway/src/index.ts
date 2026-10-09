@@ -84,6 +84,7 @@ import type {
   BeanWaitUntil,
   BeanWaited,
   TaskClaimed,
+  AgentAutomations,
 } from '@beanstalk/shared-race/agent-repos';
 
 import type {
@@ -159,6 +160,7 @@ export default class Gateway
       db: this.env.FORGE,
       // Actions (doc 25 §2): the stalk moving is `push` to main; the repository's DO indexes.
       stalkMoved: (move) => this.env.ACTIONS_REPOS.getByName(move.repoId).stalkMoved(move),
+      repoEvents: (input) => this.env.ACTIONS_REPOS.getByName(input.repoId).repoEvents(input),
       registry: d1Registry(this.env.FORGE, this.env),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repo-events' }),
     });
@@ -618,7 +620,11 @@ export default class Gateway
     return this.#agents().agentReleaseTask(principal, repo, task);
   }
 
-  #agents(): AgentReposRpc {
+  agentAutomations(principal: AgentPrincipal, repo: string): Promise<RpcResult<AgentAutomations>> {
+    return this.#agents().agentAutomations(principal, repo);
+  }
+
+  #agents(): Required<AgentReposRpc> {
     return agentReposRpc(createDeps(this.env));
   }
 

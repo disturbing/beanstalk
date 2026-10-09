@@ -108,6 +108,7 @@ function runRecord(): RunRecord {
     completedMs: null,
     cancelRequested: false,
     vars: {},
+    modelUsage: { calls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 },
   };
 }
 
