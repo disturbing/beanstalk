@@ -56,7 +56,7 @@ export type AgentRepository = {
   /** `owner/name`. */
   readonly repo: string;
   readonly description: string;
-  readonly visibility: 'public' | 'private';
+  readonly visibility: 'public' | 'private' | 'internal';
   /** The person's role: owner, maintain, write, read, or null (a public repository). */
   readonly role: ViewerRole | null;
   /** What the session may do here: push beans (`write`: the write role and scope) or only read. */

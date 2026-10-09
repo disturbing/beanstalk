@@ -16,9 +16,10 @@ import { Handle } from './users';
  * A member's role, strongest first:
  * - `owner`: everything, the org's deletion and other owners included; at least one always;
  * - `admin`: settings, secrets, members (not owners), every repository as its owner;
- * - `member`: the org's base permission on every repository, creates repositories when the
- *   org allows it;
+ * - `member`: the org's base permission on every repository (none by default: only the
+ *   repositories they are invited to), creates repositories when the org allows it;
  * - `viewer`: the base permission capped at read.
+ * Every role reads the org's internal repositories.
  */
 export const ORG_ROLES = ['owner', 'admin', 'member', 'viewer'] as const;
 export const OrgRole = z.enum(ORG_ROLES);
@@ -28,6 +29,12 @@ export type OrgRole = z.infer<typeof OrgRole>;
 export const ORG_BASE_PERMISSIONS = ['none', 'read', 'write'] as const;
 export const OrgBasePermission = z.enum(ORG_BASE_PERMISSIONS);
 export type OrgBasePermission = z.infer<typeof OrgBasePermission>;
+/**
+ * A new org's base permission (owner's decision 2026-10-09): none, so members reach only the
+ * repositories they are invited to, plus the org's internal and public ones. Owners and admins
+ * reach every repository regardless.
+ */
+export const DEFAULT_BASE_PERMISSION: OrgBasePermission = 'none';
 
 /** Who may create repositories in the org (owners and admins always may). */
 export const OrgRepoCreation = z.enum(['members', 'admins']);

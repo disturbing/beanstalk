@@ -146,7 +146,7 @@ const RunRecordSchema = z.object({
       name: z.string(),
       engineId: z.string(),
       defaultBranch: z.string(),
-      visibility: z.enum(['public', 'private']),
+      visibility: z.enum(['public', 'private', 'internal']),
     }),
     workflow: z.object({ path: z.string(), source: z.string() }),
     event: z.enum(ACTIONS_EVENTS),

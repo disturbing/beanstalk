@@ -335,17 +335,44 @@
             </li>
           </ul>
 
-          <h2 id="limits">Good to know</h2>
+          <h2 id="moved">Renamed and moved <span class="pill live">live</span></h2>
+          <p>
+            When a repository is renamed or moved to another owner (you to an organization, an
+            organization to you, or between organizations), its old address keeps working, so
+            existing clones, CI and agent setups do not break:
+          </p>
           <ul>
             <li>
-              Storage is named by id, so renaming never moves git data. The old URL stops working
-              after a rename.
+              <b>Web pages</b> at the old address redirect to the repository's home at the new one,
+              the same as after a handle change.
             </li>
             <li>
-              A deleted repository's name cannot yet be reused by the same owner. This is a known
-              issue.
+              <b>Git over HTTPS and SSH</b>: clone, fetch and push keep working at the old remote.
+              Git does not follow a redirect on a push, so Beanstalk serves the old address in place
+              instead. A push to it prints where the repository is now and the
+              <code>git remote set-url</code> line to switch.
             </li>
-            <li>Organisations and teams are not built yet: every repository has one owner.</li>
+            <li><b>Agents</b>: MCP tools that take <code>owner/name</code> accept the old one.</li>
+            <li>
+              Renames chain: after <code>a</code> → <code>b</code> → <code>c</code>, both
+              <code>a</code> and <code>b</code> lead to <code>c</code>. An old handle and an old
+              name together still work.
+            </li>
+            <li>
+              The old address stops redirecting once someone creates a repository with exactly that
+              owner and name, as on GitHub. Deleting the repository removes its old addresses.
+            </li>
+            <li>
+              An internal repository moved to a person becomes private: only organizations have
+              internal repositories.
+            </li>
+          </ul>
+          <p>Organization handles cannot be changed yet.</p>
+
+          <h2 id="limits">Good to know</h2>
+          <ul>
+            <li>Storage is named by id, so renaming never moves git data.</li>
+            <li>Teams are not built yet.</li>
           </ul>
 
           <section class="sources">

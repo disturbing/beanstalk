@@ -63,7 +63,7 @@ export function RepoHead(props: {
   readonly current: RepoTab;
   readonly kind?: RepoKind;
   /** A persistent repository's visibility, shown beside its name. */
-  readonly visibility?: 'public' | 'private';
+  readonly visibility?: 'public' | 'private' | 'internal';
   /** Where the owner's name links: their repositories, or the repository itself for a race. */
   readonly ownerHref?: string;
   /** A repository's open beans, counted on its Changes tab. */
@@ -106,7 +106,7 @@ function RepositoryHead(props: {
   readonly base: string;
   readonly repository: Repository;
   readonly current: RepoTab;
-  readonly visibility?: 'public' | 'private';
+  readonly visibility?: 'public' | 'private' | 'internal';
   readonly ownerHref?: string;
   readonly openChanges?: number;
   readonly canAdminister?: boolean;

@@ -29,7 +29,16 @@ export const RepoName = z
   .regex(/^[A-Za-z0-9]/, 'Start with a letter or a digit.')
   .refine((name) => !name.toLowerCase().endsWith('.git'), 'Leave ".git" off; the URL adds it.');
 
-export const RepoVisibility = z.enum(['public', 'private']);
+/**
+ * Who may read a repository without a role on it:
+ * - `public`: everyone, signed in or not;
+ * - `private`: nobody (people without a role get 404, as if it did not exist);
+ * - `internal`: every member of the owning org, any role (others get 404). Only an org's
+ *   repository can be internal; moving one to a person makes it private.
+ * Writing always needs a role (`mayUseEngine`).
+ */
+export const REPO_VISIBILITIES = ['public', 'private', 'internal'] as const;
+export const RepoVisibility = z.enum(REPO_VISIBILITIES);
 export type RepoVisibility = z.infer<typeof RepoVisibility>;
 
 /** The starters a repository can begin from. */
@@ -271,7 +280,9 @@ export type RepositoriesRpc = {
   /**
    * Moves a repository to another namespace: the actor's own, or an org where they are an
    * owner or admin. The actor must administer it where it is. Storage, engine, collaborators
-   * and history stay; the old `/<owner>/<repo>` stops resolving.
+   * and history stay; the old `/<owner>/<repo>` keeps resolving to it (a redirect) until a
+   * repository is created at that address. An internal repository moved to a person becomes
+   * private.
    */
   transferRepository(
     actorId: string,

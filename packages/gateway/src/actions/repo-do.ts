@@ -420,7 +420,7 @@ export function factsOf(record: {
   readonly name: string;
   readonly engine_id: string;
   readonly default_branch: string;
-  readonly visibility: 'public' | 'private';
+  readonly visibility: 'public' | 'private' | 'internal';
 }): RepoFacts {
   return {
     id: record.id,

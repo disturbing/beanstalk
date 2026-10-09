@@ -22,9 +22,11 @@ import { call } from './helpers';
 
 /**
  * Organizations (docs/claude-opus/28-organizations.md). The matrix: org role × the org's base
- * permission × a collaborator role on top × visibility × transport, every answer from
- * `mayUseEngine`. The expected repository role of each person is written out per base
- * permission (ROLE); the status each transport gives a role is the collaborators matrix's rule.
+ * permission × a collaborator role on top × visibility (public, private, internal) ×
+ * transport, every answer from `mayUseEngine`. The expected repository role of each person is
+ * written out per base permission (ROLE); an internal repository adds read for every member
+ * (INTERNAL_READERS); the status each transport gives a role is the collaborators matrix's
+ * rule. `list` is the org page's repository list: 200 when the repository is in it, 404 not.
  */
 const gateway = exports.default;
 const INTERNAL = 'http://gateway.internal';
@@ -116,8 +118,18 @@ const KEYS = [
   'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINSqzLao5za/R3aKP3bFNyPwrX3mmVhKPnwVDHP9NufP',
 ] as const;
 
-type Visibility = 'private' | 'public';
-const TRANSPORTS = ['https', 'ssh', 'mcp', 'web'] as const;
+type Visibility = 'private' | 'public' | 'internal';
+const VISIBILITIES: readonly Visibility[] = ['private', 'public', 'internal'];
+/** Who reads an internal repository whatever the base permission: every member of the org. */
+const INTERNAL_READERS: ReadonlySet<Who> = new Set([
+  'owner',
+  'admin',
+  'member',
+  'viewer',
+  'member+write',
+  'viewer+maintain',
+]);
+const TRANSPORTS = ['https', 'ssh', 'mcp', 'web', 'list'] as const;
 type Transport = (typeof TRANSPORTS)[number];
 type Action = 'read' | 'write' | 'administer';
 type Status = 200 | 401 | 403 | 404;
@@ -127,6 +139,7 @@ const CARRIES: Readonly<Record<Transport, readonly Action[]>> = {
   ssh: ['read', 'write'],
   mcp: ['read', 'write'],
   web: ['read', 'administer'],
+  list: ['read'],
 };
 const LEAST: Readonly<Record<Action, ViewerRole>> = {
   read: 'read',
@@ -150,7 +163,7 @@ beforeAll(async () => {
 });
 
 const cases = BASES.flatMap((base) =>
-  (['private', 'public'] as const).flatMap((visibility) =>
+  VISIBILITIES.flatMap((visibility) =>
     TRANSPORTS.flatMap((transport) =>
       CARRIES[transport].flatMap((action) =>
         WHO.flatMap((who) => {
@@ -164,7 +177,7 @@ const cases = BASES.flatMap((base) =>
 
 describe('org access matrix: org role × base permission × collaborator × visibility × transport', () => {
   it('covers every combination a transport carries', () => {
-    expect(cases).toHaveLength(354);
+    expect(cases).toHaveLength(603);
   });
 
   it.each(cases)(
@@ -184,8 +197,13 @@ function expectedFor(input: {
   action: Action;
   who: Who;
 }): Status | null {
-  const role = ROLE[input.base][input.who];
+  const baseRole = ROLE[input.base][input.who];
+  const role =
+    input.visibility === 'internal' && INTERNAL_READERS.has(input.who)
+      ? (baseRole ?? 'read')
+      : baseRole;
   const status = statusFor(role, input.visibility, input.action);
+  if (input.transport === 'list') return status;
   if (input.who !== 'anonymous') {
     // Tokens, keys and agent sessions never administer.
     const isAgent = input.transport !== 'web';
@@ -198,7 +216,7 @@ function expectedFor(input: {
 
 function statusFor(role: ViewerRole | null, visibility: Visibility, action: Action): Status {
   if (role === null) {
-    if (visibility === 'private') return 404;
+    if (visibility !== 'public') return 404;
     return action === 'read' ? 200 : 403;
   }
   return RANK[role] >= RANK[LEAST[action]] ? 200 : 403;
@@ -235,6 +253,10 @@ async function attempt(input: {
       return statusOf(
         await gateway.updateRepository(who.id, record.id, { description: `by ${who.handle}` }),
       );
+    case 'list': {
+      const listed = value(await gateway.listRepositories(record.owner.id, who?.id ?? null));
+      return listed.some((entry) => entry.id === record.id) ? 200 : 404;
+    }
     default:
       return input.transport;
   }
@@ -266,6 +288,9 @@ describe('repositories in an org', () => {
     const record = value(
       await create(owner, { owner: org.handle, name: 'bp-repo', visibility: 'private' }),
     );
+    // A new org is on base none: an uninvited member does not learn the repository exists.
+    expect((await bpGit(member.token, 'git-upload-pack')).status).toBe(404);
+    value(await updateOrg(env, owner, org.id, { basePermission: 'read' }, T0));
     expect((await bpGit(member.token, 'git-receive-pack')).status).toBe(403);
     value(await updateOrg(env, owner, org.id, { basePermission: 'write' }, T0));
     expect((await bpGit(member.token, 'git-receive-pack')).status).toBe(200);
@@ -293,12 +318,63 @@ describe('repositories in an org', () => {
     const member = crew.get('mem');
     if (owner === undefined || member === undefined) throw new Error('setup');
     value(await create(owner, { owner: org.handle, name: 'ac-repo' }));
-    const lines = value(await gateway.repositoryActivity(member.id, 20));
-    expect(lines.map((line) => `${line.owner_handle}/${line.repo_name}`)).toContain(
-      'ac-org/ac-repo',
-    );
+    const names = async () =>
+      value(await gateway.repositoryActivity(member.id, 20)).map(
+        (line) => `${line.owner_handle}/${line.repo_name}`,
+      );
+    expect(await names()).toEqual([]);
+    value(await updateOrg(env, owner, org.id, { basePermission: 'read' }, T0));
+    expect(await names()).toContain('ac-org/ac-repo');
     value(await updateOrg(env, owner, org.id, { basePermission: 'none' }, T0));
-    expect(value(await gateway.repositoryActivity(member.id, 20))).toEqual([]);
+    expect(await names()).toEqual([]);
+    // An internal repository is every member's to read, so it is in their activity.
+    value(await create(owner, { owner: org.handle, name: 'ac-inside', visibility: 'internal' }));
+    expect(await names()).toEqual(['ac-org/ac-inside']);
+  });
+});
+
+describe('internal repositories', () => {
+  it('exist only in orgs: refused for a person on create and on a visibility change', async () => {
+    const solo = await signUp('in-solo', null);
+    expect(await create(solo, { name: 'mine', visibility: 'internal' })).toMatchObject({
+      ok: false,
+      error: { code: 'invalid_request', status: 400 },
+    });
+    const mine = value(await create(solo, { name: 'mine' }));
+    expect(
+      await gateway.updateRepository(solo.id, mine.id, { visibility: 'internal' }),
+    ).toMatchObject({ ok: false, error: { code: 'invalid_request' } });
+  });
+
+  it('let every member read, list and clone, and nobody else; writing needs a role', async () => {
+    const { org, people: crew } = await orgOf('in-org', { mem: 'member', vie: 'viewer' });
+    const owner = crew.get('own');
+    const member = crew.get('mem');
+    const viewer = crew.get('vie');
+    if (owner === undefined || member === undefined || viewer === undefined)
+      throw new Error('setup');
+    const outsider = await signUp('in-outsider', null);
+    const made = value(await create(owner, { owner: org.handle, name: 'in-repo' }));
+    const git = (who: Person, service: string) =>
+      call('GET', `/git/in-org/in-repo.git/info/refs?service=${service}`, { token: who.token });
+    expect((await git(viewer, 'git-upload-pack')).status).toBe(404);
+    value(await gateway.updateRepository(owner.id, made.id, { visibility: 'internal' }));
+    expect((await git(viewer, 'git-upload-pack')).status).toBe(200);
+    expect((await git(member, 'git-upload-pack')).status).toBe(200);
+    expect((await git(member, 'git-receive-pack')).status).toBe(403);
+    expect((await git(outsider, 'git-upload-pack')).status).toBe(404);
+    expect(value(await gateway.getRepository('in-org', 'in-repo', viewer.id)).viewer_role).toBe(
+      'read',
+    );
+    expect(value(await gateway.listRepositories(org.id, viewer.id)).map((r) => r.id)).toEqual([
+      made.id,
+    ]);
+    expect(value(await gateway.listRepositories(org.id, outsider.id))).toEqual([]);
+    expect(value(await gateway.listRepositories(org.id, null))).toEqual([]);
+    const audit = value(await gateway.repositoryPeople(made.id, owner.id)).audit.map(
+      (event) => event.detail,
+    );
+    expect(audit).toContain('private → internal');
   });
 });
 
@@ -308,6 +384,7 @@ describe('transfers', () => {
     const admin = crew.get('adm');
     const member = crew.get('mem');
     if (admin === undefined || member === undefined) throw new Error('setup');
+    value(await updateOrg(env, crew.get('own') ?? admin, org.id, { basePermission: 'read' }, T0));
     const mine = value(await create(admin, { name: 'tr-repo', visibility: 'private' }));
     const moved = value(await gateway.transferRepository(admin.id, mine.id, 'tr-org'));
     expect(moved).toMatchObject({ owner: { id: org.id, handle: 'tr-org' }, owner_kind: 'org' });
@@ -319,6 +396,7 @@ describe('transfers', () => {
     // A member may not move it out; the admin moves it back to themself.
     expect(statusOf(await gateway.transferRepository(member.id, mine.id, member.handle))).toBe(403);
     value(await gateway.transferRepository(admin.id, mine.id, admin.handle));
+    // tr-org/tr-repo now redirects to the admin's private repository: the member reads neither.
     expect((await at('tr-org')).status).toBe(404);
     expect((await at(admin.handle)).status).toBe(404);
     const audit = value(await gateway.repositoryPeople(mine.id, admin.id)).audit.map(
@@ -364,7 +442,7 @@ async function orgWithRepos(base: OrgBasePermission): Promise<void> {
     }),
   );
   await Promise.all(
-    (['private', 'public'] as const).map(async (visibility) => {
+    VISIBILITIES.map(async (visibility) => {
       const record = value(
         await create(owner, { owner: handle, name: `m-${visibility}`, visibility }),
       );

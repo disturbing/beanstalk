@@ -19,7 +19,7 @@ import {
   lookupRepository,
   updateFlow,
 } from './flows';
-import { envVarsBlock, isReservedOwner, sshEndpoint, startGuide } from './paths';
+import { envVarsBlock, isOldAddress, isReservedOwner, sshEndpoint, startGuide } from './paths';
 import { registryClient } from './registry-client';
 
 const coop = { id: 'u_dev_coop', handle: 'coop', email: 'coop@dev.beanstalk.invalid' };
@@ -177,6 +177,15 @@ describe('the New repository form', () => {
     expect(read.values.name).toBe('my notes');
   });
 
+  it('reads internal, and names all three visibilities when the choice is missing', () => {
+    const internal = readCreateForm(form({ ...starter, owner: 'acme', visibility: 'internal' }));
+    expect(internal).toMatchObject({ ok: true, input: { owner: 'acme', visibility: 'internal' } });
+    const missing = readCreateForm(form({ ...starter, visibility: 'secret' }));
+    expect(missing.ok ? null : missing.errors.visibility).toBe(
+      'Choose public, private or internal.',
+    );
+  });
+
   it('refuses import URLs that carry credentials', () => {
     const read = readCreateForm(
       form({ ...starter, start: 'import', importUrl: 'https://me:pw@github.com/a/b.git' }),
@@ -331,6 +340,14 @@ describe('the repository route', () => {
     expect(await lookupRepository('coop', 'notes', null, registry)).toEqual({ kind: 'not-found' });
     expect(isReservedOwner('Runs')).toBe(true);
     expect(await lookupRepository('runs', 'notes', coop, registry)).toEqual({ kind: 'not-found' });
+  });
+
+  it('sends an old address (a rename or a transfer) to the current one, ignoring case', () => {
+    const record = { owner: { handle: 'acme' }, name: 'notes' };
+    expect(isOldAddress('acme', 'notes', record)).toBe(false);
+    expect(isOldAddress('Acme', 'Notes.git', record)).toBe(false);
+    expect(isOldAddress('coop', 'notes', record)).toBe(true);
+    expect(isOldAddress('acme', 'old-notes', record)).toBe(true);
   });
 
   it('shows the start page until a bean has started', () => {

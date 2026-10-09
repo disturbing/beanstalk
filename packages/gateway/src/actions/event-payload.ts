@@ -12,7 +12,7 @@ export type RepoFacts = {
   readonly name: string;
   readonly engineId: string;
   readonly defaultBranch: string;
-  readonly visibility: 'public' | 'private';
+  readonly visibility: 'public' | 'private' | 'internal';
 };
 
 export const STALK_REF = `refs/heads/${STALK_REF_NAME}`;
@@ -25,7 +25,9 @@ export function repositoryPayload(repo: RepoFacts, publicUrl: string): Record<st
     id: repo.id,
     name: repo.name,
     full_name: fullName,
-    private: repo.visibility === 'private',
+    // GitHub's shape: internal repositories are `private: true` with `visibility: internal`.
+    private: repo.visibility !== 'public',
+    visibility: repo.visibility,
     owner: { login: repo.ownerHandle, id: repo.ownerId },
     default_branch: STALK_REF_NAME,
     html_url: `${publicUrl}/${fullName}`,

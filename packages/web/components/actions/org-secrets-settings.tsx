@@ -378,7 +378,7 @@ function PolicyPicker(props: {
   const picked = new Set(props.initial.kind === 'selected' ? props.initial.repoIds : []);
   const choices = [
     { kind: 'all', label: 'All repositories' },
-    { kind: 'private', label: 'Private repositories' },
+    { kind: 'private', label: 'Private and internal repositories' },
     { kind: 'selected', label: 'Selected repositories' },
   ] as const;
   return (
@@ -423,7 +423,7 @@ function RepoChoices(props: {
           />
           <span>
             {repo.name}
-            {repo.visibility === 'private' ? ' (private)' : ''}
+            {repo.visibility === 'public' ? '' : ` (${repo.visibility})`}
           </span>
         </label>
       ))}
@@ -445,7 +445,7 @@ function policyText(policy: AccessPolicy, repos: readonly OrgRepository[]): stri
     case 'all':
       return 'All repositories';
     case 'private':
-      return 'Private repositories';
+      return 'Private and internal repositories';
     case 'selected': {
       const names = policy.repoIds.map(
         (id) => repos.find((repo) => repo.id === id)?.name ?? 'a removed repository',

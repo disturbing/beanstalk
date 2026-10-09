@@ -6,7 +6,10 @@
 import type { RepositoryAccessPolicy } from '@beanstalk/shared-race/actions-secrets';
 
 /** The facts about a repository an org policy is decided on. */
-export type PolicyTarget = { readonly id: string; readonly visibility: 'public' | 'private' };
+export type PolicyTarget = {
+  readonly id: string;
+  readonly visibility: 'public' | 'private' | 'internal';
+};
 
 /** Whether an org entry with `policy` reaches `repo`. */
 export function policyReaches(policy: RepositoryAccessPolicy, repo: PolicyTarget): boolean {
@@ -14,7 +17,8 @@ export function policyReaches(policy: RepositoryAccessPolicy, repo: PolicyTarget
     case 'all':
       return true;
     case 'private':
-      return repo.visibility === 'private';
+      // "Private repositories" means not public: internal ones too, as GitHub does.
+      return repo.visibility !== 'public';
     case 'selected':
       return policy.repoIds.includes(repo.id);
     default:

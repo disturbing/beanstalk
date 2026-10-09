@@ -98,6 +98,7 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
     name: record.name,
     description: record.description,
     visibility: record.visibility,
+    ownerKind: record.owner_kind,
     website: record.website,
     topics: record.topics,
   };
@@ -293,6 +294,7 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               fullName={`${record.owner.handle}/${record.name}`}
               targets={targets}
               csrf={session.csrfToken}
+              isInternal={record.visibility === 'internal'}
             />
           </div>
         ) : null}

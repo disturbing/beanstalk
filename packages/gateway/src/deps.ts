@@ -51,7 +51,7 @@ export function createDeps(env: Env): Deps {
     streams: (run) => env.RUN_STREAMS.getByName(run),
     runnerPool: () => env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME),
     now: () => Date.now(),
-    registry: d1Registry(env.FORGE),
+    registry: d1Registry(env.FORGE, env),
     collaborators: d1Collaborators(env.FORGE, () => Date.now(), env),
     productEvents: env.PRODUCT_EVENTS,
   };

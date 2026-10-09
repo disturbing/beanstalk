@@ -1,6 +1,9 @@
 # Deploys a fork's environments (docs/claude-opus/30-environments.md): staging on every push to
-# prototype, production on a manual run. Each job runs only when its environments/<env>/env.jsonc
-# is committed, so in the public repository, which has none, nothing deploys.
+# prototype, production on a manual run. Each job runs only when its environment is configured,
+# either committed (environments/<env>/env.jsonc) or as GitHub environment variables (a soft fork:
+# BEANSTALK_ENV_CONFIG, BEANSTALK_ENV_RESOURCES, optionally BEANSTALK_ACCOUNT_ID), so in the
+# public repository, which has neither, nothing deploys. BEANSTALK_SUFFIX is deliberately not
+# passed: an unset GitHub variable reads as "", which would deploy staging onto production names.
 #
 # Needs one repository secret, CLOUDFLARE_API_TOKEN (edit: Workers Scripts, D1, Workers KV,
 # R2, Queues, Containers, Artifacts). Worker secrets are not passed: the Workers already hold
@@ -29,12 +32,15 @@ jobs:
     env:
       TARGET: ${{ github.event.inputs.environment || 'staging' }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      BEANSTALK_ENV_CONFIG: ${{ vars.BEANSTALK_ENV_CONFIG }}
+      BEANSTALK_ENV_RESOURCES: ${{ vars.BEANSTALK_ENV_RESOURCES }}
+      BEANSTALK_ACCOUNT_ID: ${{ vars.BEANSTALK_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - id: present
         run: |
-          if [ -f "environments/$TARGET/env.jsonc" ]; then echo "yes=true" >> "$GITHUB_OUTPUT"
-          else echo "no environments/$TARGET/env.jsonc in this repository: nothing to deploy"; fi
+          if [ -f "environments/$TARGET/env.jsonc" ] || [ -n "$BEANSTALK_ENV_CONFIG" ]; then echo "yes=true" >> "$GITHUB_OUTPUT"
+          else echo "no environments/$TARGET/env.jsonc and no BEANSTALK_ENV_CONFIG variable: nothing to deploy"; fi
       - if: steps.present.outputs.yes == 'true'
         uses: pnpm/action-setup@v4
       - if: steps.present.outputs.yes == 'true'

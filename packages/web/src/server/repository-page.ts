@@ -1,6 +1,8 @@
 /**
  * The shared start of every `/<owner>/<repo>` page: who is looking, and the repository if
- * they may read it (a 404 otherwise, the same for private and missing). Server-only.
+ * they may read it (a 404 otherwise, the same for private and missing). An old address (the
+ * repository was renamed or transferred, or its owner changed handle) redirects to the
+ * repository's home at its current address, the same way for both. Server-only.
  */
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
@@ -12,7 +14,7 @@ import { currentUser } from '../auth/user';
 import type { User as SessionUser } from '../auth/user';
 import { lookupRepository } from '../repositories/flows';
 import type { StartConfig } from '../repositories/paths';
-import { repositoryPath, sshEndpoint } from '../repositories/paths';
+import { isOldAddress, repositoryPath, sshEndpoint } from '../repositories/paths';
 import type { RepositoryRecord, ViewerRole } from '../repositories/registry-client';
 import { registryClient } from '../repositories/registry-client';
 
@@ -38,11 +40,15 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
     registryClient(env.GATEWAY),
   );
   if (found.kind === 'not-found') {
-    // An owner who changed handle: their old address keeps working (docs/claude-opus/27).
+    // An owner who changed handle: their old address keeps working (docs/claude-opus/29).
     const moved = await resolveRetiredHandle(env, decodeURIComponent(owner));
     if (moved !== null) redirect(repositoryPath(moved, decodeURIComponent(repo)));
     notFound();
   }
+  // The gateway resolved an old address (a rename or a transfer, docs/claude-opus/28 §6.3):
+  // send the browser to the current one, as a handle change does.
+  if (isOldAddress(decodeURIComponent(owner), decodeURIComponent(repo), found.record))
+    redirect(repositoryPath(found.record.owner.handle, found.record.name));
   return {
     user,
     record: found.record,

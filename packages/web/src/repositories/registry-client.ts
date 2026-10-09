@@ -23,7 +23,7 @@ export const RepositoryRecord = z.object({
   owner_kind: z.enum(['user', 'org']).default('user'),
   name: z.string(),
   description: z.string(),
-  visibility: z.enum(['public', 'private']),
+  visibility: z.enum(['public', 'private', 'internal']),
   origin: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('empty') }),
     z.object({ kind: z.literal('template'), template: z.literal('typescript-starter') }),
