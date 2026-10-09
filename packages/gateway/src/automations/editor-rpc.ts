@@ -237,8 +237,26 @@ async function currentFile(engine: Engine, path: string): Promise<Current> {
 /** The newer version, with the author of the newest commit that changed the file. */
 async function theirsOf(engine: Engine, path: string, current: Current): Promise<AutomationTheirs> {
   const log = await engine.repoLog(current.base.commit, [path], 1);
-  const author = log.ok ? (log.value.commits[0]?.author.name ?? null) : null;
-  return { base: current.base, content: current.content, author };
+  const commit = log.ok ? log.value.commits[0] : undefined;
+  if (commit === undefined) return { base: current.base, content: current.content, author: null };
+  return { base: current.base, content: current.content, author: await pusherOf(engine, commit) };
+}
+
+/**
+ * Who changed it: a landed commit is the runner's squash, so the person is the pusher of the
+ * bean its `Task:` trailer names; any other commit names its own author.
+ */
+async function pusherOf(
+  engine: Engine,
+  commit: { readonly message: string; readonly author: { readonly name: string } },
+): Promise<string | null> {
+  const task = /^Task: (\S+)$/m.exec(commit.message)?.[1];
+  const bean = task === undefined ? null : TaskId.safeParse(task);
+  if (bean?.success === true) {
+    const { pushed } = await engine.agentBean(bean.data);
+    if (pushed !== null) return pushed.actor;
+  }
+  return commit.author.name === 'beanstalk-runner' ? null : commit.author.name;
 }
 
 /** `protected_paths` of the latest landed `.beanstalk/checks.toml` that cover `path`. */

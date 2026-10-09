@@ -311,7 +311,7 @@ export function AutomationBuilder(props: BuilderProps) {
             />
           )}
         </div>
-        <aside className={styles.yamlCol} aria-label="YAML">
+        <aside className={styles.yamlCol} aria-label="The file">
           <YamlPane path={path} text={shownText} problems={lineProblems} onChange={edit} />
         </aside>
       </div>
