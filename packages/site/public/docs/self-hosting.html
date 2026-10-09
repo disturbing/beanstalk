@@ -156,7 +156,8 @@
           <h1>Self-hosting <span class="pill live">live</span></h1>
           <p class="lede">
             All of Beanstalk's source is public, and the whole forge deploys to one Cloudflare
-            account with one command. You set the limits.
+            account with two commands: one creates what an environment needs, one deploys it. Run
+            staging and production side by side. You set the limits.
           </p>
 
           <h2 id="licence">Licence</h2>
@@ -171,7 +172,7 @@
           <h2 id="needs">What you need</h2>
           <ul>
             <li>
-              Node 24 or later, pnpm 11, stable Rust, and Docker (it builds the runner image).
+              Node 24 or later, pnpm 11, stable Rust, and Docker (it builds the container images).
             </li>
             <li>
               A Cloudflare account on Workers Paid, with Containers, Durable Objects and Artifacts,
@@ -180,22 +181,101 @@
           </ul>
 
           <h2 id="deploy">Deploy</h2>
+          <p>
+            The repository holds no account's ids. Each package's <code>wrangler.jsonc</code> is a
+            template, and each deployment you run is an environment: one directory,
+            <code>environments/&lt;name&gt;/</code>, with your account, a name suffix and the
+            packages to run.
+          </p>
           <pre><code>pnpm install
 pnpm check                                   <span class="c"># format, lint, typecheck, tests</span>
 npx wrangler login
-export CLOUDFLARE_ACCOUNT_ID=&lt;account id&gt;    <span class="c"># required: the script never guesses</span>
-node scripts/deploy-all.mjs                  <span class="c"># --dry-run checks without uploading</span></code></pre>
+npx wrangler whoami                          <span class="c"># your account id</span>
+cp -r environments/example environments/staging
+<span class="c"># edit environments/staging/env.jsonc: account_id, workers_dev_subdomain</span>
+pnpm env:provision staging                   <span class="c"># create resources, secrets, migrate D1</span>
+pnpm env:deploy staging                      <span class="c"># --dry-run checks without uploading</span></code></pre>
           <p>
-            It deploys the gateway with its runner container, the web app, the MCP server and the
-            site, in that order. It generates each Worker's secrets with random values when they are
-            missing, uploads them with the deploy, and prints the URLs. Repository features also
-            need their D1 databases migrated and the repository-events queue created; the steps are
-            in
-            <a
-              href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/20-repositories.md#live-rollout-not-done-for-coop"
-              >the rollout notes</a
-            >. An emergency stop for everything: <code>POST /v1/admin/halt</code> with the admin
-            token.
+            <code>env:provision</code> creates what the environment needs if it is missing (D1
+            databases, the OAuth KV namespace, R2 buckets, the repository-events queue), writes
+            their ids to <code>environments/staging/resources.json</code>, generates the Workers'
+            secrets into <code>environments/staging/secrets/</code> (never printed, never committed)
+            and applies the D1 migrations. Artifacts namespaces are created by the first repository.
+            Run it again after an update that adds a resource or a migration.
+          </p>
+          <p>
+            <code>env:deploy</code> writes each package's config for the environment, stops if a
+            required secret is missing, then deploys the Actions executor, the gateway with its
+            runner container, the MCP server, the web app, SSH and the site, in that order. With the
+            suffix <code>-staging</code> every Worker and resource gets it:
+            <code>beanstalk-gateway-staging</code>, <code>beanstalk-forge-staging</code>. An empty
+            suffix keeps the base names. An emergency stop for everything:
+            <code>POST /v1/admin/halt</code> with the admin token.
+          </p>
+
+          <h2 id="secrets">Secrets each Worker needs</h2>
+          <div class="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Worker</th>
+                  <th>Required secrets</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Gateway</td>
+                  <td>
+                    <code>ADMIN_TOKEN</code>, <code>RUN_TOKEN_SECRET</code>,
+                    <code>ACTIONS_SECRETS_KEY</code>, <code>OIDC_REQUEST_SECRET</code>,
+                    <code>OIDC_SIGNING_KEYS</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Actions executor</td>
+                  <td><code>ADMIN_TOKEN</code></td>
+                </tr>
+                <tr>
+                  <td>Web app</td>
+                  <td><code>DEMO_PASSWORD</code> (optional: <code>TURNSTILE_SECRET_KEY</code>)</td>
+                </tr>
+                <tr>
+                  <td>SSH</td>
+                  <td><code>SSH_HOST_KEY</code></td>
+                </tr>
+                <tr>
+                  <td>MCP server, site</td>
+                  <td>none</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            A secret already set on the Worker counts, so a deploy from CI needs only a Cloudflare
+            API token. Provision never replaces a secret a Worker already has: a new
+            <code>ACTIONS_SECRETS_KEY</code> would make every stored Actions secret unreadable.
+          </p>
+
+          <h2 id="fork">Keep your environments in a private fork</h2>
+          <p>
+            The public repository ignores <code>environments/</code> except the example. Keep yours
+            in a private repository with the public one as <code>upstream</code>:
+          </p>
+          <pre><code>git clone https://github.com/disturbing/beanstalk.git my-beanstalk
+cd my-beanstalk
+git remote rename origin upstream
+git remote add origin &lt;your private repository&gt;
+git add -f environments/staging/env.jsonc environments/staging/resources.json
+git commit -m "environments: staging"
+git push -u origin prototype
+
+git fetch upstream &amp;&amp; git merge upstream/prototype   <span class="c"># later: stay in sync</span></code></pre>
+          <p>
+            Your fork only adds files under <code>environments/</code>, which upstream never writes,
+            so the merge never conflicts. Never add <code>secrets/</code>. A
+            <code>deploy</code> workflow in <code>.github/workflows/</code> deploys staging on every
+            push and production when you run it by hand; it does nothing in a repository without
+            <code>environments/&lt;name&gt;/env.jsonc</code>.
           </p>
 
           <h2 id="runs-on">What it runs on</h2>
@@ -326,8 +406,14 @@ node scripts/deploy-all.mjs                  <span class="c"># --dry-run checks 
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/scripts/deploy-all.mjs"
-                  >scripts/deploy-all.mjs</a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/30-environments.md"
+                  >Environments design (doc 30)</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/scripts/environments.mjs"
+                  >scripts/environments.mjs</a
                 >
               </li>
             </ul>

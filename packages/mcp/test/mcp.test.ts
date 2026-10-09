@@ -9,7 +9,7 @@ import { TOOL_NAMES } from '../src/mcp/server';
 import { fakeGateway, RUN, SLOT_TOKEN, VIEW_TOKEN, WINDOW_SIZE } from './fake-gateway';
 
 const ORIGIN = 'https://beanstalk-mcp.example.workers.dev';
-const WEB_URL = 'https://beanstalk-web.devaccounts-1password.workers.dev';
+const WEB_URL = 'https://beanstalk-web.example.workers.dev';
 
 const app = createApp(() => ({ gateway: fakeGateway(), log: createLogger('error') }));
 const clients: Client[] = [];

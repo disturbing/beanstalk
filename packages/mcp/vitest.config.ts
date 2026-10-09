@@ -27,7 +27,7 @@ const forgeMigrations = await readD1Migrations(path.join(here, '../gateway/migra
  * One identity database and one registry for both Workers, as deployed: a session token the
  * MCP Worker mints is the credential the gateway's git proxy checks.
  */
-const IDENTITY_DB_ID = 'bd0e58e5-4b1b-4a40-a143-a0eee6fa5075';
+const IDENTITY_DB_ID = 'local-beanstalk-identity'; // wrangler.jsonc's placeholder id
 const FORGE_DB_ID = 'beanstalk-forge-mcp-test';
 
 export default defineConfig({
@@ -40,7 +40,7 @@ export default defineConfig({
         bindings: {
           LOG_LEVEL: 'error',
           PUBLIC_URL: 'https://beanstalk-mcp.example.workers.dev',
-          WEB_URL: 'https://beanstalk-web.devaccounts-1password.workers.dev',
+          WEB_URL: 'https://beanstalk-web.example.workers.dev',
           GIT_ORIGIN: 'https://gateway.example.test',
           DEMO_RUN: 'j6boaclinn',
           TEST_MIGRATIONS: identityMigrations,

@@ -165,8 +165,8 @@ Live today: gateway `9709edee`, web `ca742175`, MCP `05c930e5`; `beanstalk-ident
 
 1. `npx wrangler queues create beanstalk-repo-events` (the gateway is its producer and consumer; the deploy fails without it).
 2. `npx wrangler d1 migrations apply beanstalk-forge --remote`: applies only `0004_repo_events.sql` (new tables, three nullable columns on `repository_activity`), before the gateway, which writes them.
-3. Deploy the **gateway** (`node scripts/deploy-all.mjs --only gateway`; Docker builds the runner image; runner API unchanged). Then `npx wrangler queues info beanstalk-repo-events` should list it as producer and consumer.
-4. Deploy the **web** app and the **MCP** Worker (`deploy-all.mjs --only web,mcp`), then the **site** (its install lines changed). The web reads the new gateway RPCs; an older gateway is tolerated but hides History's verdicts, so the gateway goes first.
+3. Deploy the **gateway** (`pnpm env:deploy production --only gateway`, doc 30; Docker builds the runner image; runner API unchanged). Then `npx wrangler queues info beanstalk-repo-events` should list it as producer and consumer.
+4. Deploy the **web** app and the **MCP** Worker (`pnpm env:deploy production --only mcp,web`), then the **site** (its install lines changed). The web reads the new gateway RPCs; an older gateway is tolerated but hides History's verdicts, so the gateway goes first.
 5. Vars and secrets: none new are required. The `product_events` dataset is created by its first write. Turnstile stays off with `TURNSTILE_SITE_KEY` empty; to turn it on later, `wrangler secret put TURNSTILE_SECRET_KEY` on `beanstalk-web`, then set the site key and redeploy web (either one alone leaves it off).
 6. After: existing repositories fill the index the first time their engine wakes or their page is read (Home falls back to the engines until then); push one bean to a live smoke repository (expect the default-suite or older-draft line on starter repositories, then LANDED) and open its History.
 

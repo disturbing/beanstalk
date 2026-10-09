@@ -1,5 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
+  // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
+  // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
   "name": "beanstalk-web",
   // vinext's Workers entry; the app's routes live in app/ (App Router).
   "main": "vinext/server/fetch-handler",
@@ -22,7 +25,7 @@
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
-      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
+      "database_id": "local-beanstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],
@@ -69,8 +72,8 @@
     // Repositories (docs/claude-opus/20-repositories.md): the public addresses a new repository's
     // start page prints. Git is served by this host, as on GitHub: `<GIT_ORIGIN>/<owner>/<repo>.git`
     // (app/[owner]/[repo]/{info/refs,git-upload-pack,git-receive-pack} forward to the gateway).
-    "GIT_ORIGIN": "https://beanstalk-web.devaccounts-1password.workers.dev",
-    "MCP_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp",
+    "GIT_ORIGIN": "http://localhost:5173",
+    "MCP_URL": "http://localhost:8788/mcp",
     // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
     // live; /beanstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
     "SSH_HOST": "",

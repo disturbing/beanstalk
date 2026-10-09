@@ -59,7 +59,8 @@ packages/<name>/
 | Task | Command |
 |------|---------|
 | Everything (format, lint, typecheck, tests, Rust) | `pnpm check` |
-| One package | `pnpm -F @beanstalk/<name> dev` / `test` / `deploy` / `types` |
+| One package | `pnpm -F @beanstalk/<name> dev` / `test` / `types` |
+| Deploy (an environment, or one package of it) | `pnpm env:deploy <env> [--only <name>]`: `wrangler.jsonc` is a template with `local-*` ids and local URLs, never an account's; a new D1, KV, R2, queue or Artifacts binding gets its base name there and `scripts/environments.mjs` suffixes it (docs/claude-opus/30) |
 | Regenerate binding types after a wrangler.jsonc change | `pnpm -F @beanstalk/<name> types` |
 | Rust only | `pnpm rust:check` |
 | Update vendored Cloudflare skills | `pnpm skills:update` |

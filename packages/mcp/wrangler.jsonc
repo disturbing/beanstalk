@@ -1,5 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
+  // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
+  // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
   "name": "beanstalk-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-04",
@@ -10,13 +13,13 @@
   "vars": {
     "LOG_LEVEL": "info",
     // This Worker's own origin: the OAuth issuer and the protected resource `<PUBLIC_URL>/mcp`.
-    "PUBLIC_URL": "https://beanstalk-mcp.devaccounts-1password.workers.dev",
+    "PUBLIC_URL": "http://localhost:8788",
     // The web app the tools link to (`preview_url`, `preview_link`) and where /authorize sends
     // people to sign in and approve a client (`/connect`).
-    "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
+    "WEB_URL": "http://localhost:5173",
     // Where git is served (the web host, as on GitHub): clone URLs and the host of
     // git_credentials' credential.
-    "GIT_ORIGIN": "https://beanstalk-web.devaccounts-1password.workers.dev",
+    "GIT_ORIGIN": "http://localhost:5173",
     // The run OAuth sessions read when a tool names no repository (`repo`). Empty: the newest
     // run the gateway lists.
     "DEMO_RUN": "",
@@ -34,14 +37,14 @@
   "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
   // OAuth clients, grants and tokens (@cloudflare/workers-oauth-provider stores only hashes),
   // plus pending consent requests. KV namespace `beanstalk-oauth`.
-  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "57771ee6fadf4d8ab0064c7c219525ea" }],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "local-beanstalk-oauth" }],
   // Accounts (docs/claude-opus/19-accounts-and-auth.md): grants are audited here and session
   // git tokens minted here. Schema: packages/shared-identity/migrations.
   "d1_databases": [
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
-      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
+      "database_id": "local-beanstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],
