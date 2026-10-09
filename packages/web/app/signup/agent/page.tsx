@@ -33,6 +33,11 @@ export default async function AgentSignupPage() {
             ? 'That is the whole sign-up: the command adds Beanstalk to your agent and opens your browser, where you pick a handle, save a passkey and approve the session.'
             : 'The command adds Beanstalk to your agent and opens your browser; approve the session and it shows up on Home within seconds.'}
         </p>
+        {user === null ? (
+          <p className={styles.hint}>
+            No agent handy? <Link href="/signup">Create an account in the browser</Link>.
+          </p>
+        ) : null}
         <ul className={styles.installs}>
           {installs.map((install) => (
             <li key={install.id} className={styles.install}>
