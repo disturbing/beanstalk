@@ -130,7 +130,7 @@
               </li>
               <li>
                 <a href="automations.html" aria-current="page"
-                  >Automations<span class="st rolling" title="rolling out"></span
+                  >Automations<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
@@ -153,13 +153,13 @@
         </details>
         <article class="doc">
           <p class="prompt" aria-hidden="true">beanstalk docs automations</p>
-          <h1>Automations <span class="pill rolling">rolling out</span></h1>
+          <h1>Automations <span class="pill live">live</span></h1>
           <p class="lede">
             An automation is an agent defined by a file in <code>.beanstalk/automations/</code>. It
             runs when something happens in the repository, on a schedule or by hand. Each run gets a
             fresh container with the repository checked out, the event as context and a memory of
-            its own that persists between runs, and it may propose fixes as beans. Built and
-            verified on staging; not yet on the hosted service.
+            its own that persists between runs, and it may propose fixes as beans. Live on the
+            hosted service since 9 October 2026.
           </p>
 
           <h2 id="gitops">Files, not database rows</h2>
