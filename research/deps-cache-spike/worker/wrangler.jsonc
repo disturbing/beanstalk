@@ -1,0 +1,32 @@
+{
+  // Throwaway spike Worker (docs/claude-opus/27-ci-dependency-cache.md). Own container class,
+  // DO namespace and R2 bucket; never shares a binding with a live Worker. Deployed with
+  // CLOUDFLARE_ACCOUNT_ID set in the environment (account 2c7358a6...).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beanstalk-deps-spike",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "secrets": { "required": ["SPIKE_TOKEN"] },
+  // Workers Cache: off for the Worker, on for the WcStore inner entrypoint only.
+  "cache": { "enabled": false },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "DepsStore": { "type": "worker", "cache": { "enabled": false } },
+    "WcStore": { "type": "worker", "cache": { "enabled": true } },
+  },
+  "r2_buckets": [{ "binding": "R2", "bucket_name": "beanstalk-deps-spike" }],
+  "durable_objects": { "bindings": [{ "name": "BOX", "class_name": "DepsBox" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DepsBox"] }],
+  "containers": [
+    {
+      "class_name": "DepsBox",
+      "image": "../image/Dockerfile",
+      "image_build_context": "../image",
+      // The CI default Coop chose: 4 vCPU / 12 GiB / 20 GB disk.
+      "instance_type": "standard-4",
+      "max_instances": 4,
+    },
+  ],
+}
