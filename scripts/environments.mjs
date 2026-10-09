@@ -40,7 +40,7 @@ const ORDER = ['actions-executor', 'gateway', 'mcp', 'web', 'ssh', 'oidc', 'swar
 const URL_VARS = {
   gateway: { PUBLIC_URL: ['gateway', ''], WEB_URL: ['web', ''] },
   mcp: { PUBLIC_URL: ['mcp', ''], WEB_URL: ['web', ''], GIT_ORIGIN: ['web', ''] },
-  web: { GIT_ORIGIN: ['web', ''], MCP_URL: ['mcp', '/mcp'] },
+  web: { GIT_ORIGIN: ['web', ''], MCP_URL: ['mcp', '/mcp'], DOCS_URL: ['site', '/docs/'] },
 };
 
 /** Secrets the code reads as optional but a deployment must have (Actions OIDC is on). */

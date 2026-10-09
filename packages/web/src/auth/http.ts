@@ -21,6 +21,9 @@ export const NextPath = z
   .regex(/^\/(?![/\\])[\w\-./?=&%]*$/)
   .catch('/');
 
+/** Where signing out lands: the sign-in page, which says the browser is signed out. */
+export const SIGNED_OUT_PATH = '/login?signed_out=1';
+
 export function relyingParty(request: Request): RelyingParty {
   return { ...siteOrigin(request), name: 'Beanstalk' };
 }

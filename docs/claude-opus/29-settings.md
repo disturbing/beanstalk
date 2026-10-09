@@ -13,11 +13,12 @@ Built 2026-10-09 on a worktree branch from `prototype` at `b3f6bdf` (lane S of t
 | `/settings/sessions` | Connected agents (Disconnect), signed-in browsers ("this browser", Sign out per browser), sign out here / everywhere |
 | `/settings/keys`, `/settings/tokens` | As before (`19` §9), inside the shell |
 | `/settings/notifications` | Placeholder: what will be sent, all switches disabled, "nothing is sent today" |
-| `/<owner>/<repo>/settings` | The same shell, an anchor nav: General (name, description, website, topics), Social image, Visibility, Branches (stalk fixed, sprout, `bean/*`), Checks, Features (placeholder), Collaborators, Actions, Deploy tokens, Archive, Delete |
+| `/<owner>/<repo>/settings/*` | One page per section since 2026-10-10 (§8): General, Social image, Visibility, Branches, Checks, Actions, Collaborators, Secrets and variables, Deploy tokens, Danger zone |
+| `/orgs/<org>/settings/*` | One page per section since 2026-10-10 (§8): General (with the icon), Members and invitations, Repository defaults, Secrets and variables, Audit log, Danger zone |
 | `/<handle>` | The person's page: picture, name, bio, website, then their repositories (public ones for everyone; archived ones only for themselves) |
-| Header | The picture beside `@handle` |
+| Header | The app header (§9): mark and primary links; the New menu; the person's avatar opening their menu (profile, repositories, organizations, settings, connect an agent, docs, day or night, sign out) |
 
-Shell: `components/settings/settings-shell.tsx` (`SettingsShell`, `SettingsSection`, `SaveStatus`, `SoonPill`), left nav at 220 px, folded into wrapped chips under 760 px. Text forms are server actions (`src/server/account-actions.ts`, origin + session + CSRF checked by `signedInForm`) with a "Saving… / saved / error" line (`role=status` / `alert`); uploads are plain multipart POSTs to route handlers, so they work without JavaScript.
+Shell: `components/settings/settings-shell.tsx` (`SettingsShell`, `SettingsSection`, `SaveStatus`, `SoonPill`), left nav at 220 px; under 760 px the nav is one strip of chips that scrolls sideways inside itself, the current one scrolled into view (`settings-client.tsx`). Text forms are server actions (`src/server/account-actions.ts`, origin + session + CSRF checked by `signedInForm`) with a "Saving… / saved / error" line (`role=status` / `alert`); uploads are plain multipart POSTs to route handlers, so they work without JavaScript.
 
 ## 2. Uploads (`@beanstalk/shared-media`)
 
@@ -80,3 +81,56 @@ Fixed on the way, found only on staging: vinext treats every multipart POST as a
 - Emails and notifications wait for the sender domain; the pages say so.
 - Repository renames and transfers redirect since 2026-10-09 (`28` §6.3). Organisation handle changes are not built (`28` §6.3 lists what they need).
 - A repository's social image is not yet used in `og:image` tags.
+
+## 8. One page per section (2026-10-10)
+
+Owner, 2026-10-10: "Redesign settings pages to have dedicated pages and forms to save versus one long list to scroll down, when clicking on the nav on the left. also need to design the nav bar so i can signout, etc."
+
+Account settings were already one route per section; repository and organization settings were one long page with an anchor nav. Now every section is its own route with its own form(s), Save button and saved/error line, and the left nav marks the current page (`aria-current="page"`).
+
+| Route | Who | Content (form → action) |
+|---|---|---|
+| `/settings` | signed in | Public profile: picture (multipart → `/settings/profile/avatar`), name, bio, website (`updateProfile`) |
+| `/settings/account` | | Handle (`changeHandle`); Delete account (typed handle) |
+| `/settings/emails`, `/settings/notifications` | | Read-only until mail is sent |
+| `/settings/passkeys` | | Rename (`renamePasskey`), add, remove (route) |
+| `/settings/sessions` | | Agents (disconnect), browsers (sign out one), sign out here / everywhere (`/auth/signout`) |
+| `/settings/keys`, `/settings/tokens` | | Paste a key (route), create and revoke tokens |
+| `/<o>/<r>/settings` | any role | 307 to the first section this viewer may open |
+| `…/settings/general` | owner, not archived | Name, description, website, topics (`updateRepository`); a rename lands on the new address's General with `?saved=renamed`, a transfer with `?saved=transferred` |
+| `…/settings/social-image` | owner, not archived | Upload or remove (multipart → `…/settings/social-image/upload`, back here with `?picture=`) |
+| `…/settings/visibility` | owner, not archived | Public / private / internal (`updateRepository`) |
+| `…/settings/branches`, `…/settings/checks` | any role | Read-only |
+| `…/settings/actions` | owner, maintainer | Jobs: dependency cache on/off, largest snapshot, npm audit on/off, one Save (`saveActionsSwitchesAction`; stored as the repository variables `BEANSTALK_DEPS_CACHE`, `BEANSTALK_DEPS_SNAPSHOT_MAX`, `BEANSTALK_NPM_AUDIT`, a default removes the variable; read-only while archived); Features placeholder |
+| `…/settings/collaborators` | owner | Invite, roles, remove, cancel |
+| `…/settings/secrets` | any role, where Actions run | Secrets and variables (maintainers and the owner change them) |
+| `…/settings/deploy-tokens` | owner, maintainer, not archived | Create, revoke |
+| `…/settings/danger` | owner | Archive (confirmation dialog) / Unarchive, Transfer (dialog), Delete (type `<owner>/<name>`); archive lands here with `?saved=archived` |
+| `/orgs/<org>/settings` | any member | 307 to General (owners, admins) or Secrets and variables (members, viewers) |
+| `…/settings/general` | owner, admin | Name, description (`updateOrgAction`); icon (multipart → `…/settings/icon`, back here with `?picture=`) |
+| `…/settings/members` | owner, admin | Invite, roles, remove, cancel |
+| `…/settings/repository-defaults` | owner, admin | Base permission, who creates, default visibility (`updateOrgAction`) |
+| `…/settings/secrets` | any member | Org secrets and variables (owners and admins change them) |
+| `…/settings/audit-log` | owner, admin | The org's audit log |
+| `…/settings/danger` | any member; delete for owners | Leave (dialog), Delete (type the handle; only with no repositories) |
+
+- **Rules in one place:** `src/settings/sections.ts` lists each section with who may open it (`repoSections(facts)`, `orgSections(role)`), the landing section and the nav groups; `src/server/repository-settings.ts` and `src/server/org-settings.ts` load each page, return the same 404 as before to people without a role, and send a section the viewer may not open to their first one. The gateway and the identity library still check every change.
+- **Old addresses:** `/settings#social` and the other one-page anchors land on their pages: the landing redirect keeps the fragment (browsers carry it across a redirect), and `LegacyAnchor` on each page replaces the location when the anchor belongs to another section (`REPO_ANCHORS`, `ORG_ANCHORS`: `#social`, `#visibility`, `#features`, `#collaborators`, `#actions`/`#secrets`, `#deploy-tokens`, `#archive`/`#transfer`/`#danger`; `#icon`, `#members`, `#leave`). Everything the code redirects to (`src/settings/redirects.ts`: rename, transfer, archive, uploads) names the section page directly. The People tab links to `…/settings/collaborators`.
+- **Destructive actions** (archive, transfer, delete a repository; leave, delete an org) sit only on the Danger zone pages. Archive, transfer and leave ask in a modal `<dialog>` (`components/settings/confirm-submit.tsx`, Escape cancels); the deletes ask for the name to be typed. Removing one collaborator, member, key or token stays beside that row, as on GitHub. Deleting the account stays on Account (typed handle), as the owner listed.
+- **Tests:** `src/settings/settings.test.ts` (sections per role and state, landing, old anchors, redirect paths, Actions switches), `src/repositories/repositories.test.ts` (rename and archive redirects).
+
+## 9. The app header and signing out (2026-10-10)
+
+`components/shell/site-header.tsx` on every page; the entries are data in `src/shell/header-entries.ts`.
+
+- **Left:** the mark (Home) and the primary links: Home, Repositories (`/<handle>`), Organizations (`/orgs`, new: the person's organizations with role and Settings), Benchmark runs. Signed out: Benchmark runs and Watch the race. Under 720 px the links move to a second row that scrolls sideways.
+- **Right, signed in:** **+ New** (New repository, New organization, Connect an agent) and the avatar, whose menu has "Signed in as @handle", Your profile, Your repositories, Your organizations, Settings, Connect an agent, Docs (`DOCS_URL`, the site's `/docs/`, set per environment by `scripts/environments.mjs`), Theme (Day / Night) and **Sign out**. Signed out: the day/night pair, Sign in, Sign up. "Close demo gate" stays while the demo password cookie is set.
+- **Menus** (`components/shell/header-menu.tsx`) follow the WAI-ARIA menu button: `aria-haspopup`, `aria-expanded`, `role=menu` with `menuitem` / `menuitemradio`; Enter, Space or ArrowDown open on the first item, ArrowUp on the last; arrows, Home and End move; Escape closes and returns focus to the button; Tab and a click outside close.
+- **Sign out** is the existing `POST /auth/signout` (`src/auth/sign-out.ts`): same origin, a live session and its CSRF token; it revokes the session row (`everywhere=1`: all of them), records `session.signout` in the audit log, clears `__Host-bs_session` and answers 303 to `/login?signed_out=1`, which says "You are signed out." Any protected page then redirects to `/login?next=…`. Tests: `src/auth/sign-out.test.ts`, `src/shell/header.test.ts`.
+- **Themes:** the owner asked (2026-10-10) to keep only the two designs. The day skins *paper* and *blueprint*, their selector and the `bs_day` cookie are gone; Nightshift has night and day (daylight phosphor) only, chosen by the sun/moon pair (signed out) or the menu's Theme item. A stale `bs_day` cookie is ignored and expired by the theme control. The marketing site never had the selector.
+
+### 9.1 Verified (2026-10-10)
+
+`pnpm check` exits 0. Staging web version `1408f1d0` (deployed with `pnpm env:deploy staging --only web`; the gateway is unchanged), walked through that version's preview URL because another session redeployed the shared staging Worker twice during the walk. Headless Chromium with a CDP virtual authenticator, one throwaway account: **96 of 96** checks. Passkey sign-up; the header (primary links, the New menu, the user menu by mouse and keyboard: ArrowDown, End, Escape back to the button, click outside, Day and Night, no skin select); every account page, saving the profile, a picture, a handle change, a passkey name, an SSH key and a token; a repository: landing on General, seven old anchors on their pages, General saved (and still filled after the save and after a reload), a rename landing on the new address, a social image, visibility, Actions switches saved, persisted and a bad size refused, the switches visible as repository variables, a refused invitation, a variable, a deploy token, archive through the dialog (Escape cancels; the archived nav drops editing; General then sends to Branches) and unarchive; an organization: landing, `#icon`, General, an icon, a refused invitation, defaults, an org variable, the audit log, Leave refused for the last owner; a transfer into the org landing on its General; screenshots at 1440 and 390 px, night and day, with no sideways scroll at 390; deleting the repository, the org; Sign out from the menu to `/login?signed_out=1`, a protected page then sending to sign-in; signing back in with the passkey and deleting the account. Screenshots: `exp/settings-pages/`.
+
+Found on the way and fixed: React resets a form after its action to the fields' `defaultValue`, which a server action does not refresh, so a saved settings form showed the old values and the next Save sent them back (a repository description vanished when the repository was renamed next) and a refused form lost what was typed; `components/settings/use-saved-form.ts` keeps the last submitted fields for the profile, repository General, Visibility, Actions and org General and defaults forms.

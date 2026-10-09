@@ -10,6 +10,7 @@ import { removePictureFlow, replacePictureFlow } from '../../../../../src/accoun
 import { webMedia } from '../../../../../src/account/account-services';
 import { pictureNoteParam } from '../../../../../src/account/picture-notes';
 import { seeOther, signedInForm } from '../../../../../src/auth/http';
+import { orgIconPath } from '../../../../../src/settings/redirects';
 
 type Context = { readonly params: Promise<{ readonly org: string }> };
 
@@ -23,10 +24,9 @@ const ENVELOPE_BYTES = 64 * 1024;
  */
 export async function POST(request: Request, context: Context): Promise<Response> {
   const handle = decodeURIComponent((await context.params).org);
-  const settings = `/orgs/${encodeURIComponent(handle)}/settings`;
   const declared = Number(request.headers.get('content-length') ?? '0');
   if (declared > MAX_IMAGE_BYTES + ENVELOPE_BYTES)
-    return seeOther(request, `${settings}?${pictureNoteParam('too_large')}#icon`);
+    return seeOther(request, orgIconPath(handle, pictureNoteParam('too_large')));
   const checked = await signedInForm(request, (cookies) => getWebSession(cookies, env));
   if (checked instanceof Response) return checked;
   const { user } = checked.session;
@@ -46,8 +46,8 @@ export async function POST(request: Request, context: Context): Promise<Response
   const target = { kind: 'org', ownerId: org.id } as const;
   if (checked.form.get('remove') === '1') {
     await removePictureFlow(target, ports);
-    return seeOther(request, `${settings}?${pictureNoteParam('removed')}#icon`);
+    return seeOther(request, orgIconPath(handle, pictureNoteParam('removed')));
   }
   const result = await replacePictureFlow(target, checked.form.get('file'), ports);
-  return seeOther(request, `${settings}?${pictureNoteParam(result.code)}#icon`);
+  return seeOther(request, orgIconPath(handle, pictureNoteParam(result.code)));
 }

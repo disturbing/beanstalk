@@ -11,6 +11,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { PutSecretInput, PutVariableInput } from '../actions/actions-contract';
+import { readSwitchesForm, switchWrites } from '../actions/actions-switches';
+import { repoSettingsPath } from '../settings/sections';
 import { dispatchOf, sectionOf } from '../actions/run-view';
 import { dispatchInputsOf } from '../actions/run-filters';
 import { lookupRepository } from '../repositories/flows';
@@ -106,7 +108,7 @@ export async function putSecretAction(
   const saved = await scope.actions.client.putSecret(input.data);
   if (!saved.ok) return refused(saved.error.message);
   await scope.actions.persist();
-  revalidatePath(`${scope.base}/settings`);
+  revalidatePath(repoSettingsPath(scope.base, 'secrets'));
   return {
     kind: 'done',
     message:
@@ -126,7 +128,7 @@ export async function deleteSecretAction(
   const deleted = await scope.actions.client.deleteSecret(name);
   if (!deleted.ok) return refused(deleted.error.message);
   await scope.actions.persist();
-  revalidatePath(`${scope.base}/settings`);
+  revalidatePath(repoSettingsPath(scope.base, 'secrets'));
   return { kind: 'done', message: `Deleted ${name}.` };
 }
 
@@ -143,7 +145,7 @@ export async function putVariableAction(
   if (!input.success) return refused(input.error.issues[0]?.message ?? 'Check the form.');
   const saved = await scope.actions.client.putVariable(input.data);
   if (!saved.ok) return refused(saved.error.message);
-  revalidatePath(`${scope.base}/settings`);
+  revalidatePath(repoSettingsPath(scope.base, 'secrets'));
   return { kind: 'done', message: `Saved ${saved.value.name}.` };
 }
 
@@ -156,8 +158,37 @@ export async function deleteVariableAction(
   const name = field(form, 'variable');
   const deleted = await scope.actions.client.deleteVariable(name);
   if (!deleted.ok) return refused(deleted.error.message);
-  revalidatePath(`${scope.base}/settings`);
+  revalidatePath(repoSettingsPath(scope.base, 'secrets'));
   return { kind: 'done', message: `Deleted ${name}.` };
+}
+
+/**
+ * Settings → Actions: the dependency cache, its snapshot cap and npm's audit, saved as the
+ * repository's own variables (a default removes the variable).
+ */
+export async function saveActionsSwitchesAction(
+  _previous: WorkflowFormState,
+  form: FormData,
+): Promise<WorkflowFormState> {
+  const scope = await maintainerOf(form);
+  if ('kind' in scope) return scope;
+  const next = readSwitchesForm(form);
+  if (!next.ok) return refused(next.message);
+  const entries = await scope.actions.client.entries();
+  if (!entries.ok) return refused(entries.error.message);
+  const own = entries.value.variables.filter((entry) => entry.source.kind === 'repository');
+  const writes = switchWrites(own, next.value);
+  const { client } = scope.actions;
+  const results = await Promise.all([
+    ...writes.put.map((variable) => client.putVariable(variable)),
+    ...writes.remove.map((name) => client.deleteVariable(name)),
+  ]);
+  await scope.actions.persist();
+  const failed = results.find((result) => !result.ok);
+  if (failed !== undefined && !failed.ok) return refused(failed.error.message);
+  revalidatePath(repoSettingsPath(scope.base, 'actions'));
+  revalidatePath(repoSettingsPath(scope.base, 'secrets'));
+  return { kind: 'done', message: 'Saved. The next job uses these settings.' };
 }
 
 /** The form's person, if they maintain or own the repository named by `owner` and `name`. */

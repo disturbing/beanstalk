@@ -9,7 +9,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { SiteHeader } from '../components/shell/site-header';
-import { viewerDay, viewerTheme } from '../src/server/viewer';
+import { viewerTheme } from '../src/server/viewer';
 
 export const metadata: Metadata = {
   title: { default: 'beanstalk', template: '%s · beanstalk' },
@@ -27,9 +27,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { readonly children: ReactNode }) {
-  const [theme, day] = await Promise.all([viewerTheme(), viewerDay()]);
+  const theme = await viewerTheme();
   return (
-    <html lang="en" data-theme={theme === 'system' ? undefined : theme} data-day={day}>
+    <html lang="en" data-theme={theme === 'system' ? undefined : theme}>
       <body>
         <a className="skip-link" href="#main">
           Skip to content

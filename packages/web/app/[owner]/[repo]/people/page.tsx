@@ -45,7 +45,7 @@ export default async function RepositoryPeoplePage({ params }: PageProps) {
             fullName={fullName}
             ownerHandle={record.owner.handle}
             people={people?.ok === true ? people.value : null}
-            settingsHref={canManage ? `${base}/settings#collaborators` : null}
+            settingsHref={canManage ? `${base}/settings/collaborators` : null}
             leave={
               session === null
                 ? null
