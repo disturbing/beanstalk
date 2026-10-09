@@ -83,7 +83,7 @@ export class WorldBuilder extends Container<Env> {
 - Docker must be running (`docker info`) for `wrangler dev` and `wrangler deploy`; both build the image.
 - A source change that does not show up under `wrangler dev` means a cached image: `docker rmi` it.
 - Image size is bounded by the instance disk; the distroless or `bookworm-slim` final stage keeps it small.
-- Deploy from the owning Worker package: `pnpm -F @beanstalk/integrator deploy`. Rollouts replace running instances; design the Rust service so an in-flight job can be re-run.
+- Deploy from the owning Worker package: `pnpm env:deploy <env> --only integrator`. Rollouts replace running instances; design the Rust service so an in-flight job can be re-run.
 
 ## Talking to the container
 

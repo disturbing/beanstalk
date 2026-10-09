@@ -17,11 +17,11 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 ```bash
 pnpm install                       # once; Node 24+, pnpm 11, Rust stable, Docker for containers
 pnpm check                         # fmt:check + lint (type-aware oxlint) + typecheck + test + rust:check
-pnpm -F @beanstalk/<name> dev      # also: test, deploy, types (regenerate worker-configuration.d.ts)
+pnpm -F @beanstalk/<name> dev      # also: test, types (regenerate worker-configuration.d.ts)
 pnpm rust:check                    # cargo fmt --check, clippy -D warnings, cargo test
 pnpm skills:update                 # refresh vendored Cloudflare skills (skills-lock.json)
 pnpm env:provision <env>           # environments/<env>: create resources, secrets, migrate D1 (docs/claude-opus/30)
-pnpm env:deploy <env>              # check secrets, deploy every package in order (--dry-run, --only)
+pnpm env:deploy <env>              # check secrets, deploy every package in order (--dry-run, --only); never `wrangler deploy` a template
 ```
 
 `pnpm check` must pass before work is reported as done. Run it; do not describe it.

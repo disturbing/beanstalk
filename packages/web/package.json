@@ -6,7 +6,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite build && wrangler dev --config dist/server/wrangler.json",
-    "deploy": "vite build && wrangler deploy --config dist/server/wrangler.json",
+    "deploy": "echo 'Deploy through an environment: pnpm env:deploy <env> --only web (docs/claude-opus/30-environments.md)' && exit 1",
     "types": "wrangler types --strict-vars false",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
