@@ -2,7 +2,8 @@
  * The gateway's three Actions entrypoints (named exports of the Worker, reached through
  * service bindings with `entrypoint`):
  *
- * - `Actions`: `ActionsRpc` for the web app and MCP (access by `mayUseEngine`);
+ * - `Actions`: `ActionsRpc` and `ActionsEntriesRpc` (org secrets, variables) for the web app
+ *   and MCP (access by `mayUseEngine`, and org roles for org entries);
  * - `ActionsJobs`: `ActionsJobSink` for the executor, authenticated by each job's report token;
  * - `StubActionsExecutor`: the echo executor (`ACTIONS_EXECUTOR_MODE = "stub"`), which reports
  *   through `ActionsJobs` exactly as the container executor will.
@@ -30,16 +31,28 @@ import type {
   WorkflowSummary,
 } from '@beanstalk/shared-race/actions';
 import { JobLogBatchSchema, JobResultSchema } from '@beanstalk/shared-race/actions';
+import type {
+  ActionsEntriesRpc,
+  OrgActionsSettings,
+  OrgSecretSummary,
+  OrgVariableSummary,
+  PutOrgSecretInput,
+  PutOrgVariableInput,
+  PutVariableInput,
+  RepoActionsEntries,
+  VariableSummary,
+} from '@beanstalk/shared-race/actions-secrets';
 import type { Viewer } from '@beanstalk/shared-race/repos';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import { readConfig } from '../config';
 import { createLogger } from '../log';
 import { actionsRpc } from './actions-rpc';
+import { actionsEntriesRpc } from './entries-rpc';
 import { echoJob, stubHangs } from './stub-echo';
 import { parseReportToken } from './tickets';
 
-export class Actions extends WorkerEntrypoint<Env> implements ActionsRpc {
+export class Actions extends WorkerEntrypoint<Env> implements ActionsRpc, ActionsEntriesRpc {
   listWorkflows(viewer: Viewer, repoId: string): Promise<RpcResult<readonly WorkflowSummary[]>> {
     return this.#rpc().listWorkflows(viewer, repoId);
   }
@@ -97,8 +110,70 @@ export class Actions extends WorkerEntrypoint<Env> implements ActionsRpc {
     return this.#rpc().deleteSecret(viewer, repoId, name);
   }
 
+  // Secrets and variables beyond the repository's own secrets (actions-secrets contract).
+
+  repoActionsEntries(viewer: Viewer, repoId: string): Promise<RpcResult<RepoActionsEntries>> {
+    return this.#entries().repoActionsEntries(viewer, repoId);
+  }
+
+  putVariable(
+    viewer: Viewer,
+    repoId: string,
+    input: PutVariableInput,
+  ): Promise<RpcResult<VariableSummary>> {
+    return this.#entries().putVariable(viewer, repoId, input);
+  }
+
+  deleteVariable(
+    viewer: Viewer,
+    repoId: string,
+    name: string,
+  ): Promise<RpcResult<{ readonly deleted: boolean }>> {
+    return this.#entries().deleteVariable(viewer, repoId, name);
+  }
+
+  orgActionsSettings(viewer: Viewer, orgHandle: string): Promise<RpcResult<OrgActionsSettings>> {
+    return this.#entries().orgActionsSettings(viewer, orgHandle);
+  }
+
+  putOrgSecret(
+    viewer: Viewer,
+    orgHandle: string,
+    input: PutOrgSecretInput,
+  ): Promise<RpcResult<OrgSecretSummary>> {
+    return this.#entries().putOrgSecret(viewer, orgHandle, input);
+  }
+
+  deleteOrgSecret(
+    viewer: Viewer,
+    orgHandle: string,
+    name: string,
+  ): Promise<RpcResult<{ readonly deleted: boolean }>> {
+    return this.#entries().deleteOrgSecret(viewer, orgHandle, name);
+  }
+
+  putOrgVariable(
+    viewer: Viewer,
+    orgHandle: string,
+    input: PutOrgVariableInput,
+  ): Promise<RpcResult<OrgVariableSummary>> {
+    return this.#entries().putOrgVariable(viewer, orgHandle, input);
+  }
+
+  deleteOrgVariable(
+    viewer: Viewer,
+    orgHandle: string,
+    name: string,
+  ): Promise<RpcResult<{ readonly deleted: boolean }>> {
+    return this.#entries().deleteOrgVariable(viewer, orgHandle, name);
+  }
+
   #rpc(): ActionsRpc {
     return actionsRpc(this.env);
+  }
+
+  #entries(): ActionsEntriesRpc {
+    return actionsEntriesRpc(this.env);
   }
 }
 

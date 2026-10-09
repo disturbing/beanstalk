@@ -15,6 +15,8 @@ import type {
   Job,
   LogLine,
   PutSecretInput,
+  PutVariableInput,
+  RepoEntries,
   RunFilter,
 } from './actions-contract';
 import {
@@ -42,6 +44,10 @@ export type ActionsClient = {
   secrets(): Promise<Outcome<SecretList>>;
   putSecret(input: PutSecretInput): Promise<Outcome<SecretSummary>>;
   deleteSecret(name: string): Promise<Outcome<{ readonly deleted: boolean }>>;
+  /** The repository's secrets and variables with the org's that reach it (names, never values). */
+  entries(): Promise<Outcome<RepoEntries>>;
+  putVariable(input: PutVariableInput): Promise<Outcome<{ readonly name: string }>>;
+  deleteVariable(name: string): Promise<Outcome<{ readonly deleted: boolean }>>;
   /**
    * A job's log as it happens (history, then the control plane's live relay), from line
    * `after`; null where the log route polls `log` instead (the fixture fake).
@@ -85,6 +91,33 @@ export function actionsClient(
     putSecret: (input) => call(SecretSummary, rpc.putSecret(actor, repoId, input)),
     deleteSecret: (name) =>
       call(z.object({ deleted: z.boolean() }), rpc.deleteSecret(actor, repoId, name)),
+    // The fixtures know repository secrets only: no org, no variables.
+    entries: async () => {
+      const listed = await call(SecretList, rpc.listSecrets(actor, repoId));
+      if (!listed.ok) return listed;
+      return {
+        ok: true,
+        value: {
+          canManage: true,
+          orgHandle: null,
+          secrets: listed.value.secrets.map((secret) => ({
+            ...secret,
+            source: { kind: 'repository' as const },
+            overridden: false,
+          })),
+          variables: [],
+        },
+      };
+    },
+    putVariable: async () => fixturesRefuse(),
+    deleteVariable: async () => fixturesRefuse(),
+  };
+}
+
+function fixturesRefuse(): Outcome<never> {
+  return {
+    ok: false,
+    error: { code: 'not_configured', message: 'Variables are not part of the staging fixtures.' },
   };
 }
 

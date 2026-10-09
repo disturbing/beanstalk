@@ -104,7 +104,7 @@ export function jobRequestOf(spec: JobSpec, secrets: Readonly<Record<string, str
     },
     token: spec.checkout.token,
     env: spec.env,
-    vars: {},
+    vars: spec.vars ?? {},
     secrets,
     inputs: spec.inputs,
     outputs: spec.outputs,

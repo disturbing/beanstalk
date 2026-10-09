@@ -125,7 +125,12 @@ function gateway(overrides: Partial<ActionsRpc> = {}): ActionsRpc {
   } as ActionsRpc;
 }
 
-const scope = { actor: { id: 'u1', handle: 'coop' }, repoId: REPO, openSocket: null };
+const scope = {
+  actor: { id: 'u1', handle: 'coop' },
+  repoId: REPO,
+  entries: null,
+  openSocket: null,
+};
 
 describe('the gateway adapter', () => {
   it('reads workflows with their unsupported events, notes that matter and last run', async () => {

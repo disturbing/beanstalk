@@ -391,6 +391,12 @@ export type JobSpec = {
   readonly env: Readonly<Record<string, string>>;
   /** Secrets this job may read (named by the workflow and allowed by D4). Values via `actionsJobSecrets`. */
   readonly secretNames: readonly SecretName[];
+  /**
+   * `vars.*`: the org's variables this repository may see, then the repository's own (which win
+   * on a name clash). Plain configuration, not masked. Absent from gateways older than org
+   * secrets and variables; treat absent as none.
+   */
+  readonly vars?: Readonly<Record<string, string>>;
   readonly steps: readonly JobStepSpec[];
   /** The job's `outputs:` expressions, which the executor evaluates at the end. */
   readonly outputs: Readonly<Record<string, string>>;

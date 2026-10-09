@@ -1,7 +1,8 @@
 /**
  * `ActionsRpc` (the gateway's `Actions` entrypoint): every call is checked by `mayUseEngine`
- * through `accessResult` — `read` to see workflows, runs and logs, `actions` (maintain) to
- * dispatch, cancel and manage secrets — and then served from D1, the repository's
+ * through `accessResult` — `read` to see workflows, runs and logs (and, with a role, secret
+ * names), `actions` (maintain) to dispatch, cancel and manage secrets — and then served from
+ * D1, the repository's
  * ActionsRepoDO, the run's ActionsRunDO or R2. Repositories the viewer may not see are
  * `not_found`, as everywhere.
  */
@@ -17,7 +18,7 @@ import {
   RunFilterSchema,
   WorkflowPath,
 } from '@beanstalk/shared-race/actions';
-import type { RepositoryAction, RepositoryForViewer } from '@beanstalk/shared-race/collaborators';
+import type { RepositoryAction } from '@beanstalk/shared-race/collaborators';
 import type { Viewer } from '@beanstalk/shared-race/repos';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 import { z } from 'zod';
@@ -28,6 +29,7 @@ import { accessResult, viewerPrincipal } from '../repos/access';
 import { d1Collaborators } from '../repos/collaborators';
 import { d1Registry } from '../repos/registry';
 import { readActionsConfig, secretsKeyOf } from './actions-config';
+import { auditRepository, handleOf } from './actions-audit';
 import { readLogChunks } from './log-chunks';
 import { SecretsNotConfiguredError, d1Secrets } from './secrets';
 import { issueLogTicket } from './tickets';
@@ -173,8 +175,11 @@ export function actionsRpc(env: Env): ActionsRpc {
       }),
     listSecrets: (viewer, repoId) =>
       guarded(async () => {
-        const allowed = await access(viewer, repoId, 'actions');
-        return allowed.ok ? ok(await secrets.list(repoId)) : allowed;
+        // Names only, so anyone with a role reads them (people without one never do).
+        const allowed = await access(viewer, repoId, 'read');
+        if (!allowed.ok) return allowed;
+        if (allowed.value.viewer_role === null) return failed(noRole());
+        return ok(await secrets.list(repoId));
       }),
     putSecret: (viewer, repoId, input) =>
       guarded(async () => {
@@ -187,7 +192,7 @@ export function actionsRpc(env: Env): ActionsRpc {
           actor,
           at: new Date().toISOString(),
         });
-        await audit(db, {
+        await auditRepository(db, {
           repo: allowed.value,
           viewer,
           actor,
@@ -202,7 +207,7 @@ export function actionsRpc(env: Env): ActionsRpc {
         if (!allowed.ok) return allowed;
         const deleted = await secrets.delete(repoId, name);
         if (deleted)
-          await audit(db, {
+          await auditRepository(db, {
             repo: allowed.value,
             viewer,
             actor: await handleOf(env, viewer),
@@ -277,40 +282,6 @@ function summaryOfRow(row: z.infer<typeof RunRow>): RunSummary {
   };
 }
 
-/** The signed-in person's handle (for `actor` and `updatedBy`). */
-async function handleOf(env: Env, viewer: Viewer): Promise<string> {
-  if (viewer === null) return 'anonymous';
-  const row = await env.IDENTITY_DB.prepare('SELECT handle FROM users WHERE id = ?')
-    .bind(viewer)
-    .first<{ handle: string }>();
-  return row?.handle ?? viewer;
-}
-
-async function audit(
-  db: D1Database,
-  entry: {
-    readonly repo: RepositoryForViewer;
-    readonly viewer: Viewer;
-    readonly actor: string;
-    readonly action: string;
-    readonly detail: string;
-  },
-): Promise<void> {
-  await db
-    .prepare(
-      'INSERT INTO repository_audit (repo_id, at, actor_id, actor_handle, action, detail) VALUES (?, ?, ?, ?, ?, ?)',
-    )
-    .bind(
-      entry.repo.id,
-      new Date().toISOString(),
-      entry.viewer ?? '',
-      entry.actor,
-      entry.action,
-      entry.detail,
-    )
-    .run();
-}
-
 function ok<T>(value: T): RpcResult<T> {
   return { ok: true, value };
 }
@@ -321,6 +292,15 @@ function failed<T>(error: RpcError): RpcResult<T> {
 
 function invalid<T>(message: string): RpcResult<T> {
   return failed({ code: 'invalid_request', status: 400, message });
+}
+
+/** Secret names are for people with a role; a public repository's other readers get this. */
+export function noRole(): RpcError {
+  return {
+    code: 'forbidden',
+    status: 403,
+    message: 'secrets and variables are shown to people with a role on this repository',
+  };
 }
 
 function notFound(what: string): RpcError {

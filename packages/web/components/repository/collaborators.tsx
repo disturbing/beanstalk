@@ -233,6 +233,8 @@ const AUDIT_VERBS: Readonly<Record<string, string>> = {
   'repository.transfer': 'transferred the repository',
   'actions-secret-set': 'saved the Actions secret',
   'actions-secret-deleted': 'deleted the Actions secret',
+  'actions-variable-set': 'saved the Actions variable',
+  'actions-variable-deleted': 'deleted the Actions variable',
 };
 
 function auditText(event: AuditEvent): string {

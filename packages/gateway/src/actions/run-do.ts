@@ -27,7 +27,7 @@ import { readConfig } from '../config';
 import type { Logger } from '../log';
 import { createLogger } from '../log';
 import type { ActionsConfig } from './actions-config';
-import { readActionsConfig, secretsKeyOf } from './actions-config';
+import { readActionsConfig } from './actions-config';
 import type { ExpressionContexts } from './expressions';
 import type { JobState, NeedResult } from './job-graph';
 import { needResult, planJobs, readiness, runConclusion } from './job-graph';
@@ -39,8 +39,9 @@ import { maskTermsOf, maskText } from './mask';
 import type { RunRequest } from './run-request';
 import type { JobPatch, JobRow, RunRecord } from './run-store';
 import { RunStore, jobViewOf, summaryOf } from './run-store';
-import type { SecretsStore } from './secrets';
-import { d1Secrets, secretsForRun } from './secrets';
+import type { EntryRepo, EntryStores } from './repo-entries';
+import { entryStoresOf, jobSecretCatalog, jobVariables } from './repo-entries';
+import { secretsForRun } from './secrets';
 import { oidcJobEnv } from './oidc';
 import { newReportToken } from './tickets';
 import { readWorkflowFile } from './workflow-file';
@@ -54,7 +55,7 @@ export class ActionsRunDO extends DurableObject<Env> {
   readonly #store: RunStore;
   readonly #config: ActionsConfig;
   readonly #log: Logger;
-  readonly #secrets: SecretsStore;
+  readonly #entries: EntryStores;
   /** Mask terms per job, in memory only (rebuilt after an eviction). */
   readonly #masks = new Map<string, readonly string[]>();
   #isAdvancing = false;
@@ -65,7 +66,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     this.#store = new RunStore(ctx.storage.sql);
     this.#config = readActionsConfig(env);
     this.#log = createLogger(readConfig(env).logLevel, { component: 'actions-run' });
-    this.#secrets = d1Secrets(env.FORGE, secretsKeyOf(env));
+    this.#entries = entryStoresOf(env);
   }
 
   /** Plans and starts the run. Idempotent: a second call returns the run as it is. */
@@ -79,8 +80,10 @@ export class ActionsRunDO extends DurableObject<Env> {
     const [problem] = workflow.problems;
     const refusal =
       request.refused ?? (problem === undefined ? null : `invalid workflow: ${problem.message}`);
+    const vars = await jobVariables(this.#entries, entryRepoOf(request));
     const base: RunRecord = {
       request,
+      vars,
       workflowName: workflow.name,
       status: 'queued',
       conclusion: null,
@@ -92,7 +95,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     if (refusal === null) {
       this.#store.insertJobs(
         planJobs(workflow, {
-          contexts: contextsOf(request, this.#config.serverUrl),
+          contexts: contextsOf(base, this.#config.serverUrl),
           maxTimeoutMinutes: this.#config.jobTimeoutMinutes,
           newId: () => crypto.randomUUID(),
         }),
@@ -154,13 +157,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     if (!job.ok) return job;
     if (job.value.status !== 'in_progress')
       return refused('invalid_state', 409, 'the job is not running');
-    const record = this.#requireRun();
-    const names = secretsForRun(
-      record.request.origin,
-      job.value.secretNames,
-      await this.#secrets.list(record.request.repo.id),
-    );
-    return { ok: true, value: await this.#secrets.reveal(record.request.repo.id, names) };
+    return { ok: true, value: await this.#jobSecretValues(job.value) };
   }
 
   async jobLogs(
@@ -321,7 +318,7 @@ export class ActionsRunDO extends DurableObject<Env> {
   ): Promise<boolean> {
     const states = this.#store.jobs().map(stateOf);
     const ready = readiness(job, states, {
-      contexts: contextsOf(record.request, this.#config.serverUrl),
+      contexts: contextsOf(record, this.#config.serverUrl),
       cancelled: record.cancelRequested,
     });
     switch (ready.kind) {
@@ -396,11 +393,8 @@ export class ActionsRunDO extends DurableObject<Env> {
     const runId = ActionsRunId.parse(request.runId);
     const jobId = ActionsJobId.parse(job.id);
     const report = newReportToken(runId, jobId);
-    const secretNames = secretsForRun(
-      request.origin,
-      job.secretNames,
-      await this.#secrets.list(request.repo.id),
-    );
+    const catalog = await jobSecretCatalog(this.#entries, entryRepoOf(request));
+    const secretNames = secretsForRun(request.origin, job.secretNames, catalog.stored);
     const jobToken = await mintJobToken(this.env.FORGE, {
       repoId: request.repo.id,
       engineId: request.repo.engineId,
@@ -426,6 +420,7 @@ export class ActionsRunDO extends DurableObject<Env> {
       ids: { runId, jobId },
       needs: needsOf(job, states),
       secretNames,
+      vars: record.vars,
       tokens: { job: jobToken, report: report.token },
       serverUrl: this.#config.serverUrl,
       oidcEnv: await oidcJobEnv({
@@ -551,17 +546,16 @@ export class ActionsRunDO extends DurableObject<Env> {
   async #maskTerms(job: JobRow): Promise<readonly string[]> {
     const known = this.#masks.get(job.id);
     if (known !== undefined) return known;
-    const record = this.#requireRun();
-    const names = secretsForRun(
-      record.request.origin,
-      job.secretNames,
-      await this.#secrets.list(record.request.repo.id),
-    );
-    const terms = maskTermsOf(
-      Object.values(await this.#secrets.reveal(record.request.repo.id, names)),
-    );
+    const terms = maskTermsOf(Object.values(await this.#jobSecretValues(job)));
     this.#masks.set(job.id, terms);
     return terms;
+  }
+
+  /** The values of the secrets `job` may read: repository and org ones, filtered by D4. */
+  async #jobSecretValues(job: JobRow): Promise<Record<string, string>> {
+    const { request } = this.#requireRun();
+    const catalog = await jobSecretCatalog(this.#entries, entryRepoOf(request));
+    return catalog.reveal(secretsForRun(request.origin, job.secretNames, catalog.stored));
   }
 
   async #lease(job: JobRow, nowMs: number): Promise<void> {
@@ -659,7 +653,11 @@ export class ActionsRunDO extends DurableObject<Env> {
 }
 
 /** The expression contexts a run's jobs see: `github`, `inputs`, `vars`. */
-export function contextsOf(request: RunRequest, publicUrl: string): ExpressionContexts {
+export function contextsOf(
+  record: Pick<RunRecord, 'request' | 'vars'>,
+  publicUrl: string,
+): ExpressionContexts {
+  const { request } = record;
   const fullName = `${request.repo.ownerHandle}/${request.repo.name}`;
   return {
     github: {
@@ -677,7 +675,17 @@ export function contextsOf(request: RunRequest, publicUrl: string): ExpressionCo
       event: JSON.parse(JSON.stringify(request.eventPayload)),
     },
     inputs: request.inputs,
-    vars: {},
+    vars: { ...record.vars },
+  };
+}
+
+/** The run's repository as secret and variable resolution sees it. */
+function entryRepoOf(request: RunRequest): EntryRepo {
+  const { repo } = request;
+  return {
+    id: repo.id,
+    visibility: repo.visibility,
+    owner: { id: repo.ownerId, handle: repo.ownerHandle },
   };
 }
 

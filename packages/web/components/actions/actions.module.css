@@ -1031,6 +1031,64 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+.inheritedTitle {
+  margin: 16px 0 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.sourceTag {
+  display: inline-block;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 11px;
+  color: var(--ink-2);
+  vertical-align: 1px;
+}
+.variableValue {
+  font: 12.5px var(--font-mono);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.secrets > li[data-overridden='true'] .secretName {
+  text-decoration: line-through;
+  color: var(--ink-3);
+}
+.policy {
+  display: grid;
+  gap: 6px;
+  grid-column: 1 / -1;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.policy legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.repoPicker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+  margin: 4px 0 0 24px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.policyLine {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.auditList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  display: grid;
+  gap: 4px;
+}
 .toggle {
   display: inline-flex;
   gap: 6px;
@@ -1097,6 +1155,9 @@
   }
   .secretForm {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .repoPicker {
+    margin-left: 0;
   }
   .secrets > li {
     grid-template-columns: minmax(0, 1fr);

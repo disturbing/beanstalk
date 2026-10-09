@@ -2,7 +2,7 @@
 
 /**
  * Actions' writes from the web: run a workflow by hand, cancel or re-run a run, and add,
- * update or delete a repository secret. Each checks the form (same origin, session, CSRF),
+ * update or delete a repository secret or variable. Each checks the form (same origin, session, CSRF),
  * then the person's role on the repository (`owner` and `name` fields: maintain or owner), before the control plane
  * checks it again. Secret values pass through once and are never logged or returned.
  */
@@ -10,7 +10,7 @@ import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { PutSecretInput } from '../actions/actions-contract';
+import { PutSecretInput, PutVariableInput } from '../actions/actions-contract';
 import { dispatchOf } from '../actions/run-view';
 import { dispatchInputsOf } from '../actions/run-filters';
 import { lookupRepository } from '../repositories/flows';
@@ -121,6 +121,36 @@ export async function deleteSecretAction(
   const deleted = await scope.actions.client.deleteSecret(name);
   if (!deleted.ok) return refused(deleted.error.message);
   await scope.actions.persist();
+  revalidatePath(`${scope.base}/settings`);
+  return { kind: 'done', message: `Deleted ${name}.` };
+}
+
+export async function putVariableAction(
+  _previous: WorkflowFormState,
+  form: FormData,
+): Promise<WorkflowFormState> {
+  const scope = await maintainerOf(form);
+  if ('kind' in scope) return scope;
+  const input = PutVariableInput.safeParse({
+    name: field(form, 'variable'),
+    value: field(form, 'value'),
+  });
+  if (!input.success) return refused(input.error.issues[0]?.message ?? 'Check the form.');
+  const saved = await scope.actions.client.putVariable(input.data);
+  if (!saved.ok) return refused(saved.error.message);
+  revalidatePath(`${scope.base}/settings`);
+  return { kind: 'done', message: `Saved ${saved.value.name}.` };
+}
+
+export async function deleteVariableAction(
+  _previous: WorkflowFormState,
+  form: FormData,
+): Promise<WorkflowFormState> {
+  const scope = await maintainerOf(form);
+  if ('kind' in scope) return scope;
+  const name = field(form, 'variable');
+  const deleted = await scope.actions.client.deleteVariable(name);
+  if (!deleted.ok) return refused(deleted.error.message);
   revalidatePath(`${scope.base}/settings`);
   return { kind: 'done', message: `Deleted ${name}.` };
 }

@@ -1,7 +1,7 @@
 /**
  * The stub executor's whole behaviour, pure (used until the container executor lands, and on
  * staging): each step is "run" by echoing it. `echo` prints its text with `${{ secrets.X }}`,
- * `matrix`, `inputs`, `needs` and `github.sha` filled in; `echo "k=v" >> $GITHUB_OUTPUT` sets a
+ * `vars`, `matrix`, `inputs`, `needs` and `github.sha` filled in; `echo "k=v" >> $GITHUB_OUTPUT` sets a
  * step output; `exit N` (N > 0) fails the step and skips the rest. Job outputs are then
  * evaluated from the step outputs. Nothing runs.
  */
@@ -122,6 +122,8 @@ function fill(
     switch (context ?? '') {
       case 'secrets':
         return secrets[(first ?? '').toUpperCase()] ?? '';
+      case 'vars':
+        return spec.vars?.[(first ?? '').toUpperCase()] ?? '';
       case 'matrix':
         return String(spec.matrix?.[first ?? ''] ?? '');
       case 'inputs':

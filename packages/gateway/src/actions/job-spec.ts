@@ -21,6 +21,8 @@ export function jobSpecOf(input: {
   readonly ids: { readonly runId: ActionsRunId; readonly jobId: ActionsJobId };
   readonly needs: Readonly<Record<string, NeedResult>>;
   readonly secretNames: readonly string[];
+  /** `vars.*` for the job (org then repository variables, resolved when the run started). */
+  readonly vars: Readonly<Record<string, string>>;
   readonly tokens: { readonly job: string; readonly report: string };
   readonly serverUrl: string;
   /** `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN` for an `id-token: write` job (`oidc.ts`), else empty. */
@@ -64,6 +66,7 @@ export function jobSpecOf(input: {
       ...input.oidcEnv,
     },
     secretNames: input.secretNames.map((name): SecretName => SecretNameSchema.parse(name)),
+    vars: input.vars,
     steps: input.job.steps,
     outputs: input.job.outputs,
     timeoutMinutes: input.job.timeoutMinutes,

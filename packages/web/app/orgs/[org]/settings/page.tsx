@@ -74,6 +74,16 @@ export default async function OrgSettingsPage({ params }: PageProps) {
           />
         ) : null}
         {manages ? <OrgRepositoryDefaults org={org} access={access} /> : null}
+        <section className={`${styles.panel} ${styles.settingsSection}`}>
+          <h2>Secrets and variables</h2>
+          <p className={styles.sub}>
+            Actions secrets and variables for {org.name}&rsquo;s repositories: all of them, the
+            private ones, or the ones you pick.{' '}
+            <Link href={`/orgs/${encodeURIComponent(org.handle)}/settings/secrets`}>
+              {manages ? 'Manage secrets and variables' : 'See secrets and variables'}
+            </Link>
+          </p>
+        </section>
         {page.audit.length === 0 ? null : (
           <section className={`${styles.panel} ${styles.settingsSection}`}>
             <h2>Audit log</h2>

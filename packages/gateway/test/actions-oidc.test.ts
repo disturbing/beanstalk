@@ -107,6 +107,7 @@ function runRecord(): RunRecord {
     startedMs: Date.now(),
     completedMs: null,
     cancelRequested: false,
+    vars: {},
   };
 }
 

@@ -255,11 +255,28 @@
             </li>
           </ul>
 
-          <h2 id="secrets">Secrets</h2>
+          <h2 id="secrets">Secrets and variables</h2>
           <ul>
             <li>
               Repository secrets are encrypted at rest, write-only (Settings lists names, never
               values), injected only into the steps that name them, and masked in logs.
+            </li>
+            <li>
+              <strong>Org secrets</strong> work the same way and reach all of the org's
+              repositories, only its private ones, or the ones you pick. Org owners and admins
+              manage them in the org's Settings, Secrets and variables. A repository secret with the
+              same name wins over the org's, as on GitHub.
+            </li>
+            <li>
+              <strong>Variables</strong> (<code>${{ vars.NAME }}</code>) are plain configuration at
+              repository and org level, with the same access choices for org variables. Anyone with
+              a role sees their values and logs print them unmasked, so never put a credential in
+              one.
+            </li>
+            <li>
+              Repository Settings shows the repository's own secrets and variables and the org ones
+              it inherits, read-only, with where each comes from. People with a role see secret
+              names, never values; maintainers and the owner change them.
             </li>
             <li>
               Stalk, dispatch and schedule runs get the secrets they name. That is how deploys work.

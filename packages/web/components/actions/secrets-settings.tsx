@@ -1,50 +1,63 @@
 'use client';
 
 /**
- * Settings → Actions: this month's minutes against the beta's allowance, and the repository's
- * secrets by name. A value is write-only: typed once, sent once, never shown or returned.
- * Each secret has an "available to pre-land checks" switch, off by default, with the reason
- * it is off. Maintainers and the owner only (the page decides; the server checks again).
+ * Settings → Secrets and variables: this month's minutes against the beta's allowance, and the
+ * repository's secrets by name, then the org secrets it inherits (read-only, with their source).
+ * A value is write-only: typed once, sent once, never shown or returned. Each secret has an
+ * "available to pre-land checks" switch, off by default, with the reason it is off.
+ * Maintainers and the owner manage (the page decides; the server checks again); other people
+ * with a role see the names only.
  */
 import { useActionState, useState } from 'react';
 
-import type { ActionsUsage, SecretSummary } from '../../src/actions/actions-contract';
+import type {
+  ActionsUsage,
+  InheritableSecret,
+  SecretSummary,
+} from '../../src/actions/actions-contract';
 import { timeAgo } from '../../src/repositories/when';
 import type { ActionsAccess } from '../../src/server/actions-page';
 import type { WorkflowFormState } from '../../src/server/workflow-actions';
 import { deleteSecretAction, putSecretAction } from '../../src/server/workflow-actions';
 import { AccessFields } from './access-fields';
+import { InheritedEntries } from './inherited-entries';
 import styles from './actions.module.css';
 
 export function SecretsSettings(props: {
   readonly secrets: readonly SecretSummary[] | null;
+  /** Org secrets that reach this repository (none for a person's repository). */
+  readonly inherited: readonly InheritableSecret[];
   readonly error: string | null;
   readonly usage: ActionsUsage | null;
-  readonly access: ActionsAccess;
+  /** Null for people who may only read the names. */
+  readonly access: ActionsAccess | null;
   /** Whether pre-land access can change without the value (else: save the secret again). */
   readonly canToggle: boolean;
   readonly nowMs: number;
 }) {
+  const { access } = props;
   return (
     <>
-      {props.usage === null ? null : <UsageMeter usage={props.usage} />}
+      {props.usage === null || access === null ? null : <UsageMeter usage={props.usage} />}
       <h3 id="secrets">Secrets</h3>
       <p>
         Workflows read them as <code>{'${{ secrets.NAME }}'}</code>. A value is never shown again
         after you save it, is masked as <code>***</code> in logs, and never reaches agent sessions.
-        Pre-land checks get none unless you switch a secret on for them.
+        Pre-land checks get none unless a secret is switched on for them. A repository secret wins
+        over an org secret of the same name.
       </p>
-      <AddSecret access={props.access} />
+      {access === null ? null : <AddSecret access={access} />}
       {props.secrets === null ? (
         <p className={styles.alert}>Secrets could not be read: {props.error}</p>
       ) : (
         <SecretList
           secrets={props.secrets}
-          access={props.access}
+          access={access}
           canToggle={props.canToggle}
           nowMs={props.nowMs}
         />
       )}
+      <InheritedEntries kind="secret" entries={props.inherited} nowMs={props.nowMs} />
     </>
   );
 }
@@ -130,7 +143,7 @@ function AddSecret({ access }: { readonly access: ActionsAccess }) {
   );
 }
 
-function PrelandRisk() {
+export function PrelandRisk() {
   return (
     <p className={styles.risk} role="note">
       Pre-land checks run the code in a bean before anyone has reviewed it, including beans pushed
@@ -142,23 +155,43 @@ function PrelandRisk() {
 
 function SecretList(props: {
   readonly secrets: readonly SecretSummary[];
-  readonly access: ActionsAccess;
+  readonly access: ActionsAccess | null;
   readonly canToggle: boolean;
   readonly nowMs: number;
 }) {
   if (props.secrets.length === 0) return <p className={styles.muted}>No secrets yet.</p>;
   return (
     <ul className={styles.secrets} aria-label="Secrets">
-      {props.secrets.map((secret) => (
-        <SecretRow
-          key={secret.name}
-          secret={secret}
-          access={props.access}
-          canToggle={props.canToggle}
-          nowMs={props.nowMs}
-        />
-      ))}
+      {props.secrets.map((secret) =>
+        props.access === null ? (
+          <ReadOnlySecret key={secret.name} secret={secret} nowMs={props.nowMs} />
+        ) : (
+          <SecretRow
+            key={secret.name}
+            secret={secret}
+            access={props.access}
+            canToggle={props.canToggle}
+            nowMs={props.nowMs}
+          />
+        ),
+      )}
     </ul>
+  );
+}
+
+function ReadOnlySecret(props: { readonly secret: SecretSummary; readonly nowMs: number }) {
+  const { secret } = props;
+  return (
+    <li>
+      <div>
+        <span className={styles.secretName}>{secret.name}</span>
+        <br />
+        <span className={styles.secretMeta}>
+          Updated {timeAgo(secret.updatedAt, props.nowMs)} by @{secret.updatedBy}
+          {secret.availableToPreland ? ' · available to pre-land checks' : ''}
+        </span>
+      </div>
+    </li>
   );
 }
 
@@ -236,7 +269,7 @@ function SecretRow(props: {
   );
 }
 
-function FormMessage({ state }: { readonly state: WorkflowFormState }) {
+export function FormMessage({ state }: { readonly state: WorkflowFormState }) {
   if (state.kind === 'idle') return null;
   return (
     <span className={state.kind === 'refused' ? styles.alert : styles.status} role="status">

@@ -36,6 +36,7 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   'oauth',
   'org',
   'orgs',
+  'organizations',
   'pricing',
   'privacy',
   'register',

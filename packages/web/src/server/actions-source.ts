@@ -14,7 +14,11 @@ import type { ActionsActor } from '../actions/actions-contract';
 import { fakeControlPlane } from '../actions/fake/fake-control-plane';
 import type { FakeOverlay } from '../actions/fake/fake-overlay';
 import { decodeOverlay, encodeOverlay } from '../actions/fake/fake-overlay';
-import { asGatewayActions, gatewayActionsClient } from '../actions/gateway-actions';
+import {
+  asGatewayActions,
+  asGatewayEntries,
+  gatewayActionsClient,
+} from '../actions/gateway-actions';
 import type { SocketFrames } from '../actions/socket-frames';
 import { socketFrames } from '../actions/socket-frames';
 
@@ -63,7 +67,11 @@ function sessionFrom(
   if (env.ACTIONS_SOURCE === 'gateway') {
     const rpc = asGatewayActions(env.ACTIONS);
     if (rpc === null) return null;
-    const client = gatewayActionsClient(rpc, { ...scope, openSocket: openLogSocket });
+    const client = gatewayActionsClient(rpc, {
+      ...scope,
+      entries: asGatewayEntries(env.ACTIONS),
+      openSocket: openLogSocket,
+    });
     return { client, persist: async () => {} };
   }
   if (env.ACTIONS_SOURCE !== 'fixtures') return null;

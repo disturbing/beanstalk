@@ -22,6 +22,7 @@ import type {
   RunSummary as GatewayRunSummary,
   WorkflowSummary,
 } from '@beanstalk/shared-race/actions';
+import type { ActionsEntriesRpc } from '@beanstalk/shared-race/actions-secrets';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
 import type { Outcome } from '../repositories/registry-client';
@@ -43,6 +44,7 @@ import type { SocketFrames } from './socket-frames';
 import {
   Conclusion as ConclusionSchema,
   LogPage,
+  RepoEntries,
   RunDetail,
   RunPage,
   SecretList,
@@ -80,9 +82,31 @@ function isGatewayActions(binding: object): binding is ActionsRpc {
   return methods.every((method) => typeof Reflect.get(binding, method) === 'function');
 }
 
+/** The gateway's org secrets and variables methods, when it has them (else null: older gateway). */
+export function asGatewayEntries(binding: unknown): ActionsEntriesRpc | null {
+  if (typeof binding !== 'object' || binding === null) return null;
+  return isGatewayEntries(binding) ? binding : null;
+}
+
+function isGatewayEntries(binding: object): binding is ActionsEntriesRpc {
+  const methods = [
+    'repoActionsEntries',
+    'putVariable',
+    'deleteVariable',
+    'orgActionsSettings',
+    'putOrgSecret',
+    'deleteOrgSecret',
+    'putOrgVariable',
+    'deleteOrgVariable',
+  ];
+  return methods.every((method) => typeof Reflect.get(binding, method) === 'function');
+}
+
 export function gatewayActionsClient(
   rpc: ActionsRpc,
   scope: {
+    /** Org secrets and variables; null on a gateway without them (repository secrets only). */
+    readonly entries: ActionsEntriesRpc | null;
     readonly actor: ActionsActor;
     readonly repoId: string;
     /** Opens the run's live log WebSocket (a ticket URL); null: the log route polls instead. */
@@ -193,6 +217,35 @@ export function gatewayActionsClient(
       return saved.ok ? parsed(SecretSummary, secretOf(saved.value)) : saved;
     },
     deleteSecret: (name) => settle(rpc.deleteSecret(viewer, repoId, name)),
+    entries: async () => {
+      if (scope.entries === null) return olderGateway();
+      const listed = await settle(scope.entries.repoActionsEntries(viewer, repoId));
+      if (!listed.ok) return listed;
+      return parsed(RepoEntries, {
+        ...listed.value,
+        secrets: listed.value.secrets.map((secret) => ({
+          ...secretOf(secret),
+          source: secret.source,
+          overridden: secret.overridden,
+        })),
+      });
+    },
+    putVariable: async (input) => {
+      if (scope.entries === null) return olderGateway();
+      const saved = await settle(scope.entries.putVariable(viewer, repoId, input));
+      return saved.ok ? { ok: true, value: { name: saved.value.name } } : saved;
+    },
+    deleteVariable: (name) =>
+      scope.entries === null
+        ? Promise.resolve(olderGateway())
+        : settle(scope.entries.deleteVariable(viewer, repoId, name)),
+  };
+}
+
+function olderGateway(): Outcome<never> {
+  return {
+    ok: false,
+    error: { code: 'not_configured', message: 'This gateway has no variables or org secrets yet.' },
   };
 }
 
@@ -508,7 +561,7 @@ function secretOf(secret: {
 }
 
 /** A gateway call as an outcome: its refusal, or a thrown binding error as "unavailable". */
-async function settle<T>(pending: Promise<RpcResult<T>>): Promise<Outcome<T>> {
+export async function settle<T>(pending: Promise<RpcResult<T>>): Promise<Outcome<T>> {
   try {
     const result = await pending;
     return result.ok
@@ -522,7 +575,7 @@ async function settle<T>(pending: Promise<RpcResult<T>>): Promise<Outcome<T>> {
   }
 }
 
-function parsed<T>(
+export function parsed<T>(
   schema: { safeParse(value: unknown): { success: true; data: T } | { success: false } },
   value: unknown,
 ): Outcome<T> {

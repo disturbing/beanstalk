@@ -97,7 +97,9 @@ export type RepositoryAuditAction =
   | 'repository.visibility'
   | 'repository.transfer'
   | 'actions-secret-set'
-  | 'actions-secret-deleted';
+  | 'actions-secret-deleted'
+  | 'actions-variable-set'
+  | 'actions-variable-deleted';
 
 /** Who is on a repository, as a member sees it; the owner also sees invitations and the log. */
 export type RepositoryPeople = {

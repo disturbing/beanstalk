@@ -136,6 +136,8 @@ const AuditRow = z.object({
     // Actions secrets (src/actions/actions-rpc.ts writes these to the same log).
     'actions-secret-set',
     'actions-secret-deleted',
+    'actions-variable-set',
+    'actions-variable-deleted',
   ]),
   target_handle: z.string().nullable(),
   detail: z.string(),

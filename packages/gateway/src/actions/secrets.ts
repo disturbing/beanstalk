@@ -13,11 +13,7 @@ import type { SecretSummary } from '@beanstalk/shared-race/actions';
 import { SecretName } from '@beanstalk/shared-race/actions';
 import { z } from 'zod';
 
-import { base64UrlDecode, base64UrlEncode } from '../auth/base64url';
-
-const KEY_VERSION = 1;
-const KEY_BYTES = 32;
-const IV_BYTES = 12;
+import { KEY_VERSION, encodeText, importSecretsKey, openValue, sealValue } from './secret-box';
 
 /** Where a run comes from, as far as secrets are concerned. */
 export type RunOrigin =
@@ -67,7 +63,7 @@ const SealedRow = z.object({ name: z.string(), ciphertext: z.string(), iv: z.str
 
 /** The D1 store; `keyBase64` is `ACTIONS_SECRETS_KEY` (null: secrets are not configured). */
 export function d1Secrets(db: D1Database, keyBase64: string | null): SecretsStore {
-  const key = keyBase64 === null ? null : importKey(keyBase64);
+  const key = keyBase64 === null ? null : importSecretsKey(keyBase64);
   const requireKey = async (): Promise<CryptoKey> => {
     if (key === null) throw new SecretsNotConfiguredError();
     return key;
@@ -84,7 +80,7 @@ export function d1Secrets(db: D1Database, keyBase64: string | null): SecretsStor
     },
     async put(repoId, secret, by) {
       const name = SecretName.parse(secret.name);
-      const sealed = await seal(await requireKey(), aad(repoId, name), secret.value);
+      const sealed = await sealValue(await requireKey(), aad(repoId, name), secret.value);
       await db
         .prepare(
           `INSERT INTO actions_secrets (repo_id, name, ciphertext, iv, key_version, preland_allowed, updated_at, updated_by)
@@ -125,7 +121,7 @@ export function d1Secrets(db: D1Database, keyBase64: string | null): SecretsStor
       const values = await Promise.all(
         results.map(async (raw) => {
           const row = SealedRow.parse(raw);
-          return [row.name, await open(cryptoKey, aad(repoId, row.name), row)] as const;
+          return [row.name, await openValue(cryptoKey, aad(repoId, row.name), row)] as const;
         }),
       );
       return Object.fromEntries(values);
@@ -152,53 +148,4 @@ function summaryOf(row: z.infer<typeof Row>): SecretSummary {
 
 function aad(repoId: string, name: string): Uint8Array<ArrayBuffer> {
   return encodeText(`beanstalk-actions-secret\0${repoId}\0${name}`);
-}
-
-async function importKey(keyBase64: string): Promise<CryptoKey> {
-  const bytes = decodeBase64(keyBase64);
-  if (bytes === null || bytes.length !== KEY_BYTES)
-    throw new Error('ACTIONS_SECRETS_KEY must be 32 bytes, base64');
-  return crypto.subtle.importKey('raw', bytes, 'AES-GCM', false, ['encrypt', 'decrypt']);
-}
-
-async function seal(
-  key: CryptoKey,
-  additionalData: Uint8Array<ArrayBuffer>,
-  value: string,
-): Promise<{ ciphertext: string; iv: string }> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv, additionalData },
-    key,
-    encodeText(value),
-  );
-  return { ciphertext: base64UrlEncode(new Uint8Array(ciphertext)), iv: base64UrlEncode(iv) };
-}
-
-async function open(
-  key: CryptoKey,
-  additionalData: Uint8Array<ArrayBuffer>,
-  sealed: { readonly ciphertext: string; readonly iv: string },
-): Promise<string> {
-  const iv = base64UrlDecode(sealed.iv);
-  const ciphertext = base64UrlDecode(sealed.ciphertext);
-  if (iv === null || ciphertext === null) throw new Error('a stored secret is malformed');
-  const plain = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv, additionalData },
-    key,
-    ciphertext,
-  );
-  return new TextDecoder().decode(plain);
-}
-
-function decodeBase64(text: string): Uint8Array<ArrayBuffer> | null {
-  try {
-    return new Uint8Array(Array.from(atob(text.trim()), (char) => char.charCodeAt(0)));
-  } catch {
-    return null;
-  }
-}
-
-function encodeText(text: string): Uint8Array<ArrayBuffer> {
-  return new Uint8Array(new TextEncoder().encode(text));
 }

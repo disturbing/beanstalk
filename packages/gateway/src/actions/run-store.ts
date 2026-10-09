@@ -34,6 +34,8 @@ export type RunRecord = {
   readonly startedMs: number | null;
   readonly completedMs: number | null;
   readonly cancelRequested: boolean;
+  /** `vars.*` as the run started: org variables that reach the repository, then its own. */
+  readonly vars: Readonly<Record<string, string>>;
 };
 
 /** A job as stored: its plan and its state. */
@@ -169,6 +171,8 @@ const RunRecordSchema = z.object({
   startedMs: z.number().nullable(),
   completedMs: z.number().nullable(),
   cancelRequested: z.boolean(),
+  // Runs stored before variables existed have none.
+  vars: z.record(z.string(), z.string()).default({}),
 });
 
 export class RunStore {

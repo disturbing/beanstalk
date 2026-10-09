@@ -226,6 +226,118 @@ export const DispatchRequest = z.strictObject({
 });
 export type DispatchRequest = z.infer<typeof DispatchRequest>;
 
+// Secrets and variables beyond the repository's own secrets (`25` §3.4) ---------------------
+
+/** Where an entry a repository sees comes from: itself, or the org that owns it. */
+export const EntrySource = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('repository') }),
+  z.object({ kind: z.literal('organization'), orgHandle: z.string() }),
+]);
+export type EntrySource = z.infer<typeof EntrySource>;
+
+/** Which of an org's repositories an org entry reaches. */
+export const AccessPolicy = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('all') }),
+  z.object({ kind: z.literal('private') }),
+  z.object({ kind: z.literal('selected'), repoIds: z.array(z.string()) }),
+]);
+export type AccessPolicy = z.infer<typeof AccessPolicy>;
+
+export const InheritableSecret = SecretSummary.extend({
+  source: EntrySource,
+  /** An org secret hidden by the repository's own secret of the same name. */
+  overridden: z.boolean(),
+});
+export type InheritableSecret = z.infer<typeof InheritableSecret>;
+
+export const Variable = z.object({
+  name: z.string(),
+  value: z.string(),
+  updatedAt: z.string(),
+  updatedBy: z.string(),
+});
+export type Variable = z.infer<typeof Variable>;
+
+export const InheritableVariable = Variable.extend({
+  source: EntrySource,
+  overridden: z.boolean(),
+});
+export type InheritableVariable = z.infer<typeof InheritableVariable>;
+
+/** Repository Settings → Secrets and variables: its own entries and the org's that reach it. */
+export const RepoEntries = z.object({
+  canManage: z.boolean(),
+  orgHandle: z.string().nullable(),
+  secrets: z.array(InheritableSecret),
+  variables: z.array(InheritableVariable),
+});
+export type RepoEntries = z.infer<typeof RepoEntries>;
+
+const EntryName = z
+  .string()
+  .trim()
+  .transform((name) => name.toUpperCase())
+  .pipe(
+    z
+      .string()
+      .regex(SECRET_NAME, 'Letters, digits and _ only, not starting with a digit.')
+      .refine((name) => !name.startsWith('GITHUB_'), 'Names starting GITHUB_ are reserved.'),
+  );
+
+export const PutVariableInput = z.strictObject({
+  name: EntryName,
+  value: z.string().max(48 * 1024, 'At most 48 KiB.'),
+});
+export type PutVariableInput = z.infer<typeof PutVariableInput>;
+
+export const PutOrgSecretInput = z.strictObject({
+  name: EntryName,
+  /** Null keeps the stored value (only the access policy or the pre-land toggle change). */
+  value: z
+    .string()
+    .min(1, 'Enter a value.')
+    .max(48 * 1024)
+    .nullable(),
+  access: AccessPolicy,
+  prelandAllowed: z.boolean(),
+});
+export type PutOrgSecretInput = z.infer<typeof PutOrgSecretInput>;
+
+export const PutOrgVariableInput = PutVariableInput.extend({ access: AccessPolicy });
+export type PutOrgVariableInput = z.infer<typeof PutOrgVariableInput>;
+
+export const OrgSecret = z.object({
+  name: z.string(),
+  access: AccessPolicy,
+  prelandAllowed: z.boolean(),
+  updatedAt: z.string(),
+  updatedBy: z.string(),
+});
+export type OrgSecret = z.infer<typeof OrgSecret>;
+
+export const OrgVariable = Variable.extend({ access: AccessPolicy });
+export type OrgVariable = z.infer<typeof OrgVariable>;
+
+export const OrgRepository = z.object({
+  id: z.string(),
+  name: z.string(),
+  visibility: z.enum(['public', 'private']),
+});
+export type OrgRepository = z.infer<typeof OrgRepository>;
+
+/** Org Settings → Secrets and variables. */
+export const OrgSettings = z.object({
+  org: z.object({ id: z.string(), handle: z.string() }),
+  canManage: z.boolean(),
+  secrets: z.array(OrgSecret),
+  variables: z.array(OrgVariable),
+  repositories: z.array(OrgRepository),
+  audit: z.array(
+    z.object({ at: z.string(), actorHandle: z.string(), action: z.string(), detail: z.string() }),
+  ),
+});
+export type OrgSettings = z.infer<typeof OrgSettings>;
+
 /** The person asking; null for someone reading a public repository signed out. */
 export type ActionsActor = { readonly id: string; readonly handle: string } | null;
 

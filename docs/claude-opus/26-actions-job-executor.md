@@ -68,7 +68,7 @@ Logs: every line reached the gateway's sink as numbered batches and is stored as
 | `$GITHUB_STEP_SUMMARY` | Captured | as `##[summary]` lines in the log (the contract has no summary field yet) |
 | `::error::`/`::warning::`/`::notice::` annotations, `::group::`, `::add-mask::` | Works | annotations as `##[error]file:line: message` lines; masks applied before lines leave the container |
 | Secrets (`secrets.*`), `GITHUB_TOKEN` | Works | fetched once per job from the sink, written to a 0600 file, masked including multi-line and encoded forms |
-| `vars.*` | Plumbed | the runner takes `vars`; the contract does not carry them yet |
+| `vars.*` | Works | `JobSpec.vars` (org then repository variables, `25` §3.11) to act's `--var-file`; absent from an older gateway, read as none |
 | `workflow_dispatch` `inputs.*` | Works | `--input-file` |
 | `strategy.matrix` | Works per leg | one container per leg; `--matrix k:v` for scalar values |
 | `timeout-minutes` (job), cancel | Works | runner stop (SIGTERM, SIGKILL after 10 s), executor backstop, `timed_out` / `cancelled` |

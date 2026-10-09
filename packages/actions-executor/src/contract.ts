@@ -64,6 +64,8 @@ export const JobSpecSchema = z.object({
   inputs: z.record(z.string(), z.string()),
   env: z.record(z.string(), z.string()),
   secretNames: z.array(SecretName),
+  // A gateway older than variables sends none.
+  vars: z.record(z.string(), z.string()).default({}),
   steps: z.array(
     z.object({
       number: z.number().int(),
