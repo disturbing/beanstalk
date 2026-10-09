@@ -28,7 +28,7 @@ export type IdTokenClaims = {
   readonly repository_id: string;
   readonly repository_owner: string;
   readonly repository_owner_id: string;
-  readonly repository_visibility: 'public' | 'private';
+  readonly repository_visibility: 'public' | 'private' | 'internal';
   readonly ref: string;
   readonly ref_type: 'branch';
   readonly sha: string;

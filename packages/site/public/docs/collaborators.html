@@ -6,7 +6,7 @@
     <title>Collaborators and visibility: Beanstalk docs</title>
     <meta
       name="description"
-      content="Roles, invitations, public and private repositories, and the one rule that decides access on every transport."
+      content="Roles, invitations, public, private and internal repositories, and the one rule that decides access on every transport."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -155,8 +155,8 @@
           <p class="prompt" aria-hidden="true">beanstalk docs collaborators</p>
           <h1>Collaborators and visibility <span class="pill live">live</span></h1>
           <p class="lede">
-            Invite people by handle with a role, make a repository public or private, and see every
-            session and token that acted on it.
+            Invite people by handle with a role, make a repository public, private or internal, and
+            see every session and token that acted on it.
           </p>
 
           <h2 id="roles">Roles</h2>
@@ -204,6 +204,13 @@
               <strong>Public</strong>: anyone reads and clones, signed in or not. Pushing still
               needs a role.
             </li>
+            <li>
+              <strong>Internal</strong> <span class="pill rolling">rolling out</span>: for an
+              organization's repositories only. Every member of the organization, any role, reads
+              and clones it; anyone else gets a 404, as for private. Pushing still needs a role. A
+              personal repository cannot be internal, and an internal repository moved to a person
+              becomes private.
+            </li>
           </ul>
 
           <h2 id="rule">One rule, every transport</h2>
@@ -212,7 +219,7 @@
             agent sessions get their person's role capped by their scopes. Answering decision cards,
             managing deploy tokens and changing settings are done only by a person on the web, never
             by a token. The rule is tested as a matrix of every role, visibility and transport: 128
-            cases.
+            cases for collaborators, and more for organizations (below).
           </p>
 
           <h2 id="people">The People tab</h2>
@@ -239,18 +246,75 @@
               owner.
             </li>
             <li>
-              <strong>Member</strong>: the organization's base permission (none, read or write) on
-              every repository; creates repositories unless only admins may.
+              <strong>Member</strong>: the organization's base permission on every repository;
+              creates repositories unless only admins may.
             </li>
             <li><strong>Viewer</strong>: the base permission, at most read.</li>
           </ul>
           <p>
-            A collaborator role on one repository adds to the base permission; the stronger one
-            counts. A private repository of an organization is not found for anyone outside it. You
-            can create a repository under an organization from New repository, and move one of yours
+            <strong>Base permission</strong> <span class="pill rolling">rolling out</span>: none by
+            default, so members and viewers reach only the repositories they are invited to, plus
+            the organization's internal and public ones. Owners and admins reach every repository.
+            An organization can raise it to read or write in Settings, Repository defaults.
+            Organizations that were on the earlier default (read) move to none.
+          </p>
+          <div class="tbl">
+            <table>
+              <thead>
+                <tr>
+                  <th>Who</th>
+                  <th>Private</th>
+                  <th>Internal</th>
+                  <th>Public</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Owner, admin</td>
+                  <td>Owner</td>
+                  <td>Owner</td>
+                  <td>Owner</td>
+                </tr>
+                <tr>
+                  <td>Member or viewer, base none (default)</td>
+                  <td>Not found</td>
+                  <td>Read</td>
+                  <td>Read</td>
+                </tr>
+                <tr>
+                  <td>Member, base read or write</td>
+                  <td>Read or write</td>
+                  <td>Read or write</td>
+                  <td>Read or write</td>
+                </tr>
+                <tr>
+                  <td>Viewer, base read or write</td>
+                  <td>Read</td>
+                  <td>Read</td>
+                  <td>Read</td>
+                </tr>
+                <tr>
+                  <td>Outside the organization</td>
+                  <td>Not found</td>
+                  <td>Not found</td>
+                  <td>Read</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            A collaborator role on one repository adds to this; the stronger one counts. You can
+            create a repository under an organization from New repository, and move one of yours
             into an organization you administer (or back) from its Settings. The same one rule
-            decides access over HTTPS, SSH, MCP and the web; its test matrix adds 354 cases of
-            organization role, base permission, collaborator role, visibility and transport.
+            decides access over HTTPS, SSH, MCP and the web; its test matrix adds 603 cases of
+            organization role, base permission, collaborator role, visibility (public, private,
+            internal) and transport. An organization secret or variable set for "private
+            repositories" reaches internal ones too, as on GitHub.
+          </p>
+          <p>
+            <strong>Moving a repository</strong> <span class="pill rolling">rolling out</span>: its
+            old address keeps working. See
+            <a href="repositories.html#moved">Repositories: renamed and moved</a>.
           </p>
           <p>Teams and email invitations are <span class="pill soon">coming soon</span>.</p>
 

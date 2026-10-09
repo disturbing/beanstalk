@@ -34,6 +34,19 @@ export function repositoryPath(owner: string, name: string): string {
 }
 
 /**
+ * Whether `/<owner>/<repo>` names a repository by an address it left (a rename or a transfer;
+ * the gateway resolved it): the page then redirects to the current one. Case does not count.
+ */
+export function isOldAddress(
+  owner: string,
+  repo: string,
+  record: { readonly owner: { readonly handle: string }; readonly name: string },
+): boolean {
+  const asked = `${owner}/${repo.replace(/\.git$/, '')}`.toLowerCase();
+  return asked !== `${record.owner.handle}/${record.name}`.toLowerCase();
+}
+
+/**
  * Whether `owner` is a path the app serves itself: a reserved handle (accounts refuse them at
  * sign-up; `reserved-routes.test.ts` checks every top-level route is one) or a static file.
  */

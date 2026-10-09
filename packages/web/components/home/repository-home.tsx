@@ -39,7 +39,7 @@ export type HomeFrame = {
   readonly base: string;
   readonly repository: Repository;
   readonly kind: RepoKind;
-  readonly visibility?: 'public' | 'private';
+  readonly visibility?: 'public' | 'private' | 'internal';
   readonly ownerHref?: string;
   /** A persistent repository its owner archived. */
   readonly archived?: boolean;

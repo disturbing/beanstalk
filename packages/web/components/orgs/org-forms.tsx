@@ -135,7 +135,11 @@ export function OrgGeneralSettings(props: {
 }
 
 const BASE_CHOICES = [
-  { value: 'none', title: 'None', detail: 'Members see only repositories they are invited to.' },
+  {
+    value: 'none',
+    title: 'None (default)',
+    detail: 'Members see only repositories they are invited to, plus internal and public ones.',
+  },
   { value: 'read', title: 'Read', detail: 'Members clone, fetch and view every repository.' },
   { value: 'write', title: 'Write', detail: 'Members also push beans to every repository.' },
 ] as const;
@@ -171,8 +175,9 @@ export function OrgRepositoryDefaults(props: {
           </label>
         ))}
         <span className={repo.hint}>
-          Owners and admins manage every repository. Viewers get at most read. A collaborator role
-          on one repository adds to this; the stronger one counts.
+          Owners and admins manage every repository. Viewers get at most read. Every member reads
+          the internal repositories. A collaborator role on one repository adds to this; the
+          stronger one counts.
         </span>
       </fieldset>
       <fieldset className={repo.choices}>
@@ -277,6 +282,8 @@ export function TransferRepository(props: {
   readonly fullName: string;
   readonly targets: readonly { readonly handle: string; readonly label: string }[];
   readonly csrf: string;
+  /** Internal now: moved to a person it becomes private (only organizations have internal). */
+  readonly isInternal: boolean;
 }) {
   const [state, action, pending] = useActionState(transferRepositoryAction, IDLE);
   return (
@@ -288,9 +295,16 @@ export function TransferRepository(props: {
       <h2 id="transfer-title">Transfer</h2>
       <p className={repo.sub}>
         Move {props.fullName} to you or to an organization where you are an owner or admin. Its
-        history, beans, collaborators and deploy tokens move with it; the old URL stops working, so
-        update your git remotes.
+        history, beans, collaborators and deploy tokens move with it. The old address keeps working:
+        pages redirect, and git (HTTPS and SSH) and agents still clone, fetch and push there, until
+        someone creates a repository with that name at the old owner.
       </p>
+      {props.isInternal ? (
+        <p className={repo.hint}>
+          It is internal. Moved to a person it becomes private, because only organizations have
+          internal repositories; moved to another organization it stays internal to that one.
+        </p>
+      ) : null}
       <input type="hidden" name="csrf" value={props.csrf} />
       <input type="hidden" name="repo" value={props.repoId} />
       {props.targets.length === 0 ? (

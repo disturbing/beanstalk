@@ -321,7 +321,7 @@ export type OrgVariable = z.infer<typeof OrgVariable>;
 export const OrgRepository = z.object({
   id: z.string(),
   name: z.string(),
-  visibility: z.enum(['public', 'private']),
+  visibility: z.enum(['public', 'private', 'internal']),
 });
 export type OrgRepository = z.infer<typeof OrgRepository>;
 

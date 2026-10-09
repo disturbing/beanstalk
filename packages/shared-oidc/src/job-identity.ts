@@ -18,7 +18,7 @@ const Repository = z.object({
   owner: z.string().min(1),
   ownerId: z.string().min(1),
   name: z.string().min(1),
-  visibility: z.enum(['public', 'private']),
+  visibility: z.enum(['public', 'private', 'internal']),
 });
 
 const StalkRun = z.object({

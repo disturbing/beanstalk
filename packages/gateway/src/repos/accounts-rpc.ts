@@ -42,6 +42,12 @@ async function renameOwner(
   const { db } = deps;
   const [repositories] = await db.batch([
     db.prepare('UPDATE repositories SET owner_handle = ? WHERE owner_id = ?').bind(handle, userId),
+    // Old addresses of repositories that left this person (renamed or moved) follow the new
+    // handle too, so `/<new>/<old-name>` resolves; `/<old>/<old-name>` resolves through the
+    // retired handle (`Registry.resolve`). OR IGNORE: an address already taken there wins.
+    db
+      .prepare('UPDATE OR IGNORE repository_redirects SET owner_handle = ? WHERE owner_id = ?')
+      .bind(handle, userId),
     db
       .prepare('UPDATE repository_members SET user_handle = ? WHERE user_id = ?')
       .bind(handle, userId),

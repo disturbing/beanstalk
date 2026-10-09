@@ -33,6 +33,7 @@ import type {
   ViewerRole,
 } from '@beanstalk/shared-race/collaborators';
 import { RunId } from '@beanstalk/shared-race/ids';
+import type { RepoVisibility } from '@beanstalk/shared-race/repos';
 
 import { JOB_TOKEN_PREFIX, verifyJobToken } from '../actions/job-tokens';
 import { assertNever } from '../engine/errors';
@@ -77,7 +78,8 @@ export type RepositoryAccess = {
   readonly engine: RunId;
   /** The owner (the registry's; for an engine opened without one, the URL's handle and no id). */
   readonly owner: { readonly id: string | null; readonly handle: string };
-  readonly visibility: 'public' | 'private';
+  /** Public, private, or internal (an org's: its members read it; `RepoVisibility`). */
+  readonly visibility: RepoVisibility;
   /** The asking person's collaborator role as the registry records it; null when none. */
   readonly collaboratorRole: RepoRole | null;
   /**
@@ -159,8 +161,9 @@ export async function verifyGitCredential(
  *   repository is not found. Race run principals never reach repositories.
  * - Everyone else is their role: the owner, a collaborator's `read` / `write` / `maintain`, or
  *   none; on an org's repository also what their org role gives (owners and admins: owner;
- *   members: the base permission; viewers: at most read), the strongest of these counting.
- *   With no role a private repository is not found and a public one only reads.
+ *   members: the base permission; viewers: at most read; every member reads an internal
+ *   repository), the strongest of these counting. With no role a private or internal
+ *   repository is not found and a public one only reads.
  * - A token, key or agent session is its person's role capped by its scopes (`repo:read`,
  *   `bean:write`); deciding, deploy tokens and settings are people's, on the web, only.
  * - An archived repository is read-only: whoever could push, decide or manage deploy tokens
@@ -207,7 +210,7 @@ function roleVerdict(
   }
   const role = roleOf(principal, repository);
   if (role === null) {
-    if (repository.visibility === 'private') return 'not-found';
+    if (repository.visibility !== 'public') return 'not-found';
     if (action !== 'read') return 'forbidden';
   } else if (RANK[role] < RANK[LEAST_ROLE[action]]) {
     return 'forbidden';
@@ -217,7 +220,8 @@ function roleVerdict(
 
 /**
  * What the principal is on the repository: the strongest of its owner, a collaborator role
- * and what their org role gives them (`orgRepositoryRole`), or nothing.
+ * and what their org role gives them (`orgRepositoryRole`, and read on an internal
+ * repository for any member), or nothing.
  */
 export function roleOf(
   principal: RepositoryPrincipal,
@@ -231,7 +235,22 @@ export function roleOf(
       ? user.handle.toLowerCase() === owner.handle.toLowerCase()
       : user.id === owner.id;
   if (isOwner) return 'owner';
-  return strongest(repository.collaboratorRole, orgRepositoryRole(repository.org));
+  const fromOrg = strongest(
+    orgRepositoryRole(repository.org),
+    internalRole(repository.visibility, repository.org),
+  );
+  return strongest(repository.collaboratorRole, fromOrg);
+}
+
+/**
+ * What an internal repository gives a member of its org: read, whatever their role and the
+ * base permission. `standing` is only ever set for the owning org's members (`accessFacts`).
+ */
+export function internalRole(
+  visibility: RepoVisibility,
+  standing: OrgStanding | null,
+): ViewerRole | null {
+  return visibility === 'internal' && standing !== null ? 'read' : null;
 }
 
 /**

@@ -1,12 +1,16 @@
 /**
  * The repository registry in D1 (`migrations/0001_repositories.sql`): records, the per-owner
- * name uniqueness (a unique index on the lower-cased name) and each repository's own history.
+ * name uniqueness (a unique index on the lower-cased name), each repository's own history and
+ * its old addresses (`0009`: a rename or a transfer leaves a redirect, `resolve` follows it).
  * D1 rather than a Durable Object because every read here is a cross-repository index (an
  * owner's list, a handle and name lookup, activity across repositories) and the uniqueness
  * is one index; the engine's hot state stays in its own Durable Object.
  */
 import { assertNever } from '../engine/errors';
 import { z } from 'zod';
+
+import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
+import { resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
 
 import type {
   RepoOrigin,
@@ -48,7 +52,15 @@ export type Registry = {
   /** Marks a reserved repository ready, with its engine, and records its creation. */
   markReady(id: string, engineId: string, nowMs: number): Promise<RepositoryRecord | null>;
   byId(id: string): Promise<RepositoryRecord | null>;
+  /** The repository at `/<owner>/<name>` now; old addresses are `resolve`'s. */
   byName(ownerHandle: string, name: string): Promise<RepositoryRecord | null>;
+  /**
+   * The repository an address names, now or before: its current name, else a redirect left by
+   * a rename or a transfer (chains end at the current name), else the same through the
+   * owner's new handle when `ownerHandle` is one they retired. Every lookup by address (git
+   * over HTTPS and SSH, MCP, the web) goes through here, so old remotes keep working.
+   */
+  resolve(ownerHandle: string, name: string): Promise<RepositoryRecord | null>;
   /** The repository an engine drives, whatever its name is now. */
   byEngine(engineId: string): Promise<RepositoryRecord | null>;
   /** The owner's active repositories (default) or archived ones, newest first. */
@@ -67,7 +79,8 @@ export type Registry = {
   /**
    * Moves a repository to another owner (a person or an org), with its activity line: 'taken'
    * when the new owner has one by that name, null when it is missing. A person who receives a
-   * repository stops being its collaborator (they own it now).
+   * repository stops being its collaborator (they own it now). The old address redirects; an
+   * internal repository moved to a person becomes private (only orgs have internal ones).
    */
   transfer(
     id: string,
@@ -77,11 +90,14 @@ export type Registry = {
   /**
    * Activity in the person's repositories, their own and those shared with them: the
    * registry's lines and the engines' (written by the `repo-events` consumer), newest first.
+   * `orgIds`: orgs whose every repository they read (their role or base permission);
+   * `memberOrgIds`: orgs whose internal repositories they read (any membership).
    */
   activity(
     userId: string,
     limit: number,
     orgIds?: readonly string[],
+    memberOrgIds?: readonly string[],
   ): Promise<readonly RepositoryActivity[]>;
 };
 
@@ -95,6 +111,8 @@ const Row = z.object({
   name: z.string(),
   description: z.string(),
   visibility: z.enum(['public', 'private']),
+  /** 0009: 1 for an internal repository (stored with visibility 'private'). */
+  internal: z.number().default(0),
   origin_json: z.string(),
   artifacts_repo: z.string(),
   engine_id: z.string(),
@@ -118,7 +136,12 @@ const Origin = z.discriminatedUnion('kind', [
 
 const SELECT = 'SELECT * FROM repositories';
 
-export function d1Registry(db: D1Database): Registry {
+/**
+ * The registry on the forge database. `identity` (IDENTITY_DB) lets `resolve` follow a
+ * retired handle to the person's new one; without it old handles resolve only through
+ * redirects recorded under them.
+ */
+export function d1Registry(db: D1Database, identity?: IdentityEnv): Registry {
   const one = async (sql: string, ...values: unknown[]): Promise<RepositoryRecord | null> => {
     const row = await db
       .prepare(sql)
@@ -126,33 +149,53 @@ export function d1Registry(db: D1Database): Registry {
       .first();
     return row === null ? null : recordOf(row);
   };
+  const byName = (ownerHandle: string, name: string): Promise<RepositoryRecord | null> =>
+    one(
+      `${SELECT} WHERE owner_handle = ? AND name_key = ? AND state = 'ready'`,
+      ownerHandle,
+      name.toLowerCase(),
+    );
+  const redirected = (ownerHandle: string, name: string): Promise<RepositoryRecord | null> =>
+    one(
+      `SELECT r.* FROM repository_redirects d JOIN repositories r ON r.id = d.repo_id
+       WHERE d.owner_handle = ? AND d.name_key = ? AND r.state = 'ready'`,
+      ownerHandle,
+      name.toLowerCase(),
+    );
+  const at = async (ownerHandle: string, name: string): Promise<RepositoryRecord | null> =>
+    (await byName(ownerHandle, name)) ?? redirected(ownerHandle, name);
   return {
     async reserve(repo, nowMs) {
       const at = iso(nowMs);
+      const stored = storedVisibility(repo.visibility);
       try {
-        await db
-          .prepare(
-            `INSERT INTO repositories (id, owner_id, owner_handle, owner_kind, name, name_key,
-               description, visibility, origin_json, artifacts_repo, engine_id, state, created_at,
-               updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'provisioning', ?, ?)`,
-          )
-          .bind(
-            repo.id,
-            repo.owner.id,
-            repo.owner.handle,
-            repo.ownerKind,
-            repo.name,
-            repo.name.toLowerCase(),
-            repo.description,
-            repo.visibility,
-            JSON.stringify(repo.origin),
-            repo.artifactsRepo,
-            repo.engineId,
-            at,
-            at,
-          )
-          .run();
+        await db.batch([
+          db
+            .prepare(
+              `INSERT INTO repositories (id, owner_id, owner_handle, owner_kind, name, name_key,
+                 description, visibility, internal, origin_json, artifacts_repo, engine_id, state,
+                 created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'provisioning', ?, ?)`,
+            )
+            .bind(
+              repo.id,
+              repo.owner.id,
+              repo.owner.handle,
+              repo.ownerKind,
+              repo.name,
+              repo.name.toLowerCase(),
+              repo.description,
+              stored.visibility,
+              stored.internal,
+              JSON.stringify(repo.origin),
+              repo.artifactsRepo,
+              repo.engineId,
+              at,
+              at,
+            ),
+          // A new repository at an old address takes it over: the redirect is dropped.
+          dropRedirect(db, repo.owner.handle, repo.name),
+        ]);
         return true;
       } catch (error: unknown) {
         if (isUniqueViolation(error)) return false;
@@ -174,12 +217,14 @@ export function d1Registry(db: D1Database): Registry {
       return { ...record, engine_id: engineId, updated_at: at };
     },
     byId: (id) => one(`${SELECT} WHERE id = ? AND state = 'ready'`, id),
-    byName: (ownerHandle, name) =>
-      one(
-        `${SELECT} WHERE owner_handle = ? AND name_key = ? AND state = 'ready'`,
-        ownerHandle,
-        name.toLowerCase(),
-      ),
+    byName,
+    async resolve(ownerHandle, name) {
+      const found = await at(ownerHandle, name);
+      if (found !== null || identity === undefined) return found;
+      // An owner who changed handle: the same name (or its redirect) under the new handle.
+      const current = await resolveRetiredHandle(identity, ownerHandle);
+      return current === null ? null : at(current, name);
+    },
     byEngine: (engineId) => one(`${SELECT} WHERE engine_id = ? AND state = 'ready'`, engineId),
     async byOwner(ownerId, listing = 'active') {
       const archived = listing === 'archived' ? 'IS NOT NULL' : 'IS NULL';
@@ -216,24 +261,29 @@ export function d1Registry(db: D1Database): Registry {
             : patch.social_image_key,
         updated_at: iso(nowMs),
       };
+      const stored = storedVisibility(after.visibility);
+      const isRenamed = before.name.toLowerCase() !== after.name.toLowerCase();
       try {
         await db.batch([
           db
             .prepare(
               `UPDATE repositories SET name = ?, name_key = ?, description = ?, visibility = ?,
-                 website = ?, topics_json = ?, social_image_key = ?, updated_at = ? WHERE id = ?`,
+                 internal = ?, website = ?, topics_json = ?, social_image_key = ?, updated_at = ?
+               WHERE id = ?`,
             )
             .bind(
               after.name,
               after.name.toLowerCase(),
               after.description,
-              after.visibility,
+              stored.visibility,
+              stored.internal,
               after.website ?? '',
               JSON.stringify(after.topics ?? []),
               after.social_image_key ?? null,
               after.updated_at,
               id,
             ),
+          ...(isRenamed ? moveStatements(db, before, after) : []),
           ...changes(before, after).map((change) =>
             activityInsert(db, after, after.updated_at, change.kind, change.text),
           ),
@@ -268,6 +318,7 @@ export function d1Registry(db: D1Database): Registry {
     async remove(id) {
       await db.batch([
         ...indexDeletes(db, id),
+        db.prepare('DELETE FROM repository_redirects WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repository_activity WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM deploy_tokens WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repository_members WHERE repo_id = ?').bind(id),
@@ -277,16 +328,18 @@ export function d1Registry(db: D1Database): Registry {
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },
-    async activity(userId, limit, orgIds = []) {
+    async activity(userId, limit, orgIds = [], memberOrgIds = []) {
       const { results } = await activityQuery(
         db,
         `(a.owner_id = ?1 OR a.repo_id IN (SELECT repo_id FROM repository_members WHERE user_id = ?1)
-          OR r.owner_id IN (SELECT value FROM json_each(?2)))
+          OR r.owner_id IN (SELECT value FROM json_each(?2))
+          OR (r.internal = 1 AND r.owner_id IN (SELECT value FROM json_each(?3))))
          AND r.state = 'ready'`,
       )
         .bind(
           userId,
           JSON.stringify(orgIds),
+          JSON.stringify(memberOrgIds),
           Math.max(1, Math.min(MAX_ACTIVITY, Math.trunc(limit))),
         )
         .all();
@@ -296,20 +349,26 @@ export function d1Registry(db: D1Database): Registry {
       const before = await one(`${SELECT} WHERE id = ? AND state = 'ready'`, id);
       if (before === null) return null;
       const at = iso(nowMs);
+      // Only orgs have internal repositories: moved to a person, it becomes private (as GitHub).
+      const becomesPrivate = to.kind === 'user' && before.visibility === 'internal';
       const after: RepositoryRecord = {
         ...before,
         owner: { id: to.id, handle: to.handle },
         owner_kind: to.kind,
+        visibility: becomesPrivate ? 'private' : before.visibility,
         updated_at: at,
       };
+      const stored = storedVisibility(after.visibility);
       try {
         await db.batch([
           db
             .prepare(
-              `UPDATE repositories SET owner_id = ?, owner_handle = ?, owner_kind = ?, updated_at = ?
+              `UPDATE repositories SET owner_id = ?, owner_handle = ?, owner_kind = ?, visibility = ?,
+                 internal = ?, updated_at = ?
                WHERE id = ?`,
             )
-            .bind(to.id, to.handle, to.kind, at, id),
+            .bind(to.id, to.handle, to.kind, stored.visibility, stored.internal, at, id),
+          ...moveStatements(db, before, after),
           db
             .prepare('UPDATE repository_activity SET owner_id = ? WHERE repo_id = ?')
             .bind(to.id, id),
@@ -327,6 +386,17 @@ export function d1Registry(db: D1Database): Registry {
             'transferred',
             `Transferred from ${before.owner.handle} to ${to.handle}.`,
           ),
+          ...(becomesPrivate
+            ? [
+                activityInsert(
+                  db,
+                  after,
+                  at,
+                  'visibility',
+                  'Made private: only organizations have internal repositories.',
+                ),
+              ]
+            : []),
         ]);
       } catch (error: unknown) {
         if (isUniqueViolation(error)) return 'taken';
@@ -345,7 +415,7 @@ function recordOf(row: unknown): RepositoryRecord {
     owner_kind: parsed.owner_kind,
     name: parsed.name,
     description: parsed.description,
-    visibility: parsed.visibility,
+    visibility: parsed.internal === 1 ? 'internal' : parsed.visibility,
     origin: Origin.parse(JSON.parse(parsed.origin_json)),
     artifacts_repo: parsed.artifacts_repo,
     engine_id: parsed.engine_id,
@@ -357,6 +427,53 @@ function recordOf(row: unknown): RepositoryRecord {
     topics: Topics.parse(JSON.parse(parsed.topics_json)),
     social_image_key: parsed.social_image_key,
   };
+}
+
+/**
+ * How a visibility is stored: 0001's CHECK allows only public and private, so internal is
+ * private with `internal = 1` (an older gateway reads it as private: it fails closed).
+ */
+function storedVisibility(visibility: RepoVisibility): {
+  readonly visibility: 'public' | 'private';
+  readonly internal: 0 | 1;
+} {
+  return visibility === 'internal'
+    ? { visibility: 'private', internal: 1 }
+    : { visibility, internal: 0 };
+}
+
+/**
+ * A repository leaving `before`'s address for `after`'s (a rename or a transfer): the old
+ * address redirects to it, and a redirect that pointed at the new address is dropped (the
+ * repository is there now). Earlier redirects already point at the id, so chains still land.
+ */
+function moveStatements(
+  db: D1Database,
+  before: RepositoryRecord,
+  after: RepositoryRecord,
+): D1PreparedStatement[] {
+  return [
+    dropRedirect(db, after.owner.handle, after.name),
+    db
+      .prepare(
+        `INSERT OR REPLACE INTO repository_redirects (owner_handle, name_key, owner_id, repo_id,
+           created_at) VALUES (?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        before.owner.handle,
+        before.name.toLowerCase(),
+        before.owner.id,
+        before.id,
+        after.updated_at,
+      ),
+  ];
+}
+
+/** Forgets the redirect at an address: a repository is (or will be) there now. */
+function dropRedirect(db: D1Database, ownerHandle: string, name: string): D1PreparedStatement {
+  return db
+    .prepare('DELETE FROM repository_redirects WHERE owner_handle = ? AND name_key = ?')
+    .bind(ownerHandle, name.toLowerCase());
 }
 
 type Change = { readonly kind: RepositoryActivity['kind']; readonly text: string };

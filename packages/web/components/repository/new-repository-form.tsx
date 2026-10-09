@@ -26,7 +26,7 @@ export type OwnerChoice = {
   readonly handle: string;
   readonly kind: 'user' | 'org';
   readonly name: string;
-  readonly defaultVisibility: 'public' | 'private';
+  readonly defaultVisibility: 'public' | 'private' | 'internal';
 };
 
 /**
@@ -48,9 +48,17 @@ export function NewRepositoryForm(props: {
   });
   const [start, setStart] = useState<string>(state.values.start);
   const [ownerHandle, setOwnerHandle] = useState<string>(state.values.owner);
+  const [visibility, setVisibility] = useState<string>(state.values.visibility);
   const { errors, values } = state;
   const [me] = props.owners;
   const owner = props.owners.find((choice) => choice.handle === ownerHandle) ?? me;
+  const isOrg = owner?.kind === 'org';
+  const choose = (handle: string): void => {
+    setOwnerHandle(handle);
+    // Only an organization's repository can be internal; for yourself it becomes private.
+    const next = props.owners.find((choice) => choice.handle === handle);
+    if (next?.kind !== 'org' && visibility === 'internal') setVisibility('private');
+  };
   return (
     <form action={action} className={styles.form} noValidate>
       {errors.form === undefined ? null : (
@@ -68,7 +76,7 @@ export function NewRepositoryForm(props: {
               name="owner"
               className={styles.input}
               value={owner?.handle}
-              onChange={(event) => setOwnerHandle(event.target.value)}
+              onChange={(event) => choose(event.target.value)}
               aria-label="Owner"
             >
               {props.owners.map((choice) => (
@@ -126,23 +134,43 @@ export function NewRepositoryForm(props: {
             type="radio"
             name="visibility"
             value="private"
-            defaultChecked={values.visibility !== 'public'}
+            checked={visibility === 'private' || (visibility === 'internal' && !isOrg)}
+            onChange={() => setVisibility('private')}
           />
           <span>
             <b>Private</b>
             <span>
-              {owner?.kind === 'org'
-                ? 'Members by the organization’s base permission, and the people you invite.'
+              {isOrg
+                ? 'The people you invite, and the organization’s owners and admins.'
                 : 'Only you can see it.'}
             </span>
           </span>
         </label>
+        {isOrg ? (
+          <label className={styles.choice}>
+            <input
+              type="radio"
+              name="visibility"
+              value="internal"
+              checked={visibility === 'internal'}
+              onChange={() => setVisibility('internal')}
+            />
+            <span>
+              <b>Internal</b>
+              <span>
+                Every member of {owner?.handle} can read and clone it; everyone else gets not found.
+                Pushing needs a role.
+              </span>
+            </span>
+          </label>
+        ) : null}
         <label className={styles.choice}>
           <input
             type="radio"
             name="visibility"
             value="public"
-            defaultChecked={values.visibility === 'public'}
+            checked={visibility === 'public'}
+            onChange={() => setVisibility('public')}
           />
           <span>
             <b>Public</b>

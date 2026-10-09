@@ -7,7 +7,14 @@ import type { IdentityEnv } from './identity-env';
 import type { OrgActor } from './org-audit';
 import { orgAuditStatement } from './org-audit';
 import type { Org, OrgCapability } from './orgs';
-import { CreateOrgInput, UpdateOrgInput, findOrgById, mayInOrg, orgRole } from './orgs';
+import {
+  CreateOrgInput,
+  DEFAULT_BASE_PERMISSION,
+  UpdateOrgInput,
+  findOrgById,
+  mayInOrg,
+  orgRole,
+} from './orgs';
 import { randomId } from './secrets';
 import { isUniqueViolation } from './users';
 
@@ -39,9 +46,12 @@ export async function createOrg(
   try {
     await env.IDENTITY_DB.batch([
       env.IDENTITY_DB.prepare(
-        `INSERT INTO orgs (id, handle, name, description, created_by, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(id, handle, name, description, creator.id, now, now),
+        // Base permission none (owner's decision 2026-10-09): members reach only the
+        // repositories they are invited to, plus internal and public ones.
+        `INSERT INTO orgs (id, handle, name, description, base_permission, created_by,
+           created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(id, handle, name, description, DEFAULT_BASE_PERMISSION, creator.id, now, now),
       env.IDENTITY_DB.prepare(
         `INSERT INTO org_members (org_id, user_id, role, added_by, created_at, updated_at)
          VALUES (?, ?, 'owner', ?, ?, ?)`,

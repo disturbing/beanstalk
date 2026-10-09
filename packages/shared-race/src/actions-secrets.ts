@@ -36,7 +36,10 @@ export const MAX_VARIABLE_BYTES = 48 * 1024;
 /** At most this many repositories in one entry's selected list. */
 export const MAX_SELECTED_REPOSITORIES = 500;
 
-/** Which of an org's repositories an org entry reaches. `private` matches private repositories. */
+/**
+ * Which of an org's repositories an org entry reaches. `private` matches every repository that
+ * is not public: private and internal ones (GitHub's "private repositories" policy does too).
+ */
 export const RepositoryAccessPolicy = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('all') }),
   z.object({ kind: z.literal('private') }),
@@ -75,7 +78,7 @@ export type OrgVariableSummary = VariableSummary & { readonly access: Repository
 export type OrgRepository = {
   readonly id: string;
   readonly name: string;
-  readonly visibility: 'public' | 'private';
+  readonly visibility: 'public' | 'private' | 'internal';
 };
 
 export type OrgActionsAuditAction =
