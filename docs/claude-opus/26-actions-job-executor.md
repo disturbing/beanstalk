@@ -90,4 +90,4 @@ Logs: every line reached the gateway's sink as numbered batches and is stored as
 
 ## 6. Left for later
 
-A warm pool (§1); Docker mode image pulls (a slimmer job image or a pull-through cache); `vars` and step summaries in the contract; actions used inside composite actions (resolve them in the Worker, `25` §3.6); cross-run cache and artifacts on R2; executor deploys that drain running jobs.
+A warm pool (§1); Docker mode image pulls (a slimmer job image or a pull-through cache); `vars` and step summaries in the contract; actions used inside composite actions (resolve them in the Worker, `25` §3.6); cross-run cache and artifacts on R2 (the dependency half, `node_modules` restored into tmpfs from chunked R2 snapshots, is designed and measured in `27-ci-dependency-cache.md`); executor deploys that drain running jobs.
