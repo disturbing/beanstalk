@@ -1,0 +1,62 @@
+/* The confirmation dialog in front of a destructive settings form. */
+
+.dialog {
+  width: min(440px, calc(100vw - 2 * var(--gutter)));
+  padding: 20px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow:
+    var(--shadow),
+    0 24px 60px -24px rgba(0, 0, 0, 0.5);
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--paper) 55%, rgba(0, 0, 0, 0.55));
+  backdrop-filter: blur(2px);
+}
+
+.danger {
+  border-top: 3px solid var(--bad-fill);
+}
+
+.title {
+  font-size: var(--step-1);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.danger .title {
+  color: var(--bad);
+}
+
+.body {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+  display: grid;
+  gap: 8px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.cancel {
+  padding: 7px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-small);
+  background: var(--sheet-2);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  background: var(--wash);
+}

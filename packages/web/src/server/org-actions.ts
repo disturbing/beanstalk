@@ -25,6 +25,7 @@ import { webMedia } from '../account/account-services';
 import { log } from '../log';
 import { registryClient } from '../repositories/registry-client';
 import { repositoryPath } from '../repositories/paths';
+import { pathsAfterSave } from '../settings/redirects';
 import { field, signedInForm } from './signed-in-form';
 
 export type OrgState =
@@ -227,7 +228,9 @@ export async function transferRepositoryAction(
   );
   if (!moved.ok) return { kind: 'refused', message: sentence(moved.error.message) };
   log.info('repository transferred');
-  return redirect(`${repositoryPath(moved.value.owner.handle, moved.value.name)}/settings`);
+  return redirect(
+    pathsAfterSave(repositoryPath(moved.value.owner.handle, moved.value.name)).transferred,
+  );
 }
 
 /** The settings fields this form carried; absent ones stay as they are. */

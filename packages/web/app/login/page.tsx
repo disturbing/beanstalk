@@ -40,6 +40,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
           </h1>
           {user === null ? (
             <>
+              {query['signed_out'] === undefined ? null : (
+                <p className={styles.success} role="status">
+                  You are signed out.
+                </p>
+              )}
               <PasskeySignin next={next} turnstileSiteKey={siteKey} />
               {email ? <EmailSignin query={query} siteKey={siteKey} /> : null}
               <p className={styles.note}>

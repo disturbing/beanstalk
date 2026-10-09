@@ -1,0 +1,482 @@
+[
+  {
+    "name": "passkey sign-up",
+    "ok": true,
+    "detail": "setw-u33e"
+  },
+  {
+    "name": "primary links",
+    "ok": true,
+    "detail": "Home|Repositories|Organizations|Benchmark runs"
+  },
+  {
+    "name": "New menu items",
+    "ok": true,
+    "detail": "New repository|New organization|Connect an agent"
+  },
+  {
+    "name": "Escape closes New menu and focuses its button",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "ArrowDown opens the user menu on its first item",
+    "ok": true,
+    "detail": "Your profile"
+  },
+  {
+    "name": "ArrowDown moves to the next item",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "End focuses Sign out",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "user menu shows signed in as @handle",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "user menu items",
+    "ok": true,
+    "detail": "Your profile|Your repositories|Your organizations|Settings|Connect an agent|Docs|☀ Day|☾ Night|Sign out"
+  },
+  {
+    "name": "theme item switches to day",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "click outside closes the menu",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no skin select left",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/settings lands on Public profile",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "profile saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "avatar upload lands back on Public profile",
+    "ok": true,
+    "detail": "/settings?picture=updated"
+  },
+  {
+    "name": "Account page",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "handle change saved",
+    "ok": true,
+    "detail": "setw-u33e-b"
+  },
+  {
+    "name": "header follows the new handle",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/settings/emails renders",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/settings/notifications renders",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/settings/sessions renders",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "passkey renamed",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "SSH key added",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "token created",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "repository created",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "/<owner>/<repo>/settings lands on General",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/general"
+  },
+  {
+    "name": "#social lands on /settings/social-image",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/social-image#social"
+  },
+  {
+    "name": "#secrets lands on /settings/secrets",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/secrets#secrets"
+  },
+  {
+    "name": "#actions lands on /settings/secrets",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/secrets#actions"
+  },
+  {
+    "name": "#archive lands on /settings/danger",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/danger#archive"
+  },
+  {
+    "name": "#deploy-tokens lands on /settings/deploy-tokens",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/deploy-tokens#deploy-tokens"
+  },
+  {
+    "name": "#collaborators lands on /settings/collaborators",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/collaborators#collaborators"
+  },
+  {
+    "name": "#features lands on /settings/actions",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo/settings/actions#features"
+  },
+  {
+    "name": "owner nav",
+    "ok": true,
+    "detail": "General|Social image|Visibility|Branches|Checks|Actions|Collaborators|Secrets and variables|Deploy tokens|Danger zone"
+  },
+  {
+    "name": "general saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "saved description stays in the form",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "description persisted",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "rename lands on the new General page",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo-2/settings/general?saved=renamed"
+  },
+  {
+    "name": "rename line shown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "rename kept the description",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "social image upload lands on Social image",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo-2/settings/social-image?picture=updated"
+  },
+  {
+    "name": "preview shown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "visibility saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "chosen visibility stays selected",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "branches renders",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "checks renders",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Actions settings saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "saved switches stay in the form",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Actions settings persisted",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "bad size refused",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "switches are repository variables",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "invite of an unknown handle shows an error",
+    "ok": true,
+    "detail": "Nobody on Beanstalk is called @nobody-u33e-zz."
+  },
+  {
+    "name": "variable saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "deploy token created",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "archive asks in a dialog",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Escape cancels the dialog",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "archive lands on Danger zone",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo-2/settings/danger?saved=archived"
+  },
+  {
+    "name": "archived nav drops editing and deploy tokens",
+    "ok": true,
+    "detail": "Branches|Checks|Actions|Collaborators|Secrets and variables|Danger zone"
+  },
+  {
+    "name": "archived General redirects to the first section",
+    "ok": true,
+    "detail": "/setw-u33e-b/walk-repo-2/settings/branches"
+  },
+  {
+    "name": "unarchived",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "org created",
+    "ok": true,
+    "detail": "setw-org-u33e"
+  },
+  {
+    "name": "/orgs/<org>/settings lands on General",
+    "ok": true,
+    "detail": "/orgs/setw-org-u33e/settings/general"
+  },
+  {
+    "name": "#icon stays on General",
+    "ok": true,
+    "detail": "/orgs/setw-org-u33e/settings/general#icon"
+  },
+  {
+    "name": "org general saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "icon upload lands on General",
+    "ok": true,
+    "detail": "/orgs/setw-org-u33e/settings/general?picture=updated"
+  },
+  {
+    "name": "org owner nav",
+    "ok": true,
+    "detail": "General|Members and invitations|Repository defaults|Secrets and variables|Audit log|Danger zone"
+  },
+  {
+    "name": "org invite of an unknown handle shows an error",
+    "ok": true,
+    "detail": "Nobody on Beanstalk has the handle nobody-u33e-zz."
+  },
+  {
+    "name": "repository defaults saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "org variable saved",
+    "ok": true,
+    "detail": "Saved ORG_WALK."
+  },
+  {
+    "name": "audit log lists the changes",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "last owner cannot leave",
+    "ok": true,
+    "detail": "Setw-org-u33e needs at least one owner: make someone else an owner first."
+  },
+  {
+    "name": "transfer lands on General at the new address",
+    "ok": true,
+    "detail": "/setw-org-u33e/walk-repo-2/settings/general?saved=transferred"
+  },
+  {
+    "name": "no sideways scroll account-profile night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll account-account night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-general night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-actions night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-danger night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll org-general night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll org-members night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll orgs night",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll account-profile day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll account-account day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-general day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-actions day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll repo-danger day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll org-general day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll org-members day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "no sideways scroll orgs day",
+    "ok": true,
+    "detail": "0"
+  },
+  {
+    "name": "repository deleted from Danger zone",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "org deleted from Danger zone",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Sign out lands on sign-in",
+    "ok": true,
+    "detail": "/login?signed_out=1"
+  },
+  {
+    "name": "says signed out",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "signed-out header shows Sign in and Sign up",
+    "ok": true,
+    "detail": "beanstalk Benchmark runs Watch the race ☀ Day ☾ Night Sign in Sign up"
+  },
+  {
+    "name": "a protected page redirects to sign-in",
+    "ok": true,
+    "detail": "/login?next=%2Fsettings%2Ftokens"
+  },
+  {
+    "name": "the old session cookie is gone",
+    "ok": true,
+    "detail": "307"
+  },
+  {
+    "name": "account deleted",
+    "ok": true,
+    "detail": "404"
+  }
+]

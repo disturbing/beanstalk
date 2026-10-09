@@ -15,6 +15,8 @@ import {
   updateOrgAction,
 } from '../../src/server/org-actions';
 import repo from '../repository/repository.module.css';
+import { ConfirmSubmit } from '../settings/confirm-submit';
+import { useSavedForm } from '../settings/use-saved-form';
 import styles from './orgs.module.css';
 
 const IDLE: OrgState = { kind: 'idle' };
@@ -86,7 +88,7 @@ export function OrgGeneralSettings(props: {
   readonly org: OrgSettingsView;
   readonly access: Access;
 }) {
-  const [state, action, pending] = useActionState(updateOrgAction, IDLE);
+  const { state, action, pending, saved } = useSavedForm(updateOrgAction, IDLE);
   const { org } = props;
   return (
     <form
@@ -104,7 +106,7 @@ export function OrgGeneralSettings(props: {
           id="org-settings-name"
           name="name"
           className={repo.input}
-          defaultValue={org.name}
+          defaultValue={saved('name', org.name)}
           maxLength={80}
           required
         />
@@ -120,7 +122,7 @@ export function OrgGeneralSettings(props: {
           id="org-settings-description"
           name="description"
           className={repo.input}
-          defaultValue={org.description}
+          defaultValue={saved('description', org.description)}
           maxLength={350}
         />
       </div>
@@ -148,7 +150,7 @@ export function OrgRepositoryDefaults(props: {
   readonly org: OrgSettingsView;
   readonly access: Access;
 }) {
-  const [state, action, pending] = useActionState(updateOrgAction, IDLE);
+  const { state, action, pending, saved } = useSavedForm(updateOrgAction, IDLE);
   const { org } = props;
   return (
     <form
@@ -166,7 +168,7 @@ export function OrgRepositoryDefaults(props: {
               type="radio"
               name="basePermission"
               value={choice.value}
-              defaultChecked={org.basePermission === choice.value}
+              defaultChecked={saved('basePermission', org.basePermission) === choice.value}
             />
             <span>
               <b>{choice.title}</b>
@@ -187,7 +189,7 @@ export function OrgRepositoryDefaults(props: {
             type="radio"
             name="repoCreation"
             value="members"
-            defaultChecked={org.repoCreation === 'members'}
+            defaultChecked={saved('repoCreation', org.repoCreation) === 'members'}
           />
           <span>
             <b>Members, admins and owners</b>
@@ -199,7 +201,7 @@ export function OrgRepositoryDefaults(props: {
             type="radio"
             name="repoCreation"
             value="admins"
-            defaultChecked={org.repoCreation === 'admins'}
+            defaultChecked={saved('repoCreation', org.repoCreation) === 'admins'}
           />
           <span>
             <b>Admins and owners only</b>
@@ -214,7 +216,7 @@ export function OrgRepositoryDefaults(props: {
               type="radio"
               name="defaultVisibility"
               value={visibility}
-              defaultChecked={org.defaultVisibility === visibility}
+              defaultChecked={saved('defaultVisibility', org.defaultVisibility) === visibility}
             />
             <span>
               <b>{visibility === 'private' ? 'Private' : 'Public'}</b>
@@ -323,9 +325,21 @@ export function TransferRepository(props: {
               </option>
             ))}
           </select>
-          <button type="submit" className={repo.secondary} disabled={pending}>
-            Transfer
-          </button>
+          <ConfirmSubmit
+            label="Transfer"
+            title={`Transfer ${props.fullName}?`}
+            confirmLabel="Transfer it"
+            tone="danger"
+            buttonClassName={repo.secondary}
+            confirmClassName={repo.danger}
+            disabled={pending}
+          >
+            <p>
+              It moves to the owner you chose, with its history, beans, collaborators and deploy
+              tokens. You keep access only through your role there.
+              {props.isInternal ? ' Moved to a person it becomes private.' : ''}
+            </p>
+          </ConfirmSubmit>
         </div>
       )}
       <Status state={state} />

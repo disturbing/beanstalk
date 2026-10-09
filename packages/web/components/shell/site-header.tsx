@@ -2,39 +2,47 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 
 import { getProfile } from '@beanstalk/shared-identity/profiles';
-import { orgsOf } from '@beanstalk/shared-identity/orgs';
 
 import { Avatar } from '../account/avatar';
 
-import { currentUser } from '../../src/auth/user';
-import menu from '../orgs/orgs.module.css';
+import { currentSession } from '../../src/auth/user';
 import { signOut } from '../../src/server/actions';
-import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
-import styles from './shell.module.css';
+import { isSignedIn, viewerTheme } from '../../src/server/viewer';
+import { NEW_MENU, primaryLinks, userMenu } from '../../src/shell/header-entries';
+import { HeaderMenu } from './header-menu';
+import styles from './header.module.css';
 import { ThemeToggle } from './theme-toggle';
 import { VineMark } from './vine-mark';
 
+/**
+ * The app header on every page. Left: the mark (Home) and the primary links. Right, signed in:
+ * the New menu and the person's menu (profile, repositories, organizations, settings, connect
+ * an agent, docs, day or night, sign out). Signed out: the theme pair, Sign in and Sign up.
+ */
 export async function SiteHeader() {
-  const [theme, day, demoGateOpen, user] = await Promise.all([
+  const [theme, demoGateOpen, session] = await Promise.all([
     viewerTheme(),
-    viewerDay(),
     isSignedIn(),
-    currentUser(),
+    currentSession(),
   ]);
-  const [profile, orgs] =
-    user === null
-      ? [null, []]
-      : await Promise.all([getProfile(env, user.id), orgsOf(env, user.id)]);
+  const user = session?.user ?? null;
+  const profile = user === null ? null : await getProfile(env, user.id);
   return (
     <header className={styles.header}>
-      <Link href="/" className={styles.brand}>
+      <Link href="/" className={styles.brand} aria-label="beanstalk home">
         <VineMark />
         <span className={styles.wordmark}>beanstalk</span>
       </Link>
-      <nav aria-label="Site" className={styles.nav}>
-        {user === null ? null : <Link href="/">Home</Link>}
-        <Link href={user === null ? '/' : '/races'}>Benchmark runs</Link>
-        <Link href="/race">Watch the race</Link>
+      <nav aria-label="Primary" className={styles.nav}>
+        <ul className={styles.navList}>
+          {primaryLinks(user?.handle ?? null).map((link) => (
+            <li key={link.href}>
+              <Link href={link.href} className={styles.navLink}>
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </nav>
       <div className={styles.tools}>
         {demoGateOpen ? (
@@ -44,48 +52,58 @@ export async function SiteHeader() {
             </button>
           </form>
         ) : null}
-        {user === null ? null : (
-          <Link href="/new" className={styles.newRepo}>
-            New repository
-          </Link>
-        )}
-        {user === null ? (
-          <Link href="/login" className={styles.signIn}>
-            Sign in
-          </Link>
+        {session === null || user === null ? (
+          <>
+            <ThemeToggle initial={theme} />
+            <Link href="/login" className={styles.signIn}>
+              Sign in
+            </Link>
+            <Link href="/signup" className={styles.signUp}>
+              Sign up
+            </Link>
+          </>
         ) : (
-          <details className={menu.menu}>
-            <summary className={styles.me}>
-              <Avatar
-                seed={user.id}
-                label={
-                  profile === null || profile.displayName === '' ? user.handle : profile.displayName
-                }
-                imageKey={profile?.avatarKey ?? null}
-                size={22}
-              />
-              @{user.handle}
-            </summary>
-            <ul className={menu.menuList}>
-              <li>
-                <Link href={`/${user.handle}`}>Your repositories</Link>
-              </li>
-              {orgs.map(({ org }) => (
-                <li key={org.id}>
-                  <Link href={`/${org.handle}`}>{org.name}</Link>
-                </li>
-              ))}
-              <li>
-                <Link href="/orgs/new">New organization</Link>
-              </li>
-              <li className={menu.menuRule} role="separator" />
-              <li>
-                <Link href="/settings">Account settings</Link>
-              </li>
-            </ul>
-          </details>
+          <>
+            <HeaderMenu
+              label="Create new"
+              variant="accent"
+              button={
+                <>
+                  <span aria-hidden="true" className={styles.plus}>
+                    +
+                  </span>
+                  <span className={styles.newText}>New</span>
+                  <span aria-hidden="true" className={styles.caret} />
+                </>
+              }
+              entries={NEW_MENU}
+            />
+            <HeaderMenu
+              label={`Account menu for @${user.handle}`}
+              button={
+                <>
+                  <Avatar
+                    seed={user.id}
+                    label={
+                      profile === null || profile.displayName === ''
+                        ? user.handle
+                        : profile.displayName
+                    }
+                    imageKey={profile?.avatarKey ?? null}
+                    size={26}
+                  />
+                  <span aria-hidden="true" className={styles.caret} />
+                </>
+              }
+              entries={userMenu({
+                handle: user.handle,
+                csrf: session.csrfToken,
+                theme,
+                docsUrl: env.DOCS_URL,
+              })}
+            />
+          </>
         )}
-        <ThemeToggle initial={theme} day={day} />
       </div>
     </header>
   );

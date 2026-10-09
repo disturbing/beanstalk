@@ -10,6 +10,7 @@ import type { CreateFormResult, CreateValues } from './create-form';
 import { DEFAULT_VALUES, readCreateForm } from './create-form';
 import { isReservedOwner, repositoryPath } from './paths';
 import type { RegistryClient, RepositoryRecord, ViewerRole } from './registry-client';
+import { pathsAfterSave } from '../settings/redirects';
 
 /** What a form action answers: go somewhere, or show the form again with messages. */
 export type FormOutcome<State> =
@@ -85,7 +86,7 @@ export async function updateFlow(
   if (renamed)
     return {
       kind: 'redirect',
-      to: `${repositoryPath(updated.value.owner.handle, updated.value.name)}/settings?saved=renamed`,
+      to: pathsAfterSave(repositoryPath(updated.value.owner.handle, updated.value.name)).renamed,
     };
   return { kind: 'show', state: { saved: 'Saved.', error: null } };
 }
@@ -123,7 +124,9 @@ export async function archiveFlow(
   const { owner, name } = changed.value;
   return {
     kind: 'redirect',
-    to: `${repositoryPath(owner.handle, name)}/settings?saved=${to === 'archived' ? 'archived' : 'unarchived'}`,
+    to: pathsAfterSave(repositoryPath(owner.handle, name))[
+      to === 'archived' ? 'archived' : 'unarchived'
+    ],
   };
 }
 

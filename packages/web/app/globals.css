@@ -1,7 +1,7 @@
 /*
  * beanstalk: Nightshift. A dark-first developer product: a bioluminescent stalk on a quiet
  * dot-matrix ground, mono for data and IDs, a crisp grotesk for prose, glow only on live
- * things. Day comes in three variants (`data-day`): phosphor (default), paper, blueprint.
+ * things. Two themes: night (the default when the system is dark) and day (daylight phosphor).
  * Colour carries meaning (docs/claude-opus/14): green the stalk, lime the sprout, violet
  * agent sessions, amber a check, red a failure.
  */
@@ -71,77 +71,6 @@
   --gutter: 16px;
   --radius: 6px;
   --radius-small: 4px;
-}
-
-:root[data-day='paper'] {
-  --paper: #f2eee3;
-  --sheet: #fbf9f3;
-  --sheet-2: #f6f2e8;
-  --wash: #efe9db;
-  --wash-strong: #e3dbc8;
-  --rule: #d9d1bd;
-  --rule-strong: #bfb59c;
-  --ink: #172a2e;
-  --ink-2: #3f504e;
-  --ink-3: #5d6a66;
-  --accent: #0d6e66;
-  --focus: #0d6e66;
-  --good: #0b5f57;
-  --good-fill: #0f7a70;
-  --good-wash: #dcece6;
-  --sprout: #6f9c1c;
-  --human: #5a40a3;
-  --human-fill: #6449b0;
-  --human-wash: #ebe5f6;
-  --bad: #a5332a;
-  --bad-fill: #b83a2c;
-  --bad-wash: #f6e2dc;
-  --warn: #7a5400;
-  --warn-fill: #9a6a00;
-  --warn-wash: #f6ebcf;
-  --code-add: #e3efe6;
-  --code-del: #f6e2dc;
-  --glow: rgba(15, 122, 112, 0.22);
-  --glow-sprout: rgba(111, 156, 28, 0.2);
-  --glow-bean: rgba(100, 73, 176, 0.22);
-  --glow-red: rgba(184, 58, 44, 0.25);
-  --pulse: #8ff0d8;
-  --texture: repeating-linear-gradient(transparent 0 25px, rgba(13, 110, 102, 0.09) 25px 26px);
-}
-
-:root[data-day='blueprint'] {
-  --paper: #e9f0fa;
-  --sheet: #f7faff;
-  --sheet-2: #eef3fb;
-  --wash: #e3ebf7;
-  --wash-strong: #d0dcef;
-  --rule: #c2d0e6;
-  --rule-strong: #a3b6d6;
-  --ink: #0b1d3a;
-  --ink-2: #33476b;
-  --ink-3: #4f6386;
-  --accent: #1450b8;
-  --focus: #1450b8;
-  --good: #006b55;
-  --good-fill: #00a07e;
-  --good-wash: #d5efe8;
-  --sprout: #5fb61d;
-  --human: #5537c4;
-  --human-fill: #6d4fe0;
-  --human-wash: #e6e0fb;
-  --bad: #b3243a;
-  --bad-fill: #cc2f45;
-  --bad-wash: #f9e0e4;
-  --code-add: #d9eee6;
-  --code-del: #f9e0e4;
-  --glow: rgba(0, 160, 126, 0.32);
-  --glow-sprout: rgba(95, 182, 29, 0.3);
-  --glow-bean: rgba(109, 79, 224, 0.35);
-  --glow-red: rgba(204, 47, 69, 0.35);
-  --pulse: #ffffff;
-  --texture:
-    linear-gradient(rgba(20, 80, 184, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(90deg, rgba(20, 80, 184, 0.07) 1px, transparent 1px) 0 0 / 24px 24px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -388,12 +317,4 @@ p {
 .daynight button[aria-pressed='true'] {
   background: var(--good-fill);
   color: var(--accent-ink);
-}
-
-.daynight select {
-  border: 0;
-  background: none;
-  color: var(--ink-2);
-  font: 12px var(--font-mono);
-  padding: 0 4px;
 }

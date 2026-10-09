@@ -9,6 +9,8 @@ import {
   deleteRepository,
   updateRepository,
 } from '../../src/server/repository-actions';
+import { ConfirmSubmit } from '../settings/confirm-submit';
+import { useSavedForm } from '../settings/use-saved-form';
 import styles from './repository.module.css';
 
 type Repo = {
@@ -31,17 +33,19 @@ export function GeneralSettings({
   readonly repo: Repo;
   readonly saved: string | null;
 }) {
-  const [state, action, pending] = useActionState<SettingsState, FormData>(updateRepository, {
-    ...EMPTY_SETTINGS_STATE,
-    saved,
-  });
+  const {
+    state,
+    action,
+    pending,
+    saved: last,
+  } = useSavedForm(updateRepository, { ...EMPTY_SETTINGS_STATE, saved });
   return (
     <form
       action={action}
       className={`${styles.panel} ${styles.settingsSection}`}
       aria-labelledby="general-title"
     >
-      <h2 id="general-title">General</h2>
+      <h2 id="general-title">Name, description and topics</h2>
       <input type="hidden" name="repoId" value={repo.id} />
       <input type="hidden" name="currentName" value={repo.name} />
       <div className={styles.field}>
@@ -71,7 +75,7 @@ export function GeneralSettings({
           id="settings-description"
           name="description"
           className={styles.input}
-          defaultValue={repo.description}
+          defaultValue={last('description', repo.description)}
           maxLength={350}
         />
       </div>
@@ -83,7 +87,7 @@ export function GeneralSettings({
           id="settings-website"
           name="website"
           className={styles.input}
-          defaultValue={repo.website}
+          defaultValue={last('website', repo.website)}
           inputMode="url"
           placeholder="https://"
           spellCheck={false}
@@ -97,7 +101,7 @@ export function GeneralSettings({
           id="settings-topics"
           name="topics"
           className={styles.input}
-          defaultValue={repo.topics.join(', ')}
+          defaultValue={last('topics', repo.topics.join(', '))}
           spellCheck={false}
           aria-describedby="settings-topics-hint"
         />
@@ -116,17 +120,15 @@ export function GeneralSettings({
 }
 
 export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
-  const [state, action, pending] = useActionState<SettingsState, FormData>(
-    updateRepository,
-    EMPTY_SETTINGS_STATE,
-  );
+  const { state, action, pending, saved } = useSavedForm(updateRepository, EMPTY_SETTINGS_STATE);
+  const visibility = saved('visibility', repo.visibility);
   return (
     <form
       action={action}
       className={`${styles.panel} ${styles.settingsSection}`}
       aria-labelledby="visibility-title"
     >
-      <h2 id="visibility-title">Visibility</h2>
+      <h2 id="visibility-title">Who can read it</h2>
       <input type="hidden" name="repoId" value={repo.id} />
       <input type="hidden" name="currentName" value={repo.name} />
       <fieldset className={styles.choices}>
@@ -136,7 +138,7 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
             type="radio"
             name="visibility"
             value="private"
-            defaultChecked={repo.visibility === 'private'}
+            defaultChecked={visibility === 'private'}
           />
           <span>
             <b>Private</b>
@@ -153,7 +155,7 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
               type="radio"
               name="visibility"
               value="internal"
-              defaultChecked={repo.visibility === 'internal'}
+              defaultChecked={visibility === 'internal'}
             />
             <span>
               <b>Internal</b>
@@ -169,7 +171,7 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
             type="radio"
             name="visibility"
             value="public"
-            defaultChecked={repo.visibility === 'public'}
+            defaultChecked={visibility === 'public'}
           />
           <span>
             <b>Public</b>
@@ -223,9 +225,26 @@ export function ArchiveSettings({
       <input type="hidden" name="to" value={isArchived ? 'active' : 'archived'} />
       <Status state={state} />
       <div className={styles.actions}>
-        <button type="submit" className={styles.secondary} disabled={pending}>
-          {isArchived ? 'Unarchive' : `Archive ${repo.owner}/${repo.name}`}
-        </button>
+        {isArchived ? (
+          <button type="submit" className={styles.secondary} disabled={pending}>
+            Unarchive
+          </button>
+        ) : (
+          <ConfirmSubmit
+            label={`Archive ${repo.owner}/${repo.name}`}
+            title={`Archive ${repo.owner}/${repo.name}?`}
+            confirmLabel="Archive"
+            tone="danger"
+            buttonClassName={styles.secondary}
+            confirmClassName={styles.danger}
+            disabled={pending}
+          >
+            <p>
+              Pushes, decision answers and deploy tokens stop at once; clones and fetches keep
+              working. You can unarchive it here at any time.
+            </p>
+          </ConfirmSubmit>
+        )}
       </div>
     </form>
   );

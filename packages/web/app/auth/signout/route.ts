@@ -1,7 +1,6 @@
 import { env } from 'cloudflare:workers';
 
 import { recordAudit } from '@beanstalk/shared-identity/audit';
-import { SESSION_COOKIE, clearCookie } from '@beanstalk/shared-identity/cookies';
 import { clientIp } from '@beanstalk/shared-identity/request-context';
 import {
   getWebSession,
@@ -9,25 +8,27 @@ import {
   revokeSession,
 } from '@beanstalk/shared-identity/sessions';
 
-import { seeOther, signedInForm } from '../../../src/auth/http';
+import { signOut } from '../../../src/auth/sign-out';
 
-/** Signs out this browser, or every browser (`everywhere=1`). */
+/** Signs out this browser, or every browser (`everywhere=1`); see `src/auth/sign-out.ts`. */
 export async function POST(request: Request): Promise<Response> {
-  const checked = await signedInForm(request, (cookies) => getWebSession(cookies, env));
-  if (checked instanceof Response) return checked;
-  const { session, form } = checked;
-  const now = Date.now();
-  const everywhere = form.get('everywhere') === '1';
-  if (everywhere) await revokeAllSessions(env, session.user.id, now);
-  else await revokeSession(env, session.sessionHash, now);
-  await recordAudit(
-    env,
+  return signOut(
+    request,
     {
-      action: everywhere ? 'session.signout_all' : 'session.signout',
-      actorUserId: session.user.id,
-      ip: clientIp(request),
+      session: (cookies) => getWebSession(cookies, env),
+      revoke: async (sessionHash, now) => {
+        await revokeSession(env, sessionHash, now);
+      },
+      revokeAll: async (userId, now) => {
+        await revokeAllSessions(env, userId, now);
+      },
+      audit: (event, now) =>
+        recordAudit(
+          env,
+          { action: event.action, actorUserId: event.userId, ip: clientIp(request) },
+          now,
+        ),
     },
-    now,
+    Date.now(),
   );
-  return seeOther(request, '/', [clearCookie(SESSION_COOKIE)]);
 }

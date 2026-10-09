@@ -1,7 +1,7 @@
 /*
- * The settings shell shared by the account and repository settings: a left nav of sections and
- * a column of panels, GitHub's layout in Nightshift tokens. Below 760 px the nav folds into
- * wrapped chips above the panels, so a phone never scrolls sideways.
+ * The settings shell shared by account, repository and organization settings: a left nav of
+ * section pages and a column of panels, GitHub's layout in Nightshift tokens. Below 760 px the
+ * nav becomes one strip of chips that scrolls sideways inside itself (the page never does).
  */
 
 .shell {
@@ -16,7 +16,7 @@
 
 .aside {
   position: sticky;
-  top: 16px;
+  top: 68px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -142,7 +142,7 @@
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  scroll-margin-top: 16px;
+  scroll-margin-top: 68px;
 }
 
 .sectionHead {
@@ -223,8 +223,17 @@
 
   .nav {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 calc(-1 * var(--gutter));
+    padding: 2px var(--gutter) 6px;
+    scroll-padding-inline: var(--gutter);
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
   }
 
   .group {
@@ -236,6 +245,8 @@
   }
 
   .link {
+    flex: none;
+    white-space: nowrap;
     border: 1px solid var(--rule);
     border-radius: 999px;
     padding: 5px 12px;

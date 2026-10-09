@@ -1,11 +1,13 @@
 /**
- * The settings layout for people and repositories: who or what is being set up, a left nav of
- * sections (links to pages, or anchors on one page), then the page's sections. `SettingsSection`
- * is one titled sheet; `danger` marks the destructive one.
+ * The settings layout for people, repositories and organizations: who or what is being set
+ * up, a left nav with one link per section page (the current one marked), then the page's
+ * sheets. Under 760 px the nav becomes a strip that scrolls sideways. `SettingsSection` is one
+ * titled sheet; `danger` marks a destructive one.
  */
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { CurrentInView } from './settings-client';
 import styles from './settings-shell.module.css';
 
 export type SettingsNavItem = {
@@ -38,22 +40,24 @@ export function SettingsShell({
     <main className={styles.shell}>
       <aside className={styles.aside}>
         {who}
-        <nav aria-label="Settings sections" className={styles.nav}>
-          {nav.map((group) => (
-            <div key={group.title} className={styles.group}>
-              <span className={styles.groupTitle}>{group.title}</span>
-              {group.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`${styles.link} ${item.isDanger === true ? styles.linkDanger : ''}`}
-                  aria-current={currentOf(item)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          ))}
+        <nav aria-label="Settings sections">
+          <CurrentInView className={styles.nav}>
+            {nav.map((group) => (
+              <div key={group.title} className={styles.group}>
+                <span className={styles.groupTitle}>{group.title}</span>
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${styles.link} ${item.isDanger === true ? styles.linkDanger : ''}`}
+                    aria-current={currentOf(item)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </CurrentInView>
         </nav>
       </aside>
       <div className={styles.main}>

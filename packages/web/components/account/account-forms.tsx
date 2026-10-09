@@ -18,6 +18,7 @@ import {
   saveProfile,
 } from '../../src/server/account-actions';
 import { SaveStatus } from '../settings/settings-shell';
+import { useSavedForm } from '../settings/use-saved-form';
 import styles from './account.module.css';
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -34,7 +35,7 @@ export function ProfileForm({
     readonly website: string;
   };
 }) {
-  const [state, action, pending] = useActionState<ProfileFormState, FormData>(saveProfile, {
+  const { state, action, pending, saved } = useSavedForm<ProfileFormState>(saveProfile, {
     ...EMPTY_FORM_STATE,
     field: null,
   });
@@ -50,7 +51,7 @@ export function ProfileForm({
           id="profile-name"
           name="displayName"
           className={styles.input}
-          defaultValue={profile.displayName}
+          defaultValue={saved('displayName', profile.displayName)}
           maxLength={64}
           autoComplete="name"
           aria-invalid={invalid('displayName')}
@@ -67,7 +68,7 @@ export function ProfileForm({
           id="profile-bio"
           name="bio"
           className={styles.input}
-          defaultValue={profile.bio}
+          defaultValue={saved('bio', profile.bio)}
           maxLength={160}
           rows={3}
           aria-invalid={invalid('bio')}
@@ -82,7 +83,7 @@ export function ProfileForm({
           id="profile-website"
           name="website"
           className={styles.input}
-          defaultValue={profile.website}
+          defaultValue={saved('website', profile.website)}
           inputMode="url"
           autoComplete="url"
           placeholder="https://"

@@ -177,7 +177,7 @@ function Repositories(props: {
   readonly empty: string;
 }) {
   return (
-    <section className={styles.panel} aria-label="Repositories">
+    <section id="repositories" className={styles.panel} aria-label="Repositories">
       {props.records.length === 0 ? (
         <p className={styles.empty}>{props.empty}</p>
       ) : (

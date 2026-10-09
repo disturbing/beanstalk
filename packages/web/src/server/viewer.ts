@@ -5,18 +5,13 @@
 import { env } from 'cloudflare:workers';
 import { cookies } from 'next/headers';
 
-import type { DayVariant, ThemeChoice } from '../../components/shell/theme';
-import { DAY_COOKIE, THEME_COOKIE, parseDay, parseTheme } from '../../components/shell/theme';
+import type { ThemeChoice } from '../../components/shell/theme';
+import { THEME_COOKIE, parseTheme } from '../../components/shell/theme';
 import { SESSION_COOKIE, isValidSession } from '../auth/session';
 
 export async function viewerTheme(): Promise<ThemeChoice> {
   const jar = await cookies();
   return parseTheme(jar.get(THEME_COOKIE)?.value);
-}
-
-export async function viewerDay(): Promise<DayVariant> {
-  const jar = await cookies();
-  return parseDay(jar.get(DAY_COOKIE)?.value);
 }
 
 export async function isSignedIn(): Promise<boolean> {

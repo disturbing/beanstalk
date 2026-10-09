@@ -245,7 +245,10 @@ describe('settings', () => {
       coop,
       registry,
     );
-    expect(outcome).toEqual({ kind: 'redirect', to: '/coop/journal/settings?saved=renamed' });
+    expect(outcome).toEqual({
+      kind: 'redirect',
+      to: '/coop/journal/settings/general?saved=renamed',
+    });
   });
 
   it('saves a visibility change in place', async () => {
@@ -456,13 +459,13 @@ describe('archive', () => {
     const repoId = made.value.id;
     expect(await archiveFlow(form({ repoId, to: 'archived' }), coop, registry)).toEqual({
       kind: 'redirect',
-      to: '/coop/old-notes/settings?saved=archived',
+      to: '/coop/old-notes/settings/danger?saved=archived',
     });
     expect(await registry.list(coop.id, coop.id)).toEqual({ ok: true, value: [] });
     const archived = await registry.list(coop.id, coop.id, 'archived');
     expect(archived.ok && archived.value.map((record) => record.name)).toEqual(['old-notes']);
     expect(await archiveFlow(form({ repoId, to: 'active' }), coop, registry)).toMatchObject({
-      to: '/coop/old-notes/settings?saved=unarchived',
+      to: '/coop/old-notes/settings/danger?saved=unarchived',
     });
   });
 

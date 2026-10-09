@@ -15,6 +15,7 @@ import {
   setOrgRoleAction,
 } from '../../src/server/org-actions';
 import repo from '../repository/repository.module.css';
+import { ConfirmSubmit } from '../settings/confirm-submit';
 import { Status } from './org-forms';
 import { OrgMark } from './org-mark';
 
@@ -225,9 +226,20 @@ export function LeaveOrg(props: {
       <input type="hidden" name="org" value={props.orgId} />
       <input type="hidden" name="user" value={props.userId} />
       <input type="hidden" name="orgHandle" value={props.orgHandle} />
-      <button type="submit" className={repo.danger} disabled={pending}>
-        Leave {props.orgHandle}
-      </button>
+      <ConfirmSubmit
+        label={`Leave ${props.orgHandle}`}
+        title={`Leave ${props.orgHandle}?`}
+        confirmLabel="Leave"
+        tone="danger"
+        buttonClassName={repo.danger}
+        confirmClassName={repo.danger}
+        disabled={pending}
+      >
+        <p>
+          You lose your role and every repository you read through it, at once. Coming back needs a
+          new invitation.
+        </p>
+      </ConfirmSubmit>
       <Status state={state} />
     </form>
   );

@@ -74,6 +74,8 @@
     // (app/[owner]/[repo]/{info/refs,git-upload-pack,git-receive-pack} forward to the gateway).
     "GIT_ORIGIN": "http://localhost:5173",
     "MCP_URL": "http://localhost:8788/mcp",
+    // The public docs on the marketing site (packages/site), linked from the header's menu.
+    "DOCS_URL": "http://localhost:8790/docs/",
     // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
     // live; /beanstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
     "SSH_HOST": "",
