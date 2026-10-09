@@ -49,6 +49,7 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
       const record: RepositoryRecord = {
         id,
         owner,
+        owner_kind: 'user',
         name: input.name,
         description: input.description ?? '',
         visibility: input.visibility,
@@ -120,6 +121,9 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
     },
     async repositoryActivity() {
       return ok([]);
+    },
+    async transferRepository() {
+      return fail('not_found', 'not in this fake');
     },
     async repositoryFiles() {
       return ok({

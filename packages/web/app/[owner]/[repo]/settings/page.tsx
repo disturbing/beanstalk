@@ -3,10 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { SecretsSettings } from '../../../../components/actions/secrets-settings';
+import { TransferRepository } from '../../../../components/orgs/org-forms';
 import { ChecksSummary } from '../../../../components/repository/checks-config';
 import { CollaboratorsSettings } from '../../../../components/repository/collaborators';
 import { DeployTokens } from '../../../../components/repository/deploy-tokens';
 import { currentSession } from '../../../../src/auth/user';
+import { transferTargets } from '../../../../src/orgs/org-page';
 import { collaboratorsClient } from '../../../../src/repositories/collaborators-client';
 import { deployTokensClient } from '../../../../src/repositories/deploy-tokens-client';
 import { registryClient } from '../../../../src/repositories/registry-client';
@@ -56,12 +58,18 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
   const isOwner = role === 'owner';
   const canDeploy = isOwner || role === 'maintain';
   const actions = canDeploy ? await actionsSession({ actor, repoId: record.id }) : null;
-  const [tokens, people, files, secrets] = await Promise.all([
+  const [tokens, people, files, secrets, orgTargets] = await Promise.all([
     canDeploy ? deployTokensClient(env.GATEWAY).list(actor, record.id) : Promise.resolve(null),
     isOwner ? collaboratorsClient(env.GATEWAY).people(record.id, actor.id) : Promise.resolve(null),
     registryClient(env.GATEWAY).files(record.id, actor.id),
     actions === null ? Promise.resolve(null) : actions.client.secrets(),
+    isOwner ? transferTargets(actor.id) : Promise.resolve([]),
   ]);
+  // Anywhere it may go but where it is: the person themself, and orgs they administer.
+  const targets = [
+    { handle: actor.handle, label: `${actor.handle} (you)` },
+    ...orgTargets.map((org) => ({ handle: org.handle, label: `${org.handle} (${org.name})` })),
+  ].filter((target) => target.handle.toLowerCase() !== record.owner.handle.toLowerCase());
   const repo = {
     id: record.id,
     owner: record.owner.handle,
@@ -91,7 +99,8 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
               <h2>Settings</h2>
               <p className={styles.sub}>
                 You are <b>{role}</b> on {record.name}. Its name, visibility, people and deletion
-                are <b>@{record.owner.handle}</b>&rsquo;s.{' '}
+                are <b>@{record.owner.handle}</b>&rsquo;s
+                {record.owner_kind === 'org' ? ' (its owners and admins)' : ''}.{' '}
                 {canDeploy && !isArchived
                   ? 'As a maintainer you manage its deploy tokens below. '
                   : null}
@@ -147,6 +156,14 @@ export default async function RepositorySettingsPage({ params, searchParams }: P
           )}
           {isOwner && !isArchived ? (
             <ArchiveSettings repo={repo} archivedAt={null} saved={archiveSaved} />
+          ) : null}
+          {isOwner ? (
+            <TransferRepository
+              repoId={record.id}
+              fullName={`${record.owner.handle}/${record.name}`}
+              targets={targets}
+              csrf={session.csrfToken}
+            />
           ) : null}
           {isOwner ? <DangerZone repo={repo} /> : null}
         </div>

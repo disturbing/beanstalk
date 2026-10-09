@@ -7,6 +7,7 @@ import type { RepositoryRecord } from './registry-client';
 const record: RepositoryRecord = {
   id: 'bur44dmjamg3',
   owner: { id: 'u1', handle: 'coop' },
+  owner_kind: 'user',
   name: 'greeter',
   description: '',
   visibility: 'private',
