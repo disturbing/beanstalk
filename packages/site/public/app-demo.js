@@ -1,10 +1,13 @@
-// The hero's app preview: an HTML recreation of a repository with the app's own tabs (Code,
-// Changes, History, Ask, People, Settings). Code plays the full home sequence first: the stalk
-// grown to today, three questions typed and answered (the stalk reacts to each), then last week
-// replayed from a fixed seed. Each other tab is an animated miniature of the real page; the tour
-// moves on when a view's animation ends, and a click pins a tab until the preview is left alone.
-// Every frame is a pure function of the tab and the time into it: reduced motion shows each tab's
-// finished frame, and `?tab=<id>&demo=<ms>` (or `?demo=<ms>` into the tour) freezes the preview.
+// The hero's app preview: an HTML recreation of an organization's repository with the app's own
+// tabs (Code, Changes, History, Automations, Ask, People, Settings). Code plays the full home
+// sequence first: the stalk grown to today, three questions typed and answered (the stalk reacts
+// to each), then last week replayed from a fixed seed. Each other tab is an animated miniature of
+// the real page; the tour moves on when a view's animation ends, and a click pins a tab until the
+// preview is left alone. Nothing fades in: a tab shows its whole page the moment it opens, and a
+// typed question's answer (panel, stalk highlights, every row) appears whole after a short beat,
+// as the app shows it once the search is applied. Every frame is a pure function of the tab and
+// the time into it: reduced motion shows each tab's finished frame, and `?tab=<id>&demo=<ms>` (or
+// `?demo=<ms>` into the tour) freezes the preview.
 
 /* ---------- A week of history from a fixed seed ---------- */
 
@@ -242,6 +245,8 @@ const COLLIDED = LANDINGS.find((l) => l.id === 't013');
 
 const TYPE_MS = 50;
 const ERASE_MS = 16;
+/** The beat between a question being applied and its answer, which then appears whole. */
+const THINK_MS = 200;
 const TOUR = [
   { id: 'coupons', q: 'What changed on coupons this week?' },
   { id: 'red', q: `Why is #${CULPRIT.n} red?` },
@@ -264,7 +269,7 @@ function script(stops, first) {
         show: showing,
       });
     segments.push({ kind: 'type', q: stop.q, ms: stop.q.length * TYPE_MS, show: showing });
-    segments.push({ kind: 'think', q: stop.q, ms: 360, show: showing });
+    segments.push({ kind: 'think', q: stop.q, ms: THINK_MS, show: showing });
     showing = stop.id;
     segments.push(
       stop.id === 'replay'
@@ -313,13 +318,29 @@ const ASK_MS = timed(ASK_SEGMENTS);
 
 /* ---------- The tabs, exactly as the repository header shows them ---------- */
 
+/** The repository belongs to an organization, of which coop is an owner. */
+const ORG = 'acme';
+const REPO = 'beanstalk-shop';
+const FULL = `${ORG}/${REPO}`;
+
+/** Automations: the stalk moves and starts two runs, the deploy opens and streams its log. */
+const AUTO_MOVE = 1200;
+const AUTO_START = 1600;
+const AUTO_CI_DONE = 2800;
+const AUTO_OPEN = 3200;
+const AUTO_DONE = 8000;
+const AUTO_SEGMENT = 9400;
+const AUTO_MS = 11800;
+
+/** `rest` is the frame reduced motion shows, when it is not the tab's last. */
 const TABS = [
   { id: 'code', label: 'Code', ms: CODE_MS, view: 'explorer' },
   { id: 'changes', label: 'Changes', ms: 8200, view: 'page' },
   { id: 'history', label: 'History', ms: 7200, view: 'page' },
+  { id: 'automations', label: 'Automations', ms: AUTO_MS, view: 'page', rest: AUTO_DONE + 600 },
   { id: 'ask', label: 'Ask', ms: ASK_MS, view: 'explorer' },
   { id: 'people', label: 'People', ms: 6400, view: 'page' },
-  { id: 'settings', label: 'Settings', ms: 8000, view: 'page' },
+  { id: 'settings', label: 'Settings', ms: 9600, view: 'page' },
 ];
 const TOUR_MS = TABS.reduce((sum, tab) => sum + tab.ms, 0);
 /** A click pins its tab; the tour resumes after this long without another interaction. */
@@ -345,7 +366,6 @@ function frameAt(tab, local) {
       typed: '',
       focus: false,
       show: tab,
-      shownFor: local,
       replaying: false,
       replayed: false,
       ...repoAt(WEEK_HOURS),
@@ -365,8 +385,6 @@ function frameAt(tab, local) {
     typed,
     focus: seg.kind === 'type' || seg.kind === 'think' || seg.kind === 'erase',
     show: seg.show,
-    /** How long the current answer has been on screen (for the stalk's own motion). */
-    shownFor: seg.kind === 'answer' ? into : 1e9,
     replaying,
     replayed: seg.kind === 'end',
     ...repoAt(h),
@@ -411,7 +429,7 @@ function ago(h) {
 
 /* ---------- The stalk ---------- */
 
-/** The stalk's rows, keyed so they can be reconciled (classes change in place, so they animate). */
+/** The stalk's rows, keyed so they can be reconciled (classes change in place, at once). */
 function stalkRows(f) {
   const rows = [];
   const answer = f.show;
@@ -433,16 +451,11 @@ function stalkRows(f) {
       html: `<span class="ag">${b.agent}</span><span class="stem"><i class="beanmark"></i></span><span class="tt">${esc(b.title)}</span><span class="st">${partner ? `↔ ${partner.agent}` : st}</span>`,
     });
   }
-  const found = answer === 'coupons' ? Math.floor(f.shownFor / 380) : 0;
-  const foundIds = new Set(
-    COUPON_BEANS.toReversed()
-      .slice(0, found)
-      .map((l) => l.n),
-  );
+  const foundIds = new Set(COUPON_BEANS.map((l) => l.n));
   const cls = (n, base) => {
-    if (answer === 'coupons') return `${base} ${foundIds.has(n) ? 'hit found' : 'dim slow'}`;
+    if (answer === 'coupons') return `${base} ${foundIds.has(n) ? 'hit' : 'dim'}`;
     if (answer === 'red') return `${base} ${n === CULPRIT.n || n === COLLIDED.n ? 'hit' : 'dim'}`;
-    if (answer === 'journey') return `${base} ${n === JOURNEY.n ? 'hit found' : 'dim slow'}`;
+    if (answer === 'journey') return `${base} ${n === JOURNEY.n ? 'hit' : 'dim'}`;
     if (answer === 'billing') return `${base} dim`;
     return base;
   };
@@ -471,19 +484,18 @@ function stalkRows(f) {
       continue;
     }
     if (item.kind === 'revert') {
-      if (answer !== 'red' || f.shownFor > 1700)
-        rows.push({
-          key: 'revert',
-          cls: `srow revert${answer === 'red' ? ' hit' : ''}`,
-          html: `<span class="tm">${stamp(RED.revert).time}</span><span class="stem"><i class="rv"></i></span><span class="tt">${f.red ? `Reverted ${CULPRIT.id}; validating again` : `Reverted ${CULPRIT.id}, then green again`}</span><span class="ix">↩</span>`,
-        });
+      rows.push({
+        key: 'revert',
+        cls: `srow revert${answer === 'red' ? ' hit' : ''}`,
+        html: `<span class="tm">${stamp(RED.revert).time}</span><span class="stem"><i class="rv"></i></span><span class="tt">${f.red ? `Reverted ${CULPRIT.id}; validating again` : `Reverted ${CULPRIT.id}, then green again`}</span><span class="ix">↩</span>`,
+      });
       continue;
     }
     const { l } = item;
     const onStalk = l.n < f.stalk;
     let base = onStalk ? 'srow stalk' : 'srow sprout';
     if (l === CULPRIT && f.redSeen) base += ' red';
-    if (l === CULPRIT && answer === 'red' && f.shownFor > 900) base += ' redpulse';
+    if (l === CULPRIT && answer === 'red') base += ' redpulse';
     if (f.fresh && onStalk && l.n >= f.fresh.from && l.n <= f.fresh.to && f.h - f.fresh.at < 0.5)
       base += ' matured';
     if (l.n % 2) base += ' l';
@@ -506,7 +518,7 @@ function stalkRows(f) {
   return { rows, links: answer === 'billing' ? linkFile : null };
 }
 
-/** Updates the rows in place by key: changed classes transition, new rows grow in. */
+/** Updates the rows in place by key, so rows keep their place while classes change. */
 function reconcile(host, rows) {
   const existing = new Map(
     [...host.children].filter((el) => el.dataset.key).map((el) => [el.dataset.key, el]),
@@ -629,8 +641,8 @@ const PANELS = {
     growing(f) +
     happened(f) +
     files(),
-  coupons: (f) => {
-    const found = Math.min(COUPON_BEANS.length, Math.floor(f.shownFor / 380));
+  coupons: () => {
+    const found = COUPON_BEANS.length;
     const paths = [
       'billing/coupons.ts',
       'billing/checkout.ts',
@@ -638,12 +650,10 @@ const PANELS = {
       'db/coupon_max.ts',
       'billing/discounts.ts',
     ];
-    // Only the newest row grows in; the panel is rewritten only when a file is found.
     const list = COUPON_BEANS.toReversed()
-      .slice(0, f.shownFor > 1e8 ? COUPON_BEANS.length : found)
       .map(
         (l, i) =>
-          `<div class="f-row${i === found - 1 && f.shownFor < 1e8 ? ' arrive' : ''}"><span class="fn">${paths[i % 5]}</span><span class="chip leafchip"><i class="lfm"></i>${l.id} #${l.n}</span><span class="fstat">+${3 + ((l.n * 7) % 21)} −${(l.n * 3) % 5}</span></div>`,
+          `<div class="f-row"><span class="fn">${paths[i % 5]}</span><span class="chip leafchip"><i class="lfm"></i>${l.id} #${l.n}</span><span class="fstat">+${3 + ((l.n * 7) % 21)} −${(l.n * 3) % 5}</span></div>`,
       )
       .join('');
     const diff =
@@ -652,17 +662,12 @@ const PANELS = {
       chips(['this week', 'coupons: paths, content, beans'], ['Files + diffs', 'Bean journey']) +
       head(
         `${COUPON_BEANS.length} beans changed coupon code this week.`,
-        'Found one by one on the stalk; the rest dims.',
+        'Each one is marked on the stalk; the rest dims.',
       ) +
-      box(
-        'Files',
-        `${found} of ${COUPON_BEANS.length} found`,
-        list + (found || f.shownFor > 1e8 ? diff : ''),
-      )
+      box('Files', `${found} of ${COUPON_BEANS.length} found`, list + diff)
     );
   },
-  red: (f) => {
-    const step = Number(f.shownFor >= 900) + Number(f.shownFor >= 1700);
+  red: () => {
     const at = stamp(RED.at);
     return (
       chips([`#${CULPRIT.n}`, 'its validation and read set'], ['Red-validation card', 'Files']) +
@@ -679,7 +684,7 @@ const PANELS = {
             <div><span class="rv-l">Collided with</span><span class="rv-with"><span class="chip leafchip"><i class="lfm"></i>${COLLIDED.id} #${COLLIDED.n}</span>${esc(COLLIDED.title)}</span></div>
           </div>
           <div class="hunk"><div class="h">shipping/shipments.ts, ${CULPRIT.id}</div><div class="d">-  tracking: TrackingNumber;</div><div class="a">+  delivery: { tracking: TrackingNumber; signature: boolean };</div></div>
-          <div class="steps"><div class="on"><b>${at.day} ${at.time}</b>went red</div><div class="${step >= 1 ? 'on' : ''}"><b>${CULPRIT.id}</b>the culprit</div><div class="${step >= 2 ? 'on' : ''}"><b>${stamp(RED.revert).time}</b>reverted</div><div class="${step >= 2 ? 'on' : ''}"><b>${stamp(RED.green).time}</b>green again</div></div></div>`,
+          <div class="steps"><div class="on"><b>${at.day} ${at.time}</b>went red</div><div class="on"><b>${CULPRIT.id}</b>the culprit</div><div class="on"><b>${stamp(RED.revert).time}</b>reverted</div><div class="on"><b>${stamp(RED.green).time}</b>green again</div></div></div>`,
       )
     );
   },
@@ -703,7 +708,7 @@ const PANELS = {
       box('Collision hot spots', '', hot)
     );
   },
-  journey: (f) => {
+  journey: () => {
     const steps = [
       [
         stamp(JOURNEY.start).time,
@@ -714,12 +719,10 @@ const PANELS = {
       [stamp(JOURNEY.land).time, `Landed on the sprout as #${JOURNEY.n}`],
       [stamp(JOURNEY.land + 0.5).time, 'Validated with its batch: on the stalk'],
     ];
-    const shown = Math.min(steps.length, 1 + Math.floor(f.shownFor / 450));
     const list = steps
-      .slice(0, f.shownFor > 1e8 ? steps.length : shown)
       .map(
         ([time, text], i) =>
-          `<li class="${i === shown - 1 && f.shownFor < 1e8 ? 'arrive' : ''}${i >= 3 ? ' ok' : ''}"><span>${time}</span>${esc(text)}</li>`,
+          `<li${i >= 3 ? ' class="ok"' : ''}><span>${time}</span>${esc(text)}</li>`,
       )
       .join('');
     return (
@@ -731,7 +734,7 @@ const PANELS = {
       box(
         `<span class="chip leafchip"><i class="lfm"></i>bean/${slug(JOURNEY.title)} #${JOURNEY.n}</span>`,
         '',
-        `<ol class="j-steps">${list}</ol>${shown >= 4 || f.shownFor > 1e8 ? '<div class="hunk"><div class="h">billing/coupons.ts</div><div class="d">-  if (coupon.kind !== \'percent\') return coupon.value;</div><div class="a">+  if (coupon.kind !== \'percent\') return Math.min(coupon.value, subtotal);</div></div>' : ''}`,
+        `<ol class="j-steps">${list}</ol><div class="hunk"><div class="h">billing/coupons.ts</div><div class="d">-  if (coupon.kind !== 'percent') return coupon.value;</div><div class="a">+  if (coupon.kind !== 'percent') return Math.min(coupon.value, subtotal);</div></div>`,
       )
     );
   },
@@ -768,7 +771,7 @@ function statusLine(f) {
   ].join('');
 }
 
-/* ---------- The repository's pages (Changes, History, People, Settings) ---------- */
+/* ---------- The repository's pages (Changes, History, Automations, People, Settings) ---------- */
 
 /** The page glyphs, as the app draws them. */
 const GLYPH = {
@@ -789,12 +792,8 @@ const RED_TODAY = {
   collided: LANDINGS.at(-1),
 };
 
-/** Steps of a page's animation: how many of `count` items show at `local`, one every `every` ms. */
-const upTo = (local, count, every, from = 0) =>
-  Math.max(0, Math.min(count, Math.floor((local - from) / every) + 1));
-
-function changeRow(c, i, shown) {
-  const cls = `pc-row${i === shown - 1 ? ' arrive' : ''}${c.leaving ? ' leaving' : ''}`;
+function changeRow(c) {
+  const cls = `pc-row${c.leaving ? ' leaving' : ''}`;
   const why = c.failing
     ? `<ul class="pc-why"><li>✗ ${esc(c.failing)}</li><li>collided with ${esc(c.collided)}</li></ul>`
     : '';
@@ -857,6 +856,470 @@ function openCount(tab, local) {
 const CHANGES_LAND = 3400;
 const CHANGES_SWITCH = 5000;
 
+/* ---------- History: the two lines, the week, the commits and the verdicts ---------- */
+
+const HISTORY_VALIDATE = 3600;
+/** The last 7 days, counted as History's strip counts them. */
+const WEEK_STATS = [
+  ['landed', LANDINGS.length],
+  ['stalk moves', PROMOTES.length],
+  ['red validations', 1],
+  ['reverts', 1],
+  ['reworks', LANDINGS.filter((l) => l.rework).length],
+  ['decisions', 1],
+];
+
+function historyPage(f) {
+  const validated = f.local >= HISTORY_VALIDATE;
+  const pending = LANDINGS.slice(-2).toReversed();
+  const stalk = LANDINGS.toReversed().slice(validated ? 0 : 2, 5);
+  const commit = (l, glyph, cls, chip) =>
+    `<li class="ph-row${cls}">${GLYPH[glyph]}<div><b class="ph-title">${esc(l.title)}</b><div class="pc-meta"><b>@${ownerOf(l.agent)}</b><span class="pc-bean">bean/${slug(l.title)}</span><span>${ago(l.land)}</span></div></div><span class="ph-side"><span class="pc-state" data-state="${chip[0]}">${chip[1]}</span><code>${sha(l.n)}</code></span></li>`;
+  const pendingBox = validated
+    ? ''
+    : `<section class="pg-box ph-pending"><header>${GLYPH.sprout}<h4>On the sprout, not validated yet</h4><span>2 commits</span></header><ol>${pending
+        .map((l) => commit(l, 'sprout', '', ['landed', 'landed, not validated yet']))
+        .join('')}</ol></section>`;
+  // Just validated: the two commits that moved to the stalk are marked for a moment.
+  const fresh = validated && f.local < 5400;
+  const stalkRowsHtml = stalk
+    .map((l, i) =>
+      commit(l, 'stalk', fresh && i < 2 ? ' fresh' : '', [
+        'validated',
+        fresh && i < 2 ? 'validated just now' : 'validated',
+      ]),
+    )
+    .join('');
+  const commits = OLDER + LANDINGS.length - (validated ? 0 : 2) + 1;
+  const stalkHead = validated ? LANDINGS.at(-1) : LANDINGS.at(-3);
+  const lines = `<div class="ph-lines"><div class="ph-line" data-line="stalk"><b>Stalk</b><code>${sha(stalkHead.n)}</code><span>validated: every check green</span></div><div class="ph-line" data-line="sprout"><b>Sprout</b><code>${sha(LANDINGS.at(-1).n)}</code><span>landed: green on the merged tree</span></div></div>`;
+  const week = `<dl class="ph-week">${WEEK_STATS.map(
+    ([label, n]) =>
+      `<div><dt>${label}</dt><dd>${label === 'stalk moves' && validated ? n + 1 : n}</dd></div>`,
+  ).join('')}</dl>`;
+  const verdicts = [
+    ...(validated
+      ? [
+          [
+            'validated',
+            `Validated #${LANDINGS.at(-2).n} and #${LANDINGS.at(-1).n}: the stalk moved`,
+            'just now',
+          ],
+        ]
+      : []),
+    [
+      'validated',
+      `Validated up to #${LANDINGS.at(-3).n}: the stalk moved`,
+      ago(PROMOTES.at(-2).at),
+    ],
+    ['reverted', `Reverted ${CULPRIT.id}; the sprout is green again`, ago(RED.green)],
+    ['red', `#${CULPRIT.n} went red: tracking-email.test.ts`, ago(RED.at)],
+  ];
+  const off = [
+    [
+      CULPRIT.id,
+      CULPRIT.title,
+      ownerOf(CULPRIT.agent),
+      `reverted: broke a test from #${COLLIDED.n}`,
+      ago(RED.revert),
+    ],
+    ...FELL.map((x) => [
+      x.id,
+      x.title,
+      ownerOf(x.agent),
+      `${x.reason.startsWith('declined') ? 'parked' : 'fell'}: ${x.reason}`,
+      ago(x.at),
+    ]),
+  ];
+  const aside = `<aside class="ph-aside"><section class="pg-box ph-panel"><header><h4>Validation verdicts</h4><span>${verdicts.length}</span></header><ul>${verdicts
+    .map(
+      ([kind, text, when], i) =>
+        `<li data-kind="${kind}"${validated && i === 0 && f.local < 5400 ? ' class="fresh"' : ''}><span>${esc(text)}<time>${when}</time></span></li>`,
+    )
+    .join(
+      '',
+    )}</ul></section><section class="pg-box ph-panel"><header><h4>Taken off or waiting</h4><span>${off.length}</span></header><ul>${off
+    .map(
+      ([id, title, who, reason, when]) =>
+        `<li><b class="pc-bean">${id}</b><span>${esc(title)} <small>@${who}</small><em>${esc(reason)}</em></span><time>${when}</time></li>`,
+    )
+    .join('')}</ul></section></aside>`;
+  return `<div class="pg-page">${lines}${week}<div class="ph-split"><div>${pendingBox}<section class="pg-box"><header>${GLYPH.stalk}<h4>The stalk</h4><span>${commits} commits</span></header><ol>${stalkRowsHtml}<li class="ph-row ph-more"><span></span><div>${commits - stalk.length - 1} more commits</div></li><li class="ph-row">${GLYPH.seed}<div><b class="ph-plain">Start from the TypeScript starter</b><div class="pc-meta"><span>Fertilized by coop</span><span>34 days ago</span></div></div><span class="ph-side"><code>${sha(0)}</code></span></li></ol></section></div>${aside}</div></div>`;
+}
+
+/* ---------- Automations: Actions (workflows, runs, a live run) and Automations ---------- */
+
+/** A run's, job's or step's state as the app's StateMark draws it. */
+function mark(state, size = 16) {
+  const shapes = {
+    success:
+      '<circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.6 8.2 7 10.5l4.4-4.8" fill="none" stroke="var(--bg)" stroke-width="1.8"/>',
+    failure:
+      '<circle cx="8" cy="8" r="7" fill="currentColor"/><path d="m5.3 5.3 5.4 5.4m0-5.4-5.4 5.4" stroke="var(--bg)" stroke-width="1.8"/>',
+    running:
+      '<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-width="2"/><path class="am-spin" d="M8 2a6 6 0 0 1 6 6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="2" fill="currentColor"/>',
+    queued:
+      '<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2.7"/>',
+  };
+  return `<svg class="am-mark" data-state="${state}" width="${size}" height="${size}" viewBox="0 0 16 16">${shapes[state]}</svg>`;
+}
+const STATE_WORDS = {
+  success: 'succeeded',
+  failure: 'failed',
+  running: 'running',
+  queued: 'queued',
+};
+const secs = (s) => (s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`);
+/** Miniature seconds: the run's own clock goes faster than the tour's. */
+const runSecs = (ms) => Math.max(0, Math.round((ms / 1000) * 12));
+
+const SAVED_CARTS = TODAY_BEANS[2];
+const DEPLOY_SHA = sha(TOTAL + 1);
+
+/** The deploy job's log after its first steps: OIDC credentials, then the deploy, streaming. */
+const LOG_STEPS = [
+  { name: 'Set up job', time: '1s' },
+  { name: 'Run actions/checkout@v4', time: '1s' },
+  { name: 'Run actions/setup-node@v4', time: '3s' },
+  { name: 'Run npm ci', time: '9s' },
+  {
+    name: 'Run aws-actions/configure-aws-credentials@v4',
+    time: '2s',
+    from: 300,
+    every: 300,
+    lines: [
+      'Run aws-actions/configure-aws-credentials@v4',
+      '  with:',
+      '    role-to-assume: arn:aws:iam::210987654321:role/shop-receipts',
+      '    aws-region: eu-west-1',
+      'Assuming role with OIDC',
+      'Authenticated as assumedRoleId AROAEXAMPLE7RECEIPTS:GitHubActions',
+    ],
+  },
+  {
+    name: 'Run npx wrangler deploy',
+    time: '4s',
+    from: 2300,
+    every: 240,
+    lines: [
+      'Run npx wrangler deploy',
+      '  env:',
+      '    CLOUDFLARE_API_TOKEN: ***',
+      `    CLOUDFLARE_ACCOUNT_ID: ${sha(7)}${sha(11)}`,
+      'Total Upload: 41.20 KiB / gzip: 9.87 KiB',
+      'Uploaded beanstalk-shop (2.31 sec)',
+      'Deployed beanstalk-shop triggers (0.42 sec)',
+      '  https://beanstalk-shop.acme.workers.dev',
+      `Current Version ID: ${sha(19)}-4c1e-9a7b`,
+      'Success - Run npx wrangler deploy [3.84s]',
+    ],
+  },
+];
+const FIRST_LINE = 61;
+
+/** A run's state at t: queued until it starts, running until it is done. */
+function stateAt(t, done) {
+  if (t >= done) return 'success';
+  return t >= AUTO_START ? 'running' : 'queued';
+}
+
+/** The runs list at time t: two runs start when the stalk moves, CI finishes first. */
+function runsAt(t) {
+  const runs = [];
+  if (t >= AUTO_MOVE) {
+    const started = t >= AUTO_START;
+    const ciDone = t >= AUTO_CI_DONE;
+    const base = {
+      title: SAVED_CARTS.title,
+      event: 'stalk moved',
+      sha: DEPLOY_SHA,
+      bean: slug(SAVED_CARTS.title),
+      actor: `@${ownerOf(SAVED_CARTS.agent)}`,
+      when: 'just now',
+      fresh: t < AUTO_OPEN,
+    };
+    runs.push(
+      {
+        ...base,
+        workflow: 'Deploy',
+        n: 19,
+        state: stateAt(t, AUTO_DONE),
+        wall: started ? secs(runSecs(Math.min(t, AUTO_DONE) - AUTO_START)) : 'waiting',
+        billed: 0,
+      },
+      {
+        ...base,
+        workflow: 'CI',
+        n: 43,
+        state: stateAt(t, AUTO_CI_DONE),
+        wall: started ? secs(runSecs(Math.min(t, AUTO_CI_DONE) - AUTO_START)) : 'waiting',
+        billed: ciDone ? 1 : 0,
+      },
+    );
+  }
+  const last = LANDINGS.at(-1);
+  runs.push(
+    {
+      workflow: 'Nightly e2e',
+      n: 12,
+      state: 'failure',
+      title: 'Nightly e2e · schedule',
+      event: 'schedule',
+      sha: sha(TOTAL),
+      bean: null,
+      actor: 'on schedule',
+      when: '6 hours ago',
+      wall: '4m 12s',
+      billed: 5,
+    },
+    {
+      workflow: 'Deploy',
+      n: 18,
+      state: 'success',
+      title: 'Deploy · run by hand',
+      event: 'run by hand',
+      sha: sha(TOTAL),
+      bean: null,
+      actor: '@dana',
+      when: 'yesterday',
+      wall: '52s',
+      billed: 1,
+    },
+    {
+      workflow: 'CI',
+      n: 42,
+      state: 'success',
+      title: last.title,
+      event: 'stalk moved',
+      sha: sha(TOTAL),
+      bean: slug(last.title),
+      actor: `@${ownerOf(last.agent)}`,
+      when: '3 days ago',
+      wall: '21s',
+      billed: 1,
+    },
+  );
+  return runs;
+}
+
+function subnav(view) {
+  return `<div class="am-subnav"><span class="am-seg"><span${view === 'actions' ? ' class="on"' : ''}>Actions<i>3</i></span><span${view === 'automations' ? ' class="on"' : ''}>Automations</span></span></div>`;
+}
+
+function actionsList(t) {
+  const runs = runsAt(t);
+  const latest = (name) => runs.find((r) => r.workflow === name)?.state ?? 'success';
+  const rail = `<aside class="am-rail"><h5>Workflows</h5><ul><li class="on"><span></span>All workflows</li>${[
+    'CI',
+    'Deploy',
+    'Nightly e2e',
+  ]
+    .map((name) => `<li>${mark(latest(name))}${name}</li>`)
+    .join(
+      '',
+    )}</ul><p><b>Compatibility:</b> 1 workflow has notes on what runs differently here.</p></aside>`;
+  const rows = runs
+    .slice(0, 5)
+    .map(
+      (r) =>
+        `<li class="am-run${r.fresh ? ' fresh' : ''}">${mark(r.state)}<b class="am-title">${esc(r.title)}</b><span class="am-meta"><b>${r.workflow} #${r.n}</b><span class="am-event">${r.event}</span><u>${r.sha}</u>${r.bean ? `<span class="pc-bean">bean/${r.bean}</span>` : ''}<span>${r.actor}</span></span><span class="am-times"><span>${r.when}</span><span>${r.wall}</span><span>${r.billed} min billed</span></span></li>`,
+    )
+    .join('');
+  return `<div class="am-layout">${rail}<section class="pg-box am-box"><div class="am-head"><h4>All workflows</h4><p>3 workflows in .github/workflows, run when the stalk moves, on schedule or by hand</p></div><div class="am-filters"><span>Status <i>any</i></span><span>Line <i>any</i></span></div><ol class="am-runs">${rows}</ol></section></div>`;
+}
+
+function runPage(t) {
+  const done = t >= AUTO_DONE;
+  const state = done ? 'success' : 'running';
+  const into = t - AUTO_OPEN;
+  const wall = secs(runSecs(Math.min(t, AUTO_DONE) - AUTO_START));
+  const testTime = '12s';
+  const deployTime = secs(runSecs(Math.min(t, AUTO_DONE) - AUTO_START) - 12);
+  let n = FIRST_LINE;
+  const steps = LOG_STEPS.map((step) => {
+    if (!step.lines)
+      return `<div class="am-step"><i class="am-fold">›</i>${mark('success', 14)}<span>${step.name}</span><time>${step.time}</time></div>`;
+    const shown = Math.max(
+      0,
+      Math.min(step.lines.length, Math.floor((into - step.from) / step.every) + 1),
+    );
+    const finished =
+      shown === step.lines.length && into >= step.from + step.every * step.lines.length;
+    const lines = step.lines
+      .slice(0, shown)
+      .map((text) => {
+        const html = esc(text).replace('***', '<mark>***</mark>');
+        return `<div class="am-line"><span>${n++}</span><code>${html}</code></div>`;
+      })
+      .join('');
+    if (shown === 0)
+      return `<div class="am-step wait">${mark('queued', 14)}<span>${step.name}</span><time></time></div>`;
+    return `<div class="am-step open"><i class="am-fold">⌄</i>${mark(finished ? 'success' : 'running', 14)}<span>${step.name}</span><time>${finished ? step.time : ''}</time></div>${lines}`;
+  }).join('');
+  const tail = done
+    ? `<div class="am-tail">${n - 1} lines</div>`
+    : '<div class="am-tail"><i class="am-caret"></i>following</div>';
+  return `<div class="am-crumb">← Deploy runs</div><header class="am-runhead">${mark(state, 20)}<h4>${esc(SAVED_CARTS.title)}</h4><span class="ps-btn">${done ? 'Re-run' : 'Cancel run'}</span><p><b>Deploy #19</b><span>stalk moved</span><u>${DEPLOY_SHA}</u><span class="pc-bean">bean/${slug(SAVED_CARTS.title)}</span><span>@${ownerOf(SAVED_CARTS.agent)}</span><span>just now</span></p></header><section class="pg-box am-runbox"><dl class="am-facts"><div><dt>Status</dt><dd>${STATE_WORDS[state]}</dd></div><div><dt>Wall time</dt><dd>${wall}</dd></div><div><dt>Minutes billed</dt><dd>${done ? 2 : 1}</dd></div><div><dt>Line</dt><dd>stalk</dd></div><div><dt>Workflow</dt><dd><u>deploy.yml</u></dd></div></dl><div class="am-jobs"><b>Jobs</b><span>2 jobs · runs-on ubuntu-latest</span></div><div class="am-graph"><span class="am-node" data-state="success">${mark('success')}<b>test</b><small>${testTime}</small></span><i class="am-stem" data-state="${done ? 'success' : 'running'}"></i><span class="am-node on" data-state="${state}">${mark(state)}<b>deploy</b><small>${deployTime}</small></span></div></section><section class="pg-box am-log"><div class="am-loghead">${mark(state)}<b>deploy</b><span>${STATE_WORDS[state]} ${deployTime}</span><span class="am-search">Search log</span><span class="am-dl">Download log</span></div><div class="am-logbox"><div>${steps}</div></div>${tail}</section>`;
+}
+
+const AUTOMATION_FILE = `# .beanstalk/automations/posthog-errors.yml
+name: PostHog errors → beans
+on:
+  schedule: [{ cron: "0 * * * *" }]
+  validation_red:
+permissions:
+  beans: write
+jobs:
+  triage:
+    steps:
+      - uses: beanstalk/agent@v1
+        with:
+          budget-usd: 0.50
+          mcp: [posthog]
+          outputs: open-bean, comment`;
+
+function automationsPage() {
+  return `<section class="pg-box am-coming"><div><h4>Automations <span class="am-soon">coming</span></h4><p>An automation is a workflow file in <code>.beanstalk/automations/</code>: the same <code>on:</code> triggers as Actions, plus Beanstalk events such as a red validation or a landed bean. Its steps open beans, comment and raise decision cards, or hand a task to an agent session with a budget.</p><p>They run in isolates that start in milliseconds, act as the repository’s own bot, and never see your secrets. Like workflows, they change by a bean that lands on the stalk.</p><p>Until then, <u>Actions</u> runs the workflows in <code>.github/workflows/</code>.</p></div><pre>${esc(AUTOMATION_FILE)}</pre></section>`;
+}
+
+function automations(f) {
+  const t = f.local;
+  if (t >= AUTO_SEGMENT)
+    return `<div class="pg-page am-page">${subnav('automations')}${automationsPage()}</div>`;
+  const body = t >= AUTO_OPEN ? runPage(t) : actionsList(t);
+  return `<div class="pg-page am-page">${subnav('actions')}${body}</div>`;
+}
+
+/* ---------- People and Settings, on an organization's internal repository ---------- */
+
+const ROLE_SUMMARY = {
+  read: 'Clone, fetch and view.',
+  write: 'Also push beans.',
+  maintain: 'Also answer decision cards and manage deploy tokens.',
+  owner: 'Everything, including settings and deletion.',
+};
+/** People: an invitation is accepted, then an agent session pushes. */
+const PEOPLE_ACCEPT = 2000;
+const PEOPLE_PUSH = 4000;
+
+function peoplePage(f) {
+  const accepted = f.local >= PEOPLE_ACCEPT;
+  const pushed = f.local >= PEOPLE_PUSH;
+  const roles = [
+    [ORG, 'owner', 'since 34 days ago', 'org'],
+    ['dana', 'maintain', 'since 30 days ago'],
+    ['ike', 'write', 'since 21 days ago'],
+    ['mira', 'write', 'since 9 days ago'],
+    ...(accepted ? [['erin', 'read', 'since just now', f.local < PEOPLE_PUSH ? 'fresh' : '']] : []),
+  ];
+  const sessions = [
+    ['coop', 'Claude Code', 'agent session', 'just now', '1 hour ago', 41],
+    [
+      'dana',
+      'Claude Code',
+      'agent over MCP',
+      'just now',
+      pushed ? 'just now' : '2 days ago',
+      pushed ? 18 : 17,
+    ],
+    ['ike', 'Codex', 'agent session', '2 hours ago', 'yesterday', 23],
+    ['mira', 'laptop git', 'personal token', 'yesterday', '2 days ago', 15],
+    ['mira', 'work laptop', 'SSH key', '3 days ago', '3 days ago', 4],
+    ...(accepted ? [['erin', 'laptop git', 'personal token', 'just now', '—', 0]] : []),
+    ['dana', 'ci', 'deploy token', 'yesterday', '—', 0],
+  ];
+  return `<div class="pg-page pg-narrow"><section class="pg-box pp-box"><h4>Who has access</h4><p>You are <b>owner</b>: everything, including settings and deletion. <u>Manage people in Settings</u>.</p><div class="pp-list">${roles
+    .map(
+      ([who, role, since, extra = '']) =>
+        `<div class="pp-person${extra === 'fresh' ? ' fresh' : ''}"><div><b>@${who}</b><span class="pp-role">${role}</span>${extra === 'org' ? '<span class="pp-org">organization</span>' : ''}<small>${ROLE_SUMMARY[role]}</small></div><span>${since}</span></div>`,
+    )
+    .join(
+      '',
+    )}</div></section><section class="pg-box pp-box"><h4>Sessions and tokens</h4><p>Every agent session, token and key acts for a person. These reached ${FULL} lately.</p><table><thead><tr><th>For</th><th>Through</th><th>Last read</th><th>Last push</th><th>Pushes</th></tr></thead><tbody>${sessions
+    .map(
+      ([who, through, via, read, push, n], i) =>
+        `<tr${i === 1 && pushed && f.local < PEOPLE_PUSH + 1600 ? ' class="fresh"' : ''}><td>@${who}</td><td>${through} <span>${via}</span></td><td>${read}</td><td>${push}</td><td>${n}</td></tr>`,
+    )
+    .join('')}</tbody></table></section></div>`;
+}
+
+/** Settings' sections, in the order of its left nav. */
+const SETTINGS_NAV = [
+  'General',
+  'Social image',
+  'Visibility',
+  'Branches',
+  'Checks',
+  'Collaborators',
+  'Secrets and variables',
+  'Deploy tokens',
+  'Archive',
+  'Transfer',
+  'Delete',
+];
+const SETTINGS_SCROLL = [1000, 8600];
+
+/** A labelled input on Settings, as text. */
+const settingsField = (label, value, hint = '') =>
+  `<label>${label}</label><span class="ps-input ps-wide">${value}</span>${hint ? `<small>${hint}</small>` : ''}`;
+/** A secret or variable row: name, tags or value, and who changed it when. */
+const entryRow = (name, meta, tag = '', cls = '') =>
+  `<div class="ps-secret${cls}"><div><code>${name}</code>${tag}<small>${meta}</small></div></div>`;
+
+function settingsPage(f) {
+  const orgTag = '<span class="ps-tag">org</span>';
+  const sections = `<section class="pg-box ps-box"><h4>General</h4><label>Name</label><div class="ps-name"><span>${ORG} /</span><span class="ps-input">${REPO}</span></div><small>Renaming changes the URL and the clone URL; the history stays.</small>${settingsField('Description', 'A small shop: catalog, cart, checkout and billing.')}${settingsField('Topics', 'shop, typescript, workers', 'Up to 20, separated by commas: lowercase letters, digits and hyphens.')}<span class="ps-btn primary">Save changes</span></section>
+      <section class="pg-box ps-box"><h4>Social image</h4><p>Shown when a link to this repository is shared. 1280 × 640 works best; PNG, JPEG, WebP or GIF up to 2 MB.</p><div class="ps-social"><i></i><b>${FULL}</b><span>A small shop: catalog, cart, checkout and billing.</span></div><span class="ps-btn">Upload</span> <span class="ps-btn danger">Remove social image</span></section>
+      <section class="pg-box ps-box"><h4>Visibility</h4><div class="ps-radio"><i></i><div><b>Private</b><small>Only the people invited to it, and the organization's owners and admins, can see it.</small></div></div><div class="ps-radio on"><i></i><div><b>Internal</b><small>Every member of ${ORG} can read and clone it; everyone else gets not found. Pushing still needs a role.</small></div></div><div class="ps-radio"><i></i><div><b>Public</b><small>Anyone, signed in or not, can read and clone it. Pushing still needs a role.</small></div></div><span class="ps-btn">Change visibility</span></section>
+      <section class="pg-box ps-box"><h4>Branches</h4><dl class="ps-facts"><dt>Default branch</dt><dd><code>main</code></dd><dt>Landing line</dt><dd><code>sprout</code></dd><dt>Pushable</dt><dd><code>bean/*</code></dd></dl></section>
+      <section class="pg-box ps-box"><div class="ps-head"><h4>Checks</h4><code>.beanstalk/checks.toml on stalk</code></div><dl class="ps-facts"><dt>Runs</dt><dd><code>node --test</code></dd><dt>Image</dt><dd>node (Node 25.8.1; nothing is installed at check time)</dd><dt>Time limit</dt><dd>120 s</dd><dt>Protected</dt><dd><code>.beanstalk/**</code></dd></dl></section>
+      <section class="pg-box ps-box"><h4>Collaborators</h4><p>Invite people by their Beanstalk handle. <b>read</b>: clone, fetch and view. <b>write</b>: also push beans. <b>maintain</b>: also answer decision cards and manage deploy tokens. Settings and deletion stay yours.</p><div class="ps-collab ps-invite"><span class="ps-input ps-sel">handle</span><span class="ps-input ps-sel">write</span><span class="ps-btn primary">Invite</span></div>${[
+        ['dana', 'maintain'],
+        ['ike', 'write'],
+        ['mira', 'write'],
+      ]
+        .map(
+          ([who, role]) =>
+            `<div class="ps-collab"><b>@${who}</b><span class="ps-input ps-sel">${role}</span><span class="ps-btn">Change role</span><span class="ps-btn danger">Remove</span></div>`,
+        )
+        .join(
+          '',
+        )}<div class="ps-collab"><b>@lena <span class="pp-role">invited</span></b><span>as write · until Oct 16, 2026</span><span class="ps-btn">Cancel invitation</span></div></section>
+      <section class="pg-box ps-box"><h4>Secrets and variables</h4><div class="ps-meter"><i style="width:23%"></i></div><p class="ps-meterline"><span><b>23 of 100 minutes</b> used in October</span><span>Each job stops after 60 minutes</span></p><h5>Secrets</h5><p>Workflows read them as <code>\${{ secrets.NAME }}</code>. A value is never shown again after you save it, is masked as <code>***</code> in logs, and never reaches agent sessions. A repository secret wins over an org secret of the same name.</p>${entryRow('CLOUDFLARE_API_TOKEN', 'Updated 3 days ago by @coop')}<h6>Org secrets from <u>@${ORG}</u></h6>${entryRow('SENTRY_AUTH_TOKEN', 'Updated 9 days ago by @coop', orgTag)}${entryRow('CLOUDFLARE_API_TOKEN', "Overridden by this repository's own · Updated 12 days ago by @coop", orgTag, ' over')}<h5>Variables</h5>${entryRow('CLOUDFLARE_ACCOUNT_ID', 'Updated 3 days ago by @dana', ` <code class="ps-val">${sha(7)}${sha(11)}</code>`)}<h6>Org variables from <u>@${ORG}</u></h6>${entryRow('REGION', 'Updated 12 days ago by @coop', `${orgTag} <code class="ps-val">eu-west</code>`)}</section>
+      <section class="pg-box ps-box"><h4>Deploy tokens</h4><p>For CI and other machines: one token opens this repository only, read or read and write, until it expires.</p><div class="ps-collab"><b>ci</b><span>read, expires in 61 days</span><span class="ps-btn danger">Revoke</span></div></section>
+      <section class="pg-box ps-box"><h4>Archive</h4><p>Make it read-only: it still clones and fetches, but pushes, decision answers and deploy tokens are refused, and it leaves Home.</p><span class="ps-btn">Archive ${FULL}</span></section>
+      <section class="pg-box ps-box"><h4>Transfer</h4><p>Move ${FULL} to you or to an organization where you are an owner or admin. Its history, beans, collaborators and deploy tokens move with it. The old address keeps working.</p><small>It is internal. Moved to a person it becomes private, because only organizations have internal repositories; moved to another organization it stays internal to that one.</small><div class="ps-collab ps-invite"><span class="ps-input ps-sel">Choose the new owner</span><span class="ps-btn">Transfer</span></div></section>
+      <section class="pg-box ps-box ps-danger"><h4>Delete this repository</h4><p>Deleting removes its history, beans and decisions for good. Agents connected to it lose access at once.</p><span class="ps-btn danger">Delete ${FULL}</span></section>`;
+  // The page scrolls down through its sections, as a person reading it would; the nav follows.
+  const [from, to] = SETTINGS_SCROLL;
+  const t = Math.min(1, Math.max(0, (f.local - from) / (to - from)));
+  const eased = t * t * (3 - 2 * t);
+  // Which section is current is read from the laid-out page (`markSettingsNav`).
+  const nav = SETTINGS_NAV.map(
+    (label) => `<span${label === 'Delete' ? ' class="danger"' : ''}>${label}</span>`,
+  ).join('');
+  return `<div class="pg-page ps-shell"><aside class="ps-aside"><div class="ps-who"><b>${REPO}</b><small>${FULL} · internal</small></div><span class="ps-group">Repository</span><nav class="ps-nav">${nav}</nav></aside><div class="ps-main"><div class="ps-scroll" style="--scroll:${eased.toFixed(3)}"><h3 class="ps-title">Settings</h3>${sections}</div></div></div>`;
+}
+
+/** Marks the nav item of the section at the top of Settings' view, as the app's nav does. */
+function markSettingsNav(page) {
+  const scroll = page.querySelector('.ps-scroll');
+  const items = [...page.querySelectorAll('.ps-nav span')];
+  if (!(scroll instanceof HTMLElement) || items.length === 0) return;
+  const sections = [...scroll.querySelectorAll('.ps-box')];
+  const moved = -new DOMMatrixReadOnly(getComputedStyle(scroll).transform).m42;
+  const atEnd = Number(scroll.style.getPropertyValue('--scroll')) >= 0.999;
+  let current = 0;
+  sections.forEach((section, i) => {
+    if (section instanceof HTMLElement && section.offsetTop <= moved + 80) current = i;
+  });
+  if (atEnd) current = items.length - 1;
+  items.forEach((item, i) => {
+    item.classList.toggle('on', i === current);
+    item.classList.toggle('past', i < current);
+  });
+}
+
 const PAGES = {
   changes: (f) => {
     const landedNow = f.local >= CHANGES_LAND;
@@ -866,112 +1329,15 @@ const PAGES = {
       landed: LANDINGS.length + Number(landedNow),
       parked: FELL.length,
     };
-    let rows = onLanded ? landedChanges(true) : openChanges(landedNow);
-    const shown = onLanded
-      ? upTo(f.local, rows.length, 220, CHANGES_SWITCH)
-      : upTo(f.local, rows.length, 320);
-    rows = rows.slice(0, shown);
+    const rows = onLanded ? landedChanges(true) : openChanges(landedNow);
     const pill = (id, name) =>
       `<span class="pc-pill${(id === 'landed') === onLanded && id !== 'parked' ? ' on' : ''}">${name}<span>${counts[id]}</span></span>`;
-    return `<div class="pg-page"><div class="pc-bar">${pill('open', 'Open')}${pill('landed', 'Landed')}${pill('parked', 'Parked')}<span class="pc-live"><i></i>Live</span></div><section class="pg-box pc-list">${rows.map((c, i) => changeRow(c, i, shown)).join('')}</section></div>`;
+    return `<div class="pg-page"><div class="pc-bar">${pill('open', 'Open')}${pill('landed', 'Landed')}${pill('parked', 'Parked')}<span class="pc-live"><i></i>Live</span></div><section class="pg-box pc-list">${rows.map(changeRow).join('')}</section></div>`;
   },
-  history: (f) => {
-    const validated = f.local >= 3600;
-    const pending = LANDINGS.slice(-2).toReversed();
-    const stalk = LANDINGS.toReversed().slice(validated ? 0 : 2, validated ? 5 : 5);
-    const commit = (l, glyph, cls, chip) =>
-      `<li class="ph-row${cls}">${GLYPH[glyph]}<div><b class="ph-title">${esc(l.title)}</b><div class="pc-meta"><b>@${ownerOf(l.agent)}</b><span class="pc-bean">bean/${slug(l.title)}</span><span>${ago(l.land)}</span></div></div><span class="ph-side"><span class="pc-state" data-state="${chip[0]}">${chip[1]}</span><code>${sha(l.n)}</code></span></li>`;
-    const shownPending = validated ? 0 : upTo(f.local, pending.length, 300);
-    const shownStalk = validated ? stalk.length : upTo(f.local, stalk.length, 260, 700);
-    const pendingBox = validated
-      ? ''
-      : `<section class="pg-box ph-pending"><header>${GLYPH.sprout}<h4>On the sprout, not validated yet</h4><span>2 commits</span></header><ol>${pending
-          .slice(0, shownPending)
-          .map((l, i) =>
-            commit(l, 'sprout', i === shownPending - 1 ? ' arrive' : '', [
-              'landed',
-              'landed, not validated yet',
-            ]),
-          )
-          .join('')}</ol></section>`;
-    const fresh = validated && f.local < 5400;
-    const stalkRowsHtml = stalk
-      .slice(0, shownStalk)
-      .map((l, i) => {
-        let cls = !validated && i === shownStalk - 1 ? ' arrive' : '';
-        if (fresh && i < 2) cls = ' arrive fresh';
-        return commit(l, 'stalk', cls, ['validated', 'validated']);
-      })
-      .join('');
-    const commits = OLDER + LANDINGS.length - (validated ? 0 : 2) + 1;
-    return `<div class="pg-page">${pendingBox}<section class="pg-box"><header>${GLYPH.stalk}<h4>The stalk</h4><span>${commits} commits</span></header><ol>${stalkRowsHtml}<li class="ph-row ph-more"><span></span><div>${commits - stalk.length - 1} more commits</div></li><li class="ph-row">${GLYPH.seed}<div><b class="ph-plain">Start from the TypeScript starter</b><div class="pc-meta"><span>Fertilized by coop</span><span>34 days ago</span></div></div><span class="ph-side"><code>${sha(0)}</code></span></li></ol></section></div>`;
-  },
-  people: (f) => {
-    const roles = [
-      ['coop', 'owner', 'Everything, including settings and deletion.', 'since 34 days ago'],
-      [
-        'dana',
-        'maintain',
-        'Also answer decision cards and manage deploy tokens.',
-        'since 30 days ago',
-      ],
-      ['ike', 'write', 'Also push beans.', 'since 21 days ago'],
-      ['mira', 'write', 'Also push beans.', 'since 9 days ago'],
-    ];
-    const pushed = f.local >= 4200;
-    const sessions = [
-      ['coop', 'a2 Claude Code', 'session', 'just now', '1 hour ago', 41],
-      [
-        'coop',
-        'a5 Claude Code',
-        'cloud session',
-        'just now',
-        pushed ? 'just now' : '2 days ago',
-        pushed ? 18 : 17,
-      ],
-      ['dana', 'a7 Codex', 'session', 'just now', 'yesterday', 23],
-      ['ike', 'a10 Codex', 'cloud session', '2 hours ago', '2 days ago', 15],
-      ['mira', 'ci', 'deploy token', 'yesterday', 'never', 0],
-    ];
-    const r = upTo(f.local, roles.length, 260);
-    const s = upTo(f.local, sessions.length, 260, 1300);
-    return `<div class="pg-page pg-narrow"><section class="pg-box pp-box"><h4>Who has access</h4><p>You are <b>owner</b>: everything, including settings and deletion. <u>Manage people in Settings</u>.</p><div class="pp-list">${roles
-      .slice(0, r)
-      .map(
-        ([who, role, what, since], i) =>
-          `<div class="pp-person${i === r - 1 ? ' arrive' : ''}"><div><b>@${who}</b><span class="pp-role">${role}</span><small>${what}</small></div><span>${since}</span></div>`,
-      )
-      .join(
-        '',
-      )}</div></section><section class="pg-box pp-box"><h4>Sessions and tokens</h4><p>Every agent session, token and key acts for a person. These reached coop/beanstalk-shop lately.</p><table><thead><tr><th>For</th><th>Through</th><th>Last read</th><th>Last push</th><th>Pushes</th></tr></thead><tbody>${sessions
-      .slice(0, s)
-      .map(
-        ([who, through, kind, read, push, n], i) =>
-          `<tr class="${i === s - 1 ? 'arrive' : ''}${i === 1 && pushed && f.local < 5600 ? ' flash' : ''}"><td>@${who}</td><td>${through} <span>${kind}</span></td><td>${read}</td><td>${push}</td><td>${n}</td></tr>`,
-      )
-      .join('')}</tbody></table></section></div>`;
-  },
-  settings: (f) => {
-    const sections = `<section class="pg-box ps-box"><h4>General</h4><label>Name</label><div class="ps-name"><span>coop /</span><span class="ps-input">beanstalk-shop</span></div><small>Renaming changes the URL and the clone URL; the history stays.</small><label>Description</label><span class="ps-input ps-wide">A small shop: catalog, cart, checkout and billing.</span><span class="ps-btn primary">Save changes</span></section>
-      <section class="pg-box ps-box"><h4>Visibility</h4><div class="ps-radio on"><i></i><div><b>Private</b><small>Only you and the people you invite can see it.</small></div></div><div class="ps-radio"><i></i><div><b>Public</b><small>Anyone, signed in or not, can read and clone it. Pushing still needs a role.</small></div></div><span class="ps-btn">Change visibility</span></section>
-      <section class="pg-box ps-box"><div class="ps-head"><h4>Checks</h4><code>.beanstalk/checks.toml on stalk</code></div><dl class="ps-facts"><dt>Runs</dt><dd><code>node --test</code></dd><dt>Image</dt><dd>node (Node 25.8.1; nothing is installed at check time)</dd><dt>Time limit</dt><dd>120 s</dd><dt>Environment</dt><dd><code>none</code></dd><dt>Protected</dt><dd><code>.beanstalk/**</code></dd></dl><small>▸ The file</small></section>
-      <section class="pg-box ps-box"><h4>Collaborators</h4><p>Invite people by their Beanstalk handle. <b>read</b>: clone, fetch and view. <b>write</b>: also push beans. <b>maintain</b>: also answer decision cards and manage deploy tokens.</p>${[
-        ['dana', 'maintain'],
-        ['ike', 'write'],
-        ['mira', 'write'],
-      ]
-        .map(
-          ([who, role]) =>
-            `<div class="ps-collab"><b>@${who}</b><span class="ps-input ps-sel">${role}</span><span class="ps-btn">Change role</span><span class="ps-btn danger">Remove</span></div>`,
-        )
-        .join('')}</section>
-      <section class="pg-box ps-box"><h4>Deploy tokens</h4><p>For CI and other machines: one token opens this repository only, read or read and write, until it expires.</p><div class="ps-collab"><b>ci</b><span>read, expires in 61 days</span><span class="ps-btn danger">Revoke</span></div></section>
-      <section class="pg-box ps-box ps-danger"><h4>Delete this repository</h4><p>Deleting removes its history, beans and decisions for good. Agents connected to it lose access at once.</p><span class="ps-btn danger">Delete coop/beanstalk-shop</span></section>`;
-    // The page scrolls down through its sections, as a person reading it would.
-    const t = Math.min(1, Math.max(0, (f.local - 1200) / 5600));
-    const eased = t * t * (3 - 2 * t);
-    return `<div class="pg-page pg-narrow ps-scroll" style="--scroll:${eased.toFixed(3)}">${sections}</div>`;
-  },
+  history: historyPage,
+  automations,
+  people: peoplePage,
+  settings: settingsPage,
 };
 
 /* ---------- Drawing ---------- */
@@ -1031,13 +1397,12 @@ function setupAppDemo() {
       node.dataset.html = html;
     }
   };
-  let instant = false;
   let prevKey = '';
   let prevTab = '';
 
   const draw = (tab, local) => {
     const f = frameAt(tab, local);
-    const key = `${tab}|${f.show}|${f.typed.length}|${Math.floor(f.h * 4)}|${Math.floor(Math.min(f.shownFor, 1e7) / 100)}|${Math.floor(local / 50)}`;
+    const key = `${tab}|${f.show}|${f.typed.length}|${Math.floor(f.h * 4)}|${Math.floor(local / 50)}`;
     if (key === prevKey) return;
     prevKey = key;
     const view = TABS.find((t) => t.id === tab)?.view ?? 'explorer';
@@ -1063,6 +1428,7 @@ function setupAppDemo() {
     if (openEl) openEl.textContent = String(openCount(tab, local));
     if (view === 'page') {
       setHtml(el.page, PAGES[tab](f));
+      if (tab === 'settings') markSettingsNav(el.page);
       return;
     }
     el.typed.textContent = f.typed;
@@ -1077,12 +1443,11 @@ function setupAppDemo() {
     reconcile(list, rows);
     drawLinks(list, overlay, links);
     el.rows.classList.toggle('validating', Boolean(f.fresh) && f.h - f.fresh.at < 0.3);
-    // Asked about a bean further down the stalk: bring it into view.
+    // Asked about a bean further down the stalk: it is in view with the answer, not scrolled to.
     const focusN = { red: CULPRIT.n, journey: JOURNEY.n }[f.show] ?? null;
     const target = focusN === null ? null : list.querySelector(`[data-key="l-${focusN}"]`);
     const top = target ? Math.max(0, target.offsetTop - 120) : 0;
-    if (Math.abs(el.rows.scrollTop - top) > 2)
-      el.rows.scrollTo({ top, behavior: instant ? 'instant' : 'smooth' });
+    if (Math.abs(el.rows.scrollTop - top) > 2) el.rows.scrollTo({ top, behavior: 'instant' });
     for (const [id, panel] of Object.entries(panels)) {
       const on = id === f.show;
       panel.classList.toggle('on', on);
@@ -1097,15 +1462,17 @@ function setupAppDemo() {
   const frozenTab = TABS.find((tab) => tab.id === query.get('tab'));
   const isFrozen = Boolean(frozenTab) || (Number.isFinite(frozen) && frozen > 0);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  /** A tab's finished frame: the Code view's is today after the replay. */
-  const endOf = (id) =>
-    id === 'code' ? REPLAY_END : (TABS.find((tab) => tab.id === id)?.ms ?? 1) - 1;
+  /** A tab's finished frame: the Code view's is today after the replay, Automations' its finished run. */
+  const endOf = (id) => {
+    if (id === 'code') return REPLAY_END;
+    const tab = TABS.find((candidate) => candidate.id === id);
+    return tab?.rest ?? (tab?.ms ?? 1) - 1;
+  };
 
   /** The tour: the current tab, the time into it, and until when a click pins it. */
   const state = { index: 0, local: 0, pinnedUntil: 0 };
 
   if (isFrozen) {
-    instant = true;
     if (frozenTab)
       draw(frozenTab.id, Number.isFinite(frozen) && frozen > 0 ? frozen : endOf(frozenTab.id));
     else {
@@ -1113,7 +1480,6 @@ function setupAppDemo() {
       draw(at.tab, at.local);
     }
   } else if (reduced.matches) {
-    instant = true;
     draw('code', endOf('code'));
   } else draw('code', 0);
 
@@ -1125,7 +1491,6 @@ function setupAppDemo() {
     state.pinnedUntil = performance.now() + IDLE_MS;
     prevKey = '';
     if (reduced.matches || isFrozen) {
-      instant = true;
       draw(id, endOf(id));
     } else draw(id, 0);
   };
@@ -1175,7 +1540,6 @@ function setupAppDemo() {
       raf = 0;
     }
     if (reduced.matches) {
-      instant = true;
       draw(TABS[state.index].id, endOf(TABS[state.index].id));
     }
   };
