@@ -825,6 +825,19 @@ The owner's request: create or edit an automation in a visual builder "like curs
 
 **Tests.** Web (vitest): the YAML round trip byte for byte (one field changed, comments and flow lists kept, a 4-space file, `on: <name>` normalised, syntax errors with lines, every template valid by the shared validator); the merge (disjoint fields, same field agreed, same-field conflict resolved by pick and by edit, each trigger its own field, file deleted on theirs, an unparseable side, no base). Gateway: the commit builder against real git's ids (edit, add, delete with directory removal, a first file); end to end on Miniflare (`test/automation-editor.test.ts`): open, save a new automation as a bean that lands and is indexed, invalid content refused with its line, stale with theirs and then a merged save that lands, delete, a reader refused, a writer allowed but not to test-run, maintain needed when `checks.toml` protects `.beanstalk/**`, and a test run that saves nothing and writes no memory. The fake Artifacts now reads real packs on bean pushes (`test/fakes/fake-pack.js`) and moves a line on the runner's update-ref when the line is still where the engine thinks.
 
+**Staging (2026-10-10).** Gateway `46c2f892`, web `ba5b9141` on the `staging` stack, smoked in headless Chromium with a throwaway passkey account and a repository from the TypeScript starter (deleted afterwards; both answer 404):
+
+| Step | Result |
+|---|---|
+| New automation → Fix red beans → `validation_red` chip, a prompt line → Save | the YAML kept the template's comments; `bean/automation-fix-red-c63e19` checked and landed; listed on the tab |
+| Edit → cost cap 0.75 → Save | landed (`automation-fix-red-ae67d9`) |
+| Editor open; a schedule change pushed with git (`git push -o wait`) and landed meanwhile; the prompt changed in the editor → Save | "A new version was saved while you edited. Merged with @<handle>'s change to the schedule. Your change to the prompt is kept"; Save merged → landed with both changes and every comment |
+| Editor open; the cost cap set to 1 with git meanwhile; set to 2 in the editor → Save | the conflict view: "the cost cap", theirs 1, yours 2; picking yours → landed with 2 |
+| Delete → confirm | the bean removing the file landed; the tab shows no automation |
+| Desktop and 390 px phone, night and day | no sideways scroll; on a phone the form and YAML are tabs |
+
+Found on the way: a landed commit is the runner's squash, so "who changed it" named `beanstalk-runner`; the gateway now names the pusher of the bean in the commit's `Task:` trailer.
+
 ### 7.11 Left
 
 - **Beanstalk MCP tools for the agent** (decision cards, comments, bean status) through `bs.internal` with a scoped session token; today the agent has git and the filesystem only. People's agents have one read tool, `automation_list` (automations, problems, memory refs and the 20 newest runs, through `AgentReposRpc.agentAutomations`); run logs over MCP are not built.
