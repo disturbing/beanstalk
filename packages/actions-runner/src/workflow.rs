@@ -14,6 +14,7 @@ use regex::{Captures, Regex};
 use yaml_rust2::yaml::Hash;
 use yaml_rust2::{Yaml, YamlEmitter, YamlLoader};
 
+use crate::deps::plan::{self as deps_plan, DepsPlan};
 use crate::error::{Error, Result};
 use crate::mask::Masker;
 use crate::wire::NeededJob;
@@ -28,6 +29,8 @@ pub struct JobWorkflow {
     pub docker_features: Vec<String>,
     /// The `owner/repo` of every remote action the job's steps use (`actions/checkout`, ...).
     pub remote_actions: Vec<String>,
+    /// The dependency cache steps added to the job, if it asked for a cache.
+    pub deps: Option<DepsPlan>,
 }
 
 /// Job outputs resolved from the step outputs, and the names that could not be.
@@ -63,6 +66,21 @@ pub fn isolate_job(
     job_name: &str,
     needs: &BTreeMap<String, NeededJob>,
 ) -> Result<JobWorkflow> {
+    isolate_job_with_cache(source, job_name, needs, None)
+}
+
+/// [`isolate_job`], plus the dependency cache's steps (doc 27) when `tmpfs_max_bytes` is set
+/// and the job asks for a cache.
+///
+/// # Errors
+///
+/// [`Error::Workflow`] when the file does not parse, has no `jobs:` or no such job.
+pub fn isolate_job_with_cache(
+    source: &str,
+    job_name: &str,
+    needs: &BTreeMap<String, NeededJob>,
+    tmpfs_max_bytes: Option<u64>,
+) -> Result<JobWorkflow> {
     let documents = YamlLoader::load_from_str(source)
         .map_err(|error| Error::Workflow(format!("the workflow does not parse: {error}")))?;
     let Some(Yaml::Hash(root)) = documents.into_iter().next() else {
@@ -79,6 +97,13 @@ pub fn isolate_job(
     let docker_features = docker_features(job);
     let remote_actions = remote_actions(job);
     let job = substitute_needs_in(&Yaml::Hash(without_needs(job)), needs, None);
+    let (job, deps) = match (tmpfs_max_bytes, job.as_hash()) {
+        (Some(bytes), Some(hash)) => match deps_plan::apply(hash, bytes) {
+            Some((rewritten, plan)) => (Yaml::Hash(rewritten), Some(plan)),
+            None => (job, None),
+        },
+        _ => (job, None),
+    };
     let output_templates = output_templates(&job);
     let yaml = emit(&with_only_job(&root, job_name, job))?;
     Ok(JobWorkflow {
@@ -86,6 +111,7 @@ pub fn isolate_job(
         output_templates,
         docker_features,
         remote_actions,
+        deps,
     })
 }
 

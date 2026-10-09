@@ -22,14 +22,37 @@
     // Must equal containers[].max_instances; the gateway's RunnerCapacity caps Actions leases
     // at its own ACTIONS_MAX_INSTANCES, which must not exceed it.
     "ACTIONS_MAX_INSTANCES": "16",
+    // The dependency cache (docs/claude-opus/27-ci-dependency-cache.md): node_modules restored
+    // into a tmpfs from chunked R2 snapshots. "off" stops adding the cache steps to jobs.
+    "DEPS_CACHE_MODE": "on",
+    // Compressed snapshot cap (4 GiB). A repository or org variable
+    // BEANSTALK_DEPS_SNAPSHOT_MAX (e.g. "2GiB") changes it, up to DEPS_REPO_MAX_BYTES.
+    "DEPS_SNAPSHOT_MAX_BYTES": "4294967296",
+    // The node_modules tmpfs: half of standard-4's 12 GiB. Tied to the instance type: a larger
+    // instance raises it here (or in an environment override), no code change.
+    "DEPS_TMPFS_MAX_BYTES": "6442450944",
+    // Per repository: all snapshots together (10 GB), least recently restored evicted first.
+    "DEPS_REPO_MAX_BYTES": "10000000000",
+    // A snapshot nobody restored for this many days is deleted by the daily sweep.
+    "DEPS_IDLE_DAYS": "7",
   },
   // ADMIN_TOKEN guards the admin routes (a test stack starts jobs with them).
   "secrets": { "required": ["ADMIN_TOKEN"] },
+  // Workers Cache only on DepsChunkCache: the immutable dependency chunks in front of R2
+  // (tiered; a hit runs no code). Cached responses survive executor deploys.
+  "cache": { "enabled": false, "cross_version_cache": true },
   "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "DepsChunkCache": { "type": "worker", "cache": { "enabled": true } },
     "ActionsJobContainer": { "type": "durable-object", "storage": "sqlite" },
+    // One per repository: the dependency snapshots' index, limits and daily sweep.
+    "DepsCacheIndex": { "type": "durable-object", "storage": "sqlite" },
   },
   "durable_objects": {
-    "bindings": [{ "name": "ACTIONS_JOBS_DO", "class_name": "ActionsJobContainer" }],
+    "bindings": [
+      { "name": "ACTIONS_JOBS_DO", "class_name": "ActionsJobContainer" },
+      { "name": "DEPS_INDEX", "class_name": "DepsCacheIndex" },
+    ],
   },
   "containers": [
     {
@@ -47,5 +70,9 @@
     { "binding": "ACTIONS_JOBS", "service": "beanstalk-gateway", "entrypoint": "ActionsJobs" },
   ],
   // Standalone mode only: where log batches go without the control plane.
-  "r2_buckets": [{ "binding": "ACTIONS_LOGS", "bucket_name": "beanstalk-actions-logs" }],
+  "r2_buckets": [
+    { "binding": "ACTIONS_LOGS", "bucket_name": "beanstalk-actions-logs" },
+    // Dependency snapshots: deps/<repository id>/{chunks,manifests}/..., per repository only.
+    { "binding": "DEPS_CACHE", "bucket_name": "beanstalk-deps-cache" },
+  ],
 }

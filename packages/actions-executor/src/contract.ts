@@ -33,7 +33,6 @@ export type JobConclusion = JobResult['conclusion'];
 
 const Scalar = z.union([z.string(), z.number(), z.boolean()]);
 
-/** `JobSpec`, validated at the RPC boundary (the shape of lane 1's type). */
 /** `JobSpec`, validated at the RPC boundary. */
 export const JobSpecSchema = z.object({
   jobId: ActionsJobId,
@@ -79,6 +78,7 @@ export const JobSpecSchema = z.object({
   timeoutMinutes: z.number().int().min(1).max(360),
   image: z.string(),
   report: z.object({ token: z.string().min(1) }),
+  depsCache: z.object({ scope: z.string().min(1).max(255), canSave: z.boolean() }).optional(),
 });
 /** A `JobSpec` from an RPC argument, or why it is not one. */
 export function parseJobSpec(

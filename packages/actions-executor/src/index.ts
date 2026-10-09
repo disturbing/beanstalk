@@ -8,6 +8,8 @@ import { cancelJob, startJob } from './executor';
 import { gunzip } from './sink/job-sink';
 
 export { ActionsJobContainer } from './job/job-container';
+export { DepsCacheIndex } from './deps/index-do';
+export { DepsChunkCache } from './deps/chunk-cache';
 // Required by @cloudflare/containers for outbound interception (executor.internal, bs.internal).
 export { ContainerProxy } from '@cloudflare/containers';
 

@@ -69,6 +69,20 @@ pub struct JobRequest {
     pub timeout_seconds: u64,
     /// `runs-on` labels that run on this image (`ubuntu-latest`, `ubuntu-24.04`, ...).
     pub runner_labels: Vec<String>,
+    /// The dependency cache (docs/claude-opus/27): absent when the executor has it off.
+    #[serde(default)]
+    pub deps_cache: Option<DepsCacheGrant>,
+}
+
+/// What the job's steps need to reach the dependency cache at `http://deps.internal`.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DepsCacheGrant {
+    /// This job's bearer for `deps.internal`; it reaches the steps only as the secret
+    /// `BEANSTALK_DEPS_TOKEN` and is masked like any secret.
+    pub token: Secret,
+    /// The memory budget of the `node_modules` tmpfs (`DEPS_TMPFS_MAX_BYTES`).
+    pub tmpfs_max_bytes: u64,
 }
 
 /// The `github` context act cannot work out without a local clone.

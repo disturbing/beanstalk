@@ -10,6 +10,7 @@
  * `infrastructure_failure` with the reason, never silence.
  */
 import type { JobConclusion, JobHandle, JobResult, JobSpec, StepView } from '../contract';
+import type { DepsGrant } from '../deps/grant';
 import type { Logger } from '../log';
 import type { JobSink } from '../sink/job-sink';
 import type { RunnerBatch, RunnerResult } from './runner-wire';
@@ -57,7 +58,12 @@ export type JobRecord = {
   readonly reportAttempts: number;
   /** Whether the container was confirmed gone after the destroy (null: never started). */
   readonly containerGone: boolean | null;
+  /** The dependency cache grant and the steps' bearer for it (null: the cache is off). */
+  readonly deps?: JobDeps | null;
 };
+
+/** The job's dependency cache access (doc 27): its grant and the bearer its steps present. */
+export type JobDeps = { readonly token: string; readonly grant: DepsGrant };
 
 export type StartOutcome =
   | { readonly kind: 'started' }
@@ -84,6 +90,8 @@ export type LifecyclePorts = {
   readonly log: Logger;
   /** The Durable Object's id, given back as the handle's `executorRef`. */
   readonly executorRef: string;
+  /** The job's dependency cache access, decided once when it is accepted. */
+  readonly deps?: (spec: JobSpec) => JobDeps | null;
 };
 
 /** What `fromRunner` answers the container (its uplink retries anything but a 2xx). */
@@ -122,6 +130,7 @@ export class JobLifecycle {
       reported: false,
       reportAttempts: 0,
       containerGone: null,
+      deps: this.#ports.deps?.(spec) ?? null,
     };
     await this.#ports.save(record);
     await this.#ports.schedule(0, 'launch');
@@ -148,7 +157,7 @@ export class JobLifecycle {
     const started = await this.#start(record);
     if (started === null) return;
     const response = await this.#ports.container
-      .post('/v1/job', jobRequestOf(record.spec, secrets))
+      .post('/v1/job', jobRequestOf(record.spec, secrets, record.deps ?? null))
       .catch((error: unknown) => new Response(message(error), { status: 599 }));
     if (!response.ok) {
       const detail = (await response.text()).slice(0, 300);

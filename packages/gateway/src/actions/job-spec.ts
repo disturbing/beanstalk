@@ -72,5 +72,6 @@ export function jobSpecOf(input: {
     timeoutMinutes: input.job.timeoutMinutes,
     image: input.job.image ?? 'ubuntu-24.04',
     report: { token: input.tokens.report },
+    depsCache: { scope: STALK_REF_NAME, canSave: request.origin.kind === 'stalk' },
   };
 }

@@ -15,6 +15,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
+use crate::deps::plan::{TOKEN_SECRET, TOOL_DIR};
 use crate::error::{Error, Result};
 use crate::wire::JobRequest;
 
@@ -144,6 +145,9 @@ pub fn secret_file(request: &JobRequest) -> String {
         .map(|(name, value)| (name.as_str(), value.expose()))
         .collect();
     entries.insert("GITHUB_TOKEN", request.token.expose());
+    if let Some(grant) = &request.deps_cache {
+        entries.insert(TOKEN_SECRET, grant.token.expose());
+    }
     dotenv(entries)
 }
 
@@ -185,6 +189,18 @@ pub struct ActPlan {
     /// `GITHUB_SERVER_URL` (Beanstalk): one `--replace-ghe-action-with-github-com` each, since
     /// act does not split a comma list. Empty when the server is github.com itself.
     pub github_actions: Vec<String>,
+    /// Docker mode with the dependency cache: `--container-options` for the job container.
+    pub container_options: Option<String>,
+}
+
+/// The job container's options for the dependency cache in Docker mode: `node_modules` is a
+/// tmpfs inside the job container itself (never the volume on the container disk), and the
+/// cache tool and its zstd are mounted read-only from the image.
+pub fn deps_container_options(node_modules: &Path, tmpfs_max_bytes: u64) -> String {
+    format!(
+        "--tmpfs {}:rw,exec,nosuid,nodev,size={tmpfs_max_bytes} -v {TOOL_DIR}:{TOOL_DIR}:ro",
+        node_modules.display()
+    )
 }
 
 /// Actions baked into the image (Dockerfile); always taken from github.com.
@@ -251,6 +267,10 @@ pub fn invocation(
     }
     args.push("--container-daemon-socket".into());
     args.push(socket.into());
+    if let (RunMode::Docker { .. }, Some(options)) = (&plan.mode, &plan.container_options) {
+        args.push("--container-options".into());
+        args.push(options.clone().into());
+    }
     for action in &plan.github_actions {
         args.push("--replace-ghe-action-with-github-com".into());
         args.push(action.clone().into());
@@ -369,6 +389,7 @@ mod tests {
             needs: BTreeMap::new(),
             timeout_seconds: 3600,
             runner_labels: vec!["ubuntu-latest".into(), "ubuntu-24.04".into()],
+            deps_cache: None,
         }
     }
 
@@ -376,6 +397,7 @@ mod tests {
         ActPlan {
             mode: RunMode::Host,
             github_actions: vec!["actions/checkout".into(), "actions/setup-node".into()],
+            container_options: None,
         }
     }
 
@@ -411,6 +433,10 @@ mod tests {
                 socket: "/var/run/docker.sock".into(),
             },
             github_actions: Vec::new(),
+            container_options: Some(deps_container_options(
+                Path::new("/w/workspace/node_modules"),
+                1024,
+            )),
         };
         let invocation = invocation(&request(), &files, Path::new("act"), &plan);
         let args = args_of(&invocation);
@@ -423,6 +449,10 @@ mod tests {
                 .any(|pair| pair == ["--container-daemon-socket", "unix:///var/run/docker.sock"])
         );
         assert!(invocation.env.iter().any(|(name, _)| name == "DOCKER_HOST"));
+        assert!(args.windows(2).any(|pair| {
+            pair[0] == "--container-options"
+                && pair[1].starts_with("--tmpfs /w/workspace/node_modules:rw,exec")
+        }));
     }
 
     fn args_of(invocation: &Invocation) -> Vec<String> {

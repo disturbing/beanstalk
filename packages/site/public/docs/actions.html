@@ -167,8 +167,10 @@
               Cloudflare Container that is destroyed when the job ends; logs stream live to the
               Actions tab; secrets are masked; and jobs with <code>id-token: write</code> get OIDC
               tokens. A small Node CI job (checkout, setup-node, <code>npm test</code>) took about
-              20 s end to end on the hosted service. Not yet: caches and artifacts that outlive a
-              job, the GitHub REST API through <code>GITHUB_TOKEN</code>, and runners other than
+              20 s end to end on the hosted service. Rolling out: the
+              <a href="#deps-cache">dependency cache</a>, which restores <code>node_modules</code>
+              into memory between runs. Not yet: other caches and artifacts that outlive a job, the
+              GitHub REST API through <code>GITHUB_TOKEN</code>, and runners other than
               Ubuntu; <code>services:</code> and <code>container:</code> are not yet verified on the
               hosted service.
             </p>
@@ -241,8 +243,12 @@
               <code>actions/checkout</code> works against Beanstalk.
             </li>
             <li>
-              <strong>Runs differently at first:</strong> cache and artifacts last one job, not
-              across jobs; <code>environment:</code> approvals are ignored and the report says so.
+              <strong>Runs differently at first:</strong> <code>actions/cache</code> of
+              <code>node_modules</code> or a package-manager store, and
+              <code>actions/setup-node</code> with <code>cache:</code>, become the
+              <a href="#deps-cache">dependency cache</a> (rolling out); other caches and artifacts
+              last one job, not across jobs; <code>environment:</code> approvals are ignored and
+              the report says so.
             </li>
             <li>
               <strong>Not at first:</strong> Docker actions, <code>container:</code> and
@@ -313,6 +319,56 @@
             trust policy matches it.
           </p>
 
+          <h2 id="deps-cache">Dependency cache <span class="pill rolling">rolling out</span></h2>
+          <p>
+            Each run restores <code>node_modules</code> from the repository's last snapshot into
+            memory, so installs start from a full tree instead of the registry. Verified on a test
+            stack, not yet on the hosted service. On fastify (706 packages, 146 MB) an exact hit
+            had dependencies ready in about 1.4 s against about 6–11 s for <code>npm ci</code>; on
+            a Next.js-class app (533 MB), see the measured table in
+            <a href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md">the design write-up</a>.
+          </p>
+          <ul>
+            <li>
+              <strong>Automatic</strong> for workflows that already ask for a cache:
+              <code>actions/setup-node</code> with <code>cache: npm</code>, <code>pnpm</code> or
+              <code>yarn</code> (its <code>cache-dependency-path</code> names the directory), and
+              <code>actions/cache</code> whose every <code>path</code> is
+              <code>node_modules</code> or a package-manager store (it keeps its
+              <code>id</code>, and <code>cache-hit</code> is <code>true</code> on an exact hit).
+              Nothing to change in the file.
+            </li>
+            <li>
+              <strong>Opt-in</strong> for other workflows: a step
+              <code>uses: beanstalk/deps-cache@v1</code> after checkout, with
+              <code>working-directory</code> if the lockfile is not at the root.
+            </li>
+            <li>
+              <code>node_modules</code> lives in memory (a tmpfs), never on the container disk.
+              The snapshot key is the lockfile plus the install directory, platform, Node and
+              package-manager versions and the install flags; another lockfile restores the
+              closest snapshot and the install brings it up to date.
+            </li>
+            <li>
+              With <code>npm ci</code>: after an exact hit the tree is exactly what
+              <code>npm ci</code> would build, so <code>npm ci</code> keeps it and only runs your
+              package's own install scripts. After a lockfile change <code>npm ci</code> runs as
+              usual (it deletes <code>node_modules</code> first), and the save uploads only the
+              chunks that changed. <code>pnpm install</code>, <code>yarn install</code> and
+              <code>npm install</code> update a restored tree in place.
+            </li>
+            <li>
+              Only runs of the stalk save snapshots. Pre-land, dispatch and schedule runs read
+              them and never write, so a bean that has not landed cannot change what a later stalk
+              run installs. Snapshots belong to one repository and are never shared.
+            </li>
+            <li>
+              Turn it off with the repository or org variable
+              <code>BEANSTALK_DEPS_CACHE=off</code>; change the snapshot cap with
+              <code>BEANSTALK_DEPS_SNAPSHOT_MAX</code> (for example <code>2GiB</code>).
+            </li>
+          </ul>
+
           <h2 id="limits">Limits on the managed beta</h2>
           <div class="tbl">
             <table>
@@ -333,12 +389,25 @@
                   <td>Log retention</td>
                   <td class="num">30 days</td>
                 </tr>
+                <tr>
+                  <td>Dependency snapshot (compressed)</td>
+                  <td class="num">4 GiB, a repository or org setting</td>
+                </tr>
+                <tr>
+                  <td>Dependency snapshots per repository</td>
+                  <td class="num">10 GB, unused for 7 days are deleted</td>
+                </tr>
+                <tr>
+                  <td>Memory for <code>node_modules</code></td>
+                  <td class="num">6 GiB of the job's 12 GiB</td>
+                </tr>
               </tbody>
             </table>
           </div>
           <p>
-            A repository that has used its minutes gets a clear "monthly minutes used" refusal,
-            never a red run. When you <a href="self-hosting.html">self-host</a>, you set every one
+            Minutes count only while a job runs. A container kept warm for the next job of the
+            same repository (coming soon) is not counted. A repository that has used its minutes
+            gets a clear "monthly minutes used" refusal, never a red run. When you <a href="self-hosting.html">self-host</a>, you set every one
             of these.
           </p>
 
@@ -362,6 +431,13 @@
                   href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-05-github-actions-on-cloudflare.md"
                   >docs/claude-05-github-actions-on-cloudflare.md</a
                 >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+                  >docs/claude-opus/27-ci-dependency-cache.md</a
+                >
+                (the dependency cache: design, spike and measured runs)
               </li>
             </ul>
           </section>

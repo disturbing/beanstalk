@@ -10,6 +10,7 @@
 pub mod act;
 pub mod app;
 pub mod config;
+pub mod deps;
 pub mod docker;
 pub mod error;
 pub mod git;

@@ -6,6 +6,7 @@
 import { z } from 'zod';
 
 import type { JobSpec } from '../contract';
+import type { JobDeps } from './lifecycle';
 
 export const ACTIONS_RUNNER_API_VERSION = 1;
 /** The virtual host the runner posts its batches and result to. */
@@ -83,7 +84,11 @@ export const RunnerStatusSchema = z.discriminatedUnion('state', [
 ]);
 
 /** The job request for the runner: the spec, the secret values, and Beanstalk's own hosts. */
-export function jobRequestOf(spec: JobSpec, secrets: Readonly<Record<string, string>>): unknown {
+export function jobRequestOf(
+  spec: JobSpec,
+  secrets: Readonly<Record<string, string>>,
+  deps: JobDeps | null = null,
+): unknown {
   const labels = [...new Set([...RUNNER_LABELS, spec.image])];
   return {
     jobId: spec.jobId,
@@ -117,6 +122,9 @@ export function jobRequestOf(spec: JobSpec, secrets: Readonly<Record<string, str
     ),
     timeoutSeconds: spec.timeoutMinutes * 60,
     runnerLabels: labels,
+    ...(deps === null
+      ? {}
+      : { depsCache: { token: deps.token, tmpfsMaxBytes: deps.grant.tmpfsMaxBytes } }),
   };
 }
 

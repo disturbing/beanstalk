@@ -12,6 +12,9 @@ import { Container } from '@cloudflare/containers';
 import type { OutboundHandlerContext, StopParams } from '@cloudflare/containers';
 
 import { readConfig } from '../config';
+import { grantFor, newDepsToken, readDepsSettings, sameToken } from '../deps/grant';
+import type { DepsGrant } from '../deps/grant';
+import { DEPS_HOST, serveDeps } from '../deps/service';
 import type { JobHandle, JobSpec } from '../contract';
 import { createLogger } from '../log';
 import type { Logger } from '../log';
@@ -44,6 +47,22 @@ async function answerExecutor(
   });
 }
 
+/**
+ * A step's request to `deps.internal`: the bearer must be this job's, and the job must be
+ * running; the grant (repository, scopes) comes from the job's record, never the request.
+ */
+async function answerDeps(
+  request: Request,
+  env: Env,
+  ctx: OutboundHandlerContext,
+): Promise<Response> {
+  const bearer = /^Bearer (.+)$/.exec(request.headers.get('authorization') ?? '')?.[1] ?? '';
+  const stub = env.ACTIONS_JOBS_DO.get(env.ACTIONS_JOBS_DO.idFromString(ctx.containerId));
+  const grant = bearer === '' ? null : await stub.depsGrant(bearer);
+  if (grant === null) return Response.json({ error: 'not this job' }, { status: 403 });
+  return serveDeps(request, env, grant);
+}
+
 /** What the admin route shows of a job. */
 export type JobSummary = {
   readonly jobId: string;
@@ -67,12 +86,13 @@ export class ActionsJobContainer extends Container<Env> {
   readonly #lifecycle: JobLifecycle;
 
   static {
-    this.outboundByHost = { [EXECUTOR_HOST]: answerExecutor };
+    this.outboundByHost = { [EXECUTOR_HOST]: answerExecutor, [DEPS_HOST]: answerDeps };
   }
 
   constructor(ctx: Container<Env>['ctx'], env: Env) {
     super(ctx, env);
     const config = readConfig(env);
+    const depsSettings = readDepsSettings(env);
     this.#log = createLogger(config.logLevel, {
       component: 'actions-job',
       instance: ctx.id.toString(),
@@ -93,6 +113,10 @@ export class ActionsJobContainer extends Container<Env> {
       now: () => Date.now(),
       log: this.#log,
       executorRef: ctx.id.toString(),
+      deps: (spec) => {
+        const grant = grantFor(spec, depsSettings);
+        return grant === null ? null : { token: newDepsToken(), grant };
+      },
     });
   }
 
@@ -119,6 +143,15 @@ export class ActionsJobContainer extends Container<Env> {
     }
     const answer = await this.#lifecycle.fromRunner(path, body);
     return { status: answer.status, body: JSON.stringify(answer.body) };
+  }
+
+  /** RPC from the `deps.internal` handler: the grant of a running job, for its own bearer. */
+  async depsGrant(bearer: string): Promise<DepsGrant | null> {
+    const record = await this.ctx.storage.get<JobRecord>(RECORD_KEY);
+    const deps = record?.deps;
+    if (record === undefined || deps === undefined || deps === null) return null;
+    if (record.phase !== 'running' && record.phase !== 'stopping') return null;
+    return sameToken(bearer, deps.token) ? deps.grant : null;
   }
 
   /** The job's record without its spec (so without its tokens), as JSON for the admin route. */

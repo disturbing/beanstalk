@@ -18,6 +18,8 @@ use tokio::time::{Duration, Instant as TokioInstant, MissedTickBehavior, sleep_u
 use crate::act::command::{self, ActPlan, Invocation, JobFiles, RunMode};
 use crate::act::event::parse_line;
 use crate::config::Config;
+use crate::deps;
+use crate::deps::plan::{DepsPlan, Trigger};
 use crate::docker;
 use crate::error::{Error, Result};
 use crate::git;
@@ -64,6 +66,8 @@ struct Session<'a, U> {
     recorder: Recorder,
     batcher: Batcher,
     started_at: u64,
+    /// The most memory the machine had in use, sampled every tick (`MemTotal - MemAvailable`).
+    peak_memory: u64,
 }
 
 impl<'a, U: Uplink> Session<'a, U> {
@@ -73,6 +77,9 @@ impl<'a, U: Uplink> Session<'a, U> {
         for secret in request.secrets.values() {
             masker.add(secret.expose());
         }
+        if let Some(grant) = &request.deps_cache {
+            masker.add(grant.token.expose());
+        }
         Self {
             config,
             uplink,
@@ -80,6 +87,7 @@ impl<'a, U: Uplink> Session<'a, U> {
             recorder: Recorder::new(masker),
             batcher: Batcher::new(Instant::now()),
             started_at: now_ms(),
+            peak_memory: 0,
         }
     }
 
@@ -132,8 +140,16 @@ impl<'a, U: Uplink> Session<'a, U> {
                 Error::Workflow(_) => (FailureReason::Workflow, error),
                 other => (FailureReason::Runner, other),
             })?;
-        let mut job = workflow::isolate_job(&source, &request.job_name, &request.needs)
-            .map_err(|error| (FailureReason::Workflow, error))?;
+        let mut job = workflow::isolate_job_with_cache(
+            &source,
+            &request.job_name,
+            &request.needs,
+            deps_cache_budget(request),
+        )
+        .map_err(|error| (FailureReason::Workflow, error))?;
+        if let Some(plan) = &job.deps {
+            self.say(Level::Info, &deps_cache_line(plan)).await;
+        }
         if !request.outputs.is_empty() {
             job.output_templates.clone_from(&request.outputs);
         }
@@ -142,9 +158,18 @@ impl<'a, U: Uplink> Session<'a, U> {
             .await
             .map_err(|error| (FailureReason::Runner, error))?;
         let (mode, daemon) = self.run_mode(&job).await?;
+        let container_options = job.deps.as_ref().map(|plan| {
+            let dir = if plan.install_dir == "." {
+                files.workdir.clone()
+            } else {
+                files.workdir.join(&plan.install_dir)
+            };
+            command::deps_container_options(&dir.join("node_modules"), plan.tmpfs_max_bytes)
+        });
         let plan = ActPlan {
             mode,
             github_actions: command::github_actions(request, &job.remote_actions),
+            container_options,
         };
         self.say(
             Level::Info,
@@ -228,7 +253,10 @@ impl<'a, U: Uplink> Session<'a, U> {
                 exited = child.wait(), if status.is_none() => {
                     status = Some(exited.map_err(Error::io("waiting for act"))?);
                 }
-                _ = ticker.tick() => self.flush(Flush::WhenDue).await,
+                _ = ticker.tick() => {
+                    self.sample_memory();
+                    self.flush(Flush::WhenDue).await;
+                }
                 changed = stop.changed(), if stopped.is_none() => {
                     let reason = if changed.is_ok() { *stop.borrow() } else { None };
                     if let Some(reason) = reason {
@@ -259,6 +287,12 @@ impl<'a, U: Uplink> Session<'a, U> {
         self.say(Level::Error, &format!("{why}: stopping it")).await;
         signal_group(group, Signal::SIGTERM);
         TokioInstant::now() + self.config.cancel_grace()
+    }
+
+    fn sample_memory(&mut self) {
+        if let Some(in_use) = deps::memory::memory_in_use() {
+            self.peak_memory = self.peak_memory.max(in_use);
+        }
     }
 
     fn on_act_line(&mut self, line: &str) {
@@ -316,6 +350,13 @@ impl<'a, U: Uplink> Session<'a, U> {
             }
         };
         remove_secrets(self.config.work_root()).await;
+        if self.peak_memory > 0 {
+            let line = format!(
+                "Peak memory in use during the job: {} MiB",
+                self.peak_memory / (1024 * 1024)
+            );
+            self.say(Level::Info, &line).await;
+        }
         self.flush(Flush::Everything).await;
         let result = assemble(AssembleInput {
             request,
@@ -501,6 +542,28 @@ fn mask_outputs(step_outputs: &StepOutputs, masker: &Masker) -> StepOutputs {
             (step.clone(), hidden)
         })
         .collect()
+}
+
+/// The tmpfs budget when the job may use the dependency cache: the executor granted it and the
+/// repository or org variable `BEANSTALK_DEPS_CACHE` does not turn it off.
+fn deps_cache_budget(request: &JobRequest) -> Option<u64> {
+    let grant = request.deps_cache.as_ref()?;
+    let switch = request.vars.get("BEANSTALK_DEPS_CACHE").map(String::as_str);
+    (!deps::plan::is_switched_off(switch)).then_some(grant.tmpfs_max_bytes)
+}
+
+fn deps_cache_line(plan: &DepsPlan) -> String {
+    let trigger = match &plan.trigger {
+        Trigger::SetupNode { package_manager } => {
+            format!("actions/setup-node with cache: {package_manager}")
+        }
+        Trigger::ActionsCache => "actions/cache of node_modules".to_owned(),
+        Trigger::Native => "beanstalk/deps-cache".to_owned(),
+    };
+    format!(
+        "Dependency cache on ({trigger}): node_modules in {} goes in memory, restored from and saved to the repository's snapshots",
+        plan.install_dir
+    )
 }
 
 pub(crate) fn now_ms() -> u64 {

@@ -406,6 +406,13 @@ export type JobSpec = {
   readonly image: string;
   /** How the executor reports back (`ActionsJobSink`): a bearer for this job only. */
   readonly report: { readonly token: string };
+  /**
+   * The dependency cache (docs/claude-opus/27): the ref scope the job reads, and whether it
+   * may save. Only default-branch pushes save (`origin: stalk`); pre-land, dispatch and
+   * schedule runs only read, so nothing they leave reaches a default-branch run. Absent from
+   * older gateways: the executor then lets the job read only.
+   */
+  readonly depsCache?: { readonly scope: string; readonly canSave: boolean } | undefined;
 };
 
 /** The executor accepted the job; it will report through the sink. */

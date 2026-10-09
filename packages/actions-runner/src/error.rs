@@ -44,6 +44,9 @@ pub enum Error {
 
     #[error("invalid config: {0}")]
     Config(String),
+
+    #[error("integrity check failed: {0}")]
+    Integrity(String),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -62,7 +65,9 @@ impl Error {
             Self::AlreadyUsed | Self::NotRunning => StatusCode::CONFLICT,
             Self::Fetch(_) | Self::Uplink(_) => StatusCode::BAD_GATEWAY,
             Self::Timeout { .. } => StatusCode::GATEWAY_TIMEOUT,
-            Self::Io { .. } | Self::Config(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Io { .. } | Self::Config(_) | Self::Integrity(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
         }
     }
 
@@ -78,6 +83,7 @@ impl Error {
             Self::Uplink(_) => "uplink_failed",
             Self::Io { .. } => "io",
             Self::Config(_) => "config",
+            Self::Integrity(_) => "integrity",
         }
     }
 }
