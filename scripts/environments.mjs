@@ -474,10 +474,7 @@ function saveResources(env) {
     console.log(`environments: ${env.name}: set BEANSTALK_ENV_RESOURCES to:\n${json}`);
     return;
   }
-  writeFileSync(
-    path.join(env.dir, 'resources.json'),
-    json,
-  );
+  writeFileSync(path.join(env.dir, 'resources.json'), json);
 }
 
 /**
