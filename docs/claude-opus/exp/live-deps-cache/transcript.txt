@@ -1,0 +1,130 @@
+Live smoke test of the Actions dependency cache on production, then teardown of the `ci` test stack.
+2026-10-09, UTC 13:50-14:15. Doc 27 §10.7 has the summary.
+
+Production as tested (deployed from prototype b37fa6b):
+  executor 61a2c9ec, gateway 8bd8461c, mcp 1e559c43, web 0d1c2bdb, swarm d5300dee, site 54801028
+  R2 bucket beanstalk-deps-cache (APAC), empty before the test (object_count 0).
+  Job image actions-runner-2026-10-09.6 (from each job's log).
+
+## 1. Account and repository (headless Chrome, CDP virtual authenticator)
+
+  signed up @dcl-nvjrj with a passkey; personal token (read, collaborate, write) saved 0600, never printed
+  created dcl-nvjrj/depsmoke (private, empty)
+
+Repository: fastify v5.6.1 with the ci stack's lockfile (706 packages, 146 MB of node_modules, 25.8k files),
+package.json "test" set to `node --test test/404s.test.js` (81 tests), .npmrc ignore-scripts=true,
+.beanstalk/checks.toml pre-land check `node --test ci-ok/*.test.mjs`. Two workflows, same steps:
+
+  cached.yml: on push to stalk + workflow_dispatch; checkout@v4; setup-node@v4 node 24 `cache: npm`;
+              step install `npm ci`; step test `npm test`
+  plain.yml:  the same without `cache:`
+
+## 2. Run 1: first push (git push -o wait), lockfile new
+
+  remote: beanstalk: new bean run1 received at b477d3f
+  remote: beanstalk: changes protected paths (.beanstalk/checks.toml): allowed for @dcl-nvjrj (owner, with a personal token)
+  remote: beanstalk: pre-land check green on the merged tree (5.9 s)
+  remote: beanstalk: LANDED: run1 passed its pre-land check and is on the sprout as 2d88ad9
+  remote: beanstalk: validated: on the stalk at 2d88ad9
+  push -o wait returned after 24 s
+
+  cached: restore miss 0.55 s; npm ci 84.3 s; save 9.15 s (5 chunks, 28.0 MB uploaded of 28.0 MB; pack 0.47 s, upload 4.3 s);
+          deps ready 93.4 s (checkout 3.81 + setup-node 4.82 + restore 0.55 + install 84.27); job 2 min 8 s; peak 1,404 MiB; 81/81 pass
+  plain:  npm ci 138.3 s; deps ready 146.7 s (6.20 + 2.17 + 138.28); job 2 min 50 s; peak 1,175 MiB; 81/81 pass
+
+## 3. Run 2: second push, README-only change (same lockfile)
+
+  remote: beanstalk: new bean run2 received at 99f1f0f
+  remote: beanstalk: pre-land check green on the merged tree (6.0 s)
+  remote: beanstalk: LANDED ... on the sprout as 72c5b95; validated: on the stalk at 72c5b95
+  push -o wait returned after 21 s
+
+  cached: restore EXACT HIT 3.29 s (25,806 files, 145.9 MB from 5 chunks, 28.0 MB downloaded; mount 103 ms, lookup 850 ms);
+          install `npm ci` 0.83 s ("node_modules is restored exactly for this lockfile; npm ci keeps it");
+          save skipped (exact hit, 4 ms); deps ready 8.76 s (3.31 + 1.33 + 3.29 + 0.83); job 21 s; peak 661 MiB; 81/81 pass
+  plain:  npm ci 139.9 s; deps ready 145.8 s (4.21 + 1.78 + 139.85); job 2 min 42 s; peak 1,046 MiB; 81/81 pass
+
+## 4. Run 3: Run workflow (dispatch) of cached.yml from the Actions tab
+
+  dispatched cached: /dcl-nvjrj/depsmoke/actions/runs/d965d2a7-4f26-4ea7-aec4-9c1d38d154d5
+  cached: restore EXACT HIT 1.04 s (28.0 MB downloaded; mount 81 ms, lookup 626 ms); install 0.79 s; save skipped (read-only
+          dispatch run, exact hit); deps ready 7.62 s (4.02 + 1.77 + 1.04 + 0.79); job 23 s; peak 722 MiB; 81/81 pass
+
+## 5. R2 objects (Cloudflare API, wrangler's token in-process)
+
+  beanstalk-deps-cache after run 1-3:
+    deps/mc2f8wva54lf/chunks/1af20840d7ed83e6...aa3.tar.zst      79,216
+    deps/mc2f8wva54lf/chunks/66b9f6f49017b5a3...753.tar.zst   9,004,573
+    deps/mc2f8wva54lf/chunks/8bad62649ca339d8...1e4.tar.zst  11,613,176
+    deps/mc2f8wva54lf/chunks/c5dc7a7e2c46356a...36c.tar.zst   4,602,682
+    deps/mc2f8wva54lf/chunks/c8eec0a6c9615a22...bf8.tar.zst   2,749,394
+    deps/mc2f8wva54lf/manifests/main/f09f09e10952873f...433.json 24,581
+    6 objects, 28,073,622 bytes, all under the repository's id (scope `main` is the stalk's internal ref name)
+
+## 6. Cleanup
+
+  delete-repo dcl-nvjrj/depsmoke from Settings: GET -> 404
+  beanstalk-deps-cache 20 s after the delete: the same 6 objects, 28,073,622 bytes   <- BUG: repository deletion
+    does not purge its dependency snapshots (the repository's DepsCacheIndex sweep would delete them only after
+    DEPS_IDLE_DAYS (7) without a restore plus a day for unreferenced chunks)
+  deleted by hand: beanstalk-deps-cache under deps/mc2f8wva54lf/: 6 objects deleted; bucket now 0 objects, 0 bytes
+  delete-account @dcl-nvjrj: GET -> 404
+
+## 7. Checks
+
+  PASS  passkey sign-up and personal token in headless Chrome
+  PASS  bean pushed with -o wait lands and validates on the stalk (24 s, 21 s)
+  PASS  run 1: restore misses, the install fills the tmpfs, the save uploads 28.0 MB in 5 chunks
+  PASS  run 2 (bean, same lockfile): exact hit, npm ci keeps the tree, tests green
+  PASS  run 2: deps ready faster than plain in the same push (8.8 s against 145.8 s; job 21 s against 2 min 42 s)
+  PASS  run 3 (Run workflow): exact hit, read-only, tests green (deps ready 7.6 s, job 23 s)
+  PASS  R2 objects exist under deps/<repository id>/ (5 chunks + 1 manifest)
+  PASS  test repository deleted (404)
+  FAIL  repository deletion removes its cache objects (they stayed; deleted by hand)
+  PASS  test account deleted (404)
+
+Note on the plain installs: `npm ci` from the registry took 84-140 s on production here (default npm, with audit and
+fund), against 6-14 s on the ci stack with `npm ci --ignore-scripts --no-audit --no-fund` (doc 27 §10.3). The cache's
+gain on this run is therefore far larger than the "few seconds" the ci stack showed; the cached path (restore 1.0-3.3 s,
+deps ready 7.6-8.8 s) matches the ci stack's 5.0-7.2 s within the slower lookup (626-850 ms).
+
+## 8. Teardown of the `ci` stack (doc 27 §10.6)
+
+Inventory before (every resource on the account with a `-ci` name component; nothing else matched):
+  Workers: beanstalk-actions-executor-ci, beanstalk-gateway-ci, beanstalk-mcp-ci, beanstalk-web-ci
+  D1: beanstalk-identity-ci (f6451f90-...), beanstalk-forge-ci (4f3f9689-...)   [user depsci1 lived here]
+  KV: beanstalk-oauth-ci (c3616801...)
+  R2: beanstalk-actions-logs-ci (599 objects, 300,388 bytes), beanstalk-deps-cache-ci (18 objects, 217,098,307 bytes),
+      beanstalk-media-ci (0 objects)
+  Queue: beanstalk-repo-events-ci (consumer and producer beanstalk-gateway-ci)
+  Artifacts namespaces: beanstalk-race-ci (0 repos), beanstalk-repos-ci (2 repos: depsci1's fastify and heavy)
+  Container applications: beanstalk-gateway-ci-runner (a03e0704-..., 4 instances max),
+      beanstalk-actions-executor-ci-actionsjobcontainer (a035f09e-..., 3 instances max)
+  Registry images: beanstalk-actions-executor-ci-actionsjobcontainer: 16ac4122 317c20f3 4a2db7fc 4b55acaf 6ff8f8db c96d909f
+      ec3a89c3 fdb3dfb8; beanstalk-gateway-ci-runner: 0be620c1 a8500aba e8162bf4
+
+Deleted, by exact name, in this order:
+  worker beanstalk-web-ci                      Successfully deleted
+  worker beanstalk-mcp-ci                      Successfully deleted
+  worker beanstalk-gateway-ci                  refused first (code 10064: consumer of a queue)
+  worker beanstalk-actions-executor-ci         Successfully deleted
+  queue consumer beanstalk-gateway-ci of beanstalk-repo-events-ci   Removed
+  worker beanstalk-gateway-ci                  Successfully deleted
+  queue beanstalk-repo-events-ci               Deleted
+  container app a03e0704-... (gateway-ci-runner)               deleted
+  container app a035f09e-... (actions-executor-ci-actionsjobcontainer)  deleted
+  registry images: all 11 tags above           Deleted
+  d1 beanstalk-forge-ci, beanstalk-identity-ci Deleted
+  kv beanstalk-oauth-ci                        Deleted
+  r2 beanstalk-actions-logs-ci                 599 objects deleted, bucket deleted
+  r2 beanstalk-deps-cache-ci                   18 objects deleted, bucket deleted
+  r2 beanstalk-media-ci                        0 objects, bucket deleted
+  artifacts beanstalk-repos-ci                 per-repo deletes refused (2), namespace DELETE 204; listing after: 0 repos
+  artifacts beanstalk-race-ci                  namespace DELETE 204
+
+Inventory after: Workers 0, D1 0, KV 0, R2 0, Queues 0, Artifacts namespaces 0, container applications 0, registry
+images with -ci- 0. Namespaces left on the account: beanstalk-race, beanstalk-race-stg, beanstalk-repos,
+beanstalk-repos-stg, beanstalk-rnd, workspace (none touched). No staging (-staging, -stg) or production name was named.
+Not deletable: the analytics dataset product_events_ci (Analytics Engine datasets have no delete; it stops receiving).
+Local: environments/ci (env.jsonc, resources.json, secrets/) and packages/{actions-executor,gateway,mcp,web}/wrangler.ci.jsonc
+removed from the worktree that held them (agent-a37902336ba4479e1); no other checkout had them.

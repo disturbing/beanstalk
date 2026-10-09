@@ -1,0 +1,98 @@
+Job log excerpts, production, 2026-10-09 (UTC). Full logs were downloaded from the Actions tab;
+these are the lines with step timings, the cache tool's JSON events, npm's summary and the test count.
+
+=== depsmoke-run1-plain
+# run a6c059ab-1234-4843-ab64-74840caeda7d job bc7b16ac-189d-4533-86b3-113ab8892367 status succeeded
+Wall time 2m 50s
+Job Run actions/checkout@v4 6s Run actions/setup-node@v4 1s install 2m 20s test 0s
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.6)
+Peak memory in use during the job: 1175 MiB
+Success - actions/checkout@v4 [6.203954628s]
+Success - actions/setup-node@v4 [2.173170603s]
+added 706 packages, and audited 707 packages in 2m
+Success - install [2m18.27678169s]
+ℹ tests 81
+ℹ pass 81
+ℹ fail 0
+Success - test [1.193365597s]
+
+=== depsmoke-run1-cached
+# run 64bd581b-f024-4310-bcfb-81f94fa24f0b job 5e168e7a-d210-4f5a-a907-1cf04a5653cc status succeeded
+Wall time 2m 8s
+Job Run actions/checkout@v4 3s Run actions/setup-node@v4 5s install 1m 24s test 3s
+Dependency cache on (actions/setup-node with cache: npm): node_modules in . goes in memory, restored from and saved to the repository's snapshots
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.6)
+No snapshot for this lockfile yet: the install fills the in-memory node_modules.
+beanstalk-deps: {"event":"restore","mounted":true,"ms":524,"result":"miss"}
+Success - Restore dependencies (Beanstalk cache) [550.966179ms]
+Saved node_modules: 5 chunks, 28.0 MB uploaded of 28.0 MB (5 new chunks) in 9.1 s
+beanstalk-deps: {"chunks":5,"compressedBytes":28049041,"event":"save","extractedBytes":145952028,"memoryInUse":633462784,"ms":9138,"newChunks":5,"packMs":470,"result":"saved","uploadMs":4303,"uploadedBytes":28049041}
+Success - Save dependencies (Beanstalk cache) [9.146090287s]
+Peak memory in use during the job: 1404 MiB
+Success - actions/checkout@v4 [3.807498368s]
+Success - actions/setup-node@v4 [4.816001155s]
+added 706 packages, and audited 707 packages in 1m
+Success - install [1m24.269016657s]
+ℹ tests 81
+ℹ pass 81
+ℹ fail 0
+Success - test [631.955869ms]
+
+=== depsmoke-run2-plain
+# run a7e1c85d-9407-4b3e-87a9-2983ac092422 job 4585049a-db66-49cb-b835-b802b9000b1d status succeeded
+Wall time 2m 42s
+Job Run actions/checkout@v4 5s Run actions/setup-node@v4 1s install 2m 20s test 1s
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.6)
+Peak memory in use during the job: 1046 MiB
+Success - actions/checkout@v4 [4.206213225s]
+Success - actions/setup-node@v4 [1.777547895s]
+added 706 packages, and audited 707 packages in 2m
+Success - install [2m19.850534111s]
+ℹ tests 81
+ℹ pass 81
+ℹ fail 0
+Success - test [1.042832479s]
+
+=== depsmoke-run2-cached
+# run c0559e74-1305-4f9f-ba3d-3c21c312c265 job 2bb312bb-782c-4e61-b8e0-e0814bdb1503 status succeeded
+Wall time 21s
+Job Run actions/checkout@v4 3s Run actions/setup-node@v4 2s install 1s test 1s
+Dependency cache on (actions/setup-node with cache: npm): node_modules in . goes in memory, restored from and saved to the repository's snapshots
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.6)
+Restored node_modules (exact hit): 25806 files, 145.9 MB in 5 chunks (28.0 MB downloaded) in 3.3 s
+beanstalk-deps: {"chunks":5,"downloadedBytes":28049041,"event":"restore","extractedBytes":145952028,"files":25806,"lookupMs":850,"memoryInUse":584753152,"mountMs":103,"mounted":true,"ms":3266,"result":"exact"}
+Success - Restore dependencies (Beanstalk cache) [3.28709237s]
+Exact hit: the snapshot is already saved.
+beanstalk-deps: {"event":"save","memoryInUse":684867584,"result":"exact-hit"}
+Success - Save dependencies (Beanstalk cache) [4.400257ms]
+Peak memory in use during the job: 661 MiB
+Success - actions/checkout@v4 [3.314507704s]
+Success - actions/setup-node@v4 [1.325924848s]
+beanstalk-deps: node_modules is restored exactly for this lockfile; npm ci keeps it
+Success - install [832.288662ms]
+ℹ tests 81
+ℹ pass 81
+ℹ fail 0
+Success - test [688.965961ms]
+
+=== depsmoke-run3-dispatch-cached
+# run d965d2a7-4f26-4ea7-aec4-9c1d38d154d5 job fe65fa00-3336-4ac9-8c15-e5f827ddc4d1 status succeeded
+Wall time 23s
+Job Run actions/checkout@v4 3s Run actions/setup-node@v4 2s install 1s test 0s
+Dependency cache on (actions/setup-node with cache: npm): node_modules in . goes in memory, restored from and saved to the repository's snapshots
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.6)
+Restored node_modules (exact hit): 25806 files, 145.9 MB in 5 chunks (28.0 MB downloaded) in 1.0 s
+beanstalk-deps: {"chunks":5,"downloadedBytes":28049041,"event":"restore","extractedBytes":145952028,"files":25806,"lookupMs":626,"memoryInUse":594882560,"mountMs":81,"mounted":true,"ms":1026,"result":"exact"}
+Success - Restore dependencies (Beanstalk cache) [1.036452581s]
+Exact hit: the snapshot is already saved.
+beanstalk-deps: {"event":"save","memoryInUse":737087488,"result":"exact-hit"}
+Success - Save dependencies (Beanstalk cache) [3.953947ms]
+Peak memory in use during the job: 722 MiB
+Success - actions/checkout@v4 [4.019407s]
+Success - actions/setup-node@v4 [1.770285564s]
+beanstalk-deps: node_modules is restored exactly for this lockfile; npm ci keeps it
+Success - install [794.15477ms]
+ℹ tests 81
+ℹ pass 81
+ℹ fail 0
+Success - test [651.883992ms]

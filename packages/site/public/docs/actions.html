@@ -167,12 +167,12 @@
               Cloudflare Container that is destroyed when the job ends; logs stream live to the
               Actions tab; secrets are masked; and jobs with <code>id-token: write</code> get OIDC
               tokens. A small Node CI job (checkout, setup-node, <code>npm test</code>) took about
-              20 s end to end on the hosted service. Rolling out: the
-              <a href="#deps-cache">dependency cache</a>, which restores
-              <code>node_modules</code> into memory between runs. Not yet: other caches and
-              artifacts that outlive a job, the GitHub REST API through <code>GITHUB_TOKEN</code>,
-              and runners other than Ubuntu; <code>services:</code> and <code>container:</code> are
-              not yet verified on the hosted service.
+              20 s end to end on the hosted service. The
+              <a href="#deps-cache">dependency cache</a> restores <code>node_modules</code> into
+              memory between runs. Not yet: other caches and artifacts that outlive a job, the
+              GitHub REST API through <code>GITHUB_TOKEN</code>, and runners other than Ubuntu;
+              <code>services:</code> and <code>container:</code> are not yet verified on the hosted
+              service.
             </p>
           </div>
 
@@ -246,9 +246,9 @@
               <strong>Runs differently at first:</strong> <code>actions/cache</code> of
               <code>node_modules</code> or a package-manager store, and
               <code>actions/setup-node</code> with <code>cache:</code>, become the
-              <a href="#deps-cache">dependency cache</a> (rolling out); other caches and artifacts
-              last one job, not across jobs; <code>environment:</code> approvals are ignored and the
-              report says so.
+              <a href="#deps-cache">dependency cache</a>; other caches and artifacts last one job,
+              not across jobs; <code>environment:</code> approvals are ignored and the report says
+              so.
             </li>
             <li>
               <strong>Not at first:</strong> Docker actions, <code>container:</code> and
@@ -319,15 +319,19 @@
             trust policy matches it.
           </p>
 
-          <h2 id="deps-cache">Dependency cache <span class="pill rolling">rolling out</span></h2>
+          <h2 id="deps-cache">Dependency cache <span class="pill live">live</span></h2>
           <p>
             Each run restores <code>node_modules</code> from the repository's last snapshot into
-            memory, so installs start from a full tree instead of the registry. Verified on a test
-            stack, not yet on the hosted service. With an unchanged lockfile, the restore took 1–3 s
-            and <code>npm ci</code> about 10 ms, against 6–14 s for <code>npm ci</code> from the
-            registry, on fastify (146 MB of dependencies) and on a Next.js-class app (533 MB). The
-            first run and a lockfile change are a few seconds slower than without the cache, because
-            the job saves the new snapshot at its end. Every run is in
+            memory, so installs start from a full tree instead of the registry. On the hosted
+            service, a fastify job (146 MB of dependencies) with an unchanged lockfile restored in
+            1–3 s and <code>npm ci</code> took under 1 s; the whole job took about 20 s, against
+            about 2 min 45 s for the same job without the cache in the same push, where
+            <code>npm ci</code> from the registry took about 2 min 20 s. On a test stack, with
+            <code>npm ci --no-audit</code>, the restore took 1–3 s against 6–14 s for
+            <code>npm ci</code> from the registry, on fastify and on a Next.js-class app (533 MB).
+            The first run and a lockfile change are slower than without the cache by the time it
+            takes to save the new snapshot at the job's end (about 9 s for fastify on the hosted
+            service). Every run is in
             <a
               href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
               >the design write-up</a

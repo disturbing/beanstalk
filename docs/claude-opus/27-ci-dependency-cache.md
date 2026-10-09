@@ -270,7 +270,7 @@ Cache API and Workers Cache entries expire on their own. No secret is in the cod
 
 ## 10. Built (2026-10-09)
 
-Coop adopted the design on 2026-10-09: "yes adopt node modules cache if it showed performance improvements (please report)". Built on `prototype` at `0c57845`, measured on its own test stack (`ci`, §10.6), not deployed to production.
+Coop adopted the design on 2026-10-09: "yes adopt node modules cache if it showed performance improvements (please report)". Built on `prototype` at `0c57845`, measured on its own test stack (`ci`, §10.6). Deployed to production from `b37fa6b` and smoke-tested there the same day (§10.7); the `ci` stack is torn down.
 
 ### 10.1 What runs where
 
@@ -356,8 +356,24 @@ Not supported: Yarn Plug'n'Play (no `node_modules`), several install directories
 ### 10.6 Verification and resources
 
 - `pnpm check` exits 0: Rust unit tests for the plan (setup-node, actions/cache, native step, paths), keys (property test), tree scan (packages, scopes, nested trees, pnpm store, links, `.cache`), chunk plans (property test: every package in exactly one chunk; adding one package changes at most one bucket), deterministic pack and extract; Worker tests on Miniflare for the service (miss, save, exact and partial lookup, chunk read, wrong hash refused and deleted, uncommitted chunks refused, cap refusal, read-only grants, no cross-repository reads, multipart upload) and the grant (only stalk runs save, variable cap and switch, size parsing).
-- Stack `ci` (account `2c7358a6…`, every resource named `*-ci`; tear down when merged): Workers `beanstalk-actions-executor-ci`, `beanstalk-gateway-ci`, `beanstalk-web-ci`, `beanstalk-mcp-ci`; D1 `beanstalk-forge-ci`, `beanstalk-identity-ci`; KV `beanstalk-oauth-ci`; R2 `beanstalk-actions-logs-ci`, `beanstalk-media-ci`, `beanstalk-deps-cache-ci`; queue `beanstalk-repo-events-ci`; Artifacts `beanstalk-race-ci`, `beanstalk-repos-ci`; user `depsci1` with repositories `fastify` and `heavy`. `environments/ci/env.jsonc` is the file.
+- Stack `ci` (account `2c7358a6…`, every resource named `*-ci`; torn down 2026-10-09 after the production smoke test, §10.7, list in `exp/live-deps-cache/transcript.txt`): Workers `beanstalk-actions-executor-ci`, `beanstalk-gateway-ci`, `beanstalk-web-ci`, `beanstalk-mcp-ci`; D1 `beanstalk-forge-ci`, `beanstalk-identity-ci`; KV `beanstalk-oauth-ci`; R2 `beanstalk-actions-logs-ci`, `beanstalk-media-ci`, `beanstalk-deps-cache-ci`; queue `beanstalk-repo-events-ci`; Artifacts `beanstalk-race-ci`, `beanstalk-repos-ci`; user `depsci1` with repositories `fastify` and `heavy`. `environments/ci/env.jsonc` is the file.
 - Executor deploys roll the job containers: three runs measured here ended as "runner lost" when a deploy landed mid-job (doc 26 §3), and for some minutes after a deploy jobs still started on the previous image; the image version in each job's second line tells them apart, and only runs on the intended image are in the tables.
+
+### 10.7 Live on production (2026-10-09)
+
+Production was deployed from `b37fa6b` (executor `61a2c9ec`, gateway `8bd8461c`, mcp `1e559c43`, web `0d1c2bdb`, swarm `d5300dee`, site `54801028`) with the new R2 bucket `beanstalk-deps-cache`. Smoke test on the hosted service: a throwaway passkey account (headless Chrome), a private repository with fastify v5.6.1 (the §10.3 lockfile: 706 packages, 146 MB) and two workflows on the same push, `cached` (checkout, `setup-node` 24 with `cache: npm`, `npm ci`, `npm test` running one test file, 81 tests) and `plain` (the same without `cache:`), pushed as beans with `git push -o wait`. Image `actions-runner-2026-10-09.6`. Transcript and log excerpts: `exp/live-deps-cache/`.
+
+| Run | Restore | Install | Deps ready | Job | Bytes | Peak |
+|---|---|---|---|---|---|---|
+| 1, first bean: `cached` | 0.55 s (miss) | 84.3 s | 93.4 s | 2 min 8 s | 28.0 MB uploaded in 5 chunks (save 9.1 s: pack 0.5, upload 4.3) | 1,404 MiB |
+| 1, `plain` | - | 138.3 s | 146.7 s | 2 min 50 s | - | 1,175 MiB |
+| 2, README-only bean: `cached` | **3.29 s (exact)** | **0.83 s** | **8.8 s** | **21 s** | 28.0 MB downloaded, nothing uploaded | 661 MiB |
+| 2, `plain` | - | 139.9 s | 145.8 s | 2 min 42 s | - | 1,046 MiB |
+| 3, Run workflow of `cached` | **1.04 s (exact)** | **0.79 s** | **7.6 s** | **23 s** | 28.0 MB downloaded (read-only run) | 722 MiB |
+
+- **Pass.** The first run missed and saved; the second (a stalk run with the same lockfile) and a dispatch hit exactly, `npm ci` kept the restored tree, and all 81 tests passed in every run. Objects in R2: 5 chunks and 1 manifest, 28,073,622 bytes, all under `deps/<repository id>/` (manifest scope `main`, the stalk's internal ref name).
+- **Plain `npm ci` from the registry was far slower than on the `ci` stack**: 84-140 s here (default npm, with audit and fund) against 6-14 s there (`npm ci --ignore-scripts --no-audit --no-fund`), so on this run the cache saved about 2 min 20 s per job, not the few seconds of §10.3. Not investigated (the flags, the registry path from production's containers, or the time of day). The cached path itself matches §10.3: deps ready 7.6-8.8 s against 5.0-7.2 s, lookup 626-850 ms against 593-710 ms. The install step behind the `npm` wrapper took 0.8 s here against 6-19 ms on the stack, which ran `npm ci --ignore-scripts`; this workflow ran plain `npm ci`.
+- **Bug: deleting a repository leaves its dependency snapshots in R2.** After the repository was deleted (Settings, then 404), the 6 objects were still in `beanstalk-deps-cache`; the repository's `DepsCacheIndex` would drop them only on its daily sweep after `DEPS_IDLE_DAYS` (7) without a restore, plus a day for unreferenced chunks. Deleted by hand. The repository deletion path should tell the index to forget every snapshot and delete `deps/<repository id>/` (§11.4).
 
 ## 11. Next
 
@@ -388,4 +404,4 @@ Parallel installs (pnpm) and parallel test runners are the application's choice,
 
 ### 11.4 Left
 
-Save after the result is reported (so first runs and lockfile changes are not slower than plain); partial hits for `npm ci` jobs (needs an `npm install` that keeps the lockfile's versions); several install directories per job; the SquashFS fallback for trees over the tmpfs cap (§4.7, still open decision 3); the general `actions/cache` service for other paths on the same storage; a settings page row for the snapshot cap and the family's refusal (today a variable and the save step's log); production deploy (Coop's, after merging).
+Save after the result is reported (so first runs and lockfile changes are not slower than plain); partial hits for `npm ci` jobs (needs an `npm install` that keeps the lockfile's versions); several install directories per job; the SquashFS fallback for trees over the tmpfs cap (§4.7, still open decision 3); the general `actions/cache` service for other paths on the same storage; a settings page row for the snapshot cap and the family's refusal (today a variable and the save step's log); purge a repository's snapshots and chunks when the repository is deleted (§10.7: today they wait for the idle sweep).
