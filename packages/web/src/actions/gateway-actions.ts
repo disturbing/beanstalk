@@ -30,6 +30,7 @@ import type { ActionsClient, LogEvent } from './actions-client';
 import type {
   ActionsActor,
   ActionsUsage,
+  AutomationFacts,
   Conclusion,
   Job,
   LogLine,
@@ -262,6 +263,13 @@ function workflowOf(workflow: WorkflowSummary, lastRun: RunSummary | null): Work
           };
         case 'schedule':
           return { event: 'schedule', crons: [...trigger.crons] };
+        case 'beanstalk':
+          return {
+            event: 'beanstalk',
+            name: trigger.event,
+            beans: [...trigger.beans],
+            authors: [...trigger.authors],
+          };
         default:
           return assertNever(trigger);
       }
@@ -290,6 +298,24 @@ function workflowOf(workflow: WorkflowSummary, lastRun: RunSummary | null): Work
         ? null
         : `${problem.message}${problem.line === null ? '' : ` (line ${problem.line}${problem.column === null ? '' : `, column ${problem.column}`})`}`,
     lastRun,
+    automation: automationFactsOf(workflow.automation),
+  };
+}
+
+function automationFactsOf(info: WorkflowSummary['automation']): AutomationFacts | null {
+  if (info === undefined) return null;
+  return {
+    id: info.id,
+    harness: info.harness,
+    model: info.model,
+    prompt: info.prompt,
+    beansWrite: info.permissions.beans === 'write',
+    secrets: [...info.secrets],
+    timeoutMinutes: info.timeoutMinutes,
+    maxTurns: info.maxTurns,
+    maxCostUsd: info.maxCostUsd,
+    memoryRef: info.memoryRef,
+    actor: info.actor,
   };
 }
 
@@ -325,6 +351,7 @@ function runDetailOf(run: GatewayRunDetail, workflow: WorkflowSummary | undefine
     inputs: { ...run.inputs },
     workflowPath: run.workflowPath,
     canRerun: workflow?.triggers.some((trigger) => trigger.kind === 'workflow_dispatch') ?? false,
+    modelUsage: run.modelUsage ?? null,
   };
 }
 
@@ -340,6 +367,7 @@ function jobOf(job: JobView, all: readonly JobView[]): Job {
     startedAt: job.startedAt,
     completedAt: job.completedAt,
     steps: job.steps.map(stepOf),
+    outputs: { ...job.outputs },
   };
 }
 
@@ -364,6 +392,7 @@ function gatewayFilterOf(filter: RunFilter) {
   return {
     limit: filter.limit,
     ...(filter.workflow === undefined ? {} : { workflowPath: filter.workflow }),
+    ...(filter.kind === undefined ? {} : { kind: filter.kind }),
     ...(status === undefined ? {} : { status }),
     ...(filter.before === undefined ? {} : { cursor: filter.before }),
   };

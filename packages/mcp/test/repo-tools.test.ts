@@ -76,6 +76,7 @@ describe('repository tools', () => {
       expect.arrayContaining([
         'repo_list',
         'repo_status',
+        'automation_list',
         'bean_open',
         'bean_status',
         'bean_wait',
@@ -101,6 +102,21 @@ describe('repository tools', () => {
           clone_url: `https://gateway.example.test/${slug(repo)}.git`,
         },
       ],
+    });
+  });
+
+  it("automation_list reads a repository's automations and runs; a stranger's is not there", async () => {
+    const { user, client } = await session(['read']);
+    const repo = await repository(user);
+    expect(await tool(client, 'automation_list', { repo: slug(repo) })).toEqual({
+      repo: slug(repo),
+      automations: [],
+      runs: [],
+      summary: '0 automations (0 with problems), 0 recent runs',
+    });
+    const stranger = await session();
+    expect(await tool(stranger.client, 'automation_list', { repo: slug(repo) })).toEqual({
+      error: `repository ${slug(repo)} not found`,
     });
   });
 

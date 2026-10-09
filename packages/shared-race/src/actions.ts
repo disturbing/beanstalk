@@ -40,12 +40,31 @@ export type ActionsRunId = z.infer<typeof ActionsRunId>;
 export const ActionsJobId = z.uuid().brand<'ActionsJobId'>();
 export type ActionsJobId = z.infer<typeof ActionsJobId>;
 
-/** A workflow file's path in the repository: `.github/workflows/<name>.yml` (or `.yaml`). */
+/**
+ * A workflow file's path in the repository: `.github/workflows/<name>.yml` (or `.yaml`), or an
+ * automation's, `.beanstalk/automations/<name>.yml` (`.yaml`, or `.md` with front matter).
+ */
 export const WorkflowPath = z
   .string()
-  .regex(/^\.github\/workflows\/[A-Za-z0-9._-]{1,100}\.ya?ml$/)
+  .regex(
+    /^(?:\.github\/workflows\/[A-Za-z0-9._-]{1,100}\.ya?ml|\.beanstalk\/automations\/[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:ya?ml|md))$/,
+  )
   .brand<'WorkflowPath'>();
 export type WorkflowPath = z.infer<typeof WorkflowPath>;
+
+/** Where automations live (doc 25 §7): agent jobs defined by files on the stalk. */
+export const AUTOMATIONS_DIR = '.beanstalk/automations';
+
+/** Whether a workflow path is an automation's (not a GitHub workflow's). */
+export function isAutomationPath(path: string): boolean {
+  return path.startsWith(`${AUTOMATIONS_DIR}/`);
+}
+
+/** An automation's id: its file name without the extension (`fix-red` for `fix-red.yml`). */
+export function automationIdOf(path: string): string {
+  const file = path.split('/').at(-1) ?? path;
+  return file.replace(/\.(?:ya?ml|md)$/, '').toLowerCase();
+}
 
 /** A secret's name, as GitHub allows them: letters, digits, `_`; no `GITHUB_` prefix. */
 export const SecretName = z
@@ -78,8 +97,32 @@ export const ACTIONS_CONCLUSIONS = [
 ] as const;
 export type ActionsConclusion = (typeof ACTIONS_CONCLUSIONS)[number];
 
-/** The events that start a run in the MVP (others parse and show as "after the MVP"). */
-export const ACTIONS_EVENTS = ['push', 'workflow_dispatch', 'schedule'] as const;
+/**
+ * Beanstalk events an automation's `on:` may name (doc 25 §7.2), each the repository event of
+ * the same moment (`bean_red` is `bean.rework`: a red pre-land check or a conflict).
+ */
+export const BEANSTALK_EVENTS = [
+  'bean_opened',
+  'bean_landed',
+  'bean_red',
+  'bean_parked',
+  'bean_dropped',
+  'bean_reverted',
+  'stalk_moved',
+  'stalk_reset',
+  'validation_red',
+  'decision_opened',
+  'decision_decided',
+] as const;
+export type BeanstalkEvent = (typeof BEANSTALK_EVENTS)[number];
+
+/** The events that start a run: GitHub's three, and the Beanstalk events (automations only). */
+export const ACTIONS_EVENTS = [
+  'push',
+  'workflow_dispatch',
+  'schedule',
+  ...BEANSTALK_EVENTS,
+] as const;
 export type ActionsEvent = (typeof ACTIONS_EVENTS)[number];
 
 // Workflows ---------------------------------------------------------------------------------
@@ -95,7 +138,42 @@ export type WorkflowTrigger =
       readonly pathsIgnore: readonly string[];
     }
   | { readonly kind: 'workflow_dispatch'; readonly inputs: readonly DispatchInputSpec[] }
-  | { readonly kind: 'schedule'; readonly crons: readonly string[] };
+  | { readonly kind: 'schedule'; readonly crons: readonly string[] }
+  | {
+      /** A Beanstalk event (automations only), with optional glob filters. */
+      readonly kind: 'beanstalk';
+      readonly event: BeanstalkEvent;
+      /** Bean names it fires for; empty: any. */
+      readonly beans: readonly string[];
+      /** Handles of the bean's pusher it fires for; empty: any. */
+      readonly authors: readonly string[];
+    };
+
+/** What an automation file says beyond its triggers (doc 25 §7.1). */
+export type AutomationInfo = {
+  /** The file name without its extension: names the memory ref, the bot and its beans. */
+  readonly id: string;
+  /**
+   * `agent`: Beanstalk's agent loop on a Workers AI model through the model proxy (§7.5);
+   * `shell`: a script with the same workspace, memory and bean push, and no model.
+   */
+  readonly harness: 'agent' | 'shell';
+  /** The Workers AI model (`@cf/…`) for `agent`; null for `shell`. */
+  readonly model: string | null;
+  /** The prompt (or, for `shell`, the script), as written. */
+  readonly prompt: string;
+  readonly permissions: { readonly beans: 'read' | 'write' };
+  /** Secret names the run may read (D4 still filters them per trigger). */
+  readonly secrets: readonly string[];
+  readonly timeoutMinutes: number;
+  readonly maxTurns: number;
+  /** The run stops its model calls once they cost this much (USD). */
+  readonly maxCostUsd: number;
+  /** `refs/automations/<id>/memory`, or null when `memory: false`. */
+  readonly memoryRef: string | null;
+  /** Who it acts as: `<id>[automation]`. */
+  readonly actor: string;
+};
 
 /** A `workflow_dispatch` input as declared. */
 export type DispatchInputSpec = {
@@ -138,6 +216,8 @@ export type WorkflowSummary = {
   }[];
   readonly problems: readonly WorkflowProblem[];
   readonly compatibility: readonly CompatibilityNote[];
+  /** Set for an automation (`.beanstalk/automations/`); absent for a GitHub workflow. */
+  readonly automation?: AutomationInfo | undefined;
   /** The stalk commit the index read the file at. */
   readonly sha: string;
   readonly indexedAt: string;
@@ -199,13 +279,28 @@ export type JobView = {
   readonly minutesBilled: number;
 };
 
+/** An automation run's model calls through the proxy (doc 25 §7.5), as the gateway counted them. */
+export type ModelUsage = {
+  readonly model: string | null;
+  readonly calls: number;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly costUsd: number;
+  /** The run's cap (`max-cost-usd`). */
+  readonly limitUsd: number;
+};
+
 export type RunDetail = RunSummary & {
   readonly jobs: readonly JobView[];
   readonly inputs: Readonly<Record<string, string>>;
+  /** Set for an automation's run with the `agent` harness. */
+  readonly modelUsage?: ModelUsage | undefined;
 };
 
 export type RunFilter = {
   readonly workflowPath?: string;
+  /** Only GitHub workflows' runs, or only automations'. */
+  readonly kind?: 'workflow' | 'automation';
   readonly status?: ActionsStatus;
   /** Newest first; at most 100 (default 25). */
   readonly limit?: number;
@@ -413,6 +508,11 @@ export type JobSpec = {
    * older gateways: the executor then lets the job read only.
    */
   readonly depsCache?: { readonly scope: string; readonly canSave: boolean } | undefined;
+  /**
+   * The workflow text to run instead of reading `workflowPath` at the commit: an automation's
+   * job, compiled by the control plane from its file (doc 25 §7.4). Absent for GitHub workflows.
+   */
+  readonly workflowSource?: string | undefined;
 };
 
 /** The executor accepted the job; it will report through the sink. */
@@ -528,6 +628,7 @@ export const DispatchInputSchema = z.object({
 
 export const RunFilterSchema = z.object({
   workflowPath: z.string().max(200).optional(),
+  kind: z.enum(['workflow', 'automation']).optional(),
   status: Status.optional(),
   limit: z.number().int().min(1).max(100).optional(),
   cursor: z.string().max(100).optional(),

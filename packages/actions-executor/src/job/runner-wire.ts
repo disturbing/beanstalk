@@ -93,6 +93,7 @@ export function jobRequestOf(
   return {
     jobId: spec.jobId,
     workflowPath: spec.workflowPath,
+    ...(spec.workflowSource === undefined ? {} : { workflowSource: spec.workflowSource }),
     jobName: spec.jobName,
     eventName: spec.event,
     eventPayload: spec.eventPayload,

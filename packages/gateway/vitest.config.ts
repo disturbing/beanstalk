@@ -83,7 +83,8 @@ export default defineConfig({
 
 /**
  * wrangler.jsonc without `containers` and `artifacts` (and `secrets`: the bindings above
- * supply them), written under .wrangler/ (ignored).
+ * supply them; `ai`: Workers AI is remote only, and the automations' model proxy takes a fake
+ * in its tests), written under .wrangler/ (ignored).
  */
 function writeTestWranglerConfig(): string {
   const config: Record<string, unknown> = JSON.parse(
@@ -93,6 +94,7 @@ function writeTestWranglerConfig(): string {
   delete config['artifacts'];
   delete config['secrets'];
   delete config['services'];
+  delete config['ai'];
   delete config['$schema'];
   config['main'] = path.join(here, 'src/index.ts');
   if (

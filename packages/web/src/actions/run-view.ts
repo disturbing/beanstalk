@@ -75,7 +75,23 @@ const EVENT_WORDS: Readonly<Record<RunEvent, string>> = {
   push: 'stalk moved',
   workflow_dispatch: 'run by hand',
   schedule: 'schedule',
+  bean_opened: 'bean pushed',
+  bean_landed: 'bean landed',
+  bean_red: 'bean red',
+  bean_parked: 'bean parked',
+  bean_dropped: 'bean dropped',
+  bean_reverted: 'bean reverted',
+  stalk_moved: 'stalk moved',
+  stalk_reset: 'stalk reset',
+  validation_red: 'validation red',
+  decision_opened: 'decision opened',
+  decision_decided: 'decision answered',
 };
+
+/** Which segment of the Automations tab a workflow or run belongs to, by its file's folder. */
+export function sectionOf(workflowPath: string): 'actions' | 'automations' {
+  return workflowPath.startsWith('.beanstalk/automations/') ? 'automations' : 'actions';
+}
 
 export function eventWord(event: RunEvent): string {
   return EVENT_WORDS[event];
@@ -105,6 +121,14 @@ export function triggerLabel(trigger: WorkflowTrigger): string {
       return 'run by hand';
     case 'schedule':
       return trigger.crons.map(cronWords).join(', ');
+    case 'beanstalk':
+      return [
+        EVENT_WORDS[trigger.name],
+        trigger.beans.length === 0 ? null : `beans ${trigger.beans.join(', ')}`,
+        trigger.authors.length === 0 ? null : `by ${trigger.authors.join(', ')}`,
+      ]
+        .filter((part) => part !== null)
+        .join(' · ');
     case 'other':
       return trigger.name;
     default:

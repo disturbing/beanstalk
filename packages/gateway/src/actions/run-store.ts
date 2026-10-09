@@ -36,7 +36,19 @@ export type RunRecord = {
   readonly cancelRequested: boolean;
   /** `vars.*` as the run started: org variables that reach the repository, then its own. */
   readonly vars: Readonly<Record<string, string>>;
+  /** An automation's model calls so far (doc 25 §7.5). */
+  readonly modelUsage: ModelCalls;
 };
+
+/** Model calls counted by the proxy. */
+export type ModelCalls = {
+  readonly calls: number;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly costUsd: number;
+};
+
+export const NO_MODEL_CALLS: ModelCalls = { calls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 };
 
 /** A job as stored: its plan and its state. */
 export type JobRow = PlannedJob & {
@@ -155,12 +167,13 @@ const RunRecordSchema = z.object({
     actor: z.string(),
     inputs: z.record(z.string(), z.string()),
     origin: z.union([
-      z.object({ kind: z.enum(['stalk', 'dispatch', 'schedule']) }),
+      z.object({ kind: z.enum(['stalk', 'dispatch', 'schedule', 'event']) }),
       z.object({
         kind: z.literal('preland'),
         pushedBy: z.enum(['maintainer', 'collaborator', 'agent-session', 'deploy-token']),
       }),
     ]),
+    automation: z.object({ model: z.string().nullable(), maxCostUsd: z.number() }).optional(),
     refused: z.string().nullable(),
     createdMs: z.number(),
   }),
@@ -173,6 +186,14 @@ const RunRecordSchema = z.object({
   cancelRequested: z.boolean(),
   // Runs stored before variables existed have none.
   vars: z.record(z.string(), z.string()).default({}),
+  modelUsage: z
+    .object({
+      calls: z.number(),
+      inputTokens: z.number(),
+      outputTokens: z.number(),
+      costUsd: z.number(),
+    })
+    .default(NO_MODEL_CALLS),
 });
 
 export class RunStore {

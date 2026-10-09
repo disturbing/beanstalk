@@ -93,6 +93,7 @@ export function runAt(plan: RunPlan, nowMs: number): RunDetail {
     summary: conclusion === 'success' ? plan.script.summary : null,
     inputs: plan.inputs,
     canRerun: plan.script.workflow.triggers.some((t) => t.event === 'workflow_dispatch'),
+    modelUsage: null,
   };
 }
 
@@ -237,6 +238,7 @@ function jobAt(job: JobTimes, seenMs: number, cancelled: boolean): Job {
     runsOn: job.script.runsOn,
     ...momentOf(job, seenMs, cancelled),
     steps,
+    outputs: {},
   };
 }
 

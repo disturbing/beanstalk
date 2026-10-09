@@ -6,7 +6,7 @@
     <title>Automations: Beanstalk docs</title>
     <meta
       name="description"
-      content="Automations are workflow files in git that react to Beanstalk events and run in Dynamic Workers."
+      content="Automations are agents defined by files in the repository: they run on Beanstalk events, on schedule or by hand, with a container, a memory and their own identity."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -130,7 +130,7 @@
               </li>
               <li>
                 <a href="automations.html" aria-current="page"
-                  >Automations<span class="st soon" title="coming soon"></span
+                  >Automations<span class="st rolling" title="rolling out"></span
                 ></a>
               </li>
               <li>
@@ -153,67 +153,164 @@
         </details>
         <article class="doc">
           <p class="prompt" aria-hidden="true">beanstalk docs automations</p>
-          <h1>Automations <span class="pill soon">coming soon</span></h1>
+          <h1>Automations <span class="pill rolling">rolling out</span></h1>
           <p class="lede">
-            An automation is a workflow file in <code>.beanstalk/automations/</code>: the same
-            syntax as GitHub Actions, plus Beanstalk events, built-in actions and a fast isolate
-            runtime. Designed; not built yet.
+            An automation is an agent defined by a file in <code>.beanstalk/automations/</code>. It
+            runs when something happens in the repository, on a schedule or by hand. Each run gets a
+            fresh container with the repository checked out, the event as context and a memory of
+            its own that persists between runs, and it may propose fixes as beans. Built and
+            verified on staging; not yet on the hosted service.
           </p>
 
           <h2 id="gitops">Files, not database rows</h2>
           <p>
-            The definitions live in git. When the stalk moves, Beanstalk reads the automation files
-            at the new head and rebuilds its index of schedules and subscriptions. Editing an
-            automation in the web app makes a commit authored by you, which goes through the
-            pre-land check like any bean and takes effect when it reaches the stalk. Automation
-            files are protected paths.
+            The definitions live in git. Each time the stalk moves, Beanstalk reads the automation
+            files at the new head, checks them and rebuilds its index of triggers and schedules. A
+            file with a problem is listed on the repository's Automations tab with the line and the
+            reason, and does not run. So changing an automation is a bean like any other: it goes
+            live when the stalk takes it. Automation files are protected paths: an agent cannot
+            change them.
           </p>
 
           <h2 id="example">An example</h2>
-          <pre><code><span class="c"># .beanstalk/automations/posthog-errors.yml</span>
-name: PostHog errors → beans
+          <pre><code><span class="c"># .beanstalk/automations/fix-red.yml</span>
+name: Fix red beans
 on:
-  schedule: [{ cron: "0 * * * *" }]
-  validation_red:                     <span class="c"># a Beanstalk event</span>
+  bean_red:                     <span class="c"># a bean's pre-land check went red</span>
+  schedule: [{ cron: "0 9 * * 1" }]
 permissions:
-  beans: write
-jobs:
-  triage:
-    runs-on: beanstalk-isolate        <span class="c"># a Dynamic Worker, not a container</span>
-    steps:
-      - uses: beanstalk/agent@v1
-        with:
-          harness: claude-code
-          budget-usd: 0.50
-          mcp: [posthog]
-          outputs: open-bean, comment
-          prompt: Open one bean per real bug with five or more occurrences in 24 h.</code></pre>
+  beans: write                  <span class="c"># may push fix beans as itself</span>
+max-cost-usd: 0.50
+prompt: |
+  Read why the bean went red. Check your memory for this failure.
+  Fix it in a new bean and note what you tried and learned.</code></pre>
+          <p>
+            A <code>.md</code> file works too: YAML front matter between <code>---</code> lines, and
+            the body is the prompt. Every automation can also be run by hand from its page.
+          </p>
 
-          <h2 id="extensions">What is added to the GitHub syntax</h2>
+          <h2 id="triggers">Triggers</h2>
+          <table>
+            <thead>
+              <tr>
+                <th><code>on:</code></th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>bean_opened</code>, <code>bean_landed</code></td>
+                <td>A bean is pushed; a bean lands on the sprout</td>
+              </tr>
+              <tr>
+                <td><code>bean_red</code></td>
+                <td>A bean's pre-land check is red, or it conflicts</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>bean_parked</code>, <code>bean_dropped</code>, <code>bean_reverted</code>
+                </td>
+                <td>A bean waits for a person, falls off, or is taken off the sprout</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>stalk_moved</code>, <code>stalk_reset</code>, <code>validation_red</code>
+                </td>
+                <td>
+                  The sprout is promoted to the stalk; the stalk goes back; a validation is red
+                </td>
+              </tr>
+              <tr>
+                <td><code>decision_opened</code>, <code>decision_decided</code></td>
+                <td>A decision card opens; it is answered</td>
+              </tr>
+              <tr>
+                <td><code>schedule</code>, <code>workflow_dispatch</code></td>
+                <td>Cron in UTC, at least 5 minutes apart; by hand (always available)</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Bean events take <code>beans:</code> and <code>authors:</code> filters with GitHub's
+            glob rules. An automation never fires on its own beans, and runs one at a time: a
+            trigger that arrives while it runs waits, and a newer one replaces it.
+          </p>
+
+          <h2 id="runs">What a run gets</h2>
           <ul>
             <li>
-              <strong>Beanstalk events</strong> in <code>on:</code>: <code>bean_opened</code>,
-              <code>bean_landed</code>, <code>bean_red</code>, <code>bean_parked</code>,
-              <code>stalk_moved</code>, <code>validation_red</code>, <code>decision_opened</code>,
-              <code>decision_decided</code>, plus <code>repository_dispatch</code> from a webhook.
+              <strong>A container</strong> of its own, the same as a GitHub Actions job: Linux, git,
+              Node and Python, the repository checked out at the stalk, and the event in
+              <code>$GITHUB_EVENT_PATH</code>. It is destroyed when the run ends.
             </li>
             <li>
-              <strong>Built-in actions</strong> with typed outputs: open a bean, comment, answer a
-              thread, raise a decision card, notify, or hand a step to an agent session with a
-              budget and a tool allowlist.
+              <strong>Memory</strong>: a directory restored from the git ref
+              <code>refs/automations/&lt;name&gt;/memory</code> and committed back at the end, so
+              every run's notes are a commit you can read, diff or revert. Anyone who can read the
+              repository can read it.
             </li>
             <li>
-              <strong><code>runs-on: beanstalk-isolate</code></strong
-              >: the job runs in a Dynamic Worker, a V8 isolate loaded at run time. It starts in
-              milliseconds and costs roughly a hundredth to a thousandth of a container job; an
-              hourly automation comes to about $0.06 a month. It has no network by default, gets
-              secrets only as placeholders the platform fills in on allowed hosts, and cannot run
-              shell or native tools, which still need a container.
+              <strong>An agent</strong> with shell, file and git tools, on a Workers AI model (<code
+                >@cf/moonshotai/kimi-k2.7-code</code
+              >
+              by default) through AI Gateway. The container never holds a model key: its calls go
+              through Beanstalk, which applies the run's and the repository's spend caps.
+              <code>harness: shell</code> runs a script instead, with no model.
+            </li>
+            <li>
+              <strong>Its own identity</strong>, <code>&lt;name&gt;[automation]</code>. With
+              <code>permissions: beans: write</code> it may push <code>bean/*</code>; those beans go
+              through the pre-land check like anyone's, and it can never push to the sprout, the
+              stalk or <code>main</code>.
+            </li>
+            <li>
+              <strong>Secrets</strong> it names in <code>secrets:</code>, by the same rule as
+              Actions: scheduled and manual runs get them; runs started by a bean event get only the
+              secrets marked available to pre-land checks, because the event carries text that
+              anyone with push access wrote. Values are masked in the log.
             </li>
           </ul>
+
+          <h2 id="limits">Limits</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Limit</th>
+                <th>Hosted beta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Run timeout</td>
+                <td>30 minutes by default, at most 60</td>
+              </tr>
+              <tr>
+                <td>Container minutes</td>
+                <td>Shared with GitHub Actions: 100 per repository per month; waiting is free</td>
+              </tr>
+              <tr>
+                <td>Model spend</td>
+                <td>$0.50 per run by default (at most $5), $10 per repository per month</td>
+              </tr>
+              <tr>
+                <td>Memory</td>
+                <td>50 MiB</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 id="tab">On the Automations tab</h2>
           <p>
-            An automation acts as the repository's own bot, capped by its <code>permissions:</code>,
-            and never lands anything itself: a bean it opens goes through the same checks.
+            The repository's Automations tab lists each automation with its triggers, what it runs,
+            who it acts as, its memory ref, its limits and any problems in its file, and a Run
+            button for maintainers. A run's page streams the agent's turns live and shows what it
+            did: the beans it pushed, its memory before and after, and its model calls and spend.
+            Logs are kept for 30 days.
+          </p>
+          <p>
+            Not yet: Beanstalk tools for the agent (comments, decision cards), your own model keys
+            or other agents such as Claude Code, webhooks into an automation, and editing in the
+            browser.
           </p>
 
           <section class="sources">
@@ -224,7 +321,7 @@ jobs:
                   href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/25-actions-and-automations.md"
                   >docs/claude-opus/25-actions-and-automations.md</a
                 >
-                (§1.3, §3.9)
+                (§7)
               </li>
             </ul>
           </section>

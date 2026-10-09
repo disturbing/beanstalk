@@ -90,7 +90,10 @@ export async function oidcJobEnv(input: {
 /** The job as the issuer sees it; null for a pre-land run (none start in the MVP). */
 export function idTokenJob(run: RunRecord, job: JobRow): IdTokenJob | null {
   const { request } = run;
-  if (request.origin.kind === 'preland') return null;
+  const { event } = request;
+  if (request.origin.kind === 'preland' || request.origin.kind === 'event') return null;
+  // Automations' Beanstalk events never get identity tokens.
+  if (event !== 'push' && event !== 'schedule' && event !== 'workflow_dispatch') return null;
   return {
     jobId: job.id,
     runId: request.runId,
@@ -111,7 +114,7 @@ export function idTokenJob(run: RunRecord, job: JobRow): IdTokenJob | null {
     idTokenWrite: job.idTokenWrite,
     run: {
       kind: 'stalk',
-      event: request.event,
+      event,
       ref: STALK_REF,
       sha: request.sha,
     },

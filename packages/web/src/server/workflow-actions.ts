@@ -11,7 +11,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { PutSecretInput, PutVariableInput } from '../actions/actions-contract';
-import { dispatchOf } from '../actions/run-view';
+import { dispatchOf, sectionOf } from '../actions/run-view';
 import { dispatchInputsOf } from '../actions/run-filters';
 import { lookupRepository } from '../repositories/flows';
 import { repositoryPath } from '../repositories/paths';
@@ -48,7 +48,9 @@ export async function dispatchWorkflowAction(
   });
   if (!started.ok) return refused(started.error.message);
   await scope.actions.persist();
-  return redirect(`${scope.base}/actions/runs/${encodeURIComponent(started.value.runId)}`);
+  return redirect(
+    `${scope.base}/${sectionOf(workflow.path)}/runs/${encodeURIComponent(started.value.runId)}`,
+  );
 }
 
 export async function cancelRunAction(
@@ -61,6 +63,7 @@ export async function cancelRunAction(
   if (!cancelled.ok) return refused(cancelled.error.message);
   await scope.actions.persist();
   revalidatePath(`${scope.base}/actions`, 'layout');
+  revalidatePath(`${scope.base}/automations`, 'layout');
   return { kind: 'done', message: 'Cancelling: running steps are stopped within seconds.' };
 }
 
@@ -82,7 +85,9 @@ export async function rerunRunAction(
   });
   if (!started.ok) return refused(started.error.message);
   await scope.actions.persist();
-  return redirect(`${scope.base}/actions/runs/${encodeURIComponent(started.value.runId)}`);
+  return redirect(
+    `${scope.base}/${sectionOf(run.value.workflowPath)}/runs/${encodeURIComponent(started.value.runId)}`,
+  );
 }
 
 export async function putSecretAction(

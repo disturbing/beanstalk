@@ -4,6 +4,7 @@
  * reads or writes the engine's own state: pushed beans, reservations, claims, the backlog file.
  */
 import type {
+  AgentAutomations,
   AgentBean,
   AgentPrincipal,
   AgentReposRpc,
@@ -21,9 +22,11 @@ import {
   BeanWaitUntil,
   MAX_BEAN_WAIT_SECONDS,
 } from '@beanstalk/shared-race/agent-repos';
+import { AUTOMATIONS_DIR, isAutomationPath } from '@beanstalk/shared-race/actions';
 import { TaskId } from '@beanstalk/shared-race/ids';
 import type { RpcResult } from '@beanstalk/shared-race/rpc';
 
+import { listIndexed } from '../actions/workflow-index';
 import type { Deps } from '../deps';
 import { GatewayError } from '../errors';
 import type { PushBean } from '../push/push-bean';
@@ -41,7 +44,7 @@ const IN_FLIGHT_FIRST = ['checking', 'waiting', 'red', 'conflict'];
 /** Phases a check is still running in; `landed` is still moving when waiting for the stalk. */
 const CHECKING: ReadonlySet<string> = new Set(['checking', 'waiting']);
 
-export function agentReposRpc(deps: Deps): AgentReposRpc {
+export function agentReposRpc(deps: Deps): Required<AgentReposRpc> {
   return {
     agentRepositories: (principal) => guarded(() => personRepositories(deps, principal)),
     agentRepository: (principal, repo) =>
@@ -73,7 +76,64 @@ export function agentReposRpc(deps: Deps): AgentReposRpc {
       within(deps, { principal, repo, need: RELEASE_TASK }, (opened) =>
         release(opened, principal, task),
       ),
+    agentAutomations: (principal, repo) =>
+      within(deps, { principal, repo, need: READ }, (opened) => automationsOf(deps, opened)),
   };
+}
+
+/** Runs `automation_list` shows. */
+const AUTOMATION_RUNS = 20;
+
+async function automationsOf(deps: Deps, opened: Opened): Promise<RpcResult<AgentAutomations>> {
+  const record = await deps.registry.byEngine(opened.engineId);
+  if (record === null) return failure('not_found', 404, `${opened.repository.repo} has no index`);
+  const [workflows, runs] = await Promise.all([
+    listIndexed(deps.forge, record.id),
+    deps.forge
+      .prepare(
+        `SELECT id, workflow_path, number, event, status, conclusion, created_at FROM actions_runs
+         WHERE repo_id = ? AND workflow_path LIKE ? ORDER BY created_ms DESC LIMIT ?`,
+      )
+      .bind(record.id, `${AUTOMATIONS_DIR}/%`, AUTOMATION_RUNS)
+      .all<{
+        id: string;
+        workflow_path: string;
+        number: number;
+        event: string;
+        status: string;
+        conclusion: string | null;
+        created_at: string;
+      }>(),
+  ]);
+  return ok({
+    repo: opened.repository.repo,
+    automations: workflows
+      .filter((workflow) => isAutomationPath(workflow.path))
+      .map((workflow) => ({
+        path: workflow.path,
+        name: workflow.name,
+        state: workflow.state,
+        problems: workflow.problems.map((problem) =>
+          problem.line === null ? problem.message : `line ${problem.line}: ${problem.message}`,
+        ),
+        triggers: workflow.triggers.map((trigger) =>
+          trigger.kind === 'beanstalk' ? trigger.event : trigger.kind,
+        ),
+        harness: workflow.automation?.harness ?? null,
+        model: workflow.automation?.model ?? null,
+        acts_as: workflow.automation?.actor ?? null,
+        memory_ref: workflow.automation?.memoryRef ?? null,
+      })),
+    runs: runs.results.map((run) => ({
+      id: run.id,
+      automation: run.workflow_path,
+      number: run.number,
+      event: run.event,
+      status: run.status,
+      conclusion: run.conclusion,
+      created_at: run.created_at,
+    })),
+  });
 }
 
 const READ = { kind: 'read' } as const;

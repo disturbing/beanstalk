@@ -1,6 +1,6 @@
 /**
  * The Automations tab around its two kinds (`docs/claude-opus/25` §5): Actions (the
- * repository's `.github/workflows`) and Automations (`.beanstalk/automations`, coming). On a
+ * repository's `.github/workflows`) and Automations (`.beanstalk/automations`). On a
  * deployment answering from fixtures, every page says so.
  */
 import Link from 'next/link';
@@ -19,6 +19,8 @@ export function ActionsShell(props: {
   readonly mode: ActionsMode | null;
   /** Workflows in the repository, counted on the Actions segment. */
   readonly workflowCount?: number | undefined;
+  /** Automations in the repository, counted on the Automations segment. */
+  readonly automationCount?: number | undefined;
   readonly children: ReactNode;
 }) {
   const { record, base, role } = props.page;
@@ -51,6 +53,9 @@ export function ActionsShell(props: {
               aria-current={props.view === 'automations' ? 'page' : undefined}
             >
               Automations
+              {props.automationCount === undefined ? null : (
+                <span className={styles.count}>{props.automationCount}</span>
+              )}
             </Link>
           </div>
           {props.mode === 'fixtures' ? (

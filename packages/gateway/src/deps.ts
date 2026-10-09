@@ -32,6 +32,8 @@ export type Deps = {
   readonly now: () => number;
   /** The repository registry (`repos/registry.ts`): names, owners, visibility, engines. */
   readonly registry: Registry;
+  /** The forge database itself, for indexes no store wraps (the automations list). */
+  readonly forge: D1Database;
   /** Collaborators, invitations and sessions (`repos/collaborators.ts`), beside the registry. */
   readonly collaborators: CollaboratorStore;
   /** Product analytics (Analytics Engine `product_events`): beans pushed by people. */
@@ -52,6 +54,7 @@ export function createDeps(env: Env): Deps {
     runnerPool: () => env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME),
     now: () => Date.now(),
     registry: d1Registry(env.FORGE, env),
+    forge: env.FORGE,
     collaborators: d1Collaborators(env.FORGE, () => Date.now(), env),
     productEvents: env.PRODUCT_EVENTS,
   };

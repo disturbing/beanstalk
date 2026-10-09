@@ -19,7 +19,12 @@ import type {
   RunSummary,
   StepView,
 } from '@beanstalk/shared-race/actions';
-import { ActionsJobId, ActionsRunId } from '@beanstalk/shared-race/actions';
+import {
+  ActionsJobId,
+  ActionsRunId,
+  automationIdOf,
+  isAutomationPath,
+} from '@beanstalk/shared-race/actions';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 
 import { RUNNER_POOL_NAME } from '../capacity/runner-capacity';
@@ -37,8 +42,8 @@ import type { LogLocation } from './log-chunks';
 import { writeLogChunk } from './log-chunks';
 import { maskTermsOf, maskText } from './mask';
 import type { RunRequest } from './run-request';
-import type { JobPatch, JobRow, RunRecord } from './run-store';
-import { RunStore, jobViewOf, summaryOf } from './run-store';
+import type { JobPatch, JobRow, ModelCalls, RunRecord } from './run-store';
+import { NO_MODEL_CALLS, RunStore, jobViewOf, summaryOf } from './run-store';
 import type { EntryRepo, EntryStores } from './repo-entries';
 import { entryStoresOf, jobSecretCatalog, jobVariables } from './repo-entries';
 import { secretsForRun } from './secrets';
@@ -91,6 +96,7 @@ export class ActionsRunDO extends DurableObject<Env> {
       startedMs: null,
       completedMs: null,
       cancelRequested: false,
+      modelUsage: NO_MODEL_CALLS,
     };
     if (refusal === null) {
       this.#store.insertJobs(
@@ -124,7 +130,57 @@ export class ActionsRunDO extends DurableObject<Env> {
     const record = this.#store.run();
     if (record === null) return null;
     const jobs = this.#store.jobs();
-    return { ...summaryOf(record, jobs), jobs: jobs.map(jobViewOf), inputs: record.request.inputs };
+    const automation = record.request.automation;
+    return {
+      ...summaryOf(record, jobs),
+      jobs: jobs.map(jobViewOf),
+      inputs: record.request.inputs,
+      ...(automation?.model === null || automation === undefined
+        ? {}
+        : {
+            modelUsage: {
+              ...record.modelUsage,
+              model: automation.model,
+              limitUsd: automation.maxCostUsd,
+            },
+          }),
+    };
+  }
+
+  // The model proxy's side (doc 25 §7.5) ---------------------------------------------------
+
+  /** The model a running automation job may call, and what it may still spend; else why not. */
+  async modelAllowance(
+    jobId: string,
+  ): Promise<RpcResult<{ readonly model: string; readonly remainingUsd: number }>> {
+    const record = this.#store.run();
+    const job = this.#store.job(jobId);
+    const automation = record?.request.automation;
+    if (record === null || job === null || automation === undefined || automation.model === null)
+      return refused('forbidden', 403, 'this job does not run an agent');
+    if (job.status !== 'in_progress')
+      return refused('invalid_state', 409, 'the job is not running');
+    const remainingUsd = automation.maxCostUsd - record.modelUsage.costUsd;
+    if (remainingUsd <= 0)
+      return refused(
+        'over_limit',
+        429,
+        `this run's model spend reached its max-cost-usd of $${automation.maxCostUsd}`,
+      );
+    return { ok: true, value: { model: automation.model, remainingUsd } };
+  }
+
+  /** Adds one model call to the run's count; returns the run's totals. */
+  async chargeModel(calls: ModelCalls): Promise<ModelCalls> {
+    const record = this.#requireRun();
+    const total: ModelCalls = {
+      calls: record.modelUsage.calls + calls.calls,
+      inputTokens: record.modelUsage.inputTokens + calls.inputTokens,
+      outputTokens: record.modelUsage.outputTokens + calls.outputTokens,
+      costUsd: record.modelUsage.costUsd + calls.costUsd,
+    };
+    this.#store.saveRun({ ...record, modelUsage: total });
+    return total;
   }
 
   /** Whether the job has completed (null: no such job). */
@@ -402,6 +458,9 @@ export class ActionsRunDO extends DurableObject<Env> {
       jobId,
       canPush: job.contentsWrite && request.origin.kind !== 'preland',
       expiresMs: nowMs + job.timeoutMinutes * 60_000 + JOB_TOKEN_GRACE_MS,
+      automationId: isAutomationPath(request.workflow.path)
+        ? automationIdOf(request.workflow.path)
+        : null,
     });
     this.#masks.set(job.id, [...(await this.#maskTerms(job)), jobToken]);
     this.#store.updateJob(job.id, {
@@ -423,6 +482,7 @@ export class ActionsRunDO extends DurableObject<Env> {
       vars: record.vars,
       tokens: { job: jobToken, report: report.token },
       serverUrl: this.#config.serverUrl,
+      modelUrl: `${this.#config.publicUrl}/v1/automations/model`,
       oidcEnv: await oidcJobEnv({
         env: this.env,
         publicUrl: this.#config.publicUrl,
@@ -513,6 +573,19 @@ export class ActionsRunDO extends DurableObject<Env> {
     await this.#writeIndex();
     // Watchers have their job's final frame; their sockets close with the run.
     for (const socket of this.ctx.getWebSockets()) socket.close(1000, 'run completed');
+    await this.#tellAutomationEnded(record);
+  }
+
+  /** An automation runs one at a time: its repository starts the next waiting trigger. */
+  async #tellAutomationEnded(record: RunRecord): Promise<void> {
+    const { request } = record;
+    if (!isAutomationPath(request.workflow.path)) return;
+    await this.env.ACTIONS_REPOS.getByName(request.repo.id)
+      .automationEnded({ path: request.workflow.path, runId: request.runId })
+      .catch((error: unknown) => {
+        // The repository also frees an automation whose recorded run has completed.
+        this.#log.warn('automation end not told', { runId: request.runId, error });
+      });
   }
 
   async #scheduleAlarm(nowMs: number): Promise<void> {

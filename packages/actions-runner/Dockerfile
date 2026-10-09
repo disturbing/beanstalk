@@ -47,7 +47,7 @@ ARG NODE20_SHA256=df770b2a6f130ed8627c9782c988fda9669fa23898329a61a871e32f965e00
 ARG DOCKER_VERSION=29.8.2
 ARG DOCKER_SHA256=995d1ef289677f74fd58d8d2c35727b6a4ee389c69db8638a3e42d0487aa5b0f
 # Bump with every change to this file or the job runner; reported by /version and each result.
-ARG IMAGE_VERSION=actions-runner-2026-10-09.6
+ARG IMAGE_VERSION=actions-runner-2026-10-09.7
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \

@@ -1,11 +1,13 @@
 /**
- * Automations → Actions: the workflows in a rail (each with its last run's state), the
- * selected one's triggers, compatibility notes, "View file" and "Run workflow", then its runs
- * (or every workflow's) with filters by workflow, status and line, newest first.
+ * Automations → Actions (and → Automations, the same view over `.beanstalk/automations/`): the
+ * workflows in a rail (each with its last run's state), the selected one's triggers,
+ * compatibility notes or validation errors, an automation's agent and memory, "View file" and
+ * "Run", then its runs (or every one's) with filters by workflow, status and line, newest first.
  */
 import Link from 'next/link';
 
 import type {
+  AutomationFacts,
   RunFilter,
   RunPage,
   RunSummary,
@@ -38,22 +40,26 @@ export function WorkflowsView(props: {
   readonly filter: RunFilter;
   readonly access: ActionsAccess | null;
   readonly nowMs: number;
+  /** Which segment: GitHub workflows (default) or automations. */
+  readonly kind?: Kind;
 }) {
-  const path = `${props.base}/actions`;
+  const kind = props.kind ?? 'actions';
+  const path = `${props.base}/${kind}`;
   const selected =
     props.workflows.find((workflow) => workflow.id === props.filter.workflow) ?? null;
   return (
     <div className={styles.layout}>
-      <WorkflowRail path={path} workflows={props.workflows} filter={props.filter} />
+      <WorkflowRail path={path} workflows={props.workflows} filter={props.filter} kind={kind} />
       <section className={styles.box} aria-labelledby="workflow-title">
         {selected === null ? (
-          <AllWorkflowsHead count={props.workflows.length} />
+          <AllWorkflowsHead count={props.workflows.length} kind={kind} />
         ) : (
           <WorkflowHead base={props.base} workflow={selected} access={props.access} />
         )}
         <Filters path={path} filter={props.filter} />
         <RunList
           base={props.base}
+          kind={kind}
           path={path}
           runs={props.runs}
           error={props.runsError}
@@ -65,15 +71,25 @@ export function WorkflowsView(props: {
   );
 }
 
+type Kind = 'actions' | 'automations';
+
+const NO_RUNS_YET: Readonly<Record<Kind, string>> = {
+  actions: 'No runs yet. A workflow runs when the stalk moves, on its schedule, or by hand.',
+  automations: 'No runs yet. An automation runs on its Beanstalk events, its schedule, or by hand.',
+};
+
 function WorkflowRail(props: {
   readonly path: string;
   readonly workflows: readonly Workflow[];
   readonly filter: RunFilter;
+  readonly kind: Kind;
 }) {
   const withNotes = props.workflows.filter((workflow) => workflow.notes.length > 0).length;
+  const invalid = props.workflows.filter((workflow) => workflow.error !== null).length;
+  const label = props.kind === 'automations' ? 'Automations' : 'Workflows';
   return (
-    <aside className={styles.rail} aria-label="Workflows">
-      <h2>Workflows</h2>
+    <aside className={styles.rail} aria-label={label}>
+      <h2>{label}</h2>
       <ul className={styles.workflows}>
         <li>
           <Link
@@ -82,7 +98,7 @@ function WorkflowRail(props: {
             aria-current={props.filter.workflow === undefined ? 'page' : undefined}
           >
             <span />
-            <span className={styles.workflowName}>All workflows</span>
+            <span className={styles.workflowName}>All {label.toLowerCase()}</span>
           </Link>
         </li>
         {props.workflows.map((workflow) => (
@@ -103,6 +119,11 @@ function WorkflowRail(props: {
           </li>
         ))}
       </ul>
+      {invalid === 0 || props.kind !== 'automations' ? null : (
+        <p className={styles.railNote}>
+          <b>Invalid:</b> {invalid} {invalid === 1 ? 'file does' : 'files do'} not run until fixed.
+        </p>
+      )}
       {withNotes === 0 ? null : (
         <p className={styles.railNote}>
           <b>Compatibility:</b> {withNotes} {withNotes === 1 ? 'workflow has' : 'workflows have'}{' '}
@@ -113,7 +134,19 @@ function WorkflowRail(props: {
   );
 }
 
-function AllWorkflowsHead({ count }: { readonly count: number }) {
+function AllWorkflowsHead({ count, kind }: { readonly count: number; readonly kind: Kind }) {
+  if (kind === 'automations')
+    return (
+      <div className={styles.workflowHead}>
+        <div>
+          <h2 id="workflow-title">All automations</h2>
+          <p className={styles.workflowPath}>
+            {count} {count === 1 ? 'automation' : 'automations'} in .beanstalk/automations: agents
+            that run on Beanstalk events, on schedule or by hand, each with its own memory
+          </p>
+        </div>
+      </div>
+    );
   return (
     <div className={styles.workflowHead}>
       <div>
@@ -171,6 +204,7 @@ function WorkflowHead(props: {
           />
         ) : null}
       </div>
+      {workflow.automation === null ? null : <AutomationFactsList facts={workflow.automation} />}
       <ul className={styles.triggers} aria-label="Triggers">
         {workflow.triggers.map((trigger, index) => (
           <li
@@ -194,6 +228,68 @@ function WorkflowHead(props: {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** An automation's agent, permissions, secrets, memory and limits, as its file says. */
+function AutomationFactsList(props: { readonly facts: AutomationFacts }) {
+  const { facts } = props;
+  return (
+    <div className={styles.automationFacts}>
+      <dl className={styles.facts}>
+        <div>
+          <dt>Runs</dt>
+          <dd>
+            {facts.harness === 'agent' ? (
+              <>
+                agent on <span className={styles.mono}>{facts.model}</span>
+              </>
+            ) : (
+              'a shell script'
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Acts as</dt>
+          <dd className={styles.mono}>{facts.actor}</dd>
+        </div>
+        <div>
+          <dt>May</dt>
+          <dd>{facts.beansWrite ? 'read and push beans' : 'read'}</dd>
+        </div>
+        <div>
+          <dt>Secrets</dt>
+          <dd>{facts.secrets.length === 0 ? 'none' : facts.secrets.join(', ')}</dd>
+        </div>
+        <div>
+          <dt>Memory</dt>
+          <dd>
+            {facts.memoryRef === null ? (
+              'off'
+            ) : (
+              <span
+                className={styles.mono}
+                title={`git fetch origin ${facts.memoryRef}; each run's memory commit is linked on its page`}
+              >
+                {facts.memoryRef}
+              </span>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Limits</dt>
+          <dd>
+            {facts.timeoutMinutes} min
+            {facts.harness === 'agent'
+              ? ` · ${facts.maxTurns} turns · $${facts.maxCostUsd.toFixed(2)}`
+              : ''}
+          </dd>
+        </div>
+      </dl>
+      <pre className={styles.yaml} aria-label={facts.harness === 'agent' ? 'Prompt' : 'Script'}>
+        {facts.prompt}
+      </pre>
     </div>
   );
 }
@@ -261,6 +357,7 @@ function Filters(props: { readonly path: string; readonly filter: RunFilter }) {
 
 function RunList(props: {
   readonly base: string;
+  readonly kind: Kind;
   readonly path: string;
   readonly runs: RunPage | null;
   readonly error: string | null;
@@ -273,7 +370,7 @@ function RunList(props: {
     return (
       <p className={styles.empty}>
         {props.filter.status === undefined && props.filter.branch === undefined
-          ? 'No runs yet. A workflow runs when the stalk moves, on its schedule, or by hand.'
+          ? NO_RUNS_YET[props.kind]
           : 'No runs match these filters.'}
       </p>
     );
@@ -283,7 +380,7 @@ function RunList(props: {
       <ol className={styles.runs} aria-label="Runs">
         {props.runs.runs.map((run) => (
           <li key={run.id}>
-            <RunRow run={run} base={props.base} nowMs={props.nowMs} />
+            <RunRow run={run} base={props.base} kind={props.kind} nowMs={props.nowMs} />
           </li>
         ))}
       </ol>
@@ -303,6 +400,7 @@ function RunList(props: {
 function RunRow(props: {
   readonly run: RunSummary;
   readonly base: string;
+  readonly kind: Kind;
   readonly nowMs: number;
 }) {
   const { run } = props;
@@ -311,7 +409,10 @@ function RunRow(props: {
     <div className={styles.run}>
       <StateMark state={state} />
       <span className={styles.runTitle}>
-        <Link prefetch={false} href={`${props.base}/actions/runs/${encodeURIComponent(run.id)}`}>
+        <Link
+          prefetch={false}
+          href={`${props.base}/${props.kind}/runs/${encodeURIComponent(run.id)}`}
+        >
           {runTitle(run)}
         </Link>
       </span>

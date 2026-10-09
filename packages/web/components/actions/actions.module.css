@@ -169,6 +169,21 @@
   align-items: start;
   padding: 16px;
 }
+/* An automation's facts and prompt: the whole width under its name (doc 25 §7.8). */
+.automationFacts {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.automationFacts .facts {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.automationFacts pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
 .workflowHead h2 {
   font-size: var(--step-2);
   font-weight: 650;

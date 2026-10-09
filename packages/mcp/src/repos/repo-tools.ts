@@ -15,6 +15,7 @@ import { answer } from '../mcp/tool-result';
 import type { ToolScope } from '../tools/tool-context';
 import { gitCredentials } from './git-credentials';
 import {
+  automationList,
   beanStatus,
   beanWait,
   openBean,
@@ -28,6 +29,7 @@ import {
 export const REPO_TOOL_NAMES = [
   'repo_list',
   'repo_status',
+  'automation_list',
   'bean_open',
   'bean_status',
   'bean_wait',
@@ -86,6 +88,17 @@ function registerRepositoryReads(server: McpServer, scope: ToolScope): void {
       annotations: READS,
     },
     async ({ repo }) => answer(() => repoStatus(scope, repo)),
+  );
+  server.registerTool(
+    'automation_list',
+    {
+      title: 'Automations of a repository',
+      description:
+        "The repository's automations (agents defined by .beanstalk/automations/ files on the stalk): each one's triggers, harness and model, the bot it acts as, its memory ref (refs/automations/<name>/memory, readable with git) and any problems in its file; then the 20 newest automation runs with their event and conclusion. To change an automation, edit its file in a bean.",
+      inputSchema: z.object({ repo: Repo }),
+      annotations: READS,
+    },
+    async ({ repo }) => answer(() => automationList(scope, repo)),
   );
 }
 

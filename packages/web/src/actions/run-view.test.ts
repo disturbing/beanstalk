@@ -15,6 +15,7 @@ function job(id: string, needs: readonly string[], conclusion: Job['conclusion']
     startedAt: null,
     completedAt: null,
     steps: [],
+    outputs: {},
   };
 }
 

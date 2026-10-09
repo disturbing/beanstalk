@@ -284,6 +284,27 @@ async fn hands_act_the_one_job_and_no_secret_on_its_command_line() -> TestResult
 }
 
 #[tokio::test]
+async fn runs_a_compiled_workflow_source_without_reading_the_path_at_the_commit() -> TestResult {
+    let mut harness = Harness::start(GREEN_ACT).await?;
+    let mut job = harness.job("agent");
+    job["workflowPath"] = json!(".beanstalk/automations/fix-red.yml");
+    job["workflowSource"] = json!(
+        "on: workflow_dispatch\njobs:\n  agent:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo compiled\n"
+    );
+    assert_eq!(harness.post("/v1/job", &job).await?.status(), 202);
+    let result = harness.next_result().await?;
+    assert_eq!(result["conclusion"], "success");
+    let workflow = std::fs::read_to_string(harness.root.join("work/act-workflow.yml"))?;
+    assert!(workflow.contains("echo compiled"), "{workflow}");
+    assert!(harness.lines().iter().any(|line| {
+        line["text"]
+            .as_str()
+            .is_some_and(|text| text.contains("as compiled by Beanstalk"))
+    }));
+    Ok(())
+}
+
+#[tokio::test]
 async fn never_runs_a_second_job_in_the_same_container() -> TestResult {
     let mut harness = Harness::start(GREEN_ACT).await?;
     harness.post("/v1/job", &harness.job("build")).await?;
