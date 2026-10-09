@@ -19,6 +19,8 @@ import type {
 export const RepositoryRecord = z.object({
   id: z.string(),
   owner: z.object({ id: z.string(), handle: z.string() }),
+  /** A person's or an org's (an older gateway sends nothing: a person's). */
+  owner_kind: z.enum(['user', 'org']).default('user'),
   name: z.string(),
   description: z.string(),
   visibility: z.enum(['public', 'private']),
@@ -94,6 +96,8 @@ export type RegistryClient = {
     repoId: string,
     to: RepositoryListing,
   ): Promise<Outcome<RepositoryRecord>>;
+  /** Moves a repository to the actor or an org they administer; unavailable on an older gateway. */
+  transfer(actorId: string, repoId: string, toHandle: string): Promise<Outcome<RepositoryRecord>>;
   activity(ownerId: string, limit: number): Promise<Outcome<readonly RepositoryActivity[]>>;
   files(repoId: string, viewer: Viewer): Promise<Outcome<RepositoryFiles>>;
 };
@@ -150,6 +154,15 @@ export function registryClient(binding: object): RegistryClient {
       ),
     remove: (ownerId, repoId) =>
       call(z.object({ deleted: z.literal(true) }), (r) => r.deleteRepository(ownerId, repoId)),
+    transfer: (actorId, repoId, toHandle) =>
+      call(RepositoryRecord, (r) =>
+        typeof Reflect.get(r, 'transferRepository') === 'function'
+          ? r.transferRepository(actorId, repoId, toHandle)
+          : Promise.resolve({
+              ok: false,
+              error: { code: 'unavailable', status: 503, message: UNAVAILABLE.message },
+            }),
+      ),
     activity: (ownerId, limit) =>
       call(z.array(RepositoryActivity), (r) => r.repositoryActivity(ownerId, limit)),
     files: (repoId, viewer) => call(RepositoryFiles, (r) => r.repositoryFiles(repoId, viewer)),

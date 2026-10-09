@@ -21,14 +21,36 @@ const STARTS = [
   },
 ] as const;
 
-/** New repository: name, description, visibility, and how it starts. */
-export function NewRepositoryForm(props: { readonly owner: string }) {
-  const [state, action, pending] = useActionState<CreateState, FormData>(
-    createRepository,
-    EMPTY_CREATE_STATE,
-  );
+/** A namespace the person may create in: themself, or an org that lets them. */
+export type OwnerChoice = {
+  readonly handle: string;
+  readonly kind: 'user' | 'org';
+  readonly name: string;
+  readonly defaultVisibility: 'public' | 'private';
+};
+
+/**
+ * New repository: owner (you or one of your organizations), name, description, visibility,
+ * and how it starts.
+ */
+export function NewRepositoryForm(props: {
+  readonly owners: readonly OwnerChoice[];
+  readonly initialOwner: string;
+}) {
+  const initial = props.owners.find((owner) => owner.handle === props.initialOwner);
+  const [state, action, pending] = useActionState<CreateState, FormData>(createRepository, {
+    ...EMPTY_CREATE_STATE,
+    values: {
+      ...EMPTY_CREATE_STATE.values,
+      owner: initial?.handle ?? '',
+      visibility: initial?.defaultVisibility ?? EMPTY_CREATE_STATE.values.visibility,
+    },
+  });
   const [start, setStart] = useState<string>(state.values.start);
+  const [ownerHandle, setOwnerHandle] = useState<string>(state.values.owner);
   const { errors, values } = state;
+  const [me] = props.owners;
+  const owner = props.owners.find((choice) => choice.handle === ownerHandle) ?? me;
   return (
     <form action={action} className={styles.form} noValidate>
       {errors.form === undefined ? null : (
@@ -41,7 +63,26 @@ export function NewRepositoryForm(props: { readonly owner: string }) {
           Name
         </label>
         <div className={styles.nameRow}>
-          <span className={styles.owner}>{props.owner} /</span>
+          {props.owners.length > 1 ? (
+            <select
+              name="owner"
+              className={styles.input}
+              value={owner?.handle}
+              onChange={(event) => setOwnerHandle(event.target.value)}
+              aria-label="Owner"
+            >
+              {props.owners.map((choice) => (
+                <option key={choice.handle} value={choice.handle}>
+                  {choice.kind === 'user' ? `${choice.handle} (you)` : choice.handle}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input type="hidden" name="owner" value={owner?.handle ?? ''} />
+          )}
+          <span className={styles.owner}>
+            {props.owners.length > 1 ? '/' : `${owner?.handle ?? ''} /`}
+          </span>
           <input
             id="repo-name"
             name="name"
@@ -89,7 +130,11 @@ export function NewRepositoryForm(props: { readonly owner: string }) {
           />
           <span>
             <b>Private</b>
-            <span>Only you can see it.</span>
+            <span>
+              {owner?.kind === 'org'
+                ? 'Members by the organization’s base permission, and the people you invite.'
+                : 'Only you can see it.'}
+            </span>
           </span>
         </label>
         <label className={styles.choice}>
@@ -101,7 +146,11 @@ export function NewRepositoryForm(props: { readonly owner: string }) {
           />
           <span>
             <b>Public</b>
-            <span>Anyone with the link can read it. Only you and your agents change it.</span>
+            <span>
+              {owner?.kind === 'org'
+                ? 'Anyone with the link can read it. Only people with a write role change it.'
+                : 'Anyone with the link can read it. Only you and your agents change it.'}
+            </span>
           </span>
         </label>
       </fieldset>

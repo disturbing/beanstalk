@@ -1,0 +1,216 @@
+/* Organizations: the org's mark, its page head, and the member roster grouped by role.
+   Everything else reuses the repository module's panels, forms and buttons. */
+
+.mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 22%;
+  background: color-mix(in srgb, var(--human) 16%, var(--sheet));
+  color: var(--human);
+  border: 1px solid color-mix(in srgb, var(--human) 40%, transparent);
+  font: 600 14px / 1 var(--font-mono);
+  letter-spacing: -0.04em;
+  overflow: hidden;
+  text-transform: lowercase;
+}
+
+.mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.headText h1 {
+  margin: 0;
+  font-size: var(--step-3);
+  line-height: 1.1;
+}
+
+.handle {
+  font: 500 13px var(--font-mono);
+  color: var(--ink-2);
+}
+
+.headText p {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.headActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.roster {
+  margin: 0;
+  padding: 4px 16px 12px;
+}
+
+.roster dt {
+  margin-top: 12px;
+  font-size: var(--step--1);
+  color: var(--ink-3);
+}
+
+.roster dd {
+  margin: 4px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.person {
+  font: 500 12px var(--font-mono);
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.person:hover {
+  border-color: var(--human);
+}
+
+.ownerRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ownerRow select {
+  min-width: 0;
+}
+
+.namespaceOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.disabledField {
+  opacity: 0.6;
+}
+
+.yourOrgs {
+  margin-bottom: 28px;
+}
+
+.orgList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.orgList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.orgList li:last-child {
+  border-bottom: 0;
+}
+
+.orgList a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.orgList a:hover {
+  text-decoration: underline;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--human);
+  font-weight: 600;
+}
+
+.menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.menuList {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: 200px;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.menuList a {
+  display: block;
+  padding: 7px 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.menuList a:hover,
+.menuList a:focus-visible {
+  background: var(--wash);
+}
+
+.menuRule {
+  border-top: 1px solid var(--rule);
+  margin: 6px 0;
+}
+
+@media (max-width: 720px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .headActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .menuList {
+    right: auto;
+    left: 0;
+  }
+}

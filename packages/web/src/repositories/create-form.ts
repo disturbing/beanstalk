@@ -11,7 +11,7 @@ import {
   RepoVisibility,
 } from '@beanstalk/shared-race/repos';
 
-export type CreateField = 'name' | 'description' | 'visibility' | 'start' | 'importUrl';
+export type CreateField = 'owner' | 'name' | 'description' | 'visibility' | 'start' | 'importUrl';
 
 /** What the person typed, echoed back when the form is shown again. */
 export type CreateValues = Readonly<Record<CreateField, string>>;
@@ -25,6 +25,7 @@ export type CreateFormResult =
     };
 
 export const DEFAULT_VALUES: CreateValues = {
+  owner: '',
   name: '',
   description: '',
   visibility: 'private',
@@ -48,6 +49,7 @@ export function readCreateForm(form: FormData): CreateFormResult {
   return {
     ok: true,
     input: {
+      ...(values.owner === '' ? {} : { owner: values.owner }),
       name: name.data,
       description: values.description,
       visibility: visibility.data,
@@ -74,6 +76,7 @@ function valuesOf(form: FormData): CreateValues {
     return typeof value === 'string' ? value.trim() : DEFAULT_VALUES[field];
   };
   return {
+    owner: text('owner'),
     name: text('name'),
     description: text('description'),
     visibility: text('visibility'),

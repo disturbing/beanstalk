@@ -23,6 +23,7 @@
  * what they may do. Never throws for bad input; never logs the token.
  */
 import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
+import type { OrgStanding } from '@beanstalk/shared-identity/orgs';
 import type { Scope } from '@beanstalk/shared-identity/scopes';
 import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
 import type {
@@ -79,6 +80,11 @@ export type RepositoryAccess = {
   readonly visibility: 'public' | 'private';
   /** The asking person's collaborator role as the registry records it; null when none. */
   readonly collaboratorRole: RepoRole | null;
+  /**
+   * When an org owns the repository: the asking person's role in it and the org's base
+   * permission; null for a person's repository and for people outside the org.
+   */
+  readonly org: OrgStanding | null;
   /** Archived by its owner: read-only for everyone until it is unarchived. */
   readonly archived: boolean;
 };
@@ -152,7 +158,9 @@ export async function verifyGitCredential(
  *   that engine only, as far as its scopes go, and never decides or administers; any other
  *   repository is not found. Race run principals never reach repositories.
  * - Everyone else is their role: the owner, a collaborator's `read` / `write` / `maintain`, or
- *   none. With no role a private repository is not found and a public one only reads.
+ *   none; on an org's repository also what their org role gives (owners and admins: owner;
+ *   members: the base permission; viewers: at most read), the strongest of these counting.
+ *   With no role a private repository is not found and a public one only reads.
  * - A token, key or agent session is its person's role capped by its scopes (`repo:read`,
  *   `bean:write`); deciding, deploy tokens and settings are people's, on the web, only.
  * - An archived repository is read-only: whoever could push, decide or manage deploy tokens
@@ -207,7 +215,10 @@ function roleVerdict(
   return principal.kind === 'credential' ? withinScopes(principal.credential, action) : 'allowed';
 }
 
-/** What the principal is on the repository: its owner, a collaborator role, or nothing. */
+/**
+ * What the principal is on the repository: the strongest of its owner, a collaborator role
+ * and what their org role gives them (`orgRepositoryRole`), or nothing.
+ */
 export function roleOf(
   principal: RepositoryPrincipal,
   repository: RepositoryAccess,
@@ -219,7 +230,35 @@ export function roleOf(
     owner.id === null
       ? user.handle.toLowerCase() === owner.handle.toLowerCase()
       : user.id === owner.id;
-  return isOwner ? 'owner' : repository.collaboratorRole;
+  if (isOwner) return 'owner';
+  return strongest(repository.collaboratorRole, orgRepositoryRole(repository.org));
+}
+
+/**
+ * The repository role an org role gives on every org repository: owners and admins are its
+ * owners; members get the org's base permission (`none` is no role); viewers the same, capped
+ * at read.
+ */
+export function orgRepositoryRole(standing: OrgStanding | null): ViewerRole | null {
+  if (standing === null) return null;
+  const base = standing.basePermission === 'none' ? null : standing.basePermission;
+  switch (standing.role) {
+    case 'owner':
+    case 'admin':
+      return 'owner';
+    case 'member':
+      return base;
+    case 'viewer':
+      return base === null ? null : 'read';
+    default:
+      return assertNever(standing.role);
+  }
+}
+
+function strongest(a: ViewerRole | null, b: ViewerRole | null): ViewerRole | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return RANK[a] >= RANK[b] ? a : b;
 }
 
 /** The person whose role the registry is asked for; null for nobody and for bound tokens. */

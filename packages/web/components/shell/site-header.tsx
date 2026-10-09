@@ -1,6 +1,11 @@
 import Link from 'next/link';
 
+import { env } from 'cloudflare:workers';
+
+import { orgsOf } from '@beanstalk/shared-identity/orgs';
+
 import { currentUser } from '../../src/auth/user';
+import menu from '../orgs/orgs.module.css';
 import { signOut } from '../../src/server/actions';
 import { isSignedIn, viewerDay, viewerTheme } from '../../src/server/viewer';
 import styles from './shell.module.css';
@@ -14,6 +19,7 @@ export async function SiteHeader() {
     isSignedIn(),
     currentUser(),
   ]);
+  const orgs = user === null ? [] : await orgsOf(env, user.id);
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>
@@ -43,9 +49,26 @@ export async function SiteHeader() {
             Sign in
           </Link>
         ) : (
-          <Link href="/settings" className={styles.signIn}>
-            @{user.handle}
-          </Link>
+          <details className={menu.menu}>
+            <summary>@{user.handle}</summary>
+            <ul className={menu.menuList}>
+              <li>
+                <Link href={`/${user.handle}`}>Your repositories</Link>
+              </li>
+              {orgs.map(({ org }) => (
+                <li key={org.id}>
+                  <Link href={`/${org.handle}`}>{org.name}</Link>
+                </li>
+              ))}
+              <li>
+                <Link href="/orgs/new">New organization</Link>
+              </li>
+              <li className={menu.menuRule} role="separator" />
+              <li>
+                <Link href="/settings">Account settings</Link>
+              </li>
+            </ul>
+          </details>
         )}
         <ThemeToggle initial={theme} day={day} />
       </div>

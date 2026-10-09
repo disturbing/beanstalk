@@ -2,8 +2,15 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { ownerByHandle } from '@beanstalk/shared-identity/orgs';
+import { mayCreateRepository, mayInOrg } from '@beanstalk/shared-identity/orgs';
+
+import { OrgMark } from '../../components/orgs/org-mark';
+import orgStyles from '../../components/orgs/orgs.module.css';
 import styles from '../../components/repository/repository.module.css';
 import { currentUser } from '../../src/auth/user';
+import type { OrgPage } from '../../src/orgs/org-page';
+import { orgPage } from '../../src/orgs/org-page';
 import { isReservedOwner, repositoryPath } from '../../src/repositories/paths';
 import type { RepositoryRecord } from '../../src/repositories/registry-client';
 import { registryClient } from '../../src/repositories/registry-client';
@@ -15,47 +22,155 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 /**
- * An owner's repositories: everything for the owner, public ones for everyone else. Until
- * accounts can look up a handle, only the signed-in owner's own page lists anything.
+ * A person's or an org's page: the repositories the viewer may read (the gateway decides),
+ * archived ones for those who administer them, and for an org its members and, for its
+ * owners and admins, Settings.
  */
 export default async function OwnerPage({ params }: PageProps) {
   const handle = decodeURIComponent((await params).owner);
   if (isReservedOwner(handle)) notFound();
-  const user = await currentUser();
-  if (user === null || user.handle.toLowerCase() !== handle.toLowerCase()) notFound();
+  const [owner, user] = await Promise.all([ownerByHandle(env, handle), currentUser()]);
+  if (owner === null) notFound();
+  const viewer = user?.id ?? null;
   const registry = registryClient(env.GATEWAY);
   const [listed, archivedList] = await Promise.all([
-    registry.list(user.id, user.id),
-    registry.list(user.id, user.id, 'archived'),
+    registry.list(owner.id, viewer),
+    registry.list(owner.id, viewer, 'archived'),
   ]);
   const records = listed.ok ? listed.value : [];
   const archived = archivedList.ok ? archivedList.value : [];
+  if (owner.kind === 'org') {
+    const page = await orgPage(owner.handle, viewer);
+    if (page === null) notFound();
+    return <OrgView page={page} records={records} archived={archived} />;
+  }
+  const isSelf = user !== null && user.id === owner.id;
   return (
     <main className={`${styles.page} ${styles.narrow}`}>
       <div className={styles.homeHead}>
-        <h1 className={styles.lead}>{user.handle}</h1>
-        <Link href="/new" className={styles.primary}>
-          New repository
-        </Link>
+        <h1 className={styles.lead}>{owner.handle}</h1>
+        {isSelf ? (
+          <Link href="/new" className={styles.primary}>
+            New repository
+          </Link>
+        ) : null}
       </div>
-      <section className={styles.panel} aria-label="Repositories">
-        {records.length === 0 ? (
-          <p className={styles.empty}>No repositories yet.</p>
-        ) : (
-          <RepositoryList records={records} />
-        )}
-      </section>
-      {archived.length === 0 ? null : (
-        <section className={styles.panel} aria-labelledby="archived-title">
-          <div className={styles.panelHead}>
-            <h2 id="archived-title">Archived</h2>
-            <span className={styles.muted}>{archived.length}</span>
-          </div>
-          <p className={styles.sub}>Read-only. Unarchive one from its Settings.</p>
-          <RepositoryList records={archived} />
-        </section>
-      )}
+      <Repositories records={records} empty="No repositories you can see yet." />
+      {isSelf ? <Archived records={archived} /> : null}
     </main>
+  );
+}
+
+function OrgView(props: {
+  readonly page: OrgPage;
+  readonly records: readonly RepositoryRecord[];
+  readonly archived: readonly RepositoryRecord[];
+}) {
+  const { org, role, members } = props.page;
+  const mayCreate = mayCreateRepository(role, org.repoCreation);
+  const manages = mayInOrg(role, 'settings');
+  return (
+    <main className={`${styles.page}`}>
+      <header className={orgStyles.head}>
+        <OrgMark handle={org.handle} iconKey={org.iconKey} size={56} />
+        <div className={orgStyles.headText}>
+          <h1>{org.name}</h1>
+          <span className={orgStyles.handle}>{org.handle}</span>
+          {org.description === '' ? null : <p>{org.description}</p>}
+        </div>
+        <div className={orgStyles.headActions}>
+          {mayCreate ? (
+            <Link href={`/new?owner=${encodeURIComponent(org.handle)}`} className={styles.primary}>
+              New repository
+            </Link>
+          ) : null}
+          {role === null ? null : (
+            <Link href={`/orgs/${org.handle}/settings`} className={styles.secondary}>
+              {manages ? 'Settings' : 'Leave or view settings'}
+            </Link>
+          )}
+        </div>
+      </header>
+      <div className={orgStyles.columns}>
+        <div>
+          <Repositories
+            records={props.records}
+            empty={
+              mayCreate
+                ? 'No repositories yet. Create the first one, or transfer one in from its Settings.'
+                : 'No repositories you can see yet.'
+            }
+          />
+          {manages ? <Archived records={props.archived} /> : null}
+        </div>
+        {members.length === 0 ? null : <Roster members={members} />}
+      </div>
+    </main>
+  );
+}
+
+const ROLE_GROUPS = [
+  ['owner', 'Owners'],
+  ['admin', 'Admins'],
+  ['member', 'Members'],
+  ['viewer', 'Viewers'],
+] as const;
+
+function Roster(props: { readonly members: OrgPage['members'] }) {
+  return (
+    <section className={styles.panel} aria-labelledby="people-title">
+      <div className={styles.panelHead}>
+        <h2 id="people-title">People</h2>
+        <span className={styles.muted}>{props.members.length}</span>
+      </div>
+      <dl className={orgStyles.roster}>
+        {ROLE_GROUPS.map(([role, title]) => {
+          const group = props.members.filter((member) => member.role === role);
+          if (group.length === 0) return null;
+          return (
+            <div key={role}>
+              <dt>{title}</dt>
+              <dd>
+                {group.map((member) => (
+                  <Link key={member.userId} href={`/${member.handle}`} className={orgStyles.person}>
+                    @{member.handle}
+                  </Link>
+                ))}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}
+
+function Repositories(props: {
+  readonly records: readonly RepositoryRecord[];
+  readonly empty: string;
+}) {
+  return (
+    <section className={styles.panel} aria-label="Repositories">
+      {props.records.length === 0 ? (
+        <p className={styles.empty}>{props.empty}</p>
+      ) : (
+        <RepositoryList records={props.records} />
+      )}
+    </section>
+  );
+}
+
+function Archived(props: { readonly records: readonly RepositoryRecord[] }) {
+  if (props.records.length === 0) return null;
+  return (
+    <section className={styles.panel} aria-labelledby="archived-title">
+      <div className={styles.panelHead}>
+        <h2 id="archived-title">Archived</h2>
+        <span className={styles.muted}>{props.records.length}</span>
+      </div>
+      <p className={styles.sub}>Read-only. Unarchive one from its Settings.</p>
+      <RepositoryList records={props.records} />
+    </section>
   );
 }
 

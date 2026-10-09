@@ -3,6 +3,9 @@
  * invitations, the credentials that acted on a repository, and its access audit log. Storage
  * only: who may change what is decided by `mayUseEngine` in the RPC (`collaborators-rpc.ts`).
  */
+import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
+import type { OrgStanding } from '@beanstalk/shared-identity/orgs';
+import { orgStanding } from '@beanstalk/shared-identity/orgs';
 import { randomId } from '@beanstalk/shared-identity/secrets';
 import type {
   Collaborator,
@@ -48,6 +51,8 @@ export type SessionUse = {
 
 export type CollaboratorStore = {
   roleOf(repoId: string, userId: string): Promise<RepoRole | null>;
+  /** A person's role in the org that owns a repository, with its base permission (IDENTITY_DB). */
+  orgStanding(orgId: string, userId: string): Promise<OrgStanding | null>;
   members(repoId: string): Promise<readonly Collaborator[]>;
   setRole(
     repoId: string,
@@ -127,6 +132,7 @@ const AuditRow = z.object({
     'collaborator.remove',
     'collaborator.leave',
     'repository.visibility',
+    'repository.transfer',
     // Actions secrets (src/actions/actions-rpc.ts writes these to the same log).
     'actions-secret-set',
     'actions-secret-deleted',
@@ -139,7 +145,15 @@ const INVITATION_SELECT = `SELECT i.id, i.repo_id, r.owner_handle, r.name AS rep
     i.invitee_handle, i.role, i.invited_by_handle, i.created_at, i.expires_at
   FROM repository_invitations i JOIN repositories r ON r.id = i.repo_id`;
 
-export function d1Collaborators(db: D1Database, now: () => number): CollaboratorStore {
+/**
+ * Collaborators in FORGE; org standing (for org-owned repositories) from the identity
+ * database, where orgs and their members live.
+ */
+export function d1Collaborators(
+  db: D1Database,
+  now: () => number,
+  identity: IdentityEnv,
+): CollaboratorStore {
   const auditStatement = (entry: AuditEntry): D1PreparedStatement =>
     db
       .prepare(
@@ -167,6 +181,7 @@ export function d1Collaborators(db: D1Database, now: () => number): Collaborator
   };
   return {
     auditStatement,
+    orgStanding: (orgId, userId) => orgStanding(identity, orgId, userId),
     async roleOf(repoId, userId) {
       const row = await db
         .prepare('SELECT role FROM repository_members WHERE repo_id = ? AND user_id = ?')

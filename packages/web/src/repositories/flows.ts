@@ -36,7 +36,12 @@ export async function createFlow(
   const values = valuesFrom(form);
   const errors =
     created.error.code === 'name_taken'
-      ? { name: `You already have a repository named ${values.name}.` }
+      ? {
+          name:
+            values.owner === '' || values.owner === user.handle
+              ? `You already have a repository named ${values.name}.`
+              : `${values.owner} already has a repository named ${values.name}.`,
+        }
       : { form: sentence(created.error.message) };
   return { kind: 'show', state: { values, errors } };
 }
@@ -159,6 +164,7 @@ export function hasGrownRepository(
 
 function valuesFrom(form: FormData): CreateValues {
   return {
+    owner: text(form, 'owner'),
     name: text(form, 'name'),
     description: text(form, 'description'),
     visibility: text(form, 'visibility') || DEFAULT_VALUES.visibility,

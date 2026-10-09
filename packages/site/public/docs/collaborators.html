@@ -222,10 +222,37 @@
             A collaborator can leave from here.
           </p>
 
+          <h2 id="organizations">Organizations <span class="pill rolling">rolling out</span></h2>
           <p>
-            Organisations, teams and email invitations are
-            <span class="pill soon">coming soon</span>.
+            An organization owns repositories together. Its handle shares one namespace with
+            people's handles, so <code>&lt;beanstalk host&gt;/&lt;handle&gt;</code> is a person or
+            an organization, never both. Create one from the menu under your handle; you become its
+            owner. Invite people by handle; they accept or decline on their Home.
           </p>
+          <ul>
+            <li>
+              <strong>Owner</strong>: everything, including other owners and deleting the
+              organization. The last owner cannot leave.
+            </li>
+            <li>
+              <strong>Admin</strong>: settings, secrets and members, and every repository as its
+              owner.
+            </li>
+            <li>
+              <strong>Member</strong>: the organization's base permission (none, read or write) on
+              every repository; creates repositories unless only admins may.
+            </li>
+            <li><strong>Viewer</strong>: the base permission, at most read.</li>
+          </ul>
+          <p>
+            A collaborator role on one repository adds to the base permission; the stronger one
+            counts. A private repository of an organization is not found for anyone outside it. You
+            can create a repository under an organization from New repository, and move one of yours
+            into an organization you administer (or back) from its Settings. The same one rule
+            decides access over HTTPS, SSH, MCP and the web; its test matrix adds 354 cases of
+            organization role, base permission, collaborator role, visibility and transport.
+          </p>
+          <p>Teams and email invitations are <span class="pill soon">coming soon</span>.</p>
 
           <section class="sources">
             <h2>Sources</h2>
@@ -234,6 +261,12 @@
                 <a
                   href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/22-collaborators.md"
                   >docs/claude-opus/22-collaborators.md</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/28-organizations.md"
+                  >docs/claude-opus/28-organizations.md</a
                 >
               </li>
             </ul>

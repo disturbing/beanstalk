@@ -134,6 +134,7 @@ async function repositoryAt(
       owner: { id: null, handle: path.namespace },
       visibility: 'private',
       collaboratorRole: null,
+      org: null,
       archived: false,
     },
     repoId: null,

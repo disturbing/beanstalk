@@ -53,6 +53,7 @@ function fakeGateway(asked: Asked[]): Pick<CollaboratorsRpc, 'agentRepositoryAcc
         value: {
           id: 'r1',
           owner: { id: 'u_coop', handle: owner },
+          owner_kind: 'user',
           name,
           description: '',
           visibility: 'private',

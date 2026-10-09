@@ -175,7 +175,7 @@ export default class Gateway
     return repoIndexRpc({
       db: this.env.FORGE,
       registry: d1Registry(this.env.FORGE),
-      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
       engine: (engineId) => this.env.RUNS.getByName(engineId),
       waitUntil: (work) => this.ctx.waitUntil(work),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repo-index' }),
@@ -338,6 +338,14 @@ export default class Gateway
     return this.#repositories().archiveRepository(actorId, repoId, to);
   }
 
+  transferRepository(
+    actorId: string,
+    repoId: string,
+    toHandle: string,
+  ): Promise<RpcResult<RepositoryRecord>> {
+    return this.#repositories().transferRepository(actorId, repoId, toHandle);
+  }
+
   getRepository(
     ownerHandle: string,
     name: string,
@@ -468,7 +476,7 @@ export default class Gateway
   #collaborators(): CollaboratorsRpc {
     return collaboratorsRpc({
       registry: d1Registry(this.env.FORGE),
-      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
       people: peopleDirectory(this.env, this.env.FORGE),
       log: createLogger(readConfig(this.env).logLevel, { component: 'collaborators' }),
     });
@@ -479,14 +487,15 @@ export default class Gateway
       db: this.env.FORGE,
       now: () => Date.now(),
       registry: d1Registry(this.env.FORGE),
-      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
     });
   }
 
   #repositories(): RepositoriesRpc {
     return repositoriesRpc({
       registry: d1Registry(this.env.FORGE),
-      collaborators: d1Collaborators(this.env.FORGE, () => Date.now()),
+      collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
+      identity: this.env,
       storage: repositoryStorage(this.env.REPOS),
       engine: repoEnginePort(createDeps(this.env)),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),

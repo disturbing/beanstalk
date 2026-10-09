@@ -4,7 +4,12 @@ import type { DashboardRepository } from '../components/repository/home-dashboar
 import { HomeDashboard } from '../components/repository/home-dashboard';
 import { RunsLanding } from '../components/runs/runs-landing';
 import { Invitations } from '../components/repository/invitations';
+import { OrgInvitations } from '../components/orgs/org-people';
+import { YourOrgs } from '../components/orgs/your-orgs';
 import { connectedSessions } from '../src/auth/connected-sessions';
+import { orgInvitationsFor } from '@beanstalk/shared-identity/org-members';
+import { orgsOf } from '@beanstalk/shared-identity/orgs';
+
 import { currentSession } from '../src/auth/user';
 import { collaboratorsClient } from '../src/repositories/collaborators-client';
 import type { Growth } from '../src/repositories/engine-summary';
@@ -34,6 +39,10 @@ export default async function Home({ searchParams }: PageProps) {
   const { user } = session;
   const registry = registryClient(env.GATEWAY);
   const collaborators = collaboratorsClient(env.GATEWAY);
+  const [orgs, orgInvitations] = await Promise.all([
+    orgsOf(env, user.id),
+    orgInvitationsFor(env, user.id, Date.now()),
+  ]);
   const [listed, archived, activity, invitations, shared, sessions, query] = await Promise.all([
     registry.list(user.id, user.id),
     registry.list(user.id, user.id, 'archived'),
@@ -76,10 +85,14 @@ export default async function Home({ searchParams }: PageProps) {
       repositories={repositories}
       shared={sharedRepositories}
       invitations={
-        <Invitations
-          invitations={invitations.ok ? invitations.value : []}
-          csrf={session.csrfToken}
-        />
+        <>
+          <OrgInvitations invitations={orgInvitations} csrf={session.csrfToken} />
+          <Invitations
+            invitations={invitations.ok ? invitations.value : []}
+            csrf={session.csrfToken}
+          />
+          <YourOrgs memberships={orgs} />
+        </>
       }
       activity={homeActivity({
         unindexed,

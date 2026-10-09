@@ -1,7 +1,7 @@
 /**
  * Persistent repositories (`docs/claude-opus/20-repositories.md`): the registry's records and
  * the gateway RPC that creates, lists, reads, updates and deletes them. A repository is owned
- * by one user, holds one Artifacts repo (provisioned by the gateway; nobody else holds its
+ * by a person or an org, holds one Artifacts repo (provisioned by the gateway; nobody else holds its
  * tokens) and one continuous engine instance, whose state the run read RPCs serve by
  * `engine_id`.
  */
@@ -54,6 +54,16 @@ export const RepoStart = z.discriminatedUnion('kind', [
 export type RepoStart = z.infer<typeof RepoStart>;
 
 export const CreateRepositoryInput = z.object({
+  /**
+   * Whose namespace it goes in: an org's handle (the creator must be allowed to create there),
+   * or absent / the creator's own handle for a personal repository.
+   */
+  owner: z
+    .string()
+    .trim()
+    .transform((handle) => handle.replace(/^@/, ''))
+    .pipe(z.string().max(39))
+    .optional(),
   name: RepoName,
   description: z.string().trim().max(MAX_REPO_DESCRIPTION).default(''),
   visibility: RepoVisibility,
@@ -84,6 +94,8 @@ export const RepoOwner = z.object({
 });
 export type RepoOwner = z.infer<typeof RepoOwner>;
 
+export type RepoOwnerKind = 'user' | 'org';
+
 /** How a repository began, as recorded. */
 export type RepoOrigin =
   | { readonly kind: 'empty' }
@@ -93,7 +105,10 @@ export type RepoOrigin =
 export type RepositoryRecord = {
   /** Stable id; also names the Artifacts repo, so a rename never moves storage. */
   readonly id: string;
+  /** A person (`u_…`) or an org (`org_…`, `owner_kind: 'org'`). */
   readonly owner: RepoOwner;
+  /** Whether `owner` is a person or an org (`docs/claude-opus/28-organizations.md`). */
+  readonly owner_kind: RepoOwnerKind;
   readonly name: string;
   readonly description: string;
   readonly visibility: RepoVisibility;
@@ -125,6 +140,7 @@ export const ACTIVITY_KINDS = [
   'visibility',
   'archived',
   'unarchived',
+  'transferred',
   'opened',
   'landed',
   'rework',
@@ -204,6 +220,16 @@ export type RepositoriesRpc = {
     actorId: string,
     repoId: string,
     to: RepositoryListing,
+  ): Promise<RpcResult<RepositoryRecord>>;
+  /**
+   * Moves a repository to another namespace: the actor's own, or an org where they are an
+   * owner or admin. The actor must administer it where it is. Storage, engine, collaborators
+   * and history stay; the old `/<owner>/<repo>` stops resolving.
+   */
+  transferRepository(
+    actorId: string,
+    repoId: string,
+    toHandle: string,
   ): Promise<RpcResult<RepositoryRecord>>;
   /**
    * What happened in the person's repositories (their own and those shared with them): the
