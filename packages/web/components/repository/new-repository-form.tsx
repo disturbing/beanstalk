@@ -146,7 +146,11 @@ export function NewRepositoryForm(props: {
           />
           <span>
             <b>Public</b>
-            <span>Anyone with the link can read it. Only you and your agents change it.</span>
+            <span>
+              {owner?.kind === 'org'
+                ? 'Anyone with the link can read it. Only people with a write role change it.'
+                : 'Anyone with the link can read it. Only you and your agents change it.'}
+            </span>
           </span>
         </label>
       </fieldset>

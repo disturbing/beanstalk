@@ -6,9 +6,9 @@
   place-items: center;
   flex: none;
   border-radius: 22%;
-  background: var(--human-wash);
-  color: var(--human-ink);
-  border: 1px solid color-mix(in srgb, var(--human) 35%, transparent);
+  background: color-mix(in srgb, var(--human) 16%, var(--sheet));
+  color: var(--human);
+  border: 1px solid color-mix(in srgb, var(--human) 40%, transparent);
   font: 600 14px / 1 var(--font-mono);
   letter-spacing: -0.04em;
   overflow: hidden;
@@ -109,6 +109,10 @@
 
 .disabledField {
   opacity: 0.6;
+}
+
+.yourOrgs {
+  margin-bottom: 28px;
 }
 
 .orgList {

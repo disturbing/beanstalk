@@ -1,0 +1,37 @@
+signed up ada-mbqh with a virtual passkey → /
+signed up ben-mbqh with a virtual passkey → /
+signed up cal-mbqh with a virtual passkey → /
+pass  three passkey sign-ups, each with a personal token
+pass  New organization lands on /<org>  (acme-mbqh)
+pass  an org cannot take a person’s handle
+pass  invite @ben-mbqh as member by handle
+pass  invite @cal-mbqh as viewer by handle
+pass  ben accepts on Home and lands on the org page
+pass  cal declines on Home
+pass  New repository under the org (owner picker)  (acme-mbqh/tools, private)
+pass  [read, base read] ben-mbqh git upload-pack acme-mbqh/tools → 200  (got 200)
+pass  [read, base read] ben-mbqh git receive-pack acme-mbqh/tools → 403  (got 403)
+pass  [read, base read] cal-mbqh git upload-pack acme-mbqh/tools → 404  (got 404)
+pass  [read, base read] anonymous git upload-pack acme-mbqh/tools → 401  (got 401)
+pass  cal (declined, outsider) gets the 404 page
+pass  invite @cal-mbqh as viewer by handle
+ada sets the base permission to write
+pass  [base write] ben-mbqh git receive-pack acme-mbqh/tools → 200  (got 200)
+pass  [base write] cal-mbqh git receive-pack acme-mbqh/tools → 403  (got 403)
+pass  [base write] cal-mbqh git upload-pack acme-mbqh/tools → 200  (got 200)
+ada sets the base permission to none
+pass  [base none] ben-mbqh git upload-pack acme-mbqh/tools → 404  (got 404)
+pass  [base none] cal-mbqh git upload-pack acme-mbqh/tools → 404  (got 404)
+pass  [base none] ada-mbqh git receive-pack acme-mbqh/tools → 200  (got 200)
+ada sets the base permission to read
+pass  [ben admin] ben-mbqh git receive-pack acme-mbqh/tools → 200  (got 200)
+pass  Transfer moves ada/notes to the org
+pass  [after transfer] ben-mbqh git receive-pack acme-mbqh/notes → 200  (got 200)
+pass  the last owner cannot leave
+pass  06-org-page-phone.png: no sideways scroll at 390 px  (390px)
+pass  11-org-settings-phone.png: no sideways scroll at 390 px  (390px)
+pass  05-new-repo-phone.png: no sideways scroll at 390 px  (390px)
+pass  an admin sees Settings and the audit log
+pass  a viewer sees only Leave on Settings
+
+29 of 29 checks passed; accounts ada-mbqh, ben-mbqh, cal-mbqh; org acme-mbqh
