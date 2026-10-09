@@ -134,6 +134,21 @@ GitHub does not let a fork of a public repository be private, so the "fork" is a
 
 The fork commits ids and URLs (not secrets). Secrets live in `environments/<env>/secrets/` on the deploying machine and on the Workers themselves; CI needs none of them (§10).
 
+### 8.1 Soft fork: configuration in variables, nothing committed
+
+Owner, 2026-10-09: "soft fork and setup override ENV VARS to override wrangler". A fork does not have to commit anything: when `environments/<env>/env.jsonc` is absent, `scripts/environments.mjs` reads the same content from variables, so a plain public fork (planned: the `gitstalk` GitHub org) holds its configuration in GitHub environment variables and stays byte-identical to upstream.
+
+| Variable | Replaces | Notes |
+|---|---|---|
+| `BEANSTALK_ENV_CONFIG` | `env.jsonc` | Full JSONC content; used only when the file is absent |
+| `BEANSTALK_ENV_RESOURCES` | `resources.json` | Ids, not secrets. Provision prints the value to set when it runs from variables |
+| `BEANSTALK_ACCOUNT_ID` | `account_id` | Applied on top of either source. `CLOUDFLARE_ACCOUNT_ID` is deliberately not read, so a shell default cannot redirect a deploy |
+| `BEANSTALK_SUFFIX`, `BEANSTALK_WORKERS_DEV_SUBDOMAIN` | `suffix`, `workers_dev_subdomain` | Local use; CI does not pass the suffix (an unset GitHub variable is "", which means production names) |
+
+`.github/workflows/deploy.yml` passes the first three from the GitHub environment (`staging`, `production`), with `CLOUDFLARE_API_TOKEN` as a secret. Worker secrets stay on the Workers; `env:deploy` checks their names. Checked: `env:verify production --against 8126876` gives identical configs from the files and from the variables.
+
+Fork setup: fork `disturbing/beanstalk` into the org, create GitHub environments `staging` and `production`, set `BEANSTALK_ENV_CONFIG` and `BEANSTALK_ENV_RESOURCES` from the local `environments/<env>/` files and the secret `CLOUDFLARE_API_TOKEN`, then sync with GitHub's "Sync fork" or `git merge upstream/prototype`; deploys follow.
+
 ## 9. Results (2026-10-09)
 
 **Production unchanged.** `pnpm env:verify production --against 8126876`: actions-executor, gateway, web, mcp, ssh, oidc, swarm and site all identical. `pnpm env:deploy production --dry-run` passed for the six production packages, and its secrets check found every required secret already on the live Workers (gateway's five included). Each package was also dry-run with `8126876`'s own `wrangler.jsonc`: the same bindings table and the same upload size for actions-executor (7 bindings), gateway (28), mcp (14), swarm (10) and site; for web the same 25 bindings and the same uncompressed size, gzip 0.01 KiB apart, which is build noise (two builds of the *same* config differ in 79 bundle files), and the built `dist/server/wrangler.json` differs only in `configPath` and the added `account_id`. Production was not deployed.

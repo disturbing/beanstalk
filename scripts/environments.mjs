@@ -342,13 +342,18 @@ function loadEnvironment(name) {
   if (!/^[a-z][a-z0-9-]*$/.test(name)) fail(`environment names are lowercase words: ${name}`);
   const dir = path.join(ROOT, 'environments', name);
   const file = path.join(dir, 'env.jsonc');
-  if (!existsSync(file))
-    fail(`no ${path.relative(ROOT, file)}: copy environments/example/env.jsonc and fill it in`);
-  const env = parseJsonc(readFileSync(file, 'utf8'));
   const resourcesFile = path.join(dir, 'resources.json');
-  const resources = existsSync(resourcesFile)
-    ? JSON.parse(readFileSync(resourcesFile, 'utf8'))
-    : {};
+  const fromFile = existsSync(file);
+  const configText = fromFile ? readFileSync(file, 'utf8') : process.env.BEANSTALK_ENV_CONFIG;
+  if (!configText)
+    fail(
+      `no ${path.relative(ROOT, file)} and no BEANSTALK_ENV_CONFIG: copy environments/example/env.jsonc and fill it in, or put its contents in that variable`,
+    );
+  const resourcesText = existsSync(resourcesFile)
+    ? readFileSync(resourcesFile, 'utf8')
+    : process.env.BEANSTALK_ENV_RESOURCES;
+  const resources = resourcesText ? JSON.parse(resourcesText) : {};
+  const env = { ...parseJsonc(configText), ...scalarOverrides() };
   if (!/^[0-9a-f]{32}$/.test(env.account_id ?? ''))
     fail(`${name}: account_id must be the 32-character account id (wrangler whoami)`);
   if (typeof env.suffix !== 'string') fail(`${name}: suffix is required ("" keeps the base names)`);
@@ -360,6 +365,7 @@ function loadEnvironment(name) {
     ...env,
     name,
     dir,
+    fromFile,
     resources,
     packages: ORDER.filter((pkg) => (env.packages ?? []).includes(pkg)),
     overrides: env.overrides ?? {},
@@ -461,10 +467,30 @@ function writeConfig(env, pkg, config) {
 }
 
 function saveResources(env) {
+  const json = `${JSON.stringify(env.resources, null, 2)}\n`;
+  if (!env.fromFile) {
+    // Configured from variables (a soft fork's CI): nothing on disk to update, so hand the ids
+    // back for the BEANSTALK_ENV_RESOURCES variable. Ids, not secrets.
+    console.log(`environments: ${env.name}: set BEANSTALK_ENV_RESOURCES to:\n${json}`);
+    return;
+  }
   writeFileSync(
     path.join(env.dir, 'resources.json'),
-    `${JSON.stringify(env.resources, null, 2)}\n`,
+    json,
   );
+}
+
+/**
+ * Single values a soft fork sets as plain variables instead of committing env.jsonc; each one
+ * replaces the same key from the file or BEANSTALK_ENV_CONFIG.
+ */
+function scalarOverrides() {
+  const out = {};
+  if (process.env.BEANSTALK_ACCOUNT_ID) out.account_id = process.env.BEANSTALK_ACCOUNT_ID;
+  if (process.env.BEANSTALK_SUFFIX !== undefined) out.suffix = process.env.BEANSTALK_SUFFIX;
+  if (process.env.BEANSTALK_WORKERS_DEV_SUBDOMAIN)
+    out.workers_dev_subdomain = process.env.BEANSTALK_WORKERS_DEV_SUBDOMAIN;
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------------
