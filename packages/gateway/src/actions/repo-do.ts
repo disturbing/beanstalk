@@ -186,12 +186,21 @@ export class ActionsRepoDO extends DurableObject<Env> {
   }
 
   /**
-   * The repository was deleted: no more schedules, queued stalk moves or alarms (a schedule's
-   * alarm would otherwise wake the object at every tick to find no repository). Idempotent.
+   * The repository was deleted: no more workflow or automation schedules, queued stalk moves
+   * and events, or alarms (a schedule's alarm would otherwise wake the object at every tick to
+   * find no repository, doc 25 §7.11). The workflow and automation index rows go with the
+   * registry's (`actions_workflows`). Idempotent.
    */
   async forget(): Promise<void> {
-    for (const table of ['pending', 'handled', 'schedules', 'numbers'])
-      this.#sql.exec(`DELETE FROM ${table}`);
+    const tables = [
+      'pending',
+      'pending_events',
+      'handled',
+      'schedules',
+      'numbers',
+      'automation_runs',
+    ];
+    for (const table of tables) this.#sql.exec(`DELETE FROM ${table}`);
     await this.ctx.storage.deleteAlarm();
   }
 

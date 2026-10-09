@@ -1,0 +1,23 @@
+Running job npm with act 0.2.89 (image actions-runner-2026-10-09.7)
+Peak memory in use during the job: 1213 MiB
+NPM_CONFIG_AUDIT=false
+NPM_CONFIG_FUND=false
+NPM_CONFIG_AUDIT=false
+NPM_CONFIG_FUND=false
+added 706 packages in 9s
+plain npm ci 9613 ms
+cpu user=8.106 s sys=32.356 s real=13.694 s
+added 706 packages in 13s
+DIAG {"label":"plain-disk-cold","wallMs":13700,"phases":{"idealTree":229,"npm-ci:rm":1,"reify:createSparse":79,"reify:unpack":12546,"reify:build":36,"reify":12745,"command:ci":13116,"npm":13477},"tarball":{"n":706,"sum":3757728,"p50":5057,"p90":6182,"max":12168},"packument":{"n":0},"post":{"n":0}}
+cpu user=9.103 s sys=4.949 s real=9.038 s
+added 706 packages in 9s
+DIAG {"label":"plain-tmpfs-cold","wallMs":9043,"phases":{"idealTree":179,"npm-ci:rm":0,"reify:createSparse":30,"reify:unpack":8027,"reify:build":28,"reify":8185,"command:ci":8496,"npm":8844},"tarball":{"n":706,"sum":1983317,"p50":2787,"p90":4061,"max":7601},"packument":{"n":0},"post":{"n":0}}
+cpu user=89.543 s sys=35.048 s real=94.776 s
+added 706 packages, and audited 707 packages in 2m
+DIAG {"label":"audit-on-disk-cold","wallMs":94781,"phases":{"idealTree":279,"npm-ci:rm":1,"reify:createSparse":871,"reify:unpack":92484,"reify:build":33,"auditReport:getReport":1190,"auditReport:init":90931,"reify:audit":92163,"reify":93530,"command:ci":94194,"npm":94544},"tarball":{"n":706,"sum":4051570,"p50":5094,"p90":6409,"max":92050},"packument":{"n":68,"sum":179378,"p50":339,"p90":4982,"max":21869},"post":{"n":1,"sum":1152,"p50":1152,"p90":1152,"max":1152}}
+cpu user=8.097 s sys=35.150 s real=15.183 s
+added 706 packages, and audited 707 packages in 15s
+DIAG {"label":"audit-on-disk-warm","wallMs":15188,"phases":{"idealTree":178,"npm-ci:rm":1,"reify:createSparse":611,"reify:unpack":13327,"reify:build":29,"auditReport:getReport":1712,"auditReport:init":7365,"reify:audit":9128,"reify":14084,"command:ci":14636,"npm":14972},"tarball":{"n":0},"packument":{"n":0},"post":{"n":1,"sum":1686,"p50":1686,"p90":1686,"max":1686}}
+cpu user=8.140 s sys=34.251 s real=14.429 s
+added 706 packages in 14s
+DIAG {"label":"plain-disk-cold-again","wallMs":14434,"phases":{"idealTree":168,"npm-ci:rm":0,"reify:createSparse":703,"reify:unpack":12767,"reify:build":30,"reify":13617,"command:ci":13920,"npm":14244},"tarball":{"n":706,"sum":3717207,"p50":4988,"p90":6115,"max":12395},"packument":{"n":0},"post":{"n":0}}

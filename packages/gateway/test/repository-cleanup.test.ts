@@ -130,7 +130,7 @@ describe('repository cleanup', () => {
 });
 
 describe('deleting a repository through the gateway', () => {
-  it('removes its Actions rows, logs and schedules alarm', async () => {
+  it('removes its Actions rows, logs, and workflow and automation schedules with their alarm', async () => {
     const coop = { id: `u_cleanup_${crypto.randomUUID().slice(0, 8)}`, handle: 'cleanup1' };
     const repo = value(
       await gateway.createRepository(coop, {
@@ -152,7 +152,12 @@ describe('deleting a repository through the gateway', () => {
     ]);
     await putLogs(coop.id, repo.id, 2);
     const actionsRepo = env.ACTIONS_REPOS.getByName(repo.id);
+    // A workflow or automation schedule: a row and the alarm that fires it.
     await runInDurableObject(actionsRepo, async (_, state) => {
+      state.storage.sql.exec(
+        "INSERT INTO schedules (path, cron, next_ms, last_ms) VALUES ('.beanstalk/automations/nightly.md', '*/5 * * * *', ?, NULL)",
+        Date.now() + 60_000,
+      );
       await state.storage.setAlarm(Date.now() + 60_000);
     });
 
@@ -167,10 +172,11 @@ describe('deleting a repository through the gateway', () => {
     );
     expect(counts.map((row) => row?.n)).toEqual([0, 0]);
     expect(await logKeys(coop.id, repo.id)).toBe(0);
-    const alarm = await runInDurableObject(actionsRepo, async (_, state) =>
-      state.storage.getAlarm(),
-    );
-    expect(alarm).toBeNull();
+    const after = await runInDurableObject(actionsRepo, async (_, state) => ({
+      alarm: await state.storage.getAlarm(),
+      schedules: state.storage.sql.exec('SELECT COUNT(*) AS n FROM schedules').one()['n'],
+    }));
+    expect(after).toEqual({ alarm: null, schedules: 0 });
   });
 });
 

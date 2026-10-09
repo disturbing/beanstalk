@@ -792,5 +792,5 @@ Deployed by the coordinator from `prototype` `21e0696` (which carries `b55d1d2`)
 - `repository_dispatch` webhooks; `thread_message`; the editor (§5.5) for automations.
 - A page for the memory ref (tree and history) beyond links to its commits; a memory diff view.
 - Checking out the event's own commit (a sprout or a bean head) instead of the stalk head, when the agent should start there.
-- A deleted repository's ActionsRepoDO keeps its schedule alarm ticking every few minutes (it starts nothing, because the registry no longer has the repository); it should clear its schedules on deletion. This is the same for Actions schedules.
+- ~~A deleted repository's ActionsRepoDO keeps its schedule alarm ticking every few minutes~~ Fixed 2026-10-09 (doc 27 §10.8): deleting a repository calls `ActionsRepoDO.forget` (schedules of workflows and automations, queued events, running-automation rows, the alarm), and the registry's delete removes its `actions_workflows` index rows.
 - The per-repository cap on concurrent automation runs across files (today: one per file, plus the Actions job cap of 4).

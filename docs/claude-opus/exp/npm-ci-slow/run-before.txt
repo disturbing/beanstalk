@@ -1,0 +1,60 @@
+Running job npm with act 0.2.89 (image actions-runner-2026-10-09.7)
+Peak memory in use during the job: 1477 MiB
+== env
+4
+model name	: AMD EPYC
+MemTotal:       12508404 kB
+nameserver 2606:4700:4700::1111
+nameserver 2620:fe::fe
+registry=https://registry.npmjs.org/
+maxsockets=15
+audit=true
+fund=true
+Success - env [266.13134ms]
+== net
+getent ahosts #1 8 ms
+getent ahosts #2 5 ms
+getent ahosts #3 6 ms
+node dns.lookup 9 ms [{"address":"104.16.9.34","family":4},{"address":"104.16.4.34","family":4},{"address":"104.16.11.34","family":4},{"address":"104.16.5.34","family":4},{"address":"104.16.1.34","family":4},{"address":"104.16.10.34","family":4},{"address":"104.16.0.34","family":4},{"address":"104.16.3.34","family":4},{"address":"104.16.7.34","family":4},{"address":"104.16.6.34","family":4},{"address":"104.16.8.34","family":4},{"address":"104.16.2.34","family":4},{"address":"2606:4700::6810:722","family":6},{"address":"2606:4700::6810:622","family":6},{"address":"2606:4700::6810:222","family":6},{"address":"2606:4700::6810:422","family":6},{"address":"2606:4700::6810:122","family":6},{"address":"2606:4700::6810:822","family":6},{"address":"2606:4700::6810:922","family":6},{"address":"2606:4700::6810:b22","family":6},{"address":"2606:4700::6810:522","family":6},{"address":"2606:4700::6810:a22","family":6},{"address":"2606:4700::6810:322","family":6},{"address":"2606:4700::6810:22","family":6}]
+ip=<egress>
+colo=SIN
+http=http/2
+loc=SG
+tls=TLSv1.2
+-- IPv4
+packument fastify 2 ip=104.16.7.34 dns=0.002918 connect=0.004257 tls=0.025759 ttfb=0.042555 total=0.046678 bytes=1822379 speed=39041497
+tarball typescript 2 ip=104.16.7.34 dns=0.002973 connect=0.004730 tls=0.031404 ttfb=0.044482 total=0.060573 bytes=4377468 speed=72267643
+-- IPv6
+packument fastify 2 ip=2606:4700::6810:b22 dns=0.002674 connect=0.004642 tls=0.026082 ttfb=0.038730 total=0.043658 bytes=1822379 speed=41742154
+tarball typescript 2 ip=2606:4700::6810:822 dns=0.003308 connect=0.004795 tls=0.025687 ttfb=0.038248 total=0.050808 bytes=4377468 speed=86157061
+packument typescript (15 MB) 2 ip=104.16.7.34 dns=0.002987 connect=0.005488 tls=0.028637 ttfb=0.049693 total=0.116499 bytes=15775176 speed=135410398
+packument @typescript-eslint/parser 2 ip=104.16.0.34 dns=0.002998 connect=0.004153 tls=0.026222 ttfb=0.047409 total=0.089812 bytes=15987241 speed=178007849
+curl 729 tarballs: 6749 ms wall; per request p50/p90/max s: 0.114719 0.147467 0.608579
+Success - net [7.407178694s]
+added 706 packages, and audited 707 packages in 2m
+DIAG {"label":"default-disk-cold","wallMs":96894,"phases":{"idealTree":325,"npm-ci:rm":0,"reify:createSparse":39,"reify:unpack":95095,"reify:build":29,"auditReport:getReport":1315,"auditReport:init":93522,"reify:audit":94878,"reify":95304,"command:ci":96022,"npm":96573},"tarball":{"n":706,"sum":2202226,"p50":2681,"p90":4626,"max":94650},"packument":{"n":68,"sum":136961,"p50":226,"p90":3188,"max":24830},"post":{"n":1,"sum":1286,"p50":1286,"p90":1286,"max":1286}}
+Success - default-disk-cold [1m37.209665476s]
+added 706 packages in 10s
+DIAG {"label":"noaudit-disk-cold","wallMs":10267,"phases":{"idealTree":206,"npm-ci:rm":1,"reify:createSparse":79,"reify:unpack":9087,"reify:build":37,"reify":9301,"command:ci":9659,"npm":10051},"tarball":{"n":706,"sum":2526271,"p50":3666,"p90":5248,"max":8691},"packument":{"n":0},"post":{"n":0}}
+Success - noaudit-disk-cold [11.281862266s]
+added 706 packages in 9s
+DIAG {"label":"ciflags-disk-cold","wallMs":9718,"phases":{"idealTree":204,"npm-ci:rm":0,"reify:createSparse":63,"reify:unpack":8540,"reify:build":39,"reify":8746,"command:ci":9104,"npm":9484},"tarball":{"n":706,"sum":2183782,"p50":3152,"p90":4731,"max":8115},"packument":{"n":0},"post":{"n":0}}
+Success - ciflags-disk-cold [10.576733144s]
+added 706 packages, and audited 707 packages in 2m
+DIAG {"label":"default-tmpfs-cold","wallMs":97370,"phases":{"idealTree":203,"npm-ci:rm":0,"reify:createSparse":33,"reify:unpack":95898,"reify:build":28,"auditReport:getReport":1346,"auditReport:init":94136,"reify:audit":95511,"reify":96102,"command:ci":96719,"npm":97116},"tarball":{"n":706,"sum":1931180,"p50":2208,"p90":3902,"max":95475},"packument":{"n":68,"sum":120876,"p50":259,"p90":2487,"max":25277},"post":{"n":1,"sum":1316,"p50":1316,"p90":1316,"max":1316}}
+Success - default-tmpfs-cold [1m38.251815779s]
+added 706 packages in 8s
+DIAG {"label":"noaudit-tmpfs-cold","wallMs":8605,"phases":{"idealTree":207,"npm-ci:rm":0,"reify:createSparse":46,"reify:unpack":7522,"reify:build":32,"reify":7698,"command:ci":8047,"npm":8405},"tarball":{"n":706,"sum":1703404,"p50":2278,"p90":3704,"max":7099},"packument":{"n":0},"post":{"n":0}}
+Success - noaudit-tmpfs-cold [8.947258548s]
+added 706 packages, and audited 707 packages in 2m
+DIAG {"label":"preferoffline-disk-cold","wallMs":100923,"phases":{"idealTree":218,"npm-ci:rm":0,"reify:createSparse":47,"reify:unpack":99391,"reify:build":41,"auditReport:getReport":1331,"auditReport:init":96367,"reify:audit":97731,"reify":99634,"command:ci":100253,"npm":100669},"tarball":{"n":706,"sum":2416821,"p50":2921,"p90":5027,"max":98937},"packument":{"n":68,"sum":138361,"p50":276,"p90":3232,"max":26097},"post":{"n":1,"sum":1305,"p50":1305,"p90":1305,"max":1305}}
+Success - preferoffline-disk-cold [1m41.235057461s]
+added 706 packages, and audited 707 packages in 48s
+DIAG {"label":"preferoffline-disk-warm","wallMs":48410,"phases":{"idealTree":210,"npm-ci:rm":0,"reify:createSparse":179,"reify:unpack":46801,"reify:build":38,"auditReport:getReport":1714,"auditReport:init":38772,"reify:audit":40533,"reify":47161,"command:ci":47762,"npm":48152},"tarball":{"n":0},"packument":{"n":0},"post":{"n":1,"sum":1689,"p50":1689,"p90":1689,"max":1689}}
+Success - preferoffline-disk-warm [49.347996469s]
+added 706 packages in 15s
+DIAG {"label":"preferoffline-noaudit-disk-warm","wallMs":15185,"phases":{"idealTree":219,"npm-ci:rm":0,"reify:createSparse":156,"reify:unpack":13849,"reify:build":46,"reify":14154,"command:ci":14520,"npm":14951},"tarball":{"n":0},"packument":{"n":0},"post":{"n":0}}
+Success - preferoffline-noaudit-disk-warm [16.048048109s]
+added 706 packages, and audited 707 packages in 2m
+DIAG {"label":"default-disk-cold-again","wallMs":102481,"phases":{"idealTree":203,"npm-ci:rm":0,"reify:createSparse":134,"reify:unpack":100893,"reify:build":41,"auditReport:getReport":1291,"auditReport:init":97096,"reify:audit":98421,"reify":101225,"command:ci":101839,"npm":102228},"tarball":{"n":706,"sum":3345466,"p50":4067,"p90":6173,"max":100409},"packument":{"n":68,"sum":179171,"p50":296,"p90":4349,"max":25771},"post":{"n":1,"sum":1261,"p50":1261,"p90":1261,"max":1261}}
+Success - default-disk-cold-again [1m43.544551072s]

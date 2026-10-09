@@ -1,0 +1,6 @@
+Running job test with act 0.2.89 (image actions-runner-2026-10-09.7)
+beanstalk-deps: {"event":"restore","mounted":true,"ms":2323,"result":"miss"}
+beanstalk-deps: {"chunks":5,"compressedBytes":28049041,"event":"save","extractedBytes":145952028,"memoryInUse":785330176,"ms":5633,"newChunks":5,"packMs":649,"result":"saved","uploadMs":1968,"uploadedBytes":28049041}
+Peak memory in use during the job: 947 MiB
+added 706 packages in 10s
+Success - install [9.83324687s]

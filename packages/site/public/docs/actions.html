@@ -374,7 +374,29 @@
               <code>BEANSTALK_DEPS_CACHE=off</code>; change the snapshot cap with
               <code>BEANSTALK_DEPS_SNAPSHOT_MAX</code> (for example <code>2GiB</code>).
             </li>
+            <li>
+              <span class="pill rolling">rolling out</span> Deleting a repository deletes its
+              snapshots, its Actions logs, secrets and variables, and stops its schedules.
+            </li>
           </ul>
+
+          <h2 id="npm-audit">
+            npm audit in installs <span class="pill rolling">rolling out</span>
+          </h2>
+          <p>
+            Jobs run npm with <code>NPM_CONFIG_AUDIT=false</code> and
+            <code>NPM_CONFIG_FUND=false</code>, so <code>npm ci</code> and
+            <code>npm install</code> skip the audit npm otherwise runs inside every install. It
+            never changes what is installed, but it is slow: for fastify's lockfile it took about 90
+            s of a 97 s <code>npm ci</code>, against about 10 s without it. To keep it, set the
+            repository or org variable <code>BEANSTALK_NPM_AUDIT=on</code>, set
+            <code>NPM_CONFIG_AUDIT</code> in the workflow's <code>env:</code>, or run
+            <code>npm audit</code> as its own step. The measurements are in
+            <a
+              href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+              >the design write-up</a
+            >, section 12.
+          </p>
 
           <h2 id="limits">Limits on the managed beta</h2>
           <div class="tbl">
