@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
 
 import { signedInUser } from './signed-in';
+import { webMedia } from '../account/account-services';
 import { log } from '../log';
 import type { CreateState, FormOutcome, SettingsState } from '../repositories/flows';
 import { readCreateForm } from '../repositories/create-form';
@@ -47,7 +48,9 @@ export async function deleteRepository(
   form: FormData,
 ): Promise<SettingsState> {
   const user = await signedInUser('/');
-  return settle(await deleteFlow(form, user, registryClient(env.GATEWAY)), 'delete');
+  const outcome = await deleteFlow(form, user, registryClient(env.GATEWAY));
+  if (outcome.kind === 'redirect') await pruneSocialImage(form.get('repoId'));
+  return settle(outcome, 'delete');
 }
 
 export async function archiveRepository(
@@ -56,6 +59,13 @@ export async function archiveRepository(
 ): Promise<SettingsState> {
   const user = await signedInUser('/');
   return settle(await archiveFlow(form, user, registryClient(env.GATEWAY)), 'archive');
+}
+
+/** A deleted repository's social image would otherwise stay in R2 (docs/claude-opus/29-settings.md). */
+async function pruneSocialImage(repoId: FormDataEntryValue | null): Promise<void> {
+  if (typeof repoId !== 'string' || repoId === '') return;
+  const removed = await webMedia().pruneImages('repo', repoId, null);
+  if (removed > 0) log.info('social image pruned', { removed });
 }
 
 function settle<State>(outcome: FormOutcome<State>, action: string): State {
