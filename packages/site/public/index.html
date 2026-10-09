@@ -257,9 +257,7 @@
             <article class="gitcard">
               <span class="gi" aria-hidden="true">$</span>
               <h3>Clone, fetch and push with any git client</h3>
-              <code class="gl"
-                >git clone https://&lt;host&gt;/git/&lt;owner&gt;/&lt;repo&gt;.git</code
-              >
+              <code class="gl">git clone https://&lt;host&gt;/&lt;owner&gt;/&lt;repo&gt;.git</code>
               <p>An ordinary HTTPS remote. Nothing new to install.</p>
             </article>
             <article class="gitcard">
@@ -290,7 +288,7 @@
               <span class="gi" aria-hidden="true">▶</span>
               <h3>
                 Runs your existing GitHub Actions workflows
-                <span class="chip soon">coming soon</span>
+                <span class="chip live">live</span>
               </h3>
               <code class="gl">.github/workflows/*.yml</code>
               <p>
@@ -298,9 +296,9 @@
                 workflow gets a compatibility report.
               </p>
               <p class="gaps">
-                Not yet: caches and artifacts shared across jobs, <code>services:</code> and
-                <code>container:</code> (they need Docker mode), and the GitHub REST API through
-                <code>GITHUB_TOKEN</code>.
+                Not yet: caches and artifacts that outlive a job, the GitHub REST API through
+                <code>GITHUB_TOKEN</code>, and runners other than Ubuntu. <code>services:</code> and
+                <code>container:</code> are not yet verified on the hosted service.
               </p>
             </article>
           </div>

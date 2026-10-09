@@ -6,7 +6,7 @@
     <title>GitHub Actions: Beanstalk docs</title>
     <meta
       name="description"
-      content="Beanstalk will run your unchanged .github/workflows on Cloudflare: what runs, the compatibility report, secrets, OIDC and the beta limits."
+      content="Beanstalk runs your unchanged .github/workflows on Cloudflare: what runs, the compatibility report, secrets, OIDC and the beta limits."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -127,7 +127,7 @@
               </li>
               <li>
                 <a href="actions.html" aria-current="page"
-                  >GitHub Actions<span class="st rolling" title="rolling out"></span
+                  >GitHub Actions<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
@@ -155,19 +155,22 @@
         </details>
         <article class="doc">
           <p class="prompt" aria-hidden="true">beanstalk docs actions</p>
-          <h1>GitHub Actions <span class="pill rolling">rolling out</span></h1>
+          <h1>GitHub Actions <span class="pill live">live</span></h1>
           <p class="lede">
-            Beanstalk will run the <code>.github/workflows/*.yml</code> you already have, unchanged,
-            on Cloudflare Containers. A repository moved from GitHub keeps its CI and its deploys.
+            Beanstalk runs the <code>.github/workflows/*.yml</code> you already have, unchanged, on
+            Cloudflare Containers. A repository moved from GitHub keeps its CI and its deploys.
           </p>
           <div class="note caveat">
             <p>
-              <strong>Where it stands.</strong> The control plane (workflow discovery, triggers, the
-              job graph, secrets, job tokens, live logs and the OIDC issuer), the per-job container
-              executor and the UI are built and verified on a staging copy, and deploy to the hosted
-              service soon. Until then nothing on this page runs there. An early spike ran fastify's
-              real CI workflow in a Cloudflare Container in 64–72 s per job, against 56 s on
-              GitHub's hosted runner.
+              <strong>Where it stands.</strong> Live on the hosted service: a push that moves the
+              stalk, <em>Run workflow</em> and schedules start runs; each job runs in its own fresh
+              Cloudflare Container that is destroyed when the job ends; logs stream live to the
+              Actions tab; secrets are masked; and jobs with <code>id-token: write</code> get OIDC
+              tokens. A small Node CI job (checkout, setup-node, <code>npm test</code>) took about
+              20 s end to end on the hosted service. Not yet: caches and artifacts that outlive a
+              job, the GitHub REST API through <code>GITHUB_TOKEN</code>, and runners other than
+              Ubuntu; <code>services:</code> and <code>container:</code> are not yet verified on the
+              hosted service.
             </p>
           </div>
 

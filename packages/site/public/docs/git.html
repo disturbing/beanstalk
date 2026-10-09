@@ -128,9 +128,7 @@
                 ></a>
               </li>
               <li>
-                <a href="actions.html"
-                  >GitHub Actions<span class="st rolling" title="rolling out"></span
-                ></a>
+                <a href="actions.html">GitHub Actions<span class="st live" title="live"></span></a>
               </li>
               <li>
                 <a href="automations.html"
@@ -165,13 +163,15 @@
           </p>
 
           <h2 id="urls">URLs</h2>
-          <p>Today a repository is cloned from the gateway; the repository page shows its URL:</p>
-          <pre><code>git clone https://&lt;gateway host&gt;/git/&lt;owner&gt;/&lt;repo&gt;.git</code></pre>
           <p>
-            <span class="pill rolling">rolling out</span> GitHub-style URLs on the web host, where
-            the repository page is:
-            <code>https://&lt;web host&gt;/&lt;owner&gt;/&lt;repo&gt;.git</code> (the
-            <code>.git</code> suffix optional). The gateway URL keeps working.
+            A repository is cloned from the web host, where its page is, with a GitHub-style URL
+            (the <code>.git</code> suffix optional); the repository page shows it:
+          </p>
+          <pre><code>git clone https://&lt;host&gt;/&lt;owner&gt;/&lt;repo&gt;.git</code></pre>
+          <p>
+            The older gateway URL,
+            <code>https://&lt;gateway host&gt;/git/&lt;owner&gt;/&lt;repo&gt;.git</code>, keeps
+            working.
           </p>
           <p>
             A repository you may not see answers 404, exactly as a missing one does. Public SSH
