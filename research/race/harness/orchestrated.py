@@ -741,18 +741,74 @@ class OrchestratedRace:
         settled = time.time()
         return self.measure(tasks, forge, base, session, ended, settled, aborted)
 
+    def remeasure(self) -> int:
+        """Measures a Beanstalk race whose session finished but whose measurement died (a network outage reaching
+        the gateway, 2026-10-09), from what the run directory kept: the work tree, the transcript segments and the
+        forge's repository (its engine id from the clone's URL; a fresh admin-minted git token). The race start
+        is the first transcript timestamp minus 2.2 s and the session end the last plus 9 s (both offsets as
+        measured on three complete runs: 2.0 to 2.4 s and 7.8 to 10.8 s). Resumes are not recorded by the
+        transcript, so a run with more than one segment is refused."""
+        cfg = self.cfg
+        if cfg.forge != "beanstalk":
+            raise SystemExit("--remeasure is for --forge beanstalk")
+        segments = sorted(p for p in os.listdir(self.work) if p.startswith("transcript.") and p[11:-6].isdigit())
+        if len(segments) != 1:
+            raise SystemExit(f"--remeasure needs one transcript segment, found {segments}")
+        segment = os.path.join(self.work, segments[0])
+        stamps = []
+        with open(segment, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                try:
+                    stamp = iso_epoch(json.loads(line).get("timestamp"))
+                except (json.JSONDecodeError, AttributeError):
+                    continue
+                if stamp:
+                    stamps.append(stamp)
+        self.t0, ended = stamps[0] - 2.2, stamps[-1] + 9.0
+        suite_mod.activate(suite_mod.load_suite(cfg.arena))
+        tasks = load_tasks(os.path.join(self.work, "arena"), cfg.tasks)
+        _, self.arena_digest = snapshot_arena(cfg.arena, os.path.join(self.work, "arena-remeasure"))
+        base_dir = os.path.join(self.work, "base")
+        self.base_sha = base = run_git(base_dir, "rev-parse", "HEAD").strip()
+        self.arena_base = base
+        forge = BeanstalkForge(cfg, self.work)
+        origin = run_git(os.path.join(self.work, "orchestrator"), "remote", "get-url", "origin").strip()
+        forge.git_path = origin[len(forge.gateway):]
+        owner, repo = forge.git_path.removeprefix("/git/").removesuffix(".git").split("/", 1)
+        import hashlib
+        forge.repo = repo
+        forge.engine = "r" + hashlib.sha256(f"{owner.lower()}/{repo.lower()}".encode()).hexdigest()[:19]
+        forge.token = forge.call("POST", f"/v1/repos/{forge.engine}/git-token",
+                                 {"user": {"id": "u-orchestrator", "handle": "orchestrator"},
+                                  "ttl_seconds": 3600})["token"]
+        with open(os.path.join(self.work, "transcript.jsonl"), "w", encoding="utf-8") as out, \
+                open(segment, encoding="utf-8", errors="replace") as fh:
+            out.write(fh.read())
+        session = merge_sessions([parse_transcript(segment, secrets=[forge.token])])
+        session["resumes"] = []
+        self.log("race.setup", at=self.t0, forge=cfg.forge, repo=forge.url, base=base, tasks=[t.id for t in tasks],
+                 remeasured=True)
+        self.log("race.start", at=self.t0, policy=f"orchestrated-{cfg.forge}", agent=cfg.orchestrator,
+                 model=cfg.model, agents=cfg.subagents, tasks=[t.id for t in tasks])
+        self.log("invocation.end", at=ended, inv="orchestrator", kind="orchestrator", task=None, agent="lead",
+                 cost_usd=session["cost_usd"], ok=session["ok"], subtype=session["subtype"], num_turns=session["turns"])
+        self.log("race.end", at=ended, aborted=None, spent_usd=session["cost_usd"])
+        return self.measure(tasks, forge, base, session, ended, ended, None)
+
     def measure(self, tasks: list[Task], forge, base: str, session: dict, ended: float, settled: float,
                 aborted: str | None) -> int:
         cfg = self.cfg
         repo = os.path.join(self.work, "base")
         ref, promoted = forge.fetch_line(repo)
+        # everything from the forge first: the replay and the final check run for an hour or more on a busy machine,
+        # and a network outage after them lost a whole measurement (2026-10-09)
+        changes, ci = forge.collect(self.t0)
         suite = suite_mod.ACTIVE
         acceptance = {t.id: t.acceptance_tests for t in tasks}
         prefix = ["node", *suite.node_args, "--test", "--test-timeout=60000"]
         env = suite.run_env()
         greens, replay = M.replay_greens(repo, base, ref, acceptance, prefix, env, suite.deps, when=promoted)
         final = M.final_check(repo, ref, acceptance, suite.test_argv(test_timeout_ms=60000), prefix, env, suite.deps)
-        changes, ci = forge.collect(self.t0)
         for c in sorted(changes, key=lambda c: c.ready_at or c.created_at or 0):
             if c.ready_at:
                 self.log("change.ready", at=c.ready_at, change=c.id, task=c.task)

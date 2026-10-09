@@ -59,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
                          "(packages/claude-plugin) in place of the shared prompt's forge section; labelled in the "
                          "summary. Default 'prompt': the shared orchestrated prompt the baseline pairs use")
     ap.add_argument("--claude-bin", default="claude")
+    ap.add_argument("--remeasure", action="store_true",
+                    help="--forge beanstalk: measure a finished race in --out again (its measurement died); no session")
     ap.add_argument("--wait-gateway", action="store_true",
                     help="--forge beanstalk: first wait while another race on this machine uses a gateway")
     a = ap.parse_args(argv)
@@ -77,6 +79,8 @@ def main(argv: list[str] | None = None) -> int:
                      beanstalk_owner=a.bs_owner, force=a.force, claude_bin=a.claude_bin,
                      extra={"bs_seed": a.bs_seed, "guidance": a.guidance, **({"bs_repo": a.bs_repo} if a.bs_repo else {}),
                             **({"preland_concurrency": a.preland_concurrency} if a.preland_concurrency else {})})
+    if a.remeasure:
+        return OrchestratedRace(cfg).remeasure()
     if a.wait_gateway and a.forge == "beanstalk":
         from pair import wait_for_gateway
         import urllib.parse

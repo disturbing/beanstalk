@@ -114,4 +114,36 @@ What it shows:
 - **One task was not delivered (t009).** After the restart a worker pushed the t003 change (lazy schema compilers, already landed as `t003-lazy-compilers`) to `bean/t009-handler-timeout`; it landed as an empty-effect squash named after t009, so the lead's trailer check and the harness's continuation check both counted t009 as integrated, and handler timeouts were never implemented (its acceptance tests fail on the final sprout; the suite is green). An agent mix-up after the restart, not a forge verdict; the 38th green is "not reached".
 - **First attempt discarded.** The first plugin-v2 attempt ran with the arena's `deps/node_modules` missing in this worktree (a dangling link), so workers could not run tests locally and the final check failed every file (0 of 38 green on a line the forge had validated). It was discarded and the harness now refuses to start without the dependencies. Its transcript still showed the behaviour: lead 0 sleeps, workers 0 sleeps, 11 wait-all and 21 re-attach waits.
 
+## Repeats: plugin-v2 x3 and the shared prompt x2 (2026-10-08/09)
+
+Added runs, same settings as above (N = 8 Sonnet, 38 tasks, `--preland-concurrency 20`, ci_slots 2, `--max-usd 40`, 150-min cap, `--wait-gateway`, live gateway `f23b6146`): `orch-fastify-sonnet-8-t38-beanstalk-plugin-v2-r2` (seed 7, the harness setting `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`), `orch-fastify-sonnet-8-t38-s11-beanstalk-plugin-v2` and `orch-fastify-sonnet-8-t38-s11-beanstalk` (seed 11; the seed only names the repository, so these are repeats of the same 38 tasks). Mean and range where there are repeats; one run otherwise.
+
+| | GitHub (1) | Shared prompt (2) | plugin-v1 (1) | plugin-v2 (3) |
+|---|---|---|---|---|
+| 1st / 5th / 10th green (min) | 4.2 / 5.1 / 8.3 | 2.3 / 2.8 / 5.2 | 2.7 / 4.2 / 7.1 | 2.5 / 4.5 / 6.5 |
+| 19th green (min) | 15.0 | 10.0 (9.6-10.5) | 13.1 | 11.8 (11.0-12.6) |
+| 30th green (min) | 23.3 | 17.1 (16.2-18.1) | 19.4 | 22.1 (16.7-31.0) |
+| 37th green (min) | 35.2 | 23.9 (22.1-25.6) | 25.8 | 27.5 (21.8-35.5) |
+| Last green (min) | 41.4 | 24.2 (22.4-26.1) | 27.6 | 27.9 (21.8-36.5); 38 of 38 in 2 runs |
+| Wall (min) | 50.9 | 28.0 (25.8-30.3) | 34.6 | 35.6 (24.2-46.2) |
+| Pushed -> integrated, median / p90 (min) | 5.4 / 13.9 | 1.2 / 3.4 | 2.8 / 7.3 | 2.0 / 4.0 |
+| Worker time waiting on checks (share of active) | 55% | 45% (38-52%) | 28% | 16% (12-25%) |
+| Worker / lead seconds asleep | 3,950 / 2,550 | 705 / 1,590 | 1,947 / 1,395 | 657 / **0** |
+| Worker waits any / all / re-attach (per run) | - | - | - | 0/9/0, 6/5/2, 0/11/8 |
+| Model spend (USD) | 6.53 | 4.70 (4.15-5.25) | 5.52 | 5.21 (4.48-5.62) |
+| Suite green, tasks accepted | yes, 38 | yes, 38 / 38 | yes, 38 | yes, 37 / 38 / 38 |
+
+Per plugin-v2 run (seed 7, seed 7 repeat, seed 11): last green 21.8 / 36.5 / 25.3 min, wall 24.2 / 36.4 / 46.2, resumes 3 / 0 / 1.
+
+What it shows:
+
+- **The forge-side change worked every time.** No lead slept in any plugin-v2 run (the shared-prompt leads slept 1,470 and 1,710 s); waiting on checks fell to 12 to 25% of worker time against 38 to 52% with blocking pushes, and pushed -> integrated stayed near the shared prompt's (2.0 min median against 1.2, p90 4.0 against 3.4).
+- **It is not faster overall.** Across repeats plugin-v2's last green (27.9 min mean, 21.8 to 36.5) and wall (35.6) are no better than the shared prompt's (24.2, 28.0); the spread inside each arm is larger than the gap between them. The early greens (19th) are within a minute or two. Three runs and two are too few to rank them.
+- **What made the slow plugin-v2 runs slow was not the forge.**
+  - Seed 7 repeat (last green 36.5): no beans were pushed from 14.3 to 26.4 min. Workers were waiting for their own local suite runs: the harness's `locked_suite.py` runs one full suite at a time across the 8 workers, on a machine shared with other agents' jobs that day. 13 of their sleeps (1,580 s) are on those local runs (`sleep 240; grep pass /tmp/o13.txt`), only 71 s on the forge. Blocking-push arms hide this queue: a worker waiting on `-o wait` is not running its suite.
+  - Seed 11 (wall 46.2 against last green 25.3): a harness bug, fixed since. The continuation check read `Task:` trailers, and the engine's squash trailer is the bean's name, so beans not named after their task looked missing. The lead was resumed at 31.5 min with 25 delivered tasks listed, spent 15 minutes re-pushing empty "record" commits with the trailers, and ended at 46.2. The integration times are unaffected.
+  - Seed 7 (first run): `claude -p`'s 10-minute ceiling stopped the workers once (above).
+- **The delivery guard** (coordinator's request after t009): the harness, not the skill. A task counts as delivered only when every one of its acceptance test files is on the line (and, for a file the base already had, changed since the base). Not identical text: agents append tests to the file (t025) or drop an unused import (GitHub run: t027, t029). Not "the tests pass": that is the replay's job, and running them on every continuation decision would take minutes. Applied after the fact to all seven lines, it flags only t009 in the first plugin-v2 run. It replaced the trailer check entirely (the seed-11 bug), and the resume prompt names the undelivered tasks.
+- **Outages.** The seed 7 repeat's first attempt died in its final check (the suite timed out after 1,200 s on the loaded machine) and was rerun in full. The rerun's race finished, but its measurement died reaching the gateway during a network outage. Instead of a third race it was measured again from its run directory (`orchestrated.py --remeasure`: start = first transcript timestamp - 2.2 s, end = last + 9 s, the offsets on three complete runs; one segment, no resumes). The harness now collects from the forge before the hour-long replay.
+
 Harness fix from the plugin-v1 run: the continuation check read `Task:` trailers on the stalk, and the engine's squash commits name the bean (`Task: t009-handler-timeout`) when the bean is named after its task, so the lead was resumed six times with all 38 tasks integrated (about 1.2 min and $0.15). It now reads the sprout and accepts `<id>-…` trailers.
