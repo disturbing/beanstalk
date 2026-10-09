@@ -1,0 +1,72 @@
+Actions live rollout and smoke test, 2026-10-09 (UTC 02:12-02:30), prototype at b3f6bdf.
+
+Deployed (live account 2c7358a6…), each after `pgrep` showed no race process:
+  beanstalk-actions-executor  86912131-271e-4717-a20c-d47270de4b8f  (new; container app
+                              beanstalk-actions-executor-actionsjobcontainer, standard-4 x 16,
+                              image actions-runner-2026-10-08.3)
+  beanstalk-gateway           5e6ed10d-1986-47f0-ad3e-723020930618  (was f23b6146; runner image
+                              unchanged; ACTIONS_EXECUTOR_MODE=service)
+  beanstalk-web               1a0b72dd-19c8-4a30-a62f-8388767098dc  (GIT_ORIGIN = web host)
+  beanstalk-mcp               3363125b-5ac7-4a9c-afd9-6b6d65861253  (GIT_ORIGIN = web host)
+  beanstalk-site              8e6892ee-8777-4a49-b542-a34eaf7e3c77  (docs and landing: Actions and
+                              GitHub-style URLs live)
+Resources: FORGE migration 0005_actions.sql applied (additive); R2 bucket beanstalk-actions-logs
+with lifecycle rule expire-logs (30 days); secrets ACTIONS_SECRETS_KEY, OIDC_SIGNING_KEYS (one
+RS256 key), OIDC_REQUEST_SECRET on the gateway and ADMIN_TOKEN on the executor, uploaded with
+`wrangler deploy --secrets-file` (additive). The live ADMIN_TOKEN answered 200 after each deploy.
+
+OIDC issuer: GET <gateway>/_actions/oidc/.well-known/openid-configuration -> issuer
+<gateway>/_actions/oidc; JWKS holds one public RS256 key, kid 2026-10-08-R2_zUPgP.
+
+Clone URLs (real git, personal token as the password):
+  $ git clone https://<web host>/actsmoke-vpt3/node-ci.git           exit 0, 8e1fe1c
+  $ git clone https://<gateway host>/git/actsmoke-vpt3/node-ci.git   exit 0, 8e1fe1c
+
+Throwaway account actsmoke-vpt3 (passkey sign-up, headless Chrome + CDP virtual authenticator),
+repository node-ci from the TypeScript starter. A bean adding .github/workflows/ci.yml
+(checkout@v4, setup-node@v4 with Node 24, npm test, an input echo, a secret echo, and an OIDC
+step that requests a token for audience beanstalk-smoke and verifies its RS256 signature against
+the issuer's live JWKS), pushed through the web host:
+
+$ git push -o wait origin bean/add-ci
+remote: beanstalk: new bean add-ci received at cf88c6f: "Add CI workflow (checkout, setup-node, npm test)"
+remote: beanstalk: pre-land check green on the merged tree (5.6 s)
+remote: beanstalk: LANDED: add-ci passed its pre-land check and is on the sprout as a2e95c8
+remote: beanstalk: validated: on the stalk at a2e95c8
+(exit 0, 24 s)
+
+Run CI #1 (push, "stalk moved", a2e95c8): listed on the Actions tab when the push returned;
+running 10 s later; succeeded, wall 19 s, 1 minute billed. Job test: checkout 3 s, setup-node 3 s
+(node v24.21.0 from the toolcache), npm test 1 s (3 tests, 3 pass). Log 137 lines.
+  "secret not set" (no secret yet)
+  alg RS256 kid 2026-10-08-R2_zUPgP signature verified against JWKS: true
+  sub = repo:actsmoke-vpt3/node-ci:ref:refs/heads/main, event_name = push,
+  runner_environment = beanstalk-hosted, lifetime 300 s
+Executor record of the job: phase done, conclusion success, durationMs 15192, minutesBilled 1,
+containerGone true, containerRunning false.
+
+Settings -> Actions: SMOKE_SECRET saved (30 characters, random); the list shows the name and
+"updated by"; the value is not on the page.
+
+Run CI #2 (workflow_dispatch from the Run workflow button, input note): succeeded, wall 18 s,
+1 minute billed.
+  event workflow_dispatch, note 'dispatched from the live smoke test'
+  secret set, length 30
+  the secret is ***
+  signature verified against JWKS: true, event_name = workflow_dispatch
+  the raw secret value appears nowhere in the downloaded log
+Executor record: containerGone true, containerRunning false, minutesBilled 1.
+
+Live log stream (CI #3, dispatched, SSE from /api/repos/<owner>/<repo>/actions/runs/<run>/jobs/<job>/log
+opened as the job started), ms after connecting:
+  1490 job in_progress | 4137 lines 1-2 | 5152 lines 3-4 | 7771 lines 5-8 | 8965 lines 9-47
+  11058 lines 48-63 | 12093 lines 64-67 | 13097 lines 68-126 | 14065 lines 127-137
+  16597 job completed, end
+Settings showed 3 of 100 minutes used in October 2026.
+
+The repository was deleted from Settings afterwards (GET /actsmoke-vpt3/node-ci -> 404). The
+account actsmoke-vpt3 is left in place, as earlier rollouts left theirs.
+
+Screenshots: 01 Actions runs list, 02 the dispatched run with the npm test, secret and OIDC
+steps open, 03 Settings with the Actions minutes and the secret, night and day; 04 the
+dispatched run while running (night).

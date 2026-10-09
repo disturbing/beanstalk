@@ -627,6 +627,15 @@ kbd {
   letter-spacing: 0;
   vertical-align: 0.15em;
 }
+.chip.live {
+  border-color: color-mix(in srgb, var(--leaf) 55%, var(--border));
+  background: var(--leaf-bg);
+  color: var(--leaf-ink);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  vertical-align: 0.15em;
+}
 .chip.jev {
   border-color: color-mix(in srgb, var(--leaf) 50%, var(--border));
   color: var(--leaf-ink);
