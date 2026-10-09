@@ -49,7 +49,7 @@ Session cost: a resumed `claude -p` process reports the session's cumulative `to
 Versions (`orch_prompt.PLUGIN_GUIDANCE_VERSION`):
 
 - **plugin-v1** (plugin 0.5.0, the 2026-10-08 run below): push plainly, take the next task, read status refs between steps, poll every 30-60 s once nothing else is left. The shared session sentence ("don't end your turn while a worker is running").
-- **plugin-v2** (plugin 0.6.0): never sleep-poll. Out of work, one blocking `git push -o bean=<a> -o bean=<b> origin HEAD:refs/wait/any` that the forge wakes at the first verdict (`refs/wait/all` before finishing; `docs/claude-opus/18-git-native-flow.md` §4.1; needs a gateway with it). The lead's session sentence is replaced (`SESSION_NOTIFIED`): background workers keep running when the lead ends its turn, and Claude Code starts its next turn with a notification each time one finishes, so the lead ends its turn instead of sleeping and acts on each notification. Checked with Claude Code 2.1.293 in `-p` with `--output-format stream-json` (the harness's flags) on 2026-10-08: a lead that started one background worker and ended its turn got a `task_notification` and a new turn when the worker finished, and the process exited only after that turn. The v1 sentence is what made the v1 lead `sleep 420`. The baselines (`--guidance prompt`) keep the old sentence byte for byte. The continuation after an early exit says the same (`CONTINUE_NOTIFIED`). Text is included rather than the plugin installed because the race session runs with no settings sources, no slash commands and workers without the Skill tool; that the skill loads on its own in a normal session is checked separately (`packages/claude-plugin/README.md`).
+- **plugin-v2** (plugin 0.6.0): never sleep-poll. Out of work, one blocking `git push -o bean=<a> -o bean=<b> origin HEAD:refs/wait/any` that the forge wakes at the first verdict (`refs/wait/all` before finishing; `docs/claude-opus/18-git-native-flow.md` §4.1; needs a gateway with it). The lead's session sentence is replaced (`SESSION_NOTIFIED`): background workers keep running when the lead ends its turn, and Claude Code starts its next turn with a notification each time one finishes, so the lead ends its turn instead of sleeping and acts on each notification. Checked with Claude Code 2.1.293 in `-p` with `--output-format stream-json` (the harness's flags) on 2026-10-08: a lead that started one background worker and ended its turn got a `task_notification` and a new turn when the worker finished, and the process exited only after that turn. The v1 sentence is what made the v1 lead `sleep 420`. The baselines (`--guidance prompt`) keep the old sentence byte for byte. The continuation after an early exit says the same (`CONTINUE_NOTIFIED`). **The 10-minute ceiling:** `claude -p` stops background tasks still running 10 minutes after the lead's last turn ("Background tasks still running 10m after the last turn (subagent "Worker A tasks", …); stopping them. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely."). A sleeping lead never meets it; a lead that ends its turn and waits for notifications does whenever no worker finishes within 10 minutes. The first plugin-v2 run below met it; since then the harness sets `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` for `--guidance plugin` (`config.bg_wait_ceiling`). Text is included rather than the plugin installed because the race session runs with no settings sources, no slash commands and workers without the Skill tool; that the skill loads on its own in a normal session is checked separately (`packages/claude-plugin/README.md`).
 
 `orch_pushes.py <run>...` reads a run's transcript: bean pushes by the lead and the workers (blocking `-o wait`, plain, background), PRs created and enqueued, and the time spent waiting on checks from the transcript's timestamps: foreground blocking pushes, foreground `sleep` polls of the forge, event-driven waits counted apart (`wait_any`, `wait_all`, `reattach` = a wait naming one bean, MCP `bean_wait`, each with its seconds, summed as `event_wait_s`), every foreground `sleep` whatever it waits for (`sleep_calls`, `sleep_s`: stated seconds at most the command's duration, so the lead's blind sleeps count), and each side's summed active span (`check_wait_share`). Re-measured, plugin-v1: lead 3 sleeps, 1,395 s asleep; workers 35 sleeps, 1,947 s asleep (2,946 s in commands that slept while following the forge).
 
@@ -84,4 +84,66 @@ What it shows:
 - **Checks were slower on the forge that hour, independent of the guidance:** pre-land median 67 s against 48 s and validations 67 s against 50 s (validations do not depend on how agents push; doc 18 §7.1 saw a lone fastify suite take 34 to 71 s across one day). More beans out at once (up to 13 waiting against 7) and more red checks (5 against 1; t030 alone 4) added pre-land minutes. With one run each, the 5-minute gap in the last green is within what check speed alone moves.
 - **What would make non-blocking pay:** a git way to wait for an already-pushed bean's verdict (today a second push of a bean in check is refused; `bean_wait` needs MCP, which the race does not connect), and a lead that waits on worker notifications instead of a blind `sleep`. The guidance stays (idle time on checks fell, nothing broke), but this run is no evidence of a speed-up.
 
-Harness fix from this run: the continuation check read `Task:` trailers on the stalk, and the engine's squash commits name the bean (`Task: t009-handler-timeout`) when the bean is named after its task, so the lead was resumed six times with all 38 tasks integrated (about 1.2 min and $0.15). It now reads the sprout and accepts `<id>-…` trailers.
+## Result: plugin-v2, 38 tasks, N = 8 (2026-10-08)
+
+`orch-fastify-sonnet-8-t38-beanstalk-plugin-v2`: same settings as plugin-v1 (seed 7, Sonnet lead + 8 Sonnet workers, `--preland-concurrency 20`, ci_slots 2, `--max-usd 40`, 150-min cap, `--wait-gateway`), live gateway `f23b6146` (`refs/wait/any|all`, event-driven `-o wait` and `bean_wait`, the new hints), plugin 0.6.0. One run per arm; no repeats.
+
+| | GitHub | Beanstalk, shared prompt | plugin-v1 | plugin-v2 |
+|---|---|---|---|---|
+| 1st / 5th / 10th / 19th / 30th green (min) | 4.2 / 5.1 / 8.3 / 15.0 / 23.3 | 2.4 / 3.1 / 4.6 / 10.5 / 16.2 | 2.7 / 4.2 / 7.1 / 13.1 / 19.4 | 2.6 / 6.3 / 8.1 / 11.0 / 18.8 |
+| 37th / 38th green (min) | 35.2 / 41.4 | 22.1 / 22.4 | 25.8 / 27.6 | 21.8 / not reached (t009, below) |
+| Wall (lead ended) (min) | 50.9 | 25.8 | 34.6 | **24.2** |
+| Submitted -> integrated, median / p90 (min) | 5.4 / 13.9 | 1.0 / 2.7 | 2.8 / 7.3 | 2.3 / 4.4 |
+| Pre-land check, median / p90 (s); validation median (s) | - | 47 / 63; 48 | 67 / 92; 67 | 55 / 72; 61 |
+| Worker bean pushes: blocking / plain / background | - | 48 / 0 / 1 | 0 / 51 / 0 | 0 / 37 / 0 |
+| Worker waits: wait-any / wait-all / re-attach | - | - | - | 0 / 9 / 0 (868 s) |
+| Worker sleeps: calls, seconds asleep | 63, 3,950 | 6, 460 | 35, 1,947 | **3, 120** |
+| Worker time waiting on checks (s, share of active) | 7,117 (55%) | 3,097 (38%) | 2,946 (28%) | **868 (12%)** |
+| Lead sleeps: calls, seconds asleep | 6, 2,550 | 3, 1,470 | 3, 1,395 | **0, 0** |
+| Kick-outs / red checks / conflicts / re-pushes | 1 / 2 / 1 / 1 | 7 / 1 / 6 / 7 | 7 / 5 / 2 / 4 | 1 / 0 / 1 / 1 |
+| Model spend (USD) | 6.53 | 5.25 | 5.52 | **4.48** |
+| CI minutes | 74.9 | 60.5 | 92.0 | 73.3 (pre-land 46.8) |
+| Harness resumes | 6 | 0 | 6 (needless, fixed since) | 3 (below) |
+| Final: suite green, tasks accepted, correct | yes, 38/38, yes | yes, 38/38, yes | yes, 38/38, yes | yes, **37/38**, yes |
+
+What it shows:
+
+- **Nothing sleeps any more.** The lead never ran `sleep` (v1: 1,395 s asleep); it started 8 background workers and ended its turn. Workers slept 120 s in all (`sleep 60`, `sleep 60`, `sleep 45` in two workers, counted to the end of each command; v1: 1,947 s) and waited 868 s in 9 `refs/wait/all` pushes, which the forge woke at the verdicts. Worker time on checks fell to 12% of active time (v1 28%, shared prompt 38%). Workers used `refs/wait/all` at the end of their list, never `any`: with plain pushes and no reds there was nothing to react to before the last bean.
+- **Faster than v1, level with the shared prompt.** Wall 24.2 min against 34.6 (v1) and 25.8 (shared prompt); the 37th green at 21.8 against 25.8 and 22.1; $4.48, the cheapest arm. Checks were quicker than in v1's hour (pre-land median 55 s against 67 s) and there were no red checks (v1 5), so part of the gain against v1 is the forge's speed and luck; one run each.
+- **The 10-minute ceiling cost it a restart.** The lead ended its turn at 0.9 min; no worker finished within 10 minutes, so `claude -p` stopped all 8 at 11.4 min (with 16 of 38 tasks integrated) and exited. The harness resumed the lead (`CONTINUE_NOTIFIED`), which re-launched 8 workers on the 22 open tasks; two more short resumes at 22.3 and 22.5 min chased t031, which the lead then pushed itself (`-o wait`, landed). Without the ceiling the stopped workers' in-progress tasks would not have been redone; the harness now sets `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` for plugin guidance.
+- **One task was not delivered (t009).** After the restart a worker pushed the t003 change (lazy schema compilers, already landed as `t003-lazy-compilers`) to `bean/t009-handler-timeout`; it landed as an empty-effect squash named after t009, so the lead's trailer check and the harness's continuation check both counted t009 as integrated, and handler timeouts were never implemented (its acceptance tests fail on the final sprout; the suite is green). An agent mix-up after the restart, not a forge verdict; the 38th green is "not reached".
+- **First attempt discarded.** The first plugin-v2 attempt ran with the arena's `deps/node_modules` missing in this worktree (a dangling link), so workers could not run tests locally and the final check failed every file (0 of 38 green on a line the forge had validated). It was discarded and the harness now refuses to start without the dependencies. Its transcript still showed the behaviour: lead 0 sleeps, workers 0 sleeps, 11 wait-all and 21 re-attach waits.
+
+## Repeats: plugin-v2 x3 and the shared prompt x2 (2026-10-08/09)
+
+Added runs, same settings as above (N = 8 Sonnet, 38 tasks, `--preland-concurrency 20`, ci_slots 2, `--max-usd 40`, 150-min cap, `--wait-gateway`, live gateway `f23b6146`): `orch-fastify-sonnet-8-t38-beanstalk-plugin-v2-r2` (seed 7, the harness setting `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`), `orch-fastify-sonnet-8-t38-s11-beanstalk-plugin-v2` and `orch-fastify-sonnet-8-t38-s11-beanstalk` (seed 11; the seed only names the repository, so these are repeats of the same 38 tasks). Mean and range where there are repeats; one run otherwise.
+
+| | GitHub (1) | Shared prompt (2) | plugin-v1 (1) | plugin-v2 (3) |
+|---|---|---|---|---|
+| 1st / 5th / 10th green (min) | 4.2 / 5.1 / 8.3 | 2.3 / 2.8 / 5.2 | 2.7 / 4.2 / 7.1 | 2.5 / 4.5 / 6.5 |
+| 19th green (min) | 15.0 | 10.0 (9.6-10.5) | 13.1 | 11.8 (11.0-12.6) |
+| 30th green (min) | 23.3 | 17.1 (16.2-18.1) | 19.4 | 22.1 (16.7-31.0) |
+| 37th green (min) | 35.2 | 23.9 (22.1-25.6) | 25.8 | 27.5 (21.8-35.5) |
+| Last green (min) | 41.4 | 24.2 (22.4-26.1) | 27.6 | 27.9 (21.8-36.5); 38 of 38 in 2 runs |
+| Wall (min) | 50.9 | 28.0 (25.8-30.3) | 34.6 | 35.6 (24.2-46.2) |
+| Pushed -> integrated, median / p90 (min) | 5.4 / 13.9 | 1.2 / 3.4 | 2.8 / 7.3 | 2.0 / 4.0 |
+| Worker time waiting on checks (share of active) | 55% | 45% (38-52%) | 28% | 16% (12-25%) |
+| Worker / lead seconds asleep | 3,950 / 2,550 | 705 / 1,590 | 1,947 / 1,395 | 657 / **0** |
+| Worker waits any / all / re-attach (per run) | - | - | - | 0/9/0, 6/5/2, 0/11/8 |
+| Model spend (USD) | 6.53 | 4.70 (4.15-5.25) | 5.52 | 5.21 (4.48-5.62) |
+| Suite green, tasks accepted | yes, 38 | yes, 38 / 38 | yes, 38 | yes, 37 / 38 / 38 |
+
+Per plugin-v2 run (seed 7, seed 7 repeat, seed 11): last green 21.8 / 36.5 / 25.3 min, wall 24.2 / 36.4 / 46.2, resumes 3 / 0 / 1.
+
+What it shows:
+
+- **The forge-side change worked every time.** No lead slept in any plugin-v2 run (the shared-prompt leads slept 1,470 and 1,710 s); waiting on checks fell to 12 to 25% of worker time against 38 to 52% with blocking pushes, and pushed -> integrated stayed near the shared prompt's (2.0 min median against 1.2, p90 4.0 against 3.4).
+- **It is not faster overall.** Across repeats plugin-v2's last green (27.9 min mean, 21.8 to 36.5) and wall (35.6) are no better than the shared prompt's (24.2, 28.0); the spread inside each arm is larger than the gap between them. The early greens (19th) are within a minute or two. Three runs and two are too few to rank them.
+- **What made the slow plugin-v2 runs slow was not the forge.**
+  - Seed 7 repeat (last green 36.5): no beans were pushed from 14.3 to 26.4 min. Workers were waiting for their own local suite runs: the harness's `locked_suite.py` runs one full suite at a time across the 8 workers, on a machine shared with other agents' jobs that day. 13 of their sleeps (1,580 s) are on those local runs (`sleep 240; grep pass /tmp/o13.txt`), only 71 s on the forge. Blocking-push arms hide this queue: a worker waiting on `-o wait` is not running its suite.
+  - Seed 11 (wall 46.2 against last green 25.3): a harness bug, fixed since. The continuation check read `Task:` trailers, and the engine's squash trailer is the bean's name, so beans not named after their task looked missing. The lead was resumed at 31.5 min with 25 delivered tasks listed, spent 15 minutes re-pushing empty "record" commits with the trailers, and ended at 46.2. The integration times are unaffected.
+  - Seed 7 (first run): `claude -p`'s 10-minute ceiling stopped the workers once (above).
+- **The delivery guard** (coordinator's request after t009): the harness, not the skill. A task counts as delivered only when every one of its acceptance test files is on the line (and, for a file the base already had, changed since the base). Not identical text: agents append tests to the file (t025) or drop an unused import (GitHub run: t027, t029). Not "the tests pass": that is the replay's job, and running them on every continuation decision would take minutes. Applied after the fact to all seven lines, it flags only t009 in the first plugin-v2 run. It replaced the trailer check entirely (the seed-11 bug), and the resume prompt names the undelivered tasks.
+- **Outages.** The seed 7 repeat's first attempt died in its final check (the suite timed out after 1,200 s on the loaded machine) and was rerun in full. The rerun's race finished, but its measurement died reaching the gateway during a network outage. Instead of a third race it was measured again from its run directory (`orchestrated.py --remeasure`: start = first transcript timestamp - 2.2 s, end = last + 9 s, the offsets on three complete runs; one segment, no resumes). The harness now collects from the forge before the hour-long replay.
+
+Harness fix from the plugin-v1 run: the continuation check read `Task:` trailers on the stalk, and the engine's squash commits name the bean (`Task: t009-handler-timeout`) when the bean is named after its task, so the lead was resumed six times with all 38 tasks integrated (about 1.2 min and $0.15). It now reads the sprout and accepts `<id>-…` trailers.

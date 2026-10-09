@@ -16,7 +16,8 @@ sys.path.insert(0, RACE)
 from harness import orch_measure as M  # noqa: E402
 from harness import orch_prompt  # noqa: E402
 from harness.arena import load_tasks  # noqa: E402
-from harness.orchestrated import merge_sessions, parse_transcript, task_of, unintegrated_tasks  # noqa: E402
+from harness.orchestrated import (merge_sessions, parse_transcript, task_of, tests_not_on_line,  # noqa: E402
+                                  unintegrated_tasks)
 import orch_pushes  # noqa: E402
 
 FIXTURE = os.path.join(TESTS, "fixtures", "arena")
@@ -115,6 +116,22 @@ class Measure(unittest.TestCase):
         final = M.final_check(self.repo, "main", acc, ["node", "--test"], ["node", "--test"], dict(os.environ), None)
         self.assertTrue(final["suite_green"])
         self.assertEqual(final["per_task"], {"t001": True, "t003": True, "t002": False})
+
+    def test_a_task_is_delivered_only_with_its_acceptance_tests_on_the_line(self) -> None:
+        self.land("t001")
+        for path, content in self.tasks["t001"].acceptance_tests.items():   # t001's change adds its tests, edited
+            os.makedirs(os.path.dirname(os.path.join(self.repo, path)), exist_ok=True)
+            with open(os.path.join(self.repo, path), "w") as fh:
+                fh.write(content.replace("\n", "\n\n", 1) + "\ntest('one more of mine', () => {})\n")
+        git(self.repo, "add", "-A")
+        git(self.repo, "commit", "-q", "-m", "t001 tests\n\nTask: t001")
+        tasks = [self.tasks["t001"], self.tasks["t003"]]
+        # t003's trailer on a commit without its change: the t009 mix-up of 2026-10-08
+        git(self.repo, "commit", "-q", "--allow-empty", "-m", "Something else\n\nTask: t003-wrong")
+        self.assertEqual(unintegrated_tasks(["t001", "t003"], git(self.repo, "log", "--format=%B")), set())
+        self.assertEqual(tests_not_on_line(self.repo, "main", tasks, self.base), {"t003"})
+        self.assertIn("t003", orch_prompt.continuation("prompt", {"t003"}))
+        self.assertEqual(orch_prompt.continuation("prompt", set()), orch_prompt.CONTINUE)
 
     def test_integration_metrics(self) -> None:
         ch = [M.Change("a", "t1", ready_at=100, integrated_at=160, created_at=90, kickouts=1, pushes=2),
