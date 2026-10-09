@@ -63,7 +63,7 @@ export function actionsRpc(env: Env): ActionsRpc {
   const secrets = d1Secrets(db, secretsKeyOf(env));
   const access = async (viewer: Viewer, repoId: string, action: RepositoryAction) =>
     accessResult(
-      d1Collaborators(db, () => Date.now()),
+      d1Collaborators(db, () => Date.now(), env),
       await d1Registry(db).byId(repoId),
       {
         principal: viewerPrincipal(viewer),

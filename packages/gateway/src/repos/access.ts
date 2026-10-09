@@ -1,6 +1,7 @@
 /**
  * The registry's half of access: the facts `mayUseEngine` decides on (owner, visibility, the
- * asking person's collaborator role) gathered for a repository record, and the verdict as an
+ * asking person's collaborator role and, for an org's repository, their org role and its base
+ * permission) gathered for a repository record, and the verdict as an
  * RPC answer. Every repository question from git, MCP and the web comes through here, and
  * here asks `mayUseEngine` and nothing else.
  */
@@ -9,6 +10,7 @@ import type {
   RepositoryForViewer,
   ViewerRole,
 } from '@beanstalk/shared-race/collaborators';
+import { ownerOf } from '@beanstalk/shared-identity/orgs';
 import type { RepositoryRecord, Viewer } from '@beanstalk/shared-race/repos';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 import { RunId } from '@beanstalk/shared-race/ids';
@@ -32,14 +34,19 @@ export async function accessFacts(
 ): Promise<RepositoryAccess> {
   const person = personOf(principal);
   const isOwner = person !== null && person.id === record.owner.id;
-  const collaboratorRole =
-    person === null || isOwner ? null : await collaborators.roleOf(record.id, person.id);
+  const asks = person !== null && !isOwner;
+  const isOrgOwned = ownerOf(record).kind === 'org';
+  const [collaboratorRole, org] = await Promise.all([
+    asks ? collaborators.roleOf(record.id, person.id) : null,
+    asks && isOrgOwned ? collaborators.orgStanding(record.owner.id, person.id) : null,
+  ]);
   return {
     // Records from before engines had run ids would fail here; every created record has one.
     engine: RunId.parse(record.engine_id),
     owner: { id: record.owner.id, handle: record.owner.handle },
     visibility: record.visibility,
     collaboratorRole,
+    org,
     archived: record.archived_at !== null,
   };
 }
@@ -136,5 +143,5 @@ const NEEDS: Readonly<Record<RepositoryAction, string>> = {
   decide: 'answering decisions needs the maintain role',
   'deploy-tokens': 'deploy tokens need the maintain role',
   actions: 'running workflows and managing Actions secrets need the maintain role',
-  administer: 'only the owner can change this',
+  administer: 'only the owner (or, for an organization, its owners and admins) can change this',
 };

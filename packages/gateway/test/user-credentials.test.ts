@@ -87,6 +87,7 @@ describe('mayUseEngine with real credentials', () => {
       owner,
       visibility,
       collaboratorRole: null,
+      org: null,
       archived: false,
     });
     const someone = { id: 'u_someone', handle: 'someone-else' };
@@ -116,6 +117,7 @@ function engineAt(engine: string) {
     owner: { id: null, handle: 'anyone' },
     visibility: 'public' as const,
     collaboratorRole: null,
+    org: null,
     archived: false,
   };
 }

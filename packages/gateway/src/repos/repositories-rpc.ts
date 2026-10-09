@@ -4,6 +4,19 @@
  * the engine and only then lists the repository. A failure on the way removes what was made,
  * so the name is free again.
  */
+import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
+import { recordOrgAudit } from '@beanstalk/shared-identity/org-audit';
+import type { RepositoryOwnerRef } from '@beanstalk/shared-identity/orgs';
+import {
+  findOrgByHandle,
+  mayCreateRepository,
+  mayInOrg,
+  orgRole,
+  orgsOf,
+  ownerByHandle,
+  ownerOf,
+} from '@beanstalk/shared-identity/orgs';
+import { findUserById } from '@beanstalk/shared-identity/users';
 import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
 import type {
   RepoOrigin,
@@ -19,6 +32,7 @@ import {
 
 import { artifactsCode } from '../adapters/artifacts';
 import type { RepositoryStorage } from '../adapters/repository-storage';
+import { orgRepositoryRole } from '../auth/git-credential';
 import { GatewayError } from '../errors';
 import type { Logger } from '../log';
 import { accessResult, archivedError, decideAccess, viewerPrincipal } from './access';
@@ -30,6 +44,8 @@ import { emptyStart, templateFiles } from './templates';
 export type RepositoriesDeps = {
   readonly registry: Registry;
   readonly collaborators: CollaboratorStore;
+  /** People and orgs (IDENTITY_DB): whose namespace a handle is, and org roles. */
+  readonly identity: IdentityEnv;
   readonly storage: RepositoryStorage;
   readonly engine: RepoEnginePort;
   readonly log: Logger;
@@ -122,8 +138,19 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         });
         return ok(changed);
       }),
+    transferRepository: (actorId, repoId, toHandle) =>
+      guarded(() => transfer(deps, { actorId, repoId, toHandle })),
     repositoryActivity: (ownerId, limit) =>
-      guarded(async () => ok(await deps.registry.activity(ownerId, limit))),
+      guarded(async () => {
+        // Org repositories the person reads through their org role join their activity.
+        const orgs = await orgsOf(deps.identity, ownerId);
+        const readable = orgs.filter(
+          ({ org, role }) =>
+            orgRepositoryRole({ role, basePermission: org.basePermission }) !== null,
+        );
+        const orgIds = readable.map(({ org }) => org.id);
+        return ok(await deps.registry.activity(ownerId, limit, orgIds));
+      }),
     repositoryFiles: (repoId, viewer) =>
       guarded(async () => {
         const record = await accessResult(deps.collaborators, await deps.registry.byId(repoId), {
@@ -159,13 +186,16 @@ async function create(
   const parsed = CreateRepositoryInput.safeParse(rawInput);
   if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? 'invalid repository');
   const input = parsed.data;
+  const namespace = await namespaceFor(deps, owner.data, input.owner);
+  if (!namespace.ok) return namespace;
   const id = deps.newId();
   const artifactsRepo = artifactsRepoName(id);
   const origin: RepoOrigin = input.start;
   const reserved = await deps.registry.reserve(
     {
       id,
-      owner: owner.data,
+      owner: { id: namespace.value.id, handle: namespace.value.handle },
+      ownerKind: namespace.value.kind,
       name: input.name,
       description: input.description,
       visibility: input.visibility,
@@ -175,7 +205,7 @@ async function create(
     },
     deps.now(),
   );
-  if (!reserved) return taken(owner.data.handle, input.name);
+  if (!reserved) return taken(namespace.value.handle, input.name);
   try {
     await provision(deps, {
       artifactsRepo,
@@ -186,7 +216,7 @@ async function create(
     const { engineId } = await deps.engine.open({
       repoName: input.name,
       artifactsRepo,
-      owner: owner.data,
+      owner: { id: namespace.value.id, handle: namespace.value.handle },
     });
     const record = await deps.registry.markReady(id, engineId, deps.now());
     if (record === null) throw new GatewayError(`repository ${id} vanished`, 'conflict', 409);
@@ -194,12 +224,144 @@ async function create(
       repo: id,
       origin: origin.kind,
       engine: engineId,
+      owner: namespace.value.kind,
     });
+    if (namespace.value.kind === 'org')
+      await recordOrgAudit(
+        deps.identity,
+        {
+          orgId: namespace.value.id,
+          actor: owner.data,
+          action: 'repository.create',
+          detail: record.name,
+        },
+        deps.now(),
+      );
     return ok(record);
   } catch (error: unknown) {
     await undo(deps, id, artifactsRepo);
     throw error;
   }
+}
+
+/**
+ * Whose namespace a new repository goes in: the creator's own (no handle, or theirs), or an
+ * org whose repository setting lets the creator's role create there. Outsiders get 404.
+ */
+async function namespaceFor(
+  deps: RepositoriesDeps,
+  creator: RepoOwner,
+  handle: string | undefined,
+): Promise<RpcResult<RepositoryOwnerRef>> {
+  if (
+    handle === undefined ||
+    handle === '' ||
+    handle.toLowerCase() === creator.handle.toLowerCase()
+  )
+    return ok({ kind: 'user', id: creator.id, handle: creator.handle });
+  const org = await findOrgByHandle(deps.identity, handle);
+  const role = org === null ? null : await orgRole(deps.identity, org.id, creator.id);
+  if (org === null || role === null)
+    return failure({ code: 'not_found', status: 404, message: `no organization named ${handle}` });
+  if (!mayCreateRepository(role, org.repoCreation))
+    return failure({
+      code: 'forbidden',
+      status: 403,
+      message: `in ${org.handle} only owners and admins create repositories; you are a ${role}`,
+    });
+  return ok({ kind: 'org', id: org.id, handle: org.handle });
+}
+
+/**
+ * Moves a repository the actor administers to their own namespace or to an org where they
+ * are an owner or admin; audited on the repository and on each org involved.
+ */
+async function transfer(
+  deps: RepositoriesDeps,
+  input: { readonly actorId: string; readonly repoId: string; readonly toHandle: string },
+): Promise<RpcResult<RepositoryRecord>> {
+  const owned = await administered(deps, input.actorId, input.repoId);
+  if (!owned.ok) return owned;
+  const [target, actor] = await Promise.all([
+    ownerByHandle(deps.identity, input.toHandle),
+    findUserById(deps.identity, input.actorId),
+  ]);
+  if (target === null || actor === null)
+    return failure({
+      code: 'not_found',
+      status: 404,
+      message: `nobody is called ${input.toHandle}`,
+    });
+  const from = ownerOf(owned.value);
+  if (target.id === from.id) return invalid(`${target.handle} already owns it`);
+  const mayReceive =
+    target.kind === 'user'
+      ? target.id === actor.id
+      : mayInOrg(await orgRole(deps.identity, target.id, actor.id), 'transfer-in');
+  if (!mayReceive)
+    return failure({
+      code: 'forbidden',
+      status: 403,
+      message:
+        'move a repository to yourself or to an organization where you are an owner or admin',
+    });
+  const moved = await deps.registry.transfer(input.repoId, target, deps.now());
+  if (moved === null) return missing(input.repoId);
+  if (moved === 'taken') return taken(target.handle, owned.value.name);
+  await auditTransfer(deps, { actor, from, to: target, name: moved.name, repoId: moved.id });
+  deps.log.info('repository transferred', { repo: moved.id, to: target.kind });
+  return ok(moved);
+}
+
+async function auditTransfer(
+  deps: RepositoriesDeps,
+  move: {
+    readonly actor: { readonly id: string; readonly handle: string };
+    readonly from: RepositoryOwnerRef;
+    readonly to: RepositoryOwnerRef;
+    readonly name: string;
+    readonly repoId: string;
+  },
+): Promise<void> {
+  const actor = { id: move.actor.id, handle: move.actor.handle };
+  const now = deps.now();
+  const writes: Promise<unknown>[] = [
+    deps.collaborators
+      .auditStatement({
+        repoId: move.repoId,
+        actor,
+        action: 'repository.transfer',
+        detail: `${move.from.handle} → ${move.to.handle}`,
+      })
+      .run(),
+  ];
+  if (move.to.kind === 'org')
+    writes.push(
+      recordOrgAudit(
+        deps.identity,
+        {
+          orgId: move.to.id,
+          actor,
+          action: 'repository.transfer_in',
+          detail: `${move.from.handle}/${move.name}`,
+        },
+        now,
+      ),
+    );
+  if (move.from.kind === 'org')
+    writes.push(
+      recordOrgAudit(
+        deps.identity,
+        {
+          orgId: move.from.id,
+          actor,
+          action: 'repository.transfer_out',
+          detail: `→ ${move.to.handle}/${move.name}`,
+        },
+        now,
+      ),
+    );
+  await Promise.all(writes);
 }
 
 async function provision(

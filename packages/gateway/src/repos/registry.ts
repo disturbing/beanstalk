@@ -11,6 +11,7 @@ import { z } from 'zod';
 import type {
   RepoOrigin,
   RepoOwner,
+  RepoOwnerKind,
   RepoVisibility,
   RepositoryActivity,
   RepositoryListing,
@@ -23,6 +24,7 @@ import { activityOf, activityQuery, indexDeletes } from '../repo-events/index-st
 export type NewRepository = {
   readonly id: string;
   readonly owner: RepoOwner;
+  readonly ownerKind: RepoOwnerKind;
   readonly name: string;
   readonly description: string;
   readonly visibility: RepoVisibility;
@@ -60,10 +62,24 @@ export type Registry = {
   setListing(id: string, to: RepositoryListing, nowMs: number): Promise<RepositoryRecord | null>;
   remove(id: string): Promise<void>;
   /**
+   * Moves a repository to another owner (a person or an org), with its activity line: 'taken'
+   * when the new owner has one by that name, null when it is missing. A person who receives a
+   * repository stops being its collaborator (they own it now).
+   */
+  transfer(
+    id: string,
+    to: { readonly kind: RepoOwnerKind; readonly id: string; readonly handle: string },
+    nowMs: number,
+  ): Promise<RepositoryRecord | 'taken' | null>;
+  /**
    * Activity in the person's repositories, their own and those shared with them: the
    * registry's lines and the engines' (written by the `repo-events` consumer), newest first.
    */
-  activity(userId: string, limit: number): Promise<readonly RepositoryActivity[]>;
+  activity(
+    userId: string,
+    limit: number,
+    orgIds?: readonly string[],
+  ): Promise<readonly RepositoryActivity[]>;
 };
 
 const MAX_ACTIVITY = 100;
@@ -72,6 +88,7 @@ const Row = z.object({
   id: z.string(),
   owner_id: z.string(),
   owner_handle: z.string(),
+  owner_kind: z.enum(['user', 'org']).default('user'),
   name: z.string(),
   description: z.string(),
   visibility: z.enum(['public', 'private']),
@@ -107,14 +124,16 @@ export function d1Registry(db: D1Database): Registry {
       try {
         await db
           .prepare(
-            `INSERT INTO repositories (id, owner_id, owner_handle, name, name_key, description,
-               visibility, origin_json, artifacts_repo, engine_id, state, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'provisioning', ?, ?)`,
+            `INSERT INTO repositories (id, owner_id, owner_handle, owner_kind, name, name_key,
+               description, visibility, origin_json, artifacts_repo, engine_id, state, created_at,
+               updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'provisioning', ?, ?)`,
           )
           .bind(
             repo.id,
             repo.owner.id,
             repo.owner.handle,
+            repo.ownerKind,
             repo.name,
             repo.name.toLowerCase(),
             repo.description,
@@ -241,15 +260,62 @@ export function d1Registry(db: D1Database): Registry {
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },
-    async activity(userId, limit) {
+    async activity(userId, limit, orgIds = []) {
       const { results } = await activityQuery(
         db,
-        `(a.owner_id = ?1 OR a.repo_id IN (SELECT repo_id FROM repository_members WHERE user_id = ?1))
+        `(a.owner_id = ?1 OR a.repo_id IN (SELECT repo_id FROM repository_members WHERE user_id = ?1)
+          OR r.owner_id IN (SELECT value FROM json_each(?2)))
          AND r.state = 'ready'`,
       )
-        .bind(userId, Math.max(1, Math.min(MAX_ACTIVITY, Math.trunc(limit))))
+        .bind(
+          userId,
+          JSON.stringify(orgIds),
+          Math.max(1, Math.min(MAX_ACTIVITY, Math.trunc(limit))),
+        )
         .all();
       return results.map(activityOf);
+    },
+    async transfer(id, to, nowMs) {
+      const before = await one(`${SELECT} WHERE id = ? AND state = 'ready'`, id);
+      if (before === null) return null;
+      const at = iso(nowMs);
+      const after: RepositoryRecord = {
+        ...before,
+        owner: { id: to.id, handle: to.handle },
+        owner_kind: to.kind,
+        updated_at: at,
+      };
+      try {
+        await db.batch([
+          db
+            .prepare(
+              `UPDATE repositories SET owner_id = ?, owner_handle = ?, owner_kind = ?, updated_at = ?
+               WHERE id = ?`,
+            )
+            .bind(to.id, to.handle, to.kind, at, id),
+          db
+            .prepare('UPDATE repository_activity SET owner_id = ? WHERE repo_id = ?')
+            .bind(to.id, id),
+          db.prepare('UPDATE deploy_tokens SET owner_id = ? WHERE repo_id = ?').bind(to.id, id),
+          db
+            .prepare('DELETE FROM repository_members WHERE repo_id = ? AND user_id = ?')
+            .bind(id, to.id),
+          db
+            .prepare('DELETE FROM repository_invitations WHERE repo_id = ? AND invitee_id = ?')
+            .bind(id, to.id),
+          activityInsert(
+            db,
+            after,
+            at,
+            'transferred',
+            `Transferred from ${before.owner.handle} to ${to.handle}.`,
+          ),
+        ]);
+      } catch (error: unknown) {
+        if (isUniqueViolation(error)) return 'taken';
+        throw error;
+      }
+      return after;
     },
   };
 }
@@ -259,6 +325,7 @@ function recordOf(row: unknown): RepositoryRecord {
   return {
     id: parsed.id,
     owner: { id: parsed.owner_id, handle: parsed.owner_handle },
+    owner_kind: parsed.owner_kind,
     name: parsed.name,
     description: parsed.description,
     visibility: parsed.visibility,

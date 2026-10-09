@@ -52,7 +52,7 @@ export function createDeps(env: Env): Deps {
     runnerPool: () => env.RUNNER_CAPACITY.getByName(RUNNER_POOL_NAME),
     now: () => Date.now(),
     registry: d1Registry(env.FORGE),
-    collaborators: d1Collaborators(env.FORGE, () => Date.now()),
+    collaborators: d1Collaborators(env.FORGE, () => Date.now(), env),
     productEvents: env.PRODUCT_EVENTS,
   };
 }
