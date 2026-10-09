@@ -1,9 +1,12 @@
 import { env } from 'cloudflare:workers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { ownerByHandle } from '@beanstalk/shared-identity/orgs';
 import { mayCreateRepository, mayInOrg } from '@beanstalk/shared-identity/orgs';
+import { getProfile, resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
+
+import { Avatar } from '../../components/account/avatar';
 
 import { OrgMark } from '../../components/orgs/org-mark';
 import orgStyles from '../../components/orgs/orgs.module.css';
@@ -30,7 +33,12 @@ export default async function OwnerPage({ params }: PageProps) {
   const handle = decodeURIComponent((await params).owner);
   if (isReservedOwner(handle)) notFound();
   const [owner, user] = await Promise.all([ownerByHandle(env, handle), currentUser()]);
-  if (owner === null) notFound();
+  if (owner === null) {
+    // A handle its person retired keeps pointing at them (docs/claude-opus/29-settings.md).
+    const moved = await resolveRetiredHandle(env, handle);
+    if (moved !== null) redirect(`/${encodeURIComponent(moved)}`);
+    notFound();
+  }
   const viewer = user?.id ?? null;
   const registry = registryClient(env.GATEWAY);
   const [listed, archivedList] = await Promise.all([
@@ -45,14 +53,33 @@ export default async function OwnerPage({ params }: PageProps) {
     return <OrgView page={page} records={records} archived={archived} />;
   }
   const isSelf = user !== null && user.id === owner.id;
+  const profile = await getProfile(env, owner.id);
+  const name = profile === null || profile.displayName === '' ? owner.handle : profile.displayName;
   return (
     <main className={`${styles.page} ${styles.narrow}`}>
-      <div className={styles.homeHead}>
-        <h1 className={styles.lead}>{owner.handle}</h1>
+      <div className={styles.profileHead}>
+        <Avatar seed={owner.id} label={name} imageKey={profile?.avatarKey ?? null} size={88} />
+        <div className={styles.profileText}>
+          <h1 className={styles.lead}>{name}</h1>
+          <p className={`${styles.muted} ${styles.mono}`}>@{owner.handle}</p>
+          {profile === null || profile.bio === '' ? null : (
+            <p className={styles.profileBio}>{profile.bio}</p>
+          )}
+          {profile === null || profile.website === '' ? null : (
+            <a href={profile.website} rel="nofollow noopener ugc" className={styles.profileLink}>
+              {profile.website.replace(/^https?:\/\//, '')}
+            </a>
+          )}
+        </div>
         {isSelf ? (
-          <Link href="/new" className={styles.primary}>
-            New repository
-          </Link>
+          <div className={styles.profileActions}>
+            <Link href="/settings" className={styles.secondary}>
+              Edit profile
+            </Link>
+            <Link href="/new" className={styles.primary}>
+              New repository
+            </Link>
+          </div>
         ) : null}
       </div>
       <Repositories records={records} empty="No repositories you can see yet." />

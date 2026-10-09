@@ -124,15 +124,6 @@ export function OrgGeneralSettings(props: {
           maxLength={350}
         />
       </div>
-      <div className={`${repo.field} ${styles.disabledField}`}>
-        <span className={repo.label}>Icon</span>
-        <button type="button" className={repo.secondary} disabled>
-          Upload an icon
-        </button>
-        <span className={repo.hint}>
-          Uploads are coming; until then the mark shows the handle&rsquo;s first letters.
-        </span>
-      </div>
       <Status state={state} />
       <div className={repo.actions}>
         <button type="submit" className={repo.primary} disabled={pending}>

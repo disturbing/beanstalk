@@ -9,6 +9,10 @@ const ACCOUNT_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // vinext reads every multipart POST as a possible progressive server action first and
+  // refuses it (413) above this limit, route handlers included. Picture uploads are up to 2 MB
+  // plus the form around them (docs/claude-opus/29-settings.md); 1 MB is the default.
+  experimental: { serverActions: { bodySizeLimit: '3mb' } },
   headers: async () =>
     [
       '/login',

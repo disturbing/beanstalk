@@ -18,6 +18,9 @@ const record: RepositoryRecord = {
   created_at: '2026-10-07T13:39:40Z',
   updated_at: '2026-10-07T13:39:40Z',
   archived_at: null,
+  website: '',
+  topics: [],
+  social_image_key: null,
 };
 
 function item(seq: number, kind: FeedItem['kind'], bean: string, detail = ''): FeedItem {

@@ -1,0 +1,215 @@
+{
+  "at": "2026-10-09T03:14:02.732Z",
+  "results": [
+    {
+      "name": "sign up with a passkey",
+      "ok": true,
+      "detail": "set-coop-rdag"
+    },
+    {
+      "name": "settings opens on Public profile",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "generated initials picture shown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "avatar uploaded and shown",
+      "ok": true,
+      "detail": "/media/users/u_3ak7k5otfctvxw3e/avatar/64cf6b08bc1ad1d481aa753fab4a8ac0/128"
+    },
+    {
+      "name": "avatar served as immutable WebP from R2 (Images binding)",
+      "ok": true,
+      "detail": "200 image/webp public, max-age=31536000, immutable"
+    },
+    {
+      "name": "ETag answers 304",
+      "ok": true,
+      "detail": "304"
+    },
+    {
+      "name": "all three sizes exist",
+      "ok": true,
+      "detail": "/460:200:2836B /64:200:264B /128:200:528B"
+    },
+    {
+      "name": "SVG refused with the reason",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "over 2 MB refused before parsing",
+      "ok": true,
+      "detail": "https://beanstalk-web-staging-set.devaccounts-1password.workers.dev/settings?picture=too_large"
+    },
+    {
+      "name": "a 1.9 MB upload reaches the route and is stored",
+      "ok": true,
+      "detail": "https://beanstalk-web-staging-set.devaccounts-1password.workers.dev/settings?picture=updated"
+    },
+    {
+      "name": "the replaced picture was pruned",
+      "ok": true,
+      "detail": "/media/users/u_3ak7k5otfctvxw3e/avatar/f17e6f9d78f6d928e5eb82d486c3e9d7/128"
+    },
+    {
+      "name": "profile saved",
+      "ok": true,
+      "detail": "Name | Shown beside your handle. Leave empty to use the handle. | Bio | Up to 160 characters. | Website | Save profile |  | Profile saved."
+    },
+    {
+      "name": "script URL refused as website",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "repository created",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "repository website and topics saved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "social image uploaded",
+      "ok": true,
+      "detail": "/media/repos/ery2qa53y09i/social/64cf6b08bc1ad1d481aa753fab4a8ac0/640"
+    },
+    {
+      "name": "profile page shows name and topics",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a stranger sees the profile and the public repository",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the only passkey cannot be removed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "passkey renamed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "second passkey added",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a passkey removed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "this browser listed and marked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "handle changed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "old profile URL redirects",
+      "ok": true,
+      "detail": "307 /set-cooper-rdag"
+    },
+    {
+      "name": "old repository URL lands on the new one",
+      "ok": true,
+      "detail": "https://beanstalk-web-staging-set.devaccounts-1password.workers.dev/set-cooper-rdag/greeter"
+    },
+    {
+      "name": "git info/refs 301 to the new handle",
+      "ok": true,
+      "detail": "301 https://beanstalk-web-staging-set.devaccounts-1password.workers.dev/set-cooper-rdag/greeter.git/info/refs?service=git-upload-pack"
+    },
+    {
+      "name": "git clone with the old handle follows the redirect",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "name": "retired handle refused at sign-up",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "second change today is blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no sideways scroll at 390 px: /settings",
+      "ok": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no sideways scroll at 390 px: /settings/account",
+      "ok": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no sideways scroll at 390 px: /set-cooper-rdag/greeter/settings",
+      "ok": true,
+      "detail": "0px"
+    },
+    {
+      "name": "org icon uploaded to orgs/<id>/icon and served",
+      "ok": true,
+      "detail": "/media/orgs/org_56pbxpzvoiazz5tr/icon/64cf6b08bc1ad1d481aa753fab4a8ac0 200"
+    },
+    {
+      "name": "sole owner of an org cannot delete the account",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "org icon deleted with the org",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "wrong confirmation refused",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "account deleted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "profile page is gone",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "avatar deleted from R2",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "social image deleted from R2",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "the old session is signed out",
+      "ok": true,
+      "detail": "307"
+    }
+  ]
+}

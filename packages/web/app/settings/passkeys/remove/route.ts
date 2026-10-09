@@ -18,5 +18,5 @@ export async function POST(request: Request): Promise<Response> {
     ip: clientIp(request),
     now: Date.now(),
   });
-  return seeOther(request, `/settings?passkey=${outcome}`);
+  return seeOther(request, `/settings/passkeys?passkey=${outcome}`);
 }

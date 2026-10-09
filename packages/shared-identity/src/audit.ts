@@ -21,7 +21,13 @@ export type AuditAction =
   | 'oauth.revoke'
   | 'ssh_key.add'
   | 'ssh_key.remove'
-  | 'ssh_key.deny';
+  | 'ssh_key.deny'
+  | 'profile.update'
+  | 'avatar.set'
+  | 'handle.change'
+  | 'passkey.rename'
+  | 'session.revoke'
+  | 'user.delete';
 
 export type AuditEvent = {
   readonly action: AuditAction;

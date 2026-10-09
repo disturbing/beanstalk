@@ -1,7 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
 import type { GitGateway } from './git-host';
-import { forwardGit } from './git-host';
+import { forwardGit, movedGitLocation } from './git-host';
+
+describe('movedGitLocation', () => {
+  it('swaps a retired owner for the new handle, keeping path and query', () => {
+    expect(
+      movedGitLocation(
+        'https://web.test/Old-Name/shop.git/info/refs?service=git-upload-pack',
+        'old-name',
+        'new-name',
+      ),
+    ).toBe('https://web.test/new-name/shop.git/info/refs?service=git-upload-pack');
+  });
+
+  it('leaves another owner alone', () => {
+    expect(movedGitLocation('https://web.test/dana/shop/info/refs', 'old-name', 'x')).toBe(
+      'https://web.test/dana/shop/info/refs',
+    );
+  });
+});
 
 /** A gateway that records what it was sent and streams a side-band answer back. */
 function recordingGateway(): GitGateway & {

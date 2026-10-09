@@ -92,7 +92,10 @@ import type {
   RepositoryStalk,
 } from '@beanstalk/shared-race/repo-events';
 
+import type { AccountsRpc } from '@beanstalk/shared-race/accounts';
+
 import { repositoryStorage } from './adapters/repository-storage';
+import { accountsRpc } from './repos/accounts-rpc';
 import { agentReposRpc } from './agent/agent-repos-rpc';
 import { consumeRepoEvents } from './repo-events/consumer';
 import { repoIndexRpc } from './repo-events/index-rpc';
@@ -143,7 +146,8 @@ export default class Gateway
     CollaboratorsRpc,
     AgentReposRpc,
     EngineFeedRpc,
-    RepoIndexRpc
+    RepoIndexRpc,
+    AccountsRpc
 {
   override async fetch(request: Request): Promise<Response> {
     return app.fetch(request, this.env, this.ctx);
@@ -488,6 +492,29 @@ export default class Gateway
       now: () => Date.now(),
       registry: d1Registry(this.env.FORGE),
       collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
+    });
+  }
+
+  renameOwner(
+    userId: string,
+    handle: string,
+  ): Promise<RpcResult<{ readonly repositories: number }>> {
+    return this.#accounts().renameOwner(userId, handle);
+  }
+
+  closeAccount(
+    userId: string,
+  ): Promise<RpcResult<{ readonly deletedRepositories: readonly string[] }>> {
+    return this.#accounts().closeAccount(userId);
+  }
+
+  #accounts(): AccountsRpc {
+    return accountsRpc({
+      db: this.env.FORGE,
+      registry: d1Registry(this.env.FORGE),
+      engine: repoEnginePort(createDeps(this.env)),
+      storage: repositoryStorage(this.env.REPOS),
+      log: createLogger(readConfig(this.env).logLevel, { component: 'accounts' }),
     });
   }
 

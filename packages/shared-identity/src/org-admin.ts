@@ -77,6 +77,9 @@ export async function updateOrg(
   if (!allowed.ok) return allowed;
   const before = allowed.value;
   const change = parsed.data;
+  // An org's icon is its own upload, never another org's object.
+  if (typeof change.iconKey === 'string' && !change.iconKey.startsWith(`orgs/${orgId}/icon/`))
+    return refuse('invalid', 'That icon belongs to another organization.');
   const after = {
     name: change.name ?? before.name,
     description: change.description ?? before.description,

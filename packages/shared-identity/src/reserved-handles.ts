@@ -12,6 +12,7 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   'auth',
   'connect',
   'login',
+  'media',
   'new',
   'race',
   'races',

@@ -289,10 +289,19 @@ describe('settings and deletion', () => {
     const { orgId, owner, people } = await orgWith('st-org', { adm: 'admin', mem: 'member' });
     const admin = people.get('adm') ?? { id: '', handle: '' };
     const member = people.get('mem') ?? { id: '', handle: '' };
+    const icon = `orgs/${orgId}/icon/${'c'.repeat(32)}`;
     const changed = value(
-      await updateOrg(env, admin, orgId, { basePermission: 'write', iconKey: 'icons/st.png' }, T0),
+      await updateOrg(env, admin, orgId, { basePermission: 'write', iconKey: icon }, T0),
     );
-    expect(changed).toMatchObject({ basePermission: 'write', iconKey: 'icons/st.png' });
+    expect(changed).toMatchObject({ basePermission: 'write', iconKey: icon });
+    // Only this org's uploads: not another org's key, not an arbitrary path.
+    expect(
+      await updateOrg(env, admin, orgId, { iconKey: `orgs/org_other/icon/${'d'.repeat(32)}` }, T0),
+    ).toMatchObject({ ok: false, error: { code: 'invalid' } });
+    expect(await updateOrg(env, admin, orgId, { iconKey: 'icons/st.png' }, T0)).toMatchObject({
+      ok: false,
+      error: { code: 'invalid' },
+    });
     expect(await updateOrg(env, member, orgId, { name: 'x' }, T0)).toMatchObject({
       ok: false,
       error: { code: 'forbidden' },

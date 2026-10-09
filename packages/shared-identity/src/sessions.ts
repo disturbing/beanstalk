@@ -143,6 +143,60 @@ export async function revokeAllSessions(
   return result.meta.changes;
 }
 
+/** A signed-in browser, as Settings lists it. */
+export type BrowserSession = {
+  /** The first 16 characters of the stored hash: names the row, opens nothing. */
+  readonly id: string;
+  readonly userAgent: string | null;
+  readonly createdAt: number;
+  readonly lastSeenAt: number;
+  readonly isCurrent: boolean;
+};
+
+const BROWSER_ID_LENGTH = 16;
+
+/** The person's live browser sessions, most recently used first. */
+export async function listBrowserSessions(
+  env: IdentityEnv,
+  current: WebSession,
+  now: number,
+): Promise<readonly BrowserSession[]> {
+  const { results } = await env.IDENTITY_DB.prepare(
+    `SELECT id_hash, user_agent, created_at, last_seen_at FROM web_sessions
+      WHERE user_id = ? AND revoked_at IS NULL AND expires_at > ?
+      ORDER BY last_seen_at DESC LIMIT 50`,
+  )
+    .bind(current.user.id, now)
+    .all<{
+      id_hash: string;
+      user_agent: string | null;
+      created_at: number;
+      last_seen_at: number;
+    }>();
+  return results.map((row) => ({
+    id: row.id_hash.slice(0, BROWSER_ID_LENGTH),
+    userAgent: row.user_agent,
+    createdAt: row.created_at,
+    lastSeenAt: row.last_seen_at,
+    isCurrent: row.id_hash === current.sessionHash,
+  }));
+}
+
+/** Signs one of the person's other browsers out; false when it is not theirs or not live. */
+export async function revokeBrowserSession(
+  env: IdentityEnv,
+  input: { readonly userId: string; readonly id: string; readonly now: number },
+): Promise<boolean> {
+  if (!/^[0-9a-f]{16}$/.test(input.id)) return false;
+  const result = await env.IDENTITY_DB.prepare(
+    `UPDATE web_sessions SET revoked_at = ?
+      WHERE user_id = ? AND substr(id_hash, 1, ${BROWSER_ID_LENGTH}) = ? AND revoked_at IS NULL`,
+  )
+    .bind(input.now, input.userId, input.id)
+    .run();
+  return result.meta.changes > 0;
+}
+
 async function slide(env: IdentityEnv, sessionHash: string, now: number): Promise<void> {
   await env.IDENTITY_DB.prepare(
     'UPDATE web_sessions SET last_seen_at = ?, expires_at = ? WHERE id_hash = ?',

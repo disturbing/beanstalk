@@ -15,6 +15,7 @@
   "dependencies": {
     "@beanstalk/shared-ask": "workspace:*",
     "@beanstalk/shared-identity": "workspace:*",
+    "@beanstalk/shared-media": "workspace:*",
     "@beanstalk/shared-race": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/space-grotesk": "catalog:",

@@ -17,5 +17,5 @@ export async function POST(request: Request): Promise<Response> {
       grantId,
       clientIp(request),
     );
-  return seeOther(request, '/settings?disconnected=1');
+  return seeOther(request, '/settings/sessions?disconnected=1');
 }

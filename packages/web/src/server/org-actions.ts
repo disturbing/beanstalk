@@ -21,6 +21,7 @@ import {
 } from '@beanstalk/shared-identity/org-members';
 import { OrgRole, UpdateOrgInput } from '@beanstalk/shared-identity/orgs';
 
+import { webMedia } from '../account/account-services';
 import { log } from '../log';
 import { registryClient } from '../repositories/registry-client';
 import { repositoryPath } from '../repositories/paths';
@@ -204,6 +205,8 @@ export async function deleteOrgAction(_previous: OrgState, form: FormData): Prom
     };
   const deleted = await deleteOrg(env, actor, orgId, Date.now());
   if (!deleted.ok) return refused(deleted);
+  // Its icon goes with it (docs/claude-opus/29-settings.md, section 2).
+  await webMedia().deleteOwnerMedia('org', orgId);
   log.info('org deleted');
   return redirect(`/?deleted=${encodeURIComponent(handle)}`);
 }

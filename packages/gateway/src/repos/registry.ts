@@ -37,6 +37,9 @@ export type RegistryPatch = {
   readonly name?: string | undefined;
   readonly description?: string | undefined;
   readonly visibility?: RepoVisibility | undefined;
+  readonly website?: string | undefined;
+  readonly topics?: readonly string[] | undefined;
+  readonly social_image_key?: string | null | undefined;
 };
 
 export type Registry = {
@@ -100,7 +103,12 @@ const Row = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   archived_at: z.string().nullable(),
+  website: z.string().default(''),
+  topics_json: z.string().default('[]'),
+  social_image_key: z.string().nullable().default(null),
 });
+
+const Topics = z.array(z.string());
 
 const Origin = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('empty') }),
@@ -200,6 +208,12 @@ export function d1Registry(db: D1Database): Registry {
         name: patch.name ?? before.name,
         description: patch.description ?? before.description,
         visibility: patch.visibility ?? before.visibility,
+        website: patch.website ?? before.website ?? '',
+        topics: patch.topics ?? before.topics ?? [],
+        social_image_key:
+          patch.social_image_key === undefined
+            ? (before.social_image_key ?? null)
+            : patch.social_image_key,
         updated_at: iso(nowMs),
       };
       try {
@@ -207,13 +221,16 @@ export function d1Registry(db: D1Database): Registry {
           db
             .prepare(
               `UPDATE repositories SET name = ?, name_key = ?, description = ?, visibility = ?,
-                 updated_at = ? WHERE id = ?`,
+                 website = ?, topics_json = ?, social_image_key = ?, updated_at = ? WHERE id = ?`,
             )
             .bind(
               after.name,
               after.name.toLowerCase(),
               after.description,
               after.visibility,
+              after.website ?? '',
+              JSON.stringify(after.topics ?? []),
+              after.social_image_key ?? null,
               after.updated_at,
               id,
             ),
@@ -336,6 +353,9 @@ function recordOf(row: unknown): RepositoryRecord {
     created_at: parsed.created_at,
     updated_at: parsed.updated_at,
     archived_at: parsed.archived_at,
+    website: parsed.website,
+    topics: Topics.parse(JSON.parse(parsed.topics_json)),
+    social_image_key: parsed.social_image_key,
   };
 }
 
@@ -349,6 +369,12 @@ function changes(before: RepositoryRecord, after: RepositoryRecord): Change[] {
     out.push({ kind: 'described', text: 'Description changed.' });
   if (before.visibility !== after.visibility)
     out.push({ kind: 'visibility', text: `Made ${after.visibility}.` });
+  if (
+    before.website !== after.website ||
+    JSON.stringify(before.topics) !== JSON.stringify(after.topics) ||
+    before.social_image_key !== after.social_image_key
+  )
+    out.push({ kind: 'described', text: 'Profile changed: website, topics or social image.' });
   return out;
 }
 

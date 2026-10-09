@@ -33,7 +33,10 @@ describe('the owner picker on New repository', () => {
 });
 
 describe('org icons', () => {
-  it('serves an uploaded icon by its key, each segment escaped', () => {
-    expect(orgIconSrc('orgs/acme icon.png')).toBe('/api/uploads/orgs/acme%20icon.png');
+  it('serves an uploaded icon from /media at the stored size that covers it', () => {
+    const key = `orgs/org_acme/icon/${'a'.repeat(32)}`;
+    expect(orgIconSrc(key)).toBe(`/media/${key}`);
+    expect(orgIconSrc(key, 52)).toBe(`/media/${key}/64`);
+    expect(orgIconSrc(key, 112)).toBe(`/media/${key}/128`);
   });
 });

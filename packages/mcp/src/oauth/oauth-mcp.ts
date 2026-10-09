@@ -21,6 +21,7 @@ import type { Deps } from '../deps';
 import { serveMcp } from '../mcp/serve';
 import type { AgentSessionContext } from '../tools/tool-context';
 import { GrantProps } from './grant-props';
+import { findUserById } from '@beanstalk/shared-identity/users';
 
 export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHandler<Env> & {
   fetch: NonNullable<ExportedHandler<Env>['fetch']>;
@@ -44,9 +45,17 @@ export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHand
           { error: { code: 'unavailable', message: 'the GATEWAY binding has no RPC methods' } },
           { status: 503 },
         );
+      // The grant was made under the handle of the day; the account may have renamed itself or
+      // been deleted since (docs/claude-opus/29-settings.md).
+      const person = await findUserById(env, props.data.userId);
+      if (person === null)
+        return Response.json(
+          { error: 'invalid_token', error_description: 'the account behind this grant is gone' },
+          { status: 401 },
+        );
       const run = await sessionRun(env, gateway);
       const session = agentSession(env, {
-        props: props.data,
+        props: { ...props.data, handle: person.handle },
         scopes,
         clientId: auth.clientId ?? null,
       });

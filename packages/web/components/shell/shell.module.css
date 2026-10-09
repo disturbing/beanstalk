@@ -58,6 +58,12 @@
   font-weight: 600;
 }
 
+.me {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .textButton {
   background: none;
   border: 0;

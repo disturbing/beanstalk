@@ -511,6 +511,90 @@
   user-select: all;
 }
 
+/* Settings additions: the picture form, inline renames, the profile header. */
+
+textarea.input {
+  resize: vertical;
+  min-height: 4.5em;
+  font: inherit;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--bad-fill);
+}
+
+.preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+.file {
+  max-width: 100%;
+  min-width: 0;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+
+.file::file-selector-button {
+  border-radius: 999px;
+  border: 1.5px solid var(--rule-strong);
+  background: var(--sheet-2);
+  color: var(--ink);
+  padding: 6px 12px;
+  margin-right: 10px;
+  font: 600 var(--step--1) var(--font-sans);
+  cursor: pointer;
+}
+
+.renameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.renameRow .input {
+  flex: 1 1 160px;
+  padding: 6px 10px;
+}
+
+.renameRow .secondary {
+  padding: 6px 14px;
+  font-size: var(--step--1);
+}
+
+.pictureRow {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.consequences {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 6px;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+.consequences code {
+  overflow-wrap: anywhere;
+}
+
+.current {
+  font: 600 11px var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--good-wash);
+  color: var(--good);
+  white-space: nowrap;
+}
+
 @media (max-width: 560px) {
   .panel {
     padding: 20px 16px;

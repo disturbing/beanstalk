@@ -71,11 +71,52 @@ export const CreateRepositoryInput = z.object({
 });
 export type CreateRepositoryInput = z.input<typeof CreateRepositoryInput>;
 
+/** Topics a repository can carry, and how long each may be. */
+export const MAX_REPO_TOPICS = 20;
+export const MAX_TOPIC_LENGTH = 35;
+
+/** One topic: lowercase letters, digits and hyphens, starting with a letter or digit. */
+export const RepoTopic = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(
+    new RegExp(`^[a-z0-9][a-z0-9-]{0,${MAX_TOPIC_LENGTH - 1}}$`),
+    `Topics are lowercase letters, digits and hyphens, up to ${MAX_TOPIC_LENGTH} characters.`,
+  );
+
+/** Topics as saved: unique, in the order given. */
+export const RepoTopics = z
+  .array(RepoTopic)
+  .max(MAX_REPO_TOPICS, `Add up to ${MAX_REPO_TOPICS} topics.`)
+  .transform((topics) => [...new Set(topics)]);
+
+/** The repository's website: empty, or an http(s) address. */
+export const RepoWebsite = z
+  .string()
+  .trim()
+  .max(200, 'Keep the website under 201 characters.')
+  .refine(
+    (text) =>
+      text === '' ||
+      /^https?:\/\/[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?::\d{1,5})?(?:[/?#][^\s]*)?$/i.test(text),
+    'Enter a web address such as https://example.com.',
+  );
+
+/** A social image key in beanstalk-media (`repos/<id>/social/<hash>`), or null to remove it. */
+export const SocialImageKey = z
+  .string()
+  .regex(/^repos\/[A-Za-z0-9_-]{1,64}\/social\/[0-9a-f]{32}$/, 'not a social image key')
+  .nullable();
+
 export const UpdateRepositoryInput = z
   .object({
     name: RepoName.optional(),
     description: z.string().trim().max(MAX_REPO_DESCRIPTION).optional(),
     visibility: RepoVisibility.optional(),
+    website: RepoWebsite.optional(),
+    topics: RepoTopics.optional(),
+    social_image_key: SocialImageKey.optional(),
   })
   .refine(
     (patch) => Object.values(patch).some((value) => value !== undefined),
@@ -127,6 +168,12 @@ export type RepositoryRecord = {
    * pushes, no decisions, no deploy tokens) and left out of default lists.
    */
   readonly archived_at: string | null;
+  /** The repository's website, or ''. Absent from a gateway before migration 0006. */
+  readonly website?: string;
+  /** Topics, lowercase. Absent from a gateway before migration 0006. */
+  readonly topics?: readonly string[];
+  /** The social image's key in beanstalk-media, or null. Absent before migration 0006. */
+  readonly social_image_key?: string | null;
 };
 
 /** Which of an owner's repositories a list holds: the active ones (default) or the archived. */

@@ -108,6 +108,8 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
         name: patch.name ?? found.name,
         description: patch.description ?? found.description,
         visibility: patch.visibility ?? found.visibility,
+        ...(patch.website === undefined ? {} : { website: patch.website }),
+        ...(patch.topics === undefined ? {} : { topics: patch.topics }),
       };
       records.set(repoId, updated);
       return ok(updated);
@@ -246,6 +248,47 @@ describe('settings', () => {
     );
     expect(outcome).toEqual({ kind: 'show', state: { saved: 'Saved.', error: null } });
     expect(await registry.get('coop', 'notes', null)).toMatchObject({ ok: true });
+  });
+
+  it('saves a website (https:// added) and topics typed with commas, spaces and #', async () => {
+    const { registry, id } = await created();
+    const outcome = await updateFlow(
+      form({
+        repoId: id,
+        currentName: 'notes',
+        website: 'notes.example',
+        topics: '#TypeScript, workers  cli',
+      }),
+      coop,
+      registry,
+    );
+    expect(outcome).toEqual({ kind: 'show', state: { saved: 'Saved.', error: null } });
+    expect(await registry.get('coop', 'notes', coop.id)).toMatchObject({
+      ok: true,
+      value: { website: 'https://notes.example', topics: ['typescript', 'workers', 'cli'] },
+    });
+  });
+
+  it('refuses a topic the URL cannot carry and a website that is not one', async () => {
+    const { registry, id } = await created();
+    const badTopic = await updateFlow(
+      form({ repoId: id, currentName: 'notes', topics: 'ok, no_underscores' }),
+      coop,
+      registry,
+    );
+    expect(badTopic).toMatchObject({
+      kind: 'show',
+      state: { error: expect.stringMatching(/Topics are/) },
+    });
+    const badSite = await updateFlow(
+      form({ repoId: id, currentName: 'notes', website: 'javascript:alert(1)' }),
+      coop,
+      registry,
+    );
+    expect(badSite).toMatchObject({
+      kind: 'show',
+      state: { error: expect.stringMatching(/web address/) },
+    });
   });
 
   it('refuses a change by someone else', async () => {

@@ -65,6 +65,8 @@ export async function updateFlow(
     // An emptied description is a change; an absent one is not.
     ...(form.has('description') ? { description: text(form, 'description') } : {}),
     ...optional('visibility', text(form, 'visibility')),
+    ...(form.has('website') ? { website: webAddress(text(form, 'website')) } : {}),
+    ...(form.has('topics') ? { topics: topicList(text(form, 'topics')) } : {}),
   });
   if (!patch.success)
     return {
@@ -181,6 +183,19 @@ function text(form: FormData, field: string): string {
 /** A field only when it was given: an absent field is "unchanged". */
 function optional(key: string, value: string | undefined): Readonly<Record<string, string>> {
   return value === undefined || value === '' ? {} : { [key]: value };
+}
+
+/** A typed address with https:// in front when the scheme was left off ('' stays ''). */
+export function webAddress(typed: string): string {
+  return typed === '' || /^[a-z][a-z0-9+.-]*:/i.test(typed) ? typed : `https://${typed}`;
+}
+
+/** Topics as typed: separated by commas or spaces, "#" dropped. */
+export function topicList(typed: string): string[] {
+  return typed
+    .split(/[\s,]+/)
+    .map((topic) => topic.replace(/^#/, ''))
+    .filter((topic) => topic !== '');
 }
 
 /** A gateway message as a sentence: capitalised, ending in a full stop. */

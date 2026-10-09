@@ -36,6 +36,10 @@ export const RepositoryRecord = z.object({
   updated_at: z.string(),
   /** Null unless archived (an older gateway sends nothing: never archived). */
   archived_at: z.string().nullable().default(null),
+  /** Website, topics and social image (an older gateway sends none: empty). */
+  website: z.string().default(''),
+  topics: z.array(z.string()).default([]),
+  social_image_key: z.string().nullable().default(null),
 });
 export type RepositoryRecord = z.infer<typeof RepositoryRecord>;
 

@@ -4,7 +4,9 @@
  */
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+
+import { resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
 
 import { currentUser } from '../auth/user';
 import type { User as SessionUser } from '../auth/user';
@@ -35,7 +37,12 @@ export async function repositoryPage(params: RepositoryParams): Promise<Reposito
     user,
     registryClient(env.GATEWAY),
   );
-  if (found.kind === 'not-found') notFound();
+  if (found.kind === 'not-found') {
+    // An owner who changed handle: their old address keeps working (docs/claude-opus/27).
+    const moved = await resolveRetiredHandle(env, decodeURIComponent(owner));
+    if (moved !== null) redirect(repositoryPath(moved, decodeURIComponent(repo)));
+    notFound();
+  }
   return {
     user,
     record: found.record,

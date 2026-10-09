@@ -96,6 +96,10 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
       guarded(async () => {
         const parsed = UpdateRepositoryInput.safeParse(patch);
         if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? 'invalid change');
+        const socialKey = parsed.data.social_image_key;
+        // A repository's social image is its own upload, never another repository's object.
+        if (typeof socialKey === 'string' && !socialKey.startsWith(`repos/${repoId}/social/`))
+          return invalid('that social image belongs to another repository');
         const owned = await administered(deps, actorId, repoId);
         if (!owned.ok) return owned;
         if (owned.value.archived_at !== null)

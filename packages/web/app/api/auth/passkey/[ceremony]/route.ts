@@ -169,7 +169,9 @@ async function add(request: Request, body: Body): Promise<Response> {
     context: ceremonyContext(request, now),
   });
   if (!finished.ok) return problem(400, finished.reason, MESSAGES[finished.reason]);
-  return noStore(Response.json({ redirect: '/settings' }), [clearChallengeCookie()]);
+  return noStore(Response.json({ redirect: '/settings/passkeys?passkey=added' }), [
+    clearChallengeCookie(),
+  ]);
 }
 
 /**

@@ -40,3 +40,16 @@ export async function forwardGit(
     }),
   );
 }
+
+/**
+ * Where git should go when `<owner>` is a handle its person retired: the same path and query
+ * under the new handle. Git follows a redirect on its first request (`info/refs`) and uses the
+ * new base for the rest, so an old remote keeps cloning and pushing.
+ */
+export function movedGitLocation(requestUrl: string, from: string, to: string): string {
+  const url = new URL(requestUrl);
+  const [, first = '', ...rest] = url.pathname.split('/');
+  if (decodeURIComponent(first).toLowerCase() !== from.toLowerCase()) return url.toString();
+  url.pathname = ['', encodeURIComponent(to), ...rest].join('/');
+  return url.toString();
+}

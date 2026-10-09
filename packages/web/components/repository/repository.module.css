@@ -413,6 +413,100 @@
   font-size: 12.5px;
 }
 
+.anchor {
+  scroll-margin-top: 16px;
+}
+.socialPreview {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--wash);
+}
+.socialEmpty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 2 / 1;
+  border-radius: var(--radius);
+  border: 1px dashed var(--rule-strong);
+  color: var(--ink-3);
+  font-size: var(--step--1);
+  text-align: center;
+  padding: 12px;
+}
+.fileInput {
+  max-width: 100%;
+  font-size: var(--step--1);
+}
+.toggles {
+  display: grid;
+  gap: 8px;
+}
+.toggle {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  color: var(--ink-2);
+}
+.branchFacts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  font-size: var(--step--1);
+}
+.branchFacts dt {
+  color: var(--ink-3);
+}
+
+/* ---------- A person's page ---------- */
+.profileHead {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.profileText {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.profileBio {
+  color: var(--ink-2);
+  white-space: pre-line;
+  max-width: 48ch;
+}
+.profileLink {
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+.profileActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.topics {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.topics li {
+  font: 600 11.5px var(--font-mono);
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--good-wash);
+  color: var(--good);
+}
+
 /* ---------- A new repository's start page ---------- */
 .start {
   --leaf: var(--good-fill);

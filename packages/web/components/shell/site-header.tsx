@@ -1,8 +1,10 @@
+import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 
-import { env } from 'cloudflare:workers';
-
+import { getProfile } from '@beanstalk/shared-identity/profiles';
 import { orgsOf } from '@beanstalk/shared-identity/orgs';
+
+import { Avatar } from '../account/avatar';
 
 import { currentUser } from '../../src/auth/user';
 import menu from '../orgs/orgs.module.css';
@@ -19,7 +21,10 @@ export async function SiteHeader() {
     isSignedIn(),
     currentUser(),
   ]);
-  const orgs = user === null ? [] : await orgsOf(env, user.id);
+  const [profile, orgs] =
+    user === null
+      ? [null, []]
+      : await Promise.all([getProfile(env, user.id), orgsOf(env, user.id)]);
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>
@@ -50,7 +55,17 @@ export async function SiteHeader() {
           </Link>
         ) : (
           <details className={menu.menu}>
-            <summary>@{user.handle}</summary>
+            <summary className={styles.me}>
+              <Avatar
+                seed={user.id}
+                label={
+                  profile === null || profile.displayName === '' ? user.handle : profile.displayName
+                }
+                imageKey={profile?.avatarKey ?? null}
+                size={22}
+              />
+              @{user.handle}
+            </summary>
             <ul className={menu.menuList}>
               <li>
                 <Link href={`/${user.handle}`}>Your repositories</Link>

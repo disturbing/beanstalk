@@ -8,14 +8,20 @@ import {
   OrgRepositoryDefaults,
 } from '../../../../components/orgs/org-forms';
 import { OrgMark } from '../../../../components/orgs/org-mark';
+import { PictureSection } from '../../../../components/settings/picture-section';
 import { LeaveOrg, OrgMembersSettings } from '../../../../components/orgs/org-people';
 import orgStyles from '../../../../components/orgs/orgs.module.css';
 import styles from '../../../../components/repository/repository.module.css';
+import { pictureNote } from '../../../../src/account/picture-notes';
 import { currentSession } from '../../../../src/auth/user';
 import { orgPage } from '../../../../src/orgs/org-page';
 import { registryClient } from '../../../../src/repositories/registry-client';
+import { queryValue } from '../../../../src/server/account-page';
 
-type PageProps = { readonly params: Promise<{ readonly org: string }> };
+type PageProps = {
+  readonly params: Promise<{ readonly org: string }>;
+  readonly searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+};
 
 export async function generateMetadata({ params }: PageProps) {
   return { title: `Settings, ${decodeURIComponent((await params).org)}` };
@@ -32,7 +38,7 @@ const DATE = new Intl.DateTimeFormat('en', {
  * the audit log and (owners) the Danger zone. Members see a Leave button and whose settings
  * these are; everyone else gets the 404 page. Every change is checked again on save.
  */
-export default async function OrgSettingsPage({ params }: PageProps) {
+export default async function OrgSettingsPage({ params, searchParams }: PageProps) {
   const handle = decodeURIComponent((await params).org);
   const session = await currentSession();
   if (session === null) notFound();
@@ -64,6 +70,19 @@ export default async function OrgSettingsPage({ params }: PageProps) {
           </section>
         )}
         {manages ? <OrgGeneralSettings org={org} access={access} /> : null}
+        {manages ? (
+          <PictureSection
+            id="icon"
+            title="Icon"
+            lede="Shown beside the organization's name on its page, its repositories and in menus. Square works best; PNG, JPEG, WebP or GIF up to 2 MB."
+            action={`${path}/icon`}
+            csrf={session.csrfToken}
+            hasPicture={org.iconKey !== null}
+            note={pictureNote(queryValue(await searchParams, 'picture'))}
+            removeLabel="Remove icon (use the letters)"
+            current={<OrgMark handle={org.handle} iconKey={org.iconKey} size={96} />}
+          />
+        ) : null}
         {manages ? (
           <OrgMembersSettings
             orgHandle={org.handle}

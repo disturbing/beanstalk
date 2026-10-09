@@ -1,0 +1,15 @@
+.avatar {
+  flex: none;
+  display: block;
+  object-fit: cover;
+  background: var(--wash);
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+.round {
+  border-radius: 50%;
+}
+
+.square {
+  border-radius: 22%;
+}

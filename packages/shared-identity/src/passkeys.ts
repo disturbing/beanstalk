@@ -334,6 +334,42 @@ export async function removePasskey(
   return 'removed';
 }
 
+/** Longest passkey name, as people type it ("1Password", "MacBook Touch ID"). */
+export const MAX_PASSKEY_NAME = 60;
+
+/** Renames one of a person's passkeys; control characters become spaces. */
+export async function renamePasskey(
+  env: IdentityEnv,
+  input: {
+    readonly userId: string;
+    readonly passkeyId: string;
+    readonly name: string;
+    readonly ip: string | null;
+    readonly now: number;
+  },
+): Promise<'renamed' | 'not_found' | 'invalid_name'> {
+  const name = input.name.replace(/\p{Cc}/gu, ' ').trim();
+  if (name === '' || name.length > MAX_PASSKEY_NAME) return 'invalid_name';
+  const passkeys = await listPasskeys(env, input.userId);
+  if (!passkeys.some((passkey) => passkey.id === input.passkeyId)) return 'not_found';
+  await env.IDENTITY_DB.batch([
+    env.IDENTITY_DB.prepare(
+      'UPDATE passkeys SET name = ? WHERE credential_id = ? AND user_id = ?',
+    ).bind(name, input.passkeyId, input.userId),
+    await auditStatement(
+      env,
+      {
+        action: 'passkey.rename',
+        actorUserId: input.userId,
+        target: input.passkeyId,
+        ip: input.ip,
+      },
+      input.now,
+    ),
+  ]);
+  return 'renamed';
+}
+
 type ChallengeRow = {
   readonly challenge: string;
   readonly user_id: string | null;

@@ -16,7 +16,12 @@ export function OrgMark(props: {
       {props.iconKey === null ? (
         initials(props.handle)
       ) : (
-        <img src={orgIconSrc(props.iconKey)} alt="" width={props.size} height={props.size} />
+        <img
+          src={orgIconSrc(props.iconKey, props.size * 2)}
+          alt=""
+          width={props.size}
+          height={props.size}
+        />
       )}
     </span>
   );

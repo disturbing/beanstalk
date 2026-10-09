@@ -59,10 +59,14 @@ export async function findUserByEmail(env: IdentityEnv, email: string): Promise<
   return row === null ? null : toUser(row);
 }
 
-/** Whether a person or an org holds `handle` (one namespace, `orgs.ts`). */
+/**
+ * Whether `handle` is in use: a person's or an org's (one namespace, `orgs.ts`), or one a
+ * person retired (it still redirects to them, `profiles.ts`).
+ */
 export async function isHandleTaken(env: IdentityEnv, handle: string): Promise<boolean> {
   const row = await env.IDENTITY_DB.prepare(
-    'SELECT 1 AS taken FROM users WHERE handle = ?1 UNION ALL SELECT 1 FROM orgs WHERE handle = ?1',
+    `SELECT 1 AS taken FROM users WHERE handle = ?1 UNION ALL SELECT 1 FROM orgs WHERE handle = ?1
+     UNION ALL SELECT 1 FROM retired_handles WHERE handle = ?1 LIMIT 1`,
   )
     .bind(handle)
     .first<{ taken: number }>();

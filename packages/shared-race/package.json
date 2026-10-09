@@ -12,6 +12,7 @@
     "./rpc": "./src/rpc.ts",
     "./collaboration": "./src/collaboration.ts",
     "./repos": "./src/repos.ts",
+    "./accounts": "./src/accounts.ts",
     "./deploy-tokens": "./src/deploy-tokens.ts",
     "./read-maps": "./src/read-maps.ts",
     "./agent-repos": "./src/agent-repos.ts",

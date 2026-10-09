@@ -17,9 +17,11 @@ type Repo = {
   readonly name: string;
   readonly description: string;
   readonly visibility: 'public' | 'private';
+  readonly website: string;
+  readonly topics: readonly string[];
 };
 
-/** General (name, description) and visibility, each saved on its own. */
+/** General (name, description, website, topics) and visibility, each saved on its own. */
 export function GeneralSettings({
   repo,
   saved,
@@ -70,6 +72,36 @@ export function GeneralSettings({
           defaultValue={repo.description}
           maxLength={350}
         />
+      </div>
+      <div className={styles.field}>
+        <label htmlFor="settings-website" className={styles.label}>
+          Website
+        </label>
+        <input
+          id="settings-website"
+          name="website"
+          className={styles.input}
+          defaultValue={repo.website}
+          inputMode="url"
+          placeholder="https://"
+          spellCheck={false}
+        />
+      </div>
+      <div className={styles.field}>
+        <label htmlFor="settings-topics" className={styles.label}>
+          Topics
+        </label>
+        <input
+          id="settings-topics"
+          name="topics"
+          className={styles.input}
+          defaultValue={repo.topics.join(', ')}
+          spellCheck={false}
+          aria-describedby="settings-topics-hint"
+        />
+        <span id="settings-topics-hint" className={styles.hint}>
+          Up to 20, separated by commas: lowercase letters, digits and hyphens.
+        </span>
       </div>
       <Status state={state} />
       <div className={styles.actions}>
