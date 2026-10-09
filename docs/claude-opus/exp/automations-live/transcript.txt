@@ -1,0 +1,161 @@
+# Automations on the hosted service (live), 2026-10-09 (docs/claude-opus/25-actions-and-automations.md §7.12)
+# Production from prototype 21e0696: executor 456b9075, gateway c95f1158, mcp 54f3c0fb, web d890cfc1.
+# A throwaway passkey account (deleted afterwards); repository red-fixer from the TypeScript starter. Nothing secret below.
+
+== 1. The bean that adds .beanstalk/automations/fix-red.yml and heartbeat.yml (git push -o wait)
+remote: beanstalk: new bean add-automations received at af9cc93: "Add two automations: fix red beans, heartbeat"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: still checking (15 s)
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)
+remote: beanstalk: pre-land check green on the merged tree (11.3 s)
+remote: beanstalk: LANDED: add-automations passed its pre-land check and is on the sprout as 57775ca
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at 57775ca
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/add-automations/status
+
+== 2. A red bean, branched from the stalk head: word-count
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: pre-land check red (2 failing, 4.3 s)
+remote: beanstalk: RED: word-count was not landed. Merged onto the sprout, these tests failed:
+
+== 3. Fix red beans #1, started by bean_red: the job log from Restore memory to Report
+##[group]Restore memory
+Run Restore memory
+Acting as fix-red[automation] in /home/runner/.cache/act/de0b94e260161ab5/hostexecutor at 57775ca (bean_red)
+No memory yet at refs/automations/fix-red/memory: starting empty
+Success - Restore memory [2.966679623s]
+##[endgroup]
+##[group]Run the agent
+Run Run the agent
+Agent loop on @cf/moonshotai/kimi-k2.7-code, at most 30 turns, tools: bash, read_file, write_file, edit_file, list_files, finish
+→ read_file /home/runner/.cache/act/de0b94e260161ab5/tmp/beanstalk/memory/notes.md
+  ← error: ENOENT: no such file or directory, open '/home/runner/.cache/act/de0b94e260161ab5/tmp/beanstalk/memory/notes.md'
+→ bash git status && git log --oneline -5
+  ← exit 0 On branch main Your branch is up to date with 'origin/main'. nothing to commit, working tree clean 57775ca Add two automations: fix red beans, heartbeat
+→ bash git fetch origin refs/heads/bean/word-count
+  ← exit 0 [stderr] From https://beanstalk-web.devaccounts-1password.workers.dev/livesmoke-r3so/red-fixer * branch bean/word-count -> FETCH_HEAD * [new branch] bea…
+→ bash git checkout -b fix FETCH_HEAD && git log --oneline -5 && git show --stat HEAD
+  ← exit 0 fba80b4 Add wordCount 57775ca Add two automations: fix red beans, heartbeat commit fba80b4dcb1823da183f9730ceb70ee88b1aa8d3 Author: livesmoke <livesmoke…
+→ read_file src/count.ts
+  ← 1 /** How many words a text has: " two words " has 2. */ 2 export function wordCount(text: string): number { 3 return text.split(' ').length; 4 } 5
+→ read_file test/count.test.ts
+  ← 1 import assert from 'node:assert/strict'; 2 import { describe, it } from 'node:test'; 3 4 import { wordCount } from '../src/count.ts'; 5 6 describe('wordCount…
+→ bash node --test
+  ← exit 1 ▶ wordCount ✔ counts words separated by spaces (0.674781ms) ✖ ignores extra spaces (0.850181ms) ✖ counts nothing in an empty text (0.226241ms) ✖ wordCou…
+→ edit_file src/count.ts
+  ← edited /home/runner/.cache/act/de0b94e260161ab5/hostexecutor/src/count.ts
+→ bash node --test
+  ← exit 0 ▶ wordCount ✔ counts words separated by spaces (0.941981ms) ✔ ignores extra spaces (0.19352ms) ✔ counts nothing in an empty text (0.18616ms) ✔ wordCount…
+→ bash git add src/count.ts && git commit -m "Fix wordCount to ignore extra spaces and empty text"
+  ← exit 0 [fix 0b1de7b] Fix wordCount to ignore extra spaces and empty text 1 file changed, 2 insertions(+), 1 deletion(-)
+→ read_file .git/config
+  ← 1 [core] 2 repositoryformatversion = 0 3 filemode = true 4 bare = false 5 logallrefupdates = true 6 [remote "origin"] 7 url = https://beanstalk-web.devaccounts…
+→ bash git push origin HEAD:refs/heads/bean/fix-word-count
+  ← exit 0 [stderr] remote: Processing objects: 100% (4/4) remote: beanstalk: new bean fix-word-count received at 0b1de7b: "Fix wordCount to ignore extra spaces an…
+→ write_file /home/runner/.cache/act/de0b94e260161ab5/tmp/beanstalk/memory/notes.md
+  ← wrote /home/runner/.cache/act/de0b94e260161ab5/tmp/beanstalk/memory/notes.md
+→ bash git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/fix-word-count/status
+  ← exit 0 object 0b1de7be060b860f07d7b6a1cdae46143e3e34ca type commit tag beans/fix-word-count/status tagger beanstalk <engine@beanstalk.invalid> 1791558005 +0000…
+Agent finished after 12 turns, model spend $0.0331
+Summary: Fixed bean `word-count`. Previously `wordCount` used `text.split(' ').length`, which treated multiple spaces as separate words and counted empty input as 1 word. I updated `src/count.ts` to return 0 for empty/whitespace-only text a
+Success - Run the agent [1m34.87048874s]
+##[endgroup]
+##[group]Save memory
+Run Save memory
+remote: Processing objects: 100% (3/3)        
+Memory saved to refs/automations/fix-red/memory at 7e9cb58:
+   notes.md | 3 +++
+   1 file changed, 3 insertions(+)
+Success - Save memory [2.698867531s]
+##[endgroup]
+##[group]Report
+Run Report
+Beans pushed: fix-word-count
+Success - Report [7.057202ms]
+##[endgroup]
+
+== 4. A second red bean, branched from the new stalk head: initials
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: pre-land check red (1 failing, 14.3 s)
+remote: beanstalk: RED: initials was not landed. Merged onto the sprout, these tests failed:
+
+== 5. Fix red beans #2: memory restored from run 1, a second fix bean (it landed)
+##[group]Restore memory
+Run Restore memory
+Acting as fix-red[automation] in /home/runner/.cache/act/d1d1abc02e71cb69/hostexecutor at 8b23d75 (bean_red)
+Memory restored from refs/automations/fix-red/memory at 7e9cb58: 1 files
+  notes.md
+Success - Restore memory [6.036876883s]
+##[endgroup]
+##[group]Run the agent
+Run Run the agent
+Agent loop on @cf/moonshotai/kimi-k2.7-code, at most 30 turns, tools: bash, read_file, write_file, edit_file, list_files, finish
+→ read_file /home/runner/.cache/act/d1d1abc02e71cb69/tmp/beanstalk/memory/notes.md
+  ← 1 # Red-bean fix notes 2 3 - 2026-10-09 | bean `word-count` | cause: `wordCount` used naive `split(' ')` so extra spaces produced empty-string entries and empt…
+→ bash git fetch origin refs/heads/bean/initials && git log --oneline FETCH_HEAD -5 && git log --oneline HEAD -5
+  ← exit 0 e513abe Add initials 8b23d75 Fix wordCount to ignore extra spaces and empty text 8b23d75 Fix wordCount to ignore extra spaces and empty text [stderr] Fr…
+→ bash git checkout -b fix FETCH_HEAD
+  ← exit 0 [stderr] Switched to a new branch 'fix'
+→ list_files .
+  ← .beanstalk/ .git/ .gitignore README.md package.json src/ test/ tsconfig.json
+→ bash git diff HEAD~1 FETCH_HEAD -- src test
+  ← exit 0 diff --git a/src/initials.ts b/src/initials.ts new file mode 100644 index 0000000..c6e3fd5 --- /dev/null +++ b/src/initials.ts @@ -0,0 +1,8 @@ +/** The …
+→ bash node --test
+  ← exit 1 ▶ wordCount ✔ counts words separated by spaces (0.72199ms) ✔ ignores extra spaces (0.17734ms) ✔ counts nothing in an empty text (0.17853ms) ✔ wordCount …
+  (model call failed 502, retrying)
+→ read_file src/initials.ts
+  ← 1 /** The first letter of each word, upper case: "the stalk grows" becomes "TSG". */ 2 export function initials(text: string): string { 3 return text 4 .split(…
+  (model call failed 502, retrying)
+→ edit_file src/initials.ts
+  ← edited /home/runner/.cache/act/d1d1abc02e71cb69/hostexecutor/src/initials.ts
+→ bash node --test
+  ← exit 0 ▶ wordCount ✔ counts words separated by spaces (0.900252ms) ✔ ignores extra spaces (0.18918ms) ✔ counts nothing in an empty text (0.16789ms) ✔ wordCount…
+→ bash git add src/initials.ts && git commit -m "Fix initials to treat hyphens as word breaks and ignore empty segments" && git push origin HEAD:refs/heads/bean/fix-initials
+  ← exit 0 [fix a7e464d] Fix initials to treat hyphens as word breaks and ignore empty segments 1 file changed, 2 insertions(+), 1 deletion(-) [stderr] remote: Pro…
+→ edit_file /home/runner/.cache/act/d1d1abc02e71cb69/tmp/beanstalk/memory/notes.md
+  ← edited /home/runner/.cache/act/d1d1abc02e71cb69/tmp/beanstalk/memory/notes.md
+Agent finished after 12 turns, model spend $0.0338
+Summary: Fixed bean `initials`. The cause was similar to a previous issue (`word-count`): a naive `split(' ')` that didn't treat other word separators (hyphens) as breaks and could produce empty segments from surrounding whitespace. The tes
+Success - Run the agent [3m24.04363887s]
+##[endgroup]
+##[group]Save memory
+Run Save memory
+remote: Processing objects: 100% (3/3)        
+Memory saved to refs/automations/fix-red/memory at 2da0416:
+   notes.md | 1 +
+   1 file changed, 1 insertion(+)
+Success - Save memory [2.706583163s]
+##[endgroup]
+##[group]Report
+Run Report
+Beans pushed: fix-initials
+Success - Report [4.762018ms]
+##[endgroup]
+
+== 6. Heartbeat (harness: shell) run by hand after two schedule runs: the secret masked, memory kept
+##[group]Restore memory
+Run Restore memory
+Acting as heartbeat[automation] in /home/runner/.cache/act/f4f08245a719affe/hostexecutor at d97472d (workflow_dispatch)
+Memory restored from refs/automations/heartbeat/memory at 755bb40: 1 files
+  beats.log
+Success - Restore memory [5.927381707s]
+##[endgroup]
+##[group]Run the script
+Run Run the script
+the secret is ***
+beats so far: 3
+Success - Run the script [8.978235ms]
+##[endgroup]
+##[group]Save memory
+Run Save memory
+remote: Processing objects: 100% (3/3)        
+Memory saved to refs/automations/heartbeat/memory at 55ce12f:
+   beats.log | 1 +
+   1 file changed, 1 insertion(+)
+Success - Save memory [3.263953702s]
+##[endgroup]
+##[group]Report
+Run Report
+No beans pushed
+Success - Report [4.791708ms]
+##[endgroup]

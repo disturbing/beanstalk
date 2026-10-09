@@ -618,7 +618,7 @@ The owner's words: "automations are agents running trying to solve problems. Its
 
 So an automation is a **file-defined agent job**. The file names its triggers, its goal (a prompt), its harness, its permissions and its secrets. When a trigger fires, an agent runs in a fresh container with the repository checked out, the event as context, its own memory restored from git, and the right to push beans as itself. It never moves the stalk: landing stays the engine's job.
 
-Built on the branch `worktree-agent-a04f3551f2cd07eae` and verified on staging (§7.10); not deployed to production. The answers to the six design questions come first, then the file format, the pieces and the limits.
+Built on the branch `worktree-agent-a04f3551f2cd07eae`, verified on staging (§7.10), and **live on the hosted service since 2026-10-09** (§7.12). The answers to the six design questions come first, then the file format, the pieces and the limits.
 
 ### 7.1 The file
 
@@ -772,6 +772,19 @@ Stack `staging` (`pnpm env:provision staging && pnpm env:deploy staging`; migrat
 
 What this shows: a file landed by a bean became a live automation. A Beanstalk event started a real agent in a container, with no model key anywhere. The agent fixed the bean, pushed a fix bean as its own bot through the normal pre-land check, and kept a note that the next run read and built on. Schedule, manual runs, masking and live logs work as for Actions.
 
+### 7.12 Live (2026-10-09)
+
+Deployed by the coordinator from `prototype` `21e0696` (which carries `b55d1d2`), with forge migration `0010` applied: executor `456b9075`, gateway `c95f1158`, MCP `54f3c0fb`, web `d890cfc1`, swarm `721fa9ee`, site `b426d137`. The smoke test used a throwaway passkey account and a repository from the TypeScript starter, with real git through the web host. Each red bean was branched from the **stalk head** this time, so the fix beans could not conflict. The repository and the account were deleted afterwards (both answer 404). Transcript and screenshots: `exp/automations-live/`.
+
+| Check | Result |
+|---|---|
+| 1. A red bean starts the agent, which pushes a fix bean that lands and writes memory | **Pass.** `word-count` was red (2 failing tests). *Fix red beans* #1 (`bean_red`) started within seconds. It fetched the bean, fixed `src/count.ts`, ran the tests green and pushed `bean/fix-word-count`, which went **green, validated, onto the stalk at `8b23d75`**. Its note was saved to `refs/automations/fix-red/memory` at `7e9cb58`. 1 min 52 s, 2 min billed. 12 model calls, 31,584 tokens in and 772 out, **$0.0331** |
+| 2. A second run reads that memory | **Pass.** `initials` was red (the hyphen test). Run #2 restored the memory ("1 files"), read `notes.md` first, and wrote in its summary: "The cause was similar to a previous issue (`word-count`): a naive `split(' ')`…". It pushed `bean/fix-initials`, which went **green, validated, onto the stalk at `d97472d`**, and appended its line: memory `7e9cb58 → 2da0416`. 3 min 44 s, 4 min billed. 12 calls, 28,569 in and 1,658 out, **$0.0338** |
+| 3. A shell automation runs on schedule and by hand, with a secret masked | **Pass.** *Heartbeat* (`*/5 * * * *`) ran on schedule twice (#1, #2), then by hand from its page (#3, 21 s). The log line reads `the secret is ***`; the value appears neither in the log nor on the page. Its memory carried the beats across runs (`beats so far: 3`, `755bb40 → 55ce12f`) |
+| 4. The model proxy without a job token | **Pass.** No token, or a made-up `bsj_` token: 401 `a running automation job token is required` |
+
+**Model spend of the smoke test: $0.0669** (two agent runs, 24 calls, 60,153 tokens in and 2,430 out, Kimi K2.7 code through AI Gateway). Container minutes: 2 + 4 for the agents, and 1 each for the three heartbeat runs.
+
 ### 7.11 Left
 
 - **Beanstalk MCP tools for the agent** (decision cards, comments, bean status) through `bs.internal` with a scoped session token; today the agent has git and the filesystem only. People's agents have one read tool, `automation_list` (automations, problems, memory refs and the 20 newest runs, through `AgentReposRpc.agentAutomations`); run logs over MCP are not built.
@@ -779,4 +792,5 @@ What this shows: a file landed by a bean became a live automation. A Beanstalk e
 - `repository_dispatch` webhooks; `thread_message`; the editor (§5.5) for automations.
 - A page for the memory ref (tree and history) beyond links to its commits; a memory diff view.
 - Checking out the event's own commit (a sprout or a bean head) instead of the stalk head, when the agent should start there.
+- A deleted repository's ActionsRepoDO keeps its schedule alarm ticking every few minutes (it starts nothing, because the registry no longer has the repository); it should clear its schedules on deletion. This is the same for Actions schedules.
 - The per-repository cap on concurrent automation runs across files (today: one per file, plus the Actions job cap of 4).
