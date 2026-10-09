@@ -76,9 +76,9 @@ codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@
 | Feature | State |
 |---|---|
 | MCP read tools, collaboration tools | Live |
-| MCP repository tools: `repo_list`, `repo_status`, `bean_open`, `bean_status`, `bean_wait`, `task_list`, `task_claim`, `task_release`, `git_credentials` | Built (`docs/claude-opus/23-mcp-repository-tools.md`); on staging, not yet deployed live |
+| MCP repository tools: `repo_list`, `repo_status`, `bean_open`, `bean_status`, `bean_wait`, `task_list`, `task_claim`, `task_release`, `git_credentials` | Live (`docs/claude-opus/23-mcp-repository-tools.md`) |
 | Git-native intake (`bean/<name>`, push options, `remote:` verdicts, `refs/beans/<name>/status`) | Live on people's repositories (`https://<beanstalk host>/<owner>/<repo>.git`) |
-| Waiting in git (`refs/wait/any`, `refs/wait/all`, `-o bean=`), event-driven `-o wait` and `bean_wait` (plugin 0.6.0) | Built and on staging (`docs/claude-opus/18-git-native-flow.md` §4.1); **not yet deployed live**: until then a push to `refs/wait/*` is refused ("only beans are pushed") |
+| Waiting in git (`refs/wait/any`, `refs/wait/all`, `-o bean=`), event-driven `-o wait` and `bean_wait` (plugin 0.6.0) | Live (`docs/claude-opus/18-git-native-flow.md` §4.1) |
 | `/beanstalk:setup`, SSH keys in Settings, deploy tokens | Live; git over SSH itself is **coming** (HTTPS with a token until then) |
 | MCP OAuth (`claude mcp login`, `/mcp`) | Live: sign up or sign in with a passkey, approve the agent; `whoami` names you |
 | Decision-card tools | **Coming** |
