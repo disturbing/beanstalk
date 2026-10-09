@@ -143,6 +143,8 @@ Per transport:
 - **shared-identity** `test/orgs.test.ts`: a new org's standing is base none; migration `0006` moves read to none and leaves write and none.
 - **web**: the create form reads internal; `isOldAddress` (case ignored, `.git` ignored).
 
+**Staging and live (2026-10-09).** Staging (gateway `f65b5380`, web `2d87b840`, MCP `35db2d5f`): 39 of 39 checks with four throwaway passkey accounts. **Live** from `prototype` `557a9b9` (identity `0006`, forge `0009`; gateway `183caedb`, web `feaa4445`, MCP `ca6041ea`): the same walk, 48 of 48 including cleanup. Checks: a new org on base none; an invited member fetches and pushes the private repository, an uninvited member gets 404 there, reads and clones the internal one and is refused a push (403); an outsider 404 and anonymous 401 on the internal one; the org page lists only what each may read; a transfer from a person to the org, then the old URL's web redirect (307), `git clone`, a fetch and a push from a clone made before the move (with the moved notice); a rename on top (both old addresses redirect, `ls-remote` of the first works); a new repository at the old address taking it over. The accounts, org and repositories were deleted afterwards. SSH at an old address is covered by the gateway tests only.
+
 ## 7. Open
 
 - **Migration numbers.** Identity `0004_orgs.sql` and forge `0006_org_owners.sql`; lanes S and C may add migrations with the same numbers. Whoever integrates renumbers; the files only add tables, triggers and one defaulted column.
