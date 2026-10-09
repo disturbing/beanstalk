@@ -1,0 +1,123 @@
+
+Live rollout of lanes O (organizations), C (org secrets and variables) and S (settings, profiles,
+picture uploads), 2026-10-09 (UTC 04:38-04:57), prototype at 8126876.
+
+Before deploying: no race process on the laptop; GET <gateway>/v1/admin/capacity (admin token)
+showed races [] and leases [] (no Actions job holding an executor container).
+
+Migrations (remote; each file only CREATE TABLE/INDEX/TRIGGER or ADD COLUMN with a default):
+  beanstalk-identity  0004_orgs.sql, 0005_profiles.sql
+  beanstalk-forge     0006_org_owners.sql, 0007_actions_org_secrets_vars.sql,
+                      0008_repository_profile.sql
+R2: bucket beanstalk-media created (it was missing). Images binding IMAGES on beanstalk-web.
+
+Deployed (live account 2c7358a6…) in this order; after each, the live ADMIN_TOKEN answered 200
+and a wrong token 401 on the gateway (/v1/admin/capacity) and on the executor (/v1/admin/logs):
+  beanstalk-actions-executor  49ac2b2d-20b0-4b2f-87c0-8e59487f0dd8  (was 86912131; image unchanged)
+  beanstalk-gateway           939da9ee-d2a9-4dd6-9353-6aa6c2b3a87e  (was 5e6ed10d; runner image rebuilt)
+  beanstalk-web               25652551-23c7-437a-9953-a941a5dac22b  (was 1a0b72dd; MEDIA, IMAGES)
+  beanstalk-mcp               92547d7c-9cfc-4146-b532-e51262481b2d  (was 3363125b)
+  beanstalk-site              14cce98c-4e01-430b-819c-bc19ad0b06fe  (was 8e6892ee; deployed again
+                              after the public docs labels changed)
+
+Smoke test on the live web host: headless Chrome with a CDP virtual authenticator per person.
+Accounts lvo-4x7v (owner) and lvm-4x7v (member, renamed lvn-4x7v), org lvorg-4x7v. Tokens,
+session state and the test secret stayed in 0600 files outside the repository.
+
+## signup (2026-10-09T04:48:20.713Z)
+signed up @lvo-4x7v with a virtual passkey -> /
+signed up @lvm-4x7v with a virtual passkey -> /
+PASS  two passkey sign-ups, each with a personal token  (lvo-4x7v, lvm-4x7v)
+
+## org (2026-10-09T04:49:10.028Z)
+PASS  New organization lands on /<org>  (lvorg-4x7v)
+PASS  invite @lvm-4x7v as member by handle
+PASS  private repository under the org from the owner picker  (lvorg-4x7v/app)
+PASS  outsider (invited, not yet accepted): git fetch of the private org repo -> 404  (404)
+PASS  outsider: repository page is a 404  (404)
+PASS  anonymous: git fetch -> 401
+PASS  member accepts the invitation on Home and lands on the org page
+PASS  [base read (default)] member git upload-pack -> 200  (200)
+PASS  [base read (default)] member git receive-pack -> 403  (403)
+PASS  [base read (default)] owner git receive-pack -> 200  (200)
+PASS  [base write] member git receive-pack -> 200  (200)
+PASS  [base none] member git upload-pack -> 404  (404)
+PASS  [base none] owner git receive-pack -> 200  (200)
+PASS  [base none] member: repository page is a 404  (404)
+PASS  [base read] member git upload-pack -> 200  (200)
+PASS  [base read] member git receive-pack -> 403  (403)
+
+## media (2026-10-09T04:50:00.958Z)
+PASS  avatar uploaded and served from /media/users/…  (200 image/webp 2850 B, public, max-age=31536000, immutable)
+PASS  avatar WebP sizes 460/128/64 (Images binding on the live host)  (/460:200:image/webp:2850B /128:200:image/webp:816B /64:200:image/webp:374B)
+PASS  org icon uploaded and served from /media/orgs/…  (200 image/webp 2944 B)
+PASS  org icon is WebP  (image/webp)
+PASS  repo social image uploaded and served from /media/repos/…  (200 image/webp 5102 B; /640 200 image/webp)
+PASS  social image WebP at 1280 and 640
+
+## secrets (2026-10-09T04:50:50.284Z)
+PASS  org secret (selected: app) and org variable listed in org Settings
+PASS  org secret value not on the page
+PASS  repository Settings shows the inherited org entries
+$ git push -o wait origin HEAD:refs/heads/bean/org-entries   (lvorg-4x7v/app via the web host)
+remote: beanstalk: new bean org-entries received at 0f1aca0: "Add a workflow that prints an org variable and an org secret"
+remote: beanstalk: pre-land check started: your change is merged onto the sprout and the whole suite runs on that tree
+remote: beanstalk: checks from .beanstalk/checks.toml: node --test (image node, timeout 120 s)
+remote: beanstalk: pre-land check green on the merged tree (4.0 s)
+remote: beanstalk: LANDED: org-entries passed its pre-land check and is on the sprout as c639960
+remote: beanstalk:   it moves to the stalk once CI validates the sprout; git fetch origin sprout stalk
+remote: beanstalk: validated: on the stalk at c639960
+remote: beanstalk:   status: git fetch origin '+refs/beans/*:refs/beans/*' && git cat-file -p refs/beans/org-entries/status
+ * [new branch]      HEAD -> bean/org-entries
+(exit 0, 14 s)
+PASS  git push -o wait: bean landed and validated
+
+## run (2026-10-09T04:51:39.765Z)
+run /lvorg-4x7v/app/actions/runs/d8f69e57-605f-408c-aee7-abd350217a5c: lvorg-4x7v / app private Code Changes History Automations Ask People Settings Actions Automations ← Org entries runs Org entries · stalk moved Org entries #1 stalk moved c639960 @lvo-4x7v just now Status succeeded Wall time 13s Minutes billed 1 Line stalk Work
+PASS  workflow run from the landed bean succeeded
+  | region [eu-west-live]
+  | org secret set, length 25
+  | org secret [***]
+PASS  log shows the org variable value
+PASS  log shows the org secret masked as ***
+PASS  org secret reached the job (length printed)
+PASS  raw secret value appears nowhere in the downloaded log or the run page
+
+## handle (2026-10-09T04:52:31.491Z)
+PASS  handle changed @lvm-4x7v -> @lvn-4x7v (header updated)
+PASS  old /<old>/<repo> URL redirects to the new handle  (307 -> /lvn-4x7v/greeter)
+PASS  browser on the old URL lands on the new one  (/lvn-4x7v/greeter)
+PASS  git info/refs at the old handle -> 301 to the new  (301)
+PASS  git clone with the old handle follows the redirect  (ok)
+PASS  member still reads the org repo after the handle change  (200)
+
+## shots (2026-10-09T04:53:21.096Z)
+screenshots: night and day of the org page, org settings, org secrets, repository settings, profile, the run log, the renamed person page
+
+## logshot (2026-10-09T04:54:41.471Z)
+PASS  run page (dark) shows the step output with the secret as ***
+PASS  run page (light) shows the step output with the secret as ***
+
+## cleanup (2026-10-09T04:55:35.008Z)
+PASS  repository lvorg-4x7v/app deleted (page 404)  (404)
+  social image after the repository deletion: 200
+PASS  repository lvn-4x7v/greeter deleted (page 404)  (404)
+PASS  Delete account blocked while sole owner of the org (named)
+PASS  org deleted (page 404) and its icon gone from /media  (404 / 404)
+PASS  @lvn-4x7v: wrong confirmation refused
+PASS  @lvn-4x7v: account deleted through Delete account (page 404, session signed out)  (404 / 307)
+PASS  @lvn-4x7v: personal token no longer works  (401)
+PASS  @lvo-4x7v: wrong confirmation refused
+PASS  @lvo-4x7v: account deleted through Delete account (page 404, session signed out)  (404 / 307)
+PASS  @lvo-4x7v: personal token no longer works  (401)
+PASS  avatar deleted from /media with the account  (404)
+
+51 of 51 checks passed. Capacity showed no races and no leases again afterwards.
+
+Finding: deleting a repository from its Settings leaves its social image in R2
+(repos/<id>/social/<hash> still answered 200 after the delete). Only account deletion removes
+repos/<id>/ (29 §4). The two test objects were removed by hand (`wrangler r2 object delete`).
+
+Screenshots: 01-10 night during the walk; 11-17 night and day (org page, org settings, org
+secrets, repository settings with the social image, profile with the avatar, the run's step
+with the secret as ***, the renamed person page); 18 the refused account deletion (night).

@@ -1,0 +1,107 @@
+Staging teardown on the live account, 2026-10-09 (UTC 04:59-05:05), approved by the owner.
+Only names starting with beanstalk- and containing staging or spike; production resources kept.
+
+Workers:
+  beanstalk-actions-executor-staging
+  beanstalk-actions-executor-staging-act2
+  beanstalk-gateway-staging
+  beanstalk-gateway-staging-act1
+  beanstalk-gateway-staging-act2
+  beanstalk-gateway-staging-act3
+  beanstalk-gateway-staging-ev
+  beanstalk-gateway-staging-org
+  beanstalk-gateway-staging-sec
+  beanstalk-gateway-staging-set
+  beanstalk-mcp-staging
+  beanstalk-mcp-staging-org
+  beanstalk-mcp-staging-set
+  beanstalk-oidc-staging
+  beanstalk-oidc-staging-oidc
+  beanstalk-site-staging
+  beanstalk-ssh-staging
+  beanstalk-web-staging
+  beanstalk-web-staging-act3
+  beanstalk-web-staging-org
+  beanstalk-web-staging-sec
+  beanstalk-web-staging-set
+D1:
+  beanstalk-identity-staging
+  beanstalk-forge-staging
+  beanstalk-forge-staging-set
+  beanstalk-identity-staging-set
+  beanstalk-identity-staging-org
+  beanstalk-forge-staging-org
+  beanstalk-identity-staging-sec
+  beanstalk-forge-staging-sec
+  beanstalk-identity-staging-act1
+  beanstalk-forge-staging-act1
+  beanstalk-identity-staging-act2
+  beanstalk-forge-staging-act2
+  beanstalk-identity-staging-act3
+  beanstalk-forge-staging-act3
+  beanstalk-identity-staging-ev
+  beanstalk-forge-staging-ev
+KV:
+  beanstalk-oauth-staging
+  beanstalk-oauth-staging-org
+  beanstalk-oauth-staging-set
+Queues:
+  beanstalk-repo-events-staging
+  beanstalk-repo-events-staging-act1
+  beanstalk-repo-events-staging-act2
+  beanstalk-repo-events-staging-act3
+  beanstalk-repo-events-staging-ev
+  beanstalk-repo-events-staging-org
+  beanstalk-repo-events-staging-sec
+  beanstalk-repo-events-staging-set
+R2:
+  beanstalk-actions-logs-staging
+  beanstalk-actions-logs-staging-act1
+  beanstalk-actions-logs-staging-act2
+  beanstalk-actions-logs-staging-act3
+  beanstalk-actions-logs-staging-org
+  beanstalk-actions-logs-staging-sec
+  beanstalk-actions-logs-staging-set
+  beanstalk-media-staging
+  beanstalk-media-staging-set
+Containers:
+  beanstalk-ssh-staging-sshserver
+  beanstalk-gateway-staging-runner
+  beanstalk-actions-executor-staging-actionsjobcontainer
+  beanstalk-gateway-staging-set-runner
+  beanstalk-gateway-staging-sec-runner
+  beanstalk-actions-executor-staging-act2-actionsjobcontainer
+  beanstalk-gateway-staging-act1-runner
+  beanstalk-gateway-staging-act2-runner
+  beanstalk-gateway-staging-act3-runner
+  beanstalk-gateway-staging-ev-runner
+Artifacts namespaces:
+  beanstalk-race-staging
+  beanstalk-race-staging-lg
+  beanstalk-race-staging-repos
+  beanstalk-repos-staging
+  beanstalk-repos-staging-a
+  beanstalk-repos-staging-acct
+  beanstalk-repos-staging-act1
+  beanstalk-repos-staging-act2
+  beanstalk-repos-staging-act3
+  beanstalk-repos-staging-b
+  beanstalk-repos-staging-c
+  beanstalk-repos-staging-cap
+  beanstalk-repos-staging-checks
+  beanstalk-repos-staging-cred
+  beanstalk-repos-staging-ev
+  beanstalk-repos-staging-int
+  beanstalk-repos-staging-org
+  beanstalk-repos-staging-repoev
+  beanstalk-repos-staging-sec
+  beanstalk-repos-staging-set
+  beanstalk-repos-staging-ssh
+
+Steps: queue consumers removed from the staging gateways, then Workers (wrangler delete --force),
+queues, container applications, D1, KV, R2 (emptied through the API first: 120 objects in all),
+Artifacts repositories and namespaces (API; every namespace answered 204).
+
+Left: beanstalk-actions-executor-staging was uploaded again by another wrangler session at
+05:03:06Z, after its deletion; left for the owner. Other projects on the account (storyarc-*,
+xava-inference-*) have staging resources too and were not touched.

@@ -71,7 +71,7 @@ passkey sign-up; the generated initials; upload → three WebP sizes from R2 (2.
 
 Fixed on the way, found only on staging: vinext treats every multipart POST as a possible progressive server action and refused bodies over 1 MB with 413 before the route ran (`next.config.ts` `experimental.serverActions.bodySizeLimit: '3mb'`); textareas send CRLF, which the bio's control-character check refused; a server action's `redirect` does not re-render the layout, so after a handle change, removing a picture or deleting the account the forms now load the page whole (the header showed the old handle).
 
-The staging stack is left up for the coordinator (no containers run); its accounts were deleted by the walk-through itself.
+**Live** since 2026-10-09: identity `0005`, forge `0008`, R2 `beanstalk-media`, web `25652551` with the Images binding. On the hosted service the avatar came back as WebP at 460/128/64 px (2.8 KB, 816 B, 374 B), the org icon and a repository social image (1280 and 640) as WebP; a handle change redirected `/<old>/<repo>` (307) and `git clone` of the old URL (301); both test accounts were removed with Delete account (`exp/live-orgs-settings/`). One gap found there: deleting a repository from Settings leaves its social image in R2 (only account deletion removes `repos/<id>/`). The staging stack has been torn down.
 
 ## 7. Open
 
