@@ -16,7 +16,7 @@ import { insertUser } from '@beanstalk/shared-identity/users';
 import { repository, slug } from './repo-fixtures';
 
 const ORIGIN = 'https://beanstalk-mcp.example.workers.dev';
-const WEB_URL = 'https://beanstalk-web.devaccounts-1password.workers.dev';
+const WEB_URL = 'https://beanstalk-web.example.workers.dev';
 const REDIRECT = 'http://localhost:33418/callback';
 
 type Mcp = {

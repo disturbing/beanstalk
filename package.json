@@ -12,6 +12,11 @@
     "test": "pnpm -r --workspace-concurrency=2 --if-present test",
     "rust:check": "node scripts/rust-check.mjs",
     "product-events": "node scripts/product-events.mjs",
+    "env:generate": "node scripts/environments.mjs generate",
+    "env:provision": "node scripts/environments.mjs provision",
+    "env:deploy": "node scripts/environments.mjs deploy",
+    "env:verify": "node scripts/environments.mjs verify",
+    "env:smoke": "node scripts/environments.mjs smoke",
     "skills:update": "npx -y skills@latest update -p -y"
   },
   "devDependencies": {

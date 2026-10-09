@@ -20,6 +20,8 @@ pnpm check                         # fmt:check + lint (type-aware oxlint) + type
 pnpm -F @beanstalk/<name> dev      # also: test, deploy, types (regenerate worker-configuration.d.ts)
 pnpm rust:check                    # cargo fmt --check, clippy -D warnings, cargo test
 pnpm skills:update                 # refresh vendored Cloudflare skills (skills-lock.json)
+pnpm env:provision <env>           # environments/<env>: create resources, secrets, migrate D1 (docs/claude-opus/30)
+pnpm env:deploy <env>              # check secrets, deploy every package in order (--dry-run, --only)
 ```
 
 `pnpm check` must pass before work is reported as done. Run it; do not describe it.
@@ -57,7 +59,8 @@ Skills live in `.agents/skills/` (read natively by Codex); `.claude/skills/` hol
 | `.agents/skills/`, `.claude/skills/`, `skills-lock.json` | Skills (canonical, symlinks, vendored-skill lock) |
 | `docs/` | Research, thesis, demo plan, design docs |
 | `packages/` | All code; one directory per package or crate |
-| `scripts/` | Repo tooling (`rust-check.mjs`, `check-docs.mjs`) |
+| `scripts/` | Repo tooling (`rust-check.mjs`, `check-docs.mjs`, `environments.mjs`) |
+| `environments/` | Deploy environments; only `example/` is public. Never put account ids in `packages/*/wrangler.jsonc` (templates) |
 | `packages/site/public/docs/` | Public docs on the marketing site; `.claude/agents/docs-*.md` maintain and audit them |
 | `research/` | Corpus clones used by research scripts; not part of the build |
 | `tsconfig.base.json`, `.oxlintrc.json`, `.oxfmtrc.json`, `rustfmt.toml`, `rust-toolchain.toml` | Shared tool configuration; change in its own commit with a reason |

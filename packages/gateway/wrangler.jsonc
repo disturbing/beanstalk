@@ -1,5 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
+  // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
+  // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
   "name": "beanstalk-gateway",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-03",
@@ -13,12 +16,12 @@
     // §3: per-job Artifacts tokens live at most 10 minutes.
     "ARTIFACTS_TOKEN_TTL_SECONDS": "600",
     // The web app, named in the hint a request without a usable credential gets.
-    "WEB_URL": "https://beanstalk-web.devaccounts-1password.workers.dev",
+    "WEB_URL": "http://localhost:5173",
     // The runner pool races and repositories share (RunnerCapacity): containers[].max_instances.
     "RUNNER_MAX_INSTANCES": "48",
     // This Worker's own origin: git checkout URLs, live log sockets and GITHUB_SERVER_URL for
     // Actions jobs (docs/claude-opus/25-actions-and-automations.md).
-    "PUBLIC_URL": "https://beanstalk-gateway.devaccounts-1password.workers.dev",
+    "PUBLIC_URL": "http://localhost:8787",
     // Actions (doc 25 §3.8, D9): "stub" runs jobs on the built-in echo executor; "service" calls
     // the ACTIONS_EXECUTOR service binding (beanstalk-actions-executor, one container per job,
     // docs/claude-opus/26-actions-job-executor.md). Limits are per repository.
@@ -107,13 +110,13 @@
     {
       "binding": "FORGE",
       "database_name": "beanstalk-forge",
-      "database_id": "e19b5975-8fb2-4158-9dc8-3ca013b1de2a",
+      "database_id": "local-beanstalk-forge",
       "migrations_dir": "migrations",
     },
     {
       "binding": "IDENTITY_DB",
       "database_name": "beanstalk-identity",
-      "database_id": "bd0e58e5-4b1b-4a40-a143-a0eee6fa5075",
+      "database_id": "local-beanstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],

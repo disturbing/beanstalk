@@ -89,16 +89,18 @@ pnpm check                                   # format, lint, typecheck, tests (T
 pnpm -F @beanstalk/web dev                   # the explorer and race canvas, on the recorded runs (works offline)
 ```
 
-Deploy everything (the gateway with its runner container, the web app, the MCP server and the site) to one account. Docker must be running: it builds the runner image.
+Deploy everything to one account. An environment is one directory, `environments/<name>/` (the public repo ships only `example/`): the account, a name suffix (`-staging` gives `beanstalk-gateway-staging`; empty keeps the base names) and the packages to run. Docker must be running: it builds the container images.
 
 ```bash
 npx wrangler login
 npx wrangler whoami                          # lists your accounts and their ids
-export CLOUDFLARE_ACCOUNT_ID=<account id>    # required: the script never guesses the account
-node scripts/deploy-all.mjs                  # --dry-run checks without uploading; --only gateway,web
+cp -r environments/example environments/staging   # then set account_id and workers_dev_subdomain
+pnpm env:provision staging                   # D1, KV, R2, queues; ids into resources.json; secrets; migrations
+pnpm env:deploy staging                      # checks secrets, then executor, gateway, mcp, web, ssh, site
+pnpm env:deploy staging --dry-run            # builds and checks without uploading
 ```
 
-The account needs Workers Paid (Containers and Durable Objects), and Artifacts and Workers AI enabled. The script creates `packages/gateway/.dev.vars` (`ADMIN_TOKEN`, `RUN_TOKEN_SECRET`) and `packages/web/.dev.vars` (`DEMO_PASSWORD`, which unlocks decision cards) with random values when they are missing, uploads them as secrets with each deploy, points the MCP server's `WEB_URL` at the web app it just deployed, and prints the URLs. Keep the `.dev.vars` files: the race driver reads `ADMIN_TOKEN` from the gateway's.
+The account needs Workers Paid (Containers and Durable Objects), and Artifacts and Workers AI enabled. Provision generates the Workers' secrets into `environments/staging/secrets/` (git-ignored, never printed; `DEMO_PASSWORD` in `web.vars` unlocks decision cards) and deploy uploads them; the race driver reads `ADMIN_TOKEN` from `environments/staging/secrets/gateway.vars`. How the templates become configs, and how to keep your environments in a private fork, is in [`docs/claude-opus/30-environments.md`](docs/claude-opus/30-environments.md).
 
 Then run a race against your gateway. `--preset demo` pins the engine behind the published numbers (v2.5 with dependency-aware starts; `--preset v24` pins v2.4); `--max-usd` caps agent plus infrastructure spend; the run deletes its Artifacts repo when it ends and prints its infrastructure cost. Replay agents are free; real agents need the `claude` CLI, logged in:
 

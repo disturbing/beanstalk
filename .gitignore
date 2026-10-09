@@ -22,3 +22,10 @@ promo/beanstalk-swarm-film/out/
 
 # Agent git worktrees
 .claude/worktrees/
+
+# Environments (scripts/environments.mjs): only the example is public. A fork commits its own
+# env.jsonc and resources.json with `git add -f`; secrets/ and generated configs never.
+environments/*
+!environments/example/
+environments/**/secrets/
+packages/*/wrangler.*.jsonc
