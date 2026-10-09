@@ -160,13 +160,13 @@ def plugin_version() -> str:
 
 
 def continuation(guidance: str = "prompt", undelivered: set[str] | frozenset[str] = frozenset()) -> str:
-    """The resume prompt. Since 2026-10-08 (both arms) it names the tasks the harness does not find delivered: no
-    change with its ``Task:`` trailer on the line, or its acceptance tests not there as given."""
+    """The resume prompt. Since 2026-10-08 (both arms) it names the tasks the harness does not find delivered: their
+    acceptance tests are not on the line (``orchestrated.tests_not_on_line``)."""
     text = CONTINUE_NOTIFIED if guidance == "plugin" else CONTINUE
     if not undelivered:
         return text
-    return (text + " Not delivered on the line yet (no change carrying its Task trailer, or its acceptance tests are "
-            "not there exactly as given): " + ", ".join(sorted(undelivered)) + ".")
+    return (text + " Not delivered on the line yet (its acceptance tests are not there): "
+            + ", ".join(sorted(undelivered)) + ".")
 
 
 CONTINUE = ("Continue. Your session ended while work remained. Check the state of every task in BACKLOG.md (your "

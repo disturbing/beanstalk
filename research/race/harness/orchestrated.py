@@ -630,16 +630,17 @@ class OrchestratedRace:
         return wt
 
     def unintegrated(self, forge, tasks: list[Task]) -> set[str]:
-        """Tasks no commit on the forge's line names (``Task: <id>`` trailers, forge-agnostic: a change may carry
-        several tasks). A forge error counts as all integrated: no resume."""
+        """Tasks not delivered on the forge's line: their acceptance tests are not there (``tests_not_on_line``,
+        forge-agnostic). ``Task:`` trailers no longer decide it either way: a Beanstalk squash's trailer is the bean's
+        name, so a bean not named after its task carries no task id (seed 11, 2026-10-08: 25 delivered tasks counted
+        missing, the lead resumed at 31.5 min and re-pushed empty "record" commits for them), and a trailer can name
+        a task whose change is not there (t009, seed 7). A forge error counts as all integrated: no resume."""
         repo = os.path.join(self.work, "base")
         try:
             ref, _ = forge.fetch_line(repo)
             if forge.name == "beanstalk":   # done = landed on the sprout (the prompt's definition), not yet the stalk
                 ref = "refs/remotes/forge/sprout"
-            log = run_git(repo, "log", "--format=%B", f"{self.base_sha}..{ref}")
-            missing = unintegrated_tasks([t.id for t in tasks], log)
-            return missing | tests_not_on_line(repo, ref, [t for t in tasks if t.id not in missing], self.base_sha)
+            return tests_not_on_line(repo, ref, tasks, self.base_sha)
         except Exception:  # noqa: BLE001 - the decision to resume must not end the race
             return set()
 
