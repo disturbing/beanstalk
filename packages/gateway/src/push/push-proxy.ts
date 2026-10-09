@@ -82,6 +82,7 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
   const engine = deps.run(engineId);
   if ((await engine.repoEngine()) === null) return missing;
   const use = credential === null ? null : sessionUse(credential, repository.repoId);
+  const movedTo = movedFrom(path, repository.fullName);
   if (path.rest === 'git-receive-pack')
     // Pushing is never allowed without a credential, so `credential` is set here.
     return credential === null
@@ -91,6 +92,7 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
           engineId,
           use,
           credential,
+          movedTo,
           protectedAccess: protectedAccessOf(
             credential,
             roleOf({ kind: 'credential', credential }, repository.access),
@@ -114,18 +116,29 @@ export async function repoGit(input: RepoGitRequest): Promise<Response> {
 }
 
 /**
- * The repository a path names: the registry's record (its engine survives a rename), or for
- * an engine opened without one (the admin route) the engine derived from the path, private.
- * A repository's old name (its derived engine now belongs to a renamed record) names nothing.
+ * The repository a path names: the registry's record at that address or at an old one (a
+ * rename or a transfer leaves a redirect, `Registry.resolve`, so old remotes keep cloning and
+ * pushing without following anything), or for an engine opened without one (the admin route)
+ * the engine derived from the path, private. A derived engine that now belongs to a record
+ * under another name names nothing.
  */
 async function repositoryAt(
   deps: Deps,
   path: GitPath,
   principal: RepositoryPrincipal,
-): Promise<{ readonly access: RepositoryAccess; readonly repoId: string | null } | null> {
-  const record = await deps.registry.byName(path.namespace, path.repo);
+): Promise<{
+  readonly access: RepositoryAccess;
+  readonly repoId: string | null;
+  /** The record's `owner/name` now (it differs from the path at an old address). */
+  readonly fullName: string | null;
+} | null> {
+  const record = await deps.registry.resolve(path.namespace, path.repo);
   if (record !== null && RunId.safeParse(record.engine_id).success)
-    return { access: await accessFacts(deps.collaborators, record, principal), repoId: record.id };
+    return {
+      access: await accessFacts(deps.collaborators, record, principal),
+      repoId: record.id,
+      fullName: `${record.owner.handle}/${record.name}`,
+    };
   const derived = await repoEngineId(path.namespace, path.repo);
   if ((await deps.registry.byEngine(derived)) !== null) return null;
   return {
@@ -138,7 +151,24 @@ async function repositoryAt(
       archived: false,
     },
     repoId: null,
+    fullName: null,
   };
+}
+
+/** The current `owner/name` when the request used an old address (a rename or a transfer). */
+function movedFrom(path: GitPath, fullName: string | null): string | null {
+  if (fullName === null) return null;
+  return fullName.toLowerCase() === `${path.namespace}/${path.repo}`.toLowerCase()
+    ? null
+    : fullName;
+}
+
+/** What a push to an old address prints: it worked, and where the repository is now. */
+function movedLines(fullName: string, webUrl: string): string[] {
+  return [
+    `beanstalk: this repository moved to ${fullName}; the old address keeps working.`,
+    `beanstalk: to use the new one: git remote set-url origin ${webUrl}/${fullName}.git`,
+  ];
 }
 
 /** What git prints when someone who can see the repository may not do this. */
@@ -197,6 +227,8 @@ async function push(
     engineId: RunId;
     use: Use | null;
     credential: GitCredential;
+    /** The repository's current `owner/name` when the push used an old address. */
+    movedTo: string | null;
     protectedAccess: ProtectedAccess;
   },
 ): Promise<Response> {
@@ -254,6 +286,7 @@ async function push(
     }),
     ...checkStartedLines(checked.bean, options.waitSeconds),
     ...(options.waitSeconds === null ? statusHint(checked.bean) : []),
+    ...(target.movedTo === null ? [] : movedLines(target.movedTo, input.deps.config.webUrl)),
   ];
   const waitSeconds = options.waitSeconds;
   if (waitSeconds === null || !mode.sideband)

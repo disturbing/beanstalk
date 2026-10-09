@@ -221,7 +221,7 @@ describe('changing and deleting a repository', () => {
 });
 
 describe('git through the registry', () => {
-  it('serves a repository at its current name, and its old name no longer', async () => {
+  it('serves a repository at its current name, and at its old one (a redirect)', async () => {
     const coop = owner();
     const repo = value(
       await gateway.createRepository(coop, {
@@ -236,6 +236,6 @@ describe('git through the registry', () => {
     expect((await refs('before')).status).toBe(200);
     value(await gateway.updateRepository(coop.id, repo.id, { name: 'after' }));
     expect((await refs('after')).status).toBe(200);
-    expect((await refs('before')).status).toBe(404);
+    expect((await refs('before')).status).toBe(200);
   });
 });

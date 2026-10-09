@@ -70,10 +70,22 @@ export type RepoEngineRecord = z.infer<typeof RepoEngineRecord>;
 
 /** The engine id of `<owner>/<repo>` (case-insensitive): `r` and 19 hex digits of a SHA-256. */
 export async function repoEngineId(owner: string, repo: string): Promise<RunId> {
-  const digest = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(`${owner.toLowerCase()}/${repo.toLowerCase()}`),
-  );
+  return engineIdOf(`${owner.toLowerCase()}/${repo.toLowerCase()}`);
+}
+
+/**
+ * The engine id of a registry repository, from its Artifacts repo (named by the repository's
+ * id), not its address: a repository renamed or transferred away leaves its address free for
+ * a new repository, whose engine must not be the old one's. `#` cannot appear in a handle, so
+ * these ids never meet an address-derived one. Repositories created before this keep the id
+ * their record holds.
+ */
+export async function registryEngineId(artifactsRepo: string): Promise<RunId> {
+  return engineIdOf(`#registry/${artifactsRepo}`);
+}
+
+async function engineIdOf(key: string): Promise<RunId> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
   const hex = [...new Uint8Array(digest)]
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');

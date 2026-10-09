@@ -48,6 +48,7 @@ isImageKeyOf(key, kind, ownerId), fallbackAvatar(seed, label)
 `changeHandle` (`shared-identity/profiles.ts`): the new handle passes `Handle` (format and reserved list), is not anyone's current handle and not someone else's retired one, and the last change was over 24 hours ago. In one D1 batch the old handle goes to `retired_handles` (owned by the person), the person's own retired row for the new handle (taking one back) is removed, the user row changes, and `handle.change` is audited.
 
 - **Retired handles stay the person's**: sign-up refuses them (`isHandleTaken` checks both tables), they redirect `/<old>` and `/<old>/<repo>/…` (page loader, to the repository home) and git's `info/refs` (301 with path and query kept; git follows a redirect on its first request and uses the new base for the rest). They are freed only when the account is deleted. Whether to expire them after N days is open (§7).
+- **Repository addresses follow the same pattern** (`28` §6.3, 2026-10-09): a repository rename or transfer leaves a redirect row (old owner handle + old name → repository id). Web pages redirect to the repository home the same way (307); git over HTTPS and SSH and the MCP tools are served in place at the old address (git does not follow a redirect on a push). `renameOwner` moves the person's redirect rows to the new handle and the gateway's `Registry.resolve` follows a retired handle, so an old handle and an old repository name compose. Organisations cannot change handle yet.
 - **The registry moves with it:** `AccountsRpc.renameOwner(userId, handle)` on the gateway updates `repositories.owner_handle`, members, sessions and pending invitations in one batch. The web changes accounts first, then the registry; if the registry fails it reverts the handle (and the cooldown) and says nothing changed (`changeHandleFlow`).
 - **Agents:** OAuth grants carry the handle of the day; the MCP Worker now reads the person's current handle from `IDENTITY_DB` on every request and answers 401 `invalid_token` when the account is gone.
 
@@ -77,5 +78,5 @@ Fixed on the way, found only on staging: vinext treats every multipart POST as a
 
 - Retired handles never expire (GitHub frees them at once). Expiring after, say, 90 days would need the redirects to stop then too.
 - Emails and notifications wait for the sender domain; the pages say so.
-- Repository renames still break the old URL (`20`); the handle redirect does not cover them.
+- Repository renames and transfers redirect since 2026-10-09 (`28` §6.3). Organisation handle changes are not built (`28` §6.3 lists what they need).
 - A repository's social image is not yet used in `og:image` tags.

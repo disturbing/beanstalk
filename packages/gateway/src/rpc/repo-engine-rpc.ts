@@ -67,12 +67,17 @@ export function repoEngineRpc(deps: Deps): RepoEngineRpc {
   };
 }
 
-/** Opens (or finds) the engine of a validated `openRepoEngine` input. */
+/**
+ * Opens (or finds) the engine of a validated `openRepoEngine` input: by default the engine
+ * derived from `<owner>/<repo>` (the admin route's engines, found from the git path), or
+ * `engineId` when the caller keeps the id itself (the registry, `registryEngineId`).
+ */
 export async function openRepoEngine(
   deps: Deps,
   input: OpenRepoEngineInput,
+  given?: RunId,
 ): Promise<RpcResult<RepoEngineOpened>> {
-  const engineId = await repoEngineId(input.owner.handle, input.repoName);
+  const engineId = given ?? (await repoEngineId(input.owner.handle, input.repoName));
   const opened = await deps
     .run(engineId)
     .openRepoEngine({ ...input, engineId, createdAtMs: deps.now() });

@@ -41,7 +41,7 @@ export function readCreateForm(form: FormData): CreateFormResult {
   if (values.description.length > MAX_REPO_DESCRIPTION)
     errors.description = `Keep the description under ${MAX_REPO_DESCRIPTION + 1} characters.`;
   const visibility = RepoVisibility.safeParse(values.visibility);
-  if (!visibility.success) errors.visibility = 'Choose public or private.';
+  if (!visibility.success) errors.visibility = 'Choose public, private or internal.';
   const start = startOf(values);
   if (typeof start === 'string') errors[values.start === 'import' ? 'importUrl' : 'start'] = start;
   if (!name.success || !visibility.success || typeof start === 'string' || errors.description)

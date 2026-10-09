@@ -159,7 +159,7 @@ export default class Gateway
       db: this.env.FORGE,
       // Actions (doc 25 §2): the stalk moving is `push` to main; the repository's DO indexes.
       stalkMoved: (move) => this.env.ACTIONS_REPOS.getByName(move.repoId).stalkMoved(move),
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repo-events' }),
     });
   }
@@ -178,7 +178,7 @@ export default class Gateway
   #index(): RepoIndexRpc {
     return repoIndexRpc({
       db: this.env.FORGE,
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
       engine: (engineId) => this.env.RUNS.getByName(engineId),
       waitUntil: (work) => this.ctx.waitUntil(work),
@@ -479,7 +479,7 @@ export default class Gateway
 
   #collaborators(): CollaboratorsRpc {
     return collaboratorsRpc({
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
       people: peopleDirectory(this.env, this.env.FORGE),
       log: createLogger(readConfig(this.env).logLevel, { component: 'collaborators' }),
@@ -490,7 +490,7 @@ export default class Gateway
     return deployTokensRpc({
       db: this.env.FORGE,
       now: () => Date.now(),
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
     });
   }
@@ -511,7 +511,7 @@ export default class Gateway
   #accounts(): AccountsRpc {
     return accountsRpc({
       db: this.env.FORGE,
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       engine: repoEnginePort(createDeps(this.env)),
       storage: repositoryStorage(this.env.REPOS),
       log: createLogger(readConfig(this.env).logLevel, { component: 'accounts' }),
@@ -520,7 +520,7 @@ export default class Gateway
 
   #repositories(): RepositoriesRpc {
     return repositoriesRpc({
-      registry: d1Registry(this.env.FORGE),
+      registry: d1Registry(this.env.FORGE, this.env),
       collaborators: d1Collaborators(this.env.FORGE, () => Date.now(), this.env),
       identity: this.env,
       storage: repositoryStorage(this.env.REPOS),

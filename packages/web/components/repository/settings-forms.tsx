@@ -16,7 +16,9 @@ type Repo = {
   readonly owner: string;
   readonly name: string;
   readonly description: string;
-  readonly visibility: 'public' | 'private';
+  readonly visibility: 'public' | 'private' | 'internal';
+  /** Only an organization's repository can be internal. */
+  readonly ownerKind: 'user' | 'org';
   readonly website: string;
   readonly topics: readonly string[];
 };
@@ -138,9 +140,30 @@ export function VisibilitySettings({ repo }: { readonly repo: Repo }) {
           />
           <span>
             <b>Private</b>
-            <span>Only you and the people you invite can see it.</span>
+            <span>
+              {repo.ownerKind === 'org'
+                ? "Only the people invited to it, and the organization's owners and admins, can see it."
+                : 'Only you and the people you invite can see it.'}
+            </span>
           </span>
         </label>
+        {repo.ownerKind === 'org' ? (
+          <label className={styles.choice}>
+            <input
+              type="radio"
+              name="visibility"
+              value="internal"
+              defaultChecked={repo.visibility === 'internal'}
+            />
+            <span>
+              <b>Internal</b>
+              <span>
+                Every member of {repo.owner} can read and clone it; everyone else gets not found.
+                Pushing still needs a role.
+              </span>
+            </span>
+          </label>
+        ) : null}
         <label className={styles.choice}>
           <input
             type="radio"

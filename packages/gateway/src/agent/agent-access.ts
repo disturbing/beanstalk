@@ -50,7 +50,7 @@ export async function openRepository(
   if (!slug.success) return failure('invalid_request', 400, 'name the repository as owner/name');
   const [owner = '', name = ''] = slug.data.split('/');
   const action: RepositoryAction = need.kind === 'read' ? 'read' : 'write';
-  const record = await deps.registry.byName(owner, name);
+  const record = await deps.registry.resolve(owner, name);
   const decided = await accessResult(deps.collaborators, record, {
     principal: agentRepositoryPrincipal(principal),
     action,

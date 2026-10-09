@@ -278,7 +278,7 @@ async function agentAccess(
   const { agent } = input;
   // The same principal the MCP repository tools use, so `repository_access` answers as they do.
   const principal = agentRepositoryPrincipal(agent);
-  const record = await deps.registry.byName(input.ownerHandle, input.name);
+  const record = await deps.registry.resolve(input.ownerHandle, input.name);
   const decided = await accessResult(deps.collaborators, record, {
     principal,
     action: input.action,

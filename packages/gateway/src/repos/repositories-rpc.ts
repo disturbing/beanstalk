@@ -59,6 +59,9 @@ const IMPORT_REFUSALS: ReadonlySet<string> = new Set([
   'NOT_FOUND',
   'INVALID_URL',
 ]);
+/** Why a person's repository cannot be internal. */
+const INTERNAL_NEEDS_ORG =
+  "only an organization's repository can be internal (readable by its members); choose public or private";
 const SEED_AUTHOR = { name: 'Beanstalk', email: 'seed@beanstalk.invalid' };
 const ID_LENGTH = 12;
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -86,7 +89,7 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
       }),
     getRepository: (ownerHandle, name, viewer) =>
       guarded(async () =>
-        accessResult(deps.collaborators, await deps.registry.byName(ownerHandle, name), {
+        accessResult(deps.collaborators, await deps.registry.resolve(ownerHandle, name), {
           principal: viewerPrincipal(viewer),
           action: 'read',
           what: `${ownerHandle}/${name}`,
@@ -104,6 +107,8 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         if (!owned.ok) return owned;
         if (owned.value.archived_at !== null)
           return { ok: false, error: archivedError(owned.value, 'administer') };
+        if (parsed.data.visibility === 'internal' && owned.value.owner_kind !== 'org')
+          return invalid(INTERNAL_NEEDS_ORG);
         const updated = await deps.registry.update(repoId, parsed.data, deps.now());
         if (updated === null) return missing(repoId);
         if (updated === 'taken') return taken(owned.value.owner.handle, parsed.data.name ?? '');
@@ -153,7 +158,9 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
             orgRepositoryRole({ role, basePermission: org.basePermission }) !== null,
         );
         const orgIds = readable.map(({ org }) => org.id);
-        return ok(await deps.registry.activity(ownerId, limit, orgIds));
+        // Every member reads the org's internal repositories, whatever the base permission.
+        const memberOrgIds = orgs.map(({ org }) => org.id);
+        return ok(await deps.registry.activity(ownerId, limit, orgIds, memberOrgIds));
       }),
     repositoryFiles: (repoId, viewer) =>
       guarded(async () => {
@@ -192,6 +199,8 @@ async function create(
   const input = parsed.data;
   const namespace = await namespaceFor(deps, owner.data, input.owner);
   if (!namespace.ok) return namespace;
+  if (input.visibility === 'internal' && namespace.value.kind !== 'org')
+    return invalid(INTERNAL_NEEDS_ORG);
   const id = deps.newId();
   const artifactsRepo = artifactsRepoName(id);
   const origin: RepoOrigin = input.start;

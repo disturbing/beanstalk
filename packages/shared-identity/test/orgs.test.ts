@@ -15,6 +15,7 @@ import {
 } from '../src/org-members';
 import type { OrgRole } from '../src/orgs';
 import {
+  DEFAULT_BASE_PERMISSION,
   findOrgByHandle,
   mayCreateRepository,
   mayInOrg,
@@ -28,6 +29,37 @@ import { insertUser, isHandleTaken, isUniqueViolation } from '../src/users';
 import { T0 } from './helpers';
 
 type Person = { readonly id: string; readonly handle: string };
+
+describe('migration 0006: base permission none', () => {
+  it('moves orgs on the old default (read) to none and leaves the others', async () => {
+    const insert = (id: string, base: string) =>
+      env.IDENTITY_DB.prepare(
+        `INSERT INTO orgs (id, handle, name, base_permission, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'u_x', 0, 0)`,
+      ).bind(id, id.replace('org_', 'mg-'), id, base);
+    await env.IDENTITY_DB.batch([
+      insert('org_mgread', 'read'),
+      insert('org_mgwrite', 'write'),
+      insert('org_mgnone', 'none'),
+    ]);
+    const migrations: unknown = Reflect.get(env, 'TEST_MIGRATIONS');
+    const migration = (Array.isArray(migrations) ? migrations : []).find((entry: unknown) =>
+      String(Reflect.get(Object(entry), 'name')).startsWith('0006_'),
+    );
+    const queries: unknown = Reflect.get(Object(migration), 'queries');
+    if (!Array.isArray(queries) || queries.length === 0) throw new Error('no 0006 migration');
+    await env.IDENTITY_DB.batch(queries.map((sql) => env.IDENTITY_DB.prepare(String(sql))));
+    const { results } = await env.IDENTITY_DB.prepare(
+      `SELECT id, base_permission, updated_at FROM orgs WHERE id LIKE 'org_mg%' ORDER BY id`,
+    ).all<{ id: string; base_permission: string; updated_at: number }>();
+    expect(results.map((row) => [row.id, row.base_permission])).toEqual([
+      ['org_mgnone', 'none'],
+      ['org_mgread', 'none'],
+      ['org_mgwrite', 'write'],
+    ]);
+    expect(results.find((row) => row.id === 'org_mgread')?.updated_at).toBeGreaterThan(0);
+  });
+});
 
 async function person(handle: string): Promise<Person> {
   const user = { id: `u_${handle.replaceAll('-', '')}`, handle, email: null };
@@ -90,12 +122,14 @@ describe('the handle namespace', () => {
 });
 
 describe('roles', () => {
-  it('makes the creator the owner and reports standing with the base permission', async () => {
+  it('makes the creator the owner and reports standing with the base permission (none)', async () => {
     const { orgId, owner, people } = await orgWith('rl-org', { ann: 'member', vic: 'viewer' });
     expect(await orgRole(env, orgId, owner.id)).toBe('owner');
+    // A new org starts on none (owner's decision 2026-10-09): members reach invited repositories.
+    expect(DEFAULT_BASE_PERMISSION).toBe('none');
     expect(await orgStanding(env, orgId, people.get('ann')?.id ?? '')).toEqual({
       role: 'member',
-      basePermission: 'read',
+      basePermission: 'none',
     });
     expect(await orgRole(env, orgId, 'u_nobody')).toBeNull();
     expect((await orgsOf(env, owner.id)).map((m) => [m.org.handle, m.role])).toEqual([
@@ -309,7 +343,7 @@ describe('settings and deletion', () => {
     expect((await listOrgAudit(env, orgId))[0]).toMatchObject({
       action: 'org.settings',
       actorHandle: 'st-org-adm',
-      detail: 'icon, base permission read → write',
+      detail: 'icon, base permission none → write',
     });
     expect(await deleteOrg(env, admin, orgId, T0)).toMatchObject({ ok: false });
     value(await deleteOrg(env, owner, orgId, T0));
