@@ -130,6 +130,16 @@ export class ActionsRepoDO extends DurableObject<Env> {
     return { ok: true, value: run };
   }
 
+  /**
+   * The repository was deleted: no more schedules, queued stalk moves or alarms (a schedule's
+   * alarm would otherwise wake the object at every tick to find no repository). Idempotent.
+   */
+  async forget(): Promise<void> {
+    for (const table of ['pending', 'handled', 'schedules', 'numbers'])
+      this.#sql.exec(`DELETE FROM ${table}`);
+    await this.ctx.storage.deleteAlarm();
+  }
+
   /** Minutes the repository may still use this month (negative when over). */
   async minutesLeft(): Promise<number> {
     return this.#config.monthlyMinutes - this.#usedMinutes();

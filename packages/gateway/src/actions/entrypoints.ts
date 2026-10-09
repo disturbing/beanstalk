@@ -4,7 +4,8 @@
  *
  * - `Actions`: `ActionsRpc` and `ActionsEntriesRpc` (org secrets, variables) for the web app
  *   and MCP (access by `mayUseEngine`, and org roles for org entries);
- * - `ActionsJobs`: `ActionsJobSink` for the executor, authenticated by each job's report token;
+ * - `ActionsJobs`: `ActionsJobSink` for the executor, authenticated by each job's report token,
+ *   and `RepositoryDirectory` for the executor's daily dependency-cache sweep;
  * - `StubActionsExecutor`: the echo executor (`ACTIONS_EXECUTOR_MODE = "stub"`), which reports
  *   through `ActionsJobs` exactly as the container executor will.
  */
@@ -23,6 +24,8 @@ import type {
   LogChunkPage,
   LogStreamTicket,
   PutSecretInput,
+  RepositoryDirectory,
+  RepositoryForgotten,
   RunDetail,
   RunFilter,
   RunPage,
@@ -177,7 +180,22 @@ export class Actions extends WorkerEntrypoint<Env> implements ActionsRpc, Action
   }
 }
 
-export class ActionsJobs extends WorkerEntrypoint<Env> implements ActionsJobSink {
+export class ActionsJobs
+  extends WorkerEntrypoint<Env>
+  implements ActionsJobSink, RepositoryDirectory
+{
+  /**
+   * Whether the registry has the repository, in any state. Only the executor binds this
+   * entrypoint; it reveals no more than that a random id is in use.
+   */
+  async repositoryExists(repoId: string): Promise<RpcResult<{ readonly exists: boolean }>> {
+    if (typeof repoId !== 'string' || repoId === '') return invalid('not a repository id');
+    const row = await this.env.FORGE.prepare('SELECT 1 FROM repositories WHERE id = ?')
+      .bind(repoId)
+      .first();
+    return { ok: true, value: { exists: row !== null } };
+  }
+
   async actionsJobSecrets(
     reportToken: string,
   ): Promise<RpcResult<Readonly<Record<string, string>>>> {
@@ -231,6 +249,10 @@ export class StubActionsExecutor extends WorkerEntrypoint<Env> implements Action
     _reason: 'cancelled' | 'timed_out',
   ): Promise<RpcResult<{ readonly stopping: boolean }>> {
     return { ok: true, value: { stopping: true } };
+  }
+
+  async forgetRepository(_repoId: string): Promise<RpcResult<RepositoryForgotten>> {
+    return { ok: true, value: { purged: true, objectsDeleted: 0 } };
   }
 
   async #echo(spec: JobSpec, startedMs: number): Promise<void> {

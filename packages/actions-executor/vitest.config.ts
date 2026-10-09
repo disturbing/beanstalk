@@ -29,6 +29,7 @@ export class ActionsJobs extends WorkerEntrypoint {
   async actionsJobSecrets() { return { ok: true, value: {} }; }
   async actionsJobLogs() { return { ok: true, value: { cancelRequested: false } }; }
   async actionsJobFinished() { return { ok: true, value: { accepted: true } }; }
+  async repositoryExists(repoId) { return { ok: true, value: { exists: !repoId.startsWith('gone_') } }; }
 }`;
 
 export default defineConfig({

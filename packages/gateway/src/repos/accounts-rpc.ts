@@ -11,6 +11,7 @@ import { RepoOwner } from '@beanstalk/shared-race/repos';
 import type { Logger } from '../log';
 import type { RepoEnginePort } from './engine-port';
 import type { Registry } from './registry';
+import type { RepositoryCleanup } from './repository-cleanup';
 import type { RepositoryStorage } from '../adapters/repository-storage';
 
 export type AccountsDeps = {
@@ -18,6 +19,8 @@ export type AccountsDeps = {
   readonly registry: Registry;
   readonly engine: RepoEnginePort;
   readonly storage: RepositoryStorage;
+  /** What a deleted repository leaves outside the registry; never throws. */
+  readonly cleanup: RepositoryCleanup;
   readonly log: Logger;
 };
 
@@ -83,6 +86,8 @@ async function closeAccount(
     await deps.engine.close(record.engine_id);
     // oxlint-disable-next-line no-await-in-loop -- see above
     await deps.storage.delete(record.artifacts_repo);
+    // oxlint-disable-next-line no-await-in-loop -- see above
+    await deps.cleanup(record);
   }
   const { db } = deps;
   await db.batch([

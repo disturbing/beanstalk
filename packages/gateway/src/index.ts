@@ -113,6 +113,7 @@ import { peopleDirectory } from './repos/people';
 import { repoEnginePort } from './repos/engine-port';
 import { d1Registry } from './repos/registry';
 import { newRepositoryId, repositoriesRpc } from './repos/repositories-rpc';
+import { cleanupPortsFrom, repositoryCleanup } from './repos/repository-cleanup';
 import { createDeps } from './deps';
 import { gatewayRpc } from './rpc/gateway-rpc';
 import { collaborationRpc } from './rpc/collaboration-rpc';
@@ -514,8 +515,14 @@ export default class Gateway
       registry: d1Registry(this.env.FORGE, this.env),
       engine: repoEnginePort(createDeps(this.env)),
       storage: repositoryStorage(this.env.REPOS),
+      cleanup: this.#repositoryCleanup(),
       log: createLogger(readConfig(this.env).logLevel, { component: 'accounts' }),
     });
+  }
+
+  #repositoryCleanup() {
+    const log = createLogger(readConfig(this.env).logLevel, { component: 'repository-cleanup' });
+    return repositoryCleanup(cleanupPortsFrom(this.env, log));
   }
 
   #repositories(): RepositoriesRpc {
@@ -525,6 +532,7 @@ export default class Gateway
       identity: this.env,
       storage: repositoryStorage(this.env.REPOS),
       engine: repoEnginePort(createDeps(this.env)),
+      cleanup: this.#repositoryCleanup(),
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
       now: () => Date.now(),
       newId: newRepositoryId,

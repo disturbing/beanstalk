@@ -63,6 +63,7 @@ export function jobSpecOf(input: {
       BEANSTALK_LINE: 'stalk',
       BEANSTALK_REPOSITORY_ID: repo.id,
       CI: 'true',
+      ...npmDefaults(input.vars),
       ...input.oidcEnv,
     },
     secretNames: input.secretNames.map((name): SecretName => SecretNameSchema.parse(name)),
@@ -74,4 +75,18 @@ export function jobSpecOf(input: {
     report: { token: input.tokens.report },
     depsCache: { scope: STALK_REF_NAME, canSave: request.origin.kind === 'stalk' },
   };
+}
+
+/**
+ * npm settings every job gets unless the repository or org variable `BEANSTALK_NPM_AUDIT` is
+ * `on`: no audit and no funding message inside `npm ci` / `npm install`. The audit runs in the
+ * install and checks every advisory against each vulnerable package's full version list on the
+ * install's one thread; for fastify's lockfile on a standard-4 that was 93 s of a 97 s `npm ci`,
+ * against 10 s without it (doc 27 §12). It changes no installed file and never fails the
+ * install; `npm audit` as a step still runs it. A workflow's own `env:` wins over these.
+ */
+export function npmDefaults(vars: Readonly<Record<string, string>>): Record<string, string> {
+  const audit = vars['BEANSTALK_NPM_AUDIT']?.trim().toLowerCase();
+  if (audit === 'on' || audit === 'true') return {};
+  return { NPM_CONFIG_AUDIT: 'false', NPM_CONFIG_FUND: 'false' };
 }

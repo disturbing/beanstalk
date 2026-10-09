@@ -24,6 +24,8 @@ export type {
   JobSpec,
   JobStepSpec,
   LogLine,
+  RepositoryDirectory,
+  RepositoryForgotten,
   StepView,
 } from '@beanstalk/shared-race/actions';
 export type { RpcResult } from '@beanstalk/shared-race/rpc';

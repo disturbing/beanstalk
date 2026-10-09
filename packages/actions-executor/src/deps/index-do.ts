@@ -3,7 +3,9 @@
  * repository's dependency snapshots (doc 27 §4.2, §4.10). It answers lookups in the
  * `actions/cache` restore-keys order, commits manifests (the commit point of a save), enforces
  * the per-repository total by evicting the least recently restored snapshots, and once a day
- * sweeps idle snapshots and chunks no manifest references.
+ * sweeps idle snapshots and chunks no manifest references. When the repository is deleted,
+ * `forget` drops the index and every object of the repository (doc 27 §10.8); the sweep does the
+ * same for a repository the gateway no longer knows, in case that call never arrived.
  *
  * Objects in R2: `deps/<repoId>/chunks/<sha256>.tar.zst` (immutable) and
  * `deps/<repoId>/manifests/<scope>/<snapshotKey>.json`.
@@ -13,6 +15,8 @@ import { DurableObject } from 'cloudflare:workers';
 import { readConfig } from '../config';
 import { createLogger } from '../log';
 import type { Logger } from '../log';
+import type { RepositoryForgotten } from '../contract';
+import { purgePrefix, repoPrefix, repositoryStatus } from './forget';
 import { readDepsSettings } from './grant';
 import type { DepsSettings } from './grant';
 import type { LookupMatch, Manifest } from './wire';
@@ -79,6 +83,7 @@ export class DepsCacheIndex extends DurableObject<Env> {
 
   /** Exact key in any readable scope, else the family's latest in the first scope that has one. */
   async lookup(input: {
+    readonly repoId: string;
     readonly scopes: readonly string[];
     readonly familyKey: string;
     readonly snapshotKey: string;
@@ -90,6 +95,11 @@ export class DepsCacheIndex extends DurableObject<Env> {
       )
       .toArray()[0];
     const chunkCount = family?.chunk_count ?? null;
+    if (this.#isForgotten()) return { hit: null, chunkCount: null };
+    // Every repository that uses the cache gets the daily sweep, so chunks of a save that
+    // never committed, or of a repository deleted while its forget call failed, are found.
+    this.#rememberRepo(input.repoId);
+    await this.#ensureAlarm();
     for (const scope of input.scopes) {
       const exact = this.#sql
         .exec<{ snapshot_key: string }>(
@@ -122,7 +132,8 @@ export class DepsCacheIndex extends DurableObject<Env> {
    */
   async commit(input: CommitInput): Promise<CommitOutcome> {
     const { manifest, repoId } = input;
-    this.#sql.exec("INSERT OR REPLACE INTO meta (name, value) VALUES ('repo_id', ?)", repoId);
+    if (this.#isForgotten()) return { saved: false, reason: 'the repository was deleted' };
+    this.#rememberRepo(repoId);
     const compressed = manifest.chunks.reduce((sum, chunk) => sum + chunk.bytes, 0);
     if (compressed > input.snapshotMaxBytes) {
       this.#sql.exec(
@@ -153,12 +164,44 @@ export class DepsCacheIndex extends DurableObject<Env> {
     return { saved: true, reason: null };
   }
 
+  /**
+   * The repository was deleted: drop the index and every object under `deps/<repoId>/`.
+   * Idempotent. The index stays marked as forgotten, so a job of the deleted repository that is
+   * still running can neither restore nor commit; its late uploads, and anything a failed purge
+   * left, go in the sweep a day later.
+   */
+  async forget(repoId: string): Promise<RepositoryForgotten> {
+    this.#rememberRepo(repoId);
+    this.#sql.exec(
+      "INSERT OR IGNORE INTO meta (name, value) VALUES ('forgotten_ms', ?)",
+      String(Date.now()),
+    );
+    this.#sql.exec('DELETE FROM snapshots');
+    this.#sql.exec('DELETE FROM snapshot_chunks');
+    this.#sql.exec('DELETE FROM families');
+    await this.ctx.storage.setAlarm(Date.now() + DAY_MS);
+    try {
+      const objectsDeleted = await purgePrefix(this.env.DEPS_CACHE, repoPrefix(repoId));
+      this.#log.info('deps forgotten', { repo: repoId, objects_deleted: objectsDeleted });
+      return { purged: true, objectsDeleted };
+    } catch (error: unknown) {
+      this.#log.warn('deps purge failed; the sweep retries', { repo: repoId, error });
+      return { purged: false, objectsDeleted: 0 };
+    }
+  }
+
   /** The daily sweep: idle snapshots, then chunks nothing references. */
   override async alarm(): Promise<void> {
     const repoId = this.#sql
       .exec<{ value: string }>("SELECT value FROM meta WHERE name = 'repo_id'")
       .toArray()[0]?.value;
     if (repoId === undefined) return;
+    if (this.#isForgotten()) return this.#purgeAgain(repoId);
+    if ((await repositoryStatus(this.env, repoId)) === 'gone') {
+      this.#log.info('deps of a deleted repository found by the sweep', { repo: repoId });
+      await this.forget(repoId);
+      return;
+    }
     const now = Date.now();
     const idle = this.#sql
       .exec<{ scope: string; snapshot_key: string }>(
@@ -169,21 +212,47 @@ export class DepsCacheIndex extends DurableObject<Env> {
     await Promise.all(
       idle.map(async (snapshot) => this.#forget(repoId, snapshot.scope, snapshot.snapshot_key)),
     );
-    const swept = await this.#sweepChunks(repoId, now);
-    this.#log.info('deps sweep', { repo: repoId, idle: idle.length, chunks_deleted: swept });
+    const chunks = await this.#sweepChunks(repoId, now);
+    this.#log.info('deps sweep', {
+      repo: repoId,
+      idle: idle.length,
+      chunks_deleted: chunks.deleted,
+    });
     const left = this.#sql.exec<{ n: number }>('SELECT COUNT(*) AS n FROM snapshots').one().n;
-    if (left > 0 || swept > 0) await this.ctx.storage.setAlarm(now + DAY_MS);
+    if (left > 0 || chunks.kept > 0) await this.ctx.storage.setAlarm(now + DAY_MS);
   }
 
   /** For tests and the admin view: the repository's snapshots and total bytes. */
   async summary(): Promise<{
     readonly snapshots: number;
     readonly totalBytes: number;
+    readonly forgotten: boolean;
   }> {
     return {
       snapshots: this.#sql.exec<{ n: number }>('SELECT COUNT(*) AS n FROM snapshots').one().n,
       totalBytes: this.#totalBytes(),
+      forgotten: this.#isForgotten(),
     };
+  }
+
+  #isForgotten(): boolean {
+    return this.#sql.exec("SELECT 1 FROM meta WHERE name = 'forgotten_ms'").toArray().length > 0;
+  }
+
+  #rememberRepo(repoId: string): void {
+    this.#sql.exec("INSERT OR REPLACE INTO meta (name, value) VALUES ('repo_id', ?)", repoId);
+  }
+
+  /** A forgotten repository's sweep: whatever arrived or stayed since; again a day later until empty. */
+  async #purgeAgain(repoId: string): Promise<void> {
+    const deleted = await purgePrefix(this.env.DEPS_CACHE, repoPrefix(repoId)).catch(
+      (error: unknown) => {
+        this.#log.warn('deps purge failed; retrying tomorrow', { repo: repoId, error });
+        return -1;
+      },
+    );
+    if (deleted > 0) this.#log.info('deps purged late objects', { repo: repoId, deleted });
+    if (deleted !== 0) await this.ctx.storage.setAlarm(Date.now() + DAY_MS);
   }
 
   #used(match: IndexHit['match'], scope: string, snapshotKey: string): IndexHit {
@@ -283,7 +352,11 @@ export class DepsCacheIndex extends DurableObject<Env> {
     await this.env.DEPS_CACHE.delete(manifestKey(repoId, scope, snapshotKey));
   }
 
-  async #sweepChunks(repoId: string, now: number): Promise<number> {
+  /** Deletes unreferenced chunks past the grace period; `kept` counts the chunks left. */
+  async #sweepChunks(
+    repoId: string,
+    now: number,
+  ): Promise<{ readonly deleted: number; readonly kept: number }> {
     const referenced = new Set(
       this.#sql
         .exec<{ sha256: string }>('SELECT DISTINCT sha256 FROM snapshot_chunks')
@@ -292,6 +365,7 @@ export class DepsCacheIndex extends DurableObject<Env> {
     );
     const prefix = `deps/${repoId}/chunks/`;
     let deleted = 0;
+    let kept = 0;
     let cursor: string | undefined = undefined;
     do {
       // oxlint-disable-next-line no-await-in-loop -- R2 listing pages follow each other
@@ -307,9 +381,10 @@ export class DepsCacheIndex extends DurableObject<Env> {
       // oxlint-disable-next-line no-await-in-loop -- delete this page before the next
       if (stale.length > 0) await this.env.DEPS_CACHE.delete(stale);
       deleted += stale.length;
+      kept += page.objects.length - stale.length;
       cursor = page.truncated ? page.cursor : undefined;
     } while (cursor !== undefined);
-    return deleted;
+    return { deleted, kept };
   }
 
   async #ensureAlarm(): Promise<void> {

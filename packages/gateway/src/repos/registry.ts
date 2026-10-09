@@ -325,6 +325,7 @@ export function d1Registry(db: D1Database, identity?: IdentityEnv): Registry {
         db.prepare('DELETE FROM repository_invitations WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repository_sessions WHERE repo_id = ?').bind(id),
         db.prepare('DELETE FROM repository_audit WHERE repo_id = ?').bind(id),
+        ...actionsDeletes(db, id),
         db.prepare('DELETE FROM repositories WHERE id = ?').bind(id),
       ]);
     },
@@ -528,4 +529,19 @@ function isUniqueViolation(error: unknown): boolean {
 
 function iso(ms: number): string {
   return new Date(ms).toISOString();
+}
+
+/**
+ * The repository's Actions rows: workflow index, run list, secrets (encrypted, but no reason to
+ * keep), variables, job tokens, and its place in org secrets' and variables' repository lists.
+ */
+function actionsDeletes(db: D1Database, repoId: string): D1PreparedStatement[] {
+  return [
+    'actions_workflows',
+    'actions_runs',
+    'actions_secrets',
+    'actions_variables',
+    'actions_job_tokens',
+    'actions_org_entry_repos',
+  ].map((table) => db.prepare(`DELETE FROM ${table} WHERE repo_id = ?`).bind(repoId));
 }

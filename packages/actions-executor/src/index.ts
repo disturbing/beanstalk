@@ -3,7 +3,8 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 
 import { adminToken } from './config';
-import type { ActionsExecutor, JobHandle, RpcResult } from './contract';
+import type { ActionsExecutor, JobHandle, RepositoryForgotten, RpcResult } from './contract';
+import { isRepoId } from './deps/forget';
 import { cancelJob, startJob } from './executor';
 import { gunzip } from './sink/job-sink';
 
@@ -37,6 +38,16 @@ export default class ActionsExecutorWorker
     reason: 'cancelled' | 'timed_out',
   ): Promise<RpcResult<{ readonly stopping: boolean }>> {
     return cancelJob(this.env.ACTIONS_JOBS_DO, jobId, reason);
+  }
+
+  /** The gateway deleted the repository: its dependency snapshots and their index go. */
+  async forgetRepository(repoId: string): Promise<RpcResult<RepositoryForgotten>> {
+    if (!isRepoId(repoId))
+      return {
+        ok: false,
+        error: { code: 'invalid_request', status: 400, message: 'not a repository id' },
+      };
+    return { ok: true, value: await this.env.DEPS_INDEX.getByName(repoId).forget(repoId) };
   }
 }
 

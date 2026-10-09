@@ -457,6 +457,27 @@ export type ActionsExecutor = {
     jobId: ActionsJobId,
     reason: 'cancelled' | 'timed_out',
   ): Promise<RpcResult<{ readonly stopping: boolean }>>;
+  /**
+   * The repository was deleted: drop what the executor keeps for it (its dependency snapshots
+   * in R2 and their index). Idempotent; `purged: false` means storage failed and the executor's
+   * daily sweep retries.
+   */
+  forgetRepository(repoId: string): Promise<RpcResult<RepositoryForgotten>>;
+};
+
+/** What `forgetRepository` removed. */
+export type RepositoryForgotten = {
+  readonly purged: boolean;
+  readonly objectsDeleted: number;
+};
+
+/**
+ * Implemented by the gateway (entrypoint `ActionsJobs`) for the executor's daily sweep: whether
+ * a repository still exists, so state left by a delete whose `forgetRepository` call failed is
+ * found and removed.
+ */
+export type RepositoryDirectory = {
+  repositoryExists(repoId: string): Promise<RpcResult<{ readonly exists: boolean }>>;
 };
 
 /** Implemented by the gateway (entrypoint `ActionsJobs`); the executor calls it with `report.token`. */

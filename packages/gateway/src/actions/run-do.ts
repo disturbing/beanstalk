@@ -589,6 +589,7 @@ export class ActionsRunDO extends DurableObject<Env> {
     return {
       startJob: async (spec) => stub.startJob(spec),
       cancelJob: async (jobId, reason) => stub.cancelJob(jobId, reason),
+      forgetRepository: async (repoId) => stub.forgetRepository(repoId),
     };
   }
 

@@ -65,6 +65,7 @@ async function lookup(c: DepsContext): Promise<Response> {
   if (!parsed.success) return c.json({ error: 'bad lookup' }, 400);
   const { env, grant } = c.env;
   const found = await index(env, grant).lookup({
+    repoId: grant.repoId,
     scopes: grant.readScopes,
     familyKey: parsed.data.familyKey,
     snapshotKey: parsed.data.snapshotKey,

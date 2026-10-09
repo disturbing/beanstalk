@@ -39,6 +39,7 @@ import { accessResult, archivedError, decideAccess, viewerPrincipal } from './ac
 import type { CollaboratorStore } from './collaborators';
 import type { RepoEnginePort } from './engine-port';
 import type { Registry } from './registry';
+import type { RepositoryCleanup } from './repository-cleanup';
 import { emptyStart, templateFiles } from './templates';
 
 export type RepositoriesDeps = {
@@ -48,6 +49,8 @@ export type RepositoriesDeps = {
   readonly identity: IdentityEnv;
   readonly storage: RepositoryStorage;
   readonly engine: RepoEnginePort;
+  /** What a deleted repository leaves outside the registry; never throws. */
+  readonly cleanup: RepositoryCleanup;
   readonly log: Logger;
   readonly now: () => number;
   readonly newId: () => string;
@@ -131,6 +134,7 @@ export function repositoriesRpc(deps: RepositoriesDeps): RepositoriesRpc {
         // The engine stops before its repo goes, so nothing it does meets a missing repo.
         await deps.engine.close(owned.value.engine_id);
         await deps.storage.delete(owned.value.artifacts_repo);
+        await deps.cleanup(owned.value);
         deps.log.info('repository deleted', { repo: repoId });
         return ok({ deleted: true as const });
       }),
