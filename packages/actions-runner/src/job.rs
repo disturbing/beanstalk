@@ -158,14 +158,7 @@ impl<'a, U: Uplink> Session<'a, U> {
             .await
             .map_err(|error| (FailureReason::Runner, error))?;
         let (mode, daemon) = self.run_mode(&job).await?;
-        let container_options = job.deps.as_ref().map(|plan| {
-            let dir = if plan.install_dir == "." {
-                files.workdir.clone()
-            } else {
-                files.workdir.join(&plan.install_dir)
-            };
-            command::deps_container_options(&dir.join("node_modules"), plan.tmpfs_max_bytes)
-        });
+        let container_options = job.deps.as_ref().map(|_| command::deps_container_options());
         let plan = ActPlan {
             mode,
             github_actions: command::github_actions(request, &job.remote_actions),

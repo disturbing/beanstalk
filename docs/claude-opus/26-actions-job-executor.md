@@ -73,7 +73,7 @@ Logs: every line reached the gateway's sink as numbered batches and is stored as
 | `strategy.matrix` | Works per leg | one container per leg; `--matrix k:v` for scalar values |
 | `timeout-minutes` (job), cancel | Works | runner stop (SIGTERM, SIGKILL after 10 s), executor backstop, `timed_out` / `cancelled` |
 | `services:`, `container:`, `uses: docker://` | Works in Docker mode | inner dockerd; service ports published to the job's host network; about 30 s of image pull per job |
-| `actions/cache` | No-op | the cache server is off (`--no-cache-server`); `actions/cache` warns and continues. Cross-run cache needs our service (`25` A3) |
+| `actions/cache` | `node_modules` and package-manager stores: the dependency cache (`27` §10); other paths no-op | `actions/cache` of `node_modules` or a store, and `setup-node` with `cache:`, become the dependency cache's restore and save steps (built 2026-10-09, `27` §10); for any other path the cache server is off (`--no-cache-server`) and `actions/cache` warns and continues (`25` A3) |
 | `upload-artifact` / `download-artifact` | Within the job only | act's artifact server on loopback; artifacts vanish with the container |
 | OIDC (`id-token: write`) | Passed through | when the control plane sets `ACTIONS_ID_TOKEN_REQUEST_URL`/`_TOKEN` in `env`, steps see them; not exercised on staging |
 | GitHub REST API via `GITHUB_TOKEN` | No | `GITHUB_API_URL` points at Beanstalk, which serves no REST API yet |

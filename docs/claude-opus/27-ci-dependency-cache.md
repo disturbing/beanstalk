@@ -229,6 +229,8 @@ The multi-year monorepo's tree (about 6.4 GB at the root, 10 GB in total, 440k f
 
 ## 5. Open decisions for Coop
 
+Adopted 2026-10-09 (§10): 1, 4 and 5 as recommended (Workers Cache first); 2 decided by measurement (§10.2); 3 still open (no SquashFS fallback built).
+
 1. **Chunk target 64 MB, maximum 256 MB, N a power of two between 4 and 64** (§4.1). Smaller chunks mean smaller deltas and more requests; 64 MB balanced the measured per-request cost against a one-package upload.
 2. **Restore behaviour on `npm ci`.** Run the job's own install after a restore (works for `npm install`, `pnpm`, `yarn`; `npm ci` wipes a partial hit), or have the setup step skip the job's install on an exact hit.
 3. **SquashFS fallback for over-budget trees** (doubles storage for those repositories): build now, or start with "skip and install on disk with a warning" and add it when the multi-year monorepo or a customer needs whole-tree jobs.
@@ -265,3 +267,125 @@ All named `beanstalk-deps-spike*`, account `2c7358a6...`; nothing else was read 
 | R2 bucket `beanstalk-deps-spike` (single, chunk, per-package and manifest objects, about 3.3 GB) | emptied, then `wrangler r2 bucket delete` |
 
 Cache API and Workers Cache entries expire on their own. No secret is in the code, the data or this document; the bearer token lived in a scratch file, now deleted.
+
+## 10. Built (2026-10-09)
+
+Coop adopted the design on 2026-10-09: "yes adopt node modules cache if it showed performance improvements (please report)". Built on `prototype` at `0c57845`, measured on its own test stack (`ci`, §10.6), not deployed to production.
+
+### 10.1 What runs where
+
+```
+job container (standard-4)                          beanstalk-actions-executor (Worker)
+ actions-runner: adds two steps to the job  ──┐
+ act runs them like any step:                 │     deps.internal outbound handler
+   beanstalk-deps restore  ── http://deps.internal ─▶ bearer → the job's own DO (ActionsJobContainer.depsGrant)
+   beanstalk-deps save     ──┘                │       → grant: repository id, read scopes, save scope, caps
+                                              │     /v1/lookup, /v1/missing, /v1/commit → DepsCacheIndex (DO per repository)
+                                              │     /v1/chunks/<sha>  GET → DepsChunkCache (Workers Cache) → Cache API → R2
+                                              │     /v1/chunks|uploads/<sha> PUT → R2, re-read and hash-checked
+                                              └──── R2 beanstalk-deps-cache: deps/<repo id>/chunks/<sha256>.tar.zst, deps/<repo id>/manifests/<scope>/<key>.json
+```
+
+- **Runner** (`packages/actions-runner/src/deps/plan.rs`): when the job asks for a dependency cache, the runner rewrites the one-job workflow it hands act. `actions/setup-node` with `cache: npm|pnpm|yarn` keeps its step without `cache:` and gets the restore step right after it (`cache-dependency-path` names the install directory); `actions/cache` (or `actions/cache/restore`) whose every `path` is `node_modules` or a package-manager store is replaced in place by the restore step, keeping its `id` (`steps.<id>.outputs.cache-hit` is `true` on an exact hit); `uses: beanstalk/deps-cache@v1` (with `working-directory`) is the opt-in. A save step is appended with `if: success()`. Every original step without an `id` gets its index as its id, so act's step ids still match the control plane's step numbers after the insert (the two cache steps' lines show as job-level lines). The repository or org variable `BEANSTALK_DEPS_CACHE=off` turns it off.
+- **Tool** (`beanstalk-deps`, a second binary of the crate, at `/opt/beanstalk/bin` with a copy of `zstd`): `restore` finds the lockfile (`package-lock.json`, `npm-shrinkwrap.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock`), mounts a tmpfs at `<install dir>/node_modules` through the image's `sudo` (size `DEPS_TMPFS_MAX_BYTES`, `nosuid,nodev`, owned by the job user; never on the disk: if the directory already has files on disk it skips), reads Node and package-manager versions while the mount runs, computes the family and snapshot keys (§4.2: install directory, lockfile name, platform, Node major, package manager and major, tree-changing install flags read from the job's first install command, then the lockfile bytes), looks up, and streams every chunk (at most 16 requests in flight) through sha256 and `zstd -d | tar -x`. A wrong hash or size, or any failure, empties the tmpfs before the next step runs and the job installs normally; a cache problem never fails the job. `save` scans the tree into packages and layout (§4.1; `node_modules/.cache` is left out), assigns packages to the family's N buckets by name hash (N from the family, else from the tree size: 4 to 64), packs every chunk with deterministic GNU tar and zstd -3 on four cores, asks the Worker in one request which chunks are missing, uploads only those (one request up to 64 MiB, else R2 multipart in 64 MiB parts, eight at once), and commits the manifest last.
+- **Worker** (`packages/actions-executor/src/deps/`): the bearer is a random 32-byte token minted per job when it is accepted, held in the job's record and given to the steps only as the secret `BEANSTALK_DEPS_TOKEN` (masked like any secret); the grant comes from the record, never from the request. `DepsCacheIndex` (one SQLite Durable Object per repository) answers lookups in restore-keys order (exact key in the job's scope then the default branch's; else the family's latest), keeps the family's N, checks the cap and that every chunk is in R2 before it records a snapshot, evicts least recently restored snapshots above the repository total, and runs a daily sweep (alarm): snapshots unused for `DEPS_IDLE_DAYS` go, then chunks no manifest references and older than a day. Uploads are re-read and hashed after they are stored; a mismatch is deleted.
+- **Scopes**: the gateway sets `JobSpec.depsCache = { scope: 'stalk', canSave: origin === 'stalk' }`. Only runs of the stalk save; pre-land, dispatch and schedule runs read and never write, so a bean that has not landed cannot change what a stalk run installs. Snapshots are per repository (keyed by the repository id, which is stable across renames); no chunk is shared between repositories even when the bytes match.
+- **Settings**: executor vars `DEPS_CACHE_MODE` (`on`), `DEPS_SNAPSHOT_MAX_BYTES` (4 GiB), `DEPS_TMPFS_MAX_BYTES` (6 GiB), `DEPS_REPO_MAX_BYTES` (10 GB), `DEPS_IDLE_DAYS` (7). The snapshot cap per repository or org is the Actions variable `BEANSTALK_DEPS_SNAPSHOT_MAX` (`2GiB`, `500MB`, bytes; repository wins over org, at most the repository total), which reuses the existing secrets-and-variables settings and permissions instead of a new settings surface. The tmpfs cap is a var tied to the instance type: a larger instance type gets a larger `DEPS_TMPFS_MAX_BYTES` in its environment override, no code change. Over the snapshot cap the save uploads nothing, the Worker records the refusal on the family, and restores keep the last snapshot that fit.
+- **Cache in front of R2**: Workers Cache first (`DepsChunkCache` entrypoint with `cache.enabled`, `cross_version_cache: true` so executor deploys keep it), the Cache API second (a miss is stored from R2 first and read back, so a 256 MB chunk never sits in the isolate's memory).
+- **Peak memory**: the runner samples `MemTotal - MemAvailable` every 250 ms during the job and prints the peak as the job's last runner line.
+
+### 10.2 `npm ci` (open decision 2, decided by measurement)
+
+`npm ci` deletes `node_modules` before it installs, so a restore would be thrown away. Two things were measured on the stack:
+
+- After an exact hit, `diff -r --no-dereference` between the restored tree and a fresh `npm ci` of the same lockfile in the same job found **no difference**. So on an exact hit the restore step puts an `npm` wrapper first on `PATH`: `npm ci` keeps the tree and only runs the root package's own lifecycle scripts (none with `--ignore-scripts`; the dependencies' scripts ran when the snapshot was made). Install step: **6-19 ms** instead of 6-14 s.
+- The first choice, `npm install --no-save --prefer-offline` on the restored tree, was wrong: on the stack it re-resolved part of fastify's tree to newer versions than the lockfile's (`added 15 packages, removed 4 packages, and changed 145 packages in 26s`, e.g. `glob@10.5.0` where the lockfile says `10.4.5`), slower than `npm ci` and not what the lockfile says. (Locally, on another npm build, the same command answered "up to date in 1 s"; the restored tree's parallel extraction leaves directories with fresh mtimes, so the tool now also touches `node_modules/.package-lock.json` after a restore, but that did not change the result.) So after a **partial** hit an `npm ci` job runs `npm ci` as itself, and the restore step does not download the partial snapshot at all for an `npm ci` job (it would be deleted); the save still uploads only the changed chunks. `pnpm install --frozen-lockfile`, `yarn install` and `npm install` jobs restore the partial snapshot and reconcile in place; those were not measured on the stack.
+
+### 10.3 Measured on the `ci` stack (SIN, standard-4, 2026-10-09)
+
+Each push to the test repository ran two workflows on separate containers at the same time: `cached` (checkout, `setup-node` 24 with `cache: npm`, `npm ci --ignore-scripts`, one test file) and `plain` (the same without `cache:`). "Deps ready" is the sum of the steps up to dependencies installed: checkout + setup-node + restore + install (the job's set-up before the first step, about 6 s, is the same for both and left out). Bytes are compressed. Peak is the job's peak memory in use. Image `actions-runner-2026-10-09.4` to `.6` (streaming restore) unless marked `.3` (restore buffered each chunk until verified, then extracted). Every number is in the job logs under `research/deps-cache-spike/results/ci-runs.jsonl`.
+
+**fastify** (v5.6.1 with the arena lockfile: 706 packages, 146 MB, 25.8k files; snapshot 28.0 MB in 4 buckets + layout)
+
+| Run | Restore | Install | Deps ready | Job wall | Downloaded | Uploaded | Peak |
+|---|---|---|---|---|---|---|---|
+| Cold, no snapshot (`.1`) | 0.85 s (miss) | 8.7 s (`npm ci` into tmpfs) | 13.4 s | 39 s | 0 | 28.0 MB (5 chunks; save 5.2 s: pack 0.5, upload 2.5) | 900 MiB |
+| Plain, same push | - | 5.9 s | 9.7 s | 24 s | - | - | 728 MiB |
+| Exact hit (`.3`, `.4` ×3, `.5`, `.6` ×2) | 1.37 / 1.72 / 2.56 / 1.91 / 1.14 / 1.89 / 1.39 s | 6-17 ms | 5.3 / 7.1 / 7.2 / 6.1 / 5.0 / 7.1 / 6.4 s | 19-23 s | 28.0 MB | 0 | 602-683 MiB |
+| Plain, same pushes | - | 10.6 / 13.6 / 8.4 / 8.5 / 10.7 / 7.8 / 10.5 s | 14.2 / 17.9 / 12.3 / 12.5 / 15.4 / 11.5 / 14.9 s | 24-33 s | - | - | 717-759 MiB |
+| One dependency changed (`typescript` 5.9.3 → 5.9.2), `npm ci` | 0.58 s (partial, not downloaded) | 8.3 s | 14.0 s | 34 s | 0 | **9.1 MB of 28.0 MB** (2 of 5 chunks; save 3.4 s) | 900 MiB |
+| Plain, same push | - | 5.9 s | 10.3 s | 28 s | - | - | 726 MiB |
+
+**Next.js-class app** (the spike's `heavy`: next, @swc/core, esbuild, sharp, typescript, prisma, playwright-core and more; 76 packages, 533 MB, 14.1k files; snapshot 140.3 MB in 4 buckets + layout, the largest over 64 MiB so it went up as multipart)
+
+| Run | Restore | Install | Deps ready | Job wall | Downloaded | Uploaded | Peak |
+|---|---|---|---|---|---|---|---|
+| Cold, no snapshot | 0.91 s (miss) | 13.0 s | 18.3 s | 45 s | 0 | 140.3 MB (5 chunks; save 10.2 s: pack 2.1, upload 7.0) | 1,310 MiB |
+| Plain, same push | - | 6.0 s | 11.3 s | 28 s | - | - | 678 MiB |
+| Exact hit, buffered (`.3`, 4 runs) | 4.3 / 4.1 / 5.0 / 2.4 s | 6-14 ms | 8.7 / 8.8 / 9.0 / 6.8 s | 22-25 s | 140.3 MB | 0 | 1,030-1,078 MiB |
+| Exact hit, streaming (`.4` ×2, `.6`) | 3.2 / 2.0 / 2.3 s | 9-19 ms | 7.6 / 5.8 / 6.5 s | 21-23 s | 140.3 MB | 0 | 914-966 MiB |
+| Plain, same pushes (7 runs) | - | 6.1-12.9 s | 9.6-17.2 s | 22-33 s | - | - | 697-752 MiB |
+| One dependency changed (`typescript` 5.9.3 → 5.9.2), `npm ci` | 0.63 s (partial, not downloaded) | 13.1 s | 17.3 s | 39 s | 0 | **39.6 MB of 140.3 MB** (2 of 5 chunks; save 7.6 s: pack 2.3, upload 4.7) | 1,256 MiB |
+| Plain, same push | - | 8.9 s | 12.4 s | 24 s | - | - | 770 MiB |
+
+What this says, plainly:
+
+- **The restore is faster than a plain install on every exact hit**: deps ready 5.0-7.2 s against 11.5-17.9 s for fastify, 5.8-9.0 s against 9.6-17.2 s for the Next.js-class app; the job wall time dropped by 3-12 s. `npm ci` from the registry varied 5.9-13.6 s on the same tree on the same stack (two containers installing at once share the egress), the restore 1.1-2.6 s and 2.0-5.0 s.
+- **Slower than the spike predicted.** The spike measured 0.7-0.8 s (fastify) and 1.0-1.5 s (heavy) warm into tmpfs; the product measures 1.1-2.6 s and 2.0-3.2 s. The difference is the steps around the download: the tmpfs mount through `sudo`, `node --version` and `npm --version` (about 0.4 s, now overlapped with the mount), the lookup (job Durable Object for the grant, then the repository's Durable Object, then the manifest from R2), and on a chunk's first read in the colo an R2 read instead of a cache hit. Buffering each chunk until verified before extracting cost another 1-2 s on the 533 MB tree (`.3` against `.4`), so the restore now streams and empties the tmpfs on a mismatch instead (§10.1). Broken down on `.6` (fastify / heavy): tmpfs mount and version probes 0.10-0.15 s, lookup 0.59-0.71 s (outbound handler, the job's Durable Object for the grant, the repository's Durable Object, the manifest from R2), chunks fetched and extracted 0.6 s / 1.6 s. The lookup is the next thing to cut: the manifest is immutable and could be cached like a chunk, and the grant could ride on the job's container start.
+- **The first run and a lockfile change are slower than plain**, because the save runs inside the job: +5.2 s (fastify) and +10.2 s (heavy) to pack and upload the whole snapshot, +3.4 s to pack the tree and upload the two changed chunks. `npm ci` into tmpfs on those runs also took longer than plain on the same push (8.7 against 5.9 s, 13.0 against 6.0 s); two installs ran at once and shared the network, and the repeated plain runs spread 5.9-13.6 s, so this is not shown to be tmpfs. The save could move after the job's result is reported (it does not change the conclusion); not built.
+- **Delta upload works as designed**: a one-package change uploaded only the bucket holding the package and the layout chunk; the other three bucket keys were unchanged. That was 9.1 MB of 28.0 MB for fastify, but **39.6 MB of 140.3 MB for the Next.js-class app, against 5.05 MB in the spike** (§3.5) for the same change: with this name hash `typescript` shares its bucket with a large package, so the bucket is about 35 MB. With N=4 a change re-uploads about a quarter of the snapshot in the worst case; more, smaller buckets (a lower target than 64 MB for small trees) would shrink that at the cost of more requests per restore.
+- **Memory**: an exact hit peaked at 0.6-1.0 GiB of 12 GiB, below or near plain because nothing was downloaded through npm; saves peak higher (0.9-1.3 GiB: the compressed chunks are held in memory while they upload).
+
+### 10.4 Docker mode (`services:`, `container:`)
+
+First built: the job container got `--container-options "--tmpfs <workspace>/<dir>/node_modules:..."`, so `node_modules` would be a tmpfs inside the act job container itself (not the runner host, not the Docker volume on the container disk) and the restore step would find it already mounted. Superseded by measurement: with a `--tmpfs` at `node_modules` from the start, `actions/checkout` failed (`EBUSY: resource busy or locked, rmdir '/home/runner/work/workspace/node_modules'`: it empties a workspace that is not yet a repository, and cannot remove a mount). So the job container gets `--container-options "--cap-add SYS_ADMIN -v /opt/beanstalk/bin:/opt/beanstalk/bin:ro"` and the restore step, which runs as root in the job container, mounts the tmpfs there after checkout, as on the host. Verified on the stack with a `services: redis` job (image `catthehacker/ubuntu:act-24.04`): the job container's own `/proc/self/mountinfo` showed `/home/runner/work/workspace/node_modules ... - tmpfs tmpfs rw,size=6291456k`, `df` 214 MB used for the 146 MB tree, exact hit restored in 1.46 s, install 0.11 s, job green (wall 72 s, most of it the two image pulls, doc 26 §3). The capability stays inside the job's own microVM, where the job already has root.
+
+### 10.5 What is automatic and what is opt-in
+
+| Workflow says | Here |
+|---|---|
+| `actions/setup-node` with `cache: npm`, `pnpm` or `yarn` | automatic: restore after that step, save at the end |
+| `actions/cache` whose every `path` is `node_modules` (any depth, `**/node_modules` means the root) or a store (`~/.npm`, `~/.pnpm-store`, `~/.local/share/pnpm/store`, `~/.cache/yarn`, `.yarn/cache`) | automatic: replaced by the restore, same `id`, `cache-hit` output; its own key and restore-keys are ignored (the snapshot key is computed) |
+| `actions/cache` with any other path | unchanged: still one job only (doc 26 §4) |
+| `uses: beanstalk/deps-cache@v1`, `with: working-directory` | opt-in for jobs without either |
+| variable `BEANSTALK_DEPS_CACHE=off` | off for the repository or org |
+| variable `BEANSTALK_DEPS_SNAPSHOT_MAX` | the snapshot cap |
+
+Not supported: Yarn Plug'n'Play (no `node_modules`), several install directories in one job (the first trigger's directory only), a committed `node_modules` (left alone), `npm ci` jobs gaining from a partial hit (§10.2).
+
+### 10.6 Verification and resources
+
+- `pnpm check` exits 0: Rust unit tests for the plan (setup-node, actions/cache, native step, paths), keys (property test), tree scan (packages, scopes, nested trees, pnpm store, links, `.cache`), chunk plans (property test: every package in exactly one chunk; adding one package changes at most one bucket), deterministic pack and extract; Worker tests on Miniflare for the service (miss, save, exact and partial lookup, chunk read, wrong hash refused and deleted, uncommitted chunks refused, cap refusal, read-only grants, no cross-repository reads, multipart upload) and the grant (only stalk runs save, variable cap and switch, size parsing).
+- Stack `ci` (account `2c7358a6…`, every resource named `*-ci`; tear down when merged): Workers `beanstalk-actions-executor-ci`, `beanstalk-gateway-ci`, `beanstalk-web-ci`, `beanstalk-mcp-ci`; D1 `beanstalk-forge-ci`, `beanstalk-identity-ci`; KV `beanstalk-oauth-ci`; R2 `beanstalk-actions-logs-ci`, `beanstalk-media-ci`, `beanstalk-deps-cache-ci`; queue `beanstalk-repo-events-ci`; Artifacts `beanstalk-race-ci`, `beanstalk-repos-ci`; user `depsci1` with repositories `fastify` and `heavy`. `environments/ci/env.jsonc` is the file.
+- Executor deploys roll the job containers: three runs measured here ended as "runner lost" when a deploy landed mid-job (doc 26 §3), and for some minutes after a deploy jobs still started on the previous image; the image version in each job's second line tells them apart, and only runs on the intended image are in the tables.
+
+## 11. Next
+
+### 11.1 Warm reuse across jobs of one repository (designed, not built)
+
+Coop, 2026-10-09: "reusing the cache across jobs of the same repo vs a fresh container if there was something queued up", and the rule: "check the hash of the lockfile to make sure we are matching it with a container with the same hash that is 'idle' before it shuts down, and we can keep the containers warm for 2 minutes before they shutdown by the sleep timer ... we dont want to assign a new job to a container that needs to rebuild the modules". Billing: "we dont need to bill them we can bake it into our margins".
+
+**Dispatch rule.** When a job ends, its container may go idle for **2 minutes**, tagged with its repository, its trust class and the exact snapshot key its restore step used (lockfile hash plus platform, Node, package-manager version and install flags). A job is placed on an idle container only when the repository, the trust class and the **whole key** match; any difference, or no idle container, means a fresh container that restores from R2. A container whose key differs is never reused (it would rebuild the modules). Idle containers past 2 minutes shut down by the sleep timer as today.
+
+**Isolation.**
+
+- Never across repositories or tenants (the pool is per repository id).
+- Trust class: only stalk, dispatch and schedule runs (which already see the repository's secrets) hand a container to each other. A pre-land run's container is always destroyed, never offered to anyone, so nothing a bean that has not landed did (the job has `sudo` in its microVM: a background process, a changed `/etc`, a poisoned `~/.npmrc`) can reach a trusted run.
+- Between jobs the runner kills every process left (act's process group and anything else outside the runner's own), unmounts and deletes the workspace and act's per-job directories, deletes the secret and env files and the home directory's dotfiles a job may write (`~/.npmrc`, `~/.gitconfig`, `~/.cache` except act's baked actions), and keeps only the `node_modules` tmpfs, moved to a stable path (`/run/beanstalk-deps/<key>`) and bind-mounted into the next job's workspace by its restore step after checkout. A job that fails is not reused (its state is unknown).
+- Billing: the 2 idle minutes are not counted against the repository's 100 minutes; only the time a job runs is billed (Coop's decision above). The public Actions page says so in its limits.
+
+**What has to change** (why it is not in this lane): a container belongs to the Durable Object that started it, and today that object is named by the job id and holds one job. Reuse means the job lands on the idle container's object: an index per repository (the warm pool) from key to object, the job object holding a sequence of job records with `cancelJob` routed through the index, and the runner taking a second job after a reset endpoint (today a second `POST /v1/job` is refused by design). The dispatcher must know the new job's key before it starts: the gateway would read the lockfile at the run's sha when it creates the run and put its hash in the `JobSpec`; Node and package-manager versions come from the same job definition (the pool also keys on workflow path and job name), and the restore step still compares the full key and falls back to a normal restore if it differs. Estimate: two to three days with tests and a stack run.
+
+**Measured estimate of the gain.** A warm hit skips the container start (1.5-2.3 s from `startJob` to a listening runner, doc 26 §1), the restore (1.4-2.6 s fastify, 2.0-3.2 s heavy, §10.3) and the first fetch of actions act does not have baked; checkout and setup-node still run. So time to dependencies ready would be about checkout + setup-node, 3.5-5 s, against 5.3-7.6 s with a fresh container and a restore, and 9.6-17.9 s for a plain `npm ci`: about 2-5 s more per job when jobs of one repository queue behind each other. The cost is up to 2 idle minutes of a standard-4 per warm container, which Coop decided to absorb. Not measured on the stack: nothing of it is built.
+
+### 11.2 Large monorepos
+
+`node_modules` up to 10 GB (the platform monorepo's whole tree, 440k files) extracted costs about 1.06-1.5x in tmpfs (§4.7), so 10.6-15 GB of memory plus the build's own: more than `standard-4`'s 12 GiB. A whole-tree job needs an instance with **at least 24 GiB** (tree up to 15 GB in tmpfs plus 6-8 GB for the build), with `DEPS_TMPFS_MAX_BYTES` set to about 16 GiB for that instance type; Cloudflare's predefined types stop at 12 GiB today, so until a larger type exists such jobs use filtered installs (§4.8). The snapshot cap would need `BEANSTALK_DEPS_SNAPSHOT_MAX` of about 3 GB compressed at the measured 3.7:1. Coop: "we can request more memory in the future if needed to make sure it keeps up with up to 10gb of deps like platform one day".
+
+### 11.3 Not Beanstalk's
+
+Parallel installs (pnpm) and parallel test runners are the application's choice, not Beanstalk's; nothing here changes them.
+
+### 11.4 Left
+
+Save after the result is reported (so first runs and lockfile changes are not slower than plain); partial hits for `npm ci` jobs (needs an `npm install` that keeps the lockfile's versions); several install directories per job; the SquashFS fallback for trees over the tmpfs cap (§4.7, still open decision 3); the general `actions/cache` service for other paths on the same storage; a settings page row for the snapshot cap and the family's refusal (today a variable and the save step's log); production deploy (Coop's, after merging).

@@ -168,11 +168,11 @@
               Actions tab; secrets are masked; and jobs with <code>id-token: write</code> get OIDC
               tokens. A small Node CI job (checkout, setup-node, <code>npm test</code>) took about
               20 s end to end on the hosted service. Rolling out: the
-              <a href="#deps-cache">dependency cache</a>, which restores <code>node_modules</code>
-              into memory between runs. Not yet: other caches and artifacts that outlive a job, the
-              GitHub REST API through <code>GITHUB_TOKEN</code>, and runners other than
-              Ubuntu; <code>services:</code> and <code>container:</code> are not yet verified on the
-              hosted service.
+              <a href="#deps-cache">dependency cache</a>, which restores
+              <code>node_modules</code> into memory between runs. Not yet: other caches and
+              artifacts that outlive a job, the GitHub REST API through <code>GITHUB_TOKEN</code>,
+              and runners other than Ubuntu; <code>services:</code> and <code>container:</code> are
+              not yet verified on the hosted service.
             </p>
           </div>
 
@@ -247,8 +247,8 @@
               <code>node_modules</code> or a package-manager store, and
               <code>actions/setup-node</code> with <code>cache:</code>, become the
               <a href="#deps-cache">dependency cache</a> (rolling out); other caches and artifacts
-              last one job, not across jobs; <code>environment:</code> approvals are ignored and
-              the report says so.
+              last one job, not across jobs; <code>environment:</code> approvals are ignored and the
+              report says so.
             </li>
             <li>
               <strong>Not at first:</strong> Docker actions, <code>container:</code> and
@@ -323,10 +323,15 @@
           <p>
             Each run restores <code>node_modules</code> from the repository's last snapshot into
             memory, so installs start from a full tree instead of the registry. Verified on a test
-            stack, not yet on the hosted service. On fastify (706 packages, 146 MB) an exact hit
-            had dependencies ready in about 1.4 s against about 6–11 s for <code>npm ci</code>; on
-            a Next.js-class app (533 MB), see the measured table in
-            <a href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md">the design write-up</a>.
+            stack, not yet on the hosted service. With an unchanged lockfile, the restore took 1–3 s
+            and <code>npm ci</code> about 10 ms, against 6–14 s for <code>npm ci</code> from the
+            registry, on fastify (146 MB of dependencies) and on a Next.js-class app (533 MB). The
+            first run and a lockfile change are a few seconds slower than without the cache, because
+            the job saves the new snapshot at its end. Every run is in
+            <a
+              href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+              >the design write-up</a
+            >.
           </p>
           <ul>
             <li>
@@ -334,9 +339,9 @@
               <code>actions/setup-node</code> with <code>cache: npm</code>, <code>pnpm</code> or
               <code>yarn</code> (its <code>cache-dependency-path</code> names the directory), and
               <code>actions/cache</code> whose every <code>path</code> is
-              <code>node_modules</code> or a package-manager store (it keeps its
-              <code>id</code>, and <code>cache-hit</code> is <code>true</code> on an exact hit).
-              Nothing to change in the file.
+              <code>node_modules</code> or a package-manager store (it keeps its <code>id</code>,
+              and <code>cache-hit</code> is <code>true</code> on an exact hit). Nothing to change in
+              the file.
             </li>
             <li>
               <strong>Opt-in</strong> for other workflows: a step
@@ -344,10 +349,10 @@
               <code>working-directory</code> if the lockfile is not at the root.
             </li>
             <li>
-              <code>node_modules</code> lives in memory (a tmpfs), never on the container disk.
-              The snapshot key is the lockfile plus the install directory, platform, Node and
-              package-manager versions and the install flags; another lockfile restores the
-              closest snapshot and the install brings it up to date.
+              <code>node_modules</code> lives in memory (a tmpfs), never on the container disk. The
+              snapshot key is the lockfile plus the install directory, platform, Node and
+              package-manager versions and the install flags; another lockfile restores the closest
+              snapshot and the install brings it up to date.
             </li>
             <li>
               With <code>npm ci</code>: after an exact hit the tree is exactly what
@@ -358,9 +363,9 @@
               <code>npm install</code> update a restored tree in place.
             </li>
             <li>
-              Only runs of the stalk save snapshots. Pre-land, dispatch and schedule runs read
-              them and never write, so a bean that has not landed cannot change what a later stalk
-              run installs. Snapshots belong to one repository and are never shared.
+              Only runs of the stalk save snapshots. Pre-land, dispatch and schedule runs read them
+              and never write, so a bean that has not landed cannot change what a later stalk run
+              installs. Snapshots belong to one repository and are never shared.
             </li>
             <li>
               Turn it off with the repository or org variable
@@ -405,10 +410,10 @@
             </table>
           </div>
           <p>
-            Minutes count only while a job runs. A container kept warm for the next job of the
-            same repository (coming soon) is not counted. A repository that has used its minutes
-            gets a clear "monthly minutes used" refusal, never a red run. When you <a href="self-hosting.html">self-host</a>, you set every one
-            of these.
+            Minutes count only while a job runs. A container kept warm for the next job of the same
+            repository (coming soon) is not counted. A repository that has used its minutes gets a
+            clear "monthly minutes used" refusal, never a red run. When you
+            <a href="self-hosting.html">self-host</a>, you set every one of these.
           </p>
 
           <section class="sources">

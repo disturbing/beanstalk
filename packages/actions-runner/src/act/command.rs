@@ -193,14 +193,14 @@ pub struct ActPlan {
     pub container_options: Option<String>,
 }
 
-/// The job container's options for the dependency cache in Docker mode: `node_modules` is a
-/// tmpfs inside the job container itself (never the volume on the container disk), and the
-/// cache tool and its zstd are mounted read-only from the image.
-pub fn deps_container_options(node_modules: &Path, tmpfs_max_bytes: u64) -> String {
-    format!(
-        "--tmpfs {}:rw,exec,nosuid,nodev,size={tmpfs_max_bytes} -v {TOOL_DIR}:{TOOL_DIR}:ro",
-        node_modules.display()
-    )
+/// The job container's options for the dependency cache in Docker mode: the cache tool and its
+/// zstd mounted read-only from the image, and `CAP_SYS_ADMIN` so the restore step (root in the
+/// job container) mounts the `node_modules` tmpfs inside the job container itself, after
+/// checkout, exactly as on the host. A `--tmpfs` at `node_modules` from the start does not work:
+/// `actions/checkout` empties the workspace first and fails on the mount (`EBUSY`, measured).
+/// The capability stays inside the job's own microVM, where the job already has root.
+pub fn deps_container_options() -> String {
+    format!("--cap-add SYS_ADMIN -v {TOOL_DIR}:{TOOL_DIR}:ro")
 }
 
 /// Actions baked into the image (Dockerfile); always taken from github.com.
@@ -433,10 +433,7 @@ mod tests {
                 socket: "/var/run/docker.sock".into(),
             },
             github_actions: Vec::new(),
-            container_options: Some(deps_container_options(
-                Path::new("/w/workspace/node_modules"),
-                1024,
-            )),
+            container_options: Some(deps_container_options()),
         };
         let invocation = invocation(&request(), &files, Path::new("act"), &plan);
         let args = args_of(&invocation);
@@ -450,8 +447,7 @@ mod tests {
         );
         assert!(invocation.env.iter().any(|(name, _)| name == "DOCKER_HOST"));
         assert!(args.windows(2).any(|pair| {
-            pair[0] == "--container-options"
-                && pair[1].starts_with("--tmpfs /w/workspace/node_modules:rw,exec")
+            pair[0] == "--container-options" && pair[1].starts_with("--cap-add SYS_ADMIN -v")
         }));
     }
 
