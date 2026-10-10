@@ -2,7 +2,7 @@
   "mcpServers": {
     "gitstalk": {
       "type": "http",
-      "url": "https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp"
+      "url": "https://mcp.gitstalk.io/mcp"
     }
   }
 }

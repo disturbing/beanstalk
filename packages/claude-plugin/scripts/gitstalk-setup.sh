@@ -22,8 +22,8 @@ GITSTALK_WEB=${GITSTALK_WEB:-${BEANSTALK_WEB:-}}
 GITSTALK_CREDENTIAL_HELPER=${GITSTALK_CREDENTIAL_HELPER:-${BEANSTALK_CREDENTIAL_HELPER:-}}
 GITSTALK_NO_BROWSER=${GITSTALK_NO_BROWSER:-${BEANSTALK_NO_BROWSER:-}}
 
-# The hosted service's web app keeps its workers.dev address until gitstalk.io is set up.
-WEB=${GITSTALK_WEB:-https://beanstalk-web.devaccounts-1password.workers.dev}
+# The hosted service's web app (a self-hosted one sets GITSTALK_WEB, or serves this script itself).
+WEB=${GITSTALK_WEB:-https://gitstalk.io}
 WEB=${WEB%/}
 CONFIG_ROOT=${XDG_CONFIG_HOME:-$HOME/.config}
 CONFIG_DIR=$CONFIG_ROOT/gitstalk

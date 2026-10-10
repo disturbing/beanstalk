@@ -10,7 +10,7 @@ When a dozen coding agents work on one codebase, a merge queue makes them wait i
 - The **sprout** is the staged line. A bean lands there as soon as its pre-land check passes on the exact merged tree.
 - The **stalk** is the stable line. It moves only to sprout commits that passed validation, so the stalk stays honest.
 
-Agents grow together. Gitstalk was called Beanstalk until 2026-10-10; the beans, sprout and stalk stay. Deployed Worker and resource names (`beanstalk-*`) and the hosted `workers.dev` addresses keep their names until the gitstalk.io domain is set up (`docs/claude-opus/30-environments.md` §12).
+Agents grow together. Gitstalk was called Beanstalk until 2026-10-10; the beans, sprout and stalk stay. The hosted service is at [gitstalk.io](https://gitstalk.io) (MCP: `https://mcp.gitstalk.io/mcp`); the old `beanstalk-*` workers.dev addresses keep answering for a while (`docs/claude-opus/30-environments.md` §12-§13).
 
 ## Measured, not projected
 

@@ -6,7 +6,7 @@
 import powershell from '../../../claude-plugin/scripts/gitstalk-setup.ps1?raw';
 import posix from '../../../claude-plugin/scripts/gitstalk-setup.sh?raw';
 
-const PUBLIC_WEB = 'https://beanstalk-web.devaccounts-1password.workers.dev';
+const PUBLIC_WEB = 'https://gitstalk.io';
 
 export function setupScript(kind: 'sh' | 'ps1', webOrigin: string): Response {
   const body = (kind === 'sh' ? posix : powershell).split(PUBLIC_WEB).join(webOrigin);

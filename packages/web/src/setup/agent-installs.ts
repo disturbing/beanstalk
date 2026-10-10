@@ -13,7 +13,7 @@ import {
 } from '@gitstalk/shared-race/plugin';
 
 /** The MCP address in `packages/claude-plugin/.mcp.json` (a test keeps the two equal). */
-export const PLUGIN_MCP_URL = 'https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp';
+export const PLUGIN_MCP_URL = 'https://mcp.gitstalk.io/mcp';
 
 export type AgentInstall = {
   readonly id: 'claude-code' | 'codex' | 'cursor' | 'gemini' | 'mcp';

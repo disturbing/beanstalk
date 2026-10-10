@@ -29,8 +29,8 @@ foreach ($name in 'WEB', 'CREDENTIAL_HELPER', 'NO_BROWSER') {
   $legacy = [Environment]::GetEnvironmentVariable("BEANSTALK_$name")
   if (-not [Environment]::GetEnvironmentVariable("GITSTALK_$name") -and $legacy) { Set-Item "env:GITSTALK_$name" $legacy }
 }
-# The hosted service's web app keeps its workers.dev address until gitstalk.io is set up.
-$Web = if ($env:GITSTALK_WEB) { $env:GITSTALK_WEB.TrimEnd('/') } else { 'https://beanstalk-web.devaccounts-1password.workers.dev' }
+# The hosted service's web app (a self-hosted one sets GITSTALK_WEB, or serves this script itself).
+$Web = if ($env:GITSTALK_WEB) { $env:GITSTALK_WEB.TrimEnd('/') } else { 'https://gitstalk.io' }
 $ConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } elseif ($env:APPDATA) { $env:APPDATA } else { Join-Path $HOME '.config' }
 $ConfigDir = Join-Path $ConfigRoot 'gitstalk'
 # A machine set up before the rename keeps its remembered key where it was.

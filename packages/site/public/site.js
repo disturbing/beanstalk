@@ -11,7 +11,7 @@
 const PLUGIN_REPO = 'disturbing/beanstalk';
 const PLUGIN = 'gitstalk';
 const MARKETPLACE = 'gitstalk';
-const MCP_URL = 'https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp';
+const MCP_URL = 'https://mcp.gitstalk.io/mcp';
 const CLAUDE_SERVER = `plugin:${PLUGIN}:${PLUGIN}`;
 
 const INSTALLS = [
