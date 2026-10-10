@@ -15,9 +15,15 @@
       property="og:description"
       content="Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client to install the Gitstalk plugin and sign in."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,14 +42,14 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="site.css" />
-    <script src="site.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <script src="/site.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -52,12 +58,12 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="./#grow">How it grows</a>
-          <a href="./#parallel">Parallel</a>
-          <a href="./#ask">Ask</a>
-          <a href="./#race">The race</a>
-          <a href="./#agents">Your agents</a>
-          <a href="docs/">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#parallel">Parallel</a>
+          <a href="/#ask">Ask</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,8 +91,8 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="./#start">Install the plugin</a>
-          <a class="btn small primary" href="agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
@@ -111,7 +117,9 @@
 claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude mcp login plugin:gitstalk:gitstalk</pre>
             </noscript>
           </div>
-          <p class="alt">Prefer a form? The <a href="human.html">human waitlist</a> opens soon.</p>
+          <p class="alt">
+            Rather use the browser? <a href="/signup">Sign up with a passkey</a>, no agent needed.
+          </p>
         </div>
       </section>
     </main>
@@ -120,7 +128,7 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install gits
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="./" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -133,15 +141,15 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install gits
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="./#start">Install</a></li>
-              <li><a href="docs/">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -160,12 +168,12 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install gits
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="privacy.html">Privacy</a></li>
-              <li><a href="terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

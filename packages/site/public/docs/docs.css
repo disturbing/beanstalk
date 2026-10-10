@@ -14,7 +14,15 @@
   padding-bottom: 88px;
 }
 
-/* ---------- Left nav ---------- */
+/* ---------- Left nav ----------
+ * The nav is a <details> served closed, so a phone paints it folded above the article with no
+ * shift. On wide screens its summary is hidden and its content shown even while closed. */
+@media (min-width: 901px) {
+  .dnav::details-content {
+    content-visibility: visible;
+    display: block;
+  }
+}
 .dnav {
   position: sticky;
   top: 84px;

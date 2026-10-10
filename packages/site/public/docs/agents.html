@@ -15,9 +15,15 @@
       property="og:description"
       content="Connect Claude Code, Codex and other agents to Gitstalk: the plugin, SSH keys, HTTPS tokens, environment variables for containers, MCP tools and OAuth."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,16 +42,16 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="../site.css" />
-    <link rel="stylesheet" href="docs.css" />
-    <script src="../site.js" defer></script>
-    <script src="docs.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/docs/docs.css" />
+    <script src="/site.js" defer></script>
+    <script src="/docs/docs.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -54,10 +60,10 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="../#grow">How it grows</a>
-          <a href="../#race">The race</a>
-          <a href="../#agents">Your agents</a>
-          <a href="./" aria-current="true">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/" aria-current="true">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,70 +91,72 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="../#start">Install the plugin</a>
-          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
 
     <main id="main">
       <div class="wrap docs">
-        <details class="dnav" open>
+        <details class="dnav">
           <summary>Docs: Connecting agents</summary>
           <nav class="inner" aria-label="Docs pages">
             <h2>Start</h2>
             <ul>
-              <li><a href="./">Overview</a></li>
+              <li><a href="/docs/">Overview</a></li>
             </ul>
             <h2>Features</h2>
             <ul>
               <li>
-                <a href="repositories.html"
+                <a href="/docs/repositories"
                   >Repositories<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+                <a href="/docs/git">Git compatibility<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="agents.html" aria-current="page"
+                <a href="/docs/agents" aria-current="page"
                   >Connecting agents<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+                <a href="/docs/checks">Checks<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="collaborators.html"
+                <a href="/docs/collaborators"
                   >Collaborators and visibility<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="decisions.html"
+                <a href="/docs/decisions"
                   >Decision cards and reconcile<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="streaming-diffs.html"
+                <a href="/docs/streaming-diffs"
                   >Streaming diffs<span class="st soon" title="coming soon"></span
                 ></a>
               </li>
               <li>
-                <a href="actions.html">GitHub Actions<span class="st live" title="live"></span></a>
+                <a href="/docs/actions">GitHub Actions<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="automations.html">Automations<span class="st live" title="live"></span></a>
+                <a href="/docs/automations"
+                  >Automations<span class="st live" title="live"></span
+                ></a>
               </li>
               <li>
-                <a href="self-hosting.html"
+                <a href="/docs/self-hosting"
                   >Self-hosting<span class="st live" title="live"></span
                 ></a>
               </li>
             </ul>
             <h2>How it works</h2>
             <ul>
-              <li><a href="architecture.html">Architecture</a></li>
-              <li><a href="research.html">What did not work</a></li>
+              <li><a href="/docs/architecture">Architecture</a></li>
+              <li><a href="/docs/research">What did not work</a></li>
             </ul>
             <p class="legend">
               <span><i class="st live"></i>live</span>
@@ -202,11 +210,11 @@
             <code>setup.ps1</code> on Windows) from the web app, which does what
             <code>/gitstalk:setup</code> does. A compact version of the skill,
             <a
-              href="https://github.com/disturbing/beanstalk/blob/prototype/packages/claude-plugin/AGENTS-snippet.md"
+              href="https://github.com/disturbing/beanstalk/blob/HEAD/packages/claude-plugin/AGENTS-snippet.md"
               >AGENTS-snippet.md</a
             >, can go in a repository's <code>AGENTS.md</code> for Codex, Cursor, Copilot or Gemini
             CLI. Cursor and Gemini CLI connect to MCP as a remote HTTP server; those lines are on
-            the <a href="../#start">install picker</a> and are not yet verified end to end.
+            the <a href="/#start">install picker</a> and are not yet verified end to end.
           </p>
 
           <h2 id="credentials">Credentials</h2>
@@ -224,8 +232,8 @@
                   <td>SSH key</td>
                   <td>
                     Registered in Settings or by <code>/gitstalk:setup</code>. Reads and pushes
-                    beans as you. Used for git once public SSH remotes arrive (they need the product
-                    domain).
+                    beans as you. Used for git once public SSH remotes arrive (SSH on port 22 needs
+                    a paid Cloudflare plan, so it is not offered yet; use HTTPS meanwhile).
                   </td>
                   <td>
                     <span class="pill live">registration live</span>
@@ -345,26 +353,26 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
             <ul>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/packages/claude-plugin/README.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/packages/claude-plugin/README.md"
                   >packages/claude-plugin/README.md</a
                 >
                 (the status table)
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/19-accounts-and-auth.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/19-accounts-and-auth.md"
                   >docs/claude-opus/19-accounts-and-auth.md</a
                 >,
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/23-mcp-repository-tools.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/23-mcp-repository-tools.md"
                   >23-mcp-repository-tools.md</a
                 >
               </li>
             </ul>
           </section>
           <nav class="pager" aria-label="Previous and next page">
-            <a class="prev" href="git.html"><small>Previous</small>Git compatibility</a>
-            <a class="next" href="checks.html"><small>Next</small>Checks</a>
+            <a class="prev" href="/docs/git"><small>Previous</small>Git compatibility</a>
+            <a class="next" href="/docs/checks"><small>Next</small>Checks</a>
           </nav>
         </article>
       </div>
@@ -374,7 +382,7 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -387,17 +395,17 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="../#start">Install</a></li>
-              <li><a href="./">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+                <a href="https://github.com/disturbing/beanstalk/commits/HEAD">Changelog</a>
               </li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="../about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -411,12 +419,12 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="../privacy.html">Privacy</a></li>
-              <li><a href="../terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

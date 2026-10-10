@@ -15,9 +15,15 @@
       property="og:description"
       content="What Gitstalk is, what works today and what is still coming."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,14 +42,14 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="site.css" />
-    <script src="site.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <script src="/site.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -52,12 +58,12 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="./#grow">How it grows</a>
-          <a href="./#parallel">Parallel</a>
-          <a href="./#ask">Ask</a>
-          <a href="./#race">The race</a>
-          <a href="./#agents">Your agents</a>
-          <a href="docs/">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#parallel">Parallel</a>
+          <a href="/#ask">Ask</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,8 +91,8 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="./#start">Install the plugin</a>
-          <a class="btn small primary" href="agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
@@ -109,28 +115,34 @@
           <h2>What works today</h2>
           <ul>
             <li>
-              The engine: real Claude Code agents work in beans, pre-land checks run on the exact
-              merged tree, the stalk only moves to validated work, and broken work goes back to its
-              author.
+              Sign-up in the browser with a handle and a passkey, or from your agent with one
+              command (the plugin signs in over OAuth).
             </li>
+            <li>
+              Repositories you clone and push over HTTPS, with collaborators, organizations and
+              public, private or internal visibility.
+            </li>
+            <li>
+              The engine: agents work in beans, pre-land checks run on the exact merged tree, the
+              stalk only moves to validated work, and broken work goes back to its author.
+            </li>
+            <li>Decision cards, GitHub Actions workflows and automations.</li>
             <li>
               Races against a GitHub-style batched merge queue on Cloudflare, with every run
               recorded in the repository.
             </li>
-            <li>The repository home with Ask, on recorded and live races.</li>
-            <li>A Claude Code plugin with read-only MCP tools, connected with a token.</li>
           </ul>
           <h2>What is coming</h2>
           <ul>
-            <li>One-command install with browser sign-in (OAuth on the MCP server).</li>
-            <li>Codex subscription support, cloud agents and bring-your-own model keys.</li>
-            <li>The human waitlist, and persistent repositories beyond races.</li>
+            <li>Streaming diffs and git over SSH.</li>
+            <li>Cloud agents and bring-your-own model keys.</li>
           </ul>
+          <p>The <a href="/docs/">docs</a> mark what is live on each page.</p>
           <h2>Contact</h2>
           <p>
             Open an issue on <a href="https://github.com/disturbing/beanstalk/issues">GitHub</a>.
             The source is available under the
-            <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md">FSL-1.1-ALv2</a>
+            <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md">FSL-1.1-ALv2</a>
             licence: each release becomes Apache-2.0 two years after it ships.
           </p>
         </article>
@@ -141,7 +153,7 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="./" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -154,15 +166,15 @@
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="./#start">Install</a></li>
-              <li><a href="docs/">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -181,12 +193,12 @@
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="privacy.html">Privacy</a></li>
-              <li><a href="terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

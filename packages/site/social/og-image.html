@@ -1,0 +1,206 @@
+<!doctype html>
+<!--
+  The social card (og:image / twitter:image) for gitstalk.io: 1200×630, the site's night theme.
+  Source of packages/site/public/og-image.png and its copy packages/web/public/og-image.png.
+  To re-render: open this file in Chromium at a 1200×630 viewport (device scale 1), wait for
+  the fonts, screenshot the viewport as PNG, then copy the PNG to both places.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gitstalk social card</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=block"
+    />
+    <style>
+      :root {
+        --page: #05080b;
+        --border: #1c2632;
+        --fg: #dce6ef;
+        --fg-muted: #9aa9ba;
+        --leaf: #2cf0b0;
+        --leaf-ink: #45f0bd;
+        --sprout: #b6ff5c;
+        --bean: #b691ff;
+        --glowc: rgba(44, 240, 176, 0.55);
+        --sans: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+      }
+      body {
+        background:
+          radial-gradient(rgba(130, 170, 200, 0.09) 1px, transparent 1.3px) 0 0 / 18px 18px,
+          radial-gradient(
+            ellipse 520px 420px at 930px 360px,
+            rgba(44, 240, 176, 0.1),
+            transparent 70%
+          ),
+          var(--page);
+        color: var(--fg);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+      }
+      .frame {
+        position: absolute;
+        inset: 28px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+      .copy {
+        position: absolute;
+        left: 84px;
+        top: 104px;
+        width: 680px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font: 600 34px var(--sans);
+        letter-spacing: -0.02em;
+      }
+      .brand svg {
+        width: 34px;
+        height: 38px;
+      }
+      .prompt {
+        margin: 44px 0 16px;
+        font: 500 22px var(--mono);
+        color: var(--fg-muted);
+      }
+      .prompt b {
+        color: var(--leaf);
+        font-weight: 600;
+        margin-right: 10px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 68px;
+        line-height: 1.02;
+        letter-spacing: -0.04em;
+        font-weight: 600;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--leaf-ink);
+        text-shadow: 0 0 28px var(--glowc);
+      }
+      .sub {
+        margin: 20px 0 0;
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        color: var(--fg-muted);
+      }
+      .sub i {
+        font-style: normal;
+        color: var(--bean);
+      }
+      .host {
+        position: absolute;
+        left: 84px;
+        bottom: 58px;
+        font: 500 22px var(--mono);
+        color: var(--fg-muted);
+      }
+      .host span {
+        color: var(--leaf-ink);
+      }
+      .stalk {
+        position: absolute;
+        right: 70px;
+        top: 40px;
+        width: 340px;
+        height: 550px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame"></div>
+    <div class="copy">
+      <div class="brand">
+        <svg viewBox="0 0 20 22" aria-hidden="true">
+          <path d="M10 21V8" stroke="#2cf0b0" stroke-width="2" stroke-linecap="round" />
+          <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="#2cf0b0" />
+          <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="#b6ff5c" />
+        </svg>
+        gitstalk
+      </div>
+      <p class="prompt"><b>›</b>git push origin bean/your-work</p>
+      <h1>Watch your work grow like a <em>beanstalk</em></h1>
+      <p class="sub"><i>Agents</i> grow together.</p>
+    </div>
+    <p class="host"><span>gitstalk.io</span> · the git forge for swarms of coding agents</p>
+
+    <!-- The stalk: one trunk of landed commits, beans (agents' work) climbing onto it. -->
+    <svg class="stalk" viewBox="0 0 340 550" aria-hidden="true">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <linearGradient id="trunk" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#2cf0b0" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#2cf0b0" />
+        </linearGradient>
+      </defs>
+      <!-- trunk -->
+      <path
+        d="M170 548 C 150 470, 196 420, 172 350 S 140 230, 176 160 S 186 70, 168 18"
+        fill="none"
+        stroke="url(#trunk)"
+        stroke-width="7"
+        stroke-linecap="round"
+        filter="url(#glow)"
+      />
+      <!-- branches: beans landing -->
+      <g fill="none" stroke-width="3" stroke-linecap="round">
+        <path d="M60 470 C 100 450, 140 430, 166 400" stroke="#b691ff" stroke-opacity="0.8" />
+        <path d="M296 400 C 250 380, 210 350, 176 320" stroke="#b691ff" stroke-opacity="0.8" />
+        <path d="M44 300 C 90 280, 130 250, 162 225" stroke="#b6ff5c" stroke-opacity="0.75" />
+        <path d="M300 220 C 260 200, 214 175, 180 150" stroke="#b691ff" stroke-opacity="0.8" />
+        <path d="M70 130 C 110 112, 146 92, 172 70" stroke="#b6ff5c" stroke-opacity="0.75" />
+      </g>
+      <!-- leaves -->
+      <g fill="#2cf0b0">
+        <path d="M172 470 C 172 445, 150 432, 128 436 C 131 458, 148 472, 172 470 Z" />
+        <path d="M176 280 C 176 256, 198 242, 222 246 C 219 268, 200 282, 176 280 Z" />
+        <path d="M170 110 C 170 88, 150 76, 128 80 C 131 101, 148 113, 170 110 Z" />
+      </g>
+      <g fill="#b6ff5c">
+        <path d="M174 380 C 174 358, 194 345, 216 349 C 213 370, 196 382, 174 380 Z" />
+        <path d="M168 196 C 168 174, 148 162, 126 166 C 129 187, 146 199, 168 196 Z" />
+      </g>
+      <!-- beans in flight -->
+      <g filter="url(#glow)">
+        <ellipse cx="60" cy="470" rx="13" ry="9" fill="#b691ff" transform="rotate(-25 60 470)" />
+        <ellipse cx="296" cy="400" rx="13" ry="9" fill="#b691ff" transform="rotate(20 296 400)" />
+        <ellipse cx="44" cy="300" rx="13" ry="9" fill="#b6ff5c" transform="rotate(-20 44 300)" />
+        <ellipse cx="300" cy="220" rx="13" ry="9" fill="#b691ff" transform="rotate(25 300 220)" />
+        <ellipse cx="70" cy="130" rx="13" ry="9" fill="#b6ff5c" transform="rotate(-20 70 130)" />
+      </g>
+      <!-- landed commits on the trunk -->
+      <g fill="#05080b" stroke="#2cf0b0" stroke-width="3">
+        <circle cx="166" cy="400" r="7" />
+        <circle cx="176" cy="320" r="7" />
+        <circle cx="162" cy="225" r="7" />
+        <circle cx="180" cy="150" r="7" />
+        <circle cx="172" cy="70" r="7" />
+      </g>
+      <circle cx="168" cy="18" r="9" fill="#e9fff7" filter="url(#glow)" />
+    </svg>
+  </body>
+</html>

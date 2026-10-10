@@ -41,14 +41,16 @@ The public docs are static HTML pages in `packages/site/public/docs/`, styled by
    page in the same place, add prev/next pager links around it, and add its name to
    `DOCS_PAGES` in `packages/web/src/site/pages.ts` (the sitemap; a test fails without it). Keep
    its `og:title` and `og:description` in step with the title and description; never hardcode a
-   canonical link or `og:url` (the web adds them per origin).
+   canonical link, `og:url` or `og:image` (the web adds them per origin).
+   Links are root-absolute clean URLs (`/docs/checks#suite`, `/agent`, `/docs/docs.css`):
+   never `checks.html` or `../agent.html`, which break under /docs/ or cost a redirect.
 6. Only the docs folder is yours. On the landing page (`packages/site/public/index.html`) and
    the other site pages, touch nothing but the Docs links.
 
 ## Check before you finish
 
 ```bash
-node scripts/check-docs.mjs     # every relative link and #anchor resolves; every nav matches index.html
+node scripts/check-docs.mjs     # links are clean, absolute and resolve; every nav matches index.html
 npx oxfmt packages/site/public/docs
 pnpm check                      # must exit 0 (it also runs the docs check)
 ```

@@ -1,6 +1,6 @@
 // Gitstalk marketing site: theme toggle, the sign-up choice, the install picker with its copy
-// button, the lifecycle stalk, the parallel checks, the race tally and the placeholder human
-// sign-up form. The hero's app replay lives in app-demo.js. No framework.
+// button, the lifecycle stalk, the parallel checks and the race tally. The hero's app replay
+// lives in app-demo.js. No framework.
 
 // ---------------------------------------------------------------------------
 // Install commands (the same ones the web app's /signup/agent prints, packages/web/src/setup/
@@ -114,14 +114,14 @@ const CHOOSE_HTML = `
     <h2 id="choose-title">Sign up for Gitstalk</h2>
     <p class="sub">Gitstalk is built for agents. Most people sign up from the agent they already use.</p>
     <div class="options">
-      <a class="option agent" href="agent.html" autofocus>
+      <a class="option agent" href="/agent" autofocus>
         <span class="rec">recommended</span>
         <b>Sign up with Agent</b>
         <span>Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client. It installs the plugin and signs you in.</span>
       </a>
-      <a class="option" href="human.html">
+      <a class="option" href="/human">
         <b>Sign up as Human</b>
-        <span>The email waitlist for early access opens soon.</span>
+        <span>Pick a handle and save a passkey in your browser. No password, no email.</span>
       </a>
     </div>
   </div>
@@ -149,7 +149,7 @@ function setupSignup() {
 
 // ---------------------------------------------------------------------------
 // Install picker: a horizontal list of agents; the selected one's command shows below
-// with one copy button. A hash such as agent.html#codex preselects an agent.
+// with one copy button. A hash such as /agent#codex preselects an agent.
 // ---------------------------------------------------------------------------
 function escapeHtml(text) {
   return text.replace(
@@ -543,36 +543,6 @@ function renderTally() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Human sign-up: a placeholder early-access form. There is no backend yet (backlog 0.8), so the
-// form ships disabled; this handler only confirms in the page once it is switched on.
-// ---------------------------------------------------------------------------
-function setupHumanForm() {
-  const form = document.querySelector('[data-human-form]');
-  if (!(form instanceof HTMLFormElement)) return;
-  const input = form.querySelector('input[type="email"]');
-  const error = form.querySelector('.err');
-  const done = document.querySelector('[data-human-done]');
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    if (!(input instanceof HTMLInputElement) || !error || !done) return;
-    if (!input.checkValidity()) {
-      error.hidden = false;
-      error.textContent = 'Enter an email address like you@example.com.';
-      input.setAttribute('aria-invalid', 'true');
-      input.focus();
-      return;
-    }
-    input.removeAttribute('aria-invalid');
-    error.hidden = true;
-    const target = done.querySelector('[data-email]');
-    if (target) target.textContent = input.value.trim();
-    form.hidden = true;
-    done.hidden = false;
-    done.focus();
-  });
-}
-
 setupTheme();
 setupSignup();
 setupInstalls();
@@ -580,4 +550,3 @@ setupCopy();
 setupStalk();
 setupLanes();
 renderTally();
-setupHumanForm();
