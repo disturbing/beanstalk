@@ -13,7 +13,7 @@ export function runnerLogLevel(value: string): LogLevel {
 }
 
 /**
- * The `runner` container (packages/runner): git, Node and Mergiraf behind the §3 HTTP API.
+ * The `runner` container (packages/gateway/container): git, Node and Mergiraf behind the §3 HTTP API.
  * One instance per run commits (squash, update-ref); one per emulated CI slot runs suites.
  *
  * Internet egress is on because the runner must reach the Artifacts git remotes over HTTPS:

@@ -1,5 +1,5 @@
 /**
- * The runner's §3 HTTP API (packages/runner, `wire/`), spoken through a container stub.
+ * The runner's §3 HTTP API (packages/gateway/container, `wire/`), spoken through a container stub.
  * Request bodies carry Artifacts tokens: they are never logged, and error messages are the
  * runner's own (it redacts tokens from git output). Version checks, capacity waits and error
  * mapping live in `runner-transport.ts`.

@@ -37,7 +37,7 @@ async function answerContainer(request: Request, env: Env): Promise<Response> {
 }
 
 /**
- * One SSH server container (packages/ssh-server), owned by this Durable Object. The Worker's
+ * One SSH server container (packages/ssh/container), owned by this Durable Object. The Worker's
  * `connect` handler opens a TCP connection to the object (`stub.connect`); the object forwards
  * it to the container's SSH port, counting bytes and refusing connections beyond its budget.
  * The container's outbound traffic is allowed to one host, `gateway.internal`, answered by the

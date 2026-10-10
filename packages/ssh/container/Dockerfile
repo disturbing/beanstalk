@@ -3,7 +3,7 @@
 # The SSH server image (git over SSH, docs/claude-opus/21-git-over-ssh.md): one Rust binary on
 # Debian trixie, linux/amd64 (Cloudflare Containers run amd64 only, hence the constant platform).
 # The build context is the repo root, so the Cargo workspace and Cargo.lock are visible:
-#   docker buildx build --platform linux/amd64 -f packages/ssh-server/Dockerfile .
+#   docker buildx build --platform linux/amd64 -f packages/ssh/container/Dockerfile .
 
 ARG RUST_VERSION=1.96.0
 ARG DEBIAN_RELEASE=trixie

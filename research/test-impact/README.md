@@ -394,9 +394,9 @@ python3 harness/report.py > results/tables.md     # the tables above
 ## 5. Read maps in the runner
 
 The prototype's method now runs in Beanstalk's runner container and its maps live in each run's
-RunDO (2026-10-07). Code: `packages/runner/src/check/trace/` (strace wrapper, log parser, path
+RunDO (2026-10-07). Code: `packages/gateway/container/src/check/trace/` (strace wrapper, log parser, path
 attribution), `per_file.rs`, `discover.rs`, `tree.rs`; `packages/gateway/src/read-maps/` (store and
-selection rule); contract in `packages/runner/README.md` ("Read maps") and
+selection rule); contract in `packages/gateway/container/README.md` ("Read maps") and
 `packages/gateway/README.md` ("Read maps in the runner").
 
 **What the runner does.** A check with `trace: true` lists the suite's test files with node's own

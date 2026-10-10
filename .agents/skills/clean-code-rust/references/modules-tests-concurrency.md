@@ -11,7 +11,7 @@
 Binary crates split `main.rs` (wiring only, under 60 lines) from `lib.rs` (everything testable).
 
 ```
-packages/<name>/
+packages/<worker>/container/   # a container crate lives in the Worker package that owns it
   Cargo.toml
   Dockerfile              # container apps only
   src/

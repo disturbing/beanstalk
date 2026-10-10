@@ -1,6 +1,6 @@
 # Rust container package
 
-A container is a Rust crate under `packages/<name>` plus a Container Durable Object class in the TypeScript Worker package that owns it. The crate follows the `clean-code-rust` skill (`references/container-service.md` has the `main.rs` and Dockerfile). This file covers the Worker side and the build wiring.
+A container is a Rust crate in `packages/<worker>/container/`, inside the TypeScript Worker package whose Container Durable Object class owns it (the gateway's runner, the SSH Worker's server, the Actions executor's job runner). The crate follows the `clean-code-rust` skill (`references/container-service.md` has the `main.rs` and Dockerfile). This file covers the Worker side and the build wiring.
 
 ## Contents
 - Directory layout
@@ -13,13 +13,13 @@ A container is a Rust crate under `packages/<name>` plus a Container Durable Obj
 ## Directory layout
 
 ```
-packages/world-builder/        Rust crate (Cargo.toml, Dockerfile, src/, tests/)
 packages/integrator/           TypeScript Worker that owns the container
   src/index.ts                 exports WorldBuilder (Container class) and the WorkerEntrypoint
-  wrangler.jsonc               containers block points at ../world-builder/Dockerfile
+  wrangler.jsonc               containers block points at ./container/Dockerfile
+  container/                   Rust crate `world-builder` (Cargo.toml, Dockerfile, src/, tests/)
 ```
 
-Add the crate to `members` in the root `Cargo.toml`. One crate per container image; one Container class per crate.
+Add the crate to `members` in the root `Cargo.toml` (`"packages/integrator/container"`). One crate per container image; one Container class per crate, so a Worker owns at most one container directory. The Worker's `tsconfig.json` (`src/`, `test/`) and `vitest.config.ts` (`test/**/*.test.ts`) include only their own globs, so they never scan `container/`; `container/` has no `package.json`, so the pnpm workspace (`packages/*`) does not see it.
 
 ## Container class in the owning Worker
 
@@ -57,7 +57,7 @@ export class WorldBuilder extends Container<Env> {
   "containers": [
     {
       "class_name": "WorldBuilder",
-      "image": "../world-builder/Dockerfile",
+      "image": "./container/Dockerfile",
       "image_build_context": "../..",
       "instance_type": "standard-1",
       "max_instances": 10

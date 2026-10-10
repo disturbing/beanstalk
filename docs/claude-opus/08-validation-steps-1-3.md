@@ -161,7 +161,7 @@ It also costs slightly less, with no red validation and no decision card in this
 
 ### 5.5 The same race on the Cloudflare prototype (measured)
 
-Every integration decision is made on Cloudflare: the gateway Worker, the RunDO engine, Artifacts and the runner containers (`packages/gateway`, `packages/runner`). Twelve real Sonnet sessions run on the laptop through the driver (`research/race/harness/remote.py`).
+Every integration decision is made on Cloudflare: the gateway Worker, the RunDO engine, Artifacts and the runner containers (`packages/gateway`, `packages/gateway/container`). Twelve real Sonnet sessions run on the laptop through the driver (`research/race/harness/remote.py`).
 
 **Parity first.** With free replay agents, the cloud and local forges made the same decisions:
 

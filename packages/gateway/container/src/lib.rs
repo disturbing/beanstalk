@@ -4,7 +4,7 @@
 //! Artifacts git remotes for the `RunDO` Durable Object, with the semantics of the local race
 //! harness (`research/race/harness/gitops.py` and `ci.py`), so cloud and local races compare
 //! metric for metric. The API contract is section 3 of
-//! `docs/claude-opus/10-cf-prototype-plan.md`; `packages/runner/README.md` summarises it.
+//! `docs/claude-opus/10-cf-prototype-plan.md`; `packages/gateway/container/README.md` summarises it.
 
 pub mod app;
 pub mod config;

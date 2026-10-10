@@ -74,7 +74,7 @@ The runs are in `research/race/runs/`: `cf-queue-sonnet-30-s{7,11,13}` and `cf-d
 
 | Path | Contents |
 |---|---|
-| `packages/runner` | Rust container: squash, check on an exact merged tree, compose, update refs on Artifacts, revert |
+| `packages/gateway/container` | Rust container: squash, check on an exact merged tree, compose, update refs on Artifacts, revert |
 | `packages/gateway` | The Worker that makes every integration decision: the run engine in a SQLite Durable Object, the git proxy, and read-only repository RPC |
 | `packages/shared-race` | Shared types: run config, events, driver contract, RPC |
 | `packages/web` | vinext app: the Ask explorer, the race canvas, and the side-by-side race |

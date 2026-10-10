@@ -108,7 +108,7 @@ STREAM_POLL = 0.1           # how often the driver looks at the agent's edit mar
 STREAM_SETTLE = 0.3         # after an edit, wait this long for a burst of edits to settle
 STREAM_MIN_INTERVAL = 0.5   # at most one post per invocation this often (the gateway takes one per 400 ms)
 STREAM_TIMER = 3.0          # without an edit mark, look anyway this often (edits through Bash, Codex)
-# The runner's structural tier (packages/runner/src/resolve.rs, git/rules.rs): when git's merge conflicts, the merge is
+# The runner's structural tier (packages/gateway/container/src/resolve.rs, git/rules.rs): when git's merge conflicts, the merge is
 # retried with Mergiraf as the merge driver on exactly the conflicted paths, and kept only when it is clean and free of
 # conflict markers; every conflicted path must have one of these extensions (Markdown is left out on purpose).
 STRUCTURAL_EXTENSIONS = frozenset((

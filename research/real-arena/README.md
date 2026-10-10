@@ -91,8 +91,8 @@ config (`suite`: the argv, the files argv, `env`, the snapshot name and the test
 the same globs and its prompts are byte for byte the harness's. The runner image installs each arena's
 `deps/package-lock.json` at build time (`npm ci --ignore-scripts`, as the GitHub arm does before its timed suite step)
 into `/opt/arena-deps/<arena>/node_modules`, runs Node 25.8.1 (`node` above), and gives each suite a network
-namespace with loopback only (`packages/runner/README.md`). A new arena therefore needs its lockfile added to the
-`deps` stage of `packages/runner/Dockerfile`, and the runner image rebuilt, before a cloud race.
+namespace with loopback only (`packages/gateway/container/README.md`). A new arena therefore needs its lockfile added to the
+`deps` stage of `packages/gateway/container/Dockerfile`, and the runner image rebuilt, before a cloud race.
 
 Rebuild from scratch: `python3 build.py all fastify`, then `contention.py fastify --synthetic`,
 `solvability.py fastify`, and `build.py chain fastify --skip-pr <unsolved>` to drop what no agent solved.

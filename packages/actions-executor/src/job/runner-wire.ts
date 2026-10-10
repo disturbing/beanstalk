@@ -1,5 +1,5 @@
 /**
- * The wire contract with the job runner in the container (packages/actions-runner,
+ * The wire contract with the job runner in the container (packages/actions-executor/container,
  * `src/wire.rs`): the job request this side sends, and the batches and result the runner posts
  * to `executor.internal`. Bump `ACTIONS_RUNNER_API_VERSION` with the runner's `API_VERSION`.
  */

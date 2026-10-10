@@ -85,7 +85,7 @@ def gateway_config() -> str:
         database.update({"database_name": name, "database_id": database_id(name),
                          "migrations_dir": os.path.normpath(os.path.join(devstack.GATEWAY, migrations))})
     for container in config["containers"]:
-        container["image"] = os.path.join(devstack.REPO, "packages", "runner", "Dockerfile")
+        container["image"] = os.path.join(devstack.REPO, "packages", "gateway", "container", "Dockerfile")
         container["image_build_context"] = devstack.REPO
         container["max_instances"] = 4
     path = os.path.join(LOCAL, "gateway", "wrangler.json")
@@ -101,7 +101,7 @@ def ssh_config(fingerprint: str) -> str:
     config["services"] = [{"binding": "GATEWAY", "service": GATEWAY_NAME}]
     config["vars"] = {**config["vars"], "SSH_TUNNEL": "on", "SSH_POOL_SIZE": "1", "SSH_HOST_KEY_FINGERPRINT": fingerprint}
     for container in config["containers"]:
-        container["image"] = os.path.join(devstack.REPO, "packages", "ssh-server", "Dockerfile")
+        container["image"] = os.path.join(devstack.REPO, "packages", "ssh", "container", "Dockerfile")
         container["image_build_context"] = devstack.REPO
         container["max_instances"] = 2
     path = os.path.join(LOCAL, "ssh", "wrangler.json")
@@ -145,7 +145,7 @@ def setup() -> None:
     gateway = gateway_config()
     for name in (IDENTITY_DB, FORGE_DB):
         wrangler(["d1", "migrations", "apply", name, "--remote", "-c", gateway], devstack.GATEWAY, stdin="y\n")
-    deploy_env = {"WRANGLER_DOCKER_BIN": os.path.join(devstack.REPO, "packages", "runner", "docker-with-git-sha.sh")}
+    deploy_env = {"WRANGLER_DOCKER_BIN": os.path.join(devstack.REPO, "packages", "gateway", "container", "docker-with-git-sha.sh")}
     deploy_with_secrets(gateway, devstack.GATEWAY,
                         {name: secret(name) for name in ("ADMIN_TOKEN", "RUN_TOKEN_SECRET")}, deploy_env)
     public = os.path.join(LOCAL, "host_ed25519.pub")

@@ -1,5 +1,5 @@
 /**
- * Per-test-file read maps (the runner's traced checks, `packages/runner/src/check/trace`) and
+ * Per-test-file read maps (the runner's traced checks, `packages/gateway/container/src/check/trace`) and
  * the question the engine asks of them: "given these changed paths, which test files may
  * observe them?". The method and its evidence are `research/test-impact/README.md`.
  */

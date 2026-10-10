@@ -43,7 +43,7 @@ export const CHECKS_PATH = '.gitstalk/checks.toml';
  */
 export const ALWAYS_PROTECTED: readonly string[] = CHECKS_PATHS;
 
-/** Images the runner has; the image ships Node 25.8.1 only (`packages/runner/README.md`). */
+/** Images the runner has; the image ships Node 25.8.1 only (`packages/gateway/container/README.md`). */
 export const CHECK_IMAGES = ['node'] as const;
 export type CheckImage = (typeof CHECK_IMAGES)[number];
 
@@ -58,7 +58,7 @@ const MAX_PATTERNS = 100;
 const MAX_PATTERN_CHARS = 200;
 const KNOWN_KEYS = ['image', 'command', 'timeout_seconds', 'protected_paths', 'env'] as const;
 
-/** Variables the runner owns (`packages/runner`, check `env`). */
+/** Variables the runner owns (`packages/gateway/container`, check `env`). */
 const REFUSED_ENV_NAMES: ReadonlySet<string> = new Set(['PATH', 'HOME', 'CI']);
 const REFUSED_ENV_PREFIXES: readonly string[] = ['GIT_', 'LD_', 'NODE_TEST', 'BWRAP'];
 

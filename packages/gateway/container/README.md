@@ -60,7 +60,7 @@ curl -s localhost:8080/v1/squash -H 'content-type: application/json' -d '{
 The image (build context is the repo root; nothing is pushed):
 
 ```bash
-docker buildx build --platform linux/amd64 -f packages/runner/Dockerfile -t gitstalk-runner:dev .
+docker buildx build --platform linux/amd64 -f packages/gateway/container/Dockerfile -t gitstalk-runner:dev .
 docker run --rm -p 8080:8080 gitstalk-runner:dev
 ```
 
@@ -76,7 +76,7 @@ docker run --rm -p 8080:8080 gitstalk-runner:dev
 | `SUITE_NETWORK` | `auto` | the suite's network: `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
 | `CLOUDFLARE_DEPLOYMENT_ID` | | logged at start |
 
-**Image version.** `docker build --build-arg GIT_SHA=<sha>` stamps the image (the last layer only, read at run time, so the binary is not rebuilt). Wrangler's container config has only fixed `image_vars`, so the gateway's `pnpm -F @gitstalk/gateway deploy` runs `wrangler deploy` with `WRANGLER_DOCKER_BIN=../runner/docker-with-git-sha.sh`, which adds `--build-arg GIT_SHA=…` to Wrangler's `docker build`: the last commit that touched `packages/runner`, `Cargo.toml` or `Cargo.lock` (with `-dirty` for uncommitted changes there), so a deploy that does not change the runner keeps the same image and rolls no instances. `GIT_SHA=<x>` in the environment overrides it. A plain `wrangler deploy` still works and reports `unknown`.
+**Image version.** `docker build --build-arg GIT_SHA=<sha>` stamps the image (the last layer only, read at run time, so the binary is not rebuilt). Wrangler's container config has only fixed `image_vars`, so the gateway's `pnpm -F @gitstalk/gateway deploy` runs `wrangler deploy` with `WRANGLER_DOCKER_BIN=./container/docker-with-git-sha.sh`, which adds `--build-arg GIT_SHA=…` to Wrangler's `docker build`: the last commit that touched `packages/gateway/container`, `Cargo.toml` or `Cargo.lock` (with `-dirty` for uncommitted changes there), so a deploy that does not change the runner keeps the same image and rolls no instances. `GIT_SHA=<x>` in the environment overrides it. A plain `wrangler deploy` still works and reports `unknown`.
 
 The build compiles Rust natively on the build host and links for `x86_64-unknown-linux-gnu` (cargo-chef caches dependencies), so Apple Silicon builds do not run rustc under emulation. Node and Mergiraf are pinned release downloads verified by SHA-256. The image is about 123 MB compressed and 390 MB on disk (Node 124 MB, Mergiraf 79 MB).
 
@@ -119,7 +119,7 @@ The fastify suite (2,107 tests at the end of 8 replay tasks, `network: loopback`
 
 ## Notes for the gateway (`Runner` Container class)
 
-- `defaultPort = 8080`; image `../runner/Dockerfile` with `image_build_context: "../.."`. Start at `instance_type: "standard-1"`.
+- `defaultPort = 8080`; image `./container/Dockerfile` with `image_build_context: "../.."`. Start at `instance_type: "standard-1"`.
 - Allow egress to the Artifacts host only (`enableInternet = false` plus `setAllowedHosts`).
 - Requests are synchronous: a check holds its request for checkout, the suite (up to `suite_timeout_seconds`) and `latency_seconds`; give the DO's fetch a deadline above their sum.
 - When Cloudflare cannot start an instance ("Maximum number of running container instances exceeded", or a 429 or 503), the gateway's client waits and retries itself, 5 to 20 s at a time (spread by the instance name) for about 4 minutes, logging each wait (`runner capacity exhausted, waiting`), before the engine sees a retryable failure. Before this, those failures spent the engine's per-job attempts in about 90 s and dropped beans (`cf-v2-sonnet-12-s7`, 2026-10-03).

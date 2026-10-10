@@ -15,7 +15,7 @@ import { z } from 'zod';
 /** The harness's default hint (`research/race/harness/suite.py`, `DEFAULT_HINT`). */
 export const DEFAULT_TEST_HINT = 'Run `node --test`.';
 
-/** Variables the runner owns; a run may not set them for its suite (`packages/runner`). */
+/** Variables the runner owns; a run may not set them for its suite (`packages/gateway/container`). */
 const REFUSED_ENV_NAMES: readonly string[] = ['PATH', 'HOME', 'CI'];
 const REFUSED_ENV_PREFIXES: readonly string[] = ['GIT_', 'LD_', 'NODE_TEST', 'BWRAP'];
 const MAX_ENV_VARS = 32;

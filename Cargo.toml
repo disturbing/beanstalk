@@ -1,6 +1,11 @@
 [workspace]
 resolver = "3"
-members = ["packages/runner", "packages/ssh-server", "packages/actions-runner"]
+# Each container crate lives in the Worker package that owns it (packages/<worker>/container).
+members = [
+  "packages/gateway/container",
+  "packages/ssh/container",
+  "packages/actions-executor/container",
+]
 
 [workspace.package]
 edition = "2024"
@@ -11,7 +16,7 @@ publish = false
 [workspace.dependencies]
 anyhow = "1"
 axum = "0.8"
-# The Actions job runner (packages/actions-runner): masking encodes secrets as a log could show them.
+# The Actions job runner (packages/actions-executor/container): masking encodes secrets as a log could show them.
 base64 = "0.23"
 bytes = "1"
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
@@ -21,7 +26,7 @@ regex = "1"
 # Plain HTTP only (the SSH server reaches the gateway through its container's outbound handler).
 reqwest = { version = "0.13", default-features = false, features = ["json", "stream"] }
 roxmltree = "0.21"
-# The SSH server (packages/ssh-server): ring instead of aws-lc-rs, so the amd64 image
+# The SSH server (packages/ssh/container): ring instead of aws-lc-rs, so the amd64 image
 # cross-compiles with the runner's toolchain; rsa accepts people's RSA keys.
 russh = { version = "0.64", default-features = false, features = ["ring", "rsa"] }
 serde = { version = "1", features = ["derive"] }

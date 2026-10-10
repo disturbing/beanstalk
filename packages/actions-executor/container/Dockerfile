@@ -4,9 +4,9 @@
 # Ubuntu 24.04 like GitHub's ubuntu-24.04 runner, Node 24 as the system node and Node 20 in the
 # hosted toolcache, git, curl, python3, build tools, act (host mode), the popular actions baked
 # into act's cache (act then never clones them: setup-node alone took 43 s cold in the spike,
-# docs/claude-opus/exp/actions-spike/README.md), and the Rust job runner (packages/actions-runner).
+# docs/claude-opus/exp/actions-spike/README.md), and the Rust job runner (packages/actions-executor/container).
 # Build context is the repo root (the Cargo workspace):
-#   docker buildx build --platform linux/amd64 -f packages/actions-runner/Dockerfile .
+#   docker buildx build --platform linux/amd64 -f packages/actions-executor/container/Dockerfile .
 
 ARG RUST_VERSION=1.96.0
 ARG DEBIAN_RELEASE=trixie
