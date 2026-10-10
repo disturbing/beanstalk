@@ -11,6 +11,7 @@ import { RepoDiffSchema } from '../../src/repo/repo-schemas';
 import type { RepoDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import { DiffView } from '../explorer/diff-view';
 import styles from './canvas.module.css';
+import { ADMIN_DEMO_GATE, adminRunPath } from '../../src/admin/admin-paths';
 
 export type DecisionAccess =
   | { readonly kind: 'recorded' }
@@ -169,7 +170,7 @@ function Side(props: {
   return (
     <div className={`${styles.side} ${props.won ? styles.sideWon : ''}`}>
       <span>
-        <Link className={styles.sideBean} href={`/runs/${props.run}?bean=${props.bean}`}>
+        <Link className={styles.sideBean} href={`${adminRunPath(props.run)}?bean=${props.bean}`}>
           {props.bean}
         </Link>
         {props.won ? ' (kept)' : ''}
@@ -225,8 +226,8 @@ function Note(props: {
     case 'sign-in':
       return (
         <p className={styles.decisionNote}>
-          <Link href={`/login?next=${encodeURIComponent(props.access.next)}`}>
-            Sign in with the demo password
+          <Link href={`${ADMIN_DEMO_GATE}?next=${encodeURIComponent(props.access.next)}`}>
+            Open the demo gate
           </Link>{' '}
           to decide.
         </p>

@@ -7,6 +7,7 @@ import type { Batch, LineCommit, RaceState } from '@gitstalk/shared-ask/race/rac
 import { formatClock } from '../../src/race/race-format';
 import { useElementWidth } from '../race/use-element-width';
 import styles from './canvas.module.css';
+import { adminRunPath } from '../../src/admin/admin-paths';
 
 const STEP = 30;
 const MARGIN = 28;
@@ -182,7 +183,9 @@ function Bead(props: {
   const bead = { x: at.x, y: at.y + side * LEAF };
   const label = `${commit.task ?? commit.kind}: ${props.title}. #${commit.idx}, ${STATUS_WORDS[commit.status]}, landed at ${formatClock(commit.t)}.`;
   const href =
-    commit.task === null ? `/runs/${props.run}` : `/runs/${props.run}?bean=${commit.task}`;
+    commit.task === null
+      ? adminRunPath(props.run)
+      : `${adminRunPath(props.run)}?bean=${commit.task}`;
   return (
     <a
       href={href}

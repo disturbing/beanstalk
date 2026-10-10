@@ -1,7 +1,6 @@
 /**
  * Home after sign-in (`docs/claude-opus/16` §2.3 and item 1.6): your repositories with what
- * each has grown (and the demo repository, for everyone), your agent sessions, recent activity
- * and New repository. Until the first bean, a checklist: connect a session, create or import a
+ * each has grown, your agent sessions, recent activity and New repository. Until the first bean, a checklist: connect a session, create or import a
  * repository, push a bean.
  */
 import Link from 'next/link';
@@ -33,7 +32,6 @@ export function HomeDashboard(props: {
   readonly nowMs: number;
   /** A sentence when something just happened (a deletion), or a registry problem. */
   readonly notice: { readonly tone: 'good' | 'warn'; readonly text: string } | null;
-  readonly demoHref: string;
   /** Connected agent sessions when the page was rendered (null: not available). */
   readonly sessions: readonly AgentSession[] | null;
   /** The person's archived repositories, listed on their own page rather than here. */
@@ -95,7 +93,6 @@ export function HomeDashboard(props: {
                 {props.repositories.map(({ record, growth }) => (
                   <RepoRow key={record.id} record={record} growth={growth} nowMs={props.nowMs} />
                 ))}
-                <DemoRow href={props.demoHref} />
               </ul>
             </section>
             {(props.shared ?? []).length === 0 ? null : (
@@ -174,24 +171,6 @@ function RepoRow(props: {
         </p>
       </div>
       <span className={styles.pill}>{record.visibility}</span>
-    </li>
-  );
-}
-
-/** The demo repository, listed for everyone: a recorded day of twelve agent sessions. */
-function DemoRow({ href }: { readonly href: string }) {
-  return (
-    <li className={styles.repoRow}>
-      <Sprig grown />
-      <div>
-        <Link href={href} className={styles.repoName}>
-          demo/beanstalk-shop
-        </Link>
-        <p className={styles.repoDescription}>
-          A recorded day of twelve agent sessions on one shop: look around before your own.
-        </p>
-      </div>
-      <span className={styles.pill}>demo</span>
     </li>
   );
 }

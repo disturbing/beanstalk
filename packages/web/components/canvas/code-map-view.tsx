@@ -3,6 +3,7 @@
 import type { CodeMap, CodeMapFile } from '../../src/race/code-map';
 import { AFTERGLOW_SECONDS } from '../../src/race/code-map';
 import styles from './canvas.module.css';
+import { adminRunPath } from '../../src/admin/admin-paths';
 
 /**
  * The code map: every module and file in a fixed grid. Heat is how many beans in flight
@@ -78,7 +79,7 @@ function Cell({ file, run }: { readonly file: CodeMapFile; readonly run: string 
     .join(' ');
   return (
     <a
-      href={`/runs/${run}?file=${encodeURIComponent(file.path)}`}
+      href={`${adminRunPath(run)}?file=${encodeURIComponent(file.path)}`}
       className={classes}
       aria-label={cellLabel(file)}
       title={cellLabel(file)}

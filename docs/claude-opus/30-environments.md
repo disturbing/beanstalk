@@ -52,7 +52,7 @@ The public repo's `.gitignore` ignores `environments/*` except `example/`, `envi
 }
 ```
 
-Overrides merge objects key by key; arrays of bindings, containers or rate limits merge by `binding`, `class_name`, `name` or `queue`; anything else replaces. Staging uses them for smaller container pools (with the matching `*_MAX_INSTANCES` vars), its own sign-in rate-limit namespace, and `SSH_TUNNEL=on` (no Spectrum app in front of a test stack). Routes and custom domains go in `overrides.<pkg>.routes`.
+Overrides merge objects key by key; arrays of bindings, containers or rate limits merge by `binding`, `class_name`, `name` or `queue`; anything else replaces. Staging uses them for smaller container pools (with the matching `*_MAX_INSTANCES` vars), its own sign-in rate-limit namespace, and `SSH_TUNNEL=on` (no Spectrum app in front of a test stack). Routes and custom domains go in `overrides.<pkg>.routes`. Platform admins (who see the web's `/admin`, `19` §11) are set in `overrides.web.vars.PLATFORM_ADMINS` as comma-separated handles. The template's default is empty, so nobody is an admin.
 
 ### 3.2 What the generator does to a template
 

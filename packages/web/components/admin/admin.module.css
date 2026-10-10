@@ -1,0 +1,156 @@
+/*
+ * The admin area: a strip of links under the header, and the overview's sheets (counts, the
+ * pages here, the demo gate's form) in the app's Nightshift tokens, night and day alike.
+ */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet-2);
+  overflow-x: auto;
+}
+
+.badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--warn-wash);
+  color: var(--warn);
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.links {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: block;
+  padding: 4px 10px;
+  border-radius: var(--radius-small);
+  color: var(--ink-2);
+  font-weight: 550;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link:hover {
+  background: var(--wash);
+  color: var(--ink);
+}
+
+.link[aria-current='page'] {
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px var(--gutter) 72px;
+}
+
+.title {
+  font-size: var(--step-3);
+  font-weight: 750;
+  font-stretch: 85%;
+  line-height: 1.1;
+}
+
+.lede {
+  color: var(--ink-2);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.stat dt {
+  color: var(--ink-3);
+  font: 500 var(--step--1) var(--font-mono);
+}
+
+.stat dd {
+  margin: 0;
+  font-size: var(--step-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: inherit;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--rule-strong);
+  box-shadow: var(--shadow);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.cardTitle {
+  font-weight: 700;
+}
+
+.cardText {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+.note {
+  color: var(--ink-3);
+  font-size: var(--step--1);
+}

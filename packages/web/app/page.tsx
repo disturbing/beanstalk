@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
+import { redirect } from 'next/navigation';
 
 import type { DashboardRepository } from '../components/repository/home-dashboard';
 import { HomeDashboard } from '../components/repository/home-dashboard';
-import { RunsLanding } from '../components/runs/runs-landing';
 import { Invitations } from '../components/repository/invitations';
 import { OrgInvitations } from '../components/orgs/org-people';
 import { YourOrgs } from '../components/orgs/your-orgs';
@@ -20,7 +20,6 @@ import type { RepositoryGrowth } from '../src/repositories/index-client';
 import { indexClient } from '../src/repositories/index-client';
 import type { RepositoryActivity, RepositoryRecord } from '../src/repositories/registry-client';
 import { registryClient } from '../src/repositories/registry-client';
-import { racePair } from '../src/recorded/race-pair';
 
 /** Lines in Home's activity. */
 const HOME_LINES = 14;
@@ -30,12 +29,12 @@ type PageProps = {
 };
 
 /**
- * Signed in: Home (first steps, your repositories and the demo, your sessions, recent
- * activity). Signed out: the benchmark landing.
+ * Signed in: Home (first steps, your repositories, your sessions, recent activity). Signed out,
+ * where the site is not served on this origin (it answers `/` itself otherwise): sign in.
  */
 export default async function Home({ searchParams }: PageProps) {
   const session = await currentSession();
-  if (session === null) return <RunsLanding />;
+  if (session === null) redirect('/login');
   const { user } = session;
   const registry = registryClient(env.GATEWAY);
   const collaborators = collaboratorsClient(env.GATEWAY);
@@ -102,7 +101,6 @@ export default async function Home({ searchParams }: PageProps) {
       archivedCount={archived.ok ? archived.value.length : 0}
       nowMs={Date.now()}
       notice={notice}
-      demoHref={`/runs/${racePair().right.run}`}
       sessions={sessions}
     />
   );

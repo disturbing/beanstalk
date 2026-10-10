@@ -9,11 +9,9 @@ export default function NotFound() {
         <h1 id="missing-title" className={styles.title}>
           Nothing grows here
         </h1>
-        <p className={styles.lede}>
-          This run, bean or page does not exist. It may have been reaped after its race.
-        </p>
+        <p className={styles.lede}>This page does not exist, or it is not shared with you.</p>
         <p>
-          <Link href="/">Back to the runs</Link>
+          <Link href="/">Back home</Link>
         </p>
       </section>
     </main>

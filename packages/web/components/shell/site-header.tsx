@@ -6,8 +6,9 @@ import { getProfile } from '@gitstalk/shared-identity/profiles';
 import { Avatar } from '../account/avatar';
 
 import { currentSession } from '../../src/auth/user';
-import { signOut } from '../../src/server/actions';
-import { isSignedIn, viewerTheme } from '../../src/server/viewer';
+import { configuredPlatformAdmins } from '../../src/admin/admin-gate';
+import { isPlatformAdmin } from '../../src/admin/platform-admins';
+import { viewerTheme } from '../../src/server/viewer';
 import { NEW_MENU, primaryLinks, userMenu } from '../../src/shell/header-entries';
 import { HeaderMenu } from './header-menu';
 import styles from './header.module.css';
@@ -16,16 +17,13 @@ import { VineMark } from './vine-mark';
 
 /**
  * The app header on every page. Left: the mark (Home) and the primary links. Right, signed in:
- * the New menu and the person's menu (profile, repositories, organizations, settings, connect
- * an agent, docs, day or night, sign out). Signed out: the theme pair, Sign in and Sign up.
+ * the New menu and the person's menu (profile, repositories, organizations, settings, the admin
+ * area for platform admins, connect an agent, docs, day or night, sign out). Signed out: the theme pair, Sign in and Sign up.
  */
 export async function SiteHeader() {
-  const [theme, demoGateOpen, session] = await Promise.all([
-    viewerTheme(),
-    isSignedIn(),
-    currentSession(),
-  ]);
+  const [theme, session] = await Promise.all([viewerTheme(), currentSession()]);
   const user = session?.user ?? null;
+  const links = primaryLinks(user?.handle ?? null);
   const profile = user === null ? null : await getProfile(env, user.id);
   return (
     <header className={styles.header}>
@@ -33,25 +31,20 @@ export async function SiteHeader() {
         <VineMark />
         <span className={styles.wordmark}>gitstalk</span>
       </Link>
-      <nav aria-label="Primary" className={styles.nav}>
-        <ul className={styles.navList}>
-          {primaryLinks(user?.handle ?? null).map((link) => (
-            <li key={link.href}>
-              <Link href={link.href} className={styles.navLink}>
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {links.length === 0 ? null : (
+        <nav aria-label="Primary" className={styles.nav}>
+          <ul className={styles.navList}>
+            {links.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className={styles.navLink}>
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
       <div className={styles.tools}>
-        {demoGateOpen ? (
-          <form action={signOut}>
-            <button type="submit" className={styles.textButton}>
-              Close demo gate
-            </button>
-          </form>
-        ) : null}
         {session === null || user === null ? (
           <>
             <ThemeToggle initial={theme} />
@@ -100,6 +93,7 @@ export async function SiteHeader() {
                 csrf: session.csrfToken,
                 theme,
                 docsUrl: env.DOCS_URL,
+                isPlatformAdmin: isPlatformAdmin(user, configuredPlatformAdmins()),
               })}
             />
           </>

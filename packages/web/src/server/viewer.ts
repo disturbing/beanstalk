@@ -1,6 +1,7 @@
 /**
- * Who is looking, from the request's cookies: their theme, and whether they signed in with
- * the demo password (needed to answer decision cards). Server-only.
+ * Who is looking, from the request's cookies: their theme, and whether this browser opened the
+ * demo gate with the demo password (an admin needs it to answer a race's decision cards).
+ * Server-only.
  */
 import { env } from 'cloudflare:workers';
 import { cookies } from 'next/headers';
@@ -14,7 +15,8 @@ export async function viewerTheme(): Promise<ThemeChoice> {
   return parseTheme(jar.get(THEME_COOKIE)?.value);
 }
 
-export async function isSignedIn(): Promise<boolean> {
+/** Whether this browser holds a valid demo-gate cookie. */
+export async function isDemoGateOpen(): Promise<boolean> {
   const jar = await cookies();
   return isValidSession(jar.get(SESSION_COOKIE)?.value, demoPassword(), Date.now() / 1000);
 }

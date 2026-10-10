@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { RunListing } from '@gitstalk/shared-ask/forge/forge-source';
 import { formatUsd } from '../../src/race/race-format';
 import styles from './runs.module.css';
+import { adminRunPath } from '../../src/admin/admin-paths';
 
 const PHASE_LABEL: Readonly<Record<RunListing['phase'], string>> = {
   created: 'Not started',
@@ -82,8 +83,8 @@ function RunRow({ run }: { readonly run: RunListing }) {
         {run.source === 'recorded' ? <span className={styles.recorded}>recorded</span> : null}
       </td>
       <td className={styles.links}>
-        <Link href={`/runs/${run.run}`}>Repository</Link>
-        <Link href={`/runs/${run.run}/race`}>Engine</Link>
+        <Link href={adminRunPath(run.run)}>Repository</Link>
+        <Link href={`${adminRunPath(run.run)}/race`}>Engine</Link>
       </td>
     </tr>
   );
