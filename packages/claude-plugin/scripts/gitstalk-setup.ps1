@@ -1,17 +1,17 @@
 <#
-Beanstalk setup for Windows (PowerShell 5.1 or 7): connect this machine's git to a Beanstalk
-account, once. The same commands and output as beanstalk-setup.sh (which Git for Windows' bash
+Gitstalk setup for Windows (PowerShell 5.1 or 7): connect this machine's git to a Gitstalk
+account, once. The same commands and output as gitstalk-setup.sh (which Git for Windows' bash
 also runs):
 
-  beanstalk-setup.ps1 detect
-  beanstalk-setup.ps1 generate [-File PATH]
-  beanstalk-setup.ps1 register (-Key FILE.pub | -AgentKey SHA256:... [-Agent SOCKET]) [-NoBrowser]
-  beanstalk-setup.ps1 remote OWNER/REPO [DIR]
-  beanstalk-setup.ps1 verify [OWNER/REPO]
+  gitstalk-setup.ps1 detect
+  gitstalk-setup.ps1 generate [-File PATH]
+  gitstalk-setup.ps1 register (-Key FILE.pub | -AgentKey SHA256:... [-Agent SOCKET]) [-NoBrowser]
+  gitstalk-setup.ps1 remote OWNER/REPO [DIR]
+  gitstalk-setup.ps1 verify [OWNER/REPO]
 
 Needs git and OpenSSH (Windows 10/11's built-in OpenSSH or Git for Windows' ssh-keygen).
-Private keys never leave this machine; secrets are never printed. Settings: BEANSTALK_WEB,
-BEANSTALK_CREDENTIAL_HELPER, BEANSTALK_NO_BROWSER=1 (as for the sh script).
+Private keys never leave this machine; secrets are never printed. Settings: GITSTALK_WEB,
+GITSTALK_CREDENTIAL_HELPER, GITSTALK_NO_BROWSER=1 (as for the sh script).
 #>
 param(
   [Parameter(Position = 0)][string]$Command = '',
@@ -24,19 +24,27 @@ param(
   [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
-$Web = if ($env:BEANSTALK_WEB) { $env:BEANSTALK_WEB.TrimEnd('/') } else { 'https://beanstalk-web.devaccounts-1password.workers.dev' }
+# Each setting is also read under its name from before the rename (BEANSTALK_*) when unset.
+foreach ($name in 'WEB', 'CREDENTIAL_HELPER', 'NO_BROWSER') {
+  $legacy = [Environment]::GetEnvironmentVariable("BEANSTALK_$name")
+  if (-not [Environment]::GetEnvironmentVariable("GITSTALK_$name") -and $legacy) { Set-Item "env:GITSTALK_$name" $legacy }
+}
+# The hosted service's web app keeps its workers.dev address until gitstalk.io is set up.
+$Web = if ($env:GITSTALK_WEB) { $env:GITSTALK_WEB.TrimEnd('/') } else { 'https://beanstalk-web.devaccounts-1password.workers.dev' }
 $ConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } elseif ($env:APPDATA) { $env:APPDATA } else { Join-Path $HOME '.config' }
-$ConfigDir = Join-Path $ConfigRoot 'beanstalk'
+$ConfigDir = Join-Path $ConfigRoot 'gitstalk'
+# A machine set up before the rename keeps its remembered key where it was.
+if (-not (Test-Path $ConfigDir) -and (Test-Path (Join-Path $ConfigRoot 'beanstalk'))) { $ConfigDir = Join-Path $ConfigRoot 'beanstalk' }
 $IsWin = [System.Environment]::OSVersion.Platform -eq 'Win32NT'
 $OnePasswordPipe = '\\.\pipe\openssh-ssh-agent'
 # An empty argument for native commands: PowerShell 7.3+ passes '' as is; older ones drop it.
 $EmptyArg = if ($PSVersionTable.PSVersion -ge [version]'7.3') { '' } else { '""' }
 
 function Say([string]$Text) { Write-Output $Text }
-function Fail([string]$Text) { [Console]::Error.WriteLine("beanstalk: $Text"); exit 1 }
+function Fail([string]$Text) { [Console]::Error.WriteLine("gitstalk: $Text"); exit 1 }
 
 function Get-SetupConfig {
-  try { $config = Invoke-RestMethod -Uri "$Web/api/setup" -TimeoutSec 20 } catch { Fail "cannot reach $Web (check BEANSTALK_WEB and the network)" }
+  try { $config = Invoke-RestMethod -Uri "$Web/api/setup" -TimeoutSec 20 } catch { Fail "cannot reach $Web (check GITSTALK_WEB and the network)" }
   $origin = $config.git_origin.TrimEnd('/')
   $uri = [Uri]$origin
   [pscustomobject]@{
@@ -106,16 +114,16 @@ function Invoke-Detect {
     $line = Get-Content $pub.FullName -TotalCount 1
     if ($line -match '^(ssh-|ecdsa-)') { Write-Option 'file' $line $pub.FullName }
   }
-  Say ("option`tgenerate`t-`tssh-ed25519`ta new key for Beanstalk`t{0}" -f (Join-Path $HOME '.ssh/beanstalk_ed25519'))
+  Say ("option`tgenerate`t-`tssh-ed25519`ta new key for Gitstalk`t{0}" -f (Join-Path $HOME '.ssh/gitstalk_ed25519'))
 }
 
 function Invoke-Generate {
-  $path = if ($File) { $File } else { Join-Path $HOME '.ssh/beanstalk_ed25519' }
+  $path = if ($File) { $File } else { Join-Path $HOME '.ssh/gitstalk_ed25519' }
   if (Test-Path $path) { Fail "$path already exists; register it with: register -Key $path.pub" }
   New-Item -ItemType Directory -Force -Path (Split-Path $path) | Out-Null
   $config = Get-SetupConfig
   # No passphrase (a script cannot type one); add one later with: ssh-keygen -p -f <file>
-  & ssh-keygen -q -t ed25519 -N $EmptyArg -C "beanstalk $(Get-MachineName) $($config.Host)" -f $path
+  & ssh-keygen -q -t ed25519 -N $EmptyArg -C "gitstalk $(Get-MachineName) $($config.Host)" -f $path
   if ($LASTEXITCODE -ne 0) { Fail 'ssh-keygen failed' }
   Say "generated: $path.pub"
   Say "fingerprint: $(Get-Fingerprint (Get-Content "$path.pub" -TotalCount 1))"
@@ -123,7 +131,7 @@ function Invoke-Generate {
 }
 
 function Get-BrowserOpener {
-  if ($env:BEANSTALK_NO_BROWSER -eq '1') { return $null }
+  if ($env:GITSTALK_NO_BROWSER -eq '1') { return $null }
   if ($env:BROWSER) { return $env:BROWSER }
   if ($IsWin) { return 'start' }
   foreach ($opener in 'open', 'xdg-open', 'wslview') { if (Get-Command $opener -ErrorAction SilentlyContinue) { return $opener } }
@@ -164,7 +172,7 @@ function Invoke-Register {
   if ($AgentKey) { Set-Content -Path (Join-Path $ConfigDir 'agent') -Value $(if ($Agent) { $Agent } else { $env:SSH_AUTH_SOCK }) }
   $body = @{ public_key = $line; machine = (Get-MachineName); https_token = (-not $config.SshHost) } | ConvertTo-Json -Compress
   try { $answer = Invoke-RestMethod -Method Post -Uri "$Web/api/ssh-keys/request" -ContentType 'application/json' -Body $body -TimeoutSec 20 }
-  catch { Fail "Beanstalk refused the key: $($_.ErrorDetails.Message)" }
+  catch { Fail "Gitstalk refused the key: $($_.ErrorDetails.Message)" }
   Say "fingerprint: $($answer.fingerprint)"
   Say "code: $($answer.user_code)"
   if (-not $NoBrowser -and (Open-Url $answer.verification_uri_complete)) {
@@ -196,10 +204,10 @@ function Wait-Approval($Answer, $Config) {
 
 function Save-Token($Config, [string]$Handle, [string]$Token) {
   $origin = "$($Config.Proto)://$($Config.Host)/"
-  $helper = $env:BEANSTALK_CREDENTIAL_HELPER
+  $helper = $env:GITSTALK_CREDENTIAL_HELPER
   if (-not $helper -and -not (& git config --get-urlmatch credential.helper $origin 2>$null)) { $helper = Get-OsCredentialHelper }
   if ($helper) {
-    # Scoped to the Beanstalk host: the empty value first clears inherited helpers there.
+    # Scoped to the Gitstalk host: the empty value first clears inherited helpers there.
     & git config --global --unset-all "credential.$origin.helper" 2>$null
     & git config --global --add "credential.$origin.helper" $EmptyArg
     & git config --global --add "credential.$origin.helper" $helper
@@ -262,5 +270,5 @@ switch ($Command) {
   'register' { Invoke-Register }
   'remote' { Invoke-Remote }
   'verify' { Invoke-Verify }
-  default { [Console]::Error.WriteLine('usage: beanstalk-setup.ps1 detect | generate | register | remote OWNER/REPO [DIR] | verify [OWNER/REPO]'); exit 2 }
+  default { [Console]::Error.WriteLine('usage: gitstalk-setup.ps1 detect | generate | register | remote OWNER/REPO [DIR] | verify [OWNER/REPO]'); exit 2 }
 }

@@ -8,10 +8,10 @@ coordinate agents (claims, reserved names) and explain verdicts; none of them mo
 
 ## Setup
 
-The plugin's `.mcp.json` points the `beanstalk` server at the hosted deployment's `/mcp` with
-no auth header, so the client uses OAuth: `claude mcp login plugin:beanstalk:beanstalk` (or
+The plugin's `.mcp.json` points the `gitstalk` server at the hosted deployment's `/mcp` with
+no auth header, so the client uses OAuth: `claude mcp login plugin:gitstalk:gitstalk` (or
 `/mcp` in a session) and approve in the browser. Another deployment: `claude mcp add
---transport http beanstalk <its /mcp URL> && claude mcp login beanstalk`. Tick **write** on the
+--transport http gitstalk <its /mcp URL> && claude mcp login gitstalk`. Tick **write** on the
 consent page if the agent should open beans and claim tasks. Every tool also follows the person's role on the repository: read tools need the read role, `bean_open`, `task_claim`, `task_release` and a pushing credential need the write role (`repository_access(repository)` says which you have). Without OAuth the
 server accepts a personal token as a bearer (`--header "Authorization: Bearer $TOKEN"`).
 Deploy tokens (`bsd_`) never open MCP. Never print a token.
@@ -36,7 +36,7 @@ Deploy tokens (`bsd_`) never open MCP. Never print a token.
 | `bean_open(repo, bean, intent, task?)` | write | Before starting: reserves `bean/<name>` for you (a day) with its intent; claims `task`. The intent you reserve is the bean's intent at the push (`-o intent` overrides) |
 | `bean_status(repo, bean)` | read | After a push: phase, failing tests, the landed beans it collided with (intent, files changed), the lines pushes printed, `next` |
 | `bean_wait(repo, bean, until?, timeout_s?)` | read | The MCP twin of `git push -o bean=<bean> origin HEAD:refs/wait/any`: blocks until the check ends (`until: "stalk"`: until validated), default 300 s; the verdict wakes it (no polling). Only when nothing else is left |
-| `task_list(repo)` | read | The backlog (`.beanstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
+| `task_list(repo)` | read | The backlog (`.gitstalk/backlog.md` or `BACKLOG.md` on the sprout): open, claimed (by, until), in_progress (whose bean), done |
 | `task_claim(repo, task)` | write | Before working on a task: two hours, renewed by claiming again or `bean_open` with it; a pushed bean for the task holds it until it lands |
 | `task_release(repo, task)` | write | You will not do it after all (already done, stopping): drops your claim and the names you reserved for it |
 | `git_credentials(repo, ttl_minutes?)` | read (push needs write) | Only when git is not connected: a credential for that one repository, at most an hour, as `git credential approve` input |

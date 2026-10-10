@@ -1,6 +1,6 @@
 #!/bin/sh
 # Runs setup-tests.sh in Linux containers (and the PowerShell tests in a pwsh container)
-# against one fake Beanstalk on this machine. Needs docker and node here; the containers get
+# against one fake Gitstalk on this machine. Needs docker and node here; the containers get
 # only git, OpenSSH and curl. Nothing of this machine's git, keys or agents is mounted.
 #
 #   sh run-containers.sh [image …]     default: debian, ubuntu, alpine, pwsh
@@ -17,7 +17,7 @@ git clone -q "$WORK/repos/smoke/demo.git" "$WORK/seed" 2>/dev/null
 (cd "$WORK/seed" && echo hi >README && git add README && git -c user.name=t -c user.email=t@t.invalid commit -qm init && git push -q origin HEAD:main)
 
 PORT=18765
-node "$HERE/fake-beanstalk.mjs" "$PORT" "$WORK/repos" "http://host.docker.internal:$PORT" >/dev/null &
+node "$HERE/fake-gitstalk.mjs" "$PORT" "$WORK/repos" "http://host.docker.internal:$PORT" >/dev/null &
 SERVER=$!
 sleep 1
 
@@ -26,7 +26,7 @@ run() {
   name=$1 image=$2 install=$3 command=$4
   printf '\n=== %s (%s)\n' "$name" "$image"
   docker run --rm --add-host=host.docker.internal:host-gateway \
-    -e BEANSTALK_TEST_SERVER="http://host.docker.internal:$PORT" \
+    -e GITSTALK_TEST_SERVER="http://host.docker.internal:$PORT" \
     -v "$HERE/..:/plugin:ro" --platform "linux/$(uname -m | sed s/x86_64/amd64/)" "$image" sh -c "{ $install; } >/dev/null 2>&1 && $command" || FAILED=$((FAILED + 1))
 }
 

@@ -8,7 +8,7 @@ import { PLUGIN_MCP_URL, agentInstalls } from './agent-installs';
 
 const PluginMcp = z.object({
   mcpServers: z.object({
-    beanstalk: z.object({ type: z.literal('http'), url: z.string() }).strict(),
+    gitstalk: z.object({ type: z.literal('http'), url: z.string() }).strict(),
   }),
 });
 
@@ -19,7 +19,7 @@ function pluginMcpJson(): z.infer<typeof PluginMcp> {
 
 describe("the plugin's MCP server", () => {
   it('is the hosted address, literally, with no auth header so clients use OAuth', () => {
-    const server = pluginMcpJson().mcpServers.beanstalk;
+    const server = pluginMcpJson().mcpServers.gitstalk;
     // Codex does not expand ${VAR:-default} in a plugin's URL; a literal works in both.
     expect(server.url).toBe(PLUGIN_MCP_URL);
     expect(server.url).not.toContain('$');
@@ -30,10 +30,10 @@ describe('the commands /signup/agent prints', () => {
   it('installs the plugin and signs in, for the hosted deployment', () => {
     const [claude, codex] = agentInstalls(PLUGIN_MCP_URL);
     expect(claude?.code).toBe(
-      'claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk',
+      'claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude mcp login plugin:gitstalk:gitstalk',
     );
     expect(codex?.code).toBe(
-      'codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@beanstalk && codex mcp login beanstalk',
+      'codex plugin marketplace add disturbing/beanstalk && codex plugin add gitstalk@gitstalk && codex mcp login gitstalk',
     );
   });
 
@@ -41,10 +41,10 @@ describe('the commands /signup/agent prints', () => {
     const staging = 'https://beanstalk-mcp-staging.example.workers.dev/mcp';
     const installs = agentInstalls(staging);
     expect(installs[0]?.code).toBe(
-      `claude mcp add --transport http beanstalk ${staging} && claude mcp login beanstalk`,
+      `claude mcp add --transport http gitstalk ${staging} && claude mcp login gitstalk`,
     );
     expect(installs[1]?.code).toBe(
-      `codex mcp add beanstalk --url ${staging} && codex mcp login beanstalk`,
+      `codex mcp add gitstalk --url ${staging} && codex mcp login gitstalk`,
     );
     expect(installs.every((install) => !install.code.includes(PLUGIN_MCP_URL))).toBe(true);
   });

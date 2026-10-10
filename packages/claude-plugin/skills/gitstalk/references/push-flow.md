@@ -5,8 +5,8 @@ waiting for verdicts (refs/wait); stacking; what the remote prints; status refs.
 
 ## Remote and credential
 
-`https://<beanstalk host>/<owner>/<repo>.git`. Authenticate with git's credential helper (set up
-by `/beanstalk:setup`) or a deploy token in CI. Never echo the token, commit it, or write a
+`https://<gitstalk host>/<owner>/<repo>.git`. Authenticate with git's credential helper (set up
+by `/gitstalk:setup`) or a deploy token in CI. Never echo the token, commit it, or write a
 tokened URL into a file. `git remote -v` may print it: do not paste that output anywhere.
 
 ## Branches

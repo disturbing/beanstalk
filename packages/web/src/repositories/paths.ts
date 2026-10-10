@@ -6,8 +6,12 @@
  */
 import { isReservedHandle } from '@gitstalk/shared-identity/reserved-handles';
 
-// One place names the plugin's marketplace (it stays `disturbing/beanstalk`).
-import { PLUGIN_MARKETPLACE } from '../setup/agent-installs';
+import {
+  MCP_SERVER_NAME,
+  PLUGIN_ID,
+  PLUGIN_MARKETPLACE,
+  SETUP_COMMAND,
+} from '@gitstalk/shared-race/plugin';
 
 /** Top-level static files and scripts the app serves, beside the routes accounts reserve. */
 const STATIC_PATHS: ReadonlySet<string> = new Set([
@@ -124,19 +128,19 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
     agents: [
       {
         harness: 'Claude Code',
-        line: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install beanstalk@beanstalk`,
+        line: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install ${PLUGIN_ID}`,
       },
       {
         harness: 'Codex',
-        line: `codex mcp add beanstalk --url ${config.mcpUrl} && codex mcp login beanstalk`,
+        line: `codex mcp add ${MCP_SERVER_NAME} --url ${config.mcpUrl} && codex mcp login ${MCP_SERVER_NAME}`,
       },
       { harness: 'Any MCP client', line: config.mcpUrl },
     ],
-    prompt: `Work on ${owner}/${name} on Beanstalk: clone it, make the change as a bean, and push it.`,
+    prompt: `Work on ${owner}/${name} on Gitstalk: clone it, make the change as a bean, and push it.`,
     plugin: {
-      claude: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup ${owner}/${name}"`,
-      codex: `codex mcp add beanstalk --url ${config.mcpUrl} && codex mcp login beanstalk`,
-      codexPrompt: `Set up git for Beanstalk: run "curl -fsSL ${web}/setup.sh | sh -s -- detect", ask me which SSH key to use, register it with the same script, then run its "remote ${owner}/${name}".`,
+      claude: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install ${PLUGIN_ID} && claude "${SETUP_COMMAND} ${owner}/${name}"`,
+      codex: `codex mcp add ${MCP_SERVER_NAME} --url ${config.mcpUrl} && codex mcp login ${MCP_SERVER_NAME}`,
+      codexPrompt: `Set up git for Gitstalk: run "curl -fsSL ${web}/setup.sh | sh -s -- detect", ask me which SSH key to use, register it with the same script, then run its "remote ${owner}/${name}".`,
     },
     https: {
       tokensPath: '/settings/tokens',
@@ -154,8 +158,8 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
 }
 
 /**
- * The Env vars tab's block for CI and scripts: git reads the token from BEANSTALK_TOKEN for
- * the Beanstalk host only, through `GIT_CONFIG_*` (git 2.31+), and never prompts. The second
+ * The Env vars tab's block for CI and scripts: git reads the token from GITSTALK_TOKEN for
+ * the Gitstalk host only, through `GIT_CONFIG_*` (git 2.31+), and never prompts. The second
  * form sends it as a Bearer header instead of through a credential helper.
  */
 export function envVarsBlock(
@@ -164,7 +168,7 @@ export function envVarsBlock(
 ): { readonly helper: string; readonly header: string } {
   const origin = gitOrigin.replace(/\/+$/, '');
   const common = [
-    `export BEANSTALK_TOKEN=${token ?? '<deploy token>'}`,
+    `export GITSTALK_TOKEN=${token ?? '<deploy token>'}`,
     'export GIT_TERMINAL_PROMPT=0',
     'export GIT_CONFIG_COUNT=1',
   ];
@@ -172,12 +176,12 @@ export function envVarsBlock(
     helper: [
       ...common,
       `export GIT_CONFIG_KEY_0='credential.${origin}.helper'`,
-      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'`,
+      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TOKEN"; }; f'`,
     ].join('\n'),
     header: [
       ...common,
       `export GIT_CONFIG_KEY_0='http.${origin}/.extraheader'`,
-      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"',
+      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $GITSTALK_TOKEN"',
     ].join('\n'),
   };
 }

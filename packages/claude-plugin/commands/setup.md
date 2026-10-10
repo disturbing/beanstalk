@@ -1,15 +1,15 @@
 ---
-description: Connect git on this machine to your Beanstalk account (pick an SSH key, approve it once in the browser)
+description: Connect git on this machine to your Gitstalk account (pick an SSH key, approve it once in the browser)
 argument-hint: "[owner/repo]"
 ---
 
-Connect this machine's git to the person's Beanstalk account, then carry on with what they
-asked. Follow the `beanstalk` skill, section "Connecting git". The script is bundled with this
+Connect this machine's git to the person's Gitstalk account, then carry on with what they
+asked. Follow the `gitstalk` skill, section "Connecting git". The script is bundled with this
 plugin; it sends only a public key, never prints secrets, and touches git config for the
-Beanstalk host only.
+Gitstalk host only.
 
-Script: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/beanstalk-setup.sh"` (on Windows without Git Bash:
-`powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/beanstalk-setup.ps1"`,
+Script: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/gitstalk-setup.sh"` (on Windows without Git Bash:
+`powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/gitstalk-setup.ps1"`,
 same subcommands, options as `-Key`, `-AgentKey`, `-Agent`, `-NoBrowser`).
 
 1. Run `<script> detect`. It prints facts (`platform:`, `ssh_keygen:`, `ssh_host:` …) and one
@@ -19,14 +19,14 @@ same subcommands, options as `-Key`, `-AgentKey`, `-Agent`, `-NoBrowser`).
    `generate`, skip the question and generate. Otherwise ask ONE question with
    AskUserQuestion, one choice per option, best first: a 1Password key ("Use 1Password key
    <comment> (SHA256:abcd…)", recommended: the private key never leaves 1Password), then
-   ssh-agent keys, then key files, then "Generate a new key for Beanstalk". The person can
+   ssh-agent keys, then key files, then "Generate a new key for Gitstalk". The person can
    also type another answer ("Other"); follow it.
-3. To generate: `<script> generate`. It makes `~/.ssh/beanstalk_ed25519` without a passphrase
-   (a script cannot type one); say they can add one later with `ssh-keygen -p -f ~/.ssh/beanstalk_ed25519`.
+3. To generate: `<script> generate`. It makes `~/.ssh/gitstalk_ed25519` without a passphrase
+   (a script cannot type one); say they can add one later with `ssh-keygen -p -f ~/.ssh/gitstalk_ed25519`.
 4. Register, with a 10-minute Bash timeout (600000 ms):
    - key file: `<script> register --key <path to the .pub>`
    - agent key: `<script> register --agent-key <fingerprint> --agent "<socket from the option line>"`
-   Before it runs, tell the person: a browser tab opens on Beanstalk; check that it shows the
+   Before it runs, tell the person: a browser tab opens on Gitstalk; check that it shows the
    same code and fingerprint, then click Add key (sign in with their passkey if asked). If the
    output says `approve: on any signed-in device, open … and enter …`, show that URL and code
    prominently: they approve from another device. `approved:` means done; on `declined` or
@@ -40,4 +40,4 @@ same subcommands, options as `-Key`, `-AgentKey`, `-Agent`, `-NoBrowser`).
    person's task.
 
 Never read, print or send a private key, a token, `~/.git-credentials` or keychain contents.
-Never change git credential settings for any host other than Beanstalk's.
+Never change git credential settings for any host other than Gitstalk's.

@@ -1,35 +1,44 @@
 #!/bin/sh
-# Beanstalk setup: connect this machine's git to a Beanstalk account, once.
-# Run by /beanstalk:setup in Claude Code (and by other agents, or a person, directly).
+# Gitstalk setup: connect this machine's git to a Gitstalk account, once.
+# Run by /gitstalk:setup in Claude Code (and by other agents, or a person, directly).
 #
-#   beanstalk-setup.sh detect                      what keys and tools this machine has
-#   beanstalk-setup.sh generate [--file PATH]      make an ed25519 key for Beanstalk
-#   beanstalk-setup.sh register (--key PUB | --agent-key FINGERPRINT [--agent SOCKET]) [--no-browser]
+#   gitstalk-setup.sh detect                      what keys and tools this machine has
+#   gitstalk-setup.sh generate [--file PATH]      make an ed25519 key for Gitstalk
+#   gitstalk-setup.sh register (--key PUB | --agent-key FINGERPRINT [--agent SOCKET]) [--no-browser]
 #                                                  add the key to your account (browser approval)
-#   beanstalk-setup.sh remote OWNER/REPO [DIR]     clone it, or point an existing clone at Beanstalk
-#   beanstalk-setup.sh verify [OWNER/REPO]         prove git reaches your account (and the repo)
+#   gitstalk-setup.sh remote OWNER/REPO [DIR]     clone it, or point an existing clone at Gitstalk
+#   gitstalk-setup.sh verify [OWNER/REPO]         prove git reaches your account (and the repo)
 #
 # Needs only sh, curl, git and OpenSSH (ssh-keygen >= 8.0). Private keys never leave this
 # machine: only the public key is sent. Secrets are never printed. Settings:
-#   BEANSTALK_WEB                 the Beanstalk web app (default: the public deployment)
-#   BEANSTALK_CREDENTIAL_HELPER   git credential helper for the Beanstalk host (default: the one
+#   GITSTALK_WEB                 the Gitstalk web app (default: the public deployment)
+#   GITSTALK_CREDENTIAL_HELPER   git credential helper for the Gitstalk host (default: the one
 #                                 git already uses, else the OS store, else "store")
-#   BEANSTALK_NO_BROWSER=1        never open a browser; show a code to enter on another device
+#   GITSTALK_NO_BROWSER=1        never open a browser; show a code to enter on another device
+# Each is also read under its name from before the rename (BEANSTALK_WEB, ...) when unset.
 set -u
 
-WEB=${BEANSTALK_WEB:-https://beanstalk-web.devaccounts-1password.workers.dev}
+GITSTALK_WEB=${GITSTALK_WEB:-${BEANSTALK_WEB:-}}
+GITSTALK_CREDENTIAL_HELPER=${GITSTALK_CREDENTIAL_HELPER:-${BEANSTALK_CREDENTIAL_HELPER:-}}
+GITSTALK_NO_BROWSER=${GITSTALK_NO_BROWSER:-${BEANSTALK_NO_BROWSER:-}}
+
+# The hosted service's web app keeps its workers.dev address until gitstalk.io is set up.
+WEB=${GITSTALK_WEB:-https://beanstalk-web.devaccounts-1password.workers.dev}
 WEB=${WEB%/}
-CONFIG_DIR=${XDG_CONFIG_HOME:-$HOME/.config}/beanstalk
+CONFIG_ROOT=${XDG_CONFIG_HOME:-$HOME/.config}
+CONFIG_DIR=$CONFIG_ROOT/gitstalk
+# A machine set up before the rename keeps its remembered key where it was.
+[ ! -d "$CONFIG_DIR" ] && [ -d "$CONFIG_ROOT/beanstalk" ] && CONFIG_DIR=$CONFIG_ROOT/beanstalk
 
 say() { printf '%s\n' "$*"; }
-warn() { printf 'beanstalk: %s\n' "$*" >&2; }
+warn() { printf 'gitstalk: %s\n' "$*" >&2; }
 die() { warn "$*"; exit 1; }
 
 # --- this deployment ------------------------------------------------------------------------
 
 load_config() {
   [ -n "${GIT_ORIGIN:-}" ] && return 0
-  config=$(curl -fsS --max-time 20 "$WEB/api/setup") || die "cannot reach $WEB (check BEANSTALK_WEB and the network)"
+  config=$(curl -fsS --max-time 20 "$WEB/api/setup") || die "cannot reach $WEB (check GITSTALK_WEB and the network)"
   GIT_ORIGIN=$(json_field "$config" git_origin)
   SSH_HOST=$(json_field "$config" ssh_host)
   [ -n "$GIT_ORIGIN" ] || die "$WEB/api/setup did not name a git origin"
@@ -126,11 +135,11 @@ cmd_detect() {
     [ "$comment" = "$rest" ] && comment=
     printf 'option\tfile\t%s\t%s\t%s\t%s\n' "$fp" "$type" "$comment" "$pub"
   done
-  printf 'option\tgenerate\t-\tssh-ed25519\ta new key for Beanstalk\t%s\n' "$HOME/.ssh/beanstalk_ed25519"
+  printf 'option\tgenerate\t-\tssh-ed25519\ta new key for Gitstalk\t%s\n' "$HOME/.ssh/gitstalk_ed25519"
 }
 
 cmd_generate() {
-  file=$HOME/.ssh/beanstalk_ed25519
+  file=$HOME/.ssh/gitstalk_ed25519
   while [ $# -gt 0 ]; do
     case $1 in
       --file) file=$2; shift 2 ;;
@@ -142,7 +151,7 @@ cmd_generate() {
   load_config
   # No passphrase here (a script cannot type one). To protect it, run afterwards in a terminal:
   #   ssh-keygen -p -f <file>     (and add it to your agent: ssh-add <file>)
-  ssh-keygen -q -t ed25519 -N '' -C "beanstalk $(machine_name) $GIT_HOST" -f "$file" || die "ssh-keygen failed"
+  ssh-keygen -q -t ed25519 -N '' -C "gitstalk $(machine_name) $GIT_HOST" -f "$file" || die "ssh-keygen failed"
   say "generated: $file.pub"
   say "fingerprint: $(fingerprint_of_line "$(cat "$file.pub")")"
   say "passphrase: none (to add one: ssh-keygen -p -f $file)"
@@ -151,7 +160,7 @@ cmd_generate() {
 # --- registration ---------------------------------------------------------------------------
 
 browser_opener() {
-  [ "${BEANSTALK_NO_BROWSER:-}" = 1 ] && return 1
+  [ "${GITSTALK_NO_BROWSER:-}" = 1 ] && return 1
   if [ -n "${BROWSER:-}" ]; then echo "$BROWSER"; return 0; fi
   for opener in open xdg-open wslview; do
     command -v "$opener" >/dev/null 2>&1 && { echo "$opener"; return 0; }
@@ -211,7 +220,7 @@ cmd_register() {
   body="{\"public_key\":$(json_string "$line"),\"machine\":$(json_string "$(machine_name)"),\"https_token\":$wants_token}"
   answer=$(curl -sS --max-time 20 -H 'content-type: application/json' --data "$body" "$WEB/api/ssh-keys/request") || die "cannot reach $WEB"
   code=$(json_field "$answer" user_code)
-  [ -n "$code" ] || die "Beanstalk refused the key: $(json_field "$answer" message)"
+  [ -n "$code" ] || die "Gitstalk refused the key: $(json_field "$answer" message)"
   poll=$(json_field "$answer" poll_token)
   link=$(json_field "$answer" verification_uri_complete)
   page=$(json_field "$answer" verification_uri)
@@ -256,11 +265,11 @@ wait_for_approval() {
   die "no approval within $2 seconds; run register again"
 }
 
-# Hands the HTTPS token to git's credential store for the Beanstalk host only.
+# Hands the HTTPS token to git's credential store for the Gitstalk host only.
 store_token() {
   origin="$GIT_PROTO://$GIT_HOST/"
-  if [ -n "${BEANSTALK_CREDENTIAL_HELPER:-}" ]; then
-    use_helper "$origin" "$BEANSTALK_CREDENTIAL_HELPER"
+  if [ -n "${GITSTALK_CREDENTIAL_HELPER:-}" ]; then
+    use_helper "$origin" "$GITSTALK_CREDENTIAL_HELPER"
   elif [ -z "$(git config --get-urlmatch credential.helper "$origin" 2>/dev/null)" ]; then
     use_helper "$origin" "$(os_credential_helper)"
   fi
@@ -270,7 +279,7 @@ store_token() {
   say "https_token: stored by git's credential helper ($(git config --get-urlmatch credential.helper "$origin"))"
 }
 
-# Scopes a helper to the Beanstalk host: the empty value first clears inherited helpers there.
+# Scopes a helper to the Gitstalk host: the empty value first clears inherited helpers there.
 use_helper() {
   git config --global --unset-all "credential.$1.helper" 2>/dev/null
   git config --global --add "credential.$1.helper" ''
@@ -296,14 +305,15 @@ repo_url() {
   fi
 }
 
-# Points ssh at the chosen key for the Beanstalk SSH host only.
+# Points ssh at the chosen key for the Gitstalk SSH host only.
 write_ssh_config() {
   [ -n "$SSH_HOST" ] && [ -f "$CONFIG_DIR/key.pub" ] || return 0
   mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
   touch "$HOME/.ssh/config" && chmod 600 "$HOME/.ssh/config"
-  grep -q "^# beanstalk: $SSH_HOST\$" "$HOME/.ssh/config" && return 0
+  # The marker a setup from before the rename wrote counts too.
+  grep -Eq "^# (gitstalk|beanstalk): $SSH_HOST\$" "$HOME/.ssh/config" && return 0
   {
-    printf '\n# beanstalk: %s\nHost %s\n  User git\n  IdentityFile "%s"\n  IdentitiesOnly yes\n' \
+    printf '\n# gitstalk: %s\nHost %s\n  User git\n  IdentityFile "%s"\n  IdentitiesOnly yes\n' \
       "$SSH_HOST" "$SSH_HOST" "$CONFIG_DIR/key.pub"
     [ -f "$CONFIG_DIR/agent" ] && printf '  IdentityAgent "%s"\n' "$(cat "$CONFIG_DIR/agent")"
   } >>"$HOME/.ssh/config"
@@ -351,11 +361,11 @@ case ${1:-} in
   verify) shift; cmd_verify "$@" ;;
   *)
     cat >&2 <<'USAGE'
-usage: beanstalk-setup.sh detect
-       beanstalk-setup.sh generate [--file PATH]
-       beanstalk-setup.sh register (--key FILE.pub | --agent-key SHA256:… [--agent SOCKET]) [--no-browser]
-       beanstalk-setup.sh remote OWNER/REPO [DIR]
-       beanstalk-setup.sh verify [OWNER/REPO]
+usage: gitstalk-setup.sh detect
+       gitstalk-setup.sh generate [--file PATH]
+       gitstalk-setup.sh register (--key FILE.pub | --agent-key SHA256:… [--agent SOCKET]) [--no-browser]
+       gitstalk-setup.sh remote OWNER/REPO [DIR]
+       gitstalk-setup.sh verify [OWNER/REPO]
 USAGE
     exit 2 ;;
 esac

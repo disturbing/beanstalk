@@ -1,8 +1,8 @@
-# Tests for scripts/beanstalk-setup.ps1 against fake-beanstalk.mjs (BEANSTALK_TEST_SERVER),
+# Tests for scripts/gitstalk-setup.ps1 against fake-gitstalk.mjs (GITSTALK_TEST_SERVER),
 # in a throwaway HOME with its own git config, a throwaway ssh-agent and throwaway keys.
 # Run in a pwsh container by run-containers.sh; not tested on real Windows here.
 $ErrorActionPreference = 'Continue'
-$Setup = Join-Path $PSScriptRoot '../scripts/beanstalk-setup.ps1'
+$Setup = Join-Path $PSScriptRoot '../scripts/gitstalk-setup.ps1'
 $Root = Join-Path ([IO.Path]::GetTempPath()) ("bsp" + (Get-Random))
 New-Item -ItemType Directory -Path $Root | Out-Null
 $script:Passed = 0
@@ -13,9 +13,9 @@ Set-Variable -Name HOME -Value $env:HOME -Force -Scope Global -ErrorAction Silen
 $env:GIT_CONFIG_GLOBAL = Join-Path $env:HOME '.gitconfig'
 $env:GIT_CONFIG_NOSYSTEM = '1'
 $env:XDG_CONFIG_HOME = Join-Path $env:HOME '.config'
-$env:BEANSTALK_CREDENTIAL_HELPER = 'store'
+$env:GITSTALK_CREDENTIAL_HELPER = 'store'
 $env:GIT_TERMINAL_PROMPT = '0'
-$env:BEANSTALK_WEB = $env:BEANSTALK_TEST_SERVER
+$env:GITSTALK_WEB = $env:GITSTALK_TEST_SERVER
 $env:DISPLAY = ':0'
 Remove-Item Env:SSH_AUTH_SOCK, Env:SSH_CONNECTION -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path (Join-Path $env:HOME '.ssh') | Out-Null
@@ -47,15 +47,15 @@ try {
   Check 'detect offers to generate a key' ([bool]($out -match "^option`tgenerate")) $out
 
   $out = Setup generate
-  Check 'generate makes ~/.ssh/beanstalk_ed25519' (Test-Path (Join-Path $env:HOME '.ssh/beanstalk_ed25519.pub')) $out
+  Check 'generate makes ~/.ssh/gitstalk_ed25519' (Test-Path (Join-Path $env:HOME '.ssh/gitstalk_ed25519.pub')) $out
 
-  $out = Setup register -Key (Join-Path $env:HOME '.ssh/beanstalk_ed25519.pub')
+  $out = Setup register -Key (Join-Path $env:HOME '.ssh/gitstalk_ed25519.pub')
   Check 'register (browser) is approved and stores the HTTPS token' ([bool]($out -match '^approved: key added to @smoke') -and [bool]($out -match '^https_token: stored')) $out
   Check 'register opened the approval page with the code' ((Get-Content (Join-Path $Root 'browser.log') -Raw) -match 'code=BCDF-GHJK') ''
   Check 'register never prints the token' (-not ($out -match 'bsu_')) $out
-  $origin = "$($env:BEANSTALK_WEB)/"
+  $origin = "$($env:GITSTALK_WEB)/"
   $helpers = (& git config --get-all "credential.$origin.helper") -join ','
-  Check 'the credential helper is scoped to the Beanstalk host only' ($helpers -eq ',store') $helpers
+  Check 'the credential helper is scoped to the Gitstalk host only' ($helpers -eq ',store') $helpers
 
   $out = Setup verify smoke/demo
   Check 'verify names the account and reaches the repository' ([bool]($out -match '^whoami: @smoke') -and [bool]($out -match '^ls_remote: smoke/demo ok')) $out
@@ -68,7 +68,7 @@ try {
   $out = Setup register -AgentKey $agentFp -NoBrowser
   Check 'register -NoBrowser shows the page and code to enter' ([bool]($out -match 'enter BCDF-GHJK') -and -not (Test-Path (Join-Path $Root 'browser.log'))) $out
 
-  Invoke-RestMethod -Method Post -Uri "$($env:BEANSTALK_WEB)/__mode?deny=1" | Out-Null
+  Invoke-RestMethod -Method Post -Uri "$($env:GITSTALK_WEB)/__mode?deny=1" | Out-Null
   $out = Setup register -Key (Join-Path $env:HOME '.ssh/id_ed25519.pub')
   Check 'a declined request fails and says so' ([bool]($out -match 'declined')) $out
 } finally {

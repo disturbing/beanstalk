@@ -1,5 +1,5 @@
 /**
- * The setup script's side of the web app (`/beanstalk:setup` in the Claude Code plugin, or
+ * The setup script's side of the web app (`/gitstalk:setup` in the Claude Code plugin, or
  * `<web>/setup.sh` for other agents): where git and SSH live for this deployment, and the
  * two calls that register an SSH key (start a request, poll its outcome). Request bodies are
  * validated here; the identity rules live in @gitstalk/shared-identity/ssh-key-requests.

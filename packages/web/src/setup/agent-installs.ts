@@ -5,13 +5,12 @@
  * another MCP address (staging, a fork) gets plain `mcp add` lines for its own address instead,
  * because the plugin would connect to the hosted one.
  */
-
-/**
- * The public repository whose `.claude-plugin/marketplace.json` lists the plugin (its default
- * branch, `prototype`, holds the code; `owner/repo#branch` names another branch). The start
- * page's lines (`repositories/paths.ts`) use it too.
- */
-export const PLUGIN_MARKETPLACE = 'disturbing/beanstalk';
+import {
+  MCP_SERVER_NAME,
+  PLUGIN_ID,
+  PLUGIN_MARKETPLACE,
+  PLUGIN_MCP_SERVER,
+} from '@gitstalk/shared-race/plugin';
 
 /** The MCP address in `packages/claude-plugin/.mcp.json` (a test keeps the two equal). */
 export const PLUGIN_MCP_URL = 'https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp';
@@ -24,7 +23,7 @@ export type AgentInstall = {
   readonly code: string;
   /** What happens next, in a sentence or two. */
   readonly after: string;
-  /** Whether this exact text was run end to end against Beanstalk. */
+  /** Whether this exact text was run end to end against Gitstalk. */
   readonly verified: boolean;
 };
 
@@ -36,10 +35,10 @@ export function agentInstalls(mcpUrl: string): readonly AgentInstall[] {
       name: 'Claude Code',
       where: 'paste in your terminal',
       code: hosted
-        ? `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk`
-        : `claude mcp add --transport http beanstalk ${mcpUrl} && claude mcp login beanstalk`,
+        ? `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install ${PLUGIN_ID} && claude mcp login ${PLUGIN_MCP_SERVER}`
+        : `claude mcp add --transport http ${MCP_SERVER_NAME} ${mcpUrl} && claude mcp login ${MCP_SERVER_NAME}`,
       after:
-        'Your browser opens once: sign in (or create your account) and approve the session. Back in Claude Code the Beanstalk tools are ready. Already in a session? Type /mcp and pick beanstalk.',
+        'Your browser opens once: sign in (or create your account) and approve the session. Back in Claude Code the Gitstalk tools are ready. Already in a session? Type /mcp and pick gitstalk.',
       verified: true,
     },
     {
@@ -47,8 +46,8 @@ export function agentInstalls(mcpUrl: string): readonly AgentInstall[] {
       name: 'Codex',
       where: 'paste in your terminal',
       code: hosted
-        ? `codex plugin marketplace add ${PLUGIN_MARKETPLACE} && codex plugin add beanstalk@beanstalk && codex mcp login beanstalk`
-        : `codex mcp add beanstalk --url ${mcpUrl} && codex mcp login beanstalk`,
+        ? `codex plugin marketplace add ${PLUGIN_MARKETPLACE} && codex plugin add ${PLUGIN_ID} && codex mcp login ${MCP_SERVER_NAME}`
+        : `codex mcp add ${MCP_SERVER_NAME} --url ${mcpUrl} && codex mcp login ${MCP_SERVER_NAME}`,
       after:
         'The last step opens your browser: sign in and approve the session. Codex keeps running on your own plan; the session acts as you.',
       verified: true,
@@ -57,15 +56,15 @@ export function agentInstalls(mcpUrl: string): readonly AgentInstall[] {
       id: 'cursor',
       name: 'Cursor',
       where: 'add to ~/.cursor/mcp.json, then run in your terminal',
-      code: `{ "mcpServers": { "beanstalk": { "url": "${mcpUrl}" } } }\ncursor-agent mcp login beanstalk`,
-      after: 'Or open Cursor Settings › MCP and click “Needs login” next to beanstalk.',
+      code: `{ "mcpServers": { "gitstalk": { "url": "${mcpUrl}" } } }\ncursor-agent mcp login gitstalk`,
+      after: 'Or open Cursor Settings › MCP and click “Needs login” next to gitstalk.',
       verified: false,
     },
     {
       id: 'gemini',
       name: 'Gemini CLI',
       where: 'paste in your terminal, then in Gemini',
-      code: `gemini mcp add --transport http beanstalk ${mcpUrl}\n/mcp auth beanstalk`,
+      code: `gemini mcp add --transport http gitstalk ${mcpUrl}\n/mcp auth gitstalk`,
       after: 'The second line runs inside Gemini CLI and opens the browser sign-in.',
       verified: false,
     },

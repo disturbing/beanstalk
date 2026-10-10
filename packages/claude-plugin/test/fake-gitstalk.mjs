@@ -1,8 +1,8 @@
-// A stand-in for the Beanstalk web app and gateway, for the setup script's tests: the setup
+// A stand-in for the Gitstalk web app and gateway, for the setup script's tests: the setup
 // API, key requests (approved on the second poll, or denied), whoami, and git smart HTTP over
 // `git http-backend` behind the same token check the gateway makes. No dependencies.
 //
-//   node fake-beanstalk.mjs <port> <repos dir> [public origin]
+//   node fake-gitstalk.mjs <port> <repos dir> [public origin]
 //   GET /__state           what the last key request carried (for assertions)
 //   POST /__mode?deny=1    the next request is declined;  ?ssh=<host>  the SSH endpoint is live
 import { spawn } from 'node:child_process';
@@ -111,10 +111,10 @@ function tokenOf(req) {
 function unauthorized(res) {
   res.writeHead(401, {
     'content-type': 'text/plain; charset=utf-8',
-    'www-authenticate': 'Basic realm="Beanstalk"',
+    'www-authenticate': 'Basic realm="Gitstalk"',
   });
   res.end(
-    'Beanstalk: this git is not connected to your account yet. Pick one:\n  1. Claude Code (easiest): /beanstalk:setup\n',
+    'Gitstalk: this git is not connected to your account yet. Pick one:\n  1. Claude Code (easiest): /gitstalk:setup\n',
   );
 }
 

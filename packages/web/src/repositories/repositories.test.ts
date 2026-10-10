@@ -134,6 +134,7 @@ function fakeGateway(): RepositoriesRpc & { readonly calls: string[] } {
         files: [],
         readme: null,
         checks: null,
+        checksPath: null,
         truncated: false,
       });
     },
@@ -372,7 +373,7 @@ describe('the start page', () => {
       'notes',
     );
     expect(guide.plugin.claude).toBe(
-      'claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup coop/notes"',
+      'claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude "/gitstalk:setup coop/notes"',
     );
     expect(guide.plugin.codexPrompt).toContain(
       'curl -fsSL https://web.example.test/setup.sh | sh -s -- detect',
@@ -410,26 +411,26 @@ describe('the start page', () => {
 });
 
 describe('the Env vars tab', () => {
-  it('scopes git to the gateway host and reads the token from BEANSTALK_TOKEN', () => {
+  it('scopes git to the gateway host and reads the token from GITSTALK_TOKEN', () => {
     const block = envVarsBlock('https://git.example.test/', null);
     expect(block.helper.split('\n')).toEqual([
-      'export BEANSTALK_TOKEN=<deploy token>',
+      'export GITSTALK_TOKEN=<deploy token>',
       'export GIT_TERMINAL_PROMPT=0',
       'export GIT_CONFIG_COUNT=1',
       "export GIT_CONFIG_KEY_0='credential.https://git.example.test.helper'",
-      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'`,
+      `export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TOKEN"; }; f'`,
     ]);
     expect(block.header).toContain(
       "export GIT_CONFIG_KEY_0='http.https://git.example.test/.extraheader'",
     );
     expect(block.header).toContain(
-      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"',
+      'export GIT_CONFIG_VALUE_0="Authorization: Bearer $GITSTALK_TOKEN"',
     );
   });
 
   it('fills in a token that was just made', () => {
     expect(envVarsBlock('https://git.example.test', 'bsd_abc').helper).toContain(
-      'export BEANSTALK_TOKEN=bsd_abc',
+      'export GITSTALK_TOKEN=bsd_abc',
     );
   });
 });

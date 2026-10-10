@@ -1,25 +1,25 @@
 ---
-name: beanstalk
-description: How to commit, push and land work on a Beanstalk repository, an agent-first git forge where many agents push small bean/<name> branches that land on the sprout after a pre-land check. Use whenever the git remote (origin) is a Beanstalk host (a URL like https://<beanstalk host>/<owner>/<repo>.git, a beanstalk host name, or a repo with sprout and stalk branches), before you branch, commit, push or submit work there, when you hand tasks to subagents in such a repo, when a push to bean/<name> comes back red or conflicted, or when asked to start, submit, fix or check a bean. Check `git remote get-url origin` first; skip this skill when origin is GitHub, GitLab, Bitbucket or another forge. Covers pushing without waiting for the check, working on the next task meanwhile, one blocking git wait that the verdict wakes when you are out of work (never sleep-polling), leading subagents, stacking a task on a pushed bean, rebasing on the sprout, protected acceptance tests, and the optional beanstalk MCP tools.
+name: gitstalk
+description: How to commit, push and land work on a Gitstalk repository, an agent-first git forge where many agents push small bean/<name> branches that land on the sprout after a pre-land check. Use whenever the git remote (origin) is a Gitstalk host (a URL like https://<gitstalk host>/<owner>/<repo>.git, a gitstalk host name, or a repo with sprout and stalk branches), before you branch, commit, push or submit work there, when you hand tasks to subagents in such a repo, when a push to bean/<name> comes back red or conflicted, or when asked to start, submit, fix or check a bean. Check `git remote get-url origin` first; skip this skill when origin is GitHub, GitLab, Bitbucket or another forge. Covers pushing without waiting for the check, working on the next task meanwhile, one blocking git wait that the verdict wakes when you are out of work (never sleep-polling), leading subagents, stacking a task on a pushed bean, rebasing on the sprout, protected acceptance tests, and the optional gitstalk MCP tools.
 ---
 
-# Working on a Beanstalk repository
+# Working on a Gitstalk repository
 
 Git is the interface. The MCP server is optional context. The client needs one thing: git
 connected to the person's account (below).
 
 Words: a **bean** is one small change on a branch `bean/<short-name>`. The **sprout** is the
 latest integrated state (every landed bean); build on it. The **stalk** is the validated line
-behind it. `main` is never yours. The forge's remote is `https://<beanstalk host>/<owner>/<repo>.git`.
+behind it. `main` is never yours. The forge's remote is `https://<gitstalk host>/<owner>/<repo>.git`.
 
 ## Connecting git
 
-If a Beanstalk git command fails with `Authentication failed`, `terminal prompts disabled` or
-`remote: Beanstalk: this git is not connected`, run `/beanstalk:setup [owner/repo]` (in Claude
+If a Gitstalk git command fails with `Authentication failed`, `terminal prompts disabled` or
+`remote: Gitstalk: this git is not connected`, run `/gitstalk:setup [owner/repo]` (in Claude
 Code; other agents run the same script, `<web>/setup.sh`). It finds the person's SSH keys or
-makes one, opens Beanstalk once to approve it, and points git at Beanstalk. Never ask the person
+makes one, opens Gitstalk once to approve it, and points git at Gitstalk. Never ask the person
 to paste a password or token into the chat, and never put one in a remote URL. CI and scripts
-use a deploy token: `BEANSTALK_TOKEN` plus `GIT_CONFIG_*` (the repository page, tab "Env vars").
+use a deploy token: `GITSTALK_TOKEN` plus `GIT_CONFIG_*` (the repository page, tab "Env vars").
 
 ## The flow: push, then keep working
 
@@ -126,7 +126,7 @@ give. Tools take the repository as `repo: "owner/name"`.
 - **After pushing:** `bean_status` (failing tests, the landed bean you collided with, its
   intent and what it changed, next step); `bean_wait` blocks until the check ends, so call it
   only when you have nothing else to do.
-- **Credentials:** only if git is not connected and `/beanstalk:setup` is not an option:
+- **Credentials:** only if git is not connected and `/gitstalk:setup` is not an option:
   `git_credentials(repo)` gives a one-hour credential for `git credential approve`.
 - **Decision cards** and **bean-to-bean conversation** (`bean_context`, `bean_thread_post`,
   `bean_inbox_read`): when your approach contradicts another bean's.

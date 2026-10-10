@@ -1,10 +1,10 @@
 /**
  * The setup scripts bundled in the Claude Code plugin, served by the web app for agents
- * without the plugin (`curl -fsSL <web>/setup.sh | sh -s -- detect`). The default Beanstalk
+ * without the plugin (`curl -fsSL <web>/setup.sh | sh -s -- detect`). The default Gitstalk
  * address inside them becomes this deployment's, so staging serves a script for staging.
  */
-import powershell from '../../../claude-plugin/scripts/beanstalk-setup.ps1?raw';
-import posix from '../../../claude-plugin/scripts/beanstalk-setup.sh?raw';
+import powershell from '../../../claude-plugin/scripts/gitstalk-setup.ps1?raw';
+import posix from '../../../claude-plugin/scripts/gitstalk-setup.sh?raw';
 
 const PUBLIC_WEB = 'https://beanstalk-web.devaccounts-1password.workers.dev';
 
