@@ -1,4 +1,4 @@
-// Beanstalk — "growing together" (30 s, 1920x1080, 30 fps). claude-animation workflow, node canvas + ffmpeg.
+// Gitstalk — "growing together" (30 s, 1920x1080, 30 fps). claude-animation workflow, node canvas + ffmpeg.
 //
 // STYLE BIBLE (from ../beanstalk-swarm/frame.md + STORYBOARD.md)
 //   Look: a botanical field-guide plate. Parchment #E9E5DB, one indigo ink #1B2566 for every line and word.
@@ -18,7 +18,7 @@
 //   4  14-19    together: (1) a04's bean is sent back with a reason, climbs again and locks;
 //               (2) two beans clash, nudge, reconcile; (3) a bud becomes the decision card.  drop+ping, clicks, chime
 //   5  19-25    push up; proof: label rule, then three claims lock on leaves bottom-to-top.        rising pings
-//   6  25-30    push up through ink clouds; tendril curls; "Beanstalk." lockup; hold from ~27.9.  riser, chime
+//   6  25-30    push up through ink clouds; tendril curls; "Gitstalk." lockup; hold from ~27.9.  riser, chime
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -520,7 +520,7 @@ run({
     const a3 = ap(t, 9.3, .45) * (1 - ss(18.8, 19.1, t));
     txt(ctx, "FIG. 2", 130, 112, { f: SANSB, size: 17, track: 3.2, a: a3 });
     txt(ctx, "The beanstalk.", 128, 178 + rise(t, 9.35), { f: ITAL, size: 78, a: a3 });
-    if (a3 > 0) { txt(ctx, "Beanstalk", 1790, 116, { f: SERIF, size: 38, a: a3, align: "right" });
+    if (a3 > 0) { txt(ctx, "Gitstalk", 1790, 116, { f: SERIF, size: 38, a: a3, align: "right" });
       bean(ctx, 1600, 146, 0, .45, { green: 1, a: a3 }); txt(ctx, "LOCKED IN GREEN", 1790, 152, { f: SANSB, size: 13, track: 2.4, a: a3, align: "right" });
       bean(ctx, 1600, 172, 0, .45, { a: a3 }); txt(ctx, "CLIMBING", 1790, 178, { f: SANSB, size: 13, track: 2.4, a: a3, align: "right" }); }
     const a5 = ap(t, 19.85, .4) * (1 - ss(24.9, 25.25, t));
@@ -528,8 +528,8 @@ run({
       ctx.save(); ctx.globalAlpha *= a5; line(ctx, [[600, 116], [600 + 1190 * eOut(clamp((t - 19.9) / .5)), 116]], 1.2, INK); ctx.restore(); }
     // lockup
     const wa = ap(t, 25.95, .5);
-    txt(ctx, "Beanstalk.", 120, 470 + rise(t, 25.95, .5, 24), { f: SERIF, size: 236, a: wa });
-    txt(ctx, "Your agent swarm, growing together.", 130, 572 + rise(t, 26.85, .5, 16), { f: ITAL, size: 66, a: ap(t, 26.85) });
+    txt(ctx, "Gitstalk.", 120, 470 + rise(t, 25.95, .5, 24), { f: SERIF, size: 236, a: wa });
+    txt(ctx, "Agents grow together.", 130, 572 + rise(t, 26.85, .5, 16), { f: ITAL, size: 66, a: ap(t, 26.85) });
     txt(ctx, "BUILT ON CLOUDFLARE WORKERS + ARTIFACTS", 130, 1010, { f: SANSB, size: 17, track: 3.4, a: ap(t, 27.35, .45) });
     // pagenum, the one persistent chrome
     txt(ctx, `0${PAGE(t)} / 06`, 1790, 1010, { f: MONO, size: 15, track: 1.2, a: .75, align: "right" });
