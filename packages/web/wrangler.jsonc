@@ -88,6 +88,10 @@
     // web's own fake (src/actions/fake), for a staging stack without one; every page says so.
     // Empty: the tab says Actions are not running on this deployment.
     "ACTIONS_SOURCE": "gateway",
+    // Platform admins (docs/claude-opus/19 §11): comma-separated handles that see /admin (the
+    // benchmark runs, the race and the demo gate). Empty: nobody; everyone else gets a 404 there.
+    // Set it per environment in env.jsonc: overrides.web.vars.PLATFORM_ADMINS.
+    "PLATFORM_ADMINS": "",
   },
   // Workers AI: Jev (typesafe/jev) for the picker, and the optional Ask classifier model.
   // Billed to the account; no API key is involved. `remote` makes local dev call it too.

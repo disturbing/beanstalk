@@ -7,6 +7,7 @@ import styles from './runs.module.css';
 import { listRuns } from '../../src/forge/sources';
 import { formatMinutes, formatUsd } from '../../src/race/race-format';
 import { racePair } from '../../src/recorded/race-pair';
+import { ADMIN_RACE, adminRunPath } from '../../src/admin/admin-paths';
 
 /** The k-th green the demo measures "most of the work" by (`research/race/kth_green.py`). */
 const MOST_GREENS = 35;
@@ -35,10 +36,10 @@ export async function RunsLanding() {
             {formatUsd(beanstalk.costUsd)} against {formatUsd(queue.costUsd)} of agent spend.
           </p>
           <p className={styles.heroActions}>
-            <Link href="/race" className={styles.primary}>
+            <Link href={ADMIN_RACE} className={styles.primary}>
               Watch the race
             </Link>
-            <Link href={`/runs/${beanstalk.run}`} className={styles.secondary}>
+            <Link href={adminRunPath(beanstalk.run)} className={styles.secondary}>
               Explore the Gitstalk repository
             </Link>
           </p>

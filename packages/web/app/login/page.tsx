@@ -3,13 +3,10 @@ import Link from 'next/link';
 import styles from '../../components/account/account.module.css';
 import { TurnstileField } from '../../components/account/turnstile';
 import { PasskeySignin } from '../../components/account/passkey-buttons';
-import loginStyles from '../../components/shell/login.module.css';
 import { NextPath } from '../../src/auth/http';
 import { emailSignIn } from '../../src/auth/services';
 import { turnstileSiteKey } from '../../src/auth/turnstile';
 import { currentUser } from '../../src/auth/user';
-import { signIn } from '../../src/server/actions';
-import { demoPassword, isSignedIn } from '../../src/server/viewer';
 
 export const metadata = { title: 'Sign in' };
 /** Per person and per request: never prerendered or cached. */
@@ -18,10 +15,7 @@ export const dynamic = 'force-dynamic';
 type Query = Readonly<Record<string, string | string[] | undefined>>;
 type PageProps = { readonly searchParams: Promise<Query> };
 
-/**
- * Sign in with a passkey (and by email once a sender domain is configured). The demo gate for
- * decision cards (DEMO_PASSWORD) stays below until decisions move to repository roles.
- */
+/** Sign in with a passkey (and by email once a sender domain is configured). */
 export default async function LoginPage({ searchParams }: PageProps) {
   const query = await searchParams;
   const next = NextPath.parse(typeof query['next'] === 'string' ? query['next'] : '/');
@@ -59,7 +53,6 @@ export default async function LoginPage({ searchParams }: PageProps) {
             </p>
           )}
         </section>
-        <DemoGate query={query} next={next} />
       </div>
     </main>
   );
@@ -104,47 +97,5 @@ function EmailSignin({
         )}
       </form>
     </>
-  );
-}
-
-/** The demo password for decision cards on live runs (unchanged). */
-async function DemoGate({ query, next }: { readonly query: Query; readonly next: string }) {
-  if (demoPassword() === '') return null;
-  const signedIn = await isSignedIn();
-  const failed = query['error'] !== undefined;
-  return (
-    <section className={loginStyles.panel} aria-labelledby="demo-title">
-      <h2 id="demo-title" className={styles.sectionTitle}>
-        Decide on live runs
-      </h2>
-      <p className={loginStyles.lede}>
-        Answering a decision card changes what a live run ships, so it needs the demo password.
-      </p>
-      {signedIn ? <p className={loginStyles.note}>The demo gate is open in this browser.</p> : null}
-      <form action={signIn} className={loginStyles.form}>
-        <input type="hidden" name="next" value={next} />
-        <label htmlFor="password" className={loginStyles.label}>
-          Demo password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className={loginStyles.input}
-          aria-invalid={failed}
-          aria-describedby={failed ? 'login-error' : undefined}
-        />
-        {failed ? (
-          <p id="login-error" className={loginStyles.error} role="alert">
-            That password is not right. Check it and try again.
-          </p>
-        ) : null}
-        <button type="submit" className={loginStyles.button}>
-          Open the demo gate
-        </button>
-      </form>
-    </section>
   );
 }

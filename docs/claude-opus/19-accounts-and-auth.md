@@ -270,3 +270,15 @@ FROM product_events WHERE timestamp > NOW() - INTERVAL '30' DAY GROUP BY event
 - Settling sessions are matched to listed grants by client and a 30 s window; two approvals of the same client within 30 s show as one until the list catches up.
 - The Turnstile test widget says "For testing only" on staging, as Cloudflare draws it.
 
+## 11. Platform admins and the admin area (2026-10-10)
+
+Owner: "remove the 'look at races' stuff from what normal users see and put it behind an admin panel."
+
+- **Who.** The web Worker's `PLATFORM_ADMINS` var: comma-separated handles, any case, a leading `@` allowed; empty (the template's default) means nobody. `isPlatformAdmin(user, configured)` is in `packages/web/src/admin/platform-admins.ts`; the server gate (`requirePlatformAdmin`, `platformAdminOf`, `redirectToAdmin`) in `src/admin/admin-gate.ts`. To make someone an admin, set `overrides.web.vars.PLATFORM_ADMINS` in `environments/<env>/env.jsonc` (or in `GITSTALK_ENV_CONFIG`) and deploy the web package (`30` §3, §4). It is a var, not a secret: handles are public. Admin follows the handle, so renaming an admin account drops admin until the var is updated.
+- **Where.** `/admin` (the handle `admin` is reserved): an overview (people, disabled accounts and organizations counted from `IDENTITY_DB`; repositories are not counted because the registry has no count call), Benchmark runs (`/admin/runs`, the old landing), Watch the race (`/admin/race`), each run's repository, Files and Engine (`/admin/runs/<run>…`), and the demo gate (`/admin/demo-gate`). Admins reach it from "Admin" in the account menu.
+- **Everyone else** gets the ordinary 404 on every admin page, never a 403. The old URLs `/race`, `/races` and `/runs/<run>…` send an admin to the same admin page (the query is kept, so a gateway `live_url` with `?key=` still works) and 404 for anyone else. `/api/runs/<run>/…` (live events, stream diffs, bean diffs) answer admins only. A repository's own feed, `/api/repos/<owner>/<repo>/live`, is unchanged.
+- **Demo gate.** Opening it now needs an admin as well as `DEMO_PASSWORD`, and a race's decision card needs both. A repository's cards stay with its maintainers. The login page no longer shows the gate, and the header's "Close demo gate" moved to the gate's page.
+- **Gone for normal users.** The header's "Benchmark runs" and "Watch the race", the login page's demo-gate section, the 404's "reaped after its race", Home's `demo/beanstalk-shop` row, and the signed-out benchmark landing at `/` (where the site does not answer `/`, the app now sends you to sign in).
+- **Tests.** `src/admin/*.test.ts` cover the handle rule and the old-URL mapping. They also scan `app/` to check that every admin page, run API and old URL goes through the gate, and that no page or component outside the race views links to a race.
+- **Left.** The MCP `preview_link` tools still return `<web>/runs/<run>` links. These are race runs, so they now 404 for non-admins. The marketing site keeps its own "The race" section and its `#race` nav anchor, neither of which links into the app.
+

@@ -100,20 +100,6 @@
   filter: brightness(1.08);
 }
 
-.textButton {
-  background: none;
-  border: 0;
-  padding: 4px 0;
-  color: var(--ink-2);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-}
-
-.textButton:hover {
-  color: var(--ink);
-}
-
 /* Menu buttons and their menus. */
 
 .menuRoot {

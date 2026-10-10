@@ -1,7 +1,7 @@
 /**
- * The run routes (`/runs/<run>…`, `/api/runs/<run>/…`) serve races by engine id. A persistent
- * repository's engine is a run too, so these routes ask the gateway first (`engineAccess`, i.e.
- * `mayUseEngine`): a race answers "no repository" and stays open as before; a repository is
+ * The run routes (`/admin/runs/<run>…`, `/api/runs/<run>/…`; platform admins only) serve races
+ * by engine id. A persistent repository's engine is a run too, so these routes ask the gateway
+ * first (`engineAccess`, i.e. `mayUseEngine`): a race answers "no repository"; a repository is
  * served only to people who may read it, and is missing for everyone else.
  */
 import type { RepositoryAction } from '@gitstalk/shared-race/collaborators';

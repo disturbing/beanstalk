@@ -1,4 +1,4 @@
-import { getUser } from '../../../../../../../src/auth/user';
+import { platformAdminOf } from '../../../../../../../src/admin/admin-gate';
 import { mayViewEngine } from '../../../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
@@ -16,7 +16,9 @@ export async function GET(request: Request, context: Context): Promise<Response>
   const run = RunId.safeParse(params.run);
   const bean = TaskId.safeParse(params.bean);
   if (!run.success || !bean.success) return problem(400, 'not a run or a bean id');
-  if (!(await mayViewEngine(env.GATEWAY, run.data, (await getUser(request))?.id ?? null)))
+  // Benchmark runs are the admin area's (a repository's engine streams through /api/repos).
+  const admin = await platformAdminOf(request);
+  if (admin === null || !(await mayViewEngine(env.GATEWAY, run.data, admin.id)))
     return problem(404, 'no such run');
   try {
     const source = forgeForRun(env.GATEWAY, run.data);

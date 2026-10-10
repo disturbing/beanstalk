@@ -8,18 +8,22 @@ const VIEWER = {
   csrf: 'csrf-1',
   theme: 'system',
   docsUrl: 'https://d.test/docs/',
+  isPlatformAdmin: false,
 } as const;
+
+function menuHrefs(isPlatformAdmin: boolean): readonly string[] {
+  return userMenu({ ...VIEWER, isPlatformAdmin }).flatMap((entry) =>
+    entry.kind === 'link' ? [entry.href] : [],
+  );
+}
 
 describe('the header', () => {
   it('links a signed-in person to Home, their repositories and organizations', () => {
-    expect(primaryLinks('ada').map((link) => link.href)).toEqual(['/', '/ada', '/orgs', '/races']);
+    expect(primaryLinks('ada').map((link) => link.href)).toEqual(['/', '/ada', '/orgs']);
   });
 
-  it('shows the benchmark and the race to a signed-out visitor', () => {
-    expect(primaryLinks(null).map((link) => link.label)).toEqual([
-      'Benchmark runs',
-      'Watch the race',
-    ]);
+  it('shows a signed-out visitor no primary links (no benchmark, no race)', () => {
+    expect(primaryLinks(null)).toEqual([]);
   });
 
   it('offers a new repository, a new organization and connecting an agent', () => {
@@ -45,6 +49,20 @@ describe('the header', () => {
       'Sign out',
     ]);
     expect(entries).toContainEqual({ kind: 'theme', initial: 'system' });
+  });
+
+  it('offers the admin area only to a platform admin', () => {
+    expect(menuHrefs(false)).not.toContain('/admin');
+    expect(menuHrefs(true)).toContain('/admin');
+  });
+
+  it('never links anyone to the races from the header', () => {
+    const hrefs = [
+      ...primaryLinks(null),
+      ...primaryLinks('ada'),
+      ...userMenu({ ...VIEWER, isPlatformAdmin: false }),
+    ].flatMap((entry) => ('href' in entry ? [entry.href] : []));
+    expect(hrefs.filter((href) => /^\/(races?|runs)\b/.test(href))).toEqual([]);
   });
 
   it('signs out with a POST carrying the session CSRF token', () => {

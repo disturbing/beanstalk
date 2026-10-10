@@ -1,13 +1,14 @@
 import { env } from 'cloudflare:workers';
-import { currentUser } from '../../../../src/auth/user';
-import { mayViewEngine } from '../../../../src/repositories/engine-guard';
+import { requirePlatformAdmin } from '../../../../../src/admin/admin-gate';
+import { adminRunPath } from '../../../../../src/admin/admin-paths';
+import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
 import { notFound } from 'next/navigation';
 
 import { RunId } from '@gitstalk/shared-race/ids';
 
-import { FilesExplorer } from '../../../../components/explorer/files-explorer';
-import type { SearchParams } from '../../../../components/home/repository-home';
-import { repositoryOf } from '../../../../src/people/repository';
+import { FilesExplorer } from '../../../../../components/explorer/files-explorer';
+import type { SearchParams } from '../../../../../components/home/repository-home';
+import { repositoryOf } from '../../../../../src/people/repository';
 
 type PageProps = {
   readonly params: Promise<{ readonly run: string }>;
@@ -20,13 +21,14 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function RunFilesPage({ params, searchParams }: PageProps) {
+  const admin = await requirePlatformAdmin();
   const parsed = RunId.safeParse((await params).run);
   if (!parsed.success) notFound();
   const run = parsed.data;
-  if (!(await mayViewEngine(env.GATEWAY, run, (await currentUser())?.id ?? null))) notFound();
+  if (!(await mayViewEngine(env.GATEWAY, run, admin.id))) notFound();
   return (
     <FilesExplorer
-      frame={{ run, base: `/runs/${run}`, repository: repositoryOf(run), kind: 'race' }}
+      frame={{ run, base: adminRunPath(run), repository: repositoryOf(run), kind: 'race' }}
       searchParams={await searchParams}
     />
   );

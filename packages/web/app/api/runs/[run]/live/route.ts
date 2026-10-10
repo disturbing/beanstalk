@@ -1,4 +1,4 @@
-import { getUser } from '../../../../../src/auth/user';
+import { platformAdminOf } from '../../../../../src/admin/admin-gate';
 import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
@@ -19,7 +19,9 @@ type Context = { readonly params: Promise<{ readonly run: string }> };
 export async function GET(request: Request, context: Context): Promise<Response> {
   const run = RunId.safeParse((await context.params).run);
   if (!run.success) return problem(400, 'not a run id');
-  if (!(await mayViewEngine(env.GATEWAY, run.data, (await getUser(request))?.id ?? null)))
+  // Benchmark runs are the admin area's (a repository's engine streams through /api/repos).
+  const admin = await platformAdminOf(request);
+  if (admin === null || !(await mayViewEngine(env.GATEWAY, run.data, admin.id)))
     return problem(404, 'no such run');
   if (isRecordedRun(run.data))
     return problem(404, 'a recorded run replays in the browser; it has no live feed');
