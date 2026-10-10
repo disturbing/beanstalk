@@ -108,7 +108,7 @@ current state. Pushing to `sprout`, `stalk` or `main` is refused.
 PLUGIN_GUIDANCE_VERSION = "plugin-v2"
 PLUGIN_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "packages",
                                            "claude-plugin"))
-SKILL_PATH = os.path.join(PLUGIN_DIR, "skills", "beanstalk", "SKILL.md")
+SKILL_PATH = os.path.join(PLUGIN_DIR, "skills", "gitstalk", "SKILL.md")
 
 
 def plugin_skill() -> str:
