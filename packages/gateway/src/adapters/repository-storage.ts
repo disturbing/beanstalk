@@ -3,6 +3,8 @@
  * the sprout, list the stalk's files, delete it. Write tokens are minted for one push, used
  * from inside the gateway and revoked; they never leave this module.
  */
+import { CHECKS_PATHS } from '@gitstalk/shared-race/checks-config';
+import { readFirstPresent } from '@gitstalk/shared-race/config-dir';
 import type { RepositoryFiles } from '@gitstalk/shared-race/repos';
 
 import { UpstreamError } from '../errors';
@@ -136,7 +138,15 @@ function pktLine(text: string): string {
 async function listFiles(repo: ArtifactsRepo, ref: string): Promise<RepositoryFiles> {
   const [top] = await repo.log({ ref, limit: 1 });
   if (top === undefined)
-    return { ref, sha: null, files: [], readme: null, checks: null, truncated: false };
+    return {
+      ref,
+      sha: null,
+      files: [],
+      readme: null,
+      checks: null,
+      checksPath: null,
+      truncated: false,
+    };
   const files: string[] = [];
   const pending: { readonly tree: string; readonly prefix: string }[] = [
     { tree: top.treeHash, prefix: '' },
@@ -154,14 +164,15 @@ async function listFiles(repo: ArtifactsRepo, ref: string): Promise<RepositoryFi
   }
   const [readme, checks] = await Promise.all([
     textAt(repo, top.hash, 'README.md'),
-    textAt(repo, top.hash, '.beanstalk/checks.toml'),
+    readFirstPresent(CHECKS_PATHS, (path) => textAt(repo, top.hash, path)),
   ]);
   return {
     ref,
     sha: top.hash,
     files: files.slice(0, MAX_LISTED_FILES).toSorted(),
     readme,
-    checks,
+    checks: checks?.text ?? null,
+    checksPath: checks?.path ?? null,
     truncated: files.length >= MAX_LISTED_FILES || pending.length > 0,
   };
 }

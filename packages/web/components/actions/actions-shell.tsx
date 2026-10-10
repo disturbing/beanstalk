@@ -1,6 +1,6 @@
 /**
  * The Automations tab around its two kinds (`docs/claude-opus/25` §5): Actions (the
- * repository's `.github/workflows`) and Automations (`.beanstalk/automations`). On a
+ * repository's `.github/workflows`) and Automations (`.gitstalk/automations`). On a
  * deployment answering from fixtures, every page says so.
  */
 import Link from 'next/link';

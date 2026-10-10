@@ -233,11 +233,19 @@ describe('the grant', () => {
   });
 
   it('takes the snapshot cap from a variable, never above the repository total', () => {
-    const smaller = grantFor(spec({ vars: { BEANSTALK_DEPS_SNAPSHOT_MAX: '2GiB' } }), settings);
+    const smaller = grantFor(spec({ vars: { GITSTALK_DEPS_SNAPSHOT_MAX: '2GiB' } }), settings);
     expect(smaller?.snapshotMaxBytes).toBe(2 * 1024 ** 3);
-    const huge = grantFor(spec({ vars: { BEANSTALK_DEPS_SNAPSHOT_MAX: '1TB' } }), settings);
+    const huge = grantFor(spec({ vars: { GITSTALK_DEPS_SNAPSHOT_MAX: '1TB' } }), settings);
     expect(huge?.snapshotMaxBytes).toBe(settings.repoMaxBytes);
+    expect(grantFor(spec({ vars: { GITSTALK_DEPS_CACHE: 'off' } }), settings)).toBeNull();
+  });
+
+  it('still reads the variables from before the rename (BEANSTALK_*), the current name winning', () => {
+    const legacy = grantFor(spec({ vars: { BEANSTALK_DEPS_SNAPSHOT_MAX: '2GiB' } }), settings);
+    expect(legacy?.snapshotMaxBytes).toBe(2 * 1024 ** 3);
     expect(grantFor(spec({ vars: { BEANSTALK_DEPS_CACHE: 'off' } }), settings)).toBeNull();
+    const both = { BEANSTALK_DEPS_CACHE: 'off', GITSTALK_DEPS_CACHE: 'on' };
+    expect(grantFor(spec({ vars: both }), settings)).not.toBeNull();
   });
 
   it('reads sizes people write', () => {

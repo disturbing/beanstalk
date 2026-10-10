@@ -27,12 +27,15 @@ export const AutomationBase = z.object({
 });
 export type AutomationBase = z.infer<typeof AutomationBase>;
 
-/** An automation file's path: `.beanstalk/automations/<name>.yml|.yaml|.md`. */
+/**
+ * An automation file's path: `.gitstalk/automations/<name>.yml|.yaml|.md`, or the same under
+ * `.beanstalk/automations/` (an existing file is edited where it is; new ones go to `.gitstalk/`).
+ */
 export const AutomationPath = z
   .string()
   .regex(
-    /^\.beanstalk\/automations\/[a-z0-9][a-z0-9_-]{0,63}\.(?:ya?ml|md)$/,
-    'an automation file is .beanstalk/automations/<lowercase-name>.yml',
+    /^\.(?:gitstalk|beanstalk)\/automations\/[a-z0-9][a-z0-9_-]{0,63}\.(?:ya?ml|md)$/,
+    'an automation file is .gitstalk/automations/<lowercase-name>.yml',
   );
 
 /** Whether the person may save, and if not, why (in their words). */
@@ -51,7 +54,7 @@ export type AutomationSource = {
   readonly save: SaveAccess;
   /** Whether the person may start a test run of a draft (maintain or owner). */
   readonly canTestRun: boolean;
-  /** The protected-path pattern of `.beanstalk/checks.toml` that covers the file, if any. */
+  /** The protected-path pattern of the checks file that covers the file, if any. */
   readonly protectedBy: string | null;
   /** The longest `timeout-minutes` runs here (the Actions job limit). */
   readonly maxTimeoutMinutes: number;

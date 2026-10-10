@@ -40,7 +40,7 @@ async function connect(): Promise<Client> {
     requestInit: { headers: { authorization: `Bearer ${VIEW_TOKEN}` } },
     fetch: (input, init) => send(new Request(input, init)),
   });
-  const client = new Client({ name: 'beanstalk-test', version: '0.0.0' });
+  const client = new Client({ name: 'gitstalk-test', version: '0.0.0' });
   await client.connect(transport);
   clients.push(client);
   return client;

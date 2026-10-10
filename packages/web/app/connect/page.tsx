@@ -137,7 +137,7 @@ function Expired() {
         </h1>
         <p className={styles.lede}>
           It expired, was already answered, or was opened by another account. Start connecting again
-          from your agent (for Claude Code: <code>/mcp</code>, then authenticate Beanstalk).
+          from your agent (for Claude Code: <code>/mcp</code>, then authenticate Gitstalk).
         </p>
       </section>
     </main>

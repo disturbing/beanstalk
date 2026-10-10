@@ -14,7 +14,7 @@ import type { Logger } from '../log';
  */
 export const RUNNER_API_VERSION = 4;
 /** Response header in which the runner states its contract version. */
-export const RUNNER_API_HEADER = 'x-beanstalk-runner-api';
+export const RUNNER_API_HEADER = 'x-gitstalk-runner-api';
 
 /** Longest runner call: a suite has a 300 s timeout in the runner; fetches come on top. */
 const RUNNER_TIMEOUT_MS = 10 * 60 * 1000;

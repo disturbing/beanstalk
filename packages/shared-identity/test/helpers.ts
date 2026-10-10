@@ -8,7 +8,7 @@ import type { VirtualAuthenticator } from '../src/testing/virtual-authenticator'
 
 export const RP: RelyingParty = {
   id: 'beanstalk.test',
-  name: 'Beanstalk',
+  name: 'Gitstalk',
   origin: 'https://beanstalk.test',
 };
 export const T0 = Date.parse('2026-10-07T12:00:00Z');

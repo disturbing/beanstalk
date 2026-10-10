@@ -1,6 +1,6 @@
 /**
  * A `.github/workflows/*.yml` file read with GitHub's own parser (`@actions/workflow-parser`,
- * MIT): schema errors with line and column, the triggers Beanstalk runs, each job's plan, and
+ * MIT): schema errors with line and column, the triggers Gitstalk runs, each job's plan, and
  * the compatibility report (doc 25 §1.1). Pure: the index and the run DO both call it.
  */
 import type {
@@ -31,7 +31,7 @@ export type JobPlan = {
   readonly needs: readonly string[];
   /** The normalized condition (`success()` when none is written). */
   readonly condition: string;
-  /** The container image label `runs-on` maps to; null when Beanstalk cannot run it. */
+  /** The container image label `runs-on` maps to; null when Gitstalk cannot run it. */
   readonly image: string | null;
   readonly timeoutMinutes: number | null;
   readonly matrix: MatrixPlan;
@@ -60,7 +60,7 @@ export type { MatrixLeg };
 /** What the repository allows: matrix legs per job, and minutes per job (longer is capped). */
 export type WorkflowLimits = { readonly maxMatrixLegs: number; readonly maxTimeoutMinutes: number };
 
-/** `runs-on` labels Beanstalk runs, and the image each maps to. */
+/** `runs-on` labels Gitstalk runs, and the image each maps to. */
 const IMAGES: Readonly<Record<string, string>> = {
   'ubuntu-latest': 'ubuntu-24.04',
   'ubuntu-24.04': 'ubuntu-24.04',
@@ -337,12 +337,12 @@ function compatibilityOf(input: {
         ? {
             feature: `on: ${event}`,
             verdict: 'after-mvp',
-            detail: 'parsed, but Beanstalk does not start runs for it yet',
+            detail: 'parsed, but Gitstalk does not start runs for it yet',
           }
         : {
             feature: `on: ${event}`,
             verdict: 'never-runs',
-            detail: 'Beanstalk has no such object',
+            detail: 'Gitstalk has no such object',
           },
     );
   }

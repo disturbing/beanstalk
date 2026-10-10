@@ -64,6 +64,7 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   // Product words that would read as official.
   'beanstalk',
   'beans',
+  'gitstalk',
   'root',
   'site',
   'sprout',

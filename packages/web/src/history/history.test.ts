@@ -10,7 +10,7 @@ import {
 import type { LogCommit } from './history';
 import { historyOf, landingsOf, trailerTask, verdictsOf } from './history';
 
-const runner = { name: 'beanstalk-runner', email: 'runner@beanstalk.invalid' };
+const runner = { name: 'gitstalk-runner', email: 'runner@gitstalk.invalid' };
 
 function commit(sha: string, parent: string | null, message: string, at: string): LogCommit {
   return {
@@ -42,7 +42,7 @@ describe('the History tab', () => {
       stalk: [
         slugify,
         truncate,
-        { ...root, author: { name: 'Beanstalk', email: 'seed@beanstalk.invalid' } },
+        { ...root, author: { name: 'Gitstalk', email: 'seed@gitstalk.invalid' } },
       ],
       sprout: [slugify, truncate, root],
       pushed: GREETER_PUSHED,
@@ -52,7 +52,7 @@ describe('the History tab', () => {
     expect(history.stalk.map((row) => [row.title, row.bean, row.by.name, row.root])).toEqual([
       ['Add slugify for bean names', 'slugify', 'coop', false],
       ['Add truncate for long titles', 'add-truncate', 'coop', false],
-      ['Start from the TypeScript starter', null, 'Beanstalk', true],
+      ['Start from the TypeScript starter', null, 'Gitstalk', true],
     ]);
     expect(history.stalk[0]?.by.kind).toBe('person');
   });

@@ -16,7 +16,7 @@ export const STREAM_MIN_INTERVAL_MS = 400;
 export const STREAMING_KINDS: ReadonlySet<string> = new Set(['initial', 'rework', 'sync', 'fixer']);
 
 /** What a line becomes when the secret scan matches it. */
-const REDACTED_LINE = '[redacted by beanstalk: looks like a secret]';
+const REDACTED_LINE = '[redacted by gitstalk: looks like a secret]';
 
 /**
  * Patterns that never reach a viewer: the ones the recorded fixtures are checked against

@@ -1,9 +1,10 @@
 /**
- * Automations → Actions (and → Automations, the same view over `.beanstalk/automations/`): the
+ * Automations → Actions (and → Automations, the same view over `.gitstalk/automations/`): the
  * workflows in a rail (each with its last run's state), the selected one's triggers,
  * compatibility notes or validation errors, an automation's agent and memory, "View file" and
  * "Run", then its runs (or every one's) with filters by workflow, status and line, newest first.
  */
+import { isAutomationPath } from '@gitstalk/shared-race/actions';
 import Link from 'next/link';
 
 import type {
@@ -86,7 +87,7 @@ type Kind = 'actions' | 'automations';
 
 const NO_RUNS_YET: Readonly<Record<Kind, string>> = {
   actions: 'No runs yet. A workflow runs when the stalk moves, on its schedule, or by hand.',
-  automations: 'No runs yet. An automation runs on its Beanstalk events, its schedule, or by hand.',
+  automations: 'No runs yet. An automation runs on its Gitstalk events, its schedule, or by hand.',
 };
 
 function WorkflowRail(props: {
@@ -157,8 +158,8 @@ function AllWorkflowsHead(props: {
         <div>
           <h2 id="workflow-title">All automations</h2>
           <p className={styles.workflowPath}>
-            {count} {count === 1 ? 'automation' : 'automations'} in .beanstalk/automations: agents
-            that run on Beanstalk events, on schedule or by hand, each with its own memory
+            {count} {count === 1 ? 'automation' : 'automations'} in .gitstalk/automations: agents
+            that run on Gitstalk events, on schedule or by hand, each with its own memory
           </p>
         </div>
         {props.newHref === null ? null : (
@@ -190,7 +191,7 @@ function WorkflowHead(props: {
   readonly canEdit: boolean;
 }) {
   const { workflow } = props;
-  const isAutomation = workflow.path.startsWith('.beanstalk/automations/');
+  const isAutomation = isAutomationPath(workflow.path);
   const file = workflow.path.split('/').at(-1) ?? workflow.path;
   const dispatch = dispatchOf(workflow);
   return (

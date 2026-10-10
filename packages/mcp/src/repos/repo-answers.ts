@@ -30,7 +30,7 @@ export function sessionOf(scope: ToolScope): {
 export async function automationList(scope: ToolScope, repo: string): Promise<object> {
   const { agents, principal } = sessionOf(scope);
   if (agents.agentAutomations === undefined)
-    throw new ToolError('this Beanstalk deployment does not list automations yet');
+    throw new ToolError('this Gitstalk deployment does not list automations yet');
   const listed = valueOf(await agents.agentAutomations(principal, repo));
   const invalid = listed.automations.filter((automation) => automation.state === 'invalid');
   return {
@@ -153,7 +153,7 @@ export async function taskList(scope: ToolScope, repo: string): Promise<object> 
     ...backlog,
     summary:
       backlog.file === null
-        ? `${repo} has no backlog (.beanstalk/backlog.md or BACKLOG.md); land one as a bean to start one`
+        ? `${repo} has no backlog (.gitstalk/backlog.md or BACKLOG.md); land one as a bean to start one`
         : `${backlog.tasks.length} tasks in ${backlog.file}, ${open} open`,
   };
 }

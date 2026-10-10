@@ -1,10 +1,16 @@
 /**
  * The workflow index (doc 25 §0.2: git holds the definitions, the database is only an index):
- * the stalk's `.github/workflows/*.yml` read at a commit, parsed, and written to D1
+ * the stalk's `.github/workflows/*.yml` and automations (`.gitstalk/automations/`, and the older
+ * `.beanstalk/automations/`, where a namesake in `.gitstalk/` wins) read at a commit, parsed, and written to D1
  * (`actions_workflows`) in place of what the previous stalk had.
  */
 import type { AutomationInfo, WorkflowSummary } from '@gitstalk/shared-race/actions';
-import { AUTOMATIONS_DIR, WorkflowPath } from '@gitstalk/shared-race/actions';
+import {
+  AUTOMATIONS_DIRS,
+  WorkflowPath,
+  isAutomationPath,
+  preferredAutomationPaths,
+} from '@gitstalk/shared-race/actions';
 import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
@@ -35,18 +41,16 @@ export async function readWorkflows(
   sha: string,
   limits: WorkflowLimits,
 ): Promise<IndexedWorkflow[]> {
-  const [workflowPaths, automationPaths] = await Promise.all([
-    listFiles(explorer, sha, WORKFLOWS_DIR),
-    listFiles(explorer, sha, AUTOMATIONS_DIR),
-  ]);
-  const paths = [...workflowPaths, ...automationPaths];
+  const listed = await Promise.all(
+    [WORKFLOWS_DIR, ...AUTOMATIONS_DIRS].map((dir) => listFiles(explorer, sha, dir)),
+  );
+  const paths = preferredAutomationPaths(listed.flat());
   const texts = await explorer.readTexts(sha, paths);
   const indexedAt = new Date().toISOString();
   const read = paths.map(async (path, index) => {
     const source = texts[index];
     if (source === null || source === undefined) return null;
-    if (path.startsWith(`${AUTOMATIONS_DIR}/`))
-      return readAutomation(path, source, { limits, sha, indexedAt });
+    if (isAutomationPath(path)) return readAutomation(path, source, { limits, sha, indexedAt });
     const file = await readWorkflowFile(path, source, limits);
     return { summary: summaryOf(file, { sha, indexedAt }), file, source };
   });

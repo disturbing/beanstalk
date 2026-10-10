@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 
 /**
  * `GET /v1/whoami` on the web host: git is served here (`/<owner>/<repo>.git`), so the check
- * `/beanstalk:setup verify` makes against the git origin is too. Forwarded to the gateway with
+ * `/gitstalk:setup verify` makes against the git origin is too. Forwarded to the gateway with
  * the credential header as sent (`v1` is a reserved handle, so no owner page is shadowed).
  */
 export async function GET(request: Request): Promise<Response> {

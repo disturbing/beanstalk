@@ -324,7 +324,7 @@ function repoStore(recorded: RecordedRun): RepoStore {
 }
 
 function commitOf(sha: string, tree: string, parents: string[]): ArtifactsCommitMetadata {
-  const person = { name: 'beanstalk-runner', email: 'runner@beanstalk.invalid' };
+  const person = { name: 'gitstalk-runner', email: 'runner@gitstalk.invalid' };
   return {
     hash: sha,
     treeHash: tree,

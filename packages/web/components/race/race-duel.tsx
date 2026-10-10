@@ -31,7 +31,7 @@ export type DuelSide = {
 const MOST_GREENS = 35;
 
 /**
- * Two recorded runs replayed on one clock: the merge queue and Beanstalk v2.5, same tasks,
+ * Two recorded runs replayed on one clock: the merge queue and Gitstalk v2.5, same tasks,
  * same seed, same agents. Counters, both vines and the greens-over-time chart move together.
  */
 export function RaceDuel(props: {

@@ -1,7 +1,7 @@
 [package]
 name = "runner"
 version = "0.1.0"
-description = "Git and test runner container for beanstalk's integration decisions"
+description = "Git and test runner container for Gitstalk's integration decisions"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

@@ -13,7 +13,7 @@ import { parseReportStatus } from './receive-pack-report';
 
 const TIMEOUT_MS = 30_000;
 /** Git servers expect a git user agent; this one says who is asking. */
-const USER_AGENT = 'git/beanstalk-gateway';
+const USER_AGENT = 'git/gitstalk-gateway';
 export const ZERO_SHA = '0'.repeat(40);
 
 export type RemoteTarget = { readonly remote: string; readonly token: string };
@@ -56,7 +56,7 @@ export async function pushRefs(
 ): Promise<ReportStatus> {
   const commands = updates.map((update, index) =>
     pktLine(
-      `${update.oldSha} ${update.newSha} ${update.ref}${index === 0 ? '\0report-status agent=beanstalk' : ''}\n`,
+      `${update.oldSha} ${update.newSha} ${update.ref}${index === 0 ? '\0report-status agent=gitstalk' : ''}\n`,
     ),
   );
   const body = concatBytes([...commands, FLUSH_PKT, await buildPack(objects)]);

@@ -2,7 +2,7 @@
  * `on.schedule` cron (POSIX five fields, UTC, as GitHub reads them): minute, hour, day of
  * month, month (1-12 or JAN-DEC), day of week (0-6 or SUN-SAT, 7 is Sunday). `*`, lists,
  * ranges and steps. When both day fields are restricted, a day matching either fires (cron's
- * rule). GitHub runs schedules at most every 5 minutes; so does Beanstalk.
+ * rule). GitHub runs schedules at most every 5 minutes; so does Gitstalk.
  */
 
 /** Schedules never fire closer together than this. */

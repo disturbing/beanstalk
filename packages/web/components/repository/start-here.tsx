@@ -5,6 +5,7 @@
  * the clone URL, and what counts as green. The stalk on the left is the real one: its root commit, and a socket where the
  * first bean will grow.
  */
+import { CHECKS_PATH } from '@gitstalk/shared-race/checks-config';
 import Link from 'next/link';
 
 import type { StartGuide } from '../../src/repositories/paths';
@@ -92,7 +93,7 @@ function GitStep(props: { readonly guide: StartGuide }) {
     <section className={styles.step} aria-labelledby="git-title">
       <h2 id="git-title">Or push a bean with git</h2>
       <p>
-        A branch named <code>bean/&lt;name&gt;</code> is a bean. Push it and Beanstalk checks it on
+        A branch named <code>bean/&lt;name&gt;</code> is a bean. Push it and Gitstalk checks it on
         the exact tree it would land on, then puts it on the sprout. With <code>-o wait</code> the
         push stays open until the bean lands, or tells you why it came back.
       </p>
@@ -155,12 +156,14 @@ function Facts({ files }: { readonly files: RepositoryFiles | null }) {
       <section className={styles.panel} aria-labelledby="checks-title">
         <div className={styles.panelHead}>
           <h2 id="checks-title">What counts as green</h2>
-          <span className={`${styles.muted} ${styles.mono}`}>.beanstalk/checks.toml</span>
+          <span className={`${styles.muted} ${styles.mono}`}>
+            {files?.checksPath ?? CHECKS_PATH}
+          </span>
         </div>
         {files === null ? (
           <p className={styles.empty}>The stalk is being read. Refresh in a moment.</p>
         ) : (
-          <ChecksSummary file={files.checks} />
+          <ChecksSummary file={files.checks} path={files.checksPath} />
         )}
       </section>
     </div>

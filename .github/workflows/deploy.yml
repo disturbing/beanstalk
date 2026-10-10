@@ -1,8 +1,9 @@
 # Deploys a fork's environments (docs/claude-opus/30-environments.md): staging on every push to
 # prototype, production on a manual run. Each job runs only when its environment is configured,
 # either committed (environments/<env>/env.jsonc) or as GitHub environment variables (a soft fork:
-# BEANSTALK_ENV_CONFIG, BEANSTALK_ENV_RESOURCES, optionally BEANSTALK_ACCOUNT_ID), so in the
-# public repository, which has neither, nothing deploys. BEANSTALK_SUFFIX is deliberately not
+# GITSTALK_ENV_CONFIG, GITSTALK_ENV_RESOURCES, optionally GITSTALK_ACCOUNT_ID; the BEANSTALK_*
+# names from before the rename are passed too and read when the GITSTALK_* one is empty), so in
+# the public repository, which has neither, nothing deploys. GITSTALK_SUFFIX is deliberately not
 # passed: an unset GitHub variable reads as "", which would deploy staging onto production names.
 #
 # Needs one repository secret, CLOUDFLARE_API_TOKEN (edit: Workers Scripts, D1, Workers KV,
@@ -32,6 +33,9 @@ jobs:
     env:
       TARGET: ${{ github.event.inputs.environment || 'staging' }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      GITSTALK_ENV_CONFIG: ${{ vars.GITSTALK_ENV_CONFIG }}
+      GITSTALK_ENV_RESOURCES: ${{ vars.GITSTALK_ENV_RESOURCES }}
+      GITSTALK_ACCOUNT_ID: ${{ vars.GITSTALK_ACCOUNT_ID }}
       BEANSTALK_ENV_CONFIG: ${{ vars.BEANSTALK_ENV_CONFIG }}
       BEANSTALK_ENV_RESOURCES: ${{ vars.BEANSTALK_ENV_RESOURCES }}
       BEANSTALK_ACCOUNT_ID: ${{ vars.BEANSTALK_ACCOUNT_ID }}
@@ -39,8 +43,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: present
         run: |
-          if [ -f "environments/$TARGET/env.jsonc" ] || [ -n "$BEANSTALK_ENV_CONFIG" ]; then echo "yes=true" >> "$GITHUB_OUTPUT"
-          else echo "no environments/$TARGET/env.jsonc and no BEANSTALK_ENV_CONFIG variable: nothing to deploy"; fi
+          if [ -f "environments/$TARGET/env.jsonc" ] || [ -n "$GITSTALK_ENV_CONFIG" ] || [ -n "$BEANSTALK_ENV_CONFIG" ]; then echo "yes=true" >> "$GITHUB_OUTPUT"
+          else echo "no environments/$TARGET/env.jsonc and no GITSTALK_ENV_CONFIG variable: nothing to deploy"; fi
       - if: steps.present.outputs.yes == 'true'
         uses: pnpm/action-setup@v4
       - if: steps.present.outputs.yes == 'true'

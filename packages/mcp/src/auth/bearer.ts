@@ -48,7 +48,7 @@ export const requireViewer = createMiddleware<AppEnv>(async (c, next) => {
   if (!result.ok) {
     const { status, message } = result.failure;
     c.var.deps.log.info('mcp request refused', { status });
-    c.header('WWW-Authenticate', `Bearer realm="beanstalk", error="invalid_token"`);
+    c.header('WWW-Authenticate', `Bearer realm="gitstalk", error="invalid_token"`);
     return c.json(
       { error: { code: status === 401 ? 'unauthorized' : 'forbidden', message } },
       status,

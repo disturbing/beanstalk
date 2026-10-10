@@ -1,6 +1,6 @@
 /**
  * What counts as green on a repository: the effective checks of its stalk, read from
- * `.beanstalk/checks.toml` with the parser the engine uses, so the page says exactly what the
+ * `.gitstalk/checks.toml` (or the older `.beanstalk/checks.toml`) with the parser the engine uses, so the page says exactly what the
  * next pre-land check will run (a bean that changes the file is checked by its own copy).
  */
 import {
@@ -13,8 +13,11 @@ import { DEFAULT_SUITE, suiteCommand } from '@gitstalk/shared-race/suite';
 
 import styles from './repository.module.css';
 
-export function ChecksSummary(props: { readonly file: string | null }) {
-  const resolution = readChecksConfig(props.file);
+export function ChecksSummary(props: {
+  readonly file: string | null;
+  readonly path: string | null;
+}) {
+  const resolution = readChecksConfig(props.file, props.path ?? CHECKS_PATH);
   switch (resolution.kind) {
     case 'missing':
       return (
@@ -36,7 +39,7 @@ export function ChecksSummary(props: { readonly file: string | null }) {
       return (
         <div className={styles.checksBody}>
           <p>
-            <b>Default suite.</b> <code>{CHECKS_PATH}</code> on the stalk is the starter&apos;s
+            <b>Default suite.</b> <code>{resolution.path}</code> on the stalk is the starter&apos;s
             older <code>[[check]]</code> draft, which does not choose the suite, so every bean runs
             the repository&apos;s default suite, as it always has.
           </p>
@@ -53,7 +56,7 @@ export function ChecksSummary(props: { readonly file: string | null }) {
         <div className={styles.checksBody}>
           <p>
             <b>Invalid.</b> Every bean&apos;s pre-land check is red until a maintainer fixes{' '}
-            <code>{CHECKS_PATH}</code>:
+            <code>{resolution.path}</code>:
           </p>
           <ul className={styles.checksProblems}>
             {resolution.problems.map((problem) => (

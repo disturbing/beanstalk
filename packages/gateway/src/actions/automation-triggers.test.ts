@@ -26,7 +26,7 @@ function on(
 }
 
 describe('which automations a repository event starts', () => {
-  it('maps every repository event to its Beanstalk event', () => {
+  it('maps every repository event to its Gitstalk event', () => {
     expect(occurrenceOf(RED)).toMatchObject({ event: 'bean_red', bean: 'fix-login', sha: null });
     expect(occurrenceOf(LANDED)).toMatchObject({
       event: 'bean_landed',

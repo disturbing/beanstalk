@@ -66,7 +66,7 @@ function typescriptStarter(repoName: string, description: string): readonly Seed
       )}\n`,
     },
     {
-      path: '.beanstalk/checks.toml',
+      path: '.gitstalk/checks.toml',
       content: [
         '# What a bean must pass before it lands, run on the exact tree it would land on.',
         '# Format: docs/claude-opus/24-checks-config.md. Only the owner or a maintainer, pushing',
@@ -98,8 +98,8 @@ No install step: Node 23.6 or newer runs the TypeScript files directly.
 
 ## How changes land
 
-Every change is a bean: a branch named \`bean/<name>\`. Push one and Beanstalk checks it on
-the exact tree it would land on (\`.beanstalk/checks.toml\`), puts it on the sprout, and moves
+Every change is a bean: a branch named \`bean/<name>\`. Push one and Gitstalk checks it on
+the exact tree it would land on (\`.gitstalk/checks.toml\`), puts it on the sprout, and moves
 it to the stalk once it stays green.
 `;
 }

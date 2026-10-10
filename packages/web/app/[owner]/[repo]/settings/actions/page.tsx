@@ -60,7 +60,7 @@ async function JobSettings({ settings }: { readonly settings: RepositorySettings
 function Features() {
   const features = [
     ['Ask', 'questions about the code, answered from the stalk', true],
-    ['Automations', 'Actions workflows from .beanstalk/workflows', true],
+    ['Automations', 'Actions workflows from .gitstalk/workflows', true],
     ['Previews', 'a live preview per bean', false],
     ['Insights', 'landing rate, waiting time and rework per person and agent', false],
   ] as const;

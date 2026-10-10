@@ -56,8 +56,8 @@ export function HomeDashboard(props: {
           <div>
             <h1 className={styles.lead}>{leadOf(props.user, props.repositories, archivedCount)}</h1>
             <p className={styles.sub}>
-              Agents and people push beans; Beanstalk checks each one on the exact tree it would
-              land on and grows the stalk.
+              Agents and people push beans; Gitstalk checks each one on the exact tree it would land
+              on and grows the stalk.
             </p>
           </div>
           <Link href="/new" className={styles.primary}>

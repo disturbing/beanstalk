@@ -116,8 +116,8 @@ describe('connection plumbing', () => {
     const first = await reader.read();
     expect(new TextDecoder().decode(first.value)).toBe('SSH-2.0-client\r\n');
     const writer = tunnel.writable.getWriter();
-    await writer.write(new TextEncoder().encode('SSH-2.0-beanstalk\r\n'));
-    expect(await received).toBe('SSH-2.0-beanstalk\r\n');
+    await writer.write(new TextEncoder().encode('SSH-2.0-gitstalk\r\n'));
+    expect(await received).toBe('SSH-2.0-gitstalk\r\n');
   });
 
   it('reads its settings, with the tunnel off by default', () => {

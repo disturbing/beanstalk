@@ -54,7 +54,7 @@ export type KeyDecision =
   | { readonly ok: true; readonly approved: boolean }
   | { readonly ok: false; readonly reason: string };
 
-/** Starts a request for a public key; refused when the key line is not one Beanstalk takes. */
+/** Starts a request for a public key; refused when the key line is not one Gitstalk takes. */
 export async function startKeyRequest(
   env: IdentityEnv,
   input: { readonly publicKey: string; readonly machine: string; readonly httpsToken: boolean },

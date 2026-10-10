@@ -1,3 +1,4 @@
+import { isAutomationPath } from '@gitstalk/shared-race/actions';
 import Link from 'next/link';
 
 import { ActionsOff, ActionsShell } from '../../../../components/actions/actions-shell';
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: PageProps) {
   return { title: `Automations, ${decodeURIComponent(owner)}/${decodeURIComponent(repo)}` };
 }
 
-const EXAMPLE = `# .beanstalk/automations/fix-red.yml
+const EXAMPLE = `# .gitstalk/automations/fix-red.yml
 name: Fix red beans
 on:
   bean_red:                 # a bean's pre-land check went red
@@ -32,7 +33,7 @@ prompt: |
 
 /**
  * Automations → Automations (`docs/claude-opus/25` §7.8): the agents defined by files in
- * `.beanstalk/automations/` on the stalk, their validation errors, what each runs as, its
+ * `.gitstalk/automations/` on the stalk, their validation errors, what each runs as, its
  * memory, its last runs, and a Run button for maintainers. Runs use the Actions run views.
  */
 export default async function AutomationsPage({ params, searchParams }: PageProps) {
@@ -92,7 +93,7 @@ function canEdit(role: ViewerRole | null): boolean {
 
 /** An invalid automation file has no facts, but it is still listed with its errors. */
 function isAutomationFile(path: string): boolean {
-  return path.startsWith('.beanstalk/automations/');
+  return isAutomationPath(path);
 }
 
 function NoAutomations({ newHref }: { readonly newHref: string | null }) {
@@ -104,16 +105,15 @@ function NoAutomations({ newHref }: { readonly newHref: string | null }) {
             Automations <span className={styles.soon}>rolling out</span>
           </h2>
           <p>
-            An automation is an agent defined by a file in <code>.beanstalk/automations/</code> on
-            the stalk. It runs on Beanstalk events (a red bean, a landing, a red validation, a
+            An automation is an agent defined by a file in <code>.gitstalk/automations/</code> on
+            the stalk. It runs on Gitstalk events (a red bean, a landing, a red validation, a
             decision), on a schedule or by hand, in a fresh container with the repository checked
             out, the event as context and its own memory, kept between runs in git.
           </p>
           <p>
             It acts as its own bot, may push fix beans that go through the pre-land check like
-            anyone&rsquo;s, and never holds a model key: its model calls go through
-            Beanstalk&rsquo;s proxy with a spend cap. Add the file in a bean; it is live when the
-            stalk takes it.
+            anyone&rsquo;s, and never holds a model key: its model calls go through Gitstalk&rsquo;s
+            proxy with a spend cap. Add the file in a bean; it is live when the stalk takes it.
           </p>
           {newHref === null ? null : (
             <p>

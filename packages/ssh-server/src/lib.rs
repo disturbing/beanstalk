@@ -1,4 +1,4 @@
-//! Git over SSH for beanstalk.
+//! Git over SSH for Gitstalk.
 //!
 //! A person runs `git clone ssh://git@<host>/<owner>/<repo>.git` or `git push`; the connection
 //! reaches this server through Spectrum, the `beanstalk-ssh` Worker's `connect` handler and its

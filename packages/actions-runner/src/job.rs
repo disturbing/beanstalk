@@ -127,7 +127,7 @@ impl<'a, U: Uplink> Session<'a, U> {
         let source = if let Some(source) = &request.workflow_source {
             self.say(
                 Level::Info,
-                &format!("Running {} as compiled by Beanstalk", request.workflow_path),
+                &format!("Running {} as compiled by Gitstalk", request.workflow_path),
             )
             .await;
             source.clone()
@@ -547,10 +547,14 @@ fn mask_outputs(step_outputs: &StepOutputs, masker: &Masker) -> StepOutputs {
 }
 
 /// The tmpfs budget when the job may use the dependency cache: the executor granted it and the
-/// repository or org variable `BEANSTALK_DEPS_CACHE` does not turn it off.
+/// repository or org variable `GITSTALK_DEPS_CACHE` (or `BEANSTALK_DEPS_CACHE`) does not turn it off.
 fn deps_cache_budget(request: &JobRequest) -> Option<u64> {
     let grant = request.deps_cache.as_ref()?;
-    let switch = request.vars.get("BEANSTALK_DEPS_CACHE").map(String::as_str);
+    let switch = request
+        .vars
+        .get("GITSTALK_DEPS_CACHE")
+        .or_else(|| request.vars.get("BEANSTALK_DEPS_CACHE"))
+        .map(String::as_str);
     (!deps::plan::is_switched_off(switch)).then_some(grant.tmpfs_max_bytes)
 }
 
@@ -560,7 +564,7 @@ fn deps_cache_line(plan: &DepsPlan) -> String {
             format!("actions/setup-node with cache: {package_manager}")
         }
         Trigger::ActionsCache => "actions/cache of node_modules".to_owned(),
-        Trigger::Native => "beanstalk/deps-cache".to_owned(),
+        Trigger::Native => "gitstalk/deps-cache".to_owned(),
     };
     format!(
         "Dependency cache on ({trigger}): node_modules in {} goes in memory, restored from and saved to the repository's snapshots",

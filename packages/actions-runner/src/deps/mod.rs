@@ -2,7 +2,7 @@
 //! restored into a tmpfs from content-addressed chunks in R2 and saved back by changed chunk.
 //!
 //! [`plan`] runs in the job runner and adds the restore and save steps to the job; the rest is
-//! the `beanstalk-deps` tool those steps run inside the job (host mode, or the job container in
+//! the `gitstalk-deps` tool those steps run inside the job (host mode, or the job container in
 //! Docker mode), talking to the executor Worker at `http://deps.internal`.
 
 pub mod archive;

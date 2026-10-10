@@ -39,7 +39,7 @@ pub async fn run(env: &StepEnv) -> Result<()> {
     let started = Instant::now();
     let install = env.install_path();
     let node_modules = install.join("node_modules");
-    let tmpfs_bytes = std::env::var("BEANSTALK_DEPS_TMPFS_MAX_BYTES")
+    let tmpfs_bytes = std::env::var("GITSTALK_DEPS_TMPFS_MAX_BYTES")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(DEFAULT_TMPFS_BYTES);

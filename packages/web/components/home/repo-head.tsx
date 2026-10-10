@@ -34,7 +34,7 @@ const TABS: readonly { readonly tab: RepoTab; readonly name: string; readonly ke
 ];
 
 /**
- * A person's repository (`docs/claude-opus/20`): GitHub's shape with Beanstalk's words. Code
+ * A person's repository (`docs/claude-opus/20`): GitHub's shape with Gitstalk's words. Code
  * is the stalk's files, Changes the beans, History the stalk's commits with what is validated
  * versus only landed (verdicts from the repo-events index, `20` §7), Automations the
  * repository's Actions workflows and runs (`25` §5), Ask the generated explorer over the engine

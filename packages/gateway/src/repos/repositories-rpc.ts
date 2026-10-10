@@ -65,7 +65,7 @@ const IMPORT_REFUSALS: ReadonlySet<string> = new Set([
 /** Why a person's repository cannot be internal. */
 const INTERNAL_NEEDS_ORG =
   "only an organization's repository can be internal (readable by its members); choose public or private";
-const SEED_AUTHOR = { name: 'Beanstalk', email: 'seed@beanstalk.invalid' };
+const SEED_AUTHOR = { name: 'Gitstalk', email: 'seed@gitstalk.invalid' };
 const ID_LENGTH = 12;
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 

@@ -7,7 +7,7 @@ export const metadata = { title: 'Notifications' };
 /** Per person and per request: never prerendered or cached. */
 export const dynamic = 'force-dynamic';
 
-/** What Beanstalk will tell people about once it sends anything (backlog 3.3). */
+/** What Gitstalk will tell people about once it sends anything (backlog 3.3). */
 const PLANNED = [
   ['A decision is waiting for you', 'a card on a repository where you answer them'],
   ['Your bean fell off the sprout', 'red after landing, or dropped by the engine'],
@@ -24,7 +24,7 @@ export default async function NotificationSettingsPage() {
         id="planned"
         title="What you will hear about"
         aside={<SoonPill />}
-        lede="Beanstalk sends no email or push today: Home shows invitations and decisions when you visit. These are the notifications planned, each with its own switch."
+        lede="Gitstalk sends no email or push today: Home shows invitations and decisions when you visit. These are the notifications planned, each with its own switch."
       >
         <table className={styles.table}>
           <tbody>

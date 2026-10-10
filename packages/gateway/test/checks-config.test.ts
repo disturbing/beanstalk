@@ -7,7 +7,7 @@ import { insertUser } from '@gitstalk/shared-identity/users';
 import { ADMIN, call, json, pkt, sha } from './helpers';
 
 /**
- * A repository's own checks (`.beanstalk/checks.toml`, backlog 2.3) end to end: real Worker
+ * A repository's own checks (`.gitstalk/checks.toml`, backlog 2.3) end to end: real Worker
  * and engine Durable Object, the fake Artifacts remote, and the fake runner, whose squashes are
  * recorded in the trunk repo with the pushed files on top of the sprout's, so the engine reads
  * the config from the exact merged tree as it does on Cloudflare.
@@ -136,7 +136,7 @@ describe("a repository's own checks", () => {
       files: { 'src/a.ts': 'export {};\n' },
     });
     expect(remote).toContain(
-      "no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
+      "no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
     );
     expect(remote).toContain('LANDED: plain');
     const suites = await suitesRun(opened.engineId);
@@ -156,7 +156,7 @@ describe("a repository's own checks", () => {
     ].join('\n');
     const seeded = await pushBean(opened, await ownerToken(), {
       name: 'old-starter',
-      files: { '.beanstalk/checks.toml': draft },
+      files: { '.gitstalk/checks.toml': draft },
     });
     expect(seeded.remote).toContain('LANDED: old-starter');
     const later = await pushBean(opened, agentToken, {
@@ -164,7 +164,7 @@ describe("a repository's own checks", () => {
       files: { 'src/b.ts': 'export const b = 1;\n' },
     });
     expect(later.remote).toContain(
-      ".beanstalk/checks.toml is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test",
+      ".gitstalk/checks.toml is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test",
     );
     expect(later.remote).toContain('LANDED: after-draft');
     expect(later.remote).not.toContain('RED');
@@ -177,13 +177,13 @@ describe("a repository's own checks", () => {
     const { opened, agentToken } = await openRepo('checks-agent');
     const { remote } = await pushBean(opened, agentToken, {
       name: 'weaken',
-      files: { '.beanstalk/checks.toml': 'command = ["node", "--test", "nothing/"]\n' },
+      files: { '.gitstalk/checks.toml': 'command = ["node", "--test", "nothing/"]\n' },
     });
     expect(remote).toContain(
-      'changes protected paths (.beanstalk/checks.toml): refused for an engine token acting for @agent',
+      'changes protected paths (.gitstalk/checks.toml): refused for an engine token acting for @agent',
     );
     expect(remote).toContain('RED: weaken was not landed');
-    expect(remote).toContain('.beanstalk/checks.toml > changes a protected path');
+    expect(remote).toContain('.gitstalk/checks.toml > changes a protected path');
     expect(remote).toContain('Only the owner or a maintainer, pushing with a personal token');
     expect(await suitesRun(opened.engineId)).toEqual([]);
   });
@@ -192,13 +192,13 @@ describe("a repository's own checks", () => {
     const { opened, agentToken } = await openRepo('checks-owned');
     const setup = await pushBean(opened, await ownerToken(), {
       name: 'setup-checks',
-      files: { '.beanstalk/checks.toml': CHECKS },
+      files: { '.gitstalk/checks.toml': CHECKS },
     });
     expect(setup.remote).toContain(
-      `changes protected paths (.beanstalk/checks.toml): allowed for @${OWNER} (owner, with a personal token)`,
+      `changes protected paths (.gitstalk/checks.toml): allowed for @${OWNER} (owner, with a personal token)`,
     );
     expect(setup.remote).toContain(
-      'checks from .beanstalk/checks.toml: node --test spec/ (image node, timeout 60 s, env TZ)',
+      'checks from .gitstalk/checks.toml: node --test spec/ (image node, timeout 60 s, env TZ)',
     );
     expect(setup.remote).toContain('LANDED: setup-checks');
 
@@ -225,11 +225,13 @@ describe("a repository's own checks", () => {
       'changes protected paths (migrations/0002.sql): refused for an engine token acting for @agent',
     );
     expect(migration.remote).toContain('RED: migrate was not landed');
-    expect(migration.remote).toContain('The sprout protects .beanstalk/checks.toml, migrations/**');
+    expect(migration.remote).toContain(
+      'The sprout protects .gitstalk/checks.toml, .beanstalk/checks.toml, migrations/**',
+    );
     expect(await suitesRun(opened.engineId)).toHaveLength(2);
   });
 
-  it('answers an invalid file with a red that names every problem, and runs no suite', async () => {
+  it('answers an invalid file with a red that names every problem, and runs no suite (here the older .beanstalk/ file, still read)', async () => {
     const { opened } = await openRepo('checks-invalid');
     const { remote } = await pushBean(opened, await ownerToken(), {
       name: 'bad-checks',

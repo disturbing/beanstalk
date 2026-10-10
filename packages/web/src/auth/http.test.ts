@@ -30,7 +30,7 @@ describe('account requests', () => {
     ).toEqual({
       id: 'beanstalk-web-staging.example.workers.dev',
       origin: 'https://beanstalk-web-staging.example.workers.dev',
-      name: 'Beanstalk',
+      name: 'Gitstalk',
     });
   });
 

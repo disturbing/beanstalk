@@ -1,4 +1,4 @@
-/** The recorded race of the demo: the merge queue against Beanstalk v2.5, same tasks and seed. */
+/** The recorded race of the demo: the merge queue against Gitstalk v2.5, same tasks and seed. */
 import type { RunId } from '@gitstalk/shared-race/ids';
 
 import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';

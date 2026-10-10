@@ -13,7 +13,7 @@ import { parseRecorded } from '../../recorded/recorded-runs';
 export function calibrationRun(): RecordedRun {
   return parseRecorded({
     run: '7z4j84eqvl',
-    label: 'Beanstalk v2',
+    label: 'Gitstalk v2',
     policyName: 'beanstalk-v2',
     summary: 'The v2 seed-7 race the live Ask timing is calibrated on',
     // v2 before v2.2: agents waited for their beans' checks.

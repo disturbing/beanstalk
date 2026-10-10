@@ -11,7 +11,7 @@ import { DEPLOY_TOKEN_PREFIX, usedFrom } from '../repos/deploy-tokens';
 
 export const whoamiRoutes = new Hono<AppEnv>().get('/', async (c) => {
   const token = presentedToken(c.req.raw);
-  const challenge = { 'www-authenticate': 'Basic realm="beanstalk"' };
+  const challenge = { 'www-authenticate': 'Basic realm="gitstalk"' };
   if (token === null)
     return c.json(
       { error: { code: 'unauthorized', message: 'send a token as the password or bearer' } },

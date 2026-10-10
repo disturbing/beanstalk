@@ -26,7 +26,7 @@ export const RepoEngineOverrides = z.strictObject({
   evidence_read_sets: z.enum(['complete', 'static']).optional(),
   affected_validation: z.boolean().optional(),
   audit_every: z.number().int().min(0).max(100).optional(),
-  /** `suite`: run the engine's suite and ignore `.beanstalk/checks.toml` (the default reads it). */
+  /** `suite`: run the engine's suite and ignore `.gitstalk/checks.toml` (the default reads it). */
   checks_source: z.enum(['suite', 'repository']).optional(),
 });
 export type RepoEngineOverrides = z.infer<typeof RepoEngineOverrides>;
@@ -40,7 +40,7 @@ export const OpenRepoEngineInput = z.strictObject({
   settings: z
     .strictObject({
       /**
-       * An operator's suite for every check, instead of the repository's `.beanstalk/checks.toml`
+       * An operator's suite for every check, instead of the repository's `.gitstalk/checks.toml`
        * (`checks_source: suite`; load tests and paired comparisons).
        */
       suite: RunSuite.optional(),

@@ -8,8 +8,8 @@ use crate::error::Error;
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_WORK_DIR: &str = "/work";
 const DEFAULT_REMOTE_SCHEMES: &str = "https";
-const DEFAULT_COMMIT_NAME: &str = "beanstalk-runner";
-const DEFAULT_COMMIT_EMAIL: &str = "runner@beanstalk.invalid";
+const DEFAULT_COMMIT_NAME: &str = "gitstalk-runner";
+const DEFAULT_COMMIT_EMAIL: &str = "runner@gitstalk.invalid";
 const DEFAULT_DEPS_DIR: &str = "/opt/arena-deps";
 
 /// Runtime configuration of the runner.
@@ -19,11 +19,11 @@ const DEFAULT_DEPS_DIR: &str = "/opt/arena-deps";
 /// | `PORT` | 8080 | listen port (bound on `0.0.0.0`) |
 /// | `WORK_DIR` | `/work` | bare-repo caches and per-request scratch directories |
 /// | `REMOTE_SCHEMES` | `https` | comma-separated URL schemes a request may name (`https`, `file`) |
-/// | `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `beanstalk-runner`, `runner@beanstalk.invalid` | identity on squash and revert commits |
+/// | `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `gitstalk-runner`, `runner@gitstalk.invalid` | identity on squash and revert commits |
 /// | `DEPS_DIR` | `/opt/arena-deps` | dependency snapshots a check may name (`<name>/node_modules`) |
 /// | `SUITE_NETWORK` | `auto` | the suite's network: `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
 /// | `CLOUDFLARE_DEPLOYMENT_ID` | unset | logged at startup |
-/// | `BEANSTALK_GIT_SHA` | unset | the commit the image was built from (set by the Dockerfile's `GIT_SHA` build arg), reported by `/version` |
+/// | `GITSTALK_GIT_SHA` | unset | the commit the image was built from (set by the Dockerfile's `GIT_SHA` build arg), reported by `/version` |
 #[derive(Debug, Clone)]
 pub struct Config {
     port: u16,
@@ -87,7 +87,7 @@ impl Config {
                 deps_dir,
                 suite_network,
                 deployment_id: lookup("CLOUDFLARE_DEPLOYMENT_ID"),
-                git_sha: lookup("BEANSTALK_GIT_SHA").filter(|sha| !sha.trim().is_empty()),
+                git_sha: lookup("GITSTALK_GIT_SHA").filter(|sha| !sha.trim().is_empty()),
             }),
             (port, work_dir, schemes, identity, deps_dir, suite_network) => {
                 let problems: Vec<String> = [
@@ -319,7 +319,7 @@ mod tests {
         assert_eq!(config.work_dir(), Path::new("/work"));
         assert!(config.remote_schemes().allows("https"));
         assert!(!config.remote_schemes().allows("file"));
-        assert_eq!(config.identity().name(), "beanstalk-runner");
+        assert_eq!(config.identity().name(), "gitstalk-runner");
         assert_eq!(config.deps_dir(), Path::new("/opt/arena-deps"));
         assert_eq!(config.suite_network(), NetworkPolicy::Auto);
     }
@@ -331,7 +331,7 @@ mod tests {
             ("WORK_DIR", "/tmp/work"),
             ("REMOTE_SCHEMES", "https, file"),
             ("COMMIT_AUTHOR_NAME", "race-harness"),
-            ("COMMIT_AUTHOR_EMAIL", "race@beanstalk.invalid"),
+            ("COMMIT_AUTHOR_EMAIL", "race@gitstalk.invalid"),
             ("CLOUDFLARE_DEPLOYMENT_ID", "dep-1"),
             ("DEPS_DIR", "/deps"),
             ("SUITE_NETWORK", "loopback"),
@@ -344,7 +344,7 @@ mod tests {
         assert_eq!(config.port(), 9090);
         assert_eq!(config.work_dir(), Path::new("/tmp/work"));
         assert!(config.remote_schemes().allows("file"));
-        assert_eq!(config.identity().email(), "race@beanstalk.invalid");
+        assert_eq!(config.identity().email(), "race@gitstalk.invalid");
         assert_eq!(config.deployment_id(), Some("dep-1"));
     }
 

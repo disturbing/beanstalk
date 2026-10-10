@@ -105,7 +105,7 @@ function NewToken({ token, name }: { readonly token: string; readonly name: stri
       </div>
       <p className={styles.hint}>
         Use it as the git password with any user name, or as <code>Authorization: Bearer</code>.
-        Beanstalk stores only its hash.
+        Gitstalk stores only its hash.
       </p>
     </section>
   );

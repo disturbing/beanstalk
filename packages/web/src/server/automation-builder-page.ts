@@ -5,6 +5,7 @@
  */
 import { env } from 'cloudflare:workers';
 
+import { AUTOMATIONS_DIRS } from '@gitstalk/shared-race/actions';
 import {
   AUTOMATION_MODELS,
   DEFAULT_AUTOMATION_MODEL,
@@ -19,6 +20,25 @@ export type BuilderStart =
   | { readonly kind: 'ready'; readonly props: BuilderProps }
   | { readonly kind: 'missing' }
   | { readonly kind: 'unavailable'; readonly message: string };
+
+/**
+ * The builder on an existing automation named `file`: `.gitstalk/automations/<file>`, else the
+ * older `.beanstalk/automations/<file>`, edited where it is (`config-dir.ts` has the rule).
+ */
+export async function editStart(page: ActionsPage, file: string): Promise<BuilderStart> {
+  const [current, ...older] = AUTOMATIONS_DIRS;
+  let start = await builderStart(page, {
+    mode: 'edit',
+    path: `${current}/${file}`,
+    template: null,
+  });
+  for (const dir of older) {
+    if (start.kind !== 'missing') return start;
+    // oxlint-disable-next-line no-await-in-loop -- the fallback is read only when the first is absent
+    start = await builderStart(page, { mode: 'edit', path: `${dir}/${file}`, template: null });
+  }
+  return start;
+}
 
 export async function builderStart(
   page: ActionsPage,

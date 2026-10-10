@@ -250,7 +250,7 @@ async fn other_commands_are_refused() {
     assert!(sign_in(&mut session, &key).await);
     let (_, stderr, status) = exec(&session, "cat /etc/passwd", None, b"").await;
     assert_eq!(status, Some(128));
-    assert!(stderr.contains("beanstalk serves git only"), "{stderr}");
+    assert!(stderr.contains("gitstalk serves git only"), "{stderr}");
     assert!(gateway.calls.lock().unwrap().is_empty());
 }
 

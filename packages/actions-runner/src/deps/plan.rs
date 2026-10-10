@@ -9,12 +9,12 @@
 //! |---|---|
 //! | `actions/setup-node` with `cache: npm\|pnpm\|yarn` | the same step without `cache:`, then the restore step |
 //! | `actions/cache` (or `actions/cache/restore`) whose every `path` is `node_modules` or a package-manager store | the restore step in its place, same `id` (`cache-hit` is set on an exact hit) |
-//! | `uses: beanstalk/deps-cache@v1` | the restore step in its place (the opt-in, with `working-directory`) |
+//! | `uses: gitstalk/deps-cache@v1` (or `beanstalk/deps-cache@v1`) | the restore step in its place (the opt-in, with `working-directory`) |
 //!
 //! Only the first trigger counts. The save step is appended last with `if: success()`. Every
 //! original step without an `id` gets its index as its id, so act's step ids (which are the
 //! index when there is no id) still match the control plane's step numbers after the insert.
-//! The repository or org variable `BEANSTALK_DEPS_CACHE=off` turns all of this off.
+//! The repository or org variable `GITSTALK_DEPS_CACHE=off` (or `BEANSTALK_DEPS_CACHE`) turns all of this off.
 
 use std::sync::LazyLock;
 
@@ -23,13 +23,13 @@ use yaml_rust2::Yaml;
 use yaml_rust2::yaml::{Array, Hash};
 
 /// The restore step's act id when it does not take over a step's id.
-pub const RESTORE_STEP_ID: &str = "__beanstalk_deps_restore";
+pub const RESTORE_STEP_ID: &str = "__gitstalk_deps_restore";
 /// The save step's act id.
-pub const SAVE_STEP_ID: &str = "__beanstalk_deps_save";
+pub const SAVE_STEP_ID: &str = "__gitstalk_deps_save";
 /// Where the image keeps the cache tool (and a `zstd` for Docker-mode job containers).
-pub const TOOL_DIR: &str = "/opt/beanstalk/bin";
+pub const TOOL_DIR: &str = "/opt/gitstalk/bin";
 /// The secret the steps read the job's cache bearer from.
-pub const TOKEN_SECRET: &str = "BEANSTALK_DEPS_TOKEN";
+pub const TOKEN_SECRET: &str = "GITSTALK_DEPS_TOKEN";
 /// The virtual host the tool talks to (the container's outbound handler).
 pub const DEPS_URL: &str = "http://deps.internal";
 
@@ -97,7 +97,7 @@ pub fn apply(job: &Hash, tmpfs_max_bytes: u64) -> Option<(Hash, DepsPlan)> {
     Some((out, plan))
 }
 
-/// Whether the job's variables turn the cache off (`BEANSTALK_DEPS_CACHE=off`).
+/// Whether the job's variables turn the cache off (`GITSTALK_DEPS_CACHE=off`, or `BEANSTALK_DEPS_CACHE`).
 pub fn is_switched_off(value: Option<&str>) -> bool {
     value.is_some_and(|value| {
         matches!(
@@ -160,7 +160,7 @@ fn detect(step: &Hash) -> Option<Found> {
                 placement: Placement::Replace,
             })
         }
-        "beanstalk/deps-cache" => Some(Found {
+        "gitstalk/deps-cache" | "beanstalk/deps-cache" => Some(Found {
             trigger: Trigger::Native,
             install_dir: input("working-directory")
                 .map_or_else(|| ".".to_owned(), |dir| clean_dir(&dir)),
@@ -326,7 +326,7 @@ fn without_cache_inputs(step: &Yaml) -> Yaml {
 fn restore_step(plan: &DepsPlan, id: Option<Yaml>, condition: Option<Yaml>) -> Yaml {
     let mut step = Hash::new();
     step.insert(key("id"), id.unwrap_or_else(|| key(RESTORE_STEP_ID)));
-    step.insert(key("name"), key("Restore dependencies (Beanstalk cache)"));
+    step.insert(key("name"), key("Restore dependencies (Gitstalk cache)"));
     if let Some(condition) = condition {
         step.insert(key("if"), condition);
     }
@@ -334,17 +334,17 @@ fn restore_step(plan: &DepsPlan, id: Option<Yaml>, condition: Option<Yaml>) -> Y
     step.insert(key("working-directory"), key("${{ github.workspace }}"));
     step.insert(
         key("run"),
-        key(&format!("{TOOL_DIR}/beanstalk-deps restore")),
+        key(&format!("{TOOL_DIR}/gitstalk-deps restore")),
     );
     let mut env = tool_env();
-    env.insert(key("BEANSTALK_DEPS_DIR"), key(&plan.install_dir));
-    env.insert(key("BEANSTALK_DEPS_FLAGS"), key(&plan.flags));
+    env.insert(key("GITSTALK_DEPS_DIR"), key(&plan.install_dir));
+    env.insert(key("GITSTALK_DEPS_FLAGS"), key(&plan.flags));
     env.insert(
-        key("BEANSTALK_DEPS_TMPFS_MAX_BYTES"),
+        key("GITSTALK_DEPS_TMPFS_MAX_BYTES"),
         key(&plan.tmpfs_max_bytes.to_string()),
     );
     if plan.wipes_tree {
-        env.insert(key("BEANSTALK_DEPS_WIPES_TREE"), key("1"));
+        env.insert(key("GITSTALK_DEPS_WIPES_TREE"), key("1"));
     }
     step.insert(key("env"), Yaml::Hash(env));
     Yaml::Hash(step)
@@ -353,11 +353,11 @@ fn restore_step(plan: &DepsPlan, id: Option<Yaml>, condition: Option<Yaml>) -> Y
 fn save_step() -> Yaml {
     let mut step = Hash::new();
     step.insert(key("id"), key(SAVE_STEP_ID));
-    step.insert(key("name"), key("Save dependencies (Beanstalk cache)"));
+    step.insert(key("name"), key("Save dependencies (Gitstalk cache)"));
     step.insert(key("if"), key("success()"));
     step.insert(key("shell"), key("bash"));
     step.insert(key("working-directory"), key("${{ github.workspace }}"));
-    step.insert(key("run"), key(&format!("{TOOL_DIR}/beanstalk-deps save")));
+    step.insert(key("run"), key(&format!("{TOOL_DIR}/gitstalk-deps save")));
     step.insert(key("env"), Yaml::Hash(tool_env()));
     Yaml::Hash(step)
 }
@@ -368,7 +368,7 @@ fn tool_env() -> Hash {
         key(TOKEN_SECRET),
         key(&format!("${{{{ secrets.{TOKEN_SECRET} }}}}")),
     );
-    env.insert(key("BEANSTALK_DEPS_URL"), key(DEPS_URL));
+    env.insert(key("GITSTALK_DEPS_URL"), key(DEPS_URL));
     env
 }
 
@@ -469,13 +469,22 @@ steps:
     #[test]
     fn the_native_step_names_its_directory() {
         let native = job(
-            "steps:\n  - uses: beanstalk/deps-cache@v1\n    with: { working-directory: ./web/../web }\n",
+            "steps:\n  - uses: gitstalk/deps-cache@v1\n    with: { working-directory: ./web/../web }\n",
         );
         let plan = apply(&native, GIB).map(|(_, plan)| plan);
         assert_eq!(
             plan.map(|plan| plan.install_dir),
             Some("web/web".to_owned())
         );
+    }
+
+    #[test]
+    fn the_native_step_keeps_its_name_from_before_the_rename() {
+        let native = job(
+            "steps:\n  - uses: beanstalk/deps-cache@v1\n    with: { working-directory: web }\n",
+        );
+        let plan = apply(&native, GIB).map(|(_, plan)| plan);
+        assert_eq!(plan.map(|plan| plan.install_dir), Some("web".to_owned()));
     }
 
     #[test]

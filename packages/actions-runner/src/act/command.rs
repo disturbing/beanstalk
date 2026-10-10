@@ -6,7 +6,7 @@
 //! `--env-file` (`GITHUB_REPOSITORY`, `GITHUB_REF`, `SHA_REF`, `GITHUB_SERVER_URL`, ...), because
 //! the working directory is empty until `actions/checkout` runs. act fetches every `uses:`
 //! action from `GITHUB_SERVER_URL`, which is the executor's `bs.internal` host: it serves the
-//! job's own repository from Beanstalk and proxies everything else to github.com anonymously.
+//! job's own repository from Gitstalk and proxies everything else to github.com anonymously.
 
 use std::collections::BTreeMap;
 use std::ffi::OsString;
@@ -186,7 +186,7 @@ pub enum RunMode {
 pub struct ActPlan {
     pub mode: RunMode,
     /// `owner/repo` of the actions act fetches from github.com rather than from
-    /// `GITHUB_SERVER_URL` (Beanstalk): one `--replace-ghe-action-with-github-com` each, since
+    /// `GITHUB_SERVER_URL` (Gitstalk): one `--replace-ghe-action-with-github-com` each, since
     /// act does not split a comma list. Empty when the server is github.com itself.
     pub github_actions: Vec<String>,
     /// Docker mode with the dependency cache: `--container-options` for the job container.
@@ -215,7 +215,7 @@ pub const BAKED_ACTIONS: [&str; 7] = [
 ];
 
 /// The actions to take from github.com: the job's remote actions and the baked ones, except
-/// the job's own repository (served by Beanstalk). None when the server is github.com.
+/// the job's own repository (served by Gitstalk). None when the server is github.com.
 pub fn github_actions(request: &JobRequest, remote_actions: &[String]) -> Vec<String> {
     let server = request.github.server_url.trim_end_matches('/');
     if server == "https://github.com" {
@@ -381,7 +381,7 @@ mod tests {
                 actor: "coop".into(),
             },
             token: Secret::new("bsj_token_value"),
-            env: BTreeMap::from([("BEANSTALK_LINE".to_owned(), "stalk".to_owned())]),
+            env: BTreeMap::from([("GITSTALK_LINE".to_owned(), "stalk".to_owned())]),
             vars: BTreeMap::new(),
             inputs: BTreeMap::new(),
             outputs: BTreeMap::new(),
@@ -505,7 +505,7 @@ mod tests {
         assert!(env.contains("SHA_REF=\"0123abcd\"\n"));
         assert!(env.contains("GITHUB_SERVER_URL=\"http://bs.internal\"\n"));
         assert!(env.contains("GITHUB_GRAPHQL_URL=\"http://bs.internal/api/graphql\"\n"));
-        assert!(env.contains("BEANSTALK_LINE=\"stalk\"\n"));
+        assert!(env.contains("GITSTALK_LINE=\"stalk\"\n"));
         let secrets = secret_file(&request());
         assert!(secrets.contains("GITHUB_TOKEN=\"bsj_token_value\"\n"));
         assert!(secrets.contains("NPM_TOKEN=\"npm-secret\"\n"));

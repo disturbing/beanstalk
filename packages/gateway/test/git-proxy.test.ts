@@ -124,7 +124,7 @@ describe('git proxy', () => {
     expect(foreign.status).toBe(403);
     expect(viewer.status).toBe(403);
     expect(missing.status).toBe(401);
-    expect(missing.headers.get('www-authenticate')).toBe('Basic realm="beanstalk"');
+    expect(missing.headers.get('www-authenticate')).toBe('Basic realm="gitstalk"');
   });
 
   it('closes the run repo to the seed token once the run has started', async () => {

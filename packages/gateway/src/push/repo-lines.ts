@@ -64,7 +64,7 @@ async function firstCommit(target: RemoteTarget, nowMs: number): Promise<string>
   const commit = await commitObject({
     tree: tree.id,
     parents: [],
-    author: { name: 'beanstalk', email: 'engine@beanstalk.invalid', atMs: nowMs },
+    author: { name: 'gitstalk', email: 'engine@gitstalk.invalid', atMs: nowMs },
     message: 'Start the repository',
   });
   const report = await pushRefs(

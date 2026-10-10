@@ -95,7 +95,7 @@ ENV PORT=8080 \
     WORK_DIR=/work \
     DEPS_DIR=/opt/arena-deps \
     RUST_LOG=info \
-    BEANSTALK_GIT_SHA=${GIT_SHA}
+    GITSTALK_GIT_SHA=${GIT_SHA}
 EXPOSE 8080
 # tini is PID 1: it reaps test processes orphaned to it (a SIGKILLed suite's grandchildren would
 # otherwise stay zombies for the instance's life) and forwards SIGTERM to the runner.

@@ -39,7 +39,7 @@ export default async function SshKeysPage({ searchParams }: PageProps) {
       title="SSH keys"
       lede={
         <>
-          The easy way to add one: in Claude Code, run <code>/beanstalk:setup</code>. It finds your
+          The easy way to add one: in Claude Code, run <code>/gitstalk:setup</code>. It finds your
           keys (1Password, ssh-agent, <code>~/.ssh</code>) or makes one, and sends you here to
           approve it. Only public keys are stored.
         </>
@@ -106,7 +106,7 @@ export default async function SshKeysPage({ searchParams }: PageProps) {
 function ServerKey({ endpoint }: { readonly endpoint: SshEndpoint | undefined }) {
   if (endpoint === undefined || endpoint.hostKeyFingerprint === '') return null;
   return (
-    <SettingsSection id="host-key" title="Beanstalk’s host key">
+    <SettingsSection id="host-key" title="Gitstalk’s host key">
       <p className={styles.note}>
         The first time you connect to <code>{endpoint.host}</code>, <code>ssh</code> shows the
         server&apos;s key fingerprint. Continue only if it matches:

@@ -1,5 +1,5 @@
 /**
- * GitHub Actions on Beanstalk: the shared contract between the three lanes
+ * GitHub Actions on Gitstalk: the shared contract between the three lanes
  * (`docs/claude-opus/25-actions-and-automations.md`).
  *
  * - **Control plane** (the gateway): workflow discovery from the stalk, triggers, one
@@ -27,6 +27,7 @@
  */
 import { z } from 'zod';
 
+import { configPaths } from './config-dir';
 import type { Viewer } from './repos';
 import type { RpcResult } from './rpc';
 
@@ -42,22 +43,59 @@ export type ActionsJobId = z.infer<typeof ActionsJobId>;
 
 /**
  * A workflow file's path in the repository: `.github/workflows/<name>.yml` (or `.yaml`), or an
- * automation's, `.beanstalk/automations/<name>.yml` (`.yaml`, or `.md` with front matter).
+ * automation's, `.gitstalk/automations/<name>.yml` (`.yaml`, or `.md` with front matter), or the
+ * same under `.beanstalk/automations/` from before the rename.
  */
 export const WorkflowPath = z
   .string()
   .regex(
-    /^(?:\.github\/workflows\/[A-Za-z0-9._-]{1,100}\.ya?ml|\.beanstalk\/automations\/[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:ya?ml|md))$/,
+    /^(?:\.github\/workflows\/[A-Za-z0-9._-]{1,100}\.ya?ml|\.(?:gitstalk|beanstalk)\/automations\/[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\.(?:ya?ml|md))$/,
   )
   .brand<'WorkflowPath'>();
 export type WorkflowPath = z.infer<typeof WorkflowPath>;
 
-/** Where automations live (doc 25 §7): agent jobs defined by files on the stalk. */
-export const AUTOMATIONS_DIR = '.beanstalk/automations';
+/**
+ * A repository or org variable the product reads, by its name without the prefix (`DEPS_CACHE`):
+ * `GITSTALK_<name>`, else `BEANSTALK_<name>` as repositories set it before the rename
+ * (2026-10-10). `.gitstalk`'s rule: the current name wins when both are set.
+ */
+export function productVariable(
+  vars: Readonly<Record<string, string>>,
+  name: string,
+): string | undefined {
+  return vars[`GITSTALK_${name}`] ?? vars[`BEANSTALK_${name}`];
+}
+
+/** Where new automations go (doc 25 §7): agent jobs defined by files on the stalk. */
+export const AUTOMATIONS_DIR = '.gitstalk/automations';
+
+/** Every directory automations are read from, in lookup order (`config-dir.ts`). */
+export const AUTOMATIONS_DIRS: readonly string[] = configPaths('automations');
+
+/** SQL `LIKE` patterns matching an automation's workflow path, one per directory. */
+export const AUTOMATION_PATH_PATTERNS: readonly string[] = AUTOMATIONS_DIRS.map(
+  (dir) => `${dir}/%`,
+);
 
 /** Whether a workflow path is an automation's (not a GitHub workflow's). */
 export function isAutomationPath(path: string): boolean {
-  return path.startsWith(`${AUTOMATIONS_DIR}/`);
+  return AUTOMATIONS_DIRS.some((dir) => path.startsWith(`${dir}/`));
+}
+
+/**
+ * The automation paths that count when both directories hold files: one with the same id under
+ * `.gitstalk/automations/` hides its `.beanstalk/automations/` namesake. Others keep their order.
+ */
+export function preferredAutomationPaths(paths: readonly string[]): readonly string[] {
+  const current = new Set(
+    paths.filter((path) => path.startsWith(`${AUTOMATIONS_DIR}/`)).map(automationIdOf),
+  );
+  return paths.filter(
+    (path) =>
+      !isAutomationPath(path) ||
+      path.startsWith(`${AUTOMATIONS_DIR}/`) ||
+      !current.has(automationIdOf(path)),
+  );
 }
 
 /** An automation's id: its file name without the extension (`fix-red` for `fix-red.yml`). */
@@ -98,10 +136,10 @@ export const ACTIONS_CONCLUSIONS = [
 export type ActionsConclusion = (typeof ACTIONS_CONCLUSIONS)[number];
 
 /**
- * Beanstalk events an automation's `on:` may name (doc 25 §7.2), each the repository event of
+ * Gitstalk events an automation's `on:` may name (doc 25 §7.2), each the repository event of
  * the same moment (`bean_red` is `bean.rework`: a red pre-land check or a conflict).
  */
-export const BEANSTALK_EVENTS = [
+export const GITSTALK_EVENTS = [
   'bean_opened',
   'bean_landed',
   'bean_red',
@@ -114,14 +152,14 @@ export const BEANSTALK_EVENTS = [
   'decision_opened',
   'decision_decided',
 ] as const;
-export type BeanstalkEvent = (typeof BEANSTALK_EVENTS)[number];
+export type GitstalkEvent = (typeof GITSTALK_EVENTS)[number];
 
-/** The events that start a run: GitHub's three, and the Beanstalk events (automations only). */
+/** The events that start a run: GitHub's three, and the Gitstalk events (automations only). */
 export const ACTIONS_EVENTS = [
   'push',
   'workflow_dispatch',
   'schedule',
-  ...BEANSTALK_EVENTS,
+  ...GITSTALK_EVENTS,
 ] as const;
 export type ActionsEvent = (typeof ACTIONS_EVENTS)[number];
 
@@ -140,9 +178,9 @@ export type WorkflowTrigger =
   | { readonly kind: 'workflow_dispatch'; readonly inputs: readonly DispatchInputSpec[] }
   | { readonly kind: 'schedule'; readonly crons: readonly string[] }
   | {
-      /** A Beanstalk event (automations only), with optional glob filters. */
+      /** A Gitstalk event (automations only), with optional glob filters. */
       readonly kind: 'beanstalk';
-      readonly event: BeanstalkEvent;
+      readonly event: GitstalkEvent;
       /** Bean names it fires for; empty: any. */
       readonly beans: readonly string[];
       /** Handles of the bean's pusher it fires for; empty: any. */
@@ -154,7 +192,7 @@ export type AutomationInfo = {
   /** The file name without its extension: names the memory ref, the bot and its beans. */
   readonly id: string;
   /**
-   * `agent`: Beanstalk's agent loop on a Workers AI model through the model proxy (§7.5);
+   * `agent`: Gitstalk's agent loop on a Workers AI model through the model proxy (§7.5);
    * `shell`: a script with the same workspace, memory and bean push, and no model.
    */
   readonly harness: 'agent' | 'shell';
@@ -207,7 +245,7 @@ export type WorkflowSummary = {
   readonly name: string;
   readonly state: 'active' | 'invalid';
   readonly triggers: readonly WorkflowTrigger[];
-  /** Events in `on:` that Beanstalk does not start runs for yet (`pull_request` …). */
+  /** Events in `on:` that Gitstalk does not start runs for yet (`pull_request` …). */
   readonly unsupportedEvents: readonly string[];
   readonly jobs: readonly {
     readonly key: string;
@@ -216,7 +254,7 @@ export type WorkflowSummary = {
   }[];
   readonly problems: readonly WorkflowProblem[];
   readonly compatibility: readonly CompatibilityNote[];
-  /** Set for an automation (`.beanstalk/automations/`); absent for a GitHub workflow. */
+  /** Set for an automation (`.gitstalk/automations/`); absent for a GitHub workflow. */
   readonly automation?: AutomationInfo | undefined;
   /** The stalk commit the index read the file at. */
   readonly sha: string;
@@ -480,7 +518,7 @@ export type JobSpec = {
   /** `workflow_dispatch` inputs, as strings. */
   readonly inputs: Readonly<Record<string, string>>;
   /**
-   * Extra environment the control plane sets (`BEANSTALK_LINE=stalk`, `CI=true`, and for an
+   * Extra environment the control plane sets (`GITSTALK_LINE=stalk` and its `BEANSTALK_` twin, `CI=true`, and for an
    * `id-token: write` job `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN`); workflow `env:` is in the file.
    */
   readonly env: Readonly<Record<string, string>>;

@@ -26,7 +26,7 @@ export type StatusPublisherDeps = {
   readonly now: () => number;
 };
 
-const TAGGER = { name: 'beanstalk', email: 'engine@beanstalk.invalid' } as const;
+const TAGGER = { name: 'gitstalk', email: 'engine@gitstalk.invalid' } as const;
 
 export class StatusPublisher {
   readonly #deps: StatusPublisherDeps;

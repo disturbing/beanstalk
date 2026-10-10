@@ -73,7 +73,7 @@ async function post(ceremony: Ceremony, body: object, csrf: string | undefined):
     });
   } catch {
     // Offline or blocked: nothing reached the server.
-    return failed('Could not reach Beanstalk. Check your connection.');
+    return failed('Could not reach Gitstalk. Check your connection.');
   }
   const json: unknown = await response.json().catch(() => null);
   const answer = typeof json === 'object' && json !== null ? json : {};

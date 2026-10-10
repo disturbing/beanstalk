@@ -269,7 +269,7 @@ describe('registering a key from a terminal', () => {
     });
   });
 
-  it('refuses a request for a key Beanstalk cannot use', async () => {
+  it('refuses a request for a key Gitstalk cannot use', async () => {
     expect(
       await startKeyRequest(
         env,

@@ -4,8 +4,8 @@
  * `bean/automation-<slug>-<short>` with the person's identity and hands it to the engine as any
  * push, so it lands only through the pre-land check. When the file changed on the latest landed
  * commit since the editor opened it, the save is refused as `stale` with that version, for the
- * editor to merge. Access: read to open, write to save (maintain when `.beanstalk/checks.toml`
- * protects the file), maintain to start a test run.
+ * editor to merge. Access: read to open, write to save (maintain when the checks file
+ * protects it), maintain to start a test run.
  */
 import type {
   AutomationBase,
@@ -24,11 +24,12 @@ import {
 } from '@gitstalk/shared-race/automation-editor';
 import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 import {
-  CHECKS_PATH,
+  CHECKS_PATHS,
   matchesPattern,
   protectedPatterns,
-  readChecksConfig,
+  resolveChecksFile,
 } from '@gitstalk/shared-race/checks-config';
+import { readFirstPresent } from '@gitstalk/shared-race/config-dir';
 import type { RepositoryForViewer, ViewerRole } from '@gitstalk/shared-race/collaborators';
 import { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
 import type { Viewer } from '@gitstalk/shared-race/repos';
@@ -53,6 +54,8 @@ type Opened = { readonly repo: RepositoryForViewer; readonly engine: Engine };
 const LANDED = 'sprout';
 const SHORT = 6;
 const DECIDING: ReadonlySet<ViewerRole> = new Set(['owner', 'maintain']);
+/** The runner's commit names: today's, and the one from before the rename in older history. */
+const RUNNER_NAMES: ReadonlySet<string> = new Set(['gitstalk-runner', 'gitstalk-runner']);
 
 export function automationEditorRpc(env: Env, deps: Deps): AutomationEditorRpc {
   const open = async (
@@ -201,7 +204,7 @@ export function saveAccess(repo: RepositoryForViewer, protectedBy: string | null
   if (protectedBy !== null && !DECIDING.has(role))
     return {
       kind: 'refused',
-      reason: `.beanstalk/checks.toml protects this file (${protectedBy}), so only maintainers and the owner may change it; you have the ${role} role.`,
+      reason: `The checks file protects this file (${protectedBy}), so only maintainers and the owner may change it; you have the ${role} role.`,
     };
   return { kind: 'allowed' };
 }
@@ -256,14 +259,16 @@ async function pusherOf(
     const { pushed } = await engine.agentBean(bean.data);
     if (pushed !== null) return pushed.actor;
   }
-  return commit.author.name === 'beanstalk-runner' ? null : commit.author.name;
+  return RUNNER_NAMES.has(commit.author.name) ? null : commit.author.name;
 }
 
-/** `protected_paths` of the latest landed `.beanstalk/checks.toml` that cover `path`. */
+/** `protected_paths` of the latest landed checks file (`.gitstalk/` or `.beanstalk/`) that cover `path`. */
 async function protectionOf(engine: Engine, path: string): Promise<string | null> {
-  const checks = await engine.repoFile(LANDED, CHECKS_PATH);
-  const text = checks.ok ? checks.value.content : null;
-  const patterns = protectedPatterns(readChecksConfig(text));
+  const checks = await readFirstPresent(CHECKS_PATHS, async (candidate) => {
+    const file = await engine.repoFile(LANDED, candidate);
+    return file.ok ? file.value.content : null;
+  });
+  const patterns = protectedPatterns(resolveChecksFile(checks));
   return patterns.find((pattern) => matchesPattern(path, pattern)) ?? null;
 }
 

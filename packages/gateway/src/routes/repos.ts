@@ -79,12 +79,12 @@ export const repoRoutes = new Hono<AppEnv>()
 async function ensureArtifactsRepo(env: Env, name: string): Promise<void> {
   const artifacts = artifactsPort(env.REPOS);
   const existing = await artifacts.listRepos((candidate) => candidate === name);
-  if (existing.length === 0) await artifacts.createRepo(name, `beanstalk repository ${name}`);
+  if (existing.length === 0) await artifacts.createRepo(name, `gitstalk repository ${name}`);
 }
 
 async function importArtifactsRepo(env: Env, name: string, url: string): Promise<void> {
   const storage = repositoryStorage(env.REPOS);
-  await storage.importFrom(name, url, `beanstalk repository ${name}, imported from ${url}`);
+  await storage.importFrom(name, url, `gitstalk repository ${name}, imported from ${url}`);
   if ((await storage.lineFromDefault(name)) === null) {
     throw new GatewayError(`${url} has no commits to import`, 'invalid_request', 400);
   }

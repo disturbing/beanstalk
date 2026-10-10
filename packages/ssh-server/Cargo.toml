@@ -1,7 +1,7 @@
 [package]
 name = "ssh-server"
 version = "0.1.0"
-description = "Git over SSH for beanstalk: public-key auth, git-upload-pack and git-receive-pack bridged to the gateway's smart-HTTP proxy"
+description = "Git over SSH for Gitstalk: public-key auth, git-upload-pack and git-receive-pack bridged to the gateway's smart-HTTP proxy"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

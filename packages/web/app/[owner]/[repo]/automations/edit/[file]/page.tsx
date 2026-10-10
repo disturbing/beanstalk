@@ -4,7 +4,7 @@ import { ActionsShell } from '../../../../../../components/actions/actions-shell
 import { AutomationBuilder } from '../../../../../../components/automations/automation-builder';
 import styles from '../../../../../../components/automations/builder.module.css';
 import { actionsPage } from '../../../../../../src/server/actions-page';
-import { builderStart } from '../../../../../../src/server/automation-builder-page';
+import { editStart } from '../../../../../../src/server/automation-builder-page';
 
 type PageProps = {
   readonly params: Promise<{
@@ -22,17 +22,14 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 /**
- * Automations → Edit (doc 25 §7.13): the builder on `.beanstalk/automations/<file>` as the
- * latest landed commit has it. Saving pushes a bean; deleting pushes a bean that removes it.
+ * Automations → Edit (doc 25 §7.13): the builder on `.gitstalk/automations/<file>` as the
+ * latest landed commit has it, else on the older `.beanstalk/automations/<file>` (edited where it
+ * is). Saving pushes a bean; deleting pushes a bean that removes it.
  */
 export default async function EditAutomationPage({ params }: PageProps) {
   const page = await actionsPage(params);
   const { file } = await params;
-  const start = await builderStart(page, {
-    mode: 'edit',
-    path: `.beanstalk/automations/${decodeURIComponent(file)}`,
-    template: null,
-  });
+  const start = await editStart(page, decodeURIComponent(file));
   if (start.kind === 'missing') notFound();
   return (
     <ActionsShell page={page} view="automations" mode={page.actions?.mode ?? null}>

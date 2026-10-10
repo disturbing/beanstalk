@@ -9,7 +9,7 @@ export type RunMeta = { readonly label: string; readonly detail: string };
 export function runMeta(run: RunId, state: RaceState): RunMeta {
   const recorded = recordedRun(run);
   const meta = state.meta;
-  const policy = meta?.policy === 'queue' ? 'Merge queue' : 'Beanstalk v2';
+  const policy = meta?.policy === 'queue' ? 'Merge queue' : 'Gitstalk v2';
   const agents =
     meta === null
       ? ''

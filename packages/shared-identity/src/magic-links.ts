@@ -24,7 +24,7 @@ export type EmailSender = Pick<SendEmail, 'send'>;
 
 export type EmailSignInConfig = {
   readonly sender: EmailSender;
-  /** `Beanstalk <signin@domain>`. */
+  /** `Gitstalk <signin@domain>`. */
   readonly from: { readonly email: string; readonly name: string };
 };
 
@@ -59,7 +59,7 @@ export function emailSignInConfig(env: {
 }): EmailSignInConfig | null {
   const domain = env.EMAIL_SENDER_DOMAIN?.trim() ?? '';
   if (domain === '' || env.EMAIL === undefined) return null;
-  return { sender: env.EMAIL, from: { email: `signin@${domain}`, name: 'Beanstalk' } };
+  return { sender: env.EMAIL, from: { email: `signin@${domain}`, name: 'Gitstalk' } };
 }
 
 /** Sends a sign-in (or sign-up) link, or a "no account yet" note when there is no handle. */
@@ -102,7 +102,7 @@ export async function requestMagicLink(
   await config.sender.send({
     from: config.from,
     to: request.email,
-    subject: purpose === 'signin' ? 'Sign in to Beanstalk' : 'Finish signing up for Beanstalk',
+    subject: purpose === 'signin' ? 'Sign in to Gitstalk' : 'Finish signing up for Gitstalk',
     text: linkText(purpose, link),
     html: linkHtml(purpose, link),
   });
@@ -224,18 +224,18 @@ async function sendNoAccount(config: EmailSignInConfig, request: MagicLinkReques
   await config.sender.send({
     from: config.from,
     to: request.email,
-    subject: 'Sign in to Beanstalk',
-    text: `Someone asked to sign in to Beanstalk with this address, but it has no account yet.\n\nSign up here: ${signup}\n\nIf it was not you, ignore this email.`,
-    html: `<p>Someone asked to sign in to Beanstalk with this address, but it has no account yet.</p><p><a href="${signup}">Sign up</a></p><p>If it was not you, ignore this email.</p>`,
+    subject: 'Sign in to Gitstalk',
+    text: `Someone asked to sign in to Gitstalk with this address, but it has no account yet.\n\nSign up here: ${signup}\n\nIf it was not you, ignore this email.`,
+    html: `<p>Someone asked to sign in to Gitstalk with this address, but it has no account yet.</p><p><a href="${signup}">Sign up</a></p><p>If it was not you, ignore this email.</p>`,
   });
 }
 
 function linkText(purpose: 'signin' | 'signup', link: string): string {
   const action = purpose === 'signin' ? 'sign in' : 'finish signing up';
-  return `Open this link to ${action} to Beanstalk. It works once, for 15 minutes, in the browser you asked from:\n\n${link}\n\nIf you did not ask for it, ignore this email.`;
+  return `Open this link to ${action} to Gitstalk. It works once, for 15 minutes, in the browser you asked from:\n\n${link}\n\nIf you did not ask for it, ignore this email.`;
 }
 
 function linkHtml(purpose: 'signin' | 'signup', link: string): string {
   const action = purpose === 'signin' ? 'Sign in' : 'Finish signing up';
-  return `<p><a href="${link}">${action} to Beanstalk</a></p><p>The link works once, for 15 minutes, in the browser you asked from. If you did not ask for it, ignore this email.</p>`;
+  return `<p><a href="${link}">${action} to Gitstalk</a></p><p>The link works once, for 15 minutes, in the browser you asked from. If you did not ask for it, ignore this email.</p>`;
 }

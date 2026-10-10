@@ -1,3 +1,4 @@
+import { AUTOMATIONS_DIR } from '@gitstalk/shared-race/actions';
 import Link from 'next/link';
 
 import { ActionsShell } from '../../../../../components/actions/actions-shell';
@@ -59,7 +60,7 @@ export default async function NewAutomationPage({ params, searchParams }: PagePr
   const template = templateOf(templateId);
   const start = await builderStart(page, {
     mode: 'new',
-    path: `.beanstalk/automations/${template.file}`,
+    path: `${AUTOMATIONS_DIR}/${template.file}`,
     template: template.source,
   });
   if (start.kind !== 'ready')

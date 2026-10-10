@@ -10,9 +10,9 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 
-import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
+import type { GitstalkEvent } from '@gitstalk/shared-race/actions';
 import type { AutomationBase } from '@gitstalk/shared-race/automation-editor';
-import { slugOf } from '@gitstalk/shared-race/automation-editor';
+import { AutomationPath, slugOf } from '@gitstalk/shared-race/automation-editor';
 import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 
 import type { EventFilter, FieldPath } from '../../src/automations/automation-draft';
@@ -40,7 +40,8 @@ import { MergePanel } from './merge-panel';
 import type { LineProblem } from './yaml-pane';
 import { YamlPane } from './yaml-pane';
 
-const DIR = '.beanstalk/automations/';
+/** A file's directory with its slash: `.gitstalk/automations/`, or the older one an edit keeps. */
+const dirOf = (path: string): string => path.slice(0, path.lastIndexOf('/') + 1);
 const POLL_MS = 1500;
 
 export type BuilderProps = {
@@ -102,9 +103,7 @@ export function AutomationBuilder(props: BuilderProps) {
       : file.problems.map((problem) => ({ ...problem }));
   const fieldProblems = useMemo(() => problemsByField(file.problems), [file.problems]);
   const form = parsed.kind === 'ok' ? formOf(parsed.value) : null;
-  const isPathValid = /^\.beanstalk\/automations\/[a-z0-9][a-z0-9_-]{0,63}\.(?:ya?ml|md)$/.test(
-    path,
-  );
+  const isPathValid = AutomationPath.safeParse(path).success;
   const isUnchanged = props.mode === 'edit' && text === opened.text;
   const canSave =
     props.save.kind === 'allowed' &&
@@ -119,8 +118,8 @@ export function AutomationBuilder(props: BuilderProps) {
   };
   const actions = {
     set: (fieldPath: FieldPath, value: unknown) => edit(setField(text, fieldPath, value)),
-    setEvent: (event: BeanstalkEvent, isOn: boolean) => edit(setEvent(text, event, isOn)),
-    setFilter: (event: BeanstalkEvent, filter: EventFilter) =>
+    setEvent: (event: GitstalkEvent, isOn: boolean) => edit(setEvent(text, event, isOn)),
+    setFilter: (event: GitstalkEvent, filter: EventFilter) =>
       edit(setEventFilter(text, event, filter)),
     setCrons: (crons: readonly string[]) => edit(setCrons(text, crons)),
   };
@@ -356,7 +355,7 @@ export function AutomationBuilder(props: BuilderProps) {
           ) : null}
           {props.mode === 'edit' && props.save.kind === 'allowed' ? (
             <DeleteControl
-              file={path.slice(DIR.length)}
+              file={path.slice(dirOf(path).length)}
               isBusy={isBusy}
               onDelete={() => push(null, opened.base, opened.text)}
             />
@@ -412,18 +411,19 @@ function FileName(props: {
   readonly isValid: boolean;
   readonly suggestion: string;
 }) {
-  const name = props.path.slice(DIR.length).replace(/\.ya?ml$/, '');
+  const dir = dirOf(props.path);
+  const name = props.path.slice(dir.length).replace(/\.ya?ml$/, '');
   return (
     <label className={styles.inline}>
       <span>File</span>
       <span className={styles.fileName}>
-        <span className={styles.mono}>{DIR}</span>
+        <span className={styles.mono}>{dir}</span>
         <input
           className={`${styles.input} ${styles.mono}`}
           aria-label="File name"
           value={name}
           onChange={(event) =>
-            props.onChange(`${DIR}${slugOf(event.target.value) || event.target.value}.yml`)
+            props.onChange(`${dir}${slugOf(event.target.value) || event.target.value}.yml`)
           }
         />
         <span className={styles.mono}>.yml</span>
@@ -435,7 +435,7 @@ function FileName(props: {
         <button
           type="button"
           className={styles.linkButton}
-          onClick={() => props.onChange(`${DIR}${props.suggestion}.yml`)}
+          onClick={() => props.onChange(`${dir}${props.suggestion}.yml`)}
         >
           Use {props.suggestion}.yml
         </button>

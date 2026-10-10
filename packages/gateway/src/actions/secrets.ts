@@ -19,7 +19,7 @@ import { KEY_VERSION, encodeText, importSecretsKey, openValue, sealValue } from 
 export type RunOrigin =
   | { readonly kind: 'stalk' | 'dispatch' | 'schedule' }
   /**
-   * An automation started by a Beanstalk event (doc 25 §7.6): the trigger carries data from
+   * An automation started by a Gitstalk event (doc 25 §7.6): the trigger carries data from
    * beans anyone with push access wrote, so it gets what an untrusted pre-land run gets: only
    * the secrets whose "available to pre-land checks" toggle is on.
    */

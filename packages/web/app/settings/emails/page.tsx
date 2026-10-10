@@ -45,7 +45,7 @@ export default async function EmailSettingsPage() {
         <p className={styles.hint}>
           {isMailOn
             ? 'Adding another address is not built yet.'
-            : `Adding an address needs this deployment to send mail${env.EMAIL_SENDER_DOMAIN === '' ? ' (no sender domain is set up yet)' : ''}. Until then Beanstalk sends nothing.`}
+            : `Adding an address needs this deployment to send mail${env.EMAIL_SENDER_DOMAIN === '' ? ' (no sender domain is set up yet)' : ''}. Until then Gitstalk sends nothing.`}
         </p>
       </SettingsSection>
     </AccountSettings>

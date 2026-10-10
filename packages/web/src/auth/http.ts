@@ -25,7 +25,7 @@ export const NextPath = z
 export const SIGNED_OUT_PATH = '/login?signed_out=1';
 
 export function relyingParty(request: Request): RelyingParty {
-  return { ...siteOrigin(request), name: 'Beanstalk' };
+  return { ...siteOrigin(request), name: 'Gitstalk' };
 }
 
 /** Refuses cross-site state changes (see `isSameOrigin`). */

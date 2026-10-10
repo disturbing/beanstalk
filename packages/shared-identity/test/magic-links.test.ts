@@ -39,7 +39,7 @@ describe('email sign-in configuration', () => {
       emailSignInConfig({ EMAIL_SENDER_DOMAIN: 'beanstalk.test', EMAIL: sender })?.from,
     ).toEqual({
       email: 'signin@beanstalk.test',
-      name: 'Beanstalk',
+      name: 'Gitstalk',
     });
   });
 });
@@ -47,7 +47,7 @@ describe('email sign-in configuration', () => {
 describe('magic links', () => {
   it('signs up a new person with a verified email, once, in the asking browser', async () => {
     const { sender, sent } = fakeEmail();
-    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Beanstalk' } };
+    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Gitstalk' } };
     await requestMagicLink(env, config, {
       ...BASE,
       email: 'new@example.com',
@@ -56,7 +56,7 @@ describe('magic links', () => {
     });
     expect(sent[0]).toMatchObject({
       to: 'new@example.com',
-      subject: 'Finish signing up for Beanstalk',
+      subject: 'Finish signing up for Gitstalk',
     });
     const token = linkToken(sent[0]);
     const elsewhere = await consumeMagicLink(env, {
@@ -92,7 +92,7 @@ describe('magic links', () => {
 
   it('signs in an existing person and ignores a handle they did not need', async () => {
     const { sender, sent } = fakeEmail();
-    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Beanstalk' } };
+    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Gitstalk' } };
     await requestMagicLink(env, config, {
       ...BASE,
       email: 'back@example.com',
@@ -112,7 +112,7 @@ describe('magic links', () => {
       handle: 'ignored',
       browserSecret: 'b',
     });
-    expect(sent[1]?.subject).toBe('Sign in to Beanstalk');
+    expect(sent[1]?.subject).toBe('Sign in to Gitstalk');
     const again = await consumeMagicLink(env, {
       token: linkToken(sent[1]),
       browserSecret: 'b',
@@ -127,7 +127,7 @@ describe('magic links', () => {
 
   it('expires after 15 minutes', async () => {
     const { sender, sent } = fakeEmail();
-    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Beanstalk' } };
+    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Gitstalk' } };
     await requestMagicLink(env, config, {
       ...BASE,
       email: 'late@example.com',
@@ -146,7 +146,7 @@ describe('magic links', () => {
 
   it('tells an address with no account how to sign up, without a link that signs in', async () => {
     const { sender, sent } = fakeEmail();
-    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Beanstalk' } };
+    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Gitstalk' } };
     await requestMagicLink(env, config, {
       ...BASE,
       email: 'nobody@example.com',
@@ -160,7 +160,7 @@ describe('magic links', () => {
 
   it('refuses a sign-up whose handle was taken after the link was sent', async () => {
     const { sender, sent } = fakeEmail();
-    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Beanstalk' } };
+    const config = { sender, from: { email: 'signin@beanstalk.test', name: 'Gitstalk' } };
     await requestMagicLink(env, config, {
       ...BASE,
       email: 'one@example.com',

@@ -21,7 +21,8 @@ import {
   RunConfig as RunConfigSchema,
   checksSourceOf,
 } from '@gitstalk/shared-race/run-config';
-import { CHECKS_PATH } from '@gitstalk/shared-race/checks-config';
+import { CHECKS_PATHS } from '@gitstalk/shared-race/checks-config';
+import { readFirstPresent } from '@gitstalk/shared-race/config-dir';
 
 import type {
   BeanDetail,
@@ -661,7 +662,7 @@ export class RunDO extends DurableObject<Env> {
     try {
       const repo = await this.#artifacts.createRepo(
         runRepoName(input.run),
-        `beanstalk race ${input.run}: the sprout and the stalk`,
+        `gitstalk race ${input.run}: the sprout and the stalk`,
       );
       const env = engineEnv(input.config, sqlReadMapIndex(this.ctx.storage.sql));
       const stored: StoredRun = {
@@ -1612,7 +1613,7 @@ export class RunDO extends DurableObject<Env> {
       readChecks: async (sha) => {
         if ((await this.#artifacts.commitMessage(repo, sha)) === null)
           throw new UpstreamError(`commit ${sha} is not readable yet`, true);
-        return this.#artifacts.readFile(repo, sha, CHECKS_PATH);
+        return readFirstPresent(CHECKS_PATHS, (path) => this.#artifacts.readFile(repo, sha, path));
       },
       saveLandingTree: (tree) => saveLandingTree(sql, tree, Date.now()),
       landingTree: (sha) => readLandingTree(sql, sha),

@@ -1,6 +1,6 @@
 # beanstalk-mcp
 
-MCP tools for independently operated contributors working on one Beanstalk run
+MCP tools for independently operated contributors working on one Gitstalk run
 (`docs/claude-opus/06-auth-mcp-live-previews.md` §4). A Worker (`beanstalk-mcp`): Hono inside a
 `WorkerEntrypoint`, stateless MCP over Streamable HTTP at `/mcp` through the Agents SDK's
 `createMcpHandler` (`agents/mcp/server`, MCP SDK v2), not the deprecated `McpAgent`. Every read
@@ -21,8 +21,7 @@ Two paths (`docs/claude-opus/19-accounts-and-auth.md`):
   works on any repository its person may use (the git rule, `mayUseEngine`): the read tools take
   `repo: "owner/name"` (without it they read `DEMO_RUN`, or the newest run), plus `whoami` and the
   repository tools below. A `bsu_` personal access token also works as the bearer; deploy tokens
-  (`bsd_`) and repository-bound `bss_` git credentials do not. `claude mcp add --transport http
-  beanstalk <url>/mcp`, then `claude mcp login beanstalk`.
+  (`bsd_`) and repository-bound `bss_` git credentials do not. `claude mcp add --transport http gitstalk <url>/mcp`, then `claude mcp login gitstalk`.
 - **Run tokens** (`bst1.…`, below) are routed before the OAuth provider and behave exactly as before.
 
 RPC for the web app (`AgentSessionsRpc`): `consentRequest`, `approveConsent`, `denyConsent`,
@@ -46,13 +45,13 @@ bean's durable inbox. These capabilities do not grant Git or trunk access.
 Mint one with the gateway's admin route `POST /v1/runs/:run/view-token` (valid for a week):
 
 ```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 For contribution, an operator can mint a one-hour token for a specific bean and actor:
 
 ```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 `--ttl-seconds` accepts 60 through 86400. The contributor grant route is
@@ -140,9 +139,9 @@ existing external-service fixtures. Remote AI is removed only from the local tes
 
 ## Claude Code plugin
 
-`packages/claude-plugin` wires this server into Claude Code with the `beanstalk` skill:
+`packages/claude-plugin` wires this server into Claude Code with the `gitstalk` skill:
 
 ```bash
 claude --plugin-dir packages/claude-plugin     # its server is the hosted /mcp, signed in with OAuth
-claude mcp add --transport http beanstalk-dev https://...workers.dev/mcp   # another deployment
+claude mcp add --transport http gitstalk-dev https://...workers.dev/mcp   # another deployment
 ```

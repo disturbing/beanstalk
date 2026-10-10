@@ -1,5 +1,5 @@
 /**
- * The Beanstalk OIDC issuer: discovery, JWKS and the job-facing token endpoint, as a Hono app a
+ * The Gitstalk OIDC issuer: discovery, JWKS and the job-facing token endpoint, as a Hono app a
  * Worker mounts at the issuer's path (`app.route('/_actions/oidc', createOidcApp(...))`).
  *
  * GitHub contract (https://docs.github.com/en/actions/reference/security/oidc and

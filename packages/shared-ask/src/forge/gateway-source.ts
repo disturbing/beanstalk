@@ -157,7 +157,7 @@ function toListing(item: ReturnType<typeof RunListItem.parse>): RunListing {
   return {
     run: RunIdSchema.parse(item.run),
     source: 'live',
-    label: item.policy === 'queue' ? 'Merge queue' : 'Beanstalk v2',
+    label: item.policy === 'queue' ? 'Merge queue' : 'Gitstalk v2',
     policy: item.policy === 'queue' ? 'queue' : 'beanstalk',
     phase: item.phase,
     agents: item.agents,

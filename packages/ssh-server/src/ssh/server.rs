@@ -14,7 +14,7 @@ use super::handler::{Connection, Shared, public_key_only};
 use crate::config::Limits;
 use crate::gateway::Gateway;
 
-const SERVER_ID: &str = "SSH-2.0-beanstalk";
+const SERVER_ID: &str = "SSH-2.0-gitstalk";
 const KEEPALIVE: Duration = Duration::from_secs(30);
 
 /// The russh configuration for `limits`: public keys only, the host key, the timeouts.

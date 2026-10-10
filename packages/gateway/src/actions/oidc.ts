@@ -92,7 +92,7 @@ export function idTokenJob(run: RunRecord, job: JobRow): IdTokenJob | null {
   const { request } = run;
   const { event } = request;
   if (request.origin.kind === 'preland' || request.origin.kind === 'event') return null;
-  // Automations' Beanstalk events never get identity tokens.
+  // Automations' Gitstalk events never get identity tokens.
   if (event !== 'push' && event !== 'schedule' && event !== 'workflow_dispatch') return null;
   return {
     jobId: job.id,

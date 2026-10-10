@@ -83,7 +83,7 @@ export const RunnerStatusSchema = z.discriminatedUnion('state', [
   z.object({ state: z.literal('finished'), result: RunnerResultSchema }),
 ]);
 
-/** The job request for the runner: the spec, the secret values, and Beanstalk's own hosts. */
+/** The job request for the runner: the spec, the secret values, and Gitstalk's own hosts. */
 export function jobRequestOf(
   spec: JobSpec,
   secrets: Readonly<Record<string, string>>,

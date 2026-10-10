@@ -299,7 +299,7 @@ async fn runs_a_compiled_workflow_source_without_reading_the_path_at_the_commit(
     assert!(harness.lines().iter().any(|line| {
         line["text"]
             .as_str()
-            .is_some_and(|text| text.contains("as compiled by Beanstalk"))
+            .is_some_and(|text| text.contains("as compiled by Gitstalk"))
     }));
     Ok(())
 }

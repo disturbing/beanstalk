@@ -33,11 +33,11 @@ describe('pack writer', () => {
     const tag = await annotatedTag({
       object: A,
       tag: 'beans/x/status',
-      tagger: { name: 'beanstalk', email: 'engine@beanstalk.invalid', atMs: 1_700_000_000_000 },
+      tagger: { name: 'gitstalk', email: 'engine@gitstalk.invalid', atMs: 1_700_000_000_000 },
       message: 'landed: on the sprout',
     });
     expect(decoder.decode(tag.body)).toBe(
-      `object ${A}\ntype commit\ntag beans/x/status\ntagger beanstalk <engine@beanstalk.invalid> 1700000000 +0000\n\nlanded: on the sprout\n`,
+      `object ${A}\ntype commit\ntag beans/x/status\ntagger gitstalk <engine@gitstalk.invalid> 1700000000 +0000\n\nlanded: on the sprout\n`,
     );
   });
 

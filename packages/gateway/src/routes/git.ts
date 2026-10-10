@@ -25,7 +25,7 @@ import { repoGit } from '../push/push-proxy';
 import { usedFrom } from '../repos/deploy-tokens';
 import { runOfRepo } from '../run/run-names';
 
-const CHALLENGE = { 'www-authenticate': 'Basic realm="beanstalk"' };
+const CHALLENGE = { 'www-authenticate': 'Basic realm="gitstalk"' };
 
 export const gitRoutes = new Hono<AppEnv>().all('/*', async (c) => {
   const deps = c.var.deps;
@@ -36,7 +36,7 @@ export const gitRoutes = new Hono<AppEnv>().all('/*', async (c) => {
   if (token === null)
     // A public repository clones without a credential; anything else asks git for one.
     return isRace
-      ? c.text('a beanstalk token is required', 401, CHALLENGE)
+      ? c.text('a gitstalk token is required', 401, CHALLENGE)
       : repoGit({
           request: c.req.raw,
           path: parsed.path,

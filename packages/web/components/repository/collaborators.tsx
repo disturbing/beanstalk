@@ -48,7 +48,7 @@ export function CollaboratorsSettings(props: {
     >
       <h2 id="people-title">Collaborators</h2>
       <p className={styles.sub}>
-        Invite people by their Beanstalk handle. <b>read</b>: {ROLE_SUMMARY.read.toLowerCase()}{' '}
+        Invite people by their Gitstalk handle. <b>read</b>: {ROLE_SUMMARY.read.toLowerCase()}{' '}
         <b>write</b>: {ROLE_SUMMARY.write.toLowerCase()} <b>maintain</b>:{' '}
         {ROLE_SUMMARY.maintain.toLowerCase()} Settings and deletion stay yours. Deploy tokens do not
         depend on collaborators.

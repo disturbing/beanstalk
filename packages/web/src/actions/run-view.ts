@@ -13,6 +13,7 @@ import type {
   Workflow,
   WorkflowTrigger,
 } from './actions-contract';
+import { isAutomationPath } from '@gitstalk/shared-race/actions';
 
 export type RunState =
   | 'queued'
@@ -90,7 +91,7 @@ const EVENT_WORDS: Readonly<Record<RunEvent, string>> = {
 
 /** Which segment of the Automations tab a workflow or run belongs to, by its file's folder. */
 export function sectionOf(workflowPath: string): 'actions' | 'automations' {
-  return workflowPath.startsWith('.beanstalk/automations/') ? 'automations' : 'actions';
+  return isAutomationPath(workflowPath) ? 'automations' : 'actions';
 }
 
 export function eventWord(event: RunEvent): string {

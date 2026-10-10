@@ -47,7 +47,7 @@ async function authorize(request: Request, env: Env, oauth: OAuthHelpers): Promi
       });
       const message =
         error instanceof AuthorizationError ? error.description : 'This app could not be verified.';
-      return new Response(`Beanstalk could not start this sign-in: ${message}`, {
+      return new Response(`Gitstalk could not start this sign-in: ${message}`, {
         status: 400,
         headers: { 'content-type': 'text/plain; charset=utf-8' },
       });

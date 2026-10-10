@@ -1,5 +1,5 @@
 /**
- * Beanstalk's agent loop (doc 25 §7.5): the `agent` harness of an automation, run by Node in
+ * Gitstalk's agent loop (doc 25 §7.5): the `agent` harness of an automation, run by Node in
  * the job container. It talks the OpenAI chat-completions dialect with tool calls to the
  * gateway's model proxy (which holds the AI Gateway credentials, enforces the run's and the
  * repository's spend limits and picks nothing itself), and gives the model a small set of
@@ -15,10 +15,10 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statS
 import { dirname, resolve } from 'node:path';
 
 const env = process.env;
-const url = env.BEANSTALK_MODEL_URL + '/chat/completions';
-const token = env.BEANSTALK_MODEL_TOKEN;
-const model = env.BEANSTALK_MODEL;
-const maxTurns = Number(env.BEANSTALK_MAX_TURNS || '40');
+const url = env.GITSTALK_MODEL_URL + '/chat/completions';
+const token = env.GITSTALK_MODEL_TOKEN;
+const model = env.GITSTALK_MODEL;
+const maxTurns = Number(env.GITSTALK_MAX_TURNS || '40');
 const MAX_OUTPUT = 16000;
 
 const tools = [
@@ -94,7 +94,7 @@ function run(name, args) {
 /** The tools' processes see neither the model token nor the agent's own settings. */
 function childEnv() {
   const copy = Object.assign({}, env);
-  for (const key of Object.keys(copy)) if (key.startsWith('BEANSTALK_MODEL') || key.endsWith('_B64')) delete copy[key];
+  for (const key of Object.keys(copy)) if (key.startsWith('GITSTALK_MODEL') || key.endsWith('_B64')) delete copy[key];
   return copy;
 }
 
@@ -118,8 +118,8 @@ function output(name, value) {
 }
 
 const messages = [
-  { role: 'system', content: readFileSync(env.BEANSTALK_SYSTEM_FILE, 'utf8') },
-  { role: 'user', content: readFileSync(env.BEANSTALK_PROMPT_FILE, 'utf8') },
+  { role: 'system', content: readFileSync(env.GITSTALK_SYSTEM_FILE, 'utf8') },
+  { role: 'user', content: readFileSync(env.GITSTALK_PROMPT_FILE, 'utf8') },
 ];
 console.log('Agent loop on ' + model + ', at most ' + maxTurns + ' turns, tools: ' + tools.map(function (t) { return t.function.name; }).join(', '));
 let turns = 0;

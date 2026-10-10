@@ -1,5 +1,6 @@
 /**
- * A repository's checks: `.beanstalk/checks.toml`, read from the exact tree a check runs on
+ * A repository's checks: `.gitstalk/checks.toml` (or, from before the rename,
+ * `.beanstalk/checks.toml`; `config-dir.ts` has the rule), read from the exact tree a check runs on
  * (`docs/claude-opus/24-checks-config.md`). One suite per repository, an argv for the runner
  * (never a shell), its environment and time limit, the image it runs in, and the paths a bean
  * may change only when a person with the maintain role pushes it.
@@ -23,18 +24,24 @@
 import { TomlError, parse } from 'smol-toml';
 import { z } from 'zod';
 
+import { configPaths } from './config-dir';
+import type { ConfigFile } from './config-dir';
 import type { RunSuite } from './suite';
 import { DEFAULT_SUITE, suiteCommand } from './suite';
 
-/** Where a repository declares its checks. */
-export const CHECKS_PATH = '.beanstalk/checks.toml';
+/** Where a repository declares its checks, in lookup order: `.gitstalk/` wins over `.beanstalk/`. */
+export const CHECKS_PATHS: readonly string[] = configPaths('checks.toml');
+
+/** The documented place, named in messages about a tree that has no checks file. */
+export const CHECKS_PATH = '.gitstalk/checks.toml';
 
 /**
- * Paths no bean changes without a person, whatever the file says: the checks file itself. Not
- * all of `.beanstalk/`: agents tick tasks in `.beanstalk/backlog.md` with ordinary beans
+ * Paths no bean changes without a person, whatever the file says: the checks file, in both
+ * directories (a bean adding `.gitstalk/checks.toml` would override a `.beanstalk/` one). Not
+ * all of `.gitstalk/`: agents tick tasks in `.gitstalk/backlog.md` with ordinary beans
  * (`23-mcp-repository-tools.md`); a repository that wants more lists it in `protected_paths`.
  */
-export const ALWAYS_PROTECTED: readonly string[] = [CHECKS_PATH];
+export const ALWAYS_PROTECTED: readonly string[] = CHECKS_PATHS;
 
 /** Images the runner has; the image ships Node 25.8.1 only (`packages/runner/README.md`). */
 export const CHECK_IMAGES = ['node'] as const;
@@ -65,13 +72,13 @@ export type ChecksConfig = {
   readonly protected_paths: readonly string[];
 };
 
-/** What a tree says about its checks. */
+/** What a tree says about its checks; `path` is the file that says it. */
 export type ChecksResolution =
   | { readonly kind: 'missing' }
   /** The starter's older `[[check]]` draft: the engine's own suite runs, as before. */
-  | { readonly kind: 'legacy' }
-  | { readonly kind: 'invalid'; readonly problems: readonly string[] }
-  | { readonly kind: 'valid'; readonly config: ChecksConfig };
+  | { readonly kind: 'legacy'; readonly path: string }
+  | { readonly kind: 'invalid'; readonly path: string; readonly problems: readonly string[] }
+  | { readonly kind: 'valid'; readonly path: string; readonly config: ChecksConfig };
 
 const hasNoNul = (text: string): boolean => !text.includes('\0');
 
@@ -150,19 +157,24 @@ const ChecksFile = z.strictObject({
 });
 
 /**
- * What `text` (the file's contents, or null when the tree has none) declares. Never throws:
- * every problem becomes a sentence naming its line or key.
+ * What `text` (the file's contents, or null when the tree has none), found at `path`, declares.
+ * Never throws: every problem becomes a sentence naming its line or key.
  */
-export function readChecksConfig(text: string | null): ChecksResolution {
+export function readChecksConfig(text: string | null, path = CHECKS_PATH): ChecksResolution {
   if (text === null) return { kind: 'missing' };
   if (text.length > MAX_FILE_CHARS)
-    return invalid([`${CHECKS_PATH} is longer than ${MAX_FILE_CHARS} characters`]);
+    return invalid(path, [`${path} is longer than ${MAX_FILE_CHARS} characters`]);
   const table = parseToml(text);
-  if (!table.ok) return invalid([table.problem]);
-  if (isLegacyDraft(table.value)) return { kind: 'legacy' };
+  if (!table.ok) return invalid(path, [table.problem]);
+  if (isLegacyDraft(table.value)) return { kind: 'legacy', path };
   const parsed = ChecksFile.safeParse(table.value);
-  if (!parsed.success) return invalid(parsed.error.issues.map(problemOf));
-  return { kind: 'valid', config: parsed.data };
+  if (!parsed.success) return invalid(path, parsed.error.issues.map(problemOf));
+  return { kind: 'valid', path, config: parsed.data };
+}
+
+/** `readChecksConfig` of the file `readFirstPresent(CHECKS_PATHS, ...)` found, or of none. */
+export function resolveChecksFile(file: ConfigFile | null): ChecksResolution {
+  return file === null ? { kind: 'missing' } : readChecksConfig(file.text, file.path);
 }
 
 /** The suite the runner runs for a valid config. */
@@ -221,19 +233,19 @@ export function describeChecks(
       ];
     case 'legacy':
       return [
-        `${CHECKS_PATH} is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: ${engineSuite}`,
+        `${resolution.path} is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: ${engineSuite}`,
         `to choose another, write command = ["node", "--test", ...] at the top level (docs/claude-opus/24-checks-config.md)`,
       ];
     case 'invalid':
       return [
-        `${CHECKS_PATH} is invalid:`,
+        `${resolution.path} is invalid:`,
         ...resolution.problems.map((problem) => `  ${problem}`),
       ];
     case 'valid': {
       const { config } = resolution;
       const env = Object.keys(config.env);
       return [
-        `checks from ${CHECKS_PATH}: ${suiteCommand({ argv: [...config.command] })} ` +
+        `checks from ${resolution.path}: ${suiteCommand({ argv: [...config.command] })} ` +
           `(image ${config.image}, timeout ${config.timeout_seconds} s${env.length === 0 ? '' : `, env ${env.join(', ')}`})`,
       ];
     }
@@ -270,8 +282,8 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function invalid(problems: readonly string[]): ChecksResolution {
-  return { kind: 'invalid', problems };
+function invalid(path: string, problems: readonly string[]): ChecksResolution {
+  return { kind: 'invalid', path, problems };
 }
 
 type Parsed = { ok: true; value: unknown } | { ok: false; problem: string };

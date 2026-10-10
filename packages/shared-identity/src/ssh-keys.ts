@@ -1,6 +1,6 @@
 /**
  * People's SSH public keys, for git over SSH (`ssh://git@<ssh host>/<owner>/<repo>.git`).
- * A person registers a key once: `/beanstalk:setup` finds or makes one and asks, and the
+ * A person registers a key once: `/gitstalk:setup` finds or makes one and asks, and the
  * browser approves (./ssh-key-requests.ts), or they paste it in Settings → SSH keys. The SSH
  * endpoint authenticates a connection's offered key with `findUserByKey` and records the
  * use with `touchKey`. Only public keys are stored; nothing here is a secret.

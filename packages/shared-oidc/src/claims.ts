@@ -1,5 +1,5 @@
 /**
- * The claims of a Beanstalk identity token, mirroring GitHub's
+ * The claims of a Gitstalk identity token, mirroring GitHub's
  * (https://docs.github.com/en/actions/reference/security/oidc) plus three of ours that let a
  * cloud trust policy tell stalk runs from pre-land checks: `trust`, `pusher` and `bean`.
  *

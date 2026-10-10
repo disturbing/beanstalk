@@ -2,7 +2,7 @@
 
 /**
  * The start page's "Connect git" step: three tabs, Plugin (the default: one line installs the
- * Claude Code plugin and runs /beanstalk:setup), HTTPS (a token at git's password prompt) and
+ * Claude Code plugin and runs /gitstalk:setup), HTTPS (a token at git's password prompt) and
  * Env vars (a deploy token for CI, with the block pre-filled for this repository). The chosen
  * tab is remembered per viewer in this browser.
  */
@@ -91,9 +91,9 @@ function PluginPanel({ guide }: { readonly guide: StartGuide }) {
   return (
     <>
       <p>
-        One line: it installs the Beanstalk plugin for Claude Code and starts setup. Claude finds
+        One line: it installs the Gitstalk plugin for Claude Code and starts setup. Claude finds
         your SSH keys (1Password, ssh-agent, <code>~/.ssh</code>) or makes one, asks which to use,
-        and opens Beanstalk once for you to approve it. After that git never asks for a password.
+        and opens Gitstalk once for you to approve it. After that git never asks for a password.
       </p>
       <Line label="Claude Code" text={guide.plugin.claude} />
       <Line label="Codex" text={guide.plugin.codex} />
@@ -133,7 +133,7 @@ function EnvPanel(props: { readonly guide: StartGuide; readonly deploy: DeployTo
     <>
       <p>
         For CI and scripts: a deploy token opens this repository only, read or read and write, and
-        expires. git reads it from <code>BEANSTALK_TOKEN</code> and never prompts (git 2.31 or
+        expires. git reads it from <code>GITSTALK_TOKEN</code> and never prompts (git 2.31 or
         newer).
       </p>
       {props.deploy === null ? (

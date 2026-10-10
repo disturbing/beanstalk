@@ -72,7 +72,7 @@ function registerRepositoryReads(server: McpServer, scope: ToolScope): void {
     {
       title: 'Your repositories',
       description:
-        "The repositories you own on Beanstalk, with your access (write: you may push beans) and clone URL. Others' public repositories are named directly as owner/name.",
+        "The repositories you own on Gitstalk, with your access (write: you may push beans) and clone URL. Others' public repositories are named directly as owner/name.",
       inputSchema: z.object({}),
       annotations: READS,
     },
@@ -94,7 +94,7 @@ function registerRepositoryReads(server: McpServer, scope: ToolScope): void {
     {
       title: 'Automations of a repository',
       description:
-        "The repository's automations (agents defined by .beanstalk/automations/ files on the stalk): each one's triggers, harness and model, the bot it acts as, its memory ref (refs/automations/<name>/memory, readable with git) and any problems in its file; then the 20 newest automation runs with their event and conclusion. To change an automation, edit its file in a bean.",
+        "The repository's automations (agents defined by .gitstalk/automations/ files on the stalk): each one's triggers, harness and model, the bot it acts as, its memory ref (refs/automations/<name>/memory, readable with git) and any problems in its file; then the 20 newest automation runs with their event and conclusion. To change an automation, edit its file in a bean.",
       inputSchema: z.object({ repo: Repo }),
       annotations: READS,
     },
@@ -153,7 +153,7 @@ function registerBacklogTools(server: McpServer, scope: ToolScope): void {
     {
       title: 'Backlog of a repository',
       description:
-        "The repository's backlog (.beanstalk/backlog.md or BACKLOG.md on the sprout): each task's id, title, detail and state: open, claimed (by whom, until when), in_progress (whose bean) or done.",
+        "The repository's backlog (.gitstalk/backlog.md or BACKLOG.md on the sprout): each task's id, title, detail and state: open, claimed (by whom, until when), in_progress (whose bean) or done.",
       inputSchema: z.object({ repo: Repo }),
       annotations: READS,
     },
@@ -189,7 +189,7 @@ function registerCredentials(server: McpServer, scope: ToolScope): void {
     {
       title: 'Git credential for a repository',
       description:
-        'Only when git on this machine is not connected to Beanstalk (a push or clone fails with Authentication failed): a short-lived HTTPS credential for one repository (at most an hour; read, plus push beans with the write scope), as git credential approve input. Pipe it to git; never print it, write it to a file, put it in a URL or commit it.',
+        'Only when git on this machine is not connected to Gitstalk (a push or clone fails with Authentication failed): a short-lived HTTPS credential for one repository (at most an hour; read, plus push beans with the write scope), as git credential approve input. Pipe it to git; never print it, write it to a file, put it in a URL or commit it.',
       inputSchema: z.object({
         repo: Repo,
         ttl_minutes: z.number().int().min(5).max(60).optional(),

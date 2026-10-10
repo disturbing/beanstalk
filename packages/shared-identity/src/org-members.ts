@@ -89,7 +89,7 @@ export async function inviteToOrg(
     .bind(parsed.data.handle)
     .first<{ id: string; handle: string }>();
   if (invitee === null)
-    return refuse('unknown_handle', `Nobody on Beanstalk has the handle ${parsed.data.handle}.`);
+    return refuse('unknown_handle', `Nobody on Gitstalk has the handle ${parsed.data.handle}.`);
   if ((await orgRole(env, orgId, invitee.id)) !== null)
     return refuse('already_member', `@${invitee.handle} is already in ${allowed.value.handle}.`);
   const id = randomId('oinv');

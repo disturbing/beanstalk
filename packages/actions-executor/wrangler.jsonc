@@ -26,7 +26,7 @@
     // into a tmpfs from chunked R2 snapshots. "off" stops adding the cache steps to jobs.
     "DEPS_CACHE_MODE": "on",
     // Compressed snapshot cap (4 GiB). A repository or org variable
-    // BEANSTALK_DEPS_SNAPSHOT_MAX (e.g. "2GiB") changes it, up to DEPS_REPO_MAX_BYTES.
+    // GITSTALK_DEPS_SNAPSHOT_MAX (e.g. "2GiB"; BEANSTALK_* before the rename) changes it, up to DEPS_REPO_MAX_BYTES.
     "DEPS_SNAPSHOT_MAX_BYTES": "4294967296",
     // The node_modules tmpfs: half of standard-4's 12 GiB. Tied to the instance type: a larger
     // instance raises it here (or in an environment override), no code change.

@@ -5,6 +5,8 @@
  */
 import { z } from 'zod';
 
+import { productVariable } from '@gitstalk/shared-race/actions';
+
 import type { JobSpec } from '../contract';
 
 /** The executor's cache settings, from its vars. */
@@ -28,12 +30,15 @@ export type DepsGrant = {
   readonly tmpfsMaxBytes: number;
 };
 
-/** The scope of the default branch (Beanstalk's trunk). */
+/** The scope of the default branch (the trunk). */
 export const DEFAULT_SCOPE = 'stalk';
-/** The repository or org variable that changes the snapshot cap (`2GiB`, `500MB`, bytes). */
-export const SNAPSHOT_MAX_VARIABLE = 'BEANSTALK_DEPS_SNAPSHOT_MAX';
-/** The repository or org variable that turns the cache off for a repository (`off`). */
-export const SWITCH_VARIABLE = 'BEANSTALK_DEPS_CACHE';
+/**
+ * The repository or org variable that changes the snapshot cap (`2GiB`, `500MB`, bytes), without
+ * its prefix: `GITSTALK_DEPS_SNAPSHOT_MAX`, or `BEANSTALK_` as set before the rename.
+ */
+export const SNAPSHOT_MAX_VARIABLE = 'DEPS_SNAPSHOT_MAX';
+/** The variable (same prefixes) that turns the cache off for a repository (`off`). */
+export const SWITCH_VARIABLE = 'DEPS_CACHE';
 
 const GIB = 1024 ** 3;
 const Vars = z.object({
@@ -74,9 +79,10 @@ export function readDepsSettings(env: object): DepsSettings {
 export function grantFor(spec: JobSpec, settings: DepsSettings): DepsGrant | null {
   if (!settings.enabled) return null;
   const vars = spec.vars ?? {};
-  if (/^(off|false|0|no|disabled)$/i.test((vars[SWITCH_VARIABLE] ?? '').trim())) return null;
+  if (/^(off|false|0|no|disabled)$/i.test((productVariable(vars, SWITCH_VARIABLE) ?? '').trim()))
+    return null;
   const scope = spec.depsCache?.scope ?? DEFAULT_SCOPE;
-  const asked = parseSize(vars[SNAPSHOT_MAX_VARIABLE]);
+  const asked = parseSize(productVariable(vars, SNAPSHOT_MAX_VARIABLE));
   return {
     repoId: spec.repo.id,
     readScopes: [...new Set([scope, DEFAULT_SCOPE])],

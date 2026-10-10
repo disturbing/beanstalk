@@ -10,7 +10,7 @@ const BLOB = 'c'.repeat(40);
 const COMMIT = 'd'.repeat(40);
 const NEXT = 'e'.repeat(40);
 
-const PERSON = { name: 'runner', email: 'runner@beanstalk.invalid' };
+const PERSON = { name: 'runner', email: 'runner@gitstalk.invalid' };
 
 function commit(hash: string): ArtifactsCommitMetadata {
   return {

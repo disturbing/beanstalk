@@ -29,9 +29,9 @@ export async function SiteHeader() {
   const profile = user === null ? null : await getProfile(env, user.id);
   return (
     <header className={styles.header}>
-      <Link href="/" className={styles.brand} aria-label="beanstalk home">
+      <Link href="/" className={styles.brand} aria-label="gitstalk home">
         <VineMark />
-        <span className={styles.wordmark}>beanstalk</span>
+        <span className={styles.wordmark}>gitstalk</span>
       </Link>
       <nav aria-label="Primary" className={styles.nav}>
         <ul className={styles.navList}>

@@ -7,7 +7,7 @@
  */
 import { z } from 'zod';
 
-import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
+import { GITSTALK_EVENTS } from '@gitstalk/shared-race/actions';
 import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 /** GitHub's run and job vocabulary, kept so workflows and people read the same words. */
@@ -26,8 +26,8 @@ export const Conclusion = z.enum([
 ]);
 export type Conclusion = z.infer<typeof Conclusion>;
 
-/** GitHub's three, and the Beanstalk events automations run on (`25` §7.2). */
-export const RunEvent = z.enum(['push', 'workflow_dispatch', 'schedule', ...BEANSTALK_EVENTS]);
+/** GitHub's three, and the Gitstalk events automations run on (`25` §7.2). */
+export const RunEvent = z.enum(['push', 'workflow_dispatch', 'schedule', ...GITSTALK_EVENTS]);
 export type RunEvent = z.infer<typeof RunEvent>;
 
 export const DispatchInput = z.object({
@@ -47,7 +47,7 @@ export const WorkflowTrigger = z.discriminatedUnion('event', [
   z.object({ event: z.literal('schedule'), crons: z.array(z.string()) }),
   z.object({
     event: z.literal('beanstalk'),
-    name: z.enum(BEANSTALK_EVENTS),
+    name: z.enum(GITSTALK_EVENTS),
     beans: z.array(z.string()),
     authors: z.array(z.string()),
   }),
@@ -125,7 +125,7 @@ export const Workflow = z.object({
   /** A file the parser refused: why, with line and column. */
   error: z.string().nullable(),
   lastRun: RunSummary.nullable(),
-  /** Set for an automation (`.beanstalk/automations/`). */
+  /** Set for an automation (`.gitstalk/automations/`). */
   automation: AutomationFacts.nullable().default(null),
 });
 export type Workflow = z.infer<typeof Workflow>;

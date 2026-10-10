@@ -13,7 +13,7 @@ import { call, pkt, sha } from './helpers';
 
 /**
  * Automations end to end on Miniflare (doc 25 §7): a bean adds an automation file, lands and
- * is validated, so the stalk's index has it; a later bean landing is a Beanstalk event that
+ * is validated, so the stalk's index has it; a later bean landing is a Gitstalk event that
  * starts the automation as an Actions run (one `agent` job on the stub executor); a person
  * runs it by hand; a second trigger waits while one runs and starts when it ends; the
  * automation's job token pushes its memory ref and, only with `beans: write`, beans.
@@ -22,6 +22,7 @@ const actions = exports.Actions;
 const ZERO = '0'.repeat(40);
 const ON_LAND = '.beanstalk/automations/on-land.yml';
 
+// Written as before the rename (.beanstalk/, $BEANSTALK_MEMORY, the payload's .beanstalk key): it keeps working.
 const AUTOMATION = `name: Note landings
 on:
   bean_landed:
@@ -34,6 +35,10 @@ run: |
   echo "landed: $(jq -r .beanstalk.bean "$GITHUB_EVENT_PATH")" >> "$BEANSTALK_MEMORY/landings.md"
 `;
 const BROKEN = 'name: Broken\non:\n  pull_request:\nprompt: x\n';
+/** In the current directory, with a namesake in the older one that it hides. */
+const BY_HAND = '.gitstalk/automations/by-hand.yml';
+const BY_HAND_AUTOMATION =
+  'name: By hand\non:\n  workflow_dispatch:\nharness: shell\nrun: echo hi\n';
 
 type Person = { readonly id: string; readonly handle: string; readonly token: string };
 
@@ -53,6 +58,8 @@ beforeAll(async () => {
   const pushed = await pushFiles('bean/add-automations', {
     [ON_LAND]: AUTOMATION,
     '.beanstalk/automations/broken.yml': BROKEN,
+    [BY_HAND]: BY_HAND_AUTOMATION,
+    '.beanstalk/automations/by-hand.yml': BY_HAND_AUTOMATION.replace('By hand', 'Shadowed'),
     'src/a.ts': 'export {}\n',
   });
   expect(pushed.status).toBe(200);
@@ -66,7 +73,7 @@ beforeAll(async () => {
 });
 
 describe('Automations: files on the stalk, indexed and validated', () => {
-  it('indexes the automation with its agent facts and the invalid file with its problems', async () => {
+  it('indexes automations from .gitstalk/ and the older .beanstalk/, the newer winning a name', async () => {
     const listed = value(await actions.listWorkflows(coop.id, repo.id));
     const onLand = listed.find((workflow) => workflow.path === ON_LAND);
     expect(onLand).toMatchObject({
@@ -84,6 +91,10 @@ describe('Automations: files on the stalk, indexed and validated', () => {
     expect(onLand?.triggers.map((trigger) => trigger.kind)).toEqual([
       'beanstalk',
       'workflow_dispatch',
+    ]);
+    const byHand = listed.filter((workflow) => workflow.path.endsWith('/by-hand.yml'));
+    expect(byHand.map((workflow) => [workflow.path, workflow.name])).toEqual([
+      [BY_HAND, 'By hand'],
     ]);
     const broken = listed.find((workflow) => workflow.path.endsWith('broken.yml'));
     expect(broken?.state).toBe('invalid');

@@ -54,7 +54,7 @@ export function spec(overrides: Partial<JobSpec> = {}): JobSpec {
     },
     needs: {},
     inputs: {},
-    env: { BEANSTALK_LINE: 'stalk' },
+    env: { GITSTALK_LINE: 'stalk' },
     secretNames: [SecretName.parse('CLOUDFLARE_API_TOKEN')],
     steps: [
       { number: 1, id: null, name: 'actions/checkout@v4', uses: 'actions/checkout@v4', run: null },

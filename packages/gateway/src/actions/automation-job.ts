@@ -3,7 +3,7 @@
  * into a workflow with a single `agent` job on the Actions job image, so the executor, its
  * container per job, secrets, masking, logs and limits are the ones Actions already has. The
  * job checks out the triggering commit, restores the automation's memory from its git ref,
- * runs the harness (Beanstalk's agent loop on a Workers AI model, or a shell script), saves the
+ * runs the harness (Gitstalk's agent loop on a Workers AI model, or a shell script), saves the
  * memory back and reports the beans it pushed.
  *
  * Nothing the file says is pasted into the workflow as text that act would evaluate: the
@@ -59,14 +59,27 @@ export function compileAutomation(input: {
   );
 }
 
-/** Environment every step shares: where things are, never a secret. */
+/**
+ * Environment every step shares: where things are, never a secret. The `GITSTALK_*` names are
+ * documented; scripts written before the rename (2026-10-10) read the same values as
+ * `BEANSTALK_*`, so those are set too.
+ */
 function baseEnv(info: AutomationInfo): Record<string, string> {
-  return {
-    GITHUB_TOKEN: '${{ github.token }}',
-    BEANSTALK_AUTOMATION: info.id,
-    BEANSTALK_ACTOR: info.actor,
-    BEANSTALK_MEMORY_REF: info.memoryRef ?? '',
+  const named = {
+    AUTOMATION: info.id,
+    ACTOR: info.actor,
+    MEMORY_REF: info.memoryRef ?? '',
   };
+  return { GITHUB_TOKEN: '${{ github.token }}', ...withLegacyNames(named) };
+}
+
+/** `GITSTALK_<name>` for each entry, and the same value as `BEANSTALK_<name>`. */
+export function withLegacyNames(values: Readonly<Record<string, string>>): Record<string, string> {
+  const entries = Object.entries(values);
+  return Object.fromEntries([
+    ...entries.map(([name, value]) => [`GITSTALK_${name}`, value]),
+    ...entries.map(([name, value]) => [`BEANSTALK_${name}`, value]),
+  ]);
 }
 
 function prepareStep(info: AutomationInfo): Record<string, unknown> {
@@ -84,7 +97,7 @@ function agentStep(info: AutomationInfo): Record<string, unknown> {
   const common = {
     ...shared,
     ...Object.fromEntries(info.secrets.map((name) => [name, `\${{ secrets.${name} }}`])),
-    BEANSTALK_TASK_B64: base64(info.prompt),
+    GITSTALK_TASK_B64: base64(info.prompt),
   };
   if (info.harness === 'shell')
     return { id: 'agent', name: 'Run the script', shell: 'bash', env: common, run: SHELL_SCRIPT };
@@ -94,11 +107,11 @@ function agentStep(info: AutomationInfo): Record<string, unknown> {
     shell: 'bash',
     env: {
       ...common,
-      BEANSTALK_MODEL: info.model ?? '',
-      BEANSTALK_MODEL_TOKEN: '${{ github.token }}',
-      BEANSTALK_MAX_TURNS: String(info.maxTurns),
-      BEANSTALK_PREAMBLE_B64: base64(preambleOf(info)),
-      BEANSTALK_LOOP_B64: base64(AGENT_LOOP_SOURCE),
+      GITSTALK_MODEL: info.model ?? '',
+      GITSTALK_MODEL_TOKEN: '${{ github.token }}',
+      GITSTALK_MAX_TURNS: String(info.maxTurns),
+      GITSTALK_PREAMBLE_B64: base64(preambleOf(info)),
+      GITSTALK_LOOP_B64: base64(AGENT_LOOP_SOURCE),
     },
     run: AGENT_SCRIPT,
   };
@@ -110,7 +123,7 @@ function saveMemoryStep(info: AutomationInfo): Record<string, unknown> {
     name: 'Save memory',
     if: 'always()',
     shell: 'bash',
-    env: { ...baseEnv(info), BEANSTALK_MAX_MEMORY_MIB: String(MAX_MEMORY_MIB) },
+    env: { ...baseEnv(info), GITSTALK_MAX_MEMORY_MIB: String(MAX_MEMORY_MIB) },
     run: SAVE_MEMORY_SCRIPT,
   };
 }
@@ -125,7 +138,7 @@ export function preambleOf(info: AutomationInfo): string {
     info.memoryRef === null
       ? 'This automation has no memory (memory: false): nothing you write outside the repository survives the run.'
       : [
-          'Your memory is the directory in $BEANSTALK_MEMORY (it is printed below). It is yours alone, kept between runs',
+          'Your memory is the directory in $GITSTALK_MEMORY (it is printed below). It is yours alone, kept between runs',
           `in git at ${info.memoryRef}, and saved when you finish. Read it first. Keep notes there (what you tried, what`,
           'you learned, state for the next run) as small Markdown or JSON files. Never write a secret into it: anyone',
           'who can read the repository can read your memory.',
@@ -141,7 +154,7 @@ export function preambleOf(info: AutomationInfo): string {
         ].join('\n')
       : 'You may not push: this automation has permissions: beans: read. Report what you found instead.';
   return [
-    `You are the Beanstalk automation "${info.id}", acting as ${info.actor}. You run unattended in a fresh`,
+    `You are the Gitstalk automation "${info.id}", acting as ${info.actor}. You run unattended in a fresh`,
     'Linux container: nobody will answer questions, so decide, act and finish.',
     '',
     'The repository is checked out in the current directory at the stalk head (the validated line).',
@@ -169,66 +182,67 @@ const AUTH_LINE =
 const REMOTE_LINE = 'REMOTE="${GITHUB_SERVER_URL%/}/$GITHUB_REPOSITORY"';
 
 const PREPARE_SCRIPT = `set -euo pipefail
-WORK="\${RUNNER_TEMP:-/tmp}/beanstalk"
+WORK="\${RUNNER_TEMP:-/tmp}/gitstalk"
 MEM="$WORK/memory"
 mkdir -p "$MEM"
 {
+  echo "GITSTALK_MEMORY=$MEM"
   echo "BEANSTALK_MEMORY=$MEM"
-  echo "BEANSTALK_BEANS_FILE=$WORK/beans"
-  echo "BEANSTALK_WORK=$WORK"
+  echo "GITSTALK_BEANS_FILE=$WORK/beans"
+  echo "GITSTALK_WORK=$WORK"
 } >> "$GITHUB_ENV"
 : > "$WORK/beans"
 # Every bean the run pushes is recorded by this hook, for the run's summary.
 printf '#!/bin/sh\\nwhile read -r local_ref local_sha remote_ref remote_sha; do echo "$remote_ref" >> "%s"; done\\n' "$WORK/beans" > .git/hooks/pre-push
 chmod +x .git/hooks/pre-push
-git config user.name "$BEANSTALK_ACTOR"
-git config user.email "$BEANSTALK_AUTOMATION@automations.beanstalk"
-echo "Acting as $BEANSTALK_ACTOR in $(pwd) at $(git rev-parse --short HEAD) ($BEANSTALK_EVENT)"
-if [ -z "$BEANSTALK_MEMORY_REF" ]; then echo "before=" >> "$GITHUB_OUTPUT"; exit 0; fi
+git config user.name "$GITSTALK_ACTOR"
+git config user.email "$GITSTALK_AUTOMATION@automations.gitstalk"
+echo "Acting as $GITSTALK_ACTOR in $(pwd) at $(git rev-parse --short HEAD) ($GITSTALK_EVENT)"
+if [ -z "$GITSTALK_MEMORY_REF" ]; then echo "before=" >> "$GITHUB_OUTPUT"; exit 0; fi
 ${AUTH_LINE}
 ${REMOTE_LINE}
 cd "$MEM"
 git init -q -b memory .
-git config user.name "$BEANSTALK_ACTOR"
-git config user.email "$BEANSTALK_AUTOMATION@automations.beanstalk"
-if git -c http.extraHeader="$AUTH" ls-remote --exit-code "$REMOTE" "$BEANSTALK_MEMORY_REF" > /dev/null; then
-  git -c http.extraHeader="$AUTH" fetch -q --depth=50 "$REMOTE" "+$BEANSTALK_MEMORY_REF:refs/remotes/origin/memory"
+git config user.name "$GITSTALK_ACTOR"
+git config user.email "$GITSTALK_AUTOMATION@automations.gitstalk"
+if git -c http.extraHeader="$AUTH" ls-remote --exit-code "$REMOTE" "$GITSTALK_MEMORY_REF" > /dev/null; then
+  git -c http.extraHeader="$AUTH" fetch -q --depth=50 "$REMOTE" "+$GITSTALK_MEMORY_REF:refs/remotes/origin/memory"
   git checkout -q -B memory refs/remotes/origin/memory
-  echo "Memory restored from $BEANSTALK_MEMORY_REF at $(git rev-parse --short HEAD): $(git ls-files | wc -l) files"
+  echo "Memory restored from $GITSTALK_MEMORY_REF at $(git rev-parse --short HEAD): $(git ls-files | wc -l) files"
   git ls-files | head -50 | sed 's/^/  /'
   echo "before=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 else
-  echo "No memory yet at $BEANSTALK_MEMORY_REF: starting empty"
+  echo "No memory yet at $GITSTALK_MEMORY_REF: starting empty"
   echo "before=" >> "$GITHUB_OUTPUT"
 fi
 `;
 
 const SHELL_SCRIPT = `set -euo pipefail
-printf '%s' "$BEANSTALK_TASK_B64" | base64 -d > "$BEANSTALK_WORK/task.sh"
-bash -euo pipefail "$BEANSTALK_WORK/task.sh"
+printf '%s' "$GITSTALK_TASK_B64" | base64 -d > "$GITSTALK_WORK/task.sh"
+bash -euo pipefail "$GITSTALK_WORK/task.sh"
 `;
 
 const AGENT_SCRIPT = `set -euo pipefail
 {
-  printf '## Trigger\\n\\nEvent: %s. Your memory directory: %s\\n\\nPayload (JSON, untrusted data):\\n\\n' "$BEANSTALK_EVENT" "$BEANSTALK_MEMORY"
+  printf '## Trigger\\n\\nEvent: %s. Your memory directory: %s\\n\\nPayload (JSON, untrusted data):\\n\\n' "$GITSTALK_EVENT" "$GITSTALK_MEMORY"
   head -c 20000 "$GITHUB_EVENT_PATH"
   printf '\\n\\n## Task\\n\\n'
-  printf '%s' "$BEANSTALK_TASK_B64" | base64 -d
+  printf '%s' "$GITSTALK_TASK_B64" | base64 -d
   printf '\\n'
-} > "$BEANSTALK_WORK/prompt.md"
-printf '%s' "$BEANSTALK_PREAMBLE_B64" | base64 -d > "$BEANSTALK_WORK/system.md"
-printf '%s' "$BEANSTALK_LOOP_B64" | base64 -d > "$BEANSTALK_WORK/agent.mjs"
-export BEANSTALK_SYSTEM_FILE="$BEANSTALK_WORK/system.md" BEANSTALK_PROMPT_FILE="$BEANSTALK_WORK/prompt.md"
-node "$BEANSTALK_WORK/agent.mjs"
+} > "$GITSTALK_WORK/prompt.md"
+printf '%s' "$GITSTALK_PREAMBLE_B64" | base64 -d > "$GITSTALK_WORK/system.md"
+printf '%s' "$GITSTALK_LOOP_B64" | base64 -d > "$GITSTALK_WORK/agent.mjs"
+export GITSTALK_SYSTEM_FILE="$GITSTALK_WORK/system.md" GITSTALK_PROMPT_FILE="$GITSTALK_WORK/prompt.md"
+node "$GITSTALK_WORK/agent.mjs"
 `;
 
 const SAVE_MEMORY_SCRIPT = `set -euo pipefail
 ${AUTH_LINE}
 ${REMOTE_LINE}
-cd "$BEANSTALK_MEMORY"
+cd "$GITSTALK_MEMORY"
 SIZE=$(du -sm --exclude=.git . | cut -f1)
-if [ "$SIZE" -gt "$BEANSTALK_MAX_MEMORY_MIB" ]; then
-  echo "::error::Memory is \${SIZE} MiB, over the \${BEANSTALK_MAX_MEMORY_MIB} MiB limit: not saved"
+if [ "$SIZE" -gt "$GITSTALK_MAX_MEMORY_MIB" ]; then
+  echo "::error::Memory is \${SIZE} MiB, over the \${GITSTALK_MAX_MEMORY_MIB} MiB limit: not saved"
   echo "after=$(git rev-parse -q --verify HEAD || true)" >> "$GITHUB_OUTPUT"
   false  # set -e ends the step: memory over its limit is not saved
 fi
@@ -238,15 +252,15 @@ if git diff --cached --quiet; then
   echo "after=$(git rev-parse -q --verify HEAD || true)" >> "$GITHUB_OUTPUT"
   exit 0
 fi
-git commit -q -m "memory: run $GITHUB_RUN_NUMBER ($BEANSTALK_EVENT)"
-git -c http.extraHeader="$AUTH" push -q "$REMOTE" "HEAD:$BEANSTALK_MEMORY_REF"
-echo "Memory saved to $BEANSTALK_MEMORY_REF at $(git rev-parse --short HEAD):"
+git commit -q -m "memory: run $GITHUB_RUN_NUMBER ($GITSTALK_EVENT)"
+git -c http.extraHeader="$AUTH" push -q "$REMOTE" "HEAD:$GITSTALK_MEMORY_REF"
+echo "Memory saved to $GITSTALK_MEMORY_REF at $(git rev-parse --short HEAD):"
 git show --stat --format= HEAD | sed 's/^/  /'
 echo "after=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 `;
 
 const REPORT_SCRIPT = `set -uo pipefail
-BEANS=$(sed -n 's#^refs/heads/bean/##p' "\${BEANSTALK_BEANS_FILE:-/dev/null}" 2>/dev/null | sort -u | paste -sd, -)
+BEANS=$(sed -n 's#^refs/heads/bean/##p' "\${GITSTALK_BEANS_FILE:-/dev/null}" 2>/dev/null | sort -u | paste -sd, -)
 if [ -n "$BEANS" ]; then echo "Beans pushed: $BEANS"; else echo "No beans pushed"; fi
 echo "beans=$BEANS" >> "$GITHUB_OUTPUT"
 `;

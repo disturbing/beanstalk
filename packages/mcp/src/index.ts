@@ -39,7 +39,7 @@ const handlers: ProviderHandlers = {
   authorize: createAuthorizeHandler((env) => oauthApi(env)),
 };
 
-export default class BeanstalkMcp extends WorkerEntrypoint<Env> implements AgentSessionsRpc {
+export default class GitstalkMcp extends WorkerEntrypoint<Env> implements AgentSessionsRpc {
   override fetch(request: Request): Promise<Response> {
     if (hasRunToken(request))
       return Promise.resolve(runTokenApp.fetch(request, this.env, this.ctx));

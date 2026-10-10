@@ -36,11 +36,11 @@ impl StepEnv {
         Ok(Self {
             workspace: PathBuf::from(required("GITHUB_WORKSPACE")?),
             runner_temp: var("RUNNER_TEMP").map_or_else(std::env::temp_dir, PathBuf::from),
-            url: var("BEANSTALK_DEPS_URL").unwrap_or_else(|| super::plan::DEPS_URL.to_owned()),
+            url: var("GITSTALK_DEPS_URL").unwrap_or_else(|| super::plan::DEPS_URL.to_owned()),
             token: required(super::plan::TOKEN_SECRET)?,
-            install_dir: var("BEANSTALK_DEPS_DIR").unwrap_or_else(|| ".".into()),
-            flags: var("BEANSTALK_DEPS_FLAGS").unwrap_or_default(),
-            wipes_tree: var("BEANSTALK_DEPS_WIPES_TREE").is_some(),
+            install_dir: var("GITSTALK_DEPS_DIR").unwrap_or_else(|| ".".into()),
+            flags: var("GITSTALK_DEPS_FLAGS").unwrap_or_default(),
+            wipes_tree: var("GITSTALK_DEPS_WIPES_TREE").is_some(),
             github_output: var("GITHUB_OUTPUT").map(PathBuf::from),
             github_path: var("GITHUB_PATH").map(PathBuf::from),
         })
@@ -57,7 +57,7 @@ impl StepEnv {
 
     /// The tool's own scratch directory for this job.
     pub fn state_dir(&self) -> PathBuf {
-        self.runner_temp.join("beanstalk-deps")
+        self.runner_temp.join("gitstalk-deps")
     }
 
     /// Writes `name=value` to the step's outputs.
@@ -124,9 +124,9 @@ pub fn say(text: &str) {
     let _ = writeln!(out, "{text}");
 }
 
-/// A machine-readable summary line (`beanstalk-deps: {...}`), which the measurements read.
+/// A machine-readable summary line (`gitstalk-deps: {...}`), which the measurements read.
 pub fn report(value: &serde_json::Value) {
-    say(&format!("beanstalk-deps: {value}"));
+    say(&format!("gitstalk-deps: {value}"));
 }
 
 /// Milliseconds since `start`.

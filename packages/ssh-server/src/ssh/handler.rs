@@ -206,7 +206,7 @@ impl<G: Gateway> russh::server::Handler for Connection<G> {
         };
         session.channel_success(channel)?;
         let greeting = format!(
-            "Hi @{}! Your key works ({}). Beanstalk serves git over SSH and has no shell.\n",
+            "Hi @{}! Your key works ({}). Gitstalk serves git over SSH and has no shell.\n",
             user.handle, user.fingerprint
         );
         tokio::spawn(finish(open, greeting, 1));

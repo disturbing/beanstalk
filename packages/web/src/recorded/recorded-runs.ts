@@ -1,7 +1,7 @@
 /**
  * The recorded runs bundled with the app (`fixtures/`, built from git by
  * `scripts/build-fixtures.mjs`): the Cloudflare race of the demo (`docs/claude-opus/12`), the
- * merge queue against Beanstalk v2.5 with dependency-aware starts, 12 Sonnet agents on seed 7.
+ * merge queue against Gitstalk v2.5 with dependency-aware starts, 12 Sonnet agents on seed 7.
  * They power replays, the side-by-side race and the explorer when no gateway is bound.
  */
 import { z } from 'zod';
@@ -95,7 +95,7 @@ export type RecordedFixture = {
 const SOURCES: readonly RecordedFixture[] = [
   {
     run: 'j6boaclinn',
-    label: 'Beanstalk v2.5',
+    label: 'Gitstalk v2.5',
     policyName: 'beanstalk-v2.5',
     summary:
       'Dependency-aware starts, pre-land checks on the exact merged tree, informed reworks, revert-first, decision cards',

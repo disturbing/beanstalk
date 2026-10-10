@@ -4,8 +4,8 @@
  * order and quoting survive and a save's diff is the field that changed (doc 25 §4.2). The
  * same text is what the YAML pane edits, so the two can never drift apart.
  */
-import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
-import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
+import type { GitstalkEvent } from '@gitstalk/shared-race/actions';
+import { GITSTALK_EVENTS } from '@gitstalk/shared-race/actions';
 import { Document, LineCounter, isMap, isScalar, isSeq, parseDocument } from 'yaml';
 import type { Node, YAMLMap } from 'yaml';
 
@@ -21,7 +21,7 @@ export type ParsedDraft =
 
 export type SyntaxProblem = { readonly line: number; readonly message: string };
 
-/** One Beanstalk event's filters (empty lists: every bean, every author). */
+/** One Gitstalk event's filters (empty lists: every bean, every author). */
 export type EventFilter = {
   readonly beans: readonly string[];
   readonly authors: readonly string[];
@@ -30,7 +30,7 @@ export type EventFilter = {
 /** What the form shows, read leniently: the validator reports what is wrong. */
 export type DraftForm = {
   readonly name: string;
-  readonly events: Readonly<Partial<Record<BeanstalkEvent, EventFilter>>>;
+  readonly events: Readonly<Partial<Record<GitstalkEvent, EventFilter>>>;
   readonly crons: readonly string[];
   readonly harness: 'agent' | 'shell';
   readonly model: string;
@@ -63,9 +63,9 @@ export function readDraft(source: string): ParsedDraft {
 /** The form's fields from a parsed value. */
 export function formOf(value: Readonly<Record<string, unknown>>): DraftForm {
   const on = onEntries(value['on']);
-  const events: Partial<Record<BeanstalkEvent, EventFilter>> = {};
+  const events: Partial<Record<GitstalkEvent, EventFilter>> = {};
   for (const [event, filter] of on) {
-    const known = BEANSTALK_EVENTS.find((candidate) => candidate === event);
+    const known = GITSTALK_EVENTS.find((candidate) => candidate === event);
     if (known !== undefined) events[known] = filterOf(filter);
   }
   const schedule = on.find(([event]) => event === 'schedule')?.[1];
@@ -107,14 +107,14 @@ export function setField(source: string, path: FieldPath, value: unknown): strin
   return minimalEdit(source, render(document), path);
 }
 
-/** Turns a Beanstalk event on (no filters) or off; with none left, the file runs by hand only. */
-export function setEvent(source: string, event: BeanstalkEvent, isOn: boolean): string {
+/** Turns a Gitstalk event on (no filters) or off; with none left, the file runs by hand only. */
+export function setEvent(source: string, event: GitstalkEvent, isOn: boolean): string {
   const next = setField(source, ['on', event], isOn ? null : undefined);
   return withManualFallback(next);
 }
 
 /** Sets an event's filters: none is the bare event. */
-export function setEventFilter(source: string, event: BeanstalkEvent, filter: EventFilter): string {
+export function setEventFilter(source: string, event: GitstalkEvent, filter: EventFilter): string {
   const value: Record<string, readonly string[]> = {};
   if (filter.beans.length > 0) value['beans'] = filter.beans;
   if (filter.authors.length > 0) value['authors'] = filter.authors;

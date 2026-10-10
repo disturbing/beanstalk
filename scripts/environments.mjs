@@ -1,4 +1,4 @@
-// Environments: one Beanstalk deployment per environment (staging, production, a self-hoster's
+// Environments: one Gitstalk deployment per environment (staging, production, a self-hoster's
 // own), generated from the tracked packages/*/wrangler.jsonc templates and one fork-owned
 // directory per environment (docs/claude-opus/30-environments.md).
 //
@@ -7,7 +7,7 @@
 //                                                              their ids; generate missing secrets; migrate D1
 //   node scripts/environments.mjs deploy    <env> [--only a,b] [--dry-run]
 //   node scripts/environments.mjs verify    <env> --against <git ref>   generated == the ref's wrangler.jsonc
-//   node scripts/environments.mjs smoke     <env> [--repo owner/name]   BEANSTALK_TOKEN for whoami and clone
+//   node scripts/environments.mjs smoke     <env> [--repo owner/name]   GITSTALK_TOKEN for whoami and clone
 //
 // environments/<env>/env.jsonc     hand-written: account, name suffix, workers.dev subdomain, packages,
 //                                  custom URLs, per-package overrides (see environments/example)
@@ -285,8 +285,8 @@ async function smoke(env, args) {
     const { status, body } = await get(`${url('web')}/signup`);
     if (status !== 200 || !body.includes('passkey')) throw new Error(`HTTP ${status}`);
   });
-  const token = process.env.BEANSTALK_TOKEN;
-  if (!token) console.log('skip whoami and clone: set BEANSTALK_TOKEN to a personal token');
+  const token = setting('TOKEN');
+  if (!token) console.log('skip whoami and clone: set GITSTALK_TOKEN to a personal token');
   else {
     await check('whoami with a token', async () => {
       const { status, body } = await get(`${url('gateway')}/v1/whoami`, {
@@ -299,7 +299,7 @@ async function smoke(env, args) {
     const repo = valueOf(args, '--repo');
     if (repo)
       await check(`git clone ${url('web')}/${repo}.git`, () => {
-        const into = mkdtempSync(path.join(os.tmpdir(), 'beanstalk-smoke-'));
+        const into = mkdtempSync(path.join(os.tmpdir(), 'gitstalk-smoke-'));
         try {
           // The token rides in the environment (GIT_CONFIG_*), never on a command line.
           const clone = spawnSync(
@@ -344,14 +344,14 @@ function loadEnvironment(name) {
   const file = path.join(dir, 'env.jsonc');
   const resourcesFile = path.join(dir, 'resources.json');
   const fromFile = existsSync(file);
-  const configText = fromFile ? readFileSync(file, 'utf8') : process.env.BEANSTALK_ENV_CONFIG;
+  const configText = fromFile ? readFileSync(file, 'utf8') : setting('ENV_CONFIG');
   if (!configText)
     fail(
-      `no ${path.relative(ROOT, file)} and no BEANSTALK_ENV_CONFIG: copy environments/example/env.jsonc and fill it in, or put its contents in that variable`,
+      `no ${path.relative(ROOT, file)} and no GITSTALK_ENV_CONFIG: copy environments/example/env.jsonc and fill it in, or put its contents in that variable`,
     );
   const resourcesText = existsSync(resourcesFile)
     ? readFileSync(resourcesFile, 'utf8')
-    : process.env.BEANSTALK_ENV_RESOURCES;
+    : setting('ENV_RESOURCES');
   const resources = resourcesText ? JSON.parse(resourcesText) : {};
   const env = { ...parseJsonc(configText), ...scalarOverrides() };
   if (!/^[0-9a-f]{32}$/.test(env.account_id ?? ''))
@@ -470,8 +470,8 @@ function saveResources(env) {
   const json = `${JSON.stringify(env.resources, null, 2)}\n`;
   if (!env.fromFile) {
     // Configured from variables (a soft fork's CI): nothing on disk to update, so hand the ids
-    // back for the BEANSTALK_ENV_RESOURCES variable. Ids, not secrets.
-    console.log(`environments: ${env.name}: set BEANSTALK_ENV_RESOURCES to:\n${json}`);
+    // back for the GITSTALK_ENV_RESOURCES variable. Ids, not secrets.
+    console.log(`environments: ${env.name}: set GITSTALK_ENV_RESOURCES to:\n${json}`);
     return;
   }
   writeFileSync(path.join(env.dir, 'resources.json'), json);
@@ -479,15 +479,26 @@ function saveResources(env) {
 
 /**
  * Single values a soft fork sets as plain variables instead of committing env.jsonc; each one
- * replaces the same key from the file or BEANSTALK_ENV_CONFIG.
+ * replaces the same key from the file or GITSTALK_ENV_CONFIG.
  */
 function scalarOverrides() {
   const out = {};
-  if (process.env.BEANSTALK_ACCOUNT_ID) out.account_id = process.env.BEANSTALK_ACCOUNT_ID;
-  if (process.env.BEANSTALK_SUFFIX !== undefined) out.suffix = process.env.BEANSTALK_SUFFIX;
-  if (process.env.BEANSTALK_WORKERS_DEV_SUBDOMAIN)
-    out.workers_dev_subdomain = process.env.BEANSTALK_WORKERS_DEV_SUBDOMAIN;
+  const accountId = setting('ACCOUNT_ID');
+  if (accountId) out.account_id = accountId;
+  // Defined, even empty, is a choice: "" means the base (production) names.
+  const suffix = process.env.GITSTALK_SUFFIX ?? process.env.BEANSTALK_SUFFIX;
+  if (suffix !== undefined) out.suffix = suffix;
+  const subdomain = setting('WORKERS_DEV_SUBDOMAIN');
+  if (subdomain) out.workers_dev_subdomain = subdomain;
   return out;
+}
+
+/**
+ * A setting from the environment: GITSTALK_<name>, else BEANSTALK_<name> as it was called before
+ * the rename (2026-10-10). Empty counts as unset, as an unset GitHub variable arrives empty.
+ */
+function setting(name) {
+  return process.env[`GITSTALK_${name}`] || process.env[`BEANSTALK_${name}`] || undefined;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -586,12 +597,12 @@ function newSecret(env, name) {
     return keys.stdout.trim();
   }
   if (name === 'SSH_HOST_KEY') {
-    const dir = mkdtempSync(path.join(os.tmpdir(), 'beanstalk-ssh-'));
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'gitstalk-ssh-'));
     try {
       const key = path.join(dir, 'host');
       const made = spawnSync(
         'ssh-keygen',
-        ['-q', '-t', 'ed25519', '-N', '', '-C', `beanstalk-${env.name}`, '-f', key],
+        ['-q', '-t', 'ed25519', '-N', '', '-C', `gitstalk-${env.name}`, '-f', key],
         { stdio: 'ignore' },
       );
       if (made.status !== 0) fail('ssh-keygen failed');
@@ -640,15 +651,15 @@ function deployPackage(env, pkg, { dryRun }) {
   if (DOCKER_BIN[pkg]) childEnv.WRANGLER_DOCKER_BIN = DOCKER_BIN[pkg];
   let deployConfig = config;
   if (pkg === 'web') {
-    // vite.config.ts hands BEANSTALK_WRANGLER_CONFIG to the Cloudflare plugin, which writes
+    // vite.config.ts hands GITSTALK_WRANGLER_CONFIG to the Cloudflare plugin, which writes
     // the deployable config to dist/server/wrangler.json.
-    run('pnpm', ['build'], { cwd, env: { ...childEnv, BEANSTALK_WRANGLER_CONFIG: config } });
+    run('pnpm', ['build'], { cwd, env: { ...childEnv, GITSTALK_WRANGLER_CONFIG: config } });
     deployConfig = 'dist/server/wrangler.json';
   }
   const args = ['deploy', '--config', deployConfig];
   if (dryRun) args.push('--dry-run');
   const secrets = dryRun ? new Map() : readSecrets(env, pkg);
-  const tmp = secrets.size > 0 ? mkdtempSync(path.join(os.tmpdir(), 'beanstalk-secrets-')) : null;
+  const tmp = secrets.size > 0 ? mkdtempSync(path.join(os.tmpdir(), 'gitstalk-secrets-')) : null;
   try {
     if (tmp !== null) {
       const file = path.join(tmp, 'secrets.json');

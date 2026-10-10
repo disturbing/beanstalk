@@ -1,6 +1,6 @@
 /**
  * A repository's backlog is a Markdown task list in the repository itself, read from the
- * sprout: `.beanstalk/backlog.md`, else `BACKLOG.md`. Changing the backlog is a bean like any
+ * sprout: `.gitstalk/backlog.md`, else the older `.beanstalk/backlog.md`, else `BACKLOG.md`. Changing the backlog is a bean like any
  * other change; who works on what (claims, beans in flight, landed) lives in the engine.
  *
  * ```markdown
@@ -15,8 +15,10 @@
  * detail. A ticked box is done whatever the engine says.
  */
 
+import { configPaths } from '@gitstalk/shared-race/config-dir';
+
 /** Where a backlog may live, in the order they are tried. */
-export const BACKLOG_FILES = ['.beanstalk/backlog.md', 'BACKLOG.md'] as const;
+export const BACKLOG_FILES: readonly string[] = [...configPaths('backlog.md'), 'BACKLOG.md'];
 
 /** Tasks read from one file; more are ignored. */
 export const MAX_TASKS = 200;

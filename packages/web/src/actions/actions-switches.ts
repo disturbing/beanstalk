@@ -1,14 +1,21 @@
 /**
  * Repository Settings → Actions: the knobs Actions reads from repository variables, as one
- * form. The dependency cache (`BEANSTALK_DEPS_CACHE=off` turns it off, docs/claude-opus/27),
- * its snapshot cap (`BEANSTALK_DEPS_SNAPSHOT_MAX`, e.g. `2GiB`) and npm's install-time audit
- * (`BEANSTALK_NPM_AUDIT=on` turns it back on, doc 27 §12). A default is stored as no variable.
+ * form. The dependency cache (`GITSTALK_DEPS_CACHE=off` turns it off, docs/claude-opus/27),
+ * its snapshot cap (`GITSTALK_DEPS_SNAPSHOT_MAX`, e.g. `2GiB`) and npm's install-time audit
+ * (`GITSTALK_NPM_AUDIT=on` turns it back on, doc 27 §12). A default is stored as no variable.
+ * A repository may still hold the `BEANSTALK_*` name from before the rename: it is read when the
+ * `GITSTALK_*` one is absent, and a save replaces it with the current name.
  */
 import { z } from 'zod';
 
-export const DEPS_CACHE_VARIABLE = 'BEANSTALK_DEPS_CACHE';
-export const DEPS_SNAPSHOT_MAX_VARIABLE = 'BEANSTALK_DEPS_SNAPSHOT_MAX';
-export const NPM_AUDIT_VARIABLE = 'BEANSTALK_NPM_AUDIT';
+export const DEPS_CACHE_VARIABLE = 'GITSTALK_DEPS_CACHE';
+export const DEPS_SNAPSHOT_MAX_VARIABLE = 'GITSTALK_DEPS_SNAPSHOT_MAX';
+export const NPM_AUDIT_VARIABLE = 'GITSTALK_NPM_AUDIT';
+
+/** The name a variable had before the rename (`BEANSTALK_*`). */
+export function legacyNameOf(name: string): string {
+  return name.replace(/^GITSTALK_/, 'BEANSTALK_');
+}
 
 /** The sizes the executor's `parseSize` accepts: a number and an optional unit. */
 const SIZE = /^\s*\d+(?:\.\d+)?\s*(?:b|kb|kib|mb|mib|gb|gib|tb|tib)?\s*$/i;
@@ -33,7 +40,8 @@ export type VariableWrites = {
 export function switchesOf(
   own: readonly { readonly name: string; readonly value: string }[],
 ): ActionsSwitches {
-  const value = (name: string) => own.find((variable) => variable.name === name)?.value.trim();
+  const exact = (name: string) => own.find((variable) => variable.name === name)?.value.trim();
+  const value = (name: string) => exact(name) ?? exact(legacyNameOf(name));
   const isOff = /^(off|false|0|no|disabled)$/i.test(value(DEPS_CACHE_VARIABLE) ?? '');
   const isAuditOn = /^(on|true|1|yes)$/i.test(value(NPM_AUDIT_VARIABLE) ?? '');
   return {
@@ -75,6 +83,9 @@ export function switchWrites(
   ];
   return {
     put: wanted.flatMap(([name, value]) => (value === null ? [] : [{ name, value }])),
-    remove: wanted.flatMap(([name, value]) => (value === null && has(name) ? [name] : [])),
+    remove: wanted.flatMap(([name, value]) => [
+      ...(value === null && has(name) ? [name] : []),
+      ...(has(legacyNameOf(name)) ? [legacyNameOf(name)] : []),
+    ]),
   };
 }

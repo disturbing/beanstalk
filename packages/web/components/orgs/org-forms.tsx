@@ -45,7 +45,7 @@ export function NewOrgForm(props: { readonly csrf: string }) {
           Handle
         </label>
         <div className={repo.nameRow}>
-          <span className={repo.owner}>beanstalk /</span>
+          <span className={repo.owner}>gitstalk /</span>
           <input
             id="org-handle"
             name="handle"

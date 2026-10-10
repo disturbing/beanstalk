@@ -140,7 +140,7 @@ function suggestionsFor(
   frame: HomeFrame,
   recordedLabel: string | undefined,
 ): readonly Suggestion[] {
-  if (recordedLabel === 'Beanstalk v2') return V2_SUGGESTIONS;
+  if (recordedLabel === 'Gitstalk v2') return V2_SUGGESTIONS;
   if (frame.kind === 'repository') return REPOSITORY_SUGGESTIONS.map((q) => ({ q }));
   return Object.values(CATALOG).map((entry) => ({ q: entry.example }));
 }

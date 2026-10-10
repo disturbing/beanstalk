@@ -8,7 +8,7 @@ Rust (axum, tokio), one HTTP service on `0.0.0.0:$PORT` (8080). The image adds g
 
 JSON in, JSON out. Every request carries `repo` (the trunk's Artifacts HTTPS remote) and `token` (an Artifacts token minted for this job). Unknown fields are refused (ignoring one, such as revert's `to`, would do the wrong thing). Commit ids are full 40- or 64-hex shas; refs are full names (`refs/heads/...`).
 
-**Contract version.** The wire contract has a version, `API_VERSION` in `src/app.rs` (now **4**), reported by `/version` as `api_version` and on every response as the header `x-beanstalk-runner-api`. Bump it with any change a caller must know about, together with `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-transport.ts` (and the fake runner in `packages/gateway/test/fakes/fake-runner.js`). The gateway asks each instance's `/version` once before its first job; on a different version, or a `400` naming an unknown field, the job fails for good with `runner_version_mismatch: runner instance … speaks runner API <n>, this gateway speaks <m> …`, so a gateway deployed ahead of the image stops with that message instead of dropping beans as infrastructure failures (seen in `cf-replay-v25-8-s7`: seven beans dropped on `unknown field structural_merge`). Version 1 is the contract before 2026-10-06 (no `api_version`); 2 added squash/compose `structural_merge`, revert `to` and check `all_read_sets`/`passing_read_sets`; 3 (2026-10-07) added check `env` and `deps` and `network` on checks and `/healthz`; 4 (2026-10-07) added check `trace`, `only_files` and `tree_manifest`, answered with `read_maps` and `tree`, and `tracing` on `/healthz`.
+**Contract version.** The wire contract has a version, `API_VERSION` in `src/app.rs` (now **4**), reported by `/version` as `api_version` and on every response as the header `x-gitstalk-runner-api`. Bump it with any change a caller must know about, together with `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-transport.ts` (and the fake runner in `packages/gateway/test/fakes/fake-runner.js`). The gateway asks each instance's `/version` once before its first job; on a different version, or a `400` naming an unknown field, the job fails for good with `runner_version_mismatch: runner instance … speaks runner API <n>, this gateway speaks <m> …`, so a gateway deployed ahead of the image stops with that message instead of dropping beans as infrastructure failures (seen in `cf-replay-v25-8-s7`: seven beans dropped on `unknown field structural_merge`). Version 1 is the contract before 2026-10-06 (no `api_version`); 2 added squash/compose `structural_merge`, revert `to` and check `all_read_sets`/`passing_read_sets`; 3 (2026-10-07) added check `env` and `deps` and `network` on checks and `/healthz`; 4 (2026-10-07) added check `trace`, `only_files` and `tree_manifest`, answered with `read_maps` and `tree`, and `tracing` on `/healthz`.
 
 | Endpoint | Request | Response |
 |---|---|---|
@@ -69,9 +69,9 @@ docker run --rm -p 8080:8080 beanstalk-runner:dev
 | `PORT` | `8080` | listen port |
 | `WORK_DIR` | `/work` | caches and scratch (ephemeral) |
 | `REMOTE_SCHEMES` | `https` | URL schemes a request may use (`https`, `file`) |
-| `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `beanstalk-runner`, `runner@beanstalk.invalid` | identity of the commits it creates |
+| `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `gitstalk-runner`, `runner@gitstalk.invalid` | identity of the commits it creates |
 | `RUST_LOG` | `info` | log filter (JSON lines on stdout); the gateway sets it to its `LOG_LEVEL` |
-| `BEANSTALK_GIT_SHA` | `unknown` | the image's commit, reported by `/version` (set from the `GIT_SHA` build arg) |
+| `GITSTALK_GIT_SHA` | `unknown` | the image's commit, reported by `/version` (set from the `GIT_SHA` build arg) |
 | `DEPS_DIR` | `/opt/arena-deps` | dependency snapshots a check may name (`<name>/node_modules`) |
 | `SUITE_NETWORK` | `auto` | the suite's network: `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
 | `CLOUDFLARE_DEPLOYMENT_ID` | | logged at start |

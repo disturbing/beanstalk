@@ -114,7 +114,7 @@ export function OrgMembersSettings(props: {
           Invite by email
         </button>
       </div>
-      <p className={repo.hint}>Email invitations arrive once Beanstalk sends mail.</p>
+      <p className={repo.hint}>Email invitations arrive once Gitstalk sends mail.</p>
       <Status state={state} />
       <ul className={repo.deployList} aria-label="Members">
         {props.members.map((member) => (

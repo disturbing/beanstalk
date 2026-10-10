@@ -1,4 +1,4 @@
--- Beanstalk identity (docs/claude-opus/19-accounts-and-auth.md). Every secret is stored as a
+-- Gitstalk identity (docs/claude-opus/19-accounts-and-auth.md). Every secret is stored as a
 -- SHA-256 hash; nothing here can be replayed as a credential. Times are unix milliseconds.
 
 CREATE TABLE users (

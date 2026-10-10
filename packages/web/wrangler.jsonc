@@ -77,7 +77,7 @@
     // The public docs on the marketing site (packages/site), linked from the header's menu.
     "DOCS_URL": "http://localhost:8790/docs/",
     // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
-    // live; /beanstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
+    // live; /gitstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
     "SSH_HOST": "",
     // The SSH host key's fingerprint (`SHA256:…`, as `ssh` prints it), shown in Settings → SSH
     // keys and on a new repository's page so people can check it (docs/claude-opus/21).

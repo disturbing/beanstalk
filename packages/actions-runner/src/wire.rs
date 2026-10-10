@@ -83,7 +83,7 @@ pub struct JobRequest {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DepsCacheGrant {
     /// This job's bearer for `deps.internal`; it reaches the steps only as the secret
-    /// `BEANSTALK_DEPS_TOKEN` and is masked like any secret.
+    /// `GITSTALK_DEPS_TOKEN` and is masked like any secret.
     pub token: Secret,
     /// The memory budget of the `node_modules` tmpfs (`DEPS_TMPFS_MAX_BYTES`).
     pub tmpfs_max_bytes: u64,

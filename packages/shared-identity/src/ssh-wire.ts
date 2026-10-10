@@ -4,7 +4,7 @@
  * `ssh-keygen -l` prints it. Pure: runs in Workers and in Node.
  */
 
-/** Key types Beanstalk accepts for git signatures. Security-key (`sk-`) types are not yet. */
+/** Key types Gitstalk accepts for git signatures. Security-key (`sk-`) types are not yet. */
 export const SSH_KEY_TYPES = [
   'ssh-ed25519',
   'ecdsa-sha2-nistp256',

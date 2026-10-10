@@ -12,7 +12,7 @@ import { SiteHeader } from '../components/shell/site-header';
 import { viewerTheme } from '../src/server/viewer';
 
 export const metadata: Metadata = {
-  title: { default: 'beanstalk', template: '%s · beanstalk' },
+  title: { default: 'gitstalk', template: '%s · gitstalk' },
   description:
     'The repository and the race: many coding agents on one repo, the sprout and the stalk, and the decisions only people make.',
 };

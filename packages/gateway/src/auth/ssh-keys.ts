@@ -1,5 +1,5 @@
 /**
- * SSH public keys people registered (Settings → SSH keys, or `/beanstalk:setup`), as git over
+ * SSH public keys people registered (Settings → SSH keys, or `/gitstalk:setup`), as git over
  * SSH asks about them. One adapter over `@gitstalk/shared-identity/ssh-keys` (`findUserByKey`,
  * `touchKey`), so the SSH path depends on this narrow shape only and tests can fake it.
  */

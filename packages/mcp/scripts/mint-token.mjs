@@ -1,11 +1,11 @@
 // Mints a view or contributor token for one run, for any MCP client:
 //
 //   pnpm -F @gitstalk/mcp mint-token <run> [--gateway <url>]
-//   export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+//   export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 //
 // Add --bean <bean> --actor <actor> for a contributor token. The admin token comes from
 // ADMIN_TOKEN, else packages/gateway/.dev.vars; it is never printed. Only the token goes
-// to stdout; its expiry goes to stderr. The gateway defaults to BEANSTALK_GATEWAY_URL, else
+// to stdout; its expiry goes to stderr. The gateway defaults to GITSTALK_GATEWAY_URL (or BEANSTALK_GATEWAY_URL), else
 // a local `wrangler dev` on http://localhost:8787.
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -34,7 +34,11 @@ if (!RUN_ID.test(run) || positionals.length !== 1)
 const contributor = contributorInput(values);
 const scope = contributor === undefined ? 'view' : 'contributor';
 
-const gateway = values.gateway ?? process.env.BEANSTALK_GATEWAY_URL ?? 'http://localhost:8787';
+const gateway =
+  values.gateway ??
+  process.env.GITSTALK_GATEWAY_URL ??
+  process.env.BEANSTALK_GATEWAY_URL ??
+  'http://localhost:8787';
 const response = await fetch(new URL(`/v1/runs/${run}/${scope}-token`, gateway), {
   method: 'POST',
   headers: { authorization: `Bearer ${adminToken()}`, 'content-type': 'application/json' },

@@ -26,6 +26,7 @@ describe('the pack writer', () => {
         { path: 'src/deep/b.ts', content: 'b\n' },
       ],
       message: 'Initial commit',
+      // The identity from before the rename: the expected commit id below was computed with it.
       author: { name: 'Beanstalk', email: 'seed@beanstalk.invalid' },
       time: 1_760_000_000,
     });

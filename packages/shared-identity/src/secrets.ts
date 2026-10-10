@@ -1,6 +1,6 @@
 /**
  * Random secrets, their at-rest hashes and constant-time comparison. Every credential
- * Beanstalk issues (session ids, tokens, magic links, challenge handles) is 32 random bytes,
+ * Gitstalk issues (session ids, tokens, magic links, challenge handles) is 32 random bytes,
  * shown once, and stored only as its SHA-256.
  */
 

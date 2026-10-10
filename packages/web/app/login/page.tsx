@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
             <p className={styles.eyebrow}>connect an agent · sign in</p>
           ) : null}
           <h1 id="login-title" className={styles.title}>
-            Sign in to Beanstalk
+            Sign in to Gitstalk
           </h1>
           {user === null ? (
             <>

@@ -39,12 +39,12 @@ RUN apt-get update \
  && useradd --uid 10001 --create-home --home-dir /home/agent --shell /usr/sbin/nologin agent \
  && install -d -o agent -g agent /work /home/agent/.codex
 COPY --from=tools /tools/mergiraf /usr/local/bin/mergiraf
-COPY research/common /opt/beanstalk/research/common
-COPY research/arena/tasks /opt/beanstalk/research/arena/tasks
-COPY research/arena/solutions /opt/beanstalk/research/arena/solutions
-COPY research/race/harness /opt/beanstalk/research/race/harness
+COPY research/common /opt/gitstalk/research/common
+COPY research/arena/tasks /opt/gitstalk/research/arena/tasks
+COPY research/arena/solutions /opt/gitstalk/research/arena/solutions
+COPY research/race/harness /opt/gitstalk/research/race/harness
 USER agent
-WORKDIR /opt/beanstalk/research/race
+WORKDIR /opt/gitstalk/research/race
 # CODEX_HOME holds only Codex's own state (and, in lease mode, a placeholder auth.json with
 # made-up tokens). SWARM_MODEL_KEY is a placeholder too: the api-key provider's env_key, which
 # model.internal's handler replaces with the real key outside the container.

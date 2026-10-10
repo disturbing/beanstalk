@@ -24,7 +24,7 @@ pub const TOKEN: &str = "art_v1_0123456789abcdef0123456789abcdef01234567?expires
 /// commits (`ref/t001`, `ref/t002`, `ref/t005`, `ref/t040`), each a child of `main`.
 pub const ARENA_BUNDLE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/arena.bundle");
 pub const ARENA_BASE: &str = "26eecce0d764943d0c89a6139e3491055e9ff00c";
-/// The `BEANSTALK_GIT_SHA` every test runner is configured with.
+/// The `GITSTALK_GIT_SHA` every test runner is configured with.
 pub const IMAGE_GIT_SHA: &str = "0123456789abcdef0123456789abcdef01234567";
 
 /// Runs git with an isolated environment and returns its trimmed stdout; panics on failure.
@@ -35,9 +35,9 @@ pub fn git(dir: &Path, args: &[&str]) -> String {
         .env("GIT_CONFIG_NOSYSTEM", "1")
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_AUTHOR_NAME", "fixture")
-        .env("GIT_AUTHOR_EMAIL", "fixture@beanstalk.invalid")
+        .env("GIT_AUTHOR_EMAIL", "fixture@gitstalk.invalid")
         .env("GIT_COMMITTER_NAME", "fixture")
-        .env("GIT_COMMITTER_EMAIL", "fixture@beanstalk.invalid")
+        .env("GIT_COMMITTER_EMAIL", "fixture@gitstalk.invalid")
         .output()
         .expect("git runs");
     assert!(
@@ -162,7 +162,7 @@ async fn runner_router(root: &Path, work: &str, schemes: &str) -> Router {
         "WORK_DIR" => Some(work_dir.clone()),
         "DEPS_DIR" => Some(deps_dir.clone()),
         "REMOTE_SCHEMES" => Some(schemes.clone()),
-        "BEANSTALK_GIT_SHA" => Some(IMAGE_GIT_SHA.to_owned()),
+        "GITSTALK_GIT_SHA" => Some(IMAGE_GIT_SHA.to_owned()),
         _ => None,
     })
     .expect("config");

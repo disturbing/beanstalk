@@ -1,10 +1,10 @@
 /**
  * Which automations a repository event starts (doc 25 §7.2). Each `repo-events` event maps to
- * one Beanstalk event name; an automation fires when its `on:` names that event and its
+ * one Gitstalk event name; an automation fires when its `on:` names that event and its
  * `beans:` and `authors:` filters (GitHub's glob rules) select the event's bean and pusher. An
  * automation never fires on its own beans, so a fix it pushes cannot loop back into it.
  */
-import type { BeanstalkEvent, WorkflowTrigger } from '@gitstalk/shared-race/actions';
+import type { GitstalkEvent, WorkflowTrigger } from '@gitstalk/shared-race/actions';
 import type { RepoEvent } from '@gitstalk/shared-race/repo-events';
 
 import { assertNever } from '../engine/errors';
@@ -14,7 +14,7 @@ import { selectedBy } from './filter-pattern';
 
 /** A repository event as automations see it. */
 export type Occurrence = {
-  readonly event: BeanstalkEvent;
+  readonly event: GitstalkEvent;
   readonly seq: number;
   readonly at: string;
   /** The bean it is about, when there is one. */
@@ -27,7 +27,7 @@ export type Occurrence = {
   readonly detail: RepoEvent;
 };
 
-/** The Beanstalk event a repository event is, with its bean, actor and commit. */
+/** The Gitstalk event a repository event is, with its bean, actor and commit. */
 export function occurrenceOf(event: RepoEvent): Occurrence {
   const base = { seq: event.seq, at: event.at, detail: event };
   switch (event.kind) {
@@ -93,7 +93,7 @@ export function automationFires(
 }
 
 /**
- * The run's event payload (`$GITHUB_EVENT_PATH`): the Beanstalk event, its bean, actor and
+ * The run's event payload (`$GITHUB_EVENT_PATH`): the Gitstalk event, its bean, actor and
  * commit, and the repository in GitHub's shape. All of it is untrusted data (doc 25 §7.6).
  */
 export function occurrencePayload(input: {
@@ -105,18 +105,22 @@ export function occurrencePayload(input: {
   const detail = Object.fromEntries(
     Object.entries(occurrence.detail).filter(([key]) => key !== 'seq'),
   );
+  const event = {
+    event: occurrence.event,
+    at: occurrence.at,
+    bean: occurrence.bean,
+    bean_ref: occurrence.bean === null ? null : `refs/heads/bean/${occurrence.bean}`,
+    actor: occurrence.actor,
+    sha: occurrence.sha,
+    detail,
+  };
+  // `gitstalk` is the documented key; `beanstalk` repeats it for automations written before the
+  // rename (2026-10-10).
   return {
     action: occurrence.event,
-    beanstalk: {
-      event: occurrence.event,
-      at: occurrence.at,
-      bean: occurrence.bean,
-      bean_ref: occurrence.bean === null ? null : `refs/heads/bean/${occurrence.bean}`,
-      actor: occurrence.actor,
-      sha: occurrence.sha,
-      detail,
-    },
+    gitstalk: event,
+    beanstalk: event,
     repository: repositoryPayload(repo, input.publicUrl),
-    sender: { login: occurrence.actor ?? 'beanstalk' },
+    sender: { login: occurrence.actor ?? 'gitstalk' },
   };
 }

@@ -28,7 +28,7 @@ export async function RunsLanding() {
             Twelve agents, forty beans, one repo.
           </h1>
           <p className={styles.heroLede}>
-            The same race twice on Cloudflare: a batched merge queue, then Beanstalk v2.5. Beanstalk
+            The same race twice on Cloudflare: a batched merge queue, then Gitstalk v2.5. Gitstalk
             had {MOST_GREENS} beans on the stalk in {minutesOr(beanstalk.greens[MOST_GREENS - 1])},
             the queue in {minutesOr(queue.greens[MOST_GREENS - 1])}; it was done in{' '}
             {minutesOr(beanstalk.wallSeconds)} against {minutesOr(queue.wallSeconds)}, for{' '}
@@ -39,7 +39,7 @@ export async function RunsLanding() {
               Watch the race
             </Link>
             <Link href={`/runs/${beanstalk.run}`} className={styles.secondary}>
-              Explore the Beanstalk repository
+              Explore the Gitstalk repository
             </Link>
           </p>
         </div>

@@ -28,7 +28,7 @@ name: Heartbeat
 on:
   schedule: [{ cron: "0 * * * *" }]
 harness: shell
-run: echo beat >> "$BEANSTALK_MEMORY/beats.log"
+run: echo beat >> "$GITSTALK_MEMORY/beats.log"
 `;
 const NIGHTLY_FILE = `name: Nightly notes
 on:

@@ -148,25 +148,43 @@ describe('Actions switches', () => {
   it('reads the repository’s variables', () => {
     expect(
       switchesOf([
-        { name: 'BEANSTALK_DEPS_CACHE', value: 'OFF' },
-        { name: 'BEANSTALK_DEPS_SNAPSHOT_MAX', value: '2GiB' },
-        { name: 'BEANSTALK_NPM_AUDIT', value: 'true' },
+        { name: 'GITSTALK_DEPS_CACHE', value: 'OFF' },
+        { name: 'GITSTALK_DEPS_SNAPSHOT_MAX', value: '2GiB' },
+        { name: 'GITSTALK_NPM_AUDIT', value: 'true' },
       ]),
     ).toEqual({ depsCache: 'off', snapshotMax: '2GiB', npmAudit: 'on' });
   });
 
+  it('reads the names from before the rename, the current one winning when both are set', () => {
+    expect(
+      switchesOf([
+        { name: 'BEANSTALK_DEPS_CACHE', value: 'off' },
+        { name: 'BEANSTALK_NPM_AUDIT', value: 'on' },
+        { name: 'GITSTALK_NPM_AUDIT', value: 'off' },
+      ]),
+    ).toEqual({ depsCache: 'off', snapshotMax: '', npmAudit: 'off' });
+  });
+
   it('sets a variable for each change from a default and removes the ones back at it', () => {
-    const own = [{ name: 'BEANSTALK_DEPS_CACHE' }, { name: 'BEANSTALK_NPM_AUDIT' }];
+    const own = [{ name: 'GITSTALK_DEPS_CACHE' }, { name: 'GITSTALK_NPM_AUDIT' }];
     expect(switchWrites(own, { depsCache: 'on', snapshotMax: '500MB', npmAudit: 'off' })).toEqual({
-      put: [{ name: 'BEANSTALK_DEPS_SNAPSHOT_MAX', value: '500MB' }],
-      remove: ['BEANSTALK_DEPS_CACHE', 'BEANSTALK_NPM_AUDIT'],
+      put: [{ name: 'GITSTALK_DEPS_SNAPSHOT_MAX', value: '500MB' }],
+      remove: ['GITSTALK_DEPS_CACHE', 'GITSTALK_NPM_AUDIT'],
     });
     expect(switchWrites([], { depsCache: 'off', snapshotMax: '', npmAudit: 'on' })).toEqual({
       put: [
-        { name: 'BEANSTALK_DEPS_CACHE', value: 'off' },
-        { name: 'BEANSTALK_NPM_AUDIT', value: 'on' },
+        { name: 'GITSTALK_DEPS_CACHE', value: 'off' },
+        { name: 'GITSTALK_NPM_AUDIT', value: 'on' },
       ],
       remove: [],
+    });
+  });
+
+  it('replaces a variable from before the rename with its current name on save', () => {
+    const own = [{ name: 'BEANSTALK_DEPS_CACHE' }, { name: 'BEANSTALK_NPM_AUDIT' }];
+    expect(switchWrites(own, { depsCache: 'off', snapshotMax: '', npmAudit: 'off' })).toEqual({
+      put: [{ name: 'GITSTALK_DEPS_CACHE', value: 'off' }],
+      remove: ['BEANSTALK_DEPS_CACHE', 'BEANSTALK_NPM_AUDIT'],
     });
   });
 

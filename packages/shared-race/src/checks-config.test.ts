@@ -6,13 +6,16 @@ import type { ChecksConfig } from './checks-config';
 import {
   ALWAYS_PROTECTED,
   CHECKS_PATH,
+  CHECKS_PATHS,
   describeChecks,
   matchesPattern,
   protectedChanges,
   protectedPatterns,
   readChecksConfig,
+  resolveChecksFile,
   suiteOf,
 } from './checks-config';
+import { readFirstPresent } from './config-dir';
 import { RunSuite } from './suite';
 
 function problems(text: string): readonly string[] {
@@ -27,11 +30,11 @@ function config(text: string): ChecksConfig {
   return resolution.config;
 }
 
-describe('reading .beanstalk/checks.toml', () => {
+describe('reading .gitstalk/checks.toml', () => {
   it("says a tree without the file runs the repository's default suite, never no checks", () => {
     expect(readChecksConfig(null)).toEqual({ kind: 'missing' });
     expect(describeChecks({ kind: 'missing' })).toEqual([
-      "no .beanstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
+      "no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)",
     ]);
   });
 
@@ -102,12 +105,15 @@ describe('reading .beanstalk/checks.toml', () => {
       'timeout_seconds = 120',
       '',
     ].join('\n');
-    expect(readChecksConfig(starterDraft)).toEqual({ kind: 'legacy' });
-    expect(readChecksConfig('[[check]]\ncommand = "npm test"\n')).toEqual({ kind: 'legacy' });
-    expect(describeChecks({ kind: 'legacy' })[0]).toContain(
+    expect(readChecksConfig(starterDraft)).toEqual({ kind: 'legacy', path: CHECKS_PATH });
+    expect(readChecksConfig('[[check]]\ncommand = "npm test"\n')).toEqual({
+      kind: 'legacy',
+      path: CHECKS_PATH,
+    });
+    expect(describeChecks({ kind: 'legacy', path: CHECKS_PATH })[0]).toContain(
       "older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test",
     );
-    expect(protectedPatterns({ kind: 'legacy' })).toEqual(ALWAYS_PROTECTED);
+    expect(protectedPatterns({ kind: 'legacy', path: CHECKS_PATH })).toEqual(ALWAYS_PROTECTED);
   });
 
   it('explains a [[check]] table mixed into the new format', () => {
@@ -149,10 +155,51 @@ describe('reading .beanstalk/checks.toml', () => {
     ).toEqual([CHECKS_PATH]);
   });
 
-  it("leaves the rest of .beanstalk/ to ordinary beans: agents tick the backlog's tasks", () => {
+  it("leaves the rest of .gitstalk/ to ordinary beans: agents tick the backlog's tasks", () => {
     expect(
-      protectedChanges(['.beanstalk/backlog.md'], protectedPatterns({ kind: 'missing' })),
+      protectedChanges(
+        ['.gitstalk/backlog.md', '.beanstalk/backlog.md'],
+        protectedPatterns({ kind: 'missing' }),
+      ),
     ).toEqual([]);
+  });
+});
+
+describe('the checks file from before the rename (.beanstalk/checks.toml)', () => {
+  const read = (files: Readonly<Record<string, string>>) =>
+    readFirstPresent(CHECKS_PATHS, (path) => Promise.resolve(files[path] ?? null));
+
+  it('is read when the tree has no .gitstalk/checks.toml, and named in what the push is told', async () => {
+    const resolution = resolveChecksFile(
+      await read({ '.beanstalk/checks.toml': 'command = ["node", "--test", "spec/"]\n' }),
+    );
+    expect(resolution).toMatchObject({ kind: 'valid', path: '.beanstalk/checks.toml' });
+    expect(describeChecks(resolution)[0]).toMatch(/^checks from \.beanstalk\/checks\.toml: /);
+  });
+
+  it('loses to .gitstalk/checks.toml when a tree has both', async () => {
+    const resolution = resolveChecksFile(
+      await read({
+        '.gitstalk/checks.toml': 'command = ["node", "--test", "new/"]\n',
+        '.beanstalk/checks.toml': 'command = ["node", "--test", "old/"]\n',
+      }),
+    );
+    expect(resolution).toMatchObject({ kind: 'valid', path: '.gitstalk/checks.toml' });
+    if (resolution.kind === 'valid') expect(resolution.config.command).toContain('new/');
+  });
+
+  it('names the file it read when that file is invalid', () => {
+    const resolution = readChecksConfig('command = "npm test"\n', '.beanstalk/checks.toml');
+    expect(describeChecks(resolution)[0]).toBe('.beanstalk/checks.toml is invalid:');
+  });
+
+  it('is protected like the current one, so a bean cannot add either without a maintainer', () => {
+    expect(
+      protectedChanges(
+        ['.gitstalk/checks.toml', '.beanstalk/checks.toml', 'src/a.ts'],
+        protectedPatterns({ kind: 'missing' }),
+      ),
+    ).toEqual(['.gitstalk/checks.toml', '.beanstalk/checks.toml']);
   });
 });
 
@@ -200,7 +247,11 @@ describe('properties', () => {
   it('reads back every valid config it is written as', () => {
     fc.assert(
       fc.property(VALID_CONFIG, (expected) => {
-        expect(readChecksConfig(stringify(expected))).toEqual({ kind: 'valid', config: expected });
+        expect(readChecksConfig(stringify(expected))).toEqual({
+          kind: 'valid',
+          path: CHECKS_PATH,
+          config: expected,
+        });
       }),
     );
   });
@@ -288,7 +339,7 @@ describe('properties', () => {
   it('flags only changed files, and always the checks file', () => {
     fc.assert(
       fc.property(fc.array(PATH, { maxLength: 10 }), VALID_CONFIG, (files, valid) => {
-        const patterns = protectedPatterns({ kind: 'valid', config: valid });
+        const patterns = protectedPatterns({ kind: 'valid', path: CHECKS_PATH, config: valid });
         const flagged = protectedChanges([...files, CHECKS_PATH], patterns);
         expect(flagged.every((file) => file === CHECKS_PATH || files.includes(file))).toBe(true);
         expect(flagged).toContain(CHECKS_PATH);

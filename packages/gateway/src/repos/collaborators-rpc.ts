@@ -145,7 +145,7 @@ async function invite(
   if (!repo.ok) return repo;
   const invitee = await deps.people.byHandle(parsed.data.handle);
   if (invitee === null)
-    return failure(404, 'unknown_handle', `nobody on Beanstalk is called @${parsed.data.handle}`);
+    return failure(404, 'unknown_handle', `nobody on Gitstalk is called @${parsed.data.handle}`);
   if (invitee.id === repo.value.owner.id)
     return failure(400, 'invalid_request', 'the owner already has every role');
   const current = await deps.collaborators.roleOf(input.repoId, invitee.id);

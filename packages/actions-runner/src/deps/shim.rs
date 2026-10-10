@@ -18,14 +18,14 @@ use super::step::StepEnv;
 use crate::error::{Error, Result};
 
 const NPM_SHIM: &str = r#"#!/bin/sh
-# Beanstalk dependency cache (docs/claude-opus/27): node_modules was restored, exactly as this
+# Gitstalk dependency cache (docs/claude-opus/27): node_modules was restored, exactly as this
 # lockfile installs it, into memory; `npm ci` would delete it and install the same tree again.
 shim_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$shim_dir" | paste -sd: -)
 export PATH
 case "$1" in
   ci|clean-install|ic|install-clean|isntall-clean)
-    echo "beanstalk-deps: node_modules is restored exactly for this lockfile; npm ci keeps it"
+    echo "gitstalk-deps: node_modules is restored exactly for this lockfile; npm ci keeps it"
     for arg in "$@"; do
       if [ "$arg" = "--ignore-scripts" ]; then exit 0; fi
     done

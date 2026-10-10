@@ -152,9 +152,9 @@ describe('git without a usable credential', () => {
     expect(missing.headers.get('content-type')).toContain('text/plain');
     const text = await missing.text();
     expect(text).toContain('not connected to your account yet');
-    expect(text).toContain('/beanstalk:setup');
+    expect(text).toContain('/gitstalk:setup');
     expect(text).toContain('/settings/tokens');
-    expect(text).toContain('BEANSTALK_TOKEN');
+    expect(text).toContain('GITSTALK_TOKEN');
     const refused = await refs(coop, 'hint', 'upload', `bsd_${'z'.repeat(43)}`);
     expect(refused.status).toBe(401);
     expect(await refused.text()).toContain('that credential was refused');

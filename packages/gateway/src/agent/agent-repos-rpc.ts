@@ -22,7 +22,7 @@ import {
   BeanWaitUntil,
   MAX_BEAN_WAIT_SECONDS,
 } from '@gitstalk/shared-race/agent-repos';
-import { AUTOMATIONS_DIR, isAutomationPath } from '@gitstalk/shared-race/actions';
+import { AUTOMATION_PATH_PATTERNS, isAutomationPath } from '@gitstalk/shared-race/actions';
 import { TaskId } from '@gitstalk/shared-race/ids';
 import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
@@ -92,9 +92,9 @@ async function automationsOf(deps: Deps, opened: Opened): Promise<RpcResult<Agen
     deps.forge
       .prepare(
         `SELECT id, workflow_path, number, event, status, conclusion, created_at FROM actions_runs
-         WHERE repo_id = ? AND workflow_path LIKE ? ORDER BY created_ms DESC LIMIT ?`,
+         WHERE repo_id = ? AND (workflow_path LIKE ? OR workflow_path LIKE ?) ORDER BY created_ms DESC LIMIT ?`,
       )
-      .bind(record.id, `${AUTOMATIONS_DIR}/%`, AUTOMATION_RUNS)
+      .bind(record.id, ...AUTOMATION_PATH_PATTERNS, AUTOMATION_RUNS)
       .all<{
         id: string;
         workflow_path: string;

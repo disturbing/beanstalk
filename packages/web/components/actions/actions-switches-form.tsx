@@ -46,8 +46,8 @@ export function ActionsSwitchesForm(props: {
             <span>
               Jobs that use <code>actions/setup-node</code> with <code>cache:</code>,{' '}
               <code>actions/cache</code> on <code>node_modules</code>, or{' '}
-              <code>beanstalk/deps-cache@v1</code> restore their dependencies from Beanstalk’s
-              cache. Off sets <code>BEANSTALK_DEPS_CACHE=off</code>.
+              <code>beanstalk/deps-cache@v1</code> restore their dependencies from Gitstalk’s cache.
+              Off sets <code>GITSTALK_DEPS_CACHE=off</code>.
             </span>
           </span>
         </label>
@@ -68,7 +68,7 @@ export function ActionsSwitchesForm(props: {
           <span id="actions-snapshot-max-hint" className={repo.hint}>
             A dependency tree larger than this is not cached. Empty keeps the deployment’s default;
             sizes such as <code>2GiB</code> or <code>500MB</code> (
-            <code>BEANSTALK_DEPS_SNAPSHOT_MAX</code>).
+            <code>GITSTALK_DEPS_SNAPSHOT_MAX</code>).
           </span>
         </div>
       </fieldset>
@@ -86,7 +86,7 @@ export function ActionsSwitchesForm(props: {
             <span>
               Off by default: it adds about 90 seconds of CPU to a large <code>npm ci</code> and
               never changes what is installed. An explicit <code>npm audit</code> step always
-              audits. On sets <code>BEANSTALK_NPM_AUDIT=on</code>.
+              audits. On sets <code>GITSTALK_NPM_AUDIT=on</code>.
             </span>
           </span>
         </label>

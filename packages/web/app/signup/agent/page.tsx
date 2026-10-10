@@ -30,8 +30,8 @@ export default async function AgentSignupPage() {
         </h1>
         <p className={styles.lede}>
           {user === null
-            ? 'That is the whole sign-up: the command adds Beanstalk to your agent and opens your browser, where you pick a handle, save a passkey and approve the session.'
-            : 'The command adds Beanstalk to your agent and opens your browser; approve the session and it shows up on Home within seconds.'}
+            ? 'That is the whole sign-up: the command adds Gitstalk to your agent and opens your browser, where you pick a handle, save a passkey and approve the session.'
+            : 'The command adds Gitstalk to your agent and opens your browser; approve the session and it shows up on Home within seconds.'}
         </p>
         {user === null ? (
           <p className={styles.hint}>

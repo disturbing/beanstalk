@@ -13,10 +13,12 @@ import {
   SecretName as SecretNameSchema,
   WorkflowPath,
   isAutomationPath,
+  productVariable,
 } from '@gitstalk/shared-race/actions';
 
 import type { NeedResult } from './job-graph';
 import type { JobRow, RunRecord } from './run-store';
+import { withLegacyNames } from './automation-job';
 import { STALK_REF_NAME } from './triggers';
 
 export function jobSpecOf(input: {
@@ -48,7 +50,7 @@ export function jobSpecOf(input: {
     jobName: input.job.key,
     displayName: input.job.name,
     matrix: input.job.matrix,
-    // An automation's job runs as a dispatch in act; its own event is BEANSTALK_EVENT (§7.4).
+    // An automation's job runs as a dispatch in act; its own event is GITSTALK_EVENT (§7.4).
     event: isAutomation ? 'workflow_dispatch' : request.event,
     eventPayload: request.eventPayload,
     context: {
@@ -68,12 +70,14 @@ export function jobSpecOf(input: {
     needs: input.needs,
     inputs: request.inputs,
     env: {
-      BEANSTALK_LINE: 'stalk',
-      BEANSTALK_REPOSITORY_ID: repo.id,
+      ...withLegacyNames({ LINE: 'stalk', REPOSITORY_ID: repo.id }),
       CI: 'true',
       ...npmDefaults(input.vars),
       ...(isAutomation
-        ? { BEANSTALK_EVENT: request.event, BEANSTALK_MODEL_URL: input.modelUrl }
+        ? {
+            ...withLegacyNames({ EVENT: request.event }),
+            GITSTALK_MODEL_URL: input.modelUrl,
+          }
         : {}),
       ...input.oidcEnv,
     },
@@ -90,7 +94,7 @@ export function jobSpecOf(input: {
 }
 
 /**
- * npm settings every job gets unless the repository or org variable `BEANSTALK_NPM_AUDIT` is
+ * npm settings every job gets unless the repository or org variable `GITSTALK_NPM_AUDIT` (or `BEANSTALK_NPM_AUDIT`) is
  * `on`: no audit and no funding message inside `npm ci` / `npm install`. The audit runs in the
  * install and checks every advisory against each vulnerable package's full version list on the
  * install's one thread; for fastify's lockfile on a standard-4 that was 93 s of a 97 s `npm ci`,
@@ -98,7 +102,7 @@ export function jobSpecOf(input: {
  * install; `npm audit` as a step still runs it. A workflow's own `env:` wins over these.
  */
 export function npmDefaults(vars: Readonly<Record<string, string>>): Record<string, string> {
-  const audit = vars['BEANSTALK_NPM_AUDIT']?.trim().toLowerCase();
+  const audit = productVariable(vars, 'NPM_AUDIT')?.trim().toLowerCase();
   if (audit === 'on' || audit === 'true') return {};
   return { NPM_CONFIG_AUDIT: 'false', NPM_CONFIG_FUND: 'false' };
 }

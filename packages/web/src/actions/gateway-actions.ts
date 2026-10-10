@@ -278,7 +278,7 @@ function workflowOf(workflow: WorkflowSummary, lastRun: RunSummary | null): Work
       event: 'other',
       name,
       support: 'later',
-      reason: 'Beanstalk does not start runs for this event yet.',
+      reason: 'Gitstalk does not start runs for this event yet.',
     })),
   ];
   const problem = workflow.problems[0];

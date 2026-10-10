@@ -1,4 +1,4 @@
-//! Git and test runner for beanstalk's integration decisions.
+//! Git and test runner for Gitstalk's integration decisions.
 //!
 //! An HTTP service that squashes, composes, reverts and tests commits held in Cloudflare
 //! Artifacts git remotes for the `RunDO` Durable Object, with the semantics of the local race

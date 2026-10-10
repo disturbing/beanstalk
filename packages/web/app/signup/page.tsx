@@ -27,7 +27,7 @@ export default async function SignupPage({ searchParams }: PageProps) {
     <main className={styles.page}>
       <section className={styles.panel} aria-labelledby="signup-title">
         <p className={styles.eyebrow}>
-          {connecting ? 'connect an agent · create your account' : 'beanstalk'}
+          {connecting ? 'connect an agent · create your account' : 'gitstalk'}
         </p>
         <h1 id="signup-title" className={styles.title}>
           Create your account

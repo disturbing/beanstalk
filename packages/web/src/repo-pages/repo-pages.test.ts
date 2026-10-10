@@ -25,7 +25,7 @@ const commit = (sha: string, parents: string[], message: string) => ({
   sha,
   parents,
   message,
-  author: { name: 'beanstalk-runner', email: 'runner@beanstalk.invalid' },
+  author: { name: 'gitstalk-runner', email: 'runner@gitstalk.invalid' },
   committed_at: '2026-10-07T13:41:19Z',
 });
 

@@ -45,7 +45,7 @@ export function providerOptions(env: Env, handlers: ProviderHandlers): OAuthProv
       resource: `${origin}/mcp`,
       authorization_servers: [origin],
       bearer_methods_supported: ['header'],
-      resource_name: 'Beanstalk',
+      resource_name: 'Gitstalk',
     },
     // A personal access token (bsu_) also works as the bearer, for clients without OAuth.
     resolveExternalToken: async ({ token, env: tokenEnv }) => {

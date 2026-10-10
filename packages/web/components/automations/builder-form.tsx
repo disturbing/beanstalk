@@ -5,8 +5,8 @@
  * field back into the YAML text per change, so the YAML pane and the form never disagree.
  * Problems from the shared validator show under the field they name.
  */
-import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
-import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
+import type { GitstalkEvent } from '@gitstalk/shared-race/actions';
+import { GITSTALK_EVENTS } from '@gitstalk/shared-race/actions';
 
 import type { DraftForm, EventFilter, FieldPath } from '../../src/automations/automation-draft';
 import styles from './builder.module.css';
@@ -16,12 +16,12 @@ export type FieldProblems = ReadonlyMap<string, readonly string[]>;
 
 export type FormActions = {
   readonly set: (path: FieldPath, value: unknown) => void;
-  readonly setEvent: (event: BeanstalkEvent, isOn: boolean) => void;
-  readonly setFilter: (event: BeanstalkEvent, filter: EventFilter) => void;
+  readonly setEvent: (event: GitstalkEvent, isOn: boolean) => void;
+  readonly setFilter: (event: GitstalkEvent, filter: EventFilter) => void;
   readonly setCrons: (crons: readonly string[]) => void;
 };
 
-const EVENT_WORDS: Readonly<Record<BeanstalkEvent, string>> = {
+const EVENT_WORDS: Readonly<Record<GitstalkEvent, string>> = {
   bean_opened: 'a bean is pushed',
   bean_landed: 'a bean lands',
   bean_red: 'a bean goes red',
@@ -106,12 +106,12 @@ function Triggers(props: {
   readonly nowMs: number;
 }) {
   const { form, actions } = props;
-  const chosen = BEANSTALK_EVENTS.filter((event) => form.events[event] !== undefined);
+  const chosen = GITSTALK_EVENTS.filter((event) => form.events[event] !== undefined);
   return (
     <Section title="Triggers" problems={props.problems.get('on')}>
       <p className={styles.sub}>When</p>
-      <div className={styles.chips} role="group" aria-label="Beanstalk events">
-        {BEANSTALK_EVENTS.map((event) => (
+      <div className={styles.chips} role="group" aria-label="Gitstalk events">
+        {GITSTALK_EVENTS.map((event) => (
           <button
             key={event}
             type="button"
@@ -142,7 +142,7 @@ function Triggers(props: {
 }
 
 function EventFilters(props: {
-  readonly event: BeanstalkEvent;
+  readonly event: GitstalkEvent;
   readonly filter: EventFilter;
   readonly onChange: (filter: EventFilter) => void;
 }) {

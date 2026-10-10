@@ -1,8 +1,8 @@
 # @gitstalk/web
 
-beanstalk's human-facing app: the **repository home** (Nightshift: the stalk and a generated explorer with Ask, `docs/claude-opus/14` §10–11), the **Files** explorer, the **Engine** (the race canvas, for developers), and the **side-by-side race**. It is a vinext app (Next.js App Router on Vite) deployed as the Worker `beanstalk-web`. Every number it shows comes from the gateway over RPC, or from the recorded runs bundled with it.
+Gitstalk's human-facing app: the **repository home** (Nightshift: the stalk and a generated explorer with Ask, `docs/claude-opus/14` §10–11), the **Files** explorer, the **Engine** (the race canvas, for developers), and the **side-by-side race**. It is a vinext app (Next.js App Router on Vite) deployed as the Worker `beanstalk-web`. Every number it shows comes from the gateway over RPC, or from the recorded runs bundled with it.
 
-Names, as everywhere in beanstalk: a **bean** is one agent's change; the **sprout** is the staged line (beans that passed their pre-land check; events call it `trunk`); the **stalk** is the stable line (validated; events call it `green`).
+Names, as everywhere in Gitstalk: a **bean** is one agent's change; the **sprout** is the staged line (beans that passed their pre-land check; events call it `trunk`); the **stalk** is the stable line (validated; events call it `green`).
 
 ## Views
 
@@ -46,13 +46,13 @@ Keyboard: `/` focuses Ask from anywhere. In a replay, Space plays or pauses, the
 
 ## Recorded runs (fixtures)
 
-`fixtures/<run>/` holds the Cloudflare race the demo narrates (`docs/claude-opus/12`, 12 Sonnet agents, seed 7): `j6boaclinn` (Beanstalk v2.5 with dependency-aware starts, `cf-v25dep2-sonnet-12-s7`: 39 green, 35th green 17.1 min, done 31.6 min) and `u0ntf65lbe` (the queue, `cf-queue-sonnet-12-s7-landed`: 36 green, 35th green 35.0 min, done 40.6 min). They are built from git, never by hand:
+`fixtures/<run>/` holds the Cloudflare race the demo narrates (`docs/claude-opus/12`, 12 Sonnet agents, seed 7): `j6boaclinn` (Gitstalk v2.5 with dependency-aware starts, `cf-v25dep2-sonnet-12-s7`: 39 green, 35th green 17.1 min, done 31.6 min) and `u0ntf65lbe` (the queue, `cf-queue-sonnet-12-s7-landed`: 36 green, 35th green 35.0 min, done 40.6 min). They are built from git, never by hand:
 
 ```bash
 pnpm -F @gitstalk/web fixtures      # node scripts/build-fixtures.mjs
 ```
 
-The script reads `research/race/runs/<run>/` (events, summary, the agents' worktrees under `work/`, which git ignores: in a fresh worktree, symlink them and `research/corpora/arena.git` from the checkout that ran the race) and `research/arena/tasks`, then writes `events.jsonl` (slimmed to the fields the app reads, no local paths), `summary.json` (without account details), `tasks.json` (titles, intents, tests) and `repo.json` (the base, every line commit and bean head, their trees and file contents). The one landing per run that no worktree fetched is rebuilt the way the runner squashes (`git merge-tree --merge-base`, a commit by `beanstalk-runner`) and must hash to the recorded sha, or the build fails; both runs reproduce their final commit exactly. Every file is scanned before it is written, for secrets, local paths (`/Users/…`, `/home/…`, temp directories), Cloudflare account ids and `workers.dev` addresses; a match fails the build.
+The script reads `research/race/runs/<run>/` (events, summary, the agents' worktrees under `work/`, which git ignores: in a fresh worktree, symlink them and `research/corpora/arena.git` from the checkout that ran the race) and `research/arena/tasks`, then writes `events.jsonl` (slimmed to the fields the app reads, no local paths), `summary.json` (without account details), `tasks.json` (titles, intents, tests) and `repo.json` (the base, every line commit and bean head, their trees and file contents). The one landing per run that no worktree fetched is rebuilt the way the runner squashes (`git merge-tree --merge-base`, a commit by `gitstalk-runner`) and must hash to the recorded sha, or the build fails; both runs reproduce their final commit exactly. Every file is scanned before it is written, for secrets, local paths (`/Users/…`, `/home/…`, temp directories), Cloudflare account ids and `workers.dev` addresses; a match fails the build.
 
 The v2.5 events the app shows beyond v2's: start cards (`decision.request` with `trigger: start`, raised before the arriving bean begins), `decision.reconcile` (the test author compares specs before a card), `rescue.start`, `culprit.dynamic` (leave-one-out culprit search), `window.wait` and `window.resize` (the sprout window), structural landings (`land.resolved`), and, from newer engines, `tests.first` and `sync.*`. Each becomes a step of its bean's journey and, where a reader would care, a feed line. The test author and the reconciler borrow an agent slot for one call without holding the bean, and the v2.5 run frees agents at the pre-land check (`release_on_check`), so the recorded run carries that option for the lane clocks.
 
@@ -72,7 +72,7 @@ pnpm -F @gitstalk/web build         # vite build into dist/ (the Worker and its 
 pnpm -F @gitstalk/web preview       # build, then run the built Worker with wrangler dev
 ```
 
-The tests check the reducer against both runs' `summary.json` (landed, green, dropped and why, cost, red validations, decision cards, conflicts, invocations, CI runs, every bean's start, landing and green times, task-to-green percentiles, lane clocks within a second) and the k-th green times of `research/race/kth_green.py` (Beanstalk 7.7, 15.7 and 17.1 min to the 20th, 30th and 35th green; the queue 13.0, 19.9 and 35.0); the keyword router on the catalog; the entity resolver and the planner on the recorded v2.5 run; and the gateway adapter against a fake binding.
+The tests check the reducer against both runs' `summary.json` (landed, green, dropped and why, cost, red validations, decision cards, conflicts, invocations, CI runs, every bean's start, landing and green times, task-to-green percentiles, lane clocks within a second) and the k-th green times of `research/race/kth_green.py` (Gitstalk 7.7, 15.7 and 17.1 min to the 20th, 30th and 35th green; the queue 13.0, 19.9 and 35.0); the keyword router on the catalog; the entity resolver and the planner on the recorded v2.5 run; and the gateway adapter against a fake binding.
 
 ## Deploy
 

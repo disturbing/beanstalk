@@ -37,7 +37,7 @@ use crate::workspace::Workspace;
 pub const API_VERSION: u32 = 4;
 /// Response header carrying [`API_VERSION`] on every response, so a caller can tell which
 /// contract refused its request.
-pub const API_VERSION_HEADER: &str = "x-beanstalk-runner-api";
+pub const API_VERSION_HEADER: &str = "x-gitstalk-runner-api";
 
 /// Request bodies carry acceptance tests in `extra_files`; 16 MiB is far above any task's.
 const MAX_BODY_BYTES: usize = 16 * 1024 * 1024;

@@ -63,7 +63,7 @@ pub struct GitCommand {
 /// Why an exec request is refused; the text is shown to the person on stderr.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum CommandError {
-    #[error("beanstalk serves git only: git-upload-pack or git-receive-pack '<owner>/<repo>.git'")]
+    #[error("gitstalk serves git only: git-upload-pack or git-receive-pack '<owner>/<repo>.git'")]
     NotGit,
     #[error("not a repository path: {0:?}; use <owner>/<repo>.git")]
     BadPath(String),

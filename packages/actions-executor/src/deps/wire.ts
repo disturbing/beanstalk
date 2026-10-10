@@ -1,5 +1,5 @@
 /**
- * The `deps.internal` contract with the `beanstalk-deps` tool in the job container
+ * The `deps.internal` contract with the `gitstalk-deps` tool in the job container
  * (packages/actions-runner, `src/deps/manifest.rs`). The tool names only snapshot keys and
  * chunk hashes; the Worker resolves the repository and scope from the job's bearer.
  */

@@ -19,7 +19,7 @@ export function registerSessionTools(server: McpServer, scope: ToolScope): void 
     {
       title: 'Who this session is',
       description:
-        'The Beanstalk account this agent session acts for: handle, the client the person approved, the scopes granted (read, collaborate, write) and the run tools read when they name no repository.',
+        'The Gitstalk account this agent session acts for: handle, the client the person approved, the scopes granted (read, collaborate, write) and the run tools read when they name no repository.',
       inputSchema: z.object({}),
       annotations: {
         readOnlyHint: true,

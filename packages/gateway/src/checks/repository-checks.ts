@@ -1,7 +1,7 @@
 /**
  * A repository's checks, decided per checked tree (backlog 2.3,
- * `docs/claude-opus/24-checks-config.md`): `.beanstalk/checks.toml` is read from the exact
- * tree the check runs on, so a bean that changes it is checked by its own config. Before any
+ * `docs/claude-opus/24-checks-config.md`): `.gitstalk/checks.toml` (or `.beanstalk/`, the fallback) is
+ * read from the exact tree the check runs on, so a bean that changes it is checked by its own config. Before any
  * suite runs, a bean's pre-land check applies the sprout's protected paths to the files the
  * bean changes. The answer is a suite for the runner, or a check result that needs none:
  *
@@ -11,12 +11,13 @@
  * - a protected path changed by a push that may not: red, naming the paths and who may.
  */
 import type { ChecksResolution } from '@gitstalk/shared-race/checks-config';
+import type { ConfigFile } from '@gitstalk/shared-race/config-dir';
 import {
   CHECKS_PATH,
   describeChecks,
   protectedChanges,
   protectedPatterns,
-  readChecksConfig,
+  resolveChecksFile,
   suiteOf,
 } from '@gitstalk/shared-race/checks-config';
 import type { Sha } from '@gitstalk/shared-race/ids';
@@ -35,8 +36,8 @@ export type CheckPlan =
 
 /** What deciding a check needs from the engine's Durable Object. */
 export type RepositoryChecksHost = {
-  /** `.beanstalk/checks.toml` at a commit, or null when the tree has none. */
-  readChecks(sha: Sha): Promise<string | null>;
+  /** The checks file at a commit (`CHECKS_PATHS`, `.gitstalk/` first), or null when the tree has none. */
+  readChecks(sha: Sha): Promise<ConfigFile | null>;
   /** Remembers a bean's clean merge onto the sprout: the tree its pre-land check runs on. */
   saveLandingTree(tree: LandingTree): void;
   /** The bean merge that made `sha`, when `sha` is one (its pre-land check's tree). */
@@ -58,8 +59,8 @@ export async function planCheck(
 ): Promise<CheckPlan> {
   const landing = check.instance.kind === 'sandbox' ? host.landingTree(check.sha) : null;
   const [resolution, sprout] = await Promise.all([
-    host.readChecks(check.sha).then(readChecksConfig),
-    landing === null ? null : host.readChecks(landing.onto).then(readChecksConfig),
+    host.readChecks(check.sha).then(resolveChecksFile),
+    landing === null ? null : host.readChecks(landing.onto).then(resolveChecksFile),
   ]);
   const guard =
     landing === null || sprout === null
@@ -109,7 +110,7 @@ export function decide(
     case 'legacy':
       return { plan: { kind: 'run', suite: engineSuite }, lines };
     case 'invalid':
-      return { plan: answer(invalidRed(resolution.problems)), lines };
+      return { plan: answer(invalidRed(resolution.path, resolution.problems)), lines };
     case 'valid':
       return { plan: { kind: 'run', suite: suiteOf(resolution.config) }, lines };
     default:
@@ -143,11 +144,11 @@ function red(failing: FailingTest, output: string): CheckResult {
   };
 }
 
-function invalidRed(problems: readonly string[]): CheckResult {
+function invalidRed(path: string, problems: readonly string[]): CheckResult {
   return red(
-    { file: CHECKS_PATH, name: 'the checks config is valid', message: problems.join('; ') },
+    { file: path, name: 'the checks config is valid', message: problems.join('; ') },
     [
-      `${CHECKS_PATH} on the merged tree is invalid, so no tests ran:`,
+      `${path} on the merged tree is invalid, so no tests ran:`,
       ...problems.map((problem) => `  ${problem}`),
       'Fix the file in this bean; see docs/claude-opus/24-checks-config.md for the format.',
     ].join('\n'),
@@ -160,7 +161,7 @@ function protectedRed(guard: ProtectedGuard): CheckResult {
     { file: first, name: 'changes a protected path', message: guard.changed.join(', ') },
     [
       `This bean changes protected paths: ${guard.changed.join(', ')}.`,
-      `The sprout protects ${guard.patterns.join(', ')} (protected_paths in ${CHECKS_PATH}; ${CHECKS_PATH} always).`,
+      `The sprout protects ${guard.patterns.join(', ')} (protected_paths in the checks file; the checks file itself always).`,
       'Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;',
       `this push was by ${guard.access.who}.`,
       'Drop those changes from the bean, or ask a maintainer to push them.',

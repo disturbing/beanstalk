@@ -119,8 +119,8 @@ COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/actions-runner 
 # The dependency cache tool (docs/claude-opus/27) and a zstd beside it: Docker-mode job
 # containers mount this directory read-only, so the tool runs there too (zstd needs only
 # liblzma, liblz4 and zlib, present in every Ubuntu image).
-COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/beanstalk-deps /opt/beanstalk/bin/beanstalk-deps
-RUN cp /usr/bin/zstd /opt/beanstalk/bin/zstd
+COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/gitstalk-deps /opt/gitstalk/bin/gitstalk-deps
+RUN cp /usr/bin/zstd /opt/gitstalk/bin/zstd
 USER runner
 WORKDIR /home/runner
 ENV PORT=8080 \

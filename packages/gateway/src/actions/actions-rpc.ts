@@ -9,7 +9,7 @@
 import type { ActionsRpc, RunSummary } from '@gitstalk/shared-race/actions';
 import {
   ACTIONS_CONCLUSIONS,
-  AUTOMATIONS_DIR,
+  AUTOMATION_PATH_PATTERNS,
   ACTIONS_EVENTS,
   ACTIONS_STATUSES,
   ActionsJobId,
@@ -239,8 +239,9 @@ async function listRuns(
     bindings.push(filter.workflowPath);
   }
   if (filter.kind !== undefined) {
-    clauses.push(`workflow_path ${filter.kind === 'automation' ? '' : 'NOT '}LIKE ?`);
-    bindings.push(`${AUTOMATIONS_DIR}/%`);
+    const anyDir = AUTOMATION_PATH_PATTERNS.map(() => 'workflow_path LIKE ?').join(' OR ');
+    clauses.push(`${filter.kind === 'automation' ? '' : 'NOT '}(${anyDir})`);
+    bindings.push(...AUTOMATION_PATH_PATTERNS);
   }
   if (filter.status !== undefined) {
     clauses.push('status = ?');

@@ -338,13 +338,13 @@ export class ActionsRepoDO extends DurableObject<Env> {
   /** Who moved the stalk: the author of the newest bean it carries, as the index knows it. */
   async #pusher(repoId: string, beans: readonly string[]): Promise<string> {
     const bean = beans.at(-1);
-    if (bean === undefined) return 'beanstalk';
+    if (bean === undefined) return 'gitstalk';
     const row = await this.env.FORGE.prepare(
       'SELECT actor FROM beans WHERE repo_id = ? AND bean = ?',
     )
       .bind(repoId, bean)
       .first<{ actor: string | null }>();
-    return row?.actor ?? 'beanstalk';
+    return row?.actor ?? 'gitstalk';
   }
 
   // Schedules -------------------------------------------------------------------------------
@@ -567,7 +567,7 @@ export class ActionsRepoDO extends DurableObject<Env> {
       await this.#startAutomation(automation.path, {
         event: occurrence.event,
         payload: occurrencePayload({ repo: facts, publicUrl: this.#config.serverUrl, occurrence }),
-        actor: occurrence.actor ?? 'beanstalk',
+        actor: occurrence.actor ?? 'gitstalk',
         origin: 'event',
       });
     }

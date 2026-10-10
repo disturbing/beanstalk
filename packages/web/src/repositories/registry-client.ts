@@ -70,6 +70,7 @@ export const RepositoryFiles = z.object({
   files: z.array(z.string()),
   readme: z.string().nullable(),
   checks: z.string().nullable(),
+  checksPath: z.string().nullable().default(null),
   truncated: z.boolean(),
 });
 export type RepositoryFiles = z.infer<typeof RepositoryFiles>;

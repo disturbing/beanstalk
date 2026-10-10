@@ -97,8 +97,8 @@ on:
   schedule: [{ cron: "0 * * * *" }]
 harness: shell
 run: |
-  echo "beat $(date -u +%FT%TZ)" >> "$BEANSTALK_MEMORY/beats.log"
-  wc -l < "$BEANSTALK_MEMORY/beats.log"
+  echo "beat $(date -u +%FT%TZ)" >> "$GITSTALK_MEMORY/beats.log"
+  wc -l < "$GITSTALK_MEMORY/beats.log"
 `,
   },
   {

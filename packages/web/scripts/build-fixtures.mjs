@@ -34,7 +34,7 @@ const ARENA_GIT = join(REPO_ROOT, 'research/corpora/arena.git');
 
 /**
  * The recorded Cloudflare runs of the demo (`docs/claude-opus/12`, seed 7, 12 Sonnet agents):
- * Beanstalk v2.5 with dependency-aware starts against the merge queue.
+ * Gitstalk v2.5 with dependency-aware starts against the merge queue.
  */
 const RUNS = [
   {
@@ -174,7 +174,7 @@ function buildRun(spec) {
 // The object store: one bare repo whose alternates are every worktree of the run.
 
 function openStore(runDir) {
-  const dir = mkdtempSync(join(tmpdir(), 'beanstalk-fixture-'));
+  const dir = mkdtempSync(join(tmpdir(), 'gitstalk-fixture-'));
   git(dir, ['init', '--bare', '--quiet', '.']);
   const worktrees = [
     ...readdirSync(join(runDir, 'work/agents')).map((name) => join(runDir, 'work/agents', name)),

@@ -57,7 +57,7 @@ const Repo = z
   .describe('owner/name of a repository you may use (repo_list); omit to read your run');
 
 export function createServer(scope: ToolScope): McpServer {
-  const server = new McpServer({ name: 'beanstalk', version: '0.2.0' });
+  const server = new McpServer({ name: 'gitstalk', version: '0.2.0' });
   registerAsk(server, scope);
   registerWorkOverlaps(server, scope);
   registerBeanTools(server, scope);

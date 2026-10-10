@@ -1,11 +1,11 @@
 /**
- * An automation file (doc 25 §7.1): `.beanstalk/automations/<id>.yml` (or `.md` with YAML front
- * matter, the body being the prompt). It names the triggers (Beanstalk events, `schedule`,
+ * An automation file (doc 25 §7.1): `.gitstalk/automations/<id>.yml` (or `.md` with YAML front
+ * matter, the body being the prompt). It names the triggers (Gitstalk events, `schedule`,
  * `workflow_dispatch`), the harness that runs the agent, its prompt, its permissions and the
  * secrets it may use. Pure: problems are in the answer, with a line when one is known.
  */
-import type { AutomationInfo, BeanstalkEvent, WorkflowProblem, WorkflowTrigger } from './actions';
-import { BEANSTALK_EVENTS, SecretName, automationIdOf } from './actions';
+import type { AutomationInfo, GitstalkEvent, WorkflowProblem, WorkflowTrigger } from './actions';
+import { GITSTALK_EVENTS, SecretName, automationIdOf } from './actions';
 import { LineCounter, isMap, isNode, parseDocument } from 'yaml';
 import type { Document } from 'yaml';
 import { z } from 'zod';
@@ -171,9 +171,9 @@ function onEntries(on: unknown): [string, unknown][] | null {
 function triggerOf(event: string, value: unknown): WorkflowTrigger | string {
   if (event === 'workflow_dispatch') return { kind: 'workflow_dispatch', inputs: [] };
   if (event === 'schedule') return scheduleOf(value);
-  const beanstalk = BEANSTALK_EVENTS.find((known) => known === event);
+  const beanstalk = GITSTALK_EVENTS.find((known) => known === event);
   if (beanstalk === undefined)
-    return `${event} is not an automation trigger (use ${BEANSTALK_EVENTS.join(', ')}, schedule or workflow_dispatch)`;
+    return `${event} is not an automation trigger (use ${GITSTALK_EVENTS.join(', ')}, schedule or workflow_dispatch)`;
   const filter = EventFilter.safeParse(value ?? {});
   if (!filter.success) return `${event} takes only beans: and authors: filters`;
   const onlyNegated = [filter.data.beans, filter.data.authors].some(
@@ -185,7 +185,7 @@ function triggerOf(event: string, value: unknown): WorkflowTrigger | string {
 }
 
 function beanstalkTrigger(
-  event: BeanstalkEvent,
+  event: GitstalkEvent,
   filter: z.infer<typeof EventFilter>,
 ): WorkflowTrigger {
   return { kind: 'beanstalk', event, beans: filter.beans ?? [], authors: filter.authors ?? [] };

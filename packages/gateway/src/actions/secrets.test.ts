@@ -28,7 +28,7 @@ describe('D4: which runs get which secrets', () => {
       ]);
   });
 
-  it('gives an automation started by a Beanstalk event only the toggled secrets (doc 25 §7.6)', () => {
+  it('gives an automation started by a Gitstalk event only the toggled secrets (doc 25 §7.6)', () => {
     expect(secretsForRun({ kind: 'event' }, ['DEPLOY', 'TEST_KEY'], STORED)).toEqual(['TEST_KEY']);
   });
 

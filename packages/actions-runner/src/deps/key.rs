@@ -18,6 +18,7 @@ const LOCKFILES: [(&str, &str); 5] = [
     ("bun.lock", "bun"),
 ];
 /// Bump when the chunk format changes, so old snapshots are never restored by a new tool.
+// Kept from before the rename: a new string would invalidate every cached snapshot.
 const FORMAT: &str = "beanstalk-deps/1";
 
 /// The install directory's lockfile and the package manager it implies.
