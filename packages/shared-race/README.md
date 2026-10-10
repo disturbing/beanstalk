@@ -7,10 +7,9 @@ log, repositories, collaborators, deploy tokens, checks configuration, Actions a
 and the repository config-directory rule. It is a TypeScript library with no Worker of its own;
 it is bundled into each Worker that imports it.
 
-The name is historical: the package began as the contract for benchmark races between
-integration policies, and the repository engine grew out of that run machinery, so engine
-shapes still carry run and race vocabulary (`RunId`, `RunConfig`, `events.jsonl`). Today it is
-the product's contract package, not race-only code.
+Despite its name, this is the product's contract package, not benchmark-only code. The
+repository engine shares its shapes with the benchmark runs, so engine types use run
+vocabulary (`RunId`, `RunConfig`, `events.jsonl`).
 
 ```
 gitstalk-web ──────────┐

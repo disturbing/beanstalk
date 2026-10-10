@@ -140,7 +140,7 @@ template; the package's `deploy` script deliberately fails.
 Handles listed in `PLATFORM_ADMINS` see `/admin`: platform counts, the benchmark runs
 (`/admin/runs`, each with a run home, Files explorer and replay canvas), the side-by-side race
 (`/admin/race`) and the demo gate for decision cards (`/admin/demo-gate`, which also needs
-`DEMO_PASSWORD`). The old public URLs (`/race`, `/races`, `/runs/...`) redirect admins there
+`DEMO_PASSWORD`). `/race`, `/races` and `/runs/...` redirect admins there
 and 404 for everyone else. Recorded runs replay from `fixtures/`, built by
 `node research/race/tools/build-fixtures.mjs`; see [research/README.md](../../research/README.md).
 

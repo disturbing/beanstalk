@@ -70,4 +70,8 @@ Gitstalk is a git forge, but this repository itself is developed on plain GitHub
 4. Open a pull request against `main`. Describe what changed, why, and how you verified it. Link the issue it addresses.
 5. A maintainer reviews it. Keep the pull request focused; address review comments with new commits.
 
+## Releases
+
+There is no CHANGELOG file. Every deploy to gitstalk.io gets a [GitHub Release](https://github.com/disturbing/gitstalk/releases): a maintainer tags the deployed commit (`vMAJOR.MINOR.PATCH`) and writes the release notes, describing what changed for people and agents using Gitstalk. Contributors do not need to edit any history file; a clear pull request description is what the notes are written from. READMEs and docs describe the current state only.
+
 Thank you for helping Gitstalk grow.

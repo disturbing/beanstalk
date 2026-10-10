@@ -120,7 +120,7 @@ the container's `max_instances`; the gateway's own cap must not exceed it), `DEP
 (`on` or `off`), `DEPS_SNAPSHOT_MAX_BYTES`, `DEPS_TMPFS_MAX_BYTES`, `DEPS_REPO_MAX_BYTES`,
 `DEPS_IDLE_DAYS`. A repository or organisation variable `GITSTALK_DEPS_SNAPSHOT_MAX` raises or
 lowers the snapshot cap per repository, and `GITSTALK_DEPS_CACHE=off` turns the cache off for it
-(`BEANSTALK_*` names are still read).
+(`BEANSTALK_*` names are accepted as aliases).
 
 Secrets: `ADMIN_TOKEN` (required), `STANDALONE_SECRETS` (standalone mode only).
 
