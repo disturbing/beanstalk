@@ -1,5 +1,4 @@
-import { platformAdminOf } from '../../../../../src/admin/admin-gate';
-import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
+import { mayStreamRun } from '../../../../../src/admin/admin-gate';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 
@@ -26,10 +25,8 @@ const Beans = z.array(TaskId).max(MAX_BEANS);
 export async function GET(request: Request, context: Context): Promise<Response> {
   const run = RunId.safeParse((await context.params).run);
   if (!run.success) return problem(400, 'not a run id');
-  // Benchmark runs are the admin area's (a repository's engine streams through /api/repos).
-  const admin = await platformAdminOf(request);
-  if (admin === null || !(await mayViewEngine(env.GATEWAY, run.data, admin.id)))
-    return problem(404, 'no such run');
+  // A repository's engine to its readers; a benchmark race to platform admins only.
+  if (!(await mayStreamRun(request, run.data))) return problem(404, 'no such run');
   if (isRecordedRun(run.data))
     return problem(404, 'a recorded run replays in the browser; nothing streams');
   const beans = Beans.safeParse(beanList(request));

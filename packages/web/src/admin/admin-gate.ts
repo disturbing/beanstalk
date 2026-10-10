@@ -7,6 +7,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import type { User } from '../auth/user';
 import { currentUser, getUser } from '../auth/user';
+import { engineVerdict } from '../repositories/engine-guard';
 import { adminPathOf } from './admin-paths';
 import { isPlatformAdmin } from './platform-admins';
 
@@ -31,6 +32,23 @@ export async function requirePlatformAdmin(): Promise<User> {
 export async function platformAdminOf(request: Request): Promise<User | null> {
   const user = await getUser(request);
   return isPlatformAdmin(user, configuredPlatformAdmins()) ? user : null;
+}
+
+/**
+ * Whether the run routes (`/api/runs/<run>/…`) serve this engine to the requester. A
+ * repository's engine is a run too, and its canvas, Ask page and decision cards stream through
+ * these routes, so anyone who may read the repository gets it; a benchmark race is the admin
+ * area's. Everyone else gets the 404.
+ */
+export async function mayStreamRun(request: Request, run: string): Promise<boolean> {
+  const user = await getUser(request);
+  const verdict = await engineVerdict(env.GATEWAY, {
+    run,
+    viewer: user?.id ?? null,
+    action: 'read',
+  });
+  if (verdict.kind === 'repository') return true;
+  return verdict.kind === 'race' && isPlatformAdmin(user, configuredPlatformAdmins());
 }
 
 /** An old public race URL: admins go to its admin page, everyone else gets the 404. */

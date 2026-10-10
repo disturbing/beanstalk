@@ -1,5 +1,4 @@
-import { platformAdminOf } from '../../../../../../../src/admin/admin-gate';
-import { mayViewEngine } from '../../../../../../../src/repositories/engine-guard';
+import { mayStreamRun } from '../../../../../../../src/admin/admin-gate';
 import { env } from 'cloudflare:workers';
 
 import { RunId, TaskId } from '@gitstalk/shared-race/ids';
@@ -16,10 +15,8 @@ export async function GET(request: Request, context: Context): Promise<Response>
   const run = RunId.safeParse(params.run);
   const bean = TaskId.safeParse(params.bean);
   if (!run.success || !bean.success) return problem(400, 'not a run or a bean id');
-  // Benchmark runs are the admin area's (a repository's engine streams through /api/repos).
-  const admin = await platformAdminOf(request);
-  if (admin === null || !(await mayViewEngine(env.GATEWAY, run.data, admin.id)))
-    return problem(404, 'no such run');
+  // A repository's engine to its readers; a benchmark race to platform admins only.
+  if (!(await mayStreamRun(request, run.data))) return problem(404, 'no such run');
   try {
     const source = forgeForRun(env.GATEWAY, run.data);
     const detail = await source.beanDetail(run.data, bean.data);
