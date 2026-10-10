@@ -329,7 +329,7 @@ function Secrets(props: {
         </p>
       )}
       <p className={styles.note}>
-        <b>Event-triggered runs</b> (D4) get only the secrets marked &ldquo;available to pre-land
+        <b>Event-triggered runs</b> get only the secrets marked &ldquo;available to pre-land
         checks&rdquo;: the event carries data other people wrote. Schedule and manual runs get every
         secret named here. Model calls never need a secret.
       </p>

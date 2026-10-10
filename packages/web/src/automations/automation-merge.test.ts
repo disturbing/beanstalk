@@ -85,6 +85,13 @@ describe('the three-way merge', () => {
     expect(mergeAutomation({ base: BASE, theirs: 'on: [', ours: BASE }).kind).toBe('unparsed');
   });
 
+  it('never calls a new file deleted: absent with no base is the draft as it is', () => {
+    const merged = mergeAutomation({ base: null, theirs: null, ours: BASE });
+    if (merged.kind !== 'merged') throw new Error(`expected merged, got ${merged.kind}`);
+    expect(merged.text).toBe(BASE);
+    expect(merged.theirChanges).toEqual([]);
+  });
+
   it('merges against a file someone else created meanwhile (no base)', () => {
     const merged = mergeAutomation({ base: null, theirs: BASE, ours: BASE });
     expect(merged.kind).toBe('merged');

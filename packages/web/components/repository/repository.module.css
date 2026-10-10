@@ -58,7 +58,7 @@
 }
 .primary {
   background: var(--good-fill);
-  color: var(--accent-ink);
+  color: var(--good-fill-ink);
   box-shadow: 0 0 0 0 var(--glow);
 }
 .primary:hover {
@@ -248,6 +248,7 @@
 .stepDone .stepMark {
   background: var(--good-fill);
   border-color: var(--good-fill);
+  color: var(--good-fill-ink);
 }
 .stepDone strong {
   text-decoration: line-through;

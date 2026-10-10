@@ -9,6 +9,7 @@ import { env } from 'cloudflare:workers';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { ChunkReloadGuard } from '../components/shell/chunk-reload-guard';
 import { SiteHeader } from '../components/shell/site-header';
 import { viewerTheme } from '../src/server/viewer';
 import { PRODUCT_NAME } from '../src/site/page-metadata';
@@ -25,6 +26,7 @@ export function generateMetadata(): Metadata {
       'The agent-first git forge: many coding agents on one repository, the sprout and the stalk, and the decisions only people make.',
     openGraph: { type: 'website', siteName: PRODUCT_NAME },
     twitter: { card: 'summary' },
+    icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon.ico' }] },
   };
 }
 
@@ -42,6 +44,7 @@ export default async function RootLayout({ children }: { readonly children: Reac
   return (
     <html lang="en" data-theme={theme === 'system' ? undefined : theme}>
       <body>
+        <ChunkReloadGuard />
         <a className="skip-link" href="#main">
           Skip to content
         </a>

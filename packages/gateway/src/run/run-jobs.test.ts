@@ -94,6 +94,7 @@ function unusedArtifacts(): ArtifactsPort {
     branchHead: unused,
     readFile: unused,
     changedFiles: unused,
+    changedPaths: unused,
     listRepos: unused,
     deleteRepo: unused,
     describeRepo: unused,

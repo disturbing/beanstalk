@@ -106,7 +106,7 @@ export default async function AccountSettingsPage({ searchParams }: PageProps) {
           <li>You leave every repository you were invited to; their owners keep them.</li>
           <li>Passkeys, sessions, personal tokens, SSH keys and your picture are removed.</li>
           <li>
-            If you are the only owner of an organisation, add another owner or delete it first.
+            If you are the only owner of an organization, add another owner or delete it first.
           </li>
         </ul>
         <DeleteAccountForm

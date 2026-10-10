@@ -54,6 +54,8 @@ export const PushBean = z.object({
   /** What the latest push may do to protected paths (beans stored before: nothing). */
   protectedAccess: ProtectedAccess.default(NO_PROTECTED_ACCESS),
   head: Sha,
+  /** The files the latest push changes since it forked the sprout (beans stored before: none). */
+  files: z.array(z.string()).default([]),
   /** Pushes accepted so far; a verdict belongs to the push it answers. */
   pushes: z.number().int().min(1),
   /** The rework invocation waiting for the author's next push. */
@@ -101,6 +103,7 @@ export function receivedBean(input: {
   actor: string;
   protectedAccess: ProtectedAccess;
   head: Sha;
+  files: readonly string[];
   previous: PushBean | null;
 }): PushBean {
   const { previous } = input;
@@ -112,6 +115,7 @@ export function receivedBean(input: {
     actor: input.actor,
     protectedAccess: input.protectedAccess,
     head: input.head,
+    files: [...input.files],
     pushes: (previous?.pushes ?? 0) + 1,
     awaiting: null,
     phase: 'checking',

@@ -151,17 +151,19 @@ export class PushDriver {
     protectedAccess: ProtectedAccess;
     /** The head's ancestors, newest first (to find where it forked the sprout). */
     history: readonly string[];
+    /** The files the push changes since it forked the sprout. */
+    files: readonly string[];
   }): Submitted {
     const refusal = this.refusal(input.bean);
     if (refusal !== null) return { ok: false, reason: refusal };
     const previous = readPushBean(this.#host.sql, input.bean);
     const bean = receivedBean({ ...input, ...input.intent, previous });
     if (previous === null) {
-      const admitted = this.#admit(bean, this.#forkPoint(input.history));
+      const admitted = this.#admit(bean, this.forkPoint(input.history));
       if (admitted !== null) return { ok: false, reason: admitted };
     } else {
       this.#save(bean);
-      const answered = this.#answerRework(previous, input.head);
+      const answered = this.#answerRework(previous, bean);
       if (answered !== null) return { ok: false, reason: answered };
     }
     this.drain();
@@ -182,7 +184,7 @@ export class PushDriver {
   }
 
   /** The newest of the head's ancestors that is on the sprout line (null: none known). */
-  #forkPoint(history: readonly string[]): Sha | null {
+  forkPoint(history: readonly string[]): Sha | null {
     const policy = this.#host.state().policy;
     if (policy === null || !('shaIdx' in policy)) return null;
     const onLine = new Set(Object.keys(policy.shaIdx));
@@ -202,7 +204,7 @@ export class PushDriver {
   }
 
   /** The bean's waiting rework gets the new push as its result. */
-  #answerRework(previous: PushBean, head: Sha): string | null {
+  #answerRework(previous: PushBean, pushed: PushBean): string | null {
     const awaiting = previous.awaiting;
     if (awaiting === null) return `bean ${previous.bean} is not waiting for a push`;
     const inv = InvocationId.safeParse(awaiting.inv);
@@ -214,7 +216,7 @@ export class PushDriver {
       at: Date.now(),
       slot: slot.data,
       inv: inv.data,
-      result: pushResult(previous.bean, head),
+      result: pushResult(pushed),
     });
     return response.kind === 'refused' ? response.refusal.message : null;
   }
@@ -238,7 +240,7 @@ export class PushDriver {
       case 'test-first':
         // Pushed beans carry no acceptance tests for an author to write or amend.
         this.#apply(invocation, {
-          ...pushResult(invocation.task, null),
+          ...noCommit(),
           result_text: 'no tests to author',
         });
         return;
@@ -250,13 +252,13 @@ export class PushDriver {
   #answerInitial(invocation: EngineInstruction, bean: PushBean | null): void {
     if (bean === null) {
       this.#apply(invocation, {
-        ...pushResult(invocation.task, null),
+        ...noCommit(),
         ok: false,
         infra_error: 'no pushed commit',
       });
       return;
     }
-    this.#apply(invocation, pushResult(bean.bean, bean.head));
+    this.#apply(invocation, pushResult(bean));
   }
 
   /** A red or a conflict: the rework waits for the author; its verdict is the push's answer. */
@@ -340,15 +342,28 @@ function beanDefinition(bean: PushBean): ArenaTask {
   };
 }
 
-/** An invocation's result as a push gives it: the pushed commit (or none), at no agent cost. */
-function pushResult(bean: string, head: Sha | null): InvocationResult {
+/** An invocation's result as a push gives it: the pushed commit and its files, at no agent cost. */
+function pushResult(bean: PushBean): InvocationResult {
   return InvocationResult.parse({
-    ok: head !== null,
-    subtype: head === null ? 'no-commit' : 'success',
+    ok: true,
+    subtype: 'success',
     cost_source: 'push',
-    pushed_ref: head === null ? null : pushedBeanRef(bean),
-    head_sha: head,
-    new_commit: head !== null,
+    pushed_ref: pushedBeanRef(bean.bean),
+    head_sha: bean.head,
+    new_commit: true,
+    files: bean.files,
+  });
+}
+
+/** An invocation's result when there is no pushed commit to give. */
+function noCommit(): InvocationResult {
+  return InvocationResult.parse({
+    ok: false,
+    subtype: 'no-commit',
+    cost_source: 'push',
+    pushed_ref: null,
+    head_sha: null,
+    new_commit: false,
   });
 }
 

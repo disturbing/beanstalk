@@ -6,12 +6,9 @@
  */
 import { isReservedHandle } from '@gitstalk/shared-identity/reserved-handles';
 
-import {
-  MCP_SERVER_NAME,
-  PLUGIN_ID,
-  PLUGIN_MARKETPLACE,
-  SETUP_COMMAND,
-} from '@gitstalk/shared-race/plugin';
+import { PLUGIN_ID, PLUGIN_MARKETPLACE, SETUP_COMMAND } from '@gitstalk/shared-race/plugin';
+
+import { agentInstall } from '../setup/agent-installs';
 
 /** Top-level static files and scripts the app serves, beside the routes accounts reserve. */
 const STATIC_PATHS: ReadonlySet<string> = new Set([
@@ -115,6 +112,7 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
   const web = config.webOrigin.replace(/\/+$/, '');
   const cloneUrl = `${origin}/${owner}/${name}.git`;
   const directory = name.replace(/\.+$/, '') || 'repo';
+  const codex = agentInstall(config.mcpUrl, 'codex').code;
   return {
     cloneUrl,
     gitSteps: [
@@ -126,20 +124,14 @@ export function startGuide(config: StartConfig, owner: string, name: string): St
       'git push -o wait origin bean/first-change',
     ],
     agents: [
-      {
-        harness: 'Claude Code',
-        line: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install ${PLUGIN_ID}`,
-      },
-      {
-        harness: 'Codex',
-        line: `codex mcp add ${MCP_SERVER_NAME} --url ${config.mcpUrl} && codex mcp login ${MCP_SERVER_NAME}`,
-      },
+      { harness: 'Claude Code', line: agentInstall(config.mcpUrl, 'claude-code').code },
+      { harness: 'Codex', line: codex },
       { harness: 'Any MCP client', line: config.mcpUrl },
     ],
     prompt: `Work on ${owner}/${name} on Gitstalk: clone it, make the change as a bean, and push it.`,
     plugin: {
       claude: `claude plugin marketplace add ${PLUGIN_MARKETPLACE} && claude plugin install ${PLUGIN_ID} && claude "${SETUP_COMMAND} ${owner}/${name}"`,
-      codex: `codex mcp add ${MCP_SERVER_NAME} --url ${config.mcpUrl} && codex mcp login ${MCP_SERVER_NAME}`,
+      codex,
       codexPrompt: `Set up git for Gitstalk: run "curl -fsSL ${web}/setup.sh | sh -s -- detect", ask me which SSH key to use, register it with the same script, then run its "remote ${owner}/${name}".`,
     },
     https: {

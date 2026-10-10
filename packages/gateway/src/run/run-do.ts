@@ -528,8 +528,10 @@ export class RunDO extends DurableObject<Env> {
         this.#log.warn('reading a pushed history failed', { head: input.head, error });
         return [];
       });
+    const files = await this.#pushedFiles(repo, input.head, history);
     const reservation = readReservation(this.ctx.storage.sql, input.bean, Date.now());
     const submitted = this.#push.submit({
+      files,
       bean: input.bean,
       head: input.head,
       actor: input.actor,
@@ -1770,6 +1772,22 @@ export class RunDO extends DurableObject<Env> {
       await scheduler.wait(COMMIT_READ_PAUSE_MS);
     }
     return null;
+  }
+
+  /**
+   * The files a pushed head changes since it forked the sprout (what the bean's history counts);
+   * none when the fork point is unknown or the diff cannot be read.
+   */
+  async #pushedFiles(repo: string, head: Sha, history: readonly string[]): Promise<string[]> {
+    const fork = this.#push.forkPoint(history);
+    if (fork === null) return [];
+    const paths = await this.#artifacts
+      .changedPaths(repo, { from: fork, to: head })
+      .catch((error: unknown) => {
+        this.#log.warn('reading a pushed diff failed', { head, error });
+        return null;
+      });
+    return paths ?? [];
   }
 
   /**

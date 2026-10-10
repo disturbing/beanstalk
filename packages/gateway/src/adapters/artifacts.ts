@@ -29,6 +29,8 @@ export type ArtifactsPort = {
    * optionally only under `paths` (files or directories); null when a commit is missing.
    */
   changedFiles(repo: string, range: CommitRange): Promise<FileChange[] | null>;
+  /** The paths that differ between two commits, by path, without contents; null when a commit is missing. */
+  changedPaths(repo: string, range: CommitRange): Promise<string[] | null>;
   /** The names of the namespace's repos that `matches` accepts, sorted. */
   listRepos(matches: (name: string) => boolean): Promise<string[]>;
   /** Deletes a repo and its tokens; false when it was already gone. */
@@ -97,6 +99,9 @@ export function artifactsPort(binding: Artifacts): ArtifactsPort {
     changedFiles(repo, range) {
       return withRepo(binding, repo, (handle) => changedFilesIn(handle, range));
     },
+    changedPaths(repo, range) {
+      return withRepo(binding, repo, (handle) => changedPathsIn(handle, range));
+    },
     listRepos(matches) {
       return listMatching(binding, matches);
     },
@@ -136,6 +141,7 @@ export function selectedArtifactsPort(pick: () => ArtifactsPort): ArtifactsPort 
     branchHead: (repo, branch) => pick().branchHead(repo, branch),
     readFile: (repo, ref, path) => pick().readFile(repo, ref, path),
     changedFiles: (repo, range) => pick().changedFiles(repo, range),
+    changedPaths: (repo, range) => pick().changedPaths(repo, range),
     listRepos: (matches) => pick().listRepos(matches),
     deleteRepo: (name) => pick().deleteRepo(name),
     describeRepo: (name) => pick().describeRepo(name),
@@ -152,6 +158,23 @@ export async function changedFilesIn(
   handle: RepoReader,
   range: CommitRange,
 ): Promise<FileChange[] | null> {
+  const selected = await changedBlobsIn(handle, range);
+  return selected === null ? null : readContents(handle, selected.slice(0, MAX_DIFF_FILES));
+}
+
+/** The paths that differ between two commits of an open repo, by path; null when a commit is missing. */
+export async function changedPathsIn(
+  handle: RepoReader,
+  range: CommitRange,
+): Promise<string[] | null> {
+  const selected = await changedBlobsIn(handle, range);
+  return selected === null ? null : selected.map((blob) => blob.path);
+}
+
+async function changedBlobsIn(
+  handle: RepoReader,
+  range: CommitRange,
+): Promise<ChangedBlob[] | null> {
   const [before, after] = await Promise.all([
     handle.readCommit(range.from),
     handle.readCommit(range.to),
@@ -161,10 +184,9 @@ export async function changedFilesIn(
   const trees = { before: before.treeHash, after: after.treeHash, prefix: '' };
   await collectChanges(handle, trees, changed);
   const wanted = range.paths;
-  const selected = changed
+  return changed
     .filter((blob) => wanted === undefined || isUnder(blob.path, wanted))
     .toSorted((a, b) => (a.path < b.path ? -1 : 1));
-  return readContents(handle, selected.slice(0, MAX_DIFF_FILES));
 }
 
 /** Follows the namespace listing's cursor and keeps the names `matches` accepts. */

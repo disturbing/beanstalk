@@ -427,7 +427,7 @@
 .primary {
   border: 1px solid var(--good-fill);
   background: var(--good-fill);
-  color: var(--accent-ink);
+  color: var(--good-fill-ink);
 }
 .primary:hover {
   filter: brightness(1.06);

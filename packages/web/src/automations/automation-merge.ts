@@ -57,6 +57,14 @@ export function mergeAutomation(input: {
   const base = input.base === null ? new Map<string, Field>() : fieldsOf(input.base);
   const ours = fieldsOf(input.ours);
   if (base === null || ours === null) return { kind: 'unparsed' };
+  if (input.base === null && input.theirs === null)
+    // A new file absent on both sides: nothing landed meanwhile, so the draft is the merge.
+    return {
+      kind: 'merged',
+      text: input.ours,
+      theirChanges: [],
+      ourChanges: [...ours.values()].map((field) => field.path),
+    };
   if (input.theirs === null)
     return { kind: 'deleted', oursChanged: changedKeys(base, ours).length > 0 };
   const theirs = fieldsOf(input.theirs);

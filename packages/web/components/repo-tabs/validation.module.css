@@ -26,7 +26,7 @@
   color: var(--good);
 }
 .line[data-tone='sprout'] .lineLabel {
-  color: var(--sprout);
+  color: var(--sprout-ink);
 }
 .lineSha {
   font: 500 14px var(--font-mono);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import type { PickReceipt } from '@gitstalk/shared-ask/pick/picker';
+import { plural } from '../../src/race/race-format';
 import styles from './home.module.css';
 
 /** A small ⓘ beside something the picker decided; opens the decision's receipt. */
@@ -62,10 +63,13 @@ export function PicksDrawer(props: {
   const jev = props.receipts.filter((receipt) => receipt.by === 'jev').length;
   return (
     <>
-      <button type="button" className={styles.picksbtn} onClick={() => setOpen(true)}>
-        {props.picker === 'jev'
-          ? `Jev ${jev}, rules ${props.receipts.length - jev}`
-          : `rules ${props.receipts.length}`}
+      <button
+        type="button"
+        className={styles.picksbtn}
+        title="How this page chose the order of its lists"
+        onClick={() => setOpen(true)}
+      >
+        {picksLabel(props.receipts.length, jev)}
       </button>
       {open ? (
         <div className={styles.drawer} role="dialog" aria-label="Every pick on this page">
@@ -76,7 +80,7 @@ export function PicksDrawer(props: {
           <p className={styles.status}>
             {props.picker === 'jev'
               ? 'Jev (TypeSafe’s decision model, on Workers AI through AI Gateway) orders each candidate list. When it does not answer in time, the decision’s rule does.'
-              : 'Fixed rules order each candidate list. Set PICKER to jev to let Jev decide.'}{' '}
+              : 'Fixed rules order each candidate list.'}{' '}
             Code computes every candidate and every sentence; the picker only chooses among them.
           </p>
           {props.receipts.toReversed().map((receipt, index) => (
@@ -88,6 +92,12 @@ export function PicksDrawer(props: {
       ) : null}
     </>
   );
+}
+
+/** The status line's words for the page's picks: how many, and how many the model made. */
+function picksLabel(picks: number, byModel: number): string {
+  const label = `How this was ordered: ${plural(picks, 'choice')}`;
+  return byModel === 0 ? label : `${label}, ${byModel} by the model`;
 }
 
 function Receipt({ receipt }: { readonly receipt: PickReceipt }) {
