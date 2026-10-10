@@ -1,6 +1,41 @@
-# Beanstalk contention research
+# Research
 
-Tests whether "schedule agents like database transactions" beats a good merge queue, before the forge is built. Thesis: `../docs/claude-opus/02-thesis-concurrency-control.md`.
+Everything here sits outside the product build: the experiments that shaped Gitstalk's design, the benchmark harness that measures it against merge queues, and design prototypes and promo material. Nothing in `packages/` imports from this folder. The one exception to "outside the build" is `swarm/`, a pnpm workspace member so its tests run in `pnpm check`.
+
+Write-ups live in [`../docs/claude-opus/`](../docs/claude-opus/), above all [`11-experiments-summary.md`](../docs/claude-opus/11-experiments-summary.md). [`REPORT.md`](REPORT.md) is the original report on the contention research.
+
+## Index
+
+Status: **active** (used for current benchmark runs), **done** (finished; kept so results can be reproduced), **spike** (throwaway probe; any Cloudflare resources it used are torn down).
+
+| Folder | What it is | Status | How to run |
+|---|---|---|---|
+| [`race/`](race/) | The benchmark harness: real Claude Code / Codex agents or replay agents work a task backlog against a merge queue (local, GitHub's own, or a batched queue) and against Gitstalk, and every recorded run (`race/runs/`) | active | `python3 race.py --help`; cloud races in [`race/REMOTE.md`](race/REMOTE.md), GitHub races in [`race/GITHUB.md`](race/GITHUB.md), orchestrated races in [`race/ORCHESTRATED.md`](race/ORCHESTRATED.md), token-free replay in [`race/loadgen/README.md`](race/loadgen/README.md); tests: `cd research/race && python3 -m unittest discover -s tests` |
+| [`race/tools/`](race/tools/README.md) | Node scripts the benchmark uses: the web app's recorded-run fixture builder and the run-token minter | active | `node research/race/tools/<script>.mjs` (see its README) |
+| [`swarm/`](swarm/README.md) | A Worker that runs benchmark agents in Cloudflare containers instead of on a laptop | active | `pnpm --filter ./research/swarm test`; driven by `race.py --swarm` |
+| [`arena/`](arena/README.md) | A small TypeScript shop service with 40 tasks designed to collide, each with acceptance tests and a reference solution | active | `python3 materialize.py --help`, `python3 validate.py --help` |
+| [`real-arena/`](real-arena/README.md) | Arenas built from a real repository's merged pull requests (the first is fastify: 38 PRs) | active | `python3 build.py --help`, then `materialize.py` |
+| [`contention-replay/`](contention-replay/README.md) | Step 1: do concurrent changes really collide, and do collisions cluster? Replays real history with `git merge-tree` | done | see its README |
+| [`footprint-prediction/`](footprint-prediction/README.md) | Step 2: can a change's footprint be predicted from its title before it is written? | done (it cannot, well enough) | see its README |
+| [`contention-sim/`](contention-sim/README.md) | Step 3: discrete-event simulator of integration policies on steps 1-2's numbers | done | `python3 sim.py --help` |
+| [`common/`](common/) | `corpus.py`: turns a git mirror into the corpus format below | done | see "Corpora" below |
+| [`exp/`](exp/) | Experiments E1-E7 (tests-first, real arena, flaky tests, scale, long tasks, decision cards, variance) with their frozen copies of the harness | done | write-ups in [`../docs/claude-opus/exp/`](../docs/claude-opus/exp/) |
+| [`scale-replay/`](scale-replay/) | Pushes real history through the integration path with 100-1,000 simulated agents, to find where it saturates | done | `python3 replay_scale.py --help`; write-up [`../docs/claude-opus/exp/e4-scale-replay.md`](../docs/claude-opus/exp/e4-scale-replay.md) |
+| [`test-impact/`](test-impact/README.md) | Test selection by tracing which files each test touches, across languages, with no "run everything" fallback | done | `./run.sh <python\|ts\|java\|go\|rust>` (Docker) |
+| [`algorithm-review/`](algorithm-review/) | Read-only analysis of recorded cloud runs, and capacity arithmetic | done | `python3 analyze.py`, `python3 capacity.py --help`; write-up [`../docs/09b-algorithm-optimization-review.md`](../docs/09b-algorithm-optimization-review.md) |
+| [`bean-collaboration-trial/`](bean-collaboration-trial/) | Captured evidence from a three-agent collaboration trial | done | write-up [`../docs/09f-three-agent-collaboration-trial.md`](../docs/09f-three-agent-collaboration-trial.md) |
+| [`actions-spike/`](actions-spike/) | Probe: running GitHub Actions workflows with `act` in a Cloudflare container | spike | `run.py --help`; write-up [`../docs/claude-opus/exp/actions-spike/README.md`](../docs/claude-opus/exp/actions-spike/README.md) |
+| [`deps-cache-spike/`](deps-cache-spike/README.md) | Probe: restoring `node_modules` in containers from R2 and caches | spike | see its README; write-up [`../docs/claude-opus/27-ci-dependency-cache.md`](../docs/claude-opus/27-ci-dependency-cache.md) |
+| [`npm-cache-spike/`](npm-cache-spike/) | Probe: npm install speed in containers | spike | write-up [`../docs/claude-opus/exp/npm-cache-spike/README.md`](../docs/claude-opus/exp/npm-cache-spike/README.md) |
+| [`prototypes/`](prototypes/) | Clickable HTML design prototypes the web app grew from (design options, the repository explorer, glyphs, an algorithm explainer) | done | open any `index.html` in a browser |
+| [`promo/`](promo/) | Promo animations and the launch film, rendered from HTML | done | open `beanstalk-30s.html` in a browser; the film's scripts are in `beanstalk-swarm-film/` |
+| [`tools/`](tools/) | `race-slot.sh`: runs a command when one of a machine-wide set of race slots is free, so real-agent races do not pile up | active | `research/tools/race-slot.sh python3 race.py ...` |
+
+Most scripts are Python 3.11+ standard library only and take `--help`. Agent races need the `claude` or `codex` CLI, logged in, and spend real money (cap it with `--max-usd`). Cloud races need a deployed environment ([`../docs/claude-opus/30-environments.md`](../docs/claude-opus/30-environments.md)).
+
+## Contention research
+
+Tests whether "schedule agents like database transactions" beats a good merge queue, before the forge is built. Thesis: `../docs/claude-opus/02-thesis-concurrency-control.md`. In the files below, "Beanstalk" is Gitstalk's name before 2026-10-10.
 
 | Step | Question | Folder | Kill condition |
 |---|---|---|---|
@@ -11,9 +46,8 @@ Tests whether "schedule agents like database transactions" beats a good merge qu
 
 `REPORT.md` holds the findings.
 
-Also here, outside the product: `prototypes/` (clickable design prototypes the web app grew from), `promo/` (the promo animations and the launch film, rendered from HTML), `swarm/` (the Worker that runs race agents in Cloudflare containers; a pnpm workspace member so its tests run in `pnpm check`) and `race/tools/` (the web app's recorded-fixture builder and the run-token minter).
 
-## Corpora
+### Corpora
 
 | Name | Source | Changes | Notes |
 |---|---|---|---|
@@ -31,7 +65,7 @@ Arena (branch mode):
 
 `corpora/` and `data/` are git-ignored.
 
-## Data contracts
+### Data contracts
 
 **Corpus** (`data/<corpus>/corpus.jsonl`, from `common/corpus.py`): one change per line, in merge order.
 - Fields: `id`, `seq`, `sha`, `parent`, `title`, `body`, `author`, `date`, `agent`, `pr`.
@@ -110,7 +144,7 @@ Re-applying changes onto a fixed window base is biased toward zero: overlapping 
   - red validations;
   - final correctness: every acceptance test plus the full suite green on final green.
 
-## Rules for everything in this folder
+### Rules for everything in this folder
 
 - Python 3.11+ standard library only (Node 25 for the arena). Every script has `--help`. Tests run with `python3 -m unittest discover -s tests` inside each step folder.
 - Deterministic: every random choice takes `--seed`.
