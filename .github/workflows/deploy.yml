@@ -1,6 +1,6 @@
 # Deploys a deployment repository's environments (docs/claude-opus/30-environments.md §8, §13):
-# staging on every push to main (a private deploy repo such as gitstalk-deploy) or prototype (a
-# soft fork), production only on a manual run or a `production-*` tag, through the GitHub
+# staging on every push to main (a private deploy repo such as gitstalk-deploy, or a soft
+# fork), production only on a manual run or a `production-*` tag, through the GitHub
 # environment `production` (add required reviewers there). Each run: pnpm check, then
 # env:provision (create missing resources, migrate D1), env:secrets, env:deploy and env:smoke.
 #
@@ -21,7 +21,7 @@ name: deploy
 
 on:
   push:
-    branches: [main, prototype]
+    branches: [main]
     tags: ['production-*']
   workflow_dispatch:
     inputs:

@@ -32,7 +32,7 @@ The public docs are static HTML pages in `packages/site/public/docs/`, styled by
    use the more cautious label and say why in your report.
 3. Numbers: round as the landing page does (`6–9×`, `~1 min`, `about 2×`), state the setup and
    the caveat (seeds, simulated or real agents), and link the run or write-up on
-   `https://github.com/disturbing/beanstalk/tree/prototype/...`.
+   `https://github.com/disturbing/gitstalk/tree/HEAD/...`.
 4. Style: plain English, short sentences, sentence case, no hype. Never name the private
    platform repository, never print a secret, a token, an account id or a workers.dev subdomain
    (write `<gitstalk host>`).
