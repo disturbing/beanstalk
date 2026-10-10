@@ -67,7 +67,7 @@ The image needs Node 25, because the arena runs `.ts` files natively. Tests use 
 
 ## 4. Gateway API
 
-**Built and deployed 2026-10-03.** The source of truth is `packages/gateway/README.md` (routes, the end-to-end run, the driver contract); this section only summarizes it.
+**Built and deployed 2026-10-03.** The source of truth is `docs/claude-opus/31-gateway-engine-internals.md` (routes, the end-to-end run, the driver contract); this section only summarizes it.
 - **URL:** `https://beanstalk-gateway.devaccounts-1password.workers.dev` (the legacy account, Artifacts namespace `beanstalk-race`).
 - **Repos:** each run has one repo, `race-<run>`, with `refs/heads/sprout` and `refs/heads/stalk`. Each bean is a fork, `race-<run>-<task>`, with branch `task/<id>`.
 - **Seeding:** the admin seeds the base with `POST /v1/runs/:run/seed-token`, then pushes to both refs.

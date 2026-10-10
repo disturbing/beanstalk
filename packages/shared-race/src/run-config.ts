@@ -518,8 +518,8 @@ export const CHECK_REUSE_ON = { reuse_checks: true } as const satisfies Partial<
 
 /**
  * Every v2.5 rule off: on top of the defaults, these settings run v2.4 again (the CF v2.4
- * races' engine). Each v2.5 phase turns some back on (`packages/gateway/README.md`,
- * "Version labels").
+ * races' engine). Each v2.5 phase turns some back on
+ * (`docs/claude-opus/31-gateway-engine-internals.md`, "Version labels").
  */
 export const V25_RULES_OFF = {
   escalate_after: 2,

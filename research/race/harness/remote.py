@@ -3,7 +3,7 @@
 ``RemoteRace`` creates a run from the arena tasks and the race config (``POST /v1/runs``), pushes the arena base to
 the sprout and the stalk through the gateway's git proxy, starts the run, then runs one loop per agent slot. A loop
 long-polls ``next``; for each invocation it prepares the bean's workspace as the driver contract says
-(packages/gateway/README.md), runs the harness's own adapter (``agents.py``: claude, codex, replay), commits
+(docs/claude-opus/31-gateway-engine-internals.md), runs the harness's own adapter (``agents.py``: claude, codex, replay), commits
 harness-style (``core.py`` ``restore_acceptance`` and ``protect_landed``, then the gateway's commit message), pushes
 the bean branch and posts the result. When every slot is told ``done`` it downloads the gateway's ``events.jsonl``
 and ``summary.json`` (the harness schema) and renders ``summary.md`` with ``summary.py``.

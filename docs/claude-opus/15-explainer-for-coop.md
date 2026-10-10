@@ -27,7 +27,7 @@ Each run gets one Artifacts repo, `race-<run>`, in the namespace `beanstalk-race
 
 So `git clone` gives you the stalk. `git fetch` sees the sprout and every bean, because reads are open within a run, as in the local harness.
 
-**Why beans are branches and not forks.** The first build forked one Artifacts repo per bean. Forks made after the first landing were unreadable (upload-pack answered 500, pushes failed with `delta base is missing`), and new forks were sometimes briefly invisible. Branches keep every object in one store, nothing is created per task, and a finished run leaves one repo to reap (`packages/gateway/README.md`, "Why a bean is a branch").
+**Why beans are branches and not forks.** The first build forked one Artifacts repo per bean. Forks made after the first landing were unreadable (upload-pack answered 500, pushes failed with `delta base is missing`), and new forks were sometimes briefly invisible. Branches keep every object in one store, nothing is created per task, and a finished run leaves one repo to reap (`docs/claude-opus/31-gateway-engine-internals.md`, "Why a bean is a branch").
 
 ### The git proxy
 

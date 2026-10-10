@@ -4,7 +4,7 @@
  * - `gatewaySource`: RPC over the GATEWAY service binding (live runs);
  * - `recordedSource`: the bundled recorded runs, optionally as of a moment of the race.
  *
- * The method names follow the gateway's "RPC for the web app" (packages/gateway/README.md).
+ * The method names follow the gateway's "RPC for the web app" (docs/claude-opus/31-gateway-engine-internals.md).
  */
 import type { RunId, Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 

@@ -34,6 +34,7 @@ The old research ideas this builds on (Crystal 2011, Cassandra 2013) failed for 
 | [`05-github-actions-on-cloudflare.md`](05-github-actions-on-cloudflare.md) | Running Actions YAML unchanged on Containers: architecture, the three shim decisions, a four-tier compatibility list, published limitations, cost, Actions Doctor, where Dynamic Workers fit, phases | 10 |
 | [`06-auth-mcp-live-previews.md`](06-auth-mcp-live-previews.md) | Agent principals and delegated tokens mapped onto Artifacts' per-repo tokens; the Rule of Two as a session-taint engine (GitLost replayed); an incident regression suite; a 15-tool MCP surface; previews as tools with isolation fixes and proof bundles | 10 |
 | [`07-red-team-and-decisions.md`](07-red-team-and-decisions.md) | Risks with tests and dates, disagreements with the other sets, **decisions only Coop can make**, 48-hour experiments with pass thresholds, an 8-minute demo built around a live A/B race | 7 |
+| [`31-gateway-engine-internals.md`](31-gateway-engine-internals.md) | The gateway's race engine (moved from `packages/gateway/README.md`, 2026-10-11): settings and presets, the driver contract, run routes and RPC, read maps, the v2.2 to v2.5 rule history, and the runner container's wire contract and measurements | reference |
 | [`research/`](research/) | The four sourced research memos behind all of this (about 30k words, 500+ linked sources) | reference |
 
 ## Ten takeaways
