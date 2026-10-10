@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Architecture: Beanstalk docs</title>
+    <title>Architecture: Gitstalk docs</title>
     <meta
       name="description"
-      content="How Beanstalk works: the engine's rules, the Cloudflare pieces, the git proxy and identity, and the measured results behind each choice."
+      content="How Gitstalk works: the engine's rules, the Cloudflare pieces, the git proxy and identity, and the measured results behind each choice."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -150,10 +150,10 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs architecture</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs architecture</p>
           <h1>Architecture</h1>
           <p class="lede">
-            A merge queue makes every change wait for the ones in front of it. Beanstalk checks each
+            A merge queue makes every change wait for the ones in front of it. Gitstalk checks each
             change on the exact tree it would land on, lands it at once, and validates the stable
             line behind it. This page explains the rules that make that safe, the Cloudflare pieces
             it runs on, and what we measured.
@@ -280,7 +280,7 @@
             dependency chain first. On 12 agents, the full rule set with first-in, first-out starts
             shipped more but was slow; dependency-aware starts are what turned it into a win. In
             simulation with 200 tasks in dependency chains, 200 shipped against 173. This applies
-            where Beanstalk schedules the work (races, backlogs); pushed beans are taken in arrival
+            where Gitstalk schedules the work (races, backlogs); pushed beans are taken in arrival
             order.
           </p>
 
@@ -413,7 +413,7 @@
           <p>
             The same 38 merged pull requests from fastify's history, each with its own tests, pushed
             in parallel to a GitHub repository with GitHub's merge queue and Actions, and to a
-            Beanstalk repository. CI capacity was matched: 20 pre-land checks at once (the GitHub
+            Gitstalk repository. CI capacity was matched: 20 pre-land checks at once (the GitHub
             organisation's concurrent Actions jobs) and 2 validations at once (the queue's build
             concurrency). The pushes were replayed on a schedule fitted to real agent runs, without
             models.
@@ -421,14 +421,14 @@
           <div
             class="bars"
             role="img"
-            aria-label="Median time from ready to merged with 16 workers: GitHub merge queue about 7 minutes, Beanstalk about 1 minute"
+            aria-label="Median time from ready to merged with 16 workers: GitHub merge queue about 7 minutes, Gitstalk about 1 minute"
           >
             <div class="bar">
               <span>GitHub merge queue</span>
               <div class="track"><div class="fill" style="width: 100%">~7 min</div></div>
             </div>
             <div class="bar us">
-              <span>Beanstalk</span>
+              <span>Gitstalk</span>
               <div class="track"><div class="fill" style="width: 14%">~1 min</div></div>
             </div>
           </div>
@@ -440,7 +440,7 @@
               <thead>
                 <tr>
                   <th>Workers</th>
-                  <th class="num">Per change, median (GitHub / Beanstalk)</th>
+                  <th class="num">Per change, median (GitHub / Gitstalk)</th>
                   <th class="num">Faster</th>
                   <th class="num">All 38 landed</th>
                   <th class="num">Sooner</th>
@@ -473,16 +473,16 @@
           </div>
           <p>
             GitHub's queue slows as more work arrives, because it builds two groups at a time;
-            Beanstalk keeps landing each change in about a minute, so the gap grows with
-            parallelism. With 16 workers Beanstalk landed about 3× as many changes per 10 minutes.
-            Every run landed all 38 changes correctly on both forges.
+            Gitstalk keeps landing each change in about a minute, so the gap grows with parallelism.
+            With 16 workers Gitstalk landed about 3× as many changes per 10 minutes. Every run
+            landed all 38 changes correctly on both forges.
           </p>
 
           <h3 id="orchestrated">With real agents organising the work</h3>
           <p>
             One Claude Code lead with Sonnet worker subagents got the whole backlog on each forge
             and decided splitting, ordering and retries itself. At 4 workers the forges tied: the
-            agents were the bottleneck. At 8 workers Beanstalk's last task went green at 22 minutes
+            agents were the bottleneck. At 8 workers Gitstalk's last task went green at 22 minutes
             against GitHub's 41 (about 2×), and the median change integrated in 1.0 minute against
             5.4.
           </p>
@@ -490,11 +490,11 @@
           <h3 id="arena">The synthetic 30-agent arena</h3>
           <p>
             30 Claude Code agents (Sonnet) worked 40 tasks that collide on purpose, on three seeds,
-            against a batched merge queue we built to behave like GitHub's. Beanstalk shipped 39–40
+            against a batched merge queue we built to behave like GitHub's. Gitstalk shipped 39–40
             of 40 against the queue's 34–35, reached its 30th green task 1.7–2.3× sooner and
             finished 1.3–1.6× sooner, with no red stalk check and the same agent spend ($13.31
             against $13.20 over the three seeds). Cloudflare infrastructure cost about $0.40 per
-            Beanstalk race.
+            Gitstalk race.
           </p>
 
           <div class="note caveat">
@@ -517,7 +517,7 @@
                 on Cloudflare.
               </li>
               <li>
-                Earlier harness versions favoured Beanstalk;
+                Earlier harness versions favoured Gitstalk;
                 <a href="research.html#harness">how much, and the fix</a>.
               </li>
             </ul>
@@ -572,13 +572,13 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -619,7 +619,7 @@
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GitHub Actions: Beanstalk docs</title>
+    <title>GitHub Actions: Gitstalk docs</title>
     <meta
       name="description"
-      content="Beanstalk runs your unchanged .github/workflows on Cloudflare: what runs, the compatibility report, secrets, OIDC and the beta limits."
+      content="Gitstalk runs your unchanged .github/workflows on Cloudflare: what runs, the compatibility report, secrets, OIDC and the beta limits."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -152,10 +152,10 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs actions</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs actions</p>
           <h1>GitHub Actions <span class="pill live">live</span></h1>
           <p class="lede">
-            Beanstalk runs the <code>.github/workflows/*.yml</code> you already have, unchanged, on
+            Gitstalk runs the <code>.github/workflows/*.yml</code> you already have, unchanged, on
             Cloudflare Containers. A repository moved from GitHub keeps its CI and its deploys.
           </p>
           <div class="note caveat">
@@ -180,7 +180,7 @@
               <thead>
                 <tr>
                   <th>GitHub event</th>
-                  <th>On Beanstalk</th>
+                  <th>On Gitstalk</th>
                   <th>First release</th>
                 </tr>
               </thead>
@@ -238,7 +238,7 @@
               (up to 16 legs), <code>run</code> steps, JavaScript and composite actions,
               <code>concurrency</code>, <code>timeout-minutes</code>, <code>permissions</code>,
               <code>secrets</code> and <code>vars</code>. Unmodified
-              <code>actions/checkout</code> works against Beanstalk.
+              <code>actions/checkout</code> works against Gitstalk.
             </li>
             <li>
               <strong>Runs differently at first:</strong> <code>actions/cache</code> of
@@ -254,7 +254,7 @@
               <code>ubuntu-latest</code> or <code>ubuntu-24.04</code>.
             </li>
             <li>
-              <strong>Never:</strong> events for objects Beanstalk does not have (issues, releases),
+              <strong>Never:</strong> events for objects Gitstalk does not have (issues, releases),
               and <code>pull_request_target</code>, refused on purpose.
             </li>
           </ul>
@@ -310,7 +310,7 @@
             With
             <code>contents: write</code> it may push <code>bean/*</code> branches only, so code a
             job writes still goes through the pre-land check. With <code>id-token: write</code>,
-            jobs get GitHub-shaped OIDC identity tokens from a Beanstalk issuer, so
+            jobs get GitHub-shaped OIDC identity tokens from a Gitstalk issuer, so
             <code>aws-actions/configure-aws-credentials</code> and Google's and Azure's equivalents
             work once you register the issuer. Pre-land runs of untrusted beans get no identity
             token by default, and if a repository opts in, their subject is distinct so no existing
@@ -347,8 +347,9 @@
             </li>
             <li>
               <strong>Opt-in</strong> for other workflows: a step
-              <code>uses: beanstalk/deps-cache@v1</code> after checkout, with
-              <code>working-directory</code> if the lockfile is not at the root.
+              <code>uses: gitstalk/deps-cache@v1</code> after checkout, with
+              <code>working-directory</code> if the lockfile is not at the root. The name from
+              before the rename, <code>beanstalk/deps-cache@v1</code>, works too.
             </li>
             <li>
               <code>node_modules</code> lives in memory (a tmpfs), never on the container disk. The
@@ -371,8 +372,10 @@
             </li>
             <li>
               Turn it off with the repository or org variable
-              <code>BEANSTALK_DEPS_CACHE=off</code>; change the snapshot cap with
-              <code>BEANSTALK_DEPS_SNAPSHOT_MAX</code> (for example <code>2GiB</code>).
+              <code>GITSTALK_DEPS_CACHE=off</code>; change the snapshot cap with
+              <code>GITSTALK_DEPS_SNAPSHOT_MAX</code> (for example <code>2GiB</code>). A variable
+              set under its name from before the rename (<code>BEANSTALK_*</code>) is read when the
+              <code>GITSTALK_*</code> one is absent; saving the Actions settings moves it over.
             </li>
             <li>
               <span class="pill rolling">rolling out</span> Deleting a repository deletes its
@@ -389,7 +392,7 @@
             <code>npm install</code> skip the audit npm otherwise runs inside every install. It
             never changes what is installed, but it is slow: for fastify's lockfile it took about 90
             s of a 97 s <code>npm ci</code>, against about 10 s without it. To keep it, set the
-            repository or org variable <code>BEANSTALK_NPM_AUDIT=on</code>, set
+            repository or org variable <code>GITSTALK_NPM_AUDIT=on</code>, set
             <code>NPM_CONFIG_AUDIT</code> in the workflow's <code>env:</code>, or run
             <code>npm audit</code> as its own step. The measurements are in
             <a
@@ -482,13 +485,13 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -529,7 +532,7 @@
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

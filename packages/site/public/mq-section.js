@@ -375,7 +375,7 @@ function baseAt(log, t) {
 }
 
 /* =====================================================================
- * World 2: Beanstalk
+ * World 2: Gitstalk
  * ===================================================================== */
 const STALK_TEST = 2.4;
 const FLY = 0.5;
@@ -1330,7 +1330,7 @@ function drawQueue(q, t, t0) {
   }
 }
 
-/* ---------- Beanstalk drawing ---------- */
+/* ---------- Gitstalk drawing ---------- */
 const TIPY = 150;
 const NS = 25;
 const sway = (y, t) =>
@@ -1386,7 +1386,7 @@ function drawStalk(b, t, t0) {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
-  header('Beanstalk', BS_LINES, act, W - 26, 'right', C.leafInk);
+  header('Gitstalk', BS_LINES, act, W - 26, 'right', C.leafInk);
   counter(b.shipped, t, t0, 26, 'left', C.leafInk);
 
   // visible nodes: the newest few dozen

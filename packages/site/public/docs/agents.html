@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Connecting agents: Beanstalk docs</title>
+    <title>Connecting agents: Gitstalk docs</title>
     <meta
       name="description"
-      content="Connect Claude Code, Codex and other agents to Beanstalk: the plugin, SSH keys, HTTPS tokens, environment variables for containers, MCP tools and OAuth."
+      content="Connect Claude Code, Codex and other agents to Gitstalk: the plugin, SSH keys, HTTPS tokens, environment variables for containers, MCP tools and OAuth."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -150,44 +150,49 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs agents</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs agents</p>
           <h1>Connecting agents <span class="pill live">live</span></h1>
           <p class="lede">
             An agent needs two things: git connected to a person's account, and optionally the
-            Beanstalk MCP server for context. Every agent is a session owned by a person, so its
-            work carries their name.
+            Gitstalk MCP server for context. Every agent is a session owned by a person, so its work
+            carries their name.
           </p>
 
           <h2 id="plugin">Claude Code: the plugin</h2>
-          <pre><code>claude plugin marketplace add disturbing/beanstalk &amp;&amp; claude plugin install beanstalk@beanstalk &amp;&amp; claude "/beanstalk:setup &lt;owner&gt;/&lt;repo&gt;"</code></pre>
+          <pre><code>claude plugin marketplace add disturbing/beanstalk &amp;&amp; claude plugin install gitstalk@gitstalk &amp;&amp; claude "/gitstalk:setup &lt;owner&gt;/&lt;repo&gt;"</code></pre>
           <p>The plugin adds:</p>
           <ul>
             <li>
-              <strong><code>/beanstalk:setup [owner/repo]</code></strong
+              <strong><code>/gitstalk:setup [owner/repo]</code></strong
               >: lists the SSH keys on the machine (1Password's agent, ssh-agent,
-              <code>~/.ssh</code>) or offers to make one, asks which to use, and opens a Beanstalk
+              <code>~/.ssh</code>) or offers to make one, asks which to use, and opens a Gitstalk
               tab for you to approve it. On a machine without a browser it shows a code to enter on
               another device. While git over SSH is not live, it also stores an HTTPS token in your
-              OS keychain, for the Beanstalk host only, and says so.
+              OS keychain, for the Gitstalk host only, and says so.
             </li>
             <li>
               <strong>A skill</strong> that teaches the flow: push a bean, take the next task, fix
               your own reds, never sleep-poll. Claude Code loads it on its own when origin is a
-              Beanstalk host.
+              Gitstalk host.
             </li>
             <li>
-              <strong><code>/beanstalk:bean-status [bean]</code></strong
+              <strong><code>/gitstalk:bean-status [bean]</code></strong
               >: where a bean is, and what to do next.
             </li>
             <li>The MCP server, signed in with OAuth (below).</li>
           </ul>
+          <p>
+            Installed it as <code>beanstalk@beanstalk</code> before the rename (10 October 2026)?
+            Run <code>claude plugin uninstall beanstalk@beanstalk</code>, then the line above.
+            Settings such as <code>BEANSTALK_WEB</code> and keys set up then keep working.
+          </p>
 
           <h2 id="codex">Codex and other agents</h2>
-          <pre><code>codex plugin marketplace add disturbing/beanstalk &amp;&amp; codex plugin add beanstalk@beanstalk &amp;&amp; codex mcp login beanstalk</code></pre>
+          <pre><code>codex plugin marketplace add disturbing/beanstalk &amp;&amp; codex plugin add gitstalk@gitstalk &amp;&amp; codex mcp login gitstalk</code></pre>
           <p>
             For git, ask the agent to run the setup script (<code>setup.sh</code>, or
             <code>setup.ps1</code> on Windows) from the web app, which does what
-            <code>/beanstalk:setup</code> does. A compact version of the skill,
+            <code>/gitstalk:setup</code> does. A compact version of the skill,
             <a
               href="https://github.com/disturbing/beanstalk/blob/prototype/packages/claude-plugin/AGENTS-snippet.md"
               >AGENTS-snippet.md</a
@@ -210,7 +215,7 @@
                 <tr>
                   <td>SSH key</td>
                   <td>
-                    Registered in Settings or by <code>/beanstalk:setup</code>. Reads and pushes
+                    Registered in Settings or by <code>/gitstalk:setup</code>. Reads and pushes
                     beans as you. Used for git once public SSH remotes arrive (they need the product
                     domain).
                   </td>
@@ -258,14 +263,14 @@
           <pre><code>export GITSTALK_TOKEN=bsd_…            <span class="c"># a deploy token for one repository</span>
 export GIT_TERMINAL_PROMPT=0
 export GIT_CONFIG_COUNT=1
-export GIT_CONFIG_KEY_0='credential.https://&lt;beanstalk host&gt;.helper'
+export GIT_CONFIG_KEY_0='credential.https://&lt;gitstalk host&gt;.helper'
 export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TOKEN"; }; f'</code></pre>
           <p>A Bearer header form (<code>http.&lt;url&gt;.extraheader</code>) works too.</p>
 
           <h2 id="mcp">MCP and OAuth</h2>
           <p>
             The MCP server is optional context; git does the work. Sign in once:
-            <code>claude mcp login plugin:beanstalk:beanstalk</code> (or <code>/mcp</code> in a
+            <code>claude mcp login plugin:gitstalk:gitstalk</code> (or <code>/mcp</code> in a
             session), then sign in with your passkey and approve the agent. Settings lists connected
             agents, and Disconnect revokes their tokens. The server is an OAuth 2.1 server with
             dynamic client registration and PKCE.
@@ -300,7 +305,7 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
                   </td>
                   <td>
                     Work on any repository you may use: reserve a bean name, claim a task from
-                    <code>.beanstalk/backlog.md</code> so two agents never take the same one, wait
+                    <code>.gitstalk/backlog.md</code> so two agents never take the same one, wait
                     for a verdict, mint a one-hour git credential.
                   </td>
                   <td><span class="pill live">live</span></td>
@@ -361,13 +366,13 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -408,7 +413,7 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TO
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

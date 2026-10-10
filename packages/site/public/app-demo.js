@@ -1162,7 +1162,7 @@ function runPage(t) {
   return `<div class="am-crumb">← Deploy runs</div><header class="am-runhead">${mark(state, 20)}<h4>${esc(SAVED_CARTS.title)}</h4><span class="ps-btn">${done ? 'Re-run' : 'Cancel run'}</span><p><b>Deploy #19</b><span>stalk moved</span><u>${DEPLOY_SHA}</u><span class="pc-bean">bean/${slug(SAVED_CARTS.title)}</span><span>@${ownerOf(SAVED_CARTS.agent)}</span><span>just now</span></p></header><section class="pg-box am-runbox"><dl class="am-facts"><div><dt>Status</dt><dd>${STATE_WORDS[state]}</dd></div><div><dt>Wall time</dt><dd>${wall}</dd></div><div><dt>Minutes billed</dt><dd>${done ? 2 : 1}</dd></div><div><dt>Line</dt><dd>stalk</dd></div><div><dt>Workflow</dt><dd><u>deploy.yml</u></dd></div></dl><div class="am-jobs"><b>Jobs</b><span>2 jobs · runs-on ubuntu-latest</span></div><div class="am-graph"><span class="am-node" data-state="success">${mark('success')}<b>test</b><small>${testTime}</small></span><i class="am-stem" data-state="${done ? 'success' : 'running'}"></i><span class="am-node on" data-state="${state}">${mark(state)}<b>deploy</b><small>${deployTime}</small></span></div></section><section class="pg-box am-log"><div class="am-loghead">${mark(state)}<b>deploy</b><span>${STATE_WORDS[state]} ${deployTime}</span><span class="am-search">Search log</span><span class="am-dl">Download log</span></div><div class="am-logbox"><div>${steps}</div></div>${tail}</section>`;
 }
 
-const AUTOMATION_FILE = `# .beanstalk/automations/posthog-errors.yml
+const AUTOMATION_FILE = `# .gitstalk/automations/posthog-errors.yml
 name: PostHog errors → beans
 on:
   schedule: [{ cron: "0 * * * *" }]
@@ -1172,14 +1172,14 @@ permissions:
 jobs:
   triage:
     steps:
-      - uses: beanstalk/agent@v1
+      - uses: gitstalk/agent@v1
         with:
           budget-usd: 0.50
           mcp: [posthog]
           outputs: open-bean, comment`;
 
 function automationsPage() {
-  return `<section class="pg-box am-coming"><div><h4>Automations <span class="am-soon">coming</span></h4><p>An automation is a workflow file in <code>.beanstalk/automations/</code>: the same <code>on:</code> triggers as Actions, plus Beanstalk events such as a red validation or a landed bean. Its steps open beans, comment and raise decision cards, or hand a task to an agent session with a budget.</p><p>They run in isolates that start in milliseconds, act as the repository’s own bot, and never see your secrets. Like workflows, they change by a bean that lands on the stalk.</p><p>Until then, <u>Actions</u> runs the workflows in <code>.github/workflows/</code>.</p></div><pre>${esc(AUTOMATION_FILE)}</pre></section>`;
+  return `<section class="pg-box am-coming"><div><h4>Automations <span class="am-soon">coming</span></h4><p>An automation is a workflow file in <code>.gitstalk/automations/</code>: the same <code>on:</code> triggers as Actions, plus Gitstalk events such as a red validation or a landed bean. Its steps open beans, comment and raise decision cards, or hand a task to an agent session with a budget.</p><p>They run in isolates that start in milliseconds, act as the repository’s own bot, and never see your secrets. Like workflows, they change by a bean that lands on the stalk.</p><p>Until then, <u>Actions</u> runs the workflows in <code>.github/workflows/</code>.</p></div><pre>${esc(AUTOMATION_FILE)}</pre></section>`;
 }
 
 function automations(f) {
@@ -1272,8 +1272,8 @@ function settingsPage(f) {
       <section class="pg-box ps-box"><h4>Social image</h4><p>Shown when a link to this repository is shared. 1280 × 640 works best; PNG, JPEG, WebP or GIF up to 2 MB.</p><div class="ps-social"><i></i><b>${FULL}</b><span>A small shop: catalog, cart, checkout and billing.</span></div><span class="ps-btn">Upload</span> <span class="ps-btn danger">Remove social image</span></section>
       <section class="pg-box ps-box"><h4>Visibility</h4><div class="ps-radio"><i></i><div><b>Private</b><small>Only the people invited to it, and the organization's owners and admins, can see it.</small></div></div><div class="ps-radio on"><i></i><div><b>Internal</b><small>Every member of ${ORG} can read and clone it; everyone else gets not found. Pushing still needs a role.</small></div></div><div class="ps-radio"><i></i><div><b>Public</b><small>Anyone, signed in or not, can read and clone it. Pushing still needs a role.</small></div></div><span class="ps-btn">Change visibility</span></section>
       <section class="pg-box ps-box"><h4>Branches</h4><dl class="ps-facts"><dt>Default branch</dt><dd><code>main</code></dd><dt>Landing line</dt><dd><code>sprout</code></dd><dt>Pushable</dt><dd><code>bean/*</code></dd></dl></section>
-      <section class="pg-box ps-box"><div class="ps-head"><h4>Checks</h4><code>.beanstalk/checks.toml on stalk</code></div><dl class="ps-facts"><dt>Runs</dt><dd><code>node --test</code></dd><dt>Image</dt><dd>node (Node 25.8.1; nothing is installed at check time)</dd><dt>Time limit</dt><dd>120 s</dd><dt>Protected</dt><dd><code>.beanstalk/**</code></dd></dl></section>
-      <section class="pg-box ps-box"><h4>Collaborators</h4><p>Invite people by their Beanstalk handle. <b>read</b>: clone, fetch and view. <b>write</b>: also push beans. <b>maintain</b>: also answer decision cards and manage deploy tokens. Settings and deletion stay yours.</p><div class="ps-collab ps-invite"><span class="ps-input ps-sel">handle</span><span class="ps-input ps-sel">write</span><span class="ps-btn primary">Invite</span></div>${[
+      <section class="pg-box ps-box"><div class="ps-head"><h4>Checks</h4><code>.gitstalk/checks.toml on stalk</code></div><dl class="ps-facts"><dt>Runs</dt><dd><code>node --test</code></dd><dt>Image</dt><dd>node (Node 25.8.1; nothing is installed at check time)</dd><dt>Time limit</dt><dd>120 s</dd><dt>Protected</dt><dd><code>.gitstalk/**</code></dd></dl></section>
+      <section class="pg-box ps-box"><h4>Collaborators</h4><p>Invite people by their Gitstalk handle. <b>read</b>: clone, fetch and view. <b>write</b>: also push beans. <b>maintain</b>: also answer decision cards and manage deploy tokens. Settings and deletion stay yours.</p><div class="ps-collab ps-invite"><span class="ps-input ps-sel">handle</span><span class="ps-input ps-sel">write</span><span class="ps-btn primary">Invite</span></div>${[
         ['dana', 'maintain'],
         ['ike', 'write'],
         ['mira', 'write'],

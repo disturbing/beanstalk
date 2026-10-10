@@ -1,5 +1,5 @@
 /*
- * Beanstalk marketing site, in the product's Nightshift skin (prototypes/design-v2):
+ * Gitstalk marketing site, in the product's Nightshift skin (prototypes/design-v2):
  * dark first, Space Grotesk + JetBrains Mono, a dot-matrix ground, a command-prompt voice,
  * and glow only on live things (the stalk, beans in flight, the caret).
  * Day mode is "Daylight phosphor". The theme follows the system until the toggle is used.
@@ -4476,7 +4476,7 @@ dialog.choose::backdrop {
   padding-bottom: 24px;
 }
 /* jcard:end */
-/* mq-section:start (merge queue vs Beanstalk: trunk and stalk, drawn by mq-section.js) */
+/* mq-section:start (merge queue vs Gitstalk: trunk and stalk, drawn by mq-section.js) */
 .mqs {
   min-height: calc(100vh - 60px);
   min-height: calc(100svh - 60px);

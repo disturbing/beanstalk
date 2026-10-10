@@ -3,11 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Beanstalk: run a swarm of coding agents on one codebase</title>
+    <title>Gitstalk: watch your work grow like a beanstalk</title>
     <meta
       name="description"
-      content="Bean. Sprout. Stalk. Run a swarm of coding agents on one codebase without them tripping over each other; the stalk only ever holds verified work."
+      content="Watch your work grow like a beanstalk. Bean. Sprout. Stalk. Gitstalk runs a swarm of coding agents on one codebase without them tripping over each other; the stalk only ever holds verified work."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gitstalk" />
+    <meta property="og:title" content="Gitstalk: watch your work grow like a beanstalk" />
+    <meta
+      property="og:description"
+      content="Run a swarm of coding agents on one codebase without them tripping over each other. Agents grow together; the stalk only ever holds verified work."
+    />
+    <meta name="twitter:card" content="summary" />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script>
@@ -38,13 +46,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./" aria-label="Beanstalk home">
+        <a class="brand" href="./" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="./#grow">How it grows</a>
@@ -89,10 +97,11 @@
     <main id="main">
       <section class="hero">
         <div class="wrap">
-          <p class="prompt" aria-hidden="true">beanstalk explain <span class="caret"></span></p>
-          <h1>Run a swarm of coding agents on one codebase.</h1>
+          <p class="prompt" aria-hidden="true">gitstalk explain <span class="caret"></span></p>
+          <h1>Watch your work grow like a beanstalk.</h1>
           <p class="lede">
-            Without them tripping over each other. The stalk only ever holds verified work.
+            Run a swarm of coding agents on one codebase without them tripping over each other. The
+            stalk only ever holds verified work.
           </p>
           <div class="cta">
             <a class="btn big primary" href="agent.html" data-signup>Sign up</a>
@@ -102,13 +111,13 @@
         <div class="wrap wide showcase">
           <figure class="app" data-appdemo style="margin: 0">
             <figcaption class="sr-only">
-              A preview of an organization's Beanstalk repository with the app's tabs: Code,
-              Changes, History, Automations, Ask, People and Settings. Code plays first: the stalk
-              grown to today, three questions answered (what changed on coupons, why bean #65 is
-              red, who is working on billing), then last week replayed. Then it tours the other tabs
-              in turn: Automations shows GitHub Actions runs started when the stalk moves, by hand
-              or on schedule, and a deploy streaming its log with a masked secret and OIDC
-              credentials. Choose a tab to stay on it.
+              A preview of an organization's Gitstalk repository with the app's tabs: Code, Changes,
+              History, Automations, Ask, People and Settings. Code plays first: the stalk grown to
+              today, three questions answered (what changed on coupons, why bean #65 is red, who is
+              working on billing), then last week replayed. Then it tours the other tabs in turn:
+              Automations shows GitHub Actions runs started when the stalk moves, by hand or on
+              schedule, and a deploy streaming its log with a masked secret and OIDC credentials.
+              Choose a tab to stay on it.
             </figcaption>
             <div class="app-top">
               <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -218,8 +227,8 @@
                 </svg>
                 <dt>Stalk</dt>
                 <dd>
-                  Beanstalk promotes the sprouts queued since the last check, together, in one
-                  batch. Once they pass together, they all join the stalk.
+                  Gitstalk promotes the sprouts queued since the last check, together, in one batch.
+                  Once they pass together, they all join the stalk.
                 </dd>
               </div>
             </dl>
@@ -238,12 +247,12 @@
 
       <section class="mqs" id="parallel" aria-labelledby="parallel-title" data-mq>
         <h2 id="parallel-title">
-          Merge queues make green work wait. <span>Beanstalk shares it instantly.</span>
+          Merge queues make green work wait. <span>Gitstalk shares it instantly.</span>
         </h2>
         <div class="mqs-stage">
           <canvas
             role="img"
-            aria-label="The same eight agents in two worlds, side by side. Left, a merge queue: green pull requests wait in line behind a gate, and an agent that needs one waits too; one red pull request fails its batch and the whole batch goes back in line to be tested again; when main moves, pull requests that now conflict with it leave the line and go back to their agents to rebase. Right, Beanstalk: each passing bean blooms into a sprout at the tip and its update pulses out to every other bean at once; a failed stalk check sends back only the culprit while the rest join the stalk; clashes reconcile on their own, and only a real disagreement reaches a person. A shipped counter on each side keeps count."
+            aria-label="The same eight agents in two worlds, side by side. Left, a merge queue: green pull requests wait in line behind a gate, and an agent that needs one waits too; one red pull request fails its batch and the whole batch goes back in line to be tested again; when main moves, pull requests that now conflict with it leave the line and go back to their agents to rebase. Right, Gitstalk: each passing bean blooms into a sprout at the tip and its update pulses out to every other bean at once; a failed stalk check sends back only the culprit while the rest join the stalk; clashes reconcile on their own, and only a real disagreement reaches a person. A shipped counter on each side keeps count."
           ></canvas>
         </div>
       </section>
@@ -295,7 +304,7 @@
               </h3>
               <code class="gl">.github/workflows/*.yml</code>
               <p>
-                The same YAML, and <code>actions/checkout</code> works against Beanstalk. Each
+                The same YAML, and <code>actions/checkout</code> works against Gitstalk. Each
                 workflow gets a compatibility report.
               </p>
               <p class="gaps">
@@ -403,7 +412,7 @@
                 </div>
                 <div class="au-yaml">
                   <div class="au-yhead">
-                    <b>YAML</b><span>.beanstalk/automations/fix-red.yml</span>
+                    <b>YAML</b><span>.gitstalk/automations/fix-red.yml</span>
                   </div>
                   <pre data-au-yaml>
 <span>name: Fix red beans</span>
@@ -520,7 +529,7 @@
           <div class="sechead">
             <h2 id="collide-title">When work collides, it sorts itself out.</h2>
             <p class="intro">
-              Most clashes between agents are small. Beanstalk handles those, and saves people for
+              Most clashes between agents are small. Gitstalk handles those, and saves people for
               the ones that matter.
             </p>
           </div>
@@ -578,7 +587,7 @@
             <article class="tile">
               <h3>Stale test values reconcile themselves</h3>
               <p>
-                When two beans clash only because a test still expects an old value, Beanstalk
+                When two beans clash only because a test still expects an old value, Gitstalk
                 updates it and moves on.
               </p>
               <div
@@ -615,7 +624,7 @@
             <h2 id="race-title">We raced it against GitHub's merge queue.</h2>
             <p class="intro">
               The same 38 real changes from fastify's history, pushed in parallel to GitHub's merge
-              queue and to Beanstalk, with matched CI capacity.
+              queue and to Gitstalk, with matched CI capacity.
             </p>
           </div>
           <div class="stats">
@@ -641,11 +650,11 @@
           <div
             class="compare"
             role="img"
-            aria-label="Median time from ready to merged with 16 workers: Beanstalk about 1 minute, GitHub merge queue about 7 minutes"
+            aria-label="Median time from ready to merged with 16 workers: Gitstalk about 1 minute, GitHub merge queue about 7 minutes"
           >
             <p class="cmp-label">Median time from ready to merged, 16 workers</p>
             <div class="cbar us">
-              <span>Beanstalk</span>
+              <span>Gitstalk</span>
               <span class="track"><span class="fill" style="width: 14%">~1 min</span></span>
             </div>
             <div class="cbar queue">
@@ -659,10 +668,10 @@
       <section class="band" id="agents" aria-labelledby="agents-title">
         <div class="wrap">
           <div class="sechead">
-            <h2 id="agents-title">Bring your own agents.</h2>
+            <h2 id="agents-title">Agents grow together.</h2>
             <p class="intro">
-              Agents are sessions owned by people on your team, so you always know whose agent did
-              what, and who to ask.
+              Bring your own. Agents are sessions owned by people on your team, so you always know
+              whose agent did what, and who to ask.
             </p>
           </div>
           <div class="split" style="margin-top: 52px; align-items: start">
@@ -801,7 +810,7 @@
             <h2 id="start-title">Getting started is installing the plugin.</h2>
             <p class="intro">
               <span class="chip soon">early access</span> Pick your agent and paste one command. It
-              installs the Beanstalk plugin and signs you in: that's the whole sign-up. Running your
+              installs the Gitstalk plugin and signs you in: that's the whole sign-up. Running your
               own deployment?
               <a href="https://github.com/disturbing/beanstalk#readme">See the README</a>.
             </p>
@@ -809,7 +818,7 @@
           <div class="install" data-install id="start-install">
             <noscript>
               <pre>
-claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk</pre>
+claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude mcp login plugin:gitstalk:gitstalk</pre>
             </noscript>
           </div>
           <p class="alt">
@@ -823,13 +832,13 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install bean
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="./" aria-label="Beanstalk home">
+            <a class="brand" href="./" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -873,7 +882,7 @@ claude plugin marketplace add disturbing/beanstalk && claude plugin install bean
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

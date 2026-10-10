@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>What did not work: Beanstalk docs</title>
+    <title>What did not work: Gitstalk docs</title>
     <meta
       name="description"
-      content="Ideas we built or measured for Beanstalk that did not work or did not pay, what we measured, and what we did instead."
+      content="Ideas we built or measured for Gitstalk that did not work or did not pay, what we measured, and what we did instead."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -150,10 +150,10 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs research</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs research</p>
           <h1>What did not work</h1>
           <p class="lede">
-            Most of Beanstalk's rules exist because something else failed first. These are the ideas
+            Most of Gitstalk's rules exist because something else failed first. These are the ideas
             we built or measured and then dropped or parked, with the numbers and what replaced
             them. Times are minutes; “simulated” means our engine simulator with replay agents, over
             16 seeds.
@@ -210,16 +210,16 @@
           </section>
 
           <section class="finding" id="harness">
-            <h3>An early race harness that favoured Beanstalk</h3>
+            <h3>An early race harness that favoured Gitstalk</h3>
             <dl>
               <dt>Expected</dt>
-              <dd>A fair race between Beanstalk and a merge queue.</dd>
+              <dd>A fair race between Gitstalk and a merge queue.</dd>
               <dt>Measured</dt>
               <dd>
                 Two handicaps. Queue agents had to wait for their pull request to land before taking
-                new work, and CHANGELOG had no union merge driver. Separately, Beanstalk's pre-land
+                new work, and CHANGELOG had no union merge driver. Separately, Gitstalk's pre-land
                 check cost the suite's real 2 seconds while queue CI cost 60. With the free check
-                Beanstalk finished in 3.3 minutes against the queue's 16.5, about 5×. With the check
+                Gitstalk finished in 3.3 minutes against the queue's 16.5, about 5×. With the check
                 costing what CI costs, the lead was 1.5× and 2.5× on two seeds: most of the first
                 gap was the harness.
               </dd>
@@ -251,7 +251,7 @@
                 At 16 parallel workers, 8 suites ran at once in each sandbox and all crossed the
                 300-second limit, which counted queue time and read a timeout as a red. 101 timeouts
                 became 105 false reds; authors re-pushed together and timed out together again.
-                Beanstalk integrated 33 of 38 in 60 minutes; GitHub did 38 of 38 in 30.
+                Gitstalk integrated 33 of 38 in 60 minutes; GitHub did 38 of 38 in 30.
               </dd>
               <dt>Instead</dt>
               <dd class="instead">
@@ -483,13 +483,13 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -530,7 +530,7 @@
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

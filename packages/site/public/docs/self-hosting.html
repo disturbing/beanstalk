@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Self-hosting: Beanstalk docs</title>
+    <title>Self-hosting: Gitstalk docs</title>
     <meta
       name="description"
-      content="Run Beanstalk on your own Cloudflare account: what it needs, the one deploy command, and the limits you set."
+      content="Run Gitstalk on your own Cloudflare account: what it needs, the one deploy command, and the limits you set."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -150,10 +150,10 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs self-hosting</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs self-hosting</p>
           <h1>Self-hosting <span class="pill live">live</span></h1>
           <p class="lede">
-            All of Beanstalk's source is public, and the whole forge deploys to one Cloudflare
+            All of Gitstalk's source is public, and the whole forge deploys to one Cloudflare
             account with two commands: one creates what an environment needs, one deploys it. Run
             staging and production side by side. You set the limits.
           </p>
@@ -163,7 +163,7 @@
             <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
               >FSL-1.1-ALv2</a
             >: you may read, use, modify and redistribute it for any purpose except a competing
-            commercial product or service, such as hosting Beanstalk as a service. Each release
+            commercial product or service, such as hosting Gitstalk as a service. Each release
             becomes Apache-2.0 two years after it ships.
           </p>
 
@@ -259,8 +259,8 @@ pnpm env:deploy staging                      <span class="c"># --dry-run checks 
             The public repository ignores <code>environments/</code> except the example. Keep yours
             in a private repository with the public one as <code>upstream</code>:
           </p>
-          <pre><code>git clone https://github.com/disturbing/beanstalk.git my-beanstalk
-cd my-beanstalk
+          <pre><code>git clone https://github.com/disturbing/beanstalk.git my-gitstalk
+cd my-gitstalk
 git remote rename origin upstream
 git remote add origin &lt;your private repository&gt;
 git add -f environments/staging/env.jsonc environments/staging/resources.json
@@ -387,7 +387,7 @@ git fetch upstream &amp;&amp; git merge upstream/prototype   <span class="c"># l
           <p>
             The race harness reproduces the published numbers on your account. Replay agents cost
             nothing; real agents need the <code>claude</code> CLI. Each race deletes its repository
-            when it ends and prints its infrastructure cost, about $0.40 per 30-agent Beanstalk race
+            when it ends and prints its infrastructure cost, about $0.40 per 30-agent Gitstalk race
             in our runs. Commands are in the
             <a href="https://github.com/disturbing/beanstalk/blob/prototype/README.md#run-it"
               >README</a
@@ -428,13 +428,13 @@ git fetch upstream &amp;&amp; git merge upstream/prototype   <span class="c"># l
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -475,7 +475,7 @@ git fetch upstream &amp;&amp; git merge upstream/prototype   <span class="c"># l
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

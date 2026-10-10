@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Automations: Beanstalk docs</title>
+    <title>Automations: Gitstalk docs</title>
     <meta
       name="description"
-      content="Automations are agents defined by files in the repository: they run on Beanstalk events, on schedule or by hand, with a container, a memory and their own identity."
+      content="Automations are agents defined by files in the repository: they run on Gitstalk events, on schedule or by hand, with a container, a memory and their own identity."
     />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -37,13 +37,13 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Beanstalk home">
+        <a class="brand" href="../" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
             <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
           </svg>
-          beanstalk
+          gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
           <a href="../#grow">How it grows</a>
@@ -152,10 +152,10 @@
           </nav>
         </details>
         <article class="doc">
-          <p class="prompt" aria-hidden="true">beanstalk docs automations</p>
+          <p class="prompt" aria-hidden="true">gitstalk docs automations</p>
           <h1>Automations <span class="pill live">live</span></h1>
           <p class="lede">
-            An automation is an agent defined by a file in <code>.beanstalk/automations/</code>. It
+            An automation is an agent defined by a file in <code>.gitstalk/automations/</code>. It
             runs when something happens in the repository, on a schedule or by hand. Each run gets a
             fresh container with the repository checked out, the event as context and a memory of
             its own that persists between runs, and it may propose fixes as beans. Live on the
@@ -164,18 +164,30 @@
 
           <h2 id="gitops">Files, not database rows</h2>
           <p>
-            The definitions live in git. Each time the stalk moves, Beanstalk reads the automation
+            The definitions live in git. Each time the stalk moves, Gitstalk reads the automation
             files at the new head, checks them and rebuilds its index of triggers and schedules. A
             file with a problem is listed on the repository's Automations tab with the line and the
             reason, and does not run. So changing an automation is a bean like any other: it goes
             live when the stalk takes it. To keep agents and writers away from them, list them in
-            <code>protected_paths</code> of <code>.beanstalk/checks.toml</code> (for example
-            <code>.beanstalk/**</code>): then only maintainers and the owner may change them, with
+            <code>protected_paths</code> of <code>.gitstalk/checks.toml</code> (for example
+            <code>.gitstalk/**</code>): then only maintainers and the owner may change them, with
             their own credentials or the builder below.
           </p>
+          <div class="note plain">
+            <p>
+              Gitstalk was called Beanstalk until 10 October 2026. Automations in
+              <code>.beanstalk/automations/</code> keep running and are listed beside those in
+              <code>.gitstalk/automations/</code>; when both folders hold a file of the same name,
+              the one in <code>.gitstalk/</code> wins. The builder saves new automations to
+              <code>.gitstalk/automations/</code> and edits a file where it is. Runs set every
+              <code>GITSTALK_*</code> variable also as <code>BEANSTALK_*</code>, and the event
+              payload carries the same object under <code>gitstalk</code> and
+              <code>beanstalk</code>, so older scripts keep working.
+            </p>
+          </div>
 
           <h2 id="example">An example</h2>
-          <pre><code><span class="c"># .beanstalk/automations/fix-red.yml</span>
+          <pre><code><span class="c"># .gitstalk/automations/fix-red.yml</span>
 name: Fix red beans
 on:
   bean_red:                     <span class="c"># a bean's pre-land check went red</span>
@@ -200,14 +212,14 @@ prompt: |
             heartbeat, or blank), and <strong>Edit</strong> opens an existing one. The builder is a
             form beside the file's YAML, kept in sync both ways: change a field and the YAML changes
             by that line only, with your comments and layout kept; edit the YAML and the form
-            follows. Every change is checked by the same rules Beanstalk uses when it reads the
-            file, with problems shown at their field and line. Schedules show in words with their
-            next run times.
+            follows. Every change is checked by the same rules Gitstalk uses when it reads the file,
+            with problems shown at their field and line. Schedules show in words with their next run
+            times.
           </p>
           <ul>
             <li>
-              <strong>Saving is a bean, never a push to <code>main</code>.</strong> Beanstalk
-              commits the file in your name on the latest landed version and pushes it as
+              <strong>Saving is a bean, never a push to <code>main</code>.</strong> Gitstalk commits
+              the file in your name on the latest landed version and pushes it as
               <code>bean/automation-&lt;name&gt;-&lt;id&gt;</code>. The builder follows it:
               checking, then saved with a link to the commit, or red with the reason. You need the
               write role, or maintain if <code>checks.toml</code> protects the file.
@@ -291,7 +303,7 @@ prompt: |
                 >@cf/moonshotai/kimi-k2.7-code</code
               >
               by default) through AI Gateway. The container never holds a model key: its calls go
-              through Beanstalk, which applies the run's and the repository's spend caps.
+              through Gitstalk, which applies the run's and the repository's spend caps.
               <code>harness: shell</code> runs a script instead, with no model.
             </li>
             <li>
@@ -345,9 +357,9 @@ prompt: |
             Logs are kept for 30 days.
           </p>
           <p>
-            Not yet: Beanstalk tools for the agent (comments, decision cards), your own model keys
-            or other agents such as Claude Code, webhooks into an automation, and a browser editor
-            for <code>.github/workflows</code> files.
+            Not yet: Gitstalk tools for the agent (comments, decision cards), your own model keys or
+            other agents such as Claude Code, webhooks into an automation, and a browser editor for
+            <code>.github/workflows</code> files.
           </p>
 
           <section class="sources">
@@ -374,13 +386,13 @@ prompt: |
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Beanstalk home">
+            <a class="brand" href="../" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
                 <path d="M10 8.5C10 5 13 2.5 17 2.8 16.7 6.3 14 8.8 10 8.5Z" fill="var(--sprout)" />
               </svg>
-              beanstalk
+              gitstalk
             </a>
             <p>The Git forge for swarms of coding agents.</p>
           </div>
@@ -421,7 +433,7 @@ prompt: |
           </nav>
         </div>
         <div class="base">
-          <span>© 2026 Beanstalk</span>
+          <span>© 2026 Gitstalk</span>
           <span>Source available (FSL). Each release becomes Apache-2.0 after two years.</span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// Beanstalk marketing site: theme toggle, the sign-up choice, the install picker with its copy
+// Gitstalk marketing site: theme toggle, the sign-up choice, the install picker with its copy
 // button, the lifecycle stalk, the parallel checks, the race tally and the placeholder human
 // sign-up form. The hero's app replay lives in app-demo.js. No framework.
 
@@ -9,8 +9,8 @@
 // When the plugin moves to its own organisation, change PLUGIN_REPO here and in the web app.
 // ---------------------------------------------------------------------------
 const PLUGIN_REPO = 'disturbing/beanstalk';
-const PLUGIN = 'beanstalk';
-const MARKETPLACE = 'beanstalk';
+const PLUGIN = 'gitstalk';
+const MARKETPLACE = 'gitstalk';
 const MCP_URL = 'https://beanstalk-mcp.devaccounts-1password.workers.dev/mcp';
 const CLAUDE_SERVER = `plugin:${PLUGIN}:${PLUGIN}`;
 
@@ -111,8 +111,8 @@ const CHOOSE_HTML = `
 <dialog class="choose" id="choose" aria-labelledby="choose-title">
   <div class="inner">
     <button type="button" class="close" data-close aria-label="Close">×</button>
-    <h2 id="choose-title">Sign up for Beanstalk</h2>
-    <p class="sub">Beanstalk is built for agents. Most people sign up from the agent they already use.</p>
+    <h2 id="choose-title">Sign up for Gitstalk</h2>
+    <p class="sub">Gitstalk is built for agents. Most people sign up from the agent they already use.</p>
     <div class="options">
       <a class="option agent" href="agent.html" autofocus>
         <span class="rec">recommended</span>
