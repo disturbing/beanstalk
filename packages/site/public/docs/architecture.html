@@ -15,9 +15,15 @@
       property="og:description"
       content="How Gitstalk works: the engine's rules, the Cloudflare pieces, the git proxy and identity, and the measured results behind each choice."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,16 +42,16 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="../site.css" />
-    <link rel="stylesheet" href="docs.css" />
-    <script src="../site.js" defer></script>
-    <script src="docs.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/docs/docs.css" />
+    <script src="/site.js" defer></script>
+    <script src="/docs/docs.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -54,10 +60,10 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="../#grow">How it grows</a>
-          <a href="../#race">The race</a>
-          <a href="../#agents">Your agents</a>
-          <a href="./" aria-current="true">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/" aria-current="true">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,70 +91,72 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="../#start">Install the plugin</a>
-          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
 
     <main id="main">
       <div class="wrap docs">
-        <details class="dnav" open>
+        <details class="dnav">
           <summary>Docs: Architecture</summary>
           <nav class="inner" aria-label="Docs pages">
             <h2>Start</h2>
             <ul>
-              <li><a href="./">Overview</a></li>
+              <li><a href="/docs/">Overview</a></li>
             </ul>
             <h2>Features</h2>
             <ul>
               <li>
-                <a href="repositories.html"
+                <a href="/docs/repositories"
                   >Repositories<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+                <a href="/docs/git">Git compatibility<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="agents.html"
+                <a href="/docs/agents"
                   >Connecting agents<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+                <a href="/docs/checks">Checks<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="collaborators.html"
+                <a href="/docs/collaborators"
                   >Collaborators and visibility<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="decisions.html"
+                <a href="/docs/decisions"
                   >Decision cards and reconcile<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="streaming-diffs.html"
+                <a href="/docs/streaming-diffs"
                   >Streaming diffs<span class="st soon" title="coming soon"></span
                 ></a>
               </li>
               <li>
-                <a href="actions.html">GitHub Actions<span class="st live" title="live"></span></a>
+                <a href="/docs/actions">GitHub Actions<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="automations.html">Automations<span class="st live" title="live"></span></a>
+                <a href="/docs/automations"
+                  >Automations<span class="st live" title="live"></span
+                ></a>
               </li>
               <li>
-                <a href="self-hosting.html"
+                <a href="/docs/self-hosting"
                   >Self-hosting<span class="st live" title="live"></span
                 ></a>
               </li>
             </ul>
             <h2>How it works</h2>
             <ul>
-              <li><a href="architecture.html" aria-current="page">Architecture</a></li>
-              <li><a href="research.html">What did not work</a></li>
+              <li><a href="/docs/architecture" aria-current="page">Architecture</a></li>
+              <li><a href="/docs/research">What did not work</a></li>
             </ul>
             <p class="legend">
               <span><i class="st live"></i>live</span>
@@ -270,8 +278,8 @@
           <p>
             A red resumes the author's own session with the failing tests and the intent and diff of
             the bean it collided with. A repeated red goes to a reconcile step, and only a genuine
-            contradiction becomes a <a href="decisions.html">decision card</a>, with the bean parked
-            so it never holds a run open.
+            contradiction becomes a <a href="/docs/decisions">decision card</a>, with the bean
+            parked so it never holds a run open.
           </p>
 
           <h3 id="structural">Structural merge, re-checked</h3>
@@ -297,7 +305,7 @@
             Each bean in check gets its own sandbox from a shared pool, up to 32 per repository.
             Waiting for a sandbox never counts against the suite's time limit, and a timeout is
             never reported as a red. Before this, pre-land checks shared two sandboxes, and 16
-            parallel workers collapsed (<a href="research.html#sandboxes">what happened</a>).
+            parallel workers collapsed (<a href="/docs/research#sandboxes">what happened</a>).
           </p>
 
           <h2 id="cloudflare">The Cloudflare pieces, and why</h2>
@@ -380,7 +388,7 @@
                 </tr>
                 <tr>
                   <td>Dynamic Workers</td>
-                  <td><a href="automations.html">Automations</a> (coming).</td>
+                  <td><a href="/docs/automations">Automations</a> (coming).</td>
                   <td>Isolates that start in milliseconds, with no network unless granted.</td>
                 </tr>
                 <tr>
@@ -526,7 +534,7 @@
               </li>
               <li>
                 Earlier harness versions favoured Gitstalk;
-                <a href="research.html#harness">how much, and the fix</a>.
+                <a href="/docs/research#harness">how much, and the fix</a>.
               </li>
             </ul>
           </div>
@@ -536,11 +544,11 @@
             <ul>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/loadgen/README.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/research/race/loadgen/README.md"
                   >research/race/loadgen/README.md</a
                 >
                 and
-                <a href="https://github.com/disturbing/beanstalk/tree/prototype/research/race/runs"
+                <a href="https://github.com/disturbing/beanstalk/tree/HEAD/research/race/runs"
                   >research/race/runs</a
                 >
                 (<code>lg-fastify-*</code>, <code>orch-fastify-*</code>,
@@ -548,20 +556,20 @@
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/research/race/ORCHESTRATED.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/research/race/ORCHESTRATED.md"
                   >research/race/ORCHESTRATED.md</a
                 >
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/11-experiments-summary.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/11-experiments-summary.md"
                   >docs/claude-opus/11-experiments-summary.md</a
                 >
                 (every engine rule and its measurements)
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/18-git-native-flow.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/18-git-native-flow.md"
                   >docs/claude-opus/18-git-native-flow.md</a
                 >
                 (git proxy, continuous engine, capacity)
@@ -569,8 +577,8 @@
             </ul>
           </section>
           <nav class="pager" aria-label="Previous and next page">
-            <a class="prev" href="self-hosting.html"><small>Previous</small>Self-hosting</a>
-            <a class="next" href="research.html"><small>Next</small>What did not work</a>
+            <a class="prev" href="/docs/self-hosting"><small>Previous</small>Self-hosting</a>
+            <a class="next" href="/docs/research"><small>Next</small>What did not work</a>
           </nav>
         </article>
       </div>
@@ -580,7 +588,7 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -593,17 +601,17 @@
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="../#start">Install</a></li>
-              <li><a href="./">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+                <a href="https://github.com/disturbing/beanstalk/commits/HEAD">Changelog</a>
               </li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="../about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -617,12 +625,12 @@
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="../privacy.html">Privacy</a></li>
-              <li><a href="../terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

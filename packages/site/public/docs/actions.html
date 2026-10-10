@@ -15,9 +15,15 @@
       property="og:description"
       content="Gitstalk runs your unchanged .github/workflows on Cloudflare: what runs, the compatibility report, secrets, OIDC and the beta limits."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,16 +42,16 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="../site.css" />
-    <link rel="stylesheet" href="docs.css" />
-    <script src="../site.js" defer></script>
-    <script src="docs.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/docs/docs.css" />
+    <script src="/site.js" defer></script>
+    <script src="/docs/docs.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -54,10 +60,10 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="../#grow">How it grows</a>
-          <a href="../#race">The race</a>
-          <a href="../#agents">Your agents</a>
-          <a href="./" aria-current="true">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/" aria-current="true">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,72 +91,74 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="../#start">Install the plugin</a>
-          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
 
     <main id="main">
       <div class="wrap docs">
-        <details class="dnav" open>
+        <details class="dnav">
           <summary>Docs: GitHub Actions</summary>
           <nav class="inner" aria-label="Docs pages">
             <h2>Start</h2>
             <ul>
-              <li><a href="./">Overview</a></li>
+              <li><a href="/docs/">Overview</a></li>
             </ul>
             <h2>Features</h2>
             <ul>
               <li>
-                <a href="repositories.html"
+                <a href="/docs/repositories"
                   >Repositories<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="git.html">Git compatibility<span class="st live" title="live"></span></a>
+                <a href="/docs/git">Git compatibility<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="agents.html"
+                <a href="/docs/agents"
                   >Connecting agents<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+                <a href="/docs/checks">Checks<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="collaborators.html"
+                <a href="/docs/collaborators"
                   >Collaborators and visibility<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="decisions.html"
+                <a href="/docs/decisions"
                   >Decision cards and reconcile<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="streaming-diffs.html"
+                <a href="/docs/streaming-diffs"
                   >Streaming diffs<span class="st soon" title="coming soon"></span
                 ></a>
               </li>
               <li>
-                <a href="actions.html" aria-current="page"
+                <a href="/docs/actions" aria-current="page"
                   >GitHub Actions<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="automations.html">Automations<span class="st live" title="live"></span></a>
+                <a href="/docs/automations"
+                  >Automations<span class="st live" title="live"></span
+                ></a>
               </li>
               <li>
-                <a href="self-hosting.html"
+                <a href="/docs/self-hosting"
                   >Self-hosting<span class="st live" title="live"></span
                 ></a>
               </li>
             </ul>
             <h2>How it works</h2>
             <ul>
-              <li><a href="architecture.html">Architecture</a></li>
-              <li><a href="research.html">What did not work</a></li>
+              <li><a href="/docs/architecture">Architecture</a></li>
+              <li><a href="/docs/research">What did not work</a></li>
             </ul>
             <p class="legend">
               <span><i class="st live"></i>live</span>
@@ -339,7 +347,7 @@
             takes to save the new snapshot at the job's end (about 9 s for fastify on the hosted
             service). Every run is in
             <a
-              href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+              href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/27-ci-dependency-cache.md"
               >the design write-up</a
             >.
           </p>
@@ -404,7 +412,7 @@
             <code>NPM_CONFIG_AUDIT</code> in the workflow's <code>env:</code>, or run
             <code>npm audit</code> as its own step. The measurements are in
             <a
-              href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+              href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/27-ci-dependency-cache.md"
               >the design write-up</a
             >, section 12.
           </p>
@@ -448,7 +456,7 @@
             Minutes count only while a job runs. A container kept warm for the next job of the same
             repository (coming soon) is not counted. A repository that has used its minutes gets a
             clear "monthly minutes used" refusal, never a red run. When you
-            <a href="self-hosting.html">self-host</a>, you set every one of these.
+            <a href="/docs/self-hosting">self-host</a>, you set every one of these.
           </p>
 
           <section class="sources">
@@ -456,25 +464,25 @@
             <ul>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/25-actions-and-automations.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/25-actions-and-automations.md"
                   >docs/claude-opus/25-actions-and-automations.md</a
                 >
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/exp/actions-spike/README.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/exp/actions-spike/README.md"
                   >The Actions spike on Cloudflare Containers</a
                 >
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-05-github-actions-on-cloudflare.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-05-github-actions-on-cloudflare.md"
                   >docs/claude-05-github-actions-on-cloudflare.md</a
                 >
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/27-ci-dependency-cache.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/27-ci-dependency-cache.md"
                   >docs/claude-opus/27-ci-dependency-cache.md</a
                 >
                 (the dependency cache: design, spike and measured runs)
@@ -482,8 +490,8 @@
             </ul>
           </section>
           <nav class="pager" aria-label="Previous and next page">
-            <a class="prev" href="streaming-diffs.html"><small>Previous</small>Streaming diffs</a>
-            <a class="next" href="automations.html"><small>Next</small>Automations</a>
+            <a class="prev" href="/docs/streaming-diffs"><small>Previous</small>Streaming diffs</a>
+            <a class="next" href="/docs/automations"><small>Next</small>Automations</a>
           </nav>
         </article>
       </div>
@@ -493,7 +501,7 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -506,17 +514,17 @@
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="../#start">Install</a></li>
-              <li><a href="./">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+                <a href="https://github.com/disturbing/beanstalk/commits/HEAD">Changelog</a>
               </li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="../about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -530,12 +538,12 @@
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="../privacy.html">Privacy</a></li>
-              <li><a href="../terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

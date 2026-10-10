@@ -15,9 +15,15 @@
       property="og:description"
       content="Gitstalk speaks plain git: GitHub-style URLs, bean branches, push options, verdicts on the push, status refs and waiting refs."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,16 +42,16 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="../site.css" />
-    <link rel="stylesheet" href="docs.css" />
-    <script src="../site.js" defer></script>
-    <script src="docs.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/docs/docs.css" />
+    <script src="/site.js" defer></script>
+    <script src="/docs/docs.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="../" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -54,10 +60,10 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="../#grow">How it grows</a>
-          <a href="../#race">The race</a>
-          <a href="../#agents">Your agents</a>
-          <a href="./" aria-current="true">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/" aria-current="true">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,72 +91,74 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="../#start">Install the plugin</a>
-          <a class="btn small primary" href="../agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
 
     <main id="main">
       <div class="wrap docs">
-        <details class="dnav" open>
+        <details class="dnav">
           <summary>Docs: Git compatibility</summary>
           <nav class="inner" aria-label="Docs pages">
             <h2>Start</h2>
             <ul>
-              <li><a href="./">Overview</a></li>
+              <li><a href="/docs/">Overview</a></li>
             </ul>
             <h2>Features</h2>
             <ul>
               <li>
-                <a href="repositories.html"
+                <a href="/docs/repositories"
                   >Repositories<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="git.html" aria-current="page"
+                <a href="/docs/git" aria-current="page"
                   >Git compatibility<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="agents.html"
+                <a href="/docs/agents"
                   >Connecting agents<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="checks.html">Checks<span class="st live" title="live"></span></a>
+                <a href="/docs/checks">Checks<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="collaborators.html"
+                <a href="/docs/collaborators"
                   >Collaborators and visibility<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="decisions.html"
+                <a href="/docs/decisions"
                   >Decision cards and reconcile<span class="st live" title="live"></span
                 ></a>
               </li>
               <li>
-                <a href="streaming-diffs.html"
+                <a href="/docs/streaming-diffs"
                   >Streaming diffs<span class="st soon" title="coming soon"></span
                 ></a>
               </li>
               <li>
-                <a href="actions.html">GitHub Actions<span class="st live" title="live"></span></a>
+                <a href="/docs/actions">GitHub Actions<span class="st live" title="live"></span></a>
               </li>
               <li>
-                <a href="automations.html">Automations<span class="st live" title="live"></span></a>
+                <a href="/docs/automations"
+                  >Automations<span class="st live" title="live"></span
+                ></a>
               </li>
               <li>
-                <a href="self-hosting.html"
+                <a href="/docs/self-hosting"
                   >Self-hosting<span class="st live" title="live"></span
                 ></a>
               </li>
             </ul>
             <h2>How it works</h2>
             <ul>
-              <li><a href="architecture.html">Architecture</a></li>
-              <li><a href="research.html">What did not work</a></li>
+              <li><a href="/docs/architecture">Architecture</a></li>
+              <li><a href="/docs/research">What did not work</a></li>
             </ul>
             <p class="legend">
               <span><i class="st live"></i>live</span>
@@ -182,9 +190,9 @@
           <p>
             A repository you may not see answers 404, exactly as a missing one does. Public SSH
             remotes (<code>ssh://git@&lt;ssh host&gt;/&lt;owner&gt;/&lt;repo&gt;.git</code>) are
-            <span class="pill soon">coming soon</span>: the SSH server is built and tested on
-            Cloudflare and needs the product domain. Until then <code>/gitstalk:setup</code>
-            stores an HTTPS token for you.
+            <span class="pill soon">coming soon</span>: SSH on port 22 needs a paid Cloudflare plan
+            (Spectrum), so it is not offered yet. HTTPS clone and push work today, and
+            <code>/gitstalk:setup</code> stores an HTTPS token for you.
           </p>
 
           <h2 id="push">Push is submit</h2>
@@ -345,7 +353,7 @@ git push origin HEAD:refs/wait/all                       <span class="c"># every
             and prints each verdict as it arrives. <code>-o wait</code> and MCP
             <code>bean_wait</code> use the same wait: the verdict wakes them, nothing polls. Why it
             exists:
-            <a href="research.html#plugin-v1">agents replaced blocking pushes with sleep loops</a>.
+            <a href="/docs/research#plugin-v1">agents replaced blocking pushes with sleep loops</a>.
           </p>
 
           <h2 id="import">Importing and leaving</h2>
@@ -363,21 +371,21 @@ git push origin HEAD:refs/wait/all                       <span class="c"># every
             <ul>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/18-git-native-flow.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/18-git-native-flow.md"
                   >docs/claude-opus/18-git-native-flow.md</a
                 >
               </li>
               <li>
                 <a
-                  href="https://github.com/disturbing/beanstalk/blob/prototype/docs/claude-opus/21-git-over-ssh.md"
+                  href="https://github.com/disturbing/beanstalk/blob/HEAD/docs/claude-opus/21-git-over-ssh.md"
                   >docs/claude-opus/21-git-over-ssh.md</a
                 >
               </li>
             </ul>
           </section>
           <nav class="pager" aria-label="Previous and next page">
-            <a class="prev" href="repositories.html"><small>Previous</small>Repositories</a>
-            <a class="next" href="agents.html"><small>Next</small>Connecting agents</a>
+            <a class="prev" href="/docs/repositories"><small>Previous</small>Repositories</a>
+            <a class="next" href="/docs/agents"><small>Next</small>Connecting agents</a>
           </nav>
         </article>
       </div>
@@ -387,7 +395,7 @@ git push origin HEAD:refs/wait/all                       <span class="c"># every
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="../" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -400,17 +408,17 @@ git push origin HEAD:refs/wait/all                       <span class="c"># every
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="../#start">Install</a></li>
-              <li><a href="./">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/commits/prototype">Changelog</a>
+                <a href="https://github.com/disturbing/beanstalk/commits/HEAD">Changelog</a>
               </li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="../about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -424,12 +432,12 @@ git push origin HEAD:refs/wait/all                       <span class="c"># every
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/prototype/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="../privacy.html">Privacy</a></li>
-              <li><a href="../terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

@@ -8,6 +8,18 @@ import type { Metadata } from 'next';
 /** The product's name in titles and link previews. */
 export const PRODUCT_NAME = 'Gitstalk';
 
+/**
+ * The social card every page shares as its Open Graph image (rendered from
+ * packages/site/social/og-image.html). The site and the web app both serve it at `url`, which
+ * the root layout's `metadataBase` makes absolute.
+ */
+export const SOCIAL_CARD = {
+  url: '/og-image.png',
+  width: 1200,
+  height: 630,
+  alt: 'Gitstalk: watch your work grow like a beanstalk. Agents grow together.',
+} as const;
+
 /** What a public page says about itself. */
 export type PublicPage = {
   /** Its canonical path (`/signup`). */
@@ -30,7 +42,13 @@ export function publicPageMetadata(page: PublicPage): Metadata {
       title,
       description: page.description,
       url: page.path,
+      images: [SOCIAL_CARD],
     },
-    twitter: { card: 'summary', title, description: page.description },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: page.description,
+      images: [SOCIAL_CARD.url],
+    },
   };
 }

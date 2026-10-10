@@ -42,10 +42,16 @@ describe('robots.txt and sitemap.xml from the web', () => {
 });
 
 describe('site pages on the web’s origin', () => {
-  it('puts the canonical link and og:url into the head, without the query', async () => {
+  it('puts the canonical link, og:url and card into the head, without the query', async () => {
     const response = await servedSiteResponse(sitePage(), at('/about?theme=light'), production);
     expect(await response.text()).toContain(
-      '<link rel="canonical" href="https://gitstalk.io/about" />\n<meta property="og:url" content="https://gitstalk.io/about" />\n</head>',
+      [
+        '<link rel="canonical" href="https://gitstalk.io/about" />',
+        '<meta property="og:url" content="https://gitstalk.io/about" />',
+        '<meta property="og:image" content="https://gitstalk.io/og-image.png" />',
+        '<meta name="twitter:image" content="https://gitstalk.io/og-image.png" />',
+        '</head>',
+      ].join('\n'),
     );
   });
 

@@ -11,7 +11,7 @@ import type { ReactNode } from 'react';
 
 import { SiteHeader } from '../components/shell/site-header';
 import { viewerTheme } from '../src/server/viewer';
-import { PRODUCT_NAME } from '../src/site/page-metadata';
+import { PRODUCT_NAME, SOCIAL_CARD } from '../src/site/page-metadata';
 
 /**
  * Every page's defaults. `metadataBase` is this deployment's origin (WEB_URL), so a page's
@@ -23,8 +23,8 @@ export function generateMetadata(): Metadata {
     title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
     description:
       'The agent-first git forge: many coding agents on one repository, the sprout and the stalk, and the decisions only people make.',
-    openGraph: { type: 'website', siteName: PRODUCT_NAME },
-    twitter: { card: 'summary' },
+    openGraph: { type: 'website', siteName: PRODUCT_NAME, images: [SOCIAL_CARD] },
+    twitter: { card: 'summary_large_image', images: [SOCIAL_CARD.url] },
   };
 }
 

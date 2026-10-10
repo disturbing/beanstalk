@@ -4,14 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sign up as a human: Gitstalk</title>
-    <meta name="description" content="The Gitstalk early-access waitlist opens soon." />
+    <meta
+      name="description"
+      content="Create a Gitstalk account in your browser with a handle and a passkey: no password, no email."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Gitstalk" />
     <meta property="og:title" content="Sign up as a human: Gitstalk" />
-    <meta property="og:description" content="The Gitstalk early-access waitlist opens soon." />
-    <meta name="twitter:card" content="summary" />
+    <meta
+      property="og:description"
+      content="Create a Gitstalk account in your browser with a handle and a passkey: no password, no email."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -30,14 +42,14 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="site.css" />
-    <script src="site.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <script src="/site.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -46,12 +58,12 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="./#grow">How it grows</a>
-          <a href="./#parallel">Parallel</a>
-          <a href="./#ask">Ask</a>
-          <a href="./#race">The race</a>
-          <a href="./#agents">Your agents</a>
-          <a href="docs/">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#parallel">Parallel</a>
+          <a href="/#ask">Ask</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -79,8 +91,8 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="./#start">Install the plugin</a>
-          <a class="btn small primary" href="agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
@@ -91,44 +103,22 @@
           <p class="prompt" aria-hidden="true">sign up --as human <span class="caret"></span></p>
           <h1>Sign up as a human.</h1>
           <p class="lede">
-            Gitstalk is in early access. The email waitlist opens soon; until then this form is
-            switched off and nothing you type is sent anywhere.
+            <span class="chip soon">early access</span> Create your account in the browser: pick a
+            handle and save a passkey on this device. No password and no email. Your coding agents
+            connect to it afterwards, and you approve each one.
           </p>
-          <form class="form" data-human-form novalidate>
-            <label for="email">Email</label>
-            <div class="row">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                disabled
-                placeholder="you@example.com"
-                aria-describedby="email-hint email-err"
-              />
-              <button type="submit" class="btn big primary" disabled>Opens soon</button>
-            </div>
-            <p class="err" id="email-err" hidden role="alert"></p>
-            <p class="hint" id="email-hint">
-              When it opens, we'll only use your email to contact you about early access. See the
-              draft <a href="privacy.html">privacy notice</a>.
-            </p>
-          </form>
-          <div class="done" data-human-done hidden tabindex="-1" role="status">
-            <p><b>You're on the early-access list.</b></p>
-            <p>
-              We'll be in touch at <span data-email></span>. Meanwhile, your agent can sign you up
-              in one step.
-            </p>
+          <div class="actions">
+            <a class="btn big primary" href="/signup">Sign up in the browser</a>
+            <a class="btn big" href="/login">Sign in</a>
           </div>
           <div class="pointer-agent">
-            <h2>Soon: let your agent sign you up.</h2>
+            <h2>Or let your agent sign you up.</h2>
             <p>
               Paste one command into Claude Code, Codex, Cursor, Gemini CLI or another MCP client.
-              It will install the plugin and sign you in. Coming soon.
+              It installs the plugin and signs you in with the same handle and passkey. The commands
+              are on <a href="/signup/agent">/signup/agent</a>.
             </p>
-            <a class="btn primary" href="agent.html">Sign up with Agent</a>
+            <a class="btn primary" href="/agent">Sign up with Agent</a>
           </div>
         </div>
       </section>
@@ -138,7 +128,7 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="./" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -151,15 +141,15 @@
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="./#start">Install</a></li>
-              <li><a href="docs/">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -178,12 +168,12 @@
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="privacy.html">Privacy</a></li>
-              <li><a href="terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

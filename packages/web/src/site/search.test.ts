@@ -103,9 +103,15 @@ describe('sitemap.xml', () => {
 });
 
 describe('a site page’s head tags', () => {
-  it('gives the canonical link and og:url on this origin', () => {
+  it('gives the canonical link, og:url and the social card on this origin', () => {
     expect(siteHeadTags(production, '/docs/git')).toBe(
-      '<link rel="canonical" href="https://gitstalk.io/docs/git" />\n<meta property="og:url" content="https://gitstalk.io/docs/git" />\n',
+      [
+        '<link rel="canonical" href="https://gitstalk.io/docs/git" />',
+        '<meta property="og:url" content="https://gitstalk.io/docs/git" />',
+        '<meta property="og:image" content="https://gitstalk.io/og-image.png" />',
+        '<meta name="twitter:image" content="https://gitstalk.io/og-image.png" />',
+        '',
+      ].join('\n'),
     );
   });
 

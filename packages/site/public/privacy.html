@@ -15,9 +15,15 @@
       property="og:description"
       content="A short, plain draft of how Gitstalk handles personal data."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gitstalk: watch your work grow like a beanstalk. Agents grow together."
+    />
     <meta name="theme-color" content="#05080b" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       (function () {
         let t = new URLSearchParams(location.search).get('theme');
@@ -36,14 +42,14 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="site.css" />
-    <script src="site.js" defer></script>
+    <link rel="stylesheet" href="/site.css" />
+    <script src="/site.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="top">
       <div class="wrap">
-        <a class="brand" href="./" aria-label="Gitstalk home">
+        <a class="brand" href="/" aria-label="Gitstalk home">
           <svg viewBox="0 0 20 22" aria-hidden="true">
             <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
             <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -52,12 +58,12 @@
           gitstalk
         </a>
         <nav class="nav" aria-label="Sections">
-          <a href="./#grow">How it grows</a>
-          <a href="./#parallel">Parallel</a>
-          <a href="./#ask">Ask</a>
-          <a href="./#race">The race</a>
-          <a href="./#agents">Your agents</a>
-          <a href="docs/">Docs</a>
+          <a href="/#grow">How it grows</a>
+          <a href="/#parallel">Parallel</a>
+          <a href="/#ask">Ask</a>
+          <a href="/#race">The race</a>
+          <a href="/#agents">Your agents</a>
+          <a href="/docs/">Docs</a>
         </nav>
         <div class="end">
           <button type="button" class="themebtn" data-theme-toggle aria-label="Switch theme">
@@ -85,8 +91,8 @@
               />
             </svg>
           </button>
-          <a class="btn small ghost" href="./#start">Install the plugin</a>
-          <a class="btn small primary" href="agent.html" data-signup>Sign up</a>
+          <a class="btn small ghost" href="/#start">Install the plugin</a>
+          <a class="btn small primary" href="/agent" data-signup>Sign up</a>
         </div>
       </div>
     </header>
@@ -98,16 +104,12 @@
           <h1>Privacy</h1>
           <p class="stamp">Draft, October 2026. Not yet reviewed by a lawyer.</p>
           <p>
-            This is a short, plain draft. It describes what this site does today and what will
-            change when sign-up opens. We will update it, and the date above, before we collect any
-            email address.
+            This is a short, plain draft. It describes what this site and the Gitstalk service do
+            today. We will update it, and the date above, before we collect any email address.
           </p>
           <h2>This site, today</h2>
           <ul>
-            <li>
-              We don't collect your email: the waitlist form is switched off, and nothing you type
-              in it is sent anywhere.
-            </li>
+            <li>This site has no forms: nothing you type here is sent anywhere.</li>
             <li>
               We set no cookies of our own and run no third-party analytics or ads. Your browser
               stores one preference, day or night theme, in local storage.
@@ -121,17 +123,19 @@
               Fonts load from Google Fonts, which receives your IP address when it serves them.
             </li>
           </ul>
-          <h2>When the waitlist and sign-up open</h2>
+          <h2>Your account</h2>
           <ul>
             <li>
-              We will store the email you give us, in Cloudflare D1, and use it only to contact you
-              about early access and your account. We won't sell it or share it for marketing.
+              An account is a handle and a passkey. We store the handle and the passkey's public key
+              in Cloudflare D1, and a session cookie keeps you signed in. We don't ask for an email.
             </li>
             <li>
-              Confirmation and sign-in emails will be sent through Cloudflare Email Service. Sign-up
-              forms will use Cloudflare Turnstile to block bots.
+              If we add sign-in by email, we will store the email you give us and use it only to
+              contact you about your account, send those emails through Cloudflare Email Service and
+              protect the form with Cloudflare Turnstile. We won't sell it or share it for
+              marketing.
             </li>
-            <li>You can ask us to delete your email or account at any time.</li>
+            <li>You can ask us to delete your account at any time.</li>
           </ul>
           <h2>Your code</h2>
           <p>
@@ -153,7 +157,7 @@
       <div class="wrap">
         <div class="cols">
           <div class="about">
-            <a class="brand" href="./" aria-label="Gitstalk home">
+            <a class="brand" href="/" aria-label="Gitstalk home">
               <svg viewBox="0 0 20 22" aria-hidden="true">
                 <path d="M10 21V8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round" />
                 <path d="M10 12C10 8 6.5 6 3 6.5 3.4 10 6 12.5 10 12Z" fill="var(--leaf)" />
@@ -166,15 +170,15 @@
           <nav aria-labelledby="f-product">
             <h2 id="f-product">Product</h2>
             <ul>
-              <li><a href="./#start">Install</a></li>
-              <li><a href="docs/">Docs</a></li>
+              <li><a href="/#start">Install</a></li>
+              <li><a href="/docs/">Docs</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/commits">Changelog</a></li>
             </ul>
           </nav>
           <nav aria-labelledby="f-company">
             <h2 id="f-company">Company</h2>
             <ul>
-              <li><a href="about.html">About</a></li>
+              <li><a href="/about">About</a></li>
               <li><a href="https://github.com/disturbing/beanstalk/issues">Contact</a></li>
             </ul>
           </nav>
@@ -193,12 +197,12 @@
             <h2 id="f-legal">Legal</h2>
             <ul>
               <li>
-                <a href="https://github.com/disturbing/beanstalk/blob/main/LICENSE.md"
+                <a href="https://github.com/disturbing/beanstalk/blob/HEAD/LICENSE.md"
                   >Licence (FSL → Apache-2.0)</a
                 >
               </li>
-              <li><a href="privacy.html">Privacy</a></li>
-              <li><a href="terms.html">Terms</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
             </ul>
           </nav>
         </div>

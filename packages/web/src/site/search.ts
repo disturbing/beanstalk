@@ -5,6 +5,7 @@
  * scripts/environments.mjs writes per environment: WEB_URL (this deployment's origin) and
  * SEARCH_INDEXING ("on" only where env.jsonc sets `search_indexing: true`, i.e. production).
  */
+import { SOCIAL_CARD } from './page-metadata';
 import { APP_PUBLIC_PAGES, sitePagePaths } from './pages';
 
 /** How this deployment presents itself to crawlers. */
@@ -91,13 +92,21 @@ export function sitemapXml(settings: SearchSettings, site: SiteHosting): string 
 }
 
 /**
- * The tags a site page gets on this origin: its canonical URL and `og:url`. The static pages
- * carry their own title, description and Open Graph text; only the origin is per deployment.
- * The site answers `.html` and unslashed paths with a redirect, so a 200's path is canonical.
+ * The tags a site page gets on this origin: its canonical URL, `og:url` and the social card's
+ * absolute URL (`og:image`, `twitter:image`). The static pages carry their own title,
+ * description, Open Graph text and card size; only the origin is per deployment. The site
+ * answers `.html` and unslashed paths with a redirect, so a 200's path is canonical.
  */
 export function siteHeadTags(settings: SearchSettings, pathname: string): string {
   const url = escapeXml(`${settings.origin}${pathname}`);
-  return `<link rel="canonical" href="${url}" />\n<meta property="og:url" content="${url}" />\n`;
+  const image = escapeXml(`${settings.origin}${SOCIAL_CARD.url}`);
+  return [
+    `<link rel="canonical" href="${url}" />`,
+    `<meta property="og:url" content="${url}" />`,
+    `<meta property="og:image" content="${image}" />`,
+    `<meta name="twitter:image" content="${image}" />`,
+    '',
+  ].join('\n');
 }
 
 function escapeXml(text: string): string {

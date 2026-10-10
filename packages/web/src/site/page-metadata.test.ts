@@ -22,6 +22,16 @@ describe('a public page’s metadata', () => {
       siteName: 'Gitstalk',
       description: 'Create a Gitstalk account.',
     });
-    expect(metadata.twitter).toMatchObject({ card: 'summary', title: 'Sign up · Gitstalk' });
+    expect(metadata.twitter).toMatchObject({
+      card: 'summary_large_image',
+      title: 'Sign up · Gitstalk',
+      images: ['/og-image.png'],
+    });
+  });
+
+  it('shares the social card as its link preview image', () => {
+    expect(metadata.openGraph?.images).toEqual([
+      expect.objectContaining({ url: '/og-image.png', width: 1200, height: 630 }),
+    ]);
   });
 });
