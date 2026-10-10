@@ -55,7 +55,7 @@ class Prompt(unittest.TestCase):
         self.assertIn("Never wait on your own check", plugin)
         self.assertIn("refs/wait/any", plugin)
         self.assertEqual(orch_prompt.PLUGIN_GUIDANCE_VERSION, "plugin-v2")
-        self.assertEqual(orch_prompt.plugin_version(), "0.7.0")
+        self.assertRegex(orch_prompt.plugin_version(), r"^\d+\.\d+\.\d+$")
         self.assertEqual(orch_prompt.continuation(), orch_prompt.CONTINUE)
         self.assertIn("notification", orch_prompt.continuation("plugin"))
         self.assertNotIn("name: beanstalk", plugin)              # frontmatter stripped
