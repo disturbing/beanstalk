@@ -10,7 +10,7 @@
   "d1_databases": [
     {
       "binding": "IDENTITY_DB",
-      "database_name": "beanstalk-identity",
+      "database_name": "gitstalk-identity",
       "migrations_dir": "../migrations",
     },
   ],

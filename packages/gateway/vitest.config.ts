@@ -42,8 +42,8 @@ export default defineConfig({
           OIDC_REQUEST_SECRET: 'test-oidc-request-secret-0123456789abcdef',
           LOG_LEVEL: 'error',
           // A deployed origin (wrangler.jsonc's template points at local dev): live log tickets are wss://.
-          PUBLIC_URL: 'https://beanstalk-gateway.example.workers.dev',
-          WEB_URL: 'https://beanstalk-web.example.workers.dev',
+          PUBLIC_URL: 'https://gitstalk-gateway.example.workers.dev',
+          WEB_URL: 'https://gitstalk-web.example.workers.dev',
           // The tests run jobs on the echo executor (the container executor has its own tests).
           ACTIONS_EXECUTOR_MODE: 'stub',
           TEST_MIGRATIONS: identityMigrations,

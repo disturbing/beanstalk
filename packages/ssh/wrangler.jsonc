@@ -4,7 +4,7 @@
   // hostname to this Worker's `connect(socket)` handler; a Durable Object forwards the socket to
   // its container's SSH server (packages/ssh-server), which asks the gateway (service binding)
   // whose key it is and serves git through the gateway's smart-HTTP proxy.
-  "name": "beanstalk-ssh",
+  "name": "gitstalk-ssh",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-07",
   "compatibility_flags": ["nodejs_compat"],
@@ -28,7 +28,7 @@
   // `wrangler dev` listens here for raw TCP and hands each connection to `connect(socket)`;
   // deployed, Spectrum does that on port 22.
   "connect": [{ "protocol": "tcp", "port": 2222 }],
-  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  "services": [{ "binding": "GATEWAY", "service": "gitstalk-gateway" }],
   "exports": {
     "SshServer": { "type": "durable-object", "storage": "sqlite" },
   },

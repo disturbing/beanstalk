@@ -3,9 +3,10 @@
   // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
   // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
   // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
-  "name": "beanstalk-web",
-  // vinext's Workers entry; the app's routes live in app/ (App Router).
-  "main": "vinext/server/fetch-handler",
+  "name": "gitstalk-web",
+  // vinext's App Router handler behind worker/index.ts, which hands the marketing site's paths
+  // to SITE when an environment binds it (one origin for both); the routes live in app/.
+  "main": "./worker/index.ts",
   "compatibility_date": "2026-10-04",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true, "traces": { "enabled": true } },
@@ -13,25 +14,25 @@
   // Live runs, decisions and the repository views come from the gateway over RPC (never HTTP).
   // MCP: the OAuth consent screen and connected agents (its AgentSessionsRpc).
   "services": [
-    { "binding": "GATEWAY", "service": "beanstalk-gateway" },
-    { "binding": "MCP", "service": "beanstalk-mcp" },
+    { "binding": "GATEWAY", "service": "gitstalk-gateway" },
+    { "binding": "MCP", "service": "gitstalk-mcp" },
     // Actions (docs/claude-opus/25): the gateway's ActionsRpc on its named entrypoint.
-    { "binding": "ACTIONS", "service": "beanstalk-gateway", "entrypoint": "Actions" },
+    { "binding": "ACTIONS", "service": "gitstalk-gateway", "entrypoint": "Actions" },
   ],
   // Accounts (docs/claude-opus/19-accounts-and-auth.md): people, passkeys, sessions, tokens,
   // audit. The schema is packages/shared-identity/migrations; apply it from this package:
-  // `wrangler d1 migrations apply beanstalk-identity --remote`.
+  // `wrangler d1 migrations apply gitstalk-identity --remote`.
   "d1_databases": [
     {
       "binding": "IDENTITY_DB",
-      "database_name": "beanstalk-identity",
-      "database_id": "local-beanstalk-identity",
+      "database_name": "gitstalk-identity",
+      "database_id": "local-gitstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],
   // Uploaded pictures (docs/claude-opus/29-settings.md): avatars, organisation icons, repository
   // social images, written and served by this Worker under /media (@gitstalk/shared-media).
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "beanstalk-media" }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gitstalk-media" }],
   // Cloudflare Images re-encodes uploads to WebP sizes (first frame of a GIF, metadata gone).
   // Without it the stripped original is stored and served at every size.
   "images": { "binding": "IMAGES" },

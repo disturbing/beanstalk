@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "beanstalk-swarm",
+  "name": "gitstalk-swarm",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-06",
   "compatibility_flags": ["nodejs_compat"],
@@ -37,7 +37,7 @@
   },
   // The containers reach the gateway (driver API and git proxy) only through this binding,
   // from the bs.internal outbound handler; they have no internet of their own.
-  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  "services": [{ "binding": "GATEWAY", "service": "gitstalk-gateway" }],
   // One container per agent slot: Codex CLI + the race driver (agent/Dockerfile). standard-3
   // (2 vCPU, 8 GiB) because agents run the arena's suite locally (docs/claude-opus/17 §3.2).
   "containers": [

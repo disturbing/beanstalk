@@ -43,6 +43,7 @@ The public repo's `.gitignore` ignores `environments/*` except `example/`, `envi
 ```jsonc
 {
   "account_id": "<32 hex>",               // every Wrangler call for this env targets it
+  "prefix": "gitstalk",                  // optional: replaces the templates' gitstalk- (§13.1)
   "suffix": "-staging",                   // "" keeps the base (production) names
   "workers_dev_subdomain": "<subdomain>", // https://<worker>.<subdomain>.workers.dev
   "urls": { "web": "https://git.example.com" },   // optional custom origins
@@ -78,6 +79,7 @@ pnpm env:deploy <env> [--only gateway,web] [--dry-run]
 pnpm env:verify <env> --against <git ref>
 pnpm env:smoke <env> [--repo owner/name]   # GITSTALK_TOKEN=<personal token> for whoami and clone
 pnpm env:generate <env>    # only writes the configs (for wrangler tail, d1 execute, secret put -c ...)
+pnpm env:secrets <env> [--to-github owner/repo]   # push Worker secrets, or store them for CI (§13.4)
 ```
 
 **provision**: for every resource the environment's packages bind, by its suffixed name: D1 (`d1 list`, `d1 create`), KV (`kv namespace list/create`), R2 (`r2 bucket info/create`; `beanstalk-actions-logs*` gets its 30-day expiry rule on creation), queues (`queues info/create`). Artifacts namespaces have no create command; the first repository in one creates it, so provision creates and deletes a probe repository (`beanstalk-provision-probe`). A namespace that was deleted keeps its name blocked for a while (`Namespace is not active`, code 10200); provision reports that instead of failing, and running it again later finishes the job. The ids go into `resources.json`. Then secrets (§5), then the configs, then `wrangler d1 migrations apply <db> --remote` for each database once, from the first package that binds it (forge from the gateway's `migrations/`, identity from `packages/shared-identity/migrations`). Run it again after an upstream merge that adds a resource or a migration.
@@ -161,7 +163,7 @@ Smoke (`pnpm env:smoke staging --repo <handle>/<repo>`, after a passkey sign-up 
 
 What went wrong on the way: a parallel teardown of the old `-staging-*` stacks also deleted this stack's Workers, D1, KV, R2, queue and Artifacts namespaces once (its match was wider than `-staging-<suffix>`). Provision and deploy rebuilt it in about ten minutes from `env.jsonc` alone, which is the point of the design; Artifacts still refused the deleted `beanstalk-{race,repos}-staging` names (`Namespace is not active`) 40 minutes later, so staging's env.jsonc overrides the gateway's two namespaces (and `ARTIFACTS_NAMESPACE`) to `-stg`. Once Artifacts frees the names the override can go; staging's repositories would stay behind in the `-stg` namespaces.
 
-## 10. CI
+## 10. CI (superseded by §13.3)
 
 `.github/workflows/deploy.yml` deploys `staging` on every push to `prototype` and `production` on a manual run (`workflow_dispatch` with `environment: production`, which can require a reviewer in GitHub's environment settings). It needs one repository secret, `CLOUDFLARE_API_TOKEN` (Workers Scripts, D1, KV, R2, Queues, Containers and Artifacts edit). Each job runs only when its `environments/<env>/env.jsonc` is committed, so in the public repo, where none is, it does nothing. It does not provision or upload secrets: the Workers already hold them and deploy checks their names. Later the same steps can run on Gitstalk Actions.
 
@@ -204,7 +206,7 @@ Kept on purpose, because changing them would break something live or persisted:
 - **The metaphor**: beans, sprout, stalk, `bean/<name>`, `refs/beans/*`, `refs/wait/*`, the push options and the `remote: beanstalk:` verdict prefix (owner: keep "the remote: verdict wording"), "The beanstalk" panel and "Ask the beanstalk anything", the plant glyphs, the `beanstalk-shop` demo repository.
 - **History**: the research corpus, the Codex docs, `claude-0*`/`claude-1*`, `claude-opus/01`–`15`, `exp/`, `research/` and the `promo/` and `prototypes/` sources keep the name as written (`docs/claude-README.md` notes the rename). The repository folder and the GitHub repository are unchanged.
 
-### 12.3 Phase B: moving Workers, resources and URLs to gitstalk-* (plan, not done)
+### 12.3 Phase B: moving Workers, resources and URLs to gitstalk-* (plan; steps 1-4 done 2026-10-10, §13)
 
 Production will be **rebuilt fresh in the Cloudflare account that owns the gitstalk.io and gitstalk.dev zones** (owner, 2026-10-10; another agent does it after this change lands). The old account's `beanstalk-*` stack keeps serving until step 8. Order matters: a step never points a client at something that does not answer yet.
 
@@ -236,3 +238,101 @@ See §12.5 for the staging deploy; the checks: `pnpm check` exits 0 (TypeScript 
 ### 12.5 Staging (2026-10-10)
 
 `pnpm env:deploy staging` deployed all seven staging Workers under their old names (`beanstalk-*-staging`, the same configs as before the rename); `pnpm env:smoke staging`: gateway `/healthz` and web `/signup` ok. A headless Chrome with a virtual passkey then checked the rename end to end: the staging landing's title is "Gitstalk: watch your work grow like a beanstalk" with the gitstalk wordmark; `/signup` is titled "Sign up · gitstalk" and has no "Beanstalk" left; a new account (`gs-smoke-*`) made an Empty repository and a write token, cloned it over HTTPS, and pushed one bean adding `.gitstalk/automations/new-folder.yml` and `.beanstalk/automations/old-folder.yml`, which landed with `-o wait`; the repository's Automations tab listed both and named `.gitstalk/automations`; MCP `initialize` with the token answered `serverInfo.name: "gitstalk"`. Production was not deployed.
+
+## 13. Phase B built: gitstalk.io (production) and gitstalk.dev (staging), 2026-10-10
+
+Owner, 2026-10-10: gitstalk.io is production, gitstalk.dev staging, both zones in the account that owns them (not the devaccounts one); start fresh (no data carried over); `gitstalk-*` names from day one; "the config needs to be automated still so a fork makes most sense with secrets in the private fork and updates from the original fork on github, so we should configure a github actions to do the above". The old account's `beanstalk-*` stack stays up, untouched, until the cut-over (§12.3 steps 7 and 8).
+
+### 13.1 Names: templates are gitstalk-\*, an environment's prefix can keep beanstalk-\*
+
+- Every template's Worker and resource base name is `gitstalk-*` (Worker `name`, `services[].service`, D1 `database_name` and the `local-gitstalk-*` placeholder ids, the KV title, R2 buckets, the queue, Artifacts namespaces and `ARTIFACTS_NAMESPACE`); tests and vitest configs follow; `wrangler types` regenerated. `reserved-handles.ts` reserves `gitstalk-race` and `gitstalk-repos` beside the old two.
+- `env.jsonc` takes `"prefix"` (default `"gitstalk"`): it replaces the templates' `gitstalk-` in every name, so `gitstalk-gateway` becomes `<prefix>-gateway<suffix>`. `R2_EXPIRE_DAYS` and the Artifacts probe repository use the new base names.
+- The old stack's env files are now `environments/legacy/` (was `production`: devaccounts account, suffix `""`) and `environments/legacy-staging/` (was `staging`), both with `"prefix": "beanstalk"`. They live in the private deploy repo and on the owner's machine; CI never deploys them (no GitHub environment has their name). While the old stack lives, deploy it with `pnpm env:deploy legacy` from a checkout that has its secrets.
+- Proof that the old stack is unchanged: the configs that `61c3420`'s own script and templates generate for production and staging were compared, value by value, with what this change generates for `legacy` and `legacy-staging`. Every package is identical except one field: the web's `main` is `./worker/index.ts` instead of `vinext/server/fetch-handler` (§13.2; without a SITE binding the new entry hands every request to the same vinext App Router handler). No name, id, binding or var differs. `env:verify legacy --against 61c3420` prints the same environment-versus-template lines it printed at `61c3420`, plus that `main` line.
+- `ORDER` puts the site before the web (the web binds it): actions-executor, gateway, mcp, site, web, ssh, oidc, swarm.
+
+### 13.2 Hostnames: Workers Custom Domains from `urls`
+
+| Host (staging) | Worker | Serves |
+|---|---|---|
+| `gitstalk.io` (`gitstalk.dev`) | `gitstalk-web` | The app, and git over HTTPS: `https://gitstalk.io/<owner>/<repo>.git`. The marketing site through the web (below) |
+| `mcp.gitstalk.io` (`mcp.gitstalk.dev`) | `gitstalk-mcp` | MCP at `/mcp`, its OAuth issuer and metadata |
+| `api.gitstalk.io` (`api.gitstalk.dev`) | `gitstalk-gateway` | `/v1`, `/_actions/*` for jobs, the Actions OIDC issuer `https://api.gitstalk.io/_actions/oidc`, `/healthz` |
+| `ssh.gitstalk.io` (`ssh.gitstalk.dev`) | `gitstalk-ssh` | `/host-key` and the `/tunnel` WebSocket (`SSH_TUNNEL=on`); no port 22 |
+| (none) | `gitstalk-site` | Reached through the web's SITE binding (and its workers.dev address) |
+| (none) | `gitstalk-actions-executor` | Service binding from the gateway only |
+
+- **Generation.** For each package whose `urls.<pkg>` is an https origin outside `workers.dev`, the generator sets `routes: [{ pattern: <host>, custom_domain: true }]`; Wrangler attaches the domain on deploy (Cloudflare makes the DNS record and the certificate). A `urls.<pkg>` with a path fails generation. Every URL var follows `urls`: gateway `PUBLIC_URL` and `WEB_URL`; mcp `PUBLIC_URL` (its OAuth issuer), `WEB_URL`, `GIT_ORIGIN`; web `GIT_ORIGIN`, `MCP_URL` (`https://mcp.gitstalk.io/mcp`), `DOCS_URL` (`https://gitstalk.io/docs/`).
+- **The site at the apex.** When `urls.site` equals `urls.web`, the generator gives the web a `SITE` service binding to the site Worker, and the site no domain. `packages/web/worker/index.ts` (the web's new entry; vinext supports a custom `worker/index.ts`) hands to SITE, for GET and HEAD only: `/docs` and below; root files with an extension other than `setup.sh`, `setup.ps1` and `favicon.ico` (`/site.css`, `/about.html`, `/favicon.svg`; handles cannot contain a dot); the bare `/about`, `/privacy` and `/terms` (reserved handles); and `/` when the request has no session cookie (the landing; signed in, `/` stays Home). The web's own static assets are served before the Worker runs, so they never reach this check. Chosen over Workers routes for the site's paths because a route cannot see the cookie that decides `/`, and a Custom Domain takes precedence over routes on its hostname anyway.
+- **OIDC issuer.** The gateway's issuer is `<PUBLIC_URL>/_actions/oidc` when `OIDC_ISSUER_URL` is unset, so `https://api.gitstalk.io/_actions/oidc` follows from `urls.gateway` with no extra var; checked live (discovery's `issuer`). The standalone `oidc` Worker is not deployed in either environment.
+- **Passkeys and cookies.** The relying-party id is the request's hostname (`siteOrigin` in `shared-identity`), and only the web runs ceremonies, so on production it is exactly `gitstalk.io`; the MCP consent screen sends people to the web's `/connect`, so no other host needs passkeys. A passkey for `gitstalk.io` would also be usable from its subdomains, but none asks for one. Session cookies are `__Host-` (host-only, no `Domain`), so no cookie domain is needed or possible.
+- **SSH.** Both zones are on the Free plan; Spectrum for SSH needs Pro or higher. The SSH Worker runs with `SSH_TUNNEL=on`, the web's `SSH_HOST` stays empty, and `/gitstalk:setup` uses HTTPS and a token. To open port 22: upgrade gitstalk.io to Pro, add a Spectrum SSH application on `ssh.gitstalk.io` pointing at the `gitstalk-ssh` Worker, set the web's `SSH_HOST` and turn the tunnel off (overrides in env.jsonc).
+- **workers.dev** stays on for every Worker (handy for checks); turn it off with `overrides.<pkg>.workers_dev: false` once the custom domains have run for a while (§12.3 step 7).
+
+### 13.3 Secrets
+
+- `pnpm env:secrets <env>` pushes every secret the environment holds to its Worker with `wrangler secret bulk --name <worker>`, the values on stdin (never on a command line, never printed). A Worker not deployed yet gets them with its first deploy instead (deploy already uploads them with the version through a temporary `--secrets-file`). It ends by naming required secrets still missing.
+- Sources, merged per package: `environments/<env>/secrets/<pkg>.vars`, then `GITSTALK_SECRETS_JSON` (`{"<pkg>": {"NAME": "value"}}`), which wins. `readSecrets` reads both, so provision's "generate only what is missing", deploy's secret check and its `--secrets-file` all see CI's secrets. A malformed `GITSTALK_SECRETS_JSON` fails with a message that never echoes it.
+- `pnpm env:secrets <env> --to-github <owner/repo>` (the owner's machine only; refused when `CI` is set) builds that JSON from the local files and runs `gh secret set GITSTALK_SECRETS_JSON --env <env> --repo <owner/repo>` with it on stdin.
+- The first provision generates the secrets (as §5), then prints the `--to-github` line and a reminder to back up `secrets/`: `ACTIONS_SECRETS_KEY` cannot be read back from a Worker. In CI, a newly required secret is generated, deployed and kept on the Worker, with a warning that it is not in `GITSTALK_SECRETS_JSON`.
+- AI Gateway: provision checks the gateways named by `AUTOMATIONS_AI_GATEWAY` and `JEV_GATEWAY` (`default`) and creates them when `CLOUDFLARE_API_TOKEN` can (the Wrangler OAuth login cannot: the AI Gateway API answers code 10000). In the new account the `default` gateway worked without being created by hand: an agent automation's model calls went through it on staging (§13.6).
+
+### 13.4 The private deploy repository and CI
+
+**Repository**: `https://github.com/disturbing/gitstalk-deploy` (private; the `gitstalk` org did not exist, so it is under the owner's account and can be transferred later). Its `main` is the public `prototype` history plus commits of its own: `environments/{production,staging,legacy,legacy-staging}/{env.jsonc,resources.json}` and `.github/workflows/sync-upstream.yml`. Nothing secret. Until this change is merged upstream, `main` carries this branch's commits too. A local clone: `git clone https://github.com/disturbing/gitstalk-deploy && git remote add upstream https://github.com/disturbing/beanstalk.git`.
+
+**Workflows**
+
+- `deploy.yml` (from the public repo, so upstream improves it): staging on every push to `main` (or `prototype`, for a soft fork); production on `workflow_dispatch` with `environment: production`, or on a pushed `production-*` tag, through the GitHub environment `production`. Steps: checkout (full history, for the runner image's tag), free disk space, pnpm, Node 24, `pnpm install --frozen-lockfile`, `pnpm check`, a clear failure if `CLOUDFLARE_API_TOKEN` is absent, then `env:provision`, `env:secrets`, `env:deploy`, `env:smoke`. One run per environment at a time, never cancelled. Wrangler builds the three container images (runner, actions-runner, ssh-server) with the runner's Docker on `ubuntu-latest`, which is amd64, the platform Cloudflare Containers run; each Dockerfile's build context is the repo root (`image_build_context: "../.."`), which the checkout provides.
+- `sync-upstream.yml` (deploy repo only): hourly at :17 and on demand. Fetches upstream `prototype`; if `main` already contains it, stops; otherwise merges (a fast-forward when possible), pushes `main`, and dispatches `deploy.yml` for staging (a push made with `GITHUB_TOKEN` starts no workflow; a dispatch does). On a merge conflict it pushes the upstream commit to `sync/upstream-<sha>` and opens a pull request. `GITHUB_TOKEN` may not push commits that change `.github/workflows/`; when upstream does, the push fails and the job opens an issue, unless the repository secret `SYNC_TOKEN` exists (a fine-grained token for this repository: Contents, Pull requests and Workflows read/write), in which case the push itself starts the deploy.
+
+**GitHub environments** (set with `gh`): `staging` and `production`, each with the secret `GITSTALK_SECRETS_JSON` (8 secrets: actions-executor, gateway, web, ssh). `production` accepts deployments only from branch `main` and tags `production-*`. Required reviewers on a private repository need a paid GitHub plan (the API answered 422), so production is gated by the manual trigger and the branch policy until the owner upgrades. **Missing: `CLOUDFLARE_API_TOKEN`** in both environments; the owner creates it. Until then a run tests the code (`pnpm check`) and stops with that message.
+
+**Cloudflare API token** (dashboard → My Profile → API Tokens → Create Custom Token, or an account-owned token), one for both environments or one each:
+
+| Scope | Permission | Access |
+|---|---|---|
+| Account (the gitstalk zones' account) | Workers Scripts | Edit |
+| Account | D1 | Edit |
+| Account | Workers KV Storage | Edit |
+| Account | Workers R2 Storage | Edit |
+| Account | Queues | Edit |
+| Account | Containers | Edit |
+| Account | Artifacts | Edit |
+| Account | AI Gateway | Edit |
+| Account | Workers AI | Read |
+| Account | Account Settings | Read |
+| Zone: gitstalk.io and gitstalk.dev | Workers Routes | Edit |
+| Zone: gitstalk.io and gitstalk.dev | DNS | Edit |
+| Zone: gitstalk.io and gitstalk.dev | SSL and Certificates | Edit |
+| Zone: gitstalk.io and gitstalk.dev | Zone | Read |
+
+Store it with `gh secret set CLOUDFLARE_API_TOKEN --env staging --repo disturbing/gitstalk-deploy` (then `--env production`), pasting the value at the prompt.
+
+### 13.5 Runbook
+
+- **Routine**: merge to the public `prototype`; within the hour sync-upstream merges it into the deploy repo's `main` and staging deploys. Production: Actions → deploy → Run workflow → `production`, or push a `production-<date>` tag in the deploy repo.
+- **From the owner's machine** (a clone of the deploy repo, `environments/<env>/secrets/` restored from the backup): `pnpm install`, `wrangler login`, then `pnpm env:provision <env>`, `pnpm env:secrets <env>`, `pnpm env:deploy <env>`, `pnpm env:smoke <env>`. The first provision's secrets are backed up in `~/Workspace/gitstalk-secrets-backup/{staging,production}/` (owner-only permissions) and stored in the GitHub environments.
+- **Rotate a secret**: edit `secrets/<pkg>.vars` (never `ACTIONS_SECRETS_KEY` while stored Actions secrets matter), `pnpm env:secrets <env>`, then `pnpm env:secrets <env> --to-github disturbing/gitstalk-deploy`.
+- **A new resource or migration upstream**: nothing to do; CI's provision creates it and migrates D1 before deploying. Provision rewrites `resources.json` on the runner only; when a new id appears, commit the file from a local provision so local runs match.
+- **If the public merge of this change is a squash or rebase**, the next sync conflicts on files both sides changed and opens a pull request; resolve it by taking upstream's side for everything outside `environments/` and `sync-upstream.yml`.
+
+### 13.6 Results (2026-10-10)
+
+The account answered every product with no billing or plan error: Workers, D1, KV, R2, Queues, Containers (three applications per environment), Artifacts namespaces and Custom Domains, all from this machine with the Wrangler OAuth login. Both zones are on the Free plan.
+
+| Check | Staging (gitstalk.dev) | Production (gitstalk.io) |
+|---|---|---|
+| `env:provision` | 2 D1 (10 + 6 migrations), KV, 3 R2 (logs with 30-day expiry), queue, 2 Artifacts namespaces | same |
+| `env:deploy` | 6 Workers, first deploy through the bootstrap pass, 4 custom domains | same |
+| `env:smoke` (gateway, sign-up page, MCP metadata, docs) | ok | ok; with a token also `whoami` and `git clone https://gitstalk.io/<handle>/smoke-repo.git` |
+| Passkey sign-up (headless Chrome, virtual authenticator), Empty repository, write token | ok | ok |
+| Clone from the web host, push `bean/smoke` with `-o wait` | landed and validated onto the stalk | landed (pre-land check 6.5 s) and validated |
+| `.github/workflows/ci.yml` | run by hand: succeeded (14 s); a "stalk moved" run too | run by hand: succeeded (18 s); a "stalk moved" run too |
+| `.gitstalk/automations/hello.yml` (`harness: shell`) run by hand | succeeded | succeeded |
+| Agent automation (`@cf/moonshotai/kimi-k2.7-code` through AI Gateway `default`) | succeeded: 3 model calls, $0.0045 | not run |
+| MCP `initialize` with the token at `mcp.<host>/mcp` | `serverInfo.name: gitstalk` | same |
+| Site at the apex | landing at `/` signed out, `/docs/`, `/about`, `/site.css` | same |
+| Throwaway accounts deleted | yes (`gs-smoke-*`; two half-made ones from a script error removed with SQL, they had no repositories) | yes; 0 users left |
+
+Not done: an MCP OAuth sign-in from Claude Code (`claude mcp login`) against `mcp.gitstalk.dev` needs a person at a browser; the OAuth metadata and a token-authenticated `initialize` were checked instead. No Actions job asked for an OIDC token; the issuer's discovery document answers on `api.<host>`.

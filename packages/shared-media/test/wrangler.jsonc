@@ -8,6 +8,6 @@
   "compatibility_date": "2026-10-08",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true, "traces": { "enabled": true } },
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "beanstalk-media" }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "gitstalk-media" }],
   "images": { "binding": "IMAGES" },
 }

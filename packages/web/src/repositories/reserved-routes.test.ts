@@ -32,19 +32,12 @@ describe('handles and the app’s routes', () => {
     expect(isReservedOwner(route)).toBe(true);
   });
 
-  it.each([
-    'git',
-    'mcp',
-    'oauth',
-    'tokens',
-    'admin',
-    'about',
-    'signin',
-    'logout',
-    'beanstalk-race',
-  ])('reserves %s, which other Workers or the product take', (name) => {
-    expect(Handle.safeParse(name).success).toBe(false);
-  });
+  it.each(['git', 'mcp', 'oauth', 'tokens', 'admin', 'about', 'signin', 'logout', 'gitstalk-race'])(
+    'reserves %s, which other Workers or the product take',
+    (name) => {
+      expect(Handle.safeParse(name).success).toBe(false);
+    },
+  );
 
   it('still accepts an ordinary handle', () => {
     expect(Handle.safeParse('coop').success).toBe(true);

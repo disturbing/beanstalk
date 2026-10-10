@@ -17,6 +17,7 @@
     "env:deploy": "node scripts/environments.mjs deploy",
     "env:verify": "node scripts/environments.mjs verify",
     "env:smoke": "node scripts/environments.mjs smoke",
+    "env:secrets": "node scripts/environments.mjs secrets",
     "skills:update": "npx -y skills@latest update -p -y"
   },
   "devDependencies": {

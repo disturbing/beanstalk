@@ -6,5 +6,5 @@
     "types": ["./worker-configuration.d.ts", "vinext/types", "vite/client"],
     "paths": { "@/*": ["./*"] }
   },
-  "include": ["app", "components", "src", "scripts", "*.ts", "worker-configuration.d.ts"]
+  "include": ["app", "components", "src", "scripts", "worker", "*.ts", "worker-configuration.d.ts"]
 }

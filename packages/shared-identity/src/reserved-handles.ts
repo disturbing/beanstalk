@@ -58,7 +58,10 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   'mcp',
   'v1',
   'healthz',
-  // The gateway's Artifacts namespaces: `/git/<namespace>/…` is a race's proxy path.
+  // The gateway's Artifacts namespaces: `/git/<namespace>/…` is a race's proxy path
+  // (gitstalk-* since the domain move; the old stack's beanstalk-* names stay reserved).
+  'gitstalk-race',
+  'gitstalk-repos',
   'beanstalk-race',
   'beanstalk-repos',
   // Product words that would read as official.

@@ -12,8 +12,8 @@ export { FakeRunner } from './fake-runner.js';
 
 const HOST = 'https://acct.artifacts.test';
 const PERSON = { name: 'fake', email: 'fake@beanstalk.invalid' };
-const RACE_NAMESPACE = 'beanstalk-race';
-const REPOS_NAMESPACE = 'beanstalk-repos';
+const RACE_NAMESPACE = 'gitstalk-race';
+const REPOS_NAMESPACE = 'gitstalk-repos';
 const counter = { tokens: 0 };
 
 function artifactsError(code, message) {

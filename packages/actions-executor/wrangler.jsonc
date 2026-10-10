@@ -8,7 +8,7 @@
   // container when the job ends. A separate Worker from the gateway: untrusted job I/O and the
   // 400 MB image never ride the engine's deploys, and the job container's outbound handlers
   // see only this Worker's bindings.
-  "name": "beanstalk-actions-executor",
+  "name": "gitstalk-actions-executor",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-08",
   "compatibility_flags": ["nodejs_compat"],
@@ -67,12 +67,12 @@
   ],
   // The gateway's executor sink entrypoint: secrets, log batches and results, by report token.
   "services": [
-    { "binding": "ACTIONS_JOBS", "service": "beanstalk-gateway", "entrypoint": "ActionsJobs" },
+    { "binding": "ACTIONS_JOBS", "service": "gitstalk-gateway", "entrypoint": "ActionsJobs" },
   ],
   // Standalone mode only: where log batches go without the control plane.
   "r2_buckets": [
-    { "binding": "ACTIONS_LOGS", "bucket_name": "beanstalk-actions-logs" },
+    { "binding": "ACTIONS_LOGS", "bucket_name": "gitstalk-actions-logs" },
     // Dependency snapshots: deps/<repository id>/{chunks,manifests}/..., per repository only.
-    { "binding": "DEPS_CACHE", "bucket_name": "beanstalk-deps-cache" },
+    { "binding": "DEPS_CACHE", "bucket_name": "gitstalk-deps-cache" },
   ],
 }

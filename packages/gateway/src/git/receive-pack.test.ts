@@ -79,11 +79,11 @@ const url = (path: string): URL => new URL(`https://gw.test${path}`);
 describe('git paths', () => {
   it('recognises the smart-HTTP endpoints and the access they need', () => {
     const advert = parseGitPath(
-      url('/git/beanstalk-race/race-abc123def4-t001.git/info/refs?service=git-receive-pack'),
+      url('/git/gitstalk-race/race-abc123def4-t001.git/info/refs?service=git-receive-pack'),
       'GET',
     );
     const upload = parseGitPath(
-      url('/git/beanstalk-race/race-abc123def4.git/git-upload-pack'),
+      url('/git/gitstalk-race/race-abc123def4.git/git-upload-pack'),
       'POST',
     );
 

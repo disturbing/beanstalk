@@ -12,7 +12,7 @@ describe('admin routes', () => {
     expect(run.run).toMatch(/^[a-z0-9]{10}$/);
     expect(run.repo).toEqual({
       name: `race-${run.run}`,
-      url: `https://gateway.test/git/beanstalk-race/race-${run.run}.git`,
+      url: `https://gateway.test/git/gitstalk-race/race-${run.run}.git`,
       sprout: 'refs/heads/sprout',
       stalk: 'refs/heads/stalk',
     });

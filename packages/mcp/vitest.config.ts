@@ -27,8 +27,8 @@ const forgeMigrations = await readD1Migrations(path.join(here, '../gateway/migra
  * One identity database and one registry for both Workers, as deployed: a session token the
  * MCP Worker mints is the credential the gateway's git proxy checks.
  */
-const IDENTITY_DB_ID = 'local-beanstalk-identity'; // wrangler.jsonc's placeholder id
-const FORGE_DB_ID = 'beanstalk-forge-mcp-test';
+const IDENTITY_DB_ID = 'local-gitstalk-identity'; // wrangler.jsonc's placeholder id
+const FORGE_DB_ID = 'gitstalk-forge-mcp-test';
 
 export default defineConfig({
   plugins: [
@@ -39,8 +39,8 @@ export default defineConfig({
         compatibilityDate,
         bindings: {
           LOG_LEVEL: 'error',
-          PUBLIC_URL: 'https://beanstalk-mcp.example.workers.dev',
-          WEB_URL: 'https://beanstalk-web.example.workers.dev',
+          PUBLIC_URL: 'https://gitstalk-mcp.example.workers.dev',
+          WEB_URL: 'https://gitstalk-web.example.workers.dev',
           GIT_ORIGIN: 'https://gateway.example.test',
           DEMO_RUN: 'j6boaclinn',
           TEST_MIGRATIONS: identityMigrations,
@@ -48,7 +48,7 @@ export default defineConfig({
         },
         d1Databases: { FORGE: FORGE_DB_ID },
         serviceBindings: {
-          GATEWAY: 'beanstalk-gateway',
+          GATEWAY: 'gitstalk-gateway',
           // Tests plant files on a repository's sprout in the fake Artifacts.
           FAKE_REPOS: { name: 'fake-artifacts', entrypoint: 'FakeRepositories' },
           FAKE_GIT: { name: 'fake-artifacts', entrypoint: 'FakeGitRemote' },
@@ -68,7 +68,7 @@ function auxiliaryWorkers() {
   // Inline external fixtures: the pool resolves auxiliary module paths from the MCP root.
   return [
     {
-      name: 'beanstalk-gateway',
+      name: 'gitstalk-gateway',
       modules: true,
       scriptPath: gatewayScript,
       compatibilityDate,
@@ -77,7 +77,7 @@ function auxiliaryWorkers() {
         ADMIN_TOKEN: 'mcp-test-admin-token-0123456789abcdef',
         RUN_TOKEN_SECRET: 'mcp-test-signing-secret-0123456789abcdef',
         LOG_LEVEL: 'error',
-        ARTIFACTS_NAMESPACE: 'beanstalk-race',
+        ARTIFACTS_NAMESPACE: 'gitstalk-race',
         RUN_TOKEN_TTL_SECONDS: '3600',
         ARTIFACTS_TOKEN_TTL_SECONDS: '600',
         PUBLIC_URL: 'https://gateway.example.test',

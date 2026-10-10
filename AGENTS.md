@@ -6,8 +6,8 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 
 ## Stack (decided)
 
-- **Name**: the product is Gitstalk (owner, 2026-10-10; it was Beanstalk). The growing-beanstalk metaphor stays (beans, sprout, stalk, `bean/<name>`, `refs/beans/*`). Deployed Worker and resource names stay `beanstalk-*` until the domain move (`docs/claude-opus/30-environments.md` §12); a repository's config is `.gitstalk/` (`.beanstalk/` still read), variables are `GITSTALK_*` (`BEANSTALK_*` still read).
-- **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@gitstalk/<name>`, Worker `beanstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
+- **Name**: the product is Gitstalk (owner, 2026-10-10; it was Beanstalk). The growing-beanstalk metaphor stays (beans, sprout, stalk, `bean/<name>`, `refs/beans/*`). Templates name Workers and resources `gitstalk-*` (the hosted service on gitstalk.io / gitstalk.dev); an environment's `prefix` keeps the old account's stack on `beanstalk-*` until it is retired (`docs/claude-opus/30-environments.md` §12-§13); a repository's config is `.gitstalk/` (`.beanstalk/` still read), variables are `GITSTALK_*` (`BEANSTALK_*` still read).
+- **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@gitstalk/<name>`, Worker `gitstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
 - **Workers**: TypeScript, Hono router inside a `WorkerEntrypoint` default export, RPC between Workers through service bindings (never HTTP). One `wrangler.jsonc` per package; Wrangler is the deploy tool for every package (not the beta `cf` CLI) until after the deadline.
 - **Containers**: Rust (axum, tokio), one crate per image under `packages/<name>` with its Dockerfile, owned by a Container Durable Object in a Worker package. Root `Cargo.toml` is a workspace created with the first crate.
 - **Web app**: vinext (Next.js App Router on Workers) in `packages/web`; bindings through `import { env } from 'cloudflare:workers'`; data via service-binding RPC to the gateway.
@@ -22,6 +22,7 @@ pnpm -F @gitstalk/<name> dev      # also: test, types (regenerate worker-configu
 pnpm rust:check                    # cargo fmt --check, clippy -D warnings, cargo test
 pnpm skills:update                 # refresh vendored Cloudflare skills (skills-lock.json)
 pnpm env:provision <env>           # environments/<env>: create resources, secrets, migrate D1 (docs/claude-opus/30)
+pnpm env:secrets <env>             # push Worker secrets (GITSTALK_SECRETS_JSON or secrets/*.vars); never prints values
 pnpm env:deploy <env>              # check secrets, deploy every package in order (--dry-run, --only); never `wrangler deploy` a template
 ```
 

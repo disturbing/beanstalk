@@ -25,11 +25,11 @@ describe('account requests', () => {
   it('uses the request host as the passkey relying party', () => {
     expect(
       relyingParty(
-        new Request('https://beanstalk-web-staging.example.workers.dev/api/auth/passkey/signup'),
+        new Request('https://gitstalk-web-staging.example.workers.dev/api/auth/passkey/signup'),
       ),
     ).toEqual({
-      id: 'beanstalk-web-staging.example.workers.dev',
-      origin: 'https://beanstalk-web-staging.example.workers.dev',
+      id: 'gitstalk-web-staging.example.workers.dev',
+      origin: 'https://gitstalk-web-staging.example.workers.dev',
       name: 'Gitstalk',
     });
   });

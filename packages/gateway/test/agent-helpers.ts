@@ -34,7 +34,7 @@ export async function plantOnSprout(
   const refs = ['refs/heads/sprout', 'refs/heads/stalk'].map((ref) => ({ ref, newSha: sha }));
   const commits = { [sha]: { message: 'Plant files', parents: [], files } };
   const response = await fetch(
-    `${ARTIFACTS_HOST}/git/beanstalk-repos/${record.artifacts_repo}.git/git-receive-pack`,
+    `${ARTIFACTS_HOST}/git/gitstalk-repos/${record.artifacts_repo}.git/git-receive-pack`,
     {
       method: 'POST',
       headers: { authorization: `Bearer ${plaintext}` },

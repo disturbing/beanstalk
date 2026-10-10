@@ -204,11 +204,37 @@ pnpm env:deploy staging                      <span class="c"># --dry-run checks 
           <p>
             <code>env:deploy</code> writes each package's config for the environment, stops if a
             required secret is missing, then deploys the Actions executor, the gateway with its
-            runner container, the MCP server, the web app, SSH and the site, in that order. With the
-            suffix <code>-staging</code> every Worker and resource gets it:
-            <code>beanstalk-gateway-staging</code>, <code>beanstalk-forge-staging</code>. An empty
-            suffix keeps the base names. An emergency stop for everything:
+            runner container, the MCP server, the site, the web app and SSH, in that order. Every
+            Worker and resource is named <code>&lt;prefix&gt;-&lt;name&gt;&lt;suffix&gt;</code>: the
+            prefix defaults to <code>gitstalk</code>, and with the suffix <code>-staging</code> you
+            get <code>gitstalk-gateway-staging</code> and <code>gitstalk-forge-staging</code>. An
+            empty suffix keeps the base names. An emergency stop for everything:
             <code>POST /v1/admin/halt</code> with the admin token.
+          </p>
+
+          <h2 id="domains">Your own domains</h2>
+          <p>
+            Without <code>urls</code>, every Worker answers on its <code>workers.dev</code> address.
+            To use your own hostnames, put the zone in the same Cloudflare account and name one
+            origin per package in <code>env.jsonc</code>. Each becomes a Workers Custom Domain of
+            that Worker (Cloudflare creates the DNS record and the certificate on deploy), and every
+            address the code prints follows: clone URLs, the MCP URL, the docs link, the OAuth and
+            Actions OIDC issuers.
+          </p>
+          <pre><code>"urls": {
+  "web": "https://git.example.com",       <span class="c"># the app, and git: https://git.example.com/&lt;owner&gt;/&lt;repo&gt;.git</span>
+  "site": "https://git.example.com",      <span class="c"># same origin: the web serves the site's pages</span>
+  "mcp": "https://mcp.git.example.com",   <span class="c"># agents connect to /mcp</span>
+  "gateway": "https://api.git.example.com", <span class="c"># Actions jobs and the OIDC issuer /_actions/oidc</span>
+  "ssh": "https://ssh.git.example.com"
+}</code></pre>
+          <p>
+            When <code>site</code> and <code>web</code> share an origin, the web app hands the
+            site's paths to the site Worker over a service binding: <code>/docs/</code>, the site's
+            files and pages, and <code>/</code> for someone signed out. Passkeys belong to the web
+            app's hostname, so pick it before people sign up. Git over SSH on port 22 needs
+            Spectrum, which a zone on the Free plan does not have; without it, leave
+            <code>SSH_TUNNEL</code> on and people use HTTPS.
           </p>
 
           <h2 id="secrets">Secrets each Worker needs</h2>
@@ -249,10 +275,14 @@ pnpm env:deploy staging                      <span class="c"># --dry-run checks 
             </table>
           </div>
           <p>
-            A secret already set on the Worker counts, so a deploy from CI needs only a Cloudflare
-            API token. Provision never replaces a secret a Worker already has: a new
-            <code>ACTIONS_SECRETS_KEY</code> would make every stored Actions secret unreadable.
+            A secret already set on the Worker counts. Provision never replaces a secret a Worker
+            already has: a new <code>ACTIONS_SECRETS_KEY</code> would make every stored Actions
+            secret unreadable, so keep a backup of <code>secrets/</code>.
+            <code>pnpm env:secrets staging</code> pushes the values to the Workers (they are never
+            printed). For CI, store them once from your machine as the GitHub environment secret
+            <code>GITSTALK_SECRETS_JSON</code>:
           </p>
+          <pre><code>pnpm env:secrets staging --to-github &lt;owner&gt;/&lt;private repository&gt;</code></pre>
 
           <h2 id="fork">Keep your environments in a private fork</h2>
           <p>
@@ -263,18 +293,38 @@ pnpm env:deploy staging                      <span class="c"># --dry-run checks 
 cd my-gitstalk
 git remote rename origin upstream
 git remote add origin &lt;your private repository&gt;
+git checkout -b main
 git add -f environments/staging/env.jsonc environments/staging/resources.json
 git commit -m "environments: staging"
-git push -u origin prototype
+git push -u origin main
 
 git fetch upstream &amp;&amp; git merge upstream/prototype   <span class="c"># later: stay in sync</span></code></pre>
           <p>
             Your fork only adds files under <code>environments/</code>, which upstream never writes,
-            so the merge never conflicts. Never add <code>secrets/</code>. A
-            <code>deploy</code> workflow in <code>.github/workflows/</code> deploys staging on every
-            push and production when you run it by hand; it does nothing in a repository without
-            <code>environments/&lt;name&gt;/env.jsonc</code>.
+            so the merge does not conflict. Never add <code>secrets/</code>. A scheduled workflow
+            can do the merge for you: fetch upstream, merge (a pull request when it conflicts),
+            push.
           </p>
+          <p>
+            The <code>deploy</code> workflow in <code>.github/workflows/</code> deploys staging on
+            every push to <code>main</code>, and production only when you run it by hand or push a
+            <code>production-*</code> tag, through the GitHub environment <code>production</code>,
+            where you can require a reviewer. Each run checks the code, provisions, pushes the
+            secrets, deploys and smoke-tests. It does nothing in a repository without
+            <code>environments/&lt;name&gt;/env.jsonc</code>. Each GitHub environment
+            (<code>staging</code>, <code>production</code>) needs two secrets:
+          </p>
+          <ul>
+            <li>
+              <code>CLOUDFLARE_API_TOKEN</code>: an account token with edit on Workers Scripts, D1,
+              Workers KV Storage, Workers R2 Storage, Queues, Containers, Artifacts and AI Gateway,
+              read on Account Settings, and for your zones edit on Workers Routes, DNS and SSL and
+              Certificates, read on Zone.
+            </li>
+            <li>
+              <code>GITSTALK_SECRETS_JSON</code>: set with <code>env:secrets --to-github</code>.
+            </li>
+          </ul>
 
           <h2 id="runs-on">What it runs on</h2>
           <div class="tbl">

@@ -8,7 +8,7 @@ import { insertUser } from '@gitstalk/shared-identity/users';
 import { ADMIN, call, json, pkt, sha } from './helpers';
 
 /**
- * Git over SSH, the gateway's half: the `beanstalk-ssh` Worker calls these two RPC methods with
+ * Git over SSH, the gateway's half: the `gitstalk-ssh` Worker calls these two RPC methods with
  * the client's public key once the SSH server has checked its signature. ACME_KEY is registered
  * to @acme in the accounts store (as Settings → SSH keys does); OTHER_KEY is nobody's.
  */
@@ -170,11 +170,7 @@ describe('git over SSH: the same flow as HTTPS', () => {
   });
 
   it('serves no race repository over SSH', async () => {
-    const response = await advertise(
-      ACME_KEY,
-      '/git/beanstalk-race/race-r1.git',
-      'git-upload-pack',
-    );
+    const response = await advertise(ACME_KEY, '/git/gitstalk-race/race-r1.git', 'git-upload-pack');
     expect(response.status).toBe(404);
     expect(await response.text()).toContain('race repos are served over HTTPS');
   });

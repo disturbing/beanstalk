@@ -24,7 +24,7 @@ import {
  * with a person's token, the real gateway behind its service binding (registry, engine,
  * git proxy) and the fake Artifacts and runner.
  */
-const ORIGIN = 'https://beanstalk-mcp.example.workers.dev';
+const ORIGIN = 'https://gitstalk-mcp.example.workers.dev';
 const clients: Client[] = [];
 
 afterEach(async () => {

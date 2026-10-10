@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "beanstalk-site",
+  "name": "gitstalk-site",
   // The marketing site: static files only, served as Workers static assets (no Worker script).
   "compatibility_date": "2026-10-05",
   "observability": { "enabled": true, "traces": { "enabled": true } },

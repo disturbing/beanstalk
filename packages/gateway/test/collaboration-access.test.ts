@@ -105,7 +105,7 @@ describe('independent contributor capabilities', () => {
     expect(driver.status).toBe(403);
     const git = await call(
       'GET',
-      `/git/beanstalk-race/${run.repo.name}.git/info/refs?service=git-upload-pack`,
+      `/git/gitstalk-race/${run.repo.name}.git/info/refs?service=git-upload-pack`,
       { token: contributor.token },
     );
     expect(git.status).toBe(403);

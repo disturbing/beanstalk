@@ -209,7 +209,7 @@ function message(engine: string, events: readonly RepoEvent[]) {
 
 /** The consumer on a hand-made batch, as the queue would call it; then each message's fate. */
 async function consume(messages: Parameters<typeof createMessageBatch>[1]) {
-  const batch = createMessageBatch('beanstalk-repo-events', messages);
+  const batch = createMessageBatch('gitstalk-repo-events', messages);
   await consumeRepoEvents(batch, {
     db: env.FORGE,
     registry: d1Registry(env.FORGE),

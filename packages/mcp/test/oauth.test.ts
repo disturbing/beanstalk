@@ -15,8 +15,8 @@ import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { repository, slug } from './repo-fixtures';
 
-const ORIGIN = 'https://beanstalk-mcp.example.workers.dev';
-const WEB_URL = 'https://beanstalk-web.example.workers.dev';
+const ORIGIN = 'https://gitstalk-mcp.example.workers.dev';
+const WEB_URL = 'https://gitstalk-web.example.workers.dev';
 const REDIRECT = 'http://localhost:33418/callback';
 
 type Mcp = {

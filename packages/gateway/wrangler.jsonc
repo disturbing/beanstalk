@@ -3,7 +3,7 @@
   // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
   // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
   // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
-  "name": "beanstalk-gateway",
+  "name": "gitstalk-gateway",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-03",
   "compatibility_flags": ["nodejs_compat"],
@@ -11,7 +11,7 @@
   "vars": {
     "LOG_LEVEL": "info",
     // Must match the namespace of the ARTIFACTS binding below; the git proxy serves /git/<namespace>/.
-    "ARTIFACTS_NAMESPACE": "beanstalk-race",
+    "ARTIFACTS_NAMESPACE": "gitstalk-race",
     "RUN_TOKEN_TTL_SECONDS": "3600",
     // §3: per-job Artifacts tokens live at most 10 minutes.
     "ARTIFACTS_TOKEN_TTL_SECONDS": "600",
@@ -23,7 +23,7 @@
     // Actions jobs (docs/claude-opus/25-actions-and-automations.md).
     "PUBLIC_URL": "http://localhost:8787",
     // Actions (doc 25 §3.8, D9): "stub" runs jobs on the built-in echo executor; "service" calls
-    // the ACTIONS_EXECUTOR service binding (beanstalk-actions-executor, one container per job,
+    // the ACTIONS_EXECUTOR service binding (gitstalk-actions-executor, one container per job,
     // docs/claude-opus/26-actions-job-executor.md). Limits are per repository.
     "ACTIONS_EXECUTOR_MODE": "service",
     // The executor's container class max_instances: RunnerCapacity holds Actions leases to it.
@@ -40,7 +40,7 @@
   "ai": { "binding": "AI" },
   // The Actions job executor (packages/actions-executor); it calls back through this Worker's
   // `ActionsJobs` entrypoint. Deploy it with (or before) a gateway in "service" mode.
-  "services": [{ "binding": "ACTIONS_EXECUTOR", "service": "beanstalk-actions-executor" }],
+  "services": [{ "binding": "ACTIONS_EXECUTOR", "service": "gitstalk-actions-executor" }],
   // ADMIN_TOKEN guards the admin API; RUN_TOKEN_SECRET signs slot, seed and view tokens.
   // Locally they come from .dev.vars (see .dev.vars.example); remotely from `wrangler secret put`.
   // ACTIONS_SECRETS_KEY: 32 random bytes, base64; encrypts Actions secrets at rest (AES-GCM).
@@ -90,18 +90,18 @@
   // sweep deletes once their race is over; REPOS holds people's repositories (`repo-<id>`),
   // which the sweep never lists (docs/claude-opus/20-repositories.md §2).
   "artifacts": [
-    { "binding": "ARTIFACTS", "namespace": "beanstalk-race", "remote": true },
-    { "binding": "REPOS", "namespace": "beanstalk-repos", "remote": true },
+    { "binding": "ARTIFACTS", "namespace": "gitstalk-race", "remote": true },
+    { "binding": "REPOS", "namespace": "gitstalk-repos", "remote": true },
   ],
   // repo-events (docs/claude-opus/20-repositories.md §6, backlog 2.6): repository engines send
   // landings, promotions, reverts, decisions and bean events; this Worker's own consumer
   // writes the D1 indexes (beans, decisions, repo_daily, repo_lines, activity). Batches do not
   // wait to fill (max_batch_timeout 0): delivery is the index's whole delay.
   "queues": {
-    "producers": [{ "binding": "REPO_EVENTS", "queue": "beanstalk-repo-events" }],
+    "producers": [{ "binding": "REPO_EVENTS", "queue": "gitstalk-repo-events" }],
     "consumers": [
       {
-        "queue": "beanstalk-repo-events",
+        "queue": "gitstalk-repo-events",
         "max_batch_size": 100,
         "max_batch_timeout": 0,
         "max_retries": 10,
@@ -115,22 +115,22 @@
   "d1_databases": [
     {
       "binding": "FORGE",
-      "database_name": "beanstalk-forge",
-      "database_id": "local-beanstalk-forge",
+      "database_name": "gitstalk-forge",
+      "database_id": "local-gitstalk-forge",
       "migrations_dir": "migrations",
     },
     {
       "binding": "IDENTITY_DB",
-      "database_name": "beanstalk-identity",
-      "database_id": "local-beanstalk-identity",
+      "database_name": "gitstalk-identity",
+      "database_id": "local-gitstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],
   // Product analytics (docs/claude-opus/19 §10): a bean pushed to a person's repository. The
   // web app writes sign-up, connect and repository-created events to the same dataset.
   // Actions job logs: gzip chunks under <owner>/<repo>/<run>/<job>/, deleted after 30 days by
-  // the bucket's lifecycle rule (`wrangler r2 bucket lifecycle add beanstalk-actions-logs
+  // the bucket's lifecycle rule (`wrangler r2 bucket lifecycle add gitstalk-actions-logs
   // expire-logs --expire-days 30`). Never stored in Durable Objects.
-  "r2_buckets": [{ "binding": "ACTIONS_LOGS", "bucket_name": "beanstalk-actions-logs" }],
+  "r2_buckets": [{ "binding": "ACTIONS_LOGS", "bucket_name": "gitstalk-actions-logs" }],
   "analytics_engine_datasets": [{ "binding": "PRODUCT_EVENTS", "dataset": "product_events" }],
 }

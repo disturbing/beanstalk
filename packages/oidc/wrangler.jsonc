@@ -3,9 +3,9 @@
   // /_actions/oidc. The same routes (`createOidcApp` from @gitstalk/shared-oidc) can be mounted
   // inside the gateway; this Worker is the standalone form used for staging and for self-hosters
   // who want the issuer on its own hostname. Each environment deploys it as
-  // `beanstalk-oidc<suffix>` (`pnpm env:deploy <env>`).
+  // `gitstalk-oidc<suffix>` (`pnpm env:deploy <env>`).
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "beanstalk-oidc",
+  "name": "gitstalk-oidc",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-08",
   "compatibility_flags": ["nodejs_compat"],

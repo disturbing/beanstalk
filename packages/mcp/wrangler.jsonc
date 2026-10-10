@@ -3,7 +3,7 @@
   // A template: names are the base (production) names, ids are `local-*` placeholders and URLs
   // point at local dev. `pnpm env:generate <env>` writes wrangler.<env>.jsonc beside it with the
   // environment's suffixed names, ids and origins (docs/claude-opus/30-environments.md).
-  "name": "beanstalk-mcp",
+  "name": "gitstalk-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-04",
   // AsyncLocalStorage, which the Agents SDK's MCP handler uses. global_fetch_strictly_public:
@@ -34,17 +34,17 @@
   // Workers AI, for Jev; billed to the account, no API key involved.
   "ai": { "binding": "AI", "remote": true },
   // Every read goes through the gateway over RPC; the run-token check too (`verifyMcpToken`).
-  "services": [{ "binding": "GATEWAY", "service": "beanstalk-gateway" }],
+  "services": [{ "binding": "GATEWAY", "service": "gitstalk-gateway" }],
   // OAuth clients, grants and tokens (@cloudflare/workers-oauth-provider stores only hashes),
-  // plus pending consent requests. KV namespace `beanstalk-oauth`.
-  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "local-beanstalk-oauth" }],
+  // plus pending consent requests. KV namespace `gitstalk-oauth`.
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "local-gitstalk-oauth" }],
   // Accounts (docs/claude-opus/19-accounts-and-auth.md): grants are audited here and session
   // git tokens minted here. Schema: packages/shared-identity/migrations.
   "d1_databases": [
     {
       "binding": "IDENTITY_DB",
-      "database_name": "beanstalk-identity",
-      "database_id": "local-beanstalk-identity",
+      "database_name": "gitstalk-identity",
+      "database_id": "local-gitstalk-identity",
       "migrations_dir": "../shared-identity/migrations",
     },
   ],

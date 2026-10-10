@@ -105,7 +105,7 @@ export async function plantOnSprout(
   const body = `${pkt(`${ZERO} ${sha} refs/heads/sprout\0report-status\n`)}${pkt(`${ZERO} ${sha} refs/heads/stalk\n`)}0000PACK${JSON.stringify({ commits: { [sha]: { message: 'Plant', parents: [], files } } })}`;
   const git: unknown = Reflect.get(env, 'FAKE_GIT');
   const response: unknown = await Reflect.apply(Reflect.get(Object(git), 'fetch'), git, [
-    `${ARTIFACTS_HOST}/git/beanstalk-repos/${repo.artifacts_repo}.git/git-receive-pack`,
+    `${ARTIFACTS_HOST}/git/gitstalk-repos/${repo.artifacts_repo}.git/git-receive-pack`,
     { method: 'POST', headers: { authorization: `Bearer ${plaintext}` }, body },
   ]);
   if (!(response instanceof Response) || !response.ok) throw new Error('planting failed');

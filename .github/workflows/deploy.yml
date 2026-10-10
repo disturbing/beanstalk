@@ -1,19 +1,28 @@
-# Deploys a fork's environments (docs/claude-opus/30-environments.md): staging on every push to
-# prototype, production on a manual run. Each job runs only when its environment is configured,
-# either committed (environments/<env>/env.jsonc) or as GitHub environment variables (a soft fork:
-# GITSTALK_ENV_CONFIG, GITSTALK_ENV_RESOURCES, optionally GITSTALK_ACCOUNT_ID; the BEANSTALK_*
-# names from before the rename are passed too and read when the GITSTALK_* one is empty), so in
-# the public repository, which has neither, nothing deploys. GITSTALK_SUFFIX is deliberately not
-# passed: an unset GitHub variable reads as "", which would deploy staging onto production names.
+# Deploys a deployment repository's environments (docs/claude-opus/30-environments.md §8, §13):
+# staging on every push to main (a private deploy repo such as gitstalk-deploy) or prototype (a
+# soft fork), production only on a manual run or a `production-*` tag, through the GitHub
+# environment `production` (add required reviewers there). Each run: pnpm check, then
+# env:provision (create missing resources, migrate D1), env:secrets, env:deploy and env:smoke.
 #
-# Needs one repository secret, CLOUDFLARE_API_TOKEN (edit: Workers Scripts, D1, Workers KV,
-# R2, Queues, Containers, Artifacts). Worker secrets are not passed: the Workers already hold
-# them, and `env:deploy` fails if a required one is missing.
+# An environment is configured either committed (environments/<env>/env.jsonc + resources.json,
+# the deploy repo) or as GitHub environment variables (a soft fork: GITSTALK_ENV_CONFIG,
+# GITSTALK_ENV_RESOURCES, optionally GITSTALK_ACCOUNT_ID; the BEANSTALK_* names from before the
+# rename are passed too). In the public repository, which has neither, nothing deploys.
+# GITSTALK_SUFFIX is deliberately not passed: an unset variable reads as "", production's names.
+#
+# Per GitHub environment (staging, production):
+#   secret CLOUDFLARE_API_TOKEN   account: Workers Scripts, D1, Workers KV Storage, Workers R2
+#                                 Storage, Queues, Containers, Artifacts, AI Gateway (edit),
+#                                 Account Settings (read); zone (both zones): Workers Routes, DNS,
+#                                 SSL and Certificates (edit), Zone (read)
+#   secret GITSTALK_SECRETS_JSON  {"<package>": {"NAME": "value"}}, set from the owner's machine
+#                                 with `pnpm env:secrets <env> --to-github <owner>/<repo>`
 name: deploy
 
 on:
   push:
-    branches: [prototype]
+    branches: [main, prototype]
+    tags: ['production-*']
   workflow_dispatch:
     inputs:
       environment:
@@ -23,16 +32,18 @@ on:
         default: staging
 
 concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (startsWith(github.ref, 'refs/tags/production-') && 'production' || 'staging') }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'staging' }}
+    timeout-minutes: 120
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (startsWith(github.ref, 'refs/tags/production-') && 'production' || 'staging') }}
     env:
-      TARGET: ${{ github.event.inputs.environment || 'staging' }}
+      TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (startsWith(github.ref, 'refs/tags/production-') && 'production' || 'staging') }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      GITSTALK_SECRETS_JSON: ${{ secrets.GITSTALK_SECRETS_JSON }}
       GITSTALK_ENV_CONFIG: ${{ vars.GITSTALK_ENV_CONFIG }}
       GITSTALK_ENV_RESOURCES: ${{ vars.GITSTALK_ENV_RESOURCES }}
       GITSTALK_ACCOUNT_ID: ${{ vars.GITSTALK_ACCOUNT_ID }}
@@ -40,11 +51,17 @@ jobs:
       BEANSTALK_ENV_RESOURCES: ${{ vars.BEANSTALK_ENV_RESOURCES }}
       BEANSTALK_ACCOUNT_ID: ${{ vars.BEANSTALK_ACCOUNT_ID }}
     steps:
+      # Full history: the runner image's tag is the last commit that touched its sources.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - id: present
         run: |
           if [ -f "environments/$TARGET/env.jsonc" ] || [ -n "$GITSTALK_ENV_CONFIG" ] || [ -n "$BEANSTALK_ENV_CONFIG" ]; then echo "yes=true" >> "$GITHUB_OUTPUT"
           else echo "no environments/$TARGET/env.jsonc and no GITSTALK_ENV_CONFIG variable: nothing to deploy"; fi
+      # Three Rust container images are built here: make room on the runner's disk.
+      - if: steps.present.outputs.yes == 'true'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
       - if: steps.present.outputs.yes == 'true'
         uses: pnpm/action-setup@v4
       - if: steps.present.outputs.yes == 'true'
@@ -55,4 +72,17 @@ jobs:
       - if: steps.present.outputs.yes == 'true'
         run: pnpm install --frozen-lockfile
       - if: steps.present.outputs.yes == 'true'
+        run: pnpm check
+      # Checked after pnpm check, so a repository without the token still tests the code.
+      - if: steps.present.outputs.yes == 'true' && env.CLOUDFLARE_API_TOKEN == ''
+        run: |
+          echo "::error::the GitHub environment $TARGET has no CLOUDFLARE_API_TOKEN secret (permissions in this file's header)"
+          exit 1
+      - if: steps.present.outputs.yes == 'true'
+        run: pnpm env:provision "$TARGET"
+      - if: steps.present.outputs.yes == 'true'
+        run: pnpm env:secrets "$TARGET"
+      - if: steps.present.outputs.yes == 'true'
         run: pnpm env:deploy "$TARGET"
+      - if: steps.present.outputs.yes == 'true'
+        run: pnpm env:smoke "$TARGET"

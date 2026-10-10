@@ -52,7 +52,7 @@ describe('git proxy', () => {
 
     expect(response.status).toBe(200);
     expect(upstream).toMatchObject({
-      path: `/git/beanstalk-race/${run.repo.name}.git/info/refs`,
+      path: `/git/gitstalk-race/${run.repo.name}.git/info/refs`,
       query: '?service=git-upload-pack',
       authorization: 'Bearer art_v1_',
       scope: 'read',
