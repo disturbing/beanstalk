@@ -7,13 +7,7 @@
 import { SESSION_COOKIE, readCookie } from '@gitstalk/shared-identity/cookies';
 
 /** Site pages reachable without their `.html` (each is a reserved handle, never an owner). */
-const SITE_PAGES: ReadonlySet<string> = new Set([
-  'about',
-  'agent',
-  'human',
-  'privacy',
-  'terms',
-]);
+const SITE_PAGES: ReadonlySet<string> = new Set(['about', 'agent', 'human', 'privacy', 'terms']);
 
 /** Root files the web app serves itself (its static assets never reach the Worker). */
 const WEB_FILES: ReadonlySet<string> = new Set(['setup.sh', 'setup.ps1', 'favicon.ico']);
