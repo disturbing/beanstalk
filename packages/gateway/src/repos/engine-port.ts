@@ -5,7 +5,7 @@
  * (the repository's id), not the address, so a new repository at an address another one left
  * (a rename or a transfer) gets its own engine.
  */
-import type { RepoOwner } from '@beanstalk/shared-race/repos';
+import type { RepoOwner } from '@gitstalk/shared-race/repos';
 
 import type { Deps } from '../deps';
 import { GatewayError } from '../errors';

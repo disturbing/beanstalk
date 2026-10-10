@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
-import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
-import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
-import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
+import { classifierFrom } from '@gitstalk/shared-ask/ask/classifier-from-env';
+import { gatewaySource } from '@gitstalk/shared-ask/forge/gateway-source';
+import { pickerFrom } from '@gitstalk/shared-ask/pick/picker-from-env';
 
 import { changeStatus } from '../src/tools/change-status';
 import { toolContext } from '../src/tools/tool-context';

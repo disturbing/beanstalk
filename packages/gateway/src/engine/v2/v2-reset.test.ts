@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
-import { SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import { SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { JobSpec } from '../model';
 import { requestAgent } from './v2-agents';

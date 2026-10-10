@@ -11,7 +11,7 @@
  * prompt is just text, and secrets reach the job only through the names the file lists. The
  * agent never holds a model key: its calls go to the gateway's model proxy with the job token.
  */
-import type { AutomationInfo } from '@beanstalk/shared-race/actions';
+import type { AutomationInfo } from '@gitstalk/shared-race/actions';
 import { stringify } from 'yaml';
 
 import { AGENT_LOOP_SOURCE } from './agent-loop';

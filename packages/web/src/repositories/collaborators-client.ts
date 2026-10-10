@@ -10,9 +10,9 @@ import type {
   InviteInput,
   RepoRole,
   RepositoryAction,
-} from '@beanstalk/shared-race/collaborators';
-import type { RepoOwner, Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaborators';
+import type { RepoOwner, Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { Outcome } from './registry-client';
 import { RepositoryForViewer, ViewerRole } from './registry-client';

@@ -2,9 +2,9 @@ import { getUser } from '../../../../../src/auth/user';
 import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
 import { resumeCursor } from '../../../../../src/race/live-cursor';
 import { liveEventStream } from '../../../../../src/live/live-bridge';
 import { log } from '../../../../../src/log';

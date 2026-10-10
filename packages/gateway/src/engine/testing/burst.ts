@@ -7,8 +7,8 @@
  * beans land unchecked and turn the sprout red, and innocent beans then spend their rework
  * rounds on reds that are not theirs.
  */
-import { Sha } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import { Sha } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import type { FailRule, FlakeInjector, ScriptedTask } from './fake-world';
 import type { RaceRun, RaceScenario } from './scenario';

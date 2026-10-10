@@ -11,9 +11,9 @@
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
-import { getSessionUser, getWebSession } from '@beanstalk/shared-identity/sessions';
-import type { SessionUser } from '@beanstalk/shared-identity/users';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
+import { getSessionUser, getWebSession } from '@gitstalk/shared-identity/sessions';
+import type { SessionUser } from '@gitstalk/shared-identity/users';
 
 /** A signed-in person: `{ id, handle, email }` (email null until one is verified). */
 export type User = SessionUser;

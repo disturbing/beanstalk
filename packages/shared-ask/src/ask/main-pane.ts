@@ -2,7 +2,7 @@
  * The main pane of an answer: a combined diff, a file (with the range's lines or blame by
  * bean), one bean, or a list of beans, chosen by the question class or the user's pick.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import { changedLines } from '../repo/file-diff';
 import { isTestFile } from '../repo/imports';

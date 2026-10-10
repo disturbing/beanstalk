@@ -15,9 +15,9 @@
  * with the union driver, such as CHANGELOG.md, aside) or that the arena declares coupled with
  * it; `all` takes every bean that landed while the agent worked.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
-import { couplingPartners } from '@beanstalk/shared-race/task';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { unionPaths } from '@gitstalk/shared-race/run-config';
+import { couplingPartners } from '@gitstalk/shared-race/task';
 
 import type { ReworkOutcome } from '../context';
 import { emit, promptTask, requireTask, taskDefinition } from '../context';

@@ -2,7 +2,7 @@
  * The repository as the explorer reads it: trees, files, diffs, the line's history and grep
  * hits at a ref. Both data sources (the gateway binding and the recorded runs) return these.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 /** A line by name, or a commit. */
 export type RefName = 'sprout' | 'stalk' | 'base' | Sha;

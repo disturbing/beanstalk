@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEMO_SETTINGS } from '@beanstalk/shared-race/run-config';
+import { DEMO_SETTINGS } from '@gitstalk/shared-race/run-config';
 
 import { SEEDED_SCENARIOS, numbers } from '../testing/burst';
 import type { LooseEvent, RaceRun } from '../testing/scenario';

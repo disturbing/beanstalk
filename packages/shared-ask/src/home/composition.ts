@@ -3,7 +3,7 @@
  * in the order the picker chose its sections. Code fills every component; nothing here
  * writes layout.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import type { Answer, RailBlock } from '../ask/answer';
 import type { SectionId } from '../ask/answer-picks';

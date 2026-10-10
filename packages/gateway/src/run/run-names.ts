@@ -1,5 +1,5 @@
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { SlotId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { SlotId } from '@gitstalk/shared-race/ids';
 
 /** Characters of a generated run id (36^10 ≈ 3.7e15 ids; ids are unguessable labels, not secrets). */
 const RUN_ID_LENGTH = 10;

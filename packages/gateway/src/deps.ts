@@ -1,5 +1,5 @@
-import type { ProductEventsDataset } from '@beanstalk/shared-identity/product-events';
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { ProductEventsDataset } from '@gitstalk/shared-identity/product-events';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import type { RunnerCapacity } from './capacity/runner-capacity';
 import { RUNNER_POOL_NAME } from './capacity/runner-capacity';

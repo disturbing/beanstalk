@@ -4,18 +4,18 @@
  * winning on a name clash (`entry-policy.ts`). The run DO uses it to pick and reveal a job's
  * secrets and to fill `vars`; the RPC uses it for Settings.
  */
-import type { SecretSummary } from '@beanstalk/shared-race/actions';
+import type { SecretSummary } from '@gitstalk/shared-race/actions';
 import type {
   OrgSecretSummary,
   OrgVariableSummary,
   VariableSummary,
-} from '@beanstalk/shared-race/actions-secrets';
+} from '@gitstalk/shared-race/actions-secrets';
 
 import type { PolicyTarget, Sourced } from './entry-policy';
 import { effectiveOnly, resolveEntries } from './entry-policy';
 import { secretsKeyOf } from './actions-config';
 import type { OrgDirectory } from './org-directory';
-import type { RepositoryOwnerRef } from '@beanstalk/shared-identity/orgs';
+import type { RepositoryOwnerRef } from '@gitstalk/shared-identity/orgs';
 import { orgDirectoryOf } from './org-directory';
 import type { OrgSecretsStore } from './org-secrets';
 import { d1OrgSecrets } from './org-secrets';

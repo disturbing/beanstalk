@@ -1,10 +1,10 @@
 import Link from 'next/link';
 
-import type { BeanDetail, BeanRecord } from '@beanstalk/shared-ask/forge/forge-source';
-import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
-import type { BeanStep } from '@beanstalk/shared-ask/race/race-state';
+import type { BeanDetail, BeanRecord } from '@gitstalk/shared-ask/forge/forge-source';
+import type { Pushers } from '@gitstalk/shared-ask/home/sessions';
+import type { BeanStep } from '@gitstalk/shared-ask/race/race-state';
 import { formatClock, formatUsd, plural } from '../../src/race/race-format';
-import type { RepoDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { RepoDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import { StatusPill, beadClass } from './bean-status';
 import { DiffView } from './diff-view';
 import styles from './explorer.module.css';

@@ -9,7 +9,7 @@ import type {
   JobView,
   RunSummary,
   StepView,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import {
   ACTIONS_CONCLUSIONS,
   ACTIONS_EVENTS,
@@ -18,7 +18,7 @@ import {
   ActionsRunId,
   StepViewSchema,
   WorkflowPath,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import { z } from 'zod';
 
 import type { PlannedJob } from './job-graph';

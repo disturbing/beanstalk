@@ -3,13 +3,13 @@
  * the stalk's `.github/workflows/*.yml` read at a commit, parsed, and written to D1
  * (`actions_workflows`) in place of what the previous stalk had.
  */
-import type { AutomationInfo, WorkflowSummary } from '@beanstalk/shared-race/actions';
-import { AUTOMATIONS_DIR, WorkflowPath } from '@beanstalk/shared-race/actions';
+import type { AutomationInfo, WorkflowSummary } from '@gitstalk/shared-race/actions';
+import { AUTOMATIONS_DIR, WorkflowPath } from '@gitstalk/shared-race/actions';
 import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
 import { GatewayError } from '../errors';
-import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
+import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 import { compileAutomation } from './automation-job';
 import type { WorkflowFile, WorkflowLimits } from './workflow-file';
 import { readWorkflowFile } from './workflow-file';

@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { removePasskey } from '@beanstalk/shared-identity/passkeys';
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
+import { removePasskey } from '@gitstalk/shared-identity/passkeys';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
 
 import { seeOther, signedInForm } from '../../../../src/auth/http';
 

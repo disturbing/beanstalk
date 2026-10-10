@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { Sha } from '@beanstalk/shared-race/ids';
-import { RunConfig } from '@beanstalk/shared-race/run-config';
+import { Sha } from '@gitstalk/shared-race/ids';
+import { RunConfig } from '@gitstalk/shared-race/run-config';
 
 import { engineEnv } from '../engine/catalog';
 import { step } from '../engine/engine';

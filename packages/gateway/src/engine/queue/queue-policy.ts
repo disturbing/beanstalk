@@ -13,7 +13,7 @@
  * 5. Green fast-forwards main in batch order. Red cancels the batches stacked on it, then
  *    the culprit is found by bisection and ejected with the failing output.
  */
-import type { QueuePolicyView } from '@beanstalk/shared-race/rpc';
+import type { QueuePolicyView } from '@gitstalk/shared-race/rpc';
 
 import type { PolicyHooks, ReworkOutcome, StepContext } from '../context';
 import { requireTask } from '../context';

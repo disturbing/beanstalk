@@ -5,10 +5,10 @@
  */
 import { z } from 'zod';
 
-import type { AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { AgentReposRpc } from '@gitstalk/shared-race/agent-repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
-import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { ForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
 
 import { ToolError } from '../mcp/tool-result';
 

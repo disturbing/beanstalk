@@ -5,8 +5,8 @@
  * field back into the YAML text per change, so the YAML pane and the form never disagree.
  * Problems from the shared validator show under the field they name.
  */
-import type { BeanstalkEvent } from '@beanstalk/shared-race/actions';
-import { BEANSTALK_EVENTS } from '@beanstalk/shared-race/actions';
+import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
+import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
 
 import type { DraftForm, EventFilter, FieldPath } from '../../src/automations/automation-draft';
 import styles from './builder.module.css';

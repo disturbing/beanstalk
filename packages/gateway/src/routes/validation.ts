@@ -2,7 +2,7 @@ import { zValidator } from '@hono/zod-validator';
 import type { ValidationTargets } from 'hono';
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 /**
  * `zValidator` with the repo's error shape: 400 `{error: {code: 'invalid_request', message,

@@ -4,11 +4,11 @@
  */
 import { z } from 'zod';
 
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
-import { unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { isInFlight, raceCounters } from '@beanstalk/shared-ask/race/race-counters';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { unwrap } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { isInFlight, raceCounters } from '@gitstalk/shared-ask/race/race-counters';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 
 import { previewUrl } from './preview-link';
 import type { ToolContext } from './tool-context';

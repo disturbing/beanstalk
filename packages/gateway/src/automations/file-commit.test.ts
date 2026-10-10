@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RepoTreeEntry } from '@beanstalk/shared-race/rpc';
+import type { RepoTreeEntry } from '@gitstalk/shared-race/rpc';
 
 import type { DirectoryReader } from './file-commit';
 import { buildFileCommit } from './file-commit';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { isSameSecret, presentedToken } from './credentials';
 import { issueToken, verifyToken } from './tokens';

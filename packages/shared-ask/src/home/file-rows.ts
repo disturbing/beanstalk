@@ -3,7 +3,7 @@
  * that landed on it (and where that bean sits: sprout or stalk) and the beans in flight that
  * are changing it now.
  */
-import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { isInFlight } from '../race/race-counters';
 import type { RaceState } from '../race/race-state';

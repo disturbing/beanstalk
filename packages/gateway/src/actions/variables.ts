@@ -4,12 +4,12 @@
  * policy like org secrets. A job gets every variable its repository sees (GitHub's rule), not
  * only the ones it names, and they are never masked.
  */
-import { VariableName } from '@beanstalk/shared-race/actions-secrets';
+import { VariableName } from '@gitstalk/shared-race/actions-secrets';
 import type {
   OrgVariableSummary,
   RepositoryAccessPolicy,
   VariableSummary,
-} from '@beanstalk/shared-race/actions-secrets';
+} from '@gitstalk/shared-race/actions-secrets';
 import { z } from 'zod';
 
 import {

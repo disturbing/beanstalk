@@ -4,7 +4,7 @@ import type {
   AgentPrincipal,
   CollaboratorsRpc,
   RepositoryAction,
-} from '@beanstalk/shared-race/collaborators';
+} from '@gitstalk/shared-race/collaborators';
 
 import { repositoryAccess } from '../src/tools/repository-access';
 import type { AgentSessionContext } from '../src/tools/tool-context';

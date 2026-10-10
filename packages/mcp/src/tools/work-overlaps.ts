@@ -3,11 +3,11 @@
  * (someone is editing them now), on the sprout awaiting validation, or green within the last
  * few minutes; with each bean's intent, so the agent can fit its change to theirs.
  */
-import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
+import type { SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import { TaskId as TaskIdSchema } from '@gitstalk/shared-race/ids';
 
-import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
-import type { BeanRecord, BeanStatus } from '@beanstalk/shared-ask/forge/forge-source';
+import type { BeanStreamSummary } from '@gitstalk/shared-ask/forge/bean-stream';
+import type { BeanRecord, BeanStatus } from '@gitstalk/shared-ask/forge/forge-source';
 
 import type { ToolContext } from './tool-context';
 import { branchOf, clip, editingNow } from './tool-context';

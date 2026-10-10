@@ -2,13 +2,13 @@
  * `summary.json` for a cloud run: a port of `research/race/harness/summary.py` `build()`,
  * computed from the engine state, so `report.py` compares cloud and local runs unchanged.
  */
-import type { Json } from '@beanstalk/shared-race/events';
+import type { Json } from '@gitstalk/shared-race/events';
 import {
   errorBudget,
   protectTestsMode,
   snapshotMode,
   usesUnionMerge,
-} from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/run-config';
 
 import { placementModules, precisionRecall } from './arena';
 import type { Prf } from './arena';

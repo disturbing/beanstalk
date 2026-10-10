@@ -7,11 +7,11 @@
  *
  * Test support only: the deployed gateway is never called.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { BeanSummary, GatewayRpc, RpcResult, TestCoverage } from '@beanstalk/shared-race/rpc';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { BeanSummary, GatewayRpc, RpcResult, TestCoverage } from '@gitstalk/shared-race/rpc';
 
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
 import { repoExplorer } from '../../../../gateway/src/adapters/repo-explorer';
 import { importClosures } from '../../../../gateway/src/repo/import-closure';
 import { cachedReader, memoryObjectStore } from '../../../../gateway/src/repo/object-cache';

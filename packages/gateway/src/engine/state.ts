@@ -1,4 +1,4 @@
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import type {
   CiState,

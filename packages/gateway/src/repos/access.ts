@@ -9,11 +9,11 @@ import type {
   RepositoryAction,
   RepositoryForViewer,
   ViewerRole,
-} from '@beanstalk/shared-race/collaborators';
-import { ownerOf } from '@beanstalk/shared-identity/orgs';
-import type { RepositoryRecord, Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
-import { RunId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/collaborators';
+import { ownerOf } from '@gitstalk/shared-identity/orgs';
+import type { RepositoryRecord, Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { AccessVerdict, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
 import { mayUseEngine, personOf, refusedByArchive, roleOf } from '../auth/git-credential';

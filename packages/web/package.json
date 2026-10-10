@@ -1,5 +1,5 @@
 {
-  "name": "@beanstalk/web",
+  "name": "@gitstalk/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,12 +13,12 @@
     "fixtures": "node scripts/build-fixtures.ts"
   },
   "dependencies": {
-    "@beanstalk/shared-ask": "workspace:*",
-    "@beanstalk/shared-identity": "workspace:*",
-    "@beanstalk/shared-media": "workspace:*",
-    "@beanstalk/shared-race": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/space-grotesk": "catalog:",
+    "@gitstalk/shared-ask": "workspace:*",
+    "@gitstalk/shared-identity": "workspace:*",
+    "@gitstalk/shared-media": "workspace:*",
+    "@gitstalk/shared-race": "workspace:*",
     "@simplewebauthn/browser": "catalog:",
     "diff": "catalog:",
     "react": "catalog:",

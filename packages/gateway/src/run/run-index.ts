@@ -11,9 +11,9 @@
 import { DurableObject } from 'cloudflare:workers';
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { RunListItem } from '@beanstalk/shared-race/rpc';
-import { PolicyName, RunPreset } from '@beanstalk/shared-race/run-config';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { RunListItem } from '@gitstalk/shared-race/rpc';
+import { PolicyName, RunPreset } from '@gitstalk/shared-race/run-config';
 
 import { artifactsPort } from '../adapters/artifacts';
 import { readConfig } from '../config';

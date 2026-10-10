@@ -23,8 +23,8 @@
  *
  * `fifo` is the head of the list, as before. The choice is a pure function of the run's state.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { couplingPartners } from '@beanstalk/shared-race/task';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { couplingPartners } from '@gitstalk/shared-race/task';
 
 import type { StepContext } from '../context';
 import { requireTask, setTimer, taskDefinition } from '../context';

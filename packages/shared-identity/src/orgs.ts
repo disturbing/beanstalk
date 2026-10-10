@@ -141,7 +141,7 @@ export const UpdateOrgInput = z
   .object({
     name: z.string().trim().min(1, 'Give the organization a name.').max(80).optional(),
     description: z.string().trim().max(350).optional(),
-    /** An uploaded icon's key (@beanstalk/shared-media: `orgs/<id>/icon/<hash>`), or null. */
+    /** An uploaded icon's key (@gitstalk/shared-media: `orgs/<id>/icon/<hash>`), or null. */
     iconKey: z
       .string()
       .regex(/^orgs\/[A-Za-z0-9_-]{1,64}\/icon\/[0-9a-f]{32}$/, 'not an icon key')

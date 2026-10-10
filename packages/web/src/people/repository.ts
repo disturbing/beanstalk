@@ -3,7 +3,7 @@
  * repository it grew. The recorded runs and the live races all grow the arena shop, owned by
  * its placeholder owner until repositories carry their own identity.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 export type Repository = { readonly owner: string; readonly name: string };
 

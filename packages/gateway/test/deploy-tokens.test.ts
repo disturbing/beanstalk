@@ -2,8 +2,8 @@ import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { call, json } from './helpers';
 

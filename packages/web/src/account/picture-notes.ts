@@ -2,7 +2,7 @@
  * What a picture upload did, carried across its redirect as a code (`?picture=too_large`) and
  * shown from this fixed table, so a link cannot make the page say anything else.
  */
-import type { UploadRefusalCode } from '@beanstalk/shared-media/images';
+import type { UploadRefusalCode } from '@gitstalk/shared-media/images';
 
 export type PictureCode = UploadRefusalCode | 'updated' | 'removed';
 export type PictureNote = { readonly kind: 'saved' | 'error'; readonly text: string };

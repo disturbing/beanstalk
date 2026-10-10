@@ -2,14 +2,14 @@ import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type { RunSummary } from '@beanstalk/shared-race/actions';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { createOrg } from '@beanstalk/shared-identity/org-admin';
-import { answerOrgInvitation, inviteToOrg } from '@beanstalk/shared-identity/org-members';
-import type { OrgRole } from '@beanstalk/shared-identity/orgs';
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import type { RunSummary } from '@gitstalk/shared-race/actions';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { createOrg } from '@gitstalk/shared-identity/org-admin';
+import { answerOrgInvitation, inviteToOrg } from '@gitstalk/shared-identity/org-members';
+import type { OrgRole } from '@gitstalk/shared-identity/orgs';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { call, pkt, sha } from './helpers';
 

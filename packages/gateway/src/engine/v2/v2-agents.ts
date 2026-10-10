@@ -4,8 +4,8 @@
  * re-execution) waits for the next free slot, its last author first, before any new task
  * starts. Without the release, the bean keeps its slot and the work starts there at once.
  */
-import type { SlotId } from '@beanstalk/shared-race/ids';
-import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
+import type { SlotId } from '@gitstalk/shared-race/ids';
+import { releasesOnCheck } from '@gitstalk/shared-race/run-config';
 
 import { requireTask } from '../context';
 import type { SlotState } from '../model';

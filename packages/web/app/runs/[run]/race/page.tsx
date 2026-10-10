@@ -3,7 +3,7 @@ import { mayViewEngine } from '../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import styles from '../../../../components/explorer/explorer.module.css';
 import type { DecisionAccess } from '../../../../components/canvas/decision-panel';
@@ -11,9 +11,9 @@ import { RaceCanvas } from '../../../../components/canvas/race-canvas';
 import type { Speed } from '../../../../components/canvas/use-replay-clock';
 import { RepoHead } from '../../../../components/home/repo-head';
 import { repositoryOf } from '../../../../src/people/repository';
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { isForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../../../src/forge/sources';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { isRecordedRun } from '../../../../src/recorded/recorded-runs';
 import { racePageData } from '../../../../src/server/race-page-data';
 import { runMeta } from '../../../../src/server/run-meta';

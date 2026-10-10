@@ -2,7 +2,7 @@ import { SELF } from 'cloudflare:test';
 import { createLocalJWKSet, jwtVerify } from 'jose';
 import { describe, expect, it } from 'vitest';
 
-import { mintIdTokenRequest } from '@beanstalk/shared-oidc/issuer';
+import { mintIdTokenRequest } from '@gitstalk/shared-oidc/issuer';
 
 import { TEST_REQUEST_SECRET } from './constants';
 

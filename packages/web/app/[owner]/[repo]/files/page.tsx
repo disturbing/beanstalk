@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import { FilesExplorer } from '../../../../components/explorer/files-explorer';
 import type { SearchParams } from '../../../../components/home/repository-home';

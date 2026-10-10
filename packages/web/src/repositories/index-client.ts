@@ -5,10 +5,10 @@
  */
 import { z } from 'zod';
 
-import type { RepoIndexRpc } from '@beanstalk/shared-race/repo-events';
-import { BEAN_STATES } from '@beanstalk/shared-race/repo-events';
-import type { Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RepoIndexRpc } from '@gitstalk/shared-race/repo-events';
+import { BEAN_STATES } from '@gitstalk/shared-race/repo-events';
+import type { Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { Outcome } from './registry-client';
 import { RepositoryActivity } from './registry-client';

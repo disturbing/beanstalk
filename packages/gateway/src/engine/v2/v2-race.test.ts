@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 import {
   V20_SETTINGS,
   V22_SETTINGS,
   V23_SETTINGS,
   V24_SETTINGS,
-} from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/run-config';
 
 import { SPROUT_REF, STALK_REF } from '../refs';
 import { buildSummary } from '../summary';

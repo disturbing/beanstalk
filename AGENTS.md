@@ -6,7 +6,7 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 
 ## Stack (decided)
 
-- **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@beanstalk/<name>`, Worker `beanstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
+- **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@gitstalk/<name>`, Worker `beanstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
 - **Workers**: TypeScript, Hono router inside a `WorkerEntrypoint` default export, RPC between Workers through service bindings (never HTTP). One `wrangler.jsonc` per package; Wrangler is the deploy tool for every package (not the beta `cf` CLI) until after the deadline.
 - **Containers**: Rust (axum, tokio), one crate per image under `packages/<name>` with its Dockerfile, owned by a Container Durable Object in a Worker package. Root `Cargo.toml` is a workspace created with the first crate.
 - **Web app**: vinext (Next.js App Router on Workers) in `packages/web`; bindings through `import { env } from 'cloudflare:workers'`; data via service-binding RPC to the gateway.
@@ -17,7 +17,7 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 ```bash
 pnpm install                       # once; Node 24+, pnpm 11, Rust stable, Docker for containers
 pnpm check                         # fmt:check + lint (type-aware oxlint) + typecheck + test + rust:check
-pnpm -F @beanstalk/<name> dev      # also: test, types (regenerate worker-configuration.d.ts)
+pnpm -F @gitstalk/<name> dev      # also: test, types (regenerate worker-configuration.d.ts)
 pnpm rust:check                    # cargo fmt --check, clippy -D warnings, cargo test
 pnpm skills:update                 # refresh vendored Cloudflare skills (skills-lock.json)
 pnpm env:provision <env>           # environments/<env>: create resources, secrets, migrate D1 (docs/claude-opus/30)

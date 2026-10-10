@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { PREAUTH_COOKIE, clearCookie, readCookie } from '@beanstalk/shared-identity/cookies';
-import { consumeMagicLink } from '@beanstalk/shared-identity/magic-links';
-import { clientIp, userAgent } from '@beanstalk/shared-identity/request-context';
+import { PREAUTH_COOKIE, clearCookie, readCookie } from '@gitstalk/shared-identity/cookies';
+import { consumeMagicLink } from '@gitstalk/shared-identity/magic-links';
+import { clientIp, userAgent } from '@gitstalk/shared-identity/request-context';
 
 import { problem, seeOther, sessionCookie } from '../../../src/auth/http';
 import { emailSignIn } from '../../../src/auth/services';

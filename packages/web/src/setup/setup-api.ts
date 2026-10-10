@@ -2,15 +2,12 @@
  * The setup script's side of the web app (`/beanstalk:setup` in the Claude Code plugin, or
  * `<web>/setup.sh` for other agents): where git and SSH live for this deployment, and the
  * two calls that register an SSH key (start a request, poll its outcome). Request bodies are
- * validated here; the identity rules live in @beanstalk/shared-identity/ssh-key-requests.
+ * validated here; the identity rules live in @gitstalk/shared-identity/ssh-key-requests.
  */
 import { z } from 'zod';
 
-import type {
-  KeyRequestPoll,
-  StartedKeyRequest,
-} from '@beanstalk/shared-identity/ssh-key-requests';
-import { KEY_REQUEST_POLL_SECONDS } from '@beanstalk/shared-identity/ssh-key-requests';
+import type { KeyRequestPoll, StartedKeyRequest } from '@gitstalk/shared-identity/ssh-key-requests';
+import { KEY_REQUEST_POLL_SECONDS } from '@gitstalk/shared-identity/ssh-key-requests';
 
 /** Where the setup script points git, from this deployment's vars. */
 export type SetupConfig = {

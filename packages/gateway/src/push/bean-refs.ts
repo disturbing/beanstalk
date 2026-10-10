@@ -5,7 +5,7 @@
  * explorer's reads). Each bean's verdict is published as an annotated tag at
  * `refs/beans/<name>/status`.
  */
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 /** The branch prefix a push creates or updates a bean under. */
 export const PUSHED_BEAN_PREFIX = 'refs/heads/bean/';

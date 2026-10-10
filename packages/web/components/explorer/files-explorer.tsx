@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 import { AnswerPanel } from './answer-panel';
 import type { Suggestion } from './ask-bar';
@@ -13,16 +13,16 @@ import { MainPane } from './main-pane';
 import { RailBlocks } from './rail-blocks';
 import { RepoHead } from '../home/repo-head';
 import type { HomeFrame, SearchParams } from '../home/repository-home';
-import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
-import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
-import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
-import { CATALOG } from '@beanstalk/shared-ask/ask/view-spec';
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { classifierFrom } from '@gitstalk/shared-ask/ask/classifier-from-env';
+import { planAnswer } from '@gitstalk/shared-ask/ask/plan-answer';
+import type { Pushers } from '@gitstalk/shared-ask/home/sessions';
+import { CATALOG } from '@gitstalk/shared-ask/ask/view-spec';
+import { isForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
 import { forgeForRun } from '../../src/forge/sources';
 import { REPOSITORY_SUGGESTIONS } from '../../src/repositories/questions';
 import { pushersOf } from '../../src/repositories/pushers';
 import { raceMoments } from '../../src/race/race-moments';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { recordedRun } from '../../src/recorded/recorded-runs';
 
 /** The demo questions for the recorded v2 run (`docs/claude-opus/13` §3, `12` beat 3). */

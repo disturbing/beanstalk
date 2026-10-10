@@ -6,7 +6,7 @@
  */
 import { useActionState } from 'react';
 
-import type { DeployTokenSummary } from '@beanstalk/shared-race/deploy-tokens';
+import type { DeployTokenSummary } from '@gitstalk/shared-race/deploy-tokens';
 
 import type { DeployTokenState } from '../../src/server/deploy-token-actions';
 import {

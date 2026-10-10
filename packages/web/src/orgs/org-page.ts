@@ -5,18 +5,18 @@
  */
 import { env } from 'cloudflare:workers';
 
-import type { OrgAuditEvent } from '@beanstalk/shared-identity/org-audit';
-import { listOrgAudit } from '@beanstalk/shared-identity/org-audit';
-import type { OrgInvitation, OrgMember } from '@beanstalk/shared-identity/org-members';
-import { orgMembers, pendingOrgInvitations } from '@beanstalk/shared-identity/org-members';
-import type { Org, OrgRole } from '@beanstalk/shared-identity/orgs';
+import type { OrgAuditEvent } from '@gitstalk/shared-identity/org-audit';
+import { listOrgAudit } from '@gitstalk/shared-identity/org-audit';
+import type { OrgInvitation, OrgMember } from '@gitstalk/shared-identity/org-members';
+import { orgMembers, pendingOrgInvitations } from '@gitstalk/shared-identity/org-members';
+import type { Org, OrgRole } from '@gitstalk/shared-identity/orgs';
 import {
   findOrgByHandle,
   mayCreateRepository,
   mayInOrg,
   orgRole,
   orgsOf,
-} from '@beanstalk/shared-identity/orgs';
+} from '@gitstalk/shared-identity/orgs';
 
 export type OrgPage = {
   readonly org: Org;

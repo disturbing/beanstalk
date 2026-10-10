@@ -9,7 +9,7 @@
 import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 
-import { CreateDeployTokenInput } from '@beanstalk/shared-race/deploy-tokens';
+import { CreateDeployTokenInput } from '@gitstalk/shared-race/deploy-tokens';
 
 import { deployTokensClient } from '../repositories/deploy-tokens-client';
 import { field, signedInForm } from './signed-in-form';

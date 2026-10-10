@@ -10,7 +10,7 @@ import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { InviteInput, RepoRole } from '@beanstalk/shared-race/collaborators';
+import { InviteInput, RepoRole } from '@gitstalk/shared-race/collaborators';
 
 import { log } from '../log';
 import { collaboratorsClient } from '../repositories/collaborators-client';

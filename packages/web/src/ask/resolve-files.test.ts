@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { recordedSource } from '../forge/recorded-source';
-import { loadCorpus } from '@beanstalk/shared-ask/ask/corpus';
-import type { ResolverCorpus } from '@beanstalk/shared-ask/ask/resolve-files';
-import { MAX_RESOLVED_FILES, resolveFiles } from '@beanstalk/shared-ask/ask/resolve-files';
+import { loadCorpus } from '@gitstalk/shared-ask/ask/corpus';
+import type { ResolverCorpus } from '@gitstalk/shared-ask/ask/resolve-files';
+import { MAX_RESOLVED_FILES, resolveFiles } from '@gitstalk/shared-ask/ask/resolve-files';
 
 const v25 = RunId.parse('j6boaclinn');
 

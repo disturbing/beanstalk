@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { StreamDelta, StreamFile } from '@beanstalk/shared-race/driver';
-import { StreamDelta as DeltaSchema, STREAM_MAX_PATCH_BYTES } from '@beanstalk/shared-race/driver';
+import type { StreamDelta, StreamFile } from '@gitstalk/shared-race/driver';
+import { StreamDelta as DeltaSchema, STREAM_MAX_PATCH_BYTES } from '@gitstalk/shared-race/driver';
 
 import type {
   PostDecision,

@@ -86,7 +86,7 @@ You need Node 24+, pnpm 11, stable Rust, Docker, and a Cloudflare account with W
 ```bash
 pnpm install
 pnpm check                                   # format, lint, typecheck, tests (TypeScript and Rust)
-pnpm -F @beanstalk/web dev                   # the explorer and race canvas, on the recorded runs (works offline)
+pnpm -F @gitstalk/web dev                   # the explorer and race canvas, on the recorded runs (works offline)
 ```
 
 Deploy everything to one account. An environment is one directory, `environments/<name>/` (the public repo ships only `example/`): the account, a name suffix (`-staging` gives `beanstalk-gateway-staging`; empty keeps the base names) and the packages to run. Docker must be running: it builds the container images.

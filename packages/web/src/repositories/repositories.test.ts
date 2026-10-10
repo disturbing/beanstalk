@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 import type {
   CreateRepositoryInput,
   RepoOwner,
   RepositoriesRpc,
   RepositoryRecord,
   UpdateRepositoryInput,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 
 import { readCreateForm } from './create-form';
 import { growthFromIndex, growthFromView, growthText } from './engine-summary';

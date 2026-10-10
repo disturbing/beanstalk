@@ -4,8 +4,8 @@
  * `beans:` and `authors:` filters (GitHub's glob rules) select the event's bean and pusher. An
  * automation never fires on its own beans, so a fix it pushes cannot loop back into it.
  */
-import type { BeanstalkEvent, WorkflowTrigger } from '@beanstalk/shared-race/actions';
-import type { RepoEvent } from '@beanstalk/shared-race/repo-events';
+import type { BeanstalkEvent, WorkflowTrigger } from '@gitstalk/shared-race/actions';
+import type { RepoEvent } from '@gitstalk/shared-race/repo-events';
 
 import { assertNever } from '../engine/errors';
 import type { RepoFacts } from './event-payload';

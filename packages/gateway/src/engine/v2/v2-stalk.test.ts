@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { V20_SETTINGS, V24_SETTINGS } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { V20_SETTINGS, V24_SETTINGS } from '@gitstalk/shared-race/run-config';
 
 import { FLAKY_TEST, SEEDED_SCENARIOS, numbers, redStalkCommits } from '../testing/burst';
 import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';

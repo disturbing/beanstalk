@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 
-import { getProfile } from '@beanstalk/shared-identity/profiles';
+import { getProfile } from '@gitstalk/shared-identity/profiles';
 
 import { Avatar } from '../account/avatar';
 

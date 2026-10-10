@@ -3,7 +3,7 @@
  * check, the sprout is validated asynchronously and promoted to the stalk, red validations
  * are reverted. Field names follow `policy_beanstalk*.py` where the harness has one.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { StepContext } from '../context';
 import type {

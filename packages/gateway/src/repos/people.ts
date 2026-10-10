@@ -4,8 +4,8 @@
  * list). Reads the identity database (people, their tokens and keys) and the registry's
  * deploy tokens; never a secret.
  */
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import type { SessionVia } from '@beanstalk/shared-race/collaborators';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import type { SessionVia } from '@gitstalk/shared-race/collaborators';
 
 import type { Person } from './collaborators';
 

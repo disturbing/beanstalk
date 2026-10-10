@@ -1,9 +1,9 @@
 import { env } from 'cloudflare:workers';
 
-import { ConsentRedirect, ConsentView } from '@beanstalk/shared-identity/agent-sessions';
-import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
+import { ConsentRedirect, ConsentView } from '@gitstalk/shared-identity/agent-sessions';
+import { logIdentity, recordProductEvent } from '@gitstalk/shared-identity/product-events';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
 
 import { problem, signedInForm } from '../../../src/auth/http';
 import { agentSessionsRpc } from '../../../src/auth/services';

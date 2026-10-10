@@ -1,5 +1,5 @@
 {
-  "name": "@beanstalk/mcp",
+  "name": "@gitstalk/mcp",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,10 +11,10 @@
     "mint-token": "node scripts/mint-token.mjs"
   },
   "dependencies": {
-    "@beanstalk/shared-ask": "workspace:*",
-    "@beanstalk/shared-identity": "workspace:*",
-    "@beanstalk/shared-race": "workspace:*",
     "@cloudflare/workers-oauth-provider": "catalog:",
+    "@gitstalk/shared-ask": "workspace:*",
+    "@gitstalk/shared-identity": "workspace:*",
+    "@gitstalk/shared-race": "workspace:*",
     "@modelcontextprotocol/server": "catalog:",
     "agents": "catalog:",
     "hono": "catalog:",

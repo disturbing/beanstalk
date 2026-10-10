@@ -1,4 +1,4 @@
-# @beanstalk/gateway
+# @gitstalk/gateway
 
 The race gateway (plan `docs/claude-opus/10-cf-prototype-plan.md`, items 2–3 of §7). It is a Worker that runs agent races in the cloud. It does four things:
 
@@ -39,7 +39,7 @@ A runner job that keeps failing for one bean drops only that bean, with reason `
 | Route | Auth | Purpose |
 |---|---|---|
 | `GET /healthz` | none | Liveness |
-| `POST /v1/runs` | admin | Create a run from a `RunConfig` (`@beanstalk/shared-race/run-config`). Creates the run repo and returns slot tokens and a view link. `201` |
+| `POST /v1/runs` | admin | Create a run from a `RunConfig` (`@gitstalk/shared-race/run-config`). Creates the run repo and returns slot tokens and a view link. `201` |
 | `POST /v1/runs/:run/seed-token` | admin | A 15-minute token that pushes the arena base to the sprout **and** the stalk, before the start only |
 | `POST /v1/runs/:run/start` | admin | Starts the race from the seeded base. `409 repo_not_seeded` until both refs exist and agree |
 | `POST /v1/runs/:run/stop` | admin | `{reason?}`. Aborts the race, which then runs the final check |
@@ -94,7 +94,7 @@ curl -s -H "$A" $GW/v1/runs/$RUN/summary > summary.json   # infra cost under "in
 - the v2.5 forge-owned tests, both off by default: `tests_first` and `targeted_landing_check` (same section);
 - `live_sync`: `off` (the default), `overlap` or `all` (live sprout sync, same section);
 - `live_sync_midrun`: `false` (the default) or `true` (mid-run sync, same section);
-- `suite` (`@beanstalk/shared-race/suite`): the test suite of a real-task arena. `argv` (the whole suite: `node`, its options, `--test`, the globs), `files_argv` (chosen files are appended: confirm runs, targeted checks, leave-one-out probes), `env`, `deps` (the runner image's dependency snapshot, `/opt/arena-deps/<name>`), `timeout_seconds` and `test_hint` (the sentence every prompt's acceptance line and `live_sync` prompt give; test-author and reconcile prompts name `files_argv`). Every check the run makes sends it: pre-land, validation, re-checks, confirm runs, targeted checks and the final check. The driver (`remote.py`) sends the arena's `arena.json` suite (`harness/suite.py`, `gateway_suite`) and nothing for the designed arena, whose bare `node --test` is the default. Argv and environment are validated here (node only, `--test` required, no shell, no runner-owned variables) and again by the runner. A fastify task's prompts are byte for byte the harness's, so the GitHub arm's (`prompts.test.ts` against `test/fixtures/fastify-prompts.json`, which `research/race/gateway_fixture.py` writes and the Python tests keep current).
+- `suite` (`@gitstalk/shared-race/suite`): the test suite of a real-task arena. `argv` (the whole suite: `node`, its options, `--test`, the globs), `files_argv` (chosen files are appended: confirm runs, targeted checks, leave-one-out probes), `env`, `deps` (the runner image's dependency snapshot, `/opt/arena-deps/<name>`), `timeout_seconds` and `test_hint` (the sentence every prompt's acceptance line and `live_sync` prompt give; test-author and reconcile prompts name `files_argv`). Every check the run makes sends it: pre-land, validation, re-checks, confirm runs, targeted checks and the final check. The driver (`remote.py`) sends the arena's `arena.json` suite (`harness/suite.py`, `gateway_suite`) and nothing for the designed arena, whose bare `node --test` is the default. Argv and environment are validated here (node only, `--test` required, no shell, no runner-owned variables) and again by the runner. A fastify task's prompts are byte for byte the harness's, so the GitHub arm's (`prompts.test.ts` against `test/fixtures/fastify-prompts.json`, which `research/race/gateway_fixture.py` writes and the Python tests keep current).
 
 ## Spend guards
 
@@ -239,7 +239,7 @@ A run therefore needs `agents + ci_slots + 1` container instances. They are `sta
 
 The runner client (`src/runner/runner-client.ts` over `runner-transport.ts`):
 
-- **Contract version.** Before an instance's first job it reads `/version` once (cached per instance name) and compares `api_version` with `RUNNER_API_VERSION`. A difference, or a `400` naming an unknown field, fails the job for good with the message `runner_version_mismatch: runner instance <name> speaks runner API <n>, this gateway speaks <m> …` (error code `runner_version_mismatch`), so the abort or drop says what to deploy. Deploy the gateway and the image together (`pnpm -F @beanstalk/gateway deploy` builds the image and stamps its commit, packages/runner/README.md "Image version").
+- **Contract version.** Before an instance's first job it reads `/version` once (cached per instance name) and compares `api_version` with `RUNNER_API_VERSION`. A difference, or a `400` naming an unknown field, fails the job for good with the message `runner_version_mismatch: runner instance <name> speaks runner API <n>, this gateway speaks <m> …` (error code `runner_version_mismatch`), so the abort or drop says what to deploy. Deploy the gateway and the image together (`pnpm -F @gitstalk/gateway deploy` builds the image and stamps its commit, packages/runner/README.md "Image version").
 - **Capacity.** "Maximum number of running container instances exceeded", a 429 or a 503 is retried inside the client: waits of 5, 10, 15 then 20 s, spread ±20 % by the instance name (deterministic), for about 4 minutes in all, each logged as `runner capacity exhausted, waiting`. Only then does the engine see a retryable failure, so capacity no longer spends its per-job attempts (in `cf-v2-sonnet-12-s7` it dropped four beans after about 90 s of engine retries).
 - **Unknown commits.** `422 unknown_commit` is retryable for `check` and `update-ref` (a candidate pushed moments earlier may not be visible yet; both calls are idempotent) and final for the others.
 - `RUST_LOG` of each instance follows the Worker's `LOG_LEVEL`, as does the container class's own logging.
@@ -251,7 +251,7 @@ The runner client (`src/runner/runner-client.ts` over `runner-transport.ts`):
 - **Decision cards.** A card can also be answered by the admin route or the web app (`decide`). Under `decision_outcome: decline` (v2.0), when the arriving bean wins, the landed losers are reverted in the turn and dropped, and the arriving bean goes back to its landing loop. The harness's `arriving` oracle drops the arriving task anyway. Under `reexecute` (the v2.2 default) nothing is reverted, as described below.
 - **Revert-first after a bisection.** Revert-first also follows a trunk bisection when no read-set suspect exists; the harness would send a fixer there. No fixer is ever sent.
 - **Markers after an informed rework.** Conflict markers left after an informed rework drop the bean.
-- **Structural merge tier (v2 only).** For v2, the runner retries a squash conflict with Mergiraf on the conflicted files (the runner README's merge tiers): every squash job carries `structural_merge` (`usesStructuralMerge` in `@beanstalk/shared-race/run-config`), true for v2 unless the run sets `structural_merge: false` (v2.4). The queue always sends `false`, so it stays identical to the harness and to the baseline races already recorded, and `RunConfig` refuses `structural_merge: true` for it. A structurally merged bean is a normal candidate: it takes its pre-land check like any other, and its `land` event carries `resolved: "structural"` (the tier of the bean's latest clean squash, kept on the landing flow). A conflict that remains goes back to the author as before.
+- **Structural merge tier (v2 only).** For v2, the runner retries a squash conflict with Mergiraf on the conflicted files (the runner README's merge tiers): every squash job carries `structural_merge` (`usesStructuralMerge` in `@gitstalk/shared-race/run-config`), true for v2 unless the run sets `structural_merge: false` (v2.4). The queue always sends `false`, so it stays identical to the harness and to the baseline races already recorded, and `RunConfig` refuses `structural_merge: true` for it. A structurally merged bean is a normal candidate: it takes its pre-land check like any other, and its `land` event carries `resolved: "structural"` (the tier of the bean's latest clean squash, kept on the landing flow). A conflict that remains goes back to the author as before.
 - **Conflict prompt.** v2's conflict rework (`informedConflictPrompt`) adds to the harness's words both sides of up to 4 conflict blocks from the runner's `hunks`, the landed beans that wrote the sprout's side of a conflicted file since the bean last merged the sprout (newest first, at most 3, each with its title and intent), and an instruction to keep both intents. The queue keeps the harness's `reworkConflictPrompt`.
 - **Protected tests.** The `protect` list is computed when the invocation is created.
 - **The stalk ref.** It follows promotions through serialized compare-and-swap ref updates.
@@ -339,7 +339,7 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 
 `summary.json` adds `variant_additions` after `variant` (see [Version labels](#version-labels)) and the v2.2 to v2.5 keys after the harness's v2 keys (`window`, `window_size`, `window_waits`, `recheck_samples`, `early_tickets`, `early_tickets_opened`, `confirmed_by_sighting`, `reconcile`, `reconciles`, `reconciled`, `contradictions`, `stale_rechecks`, `escalate_after`, `reconcile_parties`, `stuck_drops`, then the E6 keys below (with `dynamic_culprits` on, also `dynamic_culprit_skips`; with either tail bound on, `max_bean_invocations`, `tail_guard_minutes`, `invocation_drops` and `tail_drops`, and the row `Max bean invocations / tail guard minutes / dropped by each`) and `tests_first`, `tests_first_accepted`, `tests_first_fallbacks`, `targeted_landing_check`, `targeted_checks`, `targeted_red`; with `live_sync` on, also `live_sync`, `syncs_applied` and `syncs_noted` at the end; with `live_sync_midrun`, then `live_sync_midrun`, `midrun_offered`, `midrun_applied` and `midrun_noted`), and the matching rows after `Variant`. With check reuse on, the block then has `reuse_checks`, `checks_reused` and `ci_superseded` (and the row `Checks reused as validations / superseded CI runs cancelled` after the stall-fix row). With any stall-fix rule on, the block ends with `red_reset`, `episode_tickets`, `repair_landing`, `requeue_repair`, `resets`, `requeued`, `episode_reds`, `episode_inherited` and `repair_landings`, and the row `Sprout resets (beans requeued) / episode reds (inherited checks) / repair landings` follows the tail bounds' row. With `park` on (v2 only), the block adds `park: true` after the tail bounds' keys, and the summary itself adds `parked` (a list of `{task, reason}`) after `drops_by_reason`; `summary.md` shows it as the row `Parked, needs a person`. Parked beans count in neither `tasks_green` nor `tasks_dropped`. `runView`'s `policy_state` shows `window` (size, unvalidated, waiting beans) and `recheck_mode`.
 
-**Replay parity.** `V20_SETTINGS` (exported by `@beanstalk/shared-race/run-config`) reproduces the event streams the engine logged before v2.2, byte for byte. It turns every later rule and every opt-in track off:
+**Replay parity.** `V20_SETTINGS` (exported by `@gitstalk/shared-race/run-config`) reproduces the event streams the engine logged before v2.2, byte for byte. It turns every later rule and every opt-in track off:
 
 ```json
 {"recheck": "file", "window": "off", "release_on_check": false, "flake_confirm": false,
@@ -356,7 +356,7 @@ v2.5 adds no event types for its lone-suspect reverts and base culprits: a lone-
 
 ### Presets
 
-`preset: "demo"` pins `DEMO_SETTINGS` (`RUN_PRESETS` in `@beanstalk/shared-race/run-config`): v2.5 with dependency-aware starts, the tail fix and parking, whatever the defaults become. It is `V25_SETTINGS` (every v2.5 rule at its v2.5 value, `max_bean_invocations: 10`, `tail_guard_minutes: 10`, `park: false`: the engine behind the published numbers, the three-seed races `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`) plus `park: true`, `tail_guard_minutes: 3`, `start_order: "dependency"` and the stall fix's `red_reset: true` (`episode_tickets` and `repair_landing` pinned off), with `tests_first`, `targeted_landing_check`, `live_sync` and `live_sync_midrun` off. `preset: "v24"` pins `V24_SETTINGS` (the `cf-v24-*` races). A field the preset pins may be repeated with the same value; a different value is refused (`400`), so a stray environment knob cannot change a demo race. With the queue, `structural_merge` is not pinned (it is v2 only; the queue never merges structurally). The preset is recorded in the run's config and in its `listRuns` row (`preset`). The driver's `--preset demo` (or `--preset v24`) sends it.
+`preset: "demo"` pins `DEMO_SETTINGS` (`RUN_PRESETS` in `@gitstalk/shared-race/run-config`): v2.5 with dependency-aware starts, the tail fix and parking, whatever the defaults become. It is `V25_SETTINGS` (every v2.5 rule at its v2.5 value, `max_bean_invocations: 10`, `tail_guard_minutes: 10`, `park: false`: the engine behind the published numbers, the three-seed races `cf-v25dep2-sonnet-12-s7`, `-s11`, `-s13`) plus `park: true`, `tail_guard_minutes: 3`, `start_order: "dependency"` and the stall fix's `red_reset: true` (`episode_tickets` and `repair_landing` pinned off), with `tests_first`, `targeted_landing_check`, `live_sync` and `live_sync_midrun` off. `preset: "v24"` pins `V24_SETTINGS` (the `cf-v24-*` races). A field the preset pins may be repeated with the same value; a different value is refused (`400`), so a stray environment knob cannot change a demo race. With the queue, `structural_merge` is not pinned (it is v2 only; the queue never merges structurally). The preset is recorded in the run's config and in its `listRuns` row (`preset`). The driver's `--preset demo` (or `--preset v24`) sends it.
 
 ### Version labels
 
@@ -547,7 +547,7 @@ type ReadMapIndex = {
   tree(tree: string): ReadMapTree | null;  // its maps and manifest, for inspection
   summary(): ReadMapSummary;
 };
-// @beanstalk/shared-race/read-maps
+// @gitstalk/shared-race/read-maps
 type AffectedQuery = {
   changes: { path: string; op: 'M' | 'A' | 'D' }[]; // a rename is a D plus an A
   base?: string;      // the tree the changes apply to (a commit sha, or a CheckResult.mappedTree)
@@ -571,7 +571,7 @@ Synchronous (SQLite), so a step can call it. For **evidence promotion** (a bean 
 
 ## RPC for the web app
 
-The web app (`packages/web`) calls the gateway over Workers RPC, never HTTP. It uses a service binding to this Worker's default entrypoint, `Gateway` (a `WorkerEntrypoint`). The types live in `@beanstalk/shared-race/rpc`:
+The web app (`packages/web`) calls the gateway over Workers RPC, never HTTP. It uses a service binding to this Worker's default entrypoint, `Gateway` (a `WorkerEntrypoint`). The types live in `@gitstalk/shared-race/rpc`:
 
 ```jsonc
 // packages/web/wrangler.jsonc
@@ -581,7 +581,7 @@ The web app (`packages/web`) calls the gateway over Workers RPC, never HTTP. It 
 `wrangler types` types the binding as a plain `Fetcher`. Narrow it where it is used, to `Fetcher & GatewayRpc`; the generated `Env` stays as generated.
 
 ```ts
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
 export type GatewayRpc = {
   listRuns(limit?: number): Promise<readonly RunListItem[]>;
@@ -688,16 +688,16 @@ The full design, messages and contracts are in `docs/claude-opus/18-git-native-f
 - **Push = submit** (`src/push/push-proxy.ts`). The proxy reads the push's commands and options (`src/git/push-request.ts`), refuses what is not one `refs/heads/bean/<name>` (in the protocol: `ng` plus a `remote:` line), forwards the rest to Artifacts with the options stripped, then hands the new head to the engine. `push-options` is added to the receive-pack advertisement (`src/git/advertisement.ts`). With `-o wait` the response streams progress, keepalives and the verdict before its final flush.
 - **The push driver** (`src/push/push-driver.ts`) stands where the Python driver stands in a race: internal long polls on free slots; an `initial` invocation answered at once with the pushed head; a rework held until the bean's next push. It folds engine events into the `push_beans` table (`src/push/push-events.ts`) and publishes each bean's phase as the annotated tag `refs/beans/<name>/status` (`src/push/status-publisher.ts`, objects and packs built in the Worker by `src/git/pack-writer.ts`).
 - **Engine changes** for intake only: the `admit` input (`src/engine/intake.ts`), a pushed bean's fork point as its base (`beginTask`), and the continuous switches in `settle`, `startRace` and `deliverPending`. The squash reads a continuous engine's beans at `refs/heads/bean/<name>`; each pre-land check runs in a sandbox leased for it from the runner pool (one per bean in check, up to `preland_sandboxes`).
-- **RPC** (`RepoEngineRpc` in `@beanstalk/shared-race/rpc`, on the default entrypoint): `openRepoEngine(input) → {engineId, created, base_sha, git_path}`, `gitToken(engineId, user, ttl?)`, `pushedBeans(engineId)`, `closeRepoEngine(engineId, {deleteRepo})`. Every read RPC above takes the engine id as `run`.
+- **RPC** (`RepoEngineRpc` in `@gitstalk/shared-race/rpc`, on the default entrypoint): `openRepoEngine(input) → {engineId, created, base_sha, git_path}`, `gitToken(engineId, user, ttl?)`, `pushedBeans(engineId)`, `closeRepoEngine(engineId, {deleteRepo})`. Every read RPC above takes the engine id as `run`.
 - **Tests**: `test/git-native.test.ts` (the flow through the Worker with git's wire format), `src/git/git-native-wire.test.ts`, `src/push/*.test.ts`. A real git client: `research/race/git_native/local_e2e.py` (local stack, real checks) and `staging_e2e.py` (a deployed gateway); both run `demo.sh`.
 
 ## Running locally
 
 ```bash
 cp .dev.vars.example .dev.vars            # fill ADMIN_TOKEN and RUN_TOKEN_SECRET (each at least 32 characters; a shorter one makes every request answer 500 `misconfigured`)
-pnpm -F @beanstalk/gateway dev            # wrangler dev: needs Docker (runner) and a Cloudflare login (Artifacts is remote-only)
-pnpm -F @beanstalk/gateway test           # Miniflare; fakes for Artifacts, the git remote and the runner; no network
-pnpm -F @beanstalk/gateway types          # regenerate worker-configuration.d.ts after editing wrangler.jsonc
+pnpm -F @gitstalk/gateway dev            # wrangler dev: needs Docker (runner) and a Cloudflare login (Artifacts is remote-only)
+pnpm -F @gitstalk/gateway test           # Miniflare; fakes for Artifacts, the git remote and the runner; no network
+pnpm -F @gitstalk/gateway types          # regenerate worker-configuration.d.ts after editing wrangler.jsonc
 ```
 
 Without Docker or a Cloudflare login, `research/race/stream_e2e/devstack.py up` runs this Worker under `wrangler dev` with a local Artifacts stand-in (real bare repos behind `remotes.py`) and a local runner (real squashes, every check green), next to the web app under `vite dev`, so a real driver and real `claude -p` sessions can race against it (`stream_e2e/race.sh`). It was built to prove streaming diffs end to end (`docs/claude-opus/14-repository-experience.md`, streaming note).

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CHECK_REUSE_OFF, DEMO_SETTINGS, STALL_FIX_OFF } from '@beanstalk/shared-race/run-config';
+import { CHECK_REUSE_OFF, DEMO_SETTINGS, STALL_FIX_OFF } from '@gitstalk/shared-race/run-config';
 
 import { breakNumbers, burst30Scenario, redEpisodes } from '../testing/burst30';
 import { eventsOf, runRace, wellFormedProblems } from '../testing/scenario';

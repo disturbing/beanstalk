@@ -1,5 +1,5 @@
 {
-  "name": "@beanstalk/shared-ask",
+  "name": "@gitstalk/shared-ask",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@beanstalk/shared-race": "workspace:*",
+    "@gitstalk/shared-race": "workspace:*",
     "diff": "catalog:",
     "zod": "catalog:"
   },

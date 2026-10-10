@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import type { TokenSummary } from '@beanstalk/shared-identity/user-tokens';
-import { listUserTokens } from '@beanstalk/shared-identity/user-tokens';
+import type { TokenSummary } from '@gitstalk/shared-identity/user-tokens';
+import { listUserTokens } from '@gitstalk/shared-identity/user-tokens';
 
 import styles from '../../../components/account/account.module.css';
 import { CreateTokenForm } from '../../../components/account/create-token-form';

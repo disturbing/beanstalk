@@ -4,7 +4,7 @@
  * `<phase>: <reason>` and the details. Writes go one at a time, newest wins: a bean whose
  * phase changed twice while a write was in flight is written once more, with the latest.
  */
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 import { UpstreamError } from '../errors';
 import { annotatedTag } from '../git/pack-writer';

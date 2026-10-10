@@ -10,11 +10,11 @@ import type {
   AgentSession,
   ConsentUser,
   ConsentView,
-} from '@beanstalk/shared-identity/agent-sessions';
-import { recordAudit } from '@beanstalk/shared-identity/audit';
-import type { Scope } from '@beanstalk/shared-identity/scopes';
-import { parseScopes } from '@beanstalk/shared-identity/scopes';
-import { revokeClientTokens } from '@beanstalk/shared-identity/user-tokens';
+} from '@gitstalk/shared-identity/agent-sessions';
+import { recordAudit } from '@gitstalk/shared-identity/audit';
+import type { Scope } from '@gitstalk/shared-identity/scopes';
+import { parseScopes } from '@gitstalk/shared-identity/scopes';
+import { revokeClientTokens } from '@gitstalk/shared-identity/user-tokens';
 
 import { claimConsent, takeConsent } from './consent-store';
 import type { GrantProps } from './grant-props';

@@ -8,7 +8,7 @@ import { env } from 'cloudflare:workers';
 import {
   AUTOMATION_MODELS,
   DEFAULT_AUTOMATION_MODEL,
-} from '@beanstalk/shared-race/automation-models';
+} from '@gitstalk/shared-race/automation-models';
 
 import type { BuilderProps } from '../../components/automations/automation-builder';
 import { editorClient } from '../automations/editor-client';

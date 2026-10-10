@@ -5,10 +5,10 @@
 import { createMiddleware } from 'hono/factory';
 import { z } from 'zod';
 
-import { ContributorTokenClaims } from '@beanstalk/shared-race/collaboration';
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { RunId as RunIdSchema } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc, McpTokenClaims, RpcResult } from '@beanstalk/shared-race/rpc';
+import { ContributorTokenClaims } from '@gitstalk/shared-race/collaboration';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { RunId as RunIdSchema } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc, McpTokenClaims, RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { AppEnv } from '../app-env';
 
@@ -68,7 +68,7 @@ export async function authenticate(
   if (token === undefined)
     return refuse(
       401,
-      'send Authorization: Bearer <view or contributor token> (mint one with pnpm -F @beanstalk/mcp mint-token)',
+      'send Authorization: Bearer <view or contributor token> (mint one with pnpm -F @gitstalk/mcp mint-token)',
     );
   if (gateway === undefined) return refuse(503, 'the GATEWAY binding has no RPC methods');
   const verified =

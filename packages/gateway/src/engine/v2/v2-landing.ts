@@ -19,8 +19,8 @@
  *    touched neither a failing test nor anything it imports. Two beans' inherited reds on one
  *    sprout commit prove the sprout red: revert-first starts at once (`early_tickets`).
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds, unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { prelandSeconds, unionPaths, usesStructuralMerge } from '@gitstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
 import { isRunnableTest } from '../arena';

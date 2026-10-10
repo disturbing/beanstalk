@@ -9,8 +9,8 @@
  * collaborator who is not a maintainer gets none, except the secrets whose "available to
  * pre-land checks" toggle (`prelandAllowed`, default off) is on.
  */
-import type { SecretSummary } from '@beanstalk/shared-race/actions';
-import { SecretName } from '@beanstalk/shared-race/actions';
+import type { SecretSummary } from '@gitstalk/shared-race/actions';
+import { SecretName } from '@gitstalk/shared-race/actions';
 import { z } from 'zod';
 
 import { KEY_VERSION, encodeText, importSecretsKey, openValue, sealValue } from './secret-box';

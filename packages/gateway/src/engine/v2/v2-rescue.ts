@@ -5,7 +5,7 @@
  * new budget of rounds. Only a second exhaustion drops it. This also catches the loser of a
  * card whose re-execution still fails. E6 shipped t010 this way in two of three runs.
  */
-import type { SlotId } from '@beanstalk/shared-race/ids';
+import type { SlotId } from '@gitstalk/shared-race/ids';
 
 import { failingTestNames } from '../ci';
 import { emit, promptDefinition, requireTask } from '../context';

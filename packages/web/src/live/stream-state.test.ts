@@ -4,8 +4,8 @@ import type {
   BeanStreamSocketMessage,
   BeanStreamSummary,
   StreamFile,
-} from '@beanstalk/shared-ask/forge/bean-stream';
-import { toFileDiff } from '@beanstalk/shared-ask/forge/bean-stream';
+} from '@gitstalk/shared-ask/forge/bean-stream';
+import { toFileDiff } from '@gitstalk/shared-ask/forge/bean-stream';
 
 import type { LiveStreams } from './stream-state';
 import { applyStreamMessage, beanView, seedStream, writingSummaries } from './stream-state';

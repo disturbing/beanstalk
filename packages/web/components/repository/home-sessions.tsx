@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { z } from 'zod';
 
-import { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
+import { AgentSession } from '@gitstalk/shared-identity/agent-sessions';
 
 import type { FirstStepId } from '../../src/home/first-steps';
 import { firstSteps, isStarted, sessionsPollMs } from '../../src/home/first-steps';

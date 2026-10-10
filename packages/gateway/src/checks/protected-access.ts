@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import type { SessionVia, ViewerRole } from '@beanstalk/shared-race/collaborators';
+import type { SessionVia, ViewerRole } from '@gitstalk/shared-race/collaborators';
 
 import type { GitCredential } from '../auth/git-credential';
 

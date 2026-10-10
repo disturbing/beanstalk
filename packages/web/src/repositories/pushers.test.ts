@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyByKeywords } from '@beanstalk/shared-ask/ask/classifier';
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { classifyByKeywords } from '@gitstalk/shared-ask/ask/classifier';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { lastPushLine, sessionsActiveLine } from '../people/contributor-line';
 import { pushersOf } from './pushers';
 import { REPOSITORY_SUGGESTIONS } from './questions';

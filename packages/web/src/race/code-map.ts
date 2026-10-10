@@ -3,12 +3,12 @@
  * touch each file now, with overlaps (two or more beans in flight on one file) called out.
  * The layout depends only on the file list, so it never moves while the race runs.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
-import { compareText } from '@beanstalk/shared-ask/repo/paths';
-import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { compareText } from '@gitstalk/shared-ask/repo/paths';
+import { isInFlight } from '@gitstalk/shared-ask/race/race-counters';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 
 /** A landing or a conflict glows on the map for this long (race seconds). */
 export const AFTERGLOW_SECONDS = 45;

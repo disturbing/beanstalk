@@ -1,4 +1,4 @@
-import type { NextResponse, Workspace } from '@beanstalk/shared-race/driver';
+import type { NextResponse, Workspace } from '@gitstalk/shared-race/driver';
 
 import type { EngineReply, EngineWorkspace } from '../engine/model';
 import type { RunRepos } from './run-jobs';

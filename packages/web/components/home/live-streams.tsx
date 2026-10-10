@@ -11,8 +11,8 @@ import {
   useState,
 } from 'react';
 
-import type { BeanStreamSummary, BeanStreamView } from '@beanstalk/shared-ask/forge/bean-stream';
-import { BeanStreamSocketMessage } from '@beanstalk/shared-ask/forge/bean-stream';
+import type { BeanStreamSummary, BeanStreamView } from '@gitstalk/shared-ask/forge/bean-stream';
+import { BeanStreamSocketMessage } from '@gitstalk/shared-ask/forge/bean-stream';
 import type { LiveStreams } from '../../src/live/stream-state';
 import {
   applyStreamMessage,

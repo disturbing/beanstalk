@@ -3,7 +3,7 @@
  * exactly like an arena task before its start. The policy's dispatch then starts it on a free
  * slot, whose initial invocation the shell answers at once with the pushed commit.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { StepContext } from './context';
 import { emit, isRacing, taskDefinition } from './context';

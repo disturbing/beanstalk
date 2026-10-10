@@ -17,7 +17,7 @@ import type {
   ConsentRedirect,
   ConsentUser,
   ConsentView,
-} from '@beanstalk/shared-identity/agent-sessions';
+} from '@gitstalk/shared-identity/agent-sessions';
 
 import { createApp } from './app';
 import { depsFromEnv } from './deps';

@@ -3,7 +3,7 @@ import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/cli
 import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
+import { verifyUserToken } from '@gitstalk/shared-identity/user-tokens';
 
 import type { Person } from './repo-fixtures';
 import {

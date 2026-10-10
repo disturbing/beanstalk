@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import type { KeyRequestView } from '@beanstalk/shared-identity/ssh-key-requests';
-import { describeKeyRequest, normalUserCode } from '@beanstalk/shared-identity/ssh-key-requests';
+import type { KeyRequestView } from '@gitstalk/shared-identity/ssh-key-requests';
+import { describeKeyRequest, normalUserCode } from '@gitstalk/shared-identity/ssh-key-requests';
 
 import styles from '../../../../components/account/account.module.css';
 import { currentSession } from '../../../../src/auth/user';

@@ -5,9 +5,9 @@ import {
   BeanPromise,
   CollaborationEvent,
   ThreadPost,
-} from '@beanstalk/shared-race/collaboration';
-import type { BeanReliance } from '@beanstalk/shared-race/collaboration';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import type { BeanReliance } from '@gitstalk/shared-race/collaboration';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 export type CollaborationStorage = Pick<DurableObjectStorage, 'sql' | 'transactionSync'>;
 

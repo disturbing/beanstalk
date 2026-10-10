@@ -9,9 +9,9 @@ import type {
   BeanStreamSummary,
   BeanStreamView,
   StreamFile,
-} from '@beanstalk/shared-ask/forge/bean-stream';
-import { toFileDiff } from '@beanstalk/shared-ask/forge/bean-stream';
-import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+} from '@gitstalk/shared-ask/forge/bean-stream';
+import { toFileDiff } from '@gitstalk/shared-ask/forge/bean-stream';
+import type { FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 
 /** A bean's files at one accepted seq of one invocation. */
 export type BeanFiles = {

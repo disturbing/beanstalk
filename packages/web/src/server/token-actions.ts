@@ -9,8 +9,8 @@ import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 
-import { getWebSession, isValidCsrf } from '@beanstalk/shared-identity/sessions';
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
+import { getWebSession, isValidCsrf } from '@gitstalk/shared-identity/sessions';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
 
 export type CreateTokenState =
   | { readonly kind: 'idle' }

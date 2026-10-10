@@ -11,7 +11,7 @@
  */
 import { z } from 'zod';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { base64UrlDecode, base64UrlEncode } from './base64url';
 

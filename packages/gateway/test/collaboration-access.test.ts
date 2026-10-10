@@ -6,7 +6,7 @@ import {
   BeanThreadPostInput,
   BeanThreadPostResult,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
 import { ADMIN, call, createRun, json, slotToken } from './helpers';
 import type { CreatedRun } from './helpers';

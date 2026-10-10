@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { InvocationResult, MidrunSyncOutcome } from '@beanstalk/shared-race/driver';
-import { Sha } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { InvocationResult, MidrunSyncOutcome } from '@gitstalk/shared-race/driver';
+import { Sha } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import type { EngineInput, EngineInstruction } from '../model';
 import { SPROUT_REF } from '../refs';

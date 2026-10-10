@@ -2,7 +2,7 @@
  * A bean's landing flow as the other v2 modules see it: look it up, or end it with a drop.
  * Timer keys of the policy live here too, so producers and the router agree on them.
  */
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 import { requireTask } from '../context';
 import { EngineInvariantError } from '../errors';

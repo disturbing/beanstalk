@@ -2,9 +2,9 @@
  * Links into the web app's explorer for the caller's run: a bean, a line, or an Ask question.
  * Links never carry the caller's token; the explorer reads runs without one.
  */
-import type { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
-import type { LineRef } from '@beanstalk/shared-ask/ask/view-spec';
+import type { LineRef } from '@gitstalk/shared-ask/ask/view-spec';
 
 export type PreviewTarget =
   | { readonly kind: 'bean'; readonly bean: TaskId }

@@ -4,7 +4,7 @@
  * starts: the clone URL, a first bean pushed with plain git, and the three ways to connect
  * git (the Plugin, HTTPS and Env vars tabs of the start page).
  */
-import { isReservedHandle } from '@beanstalk/shared-identity/reserved-handles';
+import { isReservedHandle } from '@gitstalk/shared-identity/reserved-handles';
 
 // One place names the plugin's marketplace (it stays `disturbing/beanstalk`).
 import { PLUGIN_MARKETPLACE } from '../setup/agent-installs';

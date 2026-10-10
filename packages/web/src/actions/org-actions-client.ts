@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import type { ActionsEntriesRpc } from '@beanstalk/shared-race/actions-secrets';
+import type { ActionsEntriesRpc } from '@gitstalk/shared-race/actions-secrets';
 
 import type { Outcome } from '../repositories/registry-client';
 import type { PutOrgSecretInput, PutOrgVariableInput } from './actions-contract';

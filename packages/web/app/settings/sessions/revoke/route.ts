@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
 
 import { seeOther, signedInForm } from '../../../../src/auth/http';
 import { agentSessionsRpc } from '../../../../src/auth/services';

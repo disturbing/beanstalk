@@ -1,6 +1,6 @@
-import type { InvocationKind, InvocationResult } from '@beanstalk/shared-race/driver';
-import type { InvocationId, Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { protectTestsMode, unionPaths } from '@beanstalk/shared-race/run-config';
+import type { InvocationKind, InvocationResult } from '@gitstalk/shared-race/driver';
+import type { InvocationId, Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { protectTestsMode, unionPaths } from '@gitstalk/shared-race/run-config';
 
 import { placementModules } from './arena';
 import type { StepContext } from './context';

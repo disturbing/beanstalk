@@ -26,8 +26,8 @@
  * searches of the same six candidates, each `confirmed: []`, under three different sets of
  * named counterparts). Leaving out one of them fixed nothing then; it fixes nothing now.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { unionPaths } from '@gitstalk/shared-race/run-config';
 
 import { emit, startJob, taskDefinition } from '../context';
 import type { CheckResult, JobId, JobResult } from '../model';

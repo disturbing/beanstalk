@@ -3,7 +3,7 @@
  * settings, delete with confirmation, and decide what `/<owner>/<repo>` shows. The server
  * actions and pages are thin wrappers, so these are what the route tests exercise.
  */
-import { UpdateRepositoryInput } from '@beanstalk/shared-race/repos';
+import { UpdateRepositoryInput } from '@gitstalk/shared-race/repos';
 
 import type { User as SessionUser } from '../auth/user';
 import type { CreateFormResult, CreateValues } from './create-form';

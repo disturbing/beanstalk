@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
-import { revokeUserToken } from '@beanstalk/shared-identity/user-tokens';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
+import { revokeUserToken } from '@gitstalk/shared-identity/user-tokens';
 
 import { seeOther, signedInForm } from '../../../../src/auth/http';
 

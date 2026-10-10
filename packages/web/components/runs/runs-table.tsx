@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import type { RunListing } from '@beanstalk/shared-ask/forge/forge-source';
+import type { RunListing } from '@gitstalk/shared-ask/forge/forge-source';
 import { formatUsd } from '../../src/race/race-format';
 import styles from './runs.module.css';
 

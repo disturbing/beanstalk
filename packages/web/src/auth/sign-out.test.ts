@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
 
 import { signOut } from './sign-out';
 import type { SignOutPorts } from './sign-out';

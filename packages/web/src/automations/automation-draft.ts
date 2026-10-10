@@ -4,8 +4,8 @@
  * order and quoting survive and a save's diff is the field that changed (doc 25 §4.2). The
  * same text is what the YAML pane edits, so the two can never drift apart.
  */
-import type { BeanstalkEvent } from '@beanstalk/shared-race/actions';
-import { BEANSTALK_EVENTS } from '@beanstalk/shared-race/actions';
+import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
+import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
 import { Document, LineCounter, isMap, isScalar, isSeq, parseDocument } from 'yaml';
 import type { Node, YAMLMap } from 'yaml';
 

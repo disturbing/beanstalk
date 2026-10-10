@@ -2,7 +2,7 @@
  * What the canvas shows about a race, derived from its events by `reduceRace`. Times are
  * race seconds: the events' `t`, seconds since the run was created.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { BatchId, CardId, TicketId } from './race-events';
 

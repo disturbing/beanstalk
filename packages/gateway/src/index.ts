@@ -1,6 +1,6 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
-import type { EngineFeed, EngineFeedRpc } from '@beanstalk/shared-race/engine-feed';
+import type { EngineFeed, EngineFeedRpc } from '@gitstalk/shared-race/engine-feed';
 import type {
   BeanContext,
   BeanContextInput,
@@ -15,7 +15,7 @@ import type {
   BeanThreadPostResult,
   BeanUpdateInput,
   BeanUpdateResult,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
 import type {
   BeanDetail,
@@ -42,7 +42,7 @@ import type {
   TestCoverage,
   ViewToken,
   ViewTokenClaims,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import type {
   CreateRepositoryInput,
@@ -54,14 +54,14 @@ import type {
   RepositoryRecord,
   UpdateRepositoryInput,
   Viewer,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 import type {
   CreateDeployTokenInput,
   DeployTokenActor,
   DeployTokenSummary,
   DeployTokensRpc,
   IssuedDeployToken,
-} from '@beanstalk/shared-race/deploy-tokens';
+} from '@gitstalk/shared-race/deploy-tokens';
 import type {
   AgentPrincipal,
   Collaborator,
@@ -72,7 +72,7 @@ import type {
   RepositoryAction,
   RepositoryForViewer,
   RepositoryPeople,
-} from '@beanstalk/shared-race/collaborators';
+} from '@gitstalk/shared-race/collaborators';
 
 import type {
   AgentBean,
@@ -85,15 +85,15 @@ import type {
   BeanWaited,
   TaskClaimed,
   AgentAutomations,
-} from '@beanstalk/shared-race/agent-repos';
+} from '@gitstalk/shared-race/agent-repos';
 
 import type {
   RepoIndexRpc,
   RepositoryGrowth,
   RepositoryStalk,
-} from '@beanstalk/shared-race/repo-events';
+} from '@gitstalk/shared-race/repo-events';
 
-import type { AccountsRpc } from '@beanstalk/shared-race/accounts';
+import type { AccountsRpc } from '@gitstalk/shared-race/accounts';
 import type {
   AutomationBeanStatus,
   AutomationEditorRpc,
@@ -101,7 +101,7 @@ import type {
   SaveAutomationInput,
   SaveAutomationResult,
   TestAutomationInput,
-} from '@beanstalk/shared-race/automation-editor';
+} from '@gitstalk/shared-race/automation-editor';
 
 import { repositoryStorage } from './adapters/repository-storage';
 import { accountsRpc } from './repos/accounts-rpc';

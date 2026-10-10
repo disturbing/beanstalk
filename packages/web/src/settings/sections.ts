@@ -3,7 +3,7 @@
  * which, where `/settings` lands, and where the old one-page anchors (`#social`, `#secrets`)
  * go now. Pure, so the permission rules and the redirects are tested without rendering.
  */
-import type { OrgRole } from '@beanstalk/shared-identity/orgs';
+import type { OrgRole } from '@gitstalk/shared-identity/orgs';
 
 import type { ViewerRole } from '../repositories/registry-client';
 

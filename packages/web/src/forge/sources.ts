@@ -3,14 +3,14 @@
  * the bundled fixtures (optionally as of a race second); anything else is a live run behind
  * the GATEWAY binding.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import { isRecordedRun } from '../recorded/recorded-runs';
-import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import type { ForgeSource, RunListing } from '@beanstalk/shared-ask/forge/forge-source';
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
-import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
+import { ForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
+import type { ForgeSource, RunListing } from '@gitstalk/shared-ask/forge/forge-source';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { gatewaySource } from '@gitstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@gitstalk/shared-ask/forge/memo-source';
 import { recordedSource } from './recorded-source';
 
 /** A live listing must answer within this, or the runs page shows recorded runs only. */

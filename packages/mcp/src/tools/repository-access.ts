@@ -9,7 +9,7 @@ import type {
   CollaboratorsRpc,
   RepositoryAction,
   RepositoryForViewer,
-} from '@beanstalk/shared-race/collaborators';
+} from '@gitstalk/shared-race/collaborators';
 
 import type { AgentSessionContext } from './tool-context';
 

@@ -4,9 +4,9 @@ import type {
   ProgressResponse,
   ReplayHints,
   TestFile,
-} from '@beanstalk/shared-race/driver';
-import type { InvocationEndFields, Json } from '@beanstalk/shared-race/events';
-import type { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/driver';
+import type { InvocationEndFields, Json } from '@gitstalk/shared-race/events';
+import type { InvocationId, Sha, SlotId } from '@gitstalk/shared-race/ids';
 
 import { budgetMessage, markAborted } from './abort';
 import type { StepContext } from './context';

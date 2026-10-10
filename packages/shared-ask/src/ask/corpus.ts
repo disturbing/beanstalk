@@ -1,5 +1,5 @@
 /** Gathers what the entity resolver needs from a data source, in one round of parallel calls. */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import type { ForgeSource } from '../forge/forge-source';
 import type { RefName } from '../repo/repo-types';

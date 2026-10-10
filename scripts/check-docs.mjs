@@ -1,6 +1,6 @@
 // Checks the public docs (packages/site/public/docs): every relative link and anchor resolves
 // to a file and an id that exist, and every page's left nav lists the same pages as the overview.
-// Run by `pnpm -F @beanstalk/site test` (so by `pnpm check`) and by the docs-maintainer agent.
+// Run by `pnpm -F @gitstalk/site test` (so by `pnpm check`) and by the docs-maintainer agent.
 //
 //   node scripts/check-docs.mjs
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

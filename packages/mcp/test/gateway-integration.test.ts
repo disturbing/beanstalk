@@ -7,7 +7,7 @@ import {
   BeanInboxPage,
   BeanThreadPostResult,
   BeanUpdateResult,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
 const ORIGIN = 'https://mcp.integration.test';
 const ADMIN = 'mcp-test-admin-token-0123456789abcdef';

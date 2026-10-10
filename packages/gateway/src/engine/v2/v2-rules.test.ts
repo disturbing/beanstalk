@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
 import type { FailRule, FlakeInjector, ScriptedTask } from '../testing/fake-world';

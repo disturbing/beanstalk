@@ -4,9 +4,9 @@
  * (pushes, checks, verdicts with failing tests and the beans it collided with, landing,
  * validation, decisions), read from the engine's event log and the pushed beans. Pure.
  */
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { Bean, BeanPhase } from '@beanstalk/shared-ask/race/race-state';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { Bean, BeanPhase } from '@gitstalk/shared-ask/race/race-state';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 
 import type { PushedBean } from './pushed-beans';
 

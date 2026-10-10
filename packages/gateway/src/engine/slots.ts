@@ -1,4 +1,4 @@
-import type { SlotId } from '@beanstalk/shared-race/ids';
+import type { SlotId } from '@gitstalk/shared-race/ids';
 
 import type { StepContext } from './context';
 import { refreshSlotClocks } from './context';

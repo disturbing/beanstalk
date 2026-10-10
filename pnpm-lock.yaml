@@ -125,12 +125,12 @@ importers:
 
   packages/actions-executor:
     dependencies:
-      '@beanstalk/shared-race':
-        specifier: workspace:*
-        version: link:../shared-race
       '@cloudflare/containers':
         specifier: 'catalog:'
         version: 0.3.7
+      '@gitstalk/shared-race':
+        specifier: workspace:*
+        version: link:../shared-race
       hono:
         specifier: 'catalog:'
         version: 4.13.12
@@ -161,18 +161,18 @@ importers:
       '@actions/workflow-parser':
         specifier: 'catalog:'
         version: 0.3.61
-      '@beanstalk/shared-identity':
-        specifier: workspace:*
-        version: link:../shared-identity
-      '@beanstalk/shared-oidc':
-        specifier: workspace:*
-        version: link:../shared-oidc
-      '@beanstalk/shared-race':
-        specifier: workspace:*
-        version: link:../shared-race
       '@cloudflare/containers':
         specifier: 'catalog:'
         version: 0.3.7
+      '@gitstalk/shared-identity':
+        specifier: workspace:*
+        version: link:../shared-identity
+      '@gitstalk/shared-oidc':
+        specifier: workspace:*
+        version: link:../shared-oidc
+      '@gitstalk/shared-race':
+        specifier: workspace:*
+        version: link:../shared-race
       '@hono/zod-validator':
         specifier: 'catalog:'
         version: 0.9.1(hono@4.13.12)(zod@4.6.5)
@@ -201,18 +201,18 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@beanstalk/shared-ask':
-        specifier: workspace:*
-        version: link:../shared-ask
-      '@beanstalk/shared-identity':
-        specifier: workspace:*
-        version: link:../shared-identity
-      '@beanstalk/shared-race':
-        specifier: workspace:*
-        version: link:../shared-race
       '@cloudflare/workers-oauth-provider':
         specifier: 'catalog:'
         version: 1.2.3
+      '@gitstalk/shared-ask':
+        specifier: workspace:*
+        version: link:../shared-ask
+      '@gitstalk/shared-identity':
+        specifier: workspace:*
+        version: link:../shared-identity
+      '@gitstalk/shared-race':
+        specifier: workspace:*
+        version: link:../shared-race
       '@modelcontextprotocol/server':
         specifier: 'catalog:'
         version: 2.0.0
@@ -247,7 +247,7 @@ importers:
 
   packages/oidc:
     dependencies:
-      '@beanstalk/shared-oidc':
+      '@gitstalk/shared-oidc':
         specifier: workspace:*
         version: link:../shared-oidc
       hono:
@@ -272,7 +272,7 @@ importers:
 
   packages/shared-ask:
     dependencies:
-      '@beanstalk/shared-race':
+      '@gitstalk/shared-race':
         specifier: workspace:*
         version: link:../shared-race
       diff:
@@ -434,24 +434,24 @@ importers:
 
   packages/web:
     dependencies:
-      '@beanstalk/shared-ask':
-        specifier: workspace:*
-        version: link:../shared-ask
-      '@beanstalk/shared-identity':
-        specifier: workspace:*
-        version: link:../shared-identity
-      '@beanstalk/shared-media':
-        specifier: workspace:*
-        version: link:../shared-media
-      '@beanstalk/shared-race':
-        specifier: workspace:*
-        version: link:../shared-race
       '@fontsource-variable/jetbrains-mono':
         specifier: 'catalog:'
         version: 5.3.0
       '@fontsource-variable/space-grotesk':
         specifier: 'catalog:'
         version: 5.3.0
+      '@gitstalk/shared-ask':
+        specifier: workspace:*
+        version: link:../shared-ask
+      '@gitstalk/shared-identity':
+        specifier: workspace:*
+        version: link:../shared-identity
+      '@gitstalk/shared-media':
+        specifier: workspace:*
+        version: link:../shared-media
+      '@gitstalk/shared-race':
+        specifier: workspace:*
+        version: link:../shared-race
       '@simplewebauthn/browser':
         specifier: 'catalog:'
         version: 14.0.0

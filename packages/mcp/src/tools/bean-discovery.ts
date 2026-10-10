@@ -1,7 +1,7 @@
-import { BeanDiscoverPage } from '@beanstalk/shared-race/collaboration';
-import type { BeanContext } from '@beanstalk/shared-race/collaboration';
+import { BeanDiscoverPage } from '@gitstalk/shared-race/collaboration';
+import type { BeanContext } from '@gitstalk/shared-race/collaboration';
 
-import { BeanDetailAnswer, BeanSummaries, unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { BeanDetailAnswer, BeanSummaries, unwrap } from '@gitstalk/shared-ask/forge/gateway-rpc';
 
 import type { ToolContext } from './tool-context';
 import { parseBean } from './tool-context';

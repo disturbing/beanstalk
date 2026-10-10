@@ -14,10 +14,10 @@ import type {
   RepositoryGrowth,
   RepositoryStalk,
   StalkPromotion,
-} from '@beanstalk/shared-race/repo-events';
-import { BEAN_STATES } from '@beanstalk/shared-race/repo-events';
-import type { RepositoryActivity } from '@beanstalk/shared-race/repos';
-import { ACTIVITY_KINDS } from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repo-events';
+import { BEAN_STATES } from '@gitstalk/shared-race/repo-events';
+import type { RepositoryActivity } from '@gitstalk/shared-race/repos';
+import { ACTIVITY_KINDS } from '@gitstalk/shared-race/repos';
 
 import { activityLine, dayOf } from './activity-text';
 

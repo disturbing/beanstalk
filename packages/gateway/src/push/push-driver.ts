@@ -9,11 +9,11 @@
  * goes through the host's `apply`, and replies to the internal polls are answered after the
  * step that produced them (never inside it).
  */
-import { InvocationResult } from '@beanstalk/shared-race/driver';
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
-import type { RunConfig } from '@beanstalk/shared-race/run-config';
-import type { ArenaTask } from '@beanstalk/shared-race/task';
+import { InvocationResult } from '@gitstalk/shared-race/driver';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { InvocationId, Sha, SlotId } from '@gitstalk/shared-race/ids';
+import type { RunConfig } from '@gitstalk/shared-race/run-config';
+import type { ArenaTask } from '@gitstalk/shared-race/task';
 
 import type {
   EmittedEvent,

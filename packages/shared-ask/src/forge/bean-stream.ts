@@ -8,7 +8,7 @@
 import { parsePatch } from 'diff';
 import { z } from 'zod';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { FileDiff } from '../repo/repo-types';
 import { toHunk } from '../repo/file-diff';

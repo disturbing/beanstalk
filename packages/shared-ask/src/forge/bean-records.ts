@@ -2,7 +2,7 @@
  * The explorer's view of beans, decisions and tests, derived from a race state. The
  * recorded source uses these directly; the shapes are the gateway RPC's.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import type { RaceEvent } from '../race/race-events';
 import type { Bean, RaceState } from '../race/race-state';

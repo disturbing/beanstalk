@@ -2,10 +2,10 @@
  * The bean a recent-change answer features (its journey): the newest landed bean of the rail
  * that touches the answer's files, with its own change's files.
  */
-import type { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
-import type { Answer } from '@beanstalk/shared-ask/ask/answer';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
+import type { Answer } from '@gitstalk/shared-ask/ask/answer';
+import type { ForgeSource } from '@gitstalk/shared-ask/forge/forge-source';
 
 /** Classes whose answer is about recent change: feature the newest bean it is about. */
 const FEATURE_CLASSES = new Set(['recent-changes', 'who-why']);

@@ -5,17 +5,17 @@ import type {
   ReplayHints,
   TestFile,
   WorkspaceMerge,
-} from '@beanstalk/shared-race/driver';
+} from '@gitstalk/shared-race/driver';
 import type {
   CiMeta,
   EventEnvelope,
   Json,
   RaceEventFields,
   RaceEventType,
-} from '@beanstalk/shared-race/events';
-import type { InvocationId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import type { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
-import type { AgentKind, PolicyName } from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/events';
+import type { InvocationId, Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import type { CheckReadMaps, CheckedTree } from '@gitstalk/shared-race/read-maps';
+import type { AgentKind, PolicyName } from '@gitstalk/shared-race/run-config';
 
 /** Seconds since the run was created (the harness's `t`, unrounded). */
 export type Seconds = number;

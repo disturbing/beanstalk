@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { mintJobToken, revokeJobTokens, tokenHash } from './job-tokens';
 import type { ModelProxyDeps, ModelRunner } from './model-proxy';

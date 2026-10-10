@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
+import { RepoEventsMessage } from '@gitstalk/shared-race/repo-events';
 
 import { activityLine } from './activity-text';
 import { repoEventsOf } from './map-events';

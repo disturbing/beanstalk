@@ -2,7 +2,7 @@
  * An answer: the explorer's fixed layout, configured for one question. Pages render it;
  * nothing in it is layout, only data and the choice of panels.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { BeanDetail, BeanRecord, DecisionRecord, TestRecord } from '../forge/forge-source';
 import type { BatchId, TicketId } from '../race/race-events';

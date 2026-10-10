@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
-import { MAX_IMAGE_BYTES } from '@beanstalk/shared-media/images';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
+import { MAX_IMAGE_BYTES } from '@gitstalk/shared-media/images';
 
 import { removePictureFlow, replacePictureFlow } from '../../../../../../src/account/account-flows';
 import type { PicturePorts } from '../../../../../../src/account/account-flows';

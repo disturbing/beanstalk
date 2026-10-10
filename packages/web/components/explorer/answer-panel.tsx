@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
-import type { Answer, Chip } from '@beanstalk/shared-ask/ask/answer';
-import { CATALOG, specWithView } from '@beanstalk/shared-ask/ask/view-spec';
-import { VISIBLE_FILE_CHIPS } from '@beanstalk/shared-ask/ask/chips';
+import type { Answer, Chip } from '@gitstalk/shared-ask/ask/answer';
+import { CATALOG, specWithView } from '@gitstalk/shared-ask/ask/view-spec';
+import { VISIBLE_FILE_CHIPS } from '@gitstalk/shared-ask/ask/chips';
 import styles from './explorer.module.css';
 import type { ExplorerState } from './explorer-url';
 import { explorerHref } from './explorer-url';

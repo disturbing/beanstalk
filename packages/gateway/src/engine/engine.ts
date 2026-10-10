@@ -4,8 +4,8 @@
  * effects for the shell to perform. It never reads the clock, randomness or bindings, so
  * the same inputs always yield the same events.
  */
-import type { InvocationResult } from '@beanstalk/shared-race/driver';
-import type { InvocationId, Sha, SlotId } from '@beanstalk/shared-race/ids';
+import type { InvocationResult } from '@gitstalk/shared-race/driver';
+import type { InvocationId, Sha, SlotId } from '@gitstalk/shared-race/ids';
 
 import { markAborted } from './abort';
 import type { EngineEnv } from './catalog';

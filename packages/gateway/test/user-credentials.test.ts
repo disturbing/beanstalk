@@ -6,9 +6,9 @@ import {
   createPersonalToken,
   mintSessionToken,
   revokeUserToken,
-} from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
-import { RunId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import { mayUseEngine, verifyGitCredential } from '../src/auth/git-credential';
 import type { GitCredentialEnv } from '../src/auth/git-credential';

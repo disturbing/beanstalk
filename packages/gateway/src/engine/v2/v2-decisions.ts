@@ -15,8 +15,8 @@
  *     in place, and the winner merges and carries them, landing with them.
  *   Decisions compose: the author and the loser see every earlier decision in force.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds, releasesOnCheck } from '@beanstalk/shared-race/run-config';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import { prelandSeconds, releasesOnCheck } from '@gitstalk/shared-race/run-config';
 
 import { failingTestNames } from '../ci';
 import type { DecisionAnswer, ReworkOutcome } from '../context';

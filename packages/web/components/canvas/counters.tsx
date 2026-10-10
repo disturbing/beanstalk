@@ -2,8 +2,8 @@
 
 import { useId, useState } from 'react';
 
-import type { RaceCounters } from '@beanstalk/shared-ask/race/race-counters';
-import { kthGreenAt } from '@beanstalk/shared-ask/race/race-counters';
+import type { RaceCounters } from '@gitstalk/shared-ask/race/race-counters';
+import { kthGreenAt } from '@gitstalk/shared-ask/race/race-counters';
 import { formatMinutes, formatUsd, ordinal, plural } from '../../src/race/race-format';
 import styles from './canvas.module.css';
 

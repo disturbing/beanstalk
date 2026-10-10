@@ -4,7 +4,7 @@
  * with a red mark for a bean that turned the sprout red and faint rows for beans that fell
  * off. Derived from the race state at the playhead.
  */
-import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { isInFlight } from '../race/race-counters';
 import type { RaceEvent } from '../race/race-events';

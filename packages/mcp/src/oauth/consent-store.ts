@@ -8,7 +8,7 @@
 import type { AuthRequest, ConsentDescription } from '@cloudflare/workers-oauth-provider';
 import { z } from 'zod';
 
-import { hashSecret, randomSecret } from '@beanstalk/shared-identity/secrets';
+import { hashSecret, randomSecret } from '@gitstalk/shared-identity/secrets';
 
 const CONSENT_SECONDS = 600;
 const KEY_PREFIX = 'beanstalk-consent:';

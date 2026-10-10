@@ -5,8 +5,8 @@
  * registry rows are gone. A failure here never fails the delete: it is logged, and the 30-day
  * log expiry and the executor's daily sweep remove what stays.
  */
-import type { ActionsExecutor } from '@beanstalk/shared-race/actions';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
+import type { ActionsExecutor } from '@gitstalk/shared-race/actions';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
 
 import { readActionsConfig } from '../actions/actions-config';
 import type { Logger } from '../log';

@@ -4,8 +4,8 @@
  * `shout` (red: its own test fails on the merged tree) and `slugify` (landed and validated).
  * Test support only.
  */
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
 import type { PushedBean } from '../pushed-beans';
 import events from './greeter-events.json' with { type: 'json' };
 

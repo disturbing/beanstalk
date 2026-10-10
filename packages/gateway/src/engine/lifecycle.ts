@@ -1,11 +1,11 @@
-import type { Sha } from '@beanstalk/shared-race/ids';
-import { slotIds } from '@beanstalk/shared-race/ids';
+import type { Sha } from '@gitstalk/shared-race/ids';
+import { slotIds } from '@gitstalk/shared-race/ids';
 import {
   errorBudget,
   protectTestsMode,
   snapshotMode,
   usesUnionMerge,
-} from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/run-config';
 
 import type { EngineEnv } from './catalog';
 import { taskOrder } from './catalog';

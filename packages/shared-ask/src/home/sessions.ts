@@ -4,7 +4,7 @@
  * not standing agents. Recorded runs carry no owner data, so their adapter attributes every
  * session to a placeholder owner; real owners slot in through the same directory.
  */
-import type { SlotId } from '@beanstalk/shared-race/ids';
+import type { SlotId } from '@gitstalk/shared-race/ids';
 
 import { isInFlight } from '../race/race-counters';
 import type { RaceState } from '../race/race-state';

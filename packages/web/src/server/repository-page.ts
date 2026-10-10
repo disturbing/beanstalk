@@ -8,7 +8,7 @@ import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
-import { resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
+import { resolveRetiredHandle } from '@gitstalk/shared-identity/profiles';
 
 import { currentUser } from '../auth/user';
 import type { User as SessionUser } from '../auth/user';

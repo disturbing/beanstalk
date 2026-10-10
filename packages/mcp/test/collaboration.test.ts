@@ -11,8 +11,8 @@ import {
   BeanPeerSummary,
   BeanThreadPostInput,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
 import { createApp } from '../src/app';
 import { authenticate } from '../src/auth/bearer';

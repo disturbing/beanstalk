@@ -3,7 +3,7 @@
  * per file, and conflicts leave the same markers git does. Enough to give squashes,
  * reworks and suites real content without a container.
  */
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 export type Files = ReadonlyMap<string, string>;
 

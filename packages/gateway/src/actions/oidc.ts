@@ -1,5 +1,5 @@
 /**
- * OIDC for Actions jobs (doc 25 §3.5; issuer library `@beanstalk/shared-oidc`): the gateway
+ * OIDC for Actions jobs (doc 25 §3.5; issuer library `@gitstalk/shared-oidc`): the gateway
  * mounts the issuer at `/_actions/oidc` (discovery, JWKS, the job token endpoint) and mints a
  * job's `ACTIONS_ID_TOKEN_REQUEST_URL` / `_TOKEN` when it starts. The issuer is here, not in the
  * standalone Worker, because only the control plane knows whether a job is still running
@@ -9,8 +9,8 @@
  * `packages/shared-oidc/scripts/oidc-keys.mjs`), jobs get no OIDC variables and the routes
  * answer 503. `OIDC_ISSUER_URL` sets the public issuer (default `<gateway>/_actions/oidc`).
  */
-import type { IdTokenJob } from '@beanstalk/shared-oidc/job-identity';
-import type { OidcEnvironment } from '@beanstalk/shared-oidc/issuer';
+import type { IdTokenJob } from '@gitstalk/shared-oidc/job-identity';
+import type { OidcEnvironment } from '@gitstalk/shared-oidc/issuer';
 import {
   DEFAULT_ISSUER_PATH,
   OidcNotConfiguredError,
@@ -18,7 +18,7 @@ import {
   issuerUrlFor,
   loadOidcConfig,
   mintIdTokenRequest,
-} from '@beanstalk/shared-oidc/issuer';
+} from '@gitstalk/shared-oidc/issuer';
 import { z } from 'zod';
 
 import type { JobRow, RunRecord } from './run-store';

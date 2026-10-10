@@ -3,9 +3,9 @@ import { mayViewEngine } from '../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
 import { liveStreamFeed } from '../../../../../src/live/stream-bridge';
 import { log } from '../../../../../src/log';
 import { isRecordedRun } from '../../../../../src/recorded/recorded-runs';

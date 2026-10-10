@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 /** Rows kept per table; older rows concern beans long landed or reworked. */
 const KEPT_ROWS = 500;

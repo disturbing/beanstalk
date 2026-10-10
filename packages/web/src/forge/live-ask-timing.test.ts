@@ -7,11 +7,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
-import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
-import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
-import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
-import { rulesPicker } from '@beanstalk/shared-ask/pick/picker';
+import { keywordClassifier } from '@gitstalk/shared-ask/ask/classifier';
+import { planAnswer } from '@gitstalk/shared-ask/ask/plan-answer';
+import { gatewaySource } from '@gitstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@gitstalk/shared-ask/forge/memo-source';
+import { rulesPicker } from '@gitstalk/shared-ask/pick/picker';
 import { featuredBean } from '../server/featured-bean';
 import { homePageData } from '../server/home-page-data';
 import { calibrationRun } from './testing/calibration-run';

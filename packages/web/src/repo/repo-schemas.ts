@@ -1,7 +1,7 @@
 /** Zod schemas for repo shapes that cross the network inside the app (the bean diff route). */
 import { z } from 'zod';
 
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 const DiffLine = z.object({
   kind: z.enum(['context', 'add', 'del']),

@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import { deletionPlan } from '@beanstalk/shared-identity/account-deletion';
-import { HANDLE_CHANGE_COOLDOWN_MS, retiredHandles } from '@beanstalk/shared-identity/profiles';
+import { deletionPlan } from '@gitstalk/shared-identity/account-deletion';
+import { HANDLE_CHANGE_COOLDOWN_MS, retiredHandles } from '@gitstalk/shared-identity/profiles';
 
 import { AccountSettings } from '../../../components/account/account-settings';
 import { DeleteAccountForm, HandleForm } from '../../../components/account/account-forms';

@@ -4,7 +4,7 @@
  * that branch's head, or at an empty first commit for an empty repository. A repository that
  * already has both lines (the engine was opened before) keeps them.
  */
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 import { GatewayError } from '../errors';
 import { EMPTY_TREE_ID, commitObject, gitObject } from '../git/pack-writer';

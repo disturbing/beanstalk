@@ -4,7 +4,7 @@
  * every other move, the nightly e2e at 03:00 UTC), so one is often running and its log grows
  * between requests. Dispatches, cancels and secret names go to the caller's overlay store.
  */
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { RunSummary } from '../actions-contract';
 import type {

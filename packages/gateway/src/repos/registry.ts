@@ -9,8 +9,8 @@
 import { assertNever } from '../engine/errors';
 import { z } from 'zod';
 
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import { resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import { resolveRetiredHandle } from '@gitstalk/shared-identity/profiles';
 
 import type {
   RepoOrigin,
@@ -20,7 +20,7 @@ import type {
   RepositoryActivity,
   RepositoryListing,
   RepositoryRecord,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 
 import { activityOf, activityQuery, indexDeletes } from '../repo-events/index-store';
 

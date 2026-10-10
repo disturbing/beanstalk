@@ -6,14 +6,14 @@
  */
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 import type {
   GitToken,
   PushedBeanStatus,
   RepoEngineOpened,
   RepoEngineRpc,
   RpcResult,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import { issueToken } from '../auth/tokens';
 import type { Deps } from '../deps';

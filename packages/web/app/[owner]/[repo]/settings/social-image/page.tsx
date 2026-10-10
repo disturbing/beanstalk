@@ -1,4 +1,4 @@
-import { imageUrl } from '@beanstalk/shared-media/images';
+import { imageUrl } from '@gitstalk/shared-media/images';
 
 import { RepositorySettingsFrame } from '../../../../../components/repository/repository-settings-frame';
 import styles from '../../../../../components/repository/repository.module.css';

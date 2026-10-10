@@ -1,4 +1,4 @@
-import type { DiffHunk, FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { DiffHunk, FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import styles from './explorer.module.css';
 
 /** Files whose diffs open by default; later ones stay folded to keep long answers readable. */

@@ -1,5 +1,5 @@
-import type { FinalCheckFields } from '@beanstalk/shared-race/events';
-import type { Sha } from '@beanstalk/shared-race/ids';
+import type { FinalCheckFields } from '@gitstalk/shared-race/events';
+import type { Sha } from '@gitstalk/shared-race/ids';
 
 import { classifyPath } from './arena';
 import { requestCi } from './ci';

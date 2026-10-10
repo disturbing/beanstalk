@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 export const QUESTION_CLASSES = [
   'recent-changes',

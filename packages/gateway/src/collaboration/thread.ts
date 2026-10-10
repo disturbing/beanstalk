@@ -1,12 +1,12 @@
-import { BeanThreadPostResult } from '@beanstalk/shared-race/collaboration';
+import { BeanThreadPostResult } from '@gitstalk/shared-race/collaboration';
 import type {
   BeanRecord,
   BeanReliance,
   BeanThreadPostInput,
   ContributorTokenClaims,
   ThreadPost,
-} from '@beanstalk/shared-race/collaboration';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { CollaborationStorage } from './store';
 import {

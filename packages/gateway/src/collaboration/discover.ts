@@ -1,6 +1,6 @@
-import { BeanDigest, BeanDiscoverPage, EXCERPT_CHARS } from '@beanstalk/shared-race/collaboration';
-import type { BeanDiscoverInput } from '@beanstalk/shared-race/collaboration';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import { BeanDigest, BeanDiscoverPage, EXCERPT_CHARS } from '@gitstalk/shared-race/collaboration';
+import type { BeanDiscoverInput } from '@gitstalk/shared-race/collaboration';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { failure, readBean } from './store';
 

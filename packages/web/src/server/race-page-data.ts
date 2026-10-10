@@ -3,12 +3,12 @@
  * repo's files (so the code map is laid out once) and the engine's knobs no event states,
  * for a recorded or a live run.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
-import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
+import { allEvents } from '@gitstalk/shared-ask/ask/plan-context';
+import type { ForgeSource } from '@gitstalk/shared-ask/forge/forge-source';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@gitstalk/shared-ask/race/race-state';
 import { recordedRun } from '../recorded/recorded-runs';
 import { titlesOf } from '../recorded/race-pair';
 

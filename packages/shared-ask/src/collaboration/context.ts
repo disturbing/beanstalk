@@ -3,8 +3,8 @@ import type {
   BeanPromise,
   PromiseReference,
   ThreadPost,
-} from '@beanstalk/shared-race/collaboration';
-import type { TaskId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/collaboration';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { compareText } from '../repo/paths';
 

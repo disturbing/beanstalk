@@ -1,15 +1,15 @@
 import { createTwoFilesPatch } from 'diff';
 import { describe, expect, it } from 'vitest';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc, RepoDiff, RpcResult } from '@beanstalk/shared-race/rpc';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc, RepoDiff, RpcResult } from '@gitstalk/shared-race/rpc';
 
-import { CardId } from '@beanstalk/shared-ask/race/race-events';
+import { CardId } from '@gitstalk/shared-ask/race/race-events';
 import { recordedRun } from '../recorded/recorded-runs';
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
+import { isForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { gatewaySource } from '@gitstalk/shared-ask/forge/gateway-source';
 
 const run = RunId.parse('j6boaclinn');
 const recorded = requireRecorded();

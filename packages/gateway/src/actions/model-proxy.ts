@@ -6,10 +6,10 @@
  * through AI Gateway with the AI binding (no key exists anywhere), and charges the call's
  * tokens to the run and the repository. The answer is the model's OpenAI-shaped completion.
  */
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 import { z } from 'zod';
 
-import { callCostUsd } from '@beanstalk/shared-race/automation-models';
+import { callCostUsd } from '@gitstalk/shared-race/automation-models';
 import { automationJobOf } from './job-tokens';
 import type { ModelCalls } from './run-store';
 

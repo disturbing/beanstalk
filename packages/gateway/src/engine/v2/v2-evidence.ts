@@ -28,8 +28,8 @@
  * Read sets count only when the runner marks them complete (`evidence_read_sets: complete`), or
  * also as static import closures (`static`); the background audit (`v2-audit`) is the net.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import type { EvidenceOverlap, EvidenceTree } from '@beanstalk/shared-race/events';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import type { EvidenceOverlap, EvidenceTree } from '@gitstalk/shared-race/events';
 
 import { isRunnableTest } from '../arena';
 import type { CheckResult } from '../model';

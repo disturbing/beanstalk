@@ -3,7 +3,7 @@
  * earlier gateway made for it (forked beans, trunks). The namespace is listed, so repos the
  * RunDO never recorded are found too.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import type { ArtifactsPort } from '../adapters/artifacts';
 import { isRunRepo } from './run-names';

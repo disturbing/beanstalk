@@ -6,9 +6,9 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 
-import type { NextResponse, TokenRefresh } from '@beanstalk/shared-race/driver';
-import { InvocationProgress, InvocationResult, StreamDelta } from '@beanstalk/shared-race/driver';
-import { InvocationId, RunId, SlotId } from '@beanstalk/shared-race/ids';
+import type { NextResponse, TokenRefresh } from '@gitstalk/shared-race/driver';
+import { InvocationProgress, InvocationResult, StreamDelta } from '@gitstalk/shared-race/driver';
+import { InvocationId, RunId, SlotId } from '@gitstalk/shared-race/ids';
 
 import type { AppEnv } from '../app-env';
 import type { TokenClaims } from '../auth/tokens';

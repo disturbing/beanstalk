@@ -7,8 +7,8 @@
  * When no file passes the proof (or the author wrote none, or a job failed), the given tests
  * stay. Either way `tests.first` logs it and the implementer starts.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { prelandSeconds } from '@beanstalk/shared-race/run-config';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { prelandSeconds } from '@gitstalk/shared-race/run-config';
 
 import { isRunnableTest } from '../arena';
 import { failingTestNames } from '../ci';

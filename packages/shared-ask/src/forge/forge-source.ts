@@ -6,7 +6,7 @@
  *
  * The method names follow the gateway's "RPC for the web app" (packages/gateway/README.md).
  */
-import type { RunId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunId, Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { CardId, RaceEvent } from '../race/race-events';
 import type {

@@ -5,7 +5,7 @@
  */
 import { env } from 'cloudflare:workers';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { SearchParams } from '../home/repository-home';
 import { RepositoryHome } from '../home/repository-home';

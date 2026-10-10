@@ -4,8 +4,8 @@
  */
 import { z } from 'zod';
 
-import type { AgentPrincipal, AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
-import type { PushedBeanStatus } from '@beanstalk/shared-race/rpc';
+import type { AgentPrincipal, AgentReposRpc } from '@gitstalk/shared-race/agent-repos';
+import type { PushedBeanStatus } from '@gitstalk/shared-race/rpc';
 
 import { ToolError } from '../mcp/tool-result';
 import { runStatus } from '../tools/run-status';

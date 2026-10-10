@@ -4,8 +4,8 @@
  * event, or whose engine drives no registered repository (a deleted one, an engine opened
  * by the admin route), is acknowledged and dropped; a failed write is retried by the queue.
  */
-import type { RepoEvent } from '@beanstalk/shared-race/repo-events';
-import { RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
+import type { RepoEvent } from '@gitstalk/shared-race/repo-events';
+import { RepoEventsMessage } from '@gitstalk/shared-race/repo-events';
 
 import type { RepoEventsForAutomations, StalkMoved } from '../actions/repo-do';
 import type { Logger } from '../log';

@@ -1,4 +1,4 @@
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 /**
  * The live race page: lanes (agent slots), the sprout and the stalk, beans in flight,

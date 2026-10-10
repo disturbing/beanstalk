@@ -5,7 +5,7 @@ MCP tools for independently operated contributors working on one Beanstalk run
 `WorkerEntrypoint`, stateless MCP over Streamable HTTP at `/mcp` through the Agents SDK's
 `createMcpHandler` (`agents/mcp/server`, MCP SDK v2), not the deprecated `McpAgent`. Every read
 goes to `beanstalk-gateway` over the `GATEWAY` service binding; the Ask pipeline is shared with
-the web app through `@beanstalk/shared-ask`. No code mode and no `execute` tool: the owner
+the web app through `@gitstalk/shared-ask`. No code mode and no `execute` tool: the owner
 deferred code mode as highly experimental.
 
 ## Auth
@@ -46,13 +46,13 @@ bean's durable inbox. These capabilities do not grant Git or trunk access.
 Mint one with the gateway's admin route `POST /v1/runs/:run/view-token` (valid for a week):
 
 ```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 For contribution, an operator can mint a one-hour token for a specific bean and actor:
 
 ```bash
-export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 `--ttl-seconds` accepts 60 through 86400. The contributor grant route is
@@ -122,11 +122,11 @@ agreement, with exact revisions; it remains separate from implementation and che
 ## Commands
 
 ```bash
-pnpm -F @beanstalk/mcp dev        # wrangler dev (needs beanstalk-gateway running for GATEWAY)
-pnpm -F @beanstalk/mcp test       # Miniflare: recorded fixtures and real gateway integration
-pnpm -F @beanstalk/mcp types      # regenerate worker-configuration.d.ts
-pnpm -F @beanstalk/mcp deploy     # deploy after beanstalk-gateway
-pnpm -F @beanstalk/mcp mint-token <run> [--gateway <url>] [--bean <bean> --actor <actor>]
+pnpm -F @gitstalk/mcp dev        # wrangler dev (needs beanstalk-gateway running for GATEWAY)
+pnpm -F @gitstalk/mcp test       # Miniflare: recorded fixtures and real gateway integration
+pnpm -F @gitstalk/mcp types      # regenerate worker-configuration.d.ts
+pnpm -F @gitstalk/mcp deploy     # deploy after beanstalk-gateway
+pnpm -F @gitstalk/mcp mint-token <run> [--gateway <url>] [--bean <bean> --actor <actor>]
 ```
 
 Tests (`test/mcp.test.ts`) run the Worker app with a fake `GATEWAY` (`test/fake-gateway.ts`)

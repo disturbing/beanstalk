@@ -8,7 +8,7 @@
  *   calls; the run DO keeps the secret's SHA-256 and forgets it when the job ends. Never given
  *   to step code (that is the job token's role).
  */
-import { ActionsJobId, ActionsRunId } from '@beanstalk/shared-race/actions';
+import { ActionsJobId, ActionsRunId } from '@gitstalk/shared-race/actions';
 import { z } from 'zod';
 
 import { base64UrlDecode, base64UrlEncode } from '../auth/base64url';

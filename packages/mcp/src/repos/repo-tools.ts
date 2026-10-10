@@ -9,7 +9,7 @@
 import type { McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
-import { MAX_BEAN_WAIT_SECONDS } from '@beanstalk/shared-race/agent-repos';
+import { MAX_BEAN_WAIT_SECONDS } from '@gitstalk/shared-race/agent-repos';
 
 import { answer } from '../mcp/tool-result';
 import type { ToolScope } from '../tools/tool-context';

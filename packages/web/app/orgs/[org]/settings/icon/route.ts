@@ -1,9 +1,9 @@
 import { env } from 'cloudflare:workers';
 
-import { updateOrg } from '@beanstalk/shared-identity/org-admin';
-import { findOrgByHandle, mayInOrg, orgRole } from '@beanstalk/shared-identity/orgs';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
-import { MAX_IMAGE_BYTES } from '@beanstalk/shared-media/images';
+import { updateOrg } from '@gitstalk/shared-identity/org-admin';
+import { findOrgByHandle, mayInOrg, orgRole } from '@gitstalk/shared-identity/orgs';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
+import { MAX_IMAGE_BYTES } from '@gitstalk/shared-media/images';
 
 import type { PicturePorts } from '../../../../../src/account/account-flows';
 import { removePictureFlow, replacePictureFlow } from '../../../../../src/account/account-flows';

@@ -4,7 +4,7 @@
  * whose title or intent mentions the term, and (d) the code under tests that mention it.
  * Pure: the caller fetches the corpus (tree, grep hits, beans, tests) and passes it in.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { compareText, pathWords } from '../repo/paths';
 import type { GrepMatch } from '../repo/repo-types';

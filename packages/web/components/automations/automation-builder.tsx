@@ -10,10 +10,10 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 
-import type { BeanstalkEvent } from '@beanstalk/shared-race/actions';
-import type { AutomationBase } from '@beanstalk/shared-race/automation-editor';
-import { slugOf } from '@beanstalk/shared-race/automation-editor';
-import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
+import type { BeanstalkEvent } from '@gitstalk/shared-race/actions';
+import type { AutomationBase } from '@gitstalk/shared-race/automation-editor';
+import { slugOf } from '@gitstalk/shared-race/automation-editor';
+import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 
 import type { EventFilter, FieldPath } from '../../src/automations/automation-draft';
 import {

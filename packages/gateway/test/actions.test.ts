@@ -2,11 +2,11 @@ import { env, runDurableObjectAlarm, runInDurableObject } from 'cloudflare:test'
 import { exports } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type { JobView, LogFrame, RunDetail, RunSummary } from '@beanstalk/shared-race/actions';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import type { JobView, LogFrame, RunDetail, RunSummary } from '@gitstalk/shared-race/actions';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import {
   mintJobToken,

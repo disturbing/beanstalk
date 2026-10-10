@@ -4,9 +4,9 @@
  * member lists and pending invitations show, so a rename moves them in one batch. History
  * (activity, the access log, deploy-token creators) keeps the handle it was written with.
  */
-import type { AccountsRpc } from '@beanstalk/shared-race/accounts';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { RepoOwner } from '@beanstalk/shared-race/repos';
+import type { AccountsRpc } from '@gitstalk/shared-race/accounts';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { RepoOwner } from '@gitstalk/shared-race/repos';
 
 import type { Logger } from '../log';
 import type { RepoEnginePort } from './engine-port';

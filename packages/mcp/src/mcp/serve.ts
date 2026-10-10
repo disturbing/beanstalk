@@ -4,14 +4,14 @@
  */
 import { createMcpHandler } from 'agents/mcp/server';
 
-import { classifierFrom } from '@beanstalk/shared-ask/ask/classifier-from-env';
-import { gatewaySource } from '@beanstalk/shared-ask/forge/gateway-source';
-import { memoSource } from '@beanstalk/shared-ask/forge/memo-source';
-import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
-import type { AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { RunId as RunIdSchema } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import { classifierFrom } from '@gitstalk/shared-ask/ask/classifier-from-env';
+import { gatewaySource } from '@gitstalk/shared-ask/forge/gateway-source';
+import { memoSource } from '@gitstalk/shared-ask/forge/memo-source';
+import { pickerFrom } from '@gitstalk/shared-ask/pick/picker-from-env';
+import type { AgentReposRpc } from '@gitstalk/shared-race/agent-repos';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { RunId as RunIdSchema } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
 import type { ContributorSession } from '../auth/bearer';
 import type { Logger } from '../log';

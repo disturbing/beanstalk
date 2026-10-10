@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { ADMIN, call, json, pkt, sha } from './helpers';
 

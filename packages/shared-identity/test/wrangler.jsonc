@@ -1,5 +1,5 @@
 {
-  // Test-only Worker for @beanstalk/shared-identity: the bindings the library expects, so
+  // Test-only Worker for @gitstalk/shared-identity: the bindings the library expects, so
   // `wrangler types` and Miniflare give the tests a real D1 and a real rate limiter.
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "shared-identity-test",

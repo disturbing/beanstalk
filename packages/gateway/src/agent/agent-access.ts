@@ -10,13 +10,13 @@ import type {
   AgentPrincipal,
   AgentRepository,
   SessionScope,
-} from '@beanstalk/shared-race/agent-repos';
-import { RepoSlug } from '@beanstalk/shared-race/agent-repos';
-import type { RepositoryAction, ViewerRole } from '@beanstalk/shared-race/collaborators';
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
-import { parseScopes } from '@beanstalk/shared-identity/scopes';
+} from '@gitstalk/shared-race/agent-repos';
+import { RepoSlug } from '@gitstalk/shared-race/agent-repos';
+import type { RepositoryAction, ViewerRole } from '@gitstalk/shared-race/collaborators';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
+import { parseScopes } from '@gitstalk/shared-identity/scopes';
 
 import type { RepositoryPrincipal } from '../auth/git-credential';
 import { gitScopes } from '../auth/git-credential';

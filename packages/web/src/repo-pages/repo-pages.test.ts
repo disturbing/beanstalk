@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import { GREETER_PUSHED, ROOT, SLUGIFY_LANDED, TRUNCATE_LANDED } from '../changes/testing/greeter';
 import events from '../changes/testing/greeter-events.json' with { type: 'json' };

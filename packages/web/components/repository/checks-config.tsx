@@ -7,9 +7,9 @@ import {
   ALWAYS_PROTECTED,
   CHECKS_PATH,
   readChecksConfig,
-} from '@beanstalk/shared-race/checks-config';
-import type { ChecksConfig } from '@beanstalk/shared-race/checks-config';
-import { DEFAULT_SUITE, suiteCommand } from '@beanstalk/shared-race/suite';
+} from '@gitstalk/shared-race/checks-config';
+import type { ChecksConfig } from '@gitstalk/shared-race/checks-config';
+import { DEFAULT_SUITE, suiteCommand } from '@gitstalk/shared-race/suite';
 
 import styles from './repository.module.css';
 

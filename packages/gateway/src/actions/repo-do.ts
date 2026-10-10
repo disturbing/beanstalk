@@ -15,10 +15,10 @@ import type {
   RunSummary,
   WorkflowSummary,
   WorkflowTrigger,
-} from '@beanstalk/shared-race/actions';
-import { ACTIONS_EVENTS, ActionsRunId, isAutomationPath } from '@beanstalk/shared-race/actions';
-import { RepoEvent } from '@beanstalk/shared-race/repo-events';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+import { ACTIONS_EVENTS, ActionsRunId, isAutomationPath } from '@gitstalk/shared-race/actions';
+import { RepoEvent } from '@gitstalk/shared-race/repo-events';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 import { z } from 'zod';
 
 import type { RepoExplorer } from '../adapters/repo-explorer';
@@ -31,7 +31,7 @@ import type { ActionsConfig } from './actions-config';
 import { readActionsConfig } from './actions-config';
 import type { Occurrence } from './automation-triggers';
 import { automationFires, occurrenceOf, occurrencePayload } from './automation-triggers';
-import { MIN_SCHEDULE_INTERVAL_MS, nextFireMs, parseCron } from '@beanstalk/shared-race/cron';
+import { MIN_SCHEDULE_INTERVAL_MS, nextFireMs, parseCron } from '@gitstalk/shared-race/cron';
 import type { RepoFacts } from './event-payload';
 import { dispatchPayload, pushPayload, schedulePayload } from './event-payload';
 import type { RunRequest } from './run-request';

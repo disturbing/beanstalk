@@ -1,5 +1,5 @@
 {
-  // Test-only Worker for @beanstalk/shared-media: a real R2 bucket (Miniflare), and the Images
+  // Test-only Worker for @gitstalk/shared-media: a real R2 bucket (Miniflare), and the Images
   // binding so `wrangler types` names its type. The tests inject their own resizer, so they
   // never depend on the local Images emulation.
   "$schema": "../node_modules/wrangler/config-schema.json",

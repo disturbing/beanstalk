@@ -12,10 +12,10 @@ import type {
   RepositoryAction,
   RepositoryForViewer,
   RepositoryPeople,
-} from '@beanstalk/shared-race/collaborators';
-import { InviteInput, RepoRole as RepoRoleSchema } from '@beanstalk/shared-race/collaborators';
-import type { RepoOwner, RepositoryRecord, Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaborators';
+import { InviteInput, RepoRole as RepoRoleSchema } from '@gitstalk/shared-race/collaborators';
+import type { RepoOwner, RepositoryRecord, Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { agentRepositoryPrincipal } from '../agent/agent-access';
 import type { Logger } from '../log';

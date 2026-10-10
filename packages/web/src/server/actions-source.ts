@@ -1,6 +1,6 @@
 /**
  * Which Actions control plane a request talks to, as `ACTIONS_SOURCE` says: `gateway` (the
- * `ACTIONS` service binding to the gateway's `Actions` entrypoint, `@beanstalk/shared-race/
+ * `ACTIONS` service binding to the gateway's `Actions` entrypoint, `@gitstalk/shared-race/
  * actions`), `fixtures` (the web's own fake, staging only), or none (empty: the tab says
  * Actions are not running here). The fake's overlay rides in a cookie, so a staging walk can
  * dispatch, cancel and name secrets with no store. Server-only.

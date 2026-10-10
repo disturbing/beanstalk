@@ -10,7 +10,7 @@
  * - an invalid file: red, its one failing "test" naming every problem, and no suite run;
  * - a protected path changed by a push that may not: red, naming the paths and who may.
  */
-import type { ChecksResolution } from '@beanstalk/shared-race/checks-config';
+import type { ChecksResolution } from '@gitstalk/shared-race/checks-config';
 import {
   CHECKS_PATH,
   describeChecks,
@@ -18,9 +18,9 @@ import {
   protectedPatterns,
   readChecksConfig,
   suiteOf,
-} from '@beanstalk/shared-race/checks-config';
-import type { Sha } from '@beanstalk/shared-race/ids';
-import type { RunSuite } from '@beanstalk/shared-race/suite';
+} from '@gitstalk/shared-race/checks-config';
+import type { Sha } from '@gitstalk/shared-race/ids';
+import type { RunSuite } from '@gitstalk/shared-race/suite';
 
 import type { CheckInstance, CheckResult, FailingTest } from '../engine/model';
 import type { LandingTree } from './check-store';

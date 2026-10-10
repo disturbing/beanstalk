@@ -1,12 +1,12 @@
 /**
  * Builders and assertions shared by the engine's race tests.
  */
-import { REQUIRED_EVENT_KEYS } from '@beanstalk/shared-race/events';
-import type { RaceEventType } from '@beanstalk/shared-race/events';
-import type { InvocationResult } from '@beanstalk/shared-race/driver';
-import type { SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { RunConfig, prelandSeconds } from '@beanstalk/shared-race/run-config';
+import { REQUIRED_EVENT_KEYS } from '@gitstalk/shared-race/events';
+import type { RaceEventType } from '@gitstalk/shared-race/events';
+import type { InvocationResult } from '@gitstalk/shared-race/driver';
+import type { SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { RunConfig, prelandSeconds } from '@gitstalk/shared-race/run-config';
 
 import { createContext } from '../context';
 import type { CheckResult, EngineInstruction } from '../model';

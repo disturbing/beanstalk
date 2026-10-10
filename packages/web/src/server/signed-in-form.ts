@@ -5,8 +5,8 @@
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
-import { getWebSession, isValidCsrf } from '@beanstalk/shared-identity/sessions';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
+import { getWebSession, isValidCsrf } from '@gitstalk/shared-identity/sessions';
 
 export type FormRefusal = { readonly kind: 'refused'; readonly message: string };
 

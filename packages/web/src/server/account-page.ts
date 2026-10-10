@@ -5,9 +5,9 @@
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 
-import type { Profile } from '@beanstalk/shared-identity/profiles';
-import { getProfile } from '@beanstalk/shared-identity/profiles';
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
+import type { Profile } from '@gitstalk/shared-identity/profiles';
+import { getProfile } from '@gitstalk/shared-identity/profiles';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
 
 import { currentSession } from '../auth/user';
 

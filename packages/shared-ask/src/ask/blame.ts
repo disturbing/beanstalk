@@ -4,7 +4,7 @@
  */
 import { diffLines } from 'diff';
 
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import type { BlameLine } from './answer';
 

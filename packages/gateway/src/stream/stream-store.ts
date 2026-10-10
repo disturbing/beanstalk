@@ -3,7 +3,7 @@
  * summary per bean, and that snapshot's files, one row each, so a post writes only the files
  * it changed. Never the event log: replays and summaries do not see these tables.
  */
-import type { StreamFile } from '@beanstalk/shared-race/driver';
+import type { StreamFile } from '@gitstalk/shared-race/driver';
 
 import { patchBytes as patchBytesOf } from './stream-rules';
 import type {

@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
-import { removeSshKey } from '@beanstalk/shared-identity/ssh-keys';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
+import { removeSshKey } from '@gitstalk/shared-identity/ssh-keys';
 
 import { seeOther, signedInForm } from '../../../../src/auth/http';
 

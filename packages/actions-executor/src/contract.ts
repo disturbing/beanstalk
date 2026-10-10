@@ -1,18 +1,18 @@
 /**
- * The executor's side of the Actions contract (`@beanstalk/shared-race/actions`, owned by the
+ * The executor's side of the Actions contract (`@gitstalk/shared-race/actions`, owned by the
  * control plane): the types come from there; this module adds the boundary schema `startJob`
  * validates a `JobSpec` with, since the contract exports schemas only for what the sink receives.
  */
 import { z } from 'zod';
 
-import type { JobResult, JobSpec } from '@beanstalk/shared-race/actions';
+import type { JobResult, JobSpec } from '@gitstalk/shared-race/actions';
 import {
   ACTIONS_CONCLUSIONS,
   ActionsJobId,
   ActionsRunId,
   SecretName,
   WorkflowPath,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 
 export type {
   ActionsConclusion,
@@ -27,8 +27,8 @@ export type {
   RepositoryDirectory,
   RepositoryForgotten,
   StepView,
-} from '@beanstalk/shared-race/actions';
-export type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+export type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 /** A finished job's conclusion as `JobResult` allows it. */
 export type JobConclusion = JobResult['conclusion'];

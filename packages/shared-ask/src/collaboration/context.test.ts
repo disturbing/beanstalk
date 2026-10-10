@@ -5,9 +5,9 @@ import {
   BeanPromise,
   BeanReliance,
   ThreadPost,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 import { selectCollaborationContext } from './context';
 import type { PeerContext } from './context';

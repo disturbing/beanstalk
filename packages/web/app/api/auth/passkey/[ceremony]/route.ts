@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 
-import { CHALLENGE_COOKIE, readCookie } from '@beanstalk/shared-identity/cookies';
-import type { CeremonyContext, CeremonyFailure } from '@beanstalk/shared-identity/passkeys';
+import { CHALLENGE_COOKIE, readCookie } from '@gitstalk/shared-identity/cookies';
+import type { CeremonyContext, CeremonyFailure } from '@gitstalk/shared-identity/passkeys';
 import {
   finishAddPasskey,
   finishPasskeySignin,
@@ -10,16 +10,16 @@ import {
   startAddPasskey,
   startPasskeySignin,
   startPasskeySignup,
-} from '@beanstalk/shared-identity/passkeys';
-import { isWithinLimits } from '@beanstalk/shared-identity/rate-limit';
-import { clientIp, userAgent } from '@beanstalk/shared-identity/request-context';
-import { getWebSession, isValidCsrf } from '@beanstalk/shared-identity/sessions';
-import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
-import { Handle } from '@beanstalk/shared-identity/users';
+} from '@gitstalk/shared-identity/passkeys';
+import { isWithinLimits } from '@gitstalk/shared-identity/rate-limit';
+import { clientIp, userAgent } from '@gitstalk/shared-identity/request-context';
+import { getWebSession, isValidCsrf } from '@gitstalk/shared-identity/sessions';
+import { logIdentity, recordProductEvent } from '@gitstalk/shared-identity/product-events';
+import { Handle } from '@gitstalk/shared-identity/users';
 import {
   parseAuthenticationResponse,
   parseRegistrationResponse,
-} from '@beanstalk/shared-identity/webauthn-json';
+} from '@gitstalk/shared-identity/webauthn-json';
 
 import {
   NextPath,

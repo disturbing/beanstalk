@@ -1,13 +1,13 @@
 /**
  * The race events the web app reads, validated at the boundary. The schema of record is
- * `@beanstalk/shared-race/events` (the harness's `events.jsonl`); these Zod schemas keep only
+ * `@gitstalk/shared-race/events` (the harness's `events.jsonl`); these Zod schemas keep only
  * the fields the canvas and the explorer use and strip the rest, so a slimmed fixture and a
  * full gateway event parse the same way. Unknown event types are skipped, not rejected: a
  * newer gateway may log more than this app knows.
  */
 import { z } from 'zod';
 
-import { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 export const CardId = z
   .string()

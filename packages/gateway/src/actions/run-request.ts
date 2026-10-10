@@ -2,7 +2,7 @@
  * What the repository's ActionsRepoDO hands a new run's ActionsRunDO: everything the run needs
  * to plan its jobs, without reading the repository again.
  */
-import type { ActionsEvent, ActionsRunId } from '@beanstalk/shared-race/actions';
+import type { ActionsEvent, ActionsRunId } from '@gitstalk/shared-race/actions';
 
 import type { RepoFacts } from './event-payload';
 import type { RunOrigin } from './secrets';

@@ -54,4 +54,4 @@ Bad: restating the code, journal entries, section banners, closing-brace markers
 
 ## Formatting
 
-`oxfmt` with the repo `.oxfmtrc.json` (100 columns, single quotes, semicolons, trailing commas) is the only style. Import order: node built-ins (`node:`), external packages, workspace packages (`@beanstalk/*`), relative paths; blank line between groups; `import type` for types (`consistent-type-imports`). One blank line between declarations, never two. Related lines stay together.
+`oxfmt` with the repo `.oxfmtrc.json` (100 columns, single quotes, semicolons, trailing commas) is the only style. Import order: node built-ins (`node:`), external packages, workspace packages (`@gitstalk/*`), relative paths; blank line between groups; `import type` for types (`consistent-type-imports`). One blank line between declarations, never two. Related lines stay together.

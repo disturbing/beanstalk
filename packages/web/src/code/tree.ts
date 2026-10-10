@@ -3,7 +3,7 @@
  * from the ref's flat file list, the README to show, the breadcrumb, and every URL the tab
  * links to. Pure, so the routes stay thin and the tests need no gateway.
  */
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 /** What the Code tab browses: the stalk (default), the sprout, a bean's pushed head, or a commit. */
 export type RefChoice =

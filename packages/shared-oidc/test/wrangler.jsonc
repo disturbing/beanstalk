@@ -1,5 +1,5 @@
 {
-  // Test-only Worker for @beanstalk/shared-oidc: the library needs no bindings, only an entry module.
+  // Test-only Worker for @gitstalk/shared-oidc: the library needs no bindings, only an entry module.
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "shared-oidc-test",
   "main": "./test-worker.ts",

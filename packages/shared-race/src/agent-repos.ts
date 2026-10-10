@@ -17,7 +17,7 @@ import type { PushedBeanStatus, RpcResult } from './rpc';
 /** Who is asking: the person behind an MCP session, its scopes and client (collaborators' type). */
 export type { AgentPrincipal } from './collaborators';
 
-/** The scopes of an agent session (`@beanstalk/shared-identity/scopes`). */
+/** The scopes of an agent session (`@gitstalk/shared-identity/scopes`). */
 export type SessionScope = 'read' | 'collaborate' | 'write';
 
 /** `owner/name`, as in `/<owner>/<repo>` and the clone URL. */

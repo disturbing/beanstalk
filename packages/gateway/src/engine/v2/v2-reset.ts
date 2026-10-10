@@ -25,8 +25,8 @@
  * a tree the reset discards; a reset whose ticket closed, or whose stalk moved meanwhile, is not
  * published, and one already published is not promoted.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { unionPaths } from '@gitstalk/shared-race/run-config';
 
 import { cancelCi } from '../ci';
 import { emit, requireTask, startJob } from '../context';

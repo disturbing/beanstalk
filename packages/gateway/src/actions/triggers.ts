@@ -3,7 +3,7 @@
  * branch, so `branches: [main]`, `[stalk]` or the repository's default branch all match it
  * (D3); a button or MCP call is `workflow_dispatch`, with its inputs checked as GitHub does.
  */
-import type { DispatchInputSpec, WorkflowTrigger } from '@beanstalk/shared-race/actions';
+import type { DispatchInputSpec, WorkflowTrigger } from '@gitstalk/shared-race/actions';
 
 import { selectedBy } from './filter-pattern';
 

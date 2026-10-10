@@ -7,7 +7,7 @@
  */
 import type { OAuthProviderOptions } from '@cloudflare/workers-oauth-provider';
 
-import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
+import { verifyUserToken } from '@gitstalk/shared-identity/user-tokens';
 
 import type { GrantProps } from './grant-props';
 import { GRANTABLE_SCOPES, REQUIRED_SCOPES } from './grant-props';

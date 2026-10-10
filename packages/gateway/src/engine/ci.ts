@@ -1,5 +1,5 @@
-import type { CiMeta } from '@beanstalk/shared-race/events';
-import type { Sha } from '@beanstalk/shared-race/ids';
+import type { CiMeta } from '@gitstalk/shared-race/events';
+import type { Sha } from '@gitstalk/shared-race/ids';
 
 import type { StepContext } from './context';
 import { cancelTimer, emit, setTimer, startJob } from './context';

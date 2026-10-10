@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { isWithinLimits } from '@beanstalk/shared-identity/rate-limit';
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { startKeyRequest } from '@beanstalk/shared-identity/ssh-key-requests';
+import { isWithinLimits } from '@gitstalk/shared-identity/rate-limit';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { startKeyRequest } from '@gitstalk/shared-identity/ssh-key-requests';
 
 import { problem } from '../../../../src/auth/http';
 import { log } from '../../../../src/log';

@@ -8,12 +8,12 @@
  * fan-out) is not forwarded: the bridge subscribes again and forwards the fresh snapshot.
  * Never in the event log, so the events carry no id.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
-import type { BeanStreamSocketMessage } from '@beanstalk/shared-ask/forge/bean-stream';
-import { BeanStreamSocketMessage as MessageSchema } from '@beanstalk/shared-ask/forge/bean-stream';
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { ViewToken, unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import type { BeanStreamSocketMessage } from '@gitstalk/shared-ask/forge/bean-stream';
+import { BeanStreamSocketMessage as MessageSchema } from '@gitstalk/shared-ask/forge/bean-stream';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { ViewToken, unwrap } from '@gitstalk/shared-ask/forge/gateway-rpc';
 
 /** A comment line keeps proxies from closing a quiet stream. */
 const HEARTBEAT_MS = 20_000;

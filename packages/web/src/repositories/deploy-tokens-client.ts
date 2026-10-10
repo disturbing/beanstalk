@@ -8,9 +8,9 @@ import type {
   CreateDeployTokenInput,
   DeployTokenActor,
   DeployTokensRpc,
-} from '@beanstalk/shared-race/deploy-tokens';
-import { DeployTokenSummary, IssuedDeployToken } from '@beanstalk/shared-race/deploy-tokens';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/deploy-tokens';
+import { DeployTokenSummary, IssuedDeployToken } from '@gitstalk/shared-race/deploy-tokens';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { Outcome } from './registry-client';
 

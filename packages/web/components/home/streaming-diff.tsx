@@ -3,7 +3,7 @@
 import type { UIEvent } from 'react';
 import { useLayoutEffect, useRef, useState } from 'react';
 
-import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import { followChange } from '../../src/stream/followed-change';
 import type { DiffRow, FollowedChange, FollowMode } from '../../src/stream/followed-change';
 import styles from './home.module.css';

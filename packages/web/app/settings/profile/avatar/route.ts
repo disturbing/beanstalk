@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import { getWebSession } from '@beanstalk/shared-identity/sessions';
-import { MAX_IMAGE_BYTES } from '@beanstalk/shared-media/images';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import { getWebSession } from '@gitstalk/shared-identity/sessions';
+import { MAX_IMAGE_BYTES } from '@gitstalk/shared-media/images';
 
 import { replacePictureFlow } from '../../../../src/account/account-flows';
 import { avatarPorts } from '../../../../src/account/account-services';

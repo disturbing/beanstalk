@@ -5,11 +5,11 @@
  */
 import { env } from 'cloudflare:workers';
 
-import type { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
+import type { AgentSession } from '@gitstalk/shared-identity/agent-sessions';
 import {
   AgentSession as AgentSessionSchema,
   withSettlingSessions,
-} from '@beanstalk/shared-identity/agent-sessions';
+} from '@gitstalk/shared-identity/agent-sessions';
 
 import { log } from '../log';
 import { agentSessionsRpc } from './services';

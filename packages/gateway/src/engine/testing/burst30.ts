@@ -18,7 +18,7 @@
  * `burst30Scenario(seed, agents, config)` is the scenario; `breakNumbers` and `redEpisodes`
  * measure it (`v2-burst30.test.ts`).
  */
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import type { FailRule, ScriptedTask } from './fake-world';
 import type { RaceRun, RaceScenario } from './scenario';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PathChange } from '@beanstalk/shared-race/read-maps';
+import type { PathChange } from '@gitstalk/shared-race/read-maps';
 
 import type { AffectedInput, Manifest, StoredReadMap } from './affected-tests';
 import { affectedTests, diffManifests, isDefaultTestFile } from './affected-tests';

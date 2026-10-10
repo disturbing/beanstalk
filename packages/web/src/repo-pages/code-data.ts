@@ -4,13 +4,13 @@
  * or the file. Independent reads start together, and the number of gateway calls is fixed,
  * whatever the folder holds.
  */
-import type { RefName } from '@beanstalk/shared-ask/repo/repo-types';
+import type { RefName } from '@gitstalk/shared-ask/repo/repo-types';
 
 import type { Change } from '../changes/changes';
 import { changesOf } from '../changes/changes';
 import type { CodeView, RefChoice, TreeEntry } from '../code/tree';
 import { listing, readmeOf } from '../code/tree';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
 import type { PushedBean } from '../changes/pushed-beans';
 import type { HistoryRow, LogCommit } from '../history/history';
 import { historyOf, landingsOf } from '../history/history';

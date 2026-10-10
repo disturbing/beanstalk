@@ -3,8 +3,8 @@
  * `<owner id>/<repo id>/<run>/<job>/<seq, 10 digits>.log.gz`. The bucket's lifecycle rule
  * deletes them after 30 days. Nothing of a log is kept in a Durable Object.
  */
-import type { LogChunkPage, LogLine } from '@beanstalk/shared-race/actions';
-import { LogLineSchema } from '@beanstalk/shared-race/actions';
+import type { LogChunkPage, LogLine } from '@gitstalk/shared-race/actions';
+import { LogLineSchema } from '@gitstalk/shared-race/actions';
 
 /** Chunks one `logChunks` page reads at most. */
 const CHUNKS_PER_PAGE = 50;

@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import type { ConsentView as ConsentViewType } from '@beanstalk/shared-identity/agent-sessions';
-import { ConsentView } from '@beanstalk/shared-identity/agent-sessions';
+import type { ConsentView as ConsentViewType } from '@gitstalk/shared-identity/agent-sessions';
+import { ConsentView } from '@gitstalk/shared-identity/agent-sessions';
 
 import styles from '../../components/account/account.module.css';
 import { agentSessionsRpc } from '../../src/auth/services';

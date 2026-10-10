@@ -6,9 +6,9 @@
  */
 import { z } from 'zod';
 
-import { Sha } from '@beanstalk/shared-race/ids';
-import { CheckReadMaps, CheckedTree } from '@beanstalk/shared-race/read-maps';
-import type { RunSuite } from '@beanstalk/shared-race/suite';
+import { Sha } from '@gitstalk/shared-race/ids';
+import { CheckReadMaps, CheckedTree } from '@gitstalk/shared-race/read-maps';
+import type { RunSuite } from '@gitstalk/shared-race/suite';
 
 import type { CheckResult, ConflictHunk, Resolution } from '../engine/model';
 import { UpstreamError } from '../errors';

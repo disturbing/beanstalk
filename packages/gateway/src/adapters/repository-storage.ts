@@ -3,7 +3,7 @@
  * the sprout, list the stalk's files, delete it. Write tokens are minted for one push, used
  * from inside the gateway and revoked; they never leave this module.
  */
-import type { RepositoryFiles } from '@beanstalk/shared-race/repos';
+import type { RepositoryFiles } from '@gitstalk/shared-race/repos';
 
 import { UpstreamError } from '../errors';
 import type { SeedCommit } from '../git/seed-pack';

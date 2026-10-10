@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 
-import type { Batch, LineCommit, RaceState } from '@beanstalk/shared-ask/race/race-state';
+import type { Batch, LineCommit, RaceState } from '@gitstalk/shared-ask/race/race-state';
 import { formatClock } from '../../src/race/race-format';
 import { useElementWidth } from '../race/use-element-width';
 import styles from './canvas.module.css';

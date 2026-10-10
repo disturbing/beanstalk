@@ -3,23 +3,23 @@
 /**
  * Organizations: create, settings, members and invitations, leaving, deletion, and moving a
  * repository between a person and an org. Each action checks same origin, the session and its
- * CSRF token (`signedInForm`); who may do what is decided in `@beanstalk/shared-identity`
+ * CSRF token (`signedInForm`); who may do what is decided in `@gitstalk/shared-identity`
  * (org roles) and by the gateway (repositories). No rule lives here.
  */
 import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { createOrg, deleteOrg, updateOrg } from '@beanstalk/shared-identity/org-admin';
-import type { OrgResult } from '@beanstalk/shared-identity/org-admin';
+import { createOrg, deleteOrg, updateOrg } from '@gitstalk/shared-identity/org-admin';
+import type { OrgResult } from '@gitstalk/shared-identity/org-admin';
 import {
   answerOrgInvitation,
   cancelOrgInvitation,
   inviteToOrg,
   removeOrgMember,
   setOrgMemberRole,
-} from '@beanstalk/shared-identity/org-members';
-import { OrgRole, UpdateOrgInput } from '@beanstalk/shared-identity/orgs';
+} from '@gitstalk/shared-identity/org-members';
+import { OrgRole, UpdateOrgInput } from '@gitstalk/shared-identity/orgs';
 
 import { webMedia } from '../account/account-services';
 import { log } from '../log';

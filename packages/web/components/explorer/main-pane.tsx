@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-import type { MainPane as MainPaneModel } from '@beanstalk/shared-ask/ask/answer';
-import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
+import type { MainPane as MainPaneModel } from '@gitstalk/shared-ask/ask/answer';
+import type { Pushers } from '@gitstalk/shared-ask/home/sessions';
 import { BeanList, BeanView } from './bean-view';
 import { DiffView } from './diff-view';
 import styles from './explorer.module.css';

@@ -3,8 +3,8 @@
  * `GET /events`); the run's metadata, configuration, repos and the engine state snapshot
  * are values in the object's synchronous KV store, written in the same step as the events.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
-import type { RunConfig } from '@beanstalk/shared-race/run-config';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import type { RunConfig } from '@gitstalk/shared-race/run-config';
 
 import type { EmittedEvent } from '../engine/model';
 import type { EngineState } from '../engine/state';

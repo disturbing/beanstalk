@@ -9,8 +9,8 @@ import type {
   AutomationEditorRpc,
   SaveAutomationInput,
   TestAutomationInput,
-} from '@beanstalk/shared-race/automation-editor';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/automation-editor';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 const Base = z.object({ commit: z.string(), blob: z.string().nullable() });
 

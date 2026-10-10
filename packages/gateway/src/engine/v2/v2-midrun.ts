@@ -8,8 +8,8 @@
  * it between tool calls when that is safe, or only tells the agent, and the result reports
  * which (`midrun_syncs`). A merge it applied moves the bean's merged line to that sprout.
  */
-import type { InvocationResult, MidrunSyncOffer } from '@beanstalk/shared-race/driver';
-import { TaskId } from '@beanstalk/shared-race/ids';
+import type { InvocationResult, MidrunSyncOffer } from '@gitstalk/shared-race/driver';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 import { emit, requireTask } from '../context';
 import type { OpenInvocation } from '../model';

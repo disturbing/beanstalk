@@ -2,14 +2,14 @@
  * The "New repository" form: FormData in, a valid `CreateRepositoryInput` or the message for
  * each field out, so the page can show errors beside the fields and keep what was typed.
  */
-import type { CreateRepositoryInput } from '@beanstalk/shared-race/repos';
+import type { CreateRepositoryInput } from '@gitstalk/shared-race/repos';
 import {
   ImportUrl,
   MAX_REPO_DESCRIPTION,
   RepoName,
   RepoTemplate,
   RepoVisibility,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 
 export type CreateField = 'owner' | 'name' | 'description' | 'visibility' | 'start' | 'importUrl';
 

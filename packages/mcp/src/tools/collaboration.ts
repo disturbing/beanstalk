@@ -6,19 +6,19 @@ import {
   BeanInboxPage,
   BeanThreadPostResult,
   BeanUpdateResult,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 import type {
   BeanContextInput,
   BeanInboxAckInput,
   BeanInboxReadInput,
   BeanThreadPostInput,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
-import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import { unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { ForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
+import { unwrap } from '@gitstalk/shared-ask/forge/gateway-rpc';
 
 import type { ToolContext } from './tool-context';
 

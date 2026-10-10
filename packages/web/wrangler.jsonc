@@ -30,7 +30,7 @@
     },
   ],
   // Uploaded pictures (docs/claude-opus/29-settings.md): avatars, organisation icons, repository
-  // social images, written and served by this Worker under /media (@beanstalk/shared-media).
+  // social images, written and served by this Worker under /media (@gitstalk/shared-media).
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "beanstalk-media" }],
   // Cloudflare Images re-encodes uploads to WebP sizes (first frame of a GIF, metadata gone).
   // Without it the stripped original is stored and served at every size.

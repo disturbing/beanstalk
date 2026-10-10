@@ -11,7 +11,7 @@
  */
 import { z } from 'zod';
 
-import type { BacklogTaskState } from '@beanstalk/shared-race/agent-repos';
+import type { BacklogTaskState } from '@gitstalk/shared-race/agent-repos';
 
 import type { BeanPhase, PushBean } from '../push/push-bean';
 import { listPushBeans, readPushBean } from '../push/push-bean';

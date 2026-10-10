@@ -6,8 +6,8 @@
  * it through a rename (it names the repository's id, not its name). `verifyDeployToken` is
  * what `verifyGitCredential` asks; the web's RPC is `deploy-tokens-rpc.ts`.
  */
-import { hashSecret, isSameSecret } from '@beanstalk/shared-identity/secrets';
-import type { DeployTokenAccess } from '@beanstalk/shared-race/deploy-tokens';
+import { hashSecret, isSameSecret } from '@gitstalk/shared-identity/secrets';
+import type { DeployTokenAccess } from '@gitstalk/shared-race/deploy-tokens';
 
 export const DEPLOY_TOKEN_PREFIX = 'bsd_';
 const TOKEN_SHAPE = /^bsd_[A-Za-z0-9_-]{43}$/;

@@ -5,9 +5,9 @@
  * `base_seq` (0: a full snapshot). Only the files in the delta are scanned for secrets and
  * written; the caps hold for the stored snapshot as a whole.
  */
-import type { StreamDelta, StreamFile, StreamResponse } from '@beanstalk/shared-race/driver';
-import { STREAM_MAX_FILES, STREAM_MAX_PATCH_BYTES } from '@beanstalk/shared-race/driver';
-import type { BeanStreamPatch, BeanStreamSummary } from '@beanstalk/shared-race/rpc';
+import type { StreamDelta, StreamFile, StreamResponse } from '@gitstalk/shared-race/driver';
+import { STREAM_MAX_FILES, STREAM_MAX_PATCH_BYTES } from '@gitstalk/shared-race/driver';
+import type { BeanStreamPatch, BeanStreamSummary } from '@gitstalk/shared-race/rpc';
 
 /** The least time between two accepted posts of one invocation. */
 export const STREAM_MIN_INTERVAL_MS = 400;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { V20_SETTINGS } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { V20_SETTINGS } from '@gitstalk/shared-race/run-config';
 
 import type { FailRule, ScriptedTask } from './testing/fake-world';
 import type { LooseEvent, RaceScenario } from './testing/scenario';

@@ -3,7 +3,7 @@ import { mayViewEngine } from '../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 import { notFound } from 'next/navigation';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { SearchParams } from '../../../components/home/repository-home';
 import { RepositoryHome, notFoundOr } from '../../../components/home/repository-home';

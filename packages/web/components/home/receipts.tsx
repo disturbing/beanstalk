@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import type { PickReceipt } from '@beanstalk/shared-ask/pick/picker';
+import type { PickReceipt } from '@gitstalk/shared-ask/pick/picker';
 import styles from './home.module.css';
 
 /** A small ⓘ beside something the picker decided; opens the decision's receipt. */

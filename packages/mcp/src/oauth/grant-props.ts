@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 
-import { Scope } from '@beanstalk/shared-identity/scopes';
+import { Scope } from '@gitstalk/shared-identity/scopes';
 
 export const GrantProps = z.object({
   userId: z.string().min(1),

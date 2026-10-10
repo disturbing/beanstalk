@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RepositoryAction } from '@beanstalk/shared-race/collaborators';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RepositoryAction } from '@gitstalk/shared-race/collaborators';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { collaboratorsClient } from './collaborators-client';
 import { engineVerdict, mayViewEngine } from './engine-guard';

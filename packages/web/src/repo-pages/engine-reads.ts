@@ -6,13 +6,13 @@
  */
 import { z } from 'zod';
 
-import { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
-import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RefName, RepoDiff, RepoTree } from '@beanstalk/shared-ask/repo/repo-types';
+import { allEvents } from '@gitstalk/shared-ask/ask/plan-context';
+import type { ForgeSource } from '@gitstalk/shared-ask/forge/forge-source';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RefName, RepoDiff, RepoTree } from '@gitstalk/shared-ask/repo/repo-types';
 import type { PushedBean } from '../changes/pushed-beans';
 import { readPushedBeans } from '../changes/pushed-beans';
 import type { RefChoice } from '../code/tree';

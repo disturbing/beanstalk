@@ -5,11 +5,11 @@
  * repository access policy and the "available to pre-land checks" toggle (D4, default off).
  * Values are write-only: listing returns names and policies; only a running job reads values.
  */
-import { SecretName } from '@beanstalk/shared-race/actions';
+import { SecretName } from '@gitstalk/shared-race/actions';
 import type {
   OrgSecretSummary,
   RepositoryAccessPolicy,
-} from '@beanstalk/shared-race/actions-secrets';
+} from '@gitstalk/shared-race/actions-secrets';
 import { z } from 'zod';
 
 import {

@@ -9,7 +9,7 @@ import type {
   JobStepSpec,
   WorkflowProblem,
   WorkflowTrigger,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import {
   NoOperationTraceWriter,
   convertWorkflowTemplate,
@@ -17,7 +17,7 @@ import {
 } from '@actions/workflow-parser';
 import type { WorkflowTemplate } from '@actions/workflow-parser';
 
-import { parseCron } from '@beanstalk/shared-race/cron';
+import { parseCron } from '@gitstalk/shared-race/cron';
 import type { MatrixLeg, MatrixPlan } from './matrix';
 import { planMatrix } from './matrix';
 import type { PlainValue } from './plain';

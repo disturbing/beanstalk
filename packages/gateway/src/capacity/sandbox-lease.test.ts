@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 import { createLogger } from '../log';
 import type { AcquireInput, AcquireResult } from './runner-capacity';

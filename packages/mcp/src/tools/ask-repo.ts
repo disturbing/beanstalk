@@ -1,14 +1,14 @@
 /**
- * `ask_repo`: the web app's Ask pipeline (`@beanstalk/shared-ask`), as JSON. The same view a
+ * `ask_repo`: the web app's Ask pipeline (`@gitstalk/shared-ask`), as JSON. The same view a
  * person sees for the question: its spec, the files it resolved, the beans and decisions it
  * found, and a link to that view. Bodies (diffs, file text) are left out; their handles stay.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
-import type { Answer, MainPane, RailBlock } from '@beanstalk/shared-ask/ask/answer';
-import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
-import type { LineRef, ViewSpec } from '@beanstalk/shared-ask/ask/view-spec';
-import type { BeanRecord } from '@beanstalk/shared-ask/forge/forge-source';
+import type { Answer, MainPane, RailBlock } from '@gitstalk/shared-ask/ask/answer';
+import { planAnswer } from '@gitstalk/shared-ask/ask/plan-answer';
+import type { LineRef, ViewSpec } from '@gitstalk/shared-ask/ask/view-spec';
+import type { BeanRecord } from '@gitstalk/shared-ask/forge/forge-source';
 
 import { previewUrl } from './preview-link';
 import type { ToolContext } from './tool-context';

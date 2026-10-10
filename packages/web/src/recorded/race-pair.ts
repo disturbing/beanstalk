@@ -1,10 +1,10 @@
 /** The recorded race of the demo: the merge queue against Beanstalk v2.5, same tasks and seed. */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
-import { raceCounters } from '@beanstalk/shared-ask/race/race-counters';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@gitstalk/shared-ask/race/race-state';
+import { raceCounters } from '@gitstalk/shared-ask/race/race-counters';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import type { RecordedRun } from './recorded-runs';
 import { RACE_PAIR, recordedRun } from './recorded-runs';
 

@@ -10,7 +10,7 @@
 import { env } from 'cloudflare:workers';
 import { revalidatePath } from 'next/cache';
 
-import { AutomationBase } from '@beanstalk/shared-race/automation-editor';
+import { AutomationBase } from '@gitstalk/shared-race/automation-editor';
 
 import type { BeanStatus, SaveResult } from '../automations/editor-client';
 import { editorClient } from '../automations/editor-client';

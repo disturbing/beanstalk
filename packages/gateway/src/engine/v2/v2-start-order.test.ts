@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { V25_RULES_OFF } from '@beanstalk/shared-race/run-config';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { V25_RULES_OFF } from '@gitstalk/shared-race/run-config';
 
 import { createContext } from '../context';
 import type { FailRule, ScriptedTask } from '../testing/fake-world';

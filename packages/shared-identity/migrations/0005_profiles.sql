@@ -4,7 +4,7 @@
 ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN bio TEXT NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN website TEXT NOT NULL DEFAULT '';
--- R2 key in beanstalk-media: users/<id>/avatar/<hash> (@beanstalk/shared-media).
+-- R2 key in beanstalk-media: users/<id>/avatar/<hash> (@gitstalk/shared-media).
 ALTER TABLE users ADD COLUMN avatar_key TEXT;
 ALTER TABLE users ADD COLUMN handle_changed_at INTEGER;
 

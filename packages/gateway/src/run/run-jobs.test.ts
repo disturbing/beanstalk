@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId, Sha } from '@beanstalk/shared-race/ids';
-import { DEFAULT_SUITE } from '@beanstalk/shared-race/suite';
+import { RunId, Sha } from '@gitstalk/shared-race/ids';
+import { DEFAULT_SUITE } from '@gitstalk/shared-race/suite';
 
 import type { ArtifactsPort } from '../adapters/artifacts';
 import type { JobSpec } from '../engine/model';

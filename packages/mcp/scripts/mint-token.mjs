@@ -1,7 +1,7 @@
 // Mints a view or contributor token for one run, for any MCP client:
 //
-//   pnpm -F @beanstalk/mcp mint-token <run> [--gateway <url>]
-//   export BEANSTALK_TOKEN=$(pnpm -s -F @beanstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+//   pnpm -F @gitstalk/mcp mint-token <run> [--gateway <url>]
+//   export BEANSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 //
 // Add --bean <bean> --actor <actor> for a contributor token. The admin token comes from
 // ADMIN_TOKEN, else packages/gateway/.dev.vars; it is never printed. Only the token goes

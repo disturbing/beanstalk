@@ -6,12 +6,12 @@
 import type {
   OrgActionsAuditAction,
   OrgActionsAuditEntry,
-} from '@beanstalk/shared-race/actions-secrets';
+} from '@gitstalk/shared-race/actions-secrets';
 import type {
   RepositoryAuditAction,
   RepositoryForViewer,
-} from '@beanstalk/shared-race/collaborators';
-import type { Viewer } from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/collaborators';
+import type { Viewer } from '@gitstalk/shared-race/repos';
 import { z } from 'zod';
 
 /** Org audit lines shown in Settings. */

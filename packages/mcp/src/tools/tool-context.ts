@@ -2,22 +2,22 @@
  * What every tool reads with: the run the caller's token names, the forge over the gateway,
  * and the run's reduced event log, loaded at most once per MCP request.
  */
-import type { RunId, TaskId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
-import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
+import type { RunId, TaskId } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
+import { TaskId as TaskIdSchema } from '@gitstalk/shared-race/ids';
 
-import type { Classifier } from '@beanstalk/shared-ask/ask/classifier';
-import type { Picker } from '@beanstalk/shared-ask/pick/picker';
-import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
-import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
-import { currentStreams } from '@beanstalk/shared-ask/forge/bean-stream';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import type { Classifier } from '@gitstalk/shared-ask/ask/classifier';
+import type { Picker } from '@gitstalk/shared-ask/pick/picker';
+import { allEvents } from '@gitstalk/shared-ask/ask/plan-context';
+import type { BeanStreamSummary } from '@gitstalk/shared-ask/forge/bean-stream';
+import { currentStreams } from '@gitstalk/shared-ask/forge/bean-stream';
+import type { ForgeSource } from '@gitstalk/shared-ask/forge/forge-source';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 
-import type { Scope } from '@beanstalk/shared-identity/scopes';
-import type { AgentPrincipal, AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
+import type { Scope } from '@gitstalk/shared-identity/scopes';
+import type { AgentPrincipal, AgentReposRpc } from '@gitstalk/shared-race/agent-repos';
 
 import type { ContributorSession } from '../auth/bearer';
 import type { Logger } from '../log';

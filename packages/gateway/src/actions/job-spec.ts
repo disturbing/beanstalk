@@ -8,12 +8,12 @@ import type {
   ActionsRunId,
   JobSpec,
   SecretName,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import {
   SecretName as SecretNameSchema,
   WorkflowPath,
   isAutomationPath,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 
 import type { NeedResult } from './job-graph';
 import type { JobRow, RunRecord } from './run-store';

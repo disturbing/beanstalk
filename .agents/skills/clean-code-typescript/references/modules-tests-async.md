@@ -27,7 +27,7 @@ packages/<name>/src/
 - Dependencies point inward: `routes` depend on `<feature>`, `<feature>` depends on nothing in `routes` or `adapters` (it receives ports as parameters). `import/no-cycle` enforces the absence of cycles.
 - Files under about 300 lines; split along the feature seam.
 - Named exports only. No barrel `index.ts` files: they create cycles and hide the dependency graph.
-- Shared code across packages lives in `packages/shared-<topic>` and is imported as `@beanstalk/shared-<topic>` with `workspace:*`.
+- Shared code across packages lives in `packages/shared-<topic>` and is imported as `@gitstalk/shared-<topic>` with `workspace:*`.
 
 ## Dependency injection and composition root
 

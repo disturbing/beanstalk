@@ -8,9 +8,9 @@ import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/serv
 import { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
-import { LineRef } from '@beanstalk/shared-ask/ask/view-spec';
-import { ForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import { LineRef } from '@gitstalk/shared-ask/ask/view-spec';
+import { ForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { registerRepoTools } from '../repos/repo-tools';
 import { askRepo } from '../tools/ask-repo';

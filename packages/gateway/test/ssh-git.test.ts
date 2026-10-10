@@ -2,8 +2,8 @@ import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { addSshKey, removeSshKey } from '@beanstalk/shared-identity/ssh-keys';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import { addSshKey, removeSshKey } from '@gitstalk/shared-identity/ssh-keys';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { ADMIN, call, json, pkt, sha } from './helpers';
 

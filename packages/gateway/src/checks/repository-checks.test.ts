@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { readChecksConfig } from '@beanstalk/shared-race/checks-config';
-import type { SessionVia } from '@beanstalk/shared-race/collaborators';
-import { RunId, Sha } from '@beanstalk/shared-race/ids';
-import { DEFAULT_SUITE, RunSuite } from '@beanstalk/shared-race/suite';
+import { readChecksConfig } from '@gitstalk/shared-race/checks-config';
+import type { SessionVia } from '@gitstalk/shared-race/collaborators';
+import { RunId, Sha } from '@gitstalk/shared-race/ids';
+import { DEFAULT_SUITE, RunSuite } from '@gitstalk/shared-race/suite';
 
 import type { GitCredential } from '../auth/git-credential';
 import { templateFiles } from '../repos/templates';

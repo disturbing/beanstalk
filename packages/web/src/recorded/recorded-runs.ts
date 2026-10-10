@@ -6,8 +6,8 @@
  */
 import { z } from 'zod';
 
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { RunId as RunIdSchema, Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { RunId as RunIdSchema, Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import queueEvents from '../../fixtures/u0ntf65lbe/events.jsonl?raw';
 import queueRepo from '../../fixtures/u0ntf65lbe/repo.json?raw';
@@ -15,9 +15,9 @@ import queueTasks from '../../fixtures/u0ntf65lbe/tasks.json?raw';
 import beanstalkEvents from '../../fixtures/j6boaclinn/events.jsonl?raw';
 import beanstalkRepo from '../../fixtures/j6boaclinn/repo.json?raw';
 import beanstalkTasks from '../../fixtures/j6boaclinn/tasks.json?raw';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import { parseEventLog } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import { parseEventLog } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@gitstalk/shared-ask/race/race-state';
 
 const FileStatRecord = z.object({
   path: z.string(),

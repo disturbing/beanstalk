@@ -4,11 +4,11 @@
  * repository's owner. When the gateway reports session owners, this is the one place to read
  * them (`docs/claude-opus/14` §11).
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
-import type { SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import { placeholderSessions } from '@beanstalk/shared-ask/home/sessions';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import type { SessionDirectory } from '@gitstalk/shared-ask/home/sessions';
+import { placeholderSessions } from '@gitstalk/shared-ask/home/sessions';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 import { repositoryOf } from './repository';
 
 export function sessionsFor(run: RunId, state: RaceState, owner?: string): SessionDirectory {

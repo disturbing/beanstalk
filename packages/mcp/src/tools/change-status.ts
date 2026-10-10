@@ -3,9 +3,9 @@
  * and awaiting validation, green on the stalk, sent back for rework, waiting on a decision,
  * reverted or dropped; with what to do next and the latest steps as evidence.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
-import type { BeanDetail, BeanStatus } from '@beanstalk/shared-ask/forge/forge-source';
+import type { BeanDetail, BeanStatus } from '@gitstalk/shared-ask/forge/forge-source';
 
 import { previewUrl } from './preview-link';
 import type { ToolContext } from './tool-context';

@@ -1,4 +1,4 @@
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { CheckResult, CiId, JobId, Seconds, TimerId } from '../model';
 

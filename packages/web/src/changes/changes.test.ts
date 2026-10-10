@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
 import { authorText, changesOf, groupCounts, inGroup } from './changes';
 import { GREETER_EVENTS, GREETER_PUSHED } from './testing/greeter';
 

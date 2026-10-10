@@ -1,11 +1,11 @@
 /**
  * SSH public keys people registered (Settings → SSH keys, or `/beanstalk:setup`), as git over
- * SSH asks about them. One adapter over `@beanstalk/shared-identity/ssh-keys` (`findUserByKey`,
+ * SSH asks about them. One adapter over `@gitstalk/shared-identity/ssh-keys` (`findUserByKey`,
  * `touchKey`), so the SSH path depends on this narrow shape only and tests can fake it.
  */
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import type { Scope } from '@beanstalk/shared-identity/scopes';
-import { findUserByKey, touchKey } from '@beanstalk/shared-identity/ssh-keys';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import type { Scope } from '@gitstalk/shared-identity/scopes';
+import { findUserByKey, touchKey } from '@gitstalk/shared-identity/ssh-keys';
 
 import type { GitScope, GitUser } from './git-credential';
 import { gitScopes } from './git-credential';

@@ -7,9 +7,9 @@
  * landed partner not yet decided. Against a declared partner still in flight, the first red
  * check that names it goes to reconcile (or the card) at once, without the usual reds.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
-import { couplingPartners } from '@beanstalk/shared-race/task';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import { releasesOnCheck } from '@gitstalk/shared-race/run-config';
+import { couplingPartners } from '@gitstalk/shared-race/task';
 
 import { emit, promptDefinition, requireTask, taskDefinition } from '../context';
 import { createInvocation } from '../invocations';

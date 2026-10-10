@@ -5,9 +5,9 @@
  */
 import { z } from 'zod';
 
-import type { EngineFeed, EngineFeedItem, EngineFeedRpc } from '@beanstalk/shared-race/engine-feed';
-import { MAX_FEED_ENGINES, MAX_FEED_ITEMS } from '@beanstalk/shared-race/engine-feed';
-import { RunId } from '@beanstalk/shared-race/ids';
+import type { EngineFeed, EngineFeedItem, EngineFeedRpc } from '@gitstalk/shared-race/engine-feed';
+import { MAX_FEED_ENGINES, MAX_FEED_ITEMS } from '@gitstalk/shared-race/engine-feed';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { Deps } from '../deps';
 

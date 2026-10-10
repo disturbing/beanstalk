@@ -3,8 +3,8 @@
  * token; this browser's session row is revoked (or every one, `everywhere=1`), the session
  * cookie is cleared and the browser lands on the sign-in page. The ports keep it testable.
  */
-import { SESSION_COOKIE, clearCookie } from '@beanstalk/shared-identity/cookies';
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
+import { SESSION_COOKIE, clearCookie } from '@gitstalk/shared-identity/cookies';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
 
 import { SIGNED_OUT_PATH, seeOther, signedInForm } from './http';
 

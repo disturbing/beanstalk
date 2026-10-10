@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import type { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
+import type { AgentSession } from '@gitstalk/shared-identity/agent-sessions';
 
 import type { User as SessionUser } from '../../src/auth/user';
 import type { Growth } from '../../src/repositories/engine-summary';

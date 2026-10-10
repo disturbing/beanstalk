@@ -10,7 +10,7 @@ import type {
   BeanRework,
   BeanSummary,
   DecisionRecord,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import { isUnder } from '../adapters/artifacts';
 import type { EngineEnv } from '../engine/catalog';

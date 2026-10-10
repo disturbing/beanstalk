@@ -2,10 +2,10 @@ import { getUser } from '../../../../../../../src/auth/user';
 import { mayViewEngine } from '../../../../../../../src/repositories/engine-guard';
 import { env } from 'cloudflare:workers';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
-import { beanStreamView } from '@beanstalk/shared-ask/forge/bean-stream';
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { beanStreamView } from '@gitstalk/shared-ask/forge/bean-stream';
+import { isForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
 import { log } from '../../../../../../../src/log';
 import { isRecordedRun } from '../../../../../../../src/recorded/recorded-runs';
 

@@ -7,8 +7,8 @@
  */
 import { z } from 'zod';
 
-import type { GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
-import { RunPreset } from '@beanstalk/shared-race/run-config';
+import type { GatewayRpc, RpcResult } from '@gitstalk/shared-race/rpc';
+import { RunPreset } from '@gitstalk/shared-race/run-config';
 
 import { ForgeError } from './forge-errors';
 

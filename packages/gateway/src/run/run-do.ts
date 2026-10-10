@@ -13,15 +13,15 @@ import type {
   NextResponse,
   InvocationProgress,
   ProgressResponse,
-} from '@beanstalk/shared-race/driver';
-import type { InvocationId, RunId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import type { RunConfig } from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/driver';
+import type { InvocationId, RunId, Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import type { RunConfig } from '@gitstalk/shared-race/run-config';
 import {
   CONTINUOUS_SETTINGS,
   RunConfig as RunConfigSchema,
   checksSourceOf,
-} from '@beanstalk/shared-race/run-config';
-import { CHECKS_PATH } from '@beanstalk/shared-race/checks-config';
+} from '@gitstalk/shared-race/run-config';
+import { CHECKS_PATH } from '@gitstalk/shared-race/checks-config';
 
 import type {
   BeanDetail,
@@ -34,7 +34,7 @@ import type {
   RepoTree,
   RunView,
   TestCoverage,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import {
   BeanContextInput,
@@ -45,7 +45,7 @@ import {
   BeanThreadPostInput,
   BeanUpdateInput,
   ContributorTokenClaims,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 import type {
   BeanContext,
   BeanDiscoverPage,
@@ -54,14 +54,14 @@ import type {
   BeanInboxPage,
   BeanThreadPostResult,
   BeanUpdateResult,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 import type {
   AffectedAnswer,
   AffectedQuery,
   ReadMapSummary,
   ReadMapTree,
-} from '@beanstalk/shared-race/read-maps';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/read-maps';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import {
   readBeanContext,

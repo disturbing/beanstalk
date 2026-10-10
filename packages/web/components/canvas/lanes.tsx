@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 
-import type { Bean, Lane, RaceState } from '@beanstalk/shared-ask/race/race-state';
+import type { Bean, Lane, RaceState } from '@gitstalk/shared-ask/race/race-state';
 import { formatSpan } from '../../src/race/race-format';
 import styles from './canvas.module.css';
 

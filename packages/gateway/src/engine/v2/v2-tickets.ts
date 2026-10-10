@@ -10,8 +10,8 @@
  * stalk and the red window's beans are requeued (`v2-reset`). With `episode_tickets` a red
  * inside an open episode opens no ticket of its own (`isInRedEpisode`).
  */
-import type { Sha } from '@beanstalk/shared-race/ids';
-import { unionPaths } from '@beanstalk/shared-race/run-config';
+import type { Sha } from '@gitstalk/shared-race/ids';
+import { unionPaths } from '@gitstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
 import { bisectPoints } from '../bisect';

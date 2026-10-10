@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DiffHunk, FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { DiffHunk, FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 
 import { followChange } from './followed-change';
 import type { FollowedChange } from './followed-change';

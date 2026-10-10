@@ -4,7 +4,7 @@
  */
 import type { ReactNode } from 'react';
 
-import type { Profile } from '@beanstalk/shared-identity/profiles';
+import type { Profile } from '@gitstalk/shared-identity/profiles';
 
 import type { SettingsNavGroup } from '../settings/settings-shell';
 import { SettingsShell } from '../settings/settings-shell';

@@ -1,7 +1,7 @@
 import { SELF, env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { SecretName } from '@beanstalk/shared-race/actions';
+import { SecretName } from '@gitstalk/shared-race/actions';
 
 import { cancelJob, startJob } from '../src/executor';
 import { gunzip, standaloneSink } from '../src/sink/job-sink';

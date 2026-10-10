@@ -18,14 +18,14 @@ import type {
   RunDetail,
   RunSummary,
   StepView,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import {
   ActionsJobId,
   ActionsRunId,
   automationIdOf,
   isAutomationPath,
-} from '@beanstalk/shared-race/actions';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { RUNNER_POOL_NAME } from '../capacity/runner-capacity';
 import { readConfig } from '../config';

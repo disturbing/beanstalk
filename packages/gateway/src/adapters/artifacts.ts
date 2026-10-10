@@ -3,7 +3,7 @@
  * the tree walk behind a diff, and the namespace listing that reaping uses, with Artifacts
  * errors turned into `UpstreamError` (retryable or not).
  */
-import { Sha } from '@beanstalk/shared-race/ids';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 import { UpstreamError } from '../errors';
 import type { FileChange } from '../git/diff-text';

@@ -4,7 +4,7 @@
  * opened. Every other entry keeps its id, so the pack carries only the new objects (the
  * repository already holds the rest). Deleting the file drops directories it leaves empty.
  */
-import type { RepoTreeEntry } from '@beanstalk/shared-race/rpc';
+import type { RepoTreeEntry } from '@gitstalk/shared-race/rpc';
 
 import type { GitObject, Signature } from '../git/pack-writer';
 import { commitObject, gitObject } from '../git/pack-writer';

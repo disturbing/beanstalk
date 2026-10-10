@@ -17,7 +17,7 @@
  * green tree: a flaky test that passed the pre-land check is not run again until the next
  * validation of a later head (every later tree contains this one) or the final check.
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { V2State } from './v2-state';
 

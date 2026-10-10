@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import { SPROUT_REF } from '../refs';
 import type { FailRule } from '../testing/fake-world';

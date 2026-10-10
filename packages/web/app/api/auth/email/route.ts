@@ -1,11 +1,11 @@
 import { env } from 'cloudflare:workers';
 
-import { PREAUTH_COOKIE, setCookie } from '@beanstalk/shared-identity/cookies';
-import { MAGIC_LINK_SECONDS, requestMagicLink } from '@beanstalk/shared-identity/magic-links';
-import { isWithinLimits } from '@beanstalk/shared-identity/rate-limit';
-import { clientIp, siteOrigin } from '@beanstalk/shared-identity/request-context';
-import { randomSecret } from '@beanstalk/shared-identity/secrets';
-import { Email, Handle } from '@beanstalk/shared-identity/users';
+import { PREAUTH_COOKIE, setCookie } from '@gitstalk/shared-identity/cookies';
+import { MAGIC_LINK_SECONDS, requestMagicLink } from '@gitstalk/shared-identity/magic-links';
+import { isWithinLimits } from '@gitstalk/shared-identity/rate-limit';
+import { clientIp, siteOrigin } from '@gitstalk/shared-identity/request-context';
+import { randomSecret } from '@gitstalk/shared-identity/secrets';
+import { Email, Handle } from '@gitstalk/shared-identity/users';
 
 import { crossSiteRefusal, problem, seeOther } from '../../../../src/auth/http';
 import { emailSignIn } from '../../../../src/auth/services';

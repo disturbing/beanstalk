@@ -4,9 +4,9 @@
  * the engine and only then lists the repository. A failure on the way removes what was made,
  * so the name is free again.
  */
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import { recordOrgAudit } from '@beanstalk/shared-identity/org-audit';
-import type { RepositoryOwnerRef } from '@beanstalk/shared-identity/orgs';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import { recordOrgAudit } from '@gitstalk/shared-identity/org-audit';
+import type { RepositoryOwnerRef } from '@gitstalk/shared-identity/orgs';
 import {
   findOrgByHandle,
   mayCreateRepository,
@@ -15,20 +15,20 @@ import {
   orgsOf,
   ownerByHandle,
   ownerOf,
-} from '@beanstalk/shared-identity/orgs';
-import { findUserById } from '@beanstalk/shared-identity/users';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-identity/orgs';
+import { findUserById } from '@gitstalk/shared-identity/users';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 import type {
   RepoOrigin,
   RepoOwner,
   RepositoriesRpc,
   RepositoryRecord,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 import {
   CreateRepositoryInput,
   RepoOwner as RepoOwnerSchema,
   UpdateRepositoryInput,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 
 import { artifactsCode } from '../adapters/artifacts';
 import type { RepositoryStorage } from '../adapters/repository-storage';

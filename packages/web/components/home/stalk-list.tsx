@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRef } from 'react';
 
-import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
-import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
-import type { StalkRow } from '@beanstalk/shared-ask/home/stalk';
+import type { BeanStreamSummary } from '@gitstalk/shared-ask/forge/bean-stream';
+import type { Pushers } from '@gitstalk/shared-ask/home/sessions';
+import type { StalkRow } from '@gitstalk/shared-ask/home/stalk';
 import { formatClock } from '../../src/race/race-format';
 import styles from './home.module.css';
 import { useStreamSummaries } from './live-streams';

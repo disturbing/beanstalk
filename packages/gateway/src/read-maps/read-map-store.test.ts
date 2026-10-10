@@ -1,7 +1,7 @@
 import { env, runInDurableObject } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import type { CheckReadMaps, CheckedTree, TestReadMap } from '@beanstalk/shared-race/read-maps';
+import type { CheckReadMaps, CheckedTree, TestReadMap } from '@gitstalk/shared-race/read-maps';
 
 import { migrateReadMaps, recordCheck, sqlReadMapIndex, treeKey } from './read-map-store';
 

@@ -6,7 +6,7 @@
  * ActionsRepoDO, the run's ActionsRunDO or R2. Repositories the viewer may not see are
  * `not_found`, as everywhere.
  */
-import type { ActionsRpc, RunSummary } from '@beanstalk/shared-race/actions';
+import type { ActionsRpc, RunSummary } from '@gitstalk/shared-race/actions';
 import {
   ACTIONS_CONCLUSIONS,
   AUTOMATIONS_DIR,
@@ -18,10 +18,10 @@ import {
   PutSecretInputSchema,
   RunFilterSchema,
   WorkflowPath,
-} from '@beanstalk/shared-race/actions';
-import type { RepositoryAction } from '@beanstalk/shared-race/collaborators';
-import type { Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+import type { RepositoryAction } from '@gitstalk/shared-race/collaborators';
+import type { Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 import { z } from 'zod';
 
 import { readConfig, readSecrets } from '../config';

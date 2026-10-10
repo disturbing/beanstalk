@@ -3,10 +3,10 @@
  * invitations, the credentials that acted on a repository, and its access audit log. Storage
  * only: who may change what is decided by `mayUseEngine` in the RPC (`collaborators-rpc.ts`).
  */
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import type { OrgStanding } from '@beanstalk/shared-identity/orgs';
-import { orgStanding } from '@beanstalk/shared-identity/orgs';
-import { randomId } from '@beanstalk/shared-identity/secrets';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import type { OrgStanding } from '@gitstalk/shared-identity/orgs';
+import { orgStanding } from '@gitstalk/shared-identity/orgs';
+import { randomId } from '@gitstalk/shared-identity/secrets';
 import type {
   Collaborator,
   Invitation,
@@ -15,8 +15,8 @@ import type {
   RepositoryAuditEvent,
   RepositorySession,
   SessionVia,
-} from '@beanstalk/shared-race/collaborators';
-import { RepoRole as RepoRoleSchema } from '@beanstalk/shared-race/collaborators';
+} from '@gitstalk/shared-race/collaborators';
+import { RepoRole as RepoRoleSchema } from '@gitstalk/shared-race/collaborators';
 import { z } from 'zod';
 
 /** Invitations wait two weeks for an answer. */

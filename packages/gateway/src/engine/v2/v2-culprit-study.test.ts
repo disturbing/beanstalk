@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
+import { TaskId } from '@gitstalk/shared-race/ids';
 
 import { EPISODES, LONE, WHOLE_SUITE_UNREVERTABLE, studyEpisode } from '../testing/culprit-study';
 import type { Outcome } from '../testing/culprit-study';

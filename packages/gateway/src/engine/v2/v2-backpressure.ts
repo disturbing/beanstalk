@@ -11,7 +11,7 @@
  *   row are green, then skip all but 1 in 4. A red re-check or a red sprout starts it
  *   re-checking again. It measures the re-checks it skips, not first checks on a calm base.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { emit } from '../context';
 import { unvalidatedCount } from './v2-sprout';

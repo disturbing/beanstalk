@@ -2,10 +2,10 @@
  * Reads a recorded run's repo snapshot (`repo.json`): trees per commit, file contents, the
  * line's history, grep and diffs between any two recorded commits.
  */
-import type { Sha } from '@beanstalk/shared-race/ids';
+import type { Sha } from '@gitstalk/shared-race/ids';
 
-import { diffFile } from '@beanstalk/shared-ask/repo/file-diff';
-import { compareText } from '@beanstalk/shared-ask/repo/paths';
+import { diffFile } from '@gitstalk/shared-ask/repo/file-diff';
+import { compareText } from '@gitstalk/shared-ask/repo/paths';
 import type {
   FileStat,
   FileStatus,
@@ -13,7 +13,7 @@ import type {
   RepoCommit,
   RepoDiff,
   TreeFile,
-} from '@beanstalk/shared-ask/repo/repo-types';
+} from '@gitstalk/shared-ask/repo/repo-types';
 import type { LineCommitRecord, RepoSnapshot, TaskRecord } from './recorded-runs';
 
 /** Grep stops after this many matching lines, as a bounded search should. */

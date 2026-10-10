@@ -2,8 +2,8 @@ import { env, runInDurableObject } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import type { RepositoryForgotten } from '@beanstalk/shared-race/actions';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RepositoryForgotten } from '@gitstalk/shared-race/actions';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { createLogger } from '../src/log';
 import { deletePrefix, repositoryCleanup } from '../src/repos/repository-cleanup';

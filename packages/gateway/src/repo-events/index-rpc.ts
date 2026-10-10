@@ -4,9 +4,9 @@
  * from yet (one that grew before `repo-events` existed, or whose engine's last send failed)
  * asks its engine to catch up, in the background, so the next read has it.
  */
-import type { RepoIndexRpc } from '@beanstalk/shared-race/repo-events';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { RunId } from '@beanstalk/shared-race/ids';
+import type { RepoIndexRpc } from '@gitstalk/shared-race/repo-events';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { Logger } from '../log';
 import { decideAccess, accessResult, viewerPrincipal } from '../repos/access';

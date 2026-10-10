@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { WorkflowTrigger } from '@beanstalk/shared-race/actions';
-import type { RepoEvent } from '@beanstalk/shared-race/repo-events';
+import type { WorkflowTrigger } from '@gitstalk/shared-race/actions';
+import type { RepoEvent } from '@gitstalk/shared-race/repo-events';
 
 import { automationFires, occurrenceOf, occurrencePayload } from './automation-triggers';
 

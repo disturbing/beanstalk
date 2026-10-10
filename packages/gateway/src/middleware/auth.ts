@@ -5,7 +5,7 @@
  */
 import { createMiddleware } from 'hono/factory';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { AppEnv, Principal } from '../app-env';
 import { isSameSecret, presentedToken, queryToken } from '../auth/credentials';

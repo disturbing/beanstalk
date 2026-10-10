@@ -9,7 +9,7 @@
  * (with `rescue`, the bean is first re-executed once from scratch).
  * With `release_on_check` the rework waits for a free slot and resumes the author's session.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { failingTestNames } from '../ci';
 import {

@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { Outcome } from '../repositories/registry-client';
 import type {

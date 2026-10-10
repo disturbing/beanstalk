@@ -8,7 +8,7 @@
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 
-import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
+import { logIdentity, recordProductEvent } from '@gitstalk/shared-identity/product-events';
 
 import { signedInUser } from './signed-in';
 import { webMedia } from '../account/account-services';

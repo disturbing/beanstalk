@@ -1,6 +1,6 @@
-import type { Json } from '@beanstalk/shared-race/events';
-import type { PolicyView } from '@beanstalk/shared-race/rpc';
-import type { PolicyName } from '@beanstalk/shared-race/run-config';
+import type { Json } from '@gitstalk/shared-race/events';
+import type { PolicyView } from '@gitstalk/shared-race/rpc';
+import type { PolicyName } from '@gitstalk/shared-race/run-config';
 
 import type { PolicyHooks, StepContext } from './context';
 

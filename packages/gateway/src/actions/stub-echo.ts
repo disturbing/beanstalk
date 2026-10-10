@@ -11,7 +11,7 @@ import type {
   JobSpec,
   LogLine,
   StepView,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 
 /** A step that sleeps this long or more makes the stub job hang (cancel and timeout tests). */
 const HANG_SECONDS = 60;

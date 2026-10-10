@@ -1,6 +1,6 @@
 {
   // The OIDC issuer as its own Worker: discovery, JWKS and the job token endpoint under
-  // /_actions/oidc. The same routes (`createOidcApp` from @beanstalk/shared-oidc) can be mounted
+  // /_actions/oidc. The same routes (`createOidcApp` from @gitstalk/shared-oidc) can be mounted
   // inside the gateway; this Worker is the standalone form used for staging and for self-hosters
   // who want the issuer on its own hostname. Each environment deploys it as
   // `beanstalk-oidc<suffix>` (`pnpm env:deploy <env>`).

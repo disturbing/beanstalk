@@ -1,5 +1,5 @@
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import { unionPaths, usesStructuralMerge } from '@gitstalk/shared-race/run-config';
 
 import { markAborted } from '../abort';
 import { bisectPoints } from '../bisect';

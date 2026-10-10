@@ -6,7 +6,7 @@
  * existed sends its whole history the first time. The consumer is idempotent, so a send
  * that is repeated after a crash between send and cursor write does no harm.
  */
-import type { RepoEvent, RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
+import type { RepoEvent, RepoEventsMessage } from '@gitstalk/shared-race/repo-events';
 
 import type { BeanLookup, StoredEvent } from './map-events';
 import { repoEventsOf } from './map-events';

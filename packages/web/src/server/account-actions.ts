@@ -9,10 +9,10 @@
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 
-import { renamePasskey } from '@beanstalk/shared-identity/passkeys';
-import type { ProfileInput } from '@beanstalk/shared-identity/profiles';
-import { updateProfile } from '@beanstalk/shared-identity/profiles';
-import { clientIp } from '@beanstalk/shared-identity/request-context';
+import { renamePasskey } from '@gitstalk/shared-identity/passkeys';
+import type { ProfileInput } from '@gitstalk/shared-identity/profiles';
+import { updateProfile } from '@gitstalk/shared-identity/profiles';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
 
 import type { FormState } from '../account/form-state';
 import { changeHandleFlow, deleteAccountFlow, removePictureFlow } from '../account/account-flows';

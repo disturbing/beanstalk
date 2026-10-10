@@ -9,10 +9,10 @@
  * `TEST_HINT` and `SUITE_COMMAND`, which a real-task arena's `arena.json` sets, so a fastify
  * task's prompts are byte for byte the GitHub arm's (`prompts.test.ts`).
  */
-import type { RunSuite } from '@beanstalk/shared-race/suite';
-import { filesCommand, suiteCommand } from '@beanstalk/shared-race/suite';
-import type { ArenaTask } from '@beanstalk/shared-race/task';
-import { acceptancePaths } from '@beanstalk/shared-race/task';
+import type { RunSuite } from '@gitstalk/shared-race/suite';
+import { filesCommand, suiteCommand } from '@gitstalk/shared-race/suite';
+import type { ArenaTask } from '@gitstalk/shared-race/task';
+import { acceptancePaths } from '@gitstalk/shared-race/task';
 
 export const NO_COMMIT = "Don't stage or commit; the harness commits your changes.";
 

@@ -4,14 +4,14 @@ import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/cli
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { listAudit } from '@beanstalk/shared-identity/audit';
-import { base64UrlEncode, randomSecret } from '@beanstalk/shared-identity/secrets';
+import { listAudit } from '@gitstalk/shared-identity/audit';
+import { base64UrlEncode, randomSecret } from '@gitstalk/shared-identity/secrets';
 import {
   PersonalTokenInput,
   createPersonalToken,
   verifyUserToken,
-} from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+} from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { repository, slug } from './repo-fixtures';
 

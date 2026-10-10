@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import type { Pushers } from '@beanstalk/shared-ask/home/sessions';
+import type { Pushers } from '@gitstalk/shared-ask/home/sessions';
 import { log } from '../log';
 
 const PushedBeans = z.array(z.object({ bean: z.string(), actor: z.string() }));

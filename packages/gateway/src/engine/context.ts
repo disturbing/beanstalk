@@ -2,11 +2,11 @@ import type {
   InvocationKind,
   InvocationResult,
   MidrunSyncOffer,
-} from '@beanstalk/shared-race/driver';
-import type { RaceEventFields, RaceEventType } from '@beanstalk/shared-race/events';
-import type { InvocationId, Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import type { RunSuite } from '@beanstalk/shared-race/suite';
-import type { ArenaTask } from '@beanstalk/shared-race/task';
+} from '@gitstalk/shared-race/driver';
+import type { RaceEventFields, RaceEventType } from '@gitstalk/shared-race/events';
+import type { InvocationId, Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import type { RunSuite } from '@gitstalk/shared-race/suite';
+import type { ArenaTask } from '@gitstalk/shared-race/task';
 
 import type { EngineEnv } from './catalog';
 import { EngineInvariantError } from './errors';

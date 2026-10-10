@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import type { Membership } from '@beanstalk/shared-identity/orgs';
+import type { Membership } from '@gitstalk/shared-identity/orgs';
 
 import repo from '../repository/repository.module.css';
 import { OrgMark } from './org-mark';

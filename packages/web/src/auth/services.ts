@@ -4,10 +4,10 @@
  */
 import { env } from 'cloudflare:workers';
 
-import type { AgentSessionsRpc } from '@beanstalk/shared-identity/agent-sessions';
-import { isAgentSessionsRpc } from '@beanstalk/shared-identity/agent-sessions';
-import type { EmailSignInConfig } from '@beanstalk/shared-identity/magic-links';
-import { emailSignInConfig } from '@beanstalk/shared-identity/magic-links';
+import type { AgentSessionsRpc } from '@gitstalk/shared-identity/agent-sessions';
+import { isAgentSessionsRpc } from '@gitstalk/shared-identity/agent-sessions';
+import type { EmailSignInConfig } from '@gitstalk/shared-identity/magic-links';
+import { emailSignInConfig } from '@gitstalk/shared-identity/magic-links';
 
 export function agentSessionsRpc(): AgentSessionsRpc {
   const binding: unknown = env.MCP;

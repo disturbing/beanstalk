@@ -1,6 +1,6 @@
 /**
  * The adapter from the gateway's Actions control plane (`ActionsRpc` from
- * `@beanstalk/shared-race/actions`, served on the gateway's `Actions` entrypoint) to the
+ * `@gitstalk/shared-race/actions`, served on the gateway's `Actions` entrypoint) to the
  * pages' model (`actions-contract.ts`), as one `ActionsClient` scoped to a person and a
  * repository. It translates names (`workflowPath`, `minutesBilled`, `waiting`,
  * `infrastructure_failure`), numbers log lines across the stored chunks, checks that a run
@@ -13,7 +13,7 @@ import {
   ACTIONS_CONCLUSIONS,
   ACTIONS_STATUSES,
   StepViewSchema,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 import type {
   ActionsRpc,
   JobView,
@@ -21,9 +21,9 @@ import type {
   RunDetail as GatewayRunDetail,
   RunSummary as GatewayRunSummary,
   WorkflowSummary,
-} from '@beanstalk/shared-race/actions';
-import type { ActionsEntriesRpc } from '@beanstalk/shared-race/actions-secrets';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+import type { ActionsEntriesRpc } from '@gitstalk/shared-race/actions-secrets';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { Outcome } from '../repositories/registry-client';
 import type { ActionsClient, LogEvent } from './actions-client';

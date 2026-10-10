@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { Sha } from '@beanstalk/shared-race/ids';
-import { DEFAULT_SUITE, RunSuite } from '@beanstalk/shared-race/suite';
+import { Sha } from '@gitstalk/shared-race/ids';
+import { DEFAULT_SUITE, RunSuite } from '@gitstalk/shared-race/suite';
 
 import { UpstreamError } from '../errors';
 import type { LogFields, Logger } from '../log';

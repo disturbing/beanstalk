@@ -3,7 +3,7 @@
  * entries whose access policy reaches the repository, then the repository's own, which win on
  * a name clash. Pure; the stores and the run supply the rows.
  */
-import type { RepositoryAccessPolicy } from '@beanstalk/shared-race/actions-secrets';
+import type { RepositoryAccessPolicy } from '@gitstalk/shared-race/actions-secrets';
 
 /** The facts about a repository an org policy is decided on. */
 export type PolicyTarget = {

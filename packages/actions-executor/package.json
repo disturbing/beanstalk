@@ -1,5 +1,5 @@
 {
-  "name": "@beanstalk/actions-executor",
+  "name": "@gitstalk/actions-executor",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,8 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@beanstalk/shared-race": "workspace:*",
     "@cloudflare/containers": "catalog:",
+    "@gitstalk/shared-race": "workspace:*",
     "hono": "catalog:",
     "zod": "catalog:"
   },

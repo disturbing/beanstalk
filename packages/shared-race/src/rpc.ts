@@ -601,7 +601,7 @@ export type OpenRepoEngineInput = {
   readonly artifactsRepo: string;
   readonly owner: { readonly id: string; readonly handle: string };
   readonly settings?: {
-    /** The checks: `RunSuite` (`@beanstalk/shared-race/suite`); default `node --test`. */
+    /** The checks: `RunSuite` (`@gitstalk/shared-race/suite`); default `node --test`. */
     readonly suite?: unknown;
     /** Where the sprout and the stalk start when the repo has neither (default `main`, then `master`). */
     readonly base_branch?: string;

@@ -16,14 +16,14 @@
  *    (`v2-validator`, `v2-tickets`).
  * 7. Landed acceptance tests are protected (`protect_tests: landed`, by the driver).
  */
-import type { Json } from '@beanstalk/shared-race/events';
-import type { V2PolicyView } from '@beanstalk/shared-race/rpc';
-import type { SlotId } from '@beanstalk/shared-race/ids';
+import type { Json } from '@gitstalk/shared-race/events';
+import type { V2PolicyView } from '@gitstalk/shared-race/rpc';
+import type { SlotId } from '@gitstalk/shared-race/ids';
 import {
   prelandSeconds,
   releasesOnCheck,
   usesStructuralMerge,
-} from '@beanstalk/shared-race/run-config';
+} from '@gitstalk/shared-race/run-config';
 
 import type { PolicyHooks, ReworkOutcome, StepContext } from '../context';
 import { emit, requireTask } from '../context';
@@ -1053,7 +1053,7 @@ function bound(value: number | undefined): string {
 }
 
 /**
- * What the live page and the web app show (`V2PolicyView` in `@beanstalk/shared-race/rpc`):
+ * What the live page and the web app show (`V2PolicyView` in `@gitstalk/shared-race/rpc`):
  * the sprout and the stalk, beans in flight, the turn, tickets, cards, flakes, the rules.
  */
 function v2View(state: V2State): V2PolicyView {

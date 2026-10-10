@@ -14,7 +14,7 @@ import type {
   CheckedTree,
   ReadMapSummary,
   ReadMapTree,
-} from '@beanstalk/shared-race/read-maps';
+} from '@gitstalk/shared-race/read-maps';
 
 import type { Manifest, StoredReadMap } from './affected-tests';
 import { affectedTests, isDefaultTestFile } from './affected-tests';

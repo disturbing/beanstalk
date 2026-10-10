@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { TaskId } from '@beanstalk/shared-race/ids';
-import { RunConfig } from '@beanstalk/shared-race/run-config';
-import { DEFAULT_SUITE, RunSuite, suiteCommand } from '@beanstalk/shared-race/suite';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import { RunConfig } from '@gitstalk/shared-race/run-config';
+import { DEFAULT_SUITE, RunSuite, suiteCommand } from '@gitstalk/shared-race/suite';
 
 import fastify from '../../test/fixtures/fastify-prompts.json';
 import {

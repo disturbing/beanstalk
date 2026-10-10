@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 
-import { DEFAULT_ISSUER_PATH, createOidcApp, loadOidcConfig } from '@beanstalk/shared-oidc/issuer';
+import { DEFAULT_ISSUER_PATH, createOidcApp, loadOidcConfig } from '@gitstalk/shared-oidc/issuer';
 
-import type { OidcConfig } from '@beanstalk/shared-oidc/issuer';
+import type { OidcConfig } from '@gitstalk/shared-oidc/issuer';
 
 export type AppEnv = { Bindings: Env };
 

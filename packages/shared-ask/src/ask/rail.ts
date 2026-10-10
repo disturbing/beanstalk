@@ -3,7 +3,7 @@
  * records, the tests that cover the files, the agents' lanes, red runs and repairs, and
  * what waits for the stalk. Which blocks show is the catalog's choice for the class.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { beansTouching } from '../forge/bean-records';
 import type { BeanRecord } from '../forge/forge-source';

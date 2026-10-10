@@ -3,8 +3,8 @@
  * generated fallback (initials for a person, an identicon for an organisation) drawn inline.
  * Decorative by default: the name beside it says who it is.
  */
-import { fallbackAvatar } from '@beanstalk/shared-media/fallback-avatar';
-import { imageUrl } from '@beanstalk/shared-media/images';
+import { fallbackAvatar } from '@gitstalk/shared-media/fallback-avatar';
+import { imageUrl } from '@gitstalk/shared-media/images';
 
 import styles from './avatar.module.css';
 

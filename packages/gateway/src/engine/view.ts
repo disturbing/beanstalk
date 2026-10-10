@@ -1,4 +1,4 @@
-import type { FinalView, RunView, TaskCounts } from '@beanstalk/shared-race/rpc';
+import type { FinalView, RunView, TaskCounts } from '@gitstalk/shared-race/rpc';
 
 import type { EngineEnv } from './catalog';
 import { finalCheckFields } from './final-check';

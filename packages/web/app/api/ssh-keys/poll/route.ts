@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 
-import { pollKeyRequest } from '@beanstalk/shared-identity/ssh-key-requests';
+import { pollKeyRequest } from '@gitstalk/shared-identity/ssh-key-requests';
 
 import { problem } from '../../../../src/auth/http';
 import { PollBody, pollAnswer } from '../../../../src/setup/setup-api';

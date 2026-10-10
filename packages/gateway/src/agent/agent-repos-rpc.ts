@@ -1,5 +1,5 @@
 /**
- * `AgentReposRpc` (`@beanstalk/shared-race/agent-repos`): what the MCP repository tools ask
+ * `AgentReposRpc` (`@gitstalk/shared-race/agent-repos`): what the MCP repository tools ask
  * the gateway. Every call opens the repository through `agent-access.ts` (the git rule), then
  * reads or writes the engine's own state: pushed beans, reservations, claims, the backlog file.
  */
@@ -14,17 +14,17 @@ import type {
   BeanWaited,
   CollidedBean,
   TaskClaimed,
-} from '@beanstalk/shared-race/agent-repos';
+} from '@gitstalk/shared-race/agent-repos';
 import {
   BacklogTaskId,
   BeanName,
   BeanOpenInput,
   BeanWaitUntil,
   MAX_BEAN_WAIT_SECONDS,
-} from '@beanstalk/shared-race/agent-repos';
-import { AUTOMATIONS_DIR, isAutomationPath } from '@beanstalk/shared-race/actions';
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/agent-repos';
+import { AUTOMATIONS_DIR, isAutomationPath } from '@gitstalk/shared-race/actions';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { listIndexed } from '../actions/workflow-index';
 import type { Deps } from '../deps';

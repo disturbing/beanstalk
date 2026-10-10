@@ -6,8 +6,8 @@
  */
 import { notFound, redirect } from 'next/navigation';
 
-import type { OrgRole } from '@beanstalk/shared-identity/orgs';
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
+import type { OrgRole } from '@gitstalk/shared-identity/orgs';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
 
 import { currentSession } from '../auth/user';
 import type { OrgPage } from '../orgs/org-page';

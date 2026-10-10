@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
+import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 
 import {
   formOf,

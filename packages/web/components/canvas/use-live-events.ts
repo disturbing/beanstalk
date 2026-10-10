@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
 
 export type LiveStatus = 'connecting' | 'live' | 'reconnecting' | 'closed';
 

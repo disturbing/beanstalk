@@ -1,11 +1,11 @@
 /**
- * From an engine's event log to repository events (`@beanstalk/shared-race/repo-events`): the
+ * From an engine's event log to repository events (`@gitstalk/shared-race/repo-events`): the
  * few event types the forge's indexes care about, each read with its own schema (the log is
  * stored JSON, so it is validated like any other boundary). Everything else is skipped.
  */
 import { z } from 'zod';
 
-import type { RepoEvent } from '@beanstalk/shared-race/repo-events';
+import type { RepoEvent } from '@gitstalk/shared-race/repo-events';
 
 /** Who pushed a bean and what it is called, from the push driver's records. */
 export type BeanFacts = { readonly title: string; readonly actor: string | null };

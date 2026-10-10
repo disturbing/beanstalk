@@ -1,20 +1,20 @@
 /**
  * The one adapter between Actions' org secrets and variables and organizations
- * (`@beanstalk/shared-identity/orgs`, doc 28): who owns a repository, an org by handle, and a
+ * (`@gitstalk/shared-identity/orgs`, doc 28): who owns a repository, an org by handle, and a
  * person's org role. Owners and admins hold the `secrets` capability (`mayInOrg`) and manage
  * org entries; every other member reads them. Everything in Actions asks `OrgDirectory`, so a
  * test can hand in a fixed directory.
  */
-import type { OrgRole, RepositoryOwnerRef } from '@beanstalk/shared-identity/orgs';
+import type { OrgRole, RepositoryOwnerRef } from '@gitstalk/shared-identity/orgs';
 import {
   findOrgByHandle,
   isOrgId,
   mayInOrg,
   orgRole,
   ownerOf,
-} from '@beanstalk/shared-identity/orgs';
+} from '@gitstalk/shared-identity/orgs';
 
-export type { OrgRole } from '@beanstalk/shared-identity/orgs';
+export type { OrgRole } from '@gitstalk/shared-identity/orgs';
 
 export type Org = { readonly id: string; readonly handle: string };
 

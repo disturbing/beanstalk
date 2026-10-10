@@ -7,8 +7,8 @@
  * (`tests/<id>.test.ts`) passes only while some file carries `impl:<id>`; a test file that
  * contains `SYNTAX ERROR` fails as unparsable. Flaky failures can be injected per suite run.
  */
-import type { InvocationResult } from '@beanstalk/shared-race/driver';
-import type { Sha } from '@beanstalk/shared-race/ids';
+import type { InvocationResult } from '@gitstalk/shared-race/driver';
+import type { Sha } from '@gitstalk/shared-race/ids';
 
 import { assertNever } from '../errors';
 import { changedRanges, diffText } from '../../git/diff-text';

@@ -13,8 +13,8 @@
  * Both act only where a bean's attempt failed: it then holds no agent, no card and no job.
  * With `park`, either bound parks the bean (it needs a person) instead of dropping it.
  */
-import type { InvocationKind } from '@beanstalk/shared-race/driver';
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { InvocationKind } from '@gitstalk/shared-race/driver';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import type { StepContext } from '../context';
 import { isTerminal } from '../tasks';

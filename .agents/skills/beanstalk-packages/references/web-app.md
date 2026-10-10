@@ -18,10 +18,10 @@ pnpm dlx create-vinext-app@latest packages/web --legacy-wrangler-cloudflare-init
 
 The flag keeps Wrangler and `wrangler.jsonc` instead of the beta `cf` CLI and `cloudflare.config.ts`, which matches every other package (decision: one deploy tool until after 2026-10-14). Check `pnpm dlx create-vinext-app@latest --help` if the flag has moved. Then:
 
-1. Rename the package to `@beanstalk/web` and the Worker to `beanstalk-web`; set `compatibility_date` to today; enable observability and traces.
+1. Rename the package to `@gitstalk/web` and the Worker to `beanstalk-web`; set `compatibility_date` to today; enable observability and traces.
 2. Replace literal dependency versions with `catalog:` entries (add `vinext`, `react`, `react-dom`, `@cloudflare/vite-plugin`, `vite`, `tailwindcss` to the catalog if missing).
 3. Add `"typecheck": "tsc -p tsconfig.json"` and `"types": "wrangler types"` scripts; extend `../../tsconfig.base.json` with the DOM lib added for the client tsconfig.
-4. `pnpm install && pnpm -F @beanstalk/web types && pnpm check`.
+4. `pnpm install && pnpm -F @gitstalk/web types && pnpm check`.
 
 The vinext repository ships a `migrate-to-vinext` skill; it is for converting an existing Next.js app and is not needed here.
 

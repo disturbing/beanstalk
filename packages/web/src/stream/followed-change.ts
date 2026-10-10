@@ -7,7 +7,7 @@
  */
 import { diffArrays } from 'diff';
 
-import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 
 /** A unified-diff row: hunk header, added, deleted or context line. */
 export type RowKind = 'h' | 'a' | 'd' | 'c';

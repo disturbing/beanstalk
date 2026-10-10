@@ -9,14 +9,14 @@
 import { DurableObject } from 'cloudflare:workers';
 import { z } from 'zod';
 
-import type { StreamDelta, StreamResponse } from '@beanstalk/shared-race/driver';
+import type { StreamDelta, StreamResponse } from '@gitstalk/shared-race/driver';
 import type {
   BeanStream,
   BeanStreamEnd,
   BeanStreamSnapshot,
   BeanStreamSocketMessage,
   BeanStreamSummary,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import { readConfig } from '../config';
 import type { Logger } from '../log';

@@ -43,7 +43,7 @@ export class NotFoundError extends BeanstalkError {
 }
 ```
 
-One base class per package (or in `@beanstalk/shared-core`), a handful of subclasses named by the caller's needs (`NotFoundError`, `ConflictError`, `UpstreamError`, `RateLimitedError`), each with a stable `code` and `status`. Carry data the caller can act on (ids, retry-after), not only text.
+One base class per package (or in `@gitstalk/shared-core`), a handful of subclasses named by the caller's needs (`NotFoundError`, `ConflictError`, `UpstreamError`, `RateLimitedError`), each with a stable `code` and `status`. Carry data the caller can act on (ids, retry-after), not only text.
 
 ## Central handling in a Worker
 

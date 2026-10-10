@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 
-import { resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
+import { resolveRetiredHandle } from '@gitstalk/shared-identity/profiles';
 
 import { forwardGit, movedGitLocation } from '../../../../../src/git/git-host';
 

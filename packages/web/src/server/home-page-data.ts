@@ -3,14 +3,14 @@
  * them at the playhead), the beans' titles, the repository's files, and who the agent
  * sessions belong to, for a recorded or a live run.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
-import { allEvents } from '@beanstalk/shared-ask/ask/plan-context';
-import type { ForgeSource } from '@beanstalk/shared-ask/forge/forge-source';
-import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceOptions } from '@beanstalk/shared-ask/race/race-state';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { allEvents } from '@gitstalk/shared-ask/ask/plan-context';
+import type { ForgeSource } from '@gitstalk/shared-ask/forge/forge-source';
+import type { Pushers, SessionDirectory } from '@gitstalk/shared-ask/home/sessions';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceOptions } from '@gitstalk/shared-ask/race/race-state';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { sessionsFor } from '../people/sessions';
 import { titlesOf } from '../recorded/race-pair';
 import { recordedRun } from '../recorded/recorded-runs';

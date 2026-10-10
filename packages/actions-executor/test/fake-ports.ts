@@ -7,7 +7,7 @@ import {
   ActionsRunId,
   SecretName,
   WorkflowPath,
-} from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
 
 import type { JobLogBatch, JobResult, JobSpec } from '../src/contract';
 import type {

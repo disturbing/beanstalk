@@ -2,7 +2,7 @@
  * The sprout as the v2 policy records it: every landed bean and revert, in order, with the
  * files it changed. Indexes are the harness's `trunk_idx` (the base is -1).
  */
-import type { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import { EngineInvariantError } from '../errors';
 import type { CiId, JobId } from '../model';

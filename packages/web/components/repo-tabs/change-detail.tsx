@@ -5,7 +5,7 @@
  */
 import Link from 'next/link';
 
-import type { RepoDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { RepoDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import { DiffView } from '../explorer/diff-view';
 import type { Change } from '../../src/changes/changes';
 import { authorText, groupCounts } from '../../src/changes/changes';

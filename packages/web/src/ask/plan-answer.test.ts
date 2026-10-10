@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import { recordedSource } from '../forge/recorded-source';
-import { textLines } from '@beanstalk/shared-ask/repo/file-diff';
-import type { Answer } from '@beanstalk/shared-ask/ask/answer';
-import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
-import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
+import { textLines } from '@gitstalk/shared-ask/repo/file-diff';
+import type { Answer } from '@gitstalk/shared-ask/ask/answer';
+import { keywordClassifier } from '@gitstalk/shared-ask/ask/classifier';
+import { planAnswer } from '@gitstalk/shared-ask/ask/plan-answer';
 
 const v25 = RunId.parse('j6boaclinn');
 const queue = RunId.parse('u0ntf65lbe');

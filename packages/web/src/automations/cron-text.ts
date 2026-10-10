@@ -1,8 +1,8 @@
 /**
  * A cron line in words and its next run times, for the schedule builder. Validity and the
- * times come from the shared parser the gateway schedules with (`@beanstalk/shared-race/cron`).
+ * times come from the shared parser the gateway schedules with (`@gitstalk/shared-race/cron`).
  */
-import { nextFireMs, parseCron } from '@beanstalk/shared-race/cron';
+import { nextFireMs, parseCron } from '@gitstalk/shared-race/cron';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

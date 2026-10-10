@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 
-import type { BeanStreamSummary } from '@beanstalk/shared-ask/forge/bean-stream';
-import { dirListing } from '@beanstalk/shared-ask/home/file-rows';
-import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import { creditOf } from '@beanstalk/shared-ask/home/sessions';
-import { isInFlight } from '@beanstalk/shared-ask/race/race-counters';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import type { BeanStreamSummary } from '@gitstalk/shared-ask/forge/bean-stream';
+import { dirListing } from '@gitstalk/shared-ask/home/file-rows';
+import type { Pushers, SessionDirectory } from '@gitstalk/shared-ask/home/sessions';
+import { creditOf } from '@gitstalk/shared-ask/home/sessions';
+import { isInFlight } from '@gitstalk/shared-ask/race/race-counters';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import styles from './home.module.css';
 import { useStreamSummaries } from './live-streams';

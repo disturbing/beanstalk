@@ -1,14 +1,14 @@
 /**
- * Turnstile for the sign-in and sign-up endpoints (`@beanstalk/shared-identity/turnstile`),
+ * Turnstile for the sign-in and sign-up endpoints (`@gitstalk/shared-identity/turnstile`),
  * from this deployment's vars and its `TURNSTILE_SECRET_KEY` secret. The secret is optional
  * per deployment, so it is not in the generated Env and is read (and checked) here only. On
  * only when both are configured; otherwise sign-in and sign-up go on without a check.
  */
 import { env } from 'cloudflare:workers';
 
-import { clientIp } from '@beanstalk/shared-identity/request-context';
-import type { TurnstileAction, TurnstileSetup } from '@beanstalk/shared-identity/turnstile';
-import { turnstileGate, turnstileSetup } from '@beanstalk/shared-identity/turnstile';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
+import type { TurnstileAction, TurnstileSetup } from '@gitstalk/shared-identity/turnstile';
+import { turnstileGate, turnstileSetup } from '@gitstalk/shared-identity/turnstile';
 
 import { log } from '../log';
 import { problem } from './http';

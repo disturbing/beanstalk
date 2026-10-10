@@ -1,14 +1,14 @@
 /**
  * The Actions pages' own model (`docs/claude-opus/25` §5): what a workflow, run, job, log line
  * and secret look like to the web. The gateway's contract (`ActionsRpc` in
- * `@beanstalk/shared-race/actions`) is translated into it by `gateway-actions.ts`; the fixture
+ * `@gitstalk/shared-race/actions`) is translated into it by `gateway-actions.ts`; the fixture
  * fake (`fake/`) speaks it directly through `ActionsViewRpc`. Every answer is validated against
  * these schemas, so a difference shows up as one failed parse, never as a wrong page.
  */
 import { z } from 'zod';
 
-import { BEANSTALK_EVENTS } from '@beanstalk/shared-race/actions';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import { BEANSTALK_EVENTS } from '@gitstalk/shared-race/actions';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 /** GitHub's run and job vocabulary, kept so workflows and people read the same words. */
 export const RunStatus = z.enum(['queued', 'in_progress', 'completed']);

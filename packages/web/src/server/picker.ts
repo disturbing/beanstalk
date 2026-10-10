@@ -5,8 +5,8 @@
  */
 import { env } from 'cloudflare:workers';
 
-import type { Picker } from '@beanstalk/shared-ask/pick/picker';
-import { pickerFrom } from '@beanstalk/shared-ask/pick/picker-from-env';
+import type { Picker } from '@gitstalk/shared-ask/pick/picker';
+import { pickerFrom } from '@gitstalk/shared-ask/pick/picker-from-env';
 import { log } from '../log';
 
 export function pagePicker(): Picker {

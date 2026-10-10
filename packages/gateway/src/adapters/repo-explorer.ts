@@ -13,8 +13,8 @@ import type {
   RepoLog,
   RepoTree,
   RepoTreeEntry,
-} from '@beanstalk/shared-race/rpc';
-import { Sha } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/rpc';
+import { Sha } from '@gitstalk/shared-race/ids';
 
 import { GatewayError, UpstreamError } from '../errors';
 import { diffReport } from '../git/diff-text';

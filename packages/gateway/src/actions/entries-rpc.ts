@@ -5,7 +5,7 @@
  * maintain, to change); org calls by the org role (members read, owners and admins manage).
  * No answer carries a secret value.
  */
-import { SecretName } from '@beanstalk/shared-race/actions';
+import { SecretName } from '@gitstalk/shared-race/actions';
 import type {
   ActionsEntriesRpc,
   EffectiveSecret,
@@ -13,15 +13,15 @@ import type {
   EntrySource,
   OrgActionsSettings,
   RepositoryAccessPolicy,
-} from '@beanstalk/shared-race/actions-secrets';
+} from '@gitstalk/shared-race/actions-secrets';
 import {
   VariableName,
   PutOrgSecretInputSchema,
   PutOrgVariableInputSchema,
   PutVariableInputSchema,
-} from '@beanstalk/shared-race/actions-secrets';
-import type { Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions-secrets';
+import type { Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { readConfig } from '../config';
 import { createLogger } from '../log';

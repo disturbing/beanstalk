@@ -1,15 +1,15 @@
 /**
- * The live adapter: a `ForgeSource` over the gateway's RPC (`@beanstalk/shared-race/rpc`).
+ * The live adapter: a `ForgeSource` over the gateway's RPC (`@gitstalk/shared-race/rpc`).
  * The gateway serves the repo and the event log; beans' phases, timings and test histories
  * come from reducing that log here, the same way the recorded runs are read.
  */
-import type { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import type { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 import {
   RunId as RunIdSchema,
   Sha as ShaSchema,
   TaskId as TaskIdSchema,
-} from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/ids';
 
 import type { RaceEvent } from '../race/race-events';
 import { parseRaceEvents } from '../race/race-events';

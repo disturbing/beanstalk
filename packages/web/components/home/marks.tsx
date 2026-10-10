@@ -2,8 +2,8 @@
  * Small shared marks of the repository home: a bean's chip (where it sits on the line), file
  * and folder icons, and diffs. Plain components, usable on the server and the client.
  */
-import type { LeafStatus } from '@beanstalk/shared-ask/home/stalk';
-import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
+import type { LeafStatus } from '@gitstalk/shared-ask/home/stalk';
+import type { FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
 import styles from './home.module.css';
 
 export function BeanChip(props: {

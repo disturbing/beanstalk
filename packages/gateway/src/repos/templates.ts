@@ -5,7 +5,7 @@
  * from the first bean.
  */
 import { assertNever } from '../engine/errors';
-import type { RepoTemplate } from '@beanstalk/shared-race/repos';
+import type { RepoTemplate } from '@gitstalk/shared-race/repos';
 
 import type { SeedFile } from '../git/seed-pack';
 

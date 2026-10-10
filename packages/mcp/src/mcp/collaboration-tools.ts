@@ -7,7 +7,7 @@ import {
   BeanInboxReadInput,
   BeanThreadPostInput,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
+} from '@gitstalk/shared-race/collaboration';
 
 import {
   beanInboxAck,

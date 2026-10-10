@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import { Sha, TaskId } from '@beanstalk/shared-race/ids';
+import { Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import { NO_PROTECTED_ACCESS, ProtectedAccess } from '../checks/protected-access';
 

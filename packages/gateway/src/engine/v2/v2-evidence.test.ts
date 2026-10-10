@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { Sha, TaskId } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { DEMO_SETTINGS } from '@beanstalk/shared-race/run-config';
+import { Sha, TaskId } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { DEMO_SETTINGS } from '@gitstalk/shared-race/run-config';
 
 import { buildSummary } from '../summary';
 import { redStalkCommits } from '../testing/burst';

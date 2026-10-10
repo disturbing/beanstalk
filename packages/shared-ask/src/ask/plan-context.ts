@@ -2,7 +2,7 @@
  * What every answer needs before it can be arranged: the ref, the tree, the race as of now,
  * the beans, decisions and the line's history in the question's range. Loaded in parallel.
  */
-import type { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
+import type { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import type { BeanRecord, DecisionRecord, ForgeSource } from '../forge/forge-source';
 import type { Picker } from '../pick/picker';

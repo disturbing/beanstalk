@@ -1,7 +1,7 @@
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { unionPaths, usesStructuralMerge } from '@beanstalk/shared-race/run-config';
-import type { ArenaTask } from '@beanstalk/shared-race/task';
-import { couplingPartners } from '@beanstalk/shared-race/task';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { unionPaths, usesStructuralMerge } from '@gitstalk/shared-race/run-config';
+import type { ArenaTask } from '@gitstalk/shared-race/task';
+import { couplingPartners } from '@gitstalk/shared-race/task';
 
 import type { ReworkOutcome, StepContext } from '../context';
 import { emit, promptDefinition, requireTask, startJob, taskDefinition } from '../context';

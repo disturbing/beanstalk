@@ -10,7 +10,7 @@
  *   - `slot` and `seed`: a race's driver and its admin seed, on the per-run URLs only;
  *   - `contributor`: the collaboration tools only, no git;
  * - people's tokens (`bsu_…` personal, `bss_…` minted for an MCP session), verified against the
- *   identity database by `verifyUserToken` (@beanstalk/shared-identity). They are bound to no
+ *   identity database by `verifyUserToken` (@gitstalk/shared-identity). They are bound to no
  *   engine (`engine: null`); `mayUseEngine` asks the person's role on the repository instead. A
  *   session token minted by the MCP tool `git_credentials` is bound to its one repository;
  * - deploy tokens (`bsd_…`), made by a repository's owner or maintainers for CI and other
@@ -22,20 +22,20 @@
  * `verifyGitCredential` only says who is asking and with which scopes; `mayUseEngine` says
  * what they may do. Never throws for bad input; never logs the token.
  */
-import type { IdentityEnv } from '@beanstalk/shared-identity/identity-env';
-import type { OrgStanding } from '@beanstalk/shared-identity/orgs';
-import type { Scope } from '@beanstalk/shared-identity/scopes';
-import { verifyUserToken } from '@beanstalk/shared-identity/user-tokens';
+import type { IdentityEnv } from '@gitstalk/shared-identity/identity-env';
+import type { OrgStanding } from '@gitstalk/shared-identity/orgs';
+import type { Scope } from '@gitstalk/shared-identity/scopes';
+import { verifyUserToken } from '@gitstalk/shared-identity/user-tokens';
 import type {
   RepoRole,
   RepositoryAction,
   SessionVia,
   ViewerRole,
-} from '@beanstalk/shared-race/collaborators';
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { RepoVisibility } from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/collaborators';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { RepoVisibility } from '@gitstalk/shared-race/repos';
 
-import { automationActor, memoryRefOf } from '@beanstalk/shared-race/automation-file';
+import { automationActor, memoryRefOf } from '@gitstalk/shared-race/automation-file';
 import { JOB_TOKEN_PREFIX, verifyJobToken } from '../actions/job-tokens';
 import { assertNever } from '../engine/errors';
 import { DEPLOY_TOKEN_PREFIX, verifyDeployToken } from '../repos/deploy-tokens';

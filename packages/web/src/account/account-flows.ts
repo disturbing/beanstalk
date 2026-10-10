@@ -5,10 +5,10 @@
  * agents, the pictures and last the user row). The server actions and route handlers wrap
  * these with the real bindings; the tests drive them with fakes.
  */
-import type { AccountFacts, DeletionPlan } from '@beanstalk/shared-identity/account-deletion';
-import { deletionPlan, isDeletionConfirmed } from '@beanstalk/shared-identity/account-deletion';
-import type { HandleChange } from '@beanstalk/shared-identity/profiles';
-import type { ImageKind, UploadRefusalCode, UploadResult } from '@beanstalk/shared-media/images';
+import type { AccountFacts, DeletionPlan } from '@gitstalk/shared-identity/account-deletion';
+import { deletionPlan, isDeletionConfirmed } from '@gitstalk/shared-identity/account-deletion';
+import type { HandleChange } from '@gitstalk/shared-identity/profiles';
+import type { ImageKind, UploadRefusalCode, UploadResult } from '@gitstalk/shared-media/images';
 
 import type { FormState } from './form-state';
 

@@ -2,12 +2,12 @@ import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import type { RepoRole, RepositoryAction } from '@beanstalk/shared-race/collaborators';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { addSshKey } from '@beanstalk/shared-identity/ssh-keys';
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import type { RepoRole, RepositoryAction } from '@gitstalk/shared-race/collaborators';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { addSshKey } from '@gitstalk/shared-identity/ssh-keys';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { call, pkt, sha } from './helpers';
 

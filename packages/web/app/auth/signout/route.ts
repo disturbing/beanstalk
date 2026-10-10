@@ -1,12 +1,12 @@
 import { env } from 'cloudflare:workers';
 
-import { recordAudit } from '@beanstalk/shared-identity/audit';
-import { clientIp } from '@beanstalk/shared-identity/request-context';
+import { recordAudit } from '@gitstalk/shared-identity/audit';
+import { clientIp } from '@gitstalk/shared-identity/request-context';
 import {
   getWebSession,
   revokeAllSessions,
   revokeSession,
-} from '@beanstalk/shared-identity/sessions';
+} from '@gitstalk/shared-identity/sessions';
 
 import { signOut } from '../../../src/auth/sign-out';
 

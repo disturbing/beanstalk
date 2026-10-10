@@ -9,11 +9,11 @@ import {
   SESSION_COOKIE,
   clearCookie,
   setCookie,
-} from '@beanstalk/shared-identity/cookies';
-import type { RelyingParty } from '@beanstalk/shared-identity/passkeys';
-import { isSameOrigin, siteOrigin } from '@beanstalk/shared-identity/request-context';
-import type { NewSession, WebSession } from '@beanstalk/shared-identity/sessions';
-import { isValidCsrf } from '@beanstalk/shared-identity/sessions';
+} from '@gitstalk/shared-identity/cookies';
+import type { RelyingParty } from '@gitstalk/shared-identity/passkeys';
+import { isSameOrigin, siteOrigin } from '@gitstalk/shared-identity/request-context';
+import type { NewSession, WebSession } from '@gitstalk/shared-identity/sessions';
+import { isValidCsrf } from '@gitstalk/shared-identity/sessions';
 
 /** Where to go after signing in: a path on this site only, never `//host` or a scheme. */
 export const NextPath = z

@@ -4,8 +4,8 @@
  */
 import { env } from 'cloudflare:test';
 
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { call, pkt, pushRefsBody } from './helpers';
 

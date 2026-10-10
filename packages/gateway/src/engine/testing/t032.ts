@@ -3,7 +3,7 @@
  * landed beans break together, so no rule can make it green. Shared by the tail fix's and
  * parking's simulator tests.
  */
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
 
 import type { FailRule } from './fake-world';
 import type { RaceScenario } from './scenario';

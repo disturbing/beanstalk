@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { SecretName } from '@beanstalk/shared-race/actions';
-import { VariableName } from '@beanstalk/shared-race/actions-secrets';
+import { SecretName } from '@gitstalk/shared-race/actions';
+import { VariableName } from '@gitstalk/shared-race/actions-secrets';
 
 import { effectiveOnly, policyReaches, resolveEntries } from './entry-policy';
 import { maskTermsOf, maskText } from './mask';

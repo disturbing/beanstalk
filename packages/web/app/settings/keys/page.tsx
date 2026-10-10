@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 
-import type { SshKeySummary } from '@beanstalk/shared-identity/ssh-keys';
-import { listSshKeys } from '@beanstalk/shared-identity/ssh-keys';
+import type { SshKeySummary } from '@gitstalk/shared-identity/ssh-keys';
+import { listSshKeys } from '@gitstalk/shared-identity/ssh-keys';
 
 import styles from '../../../components/account/account.module.css';
 import { formatDate } from '../../../components/account/scope-chips';

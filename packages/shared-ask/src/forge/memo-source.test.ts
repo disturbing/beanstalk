@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
 
 import { CardId } from '../race/race-events';
 import type { RepoTree } from '../repo/repo-types';

@@ -1,11 +1,11 @@
 /**
- * The RPC surface for the web app (`GatewayRpc` in `@beanstalk/shared-race/rpc`), behind the
+ * The RPC surface for the web app (`GatewayRpc` in `@gitstalk/shared-race/rpc`), behind the
  * gateway's default entrypoint. Arguments are validated here; expected failures come back
  * as `{ ok: false, error }`, as the HTTP API would answer them.
  */
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 import type {
   GatewayRpc,
   RepoRef,
@@ -13,9 +13,9 @@ import type {
   RpcResult,
   ViewToken,
   ViewTokenClaims,
-} from '@beanstalk/shared-race/rpc';
-import { REPO_REF_PATTERN } from '@beanstalk/shared-race/rpc';
-import { isSafeRepoPath } from '@beanstalk/shared-race/task';
+} from '@gitstalk/shared-race/rpc';
+import { REPO_REF_PATTERN } from '@gitstalk/shared-race/rpc';
+import { isSafeRepoPath } from '@gitstalk/shared-race/task';
 
 import { issueToken, verifyToken } from '../auth/tokens';
 import type { Deps } from '../deps';

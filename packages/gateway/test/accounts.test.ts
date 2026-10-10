@@ -2,8 +2,8 @@ import { env } from 'cloudflare:test';
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import { insertUser } from '@beanstalk/shared-identity/users';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
+import { insertUser } from '@gitstalk/shared-identity/users';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
 
 import { value } from './agent-helpers';
 

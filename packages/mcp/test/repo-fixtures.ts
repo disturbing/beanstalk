@@ -6,8 +6,8 @@
 import { env } from 'cloudflare:test';
 import { z } from 'zod';
 
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 const GATEWAY_ORIGIN = 'https://gateway.example.test';
 const ARTIFACTS_HOST = 'https://acct.artifacts.test';

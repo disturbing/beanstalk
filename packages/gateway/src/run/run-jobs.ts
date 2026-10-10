@@ -5,9 +5,9 @@
  * runner call gets Artifacts tokens minted for it (write only for the committer
  * instance); none is ever logged.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
-import type { RunSuite } from '@beanstalk/shared-race/suite';
-import type { RunConfig } from '@beanstalk/shared-race/run-config';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import type { RunSuite } from '@gitstalk/shared-race/suite';
+import type { RunConfig } from '@gitstalk/shared-race/run-config';
 
 import type {
   ArtifactsPort,

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-import type { FileBadges, TreeModel } from '@beanstalk/shared-ask/ask/answer';
-import { compareText } from '@beanstalk/shared-ask/repo/paths';
+import type { FileBadges, TreeModel } from '@gitstalk/shared-ask/ask/answer';
+import { compareText } from '@gitstalk/shared-ask/repo/paths';
 import styles from './explorer.module.css';
 import type { ExplorerState } from './explorer-url';
 import { explorerHref } from './explorer-url';

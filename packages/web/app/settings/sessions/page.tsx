@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 
-import type { AgentSession } from '@beanstalk/shared-identity/agent-sessions';
-import type { BrowserSession } from '@beanstalk/shared-identity/sessions';
-import { listBrowserSessions } from '@beanstalk/shared-identity/sessions';
+import type { AgentSession } from '@gitstalk/shared-identity/agent-sessions';
+import type { BrowserSession } from '@gitstalk/shared-identity/sessions';
+import { listBrowserSessions } from '@gitstalk/shared-identity/sessions';
 
 import { AccountSettings } from '../../../components/account/account-settings';
 import styles from '../../../components/account/account.module.css';

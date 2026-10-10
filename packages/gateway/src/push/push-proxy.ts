@@ -6,9 +6,9 @@
  * lines (received, check started; with `-o wait`, the verdict). Pushes to the lines, other
  * branches and deletions are refused in the protocol, so git prints why.
  */
-import { logIdentity, recordProductEvent } from '@beanstalk/shared-identity/product-events';
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { RunId, Sha } from '@beanstalk/shared-race/ids';
+import { logIdentity, recordProductEvent } from '@gitstalk/shared-identity/product-events';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { RunId, Sha } from '@gitstalk/shared-race/ids';
 
 import type { GitCredential, RepositoryAccess, RepositoryPrincipal } from '../auth/git-credential';
 import { mayUseEngine, refusedByArchive, roleOf } from '../auth/git-credential';

@@ -4,7 +4,7 @@
  * (it merges the author's commit and keeps the files like its own tests) and becomes the
  * loser's spec when the winner lands; if the winner is dropped, it is rolled back.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import { acceptanceTests, emit } from '../context';
 import type { CarriedAmendment, V2State, V2Step } from './v2-state';

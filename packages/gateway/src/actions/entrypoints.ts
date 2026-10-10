@@ -32,8 +32,8 @@ import type {
   RunSummary,
   SecretSummary,
   WorkflowSummary,
-} from '@beanstalk/shared-race/actions';
-import { JobLogBatchSchema, JobResultSchema } from '@beanstalk/shared-race/actions';
+} from '@gitstalk/shared-race/actions';
+import { JobLogBatchSchema, JobResultSchema } from '@gitstalk/shared-race/actions';
 import type {
   ActionsEntriesRpc,
   OrgActionsSettings,
@@ -44,9 +44,9 @@ import type {
   PutVariableInput,
   RepoActionsEntries,
   VariableSummary,
-} from '@beanstalk/shared-race/actions-secrets';
-import type { Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions-secrets';
+import type { Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { readConfig } from '../config';
 import { createLogger } from '../log';

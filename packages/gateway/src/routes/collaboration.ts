@@ -10,9 +10,9 @@ import {
   BeanDiscoverInput,
   BeanThreadPostInput,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { AppEnv } from '../app-env';
 import { presentedToken } from '../auth/credentials';

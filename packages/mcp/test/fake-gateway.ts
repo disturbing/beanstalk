@@ -5,13 +5,13 @@
  */
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 
 import eventsText from '../../web/fixtures/j6boaclinn/events.jsonl?raw';
 import repoText from '../../web/fixtures/j6boaclinn/repo.json?raw';

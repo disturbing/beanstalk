@@ -7,8 +7,8 @@ import { Invitations } from '../components/repository/invitations';
 import { OrgInvitations } from '../components/orgs/org-people';
 import { YourOrgs } from '../components/orgs/your-orgs';
 import { connectedSessions } from '../src/auth/connected-sessions';
-import { orgInvitationsFor } from '@beanstalk/shared-identity/org-members';
-import { orgsOf } from '@beanstalk/shared-identity/orgs';
+import { orgInvitationsFor } from '@gitstalk/shared-identity/org-members';
+import { orgsOf } from '@gitstalk/shared-identity/orgs';
 
 import { currentSession } from '../src/auth/user';
 import { collaboratorsClient } from '../src/repositories/collaborators-client';

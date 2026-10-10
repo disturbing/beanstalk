@@ -1,4 +1,4 @@
-import type { PolicyView } from '@beanstalk/shared-race/rpc';
+import type { PolicyView } from '@gitstalk/shared-race/rpc';
 
 import type { PolicyHooks, StepContext } from './context';
 import { EngineInvariantError, assertNever } from './errors';

@@ -8,11 +8,11 @@ import type { Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 
-import { DecisionBody } from '@beanstalk/shared-race/driver';
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { slotIds } from '@beanstalk/shared-race/ids';
-import { AffectedQuery } from '@beanstalk/shared-race/read-maps';
-import { RunConfig } from '@beanstalk/shared-race/run-config';
+import { DecisionBody } from '@gitstalk/shared-race/driver';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { slotIds } from '@gitstalk/shared-race/ids';
+import { AffectedQuery } from '@gitstalk/shared-race/read-maps';
+import { RunConfig } from '@gitstalk/shared-race/run-config';
 
 import type { AppEnv } from '../app-env';
 import { issueToken } from '../auth/tokens';

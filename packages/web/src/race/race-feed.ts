@@ -2,9 +2,9 @@
  * The event feed: each race event as one plain sentence with a tone. Routine events
  * (invocations, footprints) stay out; landings, reds, promotions and decisions are major.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
 import { plural } from './race-format';
 
 export type FeedTone = 'good' | 'bad' | 'warn' | 'human' | 'neutral';

@@ -6,7 +6,7 @@
  */
 import { notFound, redirect } from 'next/navigation';
 
-import type { WebSession } from '@beanstalk/shared-identity/sessions';
+import type { WebSession } from '@gitstalk/shared-identity/sessions';
 
 import { currentSession } from '../auth/user';
 import type { RepositoryRecord, ViewerRole } from '../repositories/registry-client';

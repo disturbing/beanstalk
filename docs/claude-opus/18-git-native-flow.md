@@ -219,7 +219,7 @@ Notes were the alternative; a tag per bean is one object, one ref, readable with
 
 A race engine runs a fixed task list with Python driver slots and ends. A **continuous engine** (`RunConfig.continuous: true`) drives one persistent repository: no task list, beans arrive by push, it never finishes. It is the same `RunDO` and the same engine; the race-only parts are switched off, and a **push driver** stands where the Python driver stood.
 
-**Settings** (`CONTINUOUS_SETTINGS`, `@beanstalk/shared-race/run-config`): the `demo` preset's rules (`DEMO_SETTINGS`: v2.5, dependency-aware starts, parking, the red-window reset with requeue repair, check reuse), minus what bounds a race or assumes an agent:
+**Settings** (`CONTINUOUS_SETTINGS`, `@gitstalk/shared-race/run-config`): the `demo` preset's rules (`DEMO_SETTINGS`: v2.5, dependency-aware starts, parking, the red-window reset with requeue repair, check reuse), minus what bounds a race or assumes an agent:
 
 | Field | Demo | Continuous | Why |
 |---|---|---|---|
@@ -263,7 +263,7 @@ Now (`src/capacity/`, `run/run-jobs.ts`):
 
 ## 8. Contracts for the repository and auth work
 
-### 8.1 RPC on the gateway's default entrypoint (`RepoEngineRpc`, `@beanstalk/shared-race/rpc`)
+### 8.1 RPC on the gateway's default entrypoint (`RepoEngineRpc`, `@gitstalk/shared-race/rpc`)
 
 ```ts
 openRepoEngine(input: {

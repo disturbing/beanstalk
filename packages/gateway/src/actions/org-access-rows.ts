@@ -2,7 +2,7 @@
  * The stored form of an org entry's repository access policy: the `access` column plus, for
  * `selected`, rows in `actions_org_entry_repos`. Shared by org secrets and org variables.
  */
-import type { RepositoryAccessPolicy } from '@beanstalk/shared-race/actions-secrets';
+import type { RepositoryAccessPolicy } from '@gitstalk/shared-race/actions-secrets';
 import { z } from 'zod';
 
 export type EntryKind = 'secret' | 'variable';

@@ -13,7 +13,7 @@
 
 ```json
 {
-  "name": "@beanstalk/gateway",
+  "name": "@gitstalk/gateway",
   "private": true,
   "type": "module",
   "scripts": {
@@ -64,7 +64,7 @@
 }
 ```
 
-Keep only the bindings the Worker uses. Secrets go in `.dev.vars` locally and `wrangler secret put` remotely, never in `vars`. After any binding change run `pnpm -F @beanstalk/<name> types` and commit the regenerated `worker-configuration.d.ts`.
+Keep only the bindings the Worker uses. Secrets go in `.dev.vars` locally and `wrangler secret put` remotely, never in `vars`. After any binding change run `pnpm -F @gitstalk/<name> types` and commit the regenerated `worker-configuration.d.ts`.
 
 ## tsconfig.json and test typings
 
@@ -179,4 +179,4 @@ describe('gateway', () => {
 
 ## Shared library variant
 
-`packages/shared-<topic>` has `package.json` with `"exports": { ".": "./src/index.ts" }` (source is consumed directly by the Workers bundler), `tsconfig.json` extending the base, `typecheck` and `test` scripts, no wrangler config. Consumers add `"@beanstalk/shared-<topic>": "workspace:*"`. A shared library never imports `cloudflare:workers` types that bind it to one Worker's `Env`; it receives ports as parameters.
+`packages/shared-<topic>` has `package.json` with `"exports": { ".": "./src/index.ts" }` (source is consumed directly by the Workers bundler), `tsconfig.json` extending the base, `typecheck` and `test` scripts, no wrangler config. Consumers add `"@gitstalk/shared-<topic>": "workspace:*"`. A shared library never imports `cloudflare:workers` types that bind it to one Worker's `Env`; it receives ports as parameters.

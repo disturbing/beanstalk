@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { ActionsRunId } from '@beanstalk/shared-race/actions';
+import { ActionsRunId } from '@gitstalk/shared-race/actions';
 
 import { mintJobToken, revokeJobTokens } from '../src/actions/job-tokens';
 import { oidcJobEnv } from '../src/actions/oidc';

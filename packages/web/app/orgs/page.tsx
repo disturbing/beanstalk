@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 
-import { orgsOf } from '@beanstalk/shared-identity/orgs';
+import { orgsOf } from '@gitstalk/shared-identity/orgs';
 
 import { OrgMark } from '../../components/orgs/org-mark';
 import orgStyles from '../../components/orgs/orgs.module.css';

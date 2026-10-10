@@ -3,7 +3,7 @@
  * bean, an agent), narrowed by what the question class looks at (changes in the range,
  * work in flight, red tests, the stalk-to-sprout gap, decisions, tests).
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
 import type { PickReceipt } from '../pick/picker';
 

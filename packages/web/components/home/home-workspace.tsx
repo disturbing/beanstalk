@@ -3,12 +3,12 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 
-import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import { stalkRows } from '@beanstalk/shared-ask/home/stalk';
-import type { PickReceipt } from '@beanstalk/shared-ask/pick/picker';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceOptions, RaceState } from '@beanstalk/shared-ask/race/race-state';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import type { Pushers, SessionDirectory } from '@gitstalk/shared-ask/home/sessions';
+import { stalkRows } from '@gitstalk/shared-ask/home/stalk';
+import type { PickReceipt } from '@gitstalk/shared-ask/pick/picker';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceOptions, RaceState } from '@gitstalk/shared-ask/race/race-state';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { lastPushLine, sessionsActiveLine } from '../../src/people/contributor-line';
 import { formatClock, plural } from '../../src/race/race-format';
 import type { LiveStatus } from '../canvas/use-live-events';

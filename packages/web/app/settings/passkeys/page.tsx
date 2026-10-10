@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 
-import { listPasskeys } from '@beanstalk/shared-identity/passkeys';
+import { listPasskeys } from '@gitstalk/shared-identity/passkeys';
 
 import { AccountSettings } from '../../../components/account/account-settings';
 import { PasskeyRename } from '../../../components/account/account-forms';

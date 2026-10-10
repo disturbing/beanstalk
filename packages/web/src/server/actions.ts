@@ -10,12 +10,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { SESSION_COOKIE, SESSION_SECONDS, isDemoPassword, sessionToken } from '../auth/session';
 import { forgeForRun } from '../forge/sources';
 import { log } from '../log';
-import { CardId } from '@beanstalk/shared-ask/race/race-events';
+import { CardId } from '@gitstalk/shared-ask/race/race-events';
 import { currentUser } from '../auth/user';
 import { engineVerdict } from '../repositories/engine-guard';
 import { demoPassword, isSignedIn } from './viewer';

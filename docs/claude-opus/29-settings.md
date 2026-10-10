@@ -20,7 +20,7 @@ Built 2026-10-09 on a worktree branch from `prototype` at `b3f6bdf` (lane S of t
 
 Shell: `components/settings/settings-shell.tsx` (`SettingsShell`, `SettingsSection`, `SaveStatus`, `SoonPill`), left nav at 220 px; under 760 px the nav is one strip of chips that scrolls sideways inside itself, the current one scrolled into view (`settings-client.tsx`). Text forms are server actions (`src/server/account-actions.ts`, origin + session + CSRF checked by `signedInForm`) with a "Saving… / saved / error" line (`role=status` / `alert`); uploads are plain multipart POSTs to route handlers, so they work without JavaScript.
 
-## 2. Uploads (`@beanstalk/shared-media`)
+## 2. Uploads (`@gitstalk/shared-media`)
 
 **Contract** (lane O uses it for organisation icons):
 

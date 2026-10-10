@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId, TaskId } from '@beanstalk/shared-race/ids';
+import { RunId, TaskId } from '@gitstalk/shared-race/ids';
 
-import { keywordClassifier } from '@beanstalk/shared-ask/ask/classifier';
-import { planAnswer } from '@beanstalk/shared-ask/ask/plan-answer';
-import { busiestMoment } from '@beanstalk/shared-ask/home/busiest-moment';
-import { composeAnswer } from '@beanstalk/shared-ask/home/composition';
-import { dirListing } from '@beanstalk/shared-ask/home/file-rows';
-import { activeContributors, placeholderSessions } from '@beanstalk/shared-ask/home/sessions';
-import { stalkRows } from '@beanstalk/shared-ask/home/stalk';
-import { rulesPicker } from '@beanstalk/shared-ask/pick/picker';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import { reduceRace } from '@beanstalk/shared-ask/race/reduce-race';
+import { keywordClassifier } from '@gitstalk/shared-ask/ask/classifier';
+import { planAnswer } from '@gitstalk/shared-ask/ask/plan-answer';
+import { busiestMoment } from '@gitstalk/shared-ask/home/busiest-moment';
+import { composeAnswer } from '@gitstalk/shared-ask/home/composition';
+import { dirListing } from '@gitstalk/shared-ask/home/file-rows';
+import { activeContributors, placeholderSessions } from '@gitstalk/shared-ask/home/sessions';
+import { stalkRows } from '@gitstalk/shared-ask/home/stalk';
+import { rulesPicker } from '@gitstalk/shared-ask/pick/picker';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import { reduceRace } from '@gitstalk/shared-ask/race/reduce-race';
 import { recordedSource } from '../forge/recorded-source';
 import { titlesOf } from '../recorded/race-pair';
 import { recordedRun } from '../recorded/recorded-runs';

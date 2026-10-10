@@ -4,7 +4,7 @@
  * playhead. It follows the gateway engine's rules (slot clocks as `refresh_agents`, red
  * validations as `completeCi`), so its counters match the run's `summary.json`.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
 
 import { compareText } from '../repo/paths';
 import type { RaceEvent, RaceEventOf } from './race-events';

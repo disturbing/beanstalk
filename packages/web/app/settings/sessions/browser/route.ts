@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 
-import { getWebSession, revokeBrowserSession } from '@beanstalk/shared-identity/sessions';
+import { getWebSession, revokeBrowserSession } from '@gitstalk/shared-identity/sessions';
 
 import { seeOther, signedInForm } from '../../../../src/auth/http';
 

@@ -18,8 +18,8 @@
  * tests, up to three, and may amend each one's acceptance tests; a contradiction's card names
  * them all.
  */
-import type { Sha, SlotId, TaskId } from '@beanstalk/shared-race/ids';
-import { releasesOnCheck } from '@beanstalk/shared-race/run-config';
+import type { Sha, SlotId, TaskId } from '@gitstalk/shared-race/ids';
+import { releasesOnCheck } from '@gitstalk/shared-race/run-config';
 
 import { failingTestNames } from '../ci';
 import type { ReworkOutcome } from '../context';

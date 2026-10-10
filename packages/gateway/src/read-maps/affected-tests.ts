@@ -17,7 +17,7 @@
  * Nothing else runs. Sound for deterministic tests: a run that differs from the traced one
  * first differs at an input the traced run read, probed or listed.
  */
-import type { AffectedAnswer, AffectedReason, PathChange } from '@beanstalk/shared-race/read-maps';
+import type { AffectedAnswer, AffectedReason, PathChange } from '@gitstalk/shared-race/read-maps';
 
 /** One stored map: what a test file observed on `tree`. */
 export type StoredReadMap = {

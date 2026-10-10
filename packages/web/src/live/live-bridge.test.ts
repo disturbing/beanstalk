@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc, RpcResult } from '@beanstalk/shared-race/rpc';
+import { RunId } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc, RpcResult } from '@gitstalk/shared-race/rpc';
 
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
 import { recordedRun } from '../recorded/recorded-runs';
 import { liveEventStream } from './live-bridge';
 

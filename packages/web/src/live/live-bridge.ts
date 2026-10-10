@@ -7,13 +7,13 @@
  */
 import { z } from 'zod';
 
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import { log } from '../log';
-import type { GatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import { RunEventsPage, ViewToken, unwrap } from '@beanstalk/shared-ask/forge/gateway-rpc';
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
-import { parseRaceEvents } from '@beanstalk/shared-ask/race/race-events';
+import type { GatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import { RunEventsPage, ViewToken, unwrap } from '@gitstalk/shared-ask/forge/gateway-rpc';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
+import { parseRaceEvents } from '@gitstalk/shared-ask/race/race-events';
 
 /** A comment line keeps proxies from closing a quiet stream. */
 const HEARTBEAT_MS = 20_000;

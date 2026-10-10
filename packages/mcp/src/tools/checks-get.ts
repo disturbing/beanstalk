@@ -4,11 +4,11 @@
  * bean's fault: no rework is spent) and whether the test is protected (an acceptance test a
  * bean owns: fix the code, never the test).
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
-import { testPathOf } from '@beanstalk/shared-ask/ask/file-set';
-import type { RaceEvent, RaceEventOf } from '@beanstalk/shared-ask/race/race-events';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import { testPathOf } from '@gitstalk/shared-ask/ask/file-set';
+import type { RaceEvent, RaceEventOf } from '@gitstalk/shared-ask/race/race-events';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 
 import type { ToolContext } from './tool-context';
 import { seconds } from './tool-context';

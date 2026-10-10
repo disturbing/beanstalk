@@ -1,7 +1,7 @@
 import { env, runInDurableObject } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { RunId } from '@beanstalk/shared-race/ids';
+import { RunId } from '@gitstalk/shared-race/ids';
 
 import type { CreatedRun } from './helpers';
 import { ADMIN, arenaTask, call, createRun, driveSlot, json, pushBase } from './helpers';

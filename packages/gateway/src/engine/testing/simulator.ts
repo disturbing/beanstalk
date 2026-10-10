@@ -3,10 +3,10 @@
  * engine: it applies inputs to `step()` in time order exactly as the shell does, runs jobs
  * and agents against a scripted world, and returns the event log. Deterministic.
  */
-import type { SlotId } from '@beanstalk/shared-race/ids';
-import { slotIds } from '@beanstalk/shared-race/ids';
-import type { RunConfigInput } from '@beanstalk/shared-race/run-config';
-import { RunConfig } from '@beanstalk/shared-race/run-config';
+import type { SlotId } from '@gitstalk/shared-race/ids';
+import { slotIds } from '@gitstalk/shared-race/ids';
+import type { RunConfigInput } from '@gitstalk/shared-race/run-config';
+import { RunConfig } from '@gitstalk/shared-race/run-config';
 
 import type { EngineEnv } from '../catalog';
 import { engineEnv } from '../catalog';

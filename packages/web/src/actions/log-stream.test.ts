@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { actionsClient } from './actions-client';
 import type { ActionsViewRpc } from './actions-contract';

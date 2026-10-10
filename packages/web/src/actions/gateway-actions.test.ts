@@ -7,8 +7,8 @@ import type {
   RunDetail,
   RunSummary,
   WorkflowSummary,
-} from '@beanstalk/shared-race/actions';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/actions';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { LogEvent } from './actions-client';
 import { gatewayActionsClient } from './gateway-actions';

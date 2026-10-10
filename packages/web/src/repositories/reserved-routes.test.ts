@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { Handle } from '@beanstalk/shared-identity/users';
+import { Handle } from '@gitstalk/shared-identity/users';
 
 import { isReservedOwner } from './paths';
 

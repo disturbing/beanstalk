@@ -1,4 +1,4 @@
-import { BeanUpdateResult } from '@beanstalk/shared-race/collaboration';
+import { BeanUpdateResult } from '@gitstalk/shared-race/collaboration';
 import type {
   BeanChanges,
   BeanPromise,
@@ -8,8 +8,8 @@ import type {
   CollaborationSource,
   ContributorTokenClaims,
   PromiseReference,
-} from '@beanstalk/shared-race/collaboration';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import type { CollaborationStorage } from './store';
 import {

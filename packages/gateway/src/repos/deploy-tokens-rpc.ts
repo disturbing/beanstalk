@@ -3,7 +3,7 @@
  * list and revoke. Each is allowed when `mayUseEngine` lets the actor manage the repository's
  * deploy tokens (its owner and maintainers). Verifying a presented token is `deploy-tokens.ts`.
  */
-import { hashSecret, randomId, randomSecret } from '@beanstalk/shared-identity/secrets';
+import { hashSecret, randomId, randomSecret } from '@gitstalk/shared-identity/secrets';
 import type {
   CreateDeployTokenInput,
   DeployTokenAccess,
@@ -11,9 +11,9 @@ import type {
   DeployTokenSummary,
   DeployTokensRpc,
   IssuedDeployToken,
-} from '@beanstalk/shared-race/deploy-tokens';
-import { CreateDeployTokenInput as CreateInputSchema } from '@beanstalk/shared-race/deploy-tokens';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/deploy-tokens';
+import { CreateDeployTokenInput as CreateInputSchema } from '@gitstalk/shared-race/deploy-tokens';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { accessResult } from './access';
 import type { CollaboratorStore } from './collaborators';

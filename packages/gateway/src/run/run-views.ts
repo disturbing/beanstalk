@@ -3,7 +3,7 @@
  * index, and which acceptance tests cover which paths (static import closures on the run's
  * landed line).
  */
-import type { RunListItem, TestCoverage } from '@beanstalk/shared-race/rpc';
+import type { RunListItem, TestCoverage } from '@gitstalk/shared-race/rpc';
 
 import { isUnder } from '../adapters/artifacts';
 import type { RepoExplorer } from '../adapters/repo-explorer';

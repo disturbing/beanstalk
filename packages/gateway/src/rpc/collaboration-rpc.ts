@@ -10,14 +10,14 @@ import {
   BeanThreadPostInput,
   BeanUpdateInput,
   ContributorTokenClaims,
-} from '@beanstalk/shared-race/collaboration';
-import { RunId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/collaboration';
+import { RunId } from '@gitstalk/shared-race/ids';
 import type {
   CollaborationRpc,
   McpTokenClaims,
   RpcError,
   RpcResult,
-} from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/rpc';
 
 import { verifyToken } from '../auth/tokens';
 import type { Deps } from '../deps';

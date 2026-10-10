@@ -2,11 +2,11 @@ import { createExecutionContext, createMessageBatch, env, getQueueResult } from 
 import { exports } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type { RepoEvent, RepoEventsMessage } from '@beanstalk/shared-race/repo-events';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
-import { PersonalTokenInput, createPersonalToken } from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
+import type { RepoEvent, RepoEventsMessage } from '@gitstalk/shared-race/repo-events';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
+import { PersonalTokenInput, createPersonalToken } from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
 
 import { createLogger } from '../src/log';
 import { consumeRepoEvents } from '../src/repo-events/consumer';

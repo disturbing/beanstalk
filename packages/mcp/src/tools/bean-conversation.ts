@@ -2,11 +2,11 @@ import type {
   BeanContext,
   BeanContextInput,
   BeanPeerSummary,
-} from '@beanstalk/shared-race/collaboration';
-import type { TaskId } from '@beanstalk/shared-race/ids';
+} from '@gitstalk/shared-race/collaboration';
+import type { TaskId } from '@gitstalk/shared-race/ids';
 
-import { selectCollaborationContext } from '@beanstalk/shared-ask/collaboration/context';
-import type { PeerContext } from '@beanstalk/shared-ask/collaboration/context';
+import { selectCollaborationContext } from '@gitstalk/shared-ask/collaboration/context';
+import type { PeerContext } from '@gitstalk/shared-ask/collaboration/context';
 import { beanContext, beanPeerSummaries } from './collaboration';
 import { discoverBeanCandidates } from './bean-discovery';
 import type { ToolContext } from './tool-context';

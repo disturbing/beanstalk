@@ -2,7 +2,7 @@
  * Ask, end to end (`docs/claude-opus/13` §2): classify the question, resolve its entities to
  * files, query the source, and arrange the explorer's fixed layout for the answer.
  */
-import type { RunId } from '@beanstalk/shared-race/ids';
+import type { RunId } from '@gitstalk/shared-race/ids';
 
 import type { ForgeSource } from '../forge/forge-source';
 import type { PickReceipt, Picker } from '../pick/picker';

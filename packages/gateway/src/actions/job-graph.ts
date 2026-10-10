@@ -3,7 +3,7 @@
  * workflow (one per matrix leg), when each may start (`needs` all done, `if:` true), what the
  * needed jobs report to `needs.<key>`, and the run's conclusion.
  */
-import type { ActionsConclusion, ActionsStatus, JobStepSpec } from '@beanstalk/shared-race/actions';
+import type { ActionsConclusion, ActionsStatus, JobStepSpec } from '@gitstalk/shared-race/actions';
 
 import type { ExpressionContexts } from './expressions';
 import { evaluateCondition, interpolate } from './expressions';

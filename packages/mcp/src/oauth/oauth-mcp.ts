@@ -9,19 +9,19 @@ import type { OAuthResourceAuth } from '@cloudflare/workers-oauth-provider';
 import { insufficientScope } from '@cloudflare/workers-oauth-provider';
 import { z } from 'zod';
 
-import { logIdentity } from '@beanstalk/shared-identity/product-events';
-import type { Scope } from '@beanstalk/shared-identity/scopes';
-import { parseScopes } from '@beanstalk/shared-identity/scopes';
-import { mintSessionToken } from '@beanstalk/shared-identity/user-tokens';
-import type { RunId } from '@beanstalk/shared-race/ids';
-import { RunId as RunIdSchema } from '@beanstalk/shared-race/ids';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import { logIdentity } from '@gitstalk/shared-identity/product-events';
+import type { Scope } from '@gitstalk/shared-identity/scopes';
+import { parseScopes } from '@gitstalk/shared-identity/scopes';
+import { mintSessionToken } from '@gitstalk/shared-identity/user-tokens';
+import type { RunId } from '@gitstalk/shared-race/ids';
+import { RunId as RunIdSchema } from '@gitstalk/shared-race/ids';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
 import type { Deps } from '../deps';
 import { serveMcp } from '../mcp/serve';
 import type { AgentSessionContext } from '../tools/tool-context';
 import { GrantProps } from './grant-props';
-import { findUserById } from '@beanstalk/shared-identity/users';
+import { findUserById } from '@gitstalk/shared-identity/users';
 
 export function createOAuthMcpHandler(depsFor: (env: Env) => Deps): ExportedHandler<Env> & {
   fetch: NonNullable<ExportedHandler<Env>['fetch']>;

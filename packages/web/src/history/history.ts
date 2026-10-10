@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import type { RaceEvent } from '@beanstalk/shared-ask/race/race-events';
+import type { RaceEvent } from '@gitstalk/shared-ask/race/race-events';
 import type { PushedBean } from '../changes/pushed-beans';
 
 export const LogCommit = z.object({

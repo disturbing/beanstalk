@@ -2,10 +2,10 @@
  * What the app needs from the outside world, so tests can hand it a fake gateway: the
  * GATEWAY binding narrowed to the gateway's RPC, and a logger.
  */
-import type { AgentReposRpc } from '@beanstalk/shared-race/agent-repos';
-import type { GatewayRpc } from '@beanstalk/shared-race/rpc';
+import type { AgentReposRpc } from '@gitstalk/shared-race/agent-repos';
+import type { GatewayRpc } from '@gitstalk/shared-race/rpc';
 
-import { asGatewayBinding } from '@beanstalk/shared-ask/forge/gateway-rpc';
+import { asGatewayBinding } from '@gitstalk/shared-ask/forge/gateway-rpc';
 
 import type { Logger } from './log';
 import { createLogger, isLogLevel } from './log';

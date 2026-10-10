@@ -15,24 +15,24 @@ import type {
   AutomationTheirs,
   SaveAccess,
   SaveAutomationResult,
-} from '@beanstalk/shared-race/automation-editor';
+} from '@gitstalk/shared-race/automation-editor';
 import {
   AutomationPath,
   SaveAutomationInput,
   TestAutomationInput,
   automationBeanName,
-} from '@beanstalk/shared-race/automation-editor';
-import { readAutomationFile } from '@beanstalk/shared-race/automation-file';
+} from '@gitstalk/shared-race/automation-editor';
+import { readAutomationFile } from '@gitstalk/shared-race/automation-file';
 import {
   CHECKS_PATH,
   matchesPattern,
   protectedPatterns,
   readChecksConfig,
-} from '@beanstalk/shared-race/checks-config';
-import type { RepositoryForViewer, ViewerRole } from '@beanstalk/shared-race/collaborators';
-import { RunId, Sha, TaskId } from '@beanstalk/shared-race/ids';
-import type { Viewer } from '@beanstalk/shared-race/repos';
-import type { RpcError, RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/checks-config';
+import type { RepositoryForViewer, ViewerRole } from '@gitstalk/shared-race/collaborators';
+import { RunId, Sha, TaskId } from '@gitstalk/shared-race/ids';
+import type { Viewer } from '@gitstalk/shared-race/repos';
+import type { RpcError, RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { handleOf } from '../actions/actions-audit';
 import { readActionsConfig } from '../actions/actions-config';

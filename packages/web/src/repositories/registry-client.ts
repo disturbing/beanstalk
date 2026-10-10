@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 import type {
   CreateRepositoryInput,
   RepoOwner,
@@ -14,7 +14,7 @@ import type {
   RepositoryListing,
   UpdateRepositoryInput,
   Viewer,
-} from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-race/repos';
 
 export const RepositoryRecord = z.object({
   id: z.string(),

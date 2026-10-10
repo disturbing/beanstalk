@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 
-import { isForgeError } from '@beanstalk/shared-ask/forge/forge-errors';
+import { isForgeError } from '@gitstalk/shared-ask/forge/forge-errors';
 
 /** A failure the agent can act on (a missing repository, a scope, a claimed task), told as is. */
 export class ToolError extends Error {

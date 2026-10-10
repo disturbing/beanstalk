@@ -4,8 +4,8 @@
  * `mayUseEngine`): a race answers "no repository" and stays open as before; a repository is
  * served only to people who may read it, and is missing for everyone else.
  */
-import type { RepositoryAction } from '@beanstalk/shared-race/collaborators';
-import type { Viewer } from '@beanstalk/shared-race/repos';
+import type { RepositoryAction } from '@gitstalk/shared-race/collaborators';
+import type { Viewer } from '@gitstalk/shared-race/repos';
 
 import type { RepositoryForViewer } from './registry-client';
 import { collaboratorsClient } from './collaborators-client';

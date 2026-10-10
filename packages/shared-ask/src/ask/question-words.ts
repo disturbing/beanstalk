@@ -2,8 +2,8 @@
  * The words of a question: the entities it names (a bean, an agent, paths, a time range, a
  * line) and the feature terms left once the question's own words are removed.
  */
-import type { TaskId } from '@beanstalk/shared-race/ids';
-import { TaskId as TaskIdSchema } from '@beanstalk/shared-race/ids';
+import type { TaskId } from '@gitstalk/shared-race/ids';
+import { TaskId as TaskIdSchema } from '@gitstalk/shared-race/ids';
 
 import type { LineRef } from './view-spec';
 

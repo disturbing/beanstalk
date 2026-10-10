@@ -9,8 +9,8 @@ import {
   EXCERPT_CHARS,
   BeanThreadPostInput,
   BeanUpdateInput,
-} from '@beanstalk/shared-race/collaboration';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+} from '@gitstalk/shared-race/collaboration';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { readBeanContext } from '../src/collaboration/read';
 import { seedCollaboration } from '../src/collaboration/store';

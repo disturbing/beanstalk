@@ -2,9 +2,9 @@
  * The status line's "who": a race names the people and agent sessions at work now; a
  * repository names who pushed last (its beans come from people's pushes, not from slots).
  */
-import type { Pushers, SessionDirectory } from '@beanstalk/shared-ask/home/sessions';
-import { activeContributors, lastPush } from '@beanstalk/shared-ask/home/sessions';
-import type { RaceState } from '@beanstalk/shared-ask/race/race-state';
+import type { Pushers, SessionDirectory } from '@gitstalk/shared-ask/home/sessions';
+import { activeContributors, lastPush } from '@gitstalk/shared-ask/home/sessions';
+import type { RaceState } from '@gitstalk/shared-ask/race/race-state';
 import { plural } from '../race/race-format';
 
 /** A race's contributors: people and agent sessions with a bean in flight. */

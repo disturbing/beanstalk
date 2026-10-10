@@ -6,8 +6,8 @@
  */
 import { z } from 'zod';
 
-import { RunId } from '@beanstalk/shared-race/ids';
-import { RunSuite } from '@beanstalk/shared-race/suite';
+import { RunId } from '@gitstalk/shared-race/ids';
+import { RunSuite } from '@gitstalk/shared-race/suite';
 
 const Handle = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/);
 

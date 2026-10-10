@@ -3,10 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import type { BeanStreamView } from '@beanstalk/shared-ask/forge/bean-stream';
+import type { BeanStreamView } from '@gitstalk/shared-ask/forge/bean-stream';
 
-import type { FileDiff } from '@beanstalk/shared-ask/repo/repo-types';
-import type { JourneyTone } from '@beanstalk/shared-ask/home/journey';
+import type { FileDiff } from '@gitstalk/shared-ask/repo/repo-types';
+import type { JourneyTone } from '@gitstalk/shared-ask/home/journey';
 import { formatClock, formatSpan, plural } from '../../src/race/race-format';
 import styles from './home.module.css';
 import { useBeanStream } from './live-streams';

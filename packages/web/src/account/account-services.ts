@@ -4,20 +4,20 @@
  */
 import { env } from 'cloudflare:workers';
 
-import { deleteUser } from '@beanstalk/shared-identity/account-deletion';
-import type { OwnedOrganization } from '@beanstalk/shared-identity/account-deletion';
-import { orgMembers } from '@beanstalk/shared-identity/org-members';
-import { orgsOf } from '@beanstalk/shared-identity/orgs';
+import { deleteUser } from '@gitstalk/shared-identity/account-deletion';
+import type { OwnedOrganization } from '@gitstalk/shared-identity/account-deletion';
+import { orgMembers } from '@gitstalk/shared-identity/org-members';
+import { orgsOf } from '@gitstalk/shared-identity/orgs';
 import {
   changeHandle,
   getProfile,
   revertHandleChange,
   setAvatarKey,
-} from '@beanstalk/shared-identity/profiles';
-import type { AccountsRpc } from '@beanstalk/shared-race/accounts';
-import { isAccountsRpc } from '@beanstalk/shared-race/accounts';
-import type { MediaStore } from '@beanstalk/shared-media/images';
-import { mediaStore } from '@beanstalk/shared-media/images';
+} from '@gitstalk/shared-identity/profiles';
+import type { AccountsRpc } from '@gitstalk/shared-race/accounts';
+import { isAccountsRpc } from '@gitstalk/shared-race/accounts';
+import type { MediaStore } from '@gitstalk/shared-media/images';
+import { mediaStore } from '@gitstalk/shared-media/images';
 
 import { agentSessionsRpc } from '../auth/services';
 import { registryClient } from '../repositories/registry-client';

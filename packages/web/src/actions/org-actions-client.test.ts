@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ActionsEntriesRpc } from '@beanstalk/shared-race/actions-secrets';
-import type { ActionsRpc } from '@beanstalk/shared-race/actions';
-import type { RpcResult } from '@beanstalk/shared-race/rpc';
+import type { ActionsEntriesRpc } from '@gitstalk/shared-race/actions-secrets';
+import type { ActionsRpc } from '@gitstalk/shared-race/actions';
+import type { RpcResult } from '@gitstalk/shared-race/rpc';
 
 import { asGatewayEntries, gatewayActionsClient } from './gateway-actions';
 import { orgActionsClient } from './org-actions-client';

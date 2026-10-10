@@ -2,9 +2,9 @@ import { env } from 'cloudflare:workers';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-import { ownerByHandle } from '@beanstalk/shared-identity/orgs';
-import { mayCreateRepository, mayInOrg } from '@beanstalk/shared-identity/orgs';
-import { getProfile, resolveRetiredHandle } from '@beanstalk/shared-identity/profiles';
+import { ownerByHandle } from '@gitstalk/shared-identity/orgs';
+import { mayCreateRepository, mayInOrg } from '@gitstalk/shared-identity/orgs';
+import { getProfile, resolveRetiredHandle } from '@gitstalk/shared-identity/profiles';
 
 import { Avatar } from '../../components/account/avatar';
 

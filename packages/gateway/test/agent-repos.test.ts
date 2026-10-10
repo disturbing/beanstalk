@@ -6,11 +6,11 @@ import {
   PersonalTokenInput,
   createPersonalToken,
   mintSessionToken,
-} from '@beanstalk/shared-identity/user-tokens';
-import { insertUser } from '@beanstalk/shared-identity/users';
-import type { AgentPrincipal, SessionScope } from '@beanstalk/shared-race/agent-repos';
-import { TaskId } from '@beanstalk/shared-race/ids';
-import type { RepositoryRecord } from '@beanstalk/shared-race/repos';
+} from '@gitstalk/shared-identity/user-tokens';
+import { insertUser } from '@gitstalk/shared-identity/users';
+import type { AgentPrincipal, SessionScope } from '@gitstalk/shared-race/agent-repos';
+import { TaskId } from '@gitstalk/shared-race/ids';
+import type { RepositoryRecord } from '@gitstalk/shared-race/repos';
 
 import { verifyGitCredential } from '../src/auth/git-credential';
 import {

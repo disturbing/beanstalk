@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
-import { REQUIRED_EVENT_KEYS } from '@beanstalk/shared-race/events';
-import type { RaceEventType } from '@beanstalk/shared-race/events';
+import { REQUIRED_EVENT_KEYS } from '@gitstalk/shared-race/events';
+import type { RaceEventType } from '@gitstalk/shared-race/events';
 
 import {
   ADMIN,

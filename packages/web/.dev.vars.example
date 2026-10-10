@@ -1,4 +1,4 @@
-# Copy to .dev.vars (git-ignored) for `pnpm -F @beanstalk/web dev`; never commit real values.
+# Copy to .dev.vars (git-ignored) for `pnpm -F @gitstalk/web dev`; never commit real values.
 # The password of the login form that unlocks decision cards (also signs the session cookie).
 DEMO_PASSWORD=
 # Turnstile on sign-in and sign-up (only when this and TURNSTILE_SITE_KEY are both set).

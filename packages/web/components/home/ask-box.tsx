@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-import type { PickReceipt } from '@beanstalk/shared-ask/pick/picker';
+import type { PickReceipt } from '@gitstalk/shared-ask/pick/picker';
 import styles from './home.module.css';
 import { InfoReceipt } from './receipts';
 
