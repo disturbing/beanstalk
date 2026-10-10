@@ -149,7 +149,7 @@ function invalidRed(path: string, problems: readonly string[]): CheckResult {
     [
       `${path} on the merged tree is invalid, so no tests ran:`,
       ...problems.map((problem) => `  ${problem}`),
-      'Fix the file in this bean; see docs/claude-opus/24-checks-config.md for the format.',
+      'Fix the file in this bean; see /docs/checks for the format.',
     ].join('\n'),
   );
 }

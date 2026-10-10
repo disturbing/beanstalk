@@ -170,9 +170,13 @@ describe('deciding a check from the tree', () => {
 
 describe('the TypeScript starter', () => {
   it('declares checks that read as valid: node --test, two minutes', () => {
-    const file = templateFiles('typescript-starter', 'greeter', '').find(
-      (seed) => seed.path === '.gitstalk/checks.toml',
-    );
+    const file = templateFiles(
+      'typescript-starter',
+      { name: 'greeter', description: '' },
+      'https://gitstalk.example',
+    ).find((seed) => seed.path === '.gitstalk/checks.toml');
+    expect(file?.content).toContain('# Format: https://gitstalk.example/docs/checks\n');
+    expect(file?.content).not.toContain('docs/claude-opus');
     expect(readChecksConfig(file?.content ?? null)).toMatchObject({
       kind: 'valid',
       config: { command: ['node', '--test'], timeout_seconds: 120, protected_paths: [] },

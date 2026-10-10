@@ -220,8 +220,14 @@
   border-radius: 50%;
   background: var(--ink-3);
 }
+/* Rows outside the answer recede: their marks fade, their words stay readable (AA). */
 .asking .srow:not([data-hit]) {
-  opacity: 0.22;
+  color: var(--ink-3);
+}
+.asking .srow:not([data-hit]) .stem,
+.asking .srow:not([data-hit]) .leaf,
+.asking .srow:not([data-hit]) .bud {
+  opacity: 0.3;
 }
 .asking .srow:not([data-hit]) .leaf,
 .asking .srow:not([data-hit]) .stem::before {
@@ -1462,7 +1468,7 @@
   align-items: center;
   height: 20px;
   font: 600 10.5px var(--font-mono);
-  color: var(--leaf);
+  color: var(--good);
 }
 .matured span:last-child {
   justify-self: start;

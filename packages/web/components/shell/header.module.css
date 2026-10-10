@@ -249,7 +249,7 @@
 .themeChoice[aria-checked='true'] {
   background: var(--good-fill);
   border-color: var(--good-fill);
-  color: var(--accent-ink);
+  color: var(--good-fill-ink);
 }
 
 @media (max-width: 720px) {

@@ -96,7 +96,7 @@ const Command = z
   .max(MAX_ARGS, `must have at most ${MAX_ARGS} arguments`)
   .refine(
     (argv) => argv[0] === 'node',
-    'must start with "node": the runner reads node\'s test reporter (other test runners need another image; see docs/claude-opus/24-checks-config.md)',
+    'must start with "node": the runner reads node\'s test reporter (other test runners need another image; see /docs/checks)',
   )
   .refine((argv) => argv.includes('--test'), 'must run node --test');
 
@@ -139,7 +139,7 @@ const ChecksFile = z.strictObject({
   image: z
     .enum(CHECK_IMAGES, {
       error: (issue) =>
-        `${JSON.stringify(issue.input)} is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (other images are an open item, docs/claude-opus/24-checks-config.md)`,
+        `${JSON.stringify(issue.input)} is not available: the runner image ships Node 25.8.1 only, so the one image is "node" (see /docs/checks)`,
     })
     .default('node'),
   command: Command.default([...DEFAULT_COMMAND]),
@@ -234,7 +234,7 @@ export function describeChecks(
     case 'legacy':
       return [
         `${resolution.path} is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: ${engineSuite}`,
-        `to choose another, write command = ["node", "--test", ...] at the top level (docs/claude-opus/24-checks-config.md)`,
+        `to choose another, write command = ["node", "--test", ...] at the top level (see /docs/checks)`,
       ];
     case 'invalid':
       return [

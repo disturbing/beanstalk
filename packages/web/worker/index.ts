@@ -6,10 +6,13 @@
  *
  * Around both, what search engines see (src/site/search.ts): /robots.txt and /sitemap.xml are
  * answered here, site pages get their canonical link, and a deployment that is not indexed
- * (SEARCH_INDEXING is not "on") marks every response `X-Robots-Tag: noindex`.
+ * (SEARCH_INDEXING is not "on") marks every response `X-Robots-Tag: noindex`. Every response
+ * then gets the security headers (src/security/response-headers.ts): no framing, nosniff, a
+ * referrer policy and, on https, HSTS.
  */
 import app from 'vinext/server/app-router-entry';
 
+import { withResponseHeaders } from '../src/security/response-headers';
 import { isSitePath } from '../src/site/forward';
 import type { SearchVars } from '../src/site/search';
 import { searchSettings } from '../src/site/search';
@@ -28,13 +31,21 @@ export default {
     env: AppEnv & SiteBinding & SearchVars,
     ctx: AppContext,
   ): Promise<Response> {
-    const settings = searchSettings(env ?? {});
-    const site = env?.SITE;
-    const searchFile = searchFileResponse(request, settings, site ? 'here' : 'elsewhere');
-    if (searchFile !== null) return withIndexing(searchFile, settings);
-    if (site && isSitePath(request)) {
-      return servedSiteResponse(await site.fetch(request), request, settings);
-    }
-    return withIndexing(await app.fetch(request, env, ctx), settings);
+    return withResponseHeaders(await respond(request, env, ctx), request);
   },
 };
+
+async function respond(
+  request: Request,
+  env: AppEnv & SiteBinding & SearchVars,
+  ctx: AppContext,
+): Promise<Response> {
+  const settings = searchSettings(env ?? {});
+  const site = env?.SITE;
+  const searchFile = searchFileResponse(request, settings, site ? 'here' : 'elsewhere');
+  if (searchFile !== null) return withIndexing(searchFile, settings);
+  if (site && isSitePath(request)) {
+    return servedSiteResponse(await site.fetch(request), request, settings);
+  }
+  return withIndexing(await app.fetch(request, env, ctx), settings);
+}
