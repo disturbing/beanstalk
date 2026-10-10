@@ -14,11 +14,11 @@ target/
 *.log
 .DS_Store
 
-# Promo verification screenshots: reproduce any frame with promo/beanstalk-30s.html?t=<seconds>
-promo/shots/
+# Promo verification screenshots: reproduce any frame with research/promo/beanstalk-30s.html?t=<seconds>
+research/promo/shots/
 
 # Promo film: intermediate renders (rebuild with node film.mjs render)
-promo/beanstalk-swarm-film/out/
+research/promo/beanstalk-swarm-film/out/
 
 # Agent git worktrees
 .claude/worktrees/

@@ -5,7 +5,6 @@
   "semi": true,
   "trailingComma": "all",
   "ignorePatterns": [
-    "prototypes/**",
     "docs/**",
     "research/**",
     ".agents/**",
@@ -14,7 +13,6 @@
     "skills-lock.json",
     "pnpm-lock.yaml",
     "**/*.md",
-    "packages/web/fixtures/**",
-    "promo/**"
+    "packages/web/fixtures/**"
   ]
 }

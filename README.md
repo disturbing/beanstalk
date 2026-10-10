@@ -81,7 +81,7 @@ The runs are in `research/race/runs/`: `cf-queue-sonnet-30-s{7,11,13}` and `cf-d
 | `research/race` | The race harness and driver (real Claude Code and Codex agents, or replay agents), and every recorded run |
 | `research/arena` | The 40-task colliding arena |
 | `docs/claude-opus` | Thesis, prototype plan, experiment write-ups (E1–E7), demo script, Ask design |
-| `promo/beanstalk-30s.html` | A 30-second promo; open it in a browser |
+| `research/promo/beanstalk-30s.html` | A 30-second promo; open it in a browser |
 
 ## Run it
 

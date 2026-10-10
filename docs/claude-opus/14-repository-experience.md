@@ -6,7 +6,7 @@ Written 2026-10-04. Coop's verdict on the current web UI: it "looks like a debug
 - three concepts, and the one I recommend (**the Plot**);
 - a roadmap to put it in `packages/web` with Jev deciding what to show.
 
-A working prototype of the Plot is in `prototypes/repo-experience/`. It runs on the recorded run `7z4j84eqvl` (Beanstalk v2, 12 Sonnet agents, 40 beans).
+A working prototype of the Plot is in `research/prototypes/repo-experience/`. It runs on the recorded run `7z4j84eqvl` (Beanstalk v2, 12 Sonnet agents, 40 beans).
 
 **Jev status:** a one-question test call on 2026-10-04 returned HTTP 402, "no available TypeSafe API credits". The prototype therefore runs every pick through an adapter, and fixed rules answer when Jev is offline. Each pick on the page shows a receipt saying which picker answered.
 
@@ -206,7 +206,7 @@ The raw event log remains reachable per bean (its journey) and as a developer vi
 
 ## 5. Where Jev picks, and what it never decides
 
-Each pick is a `decide()` call on one adapter (`prototypes/repo-experience/jev.js`). Code supplies the candidate list, Jev answers with a Choice (one or more ordered slots), and the result is checked against the candidates. If Jev is offline, slow (over 1.2 s) or returns something not in the catalog, the decision's rule answers. Every call leaves a receipt.
+Each pick is a `decide()` call on one adapter (`research/prototypes/repo-experience/jev.js`). Code supplies the candidate list, Jev answers with a Choice (one or more ordered slots), and the result is checked against the candidates. If Jev is offline, slow (over 1.2 s) or returns something not in the catalog, the decision's rule answers. Every call leaves a receipt.
 
 | Decision | When | Jev sees (state) | Candidates | Output | Fallback rule |
 |---|---|---|---|---|---|
@@ -253,7 +253,7 @@ The prototype's state payloads are 100–400 bytes per decision (shown on each r
 
 ## 7. The prototype
 
-**Open:** `prototypes/repo-experience/index.html` in a browser (double-click works; no server or build step). Fonts load from Google Fonts. Deep links for demos:
+**Open:** `research/prototypes/repo-experience/index.html` in a browser (double-click works; no server or build step). Fonts load from Google Fonts. Deep links for demos:
 - `?ask=what changed recently on coupons?`
 - `?bean=t018`
 - `?file=src/billing/tax.ts`
@@ -479,7 +479,7 @@ Left out on purpose: wiki, discussions, releases and packages, security alerts a
 
 ### Streaming a bean's changeset live (scope note, 2026-10-05)
 
-Coop asked whether the bean view can show a bean's changeset arriving while its agent writes: hunks streaming into the right side of the journey card. The design-v2 mockup simulates it (`prototypes/design-v2/index.html?t=630&bean=t038`, or play the run with a writing bean open). It cuts the recorded diff to the share of the invocation that has elapsed, and puts a "streaming" tag and a writing caret on the right side.
+Coop asked whether the bean view can show a bean's changeset arriving while its agent writes: hunks streaming into the right side of the journey card. The design-v2 mockup simulates it (`research/prototypes/design-v2/index.html?t=630&bean=t038`, or play the run with a writing bean open). It cuts the recorded diff to the share of the invocation that has elapsed, and puts a "streaming" tag and a writing caret on the right side.
 
 **What exists today.** The engine sees a bean's change only once per invocation. The slot driver runs the harness (Claude Code or Codex) in the bean's worktree. When the invocation ends, the driver commits (`commit_task`) and replies with an `InvocationResult` carrying `head_sha`. The gateway then logs `invocation.end` and `task.commit` (`packages/gateway/src/engine/tasks.ts`, `recordCommit`). Nothing in between reaches the RunDO, so the web app can only show the change after the agent finishes.
 
@@ -617,7 +617,7 @@ About 2–3 days. It belongs after the competition demo unless Coop wants a live
 
 ### Screenshots
 
-In `prototypes/repo-experience/shots/app-v2/`:
+In `research/prototypes/repo-experience/shots/app-v2/`:
 
 | Mode | Shots |
 |---|---|

@@ -166,7 +166,7 @@ agent sessions → MCP + gateway Worker → run Durable Object (SQLite) → runn
 
 ## Before recording
 
-- [x] **The v2.5 run in the app.** The web app's recorded fixtures are now `cf-v25dep2-sonnet-12-s7` (`j6boaclinn`) against `cf-queue-sonnet-12-s7-landed` (`u0ntf65lbe`), built by `packages/web/scripts/build-fixtures.mjs`, so `/runs/j6boaclinn` works offline and `/race` replays seed 7. Its counters show the 35th green (17.1 against 35.0 min) and done (31.6 against 40.6 min), and the replay bar has a moment at each side's 35th green to pause on. Screenshots: `prototypes/repo-experience/shots/app-v2/demo-*.png`.
+- [x] **The v2.5 run in the app.** The web app's recorded fixtures are now `cf-v25dep2-sonnet-12-s7` (`j6boaclinn`) against `cf-queue-sonnet-12-s7-landed` (`u0ntf65lbe`), built by `packages/web/scripts/build-fixtures.mjs`, so `/runs/j6boaclinn` works offline and `/race` replays seed 7. Its counters show the 35th green (17.1 against 35.0 min) and done (31.6 against 40.6 min), and the replay bar has a moment at each side's 35th green to pause on. Screenshots: `research/prototypes/repo-experience/shots/app-v2/demo-*.png`.
 - [ ] Site race band deployed with the v2.5 numbers (backlog 0.7).
 - [ ] README table updated to these six runs (backlog 0.3), so the README and the video agree.
 - [ ] A view token minted for the run; the plugin's tools answer in Claude Code.

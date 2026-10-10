@@ -11,6 +11,8 @@ Tests whether "schedule agents like database transactions" beats a good merge qu
 
 `REPORT.md` holds the findings.
 
+Also here, outside the product: `prototypes/` (clickable design prototypes the web app grew from) and `promo/` (the promo animations and the launch film, rendered from HTML).
+
 ## Corpora
 
 | Name | Source | Changes | Notes |
