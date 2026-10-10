@@ -51,7 +51,12 @@ const TEMPLATE_PREFIX = 'gitstalk';
 const URL_VARS = {
   gateway: { PUBLIC_URL: ['gateway', ''], WEB_URL: ['web', ''] },
   mcp: { PUBLIC_URL: ['mcp', ''], WEB_URL: ['web', ''], GIT_ORIGIN: ['web', ''] },
-  web: { GIT_ORIGIN: ['web', ''], MCP_URL: ['mcp', '/mcp'], DOCS_URL: ['site', '/docs/'] },
+  web: {
+    GIT_ORIGIN: ['web', ''],
+    WEB_URL: ['web', ''],
+    MCP_URL: ['mcp', '/mcp'],
+    DOCS_URL: ['site', '/docs/'],
+  },
 };
 
 /** Secrets the code reads as optional but a deployment must have (Actions OIDC is on). */
@@ -434,6 +439,18 @@ async function smoke(env, args) {
       if (status !== 200) throw new Error(`HTTP ${status}`);
       return `issuer ${JSON.parse(body).issuer}`;
     });
+  await check(`web ${url('web')}/robots.txt and /sitemap.xml`, async () => {
+    const robots = await get(`${url('web')}/robots.txt`);
+    const sitemap = await get(`${url('web')}/sitemap.xml`);
+    if (robots.status !== 200 || sitemap.status !== 200)
+      throw new Error(`HTTP ${robots.status} and ${sitemap.status}`);
+    const indexed = robots.body.includes(`Sitemap: ${url('web')}/sitemap.xml`);
+    if (indexed !== (env.search_indexing === true))
+      throw new Error(`robots.txt does not match search_indexing ${env.search_indexing === true}`);
+    if (!sitemap.body.includes(`<loc>${url('web')}/signup</loc>`))
+      throw new Error('sitemap.xml does not list /signup on this origin');
+    return indexed ? 'indexed' : 'noindex';
+  });
   if (env.packages.includes('site'))
     await check(`site ${url('site')}/docs/`, async () => {
       const { status } = await get(`${url('site')}/docs/`);
@@ -511,6 +528,8 @@ function loadEnvironment(name) {
   if (!/^[0-9a-f]{32}$/.test(env.account_id ?? ''))
     fail(`${name}: account_id must be the 32-character account id (wrangler whoami)`);
   if (typeof env.suffix !== 'string') fail(`${name}: suffix is required ("" keeps the base names)`);
+  if (env.search_indexing !== undefined && typeof env.search_indexing !== 'boolean')
+    fail(`${name}: search_indexing is true (production) or false (the default)`);
   env.prefix ??= TEMPLATE_PREFIX;
   if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(env.prefix))
     fail(`${name}: prefix is a lowercase word such as "gitstalk" (the default) or "beanstalk"`);
@@ -570,6 +589,9 @@ function generateConfig(env, pkg, { allowMissingIds = false } = {}) {
     if (name in vars) vars[name] = `${originOf(env, target)}${suffix}`;
   for (const [name, value] of Object.entries(env.resources.vars ?? {}))
     if (name in vars) vars[name] = value;
+  // Search engines index only an environment that says so (production); every other one is
+  // noindex with a Disallow-all robots.txt (packages/web/src/site/search.ts).
+  if ('SEARCH_INDEXING' in vars) vars.SEARCH_INDEXING = env.search_indexing === true ? 'on' : 'off';
 
   const domain = customDomainOf(env, pkg);
   if (domain) config.routes = [{ pattern: domain, custom_domain: true }];

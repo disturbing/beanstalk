@@ -1,0 +1,5 @@
+# The site on its own address (its workers.dev URL, a fork's separate site host) stays out of
+# search results. Where the web serves the site on its own origin (gitstalk.io), the web answers
+# /robots.txt and replaces this header with its own (packages/web/src/site/search.ts).
+/*
+  X-Robots-Tag: noindex

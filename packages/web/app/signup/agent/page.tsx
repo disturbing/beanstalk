@@ -5,8 +5,14 @@ import styles from '../../../components/account/account.module.css';
 import { CopyButton } from '../../../components/repository/copy-button';
 import { currentUser } from '../../../src/auth/user';
 import { agentInstalls } from '../../../src/setup/agent-installs';
+import { publicPageMetadata } from '../../../src/site/page-metadata';
 
-export const metadata = { title: 'Connect an agent' };
+export const metadata = publicPageMetadata({
+  path: '/signup/agent',
+  title: 'Connect an agent',
+  description:
+    'Sign up through your coding agent: one line for Claude Code, Codex, Cursor, Gemini CLI or any MCP client adds Gitstalk to your agent and opens your browser to pick a handle, save a passkey and approve the session.',
+});
 /** The heading depends on who is signed in. */
 export const dynamic = 'force-dynamic';
 

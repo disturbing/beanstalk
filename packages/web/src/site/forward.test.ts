@@ -14,9 +14,12 @@ describe('the marketing site on the web host', () => {
     },
   );
 
-  it.each(['/about', '/agent', '/human', '/privacy', '/terms'])('serves the page %s without its .html', (path) => {
-    expect(isSitePath(at(path))).toBe(true);
-  });
+  it.each(['/about', '/agent', '/human', '/privacy', '/terms'])(
+    'serves the page %s without its .html',
+    (path) => {
+      expect(isSitePath(at(path))).toBe(true);
+    },
+  );
 
   it.each(['/setup.sh', '/setup.ps1', '/login', '/coop/repo', '/coop/repo.git/info/refs', '/v1/x'])(
     'keeps %s in the app',

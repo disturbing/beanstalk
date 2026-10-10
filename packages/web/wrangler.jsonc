@@ -77,6 +77,12 @@
     "MCP_URL": "http://localhost:8788/mcp",
     // The public docs on the marketing site (packages/site), linked from the header's menu.
     "DOCS_URL": "http://localhost:8790/docs/",
+    // This deployment's own origin: canonical links, og:url, robots.txt and sitemap.xml
+    // (src/site/search.ts). SEARCH_INDEXING "on" lets search engines index it (env.jsonc
+    // `search_indexing: true`, production only); anything else answers robots.txt with
+    // `Disallow: /` and marks every response `X-Robots-Tag: noindex`.
+    "WEB_URL": "http://localhost:5173",
+    "SEARCH_INDEXING": "off",
     // Git over SSH (`ssh://git@<SSH_HOST>/<owner>/<repo>.git`): empty until the SSH endpoint is
     // live; /gitstalk:setup then finishes with HTTPS and a token (docs/claude-opus/19).
     "SSH_HOST": "",

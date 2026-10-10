@@ -1,5 +1,6 @@
 // Checks the public docs (packages/site/public/docs): every relative link and anchor resolves
-// to a file and an id that exist, and every page's left nav lists the same pages as the overview.
+// to a file and an id that exist, every page's left nav lists the same pages as the overview, and
+// every site page has its title, description and Open Graph text.
 // Run by `pnpm -F @gitstalk/site test` (so by `pnpm check`) and by the docs-maintainer agent.
 //
 //   node scripts/check-docs.mjs
@@ -58,8 +59,34 @@ for (const page of pages) {
   }
 }
 
+// Every public page carries its own link-preview text; the web adds the canonical link and
+// og:url on each deployment's origin (packages/web/src/site/search.ts), so none is hardcoded.
+const sitePages = [
+  ...readdirSync(PUBLIC).filter((name) => name.endsWith('.html') && name !== '404.html'),
+  ...pages.map((page) => `docs/${page}`),
+];
+for (const page of sitePages) {
+  const html = readFileSync(path.join(PUBLIC, page), 'utf8');
+  for (const tag of [
+    '<title>',
+    'name="description"',
+    'property="og:title"',
+    'property="og:description"',
+  ]) {
+    if (!html.includes(tag)) problems.push(`${page}: no ${tag} in the head`);
+  }
+  if (/rel="canonical"|property="og:url"/.test(html)) {
+    problems.push(`${page}: a hardcoded canonical or og:url (the web adds them per origin)`);
+  }
+  if (/content="https?:\/\/[^"]*(workers\.dev|beanstalk)/.test(html)) {
+    problems.push(`${page}: a meta tag points at an old beanstalk or workers.dev host`);
+  }
+}
+
 if (problems.length > 0) {
   process.stderr.write(`docs check failed:\n  ${problems.join('\n  ')}\n`);
   process.exit(1);
 }
-process.stdout.write(`docs check: ${pages.length} pages, links and nav ok\n`);
+process.stdout.write(
+  `docs check: ${pages.length} docs pages, links and nav ok; ${sitePages.length} site pages' metadata ok\n`,
+);
