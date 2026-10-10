@@ -1,14 +1,14 @@
 """Cloud swarm races (``race.py --forge cloudflare --swarm URL``): the agents run in Cloudflare containers.
 
 ``SwarmRace`` is ``RemoteRace`` with the slot loops moved off this machine. It creates and seeds the gateway run as
-``remote.py`` does, hands the run's slot tokens to a match on ``beanstalk-swarm`` (packages/swarm), which starts one
+``remote.py`` does, hands the run's slot tokens to a match on ``beanstalk-swarm`` (research/swarm), which starts one
 agent container per slot and waits until every container has said hello. Only then does it start the run and release
 the match, so every slot begins at one shared instant and container cold starts stay out of race time. It then waits
 for the gateway's end of the race, downloads the run as usual, and adds the slots' ``driver.jsonl`` lines
 (``work/driver-swarm.jsonl``), their transcripts (``work/transcripts/<slot>/``) and the match's own record
 (``swarm.json``: cold starts, container seconds, spend) to the run directory.
 
-The swarm admin token comes from ``$SWARM_ADMIN_TOKEN`` or ``SWARM_ADMIN_TOKEN`` in packages/swarm/.dev.vars; like the
+The swarm admin token comes from ``$SWARM_ADMIN_TOKEN`` or ``SWARM_ADMIN_TOKEN`` in research/swarm/.dev.vars; like the
 gateway admin token it is never printed.
 """
 from __future__ import annotations
@@ -24,7 +24,7 @@ import urllib.request
 from .core import RaceConfig
 from .remote import REPO_ROOT, GatewayError, RemoteRace, Secrets, _in_thread
 
-SWARM_DEV_VARS = os.path.join(REPO_ROOT, "packages", "swarm", ".dev.vars")
+SWARM_DEV_VARS = os.path.join(REPO_ROOT, "research", "swarm", ".dev.vars")
 READY_TIMEOUT = 600.0     # every container must say hello within this long
 VIEW_INTERVAL = 5.0       # how often the gateway's phase is polled while the swarm runs the slots
 CREDENTIAL_MODES = ("none", "api-key", "lease")

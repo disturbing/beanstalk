@@ -1,12 +1,12 @@
 // Deploys beanstalk-swarm (Worker, Durable Objects and the agent image, built by Docker) to the
-// account in CLOUDFLARE_ACCOUNT_ID, with its two required secrets from packages/swarm/.dev.vars
+// account in CLOUDFLARE_ACCOUNT_ID, with its two required secrets from research/swarm/.dev.vars
 // (created with fresh random values when missing), uploaded with the deploy through a temporary
 // secrets file readable only by you (`--secrets-file`; secrets not in it are kept). Values are
 // never printed. Optional secrets are set by hand, typed at the prompt:
 //   npx wrangler secret put OPENAI_API_KEY        # api-key mode
 //   npx wrangler secret put GATEWAY_ADMIN_TOKEN   # token re-issue and gateway stop on a halt
 //
-//   CLOUDFLARE_ACCOUNT_ID=<id> node packages/swarm/scripts/deploy.mjs
+//   CLOUDFLARE_ACCOUNT_ID=<id> node research/swarm/scripts/deploy.mjs
 //
 // This deploys only `beanstalk-swarm`; it never touches the gateway, web, MCP or site Workers.
 import { spawnSync } from 'node:child_process';
@@ -58,7 +58,7 @@ function ensureDevVars() {
     writeFileSync(DEV_VARS, `${text}${text === '' || text.endsWith('\n') ? '' : '\n'}${lines}\n`, {
       mode: 0o600,
     });
-    process.stdout.write(`generated ${added.join(', ')} in packages/swarm/.dev.vars\n`);
+    process.stdout.write(`generated ${added.join(', ')} in research/swarm/.dev.vars\n`);
   }
   return found;
 }

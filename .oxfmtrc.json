@@ -7,6 +7,7 @@
   "ignorePatterns": [
     "docs/**",
     "research/**",
+    "!research/swarm/**",
     ".agents/**",
     ".claude/**",
     "**/worker-configuration.d.ts",

@@ -1,7 +1,7 @@
 // Mints a view or contributor token for one run, for any MCP client:
 //
-//   pnpm -F @gitstalk/mcp mint-token <run> [--gateway <url>]
-//   export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+//   node research/race/tools/mint-token.mjs <run> [--gateway <url>]
+//   export GITSTALK_TOKEN=$(node research/race/tools/mint-token.mjs <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 //
 // Add --bean <bean> --actor <actor> for a contributor token. The admin token comes from
 // ADMIN_TOKEN, else packages/gateway/.dev.vars; it is never printed. Only the token goes
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const DEV_VARS = path.join(here, '../../gateway/.dev.vars');
+const DEV_VARS = path.join(here, '../../../packages/gateway/.dev.vars');
 const RUN_ID = /^[a-z0-9]{6,24}$/;
 
 const { values, positionals } = parseArgs({

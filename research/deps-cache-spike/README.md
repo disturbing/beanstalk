@@ -1,7 +1,7 @@
 # Dependency-restore spike (throwaway)
 
 Code and raw data behind `docs/claude-opus/27-ci-dependency-cache.md`. Everything ran on Cloudflare
-under the name `beanstalk-deps-spike*` (account `2c7358a6...`) and is torn down.
+under the name `beanstalk-deps-spike*` (the legacy account) and is torn down.
 
 | Path | What |
 |---|---|

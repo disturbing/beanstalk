@@ -1,4 +1,4 @@
-"""A stdlib fake of beanstalk-swarm (packages/swarm) for the driver tests: matches, the start barrier, and the two
+"""A stdlib fake of beanstalk-swarm (research/swarm) for the driver tests: matches, the start barrier, and the two
 virtual hosts a slot uses, with each "container" a local ``python3 -m harness.slot`` process.
 
 Like the Worker's handlers, the fake adds the slot token to every gateway request (the slot sends a placeholder), takes

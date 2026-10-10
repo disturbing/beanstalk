@@ -7,8 +7,7 @@
     "deploy": "echo 'Deploy through an environment: pnpm env:deploy <env> --only mcp (docs/claude-opus/30-environments.md)' && exit 1",
     "types": "wrangler types --strict-vars false",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run",
-    "mint-token": "node scripts/mint-token.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "catalog:",

@@ -235,7 +235,7 @@ The design is in §3.6.
  beanstalk-notify       Queue consumer: in-app inbox rows + email digests and alerts via Email Service (small; may fold into identity)
  beanstalk-agents       (Phase 5) cloud sessions: one Sandbox per session running Claude Code / Codex / Gemini CLI; AI Gateway for model calls
  beanstalk-site         stays as the static marketing source until web serves it; then retired or kept as an asset package
- packages/runner        Rust container (unchanged role: squash, check on the exact tree, compose, revert)
+ packages/gateway/container        Rust container (unchanged role: squash, check on the exact tree, compose, revert)
  packages/shared-*      shared-race → shared-forge (repo, bean, event, RPC contracts); new shared-auth (principals, scopes, token claims)
  packages/cli           (Phase 6) `bean` CLI: device flow, git credential helper, same verbs as MCP
 ```

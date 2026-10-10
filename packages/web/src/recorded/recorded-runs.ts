@@ -1,6 +1,6 @@
 /**
  * The recorded runs bundled with the app (`fixtures/`, built from git by
- * `scripts/build-fixtures.mjs`): the Cloudflare race of the demo (`docs/claude-opus/12`), the
+ * `research/race/tools/build-fixtures.mjs`): the Cloudflare race of the demo (`docs/claude-opus/12`), the
  * merge queue against Gitstalk v2.5 with dependency-aware starts, 12 Sonnet agents on seed 7.
  * They power replays, the side-by-side race and the explorer when no gateway is bound.
  */

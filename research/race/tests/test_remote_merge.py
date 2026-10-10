@@ -1,6 +1,6 @@
 """The driver's merge of the line (driver contract step 2) against the runner's: when the gateway's merge was clean but
 git's conflicts here, the driver retries it with Mergiraf on exactly the conflicted paths (the runner's structural
-tier, packages/runner/src/resolve.rs), and tells the agent about any conflict that is left. Local git repos only.
+tier, packages/gateway/container/src/resolve.rs), and tells the agent about any conflict that is left. Local git repos only.
 Run from research/race: ``python3 -m unittest discover -s tests``.
 """
 from __future__ import annotations

@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   // Git over SSH (docs/claude-opus/21-git-over-ssh.md): Spectrum routes TCP port 22 of the SSH
   // hostname to this Worker's `connect(socket)` handler; a Durable Object forwards the socket to
-  // its container's SSH server (packages/ssh-server), which asks the gateway (service binding)
+  // its container's SSH server (packages/ssh/container), which asks the gateway (service binding)
   // whose key it is and serves git through the gateway's smart-HTTP proxy.
   "name": "gitstalk-ssh",
   "main": "src/index.ts",
@@ -37,7 +37,7 @@
   "containers": [
     {
       "class_name": "SshServer",
-      "image": "../ssh-server/Dockerfile",
+      "image": "./container/Dockerfile",
       "image_build_context": "../..",
       "instance_type": "lite",
       "max_instances": 3,

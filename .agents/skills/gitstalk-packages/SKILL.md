@@ -12,7 +12,7 @@ Every deployable unit or library is one directory under `packages/`. TypeScript 
 | Need | Kind | Template |
 |------|------|----------|
 | HTTP or MCP API, queue consumer, Durable Object coordination, Workflows | TypeScript Worker | [worker-package.md](references/worker-package.md) |
-| Real filesystem, git, Mergiraf, CPU-heavy or long-running work | Rust crate in a Cloudflare Container, owned by a Container Durable Object in a Worker package | [rust-container-package.md](references/rust-container-package.md) |
+| Real filesystem, git, Mergiraf, CPU-heavy or long-running work | Rust crate in a Cloudflare Container, in `packages/<worker>/container/` of the Worker package whose Container Durable Object owns it | [rust-container-package.md](references/rust-container-package.md) |
 | Human UI | vinext app in `packages/web` | [web-app.md](references/web-app.md) |
 | Code shared by several packages | TypeScript library `packages/shared-<topic>`, no wrangler config, imported as `@gitstalk/shared-<topic>` with `workspace:*` | [worker-package.md](references/worker-package.md), library section |
 
@@ -33,7 +33,10 @@ packages/<name>/
   src/<feature>/               domain code: no Hono, no bindings
   src/adapters/                wrappers around bindings and SDKs
   test/                        e2e tests through SELF.fetch and DO stubs
+  container/                   only when the Worker owns a container: its Rust crate and Dockerfile
 ```
+
+Race, benchmark and load-generation tooling does not go under `packages/`: it lives in `research/` (for example `research/swarm`, `research/race/tools`).
 
 ## Hono rules (details in [hono-conventions.md](references/hono-conventions.md))
 

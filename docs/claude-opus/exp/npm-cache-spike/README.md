@@ -33,7 +33,7 @@
 
 ## 2. What was built
 
-`beanstalk-npm-spike` (account `2c7358a6...`, workers.dev), all resources named `beanstalk-npm-spike*`:
+`beanstalk-npm-spike` (the legacy account, workers.dev), all resources named `beanstalk-npm-spike*`:
 
 - **Containers**: `ProxyBox` (`enableInternet = false`; a catch-all `outbound` handler) and `DirectBox` (internet on, no handler), both `standard-4`, one image (`image/`: `node:24-bookworm-slim`, fastify's lockfile from `research/real-arena/fastify/deps`, a heavy app lockfile, a 90-line server that runs `npm ci --ignore-scripts` in a fresh directory with an empty npm cache and returns wall time). Each measurement used a **new container instance**.
 - **Routing**: the container's `npm ci --registry http://<cfg>.npm.internal/`. npm rewrites the lockfile's `registry.npmjs.org` tarball URLs to the configured registry host (`replace-registry-host`), so metadata is hardly needed by `npm ci`; the handler forwards every request to `NpmProxy` (a `WorkerEntrypoint`) through `ctx.exports`. I used a configured registry host rather than intercepting `registry.npmjs.org` because it needs no CA and no HTTPS interception and matches how the swarm serves `bs.internal`. Intercepting the real hostname with `interceptHttps` would make the proxy invisible to lockfiles and `npx`; untested.
@@ -164,7 +164,7 @@ The per-run differences are cents per thousand runs; none of the options is expe
 
 ## 9. Resources and teardown
 
-All named `beanstalk-npm-spike*`, account `2c7358a6...`. Nothing else was touched (the account holds other Workers and container applications; none were read beyond listing names, none modified).
+All named `beanstalk-npm-spike*`, the legacy account. Nothing else was touched (the account holds other Workers and container applications; none were read beyond listing names, none modified).
 
 | Resource | Removed with |
 |---|---|

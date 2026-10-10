@@ -24,7 +24,7 @@ git / OpenSSH ──TCP 22──▶ Spectrum (zone, Worker-target app)
                               ▼  SshServer Durable Object: connect(socket)        packages/ssh/src/ssh-server.ts
                           ctx.container.getTcpPort(2222).connect(…), bytes piped and counted
                               │
-                              ▼  SSH server container (Rust, russh)                packages/ssh-server
+                              ▼  SSH server container (Rust, russh)                packages/ssh/container
                           public-key auth ── POST http://gateway.internal/ssh/keys/lookup
                           git-upload-pack / git-receive-pack '/<owner>/<repo>.git'
                               ── GET/POST http://gateway.internal/git/<owner>/<repo>.git/…
@@ -44,7 +44,7 @@ git / OpenSSH ──TCP 22──▶ Spectrum (zone, Worker-target app)
 
 ## 2. What the SSH server speaks
 
-`packages/ssh-server` (crate `ssh-server`): russh 0.64 with ring (so the amd64 image cross-compiles like the runner's), tokio, reqwest for plain HTTP to the gateway.
+`packages/ssh/container` (crate `ssh-server`): russh 0.64 with ring (so the amd64 image cross-compiles like the runner's), tokio, reqwest for plain HTTP to the gateway.
 
 - **Auth:** public keys only (`ssh-ed25519`, ECDSA, RSA with SHA-2, the `sk-` variants). Passwords and keyboard-interactive are refused and never advertised. An offered key is looked up (`confirm: false`); the signed attempt confirms it (`confirm: true`, one `touchKey`). An unknown key gets `Permission denied (publickey)`. The user name is ignored (`git@` by convention).
 - **Commands:** `git-upload-pack` and `git-receive-pack` (and `git upload-pack …`) with `'/owner/repo.git'`, `owner/repo.git` or without `.git`, checked against the gateway's naming rules. Anything else: `gitstalk serves git only…` and exit 128. A shell gets a greeting that names the key's owner (`Hi @coop! Your key works (SHA256:…)`), exit 1, like GitHub's `ssh -T`. Ptys, subsystems and forwarding are refused.
@@ -89,7 +89,7 @@ The container is `lite` (1/16 vCPU, 256 MiB), `max_instances` 3, `sleepAfter` 15
 | What | Where | Result |
 |---|---|---|
 | Rust unit and property tests: pkt-lines, the exec command parser, the bridge (push streaming, up-to-date push, deletion without pack, push limit, v2 fetch with HTTP framing removed, v0 refused, 4xx words, 5xx hidden), config (no key in errors or `Debug`) | `cargo test` | 25 pass |
-| Rust integration: a real russh client against the server with a fake gateway: unknown key refused, password refused, a registered key confirmed once, shell greeting, other commands refused, a push and a v2 fetch reach the gateway byte for byte | `packages/ssh-server/tests/ssh_session.rs` | 7 pass |
+| Rust integration: a real russh client against the server with a fake gateway: unknown key refused, password refused, a registered key confirmed once, shell greeting, other commands refused, a push and a v2 fetch reach the gateway byte for byte | `packages/ssh/container/tests/ssh_session.rs` | 7 pass |
 | Gateway: keys from the accounts store (registered, removed, unknown, malformed), clone advertisement, `push-options` advertised, push → bean → `LANDED` with `-o wait`, push to the sprout refused with the same words, unknown key 401, another owner's private repository 404, race repos not served | `packages/gateway/test/ssh-git.test.ts` (Miniflare, RPC through `exports.default`) | 10 pass |
 | ssh Worker: the outbound routes (lookup, git with the key as an argument and not a header, refusals), the pool, the byte pipe, the WebSocket tunnel both ways, health, tunnel off by default | `packages/ssh/test/ssh-worker.test.ts` | 12 pass |
 | Web: SSH clone URL and fingerprint on the start page only when `SSH_HOST` is set | `packages/web/src/repositories/repositories.test.ts` | pass |

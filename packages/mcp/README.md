@@ -45,13 +45,13 @@ bean's durable inbox. These capabilities do not grant Git or trunk access.
 Mint one with the gateway's admin route `POST /v1/runs/:run/view-token` (valid for a week):
 
 ```bash
-export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export GITSTALK_TOKEN=$(node research/race/tools/mint-token.mjs <run> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 For contribution, an operator can mint a one-hour token for a specific bean and actor:
 
 ```bash
-export GITSTALK_TOKEN=$(pnpm -s -F @gitstalk/mcp mint-token <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
+export GITSTALK_TOKEN=$(node research/race/tools/mint-token.mjs <run> --bean <bean> --actor <actor> --gateway https://beanstalk-gateway.<sub>.workers.dev)
 ```
 
 `--ttl-seconds` accepts 60 through 86400. The contributor grant route is
@@ -125,7 +125,7 @@ pnpm -F @gitstalk/mcp dev        # wrangler dev (needs beanstalk-gateway running
 pnpm -F @gitstalk/mcp test       # Miniflare: recorded fixtures and real gateway integration
 pnpm -F @gitstalk/mcp types      # regenerate worker-configuration.d.ts
 pnpm -F @gitstalk/mcp deploy     # deploy after beanstalk-gateway
-pnpm -F @gitstalk/mcp mint-token <run> [--gateway <url>] [--bean <bean> --actor <actor>]
+node research/race/tools/mint-token.mjs <run> [--gateway <url>] [--bean <bean> --actor <actor>]   # race tooling, from the repo root
 ```
 
 Tests (`test/mcp.test.ts`) run the Worker app with a fake `GATEWAY` (`test/fake-gateway.ts`)

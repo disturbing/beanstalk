@@ -29,3 +29,4 @@ environments/*
 !environments/example/
 environments/**/secrets/
 packages/*/wrangler.*.jsonc
+research/swarm/wrangler.*.jsonc

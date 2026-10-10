@@ -39,7 +39,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Every deployable package, in deploy order: a Worker deploys after the Workers it binds to. */
-const ORDER = ['actions-executor', 'gateway', 'mcp', 'site', 'web', 'ssh', 'oidc', 'swarm'];
+const ORDER = ['actions-executor', 'gateway', 'mcp', 'site', 'web', 'ssh'];
 
 /**
  * The templates' name prefix. An environment's `prefix` (default "gitstalk") replaces it in every
@@ -64,8 +64,7 @@ const EXTRA_REQUIRED_SECRETS = { gateway: ['OIDC_REQUEST_SECRET', 'OIDC_SIGNING_
 
 /** Docker wrappers some container builds need (as in each package's `deploy` script). */
 const DOCKER_BIN = {
-  gateway: '../runner/docker-with-git-sha.sh',
-  swarm: './agent/docker-build.sh',
+  gateway: './container/docker-with-git-sha.sh',
 };
 
 /** R2 lifecycle rules applied when provision creates the bucket: bucket (no suffix) → days. */
@@ -841,8 +840,7 @@ function generateSecrets(env) {
 }
 
 function newSecret(env, name) {
-  if (name === 'ACTIONS_SECRETS_KEY' || name === 'SEAT_KEY')
-    return randomBytes(32).toString('base64');
+  if (name === 'ACTIONS_SECRETS_KEY') return randomBytes(32).toString('base64');
   if (name === 'OIDC_SIGNING_KEYS') {
     const script = path.join(ROOT, 'packages/shared-oidc/scripts/oidc-keys.mjs');
     const keys = spawnSync(process.execPath, [script, 'new'], { encoding: 'utf8' });

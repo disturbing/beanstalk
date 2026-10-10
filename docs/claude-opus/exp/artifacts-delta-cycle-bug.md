@@ -1,6 +1,6 @@
 # Cloudflare Artifacts: a push of a revert fails with "stored delta chain contains a cycle"
 
-**Seen:** 2026-10-03, about 23:30 HKT, account `2c7358a6…`, namespace `beanstalk-race`, repo `race-8598u7h6ss`, during a real-agent cloud race (`research/race/runs/cf-v2-sonnet-12-s7-r2`).
+**Seen:** 2026-10-03, about 23:30 HKT, the legacy account, namespace `beanstalk-race`, repo `race-8598u7h6ss`, during a real-agent cloud race (`research/race/runs/cf-v2-sonnet-12-s7-r2`).
 
 **What happened.** Beanstalk's runner container pushed a revert commit to a candidate ref with plain `git push --porcelain <artifacts-url> <sha>:refs/beanstalk/candidates/<sha>`. Artifacts answered:
 
@@ -18,7 +18,7 @@ error: failed to push some refs to 'https://<account>.artifacts.cloudflare.net/g
 
 Any workflow that reverts, or reintroduces earlier content, can hit this. Revert-first trunks do it routinely.
 
-**Workaround in Beanstalk.** The runner now pushes with `-c pack.window=0`, so the pack carries whole objects and no deltas (`packages/runner/src/git/cache.rs`, `NO_DELTAS`). The cost is larger pushes; correctness is unaffected.
+**Workaround in Beanstalk.** The runner now pushes with `-c pack.window=0`, so the pack carries whole objects and no deltas (`packages/gateway/container/src/git/cache.rs`, `NO_DELTAS`). The cost is larger pushes; correctness is unaffected.
 
 **Ask for Cloudflare.**
 - Detect cycles on ingest and store the object whole (break the chain), or re-delta only against objects whose own chain doesn't pass through the incoming one.

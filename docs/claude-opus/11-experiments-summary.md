@@ -606,7 +606,7 @@ What seed 7 shows is the read-set problem, not the engine: on the arena every te
 The runner now returns what the section above asks for: a traced check (`trace`, `read_maps: preland`) runs each
 test file in its own `strace --seccomp-bpf` process and reports, per passing file, everything it read, probed
 and listed (directories and loaded packages as `dir/` entries), `passing_files`/`failing_files` from those runs,
-and `read_sets_complete: true` only when every file that ran was traced (`packages/runner/README.md`, "Read maps";
+and `read_sets_complete: true` only when every file that ran was traced (`packages/gateway/container/README.md`, "Read maps";
 method and measurements in `research/test-impact/README.md` §5). With those read sets evidence promoted live for
 the first time, safely, but it did not make races faster:
 

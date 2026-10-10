@@ -12,7 +12,7 @@ gateway ActionsRunDO ──startJob(JobSpec)──▶ beanstalk-actions-executor
         └────────────────────────────────────────│   JobLifecycle: secrets → fresh container → POST /v1/job
                                                   │   → relay batches → result → destroy → verify gone → report
                                                   ▼
-                                   packages/actions-runner (Rust, axum) in a standard-4 container
+                                   packages/actions-executor/container (Rust, axum) in a standard-4 container
                                    fetch the workflow at the sha → cut it to the one job → act -j <job>
                                    host mode, or Docker mode (inner dockerd) for services:/container:/docker://
                                    batches (≤1/s or 64 KiB, masked) and the result → http://executor.internal
@@ -22,7 +22,7 @@ gateway ActionsRunDO ──startJob(JobSpec)──▶ beanstalk-actions-executor
 - **Capacity.** The control plane leases a slot per job from `RunnerCapacity` (`actions:<repo>` owners) before it calls `startJob`. Those leases now count against the Actions class's own `max_instances` (`ACTIONS_MAX_INSTANCES`, 16, equal to the executor's `containers[].max_instances`), with the repository's concurrent-jobs cap and a fair share while another repository waits; they no longer eat the runner pool that races and pre-land checks use (`sandbox-pool.ts` `decideActionsLease`). If Cloudflare still refuses an instance, the job object retries every 10 s for 5 minutes, then reports `infrastructure_failure`.
 - **Warm pool: not built.** A job object is named by its job id, so a pre-started container would need an index from job id to object. Measured cold start is 1.5–2.3 s from `startJob` to a listening runner once the image is on the host (§3), which is small next to checkout and setup; a pool would buy little. The design for it, if a pull-bound start shows up in production: `newUniqueId()` objects started blank, an index Durable Object handing each out once and never back.
 
-## 2. The job runner (packages/actions-runner)
+## 2. The job runner (packages/actions-executor/container)
 
 One process per container, one job per process (a second `POST /v1/job` is refused, `409 already_used`).
 
@@ -33,9 +33,9 @@ One process per container, one job per process (a second `POST /v1/job` is refus
 5. **Log.** act's JSON lines become typed lines (step start and end with result and duration, output, `::group::`, annotations with file and line, `::debug::`, step summaries, act's own messages), each masked before it leaves: every secret and the job token, each line of a multi-line secret (act misses those), their base64 and URL-encoded forms, and `::add-mask::` values from then on. They go out in batches of at most one a second or 64 KiB, an empty one every 15 s as the heartbeat, each retried until the executor acknowledges it. The container keeps nothing it has sent.
 6. **Result.** act's verdict, or the stop that cut it short (timeout: `timed_out`; cancel: `cancelled`); step records; job outputs resolved from the `outputs:` templates and the step outputs act printed (an output that would reveal a secret is withheld, as on GitHub); annotations (50 at most) and summaries. The runner enforces the job's timeout itself (SIGTERM to act's process group, SIGKILL after 10 s); the executor's own timer, a minute later, is the backstop.
 
-The image (`packages/actions-runner/Dockerfile`): Ubuntu 24.04 by digest, Node 24 as the system node, Node 20.20.2 and 24.21.0 in the hosted-toolcache layout (`setup-node` finds them: 0.6–1.0 s), git, git-lfs, curl, wget, jq, python3 with pip and venv, build-essential, sudo (the `runner` user, uid 1001, as on GitHub), act 0.2.89, static Docker 29.8.2 with iptables, and `actions/checkout@v4/v5`, `setup-node@v4/v5`, `cache@v4`, `upload-artifact@v4`, `download-artifact@v4`, `setup-python@v5`, `github-script@v7`, `cloudflare/wrangler-action@v3` baked into act's action cache. Every download is pinned by version and SHA-256.
+The image (`packages/actions-executor/container/Dockerfile`): Ubuntu 24.04 by digest, Node 24 as the system node, Node 20.20.2 and 24.21.0 in the hosted-toolcache layout (`setup-node` finds them: 0.6–1.0 s), git, git-lfs, curl, wget, jq, python3 with pip and venv, build-essential, sudo (the `runner` user, uid 1001, as on GitHub), act 0.2.89, static Docker 29.8.2 with iptables, and `actions/checkout@v4/v5`, `setup-node@v4/v5`, `cache@v4`, `upload-artifact@v4`, `download-artifact@v4`, `setup-python@v5`, `github-script@v7`, `cloudflare/wrangler-action@v3` baked into act's action cache. Every download is pinned by version and SHA-256.
 
-## 3. Staging run (`-staging-act2`, account `2c7358a6…`)
+## 3. Staging run (`-staging-act2`, the legacy account)
 
 Stack: `beanstalk-gateway-staging-act2` (lane 1's control plane at `a50b9e8`, own D1 `beanstalk-forge-staging-act2` and `beanstalk-identity-staging-act2`, queue, Artifacts namespaces `beanstalk-{race,repos}-staging-act2`, R2 `beanstalk-actions-logs-staging-act2`, `ACTIONS_EXECUTOR_MODE=service`) and `beanstalk-actions-executor-staging-act2` (4 × `standard-4`). Repository `coop-act2/node-ci`: a Node project (`npm ci` installs `is-number`; `npm test` runs `node --test` and a dependency check) with `.github/workflows/ci.yml` (`test`: checkout, setup-node 20, `npm ci`, `npm test`, a `$GITHUB_OUTPUT` output, a step summary; `deploy`: `needs: test`, `if: github.ref == 'refs/heads/main'`, checkout, `npx --yes wrangler@4 --version`, an echo of `needs.test.outputs.node` and a secret) and `.github/workflows/services.yml` (a redis service pinged from the job). Each run started from a real push: `git push -o wait origin HEAD:refs/heads/bean/<name>` → pre-land check green → LANDED → validated, the stalk moved → lane 1's index started the runs → my executor ran each job in its own container.
 

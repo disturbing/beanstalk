@@ -5,7 +5,7 @@
 # Cloudflare Containers run linux/amd64 only, so the final stage names that platform as a constant
 # (the check skipped above).
 # The build context is the repo root, so the Cargo workspace and Cargo.lock are visible:
-#   docker buildx build --platform linux/amd64 -f packages/runner/Dockerfile .
+#   docker buildx build --platform linux/amd64 -f packages/gateway/container/Dockerfile .
 
 ARG RUST_VERSION=1.96.0
 ARG DEBIAN_RELEASE=trixie
@@ -89,7 +89,7 @@ COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/runner /usr/loc
 USER runner
 # The commit the image was built from, reported by /version. Set last and read at run time, so a
 # new value only changes this layer (the binary is not rebuilt). The gateway's deploy passes it
-# (packages/runner/README.md, "Image version").
+# (packages/gateway/container/README.md, "Image version").
 ARG GIT_SHA=unknown
 ENV PORT=8080 \
     WORK_DIR=/work \

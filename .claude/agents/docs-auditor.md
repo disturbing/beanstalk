@@ -17,7 +17,7 @@ source:
   push messages of a test repository you are given). A label that claims more than is deployed
   is the most serious finding.
 - **Behaviour**: commands, push options, refusal messages, limits and defaults against the code
-  (`packages/gateway`, `packages/web`, `packages/mcp`, `packages/runner`,
+  (`packages/gateway`, `packages/web`, `packages/mcp`, `packages/gateway/container`,
   and the plugin repository `disturbing/gitstalk-plugin`) and its tests.
 - **Numbers**: against the run directories and write-ups they cite (`research/race/`,
   `docs/claude-opus/11-experiments-summary.md`), including their caveats and rounding.

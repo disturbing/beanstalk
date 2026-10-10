@@ -11,7 +11,7 @@ Migrations (remote; each file only CREATE TABLE/INDEX/TRIGGER or ADD COLUMN with
                       0008_repository_profile.sql
 R2: bucket beanstalk-media created (it was missing). Images binding IMAGES on beanstalk-web.
 
-Deployed (live account 2c7358a6…) in this order; after each, the live ADMIN_TOKEN answered 200
+Deployed (the live legacy account) in this order; after each, the live ADMIN_TOKEN answered 200
 and a wrong token 401 on the gateway (/v1/admin/capacity) and on the executor (/v1/admin/logs):
   beanstalk-actions-executor  49ac2b2d-20b0-4b2f-87c0-8e59487f0dd8  (was 86912131; image unchanged)
   beanstalk-gateway           939da9ee-d2a9-4dd6-9353-6aa6c2b3a87e  (was 5e6ed10d; runner image rebuilt)

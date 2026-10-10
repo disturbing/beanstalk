@@ -2,7 +2,7 @@
 # Stores a ChatGPT login for Codex as a leased seat in beanstalk-swarm's broker (lease mode).
 # Run by Coop himself; it never prints a token.
 #
-#   SWARM_URL=https://beanstalk-swarm.<subdomain>.workers.dev packages/swarm/scripts/seed-seat.sh [options]
+#   SWARM_URL=https://beanstalk-swarm.<subdomain>.workers.dev research/swarm/scripts/seed-seat.sh [options]
 #
 #   --seat NAME     seat name (default: default)
 #   --device-auth   log in with a device code instead of the browser (enable device-code login in
@@ -15,7 +15,7 @@
 # share one login, so the swarm never refreshes it: it works until its access token expires, then
 # lease mode stops with "seat expired" and this script is run again.
 #
-# The swarm admin token comes from $SWARM_ADMIN_TOKEN or packages/swarm/.dev.vars, and reaches curl
+# The swarm admin token comes from $SWARM_ADMIN_TOKEN or research/swarm/.dev.vars, and reaches curl
 # through a config file readable only by you, never argv. The auth.json body goes to the swarm over
 # HTTPS, where the broker encrypts it under SEAT_KEY; no route ever returns it.
 set -eu
@@ -36,7 +36,7 @@ token="${SWARM_ADMIN_TOKEN:-}"
 if [ -z "$token" ] && [ -f "$here/../.dev.vars" ]; then
   token="$(sed -n 's/^SWARM_ADMIN_TOKEN=//p' "$here/../.dev.vars" | tr -d "\"'")"
 fi
-[ -n "$token" ] || { echo "no SWARM_ADMIN_TOKEN (env or packages/swarm/.dev.vars)" >&2; exit 1; }
+[ -n "$token" ] || { echo "no SWARM_ADMIN_TOKEN (env or research/swarm/.dev.vars)" >&2; exit 1; }
 
 umask 077
 work="$(mktemp -d)"

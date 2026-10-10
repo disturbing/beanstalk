@@ -61,7 +61,7 @@ def configure_ssh_worker(host_key: str) -> str:
     config["connect"] = [{"protocol": "tcp", "port": SSH_PORT}]
     config["vars"] = {**config["vars"], "SSH_POOL_SIZE": "1", "SSH_HOST_KEY_FINGERPRINT": fingerprint(host_key + ".pub")}
     for container in config["containers"]:
-        container["image"] = os.path.join(devstack.REPO, "packages", "ssh-server", "Dockerfile")
+        container["image"] = os.path.join(devstack.REPO, "packages", "ssh", "container", "Dockerfile")
         container["image_build_context"] = devstack.REPO
     directory = os.path.join(devstack.LOCAL, "ssh-worker")
     devstack.write(os.path.join(directory, "wrangler.json"), config)

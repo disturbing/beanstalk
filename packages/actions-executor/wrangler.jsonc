@@ -3,7 +3,7 @@
   // The Actions job executor (docs/claude-opus/26-actions-job-executor.md): one Cloudflare
   // Container per GitHub Actions job (D6). The control plane (the gateway's ActionsRunDO) calls
   // `startJob` / `cancelJob` over a service binding; each job gets its own ActionsJobContainer
-  // (a Container Durable Object named by the job id), which runs act in packages/actions-runner,
+  // (a Container Durable Object named by the job id), which runs act in packages/actions-executor/container,
   // relays its log batches and result to the gateway's `ActionsJobs` sink, and destroys the
   // container when the job ends. A separate Worker from the gateway: untrusted job I/O and the
   // 400 MB image never ride the engine's deploys, and the job container's outbound handlers
@@ -57,7 +57,7 @@
   "containers": [
     {
       "class_name": "ActionsJobContainer",
-      "image": "../actions-runner/Dockerfile",
+      "image": "./container/Dockerfile",
       "image_build_context": "../..",
       // GitHub's ubuntu-latest is 4 vCPU / 16 GB; standard-4 (4 vCPU, 12 GiB, 20 GB) ran the
       // fastify suite at GitHub's speed in the spike.
