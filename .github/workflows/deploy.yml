@@ -50,6 +50,7 @@ jobs:
       BEANSTALK_ENV_CONFIG: ${{ vars.BEANSTALK_ENV_CONFIG }}
       BEANSTALK_ENV_RESOURCES: ${{ vars.BEANSTALK_ENV_RESOURCES }}
       BEANSTALK_ACCOUNT_ID: ${{ vars.BEANSTALK_ACCOUNT_ID }}
+      RUSTUP_TOOLCHAIN: 1.96.0
     steps:
       # Full history: the runner image's tag is the last commit that touched its sources.
       - uses: actions/checkout@v4
@@ -69,6 +70,12 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      # pnpm check's Rust half runs on the Rust the container images build with (RUST_VERSION in
+      # packages/*/Dockerfile), not whatever "stable" is today: a new stable's clippy lints
+      # (1.99's assert_is_empty, unused async in trait impls) fail -D warnings on code that
+      # passed the day before. Move both together.
+      - if: steps.present.outputs.yes == 'true'
+        run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal -c clippy -c rustfmt
       - if: steps.present.outputs.yes == 'true'
         run: pnpm install --frozen-lockfile
       - if: steps.present.outputs.yes == 'true'
