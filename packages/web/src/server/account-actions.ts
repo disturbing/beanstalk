@@ -107,7 +107,8 @@ export async function deleteAccountAction(
   const outcome = await deleteAccountFlow(actor, field(form, 'confirm'), deletionPorts());
   if (outcome.kind === 'refused') return outcome.state;
   log.info('account deleted');
-  // The form then loads Home whole (DeleteAccountForm): the header must lose the account too.
+  // The form then loads the sign-in page whole, saying so (DeleteAccountForm): the header must
+  // lose the account too.
   return { saved: 'Your account is deleted.', error: null };
 }
 

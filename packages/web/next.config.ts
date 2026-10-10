@@ -1,9 +1,10 @@
 import type { NextConfig } from 'next';
 
-/** Account pages are never framed (clickjacking on consent and tokens) and never cached. */
+/**
+ * Account pages are never cached and send no referrer off the origin. Framing is refused on
+ * every response by the Worker's entry (src/security/response-headers.ts).
+ */
 const ACCOUNT_HEADERS = [
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
   { key: 'Referrer-Policy', value: 'same-origin' },
   { key: 'Cache-Control', value: 'no-store' },
 ];

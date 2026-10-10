@@ -533,7 +533,7 @@
 .primary {
   border: 1px solid var(--good-fill);
   background: var(--good-fill);
-  color: var(--accent-ink);
+  color: var(--good-fill-ink);
 }
 .danger {
   border: 1px solid var(--bad-fill);

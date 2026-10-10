@@ -44,6 +44,7 @@ let coop: Person;
 let dana: Person;
 let erin: Person;
 let repo: RepositoryRecord;
+let nightlyBean: string;
 
 beforeAll(async () => {
   [coop, dana, erin] = await Promise.all([signUp('ed-coop'), signUp('ed-dana'), signUp('ed-erin')]);
@@ -84,6 +85,7 @@ describe('saving is a bean', () => {
     );
     if (saved.kind !== 'pushed') throw new Error('expected a pushed bean');
     expect(saved.bean).toMatch(/^automation-nightly-[0-9a-f]{6}$/);
+    nightlyBean = saved.bean;
     const status = await waitForBean(repo, saved.bean);
     expect(['landed', 'green']).toContain(status.phase);
     await waitForLanded(repo, NIGHTLY, NIGHTLY_FILE);
@@ -97,6 +99,20 @@ describe('saving is a bean', () => {
       { timeout: 20_000, interval: 100 },
     );
   }, 60_000);
+
+  it("counts the bean's files in its history: the commit step names what the push changed", async () => {
+    const page = value(await gateway.runEvents(repo.engine_id, 0, 1000));
+    const commits = page.events
+      .map((line): unknown => JSON.parse(line))
+      .filter(
+        (event) =>
+          typeof event === 'object' &&
+          event !== null &&
+          Reflect.get(event, 'type') === 'task.commit' &&
+          Reflect.get(event, 'task') === nightlyBean,
+      );
+    expect(commits).toEqual([expect.objectContaining({ files: [NIGHTLY] })]);
+  });
 
   it('authors the commit as the person, with the default message', async () => {
     const log = value(await gateway.repoLog(repo.engine_id, 'sprout', [NIGHTLY], 5));

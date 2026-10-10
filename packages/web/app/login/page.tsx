@@ -34,11 +34,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           </h1>
           {user === null ? (
             <>
-              {query['signed_out'] === undefined ? null : (
-                <p className={styles.success} role="status">
-                  You are signed out.
-                </p>
-              )}
+              <SignedOutNotice query={query} />
               <PasskeySignin next={next} turnstileSiteKey={siteKey} />
               {email ? <EmailSignin query={query} siteKey={siteKey} /> : null}
               <p className={styles.note}>
@@ -56,6 +52,21 @@ export default async function LoginPage({ searchParams }: PageProps) {
       </div>
     </main>
   );
+}
+
+/** What brought someone here signed out: signing out, or deleting their account. */
+function SignedOutNotice({ query }: { readonly query: Query }) {
+  const text = signedOutText(query);
+  return text === null ? null : (
+    <p className={styles.success} role="status">
+      {text}
+    </p>
+  );
+}
+
+function signedOutText(query: Query): string | null {
+  if (query['account'] === 'deleted') return 'Your account was deleted.';
+  return query['signed_out'] === undefined ? null : 'You are signed out.';
 }
 
 function EmailSignin({

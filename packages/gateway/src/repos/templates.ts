@@ -14,20 +14,25 @@ export function emptyStart(repoName: string, description: string): readonly Seed
   return [{ path: 'README.md', content: `# ${repoName}\n${about}` }];
 }
 
+/** A template's files for `repo`; `webUrl` is the deployment's origin, where its docs are. */
 export function templateFiles(
   template: RepoTemplate,
-  repoName: string,
-  description: string,
+  repo: { readonly name: string; readonly description: string },
+  webUrl: string,
 ): readonly SeedFile[] {
   switch (template) {
     case 'typescript-starter':
-      return typescriptStarter(repoName, description);
+      return typescriptStarter(repo.name, repo.description, new URL('/docs/checks', webUrl).href);
     default:
       return assertNever(template);
   }
 }
 
-function typescriptStarter(repoName: string, description: string): readonly SeedFile[] {
+function typescriptStarter(
+  repoName: string,
+  description: string,
+  checksDocs: string,
+): readonly SeedFile[] {
   const about = description === '' ? 'A small TypeScript project.' : description;
   return [
     { path: 'README.md', content: starterReadme(repoName, about) },
@@ -69,8 +74,9 @@ function typescriptStarter(repoName: string, description: string): readonly Seed
       path: '.gitstalk/checks.toml',
       content: [
         '# What a bean must pass before it lands, run on the exact tree it would land on.',
-        '# Format: docs/claude-opus/24-checks-config.md. Only the owner or a maintainer, pushing',
-        '# with a personal token or an SSH key, may change this file (always protected).',
+        `# Format: ${checksDocs}`,
+        '# Only the owner or a maintainer, pushing with a personal token or an SSH key, may change',
+        '# this file (always protected).',
         'image = "node"',
         'command = ["node", "--test"]',
         'timeout_seconds = 120',

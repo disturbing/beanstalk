@@ -549,6 +549,7 @@ export default class Gateway
       log: createLogger(readConfig(this.env).logLevel, { component: 'repositories' }),
       now: () => Date.now(),
       newId: newRepositoryId,
+      webUrl: readConfig(this.env).webUrl,
     });
   }
 

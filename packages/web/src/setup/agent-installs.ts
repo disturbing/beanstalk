@@ -27,6 +27,13 @@ export type AgentInstall = {
   readonly verified: boolean;
 };
 
+/** One harness's install text, as /signup/agent prints it (the repository start page reuses it). */
+export function agentInstall(mcpUrl: string, id: AgentInstall['id']): AgentInstall {
+  const found = agentInstalls(mcpUrl).find((install) => install.id === id);
+  if (found === undefined) throw new Error(`no install text for ${id}`);
+  return found;
+}
+
 export function agentInstalls(mcpUrl: string): readonly AgentInstall[] {
   const hosted = mcpUrl === PLUGIN_MCP_URL;
   return [

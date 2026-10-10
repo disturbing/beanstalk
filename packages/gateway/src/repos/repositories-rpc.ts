@@ -54,6 +54,8 @@ export type RepositoriesDeps = {
   readonly log: Logger;
   readonly now: () => number;
   readonly newId: () => string;
+  /** This deployment's web origin: a template's files link to its docs there. */
+  readonly webUrl: string;
 };
 
 /** Artifacts' answers that mean the URL is not a public git repository. */
@@ -412,7 +414,7 @@ async function provision(
   await storage.create(repo.artifactsRepo, description);
   const files =
     repo.origin.kind === 'template'
-      ? templateFiles(repo.origin.template, repo.name, repo.description)
+      ? templateFiles(repo.origin.template, repo, deps.webUrl)
       : emptyStart(repo.name, repo.description);
   const message =
     repo.origin.kind === 'template' ? 'Start from the TypeScript starter' : 'Initial commit';

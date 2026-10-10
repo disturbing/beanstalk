@@ -17,12 +17,14 @@
   --rule-strong: #a9bdb3;
   --ink: #08161a;
   --ink-2: #344a44;
-  --ink-3: #566c65;
+  --ink-3: #4d625b;
   --accent: #00735e;
   --accent-ink: #ffffff;
   --focus: #00735e;
   --good: #006e57;
   --good-fill: #00b38c;
+  /* Text on --good-fill: dark ink keeps the bright green and passes AA (7.1:1; white was 2.7). */
+  --good-fill-ink: #04120d;
   --good-wash: #cfeee3;
   --warn: #7f5500;
   --warn-fill: #c08300;
@@ -37,6 +39,8 @@
   --human-ink: #ffffff;
   --neutral: #566c65;
   --sprout: #5cc41a;
+  /* Sprout-colored text: the lime itself is 1.8:1 on paper. */
+  --sprout-ink: #2f690a;
   --series-v2: #00a07e;
   --series-queue: #c2622a;
   --heat-0: #e8efeb;
@@ -91,6 +95,7 @@
     --focus: #49f2c2;
     --good: #45f0bd;
     --good-fill: #2cf0b0;
+    --good-fill-ink: #04120d;
     --good-wash: rgba(44, 240, 176, 0.1);
     --warn: #ffc04d;
     --warn-fill: #ffc04d;
@@ -105,6 +110,7 @@
     --human-ink: #150b30;
     --neutral: #8395a8;
     --sprout: #b6ff5c;
+    --sprout-ink: #b6ff5c;
     --series-v2: #2cf0b0;
     --series-queue: #ff9a5c;
     --heat-0: #0e141c;
@@ -143,6 +149,7 @@
   --focus: #49f2c2;
   --good: #45f0bd;
   --good-fill: #2cf0b0;
+  --good-fill-ink: #04120d;
   --good-wash: rgba(44, 240, 176, 0.1);
   --warn: #ffc04d;
   --warn-fill: #ffc04d;
@@ -157,6 +164,7 @@
   --human-ink: #150b30;
   --neutral: #8395a8;
   --sprout: #b6ff5c;
+  --sprout-ink: #b6ff5c;
   --series-v2: #2cf0b0;
   --series-queue: #ff9a5c;
   --heat-0: #0e141c;
@@ -316,5 +324,5 @@ p {
 
 .daynight button[aria-pressed='true'] {
   background: var(--good-fill);
-  color: var(--accent-ink);
+  color: var(--good-fill-ink);
 }
