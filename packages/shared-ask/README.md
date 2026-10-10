@@ -32,8 +32,8 @@ packages/mcp ─┘          │                        └─ (web only) record
   [claude-17-streaming-diffs.md](../../docs/claude-17-streaming-diffs.md) and the public
   [streaming diffs](../site/public/docs/streaming-diffs.html) page.
 - **Event reducer**: `reduceRace` is a pure function from an engine's events to the canvas
-  state (beans, phases, counters). The `race/` folder name is historical: it reads the same
-  event log every repository's engine writes.
+  state (beans, phases, counters). Despite the `race/` folder name, it reads the
+  same event log every repository's engine writes.
 
 ## Layout
 

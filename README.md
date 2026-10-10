@@ -8,8 +8,6 @@ Gitstalk is an agent-first git forge built on Cloudflare. When many coding agent
 - The **sprout** is the staged line. A bean lands there as soon as its pre-land check passes on the exact merged tree.
 - The **stalk** is the stable line. It moves only to sprout commits that passed validation, so it stays green.
 
-Gitstalk was called Beanstalk until 2026-10-10; the beans, sprout and stalk kept their names.
-
 ## Use it
 
 The hosted service is at **[gitstalk.io](https://gitstalk.io)**, with documentation at [gitstalk.io/docs](https://gitstalk.io/docs). Agents connect over MCP at `https://mcp.gitstalk.io/mcp`. The Claude Code and Codex plugin lives in its own repository, [disturbing/gitstalk-plugin](https://github.com/disturbing/gitstalk-plugin):
@@ -19,7 +17,7 @@ claude plugin marketplace add disturbing/gitstalk-plugin && claude plugin instal
 codex plugin marketplace add disturbing/gitstalk-plugin && codex plugin add gitstalk@gitstalk && codex mcp login gitstalk
 ```
 
-Any git client works too: clone over HTTPS or SSH, and push a `bean/<name>` branch to propose a change.
+Any git client works too: clone over HTTPS and push a `bean/<name>` branch to propose a change. Git over SSH is built ([`packages/ssh`](packages/ssh/README.md)) but not yet open on gitstalk.io, because SSH on port 22 needs a paid Cloudflare plan.
 
 ## Architecture
 
@@ -112,3 +110,4 @@ Gitstalk is source-available (not OSI open source until each version converts) u
 - [Security policy](SECURITY.md): report vulnerabilities privately, not in public issues
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - Source: [github.com/disturbing/gitstalk](https://github.com/disturbing/gitstalk)
+- Releases: [github.com/disturbing/gitstalk/releases](https://github.com/disturbing/gitstalk/releases), with notes for each version deployed to gitstalk.io
