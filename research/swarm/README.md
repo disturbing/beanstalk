@@ -43,7 +43,7 @@ laptop: race.py --forge cloudflare --swarm URL      beanstalk-swarm (this Worker
 ## Run
 
 ```bash
-CLOUDFLARE_ACCOUNT_ID=<id> node packages/swarm/scripts/deploy.mjs   # Worker + image; generates .dev.vars secrets
+CLOUDFLARE_ACCOUNT_ID=<id> node research/swarm/scripts/deploy.mjs   # Worker + image; generates .dev.vars secrets
 cd research/race
 SWARM=https://beanstalk-swarm.<subdomain>.workers.dev
 python3 race.py --forge cloudflare --gateway $GW --swarm $SWARM --policy beanstalk-v2 --agent replay --agents 4 \
@@ -53,7 +53,8 @@ python3 race.py --forge cloudflare --gateway $GW --swarm $SWARM --policy beansta
 # SWARM_DIAGNOSE=1 makes each slot ship net-diag.txt (resolver, virtual hosts, one codex call, codex's sandbox)
 ```
 
-- Admin token: `$SWARM_ADMIN_TOKEN`, else `SWARM_ADMIN_TOKEN` in `packages/swarm/.dev.vars`; never printed.
+- The swarm is race tooling, outside `pnpm env:deploy` (it moved from `packages/swarm` on 2026-10-11). `deploy.mjs` runs a plain `wrangler deploy` of `wrangler.jsonc`, whose names are the templates' (`gitstalk-swarm`, bound to `gitstalk-gateway`): set them to the stack you race against first. The legacy account's `beanstalk-swarm` stays as deployed.
+- Admin token: `$SWARM_ADMIN_TOKEN`, else `SWARM_ADMIN_TOKEN` in `research/swarm/.dev.vars`; never printed.
 - Halt everything: `POST /v1/admin/halt {"reason": "..."}` (refuses new matches until `POST /v1/admin/resume`); one match: `POST /v1/matches/<id>/halt`.
 - Deploys: a new image used to roll out to running containers and stop them (SIGTERM) within a minute or two; `rollout_active_grace_period` (3600 s) now lets running agents finish first. A container started right after a deploy may still run the previous image: the hello's `harness` digest in `swarm.json` says which.
 - Placement: the containers seen so far ran in `sin02`; latency to the gateway's Durable Objects is part of the forge time each invocation logs.

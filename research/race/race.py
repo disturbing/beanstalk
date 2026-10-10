@@ -92,7 +92,7 @@ def parse_cli(argv: list[str] | None = None) -> tuple[RaceConfig, argparse.Names
     f.add_argument("--swarm", metavar="URL",
                    help="--forge cloudflare: run the agent slots in Cloudflare containers on this beanstalk-swarm "
                         "Worker instead of here (harness/swarm.py; admin token $SWARM_ADMIN_TOKEN or "
-                        "packages/swarm/.dev.vars). Default $BEANSTALK_SWARM when --swarm-credential is given")
+                        "research/swarm/.dev.vars). Default $BEANSTALK_SWARM when --swarm-credential is given")
     f.add_argument("--swarm-credential", choices=["none", "api-key", "lease"], default=None,
                    help="--swarm: how Codex in the containers is authorised: none (replay), api-key (the swarm's "
                         "OPENAI_API_KEY secret, injected by its outbound handler) or lease (one leased ChatGPT seat, "
@@ -278,7 +278,7 @@ def make_remote_race(cfg: RaceConfig, ns: argparse.Namespace, argv: list[str]):
     from harness.swarm import SwarmRace, load_swarm_token
     token = load_swarm_token()
     if not token:
-        print("--swarm needs $SWARM_ADMIN_TOKEN or SWARM_ADMIN_TOKEN in packages/swarm/.dev.vars", file=sys.stderr)
+        print("--swarm needs $SWARM_ADMIN_TOKEN or SWARM_ADMIN_TOKEN in research/swarm/.dev.vars", file=sys.stderr)
         return None
     if cfg.agent == "claude":
         print("--swarm runs replay and codex agents (the agent image has no Claude Code)", file=sys.stderr)

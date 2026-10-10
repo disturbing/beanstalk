@@ -6,12 +6,12 @@
 # patches (checked against the race's arena digest at start), git, Node for the arena's suite,
 # and Mergiraf for the driver's structural merge tier. No credential is baked in or passed in:
 # the container reaches the model, the gateway and the swarm only through virtual hosts whose
-# Worker-side handlers add credentials (packages/swarm/src/agent/virtual-hosts.ts).
+# Worker-side handlers add credentials (research/swarm/src/agent/virtual-hosts.ts).
 #
 # The build context is the repo root (wrangler.jsonc image_build_context "../.."); the repo's
 # .dockerignore excludes research/, so Dockerfile.dockerignore next to this file (BuildKit's
 # per-Dockerfile ignore file) lets in exactly the driver and the arena.
-#   docker buildx build --platform linux/amd64 -f packages/swarm/agent/Dockerfile .
+#   docker buildx build --platform linux/amd64 -f research/swarm/agent/Dockerfile .
 
 ARG DEBIAN_RELEASE=trixie
 

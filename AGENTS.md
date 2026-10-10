@@ -9,7 +9,7 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 - **Name**: the product is Gitstalk (owner, 2026-10-10; it was Beanstalk). The growing-beanstalk metaphor stays (beans, sprout, stalk, `bean/<name>`, `refs/beans/*`). Templates name Workers and resources `gitstalk-*` (the hosted service on gitstalk.io / gitstalk.dev); an environment's `prefix` keeps the old account's stack on `beanstalk-*` until it is retired (`docs/claude-opus/30-environments.md` §12-§13); a repository's config is `.gitstalk/` (`.beanstalk/` still read), variables are `GITSTALK_*` (`BEANSTALK_*` still read).
 - **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@gitstalk/<name>`, Worker `gitstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
 - **Workers**: TypeScript, Hono router inside a `WorkerEntrypoint` default export, RPC between Workers through service bindings (never HTTP). One `wrangler.jsonc` per package; Wrangler is the deploy tool for every package (not the beta `cf` CLI) until after the deadline.
-- **Containers**: Rust (axum, tokio), one crate per image under `packages/<name>` with its Dockerfile, owned by a Container Durable Object in a Worker package. Root `Cargo.toml` is a workspace created with the first crate.
+- **Containers**: Rust (axum, tokio), one crate per image in `packages/<worker>/container/` with its Dockerfile, inside the Worker package whose Container Durable Object owns it (`gateway/container` the runner, `ssh/container` the SSH server, `actions-executor/container` the Actions job runner). Root `Cargo.toml` is the workspace of these crates.
 - **Web app**: vinext (Next.js App Router on Workers) in `packages/web`; bindings through `import { env } from 'cloudflare:workers'`; data via service-binding RPC to the gateway.
 - **Platform**: Durable Objects (SQLite), Artifacts, Queues, Workflows, R2, D1, Containers, Sandbox, AI Gateway, as the design docs specify. Coding work is done by real harnesses (Claude Code, Codex) over MCP; Workers AI is never a coding worker, with one owner exception (2026-10-09): Automations run their agent loop on Workers AI models through AI Gateway, by the gateway's model proxy, until agent setups exist (`docs/claude-opus/25-actions-and-automations.md` §7.5); Jev only classifies.
 
@@ -60,9 +60,9 @@ Skills live in `.agents/skills/` (read natively by Codex); `.claude/skills/` hol
 | `AGENTS.md`, `CLAUDE.md` | This file; Claude Code import of it |
 | `.agents/skills/`, `.claude/skills/`, `skills-lock.json` | Skills (canonical, symlinks, vendored-skill lock) |
 | `docs/` | Research, thesis, demo plan, design docs |
-| `packages/` | All code; one directory per package or crate |
+| `packages/` | Production code: one directory per package; a container crate sits in its Worker's `container/` |
 | `scripts/` | Repo tooling (`rust-check.mjs`, `check-docs.mjs`, `environments.mjs`) |
 | `environments/` | Deploy environments; only `example/` is public. Never put account ids in `packages/*/wrangler.jsonc` (templates) |
 | `packages/site/public/docs/` | Public docs on the marketing site; `.claude/agents/docs-*.md` maintain and audit them |
-| `research/` | Corpus clones used by research scripts; not part of the build |
+| `research/` | Experiments, races and benchmarks: corpus clones, the race harness (`research/race`, its tools in `research/race/tools`) and the swarm Worker (`research/swarm`, a pnpm workspace member so its tests run). Race-, benchmark- or load-only tooling goes here, not in `packages/` |
 | `tsconfig.base.json`, `.oxlintrc.json`, `.oxfmtrc.json`, `rustfmt.toml`, `rust-toolchain.toml` | Shared tool configuration; change in its own commit with a reason |

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "echo 'Deploy through an environment: pnpm env:deploy <env> --only swarm (docs/claude-opus/30-environments.md)' && exit 1",
+    "deploy": "echo 'Race tooling outside the environments: see README.md (Run) before node scripts/deploy.mjs' && exit 1",
     "types": "wrangler types",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
