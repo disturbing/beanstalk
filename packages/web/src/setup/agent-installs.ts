@@ -12,7 +12,10 @@ import {
   PLUGIN_MCP_SERVER,
 } from '@gitstalk/shared-race/plugin';
 
-/** The MCP address in `packages/claude-plugin/.mcp.json` (a test keeps the two equal). */
+/**
+ * The MCP address in the plugin repository's `.mcp.json` (disturbing/gitstalk-plugin). It must
+ * stay equal to that file's literal URL; the plugin repository's CI checks its side.
+ */
 export const PLUGIN_MCP_URL = 'https://mcp.gitstalk.io/mcp';
 
 export type AgentInstall = {

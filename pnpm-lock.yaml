@@ -151,8 +151,6 @@ importers:
         specifier: 'catalog:'
         version: 4.147.0(@types/node@26.6.4)
 
-  packages/claude-plugin: {}
-
   packages/gateway:
     dependencies:
       '@actions/expressions':

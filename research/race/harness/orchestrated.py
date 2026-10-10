@@ -580,6 +580,8 @@ class OrchestratedRace:
         # The plugin guidance's version label (plugin-v1: plugin 0.5.0, plugin-v2: 0.6.0, orch_prompt), with the
         # plugin's own version, so runs of different skill texts are never compared unlabelled
         self.guidance_version = orch_prompt.PLUGIN_GUIDANCE_VERSION if self.guidance == "plugin" else None
+        if self.guidance == "plugin":
+            orch_prompt.ensure_plugin()  # the plugin's own repository (GITSTALK_PLUGIN_DIR, or a clone on demand)
         self.plugin_version = orch_prompt.plugin_version() if self.guidance == "plugin" else None
 
     def log(self, typ: str, at: float | None = None, **fields) -> None:

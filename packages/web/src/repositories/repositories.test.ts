@@ -373,7 +373,7 @@ describe('the start page', () => {
       'notes',
     );
     expect(guide.plugin.claude).toBe(
-      'claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude "/gitstalk:setup coop/notes"',
+      'claude plugin marketplace add disturbing/gitstalk-plugin && claude plugin install gitstalk@gitstalk && claude "/gitstalk:setup coop/notes"',
     );
     expect(guide.plugin.codexPrompt).toContain(
       'curl -fsSL https://web.example.test/setup.sh | sh -s -- detect',

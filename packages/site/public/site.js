@@ -4,11 +4,12 @@
 
 // ---------------------------------------------------------------------------
 // Install commands (the same ones the web app's /signup/agent prints, packages/web/src/setup/
-// agent-installs.ts). The plugin comes from the public marketplace repository; its .mcp.json
+// agent-installs.ts). The plugin comes from its own public repository; its .mcp.json
 // names the hosted MCP server with no auth header, so each client runs its own OAuth sign-in.
-// When the plugin moves to its own organisation, change PLUGIN_REPO here and in the web app.
+// When the plugin moves to another organisation, change PLUGIN_REPO here and in
+// packages/shared-race/src/plugin.ts (PLUGIN_MARKETPLACE).
 // ---------------------------------------------------------------------------
-const PLUGIN_REPO = 'disturbing/beanstalk';
+const PLUGIN_REPO = 'disturbing/gitstalk-plugin';
 const PLUGIN = 'gitstalk';
 const MARKETPLACE = 'gitstalk';
 const MCP_URL = 'https://mcp.gitstalk.io/mcp';

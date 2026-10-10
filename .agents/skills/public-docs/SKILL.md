@@ -28,7 +28,7 @@ The public docs are static HTML pages in `packages/site/public/docs/`, styled by
    `index.html`, and the nav dot (`<span class="st live|rolling|soon">`) on every page.
    Sources of truth, best first: the person or coordinator who deployed (with the deployed
    gateway, web and MCP versions), the deploy notes in `docs/claude-opus/*` ("Live", "Live
-   rollout"), then `packages/claude-plugin/README.md`'s status table (it can lag). When unsure,
+   rollout"), then the status table in the plugin repository's README (`https://github.com/disturbing/gitstalk-plugin#readme`; it can lag). When unsure,
    use the more cautious label and say why in your report.
 3. Numbers: round as the landing page does (`6–9×`, `~1 min`, `about 2×`), state the setup and
    the caveat (seeds, simulated or real agents), and link the run or write-up on

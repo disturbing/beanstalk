@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 
 from .arena import Task
 
@@ -106,18 +107,45 @@ current state. Pushing to `sprout`, `stalk` or `main` is refused.
 # the shared session sentence). plugin-v2 = plugin 0.6.0 (never sleep-poll: one blocking ``refs/wait/any`` push woken
 # by the verdict when out of work; the lead ends its turn and acts on worker notifications).
 PLUGIN_GUIDANCE_VERSION = "plugin-v2"
-PLUGIN_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "packages",
-                                           "claude-plugin"))
-SKILL_PATH = os.path.join(PLUGIN_DIR, "skills", "gitstalk", "SKILL.md")
+# The plugin lives in its own repository (disturbing/gitstalk-plugin) since 2026-10-11. GITSTALK_PLUGIN_DIR names a
+# checkout; otherwise a sibling clone next to this repository (../gitstalk-plugin), else research/race/.plugin, which
+# ensure_plugin() clones on demand (git-ignored).
+PLUGIN_REPO_URL = "https://github.com/disturbing/gitstalk-plugin.git"
+_RACE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_SIBLING = os.path.normpath(os.path.join(_RACE, "..", "..", "..", "gitstalk-plugin"))
+_LOCAL = os.path.join(_RACE, ".plugin")
+
+
+def plugin_dir() -> str:
+    """Where the plugin checkout is read from (it may not exist yet; see ``ensure_plugin``)."""
+    env = os.environ.get("GITSTALK_PLUGIN_DIR")
+    if env:
+        return os.path.abspath(env)
+    return _SIBLING if os.path.isdir(_SIBLING) else _LOCAL
+
+
+def ensure_plugin() -> str:
+    """The plugin checkout, cloned into research/race/.plugin when there is none (needs the network once)."""
+    path = plugin_dir()
+    if not os.path.isfile(os.path.join(path, ".claude-plugin", "plugin.json")):
+        if path != _LOCAL:
+            raise FileNotFoundError(f"no gitstalk plugin checkout at {path} (GITSTALK_PLUGIN_DIR)")
+        subprocess.run(["git", "clone", "-q", "--depth", "1", PLUGIN_REPO_URL, path], check=True)
+    return path
+
+
+def skill_path() -> str:
+    return os.path.join(plugin_dir(), "skills", "gitstalk", "SKILL.md")
 
 
 def plugin_skill() -> str:
     """The Beanstalk plugin's skill body (frontmatter removed), with its references named by absolute path."""
-    with open(SKILL_PATH, encoding="utf-8") as fh:
+    path = skill_path()
+    with open(path, encoding="utf-8") as fh:
         text = fh.read()
     if text.startswith("---"):
         text = text.split("---", 2)[2]
-    refs = os.path.join(os.path.dirname(SKILL_PATH), "references")
+    refs = os.path.join(os.path.dirname(path), "references")
     return text.replace("`references/", f"`{refs}/").strip() + "\n"
 
 
@@ -155,7 +183,7 @@ def prompt(arm: str, *, repo_url: str, n_tasks: int, subagents: int, test_hint: 
 
 def plugin_version() -> str:
     """The Beanstalk plugin's version (``.claude-plugin/plugin.json``)."""
-    with open(os.path.join(PLUGIN_DIR, ".claude-plugin", "plugin.json"), encoding="utf-8") as fh:
+    with open(os.path.join(plugin_dir(), ".claude-plugin", "plugin.json"), encoding="utf-8") as fh:
         return json.load(fh)["version"]
 
 

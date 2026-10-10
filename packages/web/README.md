@@ -15,6 +15,7 @@ Names, as everywhere in Gitstalk: a **bean** is one agent's change; the **sprout
 | `/race` | Watch the race: the recorded merge queue and v2.5 runs replayed in sync, with counters (the 35th green, done in) and greens over time |
 | `/signup`, `/login` | Accounts: a handle and a passkey (email links once a sender domain is set), and below sign-in the demo gate for decisions (`DEMO_PASSWORD`). `docs/claude-opus/19-accounts-and-auth.md` |
 | `/connect` | OAuth consent for an agent (from `beanstalk-mcp`'s `/authorize`) |
+| `/setup.sh`, `/setup.ps1` | The git setup scripts for agents without the plugin, with this deployment's address. `src/setup/scripts/` is the canonical copy; the plugin repository ([disturbing/gitstalk-plugin](https://github.com/disturbing/gitstalk-plugin), `scripts/`) keeps its own for `/gitstalk:setup` and runs the script tests; change both together |
 | `/settings`, `/settings/tokens` | Profile, passkeys, connected agents (disconnect), sign out everywhere; personal access tokens (create once-shown, list, revoke) |
 | `/api/runs/:run/live` | A live run's events as Server-Sent Events (bridged from the gateway's WebSocket) |
 | `/api/runs/:run/beans/:bean/diff` | A bean's own diff, for decision cards |

@@ -41,6 +41,8 @@ class Prompt(unittest.TestCase):
         self.assertIn("gh pr merge", gh)
         self.assertIn("git push -o wait", bs)
 
+    @unittest.skipUnless(os.path.isfile(os.path.join(orch_prompt.plugin_dir(), ".claude-plugin", "plugin.json")),
+                         "no gitstalk plugin checkout (GITSTALK_PLUGIN_DIR, ../gitstalk-plugin or research/race/.plugin)")
     def test_plugin_guidance_replaces_only_the_beanstalk_forge_section(self) -> None:
         kw = dict(repo_url="https://x/y", n_tasks=10, subagents=4, test_hint="Run `node --test`.", wall_minutes=90)
         base = orch_prompt.prompt("beanstalk", **kw)
@@ -59,7 +61,7 @@ class Prompt(unittest.TestCase):
         self.assertEqual(orch_prompt.continuation(), orch_prompt.CONTINUE)
         self.assertIn("notification", orch_prompt.continuation("plugin"))
         self.assertNotIn("name: beanstalk", plugin)              # frontmatter stripped
-        self.assertIn(orch_prompt.PLUGIN_DIR, plugin)            # references by absolute path
+        self.assertIn(orch_prompt.plugin_dir(), plugin)          # references by absolute path
         self.assertEqual(orch_prompt.worker_prompt(), orch_prompt.WORKER_PROMPT)
         self.assertIn("<beanstalk-skill>", orch_prompt.worker_prompt("plugin"))
 

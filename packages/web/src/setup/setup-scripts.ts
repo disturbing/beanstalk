@@ -1,10 +1,12 @@
 /**
- * The setup scripts bundled in the Claude Code plugin, served by the web app for agents
- * without the plugin (`curl -fsSL <web>/setup.sh | sh -s -- detect`). The default Gitstalk
+ * The setup scripts, served by the web app for agents without the plugin
+ * (`curl -fsSL <web>/setup.sh | sh -s -- detect`). `./scripts/` is the canonical copy; the
+ * plugin repository (disturbing/gitstalk-plugin, `scripts/`) keeps its own for
+ * `/gitstalk:setup` and runs the script tests, so a change goes to both. The default Gitstalk
  * address inside them becomes this deployment's, so staging serves a script for staging.
  */
-import powershell from '../../../claude-plugin/scripts/gitstalk-setup.ps1?raw';
-import posix from '../../../claude-plugin/scripts/gitstalk-setup.sh?raw';
+import powershell from './scripts/gitstalk-setup.ps1?raw';
+import posix from './scripts/gitstalk-setup.sh?raw';
 
 const PUBLIC_WEB = 'https://gitstalk.io';
 

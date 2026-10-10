@@ -1,9 +1,0 @@
-{
-  "name": "@gitstalk/claude-plugin",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "sh test/setup-tests.sh",
-    "test:containers": "sh test/run-containers.sh"
-  }
-}

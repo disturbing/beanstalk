@@ -139,9 +139,12 @@ existing external-service fixtures. Remote AI is removed only from the local tes
 
 ## Claude Code plugin
 
-`packages/claude-plugin` wires this server into Claude Code with the `gitstalk` skill:
+The plugin for Claude Code and Codex lives in its own repository,
+[disturbing/gitstalk-plugin](https://github.com/disturbing/gitstalk-plugin); it wires this server in
+with the `gitstalk` skill:
 
 ```bash
-claude --plugin-dir packages/claude-plugin     # its server is the hosted /mcp, signed in with OAuth
+claude plugin marketplace add disturbing/gitstalk-plugin && claude plugin install gitstalk@gitstalk
+claude --plugin-dir ../gitstalk-plugin         # a local checkout; its server is the hosted /mcp, signed in with OAuth
 claude mcp add --transport http gitstalk-dev https://...workers.dev/mcp   # another deployment
 ```

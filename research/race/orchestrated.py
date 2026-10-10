@@ -56,7 +56,8 @@ def main(argv: list[str] | None = None) -> int:
                          "run's seed token (the local stack only)")
     ap.add_argument("--guidance", choices=["prompt", "plugin"], default="prompt",
                     help="--forge beanstalk: 'plugin' gives the lead and the workers the Beanstalk plugin's skill "
-                         "(packages/claude-plugin) in place of the shared prompt's forge section; labelled in the "
+                         "(disturbing/gitstalk-plugin: GITSTALK_PLUGIN_DIR, ../gitstalk-plugin, or cloned into "
+                         "research/race/.plugin) in place of the shared prompt's forge section; labelled in the "
                          "summary. Default 'prompt': the shared orchestrated prompt the baseline pairs use")
     ap.add_argument("--claude-bin", default="claude")
     ap.add_argument("--remeasure", action="store_true",

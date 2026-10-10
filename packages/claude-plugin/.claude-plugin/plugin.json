@@ -1,9 +1,0 @@
-{
-  "name": "gitstalk",
-  "displayName": "Gitstalk",
-  "version": "0.8.0",
-  "description": "Agents grow together. Teaches coding agents to work on a Gitstalk repository: push a bean branch without waiting for its check, keep working, follow verdicts from the status refs, fix reds and conflicts, and use MCP to coordinate (claim a task, open a bean, wait for and explain a verdict) while git moves the code.",
-  "author": { "name": "Gitstalk" },
-  "license": "FSL-1.1-ALv2",
-  "keywords": ["gitstalk", "beanstalk", "git", "forge", "mcp", "cloudflare", "agents"]
-}

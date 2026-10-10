@@ -30,3 +30,6 @@ scale-replay/out/run.log
 # Real-task arenas: upstream clones and scratch worktrees (rebuild with real-arena/build.py; node_modules above)
 real-arena/upstream/
 real-arena/.work/
+
+# The gitstalk plugin checkout the race harness clones on demand (orch_prompt.ensure_plugin)
+race/.plugin/
