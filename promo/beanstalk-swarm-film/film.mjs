@@ -371,12 +371,12 @@ function drawClaims(ctx, t) {
     // tick
     const tk = clamp((t - c.t - .55) / .22); if (tk > 0) { const P = [[tipx + 58, tipy - 2], [tipx + 70, tipy + 12], [tipx + 96, tipy - 24]], seg = tk < .4 ? [P[0], [lerp(P[0][0], P[1][0], tk / .4), lerp(P[0][1], P[1][1], tk / .4)]] : [P[0], P[1], [lerp(P[1][0], P[2][0], (tk - .4) / .6), lerp(P[1][1], P[2][1], (tk - .4) / .6)]]; line(ctx, seg, 3.2, LEAF); }
     const x = tipx + 126, a = ap(t, c.t + .2, .5), dy = rise(t, c.t + .2, .5, 22), by = yc + 20 + dy;
-    if (i === 0) { const n = Math.round(37 * eOut(clamp((t - c.t - .2) / .9))); txt(ctx, String(n), x, by + 4, { f: SERIF, size: 150, a });
-      runs(ctx, [[" of 40 ", SERIF, 66], ["shipped", ITAL, 66]], x + tw(ctx, "37", SERIF, 150), by, a); }
-    if (i === 1) { const n = Math.round(9 * eOut(clamp((t - c.t - .2) / .7)));
-      const x2 = runs(ctx, [["Most of the work green in under ", SERIF, 60], [String(n), SERIF, 60], [" min", SERIF, 60]], x, by, a);
-      txt(ctx, "(merge queue: ~20)", x, by + 44, { f: MONO, size: 22, a: a * .8 }); }
-    if (i === 2) runs(ctx, [["Stable line correct, ", SERIF, 60], ["every run", ITAL, 60]], x, by, a);
+    if (i === 0) { const n = Math.max(6, Math.round(9 * eOut(clamp((t - c.t - .2) / .9)))); const big = n < 9 ? `${n}×` : "6–9×";
+      txt(ctx, big, x, by + 4, { f: SERIF, size: 150, a });
+      runs(ctx, [[" faster ", SERIF, 66], ["per change", ITAL, 66]], x + tw(ctx, big, SERIF, 150), by, a); }
+    if (i === 1) { runs(ctx, [["The whole batch lands ", SERIF, 60], ["2–3× sooner", ITAL, 60]], x, by, a);
+      txt(ctx, "(than GitHub's merge queue)", x, by + 44, { f: MONO, size: 22, a: a * .8 }); }
+    if (i === 2) runs(ctx, [["Every change checked on ", SERIF, 60], ["the exact merged code", ITAL, 60]], x, by, a);
     ctx.save(); ctx.globalAlpha *= .2 * a; line(ctx, [[x, yc + 78], [x + 1040 * eOut(clamp((t - c.t - .3) / .6)), yc + 78]], 1, INK); ctx.restore();
   });
 }
@@ -524,7 +524,7 @@ run({
       bean(ctx, 1600, 146, 0, .45, { green: 1, a: a3 }); txt(ctx, "LOCKED IN GREEN", 1790, 152, { f: SANSB, size: 13, track: 2.4, a: a3, align: "right" });
       bean(ctx, 1600, 172, 0, .45, { a: a3 }); txt(ctx, "CLIMBING", 1790, 178, { f: SANSB, size: 13, track: 2.4, a: a3, align: "right" }); }
     const a5 = ap(t, 19.85, .4) * (1 - ss(24.9, 25.25, t));
-    if (a5 > 0) { txt(ctx, "12 Claude agents · 40 colliding tasks · measured on Cloudflare", 600, 96, { f: MONO, size: 21, track: .6, a: a5 });
+    if (a5 > 0) { txt(ctx, "Real fastify repo · 16 agents · vs GitHub's real merge queue", 600, 96, { f: MONO, size: 21, track: .6, a: a5 });
       ctx.save(); ctx.globalAlpha *= a5; line(ctx, [[600, 116], [600 + 1190 * eOut(clamp((t - 19.9) / .5)), 116]], 1.2, INK); ctx.restore(); }
     // lockup
     const wa = ap(t, 25.95, .5);
