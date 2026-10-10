@@ -19,6 +19,11 @@ export const RESERVED_HANDLES: ReadonlySet<string> = new Set([
   'runs',
   'settings',
   'signup',
+  // The marketing site's pages on the web host (packages/web/src/site/forward.ts).
+  'agent',
+  'human',
+  'sitemap',
+  'robots',
   // Routes the product plans or other apps commonly take.
   'about',
   'admin',

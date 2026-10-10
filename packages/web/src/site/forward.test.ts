@@ -14,7 +14,7 @@ describe('the marketing site on the web host', () => {
     },
   );
 
-  it.each(['/about', '/privacy', '/terms'])('serves the page %s without its .html', (path) => {
+  it.each(['/about', '/agent', '/human', '/privacy', '/terms'])('serves the page %s without its .html', (path) => {
     expect(isSitePath(at(path))).toBe(true);
   });
 

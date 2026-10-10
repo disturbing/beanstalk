@@ -7,7 +7,13 @@
 import { SESSION_COOKIE, readCookie } from '@gitstalk/shared-identity/cookies';
 
 /** Site pages reachable without their `.html` (each is a reserved handle, never an owner). */
-const SITE_PAGES: ReadonlySet<string> = new Set(['about', 'privacy', 'terms']);
+const SITE_PAGES: ReadonlySet<string> = new Set([
+  'about',
+  'agent',
+  'human',
+  'privacy',
+  'terms',
+]);
 
 /** Root files the web app serves itself (its static assets never reach the Worker). */
 const WEB_FILES: ReadonlySet<string> = new Set(['setup.sh', 'setup.ps1', 'favicon.ico']);
@@ -17,7 +23,7 @@ const ROOT_FILE = /^\/[\w-]+\.(?:html|css|js|svg|png|jpg|webp|ico|txt|xml|json|w
 
 /**
  * Whether the site, not the app, answers `request`: `/docs` and below, root files with an
- * extension (`/about.html`, `/site.css`), the three bare page names, and `/` for someone
+ * extension (`/about.html`, `/site.css`), the bare page names, and `/` for someone
  * signed out (the landing; signed in, `/` is Home).
  */
 export function isSitePath(request: Request): boolean {
