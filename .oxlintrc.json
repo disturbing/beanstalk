@@ -68,6 +68,7 @@
     "**/worker-configuration.d.ts",
     "**/target/**",
     "research/**",
+    "!research/swarm/**",
     "docs/**"
   ]
 }
