@@ -68,7 +68,7 @@ export async function authenticate(
   if (token === undefined)
     return refuse(
       401,
-      'send Authorization: Bearer <view or contributor token> (mint one with pnpm -F @gitstalk/mcp mint-token)',
+      'send Authorization: Bearer <view or contributor token> (mint one with node research/race/tools/mint-token.mjs)',
     );
   if (gateway === undefined) return refuse(503, 'the GATEWAY binding has no RPC methods');
   const verified =

@@ -49,7 +49,7 @@ Keyboard: `/` focuses Ask from anywhere. In a replay, Space plays or pauses, the
 `fixtures/<run>/` holds the Cloudflare race the demo narrates (`docs/claude-opus/12`, 12 Sonnet agents, seed 7): `j6boaclinn` (Gitstalk v2.5 with dependency-aware starts, `cf-v25dep2-sonnet-12-s7`: 39 green, 35th green 17.1 min, done 31.6 min) and `u0ntf65lbe` (the queue, `cf-queue-sonnet-12-s7-landed`: 36 green, 35th green 35.0 min, done 40.6 min). They are built from git, never by hand:
 
 ```bash
-pnpm -F @gitstalk/web fixtures      # node scripts/build-fixtures.mjs
+node research/race/tools/build-fixtures.mjs      # from the repo root (race tooling)
 ```
 
 The script reads `research/race/runs/<run>/` (events, summary, the agents' worktrees under `work/`, which git ignores: in a fresh worktree, symlink them and `research/corpora/arena.git` from the checkout that ran the race) and `research/arena/tasks`, then writes `events.jsonl` (slimmed to the fields the app reads, no local paths), `summary.json` (without account details), `tasks.json` (titles, intents, tests) and `repo.json` (the base, every line commit and bean head, their trees and file contents). The one landing per run that no worktree fetched is rebuilt the way the runner squashes (`git merge-tree --merge-base`, a commit by `gitstalk-runner`) and must hash to the recorded sha, or the build fails; both runs reproduce their final commit exactly. Every file is scanned before it is written, for secrets, local paths (`/Users/…`, `/home/…`, temp directories), Cloudflare account ids and `workers.dev` addresses; a match fails the build.
@@ -106,6 +106,5 @@ src/recorded/            the bundled runs and their repo snapshots
 src/repo/                diffs, imports, paths
 src/live/                the WebSocket-to-SSE bridge
 src/auth/, src/server/   the demo gate, server actions, request helpers
-scripts/                 build-fixtures.mjs
 fixtures/                generated recorded runs
 ```

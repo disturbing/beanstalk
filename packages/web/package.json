@@ -9,8 +9,7 @@
     "deploy": "echo 'Deploy through an environment: pnpm env:deploy <env> --only web (docs/claude-opus/30-environments.md)' && exit 1",
     "types": "wrangler types --strict-vars false",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run",
-    "fixtures": "node scripts/build-fixtures.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "catalog:",

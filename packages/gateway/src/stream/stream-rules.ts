@@ -20,7 +20,7 @@ const REDACTED_LINE = '[redacted by gitstalk: looks like a secret]';
 
 /**
  * Patterns that never reach a viewer: the ones the recorded fixtures are checked against
- * (`packages/web/scripts/build-fixtures.mjs`), less the 32-hex id, which code matches too
+ * (`research/race/tools/build-fixtures.mjs`), less the 32-hex id, which code matches too
  * often. The driver scans with the same list before it posts (`harness/streamdiff.py`).
  */
 const SECRET_PATTERNS: readonly RegExp[] = [

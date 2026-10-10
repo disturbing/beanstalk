@@ -1,6 +1,6 @@
 // Builds the web app's recorded-run fixtures from the race runs in research/race/runs.
 //
-//   node packages/web/scripts/build-fixtures.mjs        (or: pnpm -F @gitstalk/web fixtures)
+//   node research/race/tools/build-fixtures.mjs
 //
 // For each run it writes packages/web/fixtures/<run>/:
 //   events.jsonl   the run's events, slimmed to the fields the web app reads (no local paths)
