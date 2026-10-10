@@ -38,7 +38,10 @@ The public docs are static HTML pages in `packages/site/public/docs/`, styled by
    (write `<gitstalk host>`).
 5. The left nav is the same block in every page. A new page: copy an existing page whole, change
    its `<title>`, description, prompt line, `aria-current` and body, add it to the nav of every
-   page in the same place, and add prev/next pager links around it.
+   page in the same place, add prev/next pager links around it, and add its name to
+   `DOCS_PAGES` in `packages/web/src/site/pages.ts` (the sitemap; a test fails without it). Keep
+   its `og:title` and `og:description` in step with the title and description; never hardcode a
+   canonical link or `og:url` (the web adds them per origin).
 6. Only the docs folder is yours. On the landing page (`packages/site/public/index.html`) and
    the other site pages, touch nothing but the Docs links.
 

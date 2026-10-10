@@ -1,0 +1,4 @@
+# The site on its own address (its workers.dev URL): kept out of search results. Where the web
+# serves the site (gitstalk.io), the web answers /robots.txt itself and names the sitemap.
+User-agent: *
+Disallow: /

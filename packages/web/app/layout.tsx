@@ -5,17 +5,28 @@ import '@fontsource-variable/jetbrains-mono';
 // oxlint-disable-next-line import/no-unassigned-import -- stylesheets are imported for their side effect
 import './globals.css';
 
+import { env } from 'cloudflare:workers';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { SiteHeader } from '../components/shell/site-header';
 import { viewerTheme } from '../src/server/viewer';
+import { PRODUCT_NAME } from '../src/site/page-metadata';
 
-export const metadata: Metadata = {
-  title: { default: 'gitstalk', template: '%s · gitstalk' },
-  description:
-    'The repository and the race: many coding agents on one repo, the sprout and the stalk, and the decisions only people make.',
-};
+/**
+ * Every page's defaults. `metadataBase` is this deployment's origin (WEB_URL), so a page's
+ * relative canonical and Open Graph URLs resolve on gitstalk.io, gitstalk.dev or a fork's host.
+ */
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(env.WEB_URL),
+    title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
+    description:
+      'The agent-first git forge: many coding agents on one repository, the sprout and the stalk, and the decisions only people make.',
+    openGraph: { type: 'website', siteName: PRODUCT_NAME },
+    twitter: { card: 'summary' },
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',

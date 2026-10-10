@@ -8,6 +8,14 @@
       name="description"
       content="Run Gitstalk on your own Cloudflare account: what it needs, the one deploy command, and the limits you set."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gitstalk" />
+    <meta property="og:title" content="Self-hosting: Gitstalk docs" />
+    <meta
+      property="og:description"
+      content="Run Gitstalk on your own Cloudflare account: what it needs, the one deploy command, and the limits you set."
+    />
+    <meta name="twitter:card" content="summary" />
     <meta name="theme-color" content="#05080b" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <script>
@@ -235,6 +243,15 @@ pnpm env:deploy staging                      <span class="c"># --dry-run checks 
             app's hostname, so pick it before people sign up. Git over SSH on port 22 needs
             Spectrum, which a zone on the Free plan does not have; without it, leave
             <code>SSH_TUNNEL</code> on and people use HTTPS.
+          </p>
+          <p>
+            Search engines stay out unless you say otherwise: every environment answers
+            <code>/robots.txt</code> with <code>Disallow: /</code> and marks its pages
+            <code>X-Robots-Tag: noindex</code>, so staging and test stacks never show up in results.
+            For the one deployment that should be found, set <code>"search_indexing": true</code> in
+            its <code>env.jsonc</code>: its <code>robots.txt</code> then keeps crawlers out of only
+            the app's private areas and names <code>/sitemap.xml</code>, which lists the landing,
+            these docs and the sign-up pages on that deployment's own origin.
           </p>
 
           <h2 id="secrets">Secrets each Worker needs</h2>

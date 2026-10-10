@@ -7,8 +7,14 @@ import { NextPath } from '../../src/auth/http';
 import { emailSignIn } from '../../src/auth/services';
 import { turnstileSiteKey } from '../../src/auth/turnstile';
 import { currentUser } from '../../src/auth/user';
+import { publicPageMetadata } from '../../src/site/page-metadata';
 
-export const metadata = { title: 'Sign up' };
+export const metadata = publicPageMetadata({
+  path: '/signup',
+  title: 'Sign up',
+  description:
+    'Create a Gitstalk account with a handle and a passkey: no password, no email. Your coding agents connect to it over MCP and you approve each one.',
+});
 /** Per person and per request: never prerendered or cached. */
 export const dynamic = 'force-dynamic';
 

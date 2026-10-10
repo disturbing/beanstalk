@@ -3,10 +3,17 @@
  * to the site Worker when this deployment binds it as SITE (one origin for both, e.g.
  * gitstalk.io; `scripts/environments.mjs` adds the binding when `urls.site` equals `urls.web`).
  * Without SITE every request goes to the app, exactly as vinext's default entry does.
+ *
+ * Around both, what search engines see (src/site/search.ts): /robots.txt and /sitemap.xml are
+ * answered here, site pages get their canonical link, and a deployment that is not indexed
+ * (SEARCH_INDEXING is not "on") marks every response `X-Robots-Tag: noindex`.
  */
 import app from 'vinext/server/app-router-entry';
 
 import { isSitePath } from '../src/site/forward';
+import type { SearchVars } from '../src/site/search';
+import { searchSettings } from '../src/site/search';
+import { searchFileResponse, servedSiteResponse, withIndexing } from '../src/site/search-responses';
 
 /** The optional binding: generated only for environments that serve the site here. */
 type SiteBinding = { readonly SITE?: { fetch(request: Request): Promise<Response> } };
@@ -16,8 +23,18 @@ type AppContext = Parameters<typeof app.fetch>[2];
 
 export default {
   __ensureInstrumentation: app.__ensureInstrumentation,
-  async fetch(request: Request, env: AppEnv & SiteBinding, ctx: AppContext): Promise<Response> {
-    if (env?.SITE && isSitePath(request)) return env.SITE.fetch(request);
-    return app.fetch(request, env, ctx);
+  async fetch(
+    request: Request,
+    env: AppEnv & SiteBinding & SearchVars,
+    ctx: AppContext,
+  ): Promise<Response> {
+    const settings = searchSettings(env ?? {});
+    const site = env?.SITE;
+    const searchFile = searchFileResponse(request, settings, site ? 'here' : 'elsewhere');
+    if (searchFile !== null) return withIndexing(searchFile, settings);
+    if (site && isSitePath(request)) {
+      return servedSiteResponse(await site.fetch(request), request, settings);
+    }
+    return withIndexing(await app.fetch(request, env, ctx), settings);
   },
 };
