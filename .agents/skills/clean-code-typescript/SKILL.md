@@ -1,11 +1,11 @@
 ---
 name: clean-code-typescript
-description: Clean Code (Robert C. Martin) translated into strict TypeScript for beanstalk's Workers, Durable Objects and the vinext web app. Covers naming, small functions, discriminated unions and branded types, typed errors and Result values, Zod at boundaries, module layout, vitest tests, promise and Workers lifetime rules, plus the oxlint and tsconfig profile. Use when writing, reviewing or refactoring any .ts or .tsx file.
+description: Clean Code (Robert C. Martin) translated into strict TypeScript for Gitstalk's Workers, Durable Objects and the vinext web app. Covers naming, small functions, discriminated unions and branded types, typed errors and Result values, Zod at boundaries, module layout, vitest tests, promise and Workers lifetime rules, plus the oxlint and tsconfig profile. Use when writing, reviewing or refactoring any .ts or .tsx file.
 ---
 
 # Clean Code, in TypeScript
 
-The root `tsconfig.base.json` and `.oxlintrc.json` (type-aware oxlint) are the mechanical half; this file is the judgement half. Platform wiring (Hono shape, wrangler config, package layout) lives in the `beanstalk-packages` skill.
+The root `tsconfig.base.json` and `.oxlintrc.json` (type-aware oxlint) are the mechanical half; this file is the judgement half. Platform wiring (Hono shape, wrangler config, package layout) lives in the `gitstalk-packages` skill.
 
 ## Rules that apply every time
 

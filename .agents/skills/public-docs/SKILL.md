@@ -1,6 +1,6 @@
 ---
 name: public-docs
-description: How to keep Beanstalk's public documentation (packages/site/public/docs/, plain HTML on the marketing site) accurate after a user-visible change. Use whenever a change alters what a person or agent can do or see (git flow, push options or messages, repository pages, auth and tokens, MCP tools, checks, collaborators, Actions, automations, limits, self-hosting, deploy state), when an experiment concludes, or when asked to update, audit or check the docs. Covers which page to edit, the live / rolling out / coming soon labels, number style, the shared nav, and the check to run.
+description: How to keep Gitstalk's public documentation (packages/site/public/docs/, plain HTML on the marketing site) accurate after a user-visible change. Use whenever a change alters what a person or agent can do or see (git flow, push options or messages, repository pages, auth and tokens, MCP tools, checks, collaborators, Actions, automations, limits, self-hosting, deploy state), when an experiment concludes, or when asked to update, audit or check the docs. Covers which page to edit, the live / rolling out / coming soon labels, number style, the shared nav, and the check to run.
 ---
 
 # Public docs
@@ -35,7 +35,7 @@ The public docs are static HTML pages in `packages/site/public/docs/`, styled by
    `https://github.com/disturbing/beanstalk/tree/prototype/...`.
 4. Style: plain English, short sentences, sentence case, no hype. Never name the private
    platform repository, never print a secret, a token, an account id or a workers.dev subdomain
-   (write `<beanstalk host>`).
+   (write `<gitstalk host>`).
 5. The left nav is the same block in every page. A new page: copy an existing page whole, change
    its `<title>`, description, prompt line, `aria-current` and body, add it to the nav of every
    page in the same place, and add prev/next pager links around it.

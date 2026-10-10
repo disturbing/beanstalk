@@ -63,7 +63,7 @@ Logs: every line reached the gateway's sink as numbered batches and is stored as
 | `run:` steps (bash, sh, python), `env`, `defaults`, `working-directory`, `if:` | Works | act host mode |
 | `actions/checkout` of the job's repository | Works | from `GITHUB_SERVER_URL/<owner>/<repo>` (the gateway's GitHub-shaped git) with the job token; fetch by sha |
 | `actions/setup-node` (20, 24) | Works, fast | toolcache baked; other versions download from GitHub (about 10 s) |
-| JavaScript and composite actions from github.com | Works | the job's own `uses:` and the baked ones are fetched anonymously from github.com; an action that a composite action uses internally, not named in the workflow and not baked, is fetched from Beanstalk and fails (`repository not found`) |
+| JavaScript and composite actions from github.com | Works | the job's own `uses:` and the baked ones are fetched anonymously from github.com; an action that a composite action uses internally, not named in the workflow and not baked, is fetched from Gitstalk and fails (`repository not found`) |
 | `$GITHUB_OUTPUT`, job `outputs:`, `needs.*.outputs`, `needs.*.result` | Works | outputs resolved from `steps.<id>.outputs.<name>` templates; other expressions in `outputs:` are reported unresolved |
 | `$GITHUB_STEP_SUMMARY` | Captured | as `##[summary]` lines in the log (the contract has no summary field yet) |
 | `::error::`/`::warning::`/`::notice::` annotations, `::group::`, `::add-mask::` | Works | annotations as `##[error]file:line: message` lines; masks applied before lines leave the container |
@@ -76,7 +76,7 @@ Logs: every line reached the gateway's sink as numbered batches and is stored as
 | `actions/cache` | `node_modules` and package-manager stores: the dependency cache (`27` §10); other paths no-op | `actions/cache` of `node_modules` or a store, and `setup-node` with `cache:`, become the dependency cache's restore and save steps (built 2026-10-09, `27` §10); for any other path the cache server is off (`--no-cache-server`) and `actions/cache` warns and continues (`25` A3) |
 | `upload-artifact` / `download-artifact` | Within the job only | act's artifact server on loopback; artifacts vanish with the container |
 | OIDC (`id-token: write`) | Passed through | when the control plane sets `ACTIONS_ID_TOKEN_REQUEST_URL`/`_TOKEN` in `env`, steps see them; not exercised on staging |
-| GitHub REST API via `GITHUB_TOKEN` | No | `GITHUB_API_URL` points at Beanstalk, which serves no REST API yet |
+| GitHub REST API via `GITHUB_TOKEN` | No | `GITHUB_API_URL` points at Gitstalk, which serves no REST API yet |
 | `ubuntu-22.04` | Runs differently | on the 24.04 image |
 | Other `runs-on` labels (macOS, Windows, self-hosted) | No | the control plane refuses them |
 

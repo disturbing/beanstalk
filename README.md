@@ -1,39 +1,43 @@
-# Beanstalk
+# Gitstalk
+
+**Watch your work grow like a beanstalk.**
 
 An agent-first git forge on Cloudflare Workers and Artifacts, built for Cloudflare's "Build the next GitHub" competition.
 
-When a dozen coding agents work on one codebase, a merge queue makes them wait in line. Beanstalk lets them land without waiting. It checks every change on the exact tree it would land on, sends a failure back to the agent that wrote the change with the change that broke it, and asks a human only when two specs genuinely disagree.
+When a dozen coding agents work on one codebase, a merge queue makes them wait in line. Gitstalk lets them land without waiting. It checks every change on the exact tree it would land on, sends a failure back to the agent that wrote the change with the change that broke it, and asks a human only when two specs genuinely disagree.
 
 - A **bean** is one agent's change: a branch of the run's repository.
 - The **sprout** is the staged line. A bean lands there as soon as its pre-land check passes on the exact merged tree.
 - The **stalk** is the stable line. It moves only to sprout commits that passed validation, so the stalk stays honest.
 
+Agents grow together. Gitstalk was called Beanstalk until 2026-10-10; the beans, sprout and stalk stay. Deployed Worker and resource names (`beanstalk-*`) and the hosted `workers.dev` addresses keep their names until the gitstalk.io domain is set up (`docs/claude-opus/30-environments.md` §12).
+
 ## Measured, not projected
 
-**Against GitHub's own merge queue, on a real repository.** The same 38 changes from fastify's history (merged upstream PRs, each with its own tests) were pushed in parallel to a public GitHub repository with GitHub's merge queue and Actions, and to a Beanstalk repository, with CI capacity matched (Beanstalk pre-land concurrency 20 = the org's Actions job limit; 2 validation slots = the queue's build concurrency). Changes and timing were replayed without models (`research/race/loadgen/`), and separately worked by real Claude Code agents organising the work themselves (`research/race/ORCHESTRATED.md`).
+**Against GitHub's own merge queue, on a real repository.** The same 38 changes from fastify's history (merged upstream PRs, each with its own tests) were pushed in parallel to a public GitHub repository with GitHub's merge queue and Actions, and to a Gitstalk repository, with CI capacity matched (Gitstalk pre-land concurrency 20 = the org's Actions job limit; 2 validation slots = the queue's build concurrency). Changes and timing were replayed without models (`research/race/loadgen/`), and separately worked by real Claude Code agents organising the work themselves (`research/race/ORCHESTRATED.md`).
 
-| Parallel workers | Ready → merged, median (GitHub / Beanstalk) | Faster | All 38 landed (GitHub / Beanstalk) | Sooner |
+| Parallel workers | Ready → merged, median (GitHub / Gitstalk) | Faster | All 38 landed (GitHub / Gitstalk) | Sooner |
 |---|---|---|---|---|
 | 4 (seed 13) | 2.9 / 0.7 min | 4.1× | 46.3 / 24.0 min | 1.9× |
 | 8 (seed 13) | 3.7 / 0.8 min | 4.6× | 29.6 / 13.8 min | 2.1× |
 | 16 (seeds 7 / 11 / 13) | 7.1 / 6.6 / 7.1 vs 1.1 / 1.0 / 0.8 min | **6.5–8.9×** | 30.4 / 27.8 / 32.5 vs 10.9 / 12.4 / 9.8 min | **2.2–3.3×** |
 
-GitHub's queue slows as more work arrives (its merge queue builds two groups at a time); Beanstalk keeps landing each change in about a minute. Every run landed all 38 changes correctly on both forges. With real agents (Claude Code lead + Sonnet workers, 38 tasks), the forges tie at 4 workers, where the agents are the bottleneck; at 8 workers Beanstalk's last green came at 22.4 min against GitHub's 41.4 (1.8×). Caveats: the 4- and 8-worker replay rows are one seed each; CI minutes are not like for like (GitHub's include runner setup and `npm ci`); the race repos are public in the `kintohubtest` GitHub organization. Runs: `research/race/runs/lg-fastify-*` and `orch-fastify-*`; tables: `research/race/loadgen/README.md`.
+GitHub's queue slows as more work arrives (its merge queue builds two groups at a time); Gitstalk keeps landing each change in about a minute. Every run landed all 38 changes correctly on both forges. With real agents (Claude Code lead + Sonnet workers, 38 tasks), the forges tie at 4 workers, where the agents are the bottleneck; at 8 workers Gitstalk's last green came at 22.4 min against GitHub's 41.4 (1.8×). Caveats: the 4- and 8-worker replay rows are one seed each; CI minutes are not like for like (GitHub's include runner setup and `npm ci`); the race repos are public in the `kintohubtest` GitHub organization. Runs: `research/race/runs/lg-fastify-*` and `orch-fastify-*`; tables: `research/race/loadgen/README.md`.
 
 ### The synthetic arena
 
 **30 agents.** 30 real Claude Code agents (Sonnet) worked the same 40 colliding tasks, every landed acceptance test protected, on three seeds (7, 11, 13). Every integration decision ran on the deployed Cloudflare prototype.
 
-**Beanstalk shipped more (39–40 of 40 green, against the queue's 34–35), reached its 30th green task 1.7–2.3x sooner on every seed, and finished 1.3–1.6x sooner, with no red stalk check and the same agent spend.**
+**Gitstalk shipped more (39–40 of 40 green, against the queue's 34–35), reached its 30th green task 1.7–2.3x sooner on every seed, and finished 1.3–1.6x sooner, with no red stalk check and the same agent spend.**
 
 | Seed | Run | Tasks green | 30th green | 35th green | All done | Agent spend | Red validations | Final stalk correct |
 |---|---|---|---|---|---|---|---|---|
 | 7 | Batched merge queue | 35 of 40 | 22.0 min | 35.3 min | 38.7 min | $4.32 | 11 | yes |
-| 7 | Beanstalk | **39 of 40** | **10.2 min** | **13.5 min** | **30.3 min** | $4.54 | 0 | yes |
+| 7 | Gitstalk | **39 of 40** | **10.2 min** | **13.5 min** | **30.3 min** | $4.54 | 0 | yes |
 | 11 | Batched merge queue | 35 of 40 | 23.7 min | 34.2 min | 34.2 min | $4.47 | 9 | yes |
-| 11 | Beanstalk | **40 of 40** | **11.9 min** | **15.0 min** | **23.2 min** | $4.03 | 0 | yes |
+| 11 | Gitstalk | **40 of 40** | **11.9 min** | **15.0 min** | **23.2 min** | $4.03 | 0 | yes |
 | 13 | Batched merge queue | 34 of 40 | 21.7 min | not reached | 44.7 min | $4.41 | 13 | yes |
-| 13 | Beanstalk | **39 of 40** | **12.9 min** | **20.0 min** | **27.3 min** | $4.74 | 0 | yes |
+| 13 | Gitstalk | **39 of 40** | **12.9 min** | **20.0 min** | **27.3 min** | $4.74 | 0 | yes |
 
 The engine behind these runs is v2.5 with dependency-aware starts, the red-window reset, the scheduler starvation fix and re-checked structural merges (gateway of 2026-10-06). An earlier 30-agent run without those fixes was no faster than the queue (35th green 34.5 against 35.5 min); `docs/claude-opus/11-experiments-summary.md` has that post-mortem. `--preset demo` now also turns on check reuse and per-reset repair chains, which are measured only in the simulator so far.
 
@@ -42,17 +46,17 @@ The engine behind these runs is v2.5 with dependency-aware starts, the red-windo
 | Seed | Run | Tasks green | 35th green | All done | Agent spend | Red validations | Final stalk correct |
 |---|---|---|---|---|---|---|---|
 | 7 | Batched merge queue | 36 of 40 | 35.0 min | 40.6 min | $4.12 | 10 | yes |
-| 7 | Beanstalk | **39 of 40** | **17.1 min** | **31.6 min** | $6.08 | 4 | yes |
+| 7 | Gitstalk | **39 of 40** | **17.1 min** | **31.6 min** | $6.08 | 4 | yes |
 | 11 | Batched merge queue | 35 of 40 | 29.2 min | 30.2 min | $4.51 | 8 | yes |
-| 11 | Beanstalk | **39 of 40** | **14.9 min** | **24.0 min** | $4.18 | 0 | yes |
+| 11 | Gitstalk | **39 of 40** | **14.9 min** | **24.0 min** | $4.18 | 0 | yes |
 | 13 | Batched merge queue | 37 of 40 | 36.8 min | 39.5 min | $4.54 | 10 | yes |
-| 13 | Beanstalk | **38 of 40** | **22.0 min** | **29.8 min** | $5.32 | 4 | yes |
+| 13 | Gitstalk | **38 of 40** | **22.0 min** | **29.8 min** | $5.32 | 4 | yes |
 
 Read it with care:
-- **Three seeds**, one run each, at each size. Seeds swing a lot: at 30 agents Beanstalk's 35th green came at 13.5 to 20.0 minutes.
+- **Three seeds**, one run each, at each size. Seeds swing a lot: at 30 agents Gitstalk's 35th green came at 13.5 to 20.0 minutes.
 - **A synthetic arena with short tasks.** The 40 tasks collide on purpose in a small TypeScript shop, and agents finish a task in tens of seconds. With 7x-longer tasks, a local experiment saw the lead shrink to 1.3–1.4x. The fastify races above use real changes against GitHub's own merge queue.
 - **The queue in this arena is ours**: a batched merge queue built to behave like GitHub's. The fastify races above use GitHub's real one.
-- **Cost is measured.** At 30 agents agent spend was even: $13.31 for Beanstalk over the three seeds against the queue's $13.20; at 12 agents Beanstalk cost 18% more. Cloudflare infrastructure, metered, was $0.38–0.43 per Beanstalk race and $0.21–0.24 per queue race.
+- **Cost is measured.** At 30 agents agent spend was even: $13.31 for Gitstalk over the three seeds against the queue's $13.20; at 12 agents Gitstalk cost 18% more. Cloudflare infrastructure, metered, was $0.38–0.43 per Gitstalk race and $0.21–0.24 per queue race.
 - The agents ran on a laptop; only the decisions ran on Cloudflare. Times count from the race's start (`kth_green.py`; `--raw-clock` gives the older numbers from the run's creation, 0.1–0.2 minutes later).
 
 The runs are in `research/race/runs/`: `cf-queue-sonnet-30-s{7,11,13}` and `cf-demo2-sonnet-30-s{7,11,13}` at 30 agents; `cf-queue-sonnet-12-s7-landed`, `cf-queue-sonnet-12-s11`, `-s13`, `cf-v25dep2-sonnet-12-s{7,11,13}` at 12. `python3 research/race/kth_green.py <runs> --k 30` reproduces the tables. The history, and every experiment behind these rules, is in [`docs/claude-opus/11-experiments-summary.md`](docs/claude-opus/11-experiments-summary.md).
@@ -123,4 +127,4 @@ Use `--policy queue --batch 4 --no-queue-hold` for the merge-queue baseline. Run
 
 ## Licence
 
-[FSL-1.1-ALv2](LICENSE.md) (Functional Source License, Apache-2.0 future licence), copyright 2026 Coop. You may read, use, modify and redistribute the code for any purpose **except a competing commercial product or service**, such as hosting Beanstalk as a service. Each version becomes Apache-2.0 two years after it is released.
+[FSL-1.1-ALv2](LICENSE.md) (Functional Source License, Apache-2.0 future licence), copyright 2026 Coop. You may read, use, modify and redistribute the code for any purpose **except a competing commercial product or service**, such as hosting Gitstalk as a service. Each version becomes Apache-2.0 two years after it is released.

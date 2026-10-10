@@ -1,10 +1,10 @@
-# The cloud agent swarm: Beanstalk against GitHub's merge queue, on real tasks
+# The cloud agent swarm: Gitstalk against GitHub's merge queue, on real tasks
 
 Written 2026-10-06 for Coop, from the `prototype` branch. **Design only: nothing here is built, created, logged into or paid for.** *Update 2026-10-07:* the GitHub arm is built in its laptop form (§6's first cut line: local agents, a polling driver instead of the App and webhooks): `research/race/GITHUB.md`, `race.py --forge github`, `pair.py`, with race repos in the `kintohubtest` org. Its measured GitHub behaviour is recorded there. Names as before: a **bean** is one agent's change, the **sprout** is the staged line, the **stalk** is the stable line.
 
 Inputs: `AGENTS.md`, `README.md`, this folder's `11` (how races are measured), `16` (product plan, §3.5 BYOA and D8), `exp/e2-real-arena.md` (the one real-repo race so far), `research/race/REMOTE.md`, `harness/remote.py`, `harness/agents.py` (the Codex adapter), `harness/policy_queue.py`, `kth_green.py`, `packages/gateway/README.md` (driver contract), `packages/mcp/README.md`, `docs/claude-06-identity-mcp-and-previews.md`. Web research on 2026-10-06; every external claim cites its source and date, and "unverified" marks what the sources did not settle.
 
-**The question.** Today's headline (with 12 and 30 agents on 40 colliding tasks, Beanstalk reaches its 35th green 2–2.6x sooner than our batched queue; README and `11` have the per-seed numbers) carries three caveats a judge will raise: a synthetic arena we wrote, a merge queue we wrote, and agents on a laptop. This design removes all three. The same Codex agents, in the same Cloudflare sandboxes, work the same real tasks on two forges at once: a real GitHub repository with GitHub's own merge queue and Actions, and a Beanstalk repository. Only the forge differs.
+**The question.** Today's headline (with 12 and 30 agents on 40 colliding tasks, Gitstalk reaches its 35th green 2–2.6x sooner than our batched queue; README and `11` have the per-seed numbers) carries three caveats a judge will raise: a synthetic arena we wrote, a merge queue we wrote, and agents on a laptop. This design removes all three. The same Codex agents, in the same Cloudflare sandboxes, work the same real tasks on two forges at once: a real GitHub repository with GitHub's own merge queue and Actions, and a Gitstalk repository. Only the forge differs.
 
 ---
 
@@ -65,7 +65,7 @@ Inputs: `AGENTS.md`, `README.md`, this folder's `11` (how races are measured), `
 
 ## 1. Fairness first
 
-The claim we want is "on the same agents, tasks and CI capacity, Beanstalk ships N sooner than GitHub". A judge will look for any lever we held on one side only. Each lever below is either held equal or reported.
+The claim we want is "on the same agents, tasks and CI capacity, Gitstalk ships N sooner than GitHub". A judge will look for any lever we held on one side only. Each lever below is either held equal or reported.
 
 ### 1.1 Identical agent runtime (enforced, recorded in `config.json` of both arms)
 
@@ -91,7 +91,7 @@ The claim we want is "on the same agents, tasks and CI capacity, Beanstalk ships
 
 What corresponds to what:
 
-| GitHub arm | Beanstalk arm | Matched how |
+| GitHub arm | Gitstalk arm | Matched how |
 |---|---|---|
 | PR check: the suite on every push, `pull_request` event | Pre-land check: the suite on the bean merged onto the sprout, in the runner | Same suite command, same machine size, unbounded by slots (one per push) |
 | Merge-group build: the suite on main + entries ahead, `merge_group` event | Validation of the sprout head (and bisect probes) | **K = merge queue "build concurrency" (`max_entries_to_build`) = gateway `ci_slots`** |
@@ -116,9 +116,9 @@ What corresponds to what:
 
 ### 1.4 What is deliberately not equal (and said so in the write-up)
 
-- **The forge's own features are the treatment.** Beanstalk's engine (pre-land on the exact tree, sprout window, informed repair, revert-first, cards with the `landed` oracle, structural merge, dependency-aware starts under the `demo` preset) is what we're measuring. GitHub gets GitHub's queue as GitHub ships it.
+- **The forge's own features are the treatment.** Gitstalk's engine (pre-land on the exact tree, sprout window, informed repair, revert-first, cards with the `landed` oracle, structural merge, dependency-aware starts under the `demo` preset) is what we're measuring. GitHub gets GitHub's queue as GitHub ships it.
 - **GitHub gets an automatic rework loop it doesn't have.** On a kick-out, Arm G's controller merges main into the PR branch and resumes work exactly as our queue baseline does (`policy_queue.py` `eject` → `rework_flow`). A conflict with a queue-mate but not with main is re-queued with no agent. Real teams do this by hand or with bots. Automating it is generous to GitHub, which is the right direction for a fair claim.
-- **Task starts.** The primary comparison runs Beanstalk's `demo` preset with dependency-aware starts, because that is the product. One robustness seed uses `start_order: fifo` so a judge can see how much of the gap is scheduling (decision 9).
+- **Task starts.** The primary comparison runs Gitstalk's `demo` preset with dependency-aware starts, because that is the product. One robustness seed uses `start_order: fifo` so a judge can see how much of the gap is scheduling (decision 9).
 
 ### 1.5 MCP and forge tools
 
@@ -282,13 +282,13 @@ Arm B's controller is the gateway's `RunDO`, deployed today. MatchDO creates the
   | REST requests, App installation | 5,000 per hour, scaling to 12,500 | [REST limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api) | Fine: one race makes well under 1,500 calls |
   | Content creation (PRs, comments, mutations) | 80 per minute and 500 per hour (secondary) | [REST limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api) | A 60-task race needs about 60 PRs and 150 enqueues: inside the limits, but it rules out back-to-back races in one hour on one installation |
   | Pushes to one repo | 6 per minute, recommended | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | 30 agents will exceed this at peak |
-  | Merged PRs | 1 per minute | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | If a merge group counts as one merge, groups of up to 4 keep it out of the way; if every PR counts, a 40-task race cannot finish in under about 40 min, a floor Beanstalk does not have. Measured 2026-10-07 (`research/race/GITHUB.md`): it did not bind; 4 PRs merged in 36 s, and a group's PRs merge in the same second |
+  | Merged PRs | 1 per minute | [repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) | If a merge group counts as one merge, groups of up to 4 keep it out of the way; if every PR counts, a 40-task race cannot finish in under about 40 min, a floor Gitstalk does not have. Measured 2026-10-07 (`research/race/GITHUB.md`): it did not bind; 4 PRs merged in 36 s, and a group's PRs merge in the same second |
 
   - The controller serialises mutations at least 1 s apart, per GitHub's advice.
   - It logs every `403`/`429` with `retry-after` as `gh.rate_limited`.
   - These throttles are real GitHub behaviour, so they stay in the measurement. We report them, and Phase 3 measures whether the 1-per-minute merge limit binds.
 
-### 3.4 The Beanstalk arm
+### 3.4 The Gitstalk arm
 
 As deployed today, with three match settings:
 - `ci_seconds: 0` (real suite only) and `ci_slots: K`.
@@ -306,8 +306,8 @@ The driver contract, git proxy, slot tokens, `demo` preset, spend guards, reap a
 | GitHub App private key | Secrets Store, BrokerDO only | Nothing | Long-lived, never leaves BrokerDO |
 | GitHub installation token | Minted by BrokerDO per invocation, repo-restricted, contents write | Nothing (`gh.internal` adds it as Basic `x-access-token`) | 1 h maximum ([installation tokens](https://docs.github.com/en/rest/apps/apps#create-an-installation-access-token-for-an-app), accessed 2026-10-06); re-minted at 50 min |
 | Controller's own GitHub token (PRs, enqueue) | Minted by BrokerDO for GitHubArmDO | Never leaves the Worker | 1 h |
-| Beanstalk admin token | Secrets Store, MatchDO calls the gateway over the service binding | Nothing | As today |
-| Beanstalk slot tokens | MatchDO from `POST /v1/runs` | Nothing (`bs.internal` adds it) | As today, refreshed via `next` |
+| Gitstalk admin token | Secrets Store, MatchDO calls the gateway over the service binding | Nothing | As today |
+| Gitstalk slot tokens | MatchDO from `POST /v1/runs` | Nothing (`bs.internal` adds it) | As today, refreshed via `next` |
 | ChatGPT `auth.json` (subscription mode only, §4.2) | DO storage, encrypted with a Secrets Store key; one per seat | Written into `CODEX_HOME` of the one container holding the seat lease, read back after every invocation | Seat lease = one invocation |
 
 The rules, all enforced in code and in review:
@@ -375,7 +375,7 @@ The findings, from OpenAI's Codex docs (accessed 2026-10-06):
 - **Terms.**
   - OpenAI's Terms of Use: "You may not share your account credentials or make your account available to anyone else", and you may not "automatically or programmatically extract data or Output" (2024-12-11 text via [mirror](https://open.windriver.com/info/uni-license-list/licenses/openai-tou-20241211.html)). The current page returned 403 to our fetcher.
   - Running Coop's own agents isn't obviously "anyone else". But a 60-container swarm on one personal seat goes well beyond the one-runner pattern the docs allow, and is the kind of use that gets accounts flagged. Doc `16` D8 already marks subscription cloud sessions "local only".
-- **Codex Cloud** (chatgpt.com/codex) runs parallel tasks on the plan's allowance, but **only against GitHub repositories** ([Codex cloud](https://learn.chatgpt.com/docs/cloud)). It can't drive the Beanstalk arm, so it would break "same agent runtime". It's rejected for the comparison.
+- **Codex Cloud** (chatgpt.com/codex) runs parallel tasks on the plan's allowance, but **only against GitHub repositories** ([Codex cloud](https://learn.chatgpt.com/docs/cloud)). It can't drive the Gitstalk arm, so it would break "same agent runtime". It's rejected for the comparison.
 
 **So the options are:**
 
@@ -417,7 +417,7 @@ The findings, from OpenAI's Codex docs (accessed 2026-10-06):
 | API calls, secondary-limit hits, `retry-after` seconds | `gh.rate_limited` |
 | Webhook lag | `gh.webhook_lag_ms` |
 
-**Beanstalk's counterparts** (already in its summary):
+**Gitstalk's counterparts** (already in its summary):
 - pre-land checks and re-checks;
 - validations, bisect runs and reverts;
 - cards and reconciles;
@@ -460,7 +460,7 @@ Today is 2026-10-06. The submission work in `16` Phase 0 still has priority, so 
 
 **Cut lines:**
 - If Phase 1 slips past 10-09, run the agents from the laptop through the same driver against both arms. That removes two of the three caveats and keeps the GitHub arm.
-- If Phase 2 slips past 10-10, ship Beanstalk-only cloud races on the real arena against our own queue. That removes the synthetic-arena and laptop caveats, and states the self-written-queue caveat plainly.
+- If Phase 2 slips past 10-10, ship Gitstalk-only cloud races on the real arena against our own queue. That removes the synthetic-arena and laptop caveats, and states the self-written-queue caveat plainly.
 - If the 30-agent races can't fit, ship 12 agents × 3 seeds.
 
 ---
@@ -477,7 +477,7 @@ Today is 2026-10-06. The submission work in `16` Phase 0 still has priority, so 
 | 6 | **Simultaneous vs sequential arms** | — | Simultaneous, separate OpenAI projects with equal limits, freeze-and-void on any provider limit | 10-07 |
 | 7 | **CI machines** | (a) GitHub-hosted `ubuntu-latest` vs runner `standard-4`, calibrated; (b) self-hosted GitHub runners on Cloudflare containers of the runner's type | (a). Switch to (b) only if calibration shows a gap above 25% | after calibration (10-09) |
 | 8 | **Acceptance tests visible or fully hidden** | (a) held out of the repo, given to the task's agent and protected, as every race so far; (b) fully hidden, overlaid by CI | (a) for the measured races, so results connect to E2/E7 and PR descriptions aren't guessing games; (b) as one robustness seed if time allows | 10-07 |
-| 9 | **Beanstalk preset** | `demo` (dependency-aware starts), or FIFO | `demo` primary (it is the product), plus one FIFO seed reported alongside | 10-07 |
+| 9 | **Gitstalk preset** | `demo` (dependency-aware starts), or FIFO | `demo` primary (it is the product), plus one FIFO seed reported alongside | 10-07 |
 | 10 | **K and C** | — | K = 2 (as every race so far) for 12 agents, K = 4 for 30 agents; C = 20 (GitHub Free's job cap) for both | 10-08 |
 | 11 | **Publishing the GitHub arm** | keep repos public after the race, archive, or delete | Keep them public and archived: judges can click through the real PRs, queue history and Actions runs. That's the strongest evidence we can offer | 10-12 |
 | 12 | **Attribution of upstream PRs** | — | The arena README credits the upstream repo, licence and each PR's author by handle and number. Tasks are used as benchmark prompts, never presented as our work | 10-07 |
@@ -492,8 +492,8 @@ Today is 2026-10-06. The submission work in `16` Phase 0 still has priority, so 
 | **Subscription ToS / shared-login breakage** | Coop's ChatGPT account flagged, or Codex logged out on his laptop mid-race | API key for measured races; subscription mode B leases one seat per container and writes refreshed tokens back; never mode C |
 | **Unknown subscription allowance** (weekly caps unpublished, `/status` sometimes wrong, issue #28016) | A race stalls on a limit | Not in mode A; in mode B, freeze-and-void and re-run on A |
 | **GitHub per-repo limits** (6 pushes/min recommended, 1 merge/min, 500 content creations/h) | GitHub arm throttled at 30 agents | It is real GitHub behaviour and stays in the result. Measure in Phase 3; report `gh.rate_limited`; one race per repo per hour; fresh repo per match |
-| **GitHub Actions free-tier queueing** (20 concurrent jobs, two suites per bean) | Arm G slower for capacity, not design | That is the matched C. If a judge objects, state that Beanstalk was capped at the same 20, and show max-concurrency telemetry |
-| **Real tasks too easy or too calm** (E2: queue won 4.3–4.7x) | Beanstalk loses on real data | Choose a high-contention repo and use the chain build. **Publish the result either way**: an honest loss on calm repos, with the contention profile beside it, beats an unexplained win. The v2.1/v2.2 adaptive re-check already fixed E2's overhead |
+| **GitHub Actions free-tier queueing** (20 concurrent jobs, two suites per bean) | Arm G slower for capacity, not design | That is the matched C. If a judge objects, state that Gitstalk was capped at the same 20, and show max-concurrency telemetry |
+| **Real tasks too easy or too calm** (E2: queue won 4.3–4.7x) | Gitstalk loses on real data | Choose a high-contention repo and use the chain build. **Publish the result either way**: an honest loss on calm repos, with the contention profile beside it, beats an unexplained win. The v2.1/v2.2 adaptive re-check already fixed E2's overhead |
 | **Model contamination** (the model has seen the upstream PRs) | Agents reproduce known fixes | Equal across arms. Network off for agent commands, so no fetching upstream. Note it in the caveats |
 | **AI Gateway or custom-provider path doesn't carry Codex** | Phase 1 blocked | The first test of Phase 1; fallback: per-invocation restricted key in env, revoked at match end (Cloudflare's own Codex template) |
 | **Fairness objections a judge could raise** | Result dismissed | Each has an answer in §1: same image digest, same model and effort, same prompts, same task order, same C and K, same final-check code, calibration file, simultaneous arms, GitHub given automatic rework, raw events and public GitHub repos to audit. The `demo` vs FIFO seed answers "scheduling, not integration" |

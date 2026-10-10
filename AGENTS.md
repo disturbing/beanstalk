@@ -1,4 +1,4 @@
-# beanstalk
+# Gitstalk
 
 Agent-first git forge on Cloudflare Workers and Artifacts, built for Cloudflare's "Build the next GitHub" competition (deadline 2026-10-14). Design docs are the source of truth for behaviour: start with `docs/claude-README.md`, then `docs/claude-10-beanstalk-thesis.md` and `docs/claude-13-demo-plan.md`. When code and a doc disagree, update the doc in the same change.
 
@@ -6,6 +6,7 @@ This file is the canonical instruction set for every coding agent (Codex, Claude
 
 ## Stack (decided)
 
+- **Name**: the product is Gitstalk (owner, 2026-10-10; it was Beanstalk). The growing-beanstalk metaphor stays (beans, sprout, stalk, `bean/<name>`, `refs/beans/*`). Deployed Worker and resource names stay `beanstalk-*` until the domain move (`docs/claude-opus/30-environments.md` §12); a repository's config is `.gitstalk/` (`.beanstalk/` still read), variables are `GITSTALK_*` (`BEANSTALK_*` still read).
 - **Monorepo**: pnpm workspace, every unit under `packages/<name>` (package `@gitstalk/<name>`, Worker `beanstalk-<name>`). Dependency versions come from the catalog in `pnpm-workspace.yaml`.
 - **Workers**: TypeScript, Hono router inside a `WorkerEntrypoint` default export, RPC between Workers through service bindings (never HTTP). One `wrangler.jsonc` per package; Wrangler is the deploy tool for every package (not the beta `cf` CLI) until after the deadline.
 - **Containers**: Rust (axum, tokio), one crate per image under `packages/<name>` with its Dockerfile, owned by a Container Durable Object in a Worker package. Root `Cargo.toml` is a workspace created with the first crate.
@@ -32,7 +33,7 @@ pnpm env:deploy <env>              # check secrets, deploy every package in orde
 |---|---|
 | Any `.ts` / `.tsx` | `clean-code-typescript` |
 | Any Rust, `Cargo.toml`, Dockerfile | `clean-code-rust` |
-| Creating or structuring a package, Hono routes, wrangler config, containers, the web app | `beanstalk-packages` |
+| Creating or structuring a package, Hono routes, wrangler config, containers, the web app | `gitstalk-packages` |
 | Public docs (`packages/site/public/docs/`) | `public-docs` |
 | Cloudflare platform questions (product choice, Workers, DOs, Wrangler, Sandbox, Agents SDK, vinext, web perf) | `cloudflare`, `workers-best-practices`, `durable-objects`, `wrangler`, `sandbox-next`, `agents-sdk`, `nextjs-on-cloudflare`, `web-perf` (vendored from `cloudflare/skills`; never edit by hand) |
 

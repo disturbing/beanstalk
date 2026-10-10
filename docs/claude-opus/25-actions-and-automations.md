@@ -2,13 +2,13 @@
 
 Written 2026-10-08 from `prototype` at `6d4ffea`; Coop's decisions D1 to D12 recorded the same day (§6.4). Design only: nothing here is built. Names as everywhere: a **bean** is one change, the **sprout** is the staged line, the **stalk** is the stable line.
 
-**Coop's direction (owner decisions, 2026-10-08).** Hooks, CI and CD are GitHub Actions: Beanstalk runs `.github/workflows/*.yml`. Automations move out of the database into files (`.beanstalk/automations/*.yml`) with the same `on:` trigger model plus Beanstalk events. Editing one in the UI makes a commit that lands on the stalk. The repository gets an **Automations** tab with two kinds, **Actions** and **Automations**, shown the way GitHub shows them and editable from the UI or the file.
+**Coop's direction (owner decisions, 2026-10-08).** Hooks, CI and CD are GitHub Actions: Gitstalk runs `.github/workflows/*.yml`. Automations move out of the database into files (`.gitstalk/automations/*.yml`) with the same `on:` trigger model plus Gitstalk events. Editing one in the UI makes a commit that lands on the stalk. The repository gets an **Automations** tab with two kinds, **Actions** and **Automations**, shown the way GitHub shows them and editable from the UI or the file.
 
-**Decisions recorded (2026-10-08).** All twelve are decided, so the table in §6.4 is now a record. Eight were accepted as recommended (D1, D2, D3, D5, D7, D8, D11, D12). Four were changed or clarified: **D4** (a per-secret toggle for pre-land checks), **D6** (one container per job from day one), **D9** (Beanstalk is open source and self-hostable; the managed beta has fixed limits) and **D10** (a cut order). Isolates (§3.9) and logs (§3.3) were also settled.
+**Decisions recorded (2026-10-08).** All twelve are decided, so the table in §6.4 is now a record. Eight were accepted as recommended (D1, D2, D3, D5, D7, D8, D11, D12). Four were changed or clarified: **D4** (a per-secret toggle for pre-land checks), **D6** (one container per job from day one), **D9** (Gitstalk is open source and self-hostable; the managed beta has fixed limits) and **D10** (a cut order). Isolates (§3.9) and logs (§3.3) were also settled.
 
 **Automations redefined (owner, 2026-10-09).** "Automations are agents running trying to solve problems", with their own workspace and memory, a filesystem, and the right to commit. §7 is the design and what is built; it supersedes the automation parts of §0 (points 1 and 4), §1.3, §3.7, §3.9 and §5.4–5.5. The Actions parts of this document are unchanged.
 
-**What this replaces.** `16` §1 put "GitHub Actions compatibility" out of scope and §3.6 designed automations as AutomationDO rows created by `automation_create`. Both change here. What `16` §3.6 decided still holds: outputs are typed Beanstalk objects, tools are direct MCP only (no Composio, decision of 2026-10-06), budgets per run, Rule of Two for untrusted input.
+**What this replaces.** `16` §1 put "GitHub Actions compatibility" out of scope and §3.6 designed automations as AutomationDO rows created by `automation_create`. Both change here. What `16` §3.6 decided still holds: outputs are typed Gitstalk objects, tools are direct MCP only (no Composio, decision of 2026-10-06), budgets per run, Rule of Two for untrusted input.
 
 **Inputs.** `docs/claude-05-github-actions-on-cloudflare.md` (Option C bootstrapped with A), Codex's `docs/05-github-actions-portability.md`, `16`, `18`, `19`, `20`, `22`, `23`, `24`, the web app's repository tabs (`packages/web/app/[owner]/[repo]/`), the swarm's credential broker (`packages/swarm/src/broker/`, `src/agent/virtual-hosts.ts`).
 
@@ -16,15 +16,15 @@ Written 2026-10-08 from `prototype` at `6d4ffea`; Coop's decisions D1 to D12 rec
 
 ## 0. The recommendation in one screen
 
-1. **One schema, two folders.** An automation is a GitHub Actions workflow. `.github/workflows/` is strict GitHub syntax, so the files still work if the repository goes back to GitHub. `.beanstalk/automations/` uses the same syntax plus three extensions: Beanstalk events in `on:`, `beanstalk/*` built-in actions (agent sessions and typed outputs), and a `runs-on: beanstalk-isolate` job that runs in a Dynamic Worker instead of a container (opt-in by label at first). One parser, one run engine, one run UI.
+1. **One schema, two folders.** An automation is a GitHub Actions workflow. `.github/workflows/` is strict GitHub syntax, so the files still work if the repository goes back to GitHub. `.gitstalk/automations/` uses the same syntax plus three extensions: Gitstalk events in `on:`, `gitstalk/*` built-in actions (agent sessions and typed outputs), and a `runs-on: gitstalk-isolate` job that runs in a Dynamic Worker instead of a container (opt-in by label at first). One parser, one run engine, one run UI.
 2. **Git holds the definitions, and the database is only an index.** Each time the stalk moves, the gateway reads both folders at the new stalk head and recompiles the repository's index (schedules, event subscriptions, compatibility report). Nothing is edited in the database. A UI edit is a bean authored by the person, so it goes through the pre-land check, lands on the sprout and becomes live when the stalk takes it.
 3. **Event mapping keeps a GitHub repository's CI working.** `push` to `main` means the stalk moved. `pull_request` means a bean was pushed, and it runs on the bean squashed onto the sprout, which is GitHub's merge ref. `merge_group` means the sprout's validation. The checks in `checks.toml` stay as the fast pre-land path. A new `[actions]` table in it says which workflow jobs are required at pre-land or at validation, the way branch protection does on GitHub.
-4. **Two substrates: containers and isolates.** CI jobs default to **Containers**: anything that needs Linux (shell, toolchains, `npm ci`, `wrangler deploy`) runs there. Automations and script-only steps (coreutils-style tools, git operations, small JavaScript or Python, pure-JS tests, an agent hand-off) suit **Dynamic Workers**: isolates that start in milliseconds and cost about a thousandth of a container job, with egress, bindings and secrets controlled by the loader (§3.9). Isolates are **opt-in by label at first** (`runs-on: beanstalk-isolate`), with a checker that suggests eligible jobs; the default is revisited later. The control plane (parsing, expressions, triggers, the DAG) is our own trusted code, so it stays in ordinary Workers and DOs (D11).
+4. **Two substrates: containers and isolates.** CI jobs default to **Containers**: anything that needs Linux (shell, toolchains, `npm ci`, `wrangler deploy`) runs there. Automations and script-only steps (coreutils-style tools, git operations, small JavaScript or Python, pure-JS tests, an agent hand-off) suit **Dynamic Workers**: isolates that start in milliseconds and cost about a thousandth of a container job, with egress, bindings and secrets controlled by the loader (§3.9). Isolates are **opt-in by label at first** (`runs-on: gitstalk-isolate`), with a checker that suggests eligible jobs; the default is revisited later. The control plane (parsing, expressions, triggers, the DAG) is our own trusted code, so it stays in ordinary Workers and DOs (D11).
 5. **Execution of container jobs, from day one:** **one container per job**, each with its own id and nothing carried over from any other job. It is destroyed when the job ends, fails or times out, after its logs are flushed, and is never reused across repositories or tenants. (GitHub-hosted runners also use a fresh VM per job.) Before the deadline `act` runs a single job inside that container (`act -j <job>`), and our WorkflowRunDO owns the DAG and passes `needs` and outputs between jobs. **After the deadline:** a native step runner, and our own cache, artifact and OIDC services (`claude-05` Option C).
 6. **Secrets are fully supported and never reach agents.** Repository secrets are envelope-encrypted, injected into a job container's environment only for the steps that name them, and masked in the log stream. `stalk`, `workflow_dispatch` and `schedule` runs get the secrets they name, so deploys work. Pre-land checks of beans pushed by an agent session or a deploy token get **none by default**, like a fork PR on GitHub (a read-only token too). A per-secret toggle, "available to pre-land checks" (default off), lets a low-risk test key through. Agent steps run in a separate sandbox with no secrets. Model keys and MCP connection tokens are added at egress by virtual hosts, as the swarm's broker does today.
 7. **Workflow and automation files are always protected paths**, the same as `checks.toml`. Agents cannot change the code that holds the secrets (a decision card for agent-proposed changes comes later, D5).
 8. **Before 10-14:** an Actions MVP with `push` to the stalk, `workflow_dispatch`, `schedule`, repository secrets, act in a container, the Actions list, the run and job graph, live logs, and a "deploy to Cloudflare when the stalk moves" example. That is about 7 agent-days in three parallel lanes (three build lanes have started). **Cut order if late:** the schedule trigger, then the run graph, then variables. Automations, the editor and the `pull_request`/`merge_group` gating come after.
-9. **Open source, with beta limits.** Beanstalk is open source and self-hostable, and self-hosters set their own limits. The managed beta allows **100 Actions minutes per repository per month**, a **60-minute job timeout** and **4 concurrent jobs per repository** (D9).
+9. **Open source, with beta limits.** Gitstalk is open source and self-hostable, and self-hosters set their own limits. The managed beta allows **100 Actions minutes per repository per month**, a **60-minute job timeout** and **4 concurrent jobs per repository** (D9).
 10. **Logs live in R2, never in containers or DOs.** The job's DO only relays the live stream; gzip chunks go to R2; search goes through Cloudflare Pipelines, R2 Data Catalog and R2 SQL, always tenant-filtered (§3.3).
 
 ---
@@ -43,7 +43,7 @@ Parsed with GitHub's own `@actions/workflow-parser` and `@actions/expressions` (
 | `pull_request`, `merge_group` | Parsed and reported as "after the MVP" | Yes, §2 |
 | `repository_dispatch` | No | Yes (webhook and MCP, §1.3) |
 | `workflow_run`, `workflow_call` (reusable, same repo) | No | Yes |
-| `issues`, `release`, `pull_request_target`, `issue_comment`, … | Never (no such object on Beanstalk) | `pull_request_target` refused on purpose (§3.6) |
+| `issues`, `release`, `pull_request_target`, `issue_comment`, … | Never (no such object on Gitstalk) | `pull_request_target` refused on purpose (§3.6) |
 | Jobs, `needs`, `if`, job outputs, `strategy.matrix` | Yes: our DAG runs one job per container (`act -j`) and passes `needs` and outputs between jobs | Yes (our DAG, native runner) |
 | `run` steps (bash, sh, python), `defaults`, `working-directory`, `env` | Yes | Yes |
 | JavaScript actions (node20, node24) and composite actions | Yes | Yes |
@@ -54,9 +54,9 @@ Parsed with GitHub's own `@actions/workflow-parser` and `@actions/expressions` (
 | `secrets.*`, `vars.*` | Repository and org level (org entries reach all, private or selected repositories; the repository's entry wins on a name clash, §3.11) | Environments |
 | `GITHUB_STEP_SUMMARY`, `::error::` annotations | Annotations parsed from the log; summaries no | Yes |
 | `actions/cache`, `upload-artifact`/`download-artifact@v4` | Within one job only (act's local servers live in that job's container); files a later job needs must be rebuilt, or the steps merged into one job | Our R2 services, across jobs and runs |
-| `id-token: write` (OIDC) | No | Beanstalk issuer (§3.5) |
+| `id-token: write` (OIDC) | No | Gitstalk issuer (§3.5) |
 | `environment:` with approvals | Ignored, and said so | A decision card releases the secrets |
-| `runs-on` | `ubuntu-latest`, `ubuntu-24.04` → our container image; `beanstalk-isolate` → a Dynamic Worker (opt-in, §3.9); anything else never runs | Plus sizes (`beanstalk-4cpu`) |
+| `runs-on` | `ubuntu-latest`, `ubuntu-24.04` → our container image; `gitstalk-isolate` → a Dynamic Worker (opt-in, §3.9); anything else never runs | Plus sizes (`gitstalk-4cpu`) |
 
 ### 1.2 The "deploy to Cloudflare when the stalk moves" example (MVP)
 
@@ -65,7 +65,7 @@ Parsed with GitHub's own `@actions/workflow-parser` and `@actions/expressions` (
 name: Deploy
 on:
   push:
-    branches: [main]            # on Beanstalk: the stalk moved (a validated commit)
+    branches: [main]            # on Gitstalk: the stalk moved (a validated commit)
   workflow_dispatch:
 concurrency: { group: deploy, cancel-in-progress: false }
 permissions: { contents: read }
@@ -86,26 +86,26 @@ jobs:
 
 The same file runs on GitHub with no change. That is the point of keeping `.github/workflows/` strict.
 
-### 1.3 `.beanstalk/automations/*.yml`: the same schema plus three extensions
+### 1.3 `.gitstalk/automations/*.yml`: the same schema plus three extensions
 
 > **Superseded by §7 (2026-10-09).** An automation is now an agent job with its own file format (triggers, prompt, harness, permissions, secrets), compiled into one Actions job. The extension design below is kept as the record of the first proposal.
 
 ```yaml
-# .beanstalk/automations/posthog-errors.yml
+# .gitstalk/automations/posthog-errors.yml
 name: PostHog errors → beans
 on:
   schedule: [{ cron: "0 * * * *" }]
   workflow_dispatch:
-  validation_red:                     # a Beanstalk event (extension 1)
+  validation_red:                     # a Gitstalk event (extension 1)
 permissions:
-  beans: write                        # Beanstalk permissions: beans, comments, threads, decisions
+  beans: write                        # Gitstalk permissions: beans, comments, threads, decisions
   comments: write
 jobs:
   triage:
-    runs-on: beanstalk-isolate        # extension 3: a Dynamic Worker, no container (§3.9)
+    runs-on: gitstalk-isolate        # extension 3: a Dynamic Worker, no container (§3.9)
     steps:
       - id: triage
-        uses: beanstalk/agent@v1      # extension 2: a built-in action
+        uses: gitstalk/agent@v1      # extension 2: a built-in action
         with:
           harness: claude-code        # claude-code | codex
           model: sonnet
@@ -113,13 +113,13 @@ jobs:
           max-minutes: 10
           mcp: [posthog]              # names of direct MCP connections (Settings → Connections)
           tools: posthog.error_tracking_list_issues, posthog.error_tracking_get_issue
-          outputs: open-bean, comment # what it may do on Beanstalk; nothing else is granted
+          outputs: open-bean, comment # what it may do on Gitstalk; nothing else is granted
           prompt: |
             List PostHog issues that are active with ≥5 occurrences in 24 h.
             Skip any already linked to a bean (dedupe key: the PostHog issue id).
             Open one bean per real bug with the top frame's file as its area.
       - if: steps.triage.outputs.beans == '[]' && github.event_name == 'validation_red'
-        uses: beanstalk/comment@v1
+        uses: gitstalk/comment@v1
         with:
           on: validation               # the red validation that triggered the run
           body: "No PostHog errors match this red."
@@ -129,27 +129,27 @@ jobs:
 
 | Extension | What |
 |---|---|
-| Beanstalk events in `on:` | `bean_opened`, `bean_landed`, `bean_red`, `bean_parked`, `stalk_moved`, `validation_red`, `decision_opened`, `decision_decided`, `thread_message`, each with optional filters (`paths`, `beans`, `authors`) |
+| Gitstalk events in `on:` | `bean_opened`, `bean_landed`, `bean_red`, `bean_parked`, `stalk_moved`, `validation_red`, `decision_opened`, `decision_decided`, `thread_message`, each with optional filters (`paths`, `beans`, `authors`) |
 | External triggers | `repository_dispatch` (GitHub's own event) with `types`: `POST /hooks/<owner>/<repo>/dispatch` with an HMAC or bearer hook secret, and the MCP tool `automation_dispatch`. App webhooks (Sentry, PostHog) point at that URL with a `type` |
-| `runs-on: beanstalk-isolate` | The job runs in a Dynamic Worker (a V8 isolate loaded at run time), with no container (§3.9). **Opt-in by label at first**, in either folder. It allows `beanstalk/*` steps, `beanstalk/script@v1` (JavaScript, like `actions/github-script`) and script-only steps within 128 MB, and refuses steps that need native binaries, and Docker and container actions. In `.beanstalk/automations/` an omitted `runs-on` is a validation error at first ("add `beanstalk-isolate` or `ubuntu-latest`"); making isolates the default there is revisited later. `runs-on: ubuntu-latest` jobs work too and get a container like any Actions job |
-| `beanstalk/agent@v1` | Hands the step to a cloud agent session (§3.7). Inputs: `harness`, `model`, `budget-usd`, `max-minutes`, `mcp` (connection names), `tools` (allowlist), `outputs` (allowed typed outputs), `prompt`. Step outputs: `beans`, `comments`, `summary`, `cost-usd` (JSON) |
-| Typed outputs as actions | `beanstalk/open-bean@v1` (intent, task, area, evidence URL, `dedupe-key`), `beanstalk/comment@v1` (on a bean, validation, decision or thread), `beanstalk/answer-thread@v1`, `beanstalk/decision@v1` (raise a card), `beanstalk/notify@v1`. They are usable from `run:`-free recipe jobs without any model, which is `16`'s "Recipe" kind |
+| `runs-on: gitstalk-isolate` | The job runs in a Dynamic Worker (a V8 isolate loaded at run time), with no container (§3.9). **Opt-in by label at first**, in either folder. It allows `gitstalk/*` steps, `gitstalk/script@v1` (JavaScript, like `actions/github-script`) and script-only steps within 128 MB, and refuses steps that need native binaries, and Docker and container actions. In `.gitstalk/automations/` an omitted `runs-on` is a validation error at first ("add `gitstalk-isolate` or `ubuntu-latest`"); making isolates the default there is revisited later. `runs-on: ubuntu-latest` jobs work too and get a container like any Actions job |
+| `gitstalk/agent@v1` | Hands the step to a cloud agent session (§3.7). Inputs: `harness`, `model`, `budget-usd`, `max-minutes`, `mcp` (connection names), `tools` (allowlist), `outputs` (allowed typed outputs), `prompt`. Step outputs: `beans`, `comments`, `summary`, `cost-usd` (JSON) |
+| Typed outputs as actions | `gitstalk/open-bean@v1` (intent, task, area, evidence URL, `dedupe-key`), `gitstalk/comment@v1` (on a bean, validation, decision or thread), `gitstalk/answer-thread@v1`, `gitstalk/decision@v1` (raise a card), `gitstalk/notify@v1`. They are usable from `run:`-free recipe jobs without any model, which is `16`'s "Recipe" kind |
 | `push-bean` output (agent step, opt-in) | The session also implements the bean it opened and pushes it as `bean/<name>`. It then goes through the normal pre-land check. It never lands anything itself |
 
-**Why one schema and not a separate one (decision D1, accepted).** A separate automation schema would mean a second parser, a second run engine, a second run UI and a second thing for people and agents to learn, all to express the same `on:` → jobs → steps shape. Using `uses:` for the Beanstalk steps keeps every file valid YAML under GitHub's step grammar, so editors and actionlint still work. We extend the parser's schema JSON with the new events, permissions and `runs-on: beanstalk-isolate`; we do not fork the parser. The two folders keep the boundary visible. A Beanstalk event in `.github/workflows/` is refused with "move it to `.beanstalk/automations/`" because GitHub would reject that file. The cost is that an automation looks like CI to someone who expects a form, and the editor's form view (§4) takes care of that.
+**Why one schema and not a separate one (decision D1, accepted).** A separate automation schema would mean a second parser, a second run engine, a second run UI and a second thing for people and agents to learn, all to express the same `on:` → jobs → steps shape. Using `uses:` for the Gitstalk steps keeps every file valid YAML under GitHub's step grammar, so editors and actionlint still work. We extend the parser's schema JSON with the new events, permissions and `runs-on: gitstalk-isolate`; we do not fork the parser. The two folders keep the boundary visible. A Gitstalk event in `.github/workflows/` is refused with "move it to `.gitstalk/automations/`" because GitHub would reject that file. The cost is that an automation looks like CI to someone who expects a form, and the editor's form view (§4) takes care of that.
 
 **Run as.** An automation acts as the repository's bot principal `@<repo>[automation]` (like `github-actions[bot]`), capped by its `permissions:`. Its beans show "opened by automation posthog-errors.yml (last changed by @coop)". Spend is charged to the repository's owner (decision D7, accepted).
 
 ---
 
-## 2. GitHub events on Beanstalk
+## 2. GitHub events on Gitstalk
 
-| GitHub event | Beanstalk moment | Commit the run sees | Notes |
+| GitHub event | Gitstalk moment | Commit the run sees | Notes |
 |---|---|---|---|
-| `push` to `main` / `master` / the base branch | **The stalk moved** (`stalk.promoted`) | the new stalk head; `before` = the old one | The base branch name is an alias for `stalk`, so `branches: [main]` and `if: github.ref == 'refs/heads/main'` keep working. `github.ref` is `refs/heads/<base>`, and `BEANSTALK_LINE=stalk` is set too (decision D3, accepted: mirror `refs/heads/main` to the stalk) |
+| `push` to `main` / `master` / the base branch | **The stalk moved** (`stalk.promoted`) | the new stalk head; `before` = the old one | The base branch name is an alias for `stalk`, so `branches: [main]` and `if: github.ref == 'refs/heads/main'` keep working. `github.ref` is `refs/heads/<base>`, and `GITSTALK_LINE=stalk` is set too (decision D3, accepted: mirror `refs/heads/main` to the stalk) |
 | `push` to `stalk` / `sprout` by name | stalk moved / a bean landed on the sprout | that line's head | `sprout` is landed but not yet validated |
 | `push` to `bean/**` | a bean was pushed | the bean's head | Rarely wanted; `pull_request` is the useful one |
-| `push` tags | none | — | Beanstalk refuses tag pushes today |
+| `push` tags | none | — | Gitstalk refuses tag pushes today |
 | `pull_request` `opened` / `synchronize` | a bean was pushed (first push / a rework push) | **the bean squashed onto the sprout**: the engine's candidate tree, which is GitHub's `refs/pull/N/merge` | `number` is a stable per-bean number. `head.ref` is `bean/<name>`. `base.ref` is the base branch |
 | `pull_request` `closed` | the bean landed (`merged: true`) or was dropped or parked (`merged: false`) | landed sha | |
 | `merge_group` `checks_requested` | **the sprout's validation** (the batch of landed beans not yet on the stalk) | the sprout head being validated | Validation already plays merge-group CI's role (`18` §7) |
@@ -170,7 +170,7 @@ The engine's per-bean pre-land check runs in seconds on a warm sandbox with no n
   validation = ["ci.yml"]                 # required for the stalk to move (merge_group, or pull_request jobs re-run on the sprout)
   ```
 
-  A required job's verdict feeds the engine like a check verdict does: green; red with failing tests if the job uploads JUnit (`beanstalk-junit` artifact name), otherwise red with the job and step name; timeout or infrastructure loss is never red (`18` §7.1). Workflow jobs that are not listed are **advisory**. They run, show on the bean and the run views, and gate nothing.
+  A required job's verdict feeds the engine like a check verdict does: green; red with failing tests if the job uploads JUnit (`gitstalk-junit` artifact name), otherwise red with the job and step name; timeout or infrastructure loss is never red (`18` §7.1). Workflow jobs that are not listed are **advisory**. They run, show on the bean and the run views, and gate nothing.
 - **A repository moved from GitHub** with workflows but no `checks.toml` (recommendation): its `pull_request` and `merge_group` jobs are required **at validation**, not at pre-land. The stalk then never moves past CI that GitHub would have required, and beans still land quickly. The import also opens a bean that proposes a `checks.toml` with the suite command found in the workflow (`npm test`, `cargo test`), for a maintainer to land.
 - Culprit probes on a red validation re-run only the failing required jobs, on the probe trees, within the repository's Actions concurrency.
 
@@ -192,8 +192,8 @@ WorkflowRunDO (one per run)         plan (parser + expressions), job DAG, status
         ├─▶ JobDO + container  (runs-on: ubuntu-*)   one container per job, own id, destroyed at the end
         │      Rust supervisor (axum): runs act -j <job> --json / the native step runner, streams stdout
         │      outbound: bs.internal (git, API), actions.internal (action tarballs), internet (npm, wrangler)
-        ├─▶ Dynamic Worker     (runs-on: beanstalk-isolate)  beanstalk/* and script steps; RPC stubs, egress gateway (§3.9)
-        └─▶ AgentSandbox       (beanstalk/agent)      cloud session, no secrets, virtual hosts only
+        ├─▶ Dynamic Worker     (runs-on: gitstalk-isolate)  gitstalk/* and script steps; RPC stubs, egress gateway (§3.9)
+        └─▶ AgentSandbox       (gitstalk/agent)      cloud session, no secrets, virtual hosts only
 logs ─▶ JobDO relays the live stream to watchers (stores nothing)
      └─▶ R2 <tenant>/<repo>/<run>/<job>/<seq>.log.gz (gzip chunks, lifecycle retention) ─▶ Pipelines ─▶ R2 Data Catalog ─▶ R2 SQL (search)
 ```
@@ -212,7 +212,7 @@ logs ─▶ JobDO relays the live stream to watchers (stores nothing)
 | | MVP: act in host mode | v2: native |
 |---|---|---|
 | Container | one per job, `standard-2` by default (matrix legs are separate jobs) | one per job |
-| Command | `act <event> -W <file> -j <job> -e event.json -P ubuntu-latest=-self-hosted --json --secret-file … --var-file … --github-instance <beanstalk host> --action-offline-mode` (flags pinned to the act version; `needs` outputs of earlier jobs are injected by us, mechanism confirmed in M2) | a Node step runner (script, node, composite handlers, env files, `::commands::`) driven by our plan |
+| Command | `act <event> -W <file> -j <job> -e event.json -P ubuntu-latest=-self-hosted --json --secret-file … --var-file … --github-instance <gitstalk host> --action-offline-mode` (flags pinned to the act version; `needs` outputs of earlier jobs are injected by us, mechanism confirmed in M2) | a Node step runner (script, node, composite handlers, env files, `::commands::`) driven by our plan |
 | DAG, `needs`, outputs, matrix | WorkflowRunDO (act runs one job) | WorkflowRunDO |
 | Cache and artifacts | act's local servers, within one job | our twirp services on R2 (cache v2, artifacts v4), across jobs and runs |
 | What we add outside act | the DAG, concurrency, timeouts, cancel (`kill`), `permissions` at token mint, masking, annotations from the log | everything |
@@ -234,13 +234,13 @@ The Worker-side parts (triggers, plan, token, secrets, logs, UI) are the same in
 - **Where:** FORGE D1 `repository_secrets` (repo, name, ciphertext, iv, key version, `preland_ok` default 0, created by, updated at). Each value is encrypted with a per-repository data key, and that key is wrapped by a Secrets Store key-encryption key, which is `16` §5.2's plan for provider keys. `vars` are plain rows. Owner and maintain roles set them in Settings → Secrets. The value is write-only: it is never shown or returned, and Settings lists names and "updated by, when". The audit log records changes in `repository_audit`.
 - **Org level (built, §3.11).** Org secrets and org variables sit next to the repository's, each with a repository access policy (all repositories, private repositories, selected repositories). A job sees the org entries its repository is allowed plus the repository's own; the repository's entry wins on a name clash (GitHub's precedence). D4 and the pre-land toggle apply to org secrets exactly as to repository secrets. Environments are later.
 - **Injection:** the WorkflowRunDO decrypts only the secrets the plan references, just before the job starts, and passes them to the supervisor over the container's exec channel as `--secret-file` content in a tmpfs. They are never in the image, argv, the manifest or the logs. They are dropped when the job ends.
-- **Who gets which secrets (decision D4, clarified).** Secrets are fully supported. Runs of the stalk (`push`), `workflow_dispatch` and `schedule` get the secrets they name, which is how deploys work. A **pre-land check** of a bean pushed by an agent session (`bss_`), a deploy token (`bsd_`) or a read-or-write collaborator who is not a maintainer gets **no secrets by default** and a read-only job token, like a fork PR on GitHub. Each secret has a toggle, **"available to pre-land checks"** (default off, set in Settings → Secrets by an owner or maintainer), for low-risk test keys that a pre-land suite really needs. A secret with the toggle on is injected for those runs like any other, so it must never be a deploy credential. Agent steps (§3.7) never get secrets in any form, toggle or not; `${{ secrets.* }}` in a `beanstalk/agent` input is a parse error.
+- **Who gets which secrets (decision D4, clarified).** Secrets are fully supported. Runs of the stalk (`push`), `workflow_dispatch` and `schedule` get the secrets they name, which is how deploys work. A **pre-land check** of a bean pushed by an agent session (`bss_`), a deploy token (`bsd_`) or a read-or-write collaborator who is not a maintainer gets **no secrets by default** and a read-only job token, like a fork PR on GitHub. Each secret has a toggle, **"available to pre-land checks"** (default off, set in Settings → Secrets by an owner or maintainer), for low-risk test keys that a pre-land suite really needs. A secret with the toggle on is injected for those runs like any other, so it must never be a deploy credential. Agent steps (§3.7) never get secrets in any form, toggle or not; `${{ secrets.* }}` in a `gitstalk/agent` input is a parse error.
 - **Known residual risk.** A `push` workflow on the stalk runs code that agents wrote, such as `package.json` scripts, with deploy secrets. That is the same as auto-merge on GitHub. Protected paths stop agents from editing the workflow; they do not stop agents from editing what the workflow calls. Mitigation in v2: `environment:` with a required approval card before secrets are released, and an option to list what deploys may run.
 
 ### 3.5 Job token (`GITHUB_TOKEN`) and OIDC
 
 - **Job token** `bsj_…`: minted per job by the actions Worker and stored hashed in FORGE. It is bound to the repository engine and to the job's lifetime plus 5 minutes, and revoked when the job ends. `verifyGitCredential` gets one more branch. Its scopes come from `permissions:`: `contents: read` fetches, and `contents: write` may push **`bean/<name>` only**, so a job that writes code makes a bean that goes through the pre-land check. Sprout and stalk are never reachable, as for every credential (`AGENTS.md`). `GITHUB_SERVER_URL` and `GITHUB_API_URL` point at `bs.internal`, and the outbound handler adds the token for git. The environment variable still holds it, because actions read `GITHUB_TOKEN`; it is short-lived and scoped. A GitHub-shaped REST subset (repos, contents, commit statuses) is v2.
-- **OIDC:** a Beanstalk issuer at `https://<domain>/_actions/oidc` with discovery and JWKS, claims mirroring GitHub's. It works only where the user registers our issuer (AWS, GCP, Azure, Vault); details below.
+- **OIDC:** a Gitstalk issuer at `https://<domain>/_actions/oidc` with discovery and JWKS, claims mirroring GitHub's. It works only where the user registers our issuer (AWS, GCP, Azure, Vault); details below.
 
 #### OIDC identity tokens (built: `packages/shared-oidc`, `packages/oidc`)
 
@@ -277,20 +277,20 @@ The untrusted `sub` matches no policy written for `...:ref:*`, `...:environment:
 
 ### 3.7 Agent steps
 
-A `beanstalk/agent@v1` step leases an `AgentSandbox`, built from the swarm's (`packages/swarm/src/agent/`). It has no internet, and its virtual hosts are its only egress:
+A `gitstalk/agent@v1` step leases an `AgentSandbox`, built from the swarm's (`packages/swarm/src/agent/`). It has no internet, and its virtual hosts are its only egress:
 
 | Host | What the handler adds | What the container sees |
 |---|---|---|
-| `model.internal` | the provider key (BYO key from identity, or Beanstalk's) through AI Gateway, with the run's budget enforced per request | a dummy key |
-| `bs.internal` | a `bss_` session token for `@<repo>[automation]`, bound to the repository, with scopes taken from `outputs` (`open-bean` → `bean_open`, `push-bean` → write, `comment` / `answer-thread` → collaborate) | Beanstalk MCP at `http://bs.internal/mcp`, with no token |
+| `model.internal` | the provider key (BYO key from identity, or Gitstalk's) through AI Gateway, with the run's budget enforced per request | a dummy key |
+| `bs.internal` | a `bss_` session token for `@<repo>[automation]`, bound to the repository, with scopes taken from `outputs` (`open-bean` → `bean_open`, `push-bean` → write, `comment` / `answer-thread` → collaborate) | Gitstalk MCP at `http://bs.internal/mcp`, with no token |
 | `mcp.internal/<connection>` | the direct MCP connection's OAuth token (from identity, encrypted, refreshed in the Worker) | the MCP endpoint, filtered to the `tools` allowlist |
 
-Trigger payloads (an issue title, a webhook body) are passed to the prompt as data labelled untrusted (taint U). An external write such as Slack or Linear is not a typed output; it waits for the approval card of `16` §3.6. The session's transcript and cost go to the run log, and the run stops when `budget-usd` is spent. This needs `16` Phase 5's cloud sessions, so agent steps come after it. Recipe automations, made only of `beanstalk/*` actions, do not.
+Trigger payloads (an issue title, a webhook body) are passed to the prompt as data labelled untrusted (taint U). An external write such as Slack or Linear is not a typed output; it waits for the approval card of `16` §3.6. The session's transcript and cost go to the run log, and the run stops when `budget-usd` is spent. This needs `16` Phase 5's cloud sessions, so agent steps come after it. Recipe automations, made only of `gitstalk/*` actions, do not.
 
 ### 3.8 Capacity, limits and cost
 
 - **One compute ledger.** `RunnerCapacity` (`18` §7.1) leases sandboxes for checks against the runner class's `max_instances`. Actions jobs and agent sandboxes are separate container classes, but they share the account's vCPU and memory, and they compete with checks for the same budget. Generalise it to lease kinds with priorities: pre-land check > validation > required Actions job > race > advisory Actions job > automation > agent step. Each repository gets a floor (2 check sandboxes, unchanged) and a cap (default 4 concurrent Actions jobs and 2 agent sessions). A queued job waits in its WorkflowRunDO, and waiting never counts toward a job's timeout. A container's life is that of its job, so capacity is released as soon as the logs are flushed.
-- **Limits (decision D9).** Beanstalk is open source and self-hostable, and a self-hoster sets every number below. The **managed beta** allows **100 Actions minutes per repository per month** (job container time, rounded up to the minute; isolate steps are not counted) and a **60-minute job timeout** (a larger `timeout-minutes` is capped, and the report says so), with **4 concurrent jobs per repository**. Also: 256 jobs per run, 20 queued runs per repository, a cron interval of at least 5 minutes, 500 MiB of logs per run, 30-day log retention and 7-day artifact retention. A repository that has used its minutes gets a clear "monthly minutes used" refusal, not a red run.
+- **Limits (decision D9).** Gitstalk is open source and self-hostable, and a self-hoster sets every number below. The **managed beta** allows **100 Actions minutes per repository per month** (job container time, rounded up to the minute; isolate steps are not counted) and a **60-minute job timeout** (a larger `timeout-minutes` is capped, and the report says so), with **4 concurrent jobs per repository**. Also: 256 jobs per run, 20 queued runs per repository, a cron interval of at least 5 minutes, 500 MiB of logs per run, 30-day log retention and 7-day artifact retention. A repository that has used its minutes gets a clear "monthly minutes used" refusal, not a red run.
 - **Cost (Containers pricing, `claude-05` §3):** a 5-minute `standard-2` job at 50 % CPU costs about 6 GiB × 300 s × $0.0000025 + 300 × 0.5 × $0.00002 = **$0.0075**. A 10-minute `standard-3` job costs about $0.025. The same 10 minutes on GitHub's 2-core Linux runner is $0.06. Add the R2 writes for logs (cents per thousand runs) and DO requests. An agent step costs model tokens plus about $0.13 per sandbox-hour (`17` §3.2). Spend shows per run and per workflow, and the monthly caps live in Settings, not in git, because they are billing.
 
 ### 3.9 Dynamic Workers versus Containers
@@ -304,14 +304,14 @@ Trigger payloads (an issue title, a webhook body) are passed to the prompt as da
 | Work | Where | Why |
 |---|---|---|
 | Parsing workflows and automations, `${{ }}` expressions, trigger matching, the DAG, concurrency | **Ordinary Workers and DOs** (ActionsDO, WorkflowRunDO) | This is our own trusted code (`@actions/workflow-parser`) running over untrusted *data*. An isolate per evaluation would add the 4/10 in-flight limit and unique-Worker charges and buy no isolation. This differs from the coordinator's proposed split (decision D11) |
-| Automations: event or webhook → MCP or API calls → decide → open a bean, comment, raise a card | **Dynamic Worker** (`runs-on: beanstalk-isolate`) | Millisecond start, no image, and per-repository isolation of user-written step code |
-| Script-only steps (coreutils-style tools, git operations, small JS or Python, pure-JS tests) and light Actions steps: `beanstalk/script@v1` (JavaScript with an `octokit`-shaped Beanstalk client, like `actions/github-script`), HTTP and webhook calls, the `beanstalk/agent` hand-off | **Dynamic Worker** | They need no Linux. The agent *session* still runs in an AgentSandbox container (Claude Code and Codex need Linux); the isolate only starts it, waits and collects its typed outputs |
+| Automations: event or webhook → MCP or API calls → decide → open a bean, comment, raise a card | **Dynamic Worker** (`runs-on: gitstalk-isolate`) | Millisecond start, no image, and per-repository isolation of user-written step code |
+| Script-only steps (coreutils-style tools, git operations, small JS or Python, pure-JS tests) and light Actions steps: `gitstalk/script@v1` (JavaScript with an `octokit`-shaped Gitstalk client, like `actions/github-script`), HTTP and webhook calls, the `gitstalk/agent` hand-off | **Dynamic Worker** | They need no Linux. The agent *session* still runs in an AgentSandbox container (Claude Code and Codex need Linux); the isolate only starts it, waits and collects its typed outputs |
 | Shell, toolchains, `npm ci`, tests, builds, `wrangler deploy`, any JavaScript action that spawns processes or uses the filesystem | **Container** (`runs-on: ubuntu-*`) | Needs Linux processes and disk |
 
 **How a job is classified (decision D12, accepted).** It is decided by the label only, never inferred from what the steps contain. CI jobs default to containers; Automations and script-only steps are the ones that suit isolates. **Isolates are opt-in by label at first**, and the default is revisited once real jobs have run on them:
-- `runs-on: beanstalk-isolate` → isolate. Validation refuses `run:`, Docker actions and marketplace JavaScript actions in such a job, with the reason, so a job never fails halfway because a step needed Linux.
-- `.beanstalk/automations/` with no `runs-on` → a validation error at first, until the default is revisited (the intended default there is isolate). `.github/workflows/` always needs `runs-on`, as on GitHub, and `ubuntu-*` always means a container, even when every step would fit an isolate. A GitHub workflow keeps GitHub's behaviour, and running `actions/github-script` in an isolate would silently break any script that calls `exec` or `fs`.
-- A **checker** in the compatibility report and the editor lists eligible jobs and suggests the label: "this job only calls `beanstalk/*` and HTTP; `runs-on: beanstalk-isolate` would start in milliseconds instead of seconds". Changing it stays the author's decision.
+- `runs-on: gitstalk-isolate` → isolate. Validation refuses `run:`, Docker actions and marketplace JavaScript actions in such a job, with the reason, so a job never fails halfway because a step needed Linux.
+- `.gitstalk/automations/` with no `runs-on` → a validation error at first, until the default is revisited (the intended default there is isolate). `.github/workflows/` always needs `runs-on`, as on GitHub, and `ubuntu-*` always means a container, even when every step would fit an isolate. A GitHub workflow keeps GitHub's behaviour, and running `actions/github-script` in an isolate would silently break any script that calls `exec` or `fs`.
+- A **checker** in the compatibility report and the editor lists eligible jobs and suggests the label: "this job only calls `gitstalk/*` and HTTP; `runs-on: gitstalk-isolate` would start in milliseconds instead of seconds". Changing it stays the author's decision.
 - Inferring the substrate from the steps was rejected. It works for built-ins, but a marketplace JavaScript action can reach `child_process` through any dependency, and the failure would show up only at run time.
 
 **Security model for user code in an isolate.**
@@ -388,7 +388,7 @@ GitHub's model, next to repository secrets. Lane O (organizations, doc 28) was b
 
 ### 4.1 Why
 
-A file that is the truth needs exactly one way to change it, or the UI and the file drift apart. Making a UI edit an ordinary bean gives, for free: history and blame (`git log .beanstalk/automations/`), revert, review by the people who watch the stalk, the protected-path rule, validation before anything goes live, and agents and people seeing the same definition. "A commit on main" in Beanstalk terms is a bean that lands: it is on the sprout once its pre-land check is green, and live once the stalk validates it, which is when the index recompiles.
+A file that is the truth needs exactly one way to change it, or the UI and the file drift apart. Making a UI edit an ordinary bean gives, for free: history and blame (`git log .gitstalk/automations/`), revert, review by the people who watch the stalk, the protected-path rule, validation before anything goes live, and agents and people seeing the same definition. "A commit on main" in Gitstalk terms is a bean that lands: it is on the sprout once its pre-land check is green, and live once the stalk validates it, which is when the index recompiles.
 
 ### 4.2 The flow
 
@@ -411,11 +411,11 @@ editor shows: Saved as bean ui-deploy-3 · checking → landed → live (the sam
 
 ### 4.3 Validation before commit
 
-Schema errors, with line and column and "did you mean"; expressions parsed; cron checked and its next three times shown; the compatibility report (§1.1); secrets and variables named in the file that do not exist; `uses:` resolvable to a sha, with a warning for an unpinned tag; MCP connections and tools that do not exist; budget present on every agent step; a Beanstalk event in `.github/workflows/` refused with the folder to use.
+Schema errors, with line and column and "did you mean"; expressions parsed; cron checked and its next three times shown; the compatibility report (§1.1); secrets and variables named in the file that do not exist; `uses:` resolvable to a sha, with a warning for an unpinned tag; MCP connections and tools that do not exist; budget present on every agent step; a Gitstalk event in `.github/workflows/` refused with the folder to use.
 
 ### 4.4 Protected paths
 
-`.github/workflows/**`, `.github/actions/**` and `.beanstalk/automations/**` join `.beanstalk/checks.toml` in the always-protected list (`24` §2). Only the owner or a maintainer may change them, with a personal token, an SSH key or the web editor. Agent sessions, deploy tokens and job tokens are refused with the same red as today. A write collaborator's UI save is labelled "Propose". It makes the bean, which is refused at pre-land until the flag-and-approve card arrives (`24` §6.4, Phase 3), and the editor says so before they save. Decision D5 (accepted): agents are refused (red) now. Later, an agent's proposed workflow change becomes a decision card with the diff and its compatibility report, and a maintainer's yes lands it as their own.
+`.github/workflows/**`, `.github/actions/**` and `.gitstalk/automations/**` join `.gitstalk/checks.toml` in the always-protected list (`24` §2). Only the owner or a maintainer may change them, with a personal token, an SSH key or the web editor. Agent sessions, deploy tokens and job tokens are refused with the same red as today. A write collaborator's UI save is labelled "Propose". It makes the bean, which is refused at pre-land until the flag-and-approve card arrives (`24` §6.4, Phase 3), and the editor says so before they save. Decision D5 (accepted): agents are refused (red) now. Later, an agent's proposed workflow change becomes a decision card with the diff and its compatibility report, and a maintainer's yes lands it as their own.
 
 ### 4.5 Conflicts
 
@@ -502,10 +502,10 @@ An automation's run uses the same views as an Actions run. An agent step's log i
 ### 5.5 The editor (form ⇄ YAML, kept in sync)
 
 ```
-┌ Edit · .beanstalk/automations/posthog-errors.yml        ( Form )  YAML     [Cancel] ┐
+┌ Edit · .gitstalk/automations/posthog-errors.yml        ( Form )  YAML     [Cancel] ┐
 │ Name      [PostHog errors → beans                     ]                             │
 │ WHEN      [⏱ Schedule  0 * * * *  next: 10:00, 11:00, 12:00 ]  [×]                  │
-│           [◆ Beanstalk event  validation_red  ▾]               [×]                  │
+│           [◆ Gitstalk event  validation_red  ▾]               [×]                  │
 │           [+ trigger ▾  push · dispatch · webhook · bean_landed · decision_opened …] │
 │ DO        Step 1  Agent session                                                     │
 │             Harness [Claude Code ▾]  Model [sonnet ▾]  Budget [$0.50]  Max [10 min] │
@@ -561,7 +561,7 @@ Verified on `beanstalk-{gateway,web}-staging-act3` (lane 1's control plane, stub
 | M5 | Web: Automations tab (Actions only): list, run history, job graph, live job logs, Run workflow | Night, day and phone screenshots; live log follows a running job | 1.5 |
 | M6 | The example end to end on staging: a Worker repository whose stalk deploys itself with `wrangler deploy` | A pushed bean is LANDED → validated → deployed, with a transcript and screenshots | 0.5 |
 
-Left out on purpose: `pull_request`/`merge_group` and gating, the editor, Automations, cache and artifact services, DinD, OIDC. (Org secrets and variables were built anyway, §3.11.) The demo line is "push a bean, it lands, the stalk moves, Cloudflare deploys it, and the logs are live in Beanstalk." **Cut order if late (D10):** the schedule trigger (M3), then the run graph (M5; keep the list and the logs), then variables (M4). M6 is the demo and stays. Log search (Pipelines, R2 SQL) is not in the MVP; live and durable logs are.
+Left out on purpose: `pull_request`/`merge_group` and gating, the editor, Automations, cache and artifact services, DinD, OIDC. (Org secrets and variables were built anyway, §3.11.) The demo line is "push a bean, it lands, the stalk moves, Cloudflare deploys it, and the logs are live in Gitstalk." **Cut order if late (D10):** the schedule trigger (M3), then the run graph (M5; keep the list and the logs), then variables (M4). M6 is the demo and stays. Log search (Pipelines, R2 SQL) is not in the MVP; live and durable logs are.
 
 ### 6.2 After
 
@@ -571,8 +571,8 @@ Left out on purpose: `pull_request`/`merge_group` and gating, the editor, Automa
 | A3 · Native runner | the Node step runner (replacing act), cache v2 and artifacts v4 services on R2, the action resolver policy, the `bsj_` REST subset, job-level concurrency, matrix in our DAG, reusable workflows (same repo) | 8 |
 | A4 · Editor | the form ⇄ YAML editor, `commitFile` RPC (commit builder in the Worker), validation, conflict merge, "Propose" for non-maintainers | 4 |
 | A2b · Log search | Cloudflare Pipelines into R2 Data Catalog, R2 SQL behind a tenant-filtered API, the search box on a run and on a repository | 2 |
-| A5 · Automations v1, on Dynamic Workers | `.beanstalk/automations/` schema extension; the `worker_loaders` binding and the isolate step host in `beanstalk-actions` (`IsolateEgress`, a `just-bash` and `isomorphic-git` bundle for script-only steps, the checker that suggests `beanstalk-isolate`, secret placeholders, the `BEANSTALK` and `MCP_<name>` stubs, per-step limits); `beanstalk/*` typed-output actions and `beanstalk/script@v1`; Beanstalk events from repo-events; `repository_dispatch` webhooks; the Automations sub-tab; MCP tools; the repository bot principal. No container is involved: an automation that needs Linux uses a `runs-on: ubuntu-latest` job | 6 |
-| A6 · Agent steps | `beanstalk/agent@v1` (the hand-off runs in the isolate, the session in an AgentSandbox) on `16` Phase 5 cloud sessions, direct MCP connections through `mcp.internal`, budgets, transcript as log | 4 (after Phase 5) |
+| A5 · Automations v1, on Dynamic Workers | `.gitstalk/automations/` schema extension; the `worker_loaders` binding and the isolate step host in `beanstalk-actions` (`IsolateEgress`, a `just-bash` and `isomorphic-git` bundle for script-only steps, the checker that suggests `gitstalk-isolate`, secret placeholders, the `BEANSTALK` and `MCP_<name>` stubs, per-step limits); `gitstalk/*` typed-output actions and `gitstalk/script@v1`; Gitstalk events from repo-events; `repository_dispatch` webhooks; the Automations sub-tab; MCP tools; the repository bot principal. No container is involved: an automation that needs Linux uses a `runs-on: ubuntu-latest` job | 6 |
+| A6 · Agent steps | `gitstalk/agent@v1` (the hand-off runs in the isolate, the session in an AgentSandbox) on `16` Phase 5 cloud sessions, direct MCP connections through `mcp.internal`, budgets, transcript as log | 4 (after Phase 5) |
 | A7 · Trust | OIDC issuer, environments with approval cards, org secrets (built, §3.11), the DinD spike and then `services:`/`container:`/Docker actions with host networking, larger instances | 6 |
 
 ### 6.3 Risks
@@ -596,20 +596,20 @@ Left out on purpose: `pull_request`/`merge_group` and gating, the editor, Automa
 
 | # | Decision | Options | Decision |
 |---|---|---|---|
-| D1 | Automations schema | (a) Actions syntax plus extensions, in its own folder; (b) a separate schema | **Accepted (a)**: same schema as Actions, separate folder `.beanstalk/automations/`; one parser, engine and UI; `.github/workflows/` stays strict so it still runs on GitHub |
+| D1 | Automations schema | (a) Actions syntax plus extensions, in its own folder; (b) a separate schema | **Accepted (a)**: same schema as Actions, separate folder `.gitstalk/automations/`; one parser, engine and UI; `.github/workflows/` stays strict so it still runs on GitHub |
 | D2 | `checks.toml` against workflows | (a) keep it as the fast pre-land path, with an `[actions]` table for required jobs; (b) deprecate it; (c) workflows are only advisory | **Accepted (a)**. A moved repository without `checks.toml` gets its PR and merge-group workflows required **at validation**, plus a proposed `checks.toml` bean |
-| D3 | `main` on Beanstalk | (a) mirror `refs/heads/<base>` to the stalk head and alias it in filters and `github.ref`; (b) only the alias | **Accepted (a)**: `main` aliases the stalk; clones' default branch and workflows' `refs/heads/main` checks both just work |
+| D3 | `main` on Gitstalk | (a) mirror `refs/heads/<base>` to the stalk head and alias it in filters and `github.ref`; (b) only the alias | **Accepted (a)**: `main` aliases the stalk; clones' default branch and workflows' `refs/heads/main` checks both just work |
 | D4 | Secrets for beans from agents and deploy tokens | (a) none, read-only token (fork-PR rule); (b) the same as people | **Accepted (a), clarified**: secrets are fully supported; stalk, dispatch and schedule runs get the secrets they name (deploys work). Pre-land checks of beans pushed by agents or deploy tokens get none by default, like GitHub fork PRs. A per-secret toggle "available to pre-land checks" (default off) is for low-risk test keys (§3.4) |
 | D5 | Agents changing workflows and automations | (a) refused (red) now, decision card later; (b) allowed | **Accepted (a)**: refused now; the decision card comes later (Phase 3) |
 | D6 | Execution | (a) one container per run, act drives the jobs; (b) one container per job from day one | **Changed to (b)**: one container per job from day one, each with its own id and nothing carried over, destroyed at job end, failure or timeout after logs are flushed, never reused across repositories or tenants; an optional warm pool of fresh blank containers only. GitHub-hosted runners also use a fresh VM per job. `act -j <job>` runs one job in that container, and our DAG passes `needs` and outputs between jobs (§3.2) |
 | D7 | Who an automation acts as | (a) the repository's bot principal, charged to the owner; (b) the person who last changed the file | **Accepted (a)**: it does not break when that person leaves; beans still name the file's last editor |
 | D8 | Actions from github.com | (a) all public actions, resolved to a sha and mirrored; (b) allowlist only | **Accepted (a)**: public actions pinned to a sha, through a GitHub App that Coop creates (about 10 minutes); the allowlist is an org setting in A3 |
-| D9 | Limits and who pays | caps per repository and month | **Decided**: Beanstalk is open source and self-hostable, and self-hosters set their own limits. The managed beta: **100 Actions minutes per repository per month**, a **60-minute job timeout**, **4 concurrent jobs per repository** (§3.8) |
+| D9 | Limits and who pays | caps per repository and month | **Decided**: Gitstalk is open source and self-hostable, and self-hosters set their own limits. The managed beta: **100 Actions minutes per repository per month**, a **60-minute job timeout**, **4 concurrent jobs per repository** (§3.8) |
 | D10 | Is the MVP in the 10-14 submission | (a) yes, as scoped in §6.1; (b) after the deadline | **Decided (a)**: ship the Actions MVP for 10-14 (three build lanes have started). Cut order if late: the schedule trigger, then the run graph, then variables. The fallback of showing this design and the compatibility report (M1 alone, 1 day) remains if the race result is not settled |
 | D11 | Where Dynamic Workers run | (a) user step code and automations only, with the control plane in ordinary Workers and DOs; (b) the control plane in Dynamic Workers too | **Accepted (a)**: the control plane is our trusted code over untrusted data, so an isolate adds limits and charges and no isolation. Revisit if repositories ever supply their own trigger or policy code. Isolates only for repository-supplied code |
-| D12 | Classifying a job as isolate or container | (a) by label only, with a suggestion in the report; (b) inferred from the steps | **Accepted (a)**: label-based. **Isolates are opt-in by label at first** (`runs-on: beanstalk-isolate`) with a checker that suggests eligible jobs; the default is revisited later (§3.9) |
+| D12 | Classifying a job as isolate or container | (a) by label only, with a suggestion in the report; (b) inferred from the steps | **Accepted (a)**: label-based. **Isolates are opt-in by label at first** (`runs-on: gitstalk-isolate`) with a checker that suggests eligible jobs; the default is revisited later (§3.9) |
 
-**Where this differs from Codex's `05-github-actions-portability.md`.** Codex leads with import, a per-workflow compatibility report and an optional GitHub-connected runner bridge, and calls a new native task format an adoption burden. This design agrees on the report (§1.1, made the editor's and the push's feedback) and on enforcing act's gaps from outside. It does not plan the GitHub bridge: Coop's direction is that Beanstalk runs the workflows itself. It also takes Codex's rule that a workflow's status writes never manufacture an engine acceptance: only verdicts that the actions Worker records for a required job feed the engine (§2.1). Codex also puts "bounded policy evaluation" in Dynamic Workers; this design keeps evaluation of our own code in ordinary Workers and uses isolates for repository-supplied code (D11).
+**Where this differs from Codex's `05-github-actions-portability.md`.** Codex leads with import, a per-workflow compatibility report and an optional GitHub-connected runner bridge, and calls a new native task format an adoption burden. This design agrees on the report (§1.1, made the editor's and the push's feedback) and on enforcing act's gaps from outside. It does not plan the GitHub bridge: Coop's direction is that Gitstalk runs the workflows itself. It also takes Codex's rule that a workflow's status writes never manufacture an engine acceptance: only verdicts that the actions Worker records for a required job feed the engine (§2.1). Codex also puts "bounded policy evaluation" in Dynamic Workers; this design keeps evaluation of our own code in ordinary Workers and uses isolates for repository-supplied code (D11).
 
 
 ---
@@ -624,13 +624,15 @@ Built on the branch `worktree-agent-a04f3551f2cd07eae`, verified on staging (§7
 
 ### 7.1 The file
 
-`.beanstalk/automations/<id>.yml` (or `.yaml`, or `.md` with YAML front matter whose body is the prompt). `<id>` is the file name: it names the memory ref, the bot and its beans.
+`.gitstalk/automations/<id>.yml` (or `.yaml`, or `.md` with YAML front matter whose body is the prompt). `<id>` is the file name: it names the memory ref, the bot and its beans.
+
+Since the rename (2026-10-10, `30-environments.md` §12) files in `.beanstalk/automations/` are still read; a `.gitstalk/automations/` file of the same id wins. Runs set each `GITSTALK_*` variable also as `BEANSTALK_*`, and the event payload carries the same object under `gitstalk` and `beanstalk`.
 
 ```yaml
-# .beanstalk/automations/fix-red.yml
+# .gitstalk/automations/fix-red.yml
 name: Fix red beans
 on:
-  bean_red:                       # a Beanstalk event; filters are optional globs
+  bean_red:                       # a Gitstalk event; filters are optional globs
     beans: ['*', '!wip-*']
   schedule: [{ cron: "0 9 * * 1" }]
   # workflow_dispatch is implied: every automation can be run by hand
@@ -650,8 +652,8 @@ prompt: |
 
 | Key | Meaning |
 |---|---|
-| `on:` | A name, a list, or a mapping of: the Beanstalk events of §7.2 (each with optional `beans:` and `authors:` glob filters, GitHub's `!` rules; a list of only `!` patterns is an error), `schedule` (5-field UTC cron, at least 5 minutes apart, as Actions), `workflow_dispatch` (implied) |
-| `harness:` | `agent`: Beanstalk's agent loop on a Workers AI model (§7.5). `shell`: a `run:` script with the same workspace, memory and bean push, and no model (tiny hooks, and the no-model path the tests use) |
+| `on:` | A name, a list, or a mapping of: the Gitstalk events of §7.2 (each with optional `beans:` and `authors:` glob filters, GitHub's `!` rules; a list of only `!` patterns is an error), `schedule` (5-field UTC cron, at least 5 minutes apart, as Actions), `workflow_dispatch` (implied) |
+| `harness:` | `agent`: Gitstalk's agent loop on a Workers AI model (§7.5). `shell`: a `run:` script with the same workspace, memory and bean push, and no model (tiny hooks, and the no-model path the tests use) |
 | `prompt:` / `run:` | The goal (agent) or the script (shell). Both travel base64 in the job's environment, so `${{ }}` in them is text, never an expression |
 | `permissions.beans` | `write` lets the job token push `bean/*` as `<id>[automation]` |
 | `secrets:` | Repository or org secret names the run may read; they reach the job only as environment variables of the agent or script step |
@@ -660,7 +662,7 @@ Validation is at index time (each stalk move) and the file's problems show on th
 
 ### 7.2 Triggers
 
-Each `repo-events` event is one Beanstalk event. The consumer now tells the repository's ActionsRepoDO every event (not only `stalk.promoted`); it queues them in its SQLite (idempotent by engine seq) and its alarm starts the automations after it has re-indexed any stalk move in the same batch.
+Each `repo-events` event is one Gitstalk event. The consumer now tells the repository's ActionsRepoDO every event (not only `stalk.promoted`); it queues them in its SQLite (idempotent by engine seq) and its alarm starts the automations after it has re-indexed any stalk move in the same batch.
 
 | `on:` name | Repository event | Bean | Actor (for `authors:`) |
 |---|---|---|---|
@@ -683,7 +685,7 @@ Each `repo-events` event is one Beanstalk event. The consumer now tells the repo
 
 **Where: a container per run, the Actions job container.** An automation run is an ordinary Actions run whose one job, `agent`, the control plane compiles from the file (§7.4) and the existing executor runs in its own `standard-4` container (D6: fresh, nothing carried over, destroyed after). That gives the agent a real Linux filesystem, git, Node and Python, network for `npm`, and the runner's masking, log stream, timeouts and cancel, with no new stack. Dynamic Workers cannot run a coding agent (no processes, no filesystem), so they are not used for automations; §3.9's isolate design stays unbuilt. *The coordinator recommended a Sandbox or container per run; this is that, on the container infrastructure Actions already has.*
 
-**Memory: a git ref per automation, `refs/automations/<id>/memory`, in the repository itself.** At the start of a run the job fetches it into a directory (`$BEANSTALK_MEMORY`) next to the checkout; the agent reads and writes notes there; at the end the job commits what changed (author `<id>[automation]`, message `memory: run N (event)`) and pushes it back. Why git: it is GitOps like the file itself, every run's memory is a commit (versioned, diffable, restorable with git), it needs no new storage, and the agent already speaks git. R2 snapshots would be opaque blobs; DO SQLite suits structured state but not notes and scratch files.
+**Memory: a git ref per automation, `refs/automations/<id>/memory`, in the repository itself.** At the start of a run the job fetches it into a directory (`$GITSTALK_MEMORY`) next to the checkout; the agent reads and writes notes there; at the end the job commits what changed (author `<id>[automation]`, message `memory: run N (event)`) and pushes it back. Why git: it is GitOps like the file itself, every run's memory is a commit (versioned, diffable, restorable with git), it needs no new storage, and the agent already speaks git. R2 snapshots would be opaque blobs; DO SQLite suits structured state but not notes and scratch files.
 
 - **Who may write it:** only that automation's job token (`actions_job_tokens.automation_id`, migration `0010_automations.sql`). The git proxy accepts exactly one update of `refs/automations/<id>/memory` from it (no deletion, nothing else in the push) and forwards it to the repository; the engine never sees it, and memory never lands anywhere. Any other credential pushing that ref is refused like any non-bean ref. Pushes are not forced, so two runs can never overwrite each other.
 - **Who may read it:** anyone who can read the repository (the ref is in the repository). The tab links it; the preamble tells the agent never to write a secret into it. Decided with the owner, 2026-10-09.
@@ -691,7 +693,7 @@ Each `repo-events` event is one Beanstalk event. The consumer now tells the repo
 
 ### 7.4 The compiled job
 
-`compileAutomation` (`gateway/src/actions/automation-job.ts`) turns the file into a workflow with one job and five steps; the index stores it as the automation's `source`, so a run plans it with the Actions parser like any workflow. The executor sends it to the runner as `JobSpec.workflowSource` (new, optional), and the runner uses it instead of reading the path at the commit (`actions-runner`: `JobRequest.workflow_source`). The job runs as `workflow_dispatch` in act; `BEANSTALK_EVENT` carries the real event, `$GITHUB_EVENT_PATH` the payload.
+`compileAutomation` (`gateway/src/actions/automation-job.ts`) turns the file into a workflow with one job and five steps; the index stores it as the automation's `source`, so a run plans it with the Actions parser like any workflow. The executor sends it to the runner as `JobSpec.workflowSource` (new, optional), and the runner uses it instead of reading the path at the commit (`actions-runner`: `JobRequest.workflow_source`). The job runs as `workflow_dispatch` in act; `GITSTALK_EVENT` carries the real event, `$GITHUB_EVENT_PATH` the payload.
 
 1. **Check out** the stalk head (`actions/checkout@v4`, the job token persisted for git).
 2. **Restore memory** (or *Prepare the workspace*): fetch the memory ref if it exists, install a `pre-push` hook that records every bean the run pushes, set git's identity to the bot.
@@ -705,7 +707,7 @@ Job outputs: `beans`, `memory_before`, `memory_after`, `cost_usd`, `turns`; the 
 
 **Owner's exception (2026-10-09):** automations use Workers AI models through AI Gateway, the platform fallback when no agent setup exists. This is the one place Workers AI does coding work; `AGENTS.md` says so. BYO keys, subscriptions and real harness containers (Claude Code, Codex) come later.
 
-- **The harness** is Beanstalk's own agent loop (`gateway/src/actions/agent-loop.ts`, plain JavaScript with no dependencies, shipped in the compiled job and run by Node in the container). It speaks the OpenAI chat-completions dialect with tool calls and gives the model six tools on the real filesystem: `bash` (timeout 120 s, at most 600), `read_file`, `write_file`, `edit_file` (one exact replacement), `list_files`, `finish`. Every call and a one-line result are the run's log. *Why not an existing CLI:* Claude Code needs the Anthropic Messages API and Codex now needs the Responses API; Workers AI's function-calling models answer chat completions (checked: `env.AI.run` with `messages` and `tools` returns an OpenAI-shaped `chat.completion` with `tool_calls`, through the `default` gateway). A 200-line loop was the simplest thing that works; a CLI harness becomes possible with a translating proxy or BYO keys.
+- **The harness** is Gitstalk's own agent loop (`gateway/src/actions/agent-loop.ts`, plain JavaScript with no dependencies, shipped in the compiled job and run by Node in the container). It speaks the OpenAI chat-completions dialect with tool calls and gives the model six tools on the real filesystem: `bash` (timeout 120 s, at most 600), `read_file`, `write_file`, `edit_file` (one exact replacement), `list_files`, `finish`. Every call and a one-line result are the run's log. *Why not an existing CLI:* Claude Code needs the Anthropic Messages API and Codex now needs the Responses API; Workers AI's function-calling models answer chat completions (checked: `env.AI.run` with `messages` and `tools` returns an OpenAI-shaped `chat.completion` with `tool_calls`, through the `default` gateway). A 200-line loop was the simplest thing that works; a CLI harness becomes possible with a translating proxy or BYO keys.
 - **The model:** `@cf/moonshotai/kimi-k2.7-code` by default. It is the catalog's coding-tuned model with function calling and a 262k context, at $0.95 per million input tokens and $4 per million output (catalog, 2026-10-09). A local run of the loop fixed a planted bug and wrote its memory note in 5 turns. The file may name another function-calling model from the list in `automation-models.ts`: Kimi K2.6, gpt-oss-120b and 20b, GLM 5.3 and 5.3 Flash, Qwen 3.8 27B, DeepSeek V4 Pro and Flash.
 - **The proxy** (`POST <gateway>/v1/automations/model/chat/completions`, `model-proxy.ts`): the container never holds a model key, because none exists anywhere. The gateway's AI binding authenticates to Workers AI, and calls go through the AI Gateway named by `AUTOMATIONS_AI_GATEWAY` (default `default`), with the repository, run and automation in its metadata. The loop calls the proxy with its job token. The proxy checks four things: the token belongs to a running automation job; the run allows another call (the file's model, which overrides whatever the body says, and spend under `max-cost-usd`); the repository's month is under `AUTOMATIONS_MONTHLY_USD` (default $10); and the body is a chat request. It then calls the model and charges the call's tokens and cost to the run and the repository. Because the agent never sees a key, **model access does not depend on D4**: event-triggered runs get the model without any pre-land toggle (owner, 2026-10-09).
 
@@ -732,7 +734,7 @@ The repository's Actions concurrency (4 jobs) and the RunnerCapacity pool apply 
 
 ### 7.8 Runs, logs and the UI
 
-Runs are Actions runs (`actions_runs`, path under `.beanstalk/automations/`), so logs are the same: masked batches, gzip chunks in R2 `beanstalk-actions-logs` (30-day rule), relayed live to the run page over the WebSocket. `listRuns` takes `kind: 'automation' | 'workflow'`.
+Runs are Actions runs (`actions_runs`, path under `.gitstalk/automations/`), so logs are the same: masked batches, gzip chunks in R2 `beanstalk-actions-logs` (30-day rule), relayed live to the run page over the WebSocket. `listRuns` takes `kind: 'automation' | 'workflow'`.
 
 - **Automations tab → Automations** (`web/app/[owner]/[repo]/automations`): the automations from the files in a rail with their last run's state, *All automations*, each one's triggers, validation errors with the line, what it runs (agent and model, or a script), who it acts as, what it may do, its secrets, its memory ref, its limits, its prompt, a **Run** button for maintainers, and its runs with the Actions filters. With no automation it explains the format with an example.
 - **A run** (`/automations/runs/<run>`): the Actions run view, plus *What it did*: the beans pushed (linked), memory before and after (each commit linked), and the model, calls, tokens and spend against the cap. The live log follows the agent turn by turn.
@@ -744,13 +746,13 @@ Runs are Actions runs (`actions_runs`, path under `.beanstalk/automations/`), so
 |---|---|
 | File format and validation | `gateway/src/actions/automation-file.ts` (`yaml` ISC, Zod) |
 | Compile to one job | `automation-job.ts`, `agent-loop.ts` |
-| Index beside workflows | `workflow-index.ts` (reads `.beanstalk/automations/` too) |
+| Index beside workflows | `workflow-index.ts` (reads `.gitstalk/automations/` too) |
 | Triggers, payload, loop guard | `automation-triggers.ts`; `repo-do.ts` (`repoEvents`, `automationEnded`, one-at-a-time, schedules, dispatch); `repo-events/consumer.ts` |
-| Run, token, proxy accounting | `run-do.ts` (`modelAllowance`, `chargeModel`, the end notice), `job-tokens.ts` (`automation_id`, `automationJobOf`), `job-spec.ts` (`workflowSource`, `BEANSTALK_EVENT`, `BEANSTALK_MODEL_URL`) |
+| Run, token, proxy accounting | `run-do.ts` (`modelAllowance`, `chargeModel`, the end notice), `job-tokens.ts` (`automation_id`, `automationJobOf`), `job-spec.ts` (`workflowSource`, `GITSTALK_EVENT`, `BEANSTALK_MODEL_URL`) |
 | Model proxy | `model-proxy.ts`, `automation-models.ts`, `routes/automations.ts`; the gateway's `ai` binding and two vars |
 | Memory ref push | `push/push-proxy.ts`, `auth/git-credential.ts` |
 | D4 for events | `secrets.ts` (`RunOrigin` `event`) |
-| Contract | `shared-race/src/actions.ts`: `WorkflowPath` takes automation paths, `BEANSTALK_EVENTS`, the `beanstalk` trigger, `AutomationInfo`, `ModelUsage`, `RunFilter.kind`, `JobSpec.workflowSource` |
+| Contract | `shared-race/src/actions.ts`: `WorkflowPath` takes automation paths, `GITSTALK_EVENTS`, the `beanstalk` trigger, `AutomationInfo`, `ModelUsage`, `RunFilter.kind`, `JobSpec.workflowSource` |
 | Executor and runner | `actions-executor` passes `workflowSource`; `actions-runner` uses it (`job.rs`, `wire.rs`) |
 | MCP | `automation_list` (`mcp/src/repos/repo-tools.ts`, `repo-answers.ts`; gateway `agent/agent-repos-rpc.ts` `agentAutomations`) |
 | Web | `automations/page.tsx`, `automations/runs/[run]/page.tsx`, `workflows-view.tsx` (`kind`), `run-view.tsx` (*What it did*), the contract and adapter |
@@ -772,7 +774,7 @@ Stack `staging` (`pnpm env:provision staging && pnpm env:deploy staging`; migrat
 | The memory | `git ls-remote` shows `refs/automations/fix-red/memory` and `refs/automations/heartbeat/memory`; `notes.md` at `f1287c3` opens in the Code view by its commit, linked from the run page |
 | Cleanup | a bean deleting `heartbeat.yml` landed, so the stalk's index dropped its schedule |
 
-What this shows: a file landed by a bean became a live automation. A Beanstalk event started a real agent in a container, with no model key anywhere. The agent fixed the bean, pushed a fix bean as its own bot through the normal pre-land check, and kept a note that the next run read and built on. Schedule, manual runs, masking and live logs work as for Actions.
+What this shows: a file landed by a bean became a live automation. A Gitstalk event started a real agent in a container, with no model key anywhere. The agent fixed the bean, pushed a fix bean as its own bot through the normal pre-land check, and kept a note that the next run read and built on. Schedule, manual runs, masking and live logs work as for Actions.
 
 ### 7.12 Live (2026-10-09)
 
@@ -795,8 +797,8 @@ The owner's request: create or edit an automation in a visual builder "like curs
 
 | Section | What it writes |
 |---|---|
-| Name, file | `name:`; a new file's name (`.beanstalk/automations/<slug>.yml`) |
-| Triggers | event chips for the eleven Beanstalk events, each with `beans:` and `authors:` globs; schedules from presets or typed cron, each in words with its next three runs (the gateway's own cron parser); "manual is always available". Removing the last trigger writes `workflow_dispatch:` so the file stays valid |
+| Name, file | `name:`; a new file's name (`.gitstalk/automations/<slug>.yml`) |
+| Triggers | event chips for the eleven Gitstalk events, each with `beans:` and `authors:` globs; schedules from presets or typed cron, each in words with its next three runs (the gateway's own cron parser); "manual is always available". Removing the last trigger writes `workflow_dispatch:` so the file stays valid |
 | Harness | agent (model list from `automation-models.ts`, default Kimi K2.7 code) or shell (`run:`) |
 | Prompt / Script | a large editor |
 | Permissions | `permissions: beans: write` |
@@ -809,7 +811,7 @@ The owner's request: create or edit an automation in a visual builder "like curs
 
 **Save is a bean.** `saveAutomation` (gateway default entrypoint; contract `AutomationEditorRpc` in `shared-race/automation-editor.ts`; code `gateway/src/automations/editor-rpc.ts`):
 
-1. Access by `mayUseEngine` with the web viewer: `write` to save. If the latest landed `.beanstalk/checks.toml` protects the path (`protected_paths`, for example `.beanstalk/**`), only maintain or owner may, and the editor says so before anyone types. *Automation files are not protected by default:* `ALWAYS_PROTECTED` is `checks.toml` only (`24` §2), so §4.4's list is still a design.
+1. Access by `mayUseEngine` with the web viewer: `write` to save. If the latest landed `.gitstalk/checks.toml` protects the path (`protected_paths`, for example `.gitstalk/**`), only maintain or owner may, and the editor says so before anyone types. *Automation files are not protected by default:* `ALWAYS_PROTECTED` is `checks.toml` only (`24` §2), so §4.4's list is still a design.
 2. The content is validated with the shared parser; an invalid file is refused with its line.
 3. The file on the **latest landed commit** (the sprout head, where the bean will land) is compared with the blob the editor opened. Different: the save answers `stale` with that version and the author of the newest commit that changed it. Same: the gateway builds the blob, the trees along the path and a commit on that head (`automations/file-commit.ts`, byte-identical to git's own objects, checked against ids from a real repository), authored by the person (`<handle> <handle@users.<web host>>`).
 4. It pushes the objects as `refs/heads/bean/automation-<slug>-<6 hex>` with a write token the gateway mints (`pushRefs`), then hands the head to the engine with `submitPush`, exactly as the git proxy does after a push, with protected access "the person, with the web editor" (allowed for maintain and owner).
@@ -823,7 +825,7 @@ The owner's request: create or edit an automation in a visual builder "like curs
 
 **Test run.** Maintainers and the owner (the role that may already dispatch runs and manage secrets) can run the draft once without saving: `testAutomation` validates and compiles it (`compileAutomation`) **without the memory save step**, and the repository's ActionsRepoDO starts it as a manual run of that path on the stalk head (one at a time per path; the monthly minutes apply). It gets the secrets a manual run gets. *Why maintain, not write:* a draft can name any secret, so a writer could read secrets through a test run; saving needs only write, because a saved file is visible in git and runs as the repository's bot under D4.
 
-**Tests.** Web (vitest): the YAML round trip byte for byte (one field changed, comments and flow lists kept, a 4-space file, `on: <name>` normalised, syntax errors with lines, every template valid by the shared validator); the merge (disjoint fields, same field agreed, same-field conflict resolved by pick and by edit, each trigger its own field, file deleted on theirs, an unparseable side, no base). Gateway: the commit builder against real git's ids (edit, add, delete with directory removal, a first file); end to end on Miniflare (`test/automation-editor.test.ts`): open, save a new automation as a bean that lands and is indexed, invalid content refused with its line, stale with theirs and then a merged save that lands, delete, a reader refused, a writer allowed but not to test-run, maintain needed when `checks.toml` protects `.beanstalk/**`, and a test run that saves nothing and writes no memory. The fake Artifacts now reads real packs on bean pushes (`test/fakes/fake-pack.js`) and moves a line on the runner's update-ref when the line is still where the engine thinks.
+**Tests.** Web (vitest): the YAML round trip byte for byte (one field changed, comments and flow lists kept, a 4-space file, `on: <name>` normalised, syntax errors with lines, every template valid by the shared validator); the merge (disjoint fields, same field agreed, same-field conflict resolved by pick and by edit, each trigger its own field, file deleted on theirs, an unparseable side, no base). Gateway: the commit builder against real git's ids (edit, add, delete with directory removal, a first file); end to end on Miniflare (`test/automation-editor.test.ts`): open, save a new automation as a bean that lands and is indexed, invalid content refused with its line, stale with theirs and then a merged save that lands, delete, a reader refused, a writer allowed but not to test-run, maintain needed when `checks.toml` protects `.gitstalk/**`, and a test run that saves nothing and writes no memory. The fake Artifacts now reads real packs on bean pushes (`test/fakes/fake-pack.js`) and moves a line on the runner's update-ref when the line is still where the engine thinks.
 
 **Staging (2026-10-10).** Gateway `46c2f892`, web `ba5b9141` on the `staging` stack, smoked in headless Chromium with a throwaway passkey account and a repository from the TypeScript starter (deleted afterwards; both answer 404):
 
@@ -840,7 +842,7 @@ Found on the way: a landed commit is the runner's squash, so "who changed it" na
 
 ### 7.11 Left
 
-- **Beanstalk MCP tools for the agent** (decision cards, comments, bean status) through `bs.internal` with a scoped session token; today the agent has git and the filesystem only. People's agents have one read tool, `automation_list` (automations, problems, memory refs and the 20 newest runs, through `AgentReposRpc.agentAutomations`); run logs over MCP are not built.
+- **Gitstalk MCP tools for the agent** (decision cards, comments, bean status) through `bs.internal` with a scoped session token; today the agent has git and the filesystem only. People's agents have one read tool, `automation_list` (automations, problems, memory refs and the 20 newest runs, through `AgentReposRpc.agentAutomations`); run logs over MCP are not built.
 - BYO model keys and real harnesses (Claude Code, Codex) in the container: a translating proxy (Anthropic Messages or Responses to Workers AI) or BYO keys through the same proxy.
 - `repository_dispatch` webhooks; `thread_message`. The editor for automations is built (§7.13); the editor for `.github/workflows/` files is not.
 - A page for the memory ref (tree and history) beyond links to its commits; a memory diff view.

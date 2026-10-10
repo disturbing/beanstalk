@@ -1,9 +1,9 @@
 ---
-name: beanstalk-packages
-description: Package layout and templates for the beanstalk monorepo (pnpm workspace plus Cargo workspace under packages/): TypeScript Workers with Hono routers behind a WorkerEntrypoint, Rust container apps owned by a Container Durable Object, and the vinext web app, with wrangler.jsonc, tsconfig, vitest and Dockerfile templates. Use when creating a package, adding a route, binding, container, queue or Durable Object, wiring the web app to a Worker, or deciding where a file goes.
+name: gitstalk-packages
+description: Package layout and templates for the Gitstalk monorepo (pnpm workspace plus Cargo workspace under packages/): TypeScript Workers with Hono routers behind a WorkerEntrypoint, Rust container apps owned by a Container Durable Object, and the vinext web app, with wrangler.jsonc, tsconfig, vitest and Dockerfile templates. Use when creating a package, adding a route, binding, container, queue or Durable Object, wiring the web app to a Worker, or deciding where a file goes.
 ---
 
-# beanstalk packages
+# Gitstalk packages
 
 Every deployable unit or library is one directory under `packages/`. TypeScript for Workers and the web app, Rust for anything that runs in a container. Versions come from the catalog in `pnpm-workspace.yaml` (`"hono": "catalog:"`); add a dependency there first.
 

@@ -100,4 +100,4 @@ Pin `rust:1-slim-bookworm` to the exact version from `rust-toolchain.toml` once 
 
 ## Owning Worker
 
-The container is reached only through its Container class in a TypeScript Worker package (`beanstalk-packages` skill, `references/rust-container-package.md`). The Rust crate knows nothing about Cloudflare bindings: it receives plain HTTP from the DO and reaches the rest of the system through the gateway's HTTP API with a short-lived token supplied in `envVars` or per request.
+The container is reached only through its Container class in a TypeScript Worker package (`gitstalk-packages` skill, `references/rust-container-package.md`). The Rust crate knows nothing about Cloudflare bindings: it receives plain HTTP from the DO and reaches the rest of the system through the gateway's HTTP API with a short-lived token supplied in `envVars` or per request.

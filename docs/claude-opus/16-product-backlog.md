@@ -5,7 +5,7 @@
 > - **Licence:** ask the organisers in writing whether FSL qualifies (draft email sent to Coop); switch the submission snapshot only if they say no.
 > - **Demo engine:** decided after the real races. v2.5 with dependency starts and the tail fix is racing now.
 > - **Sign-up (Coop, 2026-10-07):** passkeys are the primary sign-up path; email magic links are built and tested but switched off and hidden until a sender domain is configured (`19-accounts-and-auth.md` §6).
-> - **Domain:** open. beanstalk.dev is taken; beanstalk.sh, beanstalk.build and beanstalkgit.com looked free on 10-06. The name "Beanstalk" collides with the existing Beanstalk git hosting service (beanstalkapp.com) and AWS Elastic Beanstalk, a naming and trademark risk to settle before launch.
+> - **Name and domain:** decided 2026-10-10: the product is **Gitstalk** (the growing-beanstalk metaphor stays). "Beanstalk" collided with the existing Beanstalk git hosting service (beanstalkapp.com) and AWS Elastic Beanstalk, and beanstalk.ai was taken. Production will be gitstalk.io and staging gitstalk.dev; until they are set up the hosted service keeps its workers.dev addresses (`30-environments.md` §12).
 
 
 Written 2026-10-06 for Coop, from the `prototype` branch. This is a plan, not a build: every phase is sized so a separate agent can take it. Names as before: a **bean** is one change (an agent's or a person's), the **sprout** is the staged line, the **stalk** is the stable line.
@@ -32,7 +32,7 @@ Inputs: `AGENTS.md`, `README.md`, this folder's `06`, `11`, `14` and `15`, `docs
 
 ## 1. Product scope and principles
 
-**What Beanstalk is:** a git forge where a team's coding agents (local or cloud, any harness) land work on one codebase without queueing, and people decide what the product means. The official app is the place a person signs up (usually through their agent), creates or imports a repository, connects sessions, answers decision cards, and sets up automations that feed work in.
+**What Gitstalk is:** a git forge where a team's coding agents (local or cloud, any harness) land work on one codebase without queueing, and people decide what the product means. The official app is the place a person signs up (usually through their agent), creates or imports a repository, connects sessions, answers decision cards, and sets up automations that feed work in.
 
 **Principles** (each one is a test a design or PR must pass):
 
@@ -55,7 +55,7 @@ Inputs: `AGENTS.md`, `README.md`, this folder's `06`, `11`, `14` and `15`, `docs
 ### 2.1 The map
 
 ```
-beanstalk.<domain>
+gitstalk.io
 ├── /                         signed out: marketing (today's packages/site)  │ signed in: Home
 ├── /signup  /signup/agent  /signup/human      (agent-first: paste one command)
 ├── /login                    email magic link, passkey
@@ -87,7 +87,7 @@ Who sees what: Viewer (read), Member (read, connect sessions, open beans, answer
 ```
  marketing /                       agent pastes one line                      browser opens /connect
 ┌──────────────────────────┐   ┌──────────────────────────────────┐   ┌────────────────────────────────────┐
-│ Run a swarm of coding    │   │ $ claude plugin marketplace add … │   │ Connect Claude Code to Beanstalk   │
+│ Run a swarm of coding    │   │ $ claude plugin marketplace add … │   │ Connect Claude Code to Gitstalk   │
 │ agents on one codebase.  │──▶│   && claude plugin install …      │──▶│ (no account yet)                   │
 │ [Sign up with agent] ◀── │   │   && claude mcp login plugin:…    │   │ Email [ you@team.dev        ]      │
 │ [Sign up as human]       │   │ ✓ plugin installed                │   │ [Turnstile]   [Send sign-in link]  │
@@ -97,7 +97,7 @@ Who sees what: Viewer (read), Member (read, connect sessions, open beans, answer
 ┌──────────────────────────────────────────────┐   ┌───────────────────────────────────────────────┐
 │ Allow "Claude Code on coop-laptop" to act    │   │ You're in. Your agent is connected.           │
 │ for you?                                     │   │ Back in your terminal, try:                    │
-│  • read your repositories                    │   │   "put this project on beanstalk"              │
+│  • read your repositories                    │   │   "put this project on gitstalk"               │
 │  • open and submit beans                     │──▶│   "what changed on coupons yesterday?"         │
 │  • never land on the stalk or change settings│   │ Or: [Import a repo] [Open the demo repository] │
 │ Handle [coop]  Org [coop (personal)]         │   │ Add a passkey for next time  [Add passkey]     │
@@ -112,7 +112,7 @@ Who sees what: Viewer (read), Member (read, connect sessions, open beans, answer
 ### 2.3 Home after sign-up (signed-in `/`)
 
 ```
-┌ beanstalk  [⌘K Ask across your repos…]                        Inbox ●2   coop ▾ ┐
+┌ gitstalk   [⌘K Ask across your repos…]                        Inbox ●2   coop ▾ ┐
 │                                                                                    │
 │  Two decisions need you, and billing has been red for 6 minutes.   ● picked        │  ← lead sentence (Jev picks
 │                                                                                    │     which computed fact leads)
@@ -139,7 +139,7 @@ Empty state (first visit): the "Needs you" column becomes a three-step checklist
 ### 2.4 Repository shell and the Code tab
 
 ```
-┌ beanstalk  acme / shop  ☆  private                  [⌘K Ask the beanstalk…]   Inbox ●2  coop ▾ ┐
+┌ gitstalk   acme / shop  ☆  private                  [⌘K Ask the beanstalk…]   Inbox ●2  coop ▾ ┐
 │ Code  Beans 4  Stalk  Decisions ●2  Checks ●1  Insights  Automations  Settings                 │
 ├────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ sprout #212 ● red · stalk #208 · window 6/16 · 3 people, 5 sessions active · live ●  14:02      │ ← status line
@@ -156,7 +156,7 @@ Empty state (first visit): the "Needs you" column becomes a three-step checklist
 │  ◒ Fertilized by coop         │                                                                │
 │ ▶ ▮▮ ▮ ▮▮▮ ▮ ─────────●  now  │                                                                │
 └───────────────────────────────┴────────────────────────────────────────────────────────────────┘
- Clone: git clone https://beanstalk.<domain>/acme/shop.git   (credential: bean CLI or session token)
+ Clone: git clone https://gitstalk.io/acme/shop.git   (credential: bean CLI or session token)
 ```
 
 This is today's Nightshift home (`14` §11) with three product changes: real repository identity (`acme/shop`), real people and sessions in the status line, and a clone affordance. Other tabs reuse the same shell: **Beans** is the explorer opened on a filterable list with the journey as detail; **Decisions** and **Checks** lead with what's open and who must act; **Stalk** is the line's history plus the engine view; **Insights** is the race metrics generalised to a living repo (kth green per day, waiting time, spend per person and session, rework rate, Jev vs rules agreement).
@@ -182,7 +182,7 @@ Editor (one screen, top to bottom, the same shape as the MCP verb `automation_cr
 ┌ PostHog errors → beans ─────────────────────────────────────────────────── [Run now] [Save] ┐
 │ WHEN   (any of)                                                                              │
 │   [⏱ Schedule  every hour ▾ / cron 0 * * * *]                                               │
-│   [+ Webhook] [+ Beanstalk event ▾ bean.landed · red · decision.opened · stalk.moved]        │
+│   [+ Webhook] [+ Gitstalk event ▾ bean.landed · red · decision.opened · stalk.moved]        │
 │   [+ App event ▾ (Composio trigger: posthog.error_tracking.issue_created)] [+ Email to …@]    │
 │ USING  tools                                                                                 │
 │   PostHog · error_tracking_list_issues, error_tracking_get_issue   connection: acme (Dana) ✓ │
@@ -212,7 +212,7 @@ The design is in §3.6.
 ### 3.1 Packages and services (target)
 
 ```
-                       ┌─────────────── one zone: beanstalk.<domain> ───────────────┐
+                       ┌─────────────── one zone: gitstalk.io ───────────────┐
  browser ──────────────▶  beanstalk-web (vinext)  ── marketing (static, from site) + app
  Claude Code / Codex /  │        │ RPC                                                  │
  Cursor / Gemini CLI ───▶  beanstalk-mcp  (OAuthProvider wraps /mcp; /authorize → web)  │
@@ -298,9 +298,9 @@ OAuth clients, grants and tokens live in **KV** because `workers-oauth-provider`
 - `beanstalk-mcp` wraps its handler in **`@cloudflare/workers-oauth-provider`** (OAuth 2.1, PKCE, Client ID Metadata Documents first, dynamic client registration for older clients, `/.well-known/oauth-protected-resource`). `06` §2 warns the library had a 2025 `redirect_uri` CVE: pin the version, add redirect-URI fuzz tests, and review before launch.
 - `/authorize` renders the consent page from §2.2. If the browser has no web session it runs the magic-link sign-up inline and comes back. On approval identity creates a `session_principals` row (harness and label from the client metadata, editable) and the grant's `props` carry the principal. Access tokens are short-lived (15 min) with refresh, audience-bound to `/mcp`.
 - Scopes, aligned with `06` §4: `repo:read`, `bean:write` (open, submit, rework its own beans), `decision:request`, `preview:*` (later), `automation:write` (admins only). Never `stalk:write` or `settings:write`: those are not grantable to sessions at all.
-- `claude mcp login plugin:beanstalk:beanstalk` (Claude Code), Codex's, Cursor's and Gemini CLI's MCP OAuth flows all hit the same endpoints. The plugin's `.mcp.json` drops the `Authorization: Bearer ${BEANSTALK_TOKEN}` header (that header disables OAuth fallback in some clients). Race view tokens keep working on a separate path for benchmarks.
+- `claude mcp login plugin:gitstalk:gitstalk` (Claude Code), Codex's, Cursor's and Gemini CLI's MCP OAuth flows all hit the same endpoints. The plugin's `.mcp.json` drops the `Authorization: Bearer ${GITSTALK_TOKEN}` header (that header disables OAuth fallback in some clients). Race view tokens keep working on a separate path for benchmarks.
 
-**Git.** Agents and people push over smart HTTP to the gateway proxy, which already swaps a Beanstalk credential for a short-lived Artifacts token server-side (agents never hold Artifacts tokens). The credential becomes a **bean-scoped git token** minted by identity for a session principal: push only to `refs/heads/beans/<id>` the session owns, read the repo, TTL one hour. Two ways to get it:
+**Git.** Agents and people push over smart HTTP to the gateway proxy, which already swaps a Gitstalk credential for a short-lived Artifacts token server-side (agents never hold Artifacts tokens). The credential becomes a **bean-scoped git token** minted by identity for a session principal: push only to `refs/heads/beans/<id>` the session owns, read the repo, TTL one hour. Two ways to get it:
 1. **Phase 2:** MCP tool `bean_open` returns the remote URL and configures nothing; the plugin's skill runs a tiny credential helper script that calls a local MCP-authenticated endpoint. Fallback: the tool returns a one-hour token. *Trade-off:* a token in the model's context. It is push-only to one bean and short-lived, so acceptable for Phase 2, flagged.
 2. **Phase 6:** `bean` CLI as a git credential helper (`git config credential.helper bean`), device flow, tokens in the OS keychain. Nothing in the model's context.
 
@@ -319,9 +319,9 @@ People push with a personal token from Settings (scoped like a session, labelled
 | `POST /v1/runs` creates `race-<run>` in namespace `beanstalk-race`, seeds `sprout`/`stalk`, starts a fixed task list, ends, is reaped | `POST repos.create` creates Artifacts repo `r-<repoId>` in namespace `beanstalk` (empty, from an import URL via Artifacts `.import()`, or forked from the demo template), seeds `stalk` = `sprout` = default branch, and never ends |
 | RunDO keyed by run id; one `RunConfig` | **RepoDO** keyed by repo id; `RunConfig` splits into repo settings (policy, window, checks, isolation) and per-bean options |
 | Tasks come from the arena and the driver's long poll | Beans come from sessions (`bean_open {intent}`), placed work (`task_next`), people (web "New bean"), and automations |
-| Agent "done" = the driver posts an invocation result | `change_submit {bean}` over MCP (or a push with `Beanstalk-Submit: true` trailer later) marks the bean's head ready; the engine takes over exactly as now |
+| Agent "done" = the driver posts an invocation result | `change_submit {bean}` over MCP (or a push with `Gitstalk-Submit: true` trailer later) marks the bean's head ready; the engine takes over exactly as now |
 | Rework = the driver resumes the session | Rework = `change_status` returns `next: rework` with the ticket; the connected session picks it up (the plugin's skill already polls). Cloud sessions are resumed by `beanstalk-agents` |
-| Checks = the arena's test command, emulated CI | Checks from `.beanstalk/checks.toml` in the repo (command, image, timeout, protected paths), run in the Runner container on the exact merged tree |
+| Checks = the arena's test command, emulated CI | Checks from `.gitstalk/checks.toml` in the repo (command, image, timeout, protected paths), run in the Runner container on the exact merged tree |
 | Decision cards to `DEMO_PASSWORD` holders | Cards routed to the owners of the clashing specs (the people whose sessions opened the beans), then repo admins; answered in web, inbox, or email reply (Email Routing) |
 | `events.jsonl` per run | `events` table per repo, compacted; daily segments in R2; races still export `events.jsonl` byte-for-byte so `research/race` tools keep working |
 | Reaped after the run | Repos live until deleted; idle RepoDOs hibernate; races keep their reap and spend guard |
@@ -346,7 +346,7 @@ People push with a personal token from Settings (scoped like a session, labelled
 **What Cursor ships (fetched 2026-10-05, `cursor.com/docs/cloud-agent/automations`).** Automations run cloud agents in the background. Triggers: a schedule (presets or cron); source-control events from GitHub, GitLab and Bitbucket (PR opened, pushed, merged, comment, CI completed, labels…); Slack (new message, reaction, channel created); a custom authenticated webhook; Linear (issue created, status changed, cycle end); Sentry (issue created or updated); PagerDuty (incident triggered, acknowledged, resolved). Instructions are plain language (`/automate` or a web form). Tools: open a PR (default), comment on a PR, request reviewers, send to and read Slack, any MCP server, memories across runs (default) and computer use. Repository scope: none, one, or a multi-repo environment. "Run as" me or a team service account; visibility private, members can view, or members can edit. Billed as cloud-agent usage. Templates: bug and vulnerability review, Slack bug triage, daily digest, CI failure triage, review-comment fixes, Sentry investigation.
 
 **Ours: the same shape, two changes.**
-1. **Outputs are typed Beanstalk objects, not free-form agent actions.** An automation's job is to *feed and tend the stalk*: create beans, comment on beans, raise decision cards, notify people. Coding happens in a bean, by a session, under the normal pre-land check. So an automation that finds a bug never edits code itself; it opens a bean that a session (local or cloud) takes.
+1. **Outputs are typed Gitstalk objects, not free-form agent actions.** An automation's job is to *feed and tend the stalk*: create beans, comment on beans, raise decision cards, notify people. Coding happens in a bean, by a session, under the normal pre-land check. So an automation that finds a bug never edits code itself; it opens a bean that a session (local or cloud) takes.
 2. **Two execution kinds.**
    - **Recipe** (default, cheap, deterministic): trigger → MCP tool calls → a filter and a mapping → outputs. Jev may classify ("bug, noise, or duplicate of an open bean?") with a receipt; Workers AI may draft the bean's intent sentence. No coding model involved. The PostHog example is a recipe.
    - **Agent**: trigger → a cloud session (Phase 5) with the automation's instructions and an allowlist of tools; its outputs are still limited to the typed list. This is Cursor's model, and it waits for cloud sessions.
@@ -357,7 +357,7 @@ People push with a personal token from Settings (scoped like a session, labelled
 |---|---|
 | Schedule (presets, cron) | AutomationDO alarm, recomputed after each run (per-automation; avoids a global cron fan-out) |
 | Webhook | `POST /hooks/<automation>/<token>` on `beanstalk-automations`, HMAC or bearer secret, body to R2, run enqueued |
-| Beanstalk event | RepoDO publishes `bean.opened`, `bean.landed`, `bean.fell_off`, `validation.red`, `stalk.moved`, `decision.opened`, `decision.decided` to the `repo-events` **Queue**; the automations consumer matches subscriptions |
+| Gitstalk event | RepoDO publishes `bean.opened`, `bean.landed`, `bean.fell_off`, `validation.red`, `stalk.moved`, `decision.opened`, `decision.decided` to the `repo-events` **Queue**; the automations consumer matches subscriptions |
 | Git push | Artifacts event subscriptions (`cf.artifacts.repo.pushed`) to a **Queue** |
 | App event (Sentry issue, PostHog error, Linear issue…) | Composio triggers delivered to our webhook, or the app's own webhook pointed at us |
 | Email | **Email Routing**: `<repo>+bugs@in.<domain>` → `email()` handler on `beanstalk-automations` |
@@ -370,7 +370,7 @@ People push with a personal token from Settings (scoped like a session, labelled
 | **Direct MCP** (Cloudflare-native) | Agents SDK MCP client connects to the app's own remote MCP server (PostHog, Sentry, Linear, Stripe, Cloudflare and others host one), OAuth handled by the client | Our AutomationDO / identity, encrypted with the Secrets Store KEK | First-party MCP servers; anything with a URL. Ships first (Phase 4a) |
 | **Composio** (the sanctioned third party) | Composio hosts OAuth connections and exposes tools (and triggers) over MCP or its API; our Worker calls it with a Composio key (Wrangler secret) and the org id as the Composio user/entity id | Composio | The long tail of apps without a good MCP server, and app triggers. Phase 4b, **off by default per org** |
 
-**How Composio fits "no third parties".** Beanstalk's own platform (auth, data, compute, email, scheduling, analytics) stays Cloudflare-only; Composio is an *integration the customer turns on*, like connecting Slack to GitHub. Rules to keep it honest:
+**How Composio fits "no third parties".** Gitstalk's own platform (auth, data, compute, email, scheduling, analytics) stays Cloudflare-only; Composio is an *integration the customer turns on*, like connecting Slack to GitHub. Rules to keep it honest:
 - Off until an org admin enables it, with a clear notice that tool calls and their data pass through Composio and that Composio holds those app tokens.
 - Never on the sign-in, git, engine or decision paths. If Composio is down, only Composio-backed automations fail.
 - Every connector is behind `ToolConnector`, so any Composio automation can move to a direct MCP connection without changing its definition.
@@ -477,14 +477,14 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 |---|---|---|---|
 | 2.1 | **RepoDO**: generalise RunDO into an open-ended engine (task set grows, no "done", hibernation, heartbeats, released beans after timeout, settings changes while running); RaceDO keeps race-only parts behind an adapter | All existing engine, parity and determinism tests pass for races; new tests for a 48-hour simulated repo with beans arriving at random | L (5) |
 | 2.2 | Repo lifecycle: `repos.create` (empty, import from a public git URL via Artifacts `.import()`, demo template), rename, archive, delete; D1 `forge` **(built 10-07; archive 10-07: `20` §8)** | Create in under 5 s; import of a 50 MB public repo completes and the stalk equals its default branch; delete reaps Artifacts and the DO | M |
-| 2.3 | Checks config: `.beanstalk/checks.toml` (command, image, timeout, protected paths) run by the Runner on the exact merged tree | A Node repo and a Rust repo each get correct pre-land checks; a missing file means "no checks, land on clean merge" with a warning | M |
+| 2.3 | Checks config: `.gitstalk/checks.toml` (command, image, timeout, protected paths) run by the Runner on the exact merged tree | A Node repo and a Rust repo each get correct pre-land checks; a missing file means "no checks, land on clean merge" with a warning | M |
 | 2.4 | Git auth for principals: bean-scoped git tokens from identity; proxy checks principal + bean ownership; people's personal tokens | Push to own bean works; push to another's bean, `sprout`, `stalk` or a deletion is refused (403); compressed pushes supported (today 415) | M |
 | 2.5 | MCP write verbs: `bean_open`, `task_next`/`task_claim`, `change_submit`, `decision_request`, heartbeat; `change_status.next` drives rework; plugin skill updated | A stock Claude Code session with the plugin and no driver takes a bean from open to stalk, including one red-and-rework cycle | L (4) |
 | 2.6 | Repo event Queue: RepoDO → `repo-events` → D1 indexes (`beans`, `decisions`, `repo_daily`) **(built 10-07: `20` §7; staging lag median ~3 s, worst 7 s)** | Lists in web are under 200 ms from D1; indexes catch up within 5 s of an event | M |
 | 2.7 | Web: `/:org/:repo` shell and tabs Code, Beans, Stalk, Decisions, Checks, Settings (general, access, engine policy, checks); `/new`; repository list on Home and org page **(10-07: `/:owner/:repo` with Code, Changes, History (validated versus landed), Ask, People, Settings (general, visibility, collaborators, archive, delete); `/new`; Home; `20`)** | Tabs work live on a real repo; Files folds into Code; Engine view under Stalk; decision answering by repo admins and spec owners | L (4) |
 | 2.8 | Live Ask at product speed: term index (D1 FTS5) and test import closures computed on landing, answer cache keyed by sprout sha | Under 2 s for a live answer, under 300 ms repeated (`14` §11 target) | M |
 
-**Status (2026-10-08, `20-repositories.md`):** 2.3 is built (`24-checks-config.md`): `.beanstalk/checks.toml` is read from each checked tree, an invalid file is a red naming every problem, protected paths are refused unless a maintainer pushes them; a repository without the file keeps the engine's default suite (`node --test`), and the starter's older format is still read. 2.2 and most of 2.7 are built. Repositories live in a D1 registry (`forge`), are owned by a person (personal namespace; orgs wait for Phase 3), start empty (a README), from the TypeScript starter or as an import, and are renamed, re-described, made public or private and deleted from Settings. `/<owner>/<repo>` shows a start page until the first bean starts, then the same home as a race (stalk, Growing now, What happened, Ask, Files, beans, decisions, checks). Signed-in `/` is Home (repositories, recent activity, New repository); the benchmark landing moved to `/races` for signed-in people. On a separate staging stack, a passkey sign-up, a template repository, a personal-token clone and `git push -o wait` of a bean landed and validated in 18 s. Since then: collaborators (`22`), archive, History with validation verdicts (the Stalk tab folded into it) and engine events in Home's activity through the `repo-events` queue (`20` §7 to §9). Not yet: Insights, org pages.
+**Status (2026-10-08, `20-repositories.md`):** 2.3 is built (`24-checks-config.md`): `.gitstalk/checks.toml` is read from each checked tree, an invalid file is a red naming every problem, protected paths are refused unless a maintainer pushes them; a repository without the file keeps the engine's default suite (`node --test`), and the starter's older format is still read. 2.2 and most of 2.7 are built. Repositories live in a D1 registry (`forge`), are owned by a person (personal namespace; orgs wait for Phase 3), start empty (a README), from the TypeScript starter or as an import, and are renamed, re-described, made public or private and deleted from Settings. `/<owner>/<repo>` shows a start page until the first bean starts, then the same home as a race (stalk, Growing now, What happened, Ask, Files, beans, decisions, checks). Signed-in `/` is Home (repositories, recent activity, New repository); the benchmark landing moved to `/races` for signed-in people. On a separate staging stack, a passkey sign-up, a template repository, a personal-token clone and `git push -o wait` of a bean landed and validated in 18 s. Since then: collaborators (`22`), archive, History with validation verdicts (the Stalk tab folded into it) and engine events in Home's activity through the `repo-events` queue (`20` §7 to §9). Not yet: Insights, org pages.
 
 **Done when:** Coop's own small project, imported, takes ten beans from two people's sessions (one Claude Code, one Codex) to the stalk in one afternoon without any operator command.
 
@@ -508,7 +508,7 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 | # | Item | Acceptance | Size |
 |---|---|---|---|
 | 4.1 | `packages/automations` Worker: AutomationDO, definition schema (versioned), Workflows runtime, `automation-runs` Queue, R2 logs, budgets | Definitions validate with Zod; a run is resumable after a Worker restart; budget overrun stops a run between steps | L (4) |
-| 4.2 | Triggers: schedule (alarms), webhook (HMAC), Beanstalk events (Queue), manual; then Artifacts push and email-in | Each trigger has a test with real bindings; duplicate deliveries do not double-run (idempotency key) | M |
+| 4.2 | Triggers: schedule (alarms), webhook (HMAC), Gitstalk events (Queue), manual; then Artifacts push and email-in | Each trigger has a test with real bindings; duplicate deliveries do not double-run (idempotency key) | M |
 | 4.3 | 4a **Direct MCP connector** (Agents SDK MCP client + OAuth), connections page per org | PostHog's own MCP server connected by OAuth; tools listed and allowlisted per automation | M |
 | 4.4 | Typed outputs: create bean, comment, decision card, notify; external writes behind per-run approval; Rule-of-Two enforcement | The PostHog recipe opens beans unattended; a Slack post after reading private code is queued as a card | M |
 | 4.5 | 4b **Composio connector** (decision D4): org-level enable with notice, connections, triggers via webhook | A Composio-backed Sentry trigger opens a bean; disabling Composio stops only those automations | M |
@@ -589,7 +589,7 @@ Phase 6 items each depend only on Phase 2, except previews (needs Phase 5's Sand
 
 ## 6. The first three build tasks
 
-Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `clean-code-typescript`, `beanstalk-packages`, and the Cloudflare skills named), work on their own branch, run `pnpm check`, and do not commit or deploy unless Coop asks.
+Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `clean-code-typescript`, `gitstalk-packages`, and the Cloudflare skills named), work on their own branch, run `pnpm check`, and do not commit or deploy unless Coop asks.
 
 ### Task 1 (Phase 0, lane A): submission readiness pack
 
@@ -598,19 +598,19 @@ Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `
 > **Do:**
 > 1. **Spend guard.** In `packages/gateway`, reap a race's Artifacts repo after its final check (today reap is a manual admin route, `src/run/run-reap.ts`); add a per-run `max_usd` abort in `RunConfig` (default off for existing presets) and an hourly alarm in `RunIndex` that reaps anything older than 24 h. Tests with real bindings.
 > 2. **Infra cost.** Measure one replay race's Workers requests, DO requests, container seconds and Artifacts operations from Workers Observability and the Artifacts dashboard; write the numbers into `docs/claude-opus/15-explainer-for-coop.md` §2 "Cost".
-> 3. **Clean-account deploy.** Add `scripts/deploy-all.mjs` (gateway, mcp, web, site in order, using Wrangler, reading `.dev.vars`), and fix every gap you hit following README "Run it" on an account that has never seen Beanstalk (ask Coop for one, or use a fresh Wrangler profile and list what you could not verify).
+> 3. **Clean-account deploy.** Add `scripts/deploy-all.mjs` (gateway, mcp, web, site in order, using Wrangler, reading `.dev.vars`), and fix every gap you hit following README "Run it" on an account that has never seen Gitstalk (ask Coop for one, or use a fresh Wrangler profile and list what you could not verify).
 > 4. **Engine pin.** Add a `demo` preset that equals `V24_SETTINGS` and make the README and `research/race/REMOTE.md` commands use it explicitly, so the published numbers are reproducible regardless of defaults (do not change the defaults).
 >
 > **Don't:** touch the web UI, the site copy, or the licence (Coop's D1).
 > **Done when:** `pnpm check` passes; a replay race run with the README commands reaps itself and reports its cost; the deploy script works from a clean clone; the doc numbers are updated.
-> **Skills:** `clean-code-typescript`, `beanstalk-packages`, `durable-objects`, `wrangler`, `workers-best-practices`. **Size:** M (2 days).
+> **Skills:** `clean-code-typescript`, `gitstalk-packages`, `durable-objects`, `wrangler`, `workers-best-practices`. **Size:** M (2 days).
 
 ### Task 2 (Phase 0 → 1): `packages/identity` with the waitlist and magic links
 
 > **Goal.** The Cloudflare-only identity service, starting with what Phase 0 needs (a real waitlist) and ending with magic-link sign-in that Phase 1 builds on. Deploy target is a new Worker, `beanstalk-identity`; nothing existing changes.
 >
 > **Do:**
-> 1. Create `packages/identity` per `beanstalk-packages` (Hono in a `WorkerEntrypoint`, `wrangler.jsonc` with today's `compatibility_date`, observability on, generated types). Bindings: D1 `identity`, `send_email` (`EMAIL`), Turnstile secret, Rate Limiting, KV `OAUTH_KV` (reserved for Task 3).
+> 1. Create `packages/identity` per `gitstalk-packages` (Hono in a `WorkerEntrypoint`, `wrangler.jsonc` with today's `compatibility_date`, observability on, generated types). Bindings: D1 `identity`, `send_email` (`EMAIL`), Turnstile secret, Rate Limiting, KV `OAUTH_KV` (reserved for Task 3).
 > 2. Migrations for `users`, `user_emails`, `orgs` (personal), `memberships`, `magic_links`, `web_sessions`, `session_principals`, `waitlist`, `audit_events` as in `16` §3.2. New `packages/shared-auth` with the principal, scope and grant-props types (`Ulid`-style branded ids).
 > 3. Routes: `POST /waitlist` (Turnstile Siteverify server-side, rate-limited, D1 insert, confirmation email with text and HTML), `POST /login/request` (Turnstile, rate limit per email and IP, 32-byte token hashed, 15 min, single use, browser-bound pre-auth cookie, six-digit code), `GET /login/verify` and `POST /login/code` (create user and personal org on first sign-in, set `__Host-bs_session`), `POST /logout`, `POST /logout/all`.
 > 4. RPC (`WorkerEntrypoint` methods): `whoami(sessionCookie)`, `createSessionPrincipal(userId, client)`, `revokeSessionPrincipal`, `authorize(principal, action, resource)` (owner-of-personal-org only for now), `audit(event)`. Write the RPC contract first and commit it, so Task 3 can start against it.
@@ -618,11 +618,11 @@ Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `
 >
 > **Don't:** add any non-Cloudflare service; store raw tokens; log emails in clear (hash them in logs).
 > **Done when:** vitest with real D1, KV and a mocked Email binding covers token expiry, reuse, wrong browser, rate limits and Turnstile failure; a real email arrives from the onboarded domain in a manual check (needs D3); `pnpm check` passes.
-> **Skills:** `clean-code-typescript`, `beanstalk-packages`, `cloudflare-email-service`, `turnstile-spin`, `workers-best-practices`, `wrangler`. **Size:** M (3 days). **Blocked by:** D3 (domain) for the live email only.
+> **Skills:** `clean-code-typescript`, `gitstalk-packages`, `cloudflare-email-service`, `turnstile-spin`, `workers-best-practices`, `wrangler`. **Size:** M (3 days). **Blocked by:** D3 (domain) for the live email only.
 
 ### Task 3 (Phase 1): MCP OAuth sign-up through the agent
 
-> **Goal.** `claude mcp login plugin:beanstalk:beanstalk` (and Codex's MCP login) signs a new or returning person in through the browser and leaves a session principal behind, so the site's one-line sign-up is true.
+> **Goal.** `claude mcp login plugin:gitstalk:gitstalk` (and Codex's MCP login) signs a new or returning person in through the browser and leaves a session principal behind, so the site's one-line sign-up is true.
 >
 > **Do:**
 > 1. In `packages/mcp`, wrap the existing `createMcpHandler` in `@cloudflare/workers-oauth-provider` (pinned version): `/mcp` as the API route, `/authorize`, `/token`, `/register`, protected-resource and authorization-server metadata; Client ID Metadata Documents plus dynamic registration; access tokens 15 min, refresh 30 days.
@@ -633,7 +633,7 @@ Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `
 >
 > **Don't:** deploy over the current `beanstalk-mcp` before 10-15 (use `beanstalk-mcp-next`); grant any write scope (Phase 2).
 > **Done when:** on a clean machine, the site's command → browser → consent → `ask_repo` on the demo repo works in Claude Code and in Codex; `pnpm check` passes.
-> **Skills:** `clean-code-typescript`, `agents-sdk`, `beanstalk-packages`, `workers-best-practices`. **Size:** M–L (3–4 days). **Depends on:** Task 2's RPC contract (step 4), not its completion.
+> **Skills:** `clean-code-typescript`, `agents-sdk`, `gitstalk-packages`, `workers-best-practices`. **Size:** M–L (3–4 days). **Depends on:** Task 2's RPC contract (step 4), not its completion.
 
 ---
 
@@ -690,9 +690,9 @@ Each is written to hand to one agent as-is. All three follow `AGENTS.md` (load `
 
 ## Appendix C: Cursor Automations, what we take and what we change
 
-| Cursor | Beanstalk |
+| Cursor | Gitstalk |
 |---|---|
-| Triggers: schedule, GitHub/GitLab/Bitbucket events, Slack, webhook, Linear, Sentry, PagerDuty | Schedule, webhook, **Beanstalk events** (landed, red, decision, stalk moved), Artifacts push, **email-in**, app events via Composio or the app's webhook |
+| Triggers: schedule, GitHub/GitLab/Bitbucket events, Slack, webhook, Linear, Sentry, PagerDuty | Schedule, webhook, **Gitstalk events** (landed, red, decision, stalk moved), Artifacts push, **email-in**, app events via Composio or the app's webhook |
 | Plain-language instructions; `/automate` | Plain language in an agent (`automation_create`) or the editor; stored as a typed definition |
 | Tools: open PR, comment, reviewers, Slack, MCP, memories, computer use | Tools: MCP via direct connections or Composio; memory = the AutomationDO's dedupe and notes |
 | The automation's agent writes code and opens PRs | Outputs are typed: **create bean**, comment, decision card, notify. Code is written in beans by sessions under the pre-land check |

@@ -101,7 +101,7 @@ Account settings were already one route per section; repository and organization
 | `…/settings/social-image` | owner, not archived | Upload or remove (multipart → `…/settings/social-image/upload`, back here with `?picture=`) |
 | `…/settings/visibility` | owner, not archived | Public / private / internal (`updateRepository`) |
 | `…/settings/branches`, `…/settings/checks` | any role | Read-only |
-| `…/settings/actions` | owner, maintainer | Jobs: dependency cache on/off, largest snapshot, npm audit on/off, one Save (`saveActionsSwitchesAction`; stored as the repository variables `BEANSTALK_DEPS_CACHE`, `BEANSTALK_DEPS_SNAPSHOT_MAX`, `BEANSTALK_NPM_AUDIT`, a default removes the variable; read-only while archived); Features placeholder |
+| `…/settings/actions` | owner, maintainer | Jobs: dependency cache on/off, largest snapshot, npm audit on/off, one Save (`saveActionsSwitchesAction`; stored as the repository variables `GITSTALK_DEPS_CACHE`, `GITSTALK_DEPS_SNAPSHOT_MAX`, `GITSTALK_NPM_AUDIT`, a default removes the variable; read-only while archived); Features placeholder |
 | `…/settings/collaborators` | owner | Invite, roles, remove, cancel |
 | `…/settings/secrets` | any role, where Actions run | Secrets and variables (maintainers and the owner change them) |
 | `…/settings/deploy-tokens` | owner, maintainer, not archived | Create, revoke |

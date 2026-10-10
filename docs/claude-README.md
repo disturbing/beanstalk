@@ -1,8 +1,10 @@
 # beanstalk docs (Claude set), 2026-10-03
 
+> **Renamed 2026-10-10.** The product is now **Gitstalk** (owner's decision: "Beanstalk" clashed with beanstalkapp.com and beanstalk.ai was taken). The growing-beanstalk metaphor stays. The history and research docs in this folder (`0*`, `claude-0*`, `claude-1*`, `claude-opus/01`–`15`, `claude-opus/exp`, `claude-opus/research`, `research/`) keep the old name as written; the current design docs (`claude-opus/16`–`30`), `README.md`, `AGENTS.md`, the skills and the public docs say Gitstalk. What was renamed and what kept its name: `claude-opus/30-environments.md` §12.
+
 Two models worked this brief in parallel on the same day. Files without a prefix (`01-` to `07-`, `canvas-concept.html`, `github-repository-map/`) are Codex's. Files prefixed `claude-` are this set. They overlap on purpose and disagree in places; the disagreements are listed at the bottom.
 
-Repo standards for agents live outside this folder: `AGENTS.md` (canonical; `CLAUDE.md` imports it) and the skills in `.agents/skills/` (`clean-code-typescript`, `clean-code-rust`, `beanstalk-packages`, plus eight vendored Cloudflare skills). Load the matching skill before writing code.
+Repo standards for agents live outside this folder: `AGENTS.md` (canonical; `CLAUDE.md` imports it) and the skills in `.agents/skills/` (`clean-code-typescript`, `clean-code-rust`, `gitstalk-packages`, plus eight vendored Cloudflare skills). Load the matching skill before writing code.
 
 ## Read in this order
 

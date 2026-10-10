@@ -23,8 +23,8 @@
 ## Error classes
 
 ```ts
-export class BeanstalkError extends Error {
-  override readonly name: string = 'BeanstalkError';
+export class GitstalkError extends Error {
+  override readonly name: string = 'GitstalkError';
   constructor(
     message: string,
     readonly code: string,
@@ -35,7 +35,7 @@ export class BeanstalkError extends Error {
   }
 }
 
-export class NotFoundError extends BeanstalkError {
+export class NotFoundError extends GitstalkError {
   override readonly name = 'NotFoundError';
   constructor(what: string, id: string, options?: ErrorOptions) {
     super(`${what} ${id} not found`, 'not_found', 404, options);
@@ -52,7 +52,7 @@ One `app.onError` per Hono app maps errors to responses; handlers never build er
 ```ts
 app.onError((error, c) => {
   if (error instanceof HTTPException) return error.getResponse();
-  if (error instanceof BeanstalkError) {
+  if (error instanceof GitstalkError) {
     if (error.status >= 500) log.error('request failed', { error, requestId: c.get('requestId') });
     return c.json({ error: { code: error.code, message: error.message } }, error.status);
   }
@@ -69,7 +69,7 @@ Queue consumers and Workflows steps follow the same rule: catch at the top of th
 
 Third-party SDKs and platform bindings are wrapped in a module with a narrow, typed interface (Clean Code chapter 8):
 
-- `artifacts.ts` wraps `env.ARTIFACTS` and returns domain types (`TreeEntry`, `Blob`), handles `using` disposal of repo handles, converts platform errors to `BeanstalkError`, and enforces the rate budget. Nothing else touches `env.ARTIFACTS`.
+- `artifacts.ts` wraps `env.ARTIFACTS` and returns domain types (`TreeEntry`, `Blob`), handles `using` disposal of repo handles, converts platform errors to `GitstalkError`, and enforces the rate budget. Nothing else touches `env.ARTIFACTS`.
 - `claude.ts` wraps the Anthropic SDK; `jev.ts` wraps TypeSafe; `gateway-client.ts` wraps calls to other Workers. Each exposes two or three functions, not the SDK.
 - Learning tests: when adopting a library, write a small test in `test/learning/` that pins the behaviour you depend on; it fails when an upgrade changes it.
 - Code to the interface you wish you had; write the adapter afterwards. The domain depends on `BlobStore`, not on `Artifacts`.

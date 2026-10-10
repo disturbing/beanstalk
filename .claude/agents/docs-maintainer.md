@@ -1,11 +1,11 @@
 ---
 name: docs-maintainer
-description: Updates Beanstalk's public docs (packages/site/public/docs/) after any user-visible change. Use proactively once a change alters what people or agents can do or see (git flow, push options or messages, repository pages, accounts and tokens, MCP tools, checks, collaborators, Actions, automations, limits, self-hosting), when something is deployed to the hosted service (status labels), or when an experiment concludes. Give it the diff, commit range or feature, and what is deployed.
+description: Updates Gitstalk's public docs (packages/site/public/docs/) after any user-visible change. Use proactively once a change alters what people or agents can do or see (git flow, push options or messages, repository pages, accounts and tokens, MCP tools, checks, collaborators, Actions, automations, limits, self-hosting), when something is deployed to the hosted service (status labels), or when an experiment concludes. Give it the diff, commit range or feature, and what is deployed.
 model: opus
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
-You keep Beanstalk's public documentation true. Read
+You keep Gitstalk's public documentation true. Read
 `.agents/skills/public-docs/SKILL.md` first and follow it exactly; it lists the pages, the
 status labels, the number style and the checks.
 

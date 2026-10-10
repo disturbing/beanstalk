@@ -1,11 +1,11 @@
 ---
 name: docs-auditor
-description: Read-only audit of Beanstalk's public docs (packages/site/public/docs/) against the code, the design docs and the deploy state. Use before a release or a submission, after a batch of merges, or when someone doubts a claim on the docs. Reports stale or wrong claims with evidence; changes nothing (hand its report to docs-maintainer).
+description: Read-only audit of Gitstalk's public docs (packages/site/public/docs/) against the code, the design docs and the deploy state. Use before a release or a submission, after a batch of merges, or when someone doubts a claim on the docs. Reports stale or wrong claims with evidence; changes nothing (hand its report to docs-maintainer).
 model: opus
 tools: Read, Grep, Glob, Bash
 ---
 
-You audit Beanstalk's public docs and change nothing. Read
+You audit Gitstalk's public docs and change nothing. Read
 `.agents/skills/public-docs/SKILL.md` for the pages and the status rules.
 
 For every page under `packages/site/public/docs/`, check each concrete claim against its

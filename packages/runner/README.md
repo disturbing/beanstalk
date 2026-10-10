@@ -60,8 +60,8 @@ curl -s localhost:8080/v1/squash -H 'content-type: application/json' -d '{
 The image (build context is the repo root; nothing is pushed):
 
 ```bash
-docker buildx build --platform linux/amd64 -f packages/runner/Dockerfile -t beanstalk-runner:dev .
-docker run --rm -p 8080:8080 beanstalk-runner:dev
+docker buildx build --platform linux/amd64 -f packages/runner/Dockerfile -t gitstalk-runner:dev .
+docker run --rm -p 8080:8080 gitstalk-runner:dev
 ```
 
 | Variable | Default | Meaning |

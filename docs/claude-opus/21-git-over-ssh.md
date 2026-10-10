@@ -1,6 +1,6 @@
 # Git over SSH
 
-Built 2026-10-07 on a worktree branch from `prototype` (merged up to `11a03ae`, which brought the SSH key store). People and agents use plain git with the SSH keys they registered (Settings → SSH keys, or `/beanstalk:setup`):
+Built 2026-10-07 on a worktree branch from `prototype` (merged up to `11a03ae`, which brought the SSH key store). People and agents use plain git with the SSH keys they registered (Settings → SSH keys, or `/gitstalk:setup`):
 
 ```bash
 git clone ssh://git@<ssh host>/<owner>/<repo>.git
@@ -47,7 +47,7 @@ git / OpenSSH ──TCP 22──▶ Spectrum (zone, Worker-target app)
 `packages/ssh-server` (crate `ssh-server`): russh 0.64 with ring (so the amd64 image cross-compiles like the runner's), tokio, reqwest for plain HTTP to the gateway.
 
 - **Auth:** public keys only (`ssh-ed25519`, ECDSA, RSA with SHA-2, the `sk-` variants). Passwords and keyboard-interactive are refused and never advertised. An offered key is looked up (`confirm: false`); the signed attempt confirms it (`confirm: true`, one `touchKey`). An unknown key gets `Permission denied (publickey)`. The user name is ignored (`git@` by convention).
-- **Commands:** `git-upload-pack` and `git-receive-pack` (and `git upload-pack …`) with `'/owner/repo.git'`, `owner/repo.git` or without `.git`, checked against the gateway's naming rules. Anything else: `beanstalk serves git only…` and exit 128. A shell gets a greeting that names the key's owner (`Hi @coop! Your key works (SHA256:…)`), exit 1, like GitHub's `ssh -T`. Ptys, subsystems and forwarding are refused.
+- **Commands:** `git-upload-pack` and `git-receive-pack` (and `git upload-pack …`) with `'/owner/repo.git'`, `owner/repo.git` or without `.git`, checked against the gateway's naming rules. Anything else: `gitstalk serves git only…` and exit 128. A shell gets a greeting that names the key's owner (`Hi @coop! Your key works (SHA256:…)`), exit 1, like GitHub's `ssh -T`. Ptys, subsystems and forwarding are refused.
 - **Push** (git pushes with protocol v0/v1 always): the advertisement comes from `GET info/refs` with the HTTP `# service=` header removed; the gateway already adds `push-options`, so `git push -o wait` works over SSH as over HTTPS. The commands, options and pack stream into one `POST git-receive-pack`; its answer (report-status, side band, the held `-o wait` verdict with keepalives) streams back. A push with nothing to send posts nothing; a deletion-only push posts without waiting for a pack. When the gateway refuses early, the rest of the pack is read and dropped so git can read the answer.
 - **Fetch and clone: protocol v2 only.** v2 is stateless per command, so each request (`ls-refs`, `fetch`) is one POST with `Git-Protocol: version=2` (Artifacts serves v2, measured in `claude-16`). `GIT_PROTOCOL` comes from the SSH `env` request, which git ≥ 2.26 sends by default. A v0 fetch is refused with the fix: `git config --global protocol.version 2`. Response-end packets (`0002`, an HTTP artefact) are dropped.
 - **Errors:** a gateway 4xx is shown in the gateway's words (`beanstalk: no repository dana/x`: another owner's private repository reads as missing, as over HTTPS); a 5xx is logged and shown as `the server could not finish this command; try again`, never with details.
@@ -74,7 +74,7 @@ The container is `lite` (1/16 vCPU, 256 MiB), `max_instances` 3, `sleepAfter` 15
 ## 4. Host keys
 
 - Generated once with `ssh-keygen -t ed25519`, uploaded as the Worker secret `SSH_HOST_KEY` (`wrangler deploy --secrets-file` from a private temporary file that is deleted at once, or `wrangler secret put`), never printed or committed. The Durable Object passes it to the container as an environment variable; the container's config parser never echoes it.
-- The fingerprint is public and goes in three places: the ssh Worker's `SSH_HOST_KEY_FINGERPRINT` (served at `GET /host-key`), and the web app's `SSH_HOST_KEY_FINGERPRINT` beside `SSH_HOST`. The web shows it in **Settings → SSH keys** ("Beanstalk's host key") and on a new repository's start page under the SSH clone URL. With `SSH_HOST` set, the start page prints `ssh://git@<SSH_HOST>/<owner>/<repo>.git` and `/beanstalk:setup` switches to SSH remotes (doc 19).
+- The fingerprint is public and goes in three places: the ssh Worker's `SSH_HOST_KEY_FINGERPRINT` (served at `GET /host-key`), and the web app's `SSH_HOST_KEY_FINGERPRINT` beside `SSH_HOST`. The web shows it in **Settings → SSH keys** ("Gitstalk's host key") and on a new repository's start page under the SSH clone URL. With `SSH_HOST` set, the start page prints `ssh://git@<SSH_HOST>/<owner>/<repo>.git` and `/gitstalk:setup` switches to SSH remotes (doc 19).
 - The staging stack's host key is its own; live gets a new one at its first deploy.
 
 ## 5. Platform facts this rests on (checked 2026-10-07)
@@ -103,7 +103,7 @@ Isolation in both runs: git ran with its own HOME, `-F /dev/null`, `IdentitiesOn
 
 ## 7. Going live: what is needed
 
-1. **Spectrum's Worker target.** Private beta: sign up (the form linked from the 2026-08-03 blog post) for the account that runs Beanstalk.
+1. **Spectrum's Worker target.** Private beta: sign up (the form linked from the 2026-08-03 blog post) for the account that runs Gitstalk.
 2. **A zone on that account with Spectrum.** Of the account's zones, one is on Enterprise (Spectrum is an Enterprise add-on there; whether it is enabled is not visible to Wrangler's token) and the rest are Free (no Spectrum). A Pro or Business zone on this account would do for SSH on port 22. The product domain (`16`) is the natural home: `ssh.<domain>`.
 3. **A token that can manage Spectrum and DNS** on that zone (Wrangler's OAuth token reads zones but not Spectrum apps or DNS records).
 4. Then, with Coop's go: generate the live host key and deploy `beanstalk-ssh` with it (`wrangler deploy --secrets-file`), create the Spectrum app (TCP 22 → Worker `beanstalk-ssh`) at `ssh.<domain>`, set the web's `SSH_HOST` and `SSH_HOST_KEY_FINGERPRINT`, and run `ssh_staging.py e2e` against the live hostname (without the tunnel).

@@ -27,9 +27,9 @@ Staging: `beanstalk-web-staging` and `beanstalk-mcp-staging` on the devaccounts 
 **Claude Code as the real client (twice, from a clean state):**
 
 ```bash
-claude mcp add --transport http beanstalk-staging https://beanstalk-mcp-staging.<sub>.workers.dev/mcp
+claude mcp add --transport http gitstalk-staging https://beanstalk-mcp-staging.<sub>.workers.dev/mcp
 claude mcp list                    # beanstalk-staging … ! Needs authentication
-claude mcp login beanstalk-staging # opens the browser (--no-browser prints the URL)
+claude mcp login gitstalk-staging # opens the browser (--no-browser prints the URL)
 #   → /authorize → /login → "Create an account" → handle + passkey → /connect → Allow
 #   → the browser returns to Claude Code's localhost callback
 claude mcp list                    # beanstalk-staging … ✔ Connected
@@ -139,15 +139,15 @@ Added 2026-10-07 on the worktree branch after `068fd97`. **The problem (Coop, li
 ### What a person runs
 
 ```bash
-claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude "/beanstalk:setup <owner>/<repo>"
+claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude "/gitstalk:setup <owner>/<repo>"
 ```
 
-`claude "/beanstalk:setup …"` runs the plugin command as the session's first prompt (checked with Claude Code 2.1.x; a folder Claude Code has not seen first asks to trust it). The command (`packages/claude-plugin/commands/setup.md`) drives the bundled script `scripts/beanstalk-setup.sh` (POSIX sh: macOS, Linux, WSL, Git Bash; `beanstalk-setup.ps1` for PowerShell):
+`claude "/gitstalk:setup …"` runs the plugin command as the session's first prompt (checked with Claude Code 2.1.x; a folder Claude Code has not seen first asks to trust it). The command (`packages/claude-plugin/commands/setup.md`) drives the bundled script `scripts/gitstalk-setup.sh` (POSIX sh: macOS, Linux, WSL, Git Bash; `gitstalk-setup.ps1` for PowerShell):
 
 1. `detect`: platform, `ssh-keygen` (OpenSSH), browser opener, whether headless, the deployment's git origin and SSH host (`GET <web>/api/setup`), the git credential helper already set for that host, and one `option` line per key: the **1Password SSH agent** (`~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock`, `~/.1password/agent.sock`, Windows' `\\.\pipe\openssh-ssh-agent`), the running **ssh-agent** (`ssh-add -L`), **`~/.ssh/*.pub`**, and **generate**.
-2. Claude asks one question (AskUserQuestion) listing them, 1Password first; "Other" lets the person say what they want. With nothing found it generates `~/.ssh/beanstalk_ed25519` (no passphrase, since a script cannot type one; `ssh-keygen -p` adds one).
+2. Claude asks one question (AskUserQuestion) listing them, 1Password first; "Other" lets the person say what they want. With nothing found it generates `~/.ssh/gitstalk_ed25519` (no passphrase, since a script cannot type one; `ssh-keygen -p` adds one).
 3. `register`: sends the **public key** and the machine's name to `POST <web>/api/ssh-keys/request` (rate limited per IP) and gets an eight-letter code (RFC 8628 alphabet) and a poll secret. With a browser (`open`, `xdg-open`, `$BROWSER`, `wslview`, `start`; not over SSH, not on Linux without a display) it opens `<web>/settings/keys/add?code=…`; otherwise it prints the URL and code for another device. The page (styled as the agent consent screen) shows the machine, key type, code and **fingerprint** to compare with the terminal; the signed-in person clicks Add key (a passkey only when signed out). The script polls `POST /api/ssh-keys/poll` until approved, denied or expired (ten minutes).
-4. While `SSH_HOST` is empty, the first approved poll also hands over, once, a personal token "git on <machine>" (read and write, 90 days). The script gives it to **git's own credential helper** for the Beanstalk host: the one git already uses (macOS: `osxkeychain` from the system config), else `osxkeychain` / `manager` / `libsecret` / `store` scoped to `credential.https://<gateway>/.helper` only (an empty value first, so other helpers are not consulted for that host). The token is never printed. **Removing the key in Settings revokes that token too** (it is minted with `oauth_client_id = ssh-key:<id>`).
+4. While `SSH_HOST` is empty, the first approved poll also hands over, once, a personal token "git on <machine>" (read and write, 90 days). The script gives it to **git's own credential helper** for the Gitstalk host: the one git already uses (macOS: `osxkeychain` from the system config), else `osxkeychain` / `manager` / `libsecret` / `store` scoped to `credential.https://<gateway>/.helper` only (an empty value first, so other helpers are not consulted for that host). The token is never printed. **Removing the key in Settings revokes that token too** (it is minted with `oauth_client_id = ssh-key:<id>`).
 5. `remote <owner>/<repo>` clones (or re-points `origin`): `ssh://git@<SSH_HOST>/<owner>/<repo>.git` once SSH is live (and an `~/.ssh/config` block for that host only, with `IdentityAgent` for an agent key), HTTPS until then. `verify` calls `/v1/whoami` with the stored credential and `git ls-remote` on the repository.
 
 Other agents: `curl -fsSL <web>/setup.sh | sh -s -- detect` (the web serves the plugin's scripts with its own address filled in; `<web>/setup.ps1` for Windows), steps in `AGENTS-snippet.md`.
@@ -161,13 +161,13 @@ Other agents: `curl -fsSL <web>/setup.sh | sh -s -- detect` (the web serves the 
 | **Env vars** | CI and scripts | the owner makes a **deploy token** right there; the block below is filled in with it (shown once) |
 
 ```bash
-export BEANSTALK_TOKEN=bsd_…        # deploy token for this repository
+export GITSTALK_TOKEN=bsd_…        # deploy token for this repository
 export GIT_TERMINAL_PROMPT=0
 export GIT_CONFIG_COUNT=1
 export GIT_CONFIG_KEY_0='credential.https://<gateway host>.helper'
-export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_TOKEN"; }; f'
+export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$GITSTALK_TOKEN"; }; f'
 # or, as a header: GIT_CONFIG_KEY_0='http.https://<gateway host>/.extraheader'
-#                  GIT_CONFIG_VALUE_0="Authorization: Bearer $BEANSTALK_TOKEN"
+#                  GIT_CONFIG_VALUE_0="Authorization: Bearer $GITSTALK_TOKEN"
 ```
 
 `GIT_CONFIG_*` needs git 2.31+. It is for clean machines: on a machine that already has a helper for the host, git asks that helper first.
@@ -181,11 +181,11 @@ export GIT_CONFIG_VALUE_0='!f() { echo "username=x"; echo "password=$BEANSTALK_T
 Measured with git 2.53: for a **401**, git first prompts `Username for 'https://…':` (or, with `GIT_TERMINAL_PROMPT=0`, fails with `could not read Username … terminal prompts disabled`) and **never shows the `WWW-Authenticate` realm**; once a credential was sent and refused, git prints a `text/plain` body as `remote:` lines before `fatal: Authentication failed`. A **403** body is printed at once with no prompt, but 403 would stop git asking credential helpers, so repositories keep 401 (race URLs keep their old texts). The body (`gateway/src/auth/connect-hint.ts`) names the three ways in:
 
 ```
-remote: Beanstalk: this git is not connected to your account yet. Pick one:
-remote:   1. Claude Code (easiest): /beanstalk:setup
-remote:      not installed? claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk
+remote: Gitstalk: this git is not connected to your account yet. Pick one:
+remote:   1. Claude Code (easiest): /gitstalk:setup
+remote:      not installed? claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk
 remote:   2. HTTPS: make a token at <web>/settings/tokens and paste it at git's password prompt
-remote:   3. CI and scripts: a deploy token in BEANSTALK_TOKEN (the repository page, tab "Env vars")
+remote:   3. CI and scripts: a deploy token in GITSTALK_TOKEN (the repository page, tab "Env vars")
 ```
 
 (For a refused credential the first line reads "that credential was refused (expired, revoked, or not for this repository)".)
@@ -196,7 +196,7 @@ remote:   3. CI and scripts: a deploy token in BEANSTALK_TOKEN (the repository p
 
 ### Verified
 
-- **Tests:** `shared-identity/test/ssh-keys.test.ts` (key parsing with fingerprints `ssh-keygen -l` printed for ed25519, ECDSA 256/384/521 and RSA; refusals; `findUserByKey` by fingerprint, blob and line; `touchKey` once a minute; removal; one account per key; requests: approve, code claimed by the first viewer, deny, expiry, HTTPS token delivered once and revoked with the key). `gateway/test/deploy-tokens.test.ts` (read vs write, other repositories 404, push refused for read, last use recorded, whoami, revoke, expiry, repository deleted, owner-only, the 401 hint texts). `web/src/setup/setup-api.test.ts`, `repositories.test.ts` (plugin line, Env vars block). Script tests `claude-plugin/test/setup-tests.sh` (27 checks, a fake Beanstalk with `git http-backend`, throwaway agents and keys in a throwaway HOME, `GIT_CONFIG_NOSYSTEM`, store helper, never the person's keychain or agent): macOS (git 2.53), Debian 12 (dash), Ubuntu 24.04, Alpine (busybox sh); `setup-tests.ps1` (13 checks) in PowerShell 7.4 on Linux. **Real Windows was not tested.** `pnpm check` exits 0.
+- **Tests:** `shared-identity/test/ssh-keys.test.ts` (key parsing with fingerprints `ssh-keygen -l` printed for ed25519, ECDSA 256/384/521 and RSA; refusals; `findUserByKey` by fingerprint, blob and line; `touchKey` once a minute; removal; one account per key; requests: approve, code claimed by the first viewer, deny, expiry, HTTPS token delivered once and revoked with the key). `gateway/test/deploy-tokens.test.ts` (read vs write, other repositories 404, push refused for read, last use recorded, whoami, revoke, expiry, repository deleted, owner-only, the 401 hint texts). `web/src/setup/setup-api.test.ts`, `repositories.test.ts` (plugin line, Env vars block). Script tests `claude-plugin/test/setup-tests.sh` (27 checks, a fake Gitstalk with `git http-backend`, throwaway agents and keys in a throwaway HOME, `GIT_CONFIG_NOSYSTEM`, store helper, never the person's keychain or agent): macOS (git 2.53), Debian 12 (dash), Ubuntu 24.04, Alpine (busybox sh); `setup-tests.ps1` (13 checks) in PowerShell 7.4 on Linux. **Real Windows was not tested.** `pnpm check` exits 0.
 - **Staging** (`beanstalk-{gateway,web,mcp}-staging-cred`, D1 `beanstalk-identity-staging-cred` / `beanstalk-forge-staging-cred`, KV `beanstalk-oauth-staging-cred`, Artifacts `beanstalk-race-staging-cred` / `beanstalk-repos-staging-cred`): headless Chrome with a CDP virtual authenticator, the script in an isolated HOME with a throwaway "1Password" agent: **24 of 24** — sign-up, repository, Plugin/HTTPS/Env vars tabs (tab remembered), deploy token from the Env vars tab used by both env forms, git with no or a refused credential (hint as `remote:` lines), detect lists the agent key, register opens the page with the same fingerprint, Add key, token stored and never printed, clone, verify, `git push -o wait` LANDED, Remove in Settings → next git command refused with the hint, device code approved from a second browser holding the same passkey, push lands again, deploy token revoked in repository Settings → refused, repository deleted.
 - **Live** (2026-10-07, no race running; D1 migrations `beanstalk-forge` 0002 and `beanstalk-identity` 0002 applied first; gateway `1cda4d87`, web `4e61b89d`, MCP `aa349222`; Wrangler secrets left as they were, `ADMIN_TOKEN` answers 200 before and after): the same walk-through, **25 of 25**, including no sideways scroll at phone width; the bean landed in 23.7 s. It ran as a new account `cred-smoke-live2` because the existing `beanstalk-smoke` passkey lived in an earlier session's virtual authenticator and cannot sign in any more. A first attempt as `cred-smoke-live` stopped after creating `cred-smoke-live/greeter` (a test-harness wait, not the product); that repository and the two accounts are left for Coop to delete.
 
@@ -205,7 +205,7 @@ remote:   3. CI and scripts: a deploy token in BEANSTALK_TOKEN (the repository p
 - **Git over SSH itself is not live**; until `SSH_HOST` is set, setup's HTTPS token is what git uses (90 days, then run setup again). The key is registered now, so switching is `remote` once more.
 - After a key or token is removed, the **first** git command shows the hint; git then erases the stored credential, and the next one in a terminal asks `Username for …` (git's behaviour for a 401) before showing the hint again.
 - With 1Password's agent, listing keys needs 1Password unlocked; signing (once SSH is live) will ask 1Password to approve per its settings.
-- Windows: `beanstalk-setup.ps1` is tested in PowerShell 7 on Linux only.
+- Windows: `gitstalk-setup.ps1` is tested in PowerShell 7 on Linux only.
 - Generated keys have no passphrase (said in the output, with the command to add one).
 
 ## 10. Phase 1 polish: Turnstile, the plugin line, Home, product events
@@ -224,11 +224,11 @@ Built 2026-10-07 on a worktree branch from `prototype` at `b58cf65`: backlog `16
 - **`/signup/agent`** (web) prints one block per harness: Claude Code, Codex, Cursor, Gemini CLI, any MCP client, each with Copy. On the hosted deployment (its `MCP_URL` equals the plugin's) Claude Code and Codex get the plugin line; any other deployment gets `mcp add` lines for its own address (the plugin would connect to the hosted server). Signed out it is the sign-up page; signed in it says "Connect another agent". Commands live in `web/src/setup/agent-installs.ts`; the marketing site's picker (`site/public/site.js`) carries the same text.
 
 ```bash
-claude plugin marketplace add disturbing/beanstalk && claude plugin install beanstalk@beanstalk && claude mcp login plugin:beanstalk:beanstalk
-codex plugin marketplace add disturbing/beanstalk && codex plugin add beanstalk@beanstalk && codex mcp login beanstalk
+claude plugin marketplace add disturbing/beanstalk && claude plugin install gitstalk@gitstalk && claude mcp login plugin:gitstalk:gitstalk
+codex plugin marketplace add disturbing/beanstalk && codex plugin add gitstalk@gitstalk && codex mcp login gitstalk
 ```
 
-- **`.mcp.json` fix:** the plugin's URL was `${BEANSTALK_MCP_URL:-https://…/mcp}`. Claude Code expands that; **Codex 0.160 does not** (`codex mcp login beanstalk` failed with "invalid MCP server URL `${BEANSTALK_MCP_URL:-…}`", reproduced against the public marketplace). The URL is now literal, with no auth header; `web/src/setup/agent-installs.test.ts` reads the file and keeps it equal to the web's constant. Another deployment adds its own server (`claude mcp add --transport http beanstalk <url>`).
+- **`.mcp.json` fix:** the plugin's URL was `${BEANSTALK_MCP_URL:-https://…/mcp}`. Claude Code expands that; **Codex 0.160 does not** (`codex mcp login gitstalk` failed with "invalid MCP server URL `${BEANSTALK_MCP_URL:-…}`", reproduced against the public marketplace). The URL is now literal, with no auth header; `web/src/setup/agent-installs.test.ts` reads the file and keeps it equal to the web's constant. Another deployment adds its own server (`claude mcp add --transport http gitstalk <url>`).
 - **Cursor and Gemini CLI** lines follow those clients' documented MCP OAuth (`cursor-agent mcp login`, Gemini's `/mcp auth`); they were not run here and are marked so on the page and the site ("untested").
 - **Marketplace:** today the marketplace is this repository (`disturbing/beanstalk`, public, default branch `prototype`, `.claude-plugin/marketplace.json` → `packages/claude-plugin`); both CLIs install from it. Moving it to its own organisation is Coop's call (§10.5).
 
@@ -252,7 +252,7 @@ FROM product_events WHERE timestamp > NOW() - INTERVAL '30' DAY GROUP BY event
 ### 10.5 What Coop decides or does
 
 1. **Turnstile on live:** create a managed widget for `beanstalk-web.devaccounts-1password.workers.dev` (and later the product domain) in the dashboard or with `wrangler turnstile widget create`, put its site key in `packages/web/wrangler.jsonc` `TURNSTILE_SITE_KEY`, and `wrangler secret put TURNSTILE_SECRET_KEY` on `beanstalk-web` (from the widget, never in the repo). Leave `TURNSTILE_TEST_KEYS` empty on live. Put the secret first: until both are set, Turnstile stays off (a site key alone does not lock anyone out).
-2. **The plugin's home:** keep `disturbing/beanstalk` (works today) or create an organisation repository (the backlog's `beanstalkdev/beanstalk-plugin`). For a separate repository: copy `packages/claude-plugin` to the new repository's root as `plugins/beanstalk/` (or its root) with a `.claude-plugin/marketplace.json` whose `plugins[0].source` points at it (`name: beanstalk` for both marketplace and plugin keeps every command unchanged); then change `PLUGIN_MARKETPLACE` in `web/src/setup/agent-installs.ts` and `PLUGIN_REPO` in `site/public/site.js`. No repository was created here.
+2. **The plugin's home:** keep `disturbing/beanstalk` (works today) or create an organisation repository (the backlog's `beanstalkdev/beanstalk-plugin`). For a separate repository: copy `packages/claude-plugin` to the new repository's root as `plugins/gitstalk/` (or its root) with a `.claude-plugin/marketplace.json` whose `plugins[0].source` points at it (`name: gitstalk` for both marketplace and plugin keeps every command unchanged); then change `PLUGIN_MARKETPLACE` in `shared-race/src/plugin.ts` and `PLUGIN_REPO` in `site/public/site.js`. No repository was created here.
 3. **Merge and push this branch** to `prototype` (the public default branch): until then the public marketplace still serves the `${BEANSTALK_MCP_URL:-…}` URL, so the Codex line fails at `codex mcp login` (Claude Code's works already).
 4. **Deploy live** web (vars and the `PRODUCT_EVENTS` binding), gateway (`PRODUCT_EVENTS`) and MCP (log fields). No D1 migration is needed.
 
@@ -260,7 +260,7 @@ FROM product_events WHERE timestamp > NOW() - INTERVAL '30' DAY GROUP BY event
 
 - **Tests:** `shared-identity/test/turnstile.test.ts` (setup on only with both keys, off with either missing; the gate never asks Siteverify while off and requires a good token when on; success with secret and IP sent, missing and oversized tokens never sent, refused, wrong action, wrong host, test keys only when allowed, Siteverify down/throwing/nonsense fails closed), `test/product-events.test.ts` (hashed points, no raw id, no binding, failing binding, log fields; settling sessions shown until the list has them, dropped after revoke or after two minutes, never another person's) with real D1; web `src/home/first-steps.test.ts`, `src/setup/agent-installs.test.ts` (the plugin's `.mcp.json` is literal, no header, equal to the web's constant; per-deployment lines). `pnpm check` exits 0.
 - **Staging** (`beanstalk-{web,mcp,gateway}-staging-acct`, D1 `beanstalk-identity-staging-acct` and `beanstalk-forge-staging-acct`, KV `beanstalk-oauth-staging-acct`, Artifacts `beanstalk-race-staging-acct` / `beanstalk-repos-staging-acct`, dataset `product_events_staging_acct`, Turnstile test keys), headless Chromium with a CDP virtual authenticator, real Claude Code 2.1.292 and Codex 0.160.1 in isolated config directories (pseudo-terminals): **22 of 22**, run before and again after merging `origin/prototype` (MCP repository tools, repository tabs) into this branch (`exp/accounts-polish/e2e-results.json` is the post-merge run): sign-up options without a token 403, with a token 200, sign-in options without a token 403; `/signup/agent` lines for the deployment; sign-up through the widget and a passkey lands on Home; 0 of 3 with the demo row and no sessions; `claude mcp login` → consent → Allow → **the session on the open Home in 2.9 s**, `claude mcp list` ✔ Connected; `codex mcp login` → Allow → exit 0, OAuth; a scripted DCR + PKCE client with `write`: `whoami` names the person; New repository → 2 of 3; `git_credentials(repo)` (doc 23) mints a `bss_` credential; clone and `git push -o wait` of `bean/readme-line` validated on the stalk → the checklist is gone; no sideways scroll at 390 px on Home, `/signup/agent`, Settings. Then with the always-fail test secret: sign-in refused (403) with the message (`12-login-turnstile-refused-day.png`). `pnpm product-events` on the staging dataset counted the walk-throughs, and `wrangler tail` showed hashed `user_id`/`session_id` on an OAuth request (`exp/accounts-polish/evidence.txt`).
-- **The verbatim lines against live, up to the browser only** (`exp/accounts-polish/plugin-check.txt`): Claude Code installed the plugin from the public marketplace and `claude mcp login plugin:beanstalk:beanstalk` printed an authorization URL that redirects (302) to the live web's `/connect`; Codex with this branch's marketplace (local path) installed the plugin and `codex mcp login beanstalk` did the same. No account was created and nothing approved on live.
+- **The verbatim lines against live, up to the browser only** (`exp/accounts-polish/plugin-check.txt`): Claude Code installed the plugin from the public marketplace and `claude mcp login plugin:gitstalk:gitstalk` printed an authorization URL that redirects (302) to the live web's `/connect`; Codex with this branch's marketplace (local path) installed the plugin and `codex mcp login gitstalk` did the same. No account was created and nothing approved on live.
 - Screenshots: `exp/accounts-polish/01-…12-*.png` (night, day, phone).
 - **Torn down** after the runs: Workers `beanstalk-{web,mcp,gateway}-staging-acct` and the container application `beanstalk-gateway-staging-acct-runner`, D1 `beanstalk-identity-staging-acct` and `beanstalk-forge-staging-acct`, KV `beanstalk-oauth-staging-acct`, the three repositories in Artifacts `beanstalk-repos-staging-acct` (Wrangler cannot delete an empty namespace; `beanstalk-race-staging-acct` was never created). The Analytics Engine dataset `product_events_staging_acct` cannot be deleted; its points expire with Analytics Engine retention.
 

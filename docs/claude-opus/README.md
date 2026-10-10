@@ -1,4 +1,4 @@
-# Beanstalk docs: second Claude set (Opus 5.5), 2026-10-03
+# Gitstalk docs: second Claude set (Opus 5.5), 2026-10-03
 
 Three sessions worked the same brief in parallel:
 - **Codex:** the unprefixed files in `docs/`.
@@ -42,10 +42,10 @@ The old research ideas this builds on (Crystal 2011, Cassandra 2013) failed for 
 2. **Nothing should block agents on the hot path.** Per-commit correctness, locks and single gates all serialized Cursor's swarm. Correctness should come by convergence, with a fast trunk, asynchronous validation and a green branch.
 3. **Textual merge misses the conflicts that matter.** Read-write conflicts merge cleanly and break later. Agents read through the forge, so the forge can see them.
 4. **Make the dial explicit:** isolation levels per path, plus an error budget. A team can start fully `serializable` (a well-scheduled merge queue) and loosen path by path.
-5. **Demo a race, not a tour.** The same tasks run on the same engine twice: once preset as a good batched merge queue, once as Beanstalk. Score only verified changes reaching green per hour and agent-minutes spent waiting, because fast-trunk landings would win trivially. If Beanstalk doesn't win on green throughput, the thesis is wrong; find out on day 2.
+5. **Demo a race, not a tour.** The same tasks run on the same engine twice: once preset as a good batched merge queue, once as Gitstalk. Score only verified changes reaching green per hour and agent-minutes spent waiting, because fast-trunk landings would win trivially. If Gitstalk doesn't win on green throughput, the thesis is wrong; find out on day 2.
 6. **Jev picks; it doesn't generate.** It is ideal for type-ahead routing (about 300 ms, fractions of a cent) over a fixed map and a catalog that grows through review. Keep a fallback router.
 7. **Actions YAML can run unchanged for most Linux jobs.** The cost is rebuilding GitHub's server side, a Docker host-network shim, a `*.localhost` shim for artifacts v4, and a new OIDC issuer. macOS, Windows, arm64 and GPU jobs need bring-your-own runners. Actions Doctor sets expectations before migration.
-8. **Artifacts' per-repo tokens become branch protection.** Agents only ever hold fork tokens; trunk, green and governance tokens never leave Beanstalk's own services.
+8. **Artifacts' per-repo tokens become branch protection.** Agents only ever hold fork tokens; trunk, green and governance tokens never leave Gitstalk's own services.
 9. **Prevent the GitLost class by construction:** session taint enforces the Rule of Two, and every public incident becomes a regression test.
 10. **Previews should be MCP verbs:** ensure, http, browse, compare against green, logs, attest. They need isolated, seeded data, because Cloudflare's Worker Previews share D1, KV, R2 and Queues with production by default.
 

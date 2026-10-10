@@ -1,6 +1,6 @@
 ---
 name: clean-code-rust
-description: Clean Code (Robert C. Martin) translated into idiomatic Rust for beanstalk's container apps and crates. Covers naming, small functions, Result and thiserror error handling, newtypes over bool and String, module layout, tests, tokio concurrency, the workspace clippy profile and the container Dockerfile. Use when writing, reviewing or refactoring any Rust code, Cargo.toml, clippy settings or Dockerfile under packages/.
+description: Clean Code (Robert C. Martin) translated into idiomatic Rust for Gitstalk's container apps and crates. Covers naming, small functions, Result and thiserror error handling, newtypes over bool and String, module layout, tests, tokio concurrency, the workspace clippy profile and the container Dockerfile. Use when writing, reviewing or refactoring any Rust code, Cargo.toml, clippy settings or Dockerfile under packages/.
 ---
 
 # Clean Code, in Rust
