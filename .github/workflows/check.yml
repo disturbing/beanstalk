@@ -1,0 +1,60 @@
+# Checks every pull request and every push to main: pnpm check (format, lint, typecheck,
+# TypeScript tests, Rust fmt/clippy/tests) and the race harness's Python tests. Needs no secrets
+# and deploys nothing; deploys are deploy.yml's job (docs/claude-opus/30-environments.md).
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # The Rust the container images build with (RUST_VERSION in packages/*/container/Dockerfile),
+      # pinned like deploy.yml: a new stable's clippy lints can fail -D warnings overnight.
+      RUSTUP_TOOLCHAIN: 1.96.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal -c clippy -c rustfmt
+      - uses: Swatinem/rust-cache@v2
+      # Some Rust and Worker tests build throwaway git repositories.
+      - run: |
+          git config --global user.name "check"
+          git config --global user.email "check@users.noreply.github.com"
+          git config --global init.defaultBranch main
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  race-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      # The tests make throwaway git commits.
+      - run: |
+          git config --global user.name "check"
+          git config --global user.email "check@users.noreply.github.com"
+          git config --global init.defaultBranch main
+      - working-directory: research/race
+        run: python3 -m unittest discover -s tests -q

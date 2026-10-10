@@ -71,7 +71,7 @@ jobs:
           node-version: 24
           cache: pnpm
       # pnpm check's Rust half runs on the Rust the container images build with (RUST_VERSION in
-      # packages/*/Dockerfile), not whatever "stable" is today: a new stable's clippy lints
+      # packages/*/container/Dockerfile), not whatever "stable" is today: a new stable's clippy lints
       # (1.99's assert_is_empty, unused async in trait impls) fail -D warnings on code that
       # passed the day before. Move both together.
       - if: steps.present.outputs.yes == 'true'
