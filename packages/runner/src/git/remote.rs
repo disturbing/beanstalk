@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn accepts_an_artifacts_remote() {
-        let url = "https://2c7358a6.artifacts.cloudflare.net/git/beanstalk-race/race-r1-trunk.git";
+        let url = "https://0123abcd.artifacts.cloudflare.net/git/beanstalk-race/race-r1-trunk.git";
 
         assert!(RemoteUrl::parse(url, &schemes("https")).is_ok());
     }

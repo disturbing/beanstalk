@@ -8,7 +8,7 @@
  * asks), and the draft is kept in this browser until it is saved.
  */
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { GitstalkEvent } from '@gitstalk/shared-race/actions';
 import type { AutomationBase } from '@gitstalk/shared-race/automation-editor';
@@ -25,7 +25,9 @@ import {
   setField,
 } from '../../src/automations/automation-draft';
 import type { Pick } from '../../src/automations/automation-merge';
-import { mergeAutomation, resolveMerge } from '../../src/automations/automation-merge';
+import { resolveMerge } from '../../src/automations/automation-merge';
+import type { SaveBase } from '../../src/automations/automation-save';
+import { saveBaseOf, staleAnswerOf } from '../../src/automations/automation-save';
 import type { BeanStatus, Theirs } from '../../src/automations/editor-client';
 import {
   automationBeanAction,
@@ -88,7 +90,9 @@ export function AutomationBuilder(props: BuilderProps) {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [tab, setTab] = useState<'form' | 'yaml'>('form');
   const [message, setMessage] = useState('');
-  const [isBusy, startBusy] = useTransition();
+  const [isBusy, runBusy] = useBusy(() =>
+    setNotice({ tone: 'bad', text: 'The server did not answer. Your draft is kept; try again.' }),
+  );
   const draftKey = `bs-automation-draft:${props.repo.owner}/${props.repo.name}:${props.mode === 'new' ? 'new' : props.path}`;
   const restore = useStoredDraft(draftKey, text, props.initialText);
 
@@ -133,13 +137,13 @@ export function AutomationBuilder(props: BuilderProps) {
     return data;
   };
 
-  const push = (content: string | null, base: AutomationBase, baseText: string | null) =>
-    startBusy(async () => {
+  const push = (content: string | null, from: SaveBase) =>
+    runBusy(async () => {
       setNotice(null);
       const answer = await saveAutomationAction(
         formData({
           path,
-          base: JSON.stringify(base),
+          base: JSON.stringify(from.base),
           content: content ?? '',
           mode: content === null ? 'delete' : 'save',
           message,
@@ -151,12 +155,15 @@ export function AutomationBuilder(props: BuilderProps) {
       }
       const result = answer.result;
       if (result.kind === 'stale') {
-        const view = mergeAutomation({
-          base: baseText,
+        const stale = staleAnswerOf({
+          mode: props.mode,
+          base: from,
           theirs: result.theirs.content,
           ours: content ?? '',
         });
-        setPhase({ kind: 'merging', view, theirs: result.theirs });
+        if (stale.kind === 'merge')
+          setPhase({ kind: 'merging', view: stale.view, theirs: result.theirs });
+        else setNotice(takenNotice(stale.kind, path, props.repo.base));
         return;
       }
       forgetDraft(draftKey);
@@ -180,7 +187,7 @@ export function AutomationBuilder(props: BuilderProps) {
     setText(merged.text);
     setOpened({ base: theirs.base, text: theirs.content });
     setPhase({ kind: 'editing' });
-    push(merged.text, theirs.base, theirs.content);
+    push(merged.text, { base: theirs.base, text: theirs.content });
   };
 
   const takeTheirs = () => {
@@ -198,7 +205,7 @@ export function AutomationBuilder(props: BuilderProps) {
   };
 
   const testRun = () =>
-    startBusy(async () => {
+    runBusy(async () => {
       const answer = await testAutomationAction(formData({ path, content: text }));
       setNotice(
         answer.kind === 'started'
@@ -215,6 +222,7 @@ export function AutomationBuilder(props: BuilderProps) {
         path={path}
         onChange={setPath}
         isValid={isPathValid}
+        isTaken={path === props.path && props.opened.text !== null}
         suggestion={form === null ? '' : slugOf(form.name)}
       />
     ) : null;
@@ -338,7 +346,7 @@ export function AutomationBuilder(props: BuilderProps) {
             type="button"
             className={styles.primary}
             disabled={!canSave || isUnchanged || isBusy || phase.kind === 'merging'}
-            onClick={() => push(text, opened.base, opened.text)}
+            onClick={() => push(text, saveBaseOf(props.mode, opened))}
           >
             {isBusy ? 'Saving…' : 'Save as bean'}
           </button>
@@ -357,7 +365,7 @@ export function AutomationBuilder(props: BuilderProps) {
             <DeleteControl
               file={path.slice(dirOf(path).length)}
               isBusy={isBusy}
-              onDelete={() => push(null, opened.base, opened.text)}
+              onDelete={() => push(null, opened)}
             />
           ) : null}
         </div>
@@ -409,6 +417,8 @@ function FileName(props: {
   readonly path: string;
   readonly onChange: (path: string) => void;
   readonly isValid: boolean;
+  /** The name is already a file on the latest landed commit. */
+  readonly isTaken: boolean;
   readonly suggestion: string;
 }) {
   const dir = dirOf(props.path);
@@ -431,6 +441,9 @@ function FileName(props: {
       {props.isValid ? null : (
         <small className={styles.problem}>Lowercase letters, digits, - and _.</small>
       )}
+      {props.isTaken ? (
+        <small className={styles.problem}>{name}.yml already exists: pick another name.</small>
+      ) : null}
       {props.suggestion !== '' && props.suggestion !== name ? (
         <button
           type="button"
@@ -497,6 +510,34 @@ function BeanLine(props: { readonly phase: Phase; readonly base: string; readonl
       ) : null}
     </div>
   );
+}
+
+/**
+ * Busy while one of the builder's own calls is in flight, and only then: unlike a transition,
+ * it does not also wait for a router refresh the call may set off.
+ */
+function useBusy(onFail: () => void): readonly [boolean, (work: () => Promise<void>) => void] {
+  const [isBusy, setBusy] = useState(false);
+  const run = (work: () => Promise<void>) => {
+    setBusy(true);
+    void work()
+      .catch(onFail)
+      .finally(() => setBusy(false));
+  };
+  return [isBusy, run];
+}
+
+/** Why a new file's save stopped: its name is on the stalk already. */
+function takenNotice(kind: 'already-saved' | 'taken', path: string, base: string): Notice {
+  const file = path.slice(dirOf(path).length);
+  const href = `${base}/automations/edit/${encodeURIComponent(file)}`;
+  return kind === 'already-saved'
+    ? { tone: 'good', text: `${file} is already saved with this text: edit it`, href }
+    : {
+        tone: 'bad',
+        text: `${file} already exists. Pick another file name, or edit that file`,
+        href,
+      };
 }
 
 /** Polls the pushed bean until it has a verdict. */

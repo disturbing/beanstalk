@@ -54,11 +54,11 @@ prompt: |
   },
   {
     id: 'landed-summary',
-    title: 'Summarise landed work',
+    title: 'Summarize landed work',
     summary: 'Every Friday, write a short summary of what landed this week to the repository.',
     file: 'landed-summary.yml',
     source: `# A weekly note of what landed, kept in the repository.
-name: Summarise landed work
+name: Summarize landed work
 on:
   schedule: [{ cron: "0 16 * * 5" }]  # Fridays 16:00 UTC
 permissions:

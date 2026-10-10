@@ -179,7 +179,7 @@ describe('deleteAccountFlow', () => {
     expect(calls).toEqual([]);
   });
 
-  it('refuses the sole owner of an organisation, naming it', async () => {
+  it('refuses the sole owner of an organization, naming it', async () => {
     const { ports, calls } = deletionPorts({
       orgs: [
         { handle: 'acme', otherOwners: 0 },

@@ -21,6 +21,7 @@ import {
 } from './flows';
 import { envVarsBlock, isOldAddress, isReservedOwner, sshEndpoint, startGuide } from './paths';
 import { registryClient } from './registry-client';
+import { PLUGIN_MCP_URL, agentInstall } from '../setup/agent-installs';
 
 const coop = { id: 'u_dev_coop', handle: 'coop', email: 'coop@dev.beanstalk.invalid' };
 const dana = { id: 'u_dana', handle: 'dana', email: 'dana@example.test' };
@@ -387,6 +388,22 @@ describe('the start page', () => {
       'Codex',
       'Any MCP client',
     ]);
+    // The same install text /signup/agent prints, for this deployment's MCP address.
+    expect(guide.plugin.codex).toBe(agentInstall('https://mcp.example.test/mcp', 'codex').code);
+    expect(guide.agents[1]?.line).toBe(guide.plugin.codex);
+    expect(guide.agents[0]?.line).toBe(
+      agentInstall('https://mcp.example.test/mcp', 'claude-code').code,
+    );
+    const hosted = startGuide(
+      {
+        gitOrigin: 'https://git.example.test',
+        mcpUrl: PLUGIN_MCP_URL,
+        webOrigin: 'https://w.test',
+      },
+      'coop',
+      'notes',
+    );
+    expect(hosted.plugin.codex).toContain('codex plugin add gitstalk@gitstalk');
     expect(guide.prompt).toContain('coop/notes');
     expect(guide.ssh).toBeNull();
   });

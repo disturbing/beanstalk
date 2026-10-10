@@ -17,6 +17,7 @@ export function meteredArtifacts(port: ArtifactsPort, countOp: () => void): Arti
     branchHead: counted(port.branchHead.bind(port)),
     readFile: counted(port.readFile.bind(port)),
     changedFiles: counted(port.changedFiles.bind(port)),
+    changedPaths: counted(port.changedPaths.bind(port)),
     listRepos: counted(port.listRepos.bind(port)),
     deleteRepo: counted(port.deleteRepo.bind(port)),
     describeRepo: counted(port.describeRepo.bind(port)),

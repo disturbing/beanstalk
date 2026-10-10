@@ -249,7 +249,7 @@ export function DeleteAccountForm({
 }: {
   readonly csrf: string;
   readonly handle: string;
-  /** Why deletion is refused now (sole owner of an organisation), or null. */
+  /** Why deletion is refused now (sole owner of an organization), or null. */
   readonly blocked: string | null;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(
@@ -257,7 +257,7 @@ export function DeleteAccountForm({
     EMPTY_FORM_STATE,
   );
   useEffect(() => {
-    if (state.saved !== null) window.location.assign('/?account=deleted');
+    if (state.saved !== null) window.location.assign('/login?account=deleted');
   }, [state.saved]);
   return (
     <form action={action} className={styles.tokenForm}>

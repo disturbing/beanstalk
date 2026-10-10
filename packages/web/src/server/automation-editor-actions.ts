@@ -44,7 +44,8 @@ export async function saveAutomationAction(form: FormData): Promise<SaveState> {
     ...(field(form, 'message') === '' ? {} : { message: field(form, 'message') }),
   });
   if (!saved.ok) return refused(saved.message);
-  revalidatePath(`${scope.base}/automations`);
+  // No revalidation here: nothing changes on the stalk until the bean lands (the bean's status
+  // revalidates then), and a revalidating action re-renders the builder page before it answers.
   return { kind: 'saved', result: saved.value };
 }
 
