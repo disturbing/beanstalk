@@ -1,7 +1,7 @@
 {
   // Throwaway spike Worker (docs/claude-opus/27-ci-dependency-cache.md). Own container class,
   // DO namespace and R2 bucket; never shares a binding with a live Worker. Deployed with
-  // CLOUDFLARE_ACCOUNT_ID set in the environment (account 2c7358a6...).
+  // CLOUDFLARE_ACCOUNT_ID set in the environment (the legacy account).
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "beanstalk-deps-spike",
   "main": "src/index.ts",

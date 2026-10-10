@@ -10,7 +10,7 @@ Written 2026-10-08 from `prototype` at `6d4ffea`; Coop's decisions D1 to D12 rec
 
 **What this replaces.** `16` §1 put "GitHub Actions compatibility" out of scope and §3.6 designed automations as AutomationDO rows created by `automation_create`. Both change here. What `16` §3.6 decided still holds: outputs are typed Gitstalk objects, tools are direct MCP only (no Composio, decision of 2026-10-06), budgets per run, Rule of Two for untrusted input.
 
-**Inputs.** `docs/claude-05-github-actions-on-cloudflare.md` (Option C bootstrapped with A), Codex's `docs/05-github-actions-portability.md`, `16`, `18`, `19`, `20`, `22`, `23`, `24`, the web app's repository tabs (`packages/web/app/[owner]/[repo]/`), the swarm's credential broker (`packages/swarm/src/broker/`, `src/agent/virtual-hosts.ts`).
+**Inputs.** `docs/claude-05-github-actions-on-cloudflare.md` (Option C bootstrapped with A), Codex's `docs/05-github-actions-portability.md`, `16`, `18`, `19`, `20`, `22`, `23`, `24`, the web app's repository tabs (`packages/web/app/[owner]/[repo]/`), the swarm's credential broker (`research/swarm/src/broker/`, `src/agent/virtual-hosts.ts`).
 
 ---
 
@@ -199,7 +199,7 @@ logs ─▶ JobDO relays the live stream to watchers (stores nothing)
 ```
 
 - **New package `packages/actions`** (Worker `beanstalk-actions`): ActionsDO, WorkflowRunDO, JobDO (Container DO, `durable_object` scheduling; one instance and one container per job), the `worker_loaders` binding `LOADER` for isolate steps (§3.9), R2 bucket `beanstalk-actions`, and the `ActionsRpc` contract in `shared-race`. Keeping it out of the gateway keeps untrusted job I/O away from the engine, the reason `16` §3.1 gave for a separate automations Worker.
-- **New crate `packages/actions-runner`**: the image and the supervisor (Rust, per `AGENTS.md`). The image is Ubuntu 24.04, git, bash, Node 20 and 24, Python 3, `act` (MIT, pinned), and a small preloaded tool cache. It aims at 3 to 4 GB because of the 50 GB account image cap and cold starts. An optional **warm pool** may hold fresh, blank containers of this image, never ones that have run a job, so a start skips the cold boot without carrying anything over.
+- **New crate `packages/actions-executor/container`**: the image and the supervisor (Rust, per `AGENTS.md`). The image is Ubuntu 24.04, git, bash, Node 20 and 24, Python 3, `act` (MIT, pinned), and a small preloaded tool cache. It aims at 3 to 4 GB because of the 50 GB account image cap and cold starts. An optional **warm pool** may hold fresh, blank containers of this image, never ones that have run a job, so a start skips the cold boot without carrying anything over.
 - **Why DOs and not Cloudflare Workflows for the DAG.** A run needs a single owner for cancellation, concurrency groups, live log fan-out and timeouts (alarms), and a DAG of at most 256 jobs is small. Workflows would add a second state machine and still need the DO. Workflows stays a candidate for the agent session's lifecycle.
 - **Keep-alive.** Code running in a container does not count as activity, so JobDO sets an alarm every minute that renews the container's inactivity timeout and enforces `timeout-minutes` (`claude-05` §3).
 
@@ -242,7 +242,7 @@ The Worker-side parts (triggers, plan, token, secrets, logs, UI) are the same in
 - **Job token** `bsj_…`: minted per job by the actions Worker and stored hashed in FORGE. It is bound to the repository engine and to the job's lifetime plus 5 minutes, and revoked when the job ends. `verifyGitCredential` gets one more branch. Its scopes come from `permissions:`: `contents: read` fetches, and `contents: write` may push **`bean/<name>` only**, so a job that writes code makes a bean that goes through the pre-land check. Sprout and stalk are never reachable, as for every credential (`AGENTS.md`). `GITHUB_SERVER_URL` and `GITHUB_API_URL` point at `bs.internal`, and the outbound handler adds the token for git. The environment variable still holds it, because actions read `GITHUB_TOKEN`; it is short-lived and scoped. A GitHub-shaped REST subset (repos, contents, commit statuses) is v2.
 - **OIDC:** a Gitstalk issuer at `https://<domain>/_actions/oidc` with discovery and JWKS, claims mirroring GitHub's. It works only where the user registers our issuer (AWS, GCP, Azure, Vault); details below.
 
-#### OIDC identity tokens (built: `packages/shared-oidc`, `packages/oidc`)
+#### OIDC identity tokens (built: `packages/shared-oidc`, mounted by the gateway at `/_actions/oidc`)
 
 A job with `permissions: id-token: write` gets `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN`, so `actions/core.getIDToken(aud)` and `aws-actions/configure-aws-credentials` work unchanged. The contract is GitHub's ([claims and request endpoint](https://docs.github.com/en/actions/reference/security/oidc); [`oidc-utils.ts`](https://github.com/actions/toolkit/blob/main/packages/core/src/oidc-utils.ts)): `GET <url>&audience=<aud>` with `Authorization: bearer <token>` returns `{ "count": n, "value": "<jwt>" }`.
 
@@ -268,7 +268,7 @@ The untrusted `sub` matches no policy written for `...:ref:*`, `...:environment:
 
 **Keys and secrets (never printed).** `OIDC_SIGNING_KEYS` is a Worker secret holding `{ "active": "<kid>", "keys": [private JWKs] }`; every key's public half is in the JWKS, only `active` signs. `OIDC_REQUEST_SECRET` (32+ random characters) signs request tokens; `OIDC_REQUEST_SECRET_PREVIOUS` stays accepted while it rotates. Rotate with `node packages/shared-oidc/scripts/oidc-keys.mjs`, which only writes to stdout, so pipe it straight into `wrangler secret put`: `add` a new key (published, not yet signing), wait longer than the JWKS cache (5 minutes, plus the providers' own), `activate` it, and `retire` the old key after 10 minutes, when its last token has expired.
 
-**Self-hosters.** Deploy `packages/oidc` (or mount `createOidcApp` in your own Worker), set the two secrets, and set `OIDC_ISSUER_URL` if the Worker is reached through another hostname or path than `<origin>/_actions/oidc`. The issuer URL is part of every cloud trust policy and every token, so changing it later means re-registering with each provider.
+**Self-hosters.** The gateway serves the issuer (`packages/gateway/src/actions/oidc.ts`); to run it elsewhere, mount `createOidcApp` from `@gitstalk/shared-oidc` in your own Worker (the standalone `packages/oidc` Worker was deleted on 2026-10-11: nothing deployed it), set the two secrets, and set `OIDC_ISSUER_URL` if the Worker is reached through another hostname or path than `<origin>/_actions/oidc`. The issuer URL is part of every cloud trust policy and every token, so changing it later means re-registering with each provider.
 
 
 ### 3.6 Actions from github.com
@@ -277,7 +277,7 @@ The untrusted `sub` matches no policy written for `...:ref:*`, `...:environment:
 
 ### 3.7 Agent steps
 
-A `gitstalk/agent@v1` step leases an `AgentSandbox`, built from the swarm's (`packages/swarm/src/agent/`). It has no internet, and its virtual hosts are its only egress:
+A `gitstalk/agent@v1` step leases an `AgentSandbox`, built from the swarm's (`research/swarm/src/agent/`). It has no internet, and its virtual hosts are its only egress:
 
 | Host | What the handler adds | What the container sees |
 |---|---|---|
@@ -317,7 +317,7 @@ Trigger payloads (an issue title, a webhook body) are passed to the prompt as da
 **Security model for user code in an isolate.**
 - **One isolate per step bundle and repository.** The id is `<repo id>:<sha of the step's resolved code>`, loaded with `get`, so runs of the same automation reuse a warm isolate and two repositories never share one. Each step is a separate invocation with fresh props, and there is no shared global state between runs we rely on (state goes through stubs).
 - **No network by default.** `globalOutbound` is the loader's `IsolateEgress` entrypoint, constructed with props for the run: repository, run, job, the automation's `allowed-hosts` and the secret names it may use. Requests to hosts not on the list throw. MCP connections are not URLs the code can reach; they are stubs (below).
-- **Secrets never enter the isolate.** Code refers to a secret by a placeholder (`secret("POSTHOG_KEY")` returns the opaque string `bs-secret:POSTHOG_KEY`). `IsolateEgress` replaces the placeholder in request **headers only**, and only for hosts the file pairs with that secret (`with: { secret-hosts: { POSTHOG_KEY: [us.posthog.com] } }`). A placeholder in a body, URL or another host's header is refused, not sent, so code cannot copy a secret to a host it controls. Responses are masked for secret values before the code sees them. This is the swarm broker's virtual-host rule (`packages/swarm/src/agent/virtual-hosts.ts`) applied inside one Worker.
+- **Secrets never enter the isolate.** Code refers to a secret by a placeholder (`secret("POSTHOG_KEY")` returns the opaque string `bs-secret:POSTHOG_KEY`). `IsolateEgress` replaces the placeholder in request **headers only**, and only for hosts the file pairs with that secret (`with: { secret-hosts: { POSTHOG_KEY: [us.posthog.com] } }`). A placeholder in a body, URL or another host's header is refused, not sent, so code cannot copy a secret to a host it controls. Responses are masked for secret values before the code sees them. This is the swarm broker's virtual-host rule (`research/swarm/src/agent/virtual-hosts.ts`) applied inside one Worker.
 - **Bindings are capability stubs, scoped by `permissions:`.** `env.BEANSTALK` (`openBean`, `comment`, `answerThread`, `raiseDecision`, `notify`, read-only `repo`/`bean`/`stalk` queries) acts as `@<repo>[automation]`, has only the methods the file's permissions grant, and has per-run rate and output caps. There is one `env.MCP_<name>` per declared connection, which lists and calls only the allowlisted tools, with the OAuth token added in the loader. There is no D1, KV, R2 or service binding of ours. Trigger payloads arrive as data labelled untrusted (taint U, `16` §3.6).
 - **Limits per step:** `cpuMs` 5,000 by default (at most 30,000), `subRequests` 200, a step timeout of 5 minutes wall clock (enforced by WorkflowRunDO; the isolate can wait on I/O without spending CPU). A step that goes over fails as "over limit", which is not a code error.
 - **What is still shared:** isolates run on Cloudflare's multi-tenant V8 boundary, the same boundary every Worker relies on. Code that needs a stronger boundary than that, or that needs Linux, goes to a container job.

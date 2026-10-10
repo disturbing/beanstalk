@@ -10,7 +10,7 @@
 |---|---|
 | Image (`research/actions-spike/image/Dockerfile`) | `ubuntu:24.04` + git, curl, python3, jq, zstd, make/g++, tini; Node 24.21.0 as system node; Node 20.20.2 pre-seeded in a hosted-toolcache layout; act 0.2.89; static Docker 29.8.2 (dockerd, containerd, CLI); `actions/{checkout,setup-node,cache,upload-artifact,download-artifact}@v4` pre-cloned (depth 1) into act's action cache; a 120-line Node server (`server.mjs`: `/run` writes the files into a fresh git repo plus the event JSON and streams `act <event> -P ubuntu-latest=-self-hosted -e event.json …`; `/exec` for probes). Runs as root (dockerd needs it). |
 | Image size | 366 MB compressed (registry push), ≈1.1 GB unpacked before the pre-baked actions (≈+50 MB) |
-| Worker (`research/actions-spike/worker/`) | `beanstalk-actions-spike`: own container class `ActRunner` (own DO namespace, `standard-4` = 4 vCPU / 12 GiB / 20 GB, `max_instances` 3, `sleepAfter` 15 m, internet on), routes `/run`, `/exec`, `/health`, `/stop` behind a bearer token, and a GitHub-shaped git host (`/<owner>/<repo>[.git]/(info/refs|git-upload-pack)` → live gateway `/git/<owner>/<repo>.git/…`, credentials passed through). Account `2c7358a6…`, placed in HKG. |
+| Worker (`research/actions-spike/worker/`) | `beanstalk-actions-spike`: own container class `ActRunner` (own DO namespace, `standard-4` = 4 vCPU / 12 GiB / 20 GB, `max_instances` 3, `sleepAfter` 15 m, internet on), routes `/run`, `/exec`, `/health`, `/stop` behind a bearer token, and a GitHub-shaped git host (`/<owner>/<repo>[.git]/(info/refs|git-upload-pack)` → live gateway `/git/<owner>/<repo>.git/…`, credentials passed through). The legacy account, placed in HKG. |
 | Beanstalk repo | `beanstalk-actions-spike/beanstalk-actions-spike-fastify`, opened through the live gateway's admin API with `import_url: https://github.com/fastify/fastify`; a 2 h repo-scoped git token minted with `POST /v1/repos/:engine/git-token`; closed with `delete_repo: true` afterwards. |
 | Driver | `run.py` / `spike.sh` / `cases.sh`: sends workflow + event payload + secrets (from a 0600 file, never argv or logs), streams the output, stamps each log line with seconds since the request. |
 
@@ -37,7 +37,7 @@
 | `services:` / `container:` / Docker action in **docker mode** (DinD) | **Works** | redis service answered `+PONG` on `127.0.0.1:6379` (job container on host network, service on act's bridge with the published port: GitHub's semantics for non-container jobs); Docker action printed its output. First pull of `node:20-bookworm` ≈34 s. `out/docker-dockermode.txt` |
 | Docker-in-Docker (default scheduling policy) | **Works, fully** | `dockerd` 29.8.2 up in 2 s as root (overlayfs, cgroup v2, kernel `6.18.54-cloudflare-microvm`). With `--iptables=false --ip-forward=false`: bridge containers have no egress (DNS fails) but `-p` publishing and `--network=host` work. With default flags: iptables NAT works, `ip_forward` flips to 1, bridge egress and user-defined-network DNS work. `docker build` works, `unshare --user` works, `postgres:16-alpine` ready in 12 s including pull, `catthehacker/ubuntu:act-24.04` (2.3 GB) pulled in 30 s. This settles the §3 conflict for the default policy on 2026-10-08 (`durable_object` policy not tested). `out/dind-*.txt` |
 | Step summary, annotations, masks, outputs, matrix, step `timeout-minutes`, `continue-on-error` | **Works** | Summary written to a file (act echoes `Summary - …`); `::error file=a.js,line=3::` and `::warning::` come through as parseable lines; `::add-mask::` gives `***`; `$GITHUB_OUTPUT` works; matrix legs ran in parallel; a 75 s sleep was killed at 60 s. `out/runner-features.txt` |
-| OIDC (`id-token: write`) | **Unavailable in the spike** | `ACTIONS_ID_TOKEN_REQUEST_URL` unset. Built since: `packages/shared-oidc` and `packages/oidc` (doc 25 §3.5). |
+| OIDC (`id-token: write`) | **Unavailable in the spike** | `ACTIONS_ID_TOKEN_REQUEST_URL` unset. Built since: `packages/shared-oidc`, served by the gateway (doc 25 §3.5). |
 | `GITHUB_TOKEN`-driven API calls | **Fails** | Empty token, `GITHUB_API_URL=https://api.github.com` → 401. |
 | Pre-baked actions + `--action-offline-mode` | **Works** | act uses the image's clones as they are. Without them act full-clones each action per job: checkout 9.2 s, setup-node 43.3 s before the first step (`out/fastify-cold.txt`). |
 
@@ -81,7 +81,7 @@ Created and removed (all named `beanstalk-actions-spike*`):
 
 | Resource | Removed |
 |---|---|
-| Worker `beanstalk-actions-spike` (account `2c7358a6…`), its `ActRunner` DO namespace and `SPIKE_TOKEN` secret | `wrangler delete` (the URL now answers 404) |
+| Worker `beanstalk-actions-spike` (the legacy account), its `ActRunner` DO namespace and `SPIKE_TOKEN` secret | `wrangler delete` (the URL now answers 404) |
 | Container application `beanstalk-actions-spike-actrunner` (`a036320a-…`) | `wrangler containers delete` |
 | Registry images `beanstalk-actions-spike-actrunner:35bd4829`, `:aeffd7ed` | `wrangler containers images delete` |
 | Beanstalk engine `r5a958177e466cd4c05a` and Artifacts repo `beanstalk-actions-spike-fastify` (namespace `beanstalk-repos`) | `POST /v1/repos/:engine/close {delete_repo: true}`; a fetch with its token afterwards answers `could not open the repo` |

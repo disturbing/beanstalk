@@ -17,7 +17,7 @@ This file is the contract that builders work to. Section 6 records the integrati
 ## 1. The split: decisions in the cloud, agents on machines
 
 ```
- laptop / remote harness containers                       Cloudflare (account 2c7358a6, names beanstalk-*)
+ laptop / remote harness containers                       Cloudflare (the legacy account, names beanstalk-*)
  ┌──────────────────────────────┐   HTTPS (run token)   ┌───────────────────────────────────────────────┐
  │ driver: N agent slots         │ ───── poll ─────────▶ │ beanstalk-gateway  (Worker, Hono)             │
  │  claude -p (Sonnet) per slot  │ ◀── instruction ───── │   ├─ RunDO (SQLite): run state machine,       │
@@ -40,7 +40,7 @@ This file is the contract that builders work to. Section 6 records the integrati
 
 | Package | Kind | Contents |
 |---|---|---|
-| `packages/runner` | Rust crate (axum, tokio) + Dockerfile (linux/amd64, git, Node 25, Mergiraf binary) | Stateless HTTP API over a bare-repo cache in `/work`: squash, check, compose, update-ref, revert (§3) |
+| `packages/gateway/container` | Rust crate (axum, tokio) + Dockerfile (linux/amd64, git, Node 25, Mergiraf binary) | Stateless HTTP API over a bare-repo cache in `/work`: squash, check, compose, update-ref, revert (§3) |
 | `packages/gateway` | TypeScript Worker (Hono in a `WorkerEntrypoint`) | REST API, git proxy, `RunDO`, `Runner` Container class, live page |
 | `packages/shared-race` | TypeScript library | Event schema, policy types, the task format (`research/arena/tasks/*.json`) |
 | `research/race/harness/remote.py` | Python (existing harness) | `RemoteRace`: drives agent slots from RunDO instructions and reuses `agents.py` (Claude adapter, resume, cost) and `prompts.py`, so agent behavior is identical to the local races |
@@ -53,7 +53,7 @@ Every request carries `repo` (an Artifacts HTTPS remote) and `token` (an Artifac
 
 | Endpoint | Request | Response |
 |---|---|---|
-| `POST /v1/squash` | `onto` (sha), `change` {repo, token, ref, base}, `message`, `union_paths` | `{result: "clean", sha, files, resolved}` or `{result: "conflict", files, hunks}`. A clean result is pushed to `refs/beanstalk/candidates/<sha>` on the trunk repo so later steps can address it. A git conflict is first retried with Mergiraf on the conflicted files (`structural_merge`, default on; `resolved: "structural"` when that tier merged it); see `packages/runner/README.md` |
+| `POST /v1/squash` | `onto` (sha), `change` {repo, token, ref, base}, `message`, `union_paths` | `{result: "clean", sha, files, resolved}` or `{result: "conflict", files, hunks}`. A clean result is pushed to `refs/beanstalk/candidates/<sha>` on the trunk repo so later steps can address it. A git conflict is first retried with Mergiraf on the conflicted files (`structural_merge`, default on; `resolved: "structural"` when that tier merged it); see `packages/gateway/container/README.md` |
 | `POST /v1/check` | `sha`, `cmd` (default `["node","--test"]`), `extra_files`, `latency_seconds`, `all_read_sets` (default false) | `{green, tests, failures, failing_tests[{file,name}], failing_files, read_sets{file:[paths]}, passing_read_sets{file:[paths]}, stack_files, output_excerpt, suite_seconds}` (same fields as `harness/ci.py`; `passing_read_sets` is filled only with `all_read_sets`, for the targeted landing check) |
 | `POST /v1/compose` | `base`, `items` [{repo, token, ref, base, task}], `union_paths` | Stacked squash commits; `{head, per_item: [{task, result, sha?, files}]}` |
 | `POST /v1/update-ref` | `ref`, `new`, `old` | Push with lease; `{ok}` or `{ok: false, actual}` |
@@ -61,14 +61,14 @@ Every request carries `repo` (an Artifacts HTTPS remote) and `token` (an Artifac
 | `GET /healthz` | | `{ok, git, node}` |
 | `GET /version` | | `{version, api_version, git_sha}` |
 
-Request bodies refuse unknown fields, so the contract is versioned: `api_version` (now 2) is on `/version` and in the `x-beanstalk-runner-api` header of every response. The gateway checks it once per instance before the first job and fails the job with `runner_version_mismatch` (not retryable, both versions named) on a difference or on a `400` for an unknown field. Capacity refusals ("Maximum number of running container instances exceeded", 429, 503) are retried inside the gateway's client for about 4 minutes before the engine sees them; `422 unknown_commit` is retryable for `check` and `update-ref`. Details in `packages/runner/README.md`.
+Request bodies refuse unknown fields, so the contract is versioned: `api_version` (now 2) is on `/version` and in the `x-beanstalk-runner-api` header of every response. The gateway checks it once per instance before the first job and fails the job with `runner_version_mismatch` (not retryable, both versions named) on a difference or on a `400` for an unknown field. Capacity refusals ("Maximum number of running container instances exceeded", 429, 503) are retried inside the gateway's client for about 4 minutes before the engine sees them; `422 unknown_commit` is retryable for `check` and `update-ref`. Details in `packages/gateway/container/README.md`.
 
 The image needs Node 25, because the arena runs `.ts` files natively. Tests use `cargo test` with property tests for squash and compose against real git, per `clean-code-rust`.
 
 ## 4. Gateway API
 
 **Built and deployed 2026-10-03.** The source of truth is `packages/gateway/README.md` (routes, the end-to-end run, the driver contract); this section only summarizes it.
-- **URL:** `https://beanstalk-gateway.devaccounts-1password.workers.dev` (account `2c7358a6`, Artifacts namespace `beanstalk-race`).
+- **URL:** `https://beanstalk-gateway.devaccounts-1password.workers.dev` (the legacy account, Artifacts namespace `beanstalk-race`).
 - **Repos:** each run has one repo, `race-<run>`, with `refs/heads/sprout` and `refs/heads/stalk`. Each bean is a fork, `race-<run>-<task>`, with branch `task/<id>`.
 - **Seeding:** the admin seeds the base with `POST /v1/runs/:run/seed-token`, then pushes to both refs.
 - **Driver routes:** `next` (long poll) and `result` / `progress`. The invocation's workspace carries `bean_url`, `repo_url`, `branch`, `head_sha`, an optional `merge {sha, ref}`, `acceptance`, `protect` and `commit_message`.
@@ -165,6 +165,6 @@ The prototype ships two policies behind one interface:
 
 ## 8. Cautions
 
-- **Account `2c7358a6` is shared** with other workloads: an Artifacts namespace `workspace` with about 13.8k repos, and other containers. Beanstalk uses its own namespace (`beanstalk-race`) and only `beanstalk-*` names, and never lists, modifies or deletes anything else.
+- **The legacy account is shared** with other workloads: an Artifacts namespace `workspace` with about 13.8k repos, and other containers. Beanstalk uses its own namespace (`beanstalk-race`) and only `beanstalk-*` names, and never lists, modifies or deletes anything else.
 - **Artifacts billing starts around 2026-10-14.** Each race creates about 1 trunk plus 40 forks and a few hundred git operations. Reap forks after each run.
 - **Fetch by SHA from Artifacts is unverified.** The runner fetches named refs (fork task branches, `refs/beanstalk/candidates/*`), never bare SHAs.

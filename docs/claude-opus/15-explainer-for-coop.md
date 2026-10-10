@@ -55,7 +55,7 @@ To enforce this, the proxy reads the command list at the start of each push and 
 
 ### Cloudflare Artifacts as the storage
 
-Artifacts is the git storage. It has no server-side merge, so all merging happens in the **runner**, a Rust container with git 2.47, Node and Mergiraf (`packages/runner`). The runner squashes a bean onto the sprout, composes queue batches, reverts, runs the test suite on an exact commit, and moves refs with `--force-with-lease`. It keeps a bare-repo cache per trunk and gets a per-job Artifacts token. Write tokens stay on the committer instance, which never runs agent code.
+Artifacts is the git storage. It has no server-side merge, so all merging happens in the **runner**, a Rust container with git 2.47, Node and Mergiraf (`packages/gateway/container`). The runner squashes a bean onto the sprout, composes queue batches, reverts, runs the test suite on an exact commit, and moves refs with `--force-with-lease`. It keeps a bare-repo cache per trunk and gets a per-job Artifacts token. Write tokens stay on the committer instance, which never runs agent code.
 
 Artifacts quirks found the hard way, and the workarounds:
 
@@ -175,7 +175,7 @@ Sizes: **S** is under a day, **M** is 1–3 days, **L** is a week or more. Sizes
 | | OAuth instead of hand-minted view tokens. The same verbs as a `bean` CLI | Designed | M |
 | **Ops / cost** | Spend guard and automatic reap before Artifacts billing (~10-14). Today reap is a manual admin route | Partial | S–M |
 | | Measure infra cost per race | Not measured | S |
-| | Shared account `2c7358a6`, container cap 48 (one 20-agent run uses 23) | Known limit | — |
+| | Shared legacy account, container cap 48 (one 20-agent run uses 23) | Known limit | — |
 | **Competition (2026-10-14)** | 5–10 min video. The 8-min script exists (`12`) but quotes v2.0 numbers (13.8 / 17.5) and still lists a fresh v2.2 run as a must | Script done, not recorded | M |
 | | Run instructions. The README's "Run it" exists; it hasn't been tested on a fresh account | Mostly done | S |
 | | Licence note. FSL-1.1-ALv2 is your informed choice (`AGENTS.md`), but the rules list MIT, Apache-2.0 or BSD. The note should state this plainly. The script's close also says "open source", which FSL isn't in the OSI sense | Decided; the note isn't written | S |

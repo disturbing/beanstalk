@@ -1,6 +1,6 @@
 Actions live rollout and smoke test, 2026-10-09 (UTC 02:12-02:30), prototype at b3f6bdf.
 
-Deployed (live account 2c7358a6…), each after `pgrep` showed no race process:
+Deployed (the live legacy account), each after `pgrep` showed no race process:
   beanstalk-actions-executor  86912131-271e-4717-a20c-d47270de4b8f  (new; container app
                               beanstalk-actions-executor-actionsjobcontainer, standard-4 x 16,
                               image actions-runner-2026-10-08.3)

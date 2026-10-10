@@ -431,7 +431,7 @@ Coop's decisions:
   - `repoPlot` and `repoBlame` remain an optimisation for runs with thousands of events.
 - **Jev runs through Workers AI, not a TypeSafe key.**
   - Cloudflare lists Jev as the third-party model `typesafe/jev`.
-  - The web Worker calls `env.AI.run('typesafe/jev', { state, questions }, { gateway: { id: JEV_GATEWAY } })`. The AI binding is `remote` in dev, billing goes to account `2c7358a6…`, and no secret is needed.
+  - The web Worker calls `env.AI.run('typesafe/jev', { state, questions }, { gateway: { id: JEV_GATEWAY } })`. The AI binding is `remote` in dev, billing goes to the legacy account, and no secret is needed.
   - Measured in local dev against the real service: about 350–450 ms per pick once warm. The first call after start-up took over 1.5 s and fell back to the rule.
   - Confidence on the lead pick was 0.19, so Jev's probabilities are flat, as in earlier tests. It ranks well enough to choose the top item; ties follow the rule.
 - **One question per decision.** A single Choice question returns probabilities over every candidate. The order is Jev's choice first, then the rest by probability, with ties in the rule's order.
