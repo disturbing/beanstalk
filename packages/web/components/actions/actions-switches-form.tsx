@@ -46,7 +46,7 @@ export function ActionsSwitchesForm(props: {
             <span>
               Jobs that use <code>actions/setup-node</code> with <code>cache:</code>,{' '}
               <code>actions/cache</code> on <code>node_modules</code>, or{' '}
-              <code>beanstalk/deps-cache@v1</code> restore their dependencies from Gitstalk’s cache.
+              <code>gitstalk/deps-cache@v1</code> restore their dependencies from Gitstalk’s cache.
               Off sets <code>GITSTALK_DEPS_CACHE=off</code>.
             </span>
           </span>

@@ -1,7 +1,7 @@
 """Beanstalk as a forge for the load generator: plain git against a repository engine (doc 18, the git-native flow).
 
 Everything a worker does is git: ``git push -o wait=<s> <url> <sha>:refs/heads/bean/<name>``, whose ``remote:
-beanstalk:`` lines carry the verdict (LANDED, RED, CONFLICT, parked, dropped), and ``git fetch`` of ``sprout`` and
+gitstalk:`` lines (``beanstalk:`` before the rename) carry the verdict (LANDED, RED, CONFLICT, parked, dropped), and ``git fetch`` of ``sprout`` and
 ``stalk``. The operator side (open an engine on a fresh Artifacts repo with the arena's suite, mint a git token, read
 the pushed beans and the engine's event log, close it) is the gateway's admin API (doc 18 §8.2). The admin token
 and the git token never reach argv, a file or the output: the admin token is sent as a header from this process, the
@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 
 TOKEN_ENV = "LOADGEN_BEANSTALK_TOKEN"
 HELPER = f'!f() {{ echo username=x; echo "password=${TOKEN_ENV}"; }}; f'
-LINE = re.compile(r"remote:\s*beanstalk:\s?(.*?)\s*$")
+LINE = re.compile(r"remote:\s*(?:gitstalk|beanstalk):\s?(.*?)\s*$")  # gitstalk since the rename
 
 
 def engine_id(owner: str, repo: str) -> str:

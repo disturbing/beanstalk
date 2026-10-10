@@ -13,6 +13,7 @@ import { ZERO_SHA, listRefs, pushRefs } from '../git/remote-client';
 import type { Logger } from '../log';
 import { beanStatusRef } from './bean-refs';
 import type { PushBean } from './push-bean';
+import { withoutRemotePrefix } from './push-messages';
 
 export type StatusTag = NonNullable<PushBean['status']>;
 
@@ -93,7 +94,7 @@ export function statusMessage(bean: PushBean): string {
   if (bean.task !== null) lines.push(`task: ${bean.task}`);
   if (bean.landedSha !== null) lines.push(`landed: ${bean.landedSha}`);
   if (bean.verdict !== null && bean.verdict.push === bean.pushes && bean.phase !== 'green') {
-    lines.push('', ...bean.verdict.lines.map((line) => line.replace(/^beanstalk:\s?/, '')));
+    lines.push('', ...bean.verdict.lines.map((line) => withoutRemotePrefix(line)));
   }
   return `${lines.join('\n')}\n`;
 }

@@ -88,7 +88,7 @@ def beanstalk_section(repo_url: str) -> str:
 two lines: `sprout` (changes land there after a check of the change merged onto it) and `stalk` (the stable line, \
 which follows `sprout` once CI validates it). Branch your work from `origin/sprout`.
 - Submit a change: push its branch as a bean, `git push -o wait origin HEAD:refs/heads/bean/<name>` (a bean name is \
-letters, digits, `.`, `_` or `-`, up to 32). The push waits for the verdict and prints it (`remote: beanstalk:` lines).
+letters, digits, `.`, `_` or `-`, up to 32). The push waits for the verdict and prints it (`remote: gitstalk:` lines).
 - LANDED means it is on `sprout`. RED or CONFLICT means it was not landed: the push printed the failing tests or the \
 conflicting hunks and the landed changes it met. Fix it on the same branch (`git fetch origin sprout && git rebase \
 origin/sprout`, fix, commit) and push again to the same bean with `git push -f -o wait origin HEAD:refs/heads/bean/<name>`.

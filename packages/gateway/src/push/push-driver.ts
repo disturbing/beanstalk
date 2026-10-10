@@ -370,7 +370,7 @@ function genericLines(bean: string, reason: string, prompt: string): string[] {
     .filter((line) => line.trim() !== '')
     .slice(0, GENERIC_PROMPT_LINES);
   return [
-    `beanstalk: REWORK (${reason}): ${bean} was not landed:`,
-    ...lines.map((line) => `beanstalk:   ${line}`),
+    `gitstalk: REWORK (${reason}): ${bean} was not landed:`,
+    ...lines.map((line) => `gitstalk:   ${line}`),
   ];
 }

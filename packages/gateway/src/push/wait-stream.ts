@@ -51,7 +51,7 @@ export async function writePushVerdict(
     }
     // oxlint-disable-next-line no-await-in-loop -- the wait for the next change
     const changed = await nextChange({ ...watch, known: seen.key, deadlineMs }, async () => {
-      await write([`beanstalk: still checking (${Math.round((Date.now() - startMs) / 1000)} s)`]);
+      await write([`gitstalk: still checking (${Math.round((Date.now() - startMs) / 1000)} s)`]);
     });
     if (changed === null) {
       // oxlint-disable-next-line no-await-in-loop -- the timeout line
@@ -175,8 +175,8 @@ function orderedLines(progress: PushProgress): string[] {
 
 function timeoutLines(bean: string, phase: string, waitedMs: number): string[] {
   return [
-    `beanstalk: still ${phase} after ${Math.round(waitedMs / 1000)} s; the verdict will be on refs/beans/${bean}/status`,
-    `beanstalk:   wait again (wakes at the verdict): ${waitCommand([bean])}`,
+    `gitstalk: still ${phase} after ${Math.round(waitedMs / 1000)} s; the verdict will be on refs/beans/${bean}/status`,
+    `gitstalk:   wait again (wakes at the verdict): ${waitCommand([bean])}`,
   ];
 }
 

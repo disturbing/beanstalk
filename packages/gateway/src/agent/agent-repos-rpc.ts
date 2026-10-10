@@ -30,6 +30,7 @@ import { listIndexed } from '../actions/workflow-index';
 import type { Deps } from '../deps';
 import { GatewayError } from '../errors';
 import type { PushBean } from '../push/push-bean';
+import { withoutRemotePrefix } from '../push/push-messages';
 import { pushedBeanStatus } from '../rpc/repo-engine-rpc';
 import type { Opened } from './agent-access';
 import { failure, openRepository, personRepositories } from './agent-access';
@@ -183,7 +184,7 @@ function journeyOf(bean: PushBean): AgentBean['journey'] {
       : [...lines, ...verdict.lines.map((text) => ({ push: verdict.push, text }))];
   return all
     .slice(-JOURNEY_LINES)
-    .map((line) => ({ push: line.push, text: line.text.replace(/^beanstalk:\s?/, '') }));
+    .map((line) => ({ push: line.push, text: withoutRemotePrefix(line.text) }));
 }
 
 /**

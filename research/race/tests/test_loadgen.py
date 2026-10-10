@@ -179,6 +179,9 @@ class LoadgenUnits(unittest.TestCase):
         self.assertEqual((v.kind, v.conflicts), ("conflict", ["lib/a.js", "lib/b.js"]))
         v = parse_push([(1.0, "remote: beanstalk: new bean x received at abc: \"t\"")], 0.0, 0)
         self.assertEqual(v.kind, "timeout")
+        v = parse_push([(1.0, "remote: gitstalk: CONFLICT: x does not merge onto the sprout. Conflicts in: lib/a.js")],
+                       0.0, 0)
+        self.assertEqual((v.kind, v.conflicts), ("conflict", ["lib/a.js"]))
 
     def test_token_never_in_argv(self) -> None:
         c = BeanstalkClient("https://gw.invalid", "admin-secret", "loadgen", "r1")

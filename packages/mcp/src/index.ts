@@ -1,5 +1,5 @@
 /**
- * beanstalk-mcp: MCP tools for coding agents (`docs/claude-opus/06-auth-mcp-live-previews.md`
+ * gitstalk-mcp: MCP tools for coding agents (`docs/claude-opus/06-auth-mcp-live-previews.md`
  * §4), behind two kinds of credential:
  * - run tokens (`Authorization: Bearer bst1.…`, view or contributor) go to the run-token app,
  *   unchanged since before accounts;
@@ -18,6 +18,7 @@ import type {
   ConsentUser,
   ConsentView,
 } from '@gitstalk/shared-identity/agent-sessions';
+import { withHsts } from '@gitstalk/shared-identity/transport-security';
 
 import { createApp } from './app';
 import { depsFromEnv } from './deps';
@@ -39,15 +40,15 @@ const handlers: ProviderHandlers = {
   authorize: createAuthorizeHandler((env) => oauthApi(env)),
 };
 
+/** Run tokens go to the run-token app; everything else meets the OAuth provider. */
+function answer(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  if (hasRunToken(request)) return Promise.resolve(runTokenApp.fetch(request, env, ctx));
+  return new OAuthProvider(providerOptions(env, handlers)).fetch(request, env, ctx);
+}
+
 export default class GitstalkMcp extends WorkerEntrypoint<Env> implements AgentSessionsRpc {
-  override fetch(request: Request): Promise<Response> {
-    if (hasRunToken(request))
-      return Promise.resolve(runTokenApp.fetch(request, this.env, this.ctx));
-    return new OAuthProvider(providerOptions(this.env, handlers)).fetch(
-      request,
-      this.env,
-      this.ctx,
-    );
+  override async fetch(request: Request): Promise<Response> {
+    return withHsts(request, await answer(request, this.env, this.ctx));
   }
 
   /** The consent page's facts for a pending request (claims it for this person). */

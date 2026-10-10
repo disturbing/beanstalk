@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
+import { withHsts } from '@gitstalk/shared-identity/transport-security';
 import type { EngineFeed, EngineFeedRpc } from '@gitstalk/shared-race/engine-feed';
 import type {
   BeanContext,
@@ -144,7 +145,7 @@ export { ContainerProxy } from '@cloudflare/containers';
 const app = createApp(createDeps);
 
 /**
- * beanstalk-gateway: race runs, the driver API, the git proxy and the live page over HTTP,
+ * gitstalk-gateway: race runs, the driver API, the git proxy and the live page over HTTP,
  * and the web app's RPC surface (`GatewayRpc`) over its service binding.
  */
 export default class Gateway
@@ -162,7 +163,7 @@ export default class Gateway
     AutomationEditorRpc
 {
   override async fetch(request: Request): Promise<Response> {
-    return app.fetch(request, this.env, this.ctx);
+    return withHsts(request, await app.fetch(request, this.env, this.ctx));
   }
 
   /** `repo-events`: repository engines' events into the D1 indexes. */

@@ -18,6 +18,7 @@ import type {
 import { issueToken } from '../auth/tokens';
 import type { Deps } from '../deps';
 import type { PushBean } from '../push/push-bean';
+import { withoutRemotePrefix } from '../push/push-messages';
 import { OpenRepoEngineInput, repoEngineId } from '../push/repo-engine';
 
 const DEFAULT_TOKEN_SECONDS = 3600;
@@ -103,7 +104,7 @@ export function pushedBeanStatus(bean: PushBean): PushedBeanStatus {
     phase: bean.phase,
     reason: bean.reason,
     landed_sha: bean.landedSha,
-    verdict: (bean.verdict?.lines ?? []).map((line) => line.replace(/^beanstalk:\s?/, '')),
+    verdict: (bean.verdict?.lines ?? []).map((line) => withoutRemotePrefix(line)),
   };
 }
 

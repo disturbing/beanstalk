@@ -58,7 +58,7 @@ async function authorize(request: Request, env: Env, oauth: OAuthHelpers): Promi
 
 function info(env: Env): Response {
   return Response.json({
-    name: 'beanstalk-mcp',
+    name: 'gitstalk-mcp',
     mcp: '/mcp',
     auth: 'OAuth 2.1 (see /.well-known/oauth-protected-resource/mcp); run tokens: Authorization: Bearer bst1.…',
     web: env.WEB_URL,
@@ -67,6 +67,6 @@ function info(env: Env): Response {
 
 function logger(env: Env) {
   return createLogger(isLogLevel(env.LOG_LEVEL) ? env.LOG_LEVEL : 'info', {
-    worker: 'beanstalk-mcp',
+    worker: 'gitstalk-mcp',
   });
 }

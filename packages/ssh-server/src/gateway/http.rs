@@ -17,7 +17,7 @@ pub const KEY_HEADER: &str = "x-beanstalk-ssh-key";
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 /// A push held with `-o wait` prints a keepalive every 15 s; a read gap this long is a stall.
 const READ_TIMEOUT: Duration = Duration::from_mins(2);
-const USER_AGENT: &str = concat!("beanstalk-ssh/", env!("CARGO_PKG_VERSION"));
+const USER_AGENT: &str = concat!("gitstalk-ssh/", env!("CARGO_PKG_VERSION"));
 
 /// The gateway reached at `base` (no trailing slash).
 #[derive(Debug, Clone)]

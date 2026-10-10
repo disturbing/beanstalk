@@ -86,7 +86,7 @@ where
         (Ok(()), Err(error)) => Failure::from(Error::Io(error)).into_outcome(),
     };
     if let Outcome::Failed(message) = &outcome {
-        let line = format!("beanstalk: {message}\n");
+        let line = format!("gitstalk: {message}\n");
         // The client may be gone already; nothing is left to tell it.
         let _ = io.stderr.write_all(line.as_bytes()).await;
         let _ = io.stderr.flush().await;

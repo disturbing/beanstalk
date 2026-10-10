@@ -25,9 +25,8 @@ import type { RunSuite } from '@gitstalk/shared-race/suite';
 
 import type { CheckInstance, CheckResult, FailingTest } from '../engine/model';
 import type { LandingTree } from './check-store';
+import { REMOTE_PREFIX as P } from '../push/push-messages';
 import type { ProtectedAccess } from './protected-access';
-
-const P = 'beanstalk:';
 
 /** What a check of one tree does: run this suite, or answer without one. */
 export type CheckPlan =

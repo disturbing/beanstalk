@@ -219,7 +219,7 @@ async fn a_refused_repository_shows_the_gateway_words() {
         run.outcome,
         Outcome::Failed("no repository acme/greeter".into())
     );
-    assert_eq!(run.stderr, "beanstalk: no repository acme/greeter\n");
+    assert_eq!(run.stderr, "gitstalk: no repository acme/greeter\n");
     assert!(run.stdout.is_empty());
 }
 

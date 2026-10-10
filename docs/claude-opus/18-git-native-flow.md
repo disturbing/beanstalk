@@ -120,7 +120,7 @@ git push origin HEAD:refs/wait/any                        # every bean in flight
 
 ## 5. What the push prints
 
-All lines start `remote: beanstalk:`. From the staging and local runs:
+All lines start `remote: gitstalk:` (`remote: beanstalk:` until 2026-10-11, as in these staging and local runs, which predate the rename):
 
 **Received (every accepted push):**
 ```

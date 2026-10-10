@@ -25,7 +25,7 @@ export function depsFromEnv(env: Env): Deps {
     gateway: asGatewayBinding(env.GATEWAY),
     agents: asAgentRepos(env.GATEWAY),
     log: createLogger(isLogLevel(env.LOG_LEVEL) ? env.LOG_LEVEL : 'info', {
-      worker: 'beanstalk-mcp',
+      worker: 'gitstalk-mcp',
     }),
   };
 }

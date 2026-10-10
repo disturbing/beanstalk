@@ -7,7 +7,7 @@ import type { RunId } from '@gitstalk/shared-race/ids';
 
 export type Repository = { readonly owner: string; readonly name: string };
 
-const ARENA: Repository = { owner: 'coop', name: 'beanstalk-shop' };
+const ARENA: Repository = { owner: 'coop', name: 'storefront' };
 
 export function repositoryOf(_run: RunId): Repository {
   return ARENA;

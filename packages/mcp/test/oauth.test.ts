@@ -199,6 +199,14 @@ function delivered(request: Request): Request {
 }
 
 describe('discovery (MCP authorization spec)', () => {
+  it('names itself gitstalk-mcp and asks browsers for https only', async () => {
+    const response = await SELF.fetch(`${ORIGIN}/`);
+    expect(await response.json()).toMatchObject({ name: 'gitstalk-mcp', mcp: '/mcp' });
+    expect(response.headers.get('strict-transport-security')).toBe(
+      'max-age=31536000; includeSubDomains',
+    );
+  });
+
   it('challenges an unauthenticated /mcp request with the protected-resource metadata URL', async () => {
     const response = await postMcp(null);
     expect(response.status).toBe(401);

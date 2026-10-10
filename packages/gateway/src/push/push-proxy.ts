@@ -166,8 +166,8 @@ function movedFrom(path: GitPath, fullName: string | null): string | null {
 /** What a push to an old address prints: it worked, and where the repository is now. */
 function movedLines(fullName: string, webUrl: string): string[] {
   return [
-    `beanstalk: this repository moved to ${fullName}; the old address keeps working.`,
-    `beanstalk: to use the new one: git remote set-url origin ${webUrl}/${fullName}.git`,
+    `gitstalk: this repository moved to ${fullName}; the old address keeps working.`,
+    `gitstalk: to use the new one: git remote set-url origin ${webUrl}/${fullName}.git`,
   ];
 }
 
@@ -286,7 +286,7 @@ async function push(
   if (submitted.ok) input.ctx.waitUntil(recordPush(input.deps, target.credential));
   if (!submitted.ok) {
     const lines = [
-      `beanstalk: the bean's branch moved, but the engine did not take it: ${submitted.reason}`,
+      `gitstalk: the bean's branch moved, but the engine did not take it: ${submitted.reason}`,
     ];
     return bytesResponse(withRemoteLines(bytes, mode, lines), upstream.headers);
   }
@@ -367,7 +367,7 @@ async function waitPush(
     );
   const options = parsePushOptions(request.options);
   const report = acceptedResponse(command.ref, mode);
-  const unknown = options.unknown.map((option) => `beanstalk:   ignored push option: ${option}`);
+  const unknown = options.unknown.map((option) => `gitstalk:   ignored push option: ${option}`);
   if (!mode.sideband) return bytesResponse(report, new Headers());
   return streamedResponse({
     report,
@@ -425,7 +425,7 @@ async function checkCommands(
 
 function refused(request: PushRequest, mode: ReportMode, reason: string): Response {
   const refs = request.commands.map((command) => command.ref);
-  const lines = [`beanstalk: push refused: ${reason}`];
+  const lines = [`gitstalk: push refused: ${reason}`];
   return bytesResponse(refusalResponse(refs, reason, { mode, lines }), new Headers());
 }
 
@@ -452,7 +452,7 @@ function streamedResponse(input: {
       await writer.write(concatBytes([head, remoteLines(input.lines)]));
       await input.body(write).catch(async () => {
         await write([
-          `beanstalk: lost the engine while waiting; the verdicts will be on refs/beans/<name>/status`,
+          `gitstalk: lost the engine while waiting; the verdicts will be on refs/beans/<name>/status`,
         ]);
       });
       await writer.write(FLUSH_PKT);
