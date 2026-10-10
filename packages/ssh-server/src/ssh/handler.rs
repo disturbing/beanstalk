@@ -183,7 +183,7 @@ impl<G: Gateway> russh::server::Handler for Connection<G> {
             Ok(command) => git_call(&user, command, self.protocols.remove(&channel)),
             Err(refusal) => {
                 tracing::info!(connection = self.id, handle = %user.handle, %refusal, "command refused");
-                tokio::spawn(finish(open, format!("beanstalk: {refusal}\n"), 128));
+                tokio::spawn(finish(open, format!("gitstalk: {refusal}\n"), 128));
                 return Ok(());
             }
         };

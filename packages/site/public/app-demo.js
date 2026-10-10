@@ -320,7 +320,7 @@ const ASK_MS = timed(ASK_SEGMENTS);
 
 /** The repository belongs to an organization, of which coop is an owner. */
 const ORG = 'acme';
-const REPO = 'beanstalk-shop';
+const REPO = 'storefront';
 const FULL = `${ORG}/${REPO}`;
 
 /** Automations: the stalk moves and starts two runs, the deploy opens and streams its log. */
@@ -748,7 +748,7 @@ const PANELS = {
         ['last 7 days', 'beans, landings, decisions'],
         ['Stalk replay', 'Growing now', 'What happened'],
       ) +
-      head('Replaying last week on beanstalk-shop.', sub) +
+      head('Replaying last week on storefront.', sub) +
       growing(f) +
       happened(f)
     );
@@ -1007,9 +1007,9 @@ const LOG_STEPS = [
       '    CLOUDFLARE_API_TOKEN: ***',
       `    CLOUDFLARE_ACCOUNT_ID: ${sha(7)}${sha(11)}`,
       'Total Upload: 41.20 KiB / gzip: 9.87 KiB',
-      'Uploaded beanstalk-shop (2.31 sec)',
-      'Deployed beanstalk-shop triggers (0.42 sec)',
-      '  https://beanstalk-shop.acme.workers.dev',
+      'Uploaded storefront (2.31 sec)',
+      'Deployed storefront triggers (0.42 sec)',
+      '  https://storefront.acme.workers.dev',
       `Current Version ID: ${sha(19)}-4c1e-9a7b`,
       'Success - Run npx wrangler deploy [3.84s]',
     ],

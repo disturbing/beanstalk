@@ -80,7 +80,7 @@ while the parent is out: it would carry the parent's change too.
 
 ## What the remote prints
 
-Every line starts `remote: beanstalk:`. In order:
+Every line starts `remote: gitstalk:` (`remote: beanstalk:` from a server not yet updated; read both). In order:
 
 1. received: the bean name and the commit, its task, "pre-land check started".
 2. With `-o wait` (or on a wait ref): progress, a keepalive every 15 s, then one verdict: LANDED (on the

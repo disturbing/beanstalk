@@ -9,6 +9,9 @@ describe('gateway', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
+    expect(response.headers.get('strict-transport-security')).toBe(
+      'max-age=31536000; includeSubDomains',
+    );
   });
 
   it('answers unknown routes with the error shape', async () => {

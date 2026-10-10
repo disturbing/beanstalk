@@ -35,10 +35,10 @@ Every check of a repository engine (a bean's pre-land check, the sprout's valida
 
 | The tree has | The check | The push sees |
 |---|---|---|
-| no file | the engine's configured suite, exactly as before this file was read (`node --test`, 300 s, for every repository opened from the registry) | `beanstalk: no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)` |
-| the starter's older `[[check]]` draft | the same engine suite | `beanstalk: .gitstalk/checks.toml is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test (timeout 300 s)` and the line to write instead |
-| an invalid file | red without running anything; one failing "test", `.gitstalk/checks.toml > the checks config is valid` | `beanstalk: .gitstalk/checks.toml is invalid:` and one line per problem (`line 2, column 19: invalid value`, `command: must be an argv array such as ["node", "--test"]; it never runs through a shell`, `image: "rust" is not available: …`), then the usual RED verdict quoting them |
-| a valid file | the runner runs `command` with `env` and `timeout_seconds` | `beanstalk: checks from .gitstalk/checks.toml: node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)` |
+| no file | the engine's configured suite, exactly as before this file was read (`node --test`, 300 s, for every repository opened from the registry) | `gitstalk: no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test (timeout 300 s)` |
+| the starter's older `[[check]]` draft | the same engine suite | `gitstalk: .gitstalk/checks.toml is the older [[check]] draft, which does not choose the suite: the repository's default suite runs: node --test (timeout 300 s)` and the line to write instead |
+| an invalid file | red without running anything; one failing "test", `.gitstalk/checks.toml > the checks config is valid` | `gitstalk: .gitstalk/checks.toml is invalid:` and one line per problem (`line 2, column 19: invalid value`, `command: must be an argv array such as ["node", "--test"]; it never runs through a shell`, `image: "rust" is not available: …`), then the usual RED verdict quoting them |
+| a valid file | the runner runs `command` with `env` and `timeout_seconds` | `gitstalk: checks from .gitstalk/checks.toml: node --test --test-concurrency=1 'spec/**/*.spec.mjs' (image node, timeout 60 s, env KV_LIMIT)` |
 
 A missing file never means "no checks" (coordinator's decision at the integration, 2026-10-08, replacing the backlog's first choice): a repository without the file keeps its current behaviour, so deploying this turns no live repository red and lands nothing untested. The start page and Settings say "Default suite" in the same words.
 
@@ -47,14 +47,14 @@ A missing file never means "no checks" (coordinator's decision at the integratio
 A bean's pre-land check compares the files the bean changes (the runner's squash `files`, sprout to merged tree) with the patterns **of the sprout's file** (the bean's own copy cannot unprotect itself) plus `.gitstalk/checks.toml`. If it touches one and its push may not, the check is red before any suite runs:
 
 ```
-beanstalk: changes protected paths (data/schema.json): refused for a deploy token acting for @coop-chk
-beanstalk: RED: schema was not landed. Merged onto the sprout, these tests failed:
-beanstalk:   - data/schema.json > changes a protected path
-beanstalk: output:
-beanstalk:   This bean changes protected paths: data/schema.json.
-beanstalk:   The sprout protects .gitstalk/checks.toml, data/schema.json (protected_paths in .gitstalk/checks.toml; .gitstalk/checks.toml always).
-beanstalk:   Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;
-beanstalk:   this push was by a deploy token acting for @coop-chk.
+gitstalk: changes protected paths (data/schema.json): refused for a deploy token acting for @coop-chk
+gitstalk: RED: schema was not landed. Merged onto the sprout, these tests failed:
+gitstalk:   - data/schema.json > changes a protected path
+gitstalk: output:
+gitstalk:   This bean changes protected paths: data/schema.json.
+gitstalk:   The sprout protects .gitstalk/checks.toml, data/schema.json (protected_paths in .gitstalk/checks.toml; .gitstalk/checks.toml always).
+gitstalk:   Only the owner or a maintainer, pushing with a personal token or an SSH key, may change them;
+gitstalk:   this push was by a deploy token acting for @coop-chk.
 ```
 
 **Who may:** the repository's owner or a collaborator with the maintain role, pushing with their own credential (a personal token `bsu_` or an SSH key). Agent session tokens (`bss_`, MCP), deploy tokens (`bsd_`) and engine tokens never may, whoever they act for; the push line names who was allowed (`allowed for @coop-chk (owner, with a personal token)`). So an agent cannot weaken the checks it is judged by, and the backlog's "refused or flagged" is **refused** (a red the author reworks by dropping the change); there is no flag-and-ask card yet (§6). The decision is made per push from the credential the gateway verified (`checks/protected-access.ts`), kept on the pushed bean, and applied when its check runs.

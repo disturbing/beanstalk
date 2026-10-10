@@ -52,7 +52,7 @@ describe('deciding a check from the tree', () => {
     });
     expect(plan).toEqual({ kind: 'run', suite: ENGINE_SUITE });
     expect(lines).toEqual([
-      "beanstalk: no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test test/ (timeout 90 s)",
+      "gitstalk: no .gitstalk/checks.toml on this tree: the repository's default suite runs: node --test test/ (timeout 90 s)",
     ]);
   });
 
@@ -81,7 +81,7 @@ describe('deciding a check from the tree', () => {
       failingTests: [{ file: '.gitstalk/checks.toml', name: 'the checks config is valid' }],
     });
     expect(plan.result.output).toContain('unknown key "comand" (did you mean "command"?)');
-    expect(lines[0]).toBe('beanstalk: .gitstalk/checks.toml is invalid:');
+    expect(lines[0]).toBe('gitstalk: .gitstalk/checks.toml is invalid:');
   });
 
   it('runs the suite a valid file declares', () => {
@@ -102,7 +102,7 @@ describe('deciding a check from the tree', () => {
     ]);
     expect(plan.result.output).toContain('this push was by @agent');
     expect(lines).toEqual([
-      'beanstalk: changes protected paths (migrations/1.sql): refused for @agent (write, with an agent session token)',
+      'gitstalk: changes protected paths (migrations/1.sql): refused for @agent (write, with an agent session token)',
     ]);
   });
 
@@ -114,7 +114,7 @@ describe('deciding a check from the tree', () => {
     });
     expect(plan).toMatchObject({ kind: 'run', suite: { timeout_seconds: 30 } });
     expect(lines[0]).toBe(
-      'beanstalk: changes protected paths (.gitstalk/checks.toml): allowed for @coop (owner, with a personal token)',
+      'gitstalk: changes protected paths (.gitstalk/checks.toml): allowed for @coop (owner, with a personal token)',
     );
   });
 
@@ -163,7 +163,7 @@ describe('deciding a check from the tree', () => {
     );
     expect(plan).toMatchObject({ kind: 'run', suite: { argv: ['node', '--test', 'spec/'] } });
     expect(checks.recorded.get(MERGED)?.[0]).toMatch(
-      /^beanstalk: checks from \.beanstalk\/checks\.toml: /,
+      /^gitstalk: checks from \.beanstalk\/checks\.toml: /,
     );
   });
 });

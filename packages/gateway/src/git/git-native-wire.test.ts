@@ -119,9 +119,9 @@ describe('advertisements and reports', () => {
       unpackOk: true,
       refs: [{ ref: 'refs/heads/bean/x', ok: true, reason: null }],
     });
-    const withLines = withRemoteLines(banded, mode, ['beanstalk: hello']);
+    const withLines = withRemoteLines(banded, mode, ['gitstalk: hello']);
     expect(decoder.decode(withLines)).toBe(
-      `${decoder.decode(banded.subarray(0, -4))}${decoder.decode(remoteLines(['beanstalk: hello']))}0000`,
+      `${decoder.decode(banded.subarray(0, -4))}${decoder.decode(remoteLines(['gitstalk: hello']))}0000`,
     );
   });
 
@@ -129,7 +129,7 @@ describe('advertisements and reports', () => {
     const mode = reportMode(['report-status', 'side-band-64k']);
     const bytes = refusalResponse(['refs/heads/sprout'], 'landing is never a push', {
       mode,
-      lines: ['beanstalk: push refused'],
+      lines: ['gitstalk: push refused'],
     });
     const lines = readPktLines(bytes);
     if (!lines.ok) throw new Error(lines.reason);
@@ -137,7 +137,7 @@ describe('advertisements and reports', () => {
     expect(report?.refs).toEqual([
       { ref: 'refs/heads/sprout', ok: false, reason: 'landing is never a push' },
     ]);
-    expect(decoder.decode(bytes)).toContain('\u0002beanstalk: push refused\n');
+    expect(decoder.decode(bytes)).toContain('\u0002gitstalk: push refused\n');
     expect(encoder.encode(decoder.decode(bytes.subarray(-4)))).toEqual(FLUSH_PKT);
   });
 });

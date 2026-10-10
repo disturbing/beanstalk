@@ -5,9 +5,7 @@
  */
 import type { WaitMode, WatchedBean } from './bean-wait';
 import { isActionable, isChecking } from './bean-wait';
-import { waitCommand } from './push-messages';
-
-const P = 'beanstalk:';
+import { REMOTE_PREFIX as P, waitCommand } from './push-messages';
 
 export function waitHeaderLines(
   mode: WaitMode,

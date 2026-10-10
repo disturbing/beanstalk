@@ -23,7 +23,7 @@ export function createApp(depsFor: (env: Env) => Deps) {
   });
   app.get('/', (c) =>
     c.json({
-      name: 'beanstalk-mcp',
+      name: 'gitstalk-mcp',
       mcp: MCP_ROUTE,
       auth: 'Authorization: Bearer <view or contributor token>, or OAuth 2.1',
     }),

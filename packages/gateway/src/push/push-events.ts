@@ -81,7 +81,7 @@ const HANDLERS: Readonly<Partial<Record<string, (event: unknown, fold: Fold) => 
     if (!conflict.success) return [];
     const files = conflict.data.files.join(', ');
     return on(conflict.data.task, (bean) =>
-      withNote(bean, `beanstalk: merging onto the sprout conflicts in ${files}`),
+      withNote(bean, `gitstalk: merging onto the sprout conflicts in ${files}`),
     );
   },
   land: (event, { on, verdict }) => {
@@ -105,7 +105,7 @@ const HANDLERS: Readonly<Partial<Record<string, (event: unknown, fold: Fold) => 
     const at = promote.data.sha.slice(0, 7);
     return promote.data.tasks.flatMap((task) =>
       on(task, (bean) =>
-        withPhase(withNote(bean, `beanstalk: validated: on the stalk at ${at}`), {
+        withPhase(withNote(bean, `gitstalk: validated: on the stalk at ${at}`), {
           phase: 'green',
           reason: `validated; on the stalk at ${at}`,
         }),
@@ -163,8 +163,8 @@ function stopped(event: unknown, phase: 'parked' | 'dropped', { on, verdict }: F
 
 function checkNote(check: z.infer<typeof PrelandCheck>): string {
   const seconds = check.check_seconds.toFixed(1);
-  if (check.green) return `beanstalk: pre-land check green on the merged tree (${seconds} s)`;
+  if (check.green) return `gitstalk: pre-land check green on the merged tree (${seconds} s)`;
   if (check.inherited === true)
-    return 'beanstalk: the sprout itself is red here; the bean waits for the sprout to be repaired';
-  return `beanstalk: pre-land check red (${check.failing_tests.length} failing, ${seconds} s)`;
+    return 'gitstalk: the sprout itself is red here; the bean waits for the sprout to be repaired';
+  return `gitstalk: pre-land check red (${check.failing_tests.length} failing, ${seconds} s)`;
 }

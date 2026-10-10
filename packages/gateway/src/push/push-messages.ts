@@ -9,7 +9,16 @@
 const OUTPUT_LINES = 12;
 const HUNK_LINES = 40;
 const INTENT_CHARS = 300;
-const P = 'beanstalk:';
+/** What every `remote:` line of a push starts with. */
+export const REMOTE_PREFIX = 'gitstalk:';
+const P = REMOTE_PREFIX;
+/** The prefix, or the `beanstalk:` one that verdicts stored before the rename carry. */
+const ANY_REMOTE_PREFIX = /^(?:gitstalk|beanstalk):\s?/;
+
+/** A stored `remote:` line without its prefix (either name). */
+export function withoutRemotePrefix(line: string): string {
+  return line.replace(ANY_REMOTE_PREFIX, '');
+}
 
 /** A landed bean as a verdict names it. */
 export type BeanRef = { readonly bean: string; readonly title: string; readonly intent: string };

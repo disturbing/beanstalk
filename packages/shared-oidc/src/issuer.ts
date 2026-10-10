@@ -187,7 +187,7 @@ export function createOidcApp(configFor: OidcConfigSource): Hono {
             Math.floor(config.nowMs() / 1000),
           );
     if (verified === null) {
-      c.header('WWW-Authenticate', 'Bearer realm="beanstalk-oidc"');
+      c.header('WWW-Authenticate', 'Bearer realm="gitstalk-oidc"');
       return c.json({ message: 'invalid or expired request token' }, 401);
     }
     const { job } = verified;

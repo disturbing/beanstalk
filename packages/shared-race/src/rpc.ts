@@ -647,7 +647,7 @@ export type PushedBeanStatus = {
     | 'dropped';
   readonly reason: string;
   readonly landed_sha: string | null;
-  /** The last verdict's `remote:` lines (without the `beanstalk:` prefix). */
+  /** The last verdict's `remote:` lines (without the `gitstalk:` prefix, or the older `beanstalk:`). */
   readonly verdict: readonly string[];
 };
 

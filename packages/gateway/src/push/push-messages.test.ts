@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { promptOutput } from './push-messages';
+import { promptOutput, withoutRemotePrefix } from './push-messages';
 
 describe('verdict output', () => {
   it('keeps the telling lines of the suite output and drops stack frames', () => {
@@ -20,5 +20,14 @@ describe('verdict output', () => {
       "  code: 'ERR_ASSERTION',",
       '  actual: 99,',
     ]);
+  });
+});
+
+describe('stored remote lines', () => {
+  it('drops the prefix, also the one verdicts stored before the rename carry', () => {
+    expect(withoutRemotePrefix('gitstalk: LANDED: a')).toBe('LANDED: a');
+    expect(withoutRemotePrefix('beanstalk: LANDED: a')).toBe('LANDED: a');
+    expect(withoutRemotePrefix('gitstalk:   indented')).toBe('  indented');
+    expect(withoutRemotePrefix('plain')).toBe('plain');
   });
 });
