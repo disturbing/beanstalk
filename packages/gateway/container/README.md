@@ -1,134 +1,74 @@
-# runner
+# runner: the gateway's git and test container
 
-The `runner` container: git and the test suite for the `RunDO`'s integration decisions. Artifacts has no server-side merge, so squash-merges, batch composition, reverts, ref updates and test runs happen here. The contract is §3 of [`docs/claude-opus/10-cf-prototype-plan.md`](../../docs/claude-opus/10-cf-prototype-plan.md); the semantics are those of the local race harness ([`research/race/harness/gitops.py`](../../research/race/harness/gitops.py) and [`ci.py`](../../research/race/harness/ci.py)), so cloud and local races compare metric for metric.
+The Rust crate `runner` builds the container image that `gitstalk-gateway` drives for every integration step. Artifacts has no server-side merge, so squash merges, batch composition, reverts, ref updates and test suites run here. It is one axum HTTP service on `0.0.0.0:8080`. The gateway reaches it only through its `Runner` Container Durable Object; nothing else talks to it.
 
-Rust (axum, tokio), one HTTP service on `0.0.0.0:$PORT` (8080). The image adds git 2.47 (Debian trixie), Node 25.8.1 (the version the fastify arena pins and its GitHub arm installs), Mergiraf 0.20.0, bubblewrap, and the real-task arenas' dependency snapshots under `/opt/arena-deps/<name>/node_modules` (installed at build time from each arena's lockfile, `research/real-arena/<name>/deps/`). Mergiraf is GPL-3.0 and is only ever run as that separate, unmodified binary (as git's merge driver); the runner never links it.
-
-## API
-
-JSON in, JSON out. Every request carries `repo` (the trunk's Artifacts HTTPS remote) and `token` (an Artifacts token minted for this job). Unknown fields are refused (ignoring one, such as revert's `to`, would do the wrong thing). Commit ids are full 40- or 64-hex shas; refs are full names (`refs/heads/...`).
-
-**Contract version.** The wire contract has a version, `API_VERSION` in `src/app.rs` (now **4**), reported by `/version` as `api_version` and on every response as the header `x-gitstalk-runner-api`. Bump it with any change a caller must know about, together with `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-transport.ts` (and the fake runner in `packages/gateway/test/fakes/fake-runner.js`). The gateway asks each instance's `/version` once before its first job; on a different version, or a `400` naming an unknown field, the job fails for good with `runner_version_mismatch: runner instance … speaks runner API <n>, this gateway speaks <m> …`, so a gateway deployed ahead of the image stops with that message instead of dropping beans as infrastructure failures (seen in `cf-replay-v25-8-s7`: seven beans dropped on `unknown field structural_merge`). Version 1 is the contract before 2026-10-06 (no `api_version`); 2 added squash/compose `structural_merge`, revert `to` and check `all_read_sets`/`passing_read_sets`; 3 (2026-10-07) added check `env` and `deps` and `network` on checks and `/healthz`; 4 (2026-10-07) added check `trace`, `only_files` and `tree_manifest`, answered with `read_maps` and `tree`, and `tracing` on `/healthz`.
-
-| Endpoint | Request | Response |
-|---|---|---|
-| `POST /v1/squash` | `onto`, `change` `{repo, token, ref, base?}`, `message`, `union_paths?`, `merge_driver?`, `structural_merge?` (true) | `{result: "clean", sha, files, resolved, change_head, merge_base, change_files?}` or `{result: "conflict", files, hunks, change_head, merge_base, change_files?}` |
-| `POST /v1/compose` | `base`, `items` `[{repo, token, ref, base?, task, message?}]`, `union_paths?`, `merge_driver?`, `structural_merge?` (true) | `{head, per_item: [{task, result, sha?, files, resolved?, hunks?, change_head, merge_base, change_files?}]}` |
-| `POST /v1/revert` | `onto`, `commit`, `to?`, `message`, `union_paths?`, `merge_driver?` | `{result, sha?, files}` |
-| `POST /v1/update-ref` | `ref`, `new`, `old?` | `{ok: true, actual: new}` or `{ok: false, actual}` |
-| `POST /v1/check` | `sha`, `cmd?` (default `["node", "--test"]`), `env?` `{NAME: value}`, `deps?` (a snapshot name), `extra_files?` `{path: content}`, `latency_seconds?`, `suite_timeout_seconds?` (300), `test_timeout_ms?` (60000), `all_read_sets?` (false), `trace?` (false), `only_files?` `[path]`, `tree_manifest?` (false) | `{sha, green, tests, failures, failing_tests: [{file, name, message}], failing_files, passing_files, read_set, read_sets, passing_read_sets, read_depths, stack_files, output_excerpt, suite_seconds, ci_seconds, timed_out, network, read_maps?, tree?}` |
-| `GET /healthz` | | `{ok, git, node, network}` (503 when git or node is missing) |
-| `GET /version` | | `{version, api_version, git_sha}` (`git_sha`: the image's commit, `unknown` when the build did not say) |
-
-- **squash** fetches `change.ref` from the change's remote, then lands `merge_base(head, onto)..head` on `onto` as one commit whose only parent is `onto` (`git merge-tree --write-tree --merge-base`, then `commit-tree`). `files` is `changed_files(onto, sha)` when clean and the conflicted paths otherwise. `change.base` is optional and never changes the merge (every harness policy merges from `git merge-base head onto`); when given, `change_files` is the task's own write set `base..head`, as the harness logs on `task.commit`.
-- **Merge tiers** (squash and compose; never revert). git's line merge runs first. When it conflicts and `structural_merge` is on (the default), the merge is run again with Mergiraf as the merge driver for exactly the conflicted paths (anchored literal patterns in the request's attributes file; union patterns still win). The retry happens only when every conflicted path has an extension Mergiraf parses (TypeScript, JavaScript, JSON, YAML, TOML, Rust, Go, Python and the other code types in `STRUCTURAL_EXTENSIONS`, `src/git/rules.rs`; Markdown is left out on purpose) and none needs escaping. Its result is kept only when git reports it clean and none of those files holds a `<<<<<<<` or `>>>>>>>` marker line; otherwise git's conflict stands. A clean squash says which tier merged it: `resolved: "textual"` or `"structural"`. The caller's pre-land check runs on a structural result like on any other: a structural merge compiles more often than it is right (below). Each decision is logged with `tier` (`structural`, or `agent` when the conflict goes back). `structural_merge: false` gives the harness's behaviour. Without Mergiraf on `PATH` the driver fails, git reports the conflict, and the squash is a plain conflict. Mergiraf keeps a small copy of each attempt for `mergiraf review` in the runner user's cache directory, which is scratch like the rest of the disk.
-- **hunks** (on a conflict) are the conflict blocks of git's merge, read from its conflicted tree: `{path, onto, change}`, `onto` being the target's side and `change` the change's, at most 8 blocks of at most 2,000 characters a side. A `|||||||` base section is dropped; a conflict without markers (modify/delete) has no hunk.
-- **Read maps** (`trace`, `only_files`, `tree_manifest`; `src/check/trace/`, `per_file.rs`, `discover.rs`, `tree.rs`). With `trace: true` every test file runs in its own process tree under `strace -f -ff --seccomp-bpf -y -e trace=%file,%process,chdir,fchdir` (one log per process; strace wraps bubblewrap, so a traced file runs in the same loopback namespace), at most `available_parallelism` files at once within `suite_timeout_seconds`. The files are the suite's own: node lists them (`fs.globSync` over `cmd`'s patterns, or node's default test patterns, without `node_modules`), so globs match exactly as the suite's. The per-file results fold into the usual report (a file that left no junit report fails as `(the test file did not report)`), plus `read_maps: {status: "traced" | "unavailable", reason?, environment, files: [{file, passed, tests, failures, seconds, timed_out, traced, reads, probes, dirs, packages, hashes}]}`: checkout-relative paths the file read (opened, stat'ed, accessed, exec'ed), probed (looked up and missed: `ENOENT`/`ENOTDIR`) and listed (`O_DIRECTORY` opens); installed packages it loaded (anything under a `node_modules/<pkg>`, inside the checkout or the snapshot linked above it, collapses to the package); and the blob id of every read file of the tree. `environment` (node version and image commit) keys the maps. `tree: {commit, extra_files, blobs}` is the checked tree's manifest (`git ls-tree -r`, extra files hashed with `hash-object`), sent when traced or with `tree_manifest: true`. Where strace is missing or not permitted (`/healthz` says `tracing: false`), a traced check runs untraced and says why in `read_maps.reason`. **Evidence read sets.** A traced check with `all_read_sets` reports, for the engine's evidence rule (`v2-evidence.ts`), `passing_files`/`failing_files` from the per-file runs (every file that ran, a file without test cases included), each passing file's observed read set in `passing_read_sets` (the file, every path it read or probed, each directory it listed and each package it loaded as a `dir/` entry), and `read_sets_complete: true` only when every file that ran was traced; untraced checks keep the static import closures with `read_sets_complete: false`, which the engine ignores under `evidence_read_sets: complete`. `only_files` runs just those files (with `cmd`'s node options, patterns replaced; files missing from the tree are skipped, an empty list is a green check of nothing), traced or not. Measured overhead and the method: `research/test-impact/README.md`, "Read maps in the runner".
-- **compose** is the queue's batch build: each item is squashed onto the last clean commit, a conflicting item is skipped, `head` is the last clean commit (or `base`). Without `message`, an item's commit message is `"<task>\n\nTask: <task>\n"`.
-- **revert** is the beanstalk policy's revert: a 3-way merge with `commit` as base, `onto` as ours and `commit^1` as theirs, committed on `onto`. It also serves the leave-one-out probes. With `to`, theirs is `to` instead: every commit in `to..commit` is undone at once (v2's red-window reset sends `commit` = `onto` = the sprout head, which gives exactly `to`'s tree and never conflicts).
-- Every clean result (squash, each composed item, revert) is pushed to `refs/beanstalk/candidates/<sha>` on the trunk, so a later `check` or `update-ref` on any runner instance can fetch it by name. Identical requests within one second build the identical commit; when another request has already created its candidate ref, the push still counts as done.
-- **update-ref** is `git push --force-with-lease=<ref>:<old>`; the server re-checks `old` under its ref lock. `old` absent or `null` moves the ref unconditionally (the harness's `update_ref` without `old`); the all-zero sha means create only. A stale lease returns `{ok: false, actual}` with the ref's current value (`null`: absent). It is idempotent: when the ref already points at `new` the call succeeds whatever `old` says, so a retry after a lost response is safe.
-- **check** is the harness's `CI.run`: the commit is written to a fresh directory, `extra_files` are added, and `cmd` runs there as an argv (never through a shell; it must run `node`) with the reporter flags put right after `node`: `node --test-timeout=<ms> --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=<file> <the rest of cmd>`. Node expands the test globs itself, extglobs included (fastify's `test/!(listen.5).test.js`). The suite runs with `CI=1`, without the runner's `NODE_OPTIONS*`, `NODE_TEST*` and `GIT_*`, and with the request's `env` on top (at most 32 upper-case names; `PATH`, `HOME`, `CI`, `GIT_*`, `LD_*`, `NODE_TEST*` and `BWRAP*` are refused). `deps` names a dependency snapshot of the image: its `node_modules` is linked one level above the checkout, where Node's resolution finds it (the harness links the arena's snapshot above every worktree the same way); a name the image lacks is a `400`. Nothing is installed at check time, so suites run offline and `suite_seconds` never includes an install.
-- **network**: the container keeps internet egress (git must reach Artifacts), so each suite runs inside `bwrap --unshare-user --unshare-net`: a network namespace with only `lo`, so tests may listen on and connect to local ports (fastify's do) and nothing outside answers. `SUITE_NETWORK` decides what happens where the kernel refuses unprivileged user namespaces (Docker's default seccomp profile does): `auto` (default) runs the suite on the host's network and logs a warning at start, `loopback` refuses every check, `host` never isolates. Every check response and `/healthz` report the network the suite got (`loopback` or `host`). Field names are `CIResult`'s (`output_excerpt` is `CIResult.output`). `failing_files` is `null` when the suite crashed or timed out before the reporter finished. `read_sets`, `read_depths` and `stack_files` are filled only for a red run with failing files, as in `ci.py`; `read_depths` keeps the harness's breadth-first key order. With `all_read_sets: true`, `passing_read_sets` holds every passing test file's import closure too (the gateway's targeted landing check); otherwise it is empty. After the suite the request is held for `latency_seconds` (emulated CI latency: the slot stays busy) and `ci_seconds` covers fetch, checkout, suite and latency.
-- `union_paths` are gitattributes patterns, each written as `<pattern> merge=union`. The harness's beanstalk preset is `["CHANGELOG.md", "CHANGELOG*.md", "**/CHANGELOG.md"]`; the queue preset sends none. `merge_driver` is `"git"` (default, the harness) or `"mergiraf"` (`* merge=mergiraf`, with union patterns still winning).
-
-Errors are `{code, message}`: `400 invalid_request` (the message names the field), `422 unknown_commit` (not reachable from the trunk's branches or candidate refs, after a second look 2 s later; the gateway retries it for `check` and `update-ref`, which are idempotent), `422 unknown_ref`, `422 no_merge_base`, `422 root_commit`, `502 remote_failed` (git's message, token redacted), `504 timeout`, `500 internal` (details only in the logs).
-
-## Git and tokens
-
-- One bare cache per trunk remote: `$WORK_DIR/<sha256(url)[:32]>.git`, created atomically on first use. A request that misses a commit first fetches only that commit's candidate ref (`refs/beanstalk/candidates/<sha>`, as a pattern refspec so an absent ref matches nothing); only if the commit is still missing does it mirror the trunk's `refs/heads/*` (every agent's branch) and `refs/beanstalk/candidates/*` with `--prune`. A commit missing after both is looked for once more after 2 s, without the lock held: it is usually a candidate another instance pushed moments earlier, and the remote is eventually consistent. A change is fetched by its named ref into `refs/beanstalk/fetched/<digest>`. The runner never asks a remote for a bare sha (Artifacts' fetch-by-sha is unverified); a commit reachable only by sha is reported as `unknown_commit`.
-- Fetches into a cache are serialised by a per-cache lock; merges and commits only add objects and run concurrently. Per-request files (the attributes file, a throwaway index, the checkout, the junit report) live in `$WORK_DIR/jobs/<n>/` and are deleted after the request; `jobs/` is cleared at start.
-- The token reaches git as `http.extraHeader=Authorization: Bearer <token>` through `GIT_CONFIG_COUNT`/`GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n`, the environment form of `git -c`: not in argv (where `ps` shows it to every process), never on disk, never logged. Git's stderr is redacted before it reaches an error or a log line, and `Token`'s `Debug` prints a placeholder. URLs with embedded credentials are refused.
-- Every git command runs with `GIT_CONFIG_NOSYSTEM=1`, `GIT_CONFIG_GLOBAL=/dev/null`, `GIT_TERMINAL_PROMPT=0`, `LC_ALL=C`, the inherited `GIT_*` variables removed, and a timeout (2 min local, 5 min remote). Child processes run in their own process group; a timeout sends SIGTERM to the group and SIGKILL after 3 s, and a cancelled request kills its group. Once a child exits, its output readers get 2 s to reach end of file, then whatever is left of its group is killed: a test that leaves a helper running with the suite's stdout no longer turns a green suite into a 300 s timeout. A descendant that left the group (`setsid`) escapes the kill; its pipes are abandoned after 5 s and it lives until the instance stops.
-- The image's entrypoint is `tini`, so processes orphaned to PID 1 (a killed suite's grandchildren) are reaped instead of staying zombies, and SIGTERM reaches the runner.
-
-## Run locally
-
-```bash
-# From the repo root. file:// remotes are for local use only; production allows https.
-PORT=8080 WORK_DIR=/tmp/runner-work REMOTE_SCHEMES=https,file cargo run -p runner
-
-curl -s localhost:8080/healthz
-curl -s localhost:8080/v1/squash -H 'content-type: application/json' -d '{
-  "repo": "file:///tmp/trunk.git", "token": "local",
-  "onto": "<sha on the trunk>", "message": "Task title\n\nTask: t001\n",
-  "change": {"repo": "file:///tmp/fork.git", "token": "local", "ref": "refs/heads/task/t001"},
-  "union_paths": ["CHANGELOG.md", "CHANGELOG*.md", "**/CHANGELOG.md"]
-}'
+```
+RunDO (one per repository engine or benchmark run)
+  └─ RUNNER.getByName(instance) ─▶ Runner (Container DO, port 8080) ─▶ runner binary
+                                                                          └─ git fetch/push ─▶ Artifacts (HTTPS)
 ```
 
-The image (build context is the repo root; nothing is pushed):
+## What it does
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /v1/squash` | Land a bean's change on a line as one commit. git's line merge first; on a conflict, a retry with Mergiraf for the conflicted code files (`structural_merge`). Answers `clean` with the commit, or `conflict` with the files and hunks |
+| `POST /v1/compose` | Squash several changes in order onto a base, skipping the ones that conflict |
+| `POST /v1/revert` | Revert a commit (or every commit back to `to`) on a line |
+| `POST /v1/update-ref` | Move a ref with a lease (`--force-with-lease`); idempotent |
+| `POST /v1/check` | Check out a commit and run its test suite (`node --test` by default) in a loopback-only network namespace; optionally trace each test file's reads for read maps |
+| `GET /healthz`, `GET /version` | Tool and network status; image commit and wire-contract version |
+
+Each request carries the Artifacts remote and a short-lived token minted by the gateway for that job. Tokens reach git through `GIT_CONFIG_*` environment variables, never argv, disk or logs. The wire contract is versioned: `API_VERSION` in `src/app.rs` and `RUNNER_API_VERSION` in `packages/gateway/src/runner/runner-transport.ts` must change together. The full request and response fields, error codes, git cache behaviour, harness parity and measurements are in [31-gateway-engine-internals.md](../../../docs/claude-opus/31-gateway-engine-internals.md), appendix.
+
+## The image
+
+- Debian trixie (`linux/amd64`, the only platform Cloudflare Containers run) with git, `tini` as PID 1, `bubblewrap` (suite network isolation) and `strace` (read-map tracing).
+- Node 25.8.1 and Mergiraf 0.20.0, pinned release downloads verified by SHA-256. Mergiraf is GPL-3.0 and runs only as that separate, unmodified binary.
+- Dependency snapshots of the benchmark arenas under `/opt/arena-deps`, installed at build time from `research/real-arena/*/deps/`, so checks never install anything.
+- The `runner` binary, running as the unprivileged user `runner` with `/work` as scratch.
+
+## Build
+
+[`Dockerfile`](Dockerfile) builds with the repository root as context (the Cargo workspace and `Cargo.lock` must be visible; the root `.dockerignore` keeps the rest out). `RUST_VERSION` (default 1.96.0) pins the toolchain; Rust compiles natively on the build host and links for `x86_64-unknown-linux-gnu`, with cargo-chef caching dependencies, so Apple Silicon builds avoid emulation.
 
 ```bash
 docker buildx build --platform linux/amd64 -f packages/gateway/container/Dockerfile -t gitstalk-runner:dev .
 docker run --rm -p 8080:8080 gitstalk-runner:dev
 ```
 
+[`docker-with-git-sha.sh`](docker-with-git-sha.sh) is the Docker wrapper Wrangler uses when deploying the gateway (`WRANGLER_DOCKER_BIN`, set by `pnpm env:deploy`). It adds `--build-arg GIT_SHA=…` to `docker build`: the last commit that touched this crate, the Cargo workspace files, the arena lockfiles or `.dockerignore`, with `-dirty` for uncommitted changes. A deploy that does not change the runner keeps the same image. `GIT_SHA` in the environment overrides it; `/version` reports it as `git_sha`.
+
+## How the gateway drives it
+
+- `Runner` (`packages/gateway/src/runner/runner-container.ts`) extends `Container` from `@cloudflare/containers`: `defaultPort` 8080, `sleepAfter` 120 s, internet egress on (git must reach Artifacts), and env `PORT`, `WORK_DIR=/work`, `REMOTE_SCHEMES=https`, `RUST_LOG` (the gateway's `LOG_LEVEL`).
+- `wrangler.jsonc` declares the class with image `./container/Dockerfile`, `image_build_context: "../.."`, `instance_type: "standard-4"` and `max_instances: 48`.
+- A `RunDO` addresses instances by name: a committer for squashes and ref updates, CI slots for validations, and one pre-land sandbox per bean in check, leased from `RunnerCapacity`.
+- `runner-client.ts` speaks the API; `runner-transport.ts` checks `/version` before an instance's first job, waits and retries while Cloudflare has no capacity, and maps errors.
+
+## Configuration
+
 | Variable | Default | Meaning |
 |---|---|---|
-| `PORT` | `8080` | listen port |
-| `WORK_DIR` | `/work` | caches and scratch (ephemeral) |
-| `REMOTE_SCHEMES` | `https` | URL schemes a request may use (`https`, `file`) |
-| `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `gitstalk-runner`, `runner@gitstalk.invalid` | identity of the commits it creates |
-| `RUST_LOG` | `info` | log filter (JSON lines on stdout); the gateway sets it to its `LOG_LEVEL` |
-| `GITSTALK_GIT_SHA` | `unknown` | the image's commit, reported by `/version` (set from the `GIT_SHA` build arg) |
-| `DEPS_DIR` | `/opt/arena-deps` | dependency snapshots a check may name (`<name>/node_modules`) |
-| `SUITE_NETWORK` | `auto` | the suite's network: `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
-| `CLOUDFLARE_DEPLOYMENT_ID` | | logged at start |
+| `PORT` | `8080` | Listen port |
+| `WORK_DIR` | `/work` | Bare-repo caches and per-request scratch |
+| `REMOTE_SCHEMES` | `https` | URL schemes a request may name (`https`, `file`) |
+| `COMMIT_AUTHOR_NAME`, `COMMIT_AUTHOR_EMAIL` | `gitstalk-runner`, `runner@gitstalk.invalid` | Identity of the commits it creates |
+| `DEPS_DIR` | `/opt/arena-deps` | Dependency snapshots a check may name |
+| `SUITE_NETWORK` | `auto` | `loopback`, `host`, or `auto` (loopback when the kernel allows it) |
+| `RUST_LOG` | `info` | Log filter (JSON lines on stdout) |
+| `GITSTALK_GIT_SHA` | `unknown` | Image commit, from the `GIT_SHA` build arg |
 
-**Image version.** `docker build --build-arg GIT_SHA=<sha>` stamps the image (the last layer only, read at run time, so the binary is not rebuilt). Wrangler's container config has only fixed `image_vars`, so the gateway's `pnpm -F @gitstalk/gateway deploy` runs `wrangler deploy` with `WRANGLER_DOCKER_BIN=./container/docker-with-git-sha.sh`, which adds `--build-arg GIT_SHA=…` to Wrangler's `docker build`: the last commit that touched `packages/gateway/container`, `Cargo.toml` or `Cargo.lock` (with `-dirty` for uncommitted changes there), so a deploy that does not change the runner keeps the same image and rolls no instances. `GIT_SHA=<x>` in the environment overrides it. A plain `wrangler deploy` still works and reports `unknown`.
+## Develop
 
-The build compiles Rust natively on the build host and links for `x86_64-unknown-linux-gnu` (cargo-chef caches dependencies), so Apple Silicon builds do not run rustc under emulation. Node and Mergiraf are pinned release downloads verified by SHA-256. The image is about 123 MB compressed and 390 MB on disk (Node 124 MB, Mergiraf 79 MB).
+```bash
+cargo test -p runner        # unit, router, property and parity tests; remotes are local bare repos
+pnpm rust:check             # fmt, clippy -D warnings and tests for every crate
+PORT=8080 WORK_DIR=/tmp/runner-work REMOTE_SCHEMES=https,file cargo run -p runner
+```
 
-## Parity with the harness
+The suite tests need Node 25 on `PATH` and the structural tests need `mergiraf`; without them those tests return early and say so on stderr.
 
-Measured, not assumed: the tests in `tests/check.rs`, `tests/merge.rs` and `tests/update_ref.rs` assert values produced by the harness's own `CI.run` and `Git.squash_onto` on the arena (`tests/fixtures/arena.bundle`, built by `research/arena/materialize.py`: `main` plus the reference commits of t001, t002, t005 and t040). For example, t001's acceptance test on the base gives 82 tests, 1 failure and the same 47-file read set with the same import depths in the same order; compose of t001, t040 and t005 gives clean, conflict on `src/billing/service.ts`, clean; t005 onto t002 conflicts on `CHANGELOG.md` without union and is clean with it.
+## Contributing
 
-The read-set analysis (`import_depths`, `resolve_import`, `list_files`, `stack_files`, `parse_junit`, `_excerpt`) is ported to Rust rather than shipped as a JS helper: it runs in the same process as the check with no second runtime to keep in step, and its parity is pinned by the golden tests above. It keeps Python's semantics where they matter: `posixpath.normpath` and `os.path.realpath`/`relpath`, universal newlines, `str.strip()` whitespace, and truncation by characters.
-
-Known differences, all deliberate:
-
-- `git merge-tree` runs with `-z`, so a path with spaces at its ends or with unusual characters comes back exactly; the harness's line mode strips or quotes such names. Arena paths are unaffected.
-- Union attributes come from a per-request `core.attributesFile` instead of `.git/info/attributes`. Both are read for merges; in-tree `.gitattributes` would differ (the harness reads its base checkout, the bare cache reads none), and the arena has none.
-- Commit identity, timestamps and therefore commit ids differ from a local run; results, files and test outcomes do not.
-- The container runs in UTC with Node 25.8.1; the laptop harness inherits the host's time zone and Node. The arena pins `en-US` and uses ISO dates, so its tests do not depend on either.
-- `failing_tests` never carries the failure `body` (the harness drops it in most paths too).
-
-## The structural tier, measured
-
-Replayed on 2026-10-05 through this runner (release build, Mergiraf 0.20.0) from the recorded races in `research/race/runs/*/work/agents` (real-agent runs only; replay and `_test` runs left out). Each `merge.conflict` event was rebuilt from the bean's worktree: the bean's head is the first parent of the merge commit whose second parent is the event's `onto`. 379 events; 139 could not be rebuilt (no such merge, mostly the queue's merges of main and reworks that never committed); 240 distinct (bean, onto) pairs remained. Each was squashed with `structural_merge: false` and then with the tier on (union paths as the run's config), and every structural result was checked with `/v1/check` against both sides (a result is *sound* when it fails no test that neither side failed).
-
-| | Cloud races (`cf-*`) | Local races | All |
-|---|---|---|---|
-| Textual conflicts reproduced | 102 | 119 | 221 (19 pairs merged clean even without the tier) |
-| Clean after the structural tier, no markers | 55 (54%) | 61 (51%) | 116 (52%) |
-| Of those, sound | 30 | 23 | 53 (24% of conflicts; 35 fully green) |
-
-So the tier turns half of the conflicts into candidates, and about half of those are right. The rest are semantic conflicts that a line conflict used to stop and the pre-land check now catches as a red: all 31 structural merges of `src/db/migrations/index.ts` were unsound (two beans each add a `migration0006`; Mergiraf keeps both imports under one name and one array entry, a duplicate binding that fails every suite), against 14 of 29 for `src/billing/invoice.ts`, 14 of 21 for `src/billing/handlers.ts` and 7 of 7 for `src/billing/service.ts`. Of the beans dropped for "unresolved conflict" in `cf-v23-sonnet-12-s7` (t010, t022, t024, t036) and `cf-v2-sonnet-12-s7-r3` (t006, t007, t010), only t036 had every replayed conflict merged soundly; t022 had one of two; t010's and t024's merged unsoundly (migrations and invoice); t006's and t007's stayed conflicts. The tier is safe only because the check runs on its result.
-
-## Fastify on the runner, measured (staging, 2026-10-07)
-
-The fastify suite (2,107 tests at the end of 8 replay tasks, `network: loopback` on every check) against GitHub Actions' numbers for the same suite (job about 50 s, suite step about 32 s, 4-vCPU runner):
-
-| Instance | Suite (`suite_seconds`) | Whole check on the runner (`ci_seconds`: fetch, checkout, suite) | Run |
-|---|---|---|---|
-| `standard-2` (1 vCPU, live today) | 84 to 144 s, median about 90 s | final check 106 to 128 s | `research/race/runs/staging-fastify-replay-4-s7` |
-| `standard-4` (4 vCPU) | 35 to 43 s (one 59 s), median about 40 s | 42 to 93 s, median about 58 s; final check 56 to 64 s | `research/race/runs/staging-fastify-replay-s4-4-s7` |
-
-`node --test` runs `availableParallelism() - 1` files at once, so on one vCPU it runs them one by one; a fair pairing with Actions' 4-vCPU runners needs `standard-4` (an owner decision: it is the runner class for every run, about four times the vCPU cost per instance). The shop arena's suite is unaffected either way.
-
-## Notes for the gateway (`Runner` Container class)
-
-- `defaultPort = 8080`; image `./container/Dockerfile` with `image_build_context: "../.."`. Start at `instance_type: "standard-1"`.
-- Allow egress to the Artifacts host only (`enableInternet = false` plus `setAllowedHosts`).
-- Requests are synchronous: a check holds its request for checkout, the suite (up to `suite_timeout_seconds`) and `latency_seconds`; give the DO's fetch a deadline above their sum.
-- When Cloudflare cannot start an instance ("Maximum number of running container instances exceeded", or a 429 or 503), the gateway's client waits and retries itself, 5 to 20 s at a time (spread by the instance name) for about 4 minutes, logging each wait (`runner capacity exhausted, waiting`), before the engine sees a retryable failure. Before this, those failures spent the engine's per-job attempts in about 90 s and dropped beans (`cf-v2-sonnet-12-s7`, 2026-10-03).
-- Checks run agent-written code as the same user as git, and a running git process's environment (holding its token) is readable through `/proc` by that code. Send checks read-scoped tokens, and keep the committer instance, which holds write tokens, free of checks.
-- `update-ref` needs a write token for the trunk; squash, compose and revert need one too (they push candidate refs). Change refs only need read tokens for the fork.
-- Reap `refs/beanstalk/candidates/*` with the forks after a run.
-- Unverified: that Artifacts accepts pushes to refs outside `refs/heads/` and `refs/tags/` (the plan's `refs/beanstalk/candidates/*`). The live smoke test should push one; if Artifacts refuses, move candidates under `refs/heads/` (the format in `RefName::candidate`, `src/git/ids.rs`), which the trunk fetch already mirrors.
-- `extra_files` paths are relative to the repo root after the harness's `_strip_app` (the arena's `app/` prefix removed); absolute paths and `..` are refused.
-
-## Tests
-
-`pnpm rust:check` (or `cargo test -p runner`) runs unit tests beside the code, integration tests through the router (`tests/`), and property tests: ref-name validation against `git check-ref-format`, path normalisation, junit parsing, redaction, and, with real git, "squash of disjoint edits is always clean and keeps both sides" and "union merge keeps every changelog entry", plus conflict-hunk parsing. `tests/version.rs` covers `/version` and the contract header; `src/git/cache_tests.rs` the candidate-first fetch, the mirror fallback and the second look; `src/process.rs` the exit grace. `tests/structural.rs` covers the tier: a same-line import conflict lands as `structural`, the flag turns it off, Markdown and unsolvable conflicts stay with the agent with their hunks. Remotes in tests are local bare repositories over `file://`. The suite tests need Node 25 on `PATH`, and the structural tests that expect a resolution need `mergiraf`; without them they return early and say so on stderr.
+See [CONTRIBUTING.md](../../../CONTRIBUTING.md), and run `pnpm check` at the root before you open a pull request.
